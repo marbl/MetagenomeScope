@@ -11,7 +11,7 @@
 	we modify GraphViz to somehow take a bogus
 	entry in a .gv (DOT) file and copy it, verbatim, to XDOT. So, we'd
 	give each node (contig) a dna_length, dna_fwdseq, and dna_revseq
-	input (self* explanatory; note that some file formats, e.g. GML,
+	input (self-explanatory; note that some file formats, e.g. GML,
 	might not contain all this info (we'll have to adjust the JS user
 	interface according to the assembly graph input file format; maybe
 	send that along as a bogus graph property, in a similar method?)),
@@ -28,7 +28,7 @@ for that xdot file name. (This is a lot of work for a small payoff, so IDK.)
 We might also want to show progress of connected components (e.g. 20/123
 laid out) to user in the JS UI.
 
-* Provide user with time estimate, instead of using dot * v? We can base this
+* Provide user with time estimate, instead of using dot -v? We can base this
 off number of nodes/edges, etc.
 
 * Highlight *all* bubbles/ropes/chains/cycles, etc., and then highlight
@@ -45,12 +45,12 @@ facilitate the user cycling through the xdot files by size (provide a
 
 * Lay out the graph horizontally/at arbitrary angles. DONE.
 	* TODO: Have this configurable by the user (text entry or selection
-	 drop* down box for limited number of angles, with default of
+	 drop-down box for limited number of angles, with default of
 	 90 degrees CCW or 270 degrees CW)
 
 * Look into how GraphViz converts inches to pixels. See if we can manage to
 factor INCHES_TO_PIXELS into the position layout of the graph (=50 works
-fine, but we should support scaling the entire graph * *  not just nodes * * 
+fine, but we should support scaling the entire graph -- not just nodes --
 with larger or smaller factors).
 
 * Improve efficiency of reading+parsing the xdot file. Really, the file
@@ -64,7 +64,7 @@ use.
 or more specifically through an individual connected component. Will
 definitely have to factor in node size here. THIS IS IMPORTANT!
 
-* Make finding bubbles/ropes an inherently symmetric process * *  for LastGraph
+* Make finding bubbles/ropes an inherently symmetric process -- for LastGraph
 files, where we have the reverse complement of each node given, whenever we
 discover a bubble or rope we also tag the RC of that bubble or rope (i.e.
 the same nodes, but flipped in the opposite direction) as a bubble/rope.
@@ -80,7 +80,7 @@ achievable with, say, GML files where we don't know the RC of a given node)
 
 * Account for edge multiplicity in the graph (via altering edge with in
 Cytoscape.js, and I think there's probably a way to do something similar in
-GraphViz * *  we'd want to do this in both environments, so the GraphViz
+GraphViz -- we'd want to do this in both environments, so the GraphViz
 layout can support more separation for thicker edges) by displaying edges
 with greater multiplicity values as thicker, as done in Figure 3 in the
 Assembly Algorithms paper by Miller, Koren et al.
@@ -105,7 +105,7 @@ support (GFA and FASTG), and also maybe for the Trinity FASTA file
 	 (or, uh, just normal ropes/bubbles) to the graph.
 
 * Look into "efficient bubble detection" (Fasulo et al. 2002). To be fair,
-this might be for assemblers * *  I'd guess that for assembly graphs already
+this might be for assemblers -- I'd guess that for assembly graphs already
 prepared, finding bubbles isn't that difficult. (Although longer bubbles
 may be a more difficult case.)
 	* Pattern detection in the python script is already pretty
