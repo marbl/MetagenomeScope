@@ -1,11 +1,25 @@
 # Features to add to the web application
 
 * Display underlying DNA sequence of contig/selected group of contigs
+    * e.g. for a frayed rope, [ATCG|TACG]CGAT[ATAC|ATTG]
+    * ...for a bubble,      ATCG[CGAT|CGTT]TA
+    * ...for a chain,       ATCG-CGTT-TTCG
+    * ...for a cycle,       ...-ATCG-CGAT-...
 	* To get this working, I'll need to extract more information in the
 	python script. Or I can just get the web tool to look at the
 	assembly data file. But either way, I need to maintain a mapping of
 	contig IDs to DNA sequences, and ideally I wouldn't create a new
 	file to do this in: that would be silly for huge assembly files.
+    * Use a neo4j graph database to store both biological data/metadata
+      (e.g. DNA sequences of contigs, edge multiplicity, contig length in
+      bp) and xdot layout data (parsing the xdot file from within
+      collate\_clusters.py?), enabling us to just pass the database file to
+      the parser interface.
+        * So would we create multiple databases (one per component), or just
+        one for the entire graph (and then split by components in the JS
+        UI?) I guess the second option would support better switching
+        between components, particularly depending on the sort of searches
+        neo4j supports.
 	
 	* OKAY, here's an idea:
 	we modify GraphViz to somehow take a bogus
@@ -48,6 +62,9 @@ facilitate the user cycling through the xdot files by size (provide a
 	* TODO: Have this configurable by the user (text entry or selection
 	 drop-down box for limited number of angles, with default of
 	 90 degrees CCW or 270 degrees CW)
+    * TODO: To make further use of this, add a (functional) horizontal
+     scrollbar to traverse the graph in addition to dragging. We could even
+     get keyboard support for this, maybe?
 
 * Look into how GraphViz converts inches to pixels. See if we can manage to
 factor INCHES\_TO\_PIXELS into the position layout of the graph (=50 works
@@ -78,6 +95,17 @@ achievable with, say, GML files where we don't know the RC of a given node)
       	 groups, but it should be alright)
 
 * Hear back on how to interpret node size from GML files.
+
+* Show multiple assembly files for the same data at once?
+    * See [this Cytoscape.js demo](http://js.cytoscape.org/demos/310dca83ba6970812dd0/) for an example.
+
+* File more issue reports with Cytoscape.js. Remaining errors:
+    * unbundled-bezier causing the need for control-point-distances attributes for every element in the graph
+        * I need to actually work on getting this in a Minimal Working Example; for all I know this could just be some elaborate bug I accidentally introduced with data(cpd).
+    * Documentation might be wrong re: the edge weights supported by
+      Floyd-Warshall and Bellman-Ford algorithms (it should say "numeric,"
+      instead of "positive numeric" -- would need to verify this and then
+      submit a small pull request, I guess).
 
 * Account for edge multiplicity in the graph (via altering edge with in
 Cytoscape.js, and I think there's probably a way to do something similar in

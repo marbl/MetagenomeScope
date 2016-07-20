@@ -8,40 +8,10 @@
  *  -parsing the xdot file in python and using that to generate javascript
  *   code that'll be used to serve up a new html page for a specific asm
  *   file???
+ *  -Using a graph database as another type of input?
  * Using Cytoscape.js' batch controls, adds corresponding
  * nodes, edges, and clusters of nodes and edges to the
  * graph instance.
- *
- * Features to add (TODO) --
- * -Use a higher pixels-per-inch factor for nodes? 72 ppi?
- * -BAMBUS-esque horizontal graph config (should be achievable by modifying
- *  the python script, and by modifying the xdot parser to detect rotation
- *  and rotate coordinates in gv2cyPoint accordingly).
- * -Once that's done, use a horizontal scrollbar to traverse the graph in
- *  addition to dragging? We could even get keyboard support for that.
- *
- * -Show underlying DNA sequence of a contig/selected group of
- *  contigs/cluster
- *  (e.g. for a frayed rope, [ATCG|TACG]CGAT[ATAC|ATTG]
- *        for a bubble,      ATCG[CGAT|CGTT]TA
- *        for a chain,       ATCG-CGTT-TTCG
- *        for a cycle,       ...-ATCG-CGAT-...)
- * -We can achieve stuff like the above by using metadata in .xdot files
- * -various bandage-esque features
- *
- * Other things TODO --
- * -File a bunch of issue reports with all the bugs I've found in
- *  Cytoscape.js so far
- *      REMAINING ERRORS:
- *      -unbundled-bezier causing the need for control-point-distances
- *       attributes for every element in the graph
- *       (I need to actually work on getting this in a Minimal Working
- *       Example; for all I know this could just be some elaborate bug I
- *       accidentally introduced with data(cpd)) TODO
- *      -Shouldn't Floyd-Warshall and Bellman-Ford support negative edge
- *       weights? If so, update documentation accordingly (right now their
- *       descriptions for their weight() functions just say "positive
- *       numeric" edge weights). Really minor issue, though
  */
 
 // These sets of five points (in the format [[x1, y1], [x2, y2], ...])
