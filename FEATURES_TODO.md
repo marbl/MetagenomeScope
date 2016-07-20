@@ -28,8 +28,9 @@ for that xdot file name. (This is a lot of work for a small payoff, so IDK.)
 We might also want to show progress of connected components (e.g. 20/123
 laid out) to user in the JS UI.
 
-* Provide user with time estimate, instead of using dot -v? We can base this
-off number of nodes/edges, etc.
+* In collate\_clusters.py:
+  Provide user with time estimate, instead of using dot -v? We can base this
+  off number of nodes/edges, etc.
 
 * Highlight *all* bubbles/ropes/chains/cycles, etc., and then highlight
 everything at once? Pro is more info displayed, con is it'll look really
@@ -49,7 +50,7 @@ facilitate the user cycling through the xdot files by size (provide a
 	 90 degrees CCW or 270 degrees CW)
 
 * Look into how GraphViz converts inches to pixels. See if we can manage to
-factor INCHES_TO_PIXELS into the position layout of the graph (=50 works
+factor INCHES\_TO\_PIXELS into the position layout of the graph (=50 works
 fine, but we should support scaling the entire graph -- not just nodes --
 with larger or smaller factors).
 
@@ -103,6 +104,9 @@ support (GFA and FASTG), and also maybe for the Trinity FASTA file
 	 From there, we can remove the chains in question from the graph
 	 and add their elements as "LongRopes" or "LongBubbles"
 	 (or, uh, just normal ropes/bubbles) to the graph.
+    * Wrote the "long rope" pseudocode. Need to finish writing the "long
+      bubble" pseudocode tomorrow, then implement detection of long
+      ropes/bubbles. (TODO)
 
 * Look into "efficient bubble detection" (Fasulo et al. 2002). To be fair,
 this might be for assemblers -- I'd guess that for assembly graphs already
