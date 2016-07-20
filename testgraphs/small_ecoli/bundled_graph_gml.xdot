@@ -1,0 +1,11 @@
+digraph asm {
+	graph [_draw_="c 9 -#fffffe00 C 7 -#ffffff P 4 -7200 -7200 -7200 7200 7200 7200 7200 -7200 ",
+		bb="0,0,0,0",
+		size="200,200",
+		xdotversion=1.7
+	];
+	node [label="\N"];
+	edge [headport=n,
+		tailport=s
+	];
+}

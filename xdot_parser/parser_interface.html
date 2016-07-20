@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Cytoscape .xdot Parser Test</title>
+        <!-- Load cytoscape.js' library -->
+        <!-- TODO, use the minimized version for release -->
+        <script src='cytoscape2.7.6.js'></script>
+    </head>
+	<style>
+		#cy {
+			width: 100%;
+			height: 90%;
+			position:absolute;
+			top: 40px;
+			left: 0px;
+            overflow-x: scroll;
+		}
+        #controls {
+            background-color: #AAAAAA;
+            width: 100%;
+            height: 40px;
+            position: absolute;
+			top: 0px;
+			left: 0px;
+        }
+        .withgap {
+            position:relative;
+            margin-left: 5em;
+        }
+        .grayText {
+            color: #999999;
+        }
+	</style>
+	<body>
+		<!-- Declare div environment for the graph (will be used
+	  		by loadxdot()) -->
+		<div id="cy"></div>
+		<script src='xdot2cy.js'></script>
+        <div id="controls">
+		    <input type='file' id='xdotselector' />
+		    
+            <button type='button' onclick='loadxdot()'>
+		    	Load xdot file
+		    </button>
+
+            <input type='text' id='nodeselector' class="withgap grayText"
+                 value='Enter node ID(s)'
+                 onfocus="if (this.value == 'Enter node ID(s)') {
+                    this.value = ''; this.style.color = '#000000'; }"
+                 onblur="if (this.value == '') {
+                    this.value = 'Enter node ID(s)';
+                    this.style.color='#999999'; }"
+                 onkeypress="searchWithEnter(event);" />
+
+            <input type='button' onclick='searchForNode()' value="Search" />
+
+            <input type='button' onclick='fitGraph()' class="withgap"
+            value="Fit Graph to Nodes" />
+
+            <!-- Value of this button will be toggled as all nodes in graph
+                 are collapsed/uncollapsed -->
+            <input type='button' id='collapseButton'
+                onclick='startCollapseAll()' class="withgap"
+                value="Collapse All Node Groups" />
+
+            <div id='status'></div>
+        </div>
+	</body>
+</html>

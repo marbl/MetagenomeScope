@@ -1,0 +1,77 @@
+digraph asm {
+	edge [headport=n,tailport=s];
+subgraph cluster_C11362_20205 {
+	11362 [label="",height=1,width=1,shape=house];
+	20205 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C7863_7077 {
+	7863 [label="",height=1,width=1,shape=house];
+	7077 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_R5838_14933_3230_10656_10676 {
+	5838 [label="",height=1,width=1,shape=invhouse];
+	14933 [label="",height=1,width=1,shape=house];
+	3230 [label="",height=1,width=1,shape=house];
+	10656 [label="",height=1,width=1,shape=house];
+	10676 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_C1906_6921 {
+	1906 [label="",height=1,width=1,shape=house];
+	6921 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+	3796 [label="",height=1,width=1,shape=invhouse];
+	2174 [label="",height=1,width=1,shape=house];
+	15476 [label="",height=1,width=1,shape=house];
+	9371 [label="",height=1,width=1,shape=invhouse];
+	17537 [label="",height=1,width=1,shape=house];
+	13707 [label="",height=1,width=1,shape=invhouse];
+	11355 [label="",height=1,width=1,shape=invhouse];
+	20604 [label="",height=1,width=1,shape=house];
+	12459 [label="",height=1,width=1,shape=house];
+	15293 [label="",height=1,width=1,shape=house];
+	1011 [label="",height=1,width=1,shape=invhouse];
+	13933 [label="",height=1,width=1,shape=house];
+	19889 [label="",height=1,width=1,shape=invhouse];
+	7526 [label="",height=1,width=1,shape=house];
+	15933 [label="",height=1,width=1,shape=invhouse];
+	11362 -> 20205
+	20205 -> 3796
+	3796 -> 7863
+	3796 -> 17537
+	7863 -> 7077
+	7077 -> 2174
+	7077 -> 9371
+	2174 -> 5838
+	5838 -> 3230
+	3230 -> 10656
+	3230 -> 10676
+	10676 -> 15476
+	14933 -> 3230
+	9371 -> 2174
+	9371 -> 5838
+	13707 -> 3796
+	6921 -> 11355
+	6921 -> 11362
+	1906 -> 6921
+	20604 -> 1906
+	20604 -> 12459
+	15293 -> 1011
+	15293 -> 7526
+	15293 -> 19889
+	15293 -> 20604
+	1011 -> 13933
+	1011 -> 15293
+	1011 -> 19889
+	13933 -> 1011
+	13933 -> 19889
+	19889 -> 15293
+	15933 -> 15293
+}

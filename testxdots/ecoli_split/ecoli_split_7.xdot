@@ -1,0 +1,28 @@
+digraph asm {
+	graph [_draw_="c 9 -#fffffe00 C 7 -#ffffff P 4 0 0 0 83 102 83 102 0 ",
+		bb="0,0,102,83",
+		xdotversion=1.7
+	];
+	node [label="\N"];
+	edge [headport=n,
+		tailport=s
+	];
+	subgraph cluster_Y150 {
+		graph [_draw_="c 7 -#000000 C 7 -#ffb90f P 4 8 8 8 75 94 75 94 8 ",
+			bb="8,8,94,75",
+			fillcolor=darkgoldenrod1,
+			style=filled
+		];
+		150		 [_draw_="c 7 -#000000 C 7 -#a3a3a3 P 5 16.5 33.62 42 16 67.5 33.62 67.48 62.13 16.52 62.13 ",
+			fillcolor=gray64,
+			height=0.70833,
+			label="",
+			pos="42,41.5",
+			shape=invhouse,
+			style=filled,
+			width=0.70833];
+		150:s -> 150:n		 [_draw_="c 7 -#000000 B 7 42 15.5 56.5 3 85.5 3 85.5 39 85.5 68.81 65.61 73.94 50.54 67.72 ",
+			_hdraw_="S 5 -solid c 7 -#000000 C 7 -#000000 P 3 52.36 64.73 42 62.5 48.71 70.7 ",
+			pos="e,42,62.5 42,15.5 56.5,3 85.5,3 85.5,39 85.5,68.812 65.612,73.937 50.541,67.718"];
+	}
+}

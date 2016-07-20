@@ -1,0 +1,17 @@
+digraph asm {
+	size="200,200";
+	node [];
+	edge [headport=n,tailport=s];
+	4 [label="",height=1,width=1,shape=invhouse];
+subgraph cluster_C1_2_3 {
+	1 [label="",height=1,width=1,shape=invhouse];
+	2 [label="",height=1,width=1,shape=invhouse];
+	3 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+	1 -> 2
+	2 -> 3
+	3 -> 4
+	3 -> 1
+}

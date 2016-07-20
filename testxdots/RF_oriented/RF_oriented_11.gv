@@ -1,0 +1,278 @@
+digraph asm {
+	edge [headport=n,tailport=s];
+subgraph cluster_C4781_4361 {
+	4781 [label="",height=1,width=1,shape=invhouse];
+	4361 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C7756_6566 {
+	7756 [label="",height=1,width=1,shape=invhouse];
+	6566 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C6240_9043 {
+	6240 [label="",height=1,width=1,shape=house];
+	9043 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C14126_17669_11838 {
+	14126 [label="",height=1,width=1,shape=invhouse];
+	17669 [label="",height=1,width=1,shape=house];
+	11838 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C3555_2467 {
+	3555 [label="",height=1,width=1,shape=house];
+	2467 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C3607_1725 {
+	3607 [label="",height=1,width=1,shape=invhouse];
+	1725 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C8809_8497 {
+	8809 [label="",height=1,width=1,shape=house];
+	8497 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C4030_11353 {
+	4030 [label="",height=1,width=1,shape=house];
+	11353 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C5130_14995_12775 {
+	5130 [label="",height=1,width=1,shape=house];
+	14995 [label="",height=1,width=1,shape=invhouse];
+	12775 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C956_5316 {
+	956 [label="",height=1,width=1,shape=house];
+	5316 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C10759_5527 {
+	10759 [label="",height=1,width=1,shape=house];
+	5527 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C10610_16322 {
+	10610 [label="",height=1,width=1,shape=house];
+	16322 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+	4725 [label="",height=1,width=1,shape=invhouse];
+	12940 [label="",height=1,width=1,shape=house];
+	5831 [label="",height=1,width=1,shape=invhouse];
+	2029 [label="",height=1,width=1,shape=house];
+	16649 [label="",height=1,width=1,shape=house];
+	2656 [label="",height=1,width=1,shape=invhouse];
+	363 [label="",height=1,width=1,shape=house];
+	8894 [label="",height=1,width=1,shape=house];
+	3491 [label="",height=1,width=1,shape=house];
+	9559 [label="",height=1,width=1,shape=house];
+	4990 [label="",height=1,width=1,shape=invhouse];
+	7830 [label="",height=1,width=1,shape=invhouse];
+	10336 [label="",height=1,width=1,shape=invhouse];
+	11257 [label="",height=1,width=1,shape=invhouse];
+	7880 [label="",height=1,width=1,shape=invhouse];
+	11047 [label="",height=1,width=1,shape=house];
+	5901 [label="",height=1,width=1,shape=house];
+	20299 [label="",height=1,width=1,shape=house];
+	11552 [label="",height=1,width=1,shape=house];
+	18728 [label="",height=1,width=1,shape=invhouse];
+	21475 [label="",height=1,width=1,shape=house];
+	2775 [label="",height=1,width=1,shape=invhouse];
+	9790 [label="",height=1,width=1,shape=house];
+	10427 [label="",height=1,width=1,shape=house];
+	12687 [label="",height=1,width=1,shape=invhouse];
+	19658 [label="",height=1,width=1,shape=house];
+	3122 [label="",height=1,width=1,shape=invhouse];
+	6347 [label="",height=1,width=1,shape=house];
+	11660 [label="",height=1,width=1,shape=house];
+	14814 [label="",height=1,width=1,shape=house];
+	13170 [label="",height=1,width=1,shape=invhouse];
+	16308 [label="",height=1,width=1,shape=invhouse];
+	5490 [label="",height=1,width=1,shape=invhouse];
+	8126 [label="",height=1,width=1,shape=house];
+	11592 [label="",height=1,width=1,shape=invhouse];
+	7186 [label="",height=1,width=1,shape=invhouse];
+	17188 [label="",height=1,width=1,shape=invhouse];
+	13177 [label="",height=1,width=1,shape=house];
+	15294 [label="",height=1,width=1,shape=house];
+	9713 [label="",height=1,width=1,shape=invhouse];
+	9721 [label="",height=1,width=1,shape=house];
+	14655 [label="",height=1,width=1,shape=house];
+	14684 [label="",height=1,width=1,shape=house];
+	6517 [label="",height=1,width=1,shape=invhouse];
+	16877 [label="",height=1,width=1,shape=invhouse];
+	16620 [label="",height=1,width=1,shape=house];
+	6643 [label="",height=1,width=1,shape=invhouse];
+	11796 [label="",height=1,width=1,shape=house];
+	17125 [label="",height=1,width=1,shape=house];
+	13712 [label="",height=1,width=1,shape=invhouse];
+	13851 [label="",height=1,width=1,shape=invhouse];
+	16088 [label="",height=1,width=1,shape=house];
+	16046 [label="",height=1,width=1,shape=invhouse];
+	16853 [label="",height=1,width=1,shape=house];
+	18044 [label="",height=1,width=1,shape=house];
+	18784 [label="",height=1,width=1,shape=house];
+	18109 [label="",height=1,width=1,shape=house];
+	18931 [label="",height=1,width=1,shape=invhouse];
+	7270 [label="",height=1,width=1,shape=invhouse];
+	17031 [label="",height=1,width=1,shape=house];
+	15332 [label="",height=1,width=1,shape=house];
+	12496 [label="",height=1,width=1,shape=invhouse];
+	9049 [label="",height=1,width=1,shape=house];
+	16865 [label="",height=1,width=1,shape=house];
+	7236 [label="",height=1,width=1,shape=invhouse];
+	8645 [label="",height=1,width=1,shape=house];
+	14254 [label="",height=1,width=1,shape=house];
+	12942 [label="",height=1,width=1,shape=invhouse];
+	12948 [label="",height=1,width=1,shape=house];
+	16370 [label="",height=1,width=1,shape=invhouse];
+	4781 -> 4361
+	4361 -> 4725
+	4361 -> 16370
+	4725 -> 12940
+	4725 -> 12942
+	12940 -> 7756
+	7756 -> 6566
+	6566 -> 5831
+	6566 -> 14254
+	5831 -> 2029
+	5831 -> 7236
+	5831 -> 8645
+	2029 -> 16649
+	2029 -> 16865
+	16649 -> 6240
+	6240 -> 9043
+	9043 -> 2656
+	2656 -> 363
+	2656 -> 12496
+	363 -> 8894
+	363 -> 14126
+	363 -> 15332
+	363 -> 17031
+	14126 -> 17669
+	17669 -> 11838
+	11838 -> 3491
+	11838 -> 18931
+	3491 -> 9559
+	3491 -> 18109
+	3491 -> 18784
+	9559 -> 4990
+	9559 -> 16853
+	4990 -> 7830
+	4990 -> 13851
+	4990 -> 16046
+	4990 -> 16088
+	7830 -> 10336
+	7830 -> 13851
+	10336 -> 11257
+	11257 -> 3555
+	11257 -> 11796
+	11257 -> 17125
+	3555 -> 2467
+	2467 -> 3607
+	2467 -> 6517
+	2467 -> 6643
+	2467 -> 16620
+	2467 -> 16877
+	3607 -> 1725
+	1725 -> 7880
+	1725 -> 11047
+	1725 -> 14655
+	11047 -> 8809
+	11047 -> 14655
+	11047 -> 14684
+	8809 -> 8497
+	8497 -> 4030
+	8497 -> 9713
+	8497 -> 9721
+	4030 -> 11353
+	11353 -> 5901
+	11353 -> 20299
+	20299 -> 11552
+	20299 -> 15294
+	11552 -> 5130
+	5130 -> 14995
+	14995 -> 12775
+	12775 -> 18728
+	12775 -> 21475
+	18728 -> 21475
+	21475 -> 2775
+	21475 -> 13177
+	2775 -> 9790
+	2775 -> 10427
+	2775 -> 17188
+	9790 -> 10427
+	10427 -> 12687
+	10427 -> 19658
+	12687 -> 19658
+	19658 -> 956
+	19658 -> 7186
+	956 -> 5316
+	5316 -> 3122
+	5316 -> 5490
+	5316 -> 11592
+	3122 -> 6347
+	3122 -> 10759
+	6347 -> 10759
+	10759 -> 5527
+	5527 -> 11660
+	5527 -> 14814
+	11660 -> 14814
+	14814 -> 10610
+	14814 -> 13170
+	14814 -> 16308
+	10610 -> 16322
+	16308 -> 13170
+	5490 -> 3122
+	5490 -> 8126
+	11592 -> 3122
+	11592 -> 5490
+	15294 -> 5130
+	9713 -> 4030
+	14655 -> 8809
+	14684 -> 8809
+	6517 -> 3607
+	16877 -> 3607
+	16877 -> 6517
+	16877 -> 16620
+	16620 -> 3607
+	11796 -> 3555
+	11796 -> 17125
+	17125 -> 3555
+	13712 -> 11257
+	13851 -> 10336
+	16088 -> 7830
+	16088 -> 16046
+	16853 -> 4990
+	18044 -> 9559
+	18784 -> 9559
+	7270 -> 14126
+	17031 -> 14126
+	12496 -> 2656
+	9049 -> 2656
+	16865 -> 6240
+	7236 -> 2029
+	8645 -> 2029
+	14254 -> 5831
+	12942 -> 7756
+	12942 -> 12940
+	12948 -> 7756
+}

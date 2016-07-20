@@ -1,0 +1,75 @@
+When we check if a node is valid rope:
+	(assuming the start node only has 1 outgoing node)
+
+	-We pass one of the possible start nodes to is_valid_rope().
+	Changed this part up (from passing in the single middle node)
+	to make the code easier to understand. DONE.
+
+	-We extend the checking for middle, start, and end nodes to include
+	a variable amount of nodes in each category (>= 1 in middle,
+	>= 2 in start, and >= 2 in end).
+
+	-First, detect the first middle node (m1) by getting
+	s.outgoing_nodes[0].
+
+	-Get all start nodes by getting m1.incoming_nodes. s is one of these.
+	If the list of start nodes (herein referred to as s_nodes) has a len
+	of less than 2, reject this rope (return False, None).
+	-Verify that each starting node has only one outgoing edge, to m1.
+	If any starting node has an extraneous outgoing edge, reject the rope.
+
+	-Now we know that, regardless of the composition of the middle nodes,
+	no chain can exist involving m1 that doesn't start AT m1.
+	Also we know that the start nodes are valid (mostly; we still need
+	to verify each node in the rope is distinct, but that's done later).
+
+	NOW we can check the middle nodes.
+	-The middle nodes, in particular, require three cases:
+		-The middle nodes form a Chain that hasn't been created yet
+			This is probably the easiest case. We can get the
+			ending nodes of the rope by finding the last node in
+			the "hypothetical" chain here and getting its
+			outgoing nodes. 
+		-The middle nodes form a Chain that has been created
+			Same as above -- the rope's ending nodes are the
+			Chain's last node's outgoing nodes. (The last node
+			in the chain is accessible by
+			[chainname].nodes[len(chainname.nodes) - 1])
+			Also, we do something important: we record the Chain
+			object for later. If this rope turns out to be valid,
+			then we'll want to mark this Chain to not be drawn
+			in collate_clusters (collate_clusters will
+			automatically override the Chain's nodes' .group
+			property, but we still want to prevent drawing the
+			Chain by itself).
+		-There's only one middle node (m1)
+			If neither of the above cases are true, we assume
+			this.
+			The ending nodes of the rope are just m1's outgoing
+			nodes. Actually, this might be the easiest case...
+	In any case, we store the middle nodes in a list (let's call it
+	m_nodes). We also store the ending nodes in another list, called
+	e_nodes.
+
+	-NOW we can check the ending nodes.
+	If the list of ending nodes contains less than 2 nodes, reject this
+	rope. (An example cause of this is, say, an extraneous incoming edge
+	incident to the single ending node; or the chain of middle nodes
+	just ends without any outgoing edges.)
+	If any of the ending nodes has more than 1 incoming node (i.e.
+	not just the last middle node) OR has an outgoing edge incident
+	upon any of the other nodes within the rope (verifiable by
+	iterating through each ending node's outgoing_nodes list),
+	reject this rope.
+
+	-Construct a composite list of nodes by combining s_nodes, m_nodes,
+	and e_nodes. If the set of this composite has a length unequal
+	to the composite's original length, then the nodes in the Rope are
+	not all distinct and we must reject the Rope.
+
+	-If any of the s_nodes or e_nodes have been seen_in_collapsing,
+	reject this rope. (We don't check m_nodes, since those could be
+	in a chain and that's fine)
+
+	-If we've made it here, then the rope is valid. Delete the sub-Chain
+	if necessary (indicated earlier on), and return (True, composite).

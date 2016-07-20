@@ -1,0 +1,32 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_Cc30_c29_c28_c27 {
+	c30 [label="",height=1.53571,width=1.53571,shape=house];
+	c29 [label="",height=1.53571,width=1.53571,shape=house];
+	c28 [label="",height=1.53571,width=1.53571,shape=house];
+	c27 [label="",height=1.53571,width=1.53571,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_Cc26_c25_c24_c23 {
+	c26 [label="",height=1.53571,width=1.53571,shape=house];
+	c25 [label="",height=1.53571,width=1.53571,shape=house];
+	c24 [label="",height=1.53571,width=1.53571,shape=house];
+	c23 [label="",height=1.53571,width=1.53571,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+	c22 [label="",height=1.53571,width=1.53571,shape=house];
+	c31 [label="",height=1.53571,width=1.53571,shape=house];
+	c30 -> c29
+	c29 -> c28
+	c28 -> c27
+	c27 -> c22
+	c23 -> c22
+	c24 -> c23
+	c25 -> c24
+	c26 -> c25
+	c31 -> c26
+	c31 -> c30
+}

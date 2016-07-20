@@ -1,0 +1,21 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_Cc19_c18_c17 {
+	c19 [label="",height=1.53571,width=1.53571,shape=house];
+	c18 [label="",height=1.53571,width=1.53571,shape=house];
+	c17 [label="",height=1.53571,width=1.53571,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+	c15 [label="",height=1.53571,width=1.53571,shape=house];
+	c16 [label="",height=1.53571,width=1.53571,shape=house];
+	c20 [label="",height=1.53571,width=1.53571,shape=house];
+	c21 [label="",height=1.53571,width=1.53571,shape=house];
+	c19 -> c18
+	c18 -> c17
+	c17 -> c15
+	c17 -> c16
+	c20 -> c19
+	c21 -> c19
+}

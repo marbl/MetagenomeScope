@@ -1,0 +1,76 @@
+To detect a "chain cycle" (a path of 1 or more nodes that converges upon
+itself, with no intermediate unrelated incoming or outgoing edges except for
+incoming edges to the start of the path or outgoing edges from the end of the
+path):
+
+Given a start node "s":
+
+1. Check to make sure s has >= 1 incoming and >= 1 outgoing edge. If not,
+return False.
+
+2. Construct cycle_list, a list of all the nodes seen thus far in the
+tentative cycle. Append s to cycle_list.
+
+3. If the start node has > 1 outgoing edge, then it must be either a
+node with a loop to itself (which counts as a cycle) or not a cycle.
+Return True or False accordingly.
+
+4. Set the current node, "curr", to s.outgoing_edge[0]. At this point, we know
+that s has both >= 1 outgoing edges and < 2 outgoing edges, so we can say with
+certainty that s has only one outgoing edge.
+
+5. While True:
+	-If the current node has != 1 incoming edges, is not a basic Node, or
+	 has already been seen_in_collapsing, then this is not a valid node in
+	 the cycle. Furthermore, since we haven't looped back to the start
+	 yet, there is no cycle starting at s, so we can return False, None.
+	
+	-If the current node has != 1 outgoing edges, it indicates the "end"
+	 of the chaincycle (chainsicle?). If the current node has an outgoing
+	 edge to the start node, then a cycle exists of cycle_list + end node!
+	 Otherwise (none of the end node's outgoing edges go to the start
+	 node, or the end node just doesn't have any outgoing edges at all)
+	 the linear path we identified was not a cycle. (It was a chain.)
+	 Return True or False accordingly.
+
+	 (An interesting TODO here is to return something
+	 indicating the presence of the chain, to save time, but note that our
+	 chain calculations also traverse backwards (so it might just be more
+	 feasible not to bother with that for now). We could also set up
+	 another TODO for is_valid_chain when it detects cycles.)
+
+	 A question that might pop up is "why don't we check for the end node
+	 having an outgoing edge to any of the other nodes within cycle_list?
+	 Sure, that would mean we'd identify cycles not containing s, but
+ 	 wouldn't that save the time of traversing the length of a complete
+	 cycle, just to ignore that cycle for not containing s?" At surface
+	 value, this makes sense, but it falls apart when you realize that we
+	 check each node's incoming as well as outgoing nodes. If, say, we
+	 have this series of nodes:
+
+	 1 -> 2
+	 2 -> 3
+	 3 -> 4
+	 4 -> 2
+
+	 There's a cycle of (2, 3, 4), and you'd ask "why do we have to
+	 traverse this twice -- once from 1, and once from 2?" The answer is
+	 that we don't. That's because, by checking that each node in the
+	 cycle (sans the start node) has exactly 1 incoming node, we would
+	 immediately identify node 2 (when traversing starting from node 1) 
+	 as an invalid part of the cycle, and return False as a result. So we
+	 only had to traverse 2 + 3 = 5 nodes, instead of 4 + 4 = 8 nodes.
+
+	 (...part of the reason I wrote that all out is so that when I
+	 inevitably forget that when I'm looking at this code later, I'll
+	 have this as a reference)
+
+	-If we're here, we know the current node has one incoming edge (its
+	 predecessor, i.e. the last element added to cycle_list) and one
+	 outgoing edge. If its one outgoing node is s
+	 (detectable via curr.outgoing_nodes[0] == s), then we've found a
+	 cycle consisting of the cycle_list + this end node. Return True.
+
+	-If we're *here*, then we have a valid next node to check in the
+	 cycle. Append curr to cycle_list, and then set curr to its one
+	 outgoing node.
