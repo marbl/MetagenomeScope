@@ -221,13 +221,12 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
             x.group = new_cycle
         nodes_to_draw.append(new_cycle)
     elif len(outgoing) > 1:
-        # Identify bubbles of depth 1 (1 node -> m adj nodes -> 1 node)
-        bubble_validity, bubble_end = Bubble.is_valid_bubble(n)
+        # Identify bubbles
+        bubble_validity, composite_nodes = Bubble.is_valid_bubble(n)
         if bubble_validity:
             # Found a bubble!
-            new_bubble = Bubble(n, outgoing, bubble_end)
-            composite = [n] + outgoing + [bubble_end]
-            for x in composite:
+            new_bubble = Bubble(*composite_nodes)
+            for x in composite_nodes:
                 x.seen_in_collapsing = True
                 x.group = new_bubble
             nodes_to_draw.append(new_bubble)
@@ -279,21 +278,14 @@ for n in nodes_to_draw_individually:
 # nodes and a list of node groups)
 connected_components = []
 for n in nodes_to_draw:
-    if not n.seen_in_ccomponent:
+    if not n.seen_in_ccomponent and not n.is_subsumed:
         # If n is actually a group of nodes: since we're representing groups
         # here as clusters, without any adjacencies themselves, we have to
         # run DFS on the nodes within the groups of nodes to discover them.
         node_list = []
         node_group_list = []
-        if type(n) == Bubble:
-            if n.start.seen_in_ccomponent:
-                continue
-            node_list = dfs(n.start, [])
-        elif type(n) == Rope:
-            if n.starts[0].seen_in_ccomponent:
-                continue
-            node_list = dfs(n.starts[0], [])
-        elif type(n) == Chain or type(n) == Cycle:
+        if type(n) != Node:
+            # n is a node group
             if n.nodes[0].seen_in_ccomponent:
                 continue
             node_list = dfs(n.nodes[0], [])

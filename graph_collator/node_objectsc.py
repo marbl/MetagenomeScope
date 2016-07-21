@@ -33,6 +33,10 @@ class Node(object):
         self.seen_in_dfs = False
         self.seen_in_ccomponent = False
         self.seen_in_collapsing = False
+        # If we decide to subsume a node group into another node group,
+        # thus removing the initial node group, we use this flag to
+        # mark that node group to not be drawn.
+        self.is_subsumed = False
         
     # Calculates the "height" of this node. Returns a 2-tuple of the
     # node height and an int indicating any rounding up/down done
@@ -124,36 +128,27 @@ class Bubble(Node):
        node which points to >= 2 "middle" nodes, all of which in turn point
        to one "end" node."""
 
-    # Initializes the Bubble, given a start node, a list of middle nodes, and
-    # an end node.
-    def __init__(self, s, middle_nodes, e):
-        self.bp = s.bp + e.bp
-        self.id_string = "B%s" % (s.id_string)
-        # Set each individual node as already_drawn, so we don't draw nodes
-        # multiple times accidentally
-        for m in middle_nodes:
-            self.bp += m.bp
-            self.id_string += '_' + m.id_string
-        self.id_string += '_' + e.id_string
-        # Once we've "combined" the sub-nodes of this Bubble to get their
-        # total length (in bp) and a unique ID string, we call the superclass
-        # constructor to initialize this object. Not really the cleanest way
-        # to go about this, but it should work alright.
+    # Initializes the Bubble, given a list of nodes comprising it.
+    def __init__(self, *nodes):
+        self.chain_len = 0
+        self.bp = 0
+        self.id_string = "B"
+        self.nodes = []
+        for n in nodes:
+            self.chain_len += 1
+            self.bp += n.bp
+            self.id_string += "%s_" % (n.id_string)
+            self.nodes.append(n)
+        self.id_string = self.id_string[:-1] # remove last underscore
         super(Bubble, self).__init__(self.id_string, self.bp, False)
-        
-        self.start = s
-        self.middle_nodes = middle_nodes
-        self.end = e
 
     def node_info(self):
         # This is a pretty hack-ish solution. We actually return the node
         # information for all of the components of the bubble, as one string
         # (and stored in a subgraph starting with cluster).
         info = "subgraph cluster_%s {\n" % (self.id_string)
-        info += self.start.node_info()
-        for m in self.middle_nodes:
-            info += m.node_info()
-        info += self.end.node_info()
+        for n in self.nodes:
+            info += n.node_info()
         info += BUBBLE_STYLE + "}\n"
         return info
 
@@ -164,6 +159,8 @@ class Bubble(Node):
     # NOTE that this assumes that s has > 1 outgoing edges.
     @staticmethod
     def is_valid_bubble(s):
+        # TODO rework to detect variable amount of nodes in each divergent
+        # path
         middle_nodes = s.outgoing_nodes
         e = None
         # Verify all "middle" nodes in the Bubble connect to a single end node
@@ -200,84 +197,117 @@ class Bubble(Node):
         for o in e.outgoing_nodes:
             if o == s or o in middle_nodes or o == e:
                 return False, None
-        return True, e
+        return True, composite
 
 class Rope(Node):
-    """A group of nodes collapsed into a Rope. This is defined as two "start"
-       nodes, each of which point to a "middle" node, which points to two
-       "end" nodes.""" 
+    """A group of nodes collapsed into a Rope."""
 
-    # Initializes the Rope, given two start nodes, a middle node, and two
-    # end nodes.
-    def __init__(self, s1, s2, m, e1, e2):
-        self.bp = s1.bp + s2.bp + m.bp + e1.bp + e2.bp
-        self.id_string = "R%s_%s_%s_%s_%s" % (s1.id_string, s2.id_string, \
-                m.id_string, e1.id_string, e2.id_string)
+    # Initializes the Rope, given a list of nodes comprising it.
+    def __init__(self, *nodes):
+        self.chain_len = 0
+        self.bp = 0
+        self.id_string = "R"
+        self.nodes = []
+        for n in nodes:
+            self.chain_len += 1
+            self.bp += n.bp
+            self.id_string += "%s_" % (n.id_string)
+            self.nodes.append(n)
+        self.id_string = self.id_string[:-1] # remove last underscore
         super(Rope, self).__init__(self.id_string, self.bp, False)
-
-        self.starts = (s1, s2)
-        self.middle = m
-        self.ends = (e1, e2)
-
+     
     def node_info(self):
-        # This is a pretty hack-ish solution. We actually return the node
-        # information for all of the components of the rope, as one string
-        # (and stored in a subgraph starting with cluster).
         # NOTE: Edge info is still stored with the component nodes. When we
         # do DFS, we detect all nodes, including components. (We don't detect
         # ropes/bubbles/chains, because here they don't have any adjacencies.)
         # So we write edge info of component nodes only once, and we do it
         # outside the cluster (so as not to mess things up).
         info = "subgraph cluster_%s {\n" % (self.id_string)
-        for s in self.starts:
-            info += s.node_info()
-        info += self.middle.node_info()
-        for e in self.ends:
-            info += e.node_info()
+        for n in self.nodes:
+            info += n.node_info()
         info += FRAYEDROPE_STYLE + "}\n"
         return info
 
-    # Returns a 2-tuple of (True, a 5-tuple of all the nodes in the Rope (in
-    # order (s1, s2, m, e1, e2))) if a Rope defined with the given middle node
-    # would be a valid Rope. Returns a 2-tuple of (False, None) if such a Rope
-    # would be invalid. Assumes s has only 1 outgoing node.
+    # Returns a 2-tuple of (True, a list of all the nodes in the Rope)
+    # if a Rope defined with the given start node would be a valid Rope.
+    # Returns a 2-tuple of (False, None) if such a Rope would be invalid.
+    # Assumes s has only 1 outgoing node.
     @staticmethod
     def is_valid_rope(s):
-        # Determine "middle" node
-        m = s.outgoing_nodes[0]
-        # Determine all "start" nodes
-        rope_start = m.incoming_nodes
-        if len(rope_start) != 2: return False, None
-        s1, s2 = rope_start
-        # Determine all "end" nodes
-        rope_end = m.outgoing_nodes
-        if len(rope_end) != 2: return False, None 
-        e1, e2 = rope_end
-        # Now that we've determined all the nodes, we can verify certain things
-        # about them
-        composite = [s1, s2, m, e1, e2]
-        # Verify each node in the Rope is distinct
-        # Prevents something weird like one of the starting nodes also being
-        # an ending node or something similarly invalid
-        if len(set(composite)) != len(composite): return False, None
-        # Verify each node in the Rope is a basic Node, not a Bubble/Rope/etc.
-        for n in composite:
-            if type(n) != Node or n.seen_in_collapsing:
+        # Detect the first middle node in the rope
+        m1 = s.outgoing_nodes[0]
+        # Get all start nodes
+        s_nodes = m1.incoming_nodes
+        # A frayed rope must have multiple paths from which to converge to
+        # the "middle node" section
+        if len(s_nodes) < 2: return False, None
+        # Ensure none of the start nodes have extraneous outgoing nodes
+        # (or have been seen_in_collapsing)
+        for n in s_nodes:
+            if len(n.outgoing_nodes) > 1 or n.seen_in_collapsing:
                 return False, None
-        # Ensure starting nodes each only have one outgoing edge.
-        for s in (s1, s2):
-            if len(s.outgoing_nodes) != 1:
-                return False, None
-        # Ensure ending nodes' outgoing edges are not incident upon any of the
-        # other nodes within the rope
-        for e in (e1, e2):
-            for o in e.outgoing_nodes:
-                if o == s1 or o == s2 or o == m or o == e1 or o == e2:
+        # Now we know that, regardless of the middle nodes' composition,
+        # no chain can exist involving m1 that does not start AT m1.
+        # Also we know the start nodes are mostly valid (still need to check
+        # that each node in the rope is distinct, but that is done later
+        # on after we've identified all middle and end nodes).
+
+        # Check the middle nodes
+
+        # Determine if the middle path of the rope is (or could be) a Chain
+        chain_to_subsume = None
+        chain_validity, m_nodes = Chain.is_valid_chain(m1)
+        if not chain_validity:
+            # We could have already grouped the middle nodes of this rope
+            # into a chain, which would be perfectly valid
+            # (Chain.is_valid_chain() rejects Chains composed of nodes that
+            # have already been used in collapsing)
+            if m1.seen_in_collapsing:
+                if type(m1.group) == Chain:
+                    m_nodes = m1.group.nodes
+                    e_nodes = m_nodes[len(m_nodes) - 1].outgoing_nodes
+                    chain_to_subsume = m1.group
+                else:
+                    # if m1 has been grouped into a pattern that isn't a
+                    # chain, don't identify this as a frayed rope
                     return False, None
-            if len(e.incoming_nodes) != 1:
+            # Or we just have a single middle node (assumed if no middle
+            # chain exists/could exist)
+            else:
+                m_nodes = [m1]
+                e_nodes = m1.outgoing_nodes
+        else:
+            # The middle nodes form a chain that has not been "created" yet.
+            # This makes this a little easier for us.
+            e_nodes = m_nodes[len(m_nodes) - 1].outgoing_nodes
+        # Now we have the middle and end nodes of the graph stored.
+
+        # Check ending nodes
+        # The frayed rope's converged middle path has to diverge to
+        # something for it to be a frayed rope
+        if len(e_nodes) < 2: return False, None
+        for n in e_nodes:
+            # Check for extraneous incoming edges, and that the ending nodes
+            # haven't been seen_in_collapsing.
+            if len(n.incoming_nodes) > 1 or n.seen_in_collapsing:
                 return False, None
-        # If we've made it this far, a rope constructed of these nodes would
-        # be valid.
+            for o in n.outgoing_nodes:
+                # We know now that all of the m_nodes (sans m1) and all of the
+                # e_nodes only have one incoming node, but we don't know
+                # that about the s_nodes. Make sure that this frayed rope
+                # isn't cyclical.
+                if o in s_nodes:
+                    return False, None
+
+        # Check the entire frayed rope's structure
+        composite = s_nodes + m_nodes + e_nodes
+        # Verify all nodes in the frayed rope are distinct
+        if len(set(composite)) != len(composite):
+            return False, None
+
+        # If we've made it here, this frayed rope is valid!
+        if chain_to_subsume != None:
+            chain_to_subsume.is_subsumed = True
         return True, composite
 
 class Chain(Node):
@@ -309,10 +339,11 @@ class Chain(Node):
     # from start to end) if a Chain defined at the given start node would be
     # valid. Returns a 2-tuple of (False, None) if such a Chain would
     # be considered invalid.
-    # NOTE that this 1) assumes s has exactly 1 outgoing edge, and 2) finds the
-    # longest possible Chain that includes s.
+    # NOTE that this finds the longest possible Chain that includes s.
     @staticmethod
     def is_valid_chain(s):
+        if len(s.outgoing_nodes) != 1:
+            return False, None
         # Determine the composition of the Chain (if one exists starting at s)
         # First, check to make sure we have the minimal parts of a Chain:
         # a starting node with one outgoing edge to another node, and the other
