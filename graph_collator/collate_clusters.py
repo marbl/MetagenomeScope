@@ -284,7 +284,7 @@ for n in nodes_to_draw:
         # run DFS on the nodes within the groups of nodes to discover them.
         node_list = []
         node_group_list = []
-        if type(n) != Node:
+        if issubclass(type(n), NodeGroup):
             # n is a node group
             if n.nodes[0].seen_in_ccomponent:
                 continue

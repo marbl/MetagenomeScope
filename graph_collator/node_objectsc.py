@@ -123,34 +123,44 @@ class Node(object):
     def __repr__(self):
         return "Node %s" % (self.id_string)
 
-class Bubble(Node):
+class NodeGroup(Node):
+    """A group of nodes, accessible via the .nodes attribute."""
+    
+    def __init__(self, group_prefix, group_style, nodes):
+        """Initializes the node group, given all the Node objects comprising
+        the node group, a prefix character for the group (i.e. 'R' for
+        frayed ropes, 'B' for bubbles, 'C' for chains, 'Y' for cycles),
+        and a GraphViz style setting for the group (generally from
+        graph_config.py)."""
+        
+        self.node_count = 0
+        self.group_style = group_style
+        self.bp = 0
+        self.id_string = "%s" % (group_prefix)
+        self.nodes = []
+        for n in nodes:
+            self.node_count += 1
+            self.bp += n.bp
+            self.id_string += "%s_" % (n.id_string)
+            self.nodes.append(n)
+        self.id_string = self.id_string[:-1] # remove last underscore
+        super(NodeGroup, self).__init__(self.id_string, self.bp, False)
+
+    def node_info(self):
+        info = "subgraph cluster_%s {\n" % (self.id_string)
+        for n in self.nodes:
+            info += n.node_info()
+        info += self.group_style + "}\n"
+        return info
+
+class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble. This consists of one
        node which points to >= 2 "middle" nodes, all of which in turn point
        to one "end" node."""
 
     # Initializes the Bubble, given a list of nodes comprising it.
     def __init__(self, *nodes):
-        self.chain_len = 0
-        self.bp = 0
-        self.id_string = "B"
-        self.nodes = []
-        for n in nodes:
-            self.chain_len += 1
-            self.bp += n.bp
-            self.id_string += "%s_" % (n.id_string)
-            self.nodes.append(n)
-        self.id_string = self.id_string[:-1] # remove last underscore
-        super(Bubble, self).__init__(self.id_string, self.bp, False)
-
-    def node_info(self):
-        # This is a pretty hack-ish solution. We actually return the node
-        # information for all of the components of the bubble, as one string
-        # (and stored in a subgraph starting with cluster).
-        info = "subgraph cluster_%s {\n" % (self.id_string)
-        for n in self.nodes:
-            info += n.node_info()
-        info += BUBBLE_STYLE + "}\n"
-        return info
+        super(Bubble, self).__init__('B', BUBBLE_STYLE, nodes)
 
     # Returns a 2-tuple of True and the nodes comprising the Bubble if a Bubble
     # defined with the given start node is valid.
@@ -255,35 +265,13 @@ class Bubble(Node):
             ch.is_subsumed = True
         return True, composite
 
-class Rope(Node):
+class Rope(NodeGroup):
     """A group of nodes collapsed into a Rope."""
 
     # Initializes the Rope, given a list of nodes comprising it.
     def __init__(self, *nodes):
-        self.chain_len = 0
-        self.bp = 0
-        self.id_string = "R"
-        self.nodes = []
-        for n in nodes:
-            self.chain_len += 1
-            self.bp += n.bp
-            self.id_string += "%s_" % (n.id_string)
-            self.nodes.append(n)
-        self.id_string = self.id_string[:-1] # remove last underscore
-        super(Rope, self).__init__(self.id_string, self.bp, False)
+        super(Rope, self).__init__('R', FRAYEDROPE_STYLE, nodes)
      
-    def node_info(self):
-        # NOTE: Edge info is still stored with the component nodes. When we
-        # do DFS, we detect all nodes, including components. (We don't detect
-        # ropes/bubbles/chains, because here they don't have any adjacencies.)
-        # So we write edge info of component nodes only once, and we do it
-        # outside the cluster (so as not to mess things up).
-        info = "subgraph cluster_%s {\n" % (self.id_string)
-        for n in self.nodes:
-            info += n.node_info()
-        info += FRAYEDROPE_STYLE + "}\n"
-        return info
-
     # Returns a 2-tuple of (True, a list of all the nodes in the Rope)
     # if a Rope defined with the given start node would be a valid Rope.
     # Returns a 2-tuple of (False, None) if such a Rope would be invalid.
@@ -366,30 +354,13 @@ class Rope(Node):
             chain_to_subsume.is_subsumed = True
         return True, composite
 
-class Chain(Node):
+class Chain(NodeGroup):
     """A group of nodes collapsed into a Chain. This is defined as > 1
        nodes that occur one after the other, with no intermediate edges."""
 
     # Initializes the Chain, given all the nodes comprising the chain.
     def __init__(self, *nodes):
-        self.chain_len = 0
-        self.bp = 0
-        self.id_string = "C"
-        self.nodes = []
-        for n in nodes:
-            self.chain_len += 1
-            self.bp += n.bp
-            self.id_string += "%s_" % (n.id_string)
-            self.nodes.append(n)
-        self.id_string = self.id_string[:-1] # remove last underscore
-        super(Chain, self).__init__(self.id_string, self.bp, False)
-
-    def node_info(self):
-        info = "subgraph cluster_%s {\n" % (self.id_string)
-        for s in self.nodes:
-            info += s.node_info()
-        info += CHAIN_STYLE + "}\n"
-        return info
+        super(Chain, self).__init__('C', CHAIN_STYLE, nodes);
 
     # Returns a 2-tuple of (True, a list of all the nodes in the Chain in order
     # from start to end) if a Chain defined at the given start node would be
@@ -494,7 +465,7 @@ class Chain(Node):
         backwards_chain_list.reverse()
         return True, backwards_chain_list + chain_list
 
-class Cycle(Node):
+class Cycle(NodeGroup):
     """A group of nodes collapsed into a Cycle. This is defined as > 1
        nodes that occur one after another with no intermediate edges, where
        the sequence of nodes repeats.
@@ -504,24 +475,7 @@ class Cycle(Node):
 
     # Initializes the Cycle, given all the nodes comprising the chain.
     def __init__(self, *nodes):
-        self.cycle_len = 0
-        self.bp = 0
-        self.id_string = "Y"
-        self.nodes = []
-        for n in nodes:
-            self.cycle_len += 1
-            self.bp += n.bp
-            self.id_string += "%s_" % (n.id_string)
-            self.nodes.append(n)
-        self.id_string = self.id_string[:-1] # remove last underscore
-        super(Cycle, self).__init__(self.id_string, self.bp, False)
-
-    def node_info(self):
-        info = "subgraph cluster_%s {\n" % (self.id_string)
-        for s in self.nodes:
-            info += s.node_info()
-        info += CYCLE_STYLE + "}\n"
-        return info
+        super(Cycle, self).__init__('Y', CYCLE_STYLE, nodes)
 
     # Identifies the simple cycle that "starts at" a given starting node, if
     # such a cycle exists. NOTE that this only identifies cycles without any

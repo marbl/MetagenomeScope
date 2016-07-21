@@ -68,13 +68,6 @@ laid out) to user in the JS UI.
   Provide user with time estimate, instead of using dot -v? We can base this
   off number of nodes/edges, etc.
 
-* Highlight *all* bubbles/ropes/chains/cycles, etc., and then highlight
-everything at once? Pro is more info displayed, con is it'll look really
-confusing and will be super difficult to collapse.
-	* We could also do something like "Make chains as long as possible
-	at the detriment of detecting bubbles/ropes" for each node group
-	type, I suppose, but that might be sort of silly.
-
 * Modify xdot2cy.js to take a folder of xdot files as argument, and
 facilitate the user cycling through the xdot files by size (provide a
 "left/right" button? can refine UI with Dr. Pop and Todd next week.)
@@ -144,19 +137,6 @@ Assembly Algorithms paper by Miller, Koren et al.
 * Write parsers for the other 2 types of assembly files Todd wanted me to
 support (GFA and FASTG), and also maybe for the Trinity FASTA file
 (but honestly I have no idea how to read those).
-
-* Highlight longer bubbles (as seen in the Miller et al. paper)/frayed ropes.
-	* This should be achievable by detecting chains first, and then (for
-	 frayed ropes) checking if using the entire chain as a "middle node"
-	 would work or (for bubbles) checking if a node diverges to multiple
-	 chains/single nodes and then converges to a single node from those
-	 chains.
-	 From there, we can remove the chains in question from the graph
-	 and add their elements as "LongRopes" or "LongBubbles"
-	 (or, uh, just normal ropes/bubbles) to the graph.
-    * Wrote the "long rope" pseudocode. Need to finish writing the "long
-      bubble" pseudocode tomorrow, then implement detection of long
-      ropes/bubbles. (TODO)
 
 * Look into "efficient bubble detection" (Fasulo et al. 2002). To be fair,
 this might be for assemblers -- I'd guess that for assembly graphs already
