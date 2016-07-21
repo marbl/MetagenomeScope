@@ -7,8 +7,8 @@ of this, as compared with other visualization tools, is to show the
 pertinent parts of a graph instead of just displaying the entire graph at once.
 
 To this end, AsmViz highlights certain patterns of contigs in the graph
-(bubbles, frayed ropes, chains, and cycles), splits graphs up by connected
-components (optionally displaying only a certain maximum number of
+(bubbles, frayed ropes, chains, and "linear" cycles), splits graphs up by
+connected components (optionally displaying only a certain maximum number of
 components and/or only displaying components with a certain minimum number
 of contigs), and uses [GraphViz](http://www.graphviz.org/) to lay out each
 component.
@@ -56,7 +56,10 @@ upon trying to overwrite any files in the directory.)
   foobar\_2.xdot, ... for an argument of `foobar` to `-o`.
 * `-d` This optional argument specifies the name of the directory in which
   .xdot/.gv output files will be stored. If no name is specified then the
-  argument of `-o` will be used as the directory name.
+  argument of `-o` will be used as the directory name (to be created or used
+  in the current working directory; note, however,  that it's strongly
+  recommended you explicitly specify an output directory using `-d` to ensure
+  data is being stored in the intended location).
 * `-p` This optional argument preserves DOT files (suffix .gv) in the output
   directory; if this argument is not given, then all .gv files will just be
   deleted after they are used to create their corresponding .xdot file.
