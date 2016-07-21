@@ -41,7 +41,7 @@ Running `collate_clusters.py` will process an assembly graph file so that
 it can be visualized. The syntax for this is
 
 `./collate_clusters.py -i (input file) -o (.xdot/.gv file prefix)
-    [-d (xdot/gv directory name)] [-p] [-w]`
+    [-d (.xdot/.gv directory name)] [-p] [-w]`
 
 The script will produce a directory containing the created .xdot/.gv files.
 (If the directory already exists, it will just place the .xdot/.gv files in
