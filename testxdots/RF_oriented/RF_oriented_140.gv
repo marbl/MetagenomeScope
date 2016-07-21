@@ -1,0 +1,27 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_C12147_8365 {
+	12147 [label="",height=1,width=1,shape=invhouse];
+	8365 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C19237_56_8993 {
+	19237 [label="",height=1,width=1,shape=invhouse];
+	56 [label="",height=1,width=1,shape=house];
+	8993 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+	8985 [label="",height=1,width=1,shape=house];
+	7986 [label="",height=1,width=1,shape=house];
+	11689 [label="",height=1,width=1,shape=house];
+	12147 -> 8365
+	8985 -> 12147
+	8993 -> 12147
+	56 -> 8993
+	19237 -> 56
+	7986 -> 19237
+	11689 -> 19237
+}

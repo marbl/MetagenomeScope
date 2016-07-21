@@ -1,0 +1,17 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_C12065_555_1271 {
+	12065 [label="",height=1,width=1,shape=house];
+	555 [label="",height=1,width=1,shape=invhouse];
+	1271 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+	10480 [label="",height=1,width=1,shape=invhouse];
+	16225 [label="",height=1,width=1,shape=house];
+	12065 -> 555
+	555 -> 1271
+	10480 -> 12065
+	16225 -> 12065
+}

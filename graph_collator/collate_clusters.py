@@ -90,7 +90,7 @@ if asm_fn == "" or output_fn == "":
     raise ValueError("No input and/or output file name provided")
 
 try:
-    os.mkdir(dir_fn)        # TODO sanitize this value? (e.g. for ..)
+    os.makedirs(dir_fn)        # TODO sanitize this value? (e.g. for ..)
 except:
     if not os.path.isdir(dir_fn):
         raise IOError, "%s already exists as file in CWD" % (dir_fn)

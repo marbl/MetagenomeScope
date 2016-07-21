@@ -1,0 +1,97 @@
+digraph asm {
+	edge [headport=n,tailport=s];
+subgraph cluster_C21178_972_2653 {
+	21178 [label="",height=1,width=1,shape=invhouse];
+	972 [label="",height=1,width=1,shape=house];
+	2653 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C9417_9737 {
+	9417 [label="",height=1,width=1,shape=invhouse];
+	9737 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C6003_7645_15899 {
+	6003 [label="",height=1,width=1,shape=invhouse];
+	7645 [label="",height=1,width=1,shape=house];
+	15899 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C6359_4031 {
+	6359 [label="",height=1,width=1,shape=invhouse];
+	4031 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+	5991 [label="",height=1,width=1,shape=house];
+	7163 [label="",height=1,width=1,shape=invhouse];
+	2499 [label="",height=1,width=1,shape=invhouse];
+	14772 [label="",height=1,width=1,shape=invhouse];
+	18547 [label="",height=1,width=1,shape=house];
+	3919 [label="",height=1,width=1,shape=invhouse];
+	18541 [label="",height=1,width=1,shape=invhouse];
+	14465 [label="",height=1,width=1,shape=invhouse];
+	13019 [label="",height=1,width=1,shape=invhouse];
+	9423 [label="",height=1,width=1,shape=invhouse];
+	18840 [label="",height=1,width=1,shape=invhouse];
+	2842 [label="",height=1,width=1,shape=house];
+	4901 [label="",height=1,width=1,shape=house];
+	20634 [label="",height=1,width=1,shape=invhouse];
+	3261 [label="",height=1,width=1,shape=house];
+	17667 [label="",height=1,width=1,shape=house];
+	1221 [label="",height=1,width=1,shape=invhouse];
+	12201 [label="",height=1,width=1,shape=invhouse];
+	13316 [label="",height=1,width=1,shape=invhouse];
+	15742 [label="",height=1,width=1,shape=invhouse];
+	8660 [label="",height=1,width=1,shape=house];
+	11903 [label="",height=1,width=1,shape=house];
+	18907 [label="",height=1,width=1,shape=invhouse];
+	14343 [label="",height=1,width=1,shape=house];
+	18459 [label="",height=1,width=1,shape=house];
+	17543 [label="",height=1,width=1,shape=invhouse];
+	18059 [label="",height=1,width=1,shape=house];
+	21178 -> 972
+	972 -> 2653
+	2653 -> 5991
+	5991 -> 9417
+	5991 -> 9423
+	9417 -> 9737
+	9737 -> 7163
+	7163 -> 2499
+	2499 -> 14772
+	18547 -> 3919
+	18547 -> 14772
+	3919 -> 6003
+	6003 -> 7645
+	7645 -> 15899
+	18541 -> 6003
+	14465 -> 2499
+	13019 -> 7163
+	18840 -> 5991
+	2842 -> 4901
+	2842 -> 20634
+	2842 -> 21178
+	20634 -> 4901
+	3261 -> 2842
+	3261 -> 17667
+	17667 -> 2842
+	1221 -> 3261
+	1221 -> 12201
+	13316 -> 1221
+	13316 -> 15742
+	15742 -> 1221
+	8660 -> 11903
+	8660 -> 13316
+	8660 -> 15742
+	4031 -> 8660
+	4031 -> 18907
+	6359 -> 4031
+	14343 -> 6359
+	18459 -> 6359
+	18459 -> 14343
+	17543 -> 8660
+	18059 -> 8660
+}

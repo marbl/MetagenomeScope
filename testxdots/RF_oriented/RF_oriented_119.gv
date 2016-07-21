@@ -1,26 +1,29 @@
 digraph asm {
+	rotate=90;
 	edge [headport=n,tailport=s];
-subgraph cluster_C7428_11480 {
-	7428 [label="",height=1,width=1,shape=invhouse];
-	11480 [label="",height=1,width=1,shape=house];
+subgraph cluster_C2158_10720 {
+	2158 [label="",height=1,width=1,shape=invhouse];
+	10720 [label="",height=1,width=1,shape=house];
 	style=filled;
 	fillcolor=salmon;
 }
-	8500 [label="",height=1,width=1,shape=house];
-	9211 [label="",height=1,width=1,shape=invhouse];
-	4886 [label="",height=1,width=1,shape=invhouse];
-	20698 [label="",height=1,width=1,shape=invhouse];
-	2924 [label="",height=1,width=1,shape=invhouse];
-	20280 [label="",height=1,width=1,shape=invhouse];
-	6316 [label="",height=1,width=1,shape=invhouse];
-	7761 [label="",height=1,width=1,shape=invhouse];
-	7428 -> 11480
-	8500 -> 7428
-	8500 -> 9211
-	4886 -> 8500
-	4886 -> 20698
-	2924 -> 20698
-	20280 -> 20698
-	6316 -> 4886
-	7761 -> 4886
+	2323 [label="",height=1,width=1,shape=house];
+	8301 [label="",height=1,width=1,shape=invhouse];
+	581 [label="",height=1,width=1,shape=house];
+	6131 [label="",height=1,width=1,shape=house];
+	19985 [label="",height=1,width=1,shape=house];
+	2727 [label="",height=1,width=1,shape=invhouse];
+	10730 [label="",height=1,width=1,shape=invhouse];
+	19146 [label="",height=1,width=1,shape=house];
+	2158 -> 10720
+	10720 -> 2323
+	8301 -> 581
+	8301 -> 2323
+	8301 -> 6131
+	8301 -> 19985
+	2727 -> 2158
+	2727 -> 8301
+	2727 -> 10730
+	2727 -> 19146
+	10730 -> 8301
 }

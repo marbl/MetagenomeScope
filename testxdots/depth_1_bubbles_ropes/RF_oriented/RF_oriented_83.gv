@@ -1,0 +1,50 @@
+digraph asm {
+	edge [headport=n,tailport=s];
+subgraph cluster_C2074_509 {
+	2074 [label="",height=1,width=1,shape=invhouse];
+	509 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C14904_8447_3549 {
+	14904 [label="",height=1,width=1,shape=invhouse];
+	8447 [label="",height=1,width=1,shape=invhouse];
+	3549 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C5003_19915 {
+	5003 [label="",height=1,width=1,shape=invhouse];
+	19915 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+	1640 [label="",height=1,width=1,shape=invhouse];
+	6288 [label="",height=1,width=1,shape=house];
+	10130 [label="",height=1,width=1,shape=invhouse];
+	19944 [label="",height=1,width=1,shape=invhouse];
+	20093 [label="",height=1,width=1,shape=house];
+	21400 [label="",height=1,width=1,shape=invhouse];
+	4776 [label="",height=1,width=1,shape=invhouse];
+	1714 [label="",height=1,width=1,shape=invhouse];
+	308 [label="",height=1,width=1,shape=house];
+	20463 [label="",height=1,width=1,shape=invhouse];
+	21464 [label="",height=1,width=1,shape=invhouse];
+	2074 -> 509
+	3549 -> 1640
+	3549 -> 2074
+	3549 -> 6288
+	3549 -> 10130
+	3549 -> 19944
+	3549 -> 20093
+	3549 -> 21400
+	21400 -> 4776
+	1714 -> 4776
+	8447 -> 3549
+	14904 -> 8447
+	308 -> 14904
+	19915 -> 14904
+	5003 -> 19915
+	20463 -> 14904
+	21464 -> 14904
+}

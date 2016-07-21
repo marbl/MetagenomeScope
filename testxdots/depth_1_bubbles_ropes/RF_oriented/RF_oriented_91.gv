@@ -1,0 +1,48 @@
+digraph asm {
+	edge [headport=n,tailport=s];
+subgraph cluster_C12918_10306 {
+	12918 [label="",height=1,width=1,shape=house];
+	10306 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C1887_11553 {
+	1887 [label="",height=1,width=1,shape=house];
+	11553 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+	4782 [label="",height=1,width=1,shape=invhouse];
+	17163 [label="",height=1,width=1,shape=house];
+	10364 [label="",height=1,width=1,shape=invhouse];
+	17860 [label="",height=1,width=1,shape=house];
+	16321 [label="",height=1,width=1,shape=invhouse];
+	18166 [label="",height=1,width=1,shape=invhouse];
+	18311 [label="",height=1,width=1,shape=invhouse];
+	18522 [label="",height=1,width=1,shape=invhouse];
+	18651 [label="",height=1,width=1,shape=invhouse];
+	13832 [label="",height=1,width=1,shape=invhouse];
+	18789 [label="",height=1,width=1,shape=invhouse];
+	12918 -> 10306
+	4782 -> 12918
+	4782 -> 17163
+	17163 -> 4782
+	17163 -> 10364
+	17163 -> 12918
+	10364 -> 4782
+	11553 -> 10364
+	11553 -> 17163
+	1887 -> 11553
+	17860 -> 1887
+	17860 -> 16321
+	17860 -> 18166
+	16321 -> 17860
+	16321 -> 18166
+	16321 -> 18651
+	18166 -> 1887
+	18166 -> 16321
+	18166 -> 18311
+	18166 -> 18522
+	13832 -> 16321
+	18789 -> 16321
+}

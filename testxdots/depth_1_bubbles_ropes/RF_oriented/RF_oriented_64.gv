@@ -1,0 +1,93 @@
+digraph asm {
+	edge [headport=n,tailport=s];
+subgraph cluster_C9531_6509_5055 {
+	9531 [label="",height=1,width=1,shape=invhouse];
+	6509 [label="",height=1,width=1,shape=house];
+	5055 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C12519_13169 {
+	12519 [label="",height=1,width=1,shape=invhouse];
+	13169 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C20574_4313_3487 {
+	20574 [label="",height=1,width=1,shape=invhouse];
+	4313 [label="",height=1,width=1,shape=house];
+	3487 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C12198_13740_12628 {
+	12198 [label="",height=1,width=1,shape=house];
+	13740 [label="",height=1,width=1,shape=house];
+	12628 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C6802_9233 {
+	6802 [label="",height=1,width=1,shape=house];
+	9233 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C7001_2837 {
+	7001 [label="",height=1,width=1,shape=invhouse];
+	2837 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C13277_4617 {
+	13277 [label="",height=1,width=1,shape=house];
+	4617 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+	12525 [label="",height=1,width=1,shape=invhouse];
+	13188 [label="",height=1,width=1,shape=house];
+	14444 [label="",height=1,width=1,shape=invhouse];
+	10758 [label="",height=1,width=1,shape=house];
+	16130 [label="",height=1,width=1,shape=house];
+	19387 [label="",height=1,width=1,shape=invhouse];
+	10767 [label="",height=1,width=1,shape=invhouse];
+	13133 [label="",height=1,width=1,shape=house];
+	9861 [label="",height=1,width=1,shape=invhouse];
+	15877 [label="",height=1,width=1,shape=invhouse];
+	13899 [label="",height=1,width=1,shape=house];
+	9531 -> 6509
+	6509 -> 5055
+	5055 -> 12519
+	5055 -> 12525
+	5055 -> 13188
+	12519 -> 13169
+	12525 -> 13188
+	12525 -> 20574
+	13188 -> 20574
+	20574 -> 4313
+	4313 -> 3487
+	12628 -> 9531
+	12628 -> 14444
+	14444 -> 9531
+	13740 -> 12628
+	12198 -> 13740
+	10758 -> 12198
+	10758 -> 16130
+	19387 -> 10758
+	19387 -> 10767
+	19387 -> 12198
+	19387 -> 13133
+	10767 -> 12198
+	9861 -> 13133
+	9233 -> 9861
+	9233 -> 19387
+	6802 -> 9233
+	2837 -> 6802
+	2837 -> 15877
+	15877 -> 6802
+	7001 -> 2837
+	4617 -> 7001
+	4617 -> 13899
+	13277 -> 4617
+}

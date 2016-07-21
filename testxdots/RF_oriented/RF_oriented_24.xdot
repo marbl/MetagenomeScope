@@ -1,6 +1,7 @@
 digraph asm {
 	graph [_draw_="c 9 -#fffffe00 C 7 -#ffffff P 4 0 0 0 5596 357 5596 357 0 ",
 		bb="0,0,357,5596",
+		rotate=90,
 		xdotversion=1.7
 	];
 	node [label="\N"];

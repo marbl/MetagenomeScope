@@ -1,0 +1,19 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_C21364_3204_2311_19855_21551_5626 {
+	21364 [label="",height=1,width=1,shape=invhouse];
+	3204 [label="",height=1,width=1,shape=invhouse];
+	2311 [label="",height=1,width=1,shape=invhouse];
+	19855 [label="",height=1,width=1,shape=invhouse];
+	21551 [label="",height=1,width=1,shape=house];
+	5626 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+	21364 -> 3204
+	3204 -> 2311
+	2311 -> 19855
+	19855 -> 21551
+	21551 -> 5626
+}

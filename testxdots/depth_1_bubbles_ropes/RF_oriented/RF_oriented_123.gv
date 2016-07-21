@@ -1,0 +1,28 @@
+digraph asm {
+	edge [headport=n,tailport=s];
+	14165 [label="",height=1,width=1,shape=invhouse];
+	6812 [label="",height=1,width=1,shape=invhouse];
+	14578 [label="",height=1,width=1,shape=invhouse];
+	2076 [label="",height=1,width=1,shape=house];
+	12297 [label="",height=1,width=1,shape=invhouse];
+	6062 [label="",height=1,width=1,shape=house];
+	3685 [label="",height=1,width=1,shape=invhouse];
+	11062 [label="",height=1,width=1,shape=invhouse];
+	4565 [label="",height=1,width=1,shape=house];
+	17279 [label="",height=1,width=1,shape=house];
+	14165 -> 6812
+	14578 -> 6812
+	2076 -> 12297
+	2076 -> 14578
+	2076 -> 17279
+	12297 -> 2076
+	12297 -> 14578
+	6062 -> 2076
+	6062 -> 12297
+	3685 -> 2076
+	3685 -> 6062
+	3685 -> 11062
+	11062 -> 3685
+	11062 -> 6062
+	4565 -> 3685
+}

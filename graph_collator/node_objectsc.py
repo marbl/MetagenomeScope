@@ -152,51 +152,107 @@ class Bubble(Node):
         info += BUBBLE_STYLE + "}\n"
         return info
 
-    # Returns a 2-tuple of True and the ending node of the Bubble if a Bubble
-    # defined with the given start node and middle nodes is valid.
-    # (This determines the "end" node of the Bubble by itself.)
+    # Returns a 2-tuple of True and the nodes comprising the Bubble if a Bubble
+    # defined with the given start node is valid.
     # Returns a 2-tuple of (False, None) if the Bubble is invalid.
     # NOTE that this assumes that s has > 1 outgoing edges.
     @staticmethod
     def is_valid_bubble(s):
-        # TODO rework to detect variable amount of nodes in each divergent
-        # path
-        middle_nodes = s.outgoing_nodes
-        e = None
-        # Verify all "middle" nodes in the Bubble connect to a single end node
-        for m in middle_nodes:
-            if len(m.outgoing_nodes) == 1 and len(m.incoming_nodes) == 1:
-                if e == None:
-                    # This is the first "middle node" to be processed
-                    e = m.outgoing_nodes[0]
-                elif e != m.outgoing_nodes[0]:
-                    # Not all of the "middle nodes" have the same ending node.
-                    # So this isn't a valid Bubble: return false
-                    return False, None
+        if s.seen_in_collapsing: return False, None
+        # Get a list of the first node on each divergent path through this
+        # (potential) bubble
+        m1_nodes = s.outgoing_nodes
+        # The bubble's ending node will be recorded here
+        e_node = None
+        # We keep a list of chains to mark as "subsumed" (there's a max
+        # of p chains that will be in this list, where p = the number of
+        # divergent paths through this bubble)
+        chains_to_subsume = []
+        # Traverse through the bubble's divergent paths, checking for
+        # validity and recording nodes
+        # List of all middle nodes (divergent paths) in the bubble
+        m_nodes = []
+        # List of all nodes that are the "end" of divergent paths in the bubble
+        mn_nodes = []
+        for n in m1_nodes:
+            if len(n.incoming_nodes) != 1 or len(n.outgoing_nodes) != 1:
+                return False, None
+            # Now we know that this path is at least somewhat valid, get
+            # all the middle nodes on it and the ending node from it.
+            chain_validity, path_nodes = Chain.is_valid_chain(n)
+            if not chain_validity:
+                # We could have already grouped the middle nodes of this rope
+                # into a chain, which would be perfectly valid
+                # (Chain.is_valid_chain() rejects Chains composed of nodes that
+                # have already been used in collapsing)
+                if n.seen_in_collapsing:
+                    if type(n.group) == Chain:
+                        path_nodes = n.group.nodes
+                        path_end = path_nodes[len(path_nodes)-1].outgoing_nodes
+                        # The divergent paths of a bubble must converge
+                        if len(path_end) != 1:
+                            return False, None
+                        if e_node == None:
+                            e_node = path_end[0]
+                        # If the divergent paths of a bubble don't converge to
+                        # the same ending node, then it isn't a bubble
+                        elif e_node != path_end[0]:
+                            return False, None
+                        m_nodes += path_nodes
+                        mn_nodes.append(path_nodes[len(path_nodes) - 1])
+                        chains_to_subsume.append(n.group)
+                    else:
+                        # if this path has been grouped into a pattern that 
+                        # isn't a chain, don't identify this as a bubble
+                        return False, None
+                # Or we just have a single middle node (assumed if no middle
+                # chain exists/could exist)
+                else:
+                    # Like above, record or check ending node
+                    if e_node == None:
+                        e_node = n.outgoing_nodes[0]
+                    elif e_node != n.outgoing_nodes[0]:
+                        return False, None
+                    # And if that worked out, then record this path
+                    m_nodes.append(n)
+                    mn_nodes.append(n)
             else:
-                return False, None
-        # Verify that there's at least some ending node: if the user passes []
-        # for middle_nodes, or all of the middle nodes have no outgoing nodes,
-        # then this should fail since a bubble needs to converge
-        # Also, if the ending node has "extra" incoming nodes (that aren't
-        # middle nodes, i.e. they're not connected to the starting node),
-        # then this isn't a valid bubble.
-        if e == None or set(e.incoming_nodes) != set(middle_nodes):
+                # The middle nodes form a chain that has not been "created" yet
+                # This makes this a little easier for us.
+                path_end = path_nodes[len(path_nodes) - 1].outgoing_nodes
+                if len(path_end) != 1:
+                    return False, None
+                if e_node == None:
+                    e_node = path_end[0]
+                elif e_node != path_end[0]:
+                    return False, None
+                m_nodes += path_nodes
+                mn_nodes.append(path_nodes[len(path_nodes) - 1])
+            # Now we have the middle and end nodes of the graph stored.
+
+        # Check ending node
+        if e_node.seen_in_collapsing:
             return False, None
-        # Alright, now we've identified a valid ending node
-        composite = [s] + middle_nodes + [e]
-        # Verify each node in the Bubble is distinct (since sets have unique
-        # elements, we can use them to detect this)
-        if len(set(composite)) != len(composite): return False, None
-        # Verify each node in the Bubble is a basic Node
-        for n in composite:
-            if type(n) != Node or n.seen_in_collapsing:
-                return False, None
-        # Verify the ending node doesn't have an edge connecting it back to any
-        # of the other nodes within the Bubble
-        for o in e.outgoing_nodes:
-            if o == s or o in middle_nodes or o == e:
-                return False, None
+        # If the ending node has any incoming nodes that are not in
+        # mn_nodes, then reject this bubble.
+        elif set(e_node.incoming_nodes) != set(mn_nodes):
+            return False, None
+        # If the bubble is cyclical, reject it
+        # (checking the outgoing/incoming nodes of m1_nodes, and only
+        # allowing chains or singleton paths in m_nodes, means we should
+        # never have an outgoing node from e to anything in m_nodes by this
+        # point
+        elif s in e_node.outgoing_nodes:
+            return False, None
+        
+        # Check entire bubble structure, to ensure all nodes are distinct
+        composite = [s] + m_nodes + [e_node]
+        if len(set(composite)) != len(composite):
+            return False, None
+
+        # If we've gotten here, then we know that this is a valid bubble.
+        for ch in chains_to_subsume:
+            ch.is_subsumed = True
         return True, composite
 
 class Rope(Node):
@@ -244,7 +300,7 @@ class Rope(Node):
         # Ensure none of the start nodes have extraneous outgoing nodes
         # (or have been seen_in_collapsing)
         for n in s_nodes:
-            if len(n.outgoing_nodes) > 1 or n.seen_in_collapsing:
+            if len(n.outgoing_nodes) != 1 or n.seen_in_collapsing:
                 return False, None
         # Now we know that, regardless of the middle nodes' composition,
         # no chain can exist involving m1 that does not start AT m1.
@@ -289,7 +345,7 @@ class Rope(Node):
         for n in e_nodes:
             # Check for extraneous incoming edges, and that the ending nodes
             # haven't been seen_in_collapsing.
-            if len(n.incoming_nodes) > 1 or n.seen_in_collapsing:
+            if len(n.incoming_nodes) != 1 or n.seen_in_collapsing:
                 return False, None
             for o in n.outgoing_nodes:
                 # We know now that all of the m_nodes (sans m1) and all of the

@@ -1,4 +1,5 @@
 digraph asm {
+	rotate=90;
 	edge [headport=n,tailport=s];
 subgraph cluster_C20735_6101 {
 	20735 [label="",height=1,width=1,shape=invhouse];

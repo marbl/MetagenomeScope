@@ -1,4 +1,5 @@
 digraph asm {
+	rotate=90;
 	edge [headport=n,tailport=s];
 subgraph cluster_C5988_8335 {
 	5988 [label="",height=1,width=1,shape=house];
@@ -492,6 +493,18 @@ subgraph cluster_C1093_6506_3069 {
 	3069 [label="",height=1,width=1,shape=invhouse];
 	style=filled;
 	fillcolor=salmon;
+}
+subgraph cluster_R2487_4047_5512_19471_20813_13699_18538_19031 {
+	2487 [label="",height=1,width=1,shape=house];
+	4047 [label="",height=1,width=1,shape=invhouse];
+	5512 [label="",height=1,width=1,shape=invhouse];
+	19471 [label="",height=1,width=1,shape=invhouse];
+	20813 [label="",height=1,width=1,shape=house];
+	13699 [label="",height=1,width=1,shape=invhouse];
+	18538 [label="",height=1,width=1,shape=invhouse];
+	19031 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=green;
 }
 subgraph cluster_C12103_3828 {
 	12103 [label="",height=1,width=1,shape=house];
@@ -1114,6 +1127,16 @@ subgraph cluster_C19345_867 {
 	style=filled;
 	fillcolor=salmon;
 }
+subgraph cluster_R2087_11002_20689_3888_3289_4526 {
+	2087 [label="",height=1,width=1,shape=house];
+	11002 [label="",height=1,width=1,shape=house];
+	20689 [label="",height=1,width=1,shape=invhouse];
+	3888 [label="",height=1,width=1,shape=house];
+	3289 [label="",height=1,width=1,shape=invhouse];
+	4526 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=green;
+}
 subgraph cluster_C3243_2532 {
 	3243 [label="",height=1,width=1,shape=invhouse];
 	2532 [label="",height=1,width=1,shape=invhouse];
@@ -1175,17 +1198,14 @@ subgraph cluster_C3999_5596 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C161_6658 {
+subgraph cluster_B15354_161_6658_6656_4209 {
+	15354 [label="",height=1,width=1,shape=invhouse];
 	161 [label="",height=1,width=1,shape=house];
 	6658 [label="",height=1,width=1,shape=invhouse];
-	style=filled;
-	fillcolor=salmon;
-}
-subgraph cluster_C4209_3052 {
+	6656 [label="",height=1,width=1,shape=invhouse];
 	4209 [label="",height=1,width=1,shape=house];
-	3052 [label="",height=1,width=1,shape=house];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=cornflowerblue;
 }
 subgraph cluster_C4758_13950 {
 	4758 [label="",height=1,width=1,shape=invhouse];
@@ -1318,23 +1338,18 @@ subgraph cluster_C4763_1952_11973 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C6335_13637 {
-	6335 [label="",height=1,width=1,shape=house];
-	13637 [label="",height=1,width=1,shape=invhouse];
-	style=filled;
-	fillcolor=salmon;
-}
-subgraph cluster_C21248_14892 {
-	21248 [label="",height=1,width=1,shape=house];
-	14892 [label="",height=1,width=1,shape=invhouse];
-	style=filled;
-	fillcolor=salmon;
-}
-subgraph cluster_C4259_10866 {
-	4259 [label="",height=1,width=1,shape=house];
+subgraph cluster_R10866_12186_16416_19598_20094_214_1170_6335_21248 {
 	10866 [label="",height=1,width=1,shape=invhouse];
+	12186 [label="",height=1,width=1,shape=invhouse];
+	16416 [label="",height=1,width=1,shape=invhouse];
+	19598 [label="",height=1,width=1,shape=invhouse];
+	20094 [label="",height=1,width=1,shape=house];
+	214 [label="",height=1,width=1,shape=invhouse];
+	1170 [label="",height=1,width=1,shape=invhouse];
+	6335 [label="",height=1,width=1,shape=house];
+	21248 [label="",height=1,width=1,shape=house];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=green;
 }
 subgraph cluster_C4151_1883 {
 	4151 [label="",height=1,width=1,shape=house];
@@ -2023,6 +2038,16 @@ subgraph cluster_C205_15200 {
 	style=filled;
 	fillcolor=salmon;
 }
+subgraph cluster_R16241_21600_19970_17032_17688_18693 {
+	16241 [label="",height=1,width=1,shape=house];
+	21600 [label="",height=1,width=1,shape=house];
+	19970 [label="",height=1,width=1,shape=invhouse];
+	17032 [label="",height=1,width=1,shape=invhouse];
+	17688 [label="",height=1,width=1,shape=house];
+	18693 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=green;
+}
 subgraph cluster_C7585_1956_13146 {
 	7585 [label="",height=1,width=1,shape=house];
 	1956 [label="",height=1,width=1,shape=house];
@@ -2144,18 +2169,22 @@ subgraph cluster_C9847_19989 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C514_4999_11675 {
+subgraph cluster_C514_4999 {
 	514 [label="",height=1,width=1,shape=invhouse];
 	4999 [label="",height=1,width=1,shape=house];
-	11675 [label="",height=1,width=1,shape=invhouse];
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C1923_3805 {
+subgraph cluster_R11673_11675_1923_3805_11493_14482_15499 {
+	11673 [label="",height=1,width=1,shape=invhouse];
+	11675 [label="",height=1,width=1,shape=invhouse];
 	1923 [label="",height=1,width=1,shape=house];
 	3805 [label="",height=1,width=1,shape=house];
+	11493 [label="",height=1,width=1,shape=house];
+	14482 [label="",height=1,width=1,shape=house];
+	15499 [label="",height=1,width=1,shape=invhouse];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=green;
 }
 subgraph cluster_C4347_10571 {
 	4347 [label="",height=1,width=1,shape=invhouse];
@@ -2252,24 +2281,21 @@ subgraph cluster_C8545_6621 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C18699_13751_12227 {
+subgraph cluster_C18699_13751 {
 	18699 [label="",height=1,width=1,shape=house];
 	13751 [label="",height=1,width=1,shape=invhouse];
-	12227 [label="",height=1,width=1,shape=house];
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C21481_2319 {
+subgraph cluster_R12227_12244_21481_2319_13158_18055 {
+	12227 [label="",height=1,width=1,shape=house];
+	12244 [label="",height=1,width=1,shape=invhouse];
 	21481 [label="",height=1,width=1,shape=house];
 	2319 [label="",height=1,width=1,shape=invhouse];
-	style=filled;
-	fillcolor=salmon;
-}
-subgraph cluster_C13158_2339 {
 	13158 [label="",height=1,width=1,shape=invhouse];
-	2339 [label="",height=1,width=1,shape=invhouse];
+	18055 [label="",height=1,width=1,shape=house];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=green;
 }
 subgraph cluster_C6855_5990 {
 	6855 [label="",height=1,width=1,shape=invhouse];
@@ -2607,11 +2633,17 @@ subgraph cluster_C8759_20317 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C5000_3228 {
-	5000 [label="",height=1,width=1,shape=invhouse];
+subgraph cluster_R3228_10472_11719_10599_7965_11234_11597_16604 {
 	3228 [label="",height=1,width=1,shape=house];
+	10472 [label="",height=1,width=1,shape=invhouse];
+	11719 [label="",height=1,width=1,shape=invhouse];
+	10599 [label="",height=1,width=1,shape=house];
+	7965 [label="",height=1,width=1,shape=invhouse];
+	11234 [label="",height=1,width=1,shape=house];
+	11597 [label="",height=1,width=1,shape=house];
+	16604 [label="",height=1,width=1,shape=house];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=green;
 }
 subgraph cluster_C2520_5431 {
 	2520 [label="",height=1,width=1,shape=house];
@@ -2619,11 +2651,14 @@ subgraph cluster_C2520_5431 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C9876_11522 {
+subgraph cluster_B8875_9876_11522_13433_4678 {
+	8875 [label="",height=1,width=1,shape=house];
 	9876 [label="",height=1,width=1,shape=invhouse];
 	11522 [label="",height=1,width=1,shape=invhouse];
+	13433 [label="",height=1,width=1,shape=house];
+	4678 [label="",height=1,width=1,shape=invhouse];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=cornflowerblue;
 }
 subgraph cluster_C88_17868 {
 	88 [label="",height=1,width=1,shape=invhouse];
@@ -2737,11 +2772,15 @@ subgraph cluster_C21572_1848 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C20470_8424 {
-	20470 [label="",height=1,width=1,shape=house];
+subgraph cluster_R8424_9526_6756_14307_15232_18198 {
 	8424 [label="",height=1,width=1,shape=house];
+	9526 [label="",height=1,width=1,shape=house];
+	6756 [label="",height=1,width=1,shape=invhouse];
+	14307 [label="",height=1,width=1,shape=invhouse];
+	15232 [label="",height=1,width=1,shape=house];
+	18198 [label="",height=1,width=1,shape=house];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=green;
 }
 subgraph cluster_C14815_4131 {
 	14815 [label="",height=1,width=1,shape=house];
@@ -3050,11 +3089,15 @@ subgraph cluster_C9753_3445 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C10200_7319 {
+subgraph cluster_R11598_17559_18191_4225_10200_10204 {
+	11598 [label="",height=1,width=1,shape=house];
+	17559 [label="",height=1,width=1,shape=house];
+	18191 [label="",height=1,width=1,shape=house];
+	4225 [label="",height=1,width=1,shape=invhouse];
 	10200 [label="",height=1,width=1,shape=house];
-	7319 [label="",height=1,width=1,shape=invhouse];
+	10204 [label="",height=1,width=1,shape=invhouse];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=green;
 }
 subgraph cluster_C20770_1128 {
 	20770 [label="",height=1,width=1,shape=invhouse];
@@ -3093,8 +3136,7 @@ subgraph cluster_C18243_11453_8401 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C5562_3054_4375 {
-	5562 [label="",height=1,width=1,shape=house];
+subgraph cluster_C3054_4375 {
 	3054 [label="",height=1,width=1,shape=house];
 	4375 [label="",height=1,width=1,shape=house];
 	style=filled;
@@ -3105,6 +3147,16 @@ subgraph cluster_C8389_1558 {
 	1558 [label="",height=1,width=1,shape=invhouse];
 	style=filled;
 	fillcolor=salmon;
+}
+subgraph cluster_R11142_11155_3499_5562_14022_20767 {
+	11142 [label="",height=1,width=1,shape=invhouse];
+	11155 [label="",height=1,width=1,shape=invhouse];
+	3499 [label="",height=1,width=1,shape=house];
+	5562 [label="",height=1,width=1,shape=house];
+	14022 [label="",height=1,width=1,shape=house];
+	20767 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=green;
 }
 subgraph cluster_C7888_10834 {
 	7888 [label="",height=1,width=1,shape=invhouse];
@@ -3292,11 +3344,15 @@ subgraph cluster_C12282_10192 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C8112_6460 {
+subgraph cluster_R14699_16993_8112_6460_14672_15406 {
+	14699 [label="",height=1,width=1,shape=house];
+	16993 [label="",height=1,width=1,shape=house];
 	8112 [label="",height=1,width=1,shape=house];
 	6460 [label="",height=1,width=1,shape=house];
+	14672 [label="",height=1,width=1,shape=invhouse];
+	15406 [label="",height=1,width=1,shape=house];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=green;
 }
 subgraph cluster_C3364_17446 {
 	3364 [label="",height=1,width=1,shape=house];
@@ -3353,17 +3409,15 @@ subgraph cluster_B12641_6771_15765_879 {
 	style=filled;
 	fillcolor=cornflowerblue;
 }
-subgraph cluster_C14483_18393 {
-	14483 [label="",height=1,width=1,shape=house];
+subgraph cluster_R17715_18393_6960_8677_3799_10082 {
+	17715 [label="",height=1,width=1,shape=house];
 	18393 [label="",height=1,width=1,shape=house];
-	style=filled;
-	fillcolor=salmon;
-}
-subgraph cluster_C6960_8677 {
 	6960 [label="",height=1,width=1,shape=invhouse];
 	8677 [label="",height=1,width=1,shape=invhouse];
+	3799 [label="",height=1,width=1,shape=invhouse];
+	10082 [label="",height=1,width=1,shape=invhouse];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=green;
 }
 subgraph cluster_C13879_1608 {
 	13879 [label="",height=1,width=1,shape=invhouse];
@@ -3464,13 +3518,16 @@ subgraph cluster_B6007_12606_13359_6217 {
 	style=filled;
 	fillcolor=cornflowerblue;
 }
-subgraph cluster_B21604_6683_6685_3782 {
-	21604 [label="",height=1,width=1,shape=house];
+subgraph cluster_R6683_6685_3782_12312_13445_13701_18958 {
 	6683 [label="",height=1,width=1,shape=invhouse];
 	6685 [label="",height=1,width=1,shape=house];
 	3782 [label="",height=1,width=1,shape=house];
+	12312 [label="",height=1,width=1,shape=house];
+	13445 [label="",height=1,width=1,shape=house];
+	13701 [label="",height=1,width=1,shape=invhouse];
+	18958 [label="",height=1,width=1,shape=house];
 	style=filled;
-	fillcolor=cornflowerblue;
+	fillcolor=green;
 }
 subgraph cluster_C6932_3237 {
 	6932 [label="",height=1,width=1,shape=invhouse];
@@ -3496,11 +3553,14 @@ subgraph cluster_C10315_18928 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C12505_11459 {
+subgraph cluster_B6296_12505_11459_15147_1825 {
+	6296 [label="",height=1,width=1,shape=house];
 	12505 [label="",height=1,width=1,shape=invhouse];
 	11459 [label="",height=1,width=1,shape=invhouse];
+	15147 [label="",height=1,width=1,shape=house];
+	1825 [label="",height=1,width=1,shape=invhouse];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=cornflowerblue;
 }
 subgraph cluster_R8693_14847_2040_7032_16298 {
 	8693 [label="",height=1,width=1,shape=house];
@@ -3545,11 +3605,15 @@ subgraph cluster_C1962_1882 {
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C4006_6226 {
+subgraph cluster_R10857_17601_4006_6226_10654_11132 {
+	10857 [label="",height=1,width=1,shape=invhouse];
+	17601 [label="",height=1,width=1,shape=house];
 	4006 [label="",height=1,width=1,shape=house];
 	6226 [label="",height=1,width=1,shape=invhouse];
+	10654 [label="",height=1,width=1,shape=invhouse];
+	11132 [label="",height=1,width=1,shape=invhouse];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=green;
 }
 subgraph cluster_C1691_13281 {
 	1691 [label="",height=1,width=1,shape=house];
@@ -3571,6 +3635,16 @@ subgraph cluster_C18485_3827 {
 	style=filled;
 	fillcolor=salmon;
 }
+subgraph cluster_R11105_14229_5147_7860_8764_18783 {
+	11105 [label="",height=1,width=1,shape=house];
+	14229 [label="",height=1,width=1,shape=invhouse];
+	5147 [label="",height=1,width=1,shape=invhouse];
+	7860 [label="",height=1,width=1,shape=invhouse];
+	8764 [label="",height=1,width=1,shape=house];
+	18783 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=green;
+}
 subgraph cluster_C7734_277_8377 {
 	7734 [label="",height=1,width=1,shape=invhouse];
 	277 [label="",height=1,width=1,shape=invhouse];
@@ -3581,12 +3655,6 @@ subgraph cluster_C7734_277_8377 {
 subgraph cluster_C3681_3025 {
 	3681 [label="",height=1,width=1,shape=invhouse];
 	3025 [label="",height=1,width=1,shape=house];
-	style=filled;
-	fillcolor=salmon;
-}
-subgraph cluster_C8764_14678 {
-	8764 [label="",height=1,width=1,shape=house];
-	14678 [label="",height=1,width=1,shape=house];
 	style=filled;
 	fillcolor=salmon;
 }
@@ -4106,13 +4174,8 @@ subgraph cluster_C8764_14678 {
 	20399 [label="",height=1,width=1,shape=invhouse];
 	11716 [label="",height=1,width=1,shape=house];
 	9298 [label="",height=1,width=1,shape=house];
-	5512 [label="",height=1,width=1,shape=invhouse];
-	13699 [label="",height=1,width=1,shape=invhouse];
-	18538 [label="",height=1,width=1,shape=invhouse];
 	21171 [label="",height=1,width=1,shape=house];
 	21516 [label="",height=1,width=1,shape=house];
-	19031 [label="",height=1,width=1,shape=invhouse];
-	2487 [label="",height=1,width=1,shape=house];
 	2768 [label="",height=1,width=1,shape=house];
 	5389 [label="",height=1,width=1,shape=house];
 	7343 [label="",height=1,width=1,shape=invhouse];
@@ -4388,7 +4451,6 @@ subgraph cluster_C8764_14678 {
 	9179 [label="",height=1,width=1,shape=house];
 	16068 [label="",height=1,width=1,shape=house];
 	21454 [label="",height=1,width=1,shape=invhouse];
-	19471 [label="",height=1,width=1,shape=invhouse];
 	20393 [label="",height=1,width=1,shape=house];
 	18445 [label="",height=1,width=1,shape=house];
 	21018 [label="",height=1,width=1,shape=house];
@@ -4413,8 +4475,6 @@ subgraph cluster_C8764_14678 {
 	20545 [label="",height=1,width=1,shape=invhouse];
 	3425 [label="",height=1,width=1,shape=invhouse];
 	17564 [label="",height=1,width=1,shape=house];
-	4047 [label="",height=1,width=1,shape=invhouse];
-	20813 [label="",height=1,width=1,shape=house];
 	20206 [label="",height=1,width=1,shape=invhouse];
 	19742 [label="",height=1,width=1,shape=house];
 	15024 [label="",height=1,width=1,shape=house];
@@ -4804,14 +4864,8 @@ subgraph cluster_C8764_14678 {
 	19275 [label="",height=1,width=1,shape=house];
 	3127 [label="",height=1,width=1,shape=invhouse];
 	12753 [label="",height=1,width=1,shape=invhouse];
-	4526 [label="",height=1,width=1,shape=invhouse];
-	3888 [label="",height=1,width=1,shape=house];
-	3289 [label="",height=1,width=1,shape=invhouse];
 	19868 [label="",height=1,width=1,shape=house];
 	8664 [label="",height=1,width=1,shape=invhouse];
-	2087 [label="",height=1,width=1,shape=house];
-	11002 [label="",height=1,width=1,shape=house];
-	20689 [label="",height=1,width=1,shape=invhouse];
 	4986 [label="",height=1,width=1,shape=invhouse];
 	1323 [label="",height=1,width=1,shape=invhouse];
 	20445 [label="",height=1,width=1,shape=invhouse];
@@ -4928,10 +4982,9 @@ subgraph cluster_C8764_14678 {
 	1604 [label="",height=1,width=1,shape=invhouse];
 	9096 [label="",height=1,width=1,shape=house];
 	21495 [label="",height=1,width=1,shape=house];
-	15354 [label="",height=1,width=1,shape=invhouse];
+	3052 [label="",height=1,width=1,shape=house];
 	9662 [label="",height=1,width=1,shape=invhouse];
 	12761 [label="",height=1,width=1,shape=house];
-	6656 [label="",height=1,width=1,shape=invhouse];
 	19739 [label="",height=1,width=1,shape=invhouse];
 	9309 [label="",height=1,width=1,shape=house];
 	278 [label="",height=1,width=1,shape=invhouse];
@@ -5114,9 +5167,9 @@ subgraph cluster_C8764_14678 {
 	15729 [label="",height=1,width=1,shape=house];
 	19754 [label="",height=1,width=1,shape=invhouse];
 	421 [label="",height=1,width=1,shape=invhouse];
-	20094 [label="",height=1,width=1,shape=house];
-	214 [label="",height=1,width=1,shape=invhouse];
-	1170 [label="",height=1,width=1,shape=invhouse];
+	13637 [label="",height=1,width=1,shape=invhouse];
+	14892 [label="",height=1,width=1,shape=invhouse];
+	4259 [label="",height=1,width=1,shape=house];
 	2131 [label="",height=1,width=1,shape=invhouse];
 	20866 [label="",height=1,width=1,shape=invhouse];
 	20124 [label="",height=1,width=1,shape=house];
@@ -5139,9 +5192,6 @@ subgraph cluster_C8764_14678 {
 	19321 [label="",height=1,width=1,shape=invhouse];
 	20733 [label="",height=1,width=1,shape=house];
 	18390 [label="",height=1,width=1,shape=invhouse];
-	12186 [label="",height=1,width=1,shape=invhouse];
-	16416 [label="",height=1,width=1,shape=invhouse];
-	19598 [label="",height=1,width=1,shape=invhouse];
 	7593 [label="",height=1,width=1,shape=invhouse];
 	8795 [label="",height=1,width=1,shape=house];
 	21582 [label="",height=1,width=1,shape=house];
@@ -6123,12 +6173,6 @@ subgraph cluster_C8764_14678 {
 	13156 [label="",height=1,width=1,shape=invhouse];
 	12684 [label="",height=1,width=1,shape=invhouse];
 	971 [label="",height=1,width=1,shape=invhouse];
-	16241 [label="",height=1,width=1,shape=house];
-	19970 [label="",height=1,width=1,shape=invhouse];
-	17032 [label="",height=1,width=1,shape=invhouse];
-	17688 [label="",height=1,width=1,shape=house];
-	18693 [label="",height=1,width=1,shape=invhouse];
-	21600 [label="",height=1,width=1,shape=house];
 	13122 [label="",height=1,width=1,shape=invhouse];
 	20422 [label="",height=1,width=1,shape=invhouse];
 	7069 [label="",height=1,width=1,shape=invhouse];
@@ -6255,7 +6299,6 @@ subgraph cluster_C8764_14678 {
 	1629 [label="",height=1,width=1,shape=house];
 	20592 [label="",height=1,width=1,shape=invhouse];
 	21371 [label="",height=1,width=1,shape=invhouse];
-	11493 [label="",height=1,width=1,shape=house];
 	5545 [label="",height=1,width=1,shape=house];
 	20480 [label="",height=1,width=1,shape=invhouse];
 	9674 [label="",height=1,width=1,shape=invhouse];
@@ -6277,9 +6320,6 @@ subgraph cluster_C8764_14678 {
 	11864 [label="",height=1,width=1,shape=house];
 	21471 [label="",height=1,width=1,shape=invhouse];
 	8029 [label="",height=1,width=1,shape=invhouse];
-	15499 [label="",height=1,width=1,shape=invhouse];
-	14482 [label="",height=1,width=1,shape=house];
-	11673 [label="",height=1,width=1,shape=invhouse];
 	10928 [label="",height=1,width=1,shape=house];
 	10939 [label="",height=1,width=1,shape=house];
 	15489 [label="",height=1,width=1,shape=invhouse];
@@ -6331,10 +6371,9 @@ subgraph cluster_C8764_14678 {
 	13722 [label="",height=1,width=1,shape=invhouse];
 	18351 [label="",height=1,width=1,shape=house];
 	18537 [label="",height=1,width=1,shape=house];
+	2339 [label="",height=1,width=1,shape=invhouse];
 	20148 [label="",height=1,width=1,shape=invhouse];
 	6168 [label="",height=1,width=1,shape=invhouse];
-	18055 [label="",height=1,width=1,shape=house];
-	12244 [label="",height=1,width=1,shape=invhouse];
 	6147 [label="",height=1,width=1,shape=invhouse];
 	12896 [label="",height=1,width=1,shape=invhouse];
 	12605 [label="",height=1,width=1,shape=invhouse];
@@ -6674,13 +6713,10 @@ subgraph cluster_C8764_14678 {
 	7907 [label="",height=1,width=1,shape=invhouse];
 	4670 [label="",height=1,width=1,shape=invhouse];
 	4024 [label="",height=1,width=1,shape=invhouse];
-	10599 [label="",height=1,width=1,shape=house];
-	7965 [label="",height=1,width=1,shape=invhouse];
+	5000 [label="",height=1,width=1,shape=invhouse];
 	21114 [label="",height=1,width=1,shape=house];
 	5338 [label="",height=1,width=1,shape=invhouse];
 	12868 [label="",height=1,width=1,shape=invhouse];
-	8875 [label="",height=1,width=1,shape=house];
-	4678 [label="",height=1,width=1,shape=invhouse];
 	1858 [label="",height=1,width=1,shape=invhouse];
 	20016 [label="",height=1,width=1,shape=house];
 	4481 [label="",height=1,width=1,shape=invhouse];
@@ -6712,18 +6748,12 @@ subgraph cluster_C8764_14678 {
 	20936 [label="",height=1,width=1,shape=invhouse];
 	18392 [label="",height=1,width=1,shape=invhouse];
 	12151 [label="",height=1,width=1,shape=invhouse];
-	13433 [label="",height=1,width=1,shape=house];
 	12704 [label="",height=1,width=1,shape=house];
 	14724 [label="",height=1,width=1,shape=invhouse];
 	15258 [label="",height=1,width=1,shape=house];
 	5344 [label="",height=1,width=1,shape=house];
 	8481 [label="",height=1,width=1,shape=invhouse];
-	11234 [label="",height=1,width=1,shape=house];
 	15880 [label="",height=1,width=1,shape=house];
-	16604 [label="",height=1,width=1,shape=house];
-	11597 [label="",height=1,width=1,shape=house];
-	10472 [label="",height=1,width=1,shape=invhouse];
-	11719 [label="",height=1,width=1,shape=invhouse];
 	11580 [label="",height=1,width=1,shape=invhouse];
 	14846 [label="",height=1,width=1,shape=invhouse];
 	10727 [label="",height=1,width=1,shape=invhouse];
@@ -6808,10 +6838,7 @@ subgraph cluster_C8764_14678 {
 	16403 [label="",height=1,width=1,shape=house];
 	3416 [label="",height=1,width=1,shape=invhouse];
 	15205 [label="",height=1,width=1,shape=invhouse];
-	14307 [label="",height=1,width=1,shape=invhouse];
-	6756 [label="",height=1,width=1,shape=invhouse];
-	15232 [label="",height=1,width=1,shape=house];
-	18198 [label="",height=1,width=1,shape=house];
+	20470 [label="",height=1,width=1,shape=house];
 	4390 [label="",height=1,width=1,shape=invhouse];
 	17592 [label="",height=1,width=1,shape=house];
 	977 [label="",height=1,width=1,shape=house];
@@ -7183,7 +7210,6 @@ subgraph cluster_C8764_14678 {
 	4467 [label="",height=1,width=1,shape=invhouse];
 	4237 [label="",height=1,width=1,shape=house];
 	7397 [label="",height=1,width=1,shape=house];
-	9526 [label="",height=1,width=1,shape=house];
 	15225 [label="",height=1,width=1,shape=invhouse];
 	2500 [label="",height=1,width=1,shape=house];
 	9977 [label="",height=1,width=1,shape=invhouse];
@@ -7213,8 +7239,7 @@ subgraph cluster_C8764_14678 {
 	836 [label="",height=1,width=1,shape=invhouse];
 	7928 [label="",height=1,width=1,shape=house];
 	12226 [label="",height=1,width=1,shape=house];
-	11598 [label="",height=1,width=1,shape=house];
-	4225 [label="",height=1,width=1,shape=invhouse];
+	7319 [label="",height=1,width=1,shape=invhouse];
 	7666 [label="",height=1,width=1,shape=house];
 	8567 [label="",height=1,width=1,shape=house];
 	8570 [label="",height=1,width=1,shape=house];
@@ -7226,9 +7251,6 @@ subgraph cluster_C8764_14678 {
 	5479 [label="",height=1,width=1,shape=house];
 	17336 [label="",height=1,width=1,shape=house];
 	11731 [label="",height=1,width=1,shape=invhouse];
-	10204 [label="",height=1,width=1,shape=invhouse];
-	17559 [label="",height=1,width=1,shape=house];
-	18191 [label="",height=1,width=1,shape=house];
 	13794 [label="",height=1,width=1,shape=invhouse];
 	13806 [label="",height=1,width=1,shape=invhouse];
 	9658 [label="",height=1,width=1,shape=house];
@@ -7284,10 +7306,6 @@ subgraph cluster_C8764_14678 {
 	9757 [label="",height=1,width=1,shape=invhouse];
 	5408 [label="",height=1,width=1,shape=invhouse];
 	13119 [label="",height=1,width=1,shape=house];
-	3499 [label="",height=1,width=1,shape=house];
-	14022 [label="",height=1,width=1,shape=house];
-	20767 [label="",height=1,width=1,shape=house];
-	11142 [label="",height=1,width=1,shape=invhouse];
 	3192 [label="",height=1,width=1,shape=house];
 	16660 [label="",height=1,width=1,shape=house];
 	7027 [label="",height=1,width=1,shape=invhouse];
@@ -7353,7 +7371,6 @@ subgraph cluster_C8764_14678 {
 	14882 [label="",height=1,width=1,shape=invhouse];
 	18101 [label="",height=1,width=1,shape=invhouse];
 	13224 [label="",height=1,width=1,shape=invhouse];
-	11155 [label="",height=1,width=1,shape=invhouse];
 	20382 [label="",height=1,width=1,shape=invhouse];
 	19329 [label="",height=1,width=1,shape=house];
 	1276 [label="",height=1,width=1,shape=invhouse];
@@ -7603,10 +7620,6 @@ subgraph cluster_C8764_14678 {
 	4250 [label="",height=1,width=1,shape=invhouse];
 	7230 [label="",height=1,width=1,shape=invhouse];
 	11776 [label="",height=1,width=1,shape=invhouse];
-	15406 [label="",height=1,width=1,shape=house];
-	14672 [label="",height=1,width=1,shape=invhouse];
-	14699 [label="",height=1,width=1,shape=house];
-	16993 [label="",height=1,width=1,shape=house];
 	8175 [label="",height=1,width=1,shape=invhouse];
 	3639 [label="",height=1,width=1,shape=house];
 	4265 [label="",height=1,width=1,shape=house];
@@ -7942,7 +7955,7 @@ subgraph cluster_C8764_14678 {
 	18386 [label="",height=1,width=1,shape=invhouse];
 	17047 [label="",height=1,width=1,shape=house];
 	14887 [label="",height=1,width=1,shape=house];
-	3799 [label="",height=1,width=1,shape=invhouse];
+	14483 [label="",height=1,width=1,shape=house];
 	3095 [label="",height=1,width=1,shape=invhouse];
 	1167 [label="",height=1,width=1,shape=house];
 	15 [label="",height=1,width=1,shape=invhouse];
@@ -7954,8 +7967,6 @@ subgraph cluster_C8764_14678 {
 	5068 [label="",height=1,width=1,shape=house];
 	17204 [label="",height=1,width=1,shape=house];
 	17211 [label="",height=1,width=1,shape=house];
-	10082 [label="",height=1,width=1,shape=invhouse];
-	17715 [label="",height=1,width=1,shape=house];
 	14862 [label="",height=1,width=1,shape=invhouse];
 	15084 [label="",height=1,width=1,shape=house];
 	17364 [label="",height=1,width=1,shape=invhouse];
@@ -8004,10 +8015,7 @@ subgraph cluster_C8764_14678 {
 	14733 [label="",height=1,width=1,shape=invhouse];
 	11896 [label="",height=1,width=1,shape=invhouse];
 	9700 [label="",height=1,width=1,shape=house];
-	12312 [label="",height=1,width=1,shape=house];
-	13445 [label="",height=1,width=1,shape=house];
-	13701 [label="",height=1,width=1,shape=invhouse];
-	18958 [label="",height=1,width=1,shape=house];
+	21604 [label="",height=1,width=1,shape=house];
 	12970 [label="",height=1,width=1,shape=invhouse];
 	16943 [label="",height=1,width=1,shape=house];
 	13073 [label="",height=1,width=1,shape=invhouse];
@@ -8111,10 +8119,7 @@ subgraph cluster_C8764_14678 {
 	17614 [label="",height=1,width=1,shape=house];
 	20417 [label="",height=1,width=1,shape=invhouse];
 	14007 [label="",height=1,width=1,shape=invhouse];
-	1825 [label="",height=1,width=1,shape=invhouse];
 	16374 [label="",height=1,width=1,shape=invhouse];
-	6296 [label="",height=1,width=1,shape=house];
-	15147 [label="",height=1,width=1,shape=house];
 	5818 [label="",height=1,width=1,shape=invhouse];
 	10403 [label="",height=1,width=1,shape=invhouse];
 	16862 [label="",height=1,width=1,shape=house];
@@ -8138,10 +8143,6 @@ subgraph cluster_C8764_14678 {
 	3990 [label="",height=1,width=1,shape=house];
 	18820 [label="",height=1,width=1,shape=invhouse];
 	10543 [label="",height=1,width=1,shape=house];
-	10654 [label="",height=1,width=1,shape=invhouse];
-	11132 [label="",height=1,width=1,shape=invhouse];
-	10857 [label="",height=1,width=1,shape=invhouse];
-	17601 [label="",height=1,width=1,shape=house];
 	7656 [label="",height=1,width=1,shape=invhouse];
 	18528 [label="",height=1,width=1,shape=invhouse];
 	2856 [label="",height=1,width=1,shape=house];
@@ -8155,9 +8156,6 @@ subgraph cluster_C8764_14678 {
 	8674 [label="",height=1,width=1,shape=invhouse];
 	13329 [label="",height=1,width=1,shape=invhouse];
 	11063 [label="",height=1,width=1,shape=invhouse];
-	11105 [label="",height=1,width=1,shape=house];
-	5147 [label="",height=1,width=1,shape=invhouse];
-	7860 [label="",height=1,width=1,shape=invhouse];
 	2630 [label="",height=1,width=1,shape=invhouse];
 	9070 [label="",height=1,width=1,shape=house];
 	10680 [label="",height=1,width=1,shape=house];
@@ -8168,8 +8166,7 @@ subgraph cluster_C8764_14678 {
 	16675 [label="",height=1,width=1,shape=invhouse];
 	5242 [label="",height=1,width=1,shape=invhouse];
 	16168 [label="",height=1,width=1,shape=invhouse];
-	18783 [label="",height=1,width=1,shape=house];
-	14229 [label="",height=1,width=1,shape=invhouse];
+	14678 [label="",height=1,width=1,shape=house];
 	18743 [label="",height=1,width=1,shape=invhouse];
 	8781 [label="",height=1,width=1,shape=invhouse];
 	18300 [label="",height=1,width=1,shape=invhouse];

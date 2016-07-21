@@ -1,0 +1,81 @@
+digraph asm {
+	edge [headport=n,tailport=s];
+subgraph cluster_C19071_650 {
+	19071 [label="",height=1,width=1,shape=invhouse];
+	650 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C10386_18712 {
+	10386 [label="",height=1,width=1,shape=house];
+	18712 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C19315_21263_10540 {
+	19315 [label="",height=1,width=1,shape=invhouse];
+	21263 [label="",height=1,width=1,shape=house];
+	10540 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C2731_140 {
+	2731 [label="",height=1,width=1,shape=house];
+	140 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+subgraph cluster_C4616_19407 {
+	4616 [label="",height=1,width=1,shape=invhouse];
+	19407 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+	6670 [label="",height=1,width=1,shape=house];
+	9435 [label="",height=1,width=1,shape=house];
+	18992 [label="",height=1,width=1,shape=house];
+	12117 [label="",height=1,width=1,shape=house];
+	6852 [label="",height=1,width=1,shape=invhouse];
+	169 [label="",height=1,width=1,shape=house];
+	1959 [label="",height=1,width=1,shape=invhouse];
+	13636 [label="",height=1,width=1,shape=house];
+	10258 [label="",height=1,width=1,shape=house];
+	17017 [label="",height=1,width=1,shape=invhouse];
+	17520 [label="",height=1,width=1,shape=invhouse];
+	4239 [label="",height=1,width=1,shape=invhouse];
+	17004 [label="",height=1,width=1,shape=house];
+	19236 [label="",height=1,width=1,shape=house];
+	19071 -> 650
+	6670 -> 9435
+	6670 -> 18992
+	6670 -> 19071
+	9435 -> 10386
+	10386 -> 18712
+	10540 -> 10386
+	10540 -> 18992
+	18992 -> 19071
+	21263 -> 10540
+	19315 -> 21263
+	12117 -> 6670
+	12117 -> 6852
+	169 -> 6852
+	169 -> 12117
+	1959 -> 169
+	1959 -> 13636
+	140 -> 13636
+	2731 -> 140
+	10258 -> 2731
+	10258 -> 17017
+	10258 -> 17520
+	17017 -> 2731
+	17520 -> 2731
+	17520 -> 4239
+	17520 -> 17004
+	17004 -> 4239
+	19236 -> 4239
+	19236 -> 17004
+	19236 -> 17520
+	19407 -> 6670
+	19407 -> 12117
+	4616 -> 19407
+}

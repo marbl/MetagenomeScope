@@ -1,4 +1,5 @@
 digraph asm {
+	rotate=90;
 	edge [headport=n,tailport=s];
 	18334 [label="",height=1,width=1,shape=invhouse];
 	6026 [label="",height=1,width=1,shape=invhouse];

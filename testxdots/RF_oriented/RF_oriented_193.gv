@@ -1,0 +1,15 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+	6256 [label="",height=1,width=1,shape=invhouse];
+	19203 [label="",height=1,width=1,shape=invhouse];
+	20728 [label="",height=1,width=1,shape=invhouse];
+	10526 [label="",height=1,width=1,shape=house];
+	10920 [label="",height=1,width=1,shape=house];
+	8946 [label="",height=1,width=1,shape=house];
+	19203 -> 6256
+	19203 -> 20728
+	20728 -> 10526
+	20728 -> 10920
+	8946 -> 10920
+}

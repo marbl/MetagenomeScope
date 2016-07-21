@@ -1,4 +1,5 @@
 digraph asm {
+	rotate=90;
 	edge [headport=n,tailport=s];
 subgraph cluster_C7210_5924_21514 {
 	7210 [label="",height=1,width=1,shape=invhouse];
@@ -53,17 +54,30 @@ subgraph cluster_C6627_19426_15037 {
 	style=filled;
 	fillcolor=salmon;
 }
+subgraph cluster_R6873_6962_197_7731_10084_10088 {
+	6873 [label="",height=1,width=1,shape=invhouse];
+	6962 [label="",height=1,width=1,shape=house];
+	197 [label="",height=1,width=1,shape=house];
+	7731 [label="",height=1,width=1,shape=invhouse];
+	10084 [label="",height=1,width=1,shape=house];
+	10088 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=green;
+}
 subgraph cluster_C8607_10674 {
 	8607 [label="",height=1,width=1,shape=invhouse];
 	10674 [label="",height=1,width=1,shape=house];
 	style=filled;
 	fillcolor=salmon;
 }
-subgraph cluster_C3509_9590 {
+subgraph cluster_B4926_3509_9590_9787_7240 {
+	4926 [label="",height=1,width=1,shape=invhouse];
 	3509 [label="",height=1,width=1,shape=house];
 	9590 [label="",height=1,width=1,shape=invhouse];
+	9787 [label="",height=1,width=1,shape=house];
+	7240 [label="",height=1,width=1,shape=invhouse];
 	style=filled;
-	fillcolor=salmon;
+	fillcolor=cornflowerblue;
 }
 subgraph cluster_C1584_13648_20368 {
 	1584 [label="",height=1,width=1,shape=house];
@@ -135,18 +149,9 @@ subgraph cluster_C12077_3150_5440 {
 	13825 [label="",height=1,width=1,shape=invhouse];
 	7750 [label="",height=1,width=1,shape=house];
 	11950 [label="",height=1,width=1,shape=invhouse];
-	7731 [label="",height=1,width=1,shape=invhouse];
-	197 [label="",height=1,width=1,shape=house];
-	10084 [label="",height=1,width=1,shape=house];
-	10088 [label="",height=1,width=1,shape=invhouse];
-	6873 [label="",height=1,width=1,shape=invhouse];
-	6962 [label="",height=1,width=1,shape=house];
 	9641 [label="",height=1,width=1,shape=house];
 	18707 [label="",height=1,width=1,shape=house];
-	7240 [label="",height=1,width=1,shape=invhouse];
 	15080 [label="",height=1,width=1,shape=house];
-	4926 [label="",height=1,width=1,shape=invhouse];
-	9787 [label="",height=1,width=1,shape=house];
 	18209 [label="",height=1,width=1,shape=house];
 	12234 [label="",height=1,width=1,shape=house];
 	3755 [label="",height=1,width=1,shape=invhouse];

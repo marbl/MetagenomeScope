@@ -1,0 +1,22 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_Y2088_4841 {
+	2088 [label="",height=1,width=1,shape=invhouse];
+	4841 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=darkgoldenrod1;
+}
+subgraph cluster_C21097_6401 {
+	21097 [label="",height=1,width=1,shape=invhouse];
+	6401 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=salmon;
+}
+	4054 [label="",height=1,width=1,shape=invhouse];
+	2088 -> 4841
+	4841 -> 2088
+	4841 -> 4054
+	6401 -> 2088
+	21097 -> 6401
+}

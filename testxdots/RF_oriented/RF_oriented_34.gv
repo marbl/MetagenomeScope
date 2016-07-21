@@ -1,5 +1,16 @@
 digraph asm {
+	rotate=90;
 	edge [headport=n,tailport=s];
+subgraph cluster_R3478_7763_20697_5472_992_4021 {
+	3478 [label="",height=1,width=1,shape=invhouse];
+	7763 [label="",height=1,width=1,shape=house];
+	20697 [label="",height=1,width=1,shape=invhouse];
+	5472 [label="",height=1,width=1,shape=house];
+	992 [label="",height=1,width=1,shape=house];
+	4021 [label="",height=1,width=1,shape=invhouse];
+	style=filled;
+	fillcolor=green;
+}
 subgraph cluster_C2119_33 {
 	2119 [label="",height=1,width=1,shape=invhouse];
 	33 [label="",height=1,width=1,shape=invhouse];
@@ -45,20 +56,15 @@ subgraph cluster_C5421_21559 {
 	style=filled;
 	fillcolor=salmon;
 }
-	1446 [label="",height=1,width=1,shape=house];
-	20241 [label="",height=1,width=1,shape=house];
-	7621 [label="",height=1,width=1,shape=house];
 	5163 [label="",height=1,width=1,shape=invhouse];
 	80 [label="",height=1,width=1,shape=invhouse];
 	6008 [label="",height=1,width=1,shape=house];
-	9623 [label="",height=1,width=1,shape=house];
-	16392 [label="",height=1,width=1,shape=invhouse];
+	7621 [label="",height=1,width=1,shape=house];
+	1446 [label="",height=1,width=1,shape=house];
 	18276 [label="",height=1,width=1,shape=house];
-	4021 [label="",height=1,width=1,shape=invhouse];
-	5472 [label="",height=1,width=1,shape=house];
-	992 [label="",height=1,width=1,shape=house];
-	3478 [label="",height=1,width=1,shape=invhouse];
-	7763 [label="",height=1,width=1,shape=house];
+	16392 [label="",height=1,width=1,shape=invhouse];
+	20241 [label="",height=1,width=1,shape=house];
+	9623 [label="",height=1,width=1,shape=house];
 	20239 [label="",height=1,width=1,shape=invhouse];
 	5606 [label="",height=1,width=1,shape=house];
 	10698 [label="",height=1,width=1,shape=invhouse];
@@ -88,16 +94,10 @@ subgraph cluster_C5421_21559 {
 	19342 [label="",height=1,width=1,shape=house];
 	21016 [label="",height=1,width=1,shape=house];
 	20929 [label="",height=1,width=1,shape=invhouse];
-	20697 [label="",height=1,width=1,shape=invhouse];
-	2119 -> 33
-	33 -> 1446
-	33 -> 18276
-	1446 -> 2119
-	1446 -> 20241
-	7621 -> 1446
-	7621 -> 20741
-	20741 -> 4957
-	4957 -> 11031
+	3478 -> 5472
+	5472 -> 992
+	5472 -> 4021
+	4021 -> 5163
 	5163 -> 80
 	5163 -> 6008
 	5163 -> 7621
@@ -105,11 +105,16 @@ subgraph cluster_C5421_21559 {
 	5163 -> 16392
 	5163 -> 18276
 	6008 -> 5163
+	7621 -> 1446
+	7621 -> 20741
+	1446 -> 2119
+	1446 -> 20241
+	2119 -> 33
+	33 -> 1446
+	33 -> 18276
 	16392 -> 2119
-	4021 -> 5163
-	5472 -> 992
-	5472 -> 4021
-	3478 -> 5472
+	20741 -> 4957
+	4957 -> 11031
 	7763 -> 5472
 	20239 -> 5606
 	20239 -> 7763

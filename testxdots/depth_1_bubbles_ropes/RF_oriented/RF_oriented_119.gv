@@ -1,0 +1,26 @@
+digraph asm {
+	edge [headport=n,tailport=s];
+subgraph cluster_C7428_11480 {
+	7428 [label="",height=1,width=1,shape=invhouse];
+	11480 [label="",height=1,width=1,shape=house];
+	style=filled;
+	fillcolor=salmon;
+}
+	8500 [label="",height=1,width=1,shape=house];
+	9211 [label="",height=1,width=1,shape=invhouse];
+	4886 [label="",height=1,width=1,shape=invhouse];
+	20698 [label="",height=1,width=1,shape=invhouse];
+	2924 [label="",height=1,width=1,shape=invhouse];
+	20280 [label="",height=1,width=1,shape=invhouse];
+	6316 [label="",height=1,width=1,shape=invhouse];
+	7761 [label="",height=1,width=1,shape=invhouse];
+	7428 -> 11480
+	8500 -> 7428
+	8500 -> 9211
+	4886 -> 8500
+	4886 -> 20698
+	2924 -> 20698
+	20280 -> 20698
+	6316 -> 4886
+	7761 -> 4886
+}
