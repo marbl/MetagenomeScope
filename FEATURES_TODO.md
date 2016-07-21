@@ -20,6 +20,29 @@
         UI?) I guess the second option would support better switching
         between components, particularly depending on the sort of searches
         neo4j supports.
+        * Alright, it looks like [py2neo](http://py2neo.org/v3/) is what
+        we're looking for -- we can use it to generate, say, a file
+        containing nodes, edges, node groups, and the relationships between
+        them, along with:
+            * layout/control point/etc. data
+            (taken from the xdot file -- either
+            pipe it directly from GraphViz to the Python script or read it
+            from the finished .xdot file and delete that afterward) for each
+            node and edge
+            * biological data/metadata for each node (contig)/edge:
+                * Underlying DNA sequence, if available (GML doesn't
+                contain this, but LastGraph does)
+                * Edge multiplicity (use to make edges thicker/thinner)
+                * Contig read depth (use to make nodes thicker/thinner)
+                * Length (in base pairs) of contigs
+                * etc.
+        Then we can load this database directly into the Javascript UI
+        (we'd, uh, probably have to rename it from "xdot parser").
+        This would also allow us to only render single connected components
+        at a time, while allowing the user to switch between components
+        within the interface (maybe by giving each node/edge a "component"
+        attribute?)
+        This could be pretty cool.
 	
 	* OKAY, here's an idea:
 	we modify GraphViz to somehow take a bogus

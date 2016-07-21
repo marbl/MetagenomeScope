@@ -1,82 +1,78 @@
 When we check if a node is a valid bubble:
 	(assuming the start node has > 1 outgoing nodes)
 
-	-We extend the checking for middle nodes to include
+	We extend the checking for middle nodes to include
 	a variable amount of nodes in each divergent path (where each
 	path must have length >= 1).
 
-	-We can get m1_nodes by getting s.outgoing_nodes.
+	-If the start node (s) has been used in collapsing before, then reject
+	this bubble.
+
+	-We can get m1_nodes by getting s.outgoing_nodes. (Where "m1_nodes"
+	is a list of the first node on each divergent path through this
+	potential bubble.) We then iterate through each node in m1_nodes --
+	that is, we essentially iterate through all paths through the bubble.
+	Note that, since middle nodes in the bubble can be part of currently-
+	existing chains, we don't check if they've been used in collapsing.
+	This is alright, since our checking for incoming/outgoing nodes here
+	rules out any other bubbles/frayed ropes/cycles somehow being
+	"embedded" in a valid bubble. (Also, we check the start/end node for
+	being used in collapsing as well.)
 
 	-For each node in m1_nodes, if the node has more than one incoming
 	edge (i.e. an extraneous edge that isn't s -- and we know each of
 	these nodes has an incoming edge from s, since we got these nodes as
 	the outgoing nodes of s and there isn't a race condition here because
-	this code isn't going to be threaded), reject this bubble.
+	this code isn't going to be threaded) or more than one outgoing
+	edge, then reject this bubble.
 		-Next (after determining this m1 has only 1 incoming edge),
 		check to see if a chain could be made starting at the m1.
-		There are three cases:
+		There are three cases here:
 		-This m1 path forms a Chain that hasn't been created yet.
 			Get the last node of the Chain's outgoing nodes;
-			if they're of length 1, then compare with e_node
+			if the last node's outgoing node list is of length 1,
+			then compare with e_node
 			(if no e_node exists then save this ending node as
 			e_node, and if e_node exists then if e_node ==
 			this node then we're good, and if e_node != this node
 			then reject this bubble).
+			If the last node's outgoing node list is *not* of
+			length 1, then reject this bubble.
 		-This m1 path forms a Chain that has been created.
-			Get the ending node and compare it with e_node like
+			Get the ending node (by getting the outgoing nodes
+			of the last node in the Chain, like above; note that
+			we reject if the outgoing node length != 1, as above)
+			and compare it with e_node, like we do
 			above. Add this Chain to a list of Chains to mark
-			for deletion.
+			for deletion (for if this turns out to be a valid
+			bubble).
 		-This m1 is the only middle node on this path. (We assume
 		this if neither of the other two cases are True.)
-	TODO finish
+			Get the ending node (single outgoing node) of the m1
+			and compare it with e_node or set e_node to it, as
+			above. As with the other cases, if this m1 has != 1
+			outgoing edges then reject this bubble.
+		After either case, add either the single m1 (for case 3) or
+		the nodes comprising the Chain (for cases 1 and 2) to a list
+		of middle nodes called m_nodes. Also, add the final node of
+		each path (let's call it mn) to a list of final middle path
+		nodes called mn_nodes.
+	-Alright, now we have our middle nodes recorded and our ending node
+	identified. Now we can check the ending node, and then the entire
+	bubble structure:
+		-If the ending node has any incoming nodes that are not
+		in mn_nodes, then reject this bubble.
+		-If the ending node has the start node or any of m_nodes
+		in its outgoing nodes, then reject this bubble.
+		-If the ending node has been previously used in collapsing
+		(e_node.seen_in_collapsing), reject this bubble.
+		
+	-Checking the entire bubble structure:
+		-Create a "composite" list, composed of s, m_nodes, and
+		e_node.
+		-If the composite's nodes are not entirely distinct -- i.e.
+		the length of set(composite) != length of composite -- then
+		reject this bubble.
 
-	NOW we can check the middle nodes.
-	-The middle nodes, in particular, require three cases:
-		-The middle nodes form a Chain that hasn't been created yet
-			This is probably the easiest case. We can get the
-			ending nodes of the rope by finding the last node in
-			the "hypothetical" chain here and getting its
-			outgoing nodes. 
-		-The middle nodes form a Chain that has been created
-			Same as above -- the rope's ending nodes are the
-			Chain's last node's outgoing nodes. (The last node
-			in the chain is accessible by
-			[chainname].nodes[len(chainname.nodes) - 1])
-			Also, we do something important: we record the Chain
-			object for later. If this rope turns out to be valid,
-			then we'll want to mark this Chain to not be drawn
-			in collate_clusters (collate_clusters will
-			automatically override the Chain's nodes' .group
-			property, but we still want to prevent drawing the
-			Chain by itself).
-		-There's only one middle node (m1)
-			If neither of the above cases are true, we assume
-			this.
-			The ending nodes of the rope are just m1's outgoing
-			nodes. Actually, this might be the easiest case...
-	In any case, we store the middle nodes in a list (let's call it
-	m_nodes). We also store the ending nodes in another list, called
-	e_nodes.
-
-	-NOW we can check the ending nodes.
-	If the list of ending nodes contains less than 2 nodes, reject this
-	rope. (An example cause of this is, say, an extraneous incoming edge
-	incident to the single ending node; or the chain of middle nodes
-	just ends without any outgoing edges.)
-	If any of the ending nodes has more than 1 incoming node (i.e.
-	not just the last middle node) OR has an outgoing edge incident
-	upon any of the other nodes within the rope (verifiable by
-	iterating through each ending node's outgoing_nodes list),
-	reject this rope.
-
-	-Construct a composite list of nodes by combining s_nodes, m_nodes,
-	and e_nodes. If the set of this composite has a length unequal
-	to the composite's original length, then the nodes in the Rope are
-	not all distinct and we must reject the Rope.
-
-	-If any of the s_nodes or e_nodes have been seen_in_collapsing,
-	reject this rope. (We don't check m_nodes, since those could be
-	in a chain and that's fine)
-
-	-If we've made it here, then the rope is valid. Delete the sub-Chain
-	if necessary (indicated earlier on), and return (True, composite).
+	-If we've gotten here, then we know that this is a valid bubble.
+	Return (True, composite).
