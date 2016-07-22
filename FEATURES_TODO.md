@@ -97,18 +97,6 @@ use.
 or more specifically through an individual connected component. Will
 definitely have to factor in node size here. THIS IS IMPORTANT!
 
-* Make finding bubbles/ropes an inherently symmetric process -- for LastGraph
-files, where we have the reverse complement of each node given, whenever we
-discover a bubble or rope we also tag the RC of that bubble or rope (i.e.
-the same nodes, but flipped in the opposite direction) as a bubble/rope.
-This ensures things are symmetric and everything, and might actually make
-the process of finding a bubble/rope go faster. (Of course, this isn't
-achievable with, say, GML files where we don't know the RC of a given node)
-	* NOTE that we don't need to worry about this with chains or cycles,
-	 since those are guaranteed to always find every chain/cycle in the
-	 graph (except for interfering nodes that are parts of other node
-      	 groups, but it should be alright)
-
 * Hear back on how to interpret node size from GML files.
 
 * Show multiple assembly files for the same data at once?

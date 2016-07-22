@@ -20,6 +20,11 @@
   And we could have the user just select a neo4j graph database instead of
   an xdot file (or we could have both options, but with more functionality
   for the database option since there's more data available there)
+    * We could even generate (from the python script) a folder containing
+    a html page and the pertinent neo4j database, in which that html page
+    auto-loads the neo4j database in that directory. Presumably that
+    database would contain all the nodes/edges in the graph, and be able
+    to load different components sequentially.
 
 * Create a sort of graph/sequence simulator, where the user could say "give
   me a graph with a frayed rope, a bubble with 3 divergent paths, and two
