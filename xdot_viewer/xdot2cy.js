@@ -72,6 +72,9 @@ const INCHES_TO_PIXELS = 50;
 const CTRL_PT_DIST_EPSILON = 1.00;
 
 var GRAPH_RENDERED = false;
+// In degrees CCW from the default up->down direction
+var PREV_ROTATION = 0;
+var CURR_ROTATION = 90;
 
 if (!(window.File && window.FileReader)) {
 	// TODO handle this better -- user should still be able to
@@ -87,7 +90,7 @@ var cy = null;
 // Initializes the Cytoscape.js graph instance.
 // Takes as two arguments the polygon-point strings used for non-RC nodes
 // (invhousePolygonPts) and for RC nodes (housePolygonPts).
-function initGraph(invhousePolygonPts, housePolygonPts) {
+function initGraph() {
     cy = cytoscape({
         container: document.getElementById("cy"),
         layout: {
@@ -154,21 +157,11 @@ function initGraph(invhousePolygonPts, housePolygonPts) {
                     'background-color':'#FFB90F'
                 }
             },
-            // Following two classes are used to set node shapes
             {
-                // generally used for non-reverse-complement nodes
-                selector: 'node.invhouse',
+                selector: 'node.noncluster',
                 style: {
                     shape: 'polygon',
-                    'shape-polygon-points': invhousePolygonPts
-                }
-            },
-            {
-                // generally used for reverse-complement nodes
-                selector: 'node.house',
-                style: {
-                    shape: 'polygon',
-                    'shape-polygon-points': housePolygonPts
+                    'shape-polygon-points': 'data(polypts)'
                 }
             },
             {
@@ -318,6 +311,53 @@ function setGraphBindings() {
     //        }).update();
     //    }
     //);
+}
+
+function rotateNode(i, n) {
+    var oldPt = n.position();
+    var newPt = rotateCoordinate(oldPt['x'], oldPt['y']);
+    n.position({x: newPt[0], y: newPt[1]});
+    // oh man why isn't this working (TODO TODO TODO)
+    if (n.hasClass("noncluster")) { 
+        var coordList = n.data('polypts').trim().split(" ");
+        var clLen = coordList.length;
+        var pointList = [];
+        var currPoint = [];
+        for (var i = 0; i < clLen; i++) {
+            if (i % 2 == 0) {
+                // i/2 is always an integer, since i is even
+                pointList[i / 2] =
+                    [parseFloat(coordList[i]), parseFloat(coordList[i + 1])];
+            }
+        }
+    }
+    if (n.data("house")) {
+        n.data('polypts', rotateCoordinatesToStr(pointList));
+    }
+    else if (n.hasClass("noncluster")) {
+        n.data('polypts', rotateCoordinatesToStr(pointList));
+    }
+}
+
+/* Modifies the graph's nodes and compound nodes "in situ" to move their
+ * positions, along with rotating the control points of edges and the
+ * definition of the house/invhouse node polygons.
+ */
+function changeRotation() {
+    PREV_ROTATION = CURR_ROTATION;
+    CURR_ROTATION = parseInt(document.getElementById("rotation").value);
+    //console.log("Prev: " + PREV_ROTATION);
+    //console.log("Curr: " + CURR_ROTATION);
+    //console.log("Dlta: " + (PREV_ROTATION - CURR_ROTATION));
+    if (GRAPH_RENDERED) {
+        cy.startBatch();
+        cy.filter('node').each(rotateNode);
+        cy.scratch("_collapsed").each(function(i, n) {
+            n.data("interiorEles").each(rotateNode);
+        });
+        cy.endBatch();
+        cy.fit();
+    }
 }
 
 // Clears the graph, to facilitate drawing another one.
@@ -535,12 +575,13 @@ function degreesToRadians(angle) {
 
 // Rotates a coordinate by a given clockwise angle (in degrees).
 // Returns an array of [x', y'] representing the new point.
-function rotateCoordinate(xCoord, yCoord, rotation) {
+function rotateCoordinate(xCoord, yCoord) {
     // NOTE The formula for a coordinate transformation here works for all
     // degree inputs of rotation. However, to save time, we just check
     // to see if the rotation is a factor of 360 (i.e. the rotated
     // point would be the same as the initial point), and if so we just
     // return the original coordinates.
+    var rotation = PREV_ROTATION - CURR_ROTATION;
     if (rotation % 360 === 0) {
         return [xCoord, yCoord];
     }
@@ -562,12 +603,10 @@ function boundCoordinate(coord, lowerBound, upperBound) {
             return coord;
         }
         else {
-            console.log(coord);
             return upperBound;
         }
     }
     else {
-        console.log(coord);
         return lowerBound;
     }
 }
@@ -577,13 +616,13 @@ function boundCoordinate(coord, lowerBound, upperBound) {
  * rotation angle (in degrees), returning a Cytoscape.js-acceptable string
  * of the points in the format "x1 y1 x2 y2"..."xn yn".
  */
-function rotateCoordinatesToStr(coordinateList, rotation) {
+function rotateCoordinatesToStr(coordinateList) {
     var outputString = "";
     var currCoord, rotatedCoord;
     var newX, newY;
     for (var c = 0; c < coordinateList.length; c++) {
         currCoord = coordinateList[c];
-        rotatedCoord = rotateCoordinate(currCoord[0], currCoord[1], rotation);
+        rotatedCoord = rotateCoordinate(currCoord[0], currCoord[1]);
         outputString += boundCoordinate(rotatedCoord[0], -1, 1) + " ";
         outputString += boundCoordinate(rotatedCoord[1], -1, 1) + " ";
     }
@@ -607,12 +646,12 @@ function rotateCoordinatesToStr(coordinateList, rotation) {
  * use another graphing library/layout system/etc. for some reason, we can
  * just modify this function accordingly.
  */
-function gv2cyPoint(xCoord, yCoord, boundingbox, graphRotation) {
+function gv2cyPoint(xCoord, yCoord, boundingbox) {
     // Convert from GraphViz to Cytoscape.js
     var cyY = boundingbox[1] - yCoord;
     var cyX = xCoord;
     // Rotate the point about the axis if necessary
-    return rotateCoordinate(cyX, cyY, graphRotation);
+    return rotateCoordinate(cyX, cyY);
 }
 
 /* Converts a string of control points (defined in the form "x1 y1 x2 y2",
@@ -624,7 +663,7 @@ function gv2cyPoint(xCoord, yCoord, boundingbox, graphRotation) {
  * GraphViz' coordinate system to Cytoscape.js' coordinate system.
  * (Hence why the graph's bounding box and rotation are parameters here.)
  */
-function ctrlPtStrToList(ctrlPointStr, boundingbox, graphRotation) {
+function ctrlPtStrToList(ctrlPointStr, boundingbox) {
     // Create coordList, where every coordinate is an element (e.g.
     // [x1, y1, x2, y2, ...]
     var coordList = ctrlPointStr.trim().split(" ");
@@ -646,8 +685,7 @@ function ctrlPtStrToList(ctrlPointStr, boundingbox, graphRotation) {
                 pointList[i / 2] = gv2cyPoint(
                         parseFloat(coordList[i]),
                         parseFloat(coordList[i + 1]),
-                        boundingbox,
-                        graphRotation
+                        boundingbox
                 );
             }
         }
@@ -660,7 +698,7 @@ function ctrlPtStrToList(ctrlPointStr, boundingbox, graphRotation) {
  * This takes care of converting node position points to the new coordinate
  * system -- hence why the graph's bounding box and rotation are parameters.
  */
-function attemptAddNodeAttr(textLine, currNode, boundingbox, graphRotation) {
+function attemptAddNodeAttr(textLine, currNode, boundingbox) {
     var h_match = NODEHGHT_REGEX.exec(textLine);
     var w_match = NODEWDTH_REGEX.exec(textLine);
     var p_match = NODEPOS_REGEX.exec(textLine);
@@ -675,7 +713,7 @@ function attemptAddNodeAttr(textLine, currNode, boundingbox, graphRotation) {
         var xCoord = parseFloat(p_match[1]);
         var yCoord = parseFloat(p_match[2]);
         var convertedPt =
-            gv2cyPoint(xCoord, yCoord, boundingbox, graphRotation);
+            gv2cyPoint(xCoord, yCoord, boundingbox);
         currNode.x = convertedPt[0];
         currNode.y = convertedPt[1];
     }
@@ -715,7 +753,6 @@ function parseXdot(fileLines) {
     var id = "";              // tmp ID string
     var tmp_results = [];     // tmp array for regex results
     var boundingbox = null;   // Top-right corner of the graph in GraphViz
-    var graphRotation = 0;    // Rotation to apply to the graph (default 0)
     var allClusters = [];     // List of all clusters in the graph
     var standaloneNodes = []; // List of all nodes not in clusters
     var standaloneEdges = []; // List of all edges not in clusters
@@ -769,13 +806,6 @@ function parseXdot(fileLines) {
                 parseFloat(tmp_results[2])
             ];
         }
-        else if (GRAPHROT_REGEX.exec(currLine) != null) {
-            // Detected graph rotation
-            // We negate this, since GraphViz' graph "rotate" property seems
-            // to be counter-clockwise, and our formulae assume clockwise
-            // rotations.
-            graphRotation = -parseInt(GRAPHROT_REGEX.exec(currLine)[1]);
-        }
         else if (CLUSDECL_REGEX.exec(currLine) != null) {
             // We're parsing a cluster
             parsingCluster = true;
@@ -798,7 +828,7 @@ function parseXdot(fileLines) {
             parsingNode = true;
             id = NODEDECL_REGEX.exec(currLine)[1];
             currNode = new Node(id, -1, -1, -1, -1);
-            attemptAddNodeAttr(currLine, currNode, boundingbox, graphRotation);
+            attemptAddNodeAttr(currLine, currNode, boundingbox);
         }
         else if (EDGEDECL_REGEX.exec(currLine) != null) {
             // We found an edge declaration!
@@ -825,8 +855,7 @@ function parseXdot(fileLines) {
                     boundingboxError();
                     return;
                 }
-                attemptAddNodeAttr(lastInfo, currNode, boundingbox,
-                                   graphRotation);
+                attemptAddNodeAttr(lastInfo, currNode, boundingbox);
                 // Save current node's info, either to cluster node list or
                 // to a list of "standalone" nodes
                 if (parsingCluster) {
@@ -856,7 +885,7 @@ function parseXdot(fileLines) {
                     return;
                 }
                 currEdge.ctrlPts = ctrlPtStrToList(currEdge.ctrlPtStr,
-                        boundingbox, graphRotation);
+                        boundingbox);
                 if (currEdge.ctrlPts.length != currEdge.ctrlPtNum) {
                     alert(
                         "Invalid number of control points given for edge "
@@ -890,7 +919,7 @@ function parseXdot(fileLines) {
                 boundingboxError();
                 return;
             }
-            attemptAddNodeAttr(currLine, currNode, boundingbox, graphRotation);
+            attemptAddNodeAttr(currLine, currNode, boundingbox);
         }
         else if (parsingEdge) {
             if (parsingCtrlPts) {
@@ -926,13 +955,13 @@ function parseXdot(fileLines) {
     updateStatus("Rendering graph...");
     window.setTimeout(function() {
         renderGraph(allClusters, standaloneNodes,
-                standaloneEdges, nodeMapping, graphRotation);
+                standaloneEdges, nodeMapping);
     }, 10);
 }
 
 // Renders the graph, calling the other render*() functions as needed
 function renderGraph(allClusters, standaloneNodes, standaloneEdges,
-        nodeMapping, graphRotation) {
+        nodeMapping) {
     // Actually create the graph instance (cy)
     if (cy != null) {
         // If we already have a graph instance, clear that graph before
@@ -940,8 +969,7 @@ function renderGraph(allClusters, standaloneNodes, standaloneEdges,
         destroyGraph();
     }
     
-    initGraph(rotateCoordinatesToStr(INVHOUSE_POLYPTS, graphRotation),
-              rotateCoordinatesToStr(HOUSE_POLYPTS, graphRotation));
+    initGraph();
     setGraphBindings();
     // Render clusters, nodes, and edges (done in batch)
     cy.startBatch();
@@ -1075,23 +1103,35 @@ function renderClusters(clusterList, nodeMapping) {
 // the parent ID for all nodes in the list. If parentID is null, then no
 // parent will be given.
 function renderNodes(nodeList, parentID) { 
-    var currNode = null;
-    var nodePos = [];
+    var currNode;
+    var nodePolygonPts;
+    var isHouse;
     for (var nodeIndex = 0; nodeIndex < nodeList.length; nodeIndex++) {
         currNode = nodeList[nodeIndex]; 
+        if (currNode.shape === 'house') {
+            nodePolygonPts = rotateCoordinatesToStr(HOUSE_POLYPTS);
+            isHouse = true;
+        }
+        else {
+            nodePolygonPts = rotateCoordinatesToStr(INVHOUSE_POLYPTS);
+            isHouse = false;
+        }
         if (parentID != null) {
             cy.add({
-                classes: currNode.shape,
+                classes: 'noncluster',
                 data: {id: currNode.id, parent: parentID,
-                       w: currNode.width, h: currNode.height},
+                       w: currNode.width, h: currNode.height,
+                       polypts: nodePolygonPts, house: isHouse},
                 position: {x: currNode.x, y: currNode.y}
             });
             cy.scratch("_ele2parent")[currNode.id] = parentID;
         }
         else {
             cy.add({
-                classes: currNode.shape,
-                data: {id: currNode.id, w: currNode.width, h: currNode.height},
+                classes: 'noncluster',
+                data: {id: currNode.id, w: currNode.width,
+                       h: currNode.height, polypts: nodePolygonPts,
+                       house: isHouse},
                 position: {x: currNode.x, y: currNode.y}
             });
         }

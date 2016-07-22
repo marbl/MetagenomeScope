@@ -1,6 +1,8 @@
 <!doctype html>
 <html>
     <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>AsmViz Viewer</title>
         <!-- Load cytoscape.js' library -->
         <!-- TODO, use the minimized version for release -->
@@ -26,6 +28,10 @@
         .withgap {
             position:relative;
             margin-left: 5em;
+        }
+        .smallgap {
+            position:relative;
+            margin-left: 2em;
         }
         .grayText {
             color: #999999;
@@ -53,6 +59,14 @@
                  onkeypress="searchWithEnter(event);" />
 
             <input type='button' onclick='searchForNode()' value="Search" />
+            
+            <span class="smallgap">Graph Rotation:</span>
+            <select id='rotation' onchange="changeRotation();">
+                <option value="0">&#8595;</option>
+                <option value="90" selected>&#8594;</option>
+                <option value="180">&#8593;</option>
+                <option value="270">&#8592;</option>
+            </select>
 
             <input type='button' onclick='fitGraph()' class="withgap"
             value="Fit Graph to Nodes" />
@@ -60,7 +74,7 @@
             <!-- Value of this button will be toggled as all nodes in graph
                  are collapsed/uncollapsed -->
             <input type='button' id='collapseButton'
-                onclick='startCollapseAll()' class="withgap"
+                onclick='startCollapseAll()' class="smallgap"
                 value="Collapse All Node Groups" />
 
             <div id='status'></div>
