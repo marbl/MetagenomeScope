@@ -73,8 +73,8 @@ const CTRL_PT_DIST_EPSILON = 1.00;
 
 var GRAPH_RENDERED = false;
 // In degrees CCW from the default up->down direction
-var PREV_ROTATION = 0;
-var CURR_ROTATION = 90;
+var PREV_ROTATION;
+var CURR_ROTATION;
 
 if (!(window.File && window.FileReader)) {
 	// TODO handle this better -- user should still be able to
@@ -313,11 +313,15 @@ function setGraphBindings() {
     //);
 }
 
+// Rotates a node's position and, if applicable, its polygon definition.
 function rotateNode(i, n) {
     var oldPt = n.position();
     var newPt = rotateCoordinate(oldPt['x'], oldPt['y']);
+    // TODO study effects of position adjustment on compound nodes more
+    // thoroughly. I suspect that position only matters when the
+    // compound node is collapsed, and that as soon as it regains its
+    // children its position is neglected again.
     n.position({x: newPt[0], y: newPt[1]});
-    // oh man why isn't this working (TODO TODO TODO)
     if (n.hasClass("noncluster")) { 
         var coordList = n.data('polypts').trim().split(" ");
         var clLen = coordList.length;
@@ -330,11 +334,8 @@ function rotateNode(i, n) {
                     [parseFloat(coordList[i]), parseFloat(coordList[i + 1])];
             }
         }
-    }
-    if (n.data("house")) {
-        n.data('polypts', rotateCoordinatesToStr(pointList));
-    }
-    else if (n.hasClass("noncluster")) {
+        // The reason this doesn't work is a bug in Cytoscape.js
+        // See https://github.com/cytoscape/cytoscape.js/issues/1465
         n.data('polypts', rotateCoordinatesToStr(pointList));
     }
 }
@@ -346,9 +347,6 @@ function rotateNode(i, n) {
 function changeRotation() {
     PREV_ROTATION = CURR_ROTATION;
     CURR_ROTATION = parseInt(document.getElementById("rotation").value);
-    //console.log("Prev: " + PREV_ROTATION);
-    //console.log("Curr: " + CURR_ROTATION);
-    //console.log("Dlta: " + (PREV_ROTATION - CURR_ROTATION));
     if (GRAPH_RENDERED) {
         cy.startBatch();
         cy.filter('node').each(rotateNode);
@@ -370,7 +368,7 @@ function destroyGraph() {
 }
 
 /* Asynchronously loads the contents of the specified local file into
- * memory. After the file has been loaded, calls parseXdot() with the
+ * memory. After the file has been loaded, calls parsexdot() with the
  * file's contents. The ideal thing would be to parse the file
  * line-by-line, but we can look into that later.
  */
@@ -388,7 +386,7 @@ function loadxdot() {
         if (e.target.readyState == FileReader.DONE) {
             xdotText = e.target.result.split('\n');
             updateStatus("Parsing xdot...");
-            window.setTimeout(function() { parseXdot(xdotText) }, 10);
+            window.setTimeout(function() { parsexdot(xdotText) }, 10);
         }
     }
 	fr.readAsText(xdotfile);
@@ -746,7 +744,7 @@ function boundingboxError() {
  * produce output formatted to the specifications here, we can just parse
  * this lazily line-by-line.)
  */
-function parseXdot(fileLines) {
+function parsexdot(fileLines) {
     // Misc. useful variables
     var lineCount = fileLines.length;
     var currLine;
@@ -777,6 +775,10 @@ function parseXdot(fileLines) {
     var edgeNodeMatches = [];
     var ctrlPtMatches = [];
     var endCtrlPointMatches = [];
+
+    // Reset these things
+    PREV_ROTATION = 0;
+    CURR_ROTATION = parseInt(document.getElementById("rotation").value);
 
     // Iterate line-by-line through the file, identifying cluster, node,
     // and edge declarations and declaration closings as we go along.
@@ -968,7 +970,6 @@ function renderGraph(allClusters, standaloneNodes, standaloneEdges,
         // initializing another one
         destroyGraph();
     }
-    
     initGraph();
     setGraphBindings();
     // Render clusters, nodes, and edges (done in batch)
@@ -1016,10 +1017,6 @@ function initClusters() {
                 function(j, edge) {
                     incomingEdgeMap[edge.id()] =
                         [edge.source().id(), edge.target().id()];
-                    //edge.data({
-                    //    "cSource": edge.source(),
-                    //    "cTarget": edge.target()
-                    //});
                 }
             );
             outgoingEdges.each(
