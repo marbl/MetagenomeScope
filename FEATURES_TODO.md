@@ -1,7 +1,5 @@
 # Features to add to the web application
 
-* Add dynamic rotation status message? Should be simple to do, and would
-  be useful when rotating large graphs (e.g. RF\_oriented\_1.xdot)
 * Display underlying DNA sequence of contig/selected group of contigs
     * e.g. for a frayed rope, [ATCG|TACG]CGAT[ATAC|ATTG]
     * ...for a bubble,      ATCG[CGAT|CGTT]TA
