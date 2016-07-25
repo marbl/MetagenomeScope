@@ -10,6 +10,15 @@
 	assembly data file. But either way, I need to maintain a mapping of
 	contig IDs to DNA sequences, and ideally I wouldn't create a new
 	file to do this in: that would be silly for huge assembly files.
+    * It looks like neo4j needs a server to be running to interact with
+      a database. Unfortunately, for the sort of use cases I was envisioning
+      (users generate a database locally, and can host it on their server or
+      load it directly into the AsmViz viewer), this isn't suitable, so it
+      seems I might have to find another database type.
+    * How does SQLite sound? It's lightweight, doesn't require a server,
+      and very widely used (so lots of support exists for it -- both
+      in pysqlite and somewhat less so in sql.js). --> Let's go with this
+      for now.
     * Use a neo4j graph database to store both biological data/metadata
       (e.g. DNA sequences of contigs, edge multiplicity, contig length in
       bp) and xdot layout data (parsing the xdot file from within
@@ -43,19 +52,6 @@
     within the interface (maybe by giving each node/edge a "component"
     attribute?). This could be pretty cool.
 	
-	* OKAY, here's an idea:
-	we modify GraphViz to somehow take a bogus
-	entry in a .gv (DOT) file and copy it, verbatim, to XDOT. So, we'd
-	give each node (contig) a dna_length, dna_fwdseq, and dna_revseq
-	input (self-explanatory; note that some file formats, e.g. GML,
-	might not contain all this info (we'll have to adjust the JS user
-	interface according to the assembly graph input file format; maybe
-	send that along as a bogus graph property, in a similar method?)),
-	and we'd give each edge (arc) a multiplicity input. We can thus
-	read these things in xdot2cy.js, store them in the internal backing
-	classes for nodes and edges, and access them easily in the user
-	interface.
-
 * Open parser interface when we've finished laying out the first connected
 component? We'd have to access the system's default internet browser and
 then open the parser interface thing with the xdot file in question,
