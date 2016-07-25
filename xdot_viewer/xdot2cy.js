@@ -313,14 +313,14 @@ function setGraphBindings() {
     //);
 }
 
-// Rotates a node's position and, if applicable, its polygon definition.
+/* Rotates a node's position and, if applicable, its polygon definition.
+ * NOTE that position of a compound node only seems to matter when that
+ * compound node is collapsed -- as soon as that compound node regains
+ * one or more of its children, its position is neglected again.
+ */
 function rotateNode(i, n) {
     var oldPt = n.position();
     var newPt = rotateCoordinate(oldPt['x'], oldPt['y']);
-    // TODO study effects of position adjustment on compound nodes more
-    // thoroughly. I suspect that position only matters when the
-    // compound node is collapsed, and that as soon as it regains its
-    // children its position is neglected again.
     n.position({x: newPt[0], y: newPt[1]});
     if (n.hasClass("noncluster")) { 
         var coordList = n.data('polypts').trim().split(" ");
@@ -334,8 +334,6 @@ function rotateNode(i, n) {
                     [parseFloat(coordList[i]), parseFloat(coordList[i + 1])];
             }
         }
-        // The reason this doesn't work is a bug in Cytoscape.js
-        // See https://github.com/cytoscape/cytoscape.js/issues/1465
         n.data('polypts', rotateCoordinatesToStr(pointList));
     }
 }

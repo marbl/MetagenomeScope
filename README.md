@@ -31,11 +31,24 @@ AsmViz is composed of two main components:
    and pattern-indicating groups of nodes can be collapsed (either on
    the level of individual nodes or for all node groups in the graph).
 
+## System Requirements
+
+### collate\_clusters.py
+
+* Python 2.7
+* GraphViz (with `dot` layout manager)
+
+### xdot2cy.js
+
+* Any modern internet browser (recent mobile browsers should work, also)
+  supported by Cytoscape.js
+
 ## Running collate\_clusters.py
 
 `collate_clusters.py` is located in the graph\_collator folder. It can be
-run from the command line, assuming Python 2.7 is installed on the machine
-it's being run on.
+run from the command line;
+see the [system requirements](#system-requirements) section above
+for information on what other software needs to be installed.
 
 Running `collate_clusters.py` will process an assembly graph file so that
 it can be visualized. The syntax for this is
