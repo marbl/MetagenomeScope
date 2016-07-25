@@ -109,7 +109,16 @@ interacted with! Some features:
   is the name of the sink (target) node.
 * You can **scale** the graph to fit within the current window size using
   the "Fit Graph to Nodes" button located in the top-center of the screen.
-  This is done by default after rendering the graph for the first time.
+  This is done by default after rendering the graph for the first time and
+  after rotating the graph.
+* You can **rotate** the graph so that its nodes are laid out in the general
+  direction indicated by using the "Graph Rotation" selection list.
+  Selecting a different rotation than the current one will cause the entire
+  graph to be rotated in that direction, followed by the graph being scaled
+  to optimally fit within the current window size. Note that this preserves
+  the state of the graph, so any collapsed/uncollapsed node groups, selected
+  elements, or other modified properties of the graph will remain across
+  rotations.
 * You can **collapse and uncollapse individual node groups** by
   right-clicking on them; however, note that you have to right-click on
   the node group itself to do this, not on any of the nodes/edges within

@@ -586,6 +586,11 @@ function rotateCoordinate(xCoord, yCoord) {
                     - (yCoord * Math.sin(degreesToRadians(rotation)));
         var newY = (yCoord * Math.cos(degreesToRadians(rotation)))
                     + (xCoord * Math.sin(degreesToRadians(rotation)));
+        // TODO should probably uncomment below lines eventually
+        // See https://github.com/cytoscape/cytoscape.js/issues/1466
+        // for info on what these lines are a tmp. solution to
+        //newX = parseFloat(newX.toFixed(2));
+        //newY = parseFloat(newY.toFixed(2));
         return [newX, newY];
     }
 }
