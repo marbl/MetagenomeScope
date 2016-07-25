@@ -346,13 +346,17 @@ function changeRotation() {
     PREV_ROTATION = CURR_ROTATION;
     CURR_ROTATION = parseInt(document.getElementById("rotation").value);
     if (GRAPH_RENDERED) {
-        cy.startBatch();
-        cy.filter('node').each(rotateNode);
-        cy.scratch("_collapsed").each(function(i, n) {
-            n.data("interiorEles").each(rotateNode);
-        });
-        cy.endBatch();
-        cy.fit();
+        updateStatus("Rotating graph...");
+        window.setTimeout(function() {
+            cy.startBatch();
+            cy.filter('node').each(rotateNode);
+            cy.scratch("_collapsed").each(function(i, n) {
+                n.data("interiorEles").each(rotateNode);
+            });
+            cy.endBatch();
+            cy.fit();
+            updateStatus("Finished rotating graph.");
+        }, 10);
     }
 }
 
