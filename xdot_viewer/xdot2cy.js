@@ -298,6 +298,37 @@ function setGraphBindings() {
             }
         }
     );
+    // I can't believe this actually works -- "this is too convenient
+    // to actually work the first time I try it"...
+    // This fixes all bad (invalid, so invisible) edges as soon as the
+    // graph is first rendered, and then calls cy.offRender() to disable
+    // the check for future rendering frames.
+    // This ensures we call fixBadEdges() only after edges have been
+    // displayed.
+    cy.onRender(function() {
+        fixBadEdges();
+        cy.offRender();
+    });
+    // NOTE this binding works -- when dragging a node, if any of its edges
+    // become invalid then this automatically switches them to basicbezier
+    // edges. It works great on smaller graphs, but on huge graphs it can
+    // make dragging nodes painfully slow.
+    // We could probably optimize this a bit by caching the node incomer/
+    // outgoer lists, but we'd have to keep those updated through
+    // collapsing.
+    // Also, this removes edges' control point info, meaning once an edge
+    // has been modified to a basicbezier it stays that way until the graph
+    // is reloaded. Not sure if there's a way to check if the edge is valid
+    // (and change it back to an unbundledbezier) without using the
+    // Cytoscape.js renderer.
+    // (Maybe make this an option for the user?) TODO get this faster
+    //cy.on('drag', 'node',
+    //    function(e) {
+    //        var node = e.cyTarget;
+    //        fixBadEdges(node.incomers('edge.unbundledbezier').union(
+    //                    node.outgoers('edge.unbundledbezier')));
+    //    }
+    //);
     // TODO look into getting this more efficient in the future, if possible
     // (Renders labels only on tapping elements; doesn't really save that
     // much time, and might actually be less efficient due to the time taken
@@ -988,6 +1019,35 @@ function renderGraph(allClusters, standaloneNodes, standaloneEdges,
     cy.fit();
     GRAPH_RENDERED = true;
     updateStatus("Finished rendering.");
+}
+
+// Identifies invalid (per Cytoscape.js) edges and converts them to basic
+// bezier edges that can be properly rendered.
+// If provided, will only check edgeList.
+function fixBadEdges(edgeList) {
+    cy.batch(
+        function() {
+            if (edgeList === undefined) {
+                cy.filter('edge.unbundledbezier').each(fixSingleEdge);
+            }
+            else {
+                edgeList.each(fixSingleEdge);
+            }
+        }
+    );
+}
+
+function fixSingleEdge(i, n) {
+    if (n._private.rscratch['badBezier'] ||
+            n._private.rscratch['badLine']) {
+        // NOTE that we need these lines to be enclosed within
+        // a batch operation: otherwise, weird style stuff
+        // can start happening due to class collisions
+        n.addClass('basicbezier');
+        n.removeClass('unbundledbezier');
+        n.removeData('cpd');
+        n.removeData('cpw');
+    }
 }
 
 // Records actual and canonical incoming/outgoing edges of clusters in the
