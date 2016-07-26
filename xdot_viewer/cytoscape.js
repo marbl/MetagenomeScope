@@ -2,7 +2,7 @@
 
 /*!
 
-Cytoscape.js snapshot-c93950f64e-1469452218986 (MIT licensed)
+Cytoscape.js snapshot-9e0e87baff-1469549663171 (MIT licensed)
 
 Copyright (c) The Cytoscape Consortium
 
@@ -2895,7 +2895,6 @@ fn = elesfn = ({
         right: parent.pstyle( 'padding-right' ).pfValue
       };
       var pos = _p.position;
-      var didUpdate = false;
 
       _p.autoWidth = bb.w;
       pos.x = (bb.x1 + bb.x2 - padding.left + padding.right) / 2;
@@ -3005,16 +3004,20 @@ var updateBoundsFromLabel = function( bounds, ele, prefix, options ){
     var shadowY = ele.pstyle( 'text-shadow-offset-y' ).pfValue;
     var shadowOpacity = ele.pstyle( 'text-shadow-opacity' ).value;
     var outlineWidth = ele.pstyle( 'text-outline-width' ).pfValue;
+    var borderWidth = ele.pstyle( 'text-border-width' ).pfValue;
+    var halfBorderWidth = borderWidth / 2;
 
     var lh = labelHeight;
     var lw = labelWidth;
+    var lw_2 = lw / 2;
+    var lh_2 = lh / 2;
     var lx1, lx2, ly1, ly2;
 
     if( isEdge ){
-      lx1 = labelX - lw / 2;
-      lx2 = labelX + lw / 2;
-      ly1 = labelY - lh / 2;
-      ly2 = labelY + lh / 2;
+      lx1 = labelX - lw_2;
+      lx2 = labelX + lw_2;
+      ly1 = labelY - lh_2;
+      ly2 = labelY + lh_2;
     } else {
       switch( halign.value ){
         case 'left':
@@ -3023,8 +3026,8 @@ var updateBoundsFromLabel = function( bounds, ele, prefix, options ){
           break;
 
         case 'center':
-          lx1 = labelX - lw / 2;
-          lx2 = labelX + lw / 2;
+          lx1 = labelX - lw_2;
+          lx2 = labelX + lw_2;
           break;
 
         case 'right':
@@ -3040,8 +3043,8 @@ var updateBoundsFromLabel = function( bounds, ele, prefix, options ){
           break;
 
         case 'center':
-          ly1 = labelY - lh / 2;
-          ly2 = labelY + lh / 2;
+          ly1 = labelY - lh_2;
+          ly2 = labelY + lh_2;
           break;
 
         case 'bottom':
@@ -3080,10 +3083,10 @@ var updateBoundsFromLabel = function( bounds, ele, prefix, options ){
       ly2 = Math.max( px1y1.y, px1y2.y, px2y1.y, px2y2.y );
     }
 
-    lx1 += marginX - outlineWidth;
-    lx2 += marginX + outlineWidth;
-    ly1 += marginY - outlineWidth;
-    ly2 += marginY + outlineWidth;
+    lx1 += marginX - Math.max( outlineWidth, halfBorderWidth );
+    lx2 += marginX + Math.max( outlineWidth, halfBorderWidth );
+    ly1 += marginY - Math.max( outlineWidth, halfBorderWidth );
+    ly2 += marginY + Math.max( outlineWidth, halfBorderWidth );
 
     updateBounds( bounds, lx1, ly1, lx2, ly2 );
 
@@ -3448,7 +3451,7 @@ var defineDimFns = function( opts ){
         }
 
         var d = ele.pstyle( opts.name );
-        
+
         switch( d.strValue ){
           case 'label':
             return _p.rstyle[ opts.labelName ] || 0;
@@ -21996,25 +21999,46 @@ math.findMaxSqDistanceToOrigin = function( points ){
   return maxSqDistance;
 };
 
-math.finiteLinesIntersect = function(
-  x1, y1, x2, y2, x3, y3, x4, y4, infiniteLines ){
+math.midOfThree = function( a, b, c ){
+  if( (b <= a && a <= c) || (c <= a && a <= b) ){
+    return a;
+  } else if( (a <= b && b <= c) || (c <= b && b <= a) ){
+    return b;
+  } else {
+    return c;
+  }
+};
 
-  var ua_t = (x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3);
-  var ub_t = (x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3);
-  var u_b = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+math.finiteLinesIntersect = function( x1, y1, x2, y2, x3, y3, x4, y4, infiniteLines ){
+
+  var dx13 = x1 - x3;
+  var dx21 = x2 - x1;
+  var dx43 = x4 - x3;
+
+  var dy13 = y1 - y3;
+  var dy21 = y2 - y1;
+  var dy43 = y4 - y3;
+
+  var ua_t = dx43 * dy13 - dy43 * dx13;
+  var ub_t = dx21 * dy13 - dy21 * dx13;
+  var u_b  = dy43 * dx21 - dx43 * dy21;
 
   if( u_b !== 0 ){
     var ua = ua_t / u_b;
     var ub = ub_t / u_b;
 
-    if( 0 <= ua && ua <= 1 && 0 <= ub && ub <= 1 ){
-      return [ x1 + ua * (x2 - x1), y1 + ua * (y2 - y1) ];
+    var flptThreshold = 0.001;
+    var min = 0 - flptThreshold;
+    var max = 1 + flptThreshold;
+
+    if( min <= ua && ua <= max && min <= ub && ub <= max ){
+      return [ x1 + ua * dx21, y1 + ua * dy21 ];
 
     } else {
       if( !infiniteLines ){
         return [];
       } else {
-        return [ x1 + ua * (x2 - x1), y1 + ua * (y2 - y1) ];
+        return [ x1 + ua * dx21, y1 + ua * dy21 ];
       }
     }
   } else {
@@ -22023,17 +22047,17 @@ math.finiteLinesIntersect = function(
       // Parallel, coincident lines. Check if overlap
 
       // Check endpoint of second line
-      if( [ x1, x2, x4 ].sort()[1] === x4 ){
+      if( this.midOfThree( x1, x2, x4 ) === x4 ){
         return [ x4, y4 ];
       }
 
       // Check start point of second line
-      if( [ x1, x2, x3 ].sort()[1] === x3 ){
+      if( this.midOfThree( x1, x2, x3 ) === x3 ){
         return [ x3, y3 ];
       }
 
       // Endpoint of first line
-      if( [ x3, x4, x2 ].sort()[1] === x2 ){
+      if( this.midOfThree( x3, x4, x2 ) === x2 ){
         return [ x2, y2 ];
       }
 
@@ -26934,7 +26958,7 @@ util.debounce = function( func, wait, options ){ // ported lodash debounce funct
 module.exports = util;
 
 },{"../is":83,"../window":107}],106:[function(_dereq_,module,exports){
-module.exports="snapshot-c93950f64e-1469452218986"
+module.exports="snapshot-9e0e87baff-1469549663171"
 },{}],107:[function(_dereq_,module,exports){
 module.exports = ( typeof window === 'undefined' ? null : window );
 
