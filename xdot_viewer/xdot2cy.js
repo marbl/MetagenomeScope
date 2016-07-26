@@ -25,7 +25,7 @@ const HOUSE_POLYPTS    = [[-1, 1], [-1, -0.25], [0, -1], [1, -0.25], [1, 1]];
 
 // Regexes for detecting certain things in xdot.
 const BOUNDBOX_REGEX = /bb=\"0,0,([\d\.e\+\-]+),([\d\.e\+\-]+)\"/;
-const GRAPHROT_REGEX = /rotate=([\d\.e\+\-]+)/;
+const GRAPHROT_REGEX = /rotate=([\d\.e\+\-]+)/; // unused for now
 const CLUSDECL_REGEX = /subgraph cluster_(\w+)\s{/;
 const NODEDECL_REGEX = /(c?\d+)\s+\[/;
 const EDGEDECL_REGEX = /(c?\d+):[nsew]\s+->\s+(c?\d+):[nsew]\s+\[/;
@@ -63,7 +63,7 @@ const NEXTLINE_ECTRLPTS_REGEX = /([\d\.e\+\-\s]*)/;
 // consider node size more closely to see how accurate we can get it?
 // Also -- maybe multiply coordinates by this, to get things worked out?
 // 72 ppi?
-const INCHES_TO_PIXELS = 50;
+const INCHES_TO_PIXELS = 54;
 
 // Anything less than this constant will be considered a "straight" control
 // point distance. Used for preventing the "badBezier" cytoscape.js bug, in
@@ -384,14 +384,23 @@ function loadxdot() {
         alert("Please select an xdot file to display.");
         return;
     }
-	fr.onload = function(e) {
-        if (e.target.readyState == FileReader.DONE) {
-            xdotText = e.target.result.split('\n');
-            updateStatus("Parsing xdot...");
-            window.setTimeout(function() { parsexdot(xdotText) }, 10);
+    else if (xdotfile.name.endsWith(".xdot")) {
+        fr.onload = function(e) {
+            if (e.target.readyState == FileReader.DONE) {
+                xdotText = e.target.result.split('\n');
+                updateStatus("Parsing xdot...");
+                window.setTimeout(function() { parsexdot(xdotText) }, 10);
+            }
         }
+	    fr.readAsText(xdotfile);
     }
-	fr.readAsText(xdotfile);
+    else if (xdotfile.name.endsWith(".db")) {
+        alert("This doesn't support .db files yet! Give me a day or so.");
+    }
+    else {
+        alert("Please select a valid .db or .xdot file to display.");
+        return;
+    }
 }
 
 /* Fits the graph to all its nodes. This should be useful if the user
@@ -949,17 +958,6 @@ function parsexdot(fileLines) {
                 }
             }
         }
-    }
-    /* NOTE that this error isn't really "necessary," since we no longer
-     * need to use a bounding box by this point in the program (after
-     * parsing/converting coordinates). However, this does serve as a sort
-     * of warning to the user that they gave an invalid file (if, e.g.,
-     * nothing was parsed, this error will still be thrown). A worthwhile
-     * TODO here would be to add functionality that rejects "invalid" files.
-     */
-    if (boundingbox == null) {
-        boundingboxError();
-        return;
     }
     updateStatus("Rendering graph...");
     window.setTimeout(function() {
