@@ -52,14 +52,6 @@
     within the interface (maybe by giving each node/edge a "component"
     attribute?). This could be pretty cool.
 	
-* Open parser interface when we've finished laying out the first connected
-component? We'd have to access the system's default internet browser and
-then open the parser interface thing with the xdot file in question,
-presumably (just spitballing here) by encoding a GET request in the URL
-for that xdot file name. (This is a lot of work for a small payoff, so IDK.)
-We might also want to show progress of connected components (e.g. 20/123
-laid out) to user in the JS UI.
-
 * In collate\_clusters.py:
   Provide user with time estimate, instead of using dot -v? We can base this
   off number of nodes/edges, etc.
@@ -68,19 +60,6 @@ laid out) to user in the JS UI.
 facilitate the user cycling through the xdot files by size (provide a
 "left/right" button? can refine UI with Dr. Pop and Todd next week.)
 	* Doesn't look like HTML5 supports this, at least any more.
-
-* Lay out the graph horizontally/at arbitrary angles. DONE.
-	* TODO: Have this configurable by the user (text entry or selection
-	 drop-down box for limited number of angles, with default of
-	 90 degrees CCW or 270 degrees CW)
-    * TODO: To make further use of this, add a (functional) horizontal
-     scrollbar to traverse the graph in addition to dragging. We could even
-     get keyboard support for this, maybe?
-
-* Look into how GraphViz converts inches to pixels. See if we can manage to
-factor INCHES\_TO\_PIXELS into the position layout of the graph (=50 works
-fine, but we should support scaling the entire graph -- not just nodes --
-with larger or smaller factors).
 
 * Improve efficiency of reading+parsing the xdot file. Really, the file
 should only be read through once, using blobs; don't do the thing of getting
