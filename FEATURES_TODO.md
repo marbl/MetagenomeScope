@@ -56,17 +56,13 @@
   Provide user with time estimate, instead of using dot -v? We can base this
   off number of nodes/edges, etc.
 
-* Modify xdot2cy.js to take a folder of xdot files as argument, and
-facilitate the user cycling through the xdot files by size (provide a
-"left/right" button? can refine UI with Dr. Pop and Todd next week.)
-	* Doesn't look like HTML5 supports this, at least any more.
-
 * Improve efficiency of reading+parsing the xdot file. Really, the file
 should only be read through once, using blobs; don't do the thing of getting
 the entire thing at once, reading it into memory, and then iterating through
 it line by line. That's hugely inefficient for large files, and while it's
 alright for a demo like this we'll want it to be more efficient for actual
-use.
+use. (NOTE: using solely .db files might mean we don't have to worry about
+this, since we can just use sql.js' I/O functionality)
 
 * Think about how to linearly display the "longest path" through the graph,
 or more specifically through an individual connected component. Will
@@ -76,14 +72,6 @@ definitely have to factor in node size here. THIS IS IMPORTANT!
 
 * Show multiple assembly files for the same data at once?
     * See [this Cytoscape.js demo](http://js.cytoscape.org/demos/310dca83ba6970812dd0/) for an example.
-
-* File more issue reports with Cytoscape.js. Remaining errors:
-    * unbundled-bezier causing the need for control-point-distances attributes for every element in the graph
-        * I need to actually work on getting this in a Minimal Working Example; for all I know this could just be some elaborate bug I accidentally introduced with data(cpd).
-    * Documentation might be wrong re: the edge weights supported by
-      Floyd-Warshall and Bellman-Ford algorithms (it should say "numeric,"
-      instead of "positive numeric" -- would need to verify this and then
-      submit a small pull request, I guess).
 
 * Account for edge multiplicity in the graph (via altering edge with in
 Cytoscape.js, and I think there's probably a way to do something similar in
