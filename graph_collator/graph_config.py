@@ -58,6 +58,9 @@ CYCLE_STYLE      = "\tstyle=filled;\n\tfillcolor=darkgoldenrod1;\n"
 ### Global graph settings (applied to every node/edge/etc. in the graph) ###
 # General graph style. Feel free to insert newlines for readability.
 # Leaving this empty is also fine, if you just want default graph-wide settings
+# Note that we rely on having a rankdir value of "TB" for the entire graph, 
+# in order to facilitate rotation in the .xdot viewer. (So I'd recommend not
+# changing that unless you have a good reason.)
 GRAPH_STYLE      = "rotate=90"
 
 # Style applied to every node in the graph.

@@ -234,7 +234,7 @@ function collapseCluster(cluster, moveMap) {
         oldEdge.addClass("basicbezier");
         oldEdge.move({target: cluster.id()});
     }
-    // For each edge with a source in the node node...
+    // For each edge with a source in the compound node...
     for (var outgoingEdgeID in cluster.data("outgoingEdgeMap")) {
         var oldEdge = cy.getElementById(outgoingEdgeID);
         oldEdge.removeClass("unbundledbezier");
@@ -350,9 +350,11 @@ function setGraphBindings() {
  * one or more of its children, its position is neglected again.
  */
 function rotateNode(i, n) {
+    // Rotate node position
     var oldPt = n.position();
     var newPt = rotateCoordinate(oldPt['x'], oldPt['y']);
     n.position({x: newPt[0], y: newPt[1]});
+    // Rotate node polygon definition
     if (n.hasClass("noncluster")) { 
         var coordList = n.data('polypts').trim().split(" ");
         var clLen = coordList.length;
@@ -380,9 +382,11 @@ function changeRotation() {
         updateStatus("Rotating graph...");
         window.setTimeout(function() {
             cy.startBatch();
+            // This only rotates nodes that are not collapsed
             cy.filter('node').each(rotateNode);
+            // Rotate nodes within currently collapsed node groups
             cy.scratch("_collapsed").each(function(i, n) {
-                n.data("interiorEles").each(rotateNode);
+                n.data("interiorNodes").each(rotateNode);
             });
             cy.endBatch();
             cy.fit();
@@ -630,11 +634,8 @@ function rotateCoordinate(xCoord, yCoord) {
                     - (yCoord * Math.sin(degreesToRadians(rotation)));
         var newY = (yCoord * Math.cos(degreesToRadians(rotation)))
                     + (xCoord * Math.sin(degreesToRadians(rotation)));
-        // TODO should probably uncomment below lines eventually
-        // See https://github.com/cytoscape/cytoscape.js/issues/1466
-        // for info on what these lines are a tmp. solution to
-        //newX = parseFloat(newX.toFixed(2));
-        //newY = parseFloat(newY.toFixed(2));
+        newX = parseFloat(newX.toFixed(2));
+        newY = parseFloat(newY.toFixed(2));
         return [newX, newY];
     }
 }
@@ -1037,16 +1038,20 @@ function fixBadEdges(edgeList) {
     );
 }
 
-function fixSingleEdge(i, n) {
-    if (n._private.rscratch['badBezier'] ||
-            n._private.rscratch['badLine']) {
+// If the given edge is a badBezier or badLine, converts it to a basicbezier
+function fixSingleEdge(i, e) {
+    if (e._private.rscratch['badBezier'] ||
+            e._private.rscratch['badLine']) {
         // NOTE that we need these lines to be enclosed within
         // a batch operation: otherwise, weird style stuff
         // can start happening due to class collisions
-        n.addClass('basicbezier');
-        n.removeClass('unbundledbezier');
-        n.removeData('cpd');
-        n.removeData('cpw');
+        e.removeClass('unbundledbezier');
+        e.removeData('cpd');
+        e.removeData('cpw');
+        e.addClass('basicbezier');
+        // Due to a bug in Cytoscape.js.
+        // TODO, isolate it (it's in removeClass(), I guess?)
+        e.move({source: e.source().id()});
     }
 }
 
@@ -1100,10 +1105,14 @@ function initClusters() {
                 incomingEdges).difference(outgoingEdges);
             // Record incoming/outgoing edges in this
             // cluster's data. Will be useful during collapsing.
+            // We also record "interiorNodes" -- having a reference to just
+            // these nodes saves us the time of filtering nodes out of
+            // interiorEles when rotating collapsed node groups.
             node.data({
                 "incomingEdgeMap": incomingEdgeMap,
                 "outgoingEdgeMap": outgoingEdgeMap,
-                "interiorEles" : interiorEdges.union(children)
+                "interiorEles"   : interiorEdges.union(children),
+                "interiorNodes"  : children
             });
         }
     );
