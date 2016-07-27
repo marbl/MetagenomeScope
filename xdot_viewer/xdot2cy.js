@@ -1050,7 +1050,8 @@ function fixSingleEdge(i, e) {
         e.removeData('cpw');
         e.addClass('basicbezier');
         // Due to a bug in Cytoscape.js.
-        // TODO, isolate it (it's in removeClass(), I guess?)
+        // See https://github.com/cytoscape/cytoscape.js/issues/1474
+        // (TODO, remove this workaround when that issue has been fixed)
         e.move({source: e.source().id()});
     }
 }
