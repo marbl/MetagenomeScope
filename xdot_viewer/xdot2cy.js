@@ -313,20 +313,24 @@ function setGraphBindings() {
     // become invalid then this automatically switches them to basicbezier
     // edges. It works great on smaller graphs, but on huge graphs it can
     // make dragging nodes painfully slow.
-    // We could probably optimize this a bit by caching the node incomer/
-    // outgoer lists, but we'd have to keep those updated through
-    // collapsing.
+    // We can optimize this a bit by caching the node incomer/
+    // outgoer lists (see initNodeAdjacents()), but we'd have to keep
+    // those updated through collapsing.
+    // And even with cached lists, this is pretty slow. I guess we could
+    // somehow reduce the granularity of this (e.g. only register something
+    // every other frame?), though? But then we'd want to keep this
+    // reliable, also.
     // Also, this removes edges' control point info, meaning once an edge
     // has been modified to a basicbezier it stays that way until the graph
     // is reloaded. Not sure if there's a way to check if the edge is valid
     // (and change it back to an unbundledbezier) without using the
-    // Cytoscape.js renderer.
+    // Cytoscape.js renderer, so this would only make sense for graphs we
+    // want to generally have as static.
     // (Maybe make this an option for the user?) TODO get this faster
     //cy.on('drag', 'node',
     //    function(e) {
     //        var node = e.cyTarget;
-    //        fixBadEdges(node.incomers('edge.unbundledbezier').union(
-    //                    node.outgoers('edge.unbundledbezier')));
+    //        fixBadEdges(node.data("adjacentEdges"));
     //    }
     //);
     // TODO look into getting this more efficient in the future, if possible
@@ -1015,6 +1019,9 @@ function renderGraph(allClusters, standaloneNodes, standaloneEdges,
     renderNodes(standaloneNodes, null);
     renderEdges(standaloneEdges, nodeMapping);
     initClusters();
+    // NOTE disabling this for now; reenable if we decide to implement
+    // dynamic edge checking upon nodes being dragged
+    //initNodeAdjacents();
     cy.endBatch();
     // Run a few post-processing tasks on the graph
     cy.fit();
@@ -1054,6 +1061,16 @@ function fixSingleEdge(i, e) {
         // (TODO, remove this workaround when that issue has been fixed)
         e.move({source: e.source().id()});
     }
+}
+
+function initNodeAdjacents() {
+    cy.filter('node.noncluster').each(
+        function(i, node) {
+            node.data("adjacentEdges",
+                node.incomers('edge').union(node.outgoers('edge'))
+            );
+        }
+    );
 }
 
 // Records actual and canonical incoming/outgoing edges of clusters in the
