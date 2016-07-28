@@ -2,7 +2,7 @@
 
 /*!
 
-Cytoscape.js snapshot-9e0e87baff-1469549663171 (MIT licensed)
+Cytoscape.js snapshot-e1bf31360c-1469738341740 (MIT licensed)
 
 Copyright (c) The Cytoscape Consortium
 
@@ -12656,6 +12656,11 @@ BRp.projectLines = function( edge ){
   var _p = edge._private;
   var rs = _p.rscratch;
   var et = rs.edgeType;
+
+  // clear the cached points state
+  _p.rstyle.bezierPts = null;
+  _p.rstyle.linePts = null;
+  _p.rstyle.haystackPts = null;
 
   if( et === 'multibezier' ||  et === 'bezier' ||  et === 'self' ||  et === 'compound' ){
     var bpts = _p.rstyle.bezierPts = []; // jshint ignore:line
@@ -26958,7 +26963,7 @@ util.debounce = function( func, wait, options ){ // ported lodash debounce funct
 module.exports = util;
 
 },{"../is":83,"../window":107}],106:[function(_dereq_,module,exports){
-module.exports="snapshot-9e0e87baff-1469549663171"
+module.exports="snapshot-e1bf31360c-1469738341740"
 },{}],107:[function(_dereq_,module,exports){
 module.exports = ( typeof window === 'undefined' ? null : window );
 

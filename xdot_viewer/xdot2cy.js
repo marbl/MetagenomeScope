@@ -1045,24 +1045,29 @@ function fixBadEdges(edgeList) {
     );
 }
 
-// If the given edge is a badBezier or badLine, converts it to a basicbezier
+/* If the given edge is a badBezier or badLine, converts it to a basicbezier
+ * NOTE that this class should be called from within a batch operation, to
+ * prevent style class collisions.
+ */
 function fixSingleEdge(i, e) {
     if (e._private.rscratch['badBezier'] ||
             e._private.rscratch['badLine']) {
-        // NOTE that we need these lines to be enclosed within
-        // a batch operation: otherwise, weird style stuff
-        // can start happening due to class collisions
         e.removeClass('unbundledbezier');
         e.removeData('cpd');
         e.removeData('cpw');
         e.addClass('basicbezier');
-        // Due to a bug in Cytoscape.js.
-        // See https://github.com/cytoscape/cytoscape.js/issues/1474
-        // (TODO, remove this workaround when that issue has been fixed)
-        e.move({source: e.source().id()});
     }
 }
 
+/* Initializes the adjacent edges (i.e. incoming + outgoing edges) of
+ * every non-cluster node in the graph. This would be useful if we
+ * enabled dynamic edge validity checking (it makes checking each node's
+ * edges more efficient, since we only have to build up these collections
+ * once), but for now dynamic edge validity checking is disabled due to
+ * still being too slow.
+ * So we don't really use this function for anything, but it could probably
+ * be useful in the future?
+ */
 function initNodeAdjacents() {
     cy.filter('node.noncluster').each(
         function(i, node) {
