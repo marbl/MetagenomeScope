@@ -54,7 +54,7 @@ const NODESHP_REGEX = /shape=(house|invhouse)/;
 // never be the last item in the [] list of properties for an edge in xdot.
 // However, just to be safe, NDEG_END_REGEX does handle this scenario.
 const ECTRLPTS_REGEX =
-    /_draw_=\"c 7 -#[\dABCDEF]{6} B (\d+) ([\d\.e\+\-\s]*)/;
+    /_draw_=\"c 7 -#[\dABCDEF]{6} B ([\de\+\-]+) ([\d\.e\+\-\s]*)/;
 const ECTRLPTS_END_REGEX = /(.+)\",/;
 const NEXTLINE_ECTRLPTS_REGEX = /([\d\.e\+\-\s]*)/;
 
@@ -365,7 +365,7 @@ function rotateNode(i, n) {
         var pointList = [];
         var currPoint = [];
         for (var i = 0; i < clLen; i++) {
-            if (i % 2 == 0) {
+            if (i % 2 === 0) {
                 // i/2 is always an integer, since i is even
                 pointList[i / 2] =
                     [parseFloat(coordList[i]), parseFloat(coordList[i + 1])];
@@ -400,7 +400,7 @@ function changeRotation() {
 }
 
 // Clears the graph, to facilitate drawing another one.
-// Assumes a graph has already been drawn (i.e. cy != null)
+// Assumes a graph has already been drawn (i.e. cy !== null)
 function destroyGraph() {
     cy.destroy();
     document.getElementById('collapseButton').value =
@@ -419,13 +419,13 @@ function loadxdot() {
     // Okay, so the ideal thing here would be to read this in line-by-line,
 	// so we don't use an excessive amount of memory for large xdot files.
 	var xdotfile = document.getElementById('xdotselector').files[0];
-    if (xdotfile == null) {
+    if (xdotfile === undefined) {
         alert("Please select an xdot file to display.");
         return;
     }
     else if (xdotfile.name.endsWith(".xdot")) {
         fr.onload = function(e) {
-            if (e.target.readyState == FileReader.DONE) {
+            if (e.target.readyState === FileReader.DONE) {
                 xdotText = e.target.result.split('\n');
                 updateStatus("Parsing xdot...");
                 window.setTimeout(function() { parsexdot(xdotText) }, 10);
@@ -435,6 +435,7 @@ function loadxdot() {
     }
     else if (xdotfile.name.endsWith(".db")) {
         alert("This doesn't support .db files yet! Give me a day or so.");
+        return;
     }
     else {
         alert("Please select a valid .db or .xdot file to display.");
@@ -463,7 +464,7 @@ function fitGraph() {
 
 // Simple shortcut used to enable searching by pressing Enter (charCode 13)
 function searchWithEnter(e) {
-    if (e.charCode == 13) {
+    if (e.charCode === 13) {
         searchForNode();
     }
 }
@@ -532,7 +533,7 @@ function startCollapseAll() {
         return;
     }
     var currVal = document.getElementById('collapseButton').value;
-    if (currVal[0] == 'U') {
+    if (currVal[0] === 'U') {
         updateStatus("Uncollapsing...");
     }
     else {
@@ -723,14 +724,14 @@ function ctrlPtStrToList(ctrlPointStr, boundingbox) {
     // this conversion. (If coordList.length is odd, return null --
     // something went very wrong in that case.)
     var clLen = coordList.length;
-    if (clLen % 2 != 0) {
+    if (clLen % 2 !== 0) {
         return null;
     }
     else {
         var pointList = [];
         var currPoint = [];
         for (var i = 0; i < clLen; i++) {
-            if (i % 2 == 0) {
+            if (i % 2 === 0) {
                 // i/2 is always an integer, since i is even
                 pointList[i / 2] = gv2cyPoint(
                         parseFloat(coordList[i]),
@@ -753,13 +754,13 @@ function attemptAddNodeAttr(textLine, currNode, boundingbox) {
     var w_match = NODEWDTH_REGEX.exec(textLine);
     var p_match = NODEPOS_REGEX.exec(textLine);
     var s_match = NODESHP_REGEX.exec(textLine);
-    if (h_match != null) {
+    if (h_match !== null) {
         currNode.height = parseFloat(h_match[1]) * INCHES_TO_PIXELS;
     }
-    else if (w_match != null) {
+    else if (w_match !== null) {
         currNode.width = parseFloat(w_match[1]) * INCHES_TO_PIXELS;
     }
-    else if (p_match != null) {
+    else if (p_match !== null) {
         var xCoord = parseFloat(p_match[1]);
         var yCoord = parseFloat(p_match[2]);
         var convertedPt =
@@ -767,14 +768,20 @@ function attemptAddNodeAttr(textLine, currNode, boundingbox) {
         currNode.x = convertedPt[0];
         currNode.y = convertedPt[1];
     }
-    else if (s_match != null) {
+    else if (s_match !== null) {
         currNode.shape = s_match[1];
     }
 }
 
-function boundingboxError() {
-    alert("error: no bounding box specified in xdot file.");
+// Alerts user with an error message and updates status accordingly.
+function xdotParsingError(errorMsg) {
+    alert(errorMsg);
     updateStatus("Halted xdot parsing due to error.");
+}
+
+// A common error needed in xdot parsing
+function boundingboxError() {
+    xdotParsingError("Error: no bounding box specified in xdot file.");
 }
 
 /* Parses the xdot file, in the format as an array of strings.
@@ -838,7 +845,7 @@ function parsexdot(fileLines) {
         // remove leading/trailing whitespace
         currLine = fileLines[line].trim();
 
-        if (BOUNDBOX_REGEX.exec(currLine) != null && !parsingCluster) {
+        if (BOUNDBOX_REGEX.exec(currLine) !== null && !parsingCluster) {
             // We detected the bounding box of the entire graph. Bounding
             // boxes are only declared for graphs and subgraphs (clusters),
             // so if we're not already parsing a cluster we can assume this
@@ -860,7 +867,7 @@ function parsexdot(fileLines) {
                 parseFloat(tmp_results[2])
             ];
         }
-        else if (CLUSDECL_REGEX.exec(currLine) != null) {
+        else if (CLUSDECL_REGEX.exec(currLine) !== null) {
             // We're parsing a cluster
             parsingCluster = true;
             id = CLUSDECL_REGEX.exec(currLine)[1];
@@ -871,11 +878,11 @@ function parsexdot(fileLines) {
             parsingCluster = false;
             allClusters.push(currCluster);
         }
-        else if (NODEDECL_REGEX.exec(currLine) != null) {
+        else if (NODEDECL_REGEX.exec(currLine) !== null) {
             // We found a node declaration!
             // NOTE -- yeah, exec'ing the regexes twice here is bad
             // practice, I know. Will figure out something better (TODO)..
-            if (boundingbox == null) {
+            if (boundingbox === null) {
                 boundingboxError();
                 return;
             }
@@ -884,28 +891,28 @@ function parsexdot(fileLines) {
             currNode = new Node(id, -1, -1, -1, -1);
             attemptAddNodeAttr(currLine, currNode, boundingbox);
         }
-        else if (EDGEDECL_REGEX.exec(currLine) != null) {
+        else if (EDGEDECL_REGEX.exec(currLine) !== null) {
             // We found an edge declaration!
             parsingEdge = true;
             edgeNodeMatches = EDGEDECL_REGEX.exec(currLine);
             currEdge = new Edge(edgeNodeMatches[1], edgeNodeMatches[2]);
             ctrlPtMatches = ECTRLPTS_REGEX.exec(currLine);
-            if (ctrlPtMatches != null) {
+            if (ctrlPtMatches !== null) {
                 parsingCtrlPts = true;
                 currEdge.ctrlPtNum = parseInt(ctrlPtMatches[1]);
                 currEdge.ctrlPtStr = ctrlPtMatches[2].trim() + " ";
             }
             endCtrlPointMatches = ECTRLPTS_END_REGEX.exec(currLine);
-            if (ECTRLPTS_END_REGEX.exec(currLine) != null) {
+            if (ECTRLPTS_END_REGEX.exec(currLine) !== null) {
                 // if the ctrl. point declaration is only one-line long,
                 // don't try to parse multiple lines of it
                 parsingCtrlPts = false;
             }
         }
-        else if (NDEG_END_REGEX.exec(currLine) != null) {
+        else if (NDEG_END_REGEX.exec(currLine) !== null) {
             lastInfo = NDEG_END_REGEX.exec(currLine)[1];
             if (parsingNode) {
-                if (boundingbox == null) {
+                if (boundingbox === null) {
                     boundingboxError();
                     return;
                 }
@@ -934,22 +941,22 @@ function parsexdot(fileLines) {
                     currEdge.ctrlPtStr += lastInfo;
                     parsingCtrlPts = false;
                 }
-                if (boundingbox == null) {
+                if (boundingbox === null) {
                     boundingboxError();
                     return;
                 }
                 currEdge.ctrlPts = ctrlPtStrToList(currEdge.ctrlPtStr,
                         boundingbox);
-                if (currEdge.ctrlPts.length != currEdge.ctrlPtNum) {
-                    alert(
-                        "Invalid number of control points given for edge "
-                        + currEdge.id
+                if (currEdge.ctrlPts === null) {
+                    xdotParsingError(
+                        "Odd number of coordinates given for a "
+                        + "control point of edge " + currEdge.id
                     );
                     return;
                 }
-                if (currEdge.ctrlPts == null) {
-                    alert(
-                        "Odd number of coordinates given for edge "
+                else if (currEdge.ctrlPts.length !== currEdge.ctrlPtNum) {
+                    xdotParsingError(
+                        "Invalid number of control points given for edge "
                         + currEdge.id
                     );
                     return;
@@ -969,7 +976,7 @@ function parsexdot(fileLines) {
             // children easily), this isn't a problem, though.
         }
         else if (parsingNode) {
-            if (boundingbox == null) {
+            if (boundingbox === null) {
                 boundingboxError();
                 return;
             }
@@ -978,10 +985,12 @@ function parsexdot(fileLines) {
         else if (parsingEdge) {
             if (parsingCtrlPts) {
                 tmp_results = ECTRLPTS_END_REGEX.exec(currLine);
-                if (tmp_results == null) {
+                if (tmp_results === null) {
                     tmp_results = NEXTLINE_ECTRLPTS_REGEX.exec(currLine);
-                    if (tmp_results == null) {
-                        alert("Invalid xdot edge stmt.: " + currEdge.id);
+                    if (tmp_results === null) {
+                        xdotParsingError(
+                            "Invalid xdot edge stmt.: " + currEdge.id
+                        );
                         return;
                     }
                     else {
@@ -1005,12 +1014,12 @@ function parsexdot(fileLines) {
 // Renders the graph, calling the other render*() functions as needed
 function renderGraph(allClusters, standaloneNodes, standaloneEdges,
         nodeMapping) {
-    // Actually create the graph instance (cy)
-    if (cy != null) {
+    if (cy !== null) {
         // If we already have a graph instance, clear that graph before
         // initializing another one
         destroyGraph();
     }
+    // Actually create the graph instance (cy)
     initGraph();
     setGraphBindings();
     // Render clusters, nodes, and edges (done in batch)
@@ -1210,7 +1219,7 @@ function renderNodes(nodeList, parentID) {
             nodePolygonPts = rotateCoordinatesToStr(INVHOUSE_POLYPTS);
             isHouse = false;
         }
-        if (parentID != null) {
+        if (parentID !== null) {
             cy.add({
                 classes: 'noncluster',
                 data: {id: currNode.id, parent: parentID,
@@ -1249,7 +1258,7 @@ function distance(point1, point2) {
  */
 function pointToLineDistance(point, lNode1, lNode2) {
     var lDist = distance([lNode1.x, lNode1.y], [lNode2.x, lNode2.y]);
-    if (lDist == 0) {
+    if (lDist === 0) {
         return 0;
     }
     var ydelta = lNode2.y - lNode1.y;
