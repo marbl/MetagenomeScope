@@ -42,7 +42,10 @@
             * Underlying DNA sequence, if available (GML doesn't
             contain this, but LastGraph does)
             * Edge multiplicity (use to make edges thicker/thinner)
-            * Contig read depth (use to make nodes thicker/thinner)
+            * Contig read depth (use to make nodes "wider"/thicker/thinner)
+              From LastGraph, it looks like this can be calculated as
+              O_COV_SHORT1 divided by COV_SHORT_1 (COV_SHORT_1 = contig
+              length in bp).
             * Length (in base pairs) of contigs
             * etc.
     * Then we can load this database directly into the Javascript UI
@@ -51,7 +54,17 @@
     at a time, while allowing the user to switch between components
     within the interface (maybe by giving each node/edge a "component"
     attribute?). This could be pretty cool.
-	
+    * Another cool feature to consider: for the current component, display
+      its total number of contigs, their total length in bp, and (to make
+      this really cool) the overall size of the entire graph, and the
+      percentage of that that is taken up by the currently-being-viewed
+      connected component.
+    * Also, we should probably add in a mode to visualize all (or at least
+      some user-specified permutation) of the connected components at once.
+      Although that could be pretty slow for large graphs, if the user
+      wants to check multiple components at once for certain patterns/etc.
+      then it could make sense.
+
 * In collate\_clusters.py:
   Provide user with time estimate, instead of using dot -v? We can base this
   off number of nodes/edges, etc.

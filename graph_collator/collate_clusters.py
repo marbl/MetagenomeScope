@@ -153,6 +153,7 @@ with open(asm_fn, 'r') as assembly_file:
         # Record state -- parsing node or parsing edge?
         # (This is kind of a lazy approach, but to be fair it's actually
         # sort of efficient)
+        # We assume that each declaration occurs on its own line.
         parsing_node = False
         curr_node_id = None
         curr_node_bp = 0
