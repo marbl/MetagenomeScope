@@ -198,7 +198,8 @@ with open(asm_fn, 'r') as assembly_file:
                     parsed_fwdseq = False
                 else:
                     # Parsing forward sequence (It's actually offset by a
-                    # number of bp; TODO, get that reconciled in JS)
+                    # number of bp, so we should probably mention that in
+                    # README or even in the Javascript graph viewer)
                     parsed_fwdseq = True
                     curr_node_fwd = line.strip()
     # TODO -- wait, is bp/length stored in GML files???

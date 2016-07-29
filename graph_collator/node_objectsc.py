@@ -381,6 +381,7 @@ class Chain(NodeGroup):
         chain_ends_cyclically = False
         # We iterate "down" through the chain.
         while True:
+            print chain_list
             if (len(curr.incoming_nodes) != 1 or type(curr) != Node
                                             or curr.seen_in_collapsing):
                 # The chain has ended, and this can't be the last node in it
@@ -445,6 +446,10 @@ class Chain(NodeGroup):
             if len(curr.incoming_nodes) != 1:
                 # This indicates the end of the chain, and this is the optimal
                 # starting node in the chain.
+                if len(set(curr.incoming_nodes) & set(chain_list)) > 0:
+                    # Chain "begins" cyclically, so we'll tag it as a cycle
+                    # when detecting cycles
+                    return False, None
                 backwards_chain_list.append(curr)
                 break
             # The backwards chain continues. Fortunately, if the chain had
