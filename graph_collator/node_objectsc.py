@@ -9,13 +9,23 @@
 from graph_config import *
 from math import log, sqrt
 
+class Edge(object):
+    """A generic edge, used for storing layout data (e.g. control points)
+       and, if applicable for this type of assembly file, biological
+       metadata (e.g. multiplicity, as given in LastGraph files)."""
+
+    def __init__(self, sourceID, targetID, multiplicity=None):
+        self.sourceID = sourceID
+        self.targetID = targetID
+        self.multiplicity = multiplicity
+
 class Node(object):
     """A generic node. Used for representing individual contigs, and as
        the superclass for groups of nodes collapsed into a single node."""
 
     # Initializes the object. bp is just the number of base pairs; we'll
     # scale it later if we actually decide to draw this node.
-    def __init__(self, id_string, bp, is_complement, depth=1, dna_fwd=None):
+    def __init__(self, id_string, bp, is_complement, depth=None, dna_fwd=None):
         self.id_string = id_string
         self.bp = bp
         self.depth = depth
