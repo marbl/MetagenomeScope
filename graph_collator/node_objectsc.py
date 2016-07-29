@@ -15,9 +15,10 @@ class Node(object):
 
     # Initializes the object. bp is just the number of base pairs; we'll
     # scale it later if we actually decide to draw this node.
-    def __init__(self, id_string, bp, is_complement, dna_fwd=None):
+    def __init__(self, id_string, bp, is_complement, depth=1, dna_fwd=None):
         self.id_string = id_string
         self.bp = bp
+        self.depth = depth
         self.dna_fwd = dna_fwd
         # If True, we use the "flipped" node style
         self.is_complement = is_complement
@@ -381,7 +382,6 @@ class Chain(NodeGroup):
         chain_ends_cyclically = False
         # We iterate "down" through the chain.
         while True:
-            print chain_list
             if (len(curr.incoming_nodes) != 1 or type(curr) != Node
                                             or curr.seen_in_collapsing):
                 # The chain has ended, and this can't be the last node in it

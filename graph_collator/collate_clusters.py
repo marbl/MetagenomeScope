@@ -34,8 +34,8 @@
 # this approach, but for now it works fine. (If distributing this, we'd
 # probably have to change this approach somewhat. Or we could just require
 # the user have dot installed.)
-# NOTE -- it turns out that the order of nodes in the graph actually changes the
-# graph's output picture. Look into optimizing that somehow?
+# NOTE -- it turns out that the order of nodes in the graph actually changes
+# the graph's output picture. Look into optimizing that somehow?
 
 # For getting command-line arguments
 from sys import argv
@@ -159,8 +159,9 @@ with open(asm_fn, 'r') as assembly_file:
         # TODO -- Should we account for SEQ/NR information here?
         curr_node_id = ""
         curr_node_bp = 1
-        curr_node_fwd = ""
-        curr_node_rev = ""
+        curr_node_depth = 1
+        curr_node_dnafwd = ""
+        curr_node_dnarev = ""
         parsing_node = False
         parsed_fwdseq = False
         for line in assembly_file:
@@ -169,6 +170,8 @@ with open(asm_fn, 'r') as assembly_file:
                 l = line.split()
                 curr_node_id = l[1]
                 curr_node_bp = int(l[2])
+                # depth = $O_COV_SHORT1 / $COV_SHORT1 (bp)
+                curr_node_depth = float(l[3]) / curr_node_bp
             elif line[:3] == "ARC":
                 # ARC information is only stored on one line -- makes things
                 # simple for us
@@ -184,16 +187,17 @@ with open(asm_fn, 'r') as assembly_file:
                 # declaration, then it refers to the contig's DNA sequence.
                 if parsed_fwdseq:
                     # Parsing reverse sequence
-                    curr_node_rev = line.strip()
-                    n = Node(curr_node_id, curr_node_bp, False, curr_node_fwd)
+                    curr_node_dnarev = line.strip()
+                    n = Node(curr_node_id, curr_node_bp, False, \
+                            depth=curr_node_depth, dna_fwd=curr_node_dnafwd)
                     c = Node('c' + curr_node_id, curr_node_bp, True, \
-                            curr_node_rev)
+                            depth=curr_node_depth, dna_fwd=curr_node_dnarev)
                     nodeid2obj[curr_node_id] = n
                     nodeid2obj['c' + curr_node_id] = c
                     curr_node_id = ""
                     curr_node_bp = 1
-                    curr_node_fwd = ""
-                    curr_node_rev = ""
+                    curr_node_dnafwd = ""
+                    curr_node_dnarev = ""
                     parsing_node = False
                     parsed_fwdseq = False
                 else:
@@ -201,7 +205,7 @@ with open(asm_fn, 'r') as assembly_file:
                     # number of bp, so we should probably mention that in
                     # README or even in the Javascript graph viewer)
                     parsed_fwdseq = True
-                    curr_node_fwd = line.strip()
+                    curr_node_dnafwd = line.strip()
     # TODO -- wait, is bp/length stored in GML files???
     # I guess for now I'm just going to treat every node as the same size
     if parsing_GraphML:
