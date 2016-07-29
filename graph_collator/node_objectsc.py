@@ -11,18 +11,12 @@ class Node(object):
 
     # Initializes the object. bp is just the number of base pairs; we'll
     # scale it later if we actually decide to draw this node.
-    # (We allow the user to pass in either a str or int as the Node ID;
-    # this facilitates polymorphism with collapsed groups of Nodes.)
-    def __init__(self, id_value, bp, is_complement, use_rc_prefix=True):
+    def __init__(self, id_string, bp, is_complement, dna_fwd=None):
+        self.id_string = id_string
+        self.bp = bp
+        self.dna_fwd = dna_fwd
         # If True, we use the "flipped" node style
         self.is_complement = is_complement
-        if type(id_value) == int:
-            self.id_string = str(id_value)
-            if self.is_complement and use_rc_prefix:
-                self.id_string = 'c' + self.id_string[1:]
-        elif type(id_value) == str:
-            self.id_string = id_value
-        self.bp = bp
         # List of nodes to which this node has an outgoing edge
         self.outgoing_nodes = []
         # List of nodes from which this node has an incoming edge
