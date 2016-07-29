@@ -1,0 +1,28 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_Bc14_c12_c11_c13_c32_c35_c34_c33_c10 {
+	c14 [label="",height=1.53571,width=1.53571,shape=house];
+	c12 [label="",height=1.53571,width=1.53571,shape=house];
+	c11 [label="",height=1.53571,width=1.53571,shape=house];
+	c13 [label="",height=1.53571,width=1.53571,shape=house];
+	c32 [label="",height=1.53571,width=1.53571,shape=house];
+	c35 [label="",height=1.53571,width=1.53571,shape=house];
+	c34 [label="",height=1.53571,width=1.53571,shape=house];
+	c33 [label="",height=1.53571,width=1.53571,shape=house];
+	c10 [label="",height=1.53571,width=1.53571,shape=house];
+	style=filled;
+	fillcolor=cornflowerblue;
+}
+	c14 -> c12
+	c14 -> c13
+	c14 -> c32
+	c14 -> c35
+	c12 -> c11
+	c11 -> c10
+	c13 -> c10
+	c33 -> c10
+	c34 -> c33
+	c35 -> c34
+	c32 -> c10
+}

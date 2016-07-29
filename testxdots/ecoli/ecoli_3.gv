@@ -1,0 +1,68 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_Rc20_63_35_4_c17 {
+	c20 [label="",height=1.24218,width=1.24218,shape=house];
+	63 [label="",height=1.27383,width=1.27383,shape=invhouse];
+	35 [label="",height=0.84598,width=0.84598,shape=invhouse];
+	4 [label="",height=1.54023,width=1.54023,shape=invhouse];
+	c17 [label="",height=1.34269,width=1.34269,shape=house];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_R156_69_40_127_158 {
+	156 [label="",height=1.01127,width=1.01127,shape=invhouse];
+	69 [label="",height=1.01127,width=1.01127,shape=invhouse];
+	40 [label="",height=1.29043,width=1.29043,shape=invhouse];
+	127 [label="",height=1.00832,width=1.00832,shape=invhouse];
+	158 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	style=filled;
+	fillcolor=green;
+}
+	199 [label="",height=0.825145,width=0.825145,shape=invhouse];
+	200 [label="",height=0.707107,width=0.707107,shape=invhouse];
+	201 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	61 [label="",height=0.940971,width=0.940971,shape=invhouse];
+	62 [label="",height=1.01127,width=1.01127,shape=invhouse];
+	279 [label="",height=0.878655,width=0.878655,shape=invhouse];
+	c206 [label="",height=0.792235,width=0.792235,shape=house];
+	c65 [label="",height=1.2771,width=1.2771,shape=house];
+	c259 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	159 [label="",height=1.00931,width=1.00931,shape=invhouse];
+	c41 [label="",height=1.12477,width=1.12477,shape=house];
+	c207 [label="",height=0.746305,width=0.746305,shape=house];
+	c198 [label="",height=1.01127,width=1.01127,shape=house];
+	c142 [label="",height=1.01127,width=1.01127,shape=house];
+	c20 -> 35
+	35 -> 4
+	35 -> c17
+	4 -> 199
+	199 -> 200
+	200 -> 201
+	201 -> 61
+	201 -> c206
+	61 -> 62
+	61 -> 279
+	62 -> 201
+	279 -> 199
+	c206 -> c65
+	c206 -> c207
+	c65 -> 69
+	c65 -> 156
+	69 -> 40
+	40 -> 127
+	40 -> 158
+	127 -> c259
+	c259 -> 63
+	63 -> 35
+	159 -> 63
+	158 -> c41
+	158 -> 159
+	c41 -> c259
+	156 -> 40
+	c207 -> 200
+	c17 -> c198
+	c17 -> c142
+	c198 -> c20
+	c142 -> c20
+}

@@ -1,0 +1,350 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_B24_c51_32_34 {
+	24 [label="",height=0.75701,width=0.75701,shape=invhouse];
+	c51 [label="",height=1.12894,width=1.12894,shape=house];
+	32 [label="",height=1.12894,width=1.12894,shape=invhouse];
+	34 [label="",height=1.06018,width=1.06018,shape=invhouse];
+	style=filled;
+	fillcolor=cornflowerblue;
+}
+subgraph cluster_Rc3_8_9_10_18 {
+	c3 [label="",height=1.50842,width=1.50842,shape=house];
+	8 [label="",height=1.44911,width=1.44911,shape=invhouse];
+	9 [label="",height=1.24568,width=1.24568,shape=invhouse];
+	10 [label="",height=1.40853,width=1.40853,shape=invhouse];
+	18 [label="",height=1.37128,width=1.37128,shape=invhouse];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_Rc29_c39_c28_31_36 {
+	c29 [label="",height=0.813086,width=0.813086,shape=house];
+	c39 [label="",height=0.938996,width=0.938996,shape=house];
+	c28 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	31 [label="",height=1.02562,width=1.02562,shape=invhouse];
+	36 [label="",height=1.02562,width=1.02562,shape=invhouse];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_R19_c47_c46_7_c41 {
+	19 [label="",height=1.22702,width=1.22702,shape=invhouse];
+	c47 [label="",height=0.863528,width=0.863528,shape=house];
+	c46 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	7 [label="",height=1.53312,width=1.53312,shape=invhouse];
+	c41 [label="",height=1.07945,width=1.07945,shape=house];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_Rc38_c54_c53_c31_c36 {
+	c38 [label="",height=1.07512,width=1.07512,shape=house];
+	c54 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	c53 [label="",height=1.05544,width=1.05544,shape=house];
+	c31 [label="",height=1.02562,width=1.02562,shape=house];
+	c36 [label="",height=1.02562,width=1.02562,shape=house];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_Bc56_c27_c33_c58 {
+	c56 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	c27 [label="",height=1.3505,width=1.3505,shape=house];
+	c33 [label="",height=1.09576,width=1.09576,shape=house];
+	c58 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	style=filled;
+	fillcolor=cornflowerblue;
+}
+subgraph cluster_Bc30_c26_37_23 {
+	c30 [label="",height=1.12333,width=1.12333,shape=house];
+	c26 [label="",height=1.0169,width=1.0169,shape=house];
+	37 [label="",height=0.926284,width=0.926284,shape=invhouse];
+	23 [label="",height=1.11484,width=1.11484,shape=invhouse];
+	style=filled;
+	fillcolor=cornflowerblue;
+}
+subgraph cluster_R43_35_20_5_c6_16 {
+	43 [label="",height=0.855102,width=0.855102,shape=invhouse];
+	35 [label="",height=1.21925,width=1.21925,shape=invhouse];
+	20 [label="",height=0.94851,width=0.94851,shape=invhouse];
+	5 [label="",height=1.37412,width=1.37412,shape=invhouse];
+	c6 [label="",height=1.41186,width=1.41186,shape=house];
+	16 [label="",height=1.36619,width=1.36619,shape=invhouse];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_B57_c4_4_c57 {
+	57 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	c4 [label="",height=1.27962,width=1.27962,shape=house];
+	4 [label="",height=1.27962,width=1.27962,shape=invhouse];
+	c57 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	style=filled;
+	fillcolor=cornflowerblue;
+}
+subgraph cluster_B58_27_33_56 {
+	58 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	27 [label="",height=1.3505,width=1.3505,shape=invhouse];
+	33 [label="",height=1.09576,width=1.09576,shape=invhouse];
+	56 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	style=filled;
+	fillcolor=cornflowerblue;
+}
+subgraph cluster_R26_c37_30_2_c5 {
+	26 [label="",height=1.0169,width=1.0169,shape=invhouse];
+	c37 [label="",height=0.926284,width=0.926284,shape=house];
+	30 [label="",height=1.12333,width=1.12333,shape=invhouse];
+	2 [label="",height=1.30447,width=1.30447,shape=invhouse];
+	c5 [label="",height=1.37412,width=1.37412,shape=house];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_R22_c42_c34_c32_51 {
+	22 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	c42 [label="",height=1.02394,width=1.02394,shape=house];
+	c34 [label="",height=1.06018,width=1.06018,shape=house];
+	c32 [label="",height=1.12894,width=1.12894,shape=house];
+	51 [label="",height=1.12894,width=1.12894,shape=invhouse];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_Rc10_c18_c9_3_c8 {
+	c10 [label="",height=1.40853,width=1.40853,shape=house];
+	c18 [label="",height=1.37128,width=1.37128,shape=house];
+	c9 [label="",height=1.24568,width=1.24568,shape=house];
+	3 [label="",height=1.50842,width=1.50842,shape=invhouse];
+	c8 [label="",height=1.44911,width=1.44911,shape=house];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_Rc17_39_40_c48_61 {
+	c17 [label="",height=0.960494,width=0.960494,shape=house];
+	39 [label="",height=0.938996,width=0.938996,shape=invhouse];
+	40 [label="",height=1.11484,width=1.11484,shape=invhouse];
+	c48 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	61 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_Rc19_59_60_c1_52 {
+	c19 [label="",height=1.22702,width=1.22702,shape=house];
+	59 [label="",height=0.806545,width=0.806545,shape=invhouse];
+	60 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	c1 [label="",height=1.53571,width=1.53571,shape=house];
+	52 [label="",height=0.962096,width=0.962096,shape=invhouse];
+	style=filled;
+	fillcolor=green;
+}
+	c22 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	c61 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	c40 [label="",height=1.11484,width=1.11484,shape=house];
+	17 [label="",height=0.960494,width=0.960494,shape=invhouse];
+	53 [label="",height=1.05544,width=1.05544,shape=invhouse];
+	38 [label="",height=1.07512,width=1.07512,shape=invhouse];
+	13 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	12 [label="",height=0.926284,width=0.926284,shape=invhouse];
+	14 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	c50 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	c11 [label="",height=1.25297,width=1.25297,shape=house];
+	c49 [label="",height=0.924005,width=0.924005,shape=house];
+	54 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	1 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	c60 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	28 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	29 [label="",height=0.813086,width=0.813086,shape=invhouse];
+	6 [label="",height=1.41186,width=1.41186,shape=invhouse];
+	c20 [label="",height=0.94851,width=0.94851,shape=house];
+	c43 [label="",height=0.855102,width=0.855102,shape=house];
+	c25 [label="",height=1.24779,width=1.24779,shape=house];
+	45 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	c15 [label="",height=1.20017,width=1.20017,shape=house];
+	15 [label="",height=1.20017,width=1.20017,shape=invhouse];
+	c45 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	c2 [label="",height=1.30447,width=1.30447,shape=house];
+	25 [label="",height=1.24779,width=1.24779,shape=invhouse];
+	c35 [label="",height=1.21925,width=1.21925,shape=house];
+	c23 [label="",height=1.11484,width=1.11484,shape=house];
+	c24 [label="",height=0.75701,width=0.75701,shape=house];
+	c16 [label="",height=1.36619,width=1.36619,shape=house];
+	48 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	42 [label="",height=1.02394,width=1.02394,shape=invhouse];
+	11 [label="",height=1.25297,width=1.25297,shape=invhouse];
+	50 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	c14 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	c13 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	c12 [label="",height=0.926284,width=0.926284,shape=house];
+	49 [label="",height=0.924005,width=0.924005,shape=invhouse];
+	55 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	21 [label="",height=1.26311,width=1.26311,shape=invhouse];
+	44 [label="",height=0.960494,width=0.960494,shape=invhouse];
+	41 [label="",height=1.07945,width=1.07945,shape=invhouse];
+	46 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	47 [label="",height=0.863528,width=0.863528,shape=invhouse];
+	c7 [label="",height=1.53312,width=1.53312,shape=house];
+	c55 [label="",height=0.707107,width=0.707107,shape=house,style=filled,fillcolor=gray64];
+	c21 [label="",height=1.26311,width=1.26311,shape=house];
+	c44 [label="",height=0.960494,width=0.960494,shape=house];
+	c52 [label="",height=0.962096,width=0.962096,shape=house];
+	c59 [label="",height=0.806545,width=0.806545,shape=house];
+	24 -> c51
+	24 -> 32
+	c51 -> 34
+	34 -> c22
+	34 -> 42
+	c22 -> 8
+	c22 -> c21
+	8 -> 9
+	9 -> 10
+	9 -> 18
+	10 -> c61
+	c61 -> c40
+	c40 -> 17
+	c40 -> c39
+	17 -> c29
+	c29 -> c28
+	c28 -> 31
+	c28 -> 36
+	31 -> 53
+	53 -> 38
+	53 -> 54
+	38 -> 13
+	13 -> 12
+	13 -> 14
+	12 -> 13
+	14 -> c50
+	c50 -> c11
+	c50 -> c49
+	c11 -> c61
+	c49 -> c50
+	54 -> 1
+	54 -> c7
+	54 -> 55
+	1 -> c60
+	c60 -> 19
+	c60 -> c59
+	19 -> c46
+	c46 -> 7
+	c46 -> c41
+	7 -> c54
+	c54 -> c53
+	c53 -> c31
+	c53 -> c36
+	c31 -> 28
+	28 -> 29
+	28 -> 39
+	29 -> 6
+	29 -> c17
+	6 -> c20
+	c20 -> c43
+	c20 -> c35
+	c43 -> c25
+	c43 -> 35
+	c25 -> 45
+	45 -> c15
+	c15 -> c56
+	c15 -> 58
+	c56 -> c27
+	c56 -> c33
+	c27 -> c58
+	c58 -> 15
+	15 -> c45
+	15 -> 57
+	c45 -> c2
+	c45 -> 25
+	c2 -> c30
+	c30 -> c26
+	c30 -> 37
+	c26 -> 23
+	23 -> 24
+	37 -> 23
+	5 -> c30
+	20 -> 5
+	20 -> c6
+	20 -> 16
+	c6 -> c29
+	16 -> 24
+	43 -> 20
+	25 -> 43
+	c35 -> 43
+	35 -> 20
+	57 -> c4
+	57 -> 4
+	c4 -> c57
+	c57 -> c15
+	4 -> c57
+	56 -> 15
+	27 -> 56
+	58 -> 27
+	58 -> 33
+	33 -> 56
+	c33 -> c58
+	2 -> 45
+	30 -> 2
+	30 -> c5
+	c5 -> c20
+	26 -> 30
+	c23 -> c37
+	c23 -> 26
+	c37 -> 30
+	c24 -> c16
+	c24 -> c23
+	c16 -> c20
+	51 -> c24
+	c34 -> c32
+	c34 -> 51
+	c32 -> c24
+	22 -> c34
+	c8 -> 22
+	c9 -> 3
+	c9 -> c8
+	3 -> 48
+	48 -> c40
+	42 -> 48
+	c10 -> c9
+	61 -> c10
+	61 -> 11
+	11 -> 50
+	50 -> c14
+	50 -> 49
+	c14 -> c13
+	c13 -> c12
+	c13 -> c38
+	c12 -> c13
+	c38 -> c53
+	49 -> 50
+	40 -> c48
+	40 -> 61
+	c48 -> c3
+	c48 -> c42
+	c3 -> 9
+	c42 -> c34
+	c17 -> 40
+	39 -> 40
+	c18 -> c9
+	55 -> c18
+	55 -> 21
+	21 -> 22
+	c36 -> 28
+	c1 -> c54
+	60 -> c1
+	60 -> 52
+	52 -> 44
+	44 -> 41
+	44 -> 59
+	41 -> 46
+	46 -> c19
+	46 -> 47
+	c19 -> 60
+	47 -> 44
+	c7 -> 46
+	59 -> 60
+	c55 -> c54
+	18 -> c55
+	c21 -> c55
+	c41 -> c44
+	c44 -> c52
+	c44 -> c47
+	c52 -> c60
+	c47 -> c46
+	c59 -> c44
+	36 -> 53
+	c39 -> c28
+	32 -> 34
+}

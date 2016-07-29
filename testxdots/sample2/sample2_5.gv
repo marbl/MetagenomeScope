@@ -1,0 +1,19 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_B98_99_100_101_333 {
+	98 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	99 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	100 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	101 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	333 [label="",height=0.707107,width=0.707107,shape=invhouse,style=filled,fillcolor=gray64];
+	style=filled;
+	fillcolor=cornflowerblue;
+}
+	98 -> 99
+	98 -> 100
+	98 -> 101
+	99 -> 333
+	100 -> 333
+	101 -> 333
+}

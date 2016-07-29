@@ -1,0 +1,28 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_B10_11_12_13_33_34_35_32_14 {
+	10 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	11 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	12 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	13 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	33 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	34 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	35 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	32 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	14 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	style=filled;
+	fillcolor=cornflowerblue;
+}
+	10 -> 11
+	10 -> 13
+	10 -> 33
+	10 -> 32
+	11 -> 12
+	12 -> 14
+	13 -> 14
+	32 -> 14
+	35 -> 14
+	34 -> 35
+	33 -> 34
+}

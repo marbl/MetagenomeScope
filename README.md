@@ -40,8 +40,8 @@ AsmViz is composed of two main components:
 
 ### xdot2cy.js
 
-* Any modern internet browser (recent mobile browsers should work, also)
-  supported by Cytoscape.js
+* Any modern internet browser (smartphone/tablet mobile browsers should
+  work, also) supported by Cytoscape.js
 
 ## Running collate\_clusters.py
 

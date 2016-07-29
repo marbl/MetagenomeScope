@@ -1,0 +1,25 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_R1_2_3_4_5_6_7_8_9 {
+	1 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	2 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	3 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	4 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	5 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	6 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	7 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	8 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	9 [label="",height=1.53571,width=1.53571,shape=invhouse];
+	style=filled;
+	fillcolor=green;
+}
+	1 -> 3
+	3 -> 4
+	4 -> 5
+	5 -> 6
+	5 -> 7
+	5 -> 8
+	5 -> 9
+	2 -> 3
+}

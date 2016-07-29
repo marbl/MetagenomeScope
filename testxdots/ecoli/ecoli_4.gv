@@ -1,0 +1,33 @@
+digraph asm {
+	rotate=90;
+	edge [headport=n,tailport=s];
+subgraph cluster_R195_118_c39_c192_152 {
+	195 [label="",height=1.01127,width=1.01127,shape=invhouse];
+	118 [label="",height=1.01127,width=1.01127,shape=invhouse];
+	c39 [label="",height=1.19849,width=1.19849,shape=house];
+	c192 [label="",height=1.01127,width=1.01127,shape=house];
+	152 [label="",height=1.01127,width=1.01127,shape=invhouse];
+	style=filled;
+	fillcolor=green;
+}
+subgraph cluster_Bc18_c251_21_c22 {
+	c18 [label="",height=1.33893,width=1.33893,shape=house];
+	c251 [label="",height=1.01127,width=1.01127,shape=house];
+	21 [label="",height=1.01127,width=1.01127,shape=invhouse];
+	c22 [label="",height=1.15324,width=1.15324,shape=house];
+	style=filled;
+	fillcolor=cornflowerblue;
+}
+	195 -> c39
+	c39 -> c192
+	c39 -> 152
+	c192 -> c18
+	c18 -> c251
+	c18 -> 21
+	c251 -> c22
+	c22 -> 118
+	c22 -> 195
+	118 -> c39
+	21 -> c22
+	152 -> c18
+}
