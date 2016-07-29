@@ -17,7 +17,7 @@ MAX_COMPONENTS = None
 # GraphViz. This is to avoid laying out a ton of small, unconnected groups
 # of nodes.
 # (If you want to lay out all connected components, even ones containing
-# single nodes, then you can set MIN_COMPONENT_SIZE to 0.)
+# single nodes, then you can set MIN_COMPONENT_SIZE to 1.)
 # As an example, if a graph contains 5 connected components:
 # -One with 20 nodes
 # -One with 10 nodes
