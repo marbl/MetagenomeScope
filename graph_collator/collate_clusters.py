@@ -111,8 +111,6 @@ def negate_contig_id(id_string):
 # to get a list of every Node object that's been processed
 # (And, more importantly, to reconcile edge data with prev.-seen node data)
 nodeid2obj = {}
-# List of all edges processed, stored as Edge classes
-edges = []
 
 # Create a SQLite database in which we store biological and graph layout
 # information. This will be opened in the Javascript graph viewer.
@@ -186,11 +184,9 @@ with open(asm_fn, 'r') as assembly_file:
                 id2 = a[2] if a[2][0] != '-' else 'c' + a[2][1:]
                 nid2 = negate_contig_id(id2)
                 nid1 = negate_contig_id(id1)
-                nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2])
-                nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1])
-                multiplicity = int(a[3])
-                edges.append(Edge(id1, id2, multiplicity))
-                edges.append(Edge(nid2, nid1, multiplicity))
+                mult = int(a[3])
+                nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2], mult)
+                nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1], mult)
             elif parsing_node:
                 # If we're in the middle of parsing a contig's info and
                 # the current line doesn't match either a NODE or ARC
@@ -419,6 +415,10 @@ for component in connected_components[:MAX_COMPONENTS]:
         print "Laying out connected component %d..." % (component_size_rank)
         call(["dot", gv_fullfn, "-Txdot", "-v"], stdout=output_file)
         print "Done laying out connected component %d." % (component_size_rank)
+    # TODO Pipe the .xdot file into this script (or just read it, I
+    # guess), and parse its layout information, storing it with the
+    # corresponding nodes/edges/node groups/components/etc.
+    # Then output that info to the SQLite database.
     
     if not preserve:
         call(["rm", gv_fullfn])

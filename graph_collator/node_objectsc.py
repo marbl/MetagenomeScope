@@ -36,6 +36,10 @@ class Node(object):
         self.outgoing_nodes = []
         # List of nodes from which this node has an incoming edge
         self.incoming_nodes = []
+        # List of Edge objects that have this node as a source -- used for
+        # storing more detailed edge information, not used for graph
+        # traversal
+        self.outgoing_edge_objects = []
         # Flag variables we use to make DFS/finding connected components
         # more efficient (maintaining a list or dict of this info is more
         # expensive than just using attributes, like this)
@@ -98,9 +102,13 @@ class Node(object):
 
     # Adds an outgoing edge from this node to another node, and adds an
     # incoming edge from the other node referencing this node.
-    def add_outgoing_edge(self, node2):
+    # Also adds an Edge with the given multiplicity data to this node's list
+    # of outgoing Edge objects.
+    def add_outgoing_edge(self, node2, multiplicity=None):
         self.outgoing_nodes.append(node2)
         node2.incoming_nodes.append(self)
+        self.outgoing_edge_objects.append( \
+            Edge(self.id_string, node2.id_string, multiplicity))
 
     # Replaces an outgoing edge to a given node from this node with another
     # outgoing edge to another node. Used when collapsing groups of nodes.
@@ -124,6 +132,10 @@ class Node(object):
     # to the nodes we're interested in.
     def edge_info(self):
         o = ""
+        # I considered using self.outgoing_edge_objects here instead of
+        # self.outgoing_nodes, but since we only care about the target ID
+        # and not about any other edge data it's more efficient to just
+        # traverse self.outgoing_nodes
         for m in self.outgoing_nodes:
             o += "\t%s -> %s\n" % (self.id_string, m.id_string)
         return o
