@@ -1,6 +1,10 @@
-# Various objects defining a "node" in the generated graph: both individual,
-# and as a node representing multiple groups of nodes (as in Bubble, Rope,
-# and Chain).
+# This file contains various objects defining a "node" in the visualized
+# assembly graph: both individual nodes and nodes that represent groups of
+# child nodes (as in the Bubble, Rope, Chain, and Cycle objects).
+# 
+# Note that these node groups are used to create "clusters" in GraphViz,
+# which preserves their child nodes. (It's similar to Cytoscape.js' concept
+# of a "compound node," for reference.)
 
 from graph_config import *
 from math import log, sqrt

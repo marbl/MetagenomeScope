@@ -11,14 +11,6 @@
 # output_1.gv (if preserved), the second largest component will have
 # output_2.xdot and output_2.gv (if preserved), and so on.
 #
-# This differs from the normal collate_double.py in that it groups bubbles,
-# ropes, chains into "clusters," while maintaining the original nodes'
-# presence in the graph. So rather than "collapsing" parts of the graph,
-# this actually adds more information to the graph.
-# Also, this version has more bugfixes (re: chain detection, especially) and
-# also has some more features added (cycle detection, etc) so this is
-# essentially the "main" version of this program now.
-#
 # Syntax is:
 #   ./collate_clusters.py -i (input file name) -o (xdot file prefix)
 #       [-d (xdot/gv directory name)] [-p] [-w]
@@ -44,10 +36,6 @@
 # the user have dot installed.)
 # NOTE -- it turns out that the order of nodes in the graph actually changes the
 # graph's output picture. Look into optimizing that somehow?
-# TODO -- scale output? We can use the "size" setting of GraphViz, but that's
-# in inches and also not universal (we don't want to scale down huge graphs to
-# the point of being unreadable -- we want to acknowledge that some graphs are
-# just going to take a while to display/view due to being really huge.)
 
 # For getting command-line arguments
 from sys import argv
