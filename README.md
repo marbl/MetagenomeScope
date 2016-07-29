@@ -35,8 +35,9 @@ AsmViz is composed of two main components:
 
 ### collate\_clusters.py
 
-* Python 2.7 (with [sqlite3](https://docs.python.org/2/library/sqlite3.html) module, which should be installed by default)
-* GraphViz (with `dot` layout manager, which should be installed by default)
+* Python 2.7 (with [sqlite3](https://docs.python.org/2/library/sqlite3.html) module, which should be installed by default with Python 2.7)
+* GraphViz (with `dot` program, which should be installed by default with
+  GraphViz)
 
 ### xdot2cy.js
 
