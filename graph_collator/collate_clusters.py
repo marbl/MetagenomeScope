@@ -112,6 +112,13 @@ def negate_contig_id(id_string):
 # (And, more importantly, to reconcile edge data with prev.-seen node data)
 nodeid2obj = {}
 
+# Pertinent Assembly-wide information we use 
+graph_filetype = ""
+total_contig_count = 0
+total_edge_count = 0
+total_bp_length = 0
+total_component_count = 0
+
 # Create a SQLite database in which we store biological and graph layout
 # information. This will be opened in the Javascript graph viewer.
 db_fullfn = os.path.join(dir_fn, output_fn + ".db")
@@ -134,11 +141,11 @@ cursor.execute("""CREATE TABLE edges
         control_point_count integer, parent_cluster_id text)""") 
 cursor.execute("""CREATE TABLE clusters (cluster_id text)""")
 cursor.execute("""CREATE TABLE components
-        (size_rank integer, contig_count integer, total_length integer)""")
-cursor.execute("""CREATE TABLE graph
+        (size_rank integer, contig_count integer, edge_count integer,
+        total_length integer, boundingbox_x real, boundingbox_y real)""")
+cursor.execute("""CREATE TABLE assembly
         (filetype text, contig_count integer, edge_count integer,
-        component_count integer, total_length integer, n50 integer,
-        boundingbox_x real, boundingbox_y real)""")
+        component_count integer, total_length integer, n50 integer)""")
 
 # NOTE remember to use these in the appropriate place later
 connection.commit()
@@ -156,6 +163,7 @@ with open(asm_fn, 'r') as assembly_file:
     parsing_LastGraph = asm_fn.endswith(LASTGRAPH_SUFFIX)
     parsing_GraphML   = asm_fn.endswith(GRAPHML_SUFFIX)
     if parsing_LastGraph:
+        graph_filetype = "LastGraph"
         # TODO -- Should we account for SEQ/NR information here?
         curr_node_id = ""
         curr_node_bp = 1
@@ -187,6 +195,9 @@ with open(asm_fn, 'r') as assembly_file:
                 mult = int(a[3])
                 nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2], mult)
                 nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1], mult)
+                # Record this edge for graph statistics; since each line
+                # represents two edges, we record two edges for now
+                total_edge_count += 2
             elif parsing_node:
                 # If we're in the middle of parsing a contig's info and
                 # the current line doesn't match either a NODE or ARC
@@ -200,6 +211,13 @@ with open(asm_fn, 'r') as assembly_file:
                             depth=curr_node_depth, dna_fwd=curr_node_dnarev)
                     nodeid2obj[curr_node_id] = n
                     nodeid2obj['c' + curr_node_id] = c
+                    # Record this node for graph statistics
+                    # (We include its RC node in these statistics for now)
+                    # Note that recording these statistics here ensures that
+                    # only "fully complete" node definitions are recorded.
+                    total_contig_count += 2
+                    total_bp_length += curr_node_bp
+                    # Clear temporary/marker variables for later use
                     curr_node_id = ""
                     curr_node_bp = 1
                     curr_node_dnafwd = ""
@@ -214,7 +232,8 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_dnafwd = line.strip()
     # TODO -- wait, is bp/length stored in GML files???
     # I guess for now I'm just going to treat every node as the same size
-    if parsing_GraphML:
+    elif parsing_GraphML:
+        graph_filetype = "GraphML"
         # Record state -- parsing node or parsing edge?
         # (This is kind of a lazy approach, but to be fair it's actually
         # sort of efficient)
@@ -240,6 +259,10 @@ with open(asm_fn, 'r') as assembly_file:
                     n = Node(curr_node_id, curr_node_bp, \
                             (curr_node_orientation == '"REV"'))
                     nodeid2obj[curr_node_id] = n
+                    # Record this node for graph statistics
+                    total_contig_count += 1
+                    total_bp_length += curr_node_bp
+                    # Clear tmp/marker variables
                     parsing_node = False
                     curr_node_id = None
                     curr_node_bp = 0
@@ -254,6 +277,8 @@ with open(asm_fn, 'r') as assembly_file:
                 elif line.endswith("]\n"):
                     nodeid2obj[curr_edge_src_id].add_outgoing_edge( \
                             nodeid2obj[curr_edge_tgt_id])
+                    total_edge_count += 1
+                    # Clear tmp/marker vars
                     parsing_edge = False
                     curr_edge_src_id = None
                     curr_edge_tgt_id = None
@@ -263,6 +288,15 @@ with open(asm_fn, 'r') as assembly_file:
             # Start parsing edge
             elif line.endswith("edge [\n"):
                 parsing_edge = True
+
+# At this stage, the entire assembly graph file has been parsed.
+# This means that graph_filetype, total_contig_count, total_edge_count, and
+# total_bp_length are all finalized.
+
+#print "Assembly graph type: ", graph_filetype
+#print "Node ct. : ", total_contig_count
+#print "Edge ct. : ", total_edge_count
+#print "Total len: ", total_bp_length
 
 # Try to collapse special "groups" of Nodes (Bubbles, Ropes, etc.)
 # As we check nodes, we add either the individual node (if it can't be
@@ -370,7 +404,10 @@ for n in nodes_to_draw:
             if m.seen_in_collapsing and m.group not in node_group_list:
                 node_group_list.append(m.group)
         connected_components.append(Component(node_list, node_group_list))
+        total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
+
+#print "Total component ct.: ", total_component_count
 
 # Conclusion: Output (desired) components of nodes to the .gv file
 
