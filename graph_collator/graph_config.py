@@ -95,7 +95,7 @@ NODEPOSN_RE = re.compile(r'pos="(%s),(%s)"' % (GVNUMBER_RE, GVNUMBER_RE))
 NODESHAP_RE = re.compile(r'shape=(house|invhouse)')
 
 # Regexes for detecting edge control points
-CPTSTRNG_RE = re.compile(r'[\d\.e\+\-\s]*')
+CPTSTRNG_RE = r'[\d\.e\+\-\s]*'
 CPTSDECL_RE = re.compile(r'_draw_="c 7 -#[\dABCDEF]{6} B ([\de\+\-]+) (%s)' % \
                     (CPTSTRNG_RE))
 CPTS_NXL_RE = re.compile(r'(%s)' % (CPTSTRNG_RE))
