@@ -53,8 +53,8 @@ for information on what other software needs to be installed.
 Running `collate_clusters.py` will process an assembly graph file so that
 it can be visualized. The syntax for this is
 
-`./collate_clusters.py -i (input file) -o (.xdot/.gv file prefix)
-    [-d (.xdot/.gv directory name)] [-p] [-w]`
+`./collate_clusters.py -i (input file) -o (output file prefix)
+    [-d (output directory name)] [-pg] [-px] [-w]`
 
 The script will produce a directory containing the created .xdot/.gv files.
 (If the directory already exists, it will just place the .xdot/.gv files in
@@ -64,19 +64,23 @@ upon trying to overwrite any files in the directory.)
 ### Command-line argument descriptions
 
 * `-i` The input assembly graph file to be used.
-* `-o` The file prefix to be used for .xdot/.gv files generated. These files
-  will be formatted something like foobar\_1.gv, foobar\_1.xdot, foobar\_2.gv,
-  foobar\_2.xdot, ... for an argument of `foobar` to `-o`.
+* `-o` The file prefix to be used for .db/.xdot/.gv files generated. These
+  files will be formatted something like foobar\_1.gv, foobar\_1.xdot,
+  foobar\_2.gv, foobar\_2.xdot, ... foobar.db for an argument of `foobar`
+  to `-o`.
 * `-d` This optional argument specifies the name of the directory in which
   .xdot/.gv output files will be stored. If no name is specified then the
   argument of `-o` will be used as the directory name (to be created or used
   in the current working directory; note, however,  that it's strongly
   recommended you explicitly specify an output directory using `-d` to ensure
   data is being stored in the intended location).
-* `-p` This optional argument preserves DOT files (suffix .gv) in the output
+* `-pg` This optional argument preserves DOT files (suffix .gv) in the output
   directory; if this argument is not given, then all .gv files will just be
   deleted after they are used to create their corresponding .xdot file.
-* `-w` This optional argument overwrites output files (.xdot/.gv) in the
+* `-px` This optional argument preserves .xdot files in the output
+  directory; if this argument is not given, then all .xdot files will just be
+  deleted after their layout information is parsed.
+* `-w` This optional argument overwrites output files (.db/.xdot/.gv) in the
   output directory. If this argument is not given, then an error will be
   raised if writing an output file would cause another file in the output
   directory (if it already exists) to be overwritten.

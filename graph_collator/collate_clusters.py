@@ -12,18 +12,22 @@
 # output_2.xdot and output_2.gv (if preserved), and so on.
 #
 # Syntax is:
-#   ./collate_clusters.py -i (input file name) -o (xdot file prefix)
-#       [-d (xdot/gv directory name)] [-p] [-w]
+#   ./collate_clusters.py -i (input file name) -o (file prefix)
+#       [-d (output directory name)] [-pg] [-px] [-w]
 #
 # If you'd like to preserve the DOT file(s) after the program's execution, you
-# can pass the argument -p to this program to save the .gv files created.
+# can pass the argument -pg to this program to save the .gv files created.
+# The .xdot file(s) generated after the program's execution (DOT files with
+# additional layout information, created by GraphViz) can similarly be
+# preserved if the -px argument is passed to this program.
 #
-# By default, this outputs xdot and (if -p is set) gv files to a directory
-# created using the -o (xdot file prefix) option. However, if you pass
+# By default, this outputs db and (if -pg and/or -px is set) xdot/gv files
+# to a directory created using the -o option. However, if you pass
 # a directory name to -d, you can change the directory name to an arbitrary
-# name that you specify.
+# name that you specify. (Making use of this feature is recommended for most
+# cases.)
 #
-# By default, this raises an error if a file in the output file directory
+# By default, this raises an error if any files in the output file directory
 # will be overwritten. Passing the -w argument results in these errors being
 # ignored and the corresponding files being overwritten, but note that an
 # error be raised regardless if the output file directory name already
@@ -53,7 +57,8 @@ from graph_config import *
 asm_fn = ""
 output_fn = ""
 dir_fn = ""
-preserve = False
+preserve_gv = False
+preserve_xdot = False
 overwrite = False
 i = 0
 # Possible TODO here: use a try... block here to let the user know if they
@@ -70,8 +75,10 @@ for arg in argv:
             dir_fn = output_fn
     elif arg == "-d":
         dir_fn = argv[i + 1]
-    elif arg == "-p":
-        preserve = True
+    elif arg == "-pg":
+        preserve_gv = True
+    elif arg == "-px":
+        preserve_xdot = True
     elif arg == "-w":
         overwrite = True
     i += 1
@@ -432,32 +439,35 @@ for component in connected_components[:MAX_COMPONENTS]:
     gv_fullfn = os.path.join(dir_fn, component_prefix + ".gv")
     if not overwrite and os.path.exists(gv_fullfn):
         raise IOError, "%s already exists" % (gv_fullfn)
-    with open(gv_fullfn, 'w') as gvfile:
-        gvfile.write("digraph asm {\n");
+    with open(gv_fullfn, 'w') as gv_file:
+        gv_file.write("digraph asm {\n");
         if GRAPH_STYLE != "":
-            gvfile.write("\t%s;\n" % (GRAPH_STYLE))
+            gv_file.write("\t%s;\n" % (GRAPH_STYLE))
         if GLOBALNODE_STYLE != "":
-            gvfile.write("\tnode [%s];\n" % (GLOBALNODE_STYLE))
+            gv_file.write("\tnode [%s];\n" % (GLOBALNODE_STYLE))
         if GLOBALEDGE_STYLE != "":
-            gvfile.write("\tedge [%s];\n" % (GLOBALEDGE_STYLE))
-        gvfile.write(node_info)
-        gvfile.write(edge_info)
-        gvfile.write("}")
+            gv_file.write("\tedge [%s];\n" % (GLOBALEDGE_STYLE))
+        gv_file.write(node_info)
+        gv_file.write(edge_info)
+        gv_file.write("}")
     
     # output the graph (run GraphViz on the .gv file we just generated)
-    output_fullfn = os.path.join(dir_fn, component_prefix + ".xdot")
-    if not overwrite and os.path.exists(output_fullfn):
-        raise IOError, "%s already exists" % (output_fullfn)
-    with open(output_fullfn, 'w') as output_file:
+    xdot_fullfn = os.path.join(dir_fn, component_prefix + ".xdot")
+    if not overwrite and os.path.exists(xdot_fullfn):
+        raise IOError, "%s already exists" % (xdot_fullfn)
+    with open(xdot_fullfn, 'w') as xdot_file:
         print "Laying out connected component %d..." % (component_size_rank)
-        call(["dot", gv_fullfn, "-Txdot", "-v"], stdout=output_file)
+        call(["dot", gv_fullfn, "-Txdot"], stdout=xdot_file)
         print "Done laying out connected component %d." % (component_size_rank)
-    # TODO Pipe the .xdot file into this script (or just read it, I
-    # guess), and parse its layout information, storing it with the
-    # corresponding nodes/edges/node groups/components/etc.
+    # TODO Read the .xdot file here and parse its layout information,
+    # reconciling it with the corresponding nodes/edges/node
+    # groups/components/graph information.
     # Then output that info to the SQLite database.
     
-    if not preserve:
+    if not preserve_gv:
         call(["rm", gv_fullfn])
+
+    if not preserve_xdot:
+        call(["rm", xdot_fullfn])
 
     component_size_rank += 1
