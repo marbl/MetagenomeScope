@@ -18,6 +18,11 @@ class Edge(object):
         self.sourceID = sourceID
         self.targetID = targetID
         self.multiplicity = multiplicity
+        # For if the edge is an "interior" edge of a node group
+        self.group = None
+        # Will be replaced with the size rank of the connected component to
+        # which this edge belongs
+        self.component_size_rank = -1
 
 class Node(object):
     """A generic node. Used for representing individual contigs, and as
@@ -50,6 +55,12 @@ class Node(object):
         # thus removing the initial node group, we use this flag to
         # mark that node group to not be drawn.
         self.is_subsumed = False
+        # When we collapse nodes into a node group, we change this variable
+        # to reference the NodeGroup object in question
+        self.group = None
+        # Reference to the "size rank" (1 for largest, 2 for 2nd largest,
+        # ...) of the connected component to which this node belongs.
+        self.component_size_rank = -1
         
     # Calculates the "height" of this node. Returns a 2-tuple of the
     # node height and an int indicating any rounding up/down done
@@ -139,6 +150,13 @@ class Node(object):
         for m in self.outgoing_nodes:
             o += "\t%s -> %s\n" % (self.id_string, m.id_string)
         return o
+
+    # Sets the component_size_rank property of this node and all its
+    # outgoing edges.
+    def set_component_rank(self, component_size_rank):
+        self.component_size_rank = component_size_rank
+        for e in self.outgoing_edge_objects:
+            e.component_size_rank = component_size_rank
 
     # For debugging -- returns a str representation of this node
     def __repr__(self):
