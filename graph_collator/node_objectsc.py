@@ -14,15 +14,22 @@ class Edge(object):
        and, if applicable for this type of assembly file, biological
        metadata (e.g. multiplicity, as given in LastGraph files)."""
 
-    def __init__(self, sourceID, targetID, multiplicity=None):
-        self.sourceID = sourceID
-        self.targetID = targetID
+    def __init__(self, source_id, target_id, multiplicity=None):
+        self.source_id = source_id
+        self.target_id = target_id
         self.multiplicity = multiplicity
         # For if the edge is an "interior" edge of a node group
         self.group = None
         # Will be replaced with the size rank of the connected component to
         # which this edge belongs
         self.component_size_rank = -1
+        # Misc. layout data that we'll eventually record here if we decide
+        # to lay out the component in which this edge is stored
+        self.xdot_ctrl_pt_str = None
+        self.xdot_ctrl_pt_count  = None
+
+    def __repr__(self):
+        return "Edge from %s to %s" % (self.source_id, self.target_id)
 
 class Node(object):
     """A generic node. Used for representing individual contigs, and as
@@ -41,16 +48,19 @@ class Node(object):
         self.outgoing_nodes = []
         # List of nodes from which this node has an incoming edge
         self.incoming_nodes = []
-        # List of Edge objects that have this node as a source -- used for
-        # storing more detailed edge information, not used for graph
-        # traversal
-        self.outgoing_edge_objects = []
+        # Dict of Edge objects that have this node as a source -- used for
+        # storing/reading more detailed edge information, not used for graph
+        # traversal. Edge objects are stored as values, and their
+        # corresponding key is the sink (target) node of the edge.
+        # ...e.g. for 1->2, 1->3, 1->4, outgoing_edge_objects would look like
+        # {2: Edge(1, 2), 3: Edge(1, 3), 4: Edge(1, 4)}
+        self.outgoing_edge_objects = {}
         # Flag variables we use to make DFS/finding connected components
         # more efficient (maintaining a list or dict of this info is more
         # expensive than just using attributes, like this)
         self.seen_in_dfs = False
         self.seen_in_ccomponent = False
-        self.seen_in_collapsing = False
+        self.used_in_collapsing = False
         # If we decide to subsume a node group into another node group,
         # thus removing the initial node group, we use this flag to
         # mark that node group to not be drawn.
@@ -61,11 +71,21 @@ class Node(object):
         # Reference to the "size rank" (1 for largest, 2 for 2nd largest,
         # ...) of the connected component to which this node belongs.
         self.component_size_rank = -1
+        # Misc. layout data that we'll eventually record here if we decide
+        # to lay out the component in which this node is stored
+        self.xdot_width  = None
+        self.xdot_height = None
+        self.xdot_x      = None
+        self.xdot_y      = None
+        self.xdot_shape  = None
         
     # Calculates the "height" of this node. Returns a 2-tuple of the
     # node height and an int indicating any rounding up/down done
     # (a value of 0 indicates no rounding, positive values indicate rounding
     # down being done, negative values indicate rounding up being done)
+    # NOTE that this shouldn't be confused with the .xdot_height property,
+    # which represents the actual height of this node as determined by
+    # GraphViz.
     def get_height(self):
         rounding_done = 0
         h = sqrt(log(self.bp, 100))
@@ -113,37 +133,20 @@ class Node(object):
 
     # Adds an outgoing edge from this node to another node, and adds an
     # incoming edge from the other node referencing this node.
-    # Also adds an Edge with the given multiplicity data to this node's list
+    # Also adds an Edge with the given multiplicity data to this node's dict
     # of outgoing Edge objects.
     def add_outgoing_edge(self, node2, multiplicity=None):
         self.outgoing_nodes.append(node2)
         node2.incoming_nodes.append(self)
-        self.outgoing_edge_objects.append( \
-            Edge(self.id_string, node2.id_string, multiplicity))
-
-    # Replaces an outgoing edge to a given node from this node with another
-    # outgoing edge to another node. Used when collapsing groups of nodes.
-    # Note that this doesn't create an incoming edge on the new_node, and that
-    # this calls set() after replacing the edge to ensure that at most
-    # one outgoing edge to a given node is present within the list of outgoing
-    # nodes.
-    def replace_outgoing_edge(self, curr_node, new_node):
-        self.outgoing_nodes.remove(curr_node)
-        self.outgoing_nodes.append(new_node)
-        self.outgoing_nodes = list(set(self.outgoing_nodes))
-
-    # Same thing as above, but with incoming edges
-    def replace_incoming_edge(self, curr_node, new_node):
-        self.incoming_nodes.remove(curr_node)
-        self.incoming_nodes.append(new_node)
-        self.incoming_nodes = list(set(self.incoming_nodes))
+        self.outgoing_edge_objects[node2.id_string] = \
+            Edge(self.id_string, node2.id_string, multiplicity)
 
     # Returns a GraphViz-compatible string containing all information about
     # outgoing edges from this node. Useful for only printing edges relevant
     # to the nodes we're interested in.
     def edge_info(self):
         o = ""
-        # I considered using self.outgoing_edge_objects here instead of
+        # I considered using self.outgoing_edge_objects.values here instead of
         # self.outgoing_nodes, but since we only care about the target ID
         # and not about any other edge data it's more efficient to just
         # traverse self.outgoing_nodes
@@ -155,7 +158,7 @@ class Node(object):
     # outgoing edges.
     def set_component_rank(self, component_size_rank):
         self.component_size_rank = component_size_rank
-        for e in self.outgoing_edge_objects:
+        for e in self.outgoing_edge_objects.values():
             e.component_size_rank = component_size_rank
 
     # For debugging -- returns a str representation of this node
@@ -207,7 +210,7 @@ class Bubble(NodeGroup):
     # NOTE that this assumes that s has > 1 outgoing edges.
     @staticmethod
     def is_valid_bubble(s):
-        if s.seen_in_collapsing: return False, None
+        if s.used_in_collapsing: return False, None
         # Get a list of the first node on each divergent path through this
         # (potential) bubble
         m1_nodes = s.outgoing_nodes
@@ -234,7 +237,7 @@ class Bubble(NodeGroup):
                 # into a chain, which would be perfectly valid
                 # (Chain.is_valid_chain() rejects Chains composed of nodes that
                 # have already been used in collapsing)
-                if n.seen_in_collapsing:
+                if n.used_in_collapsing:
                     if type(n.group) == Chain:
                         path_nodes = n.group.nodes
                         path_end = path_nodes[len(path_nodes)-1].outgoing_nodes
@@ -280,7 +283,7 @@ class Bubble(NodeGroup):
             # Now we have the middle and end nodes of the graph stored.
 
         # Check ending node
-        if e_node.seen_in_collapsing:
+        if e_node.used_in_collapsing:
             return False, None
         # If the ending node has any incoming nodes that are not in
         # mn_nodes, then reject this bubble.
@@ -325,9 +328,9 @@ class Rope(NodeGroup):
         # the "middle node" section
         if len(s_nodes) < 2: return False, None
         # Ensure none of the start nodes have extraneous outgoing nodes
-        # (or have been seen_in_collapsing)
+        # (or have been used_in_collapsing)
         for n in s_nodes:
-            if len(n.outgoing_nodes) != 1 or n.seen_in_collapsing:
+            if len(n.outgoing_nodes) != 1 or n.used_in_collapsing:
                 return False, None
         # Now we know that, regardless of the middle nodes' composition,
         # no chain can exist involving m1 that does not start AT m1.
@@ -345,7 +348,7 @@ class Rope(NodeGroup):
             # into a chain, which would be perfectly valid
             # (Chain.is_valid_chain() rejects Chains composed of nodes that
             # have already been used in collapsing)
-            if m1.seen_in_collapsing:
+            if m1.used_in_collapsing:
                 if type(m1.group) == Chain:
                     m_nodes = m1.group.nodes
                     e_nodes = m_nodes[len(m_nodes) - 1].outgoing_nodes
@@ -371,8 +374,8 @@ class Rope(NodeGroup):
         if len(e_nodes) < 2: return False, None
         for n in e_nodes:
             # Check for extraneous incoming edges, and that the ending nodes
-            # haven't been seen_in_collapsing.
-            if len(n.incoming_nodes) != 1 or n.seen_in_collapsing:
+            # haven't been used_in_collapsing.
+            if len(n.incoming_nodes) != 1 or n.used_in_collapsing:
                 return False, None
             for o in n.outgoing_nodes:
                 # We know now that all of the m_nodes (sans m1) and all of the
@@ -423,7 +426,7 @@ class Chain(NodeGroup):
         # We iterate "down" through the chain.
         while True:
             if (len(curr.incoming_nodes) != 1 or type(curr) != Node
-                                            or curr.seen_in_collapsing):
+                                            or curr.used_in_collapsing):
                 # The chain has ended, and this can't be the last node in it
                 # (The node before this node, if applicable, is the chain's
                 # actual end.)
@@ -479,7 +482,7 @@ class Chain(NodeGroup):
         curr = s.incoming_nodes[0]
         while True:
             if (len(curr.outgoing_nodes) != 1 or type(curr) != Node
-                                            or curr.seen_in_collapsing):
+                                            or curr.used_in_collapsing):
                 # The node "before" this node is the optimal starting node.
                 # This node can't be a part of the chain.
                 break
@@ -556,7 +559,7 @@ class Cycle(NodeGroup):
         curr = s.outgoing_nodes[0]
         while True:
             if (len(curr.incoming_nodes) != 1 or type(curr) != Node
-                                            or curr.seen_in_collapsing):
+                                            or curr.used_in_collapsing):
                 # The cycle has ended, and this can't be the last node in it
                 # (The node before this node, if applicable, is the cycle's
                 # actual end.)
@@ -621,7 +624,7 @@ class Component(object):
         # (GraphViz will reconcile this edge information with the node group
         # declarations to specify where edges should be in the xdot file)
         for n in self.node_list:
-            if not n.seen_in_collapsing:
+            if not n.used_in_collapsing:
                 node_info += n.node_info()
             edge_info += n.edge_info()
 

@@ -47,6 +47,8 @@ from sys import argv
 from subprocess import call
 # For creating a directory in which we store xdot/gv files
 import os
+# For parsing .xdot files
+import re
 # For interfacing with the SQLite Database
 import sqlite3
 
@@ -113,11 +115,61 @@ def negate_contig_id(id_string):
     else:
         return 'c' + id_string
 
+# Attempts adding additional node information stored on a line of text from
+# a .xdot file to a given node n.
+# This function is pretty ugly, but it's decently efficient (moreso than
+# just checking each compiled Regex against the line every time).
+def attempt_add_node_attr(text_line, n):
+    matches = NODEHGHT_RE.search(text_line)
+    if matches != None:
+        # Add height info
+        n.xdot_height = float(matches.groups()[0])
+    else:
+        matches = NODEWDTH_RE.search(text_line)
+        if matches != None:
+            # Add width info
+            n.xdot_width = float(matches.groups()[0])
+        else:
+            matches = NODEPOSN_RE.search(text_line)
+            if matches != None:
+                # Add positional info
+                n.xdot_x = float(matches.groups()[0])
+                n.xdot_y = float(matches.groups()[1])
+            else:
+                matches = NODESHAP_RE.search(text_line)
+                if matches != None:
+                    # Add shape info
+                    n.xdot_shape = matches.groups()[0]
+
+# Attempts to find control point information stored on a line of text.
+# Returns a 3-tuple of the control point information ("" if no such
+# information was found), the control point count (-1 if no information
+# was found), and (True if more control point information remains
+# to parse in following lines of text, False if this line contained all
+# the control point information for the edge currently being parsed when
+# this function was called, and None if no ctrl pt information was found).
+def attempt_find_ctrl_pts(text_line):
+    c_matches = CPTSDECL_RE.search(text_line)
+    if c_matches != None:
+        more_left = True
+        grps = c_matches.groups()
+        point_count = int(grps[0])
+        point_string = grps[1].strip() + " "
+        e_c_matches = CPTS_END_RE.search(text_line)
+        if e_c_matches != None:
+            # If the control point declaration is only one line
+            # long, don't try to parse > 1 lines of it
+            more_left = False
+        return point_string, point_count, more_left
+    return "", -1, None
+
 # Maps Node ID (as int) to the Node object in question
 # This is nice, since it allows us to do things like nodeid2obj.values()
 # to get a list of every Node object that's been processed
 # (And, more importantly, to reconcile edge data with prev.-seen node data)
 nodeid2obj = {}
+# Like nodeid2obj, but for preserving references to clusters (NodeGroups)
+clusterid2obj = {}
 
 # Pertinent Assembly-wide information we use 
 graph_filetype = ""
@@ -313,7 +365,7 @@ nodes_to_try_collapsing = nodeid2obj.values()
 nodes_to_draw = []
 nodes_to_draw_individually = []
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
-    if n.seen_in_collapsing:
+    if n.used_in_collapsing:
         # If we've already collapsed n, don't try to collapse it again
         continue
     outgoing = n.outgoing_nodes
@@ -324,9 +376,10 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
         # Found a cycle!
         new_cycle = Cycle(*composite_nodes)
         for x in composite_nodes:
-            x.seen_in_collapsing = True
+            x.used_in_collapsing = True
             x.group = new_cycle
         nodes_to_draw.append(new_cycle)
+        clusterid2obj[new_cycle.id_string] = new_cycle
     elif len(outgoing) > 1:
         # Identify bubbles
         bubble_validity, composite_nodes = Bubble.is_valid_bubble(n)
@@ -334,9 +387,10 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
             # Found a bubble!
             new_bubble = Bubble(*composite_nodes)
             for x in composite_nodes:
-                x.seen_in_collapsing = True
+                x.used_in_collapsing = True
                 x.group = new_bubble
             nodes_to_draw.append(new_bubble)
+            clusterid2obj[new_bubble.id_string] = new_bubble
     elif len(outgoing) == 1:
         # n could be the start of either a chain or a frayed rope.
         # Identify "frayed ropes"
@@ -345,9 +399,10 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
             # Found a frayed rope!
             new_rope = Rope(*composite_nodes)
             for x in composite_nodes:
-                x.seen_in_collapsing = True
+                x.used_in_collapsing = True
                 x.group = new_rope
             nodes_to_draw.append(new_rope)
+            clusterid2obj[new_rope.id_string] = new_rope
         else:
             # Try to identify "chains" of nodes
             chain_validity, composite_nodes = Chain.is_valid_chain(n)
@@ -355,10 +410,11 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
                 # Found a chain!
                 new_chain = Chain(*composite_nodes)
                 for x in composite_nodes:
-                    x.seen_in_collapsing = True
+                    x.used_in_collapsing = True
                     x.group = new_chain
                 nodes_to_draw.append(new_chain)
-    if not n.seen_in_collapsing:
+                clusterid2obj[new_chain.id_string] = new_chain
+    if not n.used_in_collapsing:
         # If we didn't collapse the node in any groups while processing it --
         # that is, this node is not the "start" of any groups -- then
         # this node will later either be 1) drawn individually (not in any
@@ -368,12 +424,12 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
         nodes_to_draw_individually.append(n)
 
 # Check if non-start nodes were used in any groups (i.e. the group a given node
-# was in has already been added to nodes_to_draw, and seen_in_collapsing has
+# was in has already been added to nodes_to_draw, and used_in_collapsing has
 # been set to True). If not, then just draw the nodes individually.
 # (We go to all this trouble to ensure that we don't accidentally draw a node
 # twice or do something silly like that.)
 for n in nodes_to_draw_individually:
-    if not n.seen_in_collapsing:
+    if not n.used_in_collapsing:
         # The node wasn't collapsed in any groups.
         nodes_to_draw.append(n)
 
@@ -408,7 +464,7 @@ for n in nodes_to_draw:
         # to do this using sets/etc.)
         for m in node_list:
             m.seen_in_ccomponent = True
-            if m.seen_in_collapsing and m.group not in node_group_list:
+            if m.used_in_collapsing and m.group not in node_group_list:
                 node_group_list.append(m.group)
         connected_components.append(Component(node_list, node_group_list))
         total_component_count += 1
@@ -455,14 +511,168 @@ for component in connected_components[:MAX_COMPONENTS]:
     xdot_fullfn = os.path.join(dir_fn, component_prefix + ".xdot")
     if not overwrite and os.path.exists(xdot_fullfn):
         raise IOError, "%s already exists" % (xdot_fullfn)
-    with open(xdot_fullfn, 'w') as xdot_file:
+    with open(xdot_fullfn, 'w') as xdot_file_w:
         print "Laying out connected component %d..." % (component_size_rank)
-        call(["dot", gv_fullfn, "-Txdot"], stdout=xdot_file)
+        call(["dot", gv_fullfn, "-Txdot"], stdout=xdot_file_w)
         print "Done laying out connected component %d." % (component_size_rank)
-    # TODO Read the .xdot file here and parse its layout information,
-    # reconciling it with the corresponding nodes/edges/node
-    # groups/components/graph information.
-    # Then output that info to the SQLite database.
+    # Read the .xdot file here and parse its layout information,
+    # reconciling it with the corresponding nodes'/edges'/clusters'/
+    # components'/graph information.
+    # Then output that info to the SQLite database using the cursor and
+    # connection variables we defined above.
+    
+    with open(xdot_fullfn, 'r') as xdot_file_r:
+        print "Parsing layout of component %d..." % (component_size_rank)
+        # Like the xdot2cy.js parser I originally wrote, this parser assumes
+        # perfectly formatted output (including 1-attribute-per-line, etc).
+        # It's designed for use with xdot version 1.7, so other xdot
+        # versions may cause this to break.
+
+        # Misc. useful variables
+        bounding_box = ()
+        found_bounding_box = False
+        # ...for when we're parsing a cluster
+        parsing_cluster = False
+        curr_cluster = None
+        # ...for when we're parsing a node
+        parsing_node = False
+        curr_node = None
+        # ...for when we're parsing an edge
+        parsing_edge = False
+        parsing_ctrl_pts = False
+        curr_edge = None
+        # Iterate line-by-line through the file, identifying cluster, node,
+        # and edge declarations, attributes, and declaration closings as we
+        # go along.
+        for line in xdot_file_r:
+            # Check for the .xdot file's bounding box
+            if not parsing_cluster and not found_bounding_box:
+                matches = BOUNDBOX_RE.search(line)
+                if matches != None:
+                    bounding_box = matches.groups()
+                    found_bounding_box = True
+                    continue
+            # Check for cluster declarations
+            if not parsing_cluster and not parsing_node and not parsing_edge:
+                matches = CLUSDECL_RE.search(line)
+                if matches != None:
+                    parsing_cluster = True
+                    curr_cluster = clusterid2obj[matches.groups()[0]]
+                    continue
+            # Check for cluster declaration ending
+            if parsing_cluster and not parsing_node and not parsing_edge:
+                matches = CLUS_END_RE.search(line)
+                if matches != None:
+                    curr_cluster.component_size_rank = component_size_rank
+                    parsing_cluster = False
+                    curr_cluster = None
+                    continue
+            # Check for node/edge declarations
+            if not parsing_node and not parsing_edge:
+                matches = NODEDECL_RE.search(line)
+                if matches != None:
+                    # Node declaration
+                    parsing_node = True
+                    curr_node = nodeid2obj[matches.groups()[0]]
+                    attempt_add_node_attr(line, curr_node)
+                    continue
+                else:
+                    matches = EDGEDECL_RE.search(line)
+                    if matches != None:
+                        # Edge declaration
+                        parsing_edge = True
+                        source = nodeid2obj[matches.groups()[0]]
+                        sink_id = matches.groups()[1]
+                        curr_edge = source.outgoing_edge_objects[sink_id]
+                        # Check for control points declared on same line as
+                        # edge declaration
+                        cps, cpc, cps_more_left = attempt_find_ctrl_pts(line)
+                        if cps != "":
+                            curr_edge.xdot_ctrl_pt_str = cps
+                            curr_edge.xdot_ctrl_pt_count = cpc
+                            parsing_ctrl_pts = cps_more_left
+                        continue
+            # Check for node/edge declaration ending
+            if parsing_node or parsing_edge:
+                matches = NDEG_END_RE.search(line)
+                if matches != None:
+                    if parsing_node:
+                        # Node declaration ending
+                        attempt_add_node_attr(line, curr_node)
+                        curr_node.set_component_rank(component_size_rank)
+                        parsing_node = False
+                        curr_node = None
+                        continue
+                    elif parsing_edge:
+                        # Edge declaration ending
+                        if parsing_ctrl_pts:
+                            # As I mentioned in xdot2cy.js: I don't think
+                            # this should ever happen (from what I can tell,
+                            # _draw_ is always the 1st attr. of an edge in
+                            # xdot), but this does work: if _draw_ is the
+                            # last attr., we still detect all of it.
+                            last_info = matches.groups()[0].strip()
+                            last_info = last_info.replace('"', "")
+                            curr_edge.xdot_ctrl_pt_str += last_info
+                            parsing_ctrl_pts = False
+                        # Verify this edge's control points are valid
+                        ctrl_pt_coords = curr_edge.xdot_ctrl_pt_str.split()
+                        ctrl_pt_coord_ct = len(ctrl_pt_coords)
+                        if (ctrl_pt_coord_ct % 2 != 0 or
+                              ctrl_pt_coord_ct / 2 !=
+                                curr_edge.xdot_ctrl_pt_count):
+                            raise IOError, "Invalid control points for \
+                                edge %s -> %s in file %s." % \
+                                (curr_edge.source_id, curr_edge.target_id, \
+                                xdot_fullfn)
+                        if parsing_cluster:
+                            curr_edge.group = curr_cluster
+                        parsing_edge = False
+                        curr_edge = None
+                        continue
+            # Check for node attributes in "intermediate lines"
+            if parsing_node:
+                attempt_add_node_attr(line, curr_node)
+                continue
+            # Check for edge control point info in "intermediate lines"
+            if parsing_edge:
+                if not parsing_ctrl_pts:
+                    cps, cpc, cps_more_left = attempt_find_ctrl_pts(line)
+                    if cps != "":
+                        curr_edge.xdot_ctrl_pt_str = cps
+                        curr_edge.xdot_ctrl_pt_count = cpc
+                        parsing_ctrl_pts = cps_more_left
+                    continue
+                # If we're here, then we are parsing curr_edge's ctrl. pts.
+                # on the current line.
+                # Check for the ending of a control point declaration
+                e_matches = CPTS_END_RE.search(line)
+                if e_matches == None:
+                    # Check for the continuation ("next lines", abbreviated
+                    # as "NXL") of an ongoing control point declaration
+                    n_matches = CPTS_NXL_RE.search(line)
+                    if n_matches == None:
+                        # Since parsing_ctrl_pts is True, something's off
+                        # about the control points for this edge.
+                        raise IOError, "Invalid control point statement \
+                            for edge %s -> %s in file %s." % \
+                            (curr_edge.source_id, curr_edge.target_id, \
+                            xdot_fullfn)
+                    else:
+                        curr_edge.xdot_ctrl_pt_str += \
+                            n_matches.groups()[0].strip()
+                        curr_edge.xdot_ctrl_pt_str += " "
+                else:
+                    curr_edge.xdot_ctrl_pt_str += e_matches.groups()[0].strip()
+                    curr_edge.xdot_ctrl_pt_str += " "
+                    parsing_ctrl_pts = False
+
+        # If we didn't find a bounding box definition for the entire graph
+        # within the xdot file, then we can't interpret its coordinates
+        # meaningfully in the Javascript graph viewer. Raise an error.
+        if not found_bounding_box:
+            raise IOError, "No bounding box in %s." % (xdot_fullfn)
+        print "Done parsing layout of component %d." % (component_size_rank)
     
     if not preserve_gv:
         call(["rm", gv_fullfn])
