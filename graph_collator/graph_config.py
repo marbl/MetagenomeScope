@@ -5,6 +5,7 @@
 # right of each variable.
 
 from math import sqrt
+import re
 
 # How many connected components to display. Displays largest (by number of
 # nodes) components first -- so MAX_COMPONENTS = 1 displays only the largest
@@ -73,6 +74,29 @@ GLOBALEDGE_STYLE = "headport=n,tailport=s"
 
 # The filename suffixes indicating a file is of a certain type.
 # Ideally, we should be able to detect what filetype an assembly file is by
-# just looking at it, but for now this is an okay workaround.
+# just examining the file's contents, but for now this is an okay workaround.
 LASTGRAPH_SUFFIX = "LastGraph"
 GRAPHML_SUFFIX   = ".gml"
+
+# Regular expressions we use to parse .xdot (version 1.7) auto-generated
+# files. You shouldn't need to modify these for most use cases.
+GVNUMBER_RE = r'[\d\.e\+\-]+'
+
+BOUNDBOX_RE = re.compile(r'bb="0,0,(%s),(%s)"' % (GVNUMBER_RE, GVNUMBER_RE))
+CLUSDECL_RE = re.compile(r'subgraph cluster_(\w+)\s\{')
+CLUS_END_RE = re.compile(r'(.+)\}')
+NODEDECL_RE = re.compile(r'(c?\d+)\s+\[')
+EDGEDECL_RE = re.compile(r'(c?\d+):[nsew]\s+->\s+(c?\d+):[nsew]\s+\[')
+NDEG_END_RE = re.compile(r'(.+)\];')
+
+NODEHGHT_RE = re.compile(r'height=(%s)' % (GVNUMBER_RE))
+NODEWDTH_RE = re.compile(r'width=(%s)' % (GVNUMBER_RE))
+NODEPOSN_RE = re.compile(r'pos="(%s),(%s)"' % (GVNUMBER_RE, GVNUMBER_RE))
+NODESHAP_RE = re.compile(r'shape=(house|invhouse)')
+
+# Regexes for detecting edge control points
+CPTSTRNG_RE = re.compile(r'[\d\.e\+\-\s]*')
+CPTSDECL_RE = re.compile(r'_draw_="c 7 -#[\dABCDEF]{6} B ([\de\+\-]+) (%s)' % \
+                    (CPTSTRNG_RE))
+CPTS_NXL_RE = re.compile(r'(%s)' % (CPTSTRNG_RE))
+CPTS_END_RE = re.compile(r'(.+)",')
