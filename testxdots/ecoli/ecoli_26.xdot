@@ -1,0 +1,17 @@
+digraph asm {
+	graph [_draw_="c 9 -#fffffe00 C 7 -#ffffff P 4 0 0 0 79 79 79 79 0 ",
+		bb="0,0,79,79",
+		rotate=90,
+		xdotversion=1.7
+	];
+	node [label="\N"];
+	edge [headport=n,
+		tailport=s
+	];
+	c34	 [_draw_="c 7 -#000000 p 5 79 51.71 39.5 79 0 51.71 0.04 7.54 78.96 7.54 ",
+		height=1.0972,
+		label="",
+		pos="39.5,39.5",
+		shape=house,
+		width=1.0972];
+}
