@@ -94,12 +94,17 @@ except:
     if not os.path.isdir(dir_fn):
         raise IOError, "%s already exists as file in CWD" % (dir_fn)
 
-# Recursively runs depth-first search through the graph, starting at node n.
-# At the end of execution, the value of seen_nodes returned will be whatever
-# was in the initial list of seen_nodes combined with the entire connected
-# component of the graph in which n is. (If you just want to find an entire
-# connected component by itself, pass in [] for seen_nodes.)
 def dfs(n, seen_nodes):
+    """Recursively runs depth-first search, starting at node n.
+
+       At the end of this function's execution, the value of seen_nodes
+       returned will be whatever was in the initial list of seen_nodes
+       combined with all the nodes in the entire connected component of the
+       graph in which n is.
+       
+       (If you just want to find an entire connected component by itself,
+       you can just pass in [] for seen_nodes.)
+    """
     n.seen_in_dfs = True
     seen_nodes.append(n)
     adjacent_nodes = n.outgoing_nodes + n.incoming_nodes
@@ -108,18 +113,24 @@ def dfs(n, seen_nodes):
             seen_nodes = dfs(j, seen_nodes)
     return seen_nodes
 
-# Negates a contig ID. e.g. "c18" -> "18", "18" -> "c18"
 def negate_contig_id(id_string):
+    """Negates a contig ID.
+    
+       e.g. "c18" -> "18", "18" -> "c18"
+    """
     if id_string[0] == 'c':
         return id_string[1:]
     else:
         return 'c' + id_string
 
-# Attempts adding additional node information stored on a line of text from
-# a .xdot file to a given node n.
-# This function is pretty ugly, but it's decently efficient (moreso than
-# just checking each compiled Regex against the line every time).
 def attempt_add_node_attr(text_line, n):
+    """Attempts to add additional node information stored on a line of text
+       from a .xdot file to a given node n.
+       
+       This function is sort of ugly, but it's decently efficient in the
+       average case: moreso than just checking each compiled Regex against
+       the line every time.
+    """
     matches = NODEHGHT_RE.search(text_line)
     if matches != None:
         # Add height info
@@ -141,14 +152,18 @@ def attempt_add_node_attr(text_line, n):
                     # Add shape info
                     n.xdot_shape = matches.groups()[0]
 
-# Attempts to find control point information stored on a line of text.
-# Returns a 3-tuple of the control point information ("" if no such
-# information was found), the control point count (-1 if no information
-# was found), and (True if more control point information remains
-# to parse in following lines of text, False if this line contained all
-# the control point information for the edge currently being parsed when
-# this function was called, and None if no ctrl pt information was found).
 def attempt_find_ctrl_pts(text_line):
+    """Attempts to find control point information stored on a line of text
+       in a .xdot file.
+
+       Returns a 3-tuple of the control point information ("" if no such
+       information was found), the control point count (-1 if no information
+       was found), and (True if more control point information remains to
+       parse in following lines of text, False if this line contained all
+       the control point information for the edge currently being parsed
+       when this function was called, and None if no control point
+       information at all was found).
+    """
     c_matches = CPTSDECL_RE.search(text_line)
     if c_matches != None:
         more_left = True

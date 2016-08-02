@@ -36,9 +36,10 @@ class Node(object):
     """A generic node. Used for representing individual contigs, and as
        the superclass for groups of nodes collapsed into a single node."""
 
-    # Initializes the object. bp is just the number of base pairs; we'll
-    # scale it later if we actually decide to draw this node.
     def __init__(self, id_string, bp, is_complement, depth=None, dna_fwd=None):
+        """Initializes the object. bp is just the number of base pairs; we'll
+           scale it later if we actually decide to draw this node.
+        """
         self.id_string = id_string
         self.bp = bp
         self.depth = depth
@@ -80,14 +81,19 @@ class Node(object):
         self.xdot_y      = None
         self.xdot_shape  = None
         
-    # Calculates the "height" of this node. Returns a 2-tuple of the
-    # node height and an int indicating any rounding up/down done
-    # (a value of 0 indicates no rounding, positive values indicate rounding
-    # down being done, negative values indicate rounding up being done)
-    # NOTE that this shouldn't be confused with the .xdot_height property,
-    # which represents the actual height of this node as determined by
-    # GraphViz.
     def get_height(self):
+        """Calculates the "height" of this node.
+        
+           Returns a 2-tuple of the node height and an int indicating
+           any rounding up/down done
+           (a value of 0 indicates no rounding,
+           positive values indicate rounding down being done,
+           negative values indicate rounding up being done).
+           
+           NOTE that this shouldn't be confused with the .xdot_height
+           property, which represents the actual height of this node as
+           determined by GraphViz.
+        """
         rounding_done = 0
         h = sqrt(log(self.bp, 100))
         hs = h**2
@@ -99,16 +105,22 @@ class Node(object):
             rounding_done = -1
         return (h, rounding_done)
 
-    # Returns a string representing this node that can be used in a .dot
-    # file for input to GraphViz.
-    # You can change custom_shape to give the node a particular shape; by
-    # default, this uses BASIC_NODE_SHAPE for "normal" nodes and
-    # RCOMP_NODE_SHAPE for "reverse complement" nodes.
-    # If custom_style is passed (e.g. as BUBBLE_STYLE or FRAYEDROPE_STYLE)
-    # then that style information will be used. By default, nodes that have
-    # been rounded up or down in height will use special style information,
-    # but custom_style overrides that.
     def node_info(self, custom_shape=None, custom_style=None):
+        """Returns a string representing this node that can be used in a .dot
+           file for input to GraphViz.
+
+           You can change custom_shape to give the node a particular shape; by
+           default, this uses BASIC_NODE_SHAPE for "normal" nodes and
+           RCOMP_NODE_SHAPE for "reverse complement" nodes.
+           I don't think anything in this program uses custom_shape any
+           more; I used to use it when we collapsed node groups into squares
+           on the Python side of this program, and not in the JS side.
+
+           If custom_style is passed (e.g. as BUBBLE_STYLE or FRAYEDROPE_STYLE)
+           then that style information will be used. By default, nodes that
+           have been rounded up or down in height will use special style
+           information, but custom_style overrides that.
+        """
         h, r = self.get_height()
         # We purposely omit node labels in xdot, since they'll be applied
         # anyway in Cytoscape.js and node labels can result in erroneously
@@ -132,25 +144,28 @@ class Node(object):
         info += "];\n"
         return info
 
-    # Adds an outgoing edge from this node to another node, and adds an
-    # incoming edge from the other node referencing this node.
-    # Also adds an Edge with the given multiplicity data to this node's dict
-    # of outgoing Edge objects.
     def add_outgoing_edge(self, node2, multiplicity=None):
+        """Adds an outgoing edge from this node to another node, and adds an
+           incoming edge from the other node referencing this node.
+
+           Also adds an Edge with the given multiplicity data to this node's
+           dict of outgoing Edge objects.
+        """
         self.outgoing_nodes.append(node2)
         node2.incoming_nodes.append(self)
         self.outgoing_edge_objects[node2.id_string] = \
             Edge(self.id_string, node2.id_string, multiplicity)
 
-    # Returns a GraphViz-compatible string containing all information about
-    # outgoing edges from this node. Useful for only printing edges relevant
-    # to the nodes we're interested in.
     def edge_info(self):
+        """Returns a GraphViz-compatible string containing all information
+           about outgoing edges from this node.
+
+           Useful for only printing edges relevant to the nodes we're
+           interested in.
+        """
         o = ""
-        # I considered using self.outgoing_edge_objects.values here instead of
-        # self.outgoing_nodes, but since we only care about the target ID
-        # and not about any other edge data it's more efficient to just
-        # traverse self.outgoing_nodes
+        # Since we only care about the target ID and not about any other
+        # edge data it's most efficient to just traverse self.outgoing_nodes
         for m in self.outgoing_nodes:
             o += "\t%s -> %s\n" % (self.id_string, m.id_string)
         return o
@@ -158,6 +173,9 @@ class Node(object):
     # Sets the component_size_rank property of this node and all its
     # outgoing edges.
     def set_component_rank(self, component_size_rank):
+        """Sets the component_size_rank property of this node and of all
+           its outgoing edges.
+        """
         self.component_size_rank = component_size_rank
         for e in self.outgoing_edge_objects.values():
             e.component_size_rank = component_size_rank
@@ -190,6 +208,10 @@ class NodeGroup(Node):
         super(NodeGroup, self).__init__(self.id_string, self.bp, False)
 
     def node_info(self):
+        """Returns a string of the node_info() of this NodeGroup.
+
+           This finds the node_info() of all its children, naturally.
+        """
         info = "subgraph cluster_%s {\n" % (self.id_string)
         for n in self.nodes:
             info += n.node_info()
@@ -201,16 +223,19 @@ class Bubble(NodeGroup):
        node which points to >= 2 "middle" nodes, all of which in turn point
        to one "end" node."""
 
-    # Initializes the Bubble, given a list of nodes comprising it.
     def __init__(self, *nodes):
+        """Initializes the Bubble, given a list of nodes comprising it."""
         super(Bubble, self).__init__('B', BUBBLE_STYLE, nodes)
 
-    # Returns a 2-tuple of True and the nodes comprising the Bubble if a Bubble
-    # defined with the given start node is valid.
-    # Returns a 2-tuple of (False, None) if the Bubble is invalid.
-    # NOTE that this assumes that s has > 1 outgoing edges.
     @staticmethod
     def is_valid_bubble(s):
+        """Returns a 2-tuple of True and a list of the nodes comprising the
+           Bubble if a Bubble defined with the given start node is valid.
+           Returns a 2-tuple of (False, None) if such a Bubble would be
+           invalid.
+           
+           NOTE that this assumes that s has > 1 outgoing edges.
+        """
         if s.used_in_collapsing: return False, None
         # Get a list of the first node on each divergent path through this
         # (potential) bubble
@@ -311,16 +336,19 @@ class Bubble(NodeGroup):
 class Rope(NodeGroup):
     """A group of nodes collapsed into a Rope."""
 
-    # Initializes the Rope, given a list of nodes comprising it.
     def __init__(self, *nodes):
+        """Initializes the Rope, given a list of nodes comprising it."""
         super(Rope, self).__init__('R', FRAYEDROPE_STYLE, nodes)
      
-    # Returns a 2-tuple of (True, a list of all the nodes in the Rope)
-    # if a Rope defined with the given start node would be a valid Rope.
-    # Returns a 2-tuple of (False, None) if such a Rope would be invalid.
-    # Assumes s has only 1 outgoing node.
     @staticmethod
     def is_valid_rope(s):
+        """Returns a 2-tuple of (True, a list of all the nodes in the Rope)
+           if a Rope defined with the given start node would be a valid
+           Rope. Returns a 2-tuple of (False, None) if such a Rope would be
+           invalid.
+           
+           Assumes s has only 1 outgoing node.
+        """
         # Detect the first middle node in the rope
         m1 = s.outgoing_nodes[0]
         # Get all start nodes
@@ -401,17 +429,23 @@ class Chain(NodeGroup):
     """A group of nodes collapsed into a Chain. This is defined as > 1
        nodes that occur one after the other, with no intermediate edges."""
 
-    # Initializes the Chain, given all the nodes comprising the chain.
     def __init__(self, *nodes):
+        """Initializes the Chain, given all the nodes comprising the chain."""
         super(Chain, self).__init__('C', CHAIN_STYLE, nodes);
 
-    # Returns a 2-tuple of (True, a list of all the nodes in the Chain in order
-    # from start to end) if a Chain defined at the given start node would be
-    # valid. Returns a 2-tuple of (False, None) if such a Chain would
-    # be considered invalid.
-    # NOTE that this finds the longest possible Chain that includes s.
     @staticmethod
     def is_valid_chain(s):
+        """Returns a 2-tuple of (True, a list of all the nodes in the Chain
+           in order from start to end) if a Chain defined at the given start
+           node would be valid. Returns a 2-tuple of (False, None) if such a
+           Chain would be considered invalid.
+           
+           Note that this finds the longest possible Chain that includes s,
+           if a Chain exists starting at s. If we decide that no Chain
+           exists starting at s then we just return (False, None), but if we
+           find that a Chain does exist starting at s then we traverse
+           "backwards" to find the longest possible chain including s.
+        """
         if len(s.outgoing_nodes) != 1:
             return False, None
         # Determine the composition of the Chain (if one exists starting at s)
@@ -520,22 +554,27 @@ class Cycle(NodeGroup):
        (Less formally, this is essentially a Chain where the 'last' node has
        one outgoing edge to the 'first' node."""
 
-    # Initializes the Cycle, given all the nodes comprising the chain.
     def __init__(self, *nodes):
+        """Initializes the Cycle, given all the nodes comprising it."""
         super(Cycle, self).__init__('Y', CYCLE_STYLE, nodes)
 
-    # Identifies the simple cycle that "starts at" a given starting node, if
-    # such a cycle exists. NOTE that this only identifies cycles without any
-    # intermediate incoming/outgoing edges not in the simple cycle -- that
-    # is, this basically just looks for chains that end cyclically. (This
-    # also identifies loops as cycles -- e.g. a node with a loop that is a
-    # connected component will be considered a cycle.)
-    # The ideal way to implement cycle detection in a graph is to use
-    # Depth-First Search (so, in our case, it would be to modify the code
-    # that already runs DFS to identify connected components to also
-    # identify cycles), but for now I think this method should work alright.
     @staticmethod
     def is_valid_cycle(s):
+        """Identifies the simple cycle that "starts at" a given starting
+           node, if such a cycle exists. Returns (True, [nodes]) if
+           such a cycle exists (where [nodes] is a list of all the nodes in
+           the cycle), and (False, None) otherwise.
+           
+           NOTE that this only identifies cycles without any intermediate
+           incoming/outgoing edges not in the simple cycle -- that is, this
+           basically just looks for chains that end cyclically. (This also
+           identifies single-node loops as cycles.)
+           
+           The ideal way to implement cycle detection in a graph is to use
+           Depth-First Search (so, in our case, it would be to modify the
+           code in collate.py that already runs DFS to identify cycles), but
+           for now I think this more limited-in-scope method should work ok.
+        """
         s_outgoing_node_ct = len(s.outgoing_nodes)
         if len(s.incoming_nodes) == 0 or s_outgoing_node_ct == 0:
             # If s has no incoming or no outgoing nodes, it can't be in
@@ -602,7 +641,8 @@ class Component(object):
     def __init__(self, node_list, node_group_list):
         """Given a list of all nodes (i.e. not node groups) and a list of
            all node groups in the connected component, intializes the
-           connected component."""
+           connected component.
+        """
 
         self.node_list = node_list
         self.node_group_list = node_group_list 
@@ -611,7 +651,7 @@ class Component(object):
         """Returns the node and edge info for this connected component
            as a 2-string tuple, where the first string is node info and the
            second string is edge info (and both strings are DOT-compatible).
-           """
+        """
 
         node_info = ""
         edge_info = ""
