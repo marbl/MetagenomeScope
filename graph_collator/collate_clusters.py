@@ -205,10 +205,7 @@ cursor.execute("""CREATE TABLE components
 cursor.execute("""CREATE TABLE assembly
         (filetype text, contig_count integer, edge_count integer,
         component_count integer, total_length integer, n50 integer)""")
-
-# NOTE remember to use these in the appropriate place later
 connection.commit()
-connection.close()
 
 # Process NODE (vertex) and ARC (edge) information
 # TODO Adapt this to parse multiple types of assembly graph files.
@@ -673,7 +670,7 @@ for component in connected_components[:MAX_COMPONENTS]:
         if not found_bounding_box:
             raise IOError, "No bounding box in %s." % (xdot_fullfn)
         print "Done parsing layout of component %d." % (component_size_rank)
-    
+
     if not preserve_gv:
         call(["rm", gv_fullfn])
 
@@ -681,3 +678,10 @@ for component in connected_components[:MAX_COMPONENTS]:
         call(["rm", xdot_fullfn])
 
     component_size_rank += 1
+
+graphVals = (graph_filetype, total_contig_count, total_edge_count, \
+             total_component_count, total_bp_length, 1337)
+cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?)", graphVals)    
+connection.commit()
+# Close the database connection
+connection.close()
