@@ -31,7 +31,13 @@
 # will be overwritten. Passing the -w argument results in these errors being
 # ignored and the corresponding files being overwritten, but note that an
 # error be raised regardless if the output file directory name already
-# exists as a non-directory file in the current directory.
+# exists as a non-directory file in the current directory. Also, note that
+# files in the output file directory that have the same filename as any of the
+# output files generated here (for an assembly graph where -o = "foobar" and
+# one component exists, foobar_1.gv, foobar_1.xdot, foobar.db) but
+# different case (e.g. FOOBAR_1.gv, Foobar_1.xdot, fooBar.db) will cause
+# this script to break due to how os.path.exists() handles
+# case-sensitive filesystems.
 #
 # NOTE that this just calls dot directly, and doesn't use the gv python library
 # to do this. I guess there are some relative advantages and disadvantages to
@@ -92,7 +98,25 @@ try:
     os.makedirs(dir_fn)        # TODO sanitize this value? (e.g. for ..)
 except:
     if not os.path.isdir(dir_fn):
-        raise IOError, "%s already exists as file in CWD" % (dir_fn)
+        raise IOError, "%s already exists as a non-directory file" % (dir_fn)
+
+def check_file_existence(filepath):
+    """Returns True if the given filepath does exist as a non-directory file
+       and overwrite is set to True.
+
+       Returns False if the given filepath does not exist at all.
+
+       Raises an IOError if:
+        -The given filepath does exist but overwrite is False
+        -The given filepath exists as a directory
+    """
+    if os.path.exists(filepath):
+        if os.path.isdir(filepath):
+            raise IOError, "%s is a directory" % (filepath)
+        if not overwrite:
+            raise IOError, "%s already exists and -w is not set" % (filepath)
+        return True
+    return False
 
 def dfs(n, seen_nodes):
     """Recursively runs depth-first search, starting at node n.
@@ -196,12 +220,9 @@ total_component_count = 0
 # Create a SQLite database in which we store biological and graph layout
 # information. This will be opened in the Javascript graph viewer.
 db_fullfn = os.path.join(dir_fn, output_fn + ".db")
-if os.path.exists(db_fullfn):
-    if not overwrite:
-        raise IOError, "%s already exists" % (db_fullfn)
-    else:
-        # The user asked to overwrite this database via -w, so remove it
-        call(["rm", db_fullfn])
+if check_file_existence(db_fullfn):
+    # The user asked to overwrite this database via -w, so remove it
+    call(["rm", db_fullfn])
 
 connection = sqlite3.connect(db_fullfn)
 cursor = connection.cursor()
@@ -499,8 +520,7 @@ for component in connected_components[:MAX_COMPONENTS]:
     component_prefix = "%s_%d" % (output_fn, component_size_rank)
 
     gv_fullfn = os.path.join(dir_fn, component_prefix + ".gv")
-    if not overwrite and os.path.exists(gv_fullfn):
-        raise IOError, "%s already exists" % (gv_fullfn)
+    check_file_existence(gv_fullfn)
     with open(gv_fullfn, 'w') as gv_file:
         gv_file.write("digraph asm {\n");
         if GRAPH_STYLE != "":
@@ -515,8 +535,7 @@ for component in connected_components[:MAX_COMPONENTS]:
     
     # output the graph (run GraphViz on the .gv file we just generated)
     xdot_fullfn = os.path.join(dir_fn, component_prefix + ".xdot")
-    if not overwrite and os.path.exists(xdot_fullfn):
-        raise IOError, "%s already exists" % (xdot_fullfn)
+    check_file_existence(xdot_fullfn)
     with open(xdot_fullfn, 'w') as xdot_file_w:
         print "Laying out connected component %d..." % (component_size_rank)
         call(["dot", gv_fullfn, "-Txdot"], stdout=xdot_file_w)

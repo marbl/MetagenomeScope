@@ -91,6 +91,13 @@ upon trying to overwrite any files in the directory.)
   output directory. If this argument is not given, then an error will be
   raised if writing an output file would cause another file in the output
   directory (if it already exists) to be overwritten.
+    * Note that the presence of files in the
+      output directory that are named as folders (e.g. a directory named
+      `foobar.db` in the output directory) or the presence of files in the
+      output directory that share a name with a file that was going to be
+      generated but have different case (e.g. a file named `FOOBAR.db` in
+      the output directory) will cause an error to be raised regardless of
+      whether or not `-w` is set.
 
 ## Running xdot2cy.js
 
