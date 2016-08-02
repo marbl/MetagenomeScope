@@ -109,6 +109,9 @@ def check_file_existence(filepath):
        Raises an IOError if:
         -The given filepath does exist but overwrite is False
         -The given filepath exists as a directory
+        -The given filepath exists with different case than specified
+         (ignoring this would cause things to break in the script due to how
+         Python handles case-sensitive file systems)
     """
     if os.path.exists(filepath):
         if os.path.isdir(filepath):
@@ -116,6 +119,9 @@ def check_file_existence(filepath):
         if not overwrite:
             raise IOError, "%s already exists and -w is not set" % (filepath)
         return True
+    lowercase_base_fn = os.path.basename(filepath).lower()
+    if lowercase_base_fn in [f.lower() for f in os.listdir(dir_fn)]:
+        raise IOError, "%s already exists (with different case)" % (filepath)
     return False
 
 def dfs(n, seen_nodes):
