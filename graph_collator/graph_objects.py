@@ -170,8 +170,6 @@ class Node(object):
             o += "\t%s -> %s\n" % (self.id_string, m.id_string)
         return o
 
-    # Sets the component_size_rank property of this node and all its
-    # outgoing edges.
     def set_component_rank(self, component_size_rank):
         """Sets the component_size_rank property of this node and of all
            its outgoing edges.
