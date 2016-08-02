@@ -257,6 +257,17 @@ class NodeGroup(Node):
         info += self.group_style + "}\n"
         return info
 
+    def db_values(self):
+        """Returns a tuple containing the values associated with this group.
+
+           This is intentionally minimal -- we can infer node group type
+           from the first letter of the node group's id, and clusters (in
+           both GraphViz and Cytoscape.js) autofit to the dimensions of
+           their child nodes, so we don't need to record
+           position/dimensional information.
+        """
+        return (self.id_string, self.component_size_rank)
+
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble. This consists of one
        node which points to >= 2 "middle" nodes, all of which in turn point

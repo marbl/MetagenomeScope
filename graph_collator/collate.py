@@ -213,7 +213,8 @@ cursor.execute("""CREATE TABLE edges
         (source_id text, target_id text, multiplicity integer,
         component_rank integer, control_point_string text,
         control_point_count integer, parent_cluster_id text)""") 
-cursor.execute("""CREATE TABLE clusters (cluster_id text)""")
+cursor.execute("""CREATE TABLE clusters (cluster_id text,
+        component_rank integer)""")
 cursor.execute("""CREATE TABLE components
         (size_rank integer, contig_count integer, edge_count integer,
         total_length integer, boundingbox_x real, boundingbox_y real)""")
@@ -576,6 +577,8 @@ for component in connected_components[:MAX_COMPONENTS]:
                 matches = CLUS_END_RE.search(line)
                 if matches != None:
                     curr_cluster.component_size_rank = component_size_rank
+                    cursor.execute("""INSERT INTO clusters
+                        VALUES (?,?)""", curr_cluster.db_values())
                     parsing_cluster = False
                     curr_cluster = None
                     continue
