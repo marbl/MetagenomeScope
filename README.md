@@ -35,14 +35,14 @@ AsmViz is composed of two main components:
 
 ### collate.py
 
-* Python 2.7, with the following standard library modules installed:
+* Python 2.7, with the following standard library modules installed (all
+  should be installed by default with Python 2.7):
     * [sys](https://docs.python.org/2/library/sys.html)
     * [subprocess](https://docs.python.org/2/library/subprocess.html)
     * [os](https://docs.python.org/2/library/os.html)
     * [math](https://docs.python.org/2/library/math.html)
     * [sqlite3](https://docs.python.org/2/library/sqlite3.html)
     * [re](https://docs.python.org/2/library/re.html)
-  All of these modules should be installed by default with Python 2.7.
 * GraphViz (with [dot](http://www.graphviz.org/Documentation/dotguide.pdf) program, which should be installed by default with GraphViz)
 
 ### xdot2cy.js
