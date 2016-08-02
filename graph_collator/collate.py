@@ -361,14 +361,9 @@ with open(asm_fn, 'r') as assembly_file:
             elif line.endswith("edge [\n"):
                 parsing_edge = True
 
-# At this stage, the entire assembly graph file has been parsed.
+# NOTE -- at this stage, the entire assembly graph file has been parsed.
 # This means that graph_filetype, total_contig_count, total_edge_count, and
 # total_bp_length are all finalized.
-
-#print "Assembly graph type: ", graph_filetype
-#print "Node ct. : ", total_contig_count
-#print "Edge ct. : ", total_edge_count
-#print "Total len: ", total_bp_length
 
 # Try to collapse special "groups" of Nodes (Bubbles, Ropes, etc.)
 # As we check nodes, we add either the individual node (if it can't be
@@ -483,8 +478,6 @@ for n in nodes_to_draw:
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
-#print "Total component ct.: ", total_component_count
-
 # Conclusion: Output (desired) components of nodes to the .gv file
 
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
@@ -534,6 +527,10 @@ for component in connected_components[:MAX_COMPONENTS]:
     # Then output that info to the SQLite database using the cursor and
     # connection variables we defined above.
     
+    # Increment these vars. as we parse nodes/edges of this component
+    component_contig_count = 0
+    component_edge_count   = 0
+    component_total_length = 0
     with open(xdot_fullfn, 'r') as xdot_file_r:
         print "Parsing layout of component %d..." % (component_size_rank)
         # Like the xdot2cy.js parser I originally wrote, this parser assumes
@@ -619,6 +616,8 @@ for component in connected_components[:MAX_COMPONENTS]:
                         cursor.execute("""INSERT INTO contigs
                             VALUES (?,?,?,?,?,?,?,?,?,?,?)""", \
                             curr_node.db_values())
+                        component_contig_count += 1
+                        component_total_length += curr_node.bp
                         parsing_node = False
                         curr_node = None
                         continue
@@ -648,6 +647,7 @@ for component in connected_components[:MAX_COMPONENTS]:
                             curr_edge.group = curr_cluster
                         cursor.execute("""INSERT INTO edges
                             VALUES (?,?,?,?,?,?,?)""", curr_edge.db_values())
+                        component_edge_count += 1
                         parsing_edge = False
                         curr_edge = None
                         continue
@@ -695,6 +695,12 @@ for component in connected_components[:MAX_COMPONENTS]:
             raise IOError, "No bounding box in %s." % (xdot_fullfn)
         print "Done parsing layout of component %d." % (component_size_rank)
 
+    # Output component information to the database
+    cursor.execute("""INSERT INTO components VALUES (?,?,?,?,?,?)""",
+        (component_size_rank, component_contig_count, component_edge_count,
+        component_total_length, bounding_box[0], bounding_box[1]))
+
+    # Unless the user requested their preservation, remove .gv/.xdot files
     if not preserve_gv:
         call(["rm", gv_fullfn])
 
