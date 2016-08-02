@@ -27,7 +27,7 @@ MAX_COMPONENTS = None
 # And MIN_COMPONENT_SIZE is set to 10, then even if MAX_COMPONENTS == None
 # or MAX_COMPONENTS > 2, only the first two connected components will be
 # displayed.
-MIN_COMPONENT_SIZE = 5
+MIN_COMPONENT_SIZE = 1
 
 # If we opt not to use one or both of the bounds here, we can set these to
 # float("inf") or float("-inf"), respectively.

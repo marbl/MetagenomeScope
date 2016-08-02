@@ -52,8 +52,8 @@ import re
 # For interfacing with the SQLite Database
 import sqlite3
 
-from node_objectsc import *
-from graph_config import *
+from graph_objects import *
+from config import *
 
 # Get argument information
 asm_fn = ""

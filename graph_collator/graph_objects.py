@@ -6,7 +6,7 @@
 # which preserves their child nodes. (It's similar to Cytoscape.js' concept
 # of a "compound node," for reference.)
 
-from graph_config import *
+from config import *
 from math import log, sqrt
 
 class Edge(object):
@@ -15,6 +15,7 @@ class Edge(object):
        metadata (e.g. multiplicity, as given in LastGraph files)."""
 
     def __init__(self, source_id, target_id, multiplicity=None):
+        """Initializes the edge and all of its attributes."""
         self.source_id = source_id
         self.target_id = target_id
         self.multiplicity = multiplicity
@@ -161,8 +162,8 @@ class Node(object):
         for e in self.outgoing_edge_objects.values():
             e.component_size_rank = component_size_rank
 
-    # For debugging -- returns a str representation of this node
     def __repr__(self):
+        """For debugging -- returns a str representation of this node."""
         return "Node %s" % (self.id_string)
 
 class NodeGroup(Node):
@@ -172,8 +173,8 @@ class NodeGroup(Node):
         """Initializes the node group, given all the Node objects comprising
         the node group, a prefix character for the group (i.e. 'R' for
         frayed ropes, 'B' for bubbles, 'C' for chains, 'Y' for cycles),
-        and a GraphViz style setting for the group (generally from
-        graph_config.py)."""
+        and a GraphViz style setting for the group (generally from config.py).
+        """
         
         self.node_count = 0
         self.group_style = group_style
@@ -631,6 +632,8 @@ class Component(object):
         return node_info, edge_info
 
     def __repr__(self):
-
+        """Returns a (somewhat verbose) string representation of this
+           component.
+        """
         return "Component of " + str(self.node_list) + \
                 "; " + str(self.node_group_list)
