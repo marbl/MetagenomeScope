@@ -228,7 +228,7 @@ total_component_count = 0
 db_fullfn = os.path.join(dir_fn, output_fn + ".db")
 if check_file_existence(db_fullfn):
     # The user asked to overwrite this database via -w, so remove it
-    call(["rm", db_fullfn])
+    os.remove(db_fullfn)
 
 connection = sqlite3.connect(db_fullfn)
 cursor = connection.cursor()
@@ -727,10 +727,10 @@ for component in connected_components[:MAX_COMPONENTS]:
 
     # Unless the user requested their preservation, remove .gv/.xdot files
     if not preserve_gv:
-        call(["rm", gv_fullfn])
+        os.remove(gv_fullfn)
 
     if not preserve_xdot:
-        call(["rm", xdot_fullfn])
+        os.remove(xdot_fullfn)
 
     component_size_rank += 1
 
