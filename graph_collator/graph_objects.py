@@ -178,6 +178,31 @@ class Node(object):
         for e in self.outgoing_edge_objects.values():
             e.component_size_rank = component_size_rank
 
+    def db_values(self):
+        """Returns a tuple of the "values" of this Node.
+        
+           This value will be used to populate the database's "contigs"
+           table with information about this node.
+           
+           Note that this doesn't really apply to NodeGroups, since they
+           don't have most of these attributes defined. I'll define a more
+           specific NodeGroup.db_values() function later.
+           
+           Also, this shouldn't be called until after this Node's layout
+           information has been parsed from an .xdot file and recorded.
+        """
+        # See collate.py for the most up-to-date specifications of how this
+        # table is laid out.
+        # The "parent cluster id" field can be either an ID or NULL
+        # (where NULL denotes no parent cluster), so we decide that here.
+        group_id = None
+        if self.group != None:
+            group_id = self.group.id_string
+        return (self.id_string, self.bp, self.dna_fwd, self.depth,
+                self.component_size_rank, self.xdot_x, self.xdot_y,
+                self.xdot_width, self.xdot_height, self.xdot_shape,
+                group_id)
+
     def __repr__(self):
         """For debugging -- returns a str representation of this node."""
         return "Node %s" % (self.id_string)

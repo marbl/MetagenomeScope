@@ -612,6 +612,10 @@ for component in connected_components[:MAX_COMPONENTS]:
                         # Node declaration ending
                         attempt_add_node_attr(line, curr_node)
                         curr_node.set_component_rank(component_size_rank)
+                        # Output node info to database
+                        cursor.execute("""INSERT INTO contigs
+                            VALUES (?,?,?,?,?,?,?,?,?,?,?)""", \
+                            curr_node.db_values())
                         parsing_node = False
                         curr_node = None
                         continue
@@ -695,7 +699,7 @@ for component in connected_components[:MAX_COMPONENTS]:
     component_size_rank += 1
 
 graphVals = (graph_filetype, total_contig_count, total_edge_count, \
-             total_component_count, total_bp_length, 1337)
+             total_component_count, total_bp_length, 0)
 cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?)", graphVals)    
 connection.commit()
 # Close the database connection
