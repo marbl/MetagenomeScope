@@ -29,6 +29,22 @@ class Edge(object):
         self.xdot_ctrl_pt_str = None
         self.xdot_ctrl_pt_count  = None
 
+    def db_values(self):
+        """Returns a tuple containing the values of this edge.
+
+           The tuple is created to be inserted into the "edges" database
+           table.
+
+           Should be called after parsing .xdot layout information for this
+           edge.
+        """
+        group_id = None
+        if self.group != None:
+            group_id = self.group.id_string
+        return (self.source_id, self.target_id, self.multiplicity,
+                self.component_size_rank, self.xdot_ctrl_pt_str,
+                self.xdot_ctrl_pt_count, group_id)
+
     def __repr__(self):
         return "Edge from %s to %s" % (self.source_id, self.target_id)
 

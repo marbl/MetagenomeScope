@@ -210,7 +210,7 @@ cursor.execute("""CREATE TABLE contigs
         component_rank integer, x real, y real, w real, h real, shape text,
         parent_cluster_id text)""")
 cursor.execute("""CREATE TABLE edges
-        (sourceid text, targetid text, multiplicity integer,
+        (source_id text, target_id text, multiplicity integer,
         component_rank integer, control_point_string text,
         control_point_count integer, parent_cluster_id text)""") 
 cursor.execute("""CREATE TABLE clusters (cluster_id text)""")
@@ -643,6 +643,8 @@ for component in connected_components[:MAX_COMPONENTS]:
                                 xdot_fullfn)
                         if parsing_cluster:
                             curr_edge.group = curr_cluster
+                        cursor.execute("""INSERT INTO edges
+                            VALUES (?,?,?,?,?,?,?)""", curr_edge.db_values())
                         parsing_edge = False
                         curr_edge = None
                         continue
