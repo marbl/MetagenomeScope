@@ -93,11 +93,18 @@ upon trying to overwrite any files in the directory.)
   directory (if it already exists) to be overwritten.
     * Note that the presence of files in the
       output directory that are named as folders (e.g. a directory named
-      `foobar.db` in the output directory) or the presence of files in the
-      output directory that share a name with a file that was going to be
-      generated but have different case (e.g. a file named `FOOBAR.db` in
-      the output directory) will cause an error to be raised regardless of
-      whether or not `-w` is set.
+      `foobar.db` in the output directory) will cause an error to be raised
+      regardless of whether or not `-w` is set.
+    * Also note that, if the output folder is synced with Dropbox and the
+      filesystem is case-sensitive, then the output folder should not
+      contain any files with the same name as any of the output files but
+      different case. If so, the files this script generates will
+      automatically be renamed by your Dropbox daemon, and this will likely
+      result in filename inconsistencies that cause the script to terminate.
+      To solve this problem, it's recommended that your output directory not
+      contain any files that might overlap with the specified output file
+      names in this respect. (See #26 for a thorough description of this
+      problem.)
 
 ## Running xdot2cy.js
 

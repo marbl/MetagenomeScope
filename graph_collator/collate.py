@@ -51,8 +51,10 @@
 from sys import argv
 # For running dot, GraphViz' main layout manager
 from subprocess import call
-# For creating a directory in which we store xdot/gv files
+# For creating a directory in which we store xdot/gv files, and for file I/O
 import os
+# For checking I/O errors
+import errno
 # For parsing .xdot files
 import re
 # For interfacing with the SQLite Database
@@ -100,6 +102,12 @@ except:
     if not os.path.isdir(dir_fn):
         raise IOError, "%s already exists as a non-directory file" % (dir_fn)
 
+# Assign flags for file creation
+if overwrite:
+    flags = os.O_CREAT | os.O_TRUNC | os.O_WRONLY
+else:
+    flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+
 def check_file_existence(filepath):
     """Returns True if the given filepath does exist as a non-directory file
        and overwrite is set to True.
@@ -109,9 +117,20 @@ def check_file_existence(filepath):
        Raises an IOError if:
         -The given filepath does exist but overwrite is False
         -The given filepath exists as a directory
-        -The given filepath exists with different case than specified
-         (ignoring this would cause things to break in the script due to how
-         Python handles case-sensitive file systems)
+
+       Note that this has some race conditions associated with it -- the
+       user or some other process could circumvent these error-checks by,
+       respectively:
+        -Creating a file at the filepath after this check but before opening
+        -Creating a directory at the filepath after this check but before
+         opening
+
+       We get around this by using os.fdopen() wrapped to os.open() with
+       certain flags (based on whether or not the user passed -w) set. This
+       allows us to guarantee an error will be thrown and no data will be
+       erroneously written in the first two cases, while (for most
+       non-race-condition cases) allowing us to display a detailed error
+       message to the user here, before we even try to open the file.
     """
     if os.path.exists(filepath):
         if os.path.isdir(filepath):
@@ -119,9 +138,6 @@ def check_file_existence(filepath):
         if not overwrite:
             raise IOError, "%s already exists and -w is not set" % (filepath)
         return True
-    lowercase_base_fn = os.path.basename(filepath).lower()
-    if lowercase_base_fn in [f.lower() for f in os.listdir(dir_fn)]:
-        raise IOError, "%s already exists (with different case)" % (filepath)
     return False
 
 def safe_file_remove(filepath):
@@ -246,6 +262,22 @@ if check_file_existence(db_fullfn):
     # The user asked to overwrite this database via -w, so remove it
     safe_file_remove(db_fullfn)
 
+# Note that there's technically a race condition here, but SQLite handles
+# itself so well that we don't need to bother catching it. If, somehow, a
+# file with the name db_fullfn is created in between when we run
+# check_file_existence(db_fullfn) and sqlite3.connect(db_fullfn), then that
+# file will either:
+# -Be repurposed as a database containing this data in addition to
+#  its original data (if the file is a SQLite database, but stores other
+#  data -- expected behavior for this case)
+# -Cause the first cursor.execute() call to fail since the database already
+#  has a contigs table (if the file is a SQLite database this program has
+#  generated -- expected behavior for this case)
+# -Cause the first cursor.execute() call to fail since the file is not a
+#  SQLite database (expected behavior for this case)
+# Essentially, we're okay here -- SQLite will handle the race condition
+# properly, should one arise. (I doubt that race conditions will happen
+# here, but I suppose you can't be too safe.)
 connection = sqlite3.connect(db_fullfn)
 cursor = connection.cursor()
 cursor.execute("""CREATE TABLE contigs
@@ -543,7 +575,12 @@ for component in connected_components[:MAX_COMPONENTS]:
 
     gv_fullfn = os.path.join(dir_fn, component_prefix + ".gv")
     check_file_existence(gv_fullfn)
-    with open(gv_fullfn, 'w') as gv_file:
+    # The flags we use here prevent race conditions (see
+    # check_file_existence() documentation above).
+    # Also, we use mode 0644 to just assign normal permissions to the output
+    # files. os.open() should handle the mode alright on Windows and Unix
+    # operating systems.
+    with os.fdopen(os.open(gv_fullfn, flags, 0644), 'w') as gv_file:
         gv_file.write("digraph asm {\n");
         if GRAPH_STYLE != "":
             gv_file.write("\t%s;\n" % (GRAPH_STYLE))
@@ -558,7 +595,7 @@ for component in connected_components[:MAX_COMPONENTS]:
     # output the graph (run GraphViz on the .gv file we just generated)
     xdot_fullfn = os.path.join(dir_fn, component_prefix + ".xdot")
     check_file_existence(xdot_fullfn)
-    with open(xdot_fullfn, 'w') as xdot_file_w:
+    with os.fdopen(os.open(xdot_fullfn, flags, 0644), 'w') as xdot_file_w:
         print "Laying out connected component %d..." % (component_size_rank)
         call(["dot", gv_fullfn, "-Txdot"], stdout=xdot_file_w)
         print "Done laying out connected component %d." % (component_size_rank)
