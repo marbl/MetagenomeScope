@@ -95,7 +95,7 @@ if asm_fn == "" or output_fn == "":
     raise ValueError("No input and/or output file name provided")
 
 try:
-    os.makedirs(dir_fn)        # TODO sanitize this value? (e.g. for ..)
+    os.makedirs(dir_fn)
 except:
     if not os.path.isdir(dir_fn):
         raise IOError, "%s already exists as a non-directory file" % (dir_fn)
@@ -123,6 +123,22 @@ def check_file_existence(filepath):
     if lowercase_base_fn in [f.lower() for f in os.listdir(dir_fn)]:
         raise IOError, "%s already exists (with different case)" % (filepath)
     return False
+
+def safe_file_remove(filepath):
+    """Safely (preventing race conditions of the file already being removed)
+       removes a file located at the given file path.
+    """
+    try:
+        os.remove(filepath)
+    except OSError, error:
+        if error.errno == errno.ENOENT:
+            # Something removed the file before we could. That's alright.
+            pass
+        else:
+            # Something strange happened -- maybe someone changed the file
+            # to a directory, or something similarly odd. Raise the original
+            # error to inform the user.
+            raise
 
 def dfs(n, seen_nodes):
     """Recursively runs depth-first search, starting at node n.
@@ -228,7 +244,7 @@ total_component_count = 0
 db_fullfn = os.path.join(dir_fn, output_fn + ".db")
 if check_file_existence(db_fullfn):
     # The user asked to overwrite this database via -w, so remove it
-    os.remove(db_fullfn)
+    safe_file_remove(db_fullfn)
 
 connection = sqlite3.connect(db_fullfn)
 cursor = connection.cursor()
@@ -727,10 +743,10 @@ for component in connected_components[:MAX_COMPONENTS]:
 
     # Unless the user requested their preservation, remove .gv/.xdot files
     if not preserve_gv:
-        os.remove(gv_fullfn)
+        safe_file_remove(gv_fullfn)
 
     if not preserve_xdot:
-        os.remove(xdot_fullfn)
+        safe_file_remove(xdot_fullfn)
 
     component_size_rank += 1
 
