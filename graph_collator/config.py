@@ -40,14 +40,20 @@ WIDTH_HEIGHT_RATIO = 1.0
 ### Frequently-used GraphViz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html
 # To make things simple, these constants don't use "exterior" semicolons
-# NOTE -- to get nodes to look more like BAMBUS', use headport=e,tailport=w in
-# GLOBALEDGE_STYLE and rotate=90 in GRAPH_STYLE.
+#
+# NOTE that some of these values aren't used in the current version of
+# collate.py, including the node group _SHAPE variables (originally used
+# when we collapsed node groups before sending them to GraphViz) and the
+# ROUNDED_..STYLE and CCOMPONENT_STYLE variables (ROUNDED_..STYLE vars.
+# actually are applied in Node.node_info(), but they purposefully don't do
+# anything to the graph as viewed in Cytoscape.js right now. We could maybe
+# add some functionality re: that later).
 BASIC_NODE_SHAPE = "invhouse"
 RCOMP_NODE_SHAPE = "house"
-BUBBLE_SHAPE     = "square" # not used for collate_clusters.py
-FRAYEDROPE_SHAPE = "square" # not used for collate_clusters.py
-CHAIN_SHAPE      = "square" # not used for collate_clusters.py
-CYCLE_SHAPE      = "square" # not used for collate_clusters.py
+BUBBLE_SHAPE     = "square"                        # we don't use these now
+FRAYEDROPE_SHAPE = "square"                        # we don't use these now
+CHAIN_SHAPE      = "square"                        # we don't use these now
+CYCLE_SHAPE      = "square"                        # we don't use these now
 ROUNDED_UP_STYLE = "style=filled,fillcolor=gray64" # we don't use these now
 ROUNDED_DN_STYLE = "style=filled,fillcolor=black"  # we don't use these now
 CCOMPONENT_STYLE = "style=filled,fillcolor=red"    # we don't use these now
