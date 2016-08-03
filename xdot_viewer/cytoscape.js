@@ -2,7 +2,7 @@
 
 /*!
 
-Cytoscape.js snapshot-e1bf31360c-1469738341740 (MIT licensed)
+Cytoscape.js 2.7.7 (MIT licensed)
 
 Copyright (c) The Cytoscape Consortium
 
@@ -4358,13 +4358,13 @@ elesfn.restore = function( notifyRenderer ){
   elements = nodes.concat( edges );
 
   var i;
-  var removeFromElements = function(i){
+  var removeFromElements = function(){
     elements.splice( i, 1 );
     i--;
   };
 
   // now, restore each element
-  for( i = 0, l = elements.length; i < l; i++ ){
+  for( i = 0; i < elements.length; i++ ){
     var ele = elements[ i ];
 
     var _private = ele._private;
@@ -4384,13 +4384,13 @@ elesfn.restore = function( notifyRenderer ){
       util.error( 'Can not create element with invalid string ID `' + data.id + '`' );
 
       // can't create element if it has empty string as id or non-string id
-      removeFromElements(i);
+      removeFromElements();
       continue;
     } else if( cy.hasElementWithId( data.id ) ){
       util.error( 'Can not create second element with ID `' + data.id + '`' );
 
       // can't create element if one already has that id
-      removeFromElements(i);
+      removeFromElements();
       continue;
     }
 
@@ -4437,7 +4437,7 @@ elesfn.restore = function( notifyRenderer ){
         }
       }
 
-      if( badSourceOrTarget ){ removeFromElements(i); continue; } // can't create this
+      if( badSourceOrTarget ){ removeFromElements(); continue; } // can't create this
 
       var src = cy.getElementById( data.source );
       var tgt = cy.getElementById( data.target );
@@ -23498,7 +23498,7 @@ styfn.applyContextStyle = function( cxtMeta, cxtStyle, ele ){
 
     if( !cxtProp ){ // no context prop means delete
       // modification by fedarko
-      if (eleProp == null) {
+      if (eleProp === null) {
         continue;
       } // end modification by fedarko
       else if( eleProp.bypass ){
@@ -26963,7 +26963,7 @@ util.debounce = function( func, wait, options ){ // ported lodash debounce funct
 module.exports = util;
 
 },{"../is":83,"../window":107}],106:[function(_dereq_,module,exports){
-module.exports="snapshot-e1bf31360c-1469738341740"
+module.exports="2.7.7"
 },{}],107:[function(_dereq_,module,exports){
 module.exports = ( typeof window === 'undefined' ? null : window );
 
