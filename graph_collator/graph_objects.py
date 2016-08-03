@@ -6,7 +6,7 @@
 # which preserves their child nodes. (It's similar to Cytoscape.js' concept
 # of a "compound node," for reference.)
 
-from config import *
+import config
 from math import log, sqrt
 
 class Edge(object):
@@ -113,11 +113,11 @@ class Node(object):
         rounding_done = 0
         h = sqrt(log(self.bp, 100))
         hs = h**2
-        if hs > MAX_CONTIG_AREA:
-            h = MAX_CONTIG_HEIGHT
+        if hs > config.MAX_CONTIG_AREA:
+            h = config.MAX_CONTIG_HEIGHT
             rounding_done = 1
-        elif hs < MIN_CONTIG_AREA:
-            h = MIN_CONTIG_HEIGHT
+        elif hs < config.MIN_CONTIG_AREA:
+            h = config.MIN_CONTIG_HEIGHT
             rounding_done = -1
         return (h, rounding_done)
 
@@ -126,35 +126,35 @@ class Node(object):
            file for input to GraphViz.
 
            You can change custom_shape to give the node a particular shape; by
-           default, this uses BASIC_NODE_SHAPE for "normal" nodes and
-           RCOMP_NODE_SHAPE for "reverse complement" nodes.
+           default, this uses config.BASIC_NODE_SHAPE for "normal" nodes and
+           config.RCOMP_NODE_SHAPE for "reverse complement" nodes.
            I don't think anything in this program uses custom_shape any
            more; I used to use it when we collapsed node groups into squares
            on the Python side of this program, and not in the JS side.
 
-           If custom_style is passed (e.g. as BUBBLE_STYLE or FRAYEDROPE_STYLE)
-           then that style information will be used. By default, nodes that
-           have been rounded up or down in height will use special style
-           information, but custom_style overrides that.
+           If custom_style is passed (e.g. as config.BUBBLE_STYLE or
+           config.FRAYEDROPE_STYLE) then that style information will be used.
+           By default, nodes that have been rounded up or down in height will
+           use special style information, but custom_style overrides that.
         """
         h, r = self.get_height()
         # We purposely omit node labels in xdot, since they'll be applied
         # anyway in Cytoscape.js and node labels can result in erroneously
         # resized nodes (to contain node labels)
         info = "\t%s [label=\"\",height=%g,width=%g,shape=" % \
-                (self.id_string, h, WIDTH_HEIGHT_RATIO * h)
+                (self.id_string, h, config.WIDTH_HEIGHT_RATIO * h)
         if custom_shape == None:
             if not self.is_complement:
-                info += BASIC_NODE_SHAPE
+                info += config.BASIC_NODE_SHAPE
             else:
-                info += RCOMP_NODE_SHAPE
+                info += config.RCOMP_NODE_SHAPE
         else:
             info += custom_shape
         if custom_style == None:
             if r > 0:
-               info += ',' + ROUNDED_DN_STYLE
+               info += ',' + config.ROUNDED_DN_STYLE
             elif r < 0:
-               info += ',' + ROUNDED_UP_STYLE
+               info += ',' + config.ROUNDED_UP_STYLE
         else:
             info += ',' + custom_style
         info += "];\n"
@@ -275,7 +275,7 @@ class Bubble(NodeGroup):
 
     def __init__(self, *nodes):
         """Initializes the Bubble, given a list of nodes comprising it."""
-        super(Bubble, self).__init__('B', BUBBLE_STYLE, nodes)
+        super(Bubble, self).__init__('B', config.BUBBLE_STYLE, nodes)
 
     @staticmethod
     def is_valid_bubble(s):
@@ -388,7 +388,7 @@ class Rope(NodeGroup):
 
     def __init__(self, *nodes):
         """Initializes the Rope, given a list of nodes comprising it."""
-        super(Rope, self).__init__('R', FRAYEDROPE_STYLE, nodes)
+        super(Rope, self).__init__('R', config.FRAYEDROPE_STYLE, nodes)
      
     @staticmethod
     def is_valid_rope(s):
@@ -481,7 +481,7 @@ class Chain(NodeGroup):
 
     def __init__(self, *nodes):
         """Initializes the Chain, given all the nodes comprising the chain."""
-        super(Chain, self).__init__('C', CHAIN_STYLE, nodes);
+        super(Chain, self).__init__('C', config.CHAIN_STYLE, nodes);
 
     @staticmethod
     def is_valid_chain(s):
@@ -606,7 +606,7 @@ class Cycle(NodeGroup):
 
     def __init__(self, *nodes):
         """Initializes the Cycle, given all the nodes comprising it."""
-        super(Cycle, self).__init__('Y', CYCLE_STYLE, nodes)
+        super(Cycle, self).__init__('Y', config.CYCLE_STYLE, nodes)
 
     @staticmethod
     def is_valid_cycle(s):

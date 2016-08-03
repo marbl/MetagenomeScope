@@ -5,7 +5,7 @@
 #
 # This generates multiple DOT (intermediate) and XDOT (output) files,
 # one for each connected component in the graph that contains a number of nodes
-# greater than or equal to MIN_COMPONENT_SIZE. These files are named
+# greater than or equal to config.MIN_COMPONENT_SIZE. These files are named
 # according to their connected components' relative sizes -- with a -o
 # option of "output", the largest component will have output_1.xdot and
 # output_1.gv (if preserved), the second largest component will have
@@ -60,8 +60,8 @@ import re
 # For interfacing with the SQLite Database
 import sqlite3
 
-from graph_objects import *
-from config import *
+import graph_objects
+import config
 
 # Get argument information
 asm_fn = ""
@@ -221,23 +221,23 @@ def attempt_add_node_attr(text_line, n):
        average case: moreso than just checking each compiled Regex against
        the line every time.
     """
-    matches = NODEHGHT_RE.search(text_line)
+    matches = config.NODEHGHT_RE.search(text_line)
     if matches != None:
         # Add height info
         n.xdot_height = float(matches.groups()[0])
     else:
-        matches = NODEWDTH_RE.search(text_line)
+        matches = config.NODEWDTH_RE.search(text_line)
         if matches != None:
             # Add width info
             n.xdot_width = float(matches.groups()[0])
         else:
-            matches = NODEPOSN_RE.search(text_line)
+            matches = config.NODEPOSN_RE.search(text_line)
             if matches != None:
                 # Add positional info
                 n.xdot_x = float(matches.groups()[0])
                 n.xdot_y = float(matches.groups()[1])
             else:
-                matches = NODESHAP_RE.search(text_line)
+                matches = config.NODESHAP_RE.search(text_line)
                 if matches != None:
                     # Add shape info
                     n.xdot_shape = matches.groups()[0]
@@ -254,13 +254,13 @@ def attempt_find_ctrl_pts(text_line):
        when this function was called, and None if no control point
        information at all was found).
     """
-    c_matches = CPTSDECL_RE.search(text_line)
+    c_matches = config.CPTSDECL_RE.search(text_line)
     if c_matches != None:
         more_left = True
         grps = c_matches.groups()
         point_count = int(grps[0])
         point_string = grps[1].strip() + " "
-        e_c_matches = CPTS_END_RE.search(text_line)
+        e_c_matches = config.CPTS_END_RE.search(text_line)
         if e_c_matches != None:
             # If the control point declaration is only one line
             # long, don't try to parse > 1 lines of it
@@ -337,8 +337,8 @@ connection.commit()
 # -FASTG (SPAdes)
 # -GFA
 with open(asm_fn, 'r') as assembly_file:
-    parsing_LastGraph = asm_fn.endswith(LASTGRAPH_SUFFIX)
-    parsing_GraphML   = asm_fn.endswith(GRAPHML_SUFFIX)
+    parsing_LastGraph = asm_fn.endswith(config.LASTGRAPH_SUFFIX)
+    parsing_GraphML   = asm_fn.endswith(config.GRAPHML_SUFFIX)
     if parsing_LastGraph:
         graph_filetype = "LastGraph"
         # TODO -- Should we account for SEQ/NR information here?
@@ -382,10 +382,11 @@ with open(asm_fn, 'r') as assembly_file:
                 if parsed_fwdseq:
                     # Parsing reverse sequence
                     curr_node_dnarev = line.strip()
-                    n = Node(curr_node_id, curr_node_bp, False, \
+                    n = graph_objects.Node(curr_node_id, curr_node_bp, False,
                             depth=curr_node_depth, dna_fwd=curr_node_dnafwd)
-                    c = Node('c' + curr_node_id, curr_node_bp, True, \
-                            depth=curr_node_depth, dna_fwd=curr_node_dnarev)
+                    c = graph_objects.Node('c' + curr_node_id,
+                            curr_node_bp, True, depth=curr_node_depth,
+                            dna_fwd=curr_node_dnarev)
                     nodeid2obj[curr_node_id] = n
                     nodeid2obj['c' + curr_node_id] = c
                     # Record this node for graph statistics
@@ -435,7 +436,7 @@ with open(asm_fn, 'r') as assembly_file:
                     l = line.split()
                     curr_node_orientation = l[1] # either "FOW" or "REV"
                 elif line.endswith("]\n"):
-                    n = Node(curr_node_id, curr_node_bp, \
+                    n = graph_objects.Node(curr_node_id, curr_node_bp,
                             (curr_node_orientation == '"REV"'))
                     nodeid2obj[curr_node_id] = n
                     # Record this node for graph statistics
@@ -455,7 +456,7 @@ with open(asm_fn, 'r') as assembly_file:
                     l = line.split()
                     curr_edge_tgt_id = l[1]
                 elif line.endswith("]\n"):
-                    nodeid2obj[curr_edge_src_id].add_outgoing_edge( \
+                    nodeid2obj[curr_edge_src_id].add_outgoing_edge(
                             nodeid2obj[curr_edge_tgt_id])
                     total_edge_count += 1
                     # Clear tmp/marker vars
@@ -487,22 +488,22 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
     outgoing = n.outgoing_nodes
     # Cycle start positions can have >= 1 outgoing nodes, so we have to
     # check those first.
-    cycle_validity, composite_nodes = Cycle.is_valid_cycle(n)
+    cycle_validity, member_nodes = graph_objects.Cycle.is_valid_cycle(n)
     if cycle_validity:
         # Found a cycle!
-        new_cycle = Cycle(*composite_nodes)
-        for x in composite_nodes:
+        new_cycle = graph_objects.Cycle(*member_nodes)
+        for x in member_nodes:
             x.used_in_collapsing = True
             x.group = new_cycle
         nodes_to_draw.append(new_cycle)
         clusterid2obj[new_cycle.id_string] = new_cycle
     elif len(outgoing) > 1:
         # Identify bubbles
-        bubble_validity, composite_nodes = Bubble.is_valid_bubble(n)
+        bubble_validity, member_nodes = graph_objects.Bubble.is_valid_bubble(n)
         if bubble_validity:
             # Found a bubble!
-            new_bubble = Bubble(*composite_nodes)
-            for x in composite_nodes:
+            new_bubble = graph_objects.Bubble(*member_nodes)
+            for x in member_nodes:
                 x.used_in_collapsing = True
                 x.group = new_bubble
             nodes_to_draw.append(new_bubble)
@@ -510,22 +511,22 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
     elif len(outgoing) == 1:
         # n could be the start of either a chain or a frayed rope.
         # Identify "frayed ropes"
-        rope_validity, composite_nodes = Rope.is_valid_rope(n)
+        rope_validity, member_nodes = graph_objects.Rope.is_valid_rope(n)
         if rope_validity:
             # Found a frayed rope!
-            new_rope = Rope(*composite_nodes)
-            for x in composite_nodes:
+            new_rope = graph_objects.Rope(*member_nodes)
+            for x in member_nodes:
                 x.used_in_collapsing = True
                 x.group = new_rope
             nodes_to_draw.append(new_rope)
             clusterid2obj[new_rope.id_string] = new_rope
         else:
             # Try to identify "chains" of nodes
-            chain_validity, composite_nodes = Chain.is_valid_chain(n)
+            chain_validity,member_nodes = graph_objects.Chain.is_valid_chain(n)
             if chain_validity:
                 # Found a chain!
-                new_chain = Chain(*composite_nodes)
-                for x in composite_nodes:
+                new_chain = graph_objects.Chain(*member_nodes)
+                for x in member_nodes:
                     x.used_in_collapsing = True
                     x.group = new_chain
                 nodes_to_draw.append(new_chain)
@@ -563,7 +564,7 @@ for n in nodes_to_draw:
         # run DFS on the nodes within the groups of nodes to discover them.
         node_list = []
         node_group_list = []
-        if issubclass(type(n), NodeGroup):
+        if issubclass(type(n), graph_objects.NodeGroup):
             # n is a node group
             if n.nodes[0].seen_in_ccomponent:
                 continue
@@ -582,22 +583,23 @@ for n in nodes_to_draw:
             m.seen_in_ccomponent = True
             if m.used_in_collapsing and m.group not in node_group_list:
                 node_group_list.append(m.group)
-        connected_components.append(Component(node_list, node_group_list))
+        connected_components.append(
+            graph_objects.Component(node_list, node_group_list))
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
-graphVals = (graph_filetype, total_contig_count, total_edge_count, \
+graphVals = (graph_filetype, total_contig_count, total_edge_count,
              total_component_count, total_bp_length, n50(bp_length_list))
 cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?)", graphVals)    
 
 # Conclusion: Output (desired) components of nodes to the .gv file
 
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
-for component in connected_components[:MAX_COMPONENTS]:
+for component in connected_components[:config.MAX_COMPONENTS]:
     # Since the component list is in descending order, if the current
-    # component has less than MIN_COMPONENT_SIZE nodes then we're done with
-    # displaying components
-    if len(component.node_list) < MIN_COMPONENT_SIZE:
+    # component has less than config.MIN_COMPONENT_SIZE nodes then we're
+    # done with displaying components
+    if len(component.node_list) < config.MIN_COMPONENT_SIZE:
         break
 
     # OK, we're displaying this component.
@@ -619,12 +621,12 @@ for component in connected_components[:MAX_COMPONENTS]:
     # operating systems.
     with os.fdopen(os.open(gv_fullfn, flags, 0644), 'w') as gv_file:
         gv_file.write("digraph asm {\n");
-        if GRAPH_STYLE != "":
-            gv_file.write("\t%s;\n" % (GRAPH_STYLE))
-        if GLOBALNODE_STYLE != "":
-            gv_file.write("\tnode [%s];\n" % (GLOBALNODE_STYLE))
-        if GLOBALEDGE_STYLE != "":
-            gv_file.write("\tedge [%s];\n" % (GLOBALEDGE_STYLE))
+        if config.GRAPH_STYLE != "":
+            gv_file.write("\t%s;\n" % (config.GRAPH_STYLE))
+        if config.GLOBALNODE_STYLE != "":
+            gv_file.write("\tnode [%s];\n" % (config.GLOBALNODE_STYLE))
+        if config.GLOBALEDGE_STYLE != "":
+            gv_file.write("\tedge [%s];\n" % (config.GLOBALEDGE_STYLE))
         gv_file.write(node_info)
         gv_file.write(edge_info)
         gv_file.write("}")
@@ -672,21 +674,21 @@ for component in connected_components[:MAX_COMPONENTS]:
         for line in xdot_file_r:
             # Check for the .xdot file's bounding box
             if not parsing_cluster and not found_bounding_box:
-                matches = BOUNDBOX_RE.search(line)
+                matches = config.BOUNDBOX_RE.search(line)
                 if matches != None:
                     bounding_box = matches.groups()
                     found_bounding_box = True
                     continue
             # Check for cluster declarations
             if not parsing_cluster and not parsing_node and not parsing_edge:
-                matches = CLUSDECL_RE.search(line)
+                matches = config.CLUSDECL_RE.search(line)
                 if matches != None:
                     parsing_cluster = True
                     curr_cluster = clusterid2obj[matches.groups()[0]]
                     continue
             # Check for cluster declaration ending
             if parsing_cluster and not parsing_node and not parsing_edge:
-                matches = CLUS_END_RE.search(line)
+                matches = config.CLUS_END_RE.search(line)
                 if matches != None:
                     curr_cluster.component_size_rank = component_size_rank
                     cursor.execute("""INSERT INTO clusters
@@ -696,7 +698,7 @@ for component in connected_components[:MAX_COMPONENTS]:
                     continue
             # Check for node/edge declarations
             if not parsing_node and not parsing_edge:
-                matches = NODEDECL_RE.search(line)
+                matches = config.NODEDECL_RE.search(line)
                 if matches != None:
                     # Node declaration
                     parsing_node = True
@@ -704,7 +706,7 @@ for component in connected_components[:MAX_COMPONENTS]:
                     attempt_add_node_attr(line, curr_node)
                     continue
                 else:
-                    matches = EDGEDECL_RE.search(line)
+                    matches = config.EDGEDECL_RE.search(line)
                     if matches != None:
                         # Edge declaration
                         parsing_edge = True
@@ -721,7 +723,7 @@ for component in connected_components[:MAX_COMPONENTS]:
                         continue
             # Check for node/edge declaration ending
             if parsing_node or parsing_edge:
-                matches = NDEG_END_RE.search(line)
+                matches = config.NDEG_END_RE.search(line)
                 if matches != None:
                     if parsing_node:
                         # Node declaration ending
@@ -729,7 +731,7 @@ for component in connected_components[:MAX_COMPONENTS]:
                         curr_node.set_component_rank(component_size_rank)
                         # Output node info to database
                         cursor.execute("""INSERT INTO contigs
-                            VALUES (?,?,?,?,?,?,?,?,?,?,?)""", \
+                            VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
                             curr_node.db_values())
                         component_contig_count += 1
                         component_total_length += curr_node.bp
@@ -756,7 +758,7 @@ for component in connected_components[:MAX_COMPONENTS]:
                                 curr_edge.xdot_ctrl_pt_count):
                             raise IOError, "Invalid control points for \
                                 edge %s -> %s in file %s." % \
-                                (curr_edge.source_id, curr_edge.target_id, \
+                                (curr_edge.source_id, curr_edge.target_id,
                                 xdot_fullfn)
                         if parsing_cluster:
                             curr_edge.group = curr_cluster
@@ -782,17 +784,17 @@ for component in connected_components[:MAX_COMPONENTS]:
                 # If we're here, then we are parsing curr_edge's ctrl. pts.
                 # on the current line.
                 # Check for the ending of a control point declaration
-                e_matches = CPTS_END_RE.search(line)
+                e_matches = config.CPTS_END_RE.search(line)
                 if e_matches == None:
                     # Check for the continuation ("next lines", abbreviated
                     # as "NXL") of an ongoing control point declaration
-                    n_matches = CPTS_NXL_RE.search(line)
+                    n_matches = config.CPTS_NXL_RE.search(line)
                     if n_matches == None:
                         # Since parsing_ctrl_pts is True, something's off
                         # about the control points for this edge.
                         raise IOError, "Invalid control point statement \
                             for edge %s -> %s in file %s." % \
-                            (curr_edge.source_id, curr_edge.target_id, \
+                            (curr_edge.source_id, curr_edge.target_id,
                             xdot_fullfn)
                     else:
                         curr_edge.xdot_ctrl_pt_str += \
