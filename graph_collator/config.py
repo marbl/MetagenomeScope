@@ -68,7 +68,7 @@ CYCLE_STYLE      = "\tstyle=filled;\n\tfillcolor=darkgoldenrod1;\n"
 # Note that we rely on having a rankdir value of "TB" for the entire graph, 
 # in order to facilitate rotation in the .xdot viewer. (So I'd recommend not
 # changing that unless you have a good reason.)
-GRAPH_STYLE      = "rotate=90"
+GRAPH_STYLE      = ""
 
 # Style applied to every node in the graph.
 # NOTE -- fixedsize=true ensures accaccurate node scaling
