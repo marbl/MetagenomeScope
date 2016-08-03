@@ -185,6 +185,34 @@ def negate_contig_id(id_string):
     else:
         return 'c' + id_string
 
+def n50(contig_lengths):
+    """Determines the N50 statistic of an assembly, given its contig lengths.
+
+       Note that multiple definitions of the N50 statistic exist (see
+       https://en.wikipedia.org/wiki/N50,_L50,_and_related_statistics for
+       more information).
+       
+       Here, we use the calculation method described by Yandell and Ence,
+       2012 (Nature) -- see
+       http://www.nature.com/nrg/journal/v13/n5/box/nrg3174_BX1.html for a
+       high-level overview.
+    """
+
+    if len(contig_lengths) == 0:
+        raise ValueError, "N50 of an empty list does not exist"
+    sorted_lengths = sorted(contig_lengths, reverse=True)
+    i = 0
+    running_sum = 0
+    half_total_length = 0.5 * sum(sorted_lengths)
+    while running_sum < half_total_length:
+        if i >= len(sorted_lengths):
+            # This should never happen, but just in case
+            raise IndexError, "N50 calculation error"
+        running_sum += sorted_lengths[i]
+        i += 1
+    # Return length of shortest contig that was used in the running sum
+    return sorted_lengths[i - 1]
+
 def attempt_add_node_attr(text_line, n):
     """Attempts to add additional node information stored on a line of text
        from a .xdot file to a given node n.
@@ -254,6 +282,8 @@ total_contig_count = 0
 total_edge_count = 0
 total_bp_length = 0
 total_component_count = 0
+# List of all the contig lengths in the assembly. Used when calculating n50.
+bp_length_list = []
 
 # Create a SQLite database in which we store biological and graph layout
 # information. This will be opened in the Javascript graph viewer.
@@ -363,7 +393,9 @@ with open(asm_fn, 'r') as assembly_file:
                     # Note that recording these statistics here ensures that
                     # only "fully complete" node definitions are recorded.
                     total_contig_count += 2
-                    total_bp_length += curr_node_bp
+                    total_bp_length += (2 * curr_node_bp)
+                    bp_length_list.append(curr_node_bp)
+                    bp_length_list.append(curr_node_bp)
                     # Clear temporary/marker variables for later use
                     curr_node_id = ""
                     curr_node_bp = 1
@@ -409,6 +441,7 @@ with open(asm_fn, 'r') as assembly_file:
                     # Record this node for graph statistics
                     total_contig_count += 1
                     total_bp_length += curr_node_bp
+                    bp_length_list.append(curr_node_bp)
                     # Clear tmp/marker variables
                     parsing_node = False
                     curr_node_id = None
@@ -437,8 +470,8 @@ with open(asm_fn, 'r') as assembly_file:
                 parsing_edge = True
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
-# This means that graph_filetype, total_contig_count, total_edge_count, and
-# total_bp_length are all finalized.
+# This means that graph_filetype, total_contig_count, total_edge_count,
+# total_bp_length, and bp_length_list are all finalized.
 
 # Try to collapse special "groups" of Nodes (Bubbles, Ropes, etc.)
 # As we check nodes, we add either the individual node (if it can't be
@@ -552,6 +585,10 @@ for n in nodes_to_draw:
         connected_components.append(Component(node_list, node_group_list))
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
+
+graphVals = (graph_filetype, total_contig_count, total_edge_count, \
+             total_component_count, total_bp_length, n50(bp_length_list))
+cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?)", graphVals)    
 
 # Conclusion: Output (desired) components of nodes to the .gv file
 
@@ -787,9 +824,6 @@ for component in connected_components[:MAX_COMPONENTS]:
 
     component_size_rank += 1
 
-graphVals = (graph_filetype, total_contig_count, total_edge_count, \
-             total_component_count, total_bp_length, 0)
-cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?)", graphVals)    
 connection.commit()
 # Close the database connection
 connection.close()
