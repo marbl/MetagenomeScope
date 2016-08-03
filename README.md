@@ -103,8 +103,7 @@ upon trying to overwrite any files in the directory.)
       result in filename inconsistencies that cause the script to terminate.
       To solve this problem, it's recommended that your output directory not
       contain any files that might overlap with the specified output file
-      names in this respect. (See #26 for a thorough description of this
-      problem.)
+      names in this respect. (See [#26](https://github.com/fedarko/AsmViz/issues/26#issuecomment-237120787) for a thorough description of this problem.)
 
 ## Running xdot2cy.js
 
