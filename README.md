@@ -40,6 +40,7 @@ AsmViz is composed of two main components:
     * [sys](https://docs.python.org/2/library/sys.html)
     * [subprocess](https://docs.python.org/2/library/subprocess.html)
     * [os](https://docs.python.org/2/library/os.html)
+    * [errno](https://docs.python.org/2/library/errno.html)
     * [math](https://docs.python.org/2/library/math.html)
     * [sqlite3](https://docs.python.org/2/library/sqlite3.html)
     * [re](https://docs.python.org/2/library/re.html)
