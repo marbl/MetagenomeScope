@@ -413,17 +413,18 @@ function destroyGraph() {
  * file's contents. The ideal thing would be to parse the file
  * line-by-line, but we can look into that later.
  */
-function loadxdot() {
+function loadgraphfile() {
     var xdotText = [];
     var fr = new FileReader();
+    // For xdot parsing --
     // Okay, so the ideal thing here would be to read this in line-by-line,
 	// so we don't use an excessive amount of memory for large xdot files.
-	var xdotfile = document.getElementById('xdotselector').files[0];
-    if (xdotfile === undefined) {
-        alert("Please select an xdot file to display.");
+	var inputfile = document.getElementById('fileselector').files[0];
+    if (inputfile === undefined) {
+        alert("Please select an .xdot or .db file to display.");
         return;
     }
-    else if (xdotfile.name.endsWith(".xdot")) {
+    else if (inputfile.name.endsWith(".xdot")) {
         fr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
                 xdotText = e.target.result.split('\n');
@@ -431,10 +432,26 @@ function loadxdot() {
                 window.setTimeout(function() { parsexdot(xdotText) }, 10);
             }
         }
-	    fr.readAsText(xdotfile);
+	    fr.readAsText(inputfile);
     }
-    else if (xdotfile.name.endsWith(".db")) {
-        alert("This doesn't support .db files yet! Give me a day or so.");
+    else if (inputfile.name.endsWith(".db")) {
+        fr.onload = function(e) {
+            if (e.target.readyState === FileReader.DONE) {
+                var uIntArr = new Uint8Array(e.target.result);
+                var db = new SQL.Database(uIntArr);
+                var stmt = db.prepare("SELECT * FROM assembly;");
+                stmt.step();
+                var graphInfo = stmt.getAsObject();
+                var contigInfo = graphInfo["contig_count"] + " contigs; ";
+                var bpInfo = graphInfo["total_length"] + "bp (total); ";
+                var edgeInfo = graphInfo["edge_count"] + " edges; ";
+                var compInfo = graphInfo["component_count"] + " components; ";
+                var n50Info = graphInfo["n50"] + "bp n50";
+                updateStatus(contigInfo + bpInfo + edgeInfo + compInfo + n50Info);
+                db.close();
+            }
+        }
+        fr.readAsArrayBuffer(inputfile);
         return;
     }
     else {

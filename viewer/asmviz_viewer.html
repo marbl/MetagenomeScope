@@ -4,9 +4,10 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>AsmViz Viewer</title>
-        <!-- Load cytoscape.js' library -->
-        <!-- TODO, use the minimized version for release -->
+        <!-- Load cytoscape.js' and sql.js' libraries -->
+        <!-- TODO, use the minimized versions for release -->
         <script src='cytoscape.js'></script>
+        <script src='sql.js'></script>
     </head>
 	<style>
 		#cy {
@@ -38,15 +39,14 @@
         }
 	</style>
 	<body>
-		<!-- Declare div environment for the graph (will be used
-	  		by loadxdot()) -->
+        <!-- Declare div environment for the graph -->
 		<div id="cy"></div>
 		<script src='xdot2cy.js'></script>
         <div id="controls">
-		    <input type='file' id='xdotselector' />
+		    <input type='file' id='fileselector' onchange='loadgraphfile();'/>
 		    
-            <button type='button' onclick='loadxdot()'>
-		    	Load xdot file
+            <button type='button' onclick=''>
+		    	Draw connected component
 		    </button>
 
             <input type='text' id='nodeselector' class="withgap grayText"
@@ -77,7 +77,9 @@
                 onclick='startCollapseAll()' class="smallgap"
                 value="Collapse All Node Groups" />
 
-            <div id='status'></div>
+            <div id='status'>Please select a .db file to display. (.xdots
+                still work for now, but will eventually be deprecated,
+                probably)</div>
         </div>
 	</body>
 </html>
