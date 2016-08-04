@@ -65,18 +65,6 @@
       wants to check multiple components at once for certain patterns/etc.
       then it could make sense.
 
-* In collate\_clusters.py:
-  Provide user with time estimate, instead of using dot -v? We can base this
-  off number of nodes/edges, etc.
-
-* Improve efficiency of reading+parsing the xdot file. Really, the file
-should only be read through once, using blobs; don't do the thing of getting
-the entire thing at once, reading it into memory, and then iterating through
-it line by line. That's hugely inefficient for large files, and while it's
-alright for a demo like this we'll want it to be more efficient for actual
-use. (NOTE: using solely .db files might mean we don't have to worry about
-this, since we can just use sql.js' I/O functionality)
-
 * Think about how to linearly display the "longest path" through the graph,
 or more specifically through an individual connected component. Will
 definitely have to factor in node size here. THIS IS IMPORTANT!
@@ -92,11 +80,7 @@ GraphViz -- we'd want to do this in both environments, so the GraphViz
 layout can support more separation for thicker edges) by displaying edges
 with greater multiplicity values as thicker, as done in Figure 3 in the
 Assembly Algorithms paper by Miller, Koren et al.
-	* This can probably be worked in after developing a way to associate
-	 arbitrary information (e.g. DNA sequences) with nodes/edges in the
-	 graph and sending that information to the xdot parser/renderer.
-	 From there it should be trivial to pass multiplicity information
-	 and scale edge widths accordingly.
+    * Just need to implement this on the Cytoscape.js side.
 
 * Write parsers for the other 2 types of assembly files Todd wanted me to
 support (GFA and FASTG), and also maybe for the Trinity FASTA file
@@ -115,8 +99,6 @@ may be a more difficult case.)
 * Tighten up xdot regexes to reject invalid numbers and alert the user to
 their existence.
 
-* Write an actual tokenizer for the xdot file format, so we can parse it
-agnostic to spaces/formatting. Note that, as I lack a formal specification
-of the xdot grammar, I'll probably have to come up with something myself.
+* Use ANTLR or something for xdot parsing. Would take care of above point.
 
 * Any other cool features.
