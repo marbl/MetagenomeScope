@@ -324,8 +324,9 @@ cursor.execute("""CREATE TABLE components
         (size_rank integer, contig_count integer, edge_count integer,
         total_length integer, boundingbox_x real, boundingbox_y real)""")
 cursor.execute("""CREATE TABLE assembly
-        (filetype text, contig_count integer, edge_count integer,
-        component_count integer, total_length integer, n50 integer)""")
+        (filename text, filetype text, contig_count integer,
+        edge_count integer, component_count integer, total_length integer,
+        n50 integer)""")
 connection.commit()
 
 # Process NODE (vertex) and ARC (edge) information
@@ -588,9 +589,10 @@ for n in nodes_to_draw:
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
-graphVals = (graph_filetype, total_contig_count, total_edge_count,
-             total_component_count, total_bp_length, n50(bp_length_list))
-cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?)", graphVals)    
+graphVals = (os.path.basename(asm_fn), graph_filetype, total_contig_count,
+             total_edge_count, total_component_count, total_bp_length,
+             n50(bp_length_list))
+cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?)", graphVals)    
 
 # Conclusion: Output (desired) components of nodes to the .gv file
 
