@@ -1,0 +1,23 @@
+#cy {
+    width: 100%;
+    height: 90%;
+    position:absolute;
+    top: 40px;
+    left: 0px;
+    /* overflow-x: scroll; */
+}
+#controls {
+    font-size: 0.75em;
+    background-color: #AAAAAA;
+    width: 100%;
+    height: 40px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+.grayText {
+    color: #999999;
+}
+.hiddenElement {
+    display: none;
+}

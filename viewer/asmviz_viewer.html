@@ -17,7 +17,8 @@
             integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E="
             crossorigin="anonymous"></script>
         <link rel="stylesheet"
-        href="https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+            href="https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+        <link rel="stylesheet" href="viewer_style.css">
         <!-- Initialize some jQuery UI things -->
         <script>
             $(function() {
@@ -45,39 +46,6 @@
         <script src='cytoscape.js'></script>
         <script src='sql.js'></script>
     </head>
-	<style>
-		#cy {
-			width: 100%;
-			height: 90%;
-			position:absolute;
-			top: 40px;
-			left: 0px;
-            /* overflow-x: scroll; */
-		}
-        #controls {
-            font-size: 0.75em;
-            background-color: #AAAAAA;
-            width: 100%;
-            height: 40px;
-            position: absolute;
-			top: 0px;
-			left: 0px;
-        }
-        .withgap {
-            position:relative;
-            margin-left: 5em;
-        }
-        .smallgap {
-            position:relative;
-            margin-left: 2em;
-        }
-        .grayText {
-            color: #999999;
-        }
-        .hiddenElement {
-            display: none;
-        }
-	</style>
 	<body>
         <!-- Declare div environment for the graph -->
 		<div id="cy"></div>
@@ -133,9 +101,9 @@
         <div id='infoDialog' title="Assembly Information"
             class="hiddenElement">
             <!-- We implement this hidden input with autofocus to fix the
-                issue detailed here: http://stackoverflow.com/a/4814001
-                Not having this input causes the dialog's close button to be
-                automatically selected, which looks strange in this case. -->
+                 issue detailed here: http://stackoverflow.com/a/4814001
+                 Not having this input causes the dialog's close button to be
+                 automatically selected, which looks strange in this case. -->
             <input autofocus class="hiddenElement" />
             <table border="2">
                 <tr>
