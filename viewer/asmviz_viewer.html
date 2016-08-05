@@ -132,6 +132,11 @@
         </div>
         <div id='infoDialog' title="Assembly Information"
             class="hiddenElement">
+            <!-- We implement this hidden input with autofocus to fix the
+                issue detailed here: http://stackoverflow.com/a/4814001
+                Not having this input causes the dialog's close button to be
+                automatically selected, which looks strange in this case. -->
+            <input autofocus class="hiddenElement" />
             <table border="2">
                 <tr>
                     <th>Filename</th>
