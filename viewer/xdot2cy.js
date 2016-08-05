@@ -402,16 +402,22 @@ function changeRotation() {
     }
 }
 
+// Changes the label text of the given button ID.
+function changeButtonText(buttonId, newText) {
+    $("#" + buttonId).button("option", "label", newText);
+}
+
+// Changes the primary icon of the given button ID.
+function changeButtonIcon(buttonId, newIcon) {
+    $("#" + buttonId).button("option", {icons: {primary: newIcon}});
+}
+
 // Clears the graph, to facilitate drawing another one.
 // Assumes a graph has already been drawn (i.e. cy !== null)
 function destroyGraph() {
     cy.destroy();
-    //document.getElementById('collapseButton').value =
-    //    "Collapse All Node Groups";
-    $("#collapseButton").button("option", "label",
-        "Collapse All Node Groups");
-    $("#collapseButton").button("option", {icons:
-        {primary: "ui-icon-minus"}});
+    changeButtonText("collapseButton", "Collapse All Node Groups");
+    changeButtonIcon("collapseButton", "ui-icon-minus");
     GRAPH_RENDERED = false;
 }
 
@@ -616,11 +622,8 @@ function startCollapseAll() {
 function collapseAll(operationCharacter) { 
     cy.startBatch();
     if (operationCharacter === 'U') {
-        //document.getElementById('collapseButton').value =
-        $("#collapseButton").button("option", "label",
-            "Collapse All Node Groups");
-        $("#collapseButton").button("option", {icons:
-            {primary: "ui-icon-minus"}});
+        changeButtonText("collapseButton", "Collapse All Node Groups");
+        changeButtonIcon("collapseButton", "ui-icon-minus");
         cy.scratch("_collapsed").each(
             function(i, cluster) {
                 uncollapseCluster(cluster);
@@ -629,12 +632,8 @@ function collapseAll(operationCharacter) {
         updateStatus("Finished uncollapsing.");
     }
     else {
-        //document.getElementById('collapseButton').value =
-        //    "Uncollapse All Node Groups";
-        $("#collapseButton").button("option", "label",
-            "Uncollapse All Node Groups");
-        $("#collapseButton").button("option", {icons:
-            {primary: "ui-icon-plus"}});
+        changeButtonText("collapseButton", "Uncollapse All Node Groups");
+        changeButtonIcon("collapseButton", "ui-icon-plus");
         cy.scratch("_uncollapsed").each(
             function(i, cluster) {
                 collapseCluster(cluster);
