@@ -408,7 +408,10 @@ function destroyGraph() {
     cy.destroy();
     //document.getElementById('collapseButton').value =
     //    "Collapse All Node Groups";
-    $("#collapseButton").button("option", "label", "Collapse All Node Groups");
+    $("#collapseButton").button("option", "label",
+        "Collapse All Node Groups");
+    $("#collapseButton").button("option", {icons:
+        {primary: "ui-icon-minus"}});
     GRAPH_RENDERED = false;
 }
 
@@ -614,7 +617,10 @@ function collapseAll(operationCharacter) {
     cy.startBatch();
     if (operationCharacter === 'U') {
         //document.getElementById('collapseButton').value =
-        $("#collapseButton").button("option", "label", "Collapse All Node Groups");
+        $("#collapseButton").button("option", "label",
+            "Collapse All Node Groups");
+        $("#collapseButton").button("option", {icons:
+            {primary: "ui-icon-minus"}});
         cy.scratch("_collapsed").each(
             function(i, cluster) {
                 uncollapseCluster(cluster);
@@ -625,7 +631,10 @@ function collapseAll(operationCharacter) {
     else {
         //document.getElementById('collapseButton').value =
         //    "Uncollapse All Node Groups";
-        $("#collapseButton").button("option", "label", "Uncollapse All Node Groups");
+        $("#collapseButton").button("option", "label",
+            "Uncollapse All Node Groups");
+        $("#collapseButton").button("option", {icons:
+            {primary: "ui-icon-plus"}});
         cy.scratch("_uncollapsed").each(
             function(i, cluster) {
                 collapseCluster(cluster);
