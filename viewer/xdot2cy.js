@@ -71,10 +71,16 @@ const INCHES_TO_PIXELS = 54;
 // (I know, it sounds ridiculous to me.)
 const CTRL_PT_DIST_EPSILON = 1.00;
 
+// Misc. global variables we use to get certain functionality
 var GRAPH_RENDERED = false;
 // In degrees CCW from the default up->down direction
 var PREV_ROTATION;
 var CURR_ROTATION;
+// A reference to the current SQL.Database object from which we obtain the
+// graph's layout and biological data
+var CURR_DB;
+// Cytoscape.js graph instance
+var cy = null;
 
 if (!(window.File && window.FileReader)) {
 	// TODO handle this better -- user should still be able to
@@ -83,9 +89,6 @@ if (!(window.File && window.FileReader)) {
 	// something to look into)
 	alert("Your browser does not support the HTML5 File APIs.");
 }
-
-// Cytoscape.js graph instance -- declared as global variable
-var cy = null;
 
 // Initializes the Cytoscape.js graph instance.
 // Takes as two arguments the polygon-point strings used for non-RC nodes
@@ -403,8 +406,9 @@ function changeRotation() {
 // Assumes a graph has already been drawn (i.e. cy !== null)
 function destroyGraph() {
     cy.destroy();
-    document.getElementById('collapseButton').value =
-        "Collapse All Node Groups";
+    //document.getElementById('collapseButton').value =
+    //    "Collapse All Node Groups";
+    $("#collapseButton").button("option", "label", "Collapse All Node Groups");
     GRAPH_RENDERED = false;
 }
 
@@ -427,6 +431,7 @@ function loadgraphfile() {
     else if (inputfile.name.endsWith(".xdot")) {
         fr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
+                document.title = inputfile.name;
                 xdotText = e.target.result.split('\n');
                 updateStatus("Parsing xdot...");
                 window.setTimeout(function() { parsexdot(xdotText) }, 10);
@@ -438,17 +443,17 @@ function loadgraphfile() {
         fr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
                 var uIntArr = new Uint8Array(e.target.result);
-                var db = new SQL.Database(uIntArr);
-                var stmt = db.prepare("SELECT * FROM assembly;");
-                stmt.step();
-                var graphInfo = stmt.getAsObject();
-                var contigInfo = graphInfo["contig_count"] + " contigs; ";
-                var bpInfo = graphInfo["total_length"] + "bp (total); ";
-                var edgeInfo = graphInfo["edge_count"] + " edges; ";
-                var compInfo = graphInfo["component_count"] + " components; ";
-                var n50Info = graphInfo["n50"] + "bp n50";
-                updateStatus(contigInfo + bpInfo + edgeInfo + compInfo + n50Info);
-                db.close();
+                CURR_DB = new SQL.Database(uIntArr);
+                parseDBcomponents();
+                // TODO:
+                // Once the user's said to "draw component,"
+                // parse the CURR_DB object to extract contigs, edges,
+                // and clusters where component = [specified component ID].
+                // I guess we need to call gv2cyPoint() on most of these
+                // objects, also, maybe? Or not. I forget which stuff
+                // renderEdges() does and which stuff parsexdot() does.
+                // Anyway, just render those groups of nodes and then we'll
+                // be ready to use .db files here!
             }
         }
         fr.readAsArrayBuffer(inputfile);
@@ -458,6 +463,34 @@ function loadgraphfile() {
         alert("Please select a valid .db or .xdot file to display.");
         return;
     }
+}
+
+/* Determines assembly-wide and component information for the database. */
+function parseDBcomponents() {
+    var stmt = CURR_DB.prepare("SELECT * FROM assembly;");
+    stmt.step();
+    var graphInfo = stmt.getAsObject();
+    document.title = graphInfo["filename"];
+    var contigInfo = graphInfo["contig_count"].toLocaleString();
+    var bpInfo = graphInfo["total_length"].toLocaleString() + " bp";
+    var edgeInfo = graphInfo["edge_count"].toLocaleString();
+    var compInfo = graphInfo["component_count"].toLocaleString();
+    var n50Info = graphInfo["n50"].toLocaleString() + " bp";
+    $("#filenameEntry").text(graphInfo["filename"]); 
+    $("#filetypeEntry").text(graphInfo["filetype"]);
+    $("#contigCtEntry").text(contigInfo); 
+    $("#totalBPLengthEntry").text(bpInfo); 
+    $("#edgeCountEntry").text(edgeInfo);
+    $("#connCmpCtEntry").text(compInfo);
+    $("#n50Entry").text(n50Info);
+    $("#infoButton").button("option", "disabled", false);
+    $("#drawButton").button("option", "disabled", false);
+    CURR_DB.close();
+}
+
+/* Pops up a dialog displaying assembly information. */
+function displayInfo() {
+    $("#infoDialog").dialog("open");
 }
 
 /* Fits the graph to all its nodes. This should be useful if the user
@@ -477,6 +510,19 @@ function fitGraph() {
             }, 10
         );
     }
+}
+
+// Displays the search dialog
+function showSearchDialog() {
+    $("#searchDialog").dialog("open");
+}
+
+function disableTooltip() {
+    $(document).tooltip("disable");
+}
+
+function enableTooltip() {
+    $(document).tooltip("enable");
 }
 
 // Simple shortcut used to enable searching by pressing Enter (charCode 13)
@@ -549,7 +595,7 @@ function startCollapseAll() {
         alert("Error -- no graph loaded yet.");
         return;
     }
-    var currVal = document.getElementById('collapseButton').value;
+    var currVal = $("#collapseButton").button("option", "label");
     if (currVal[0] === 'U') {
         updateStatus("Uncollapsing...");
     }
@@ -567,8 +613,8 @@ function startCollapseAll() {
 function collapseAll(operationCharacter) { 
     cy.startBatch();
     if (operationCharacter === 'U') {
-        document.getElementById('collapseButton').value =
-            "Collapse All Node Groups";
+        //document.getElementById('collapseButton').value =
+        $("#collapseButton").button("option", "label", "Collapse All Node Groups");
         cy.scratch("_collapsed").each(
             function(i, cluster) {
                 uncollapseCluster(cluster);
@@ -577,8 +623,9 @@ function collapseAll(operationCharacter) {
         updateStatus("Finished uncollapsing.");
     }
     else {
-        document.getElementById('collapseButton').value =
-            "Uncollapse All Node Groups";
+        //document.getElementById('collapseButton').value =
+        //    "Uncollapse All Node Groups";
+        $("#collapseButton").button("option", "label", "Uncollapse All Node Groups");
         cy.scratch("_uncollapsed").each(
             function(i, cluster) {
                 collapseCluster(cluster);

@@ -4,8 +4,44 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>AsmViz Viewer</title>
-        <!-- Load cytoscape.js' and sql.js' libraries -->
-        <!-- TODO, use the minimized versions for release -->
+        <!-- Load external libraries:
+             -Cytoscape.js (for drawing the graph)
+             -sql.js (for reading SQLite .db files)
+             -jQuery (for supporting jQuery UI)
+             -jQuery UI (for dialogs, other misc UI features) -->
+        <!-- TODO, ensure we use the minimized versions for release -->
+        <script src="https://code.jquery.com/jquery-3.1.0.min.js"
+            integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
+            crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"
+            integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E="
+            crossorigin="anonymous"></script>
+        <link rel="stylesheet"
+        href="https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+        <!-- Initialize some jQuery UI things -->
+        <script>
+            $(function() {
+                $("#infoDialog").dialog({autoOpen: false, width: 'auto',
+                    height: 'auto'});
+                $("#searchDialog").dialog({autoOpen: false});
+                $("#drawButton").button({icons: {primary: "ui-icon-pencil"},
+                    disabled: true});
+                $("#infoButton").button({icons: {primary: "ui-icon-info"},
+                    disabled: true});
+                $("#searchButton").button({icons: {primary:
+                    "ui-icon-search"}, disabled: false});
+                $("#fitButton").button({icons: {primary:
+                    "ui-icon-arrow-4-diag"}, disabled: false});
+                $("#collapseButton").button({icons: {primary:
+                    "ui-icon-squaresmall-minus"}, disabled: false});
+                $("#fileselectButton").button({icons: {primary:
+                    "ui-icon-folder-open"}});
+                $("#rotation").selectmenu({change: changeRotation,
+                    width: 'auto', open: disableTooltip,
+                    close: enableTooltip});
+                $(document).tooltip();
+            });
+        </script>
         <script src='cytoscape.js'></script>
         <script src='sql.js'></script>
     </head>
@@ -19,6 +55,7 @@
             /* overflow-x: scroll; */
 		}
         #controls {
+            font-size: 0.75em;
             background-color: #AAAAAA;
             width: 100%;
             height: 40px;
@@ -37,20 +74,93 @@
         .grayText {
             color: #999999;
         }
+        .hiddenElement {
+            display: none;
+        }
 	</style>
 	<body>
         <!-- Declare div environment for the graph -->
 		<div id="cy"></div>
 		<script src='xdot2cy.js'></script>
         <div id="controls">
-		    <input type='file' id='fileselector' onchange='loadgraphfile();'/>
-		    
-            <button type='button' onclick=''>
-		    	Draw connected component
-		    </button>
+            <button type='button' id="fileselectButton"
+                                  onclick="$('#fileselector').click();">
+                Choose .db file
+            </button>
+            <!-- For some reason, giving this the hiddenElement class
+                doesn't work; I suspect it's due to the way browsers handle
+                styling of file inputs. Anyway, this should work fine. -->
+		    <input type='file' id='fileselector' onchange='loadgraphfile();' 
+                style="display: none"/>
 
-            <input type='text' id='nodeselector' class="withgap grayText"
-                 value='Enter node ID(s)'
+            <button type='button' onclick='' id="drawButton">
+                Draw connected component
+            </button>
+
+            <button type='button' onclick='displayInfo();' id="infoButton">
+                Assembly information
+            </button>
+
+            <button type='button' onclick='showSearchDialog()' value="Search"
+                id="searchButton">
+                Search
+            </button>
+            
+            <select id='rotation' 
+                title="The general direction of the graph. You can modify
+                this before the graph is loaded in order to set that
+                particular rotation for viewing the graph; however, you can
+                also modify the graph's rotation in place.">
+                <option value="0">&#8595;</option>
+                <option value="90" selected>&#8594;</option>
+                <option value="180">&#8593;</option>
+                <option value="270">&#8592;</option>
+            </select>
+
+            <button type='button' onclick='fitGraph()' id="fitButton">
+                Fit Graph
+            </button>
+
+            <!-- Value of this button will be toggled as all nodes in graph
+                 are collapsed/uncollapsed -->
+            <button type='button' id='collapseButton'
+                onclick='startCollapseAll()'>
+                Collapse All Node Groups
+            </button>
+
+            <div id='status'></div>
+        </div>
+        <div id='infoDialog' title="Assembly Information"
+            class="hiddenElement">
+            <table border="2">
+                <tr>
+                    <th>Filename</th>
+                    <th>Filetype</th>
+                    <th>Contig Count</th>
+                    <th>Total Contig Length</th>
+                    <th>Edge Count</th>
+                    <th>Connected Component Count</th>
+                    <th>N50</th>
+                </tr>
+                <tr>
+                    <td id="filenameEntry"></td>
+                    <td id="filetypeEntry"></td>
+                    <td id="contigCtEntry"></td>
+                    <td id="totalBPLengthEntry"></td>
+                    <td id="edgeCountEntry"></td>
+                    <td id="connCmpCtEntry"></td>
+                    <td id="n50Entry"></td>
+                </tr>
+            </table>
+        </div>
+        <div id='searchDialog' title="Search for Nodes/Edges"
+            class="hiddenElement">
+            <p>Enter in the ID of a node, edge, or node group to search for.
+               You can enter a list of elements separated by commas, e.g.</p>
+            <p>1, 5-&gt;6, 9</p>
+            <input type='text' id='nodeselector' 
+                 class="grayText ui-corner-all ui-widget
+                 ui-widget-content" value='Enter node ID(s)'
                  onfocus="if (this.value == 'Enter node ID(s)') {
                     this.value = ''; this.style.color = '#000000'; }"
                  onblur="if (this.value == '') {
@@ -58,28 +168,5 @@
                     this.style.color='#999999'; }"
                  onkeypress="searchWithEnter(event);" />
 
-            <input type='button' onclick='searchForNode()' value="Search" />
-            
-            <span class="smallgap">Graph Rotation:</span>
-            <select id='rotation' onchange="changeRotation();">
-                <option value="0">&#8595;</option>
-                <option value="90" selected>&#8594;</option>
-                <option value="180">&#8593;</option>
-                <option value="270">&#8592;</option>
-            </select>
-
-            <input type='button' onclick='fitGraph()' class="withgap"
-            value="Fit Graph to Nodes" />
-
-            <!-- Value of this button will be toggled as all nodes in graph
-                 are collapsed/uncollapsed -->
-            <input type='button' id='collapseButton'
-                onclick='startCollapseAll()' class="smallgap"
-                value="Collapse All Node Groups" />
-
-            <div id='status'>Please select a .db file to display. (.xdots
-                still work for now, but will eventually be deprecated,
-                probably)</div>
-        </div>
 	</body>
 </html>
