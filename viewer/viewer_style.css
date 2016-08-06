@@ -1,18 +1,24 @@
-#cy {
+html, body, #asmviz {
+    height: 100%;
     width: 100%;
-    height: 90%;
-    position:absolute;
-    top: 40px;
-    left: 0px;
-    /* overflow-x: scroll; */
+    margin: 0;
+}
+#asmviz {
+    display: table;
 }
 #controls {
+    /* We avoid specifying a height so that this div takes up the minimum
+     * height needed to store all its content
+     */
+    width: 100%;
     font-size: 0.75em;
     background-color: #AAAAAA;
+    display: table-row;
+}
+#cy {
     width: 100%;
-    position: absolute;
-    top: 0px;
-    left: 0px;
+    height: 100%;
+    display: table-row;
 }
 .grayText {
     color: #999999;

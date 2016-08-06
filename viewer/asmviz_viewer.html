@@ -46,59 +46,64 @@
         </script>
         <script src='cytoscape.js'></script>
         <script src='sql.js'></script>
+        <script src='xdot2cy.js'></script>
     </head>
-	<body>
-        <!-- Declare div environment for the graph -->
-		<div id="cy"></div>
-		<script src='xdot2cy.js'></script>
-        <div id="controls">
-            <button type='button' id="fileselectButton"
-                                  onclick="$('#fileselector').click();">
-                Choose .db file
-            </button>
-            <!-- For some reason, giving this the hiddenElement class
-                doesn't work; I suspect it's due to the way browsers handle
-                styling of file inputs. Anyway, this should work fine. -->
-		    <input type='file' id='fileselector' onchange='loadgraphfile();' 
-                style="display: none"/>
-
-            <button type='button' onclick='' id="drawButton">
-                Draw connected component
-            </button>
-
-            <button type='button' onclick='displayInfo();' id="infoButton">
-                Assembly information
-            </button>
-
-            <button type='button' onclick='showSearchDialog()' value="Search"
-                id="searchButton">
-                Search
-            </button>
-            
-            <select id='rotation' 
-                title="The general direction of the graph. You can modify
-                this before the graph is loaded in order to set that
-                particular rotation for viewing the graph; however, you can
-                also modify the graph's rotation in place.">
-                <option value="0">&#8595;</option>
-                <option value="90" selected>&#8594;</option>
-                <option value="180">&#8593;</option>
-                <option value="270">&#8592;</option>
-            </select>
-
-            <button type='button' onclick='fitGraph()' id="fitButton">
-                Fit Graph
-            </button>
-
-            <!-- Value of this button will be toggled as all nodes in graph
-                 are collapsed/uncollapsed -->
-            <button type='button' id='collapseButton'
-                onclick='startCollapseAll()'>
-                Collapse All Node Groups
-            </button>
-
-            <div id='status'></div>
-        </div>
+    <body>
+        <!-- We use the asmviz div here to fill up the entire page size
+            through relative positioning. This lets us size the
+            controls div to the minimum height needed and then allocate the
+            remaining page height to the cy div. -->
+        <div id="asmviz">
+            <div id="controls">
+                <button type='button' id="fileselectButton"
+                                      onclick="$('#fileselector').click();">
+                    Choose .db file
+                </button>
+                <!-- For some reason, giving this the hiddenElement class
+                    doesn't work; I suspect it's due to the way browsers handle
+                    styling of file inputs. Anyway, this should work fine. -->
+    	        <input type='file' id='fileselector'
+                    onchange='loadgraphfile();' style="display: none"/>
+    
+                <button type='button' onclick='' id="drawButton">
+                    Draw connected component
+                </button>
+    
+                <button type='button' onclick='displayInfo();' id="infoButton">
+                    Assembly information
+                </button>
+    
+                <button type='button' onclick='showSearchDialog()'
+                    value="Search" id="searchButton">
+                    Search
+                </button>
+                
+                <select id='rotation' 
+                    title="The general direction of the graph. You can modify
+                    this before the graph is loaded in order to set that
+                    particular rotation for viewing the graph; however, you can
+                    also modify the graph's rotation in place.">
+                    <option value="0">&#8595;</option>
+                    <option value="90" selected>&#8594;</option>
+                    <option value="180">&#8593;</option>
+                    <option value="270">&#8592;</option>
+                </select>
+    
+                <button type='button' onclick='fitGraph()' id="fitButton">
+                    Fit Graph
+                </button>
+    
+                <!-- Value of this button will be toggled as all nodes in graph
+                     are collapsed/uncollapsed -->
+                <button type='button' id='collapseButton'
+                    onclick='startCollapseAll()'>
+                    Collapse All Node Groups
+                </button>
+    
+                <div id='status'></div>
+            </div> <!-- end controls div -->
+            <div id="cy"></div> <!-- used as container for Cytoscape.js -->
+        </div> <!-- end asmviz div -->
         <div id='infoDialog' title="Assembly Information"
             class="hiddenElement">
             <!-- We implement this hidden input with autofocus to fix the
@@ -141,6 +146,6 @@
                     this.value = 'Enter node ID(s)';
                     this.style.color='#999999'; }"
                  onkeypress="searchWithEnter(event);" />
-
-	</body>
+        </div>
+    </body>
 </html>
