@@ -25,7 +25,6 @@
                 $("#infoDialog").dialog({autoOpen: false, width: 'auto',
                     height: 'auto'});
                 $("#searchDialog").dialog({autoOpen: false});
-                $("#controls").controlgroup();
                 $("#drawButton").button({icons: {primary: "ui-icon-pencil"},
                     disabled: true});
                 $("#infoButton").button({icons: {primary: "ui-icon-info"},
@@ -38,6 +37,8 @@
                     "ui-icon-minus"}, disabled: false});
                 $("#fileselectButton").button({icons: {primary:
                     "ui-icon-folder-open"}});
+                $("#componentselector").spinner({min: 1});
+                $("#controls").controlgroup();
                 $("#rotation").selectmenu({change: changeRotation,
                     width: 'auto', open: disableTooltip,
                     close: enableTooltip});
@@ -65,6 +66,8 @@
     	        <input type='file' id='fileselector'
                     onchange='loadgraphfile();' style="display: none"/>
     
+                <input id='componentselector' />
+
                 <button type='button' onclick='' id="drawButton">
                     Draw connected component
                 </button>

@@ -485,7 +485,8 @@ function parseDBcomponents() {
     var contigInfo = graphInfo["contig_count"].toLocaleString();
     var bpInfo = graphInfo["total_length"].toLocaleString() + " bp";
     var edgeInfo = graphInfo["edge_count"].toLocaleString();
-    var compInfo = graphInfo["component_count"].toLocaleString();
+    var compCt = graphInfo["component_count"];
+    var compInfo = compCt.toLocaleString();
     var n50Info = graphInfo["n50"].toLocaleString() + " bp";
     $("#filenameEntry").text(graphInfo["filename"]); 
     $("#filetypeEntry").text(graphInfo["filetype"]);
@@ -494,6 +495,7 @@ function parseDBcomponents() {
     $("#edgeCountEntry").text(edgeInfo);
     $("#connCmpCtEntry").text(compInfo);
     $("#n50Entry").text(n50Info);
+    $("#componentselector").spinner("option", "max", compCt);
     $("#infoButton").button("option", "disabled", false);
     $("#drawButton").button("option", "disabled", false);
     CURR_DB.close();

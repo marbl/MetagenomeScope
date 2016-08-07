@@ -15,6 +15,9 @@ html, body, #asmviz {
     background-color: #AAAAAA;
     display: table-row;
 }
+#componentselector {
+    width: 5em;
+}
 #cy {
     width: 100%;
     height: 100%;
