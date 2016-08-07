@@ -496,6 +496,7 @@ function parseDBcomponents() {
     $("#connCmpCtEntry").text(compInfo);
     $("#n50Entry").text(n50Info);
     $("#componentselector").spinner("option", "max", compCt);
+    $("#componentselector").spinner("option", "disabled", false);
     $("#infoButton").button("option", "disabled", false);
     $("#drawButton").button("option", "disabled", false);
     CURR_DB.close();

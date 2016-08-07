@@ -30,21 +30,19 @@
                 $("#infoButton").button({icons: {primary: "ui-icon-info"},
                     disabled: true});
                 $("#searchButton").button({icons: {primary:
-                    "ui-icon-search"}, disabled: false});
+                    "ui-icon-search"}, disabled: true});
                 $("#fitButton").button({icons: {primary:
-                    "ui-icon-arrow-4-diag"}, disabled: false});
+                    "ui-icon-arrow-4-diag"}, disabled: true});
                 $("#collapseButton").button({icons: {primary:
-                    "ui-icon-minus"}, disabled: false});
+                    "ui-icon-minus"}, disabled: true});
                 $("#fileselectButton").button({icons: {primary:
                     "ui-icon-folder-open"}});
-                $("#componentselector").spinner({min: 1});
+                $("#componentselector").spinner({min: 1, disabled: true});
                 $("#controls").controlgroup();
                 $("#rotation").selectmenu({change: changeRotation,
                     width: 'auto', open: disableTooltip,
                     close: enableTooltip});
                 $(document).tooltip();
-                $("#componentselector").on("mouseout", disableTooltip);
-                $("#componentselector").on("mouseover", enableTooltip);
             });
         </script>
         <script src='cytoscape.js'></script>
