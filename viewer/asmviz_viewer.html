@@ -43,6 +43,7 @@
                     width: 'auto', open: disableTooltip,
                     close: enableTooltip});
                 $(document).tooltip();
+                $(window).on("beforeunload", closeDB);
             });
         </script>
         <script src='cytoscape.js'></script>

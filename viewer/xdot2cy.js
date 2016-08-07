@@ -80,7 +80,7 @@ var PREV_ROTATION;
 var CURR_ROTATION;
 // A reference to the current SQL.Database object from which we obtain the
 // graph's layout and biological data
-var CURR_DB;
+var CURR_DB = null;
 // Cytoscape.js graph instance
 var cy = null;
 
@@ -476,8 +476,11 @@ function loadgraphfile() {
     }
 }
 
-/* Determines assembly-wide and component information for the database. */
+/* Retrieves assembly-wide and component information from the database,
+ * adjusting UI elements to prepare for component drawing accordingly.
+ */
 function parseDBcomponents() {
+    // Get assembly-wide info from the graph
     var stmt = CURR_DB.prepare("SELECT * FROM assembly;");
     stmt.step();
     var graphInfo = stmt.getAsObject();
@@ -488,6 +491,7 @@ function parseDBcomponents() {
     var compCt = graphInfo["component_count"];
     var compInfo = compCt.toLocaleString();
     var n50Info = graphInfo["n50"].toLocaleString() + " bp";
+    // Adjust UI elements
     $("#filenameEntry").text(graphInfo["filename"]); 
     $("#filetypeEntry").text(graphInfo["filetype"]);
     $("#contigCtEntry").text(contigInfo); 
@@ -499,7 +503,19 @@ function parseDBcomponents() {
     $("#componentselector").spinner("option", "disabled", false);
     $("#infoButton").button("option", "disabled", false);
     $("#drawButton").button("option", "disabled", false);
-    CURR_DB.close();
+}
+
+function drawComponent() {
+
+}
+
+// TODO verify that this doesn't mess stuff up when you back out of and then
+// return to the page. Also are memory leaks even a thing that we have
+// to worry about in Javascript?????????
+function closeDB() {
+    if (CURR_DB !== null) {
+        CURR_DB.close();
+    }
 }
 
 /* Pops up a dialog displaying assembly information. */
