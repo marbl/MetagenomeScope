@@ -58,9 +58,7 @@
         <div id="asmviz">
             <div id="controls">
                 <button type='button' id="fileselectButton"
-                                      onclick="$('#fileselector').click();">
-                    Choose .db file
-                </button>
+                    onclick="$('#fileselector').click();">Choose .db file</button>
                 <!-- For some reason, giving this the hiddenElement class
                     doesn't work; I suspect it's due to the way browsers handle
                     styling of file inputs. Anyway, this should work fine. -->
@@ -73,18 +71,13 @@
                     2 is the second-largest, and so on." />
 
                 <button type='button' onclick='drawComponent();'
-                    id="drawButton">
-                    Draw connected component
-                </button>
+                    id="drawButton">Draw connected component</button>
     
-                <button type='button' onclick='displayInfo();' id="infoButton">
-                    Assembly information
-                </button>
+                <button type='button' onclick='displayInfo();'
+                    id="infoButton">Assembly information</button>
     
                 <button type='button' onclick='showSearchDialog()'
-                    value="Search" id="searchButton">
-                    Search
-                </button>
+                    value="Search" id="searchButton">Search</button>
                 
                 <select id='rotation' 
                     title="The general direction of the graph. You can modify
@@ -97,16 +90,12 @@
                     <option value="270">&#8592;</option>
                 </select>
     
-                <button type='button' onclick='fitGraph()' id="fitButton">
-                    Fit Graph
-                </button>
+                <button type='button' onclick='fitGraph()' id="fitButton">Fit Graph</button>
     
                 <!-- Value of this button will be toggled as all nodes in graph
                      are collapsed/uncollapsed -->
                 <button type='button' id='collapseButton'
-                    onclick='startCollapseAll()'>
-                    Collapse All Node Groups
-                </button>
+                    onclick='startCollapseAll()'>Collapse All Node Groups</button>
     
                 <div id='status'></div>
             </div> <!-- end controls div -->

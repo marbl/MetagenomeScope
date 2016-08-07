@@ -251,6 +251,12 @@ function collapseCluster(cluster, moveMap) {
     // Update list of locally collapsed nodes (useful for global toggling)
     cy.scratch("_collapsed", cy.scratch("_collapsed").union(cluster));
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").difference(cluster));
+    if (cy.scratch("_uncollapsed").empty()) {
+        if ($("#collapseButton").button("option", "label")[0] === 'C') {
+            changeButtonText("collapseButton", "Uncollapse All Node Groups");
+            changeButtonIcon("collapseButton", "ui-icon-plus");
+        }
+    }
     cluster.data("interiorEles").remove();
 }
 
@@ -287,6 +293,12 @@ function uncollapseCluster(cluster) {
     // Update list of locally collapsed nodes (useful for global toggling)
     cy.scratch("_collapsed", cy.scratch("_collapsed").difference(cluster));
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(cluster));
+    if (cy.scratch("_collapsed").empty()) {
+        if ($("#collapseButton").button("option", "label")[0] === 'U') {
+            changeButtonText("collapseButton", "Collapse All Node Groups");
+            changeButtonIcon("collapseButton", "ui-icon-minus");
+        }
+    }
 }
 
 // Sets bindings for certain objects in the graph.
