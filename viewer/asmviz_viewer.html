@@ -43,6 +43,8 @@
                     width: 'auto', open: disableTooltip,
                     close: enableTooltip});
                 $(document).tooltip();
+                $("#componentselector").on("mouseout", disableTooltip);
+                $("#componentselector").on("mouseover", enableTooltip);
             });
         </script>
         <script src='cytoscape.js'></script>
@@ -66,7 +68,10 @@
     	        <input type='file' id='fileselector'
                     onchange='loadgraphfile();' style="display: none"/>
     
-                <input id='componentselector' value="1" />
+                <input id='componentselector' value="1"
+                    title="Enter the size rank of the connected component to
+                    draw. 1 is the largest component (by number of contigs),
+                    2 is the second-largest, and so on." />
 
                 <button type='button' onclick='' id="drawButton">
                     Draw connected component
