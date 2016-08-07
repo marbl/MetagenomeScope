@@ -29,6 +29,8 @@
 * Start thinking of scaling factors -- e.g. "up to this many thousands of
   nodes in the browser, or this many millions of nodes in the desktop
   Cytoscape version."
+    * The planned node.js thing (see #12) should rectify most of our
+      concerns re: this.
 
 * CUDA angle? Using that to speed up GraphViz/Cytoscape.js/etc.
 
