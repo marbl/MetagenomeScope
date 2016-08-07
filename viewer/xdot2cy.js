@@ -387,7 +387,7 @@ function rotateNode(i, n) {
 function changeRotation() {
     PREV_ROTATION = CURR_ROTATION;
     CURR_ROTATION = parseInt(document.getElementById("rotation").value);
-    if (GRAPH_RENDERED) {
+    if (GRAPH_RENDERED || !$("#fitButton").button("option", "disabled")) {
         updateStatus("Rotating graph...");
         window.setTimeout(function() {
             cy.startBatch();
@@ -456,15 +456,6 @@ function loadgraphfile() {
                 var uIntArr = new Uint8Array(e.target.result);
                 CURR_DB = new SQL.Database(uIntArr);
                 parseDBcomponents();
-                // TODO:
-                // Once the user's said to "draw component,"
-                // parse the CURR_DB object to extract contigs, edges,
-                // and clusters where component = [specified component ID].
-                // I guess we need to call gv2cyPoint() on most of these
-                // objects, also, maybe? Or not. I forget which stuff
-                // renderEdges() does and which stuff parsexdot() does.
-                // Anyway, just render those groups of nodes and then we'll
-                // be ready to use .db files here!
             }
         }
         fr.readAsArrayBuffer(inputfile);
@@ -500,13 +491,84 @@ function parseDBcomponents() {
     $("#connCmpCtEntry").text(compInfo);
     $("#n50Entry").text(n50Info);
     $("#componentselector").spinner("option", "max", compCt);
-    $("#componentselector").spinner("option", "disabled", false);
-    $("#infoButton").button("option", "disabled", false);
-    $("#drawButton").button("option", "disabled", false);
+    $("#componentselector").spinner("enable");
+    $("#infoButton").button("enable");
+    $("#drawButton").button("enable");
 }
 
+/* Draws the selected connected component in the .db file -- its nodes, its
+ * edges, its clusters -- to the screen.
+ */
 function drawComponent() {
-
+    var cmpRank = $("#componentselector").spinner("value");
+    if (!(Number.isInteger(cmpRank) && cmpRank >= 1
+        && cmpRank <= $("#componentselector").spinner("option", "max"))) {
+        alert("Please enter a valid component rank using the input field.");
+        return;
+    }
+    // Okay, we can draw this component!
+    // Graph initialization stuff here (shamelessly taken from initGraph()
+    // below -- I'm thinking we can just get rid of that when we're done
+    // with this)
+    if (cy !== null) {
+        // If we already have a graph instance, clear that graph before
+        // initializing another one
+        destroyGraph();
+    }
+    initGraph();
+    setGraphBindings();
+    PREV_ROTATION = 0;
+    CURR_ROTATION = parseInt(document.getElementById("rotation").value);
+    cy.scratch("_collapsed", cy.collection());
+    cy.scratch("_uncollapsed", cy.collection());
+    // Now we render the nodes, edges, and clusters of this component.
+    // But first we need to get the bounding box of this component.
+    var bbStmt = CURR_DB.prepare(
+        "SELECT boundingbox_x, boundingbox_y FROM components WHERE " +
+        "size_rank = ?", [cmpRank]);
+    bbStmt.step();
+    var bb = bbStmt.getAsObject();
+    // We need a fast way to associate node IDs with their x/y positions.
+    // This is for calculating edge control point weight/distance.
+    // And doing 2 DB queries (src + tgt) for each edge will take a lot of
+    // time -- O(2|E|) time, specifically, with the only benefit of not
+    // taking up a lot of space. So we go with the mapping solution -- it's
+    // not particularly pretty, but it works alright.
+    var node2pos = {};
+    cy.startBatch();
+    var clustersStmt = CURR_DB.prepare(
+        "SELECT * FROM clusters WHERE component_rank = ?", [cmpRank]);
+    while (clustersStmt.step()) {
+        renderClusterObject(clustersStmt.getAsObject());
+    }
+    var nodesStmt = CURR_DB.prepare(
+        "SELECT * FROM contigs WHERE component_rank = ?", [cmpRank]);
+    var currNode;
+    while (nodesStmt.step()) {
+        currNode = nodesStmt.getAsObject();
+        renderNodeObject(currNode, bb);
+        // TODO inefficiency -- only call gv2cyPoint once. We call it once
+        // in renderNodeObject() and once here. To rectify, call after
+        // init'ing currNode and then pass to renderNodeObject().
+        node2pos[currNode['id']] = gv2cyPoint(
+            currNode['x'], currNode['y'],
+            [bb['boundingbox_x'], bb['boundingbox_y']]
+        );
+    }
+    var edgesStmt = CURR_DB.prepare(
+        "SELECT * FROM edges WHERE component_rank = ?", [cmpRank]);
+    while (edgesStmt.step()) {
+        renderEdgeObject(edgesStmt.getAsObject(), node2pos, bb);
+    }
+    // NOTE modified initClusters() to do cluster height after the fact.
+    // This represents an efficiency when parsing xdot files, although it
+    // shouldn't really affect anything major.
+    initClusters();
+    cy.endBatch();
+    cy.fit();
+    $("#searchButton").button("enable");
+    $("#fitButton").button("enable");
+    $("#collapseButton").button("enable");
 }
 
 // TODO verify that this doesn't mess stuff up when you back out of and then
@@ -528,18 +590,13 @@ function displayInfo() {
  * large graphs).
  */
 function fitGraph() {
-    if (!GRAPH_RENDERED) {
-        alert("Error -- no graph loaded yet.");
-    }
-    else {
-        updateStatus("Fitting graph...");
-        window.setTimeout(
-            function() {
-                cy.fit();
-                updateStatus("Finished fitting graph.");
-            }, 10
-        );
-    }
+    updateStatus("Fitting graph...");
+    window.setTimeout(
+        function() {
+            cy.fit();
+            updateStatus("Finished fitting graph.");
+        }, 10
+    );
 }
 
 // Displays the search dialog
@@ -572,48 +629,43 @@ function updateStatus(message) {
 // Centers the graph on a given node (edges/clusters can also be specified,
 // using Node1->Node2 or [B/R/C]Node1_Node2_Node3... syntax respectively.)
 function searchForNode() {
-    if (!GRAPH_RENDERED) {
-        alert("Error -- no graph loaded yet."); 
-    }
-    else {
-        var nodes =
-            document.getElementById('nodeselector').value.split(",");
-        var nodeEles = cy.collection(); // empty collection (for now)
-        var newEle;
-        var parentID;
-        for (var c = 0; c < nodes.length; c++) {
-            newEle = cy.getElementById(nodes[c].trim());
-            if (newEle.empty()) {
-                // Check if this element is in the graph (but currently
-                // collapsed, and therefore inaccessible) or if it just
-                // never existed in the first place
-                parentID = cy.scratch("_ele2parent")[nodes[c].trim()];
-                if (parentID !== undefined) {
-                    // We've collapsed the parent of this element, so identify
-                    // its parent instead
-                    nodeEles = nodeEles.union(cy.getElementById(parentID));
-                }
-                else {
-                    // It's a bogus element
-                    alert("Error -- invalid element ID: " + nodes[c].trim());
-                    return;
-                }
+    var nodes =
+        document.getElementById('nodeselector').value.split(",");
+    var nodeEles = cy.collection(); // empty collection (for now)
+    var newEle;
+    var parentID;
+    for (var c = 0; c < nodes.length; c++) {
+        newEle = cy.getElementById(nodes[c].trim());
+        if (newEle.empty()) {
+            // Check if this element is in the graph (but currently
+            // collapsed, and therefore inaccessible) or if it just
+            // never existed in the first place
+            parentID = cy.scratch("_ele2parent")[nodes[c].trim()];
+            if (parentID !== undefined) {
+                // We've collapsed the parent of this element, so identify
+                // its parent instead
+                nodeEles = nodeEles.union(cy.getElementById(parentID));
             }
             else {
-                // Identify the node in question
-                nodeEles = nodeEles.union(newEle);
+                // It's a bogus element
+                alert("Error -- invalid element ID: " + nodes[c].trim());
+                return;
             }
         }
-        // Fit the graph to the identified nodes.
-        cy.fit(nodeEles);
-        // Unselect all previously-selected nodes
-        // (TODO: is this O(n)? because if so, it's not worth it, probably)
-        // (Look into this)
-        cy.filter(':selected').unselect();
-        // Select all identified nodes, so they can be dragged if desired
-        // (and also to highlight them).
-        nodeEles.select();
+        else {
+            // Identify the node in question
+            nodeEles = nodeEles.union(newEle);
+        }
     }
+    // Fit the graph to the identified nodes.
+    cy.fit(nodeEles);
+    // Unselect all previously-selected nodes
+    // (TODO: is this O(n)? because if so, it's not worth it, probably)
+    // (Look into this)
+    cy.filter(':selected').unselect();
+    // Select all identified nodes, so they can be dragged if desired
+    // (and also to highlight them).
+    nodeEles.select();
 }
 
 /* Determines whether collapsing or uncollapsing should be performed,
@@ -621,10 +673,6 @@ function searchForNode() {
  * process.
  */
 function startCollapseAll() {
-    if (!GRAPH_RENDERED) {
-        alert("Error -- no graph loaded yet.");
-        return;
-    }
     var currVal = $("#collapseButton").button("option", "label");
     if (currVal[0] === 'U') {
         updateStatus("Uncollapsing...");
@@ -1228,6 +1276,18 @@ function initClusters() {
             //  to any elements outside the cycle.
             var interiorEdges = children.connectedEdges().difference(
                 incomingEdges).difference(outgoingEdges);
+            var wid = 0;
+            var hgt = 0;
+            children.each(function(i,e) {
+                wid += Math.pow(100,
+                        Math.pow(e.data("w") / INCHES_TO_PIXELS, 2)
+                );
+                hgt += Math.pow(100,
+                        Math.pow(e.data("h") / INCHES_TO_PIXELS, 2)
+                );
+            });
+            wid = INCHES_TO_PIXELS * Math.sqrt(Math.log(wid) / Math.log(100));
+            hgt = INCHES_TO_PIXELS * Math.sqrt(Math.log(hgt) / Math.log(100));
             // Record incoming/outgoing edges in this
             // cluster's data. Will be useful during collapsing.
             // We also record "interiorNodes" -- having a reference to just
@@ -1237,7 +1297,9 @@ function initClusters() {
                 "incomingEdgeMap": incomingEdgeMap,
                 "outgoingEdgeMap": outgoingEdgeMap,
                 "interiorEles"   : interiorEdges.union(children),
-                "interiorNodes"  : children
+                "interiorNodes"  : children,
+                "w"              : wid,
+                "h"              : hgt
             });
         }
     );
@@ -1291,6 +1353,142 @@ function renderClusters(clusterList, nodeMapping) {
         ));
         renderNodes(currCluster.nodes, currCluster.id);
         renderEdges(currCluster.edges, nodeMapping, currCluster.id);
+    }
+}
+
+// Renders a given node object, obtained by getAsObject() from running a
+// query on CURR_DB for selecting rows from table contigs.
+function renderNodeObject(nodeObj, boundingboxObject) {
+    // TODO find a way to only do this once per render job -- no need to
+    // recalc it n times, that's just stupid
+    if (nodeObj['shape'] === 'house') {
+        var nodePolygonPts = rotateCoordinatesToStr(HOUSE_POLYPTS);
+    }
+    else {
+        var nodePolygonPts = rotateCoordinatesToStr(INVHOUSE_POLYPTS);
+    }
+    var pos = gv2cyPoint(nodeObj['x'], nodeObj['y'],
+        [boundingboxObject['boundingbox_x'],
+         boundingboxObject['boundingbox_y']]);
+    cy.add({
+        classes: 'noncluster',
+        data: {id: nodeObj['id'], parent: nodeObj['parent_cluster_id'],
+               w: INCHES_TO_PIXELS * nodeObj['w'],
+               h: INCHES_TO_PIXELS * nodeObj['h'],
+               polypts: nodePolygonPts, house: nodeObj['shape'] === 'house'},
+        position: {x: pos[0], y: pos[1]}
+    });
+}
+
+// Renders a cluster object.
+function renderClusterObject(clusterObj) {
+    var clusterID = clusterObj["cluster_id"];
+    cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(
+        cy.add({
+            classes: clusterID[0] + ' cluster',
+            data: {id: clusterID, w: 5, h: 5, isCollapsed: false}
+        })
+    ));
+}
+
+// Renders edge object. Hopefully in a not-terrible way.
+// Uses node2pos (mapping of node object from DB -> [x, y] position)
+// to calcluate relative control point weight stuff.
+function renderEdgeObject(edgeObj, node2pos, boundingboxObject) {
+    var sourceID = edgeObj['source_id'];
+    var targetID = edgeObj['target_id'];
+    var edgeID = sourceID + "->" + targetID;
+    if (sourceID === targetID) {
+        // It's a self-directed edge; don't bother parsing ctrl pt
+        // info, just render it as a bezier edge and be done with it
+        cy.add({
+            classes: "basicbezier",
+            data: {id: edgeID, source: sourceID, target: targetID}
+        });
+        return;
+    }
+    var srcPos = node2pos[sourceID];
+    var tgtPos = node2pos[targetID];
+    var srcSinkDist = distance(srcPos, tgtPos);
+    var ctrlPts = ctrlPtStrToList(edgeObj['control_point_string'],
+            [boundingboxObject['boundingbox_x'],
+             boundingboxObject['boundingbox_y']]);
+    var ctrlPtLen = edgeObj['control_point_count'];
+    var nonzero = false;
+    var ctrlPtDists = "";
+    var ctrlPtWeights = "";
+    var currPt, dsp, dtp, w, ws, wt, nonzero;
+    for (var p = 0; p < ctrlPtLen; p++) {
+        currPt = ctrlPts[p];
+        // TODO inefficiency here -- rework pointToLineDistance.
+        var d = -pointToLineDistance(currPt,
+            {x: srcPos[0], y: srcPos[1]}, {x: tgtPos[0], y: tgtPos[1]});
+        dsp = distance(currPt, srcPos);
+        dtp = distance(currPt, tgtPos);
+        // By the pythagorean thm., the interior of the square root
+        // below should always be positive -- the hypotenuse must
+        // always be greater than both of the other sides of a right
+        // triangle.
+        // However, due to Javascript's lovely (...)
+        // type system, rounding errors can cause the hypotenuse (dsp
+        // or dtp)
+        // be represented as slightly less than d. So, to account for
+        // these cases, we just take the abs. value of the sqrt body.
+        // NOTE that ws = distance on line to source;
+        //           wt = distance on line to target
+        ws = Math.sqrt(Math.abs(Math.pow(dsp, 2) - Math.pow(d, 2)));
+        wt = Math.sqrt(Math.abs(Math.pow(dtp, 2) - Math.pow(d, 2)));
+        // Get the weight of the control point on the line between
+        // source and sink oriented properly -- if the control point is
+        // "behind" the source node, we make it negative, and if the
+        // point is "past" the sink node, we make it > 1. Everything in
+        // between the source and sink falls within [0, 1] inclusive.
+        if (wt > srcSinkDist && wt > ws) {
+            // The ctrl. pt. is "behind" the source node
+            w = -ws / srcSinkDist;
+        }
+        else {
+            // The ctrl. pt. is anywhere past the source node
+            w = ws / srcSinkDist;
+        }
+        // If we detect all of the control points of an edge are less
+        // than some epsilon value, we just render the edge as a normal
+        // bezier (which defaults to a straight line).
+        if (Math.abs(d) > CTRL_PT_DIST_EPSILON) {
+            nonzero = true;
+        }
+        // Control points with a weight of 0 (as the first ctrl pt)
+        // or a weight of 1 (as the last ctrl pt) aren't valid due
+        // to implicit points already "existing there."
+        // (See https://github.com/cytoscape/cytoscape.js/issues/1451)
+        // This preemptively rectifies such control points.
+        if (p === 0 && w === 0.0) {
+            w = 0.01;
+        }
+        else if (p === (ctrlPtLen - 1) && w === 1.0) {
+            w = 0.99;
+        }
+        ctrlPtDists += d.toFixed(2) + " ";
+        ctrlPtWeights += w.toFixed(2) + " ";
+    }
+    ctrlPtDists = ctrlPtDists.trim();
+    ctrlPtWeights = ctrlPtWeights.trim();
+    if (nonzero) {
+        // The control points should (hopefully) be valid
+        cy.add({
+            classes: "unbundledbezier",
+            data: {id: edgeID, source: sourceID,
+                   target: targetID, cpd: ctrlPtDists,
+                   cpw: ctrlPtWeights}
+        });
+    }
+    else {
+        // The control point distances are small enough that
+        // we can just represent this as a straight bezier curve
+      cy.add({
+          classes: "basicbezier",
+          data: {id: edgeID, source: sourceID, target: targetID}
+      });
     }
 }
 
