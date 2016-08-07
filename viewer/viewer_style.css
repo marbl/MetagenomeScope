@@ -15,8 +15,12 @@ html, body, #asmviz {
     background-color: #AAAAAA;
     display: table-row;
 }
+button {
+    height: 2.3em;
+}
 #componentselector {
     width: 5em;
+    height: 1.3em;
 }
 #cy {
     width: 100%;
