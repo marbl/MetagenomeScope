@@ -705,8 +705,6 @@ function startCollapseAll() {
 function collapseAll(operationCharacter) { 
     cy.startBatch();
     if (operationCharacter === 'U') {
-        changeButtonText("collapseButton", "Collapse All Node Groups");
-        changeButtonIcon("collapseButton", "ui-icon-minus");
         cy.scratch("_collapsed").each(
             function(i, cluster) {
                 uncollapseCluster(cluster);
@@ -715,8 +713,6 @@ function collapseAll(operationCharacter) {
         updateStatus("Finished uncollapsing.");
     }
     else {
-        changeButtonText("collapseButton", "Uncollapse All Node Groups");
-        changeButtonIcon("collapseButton", "ui-icon-plus");
         cy.scratch("_uncollapsed").each(
             function(i, cluster) {
                 collapseCluster(cluster);
