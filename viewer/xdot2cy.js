@@ -253,8 +253,7 @@ function collapseCluster(cluster, moveMap) {
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").difference(cluster));
     if (cy.scratch("_uncollapsed").empty()) {
         if ($("#collapseButton").button("option", "label")[0] === 'C') {
-            changeButtonText("collapseButton", "Uncollapse All Node Groups");
-            changeButtonIcon("collapseButton", "ui-icon-plus");
+            changeCollapseButton(true);
         }
     }
     cluster.data("interiorEles").remove();
@@ -295,8 +294,7 @@ function uncollapseCluster(cluster) {
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(cluster));
     if (cy.scratch("_collapsed").empty()) {
         if ($("#collapseButton").button("option", "label")[0] === 'U') {
-            changeButtonText("collapseButton", "Collapse All Node Groups");
-            changeButtonIcon("collapseButton", "ui-icon-minus");
+            changeCollapseButton(false);
         }
     }
 }
@@ -416,22 +414,30 @@ function changeRotation() {
     }
 }
 
-// Changes the label text of the given button ID.
-function changeButtonText(buttonId, newText) {
-    $("#" + buttonId).button("option", "label", newText);
-}
-
-// Changes the primary icon of the given button ID.
-function changeButtonIcon(buttonId, newIcon) {
-    $("#" + buttonId).button("option", {icons: {primary: newIcon}});
+// If toUncollapseReady is false, changes the collapse button to say
+// "Collapse All Node Groups" with a minus icon.
+// If toUncollapseReady is true, changes the collapse button to say
+// "Uncollapse All Node Groups" with a plus icon.
+function changeCollapseButton(toUncollapseReady) {
+    if (toUncollapseReady) {
+        $("#collapseButton").button("option", "label",
+            "Uncollapse All Node Groups");
+        $("#collapseButton").button("option", {icons:
+            {primary: "ui-icon-plus"}});
+    }
+    else {
+        $("#collapseButton").button("option", "label",
+            "Collapse All Node Groups");
+        $("#collapseButton").button("option", {icons:
+            {primary: "ui-icon-minus"}});
+    }
 }
 
 // Clears the graph, to facilitate drawing another one.
 // Assumes a graph has already been drawn (i.e. cy !== null)
 function destroyGraph() {
     cy.destroy();
-    changeButtonText("collapseButton", "Collapse All Node Groups");
-    changeButtonIcon("collapseButton", "ui-icon-minus");
+    changeCollapseButton(false);
     GRAPH_RENDERED = false;
 }
 
