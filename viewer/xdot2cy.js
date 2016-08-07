@@ -20,8 +20,10 @@
 // shape of reverse-complement contigs).
 // These points will be modified later to be rotated according to the
 // graph's rotation.
-const INVHOUSE_POLYPTS = [[-1, -1], [-1, 0.25], [0, 1], [1, 0.25], [1, -1]];
-const HOUSE_POLYPTS    = [[-1, 1], [-1, -0.25], [0, -1], [1, -0.25], [1, 1]];
+const INVHOUSE_POLYPTS =
+    [[-1, -1], [-1, 0.23587], [0, 1], [1, 0.23587], [1, -1]];
+const HOUSE_POLYPTS =
+    [[-1, 1], [-1, -0.23587], [0, -1], [1, -0.23587], [1, 1]];
 
 // Regexes for detecting certain things in xdot.
 const BOUNDBOX_REGEX = /bb=\"0,0,([\d\.e\+\-]+),([\d\.e\+\-]+)\"/;
