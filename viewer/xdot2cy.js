@@ -521,6 +521,7 @@ function drawComponent() {
     CURR_ROTATION = parseInt(document.getElementById("rotation").value);
     cy.scratch("_collapsed", cy.collection());
     cy.scratch("_uncollapsed", cy.collection());
+    cy.scratch("_ele2parent", {});
     // Now we render the nodes, edges, and clusters of this component.
     // But first we need to get the bounding box of this component.
     var bbStmt = CURR_DB.prepare(
@@ -648,7 +649,8 @@ function searchForNode() {
             }
             else {
                 // It's a bogus element
-                alert("Error -- invalid element ID: " + nodes[c].trim());
+                alert("Error -- element ID " + nodes[c].trim() +
+                      " is not in this component.");
                 return;
             }
         }
@@ -1370,14 +1372,22 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     var pos = gv2cyPoint(nodeObj['x'], nodeObj['y'],
         [boundingboxObject['boundingbox_x'],
          boundingboxObject['boundingbox_y']]);
+    var nodeID = nodeObj['id'];
+    // NOTE that NULL in sqlite gets translated to Javascript as null, which
+    // works perfectly for our use of the node parent field.
+    // Hence why we can just use the parent_cluster_id field directly.
+    var parentID = nodeObj['parent_cluster_id'];
     cy.add({
         classes: 'noncluster',
-        data: {id: nodeObj['id'], parent: nodeObj['parent_cluster_id'],
+        data: {id: nodeID, parent: parentID, polypts: nodePolygonPts, 
                w: INCHES_TO_PIXELS * nodeObj['w'],
                h: INCHES_TO_PIXELS * nodeObj['h'],
-               polypts: nodePolygonPts, house: nodeObj['shape'] === 'house'},
+               house: nodeObj['shape'] === 'house'},
         position: {x: pos[0], y: pos[1]}
     });
+    if (parentID !== null) {
+        cy.scratch("_ele2parent")[nodeID] = parentID;
+    }
 }
 
 // Renders a cluster object.
@@ -1398,6 +1408,9 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject) {
     var sourceID = edgeObj['source_id'];
     var targetID = edgeObj['target_id'];
     var edgeID = sourceID + "->" + targetID;
+    if (edgeObj['parent_cluster_id'] !== null) {
+        cy.scratch("_ele2parent")[edgeID] = edgeObj['parent_cluster_id'];
+    }
     if (sourceID === targetID) {
         // It's a self-directed edge; don't bother parsing ctrl pt
         // info, just render it as a bezier edge and be done with it
