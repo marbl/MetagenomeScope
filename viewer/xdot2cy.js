@@ -554,10 +554,15 @@ function drawComponent() {
     // taking up a lot of space. So we go with the mapping solution -- it's
     // not particularly pretty, but it works alright.
     var node2pos = {};
+    // We check to see if the component contains >= 1 cluster. If so, we
+    // enable the collapse/uncollapse button; if not, we don't bother
+    // enabling the button and keep it disabled because it'd be useless
+    var clustersInComponent = false;
     cy.startBatch();
     var clustersStmt = CURR_DB.prepare(
         "SELECT * FROM clusters WHERE component_rank = ?", [cmpRank]);
     while (clustersStmt.step()) {
+        clustersInComponent = true;
         renderClusterObject(clustersStmt.getAsObject());
     }
     var nodesStmt = CURR_DB.prepare(
@@ -580,14 +585,19 @@ function drawComponent() {
         renderEdgeObject(edgesStmt.getAsObject(), node2pos, bb);
     }
     // NOTE modified initClusters() to do cluster height after the fact.
-    // This represents an efficiency when parsing xdot files, although it
+    // This represents an inefficiency when parsing xdot files, although it
     // shouldn't really affect anything major.
     initClusters();
     cy.endBatch();
     cy.fit();
     $("#searchButton").button("enable");
     $("#fitButton").button("enable");
-    $("#collapseButton").button("enable");
+    if (clustersInComponent) {
+        $("#collapseButton").button("enable");
+    }
+    else {
+        $("#collapseButton").button("disable");
+    }
 }
 
 // TODO verify that this doesn't mess stuff up when you back out of and then
