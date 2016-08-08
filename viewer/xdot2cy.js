@@ -1425,9 +1425,17 @@ function renderClusterObject(clusterObj) {
     ));
 }
 
-// Renders edge object. Hopefully in a not-terrible way.
-// Uses node2pos (mapping of node object from DB -> [x, y] position)
-// to calcluate relative control point weight stuff.
+/* Renders edge object. Hopefully in a not-terrible way.
+ *
+ * Uses node2pos (mapping of node object from DB -> [x, y] position)
+ * to calcluate relative control point weight stuff.
+ *
+ * This also logarithmically scales edge thickness based on multiplicity.
+ * NOTE that we don't scale edge thickness when using dot from collate.py,
+ * since GraphViz doesn't adjust node placement based on edge thickness even
+ * in extreme cases -- therefore we have free reign in this function to
+ * adjust edge thickness, independent of the other parts of AsmViz.
+ */
 function renderEdgeObject(edgeObj, node2pos, boundingboxObject) {
     var sourceID = edgeObj['source_id'];
     var targetID = edgeObj['target_id'];
