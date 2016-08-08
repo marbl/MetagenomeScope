@@ -21,7 +21,7 @@ AsmViz is composed of two main components:
    .db file containing layout, pattern, and biological information extracted
    from GraphViz and from the original assembly graph file.
    Currently, this supports LastGraph (Velvet) and GraphML
-   (Bambus 3, IDBA-UD) assembly graph files, and support for GFA and
+   (Bambus 3 scaffold) assembly graph files, and support for GFA and
    FASTG (SPAdes) files is planned.    
 
 2. `asmviz_viewer.html`, a HTML/Javascript webpage that reads a .db file
