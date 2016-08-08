@@ -493,7 +493,8 @@ function parseDBcomponents() {
     var stmt = CURR_DB.prepare("SELECT * FROM assembly;");
     stmt.step();
     var graphInfo = stmt.getAsObject();
-    document.title = graphInfo["filename"];
+    var fnInfo = graphInfo["filename"];
+    var ftInfo = graphInfo["filetype"];
     var nodeInfo = graphInfo["node_count"].toLocaleString();
     var bpInfo = graphInfo["total_length"].toLocaleString() + " bp";
     var edgeInfo = graphInfo["edge_count"].toLocaleString();
@@ -501,8 +502,9 @@ function parseDBcomponents() {
     var compInfo = compCt.toLocaleString();
     var n50Info = graphInfo["n50"].toLocaleString() + " bp";
     // Adjust UI elements
-    $("#filenameEntry").text(graphInfo["filename"]); 
-    $("#filetypeEntry").text(graphInfo["filetype"]);
+    document.title = fnInfo;
+    $("#filenameEntry").text(fnInfo); 
+    $("#filetypeEntry").text(ftInfo);
     $("#nodeCtEntry").text(nodeInfo); 
     $("#totalBPLengthEntry").text(bpInfo); 
     $("#edgeCountEntry").text(edgeInfo);

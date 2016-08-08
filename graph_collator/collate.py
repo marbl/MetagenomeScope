@@ -373,9 +373,8 @@ with open(asm_fn, 'r') as assembly_file:
                 mult = int(a[3])
                 nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2], mult)
                 nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1], mult)
-                # Record this edge for graph statistics; since each line
-                # represents two edges, we record two edges for now
-                total_edge_count += 2
+                # Record this edge for graph statistics
+                total_edge_count += 1
             elif parsing_node:
                 # If we're in the middle of parsing a node's info and
                 # the current line doesn't match either a NODE or ARC
@@ -391,11 +390,10 @@ with open(asm_fn, 'r') as assembly_file:
                     nodeid2obj[curr_node_id] = n
                     nodeid2obj['c' + curr_node_id] = c
                     # Record this node for graph statistics
-                    # (We include its RC node in these statistics for now)
                     # Note that recording these statistics here ensures that
                     # only "fully complete" node definitions are recorded.
-                    total_node_count += 2
-                    total_bp_length += (2 * curr_node_bp)
+                    total_node_count += 1
+                    total_bp_length += curr_node_bp
                     bp_length_list.append(curr_node_bp)
                     bp_length_list.append(curr_node_bp)
                     # Clear temporary/marker variables for later use
