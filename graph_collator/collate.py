@@ -175,8 +175,8 @@ def dfs(n, seen_nodes):
             seen_nodes = dfs(j, seen_nodes)
     return seen_nodes
 
-def negate_contig_id(id_string):
-    """Negates a contig ID.
+def negate_node_id(id_string):
+    """Negates a node ID.
     
        e.g. "c18" -> "18", "18" -> "c18"
     """
@@ -185,8 +185,8 @@ def negate_contig_id(id_string):
     else:
         return 'c' + id_string
 
-def n50(contig_lengths):
-    """Determines the N50 statistic of an assembly, given its contig lengths.
+def n50(node_lengths):
+    """Determines the N50 statistic of an assembly, given its node lengths.
 
        Note that multiple definitions of the N50 statistic exist (see
        https://en.wikipedia.org/wiki/N50,_L50,_and_related_statistics for
@@ -198,9 +198,9 @@ def n50(contig_lengths):
        high-level overview.
     """
 
-    if len(contig_lengths) == 0:
+    if len(node_lengths) == 0:
         raise ValueError, "N50 of an empty list does not exist"
-    sorted_lengths = sorted(contig_lengths, reverse=True)
+    sorted_lengths = sorted(node_lengths, reverse=True)
     i = 0
     running_sum = 0
     half_total_length = 0.5 * sum(sorted_lengths)
@@ -210,7 +210,7 @@ def n50(contig_lengths):
             raise IndexError, "N50 calculation error"
         running_sum += sorted_lengths[i]
         i += 1
-    # Return length of shortest contig that was used in the running sum
+    # Return length of shortest node that was used in the running sum
     return sorted_lengths[i - 1]
 
 def attempt_add_node_attr(text_line, n):
@@ -278,11 +278,11 @@ clusterid2obj = {}
 
 # Pertinent Assembly-wide information we use 
 graph_filetype = ""
-total_contig_count = 0
+total_node_count = 0
 total_edge_count = 0
 total_bp_length = 0
 total_component_count = 0
-# List of all the contig lengths in the assembly. Used when calculating n50.
+# List of all the node lengths in the assembly. Used when calculating n50.
 bp_length_list = []
 
 # Create a SQLite database in which we store biological and graph layout
@@ -301,7 +301,7 @@ if check_file_existence(db_fullfn):
 #  its original data (if the file is a SQLite database, but stores other
 #  data -- expected behavior for this case)
 # -Cause the first cursor.execute() call to fail since the database already
-#  has a contigs table (if the file is a SQLite database this program has
+#  has a nodes table (if the file is a SQLite database this program has
 #  generated -- expected behavior for this case)
 # -Cause the first cursor.execute() call to fail since the file is not a
 #  SQLite database (expected behavior for this case)
@@ -310,7 +310,7 @@ if check_file_existence(db_fullfn):
 # here, but I suppose you can't be too safe.)
 connection = sqlite3.connect(db_fullfn)
 cursor = connection.cursor()
-cursor.execute("""CREATE TABLE contigs
+cursor.execute("""CREATE TABLE nodes
         (id text, length integer, dnafwd text, depth real,
         component_rank integer, x real, y real, w real, h real, shape text,
         parent_cluster_id text)""")
@@ -321,10 +321,10 @@ cursor.execute("""CREATE TABLE edges
 cursor.execute("""CREATE TABLE clusters (cluster_id text,
         component_rank integer)""")
 cursor.execute("""CREATE TABLE components
-        (size_rank integer, contig_count integer, edge_count integer,
+        (size_rank integer, node_count integer, edge_count integer,
         total_length integer, boundingbox_x real, boundingbox_y real)""")
 cursor.execute("""CREATE TABLE assembly
-        (filename text, filetype text, contig_count integer,
+        (filename text, filetype text, node_count integer,
         edge_count integer, component_count integer, total_length integer,
         n50 integer)""")
 connection.commit()
@@ -333,7 +333,7 @@ connection.commit()
 # TODO Adapt this to parse multiple types of assembly graph files.
 # Currently supported:
 # -LastGraph (Velvet)
-# -GraphML (Bambus 3, IDBA-UD)
+# -GraphML (Bambus 3)
 # Planned for support:
 # -FASTG (SPAdes)
 # -GFA
@@ -368,8 +368,8 @@ with open(asm_fn, 'r') as assembly_file:
                 # (http://computing.bio.cam.ac.uk/local/doc/velvet.pdf)
                 id1 = a[1] if a[1][0] != '-' else 'c' + a[1][1:]
                 id2 = a[2] if a[2][0] != '-' else 'c' + a[2][1:]
-                nid2 = negate_contig_id(id2)
-                nid1 = negate_contig_id(id1)
+                nid2 = negate_node_id(id2)
+                nid1 = negate_node_id(id1)
                 mult = int(a[3])
                 nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2], mult)
                 nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1], mult)
@@ -377,9 +377,9 @@ with open(asm_fn, 'r') as assembly_file:
                 # represents two edges, we record two edges for now
                 total_edge_count += 2
             elif parsing_node:
-                # If we're in the middle of parsing a contig's info and
+                # If we're in the middle of parsing a node's info and
                 # the current line doesn't match either a NODE or ARC
-                # declaration, then it refers to the contig's DNA sequence.
+                # declaration, then it refers to the node's DNA sequence.
                 if parsed_fwdseq:
                     # Parsing reverse sequence
                     curr_node_dnarev = line.strip()
@@ -394,7 +394,7 @@ with open(asm_fn, 'r') as assembly_file:
                     # (We include its RC node in these statistics for now)
                     # Note that recording these statistics here ensures that
                     # only "fully complete" node definitions are recorded.
-                    total_contig_count += 2
+                    total_node_count += 2
                     total_bp_length += (2 * curr_node_bp)
                     bp_length_list.append(curr_node_bp)
                     bp_length_list.append(curr_node_bp)
@@ -441,7 +441,7 @@ with open(asm_fn, 'r') as assembly_file:
                             (curr_node_orientation == '"REV"'))
                     nodeid2obj[curr_node_id] = n
                     # Record this node for graph statistics
-                    total_contig_count += 1
+                    total_node_count += 1
                     total_bp_length += curr_node_bp
                     bp_length_list.append(curr_node_bp)
                     # Clear tmp/marker variables
@@ -472,7 +472,7 @@ with open(asm_fn, 'r') as assembly_file:
                 parsing_edge = True
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
-# This means that graph_filetype, total_contig_count, total_edge_count,
+# This means that graph_filetype, total_node_count, total_edge_count,
 # total_bp_length, and bp_length_list are all finalized.
 
 # Try to collapse special "groups" of Nodes (Bubbles, Ropes, etc.)
@@ -589,7 +589,7 @@ for n in nodes_to_draw:
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
-graphVals = (os.path.basename(asm_fn), graph_filetype, total_contig_count,
+graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
              total_edge_count, total_component_count, total_bp_length,
              n50(bp_length_list))
 cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?)", graphVals)    
@@ -647,7 +647,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     # connection variables we defined above.
     
     # Increment these vars. as we parse nodes/edges of this component
-    component_contig_count = 0
+    component_node_count = 0
     component_edge_count   = 0
     component_total_length = 0
     with open(xdot_fullfn, 'r') as xdot_file_r:
@@ -732,10 +732,10 @@ for component in connected_components[:config.MAX_COMPONENTS]:
                         attempt_add_node_attr(line, curr_node)
                         curr_node.set_component_rank(component_size_rank)
                         # Output node info to database
-                        cursor.execute("""INSERT INTO contigs
+                        cursor.execute("""INSERT INTO nodes
                             VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
                             curr_node.db_values())
-                        component_contig_count += 1
+                        component_node_count += 1
                         component_total_length += curr_node.bp
                         parsing_node = False
                         curr_node = None
@@ -816,7 +816,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
 
     # Output component information to the database
     cursor.execute("""INSERT INTO components VALUES (?,?,?,?,?,?)""",
-        (component_size_rank, component_contig_count, component_edge_count,
+        (component_size_rank, component_node_count, component_edge_count,
         component_total_length, bounding_box[0], bounding_box[1]))
 
     # Unless the user requested their preservation, remove .gv/.xdot files

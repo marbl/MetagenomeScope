@@ -68,7 +68,7 @@
     
                 <input id='componentselector' value="1"
                     title="Enter the size rank of the connected component to
-                    draw. 1 is the largest component (by number of contigs),
+                    draw. 1 is the largest component (by number of nodes),
                     2 is the second-largest, and so on." />
 
                 <button type='button' onclick='drawComponent();'
@@ -113,8 +113,8 @@
                 <tr>
                     <th>Filename</th>
                     <th>Filetype</th>
-                    <th>Contig Count</th>
-                    <th>Total Contig Length</th>
+                    <th>Node Count</th>
+                    <th>Total Node Length</th>
                     <th>Edge Count</th>
                     <th>Connected Component Count</th>
                     <th>N50</th>
@@ -122,7 +122,7 @@
                 <tr>
                     <td id="filenameEntry"></td>
                     <td id="filetypeEntry"></td>
-                    <td id="contigCtEntry"></td>
+                    <td id="nodeCtEntry"></td>
                     <td id="totalBPLengthEntry"></td>
                     <td id="edgeCountEntry"></td>
                     <td id="connCmpCtEntry"></td>

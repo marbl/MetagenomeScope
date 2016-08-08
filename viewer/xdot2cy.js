@@ -16,8 +16,8 @@
 
 // These sets of five points (in the format [[x1, y1], [x2, y2], ...])
 // detail the polygons drawn to represent an invhouse (facing down; the
-// shape of non-reverse-complement contigs) and a house (facing up; the
-// shape of reverse-complement contigs).
+// shape of non-reverse-complement nodes) and a house (facing up; the
+// shape of reverse-complement nodes).
 // These points will be modified later to be rotated according to the
 // graph's rotation.
 const INVHOUSE_POLYPTS =
@@ -494,7 +494,7 @@ function parseDBcomponents() {
     stmt.step();
     var graphInfo = stmt.getAsObject();
     document.title = graphInfo["filename"];
-    var contigInfo = graphInfo["contig_count"].toLocaleString();
+    var nodeInfo = graphInfo["node_count"].toLocaleString();
     var bpInfo = graphInfo["total_length"].toLocaleString() + " bp";
     var edgeInfo = graphInfo["edge_count"].toLocaleString();
     var compCt = graphInfo["component_count"];
@@ -503,7 +503,7 @@ function parseDBcomponents() {
     // Adjust UI elements
     $("#filenameEntry").text(graphInfo["filename"]); 
     $("#filetypeEntry").text(graphInfo["filetype"]);
-    $("#contigCtEntry").text(contigInfo); 
+    $("#nodeCtEntry").text(nodeInfo); 
     $("#totalBPLengthEntry").text(bpInfo); 
     $("#edgeCountEntry").text(edgeInfo);
     $("#connCmpCtEntry").text(compInfo);
@@ -566,7 +566,7 @@ function drawComponent() {
         renderClusterObject(clustersStmt.getAsObject());
     }
     var nodesStmt = CURR_DB.prepare(
-        "SELECT * FROM contigs WHERE component_rank = ?", [cmpRank]);
+        "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
     var currNode;
     while (nodesStmt.step()) {
         currNode = nodesStmt.getAsObject();
@@ -1383,7 +1383,7 @@ function renderClusters(clusterList, nodeMapping) {
 }
 
 // Renders a given node object, obtained by getAsObject() from running a
-// query on CURR_DB for selecting rows from table contigs.
+// query on CURR_DB for selecting rows from table nodes.
 function renderNodeObject(nodeObj, boundingboxObject) {
     // TODO find a way to only do this once per render job -- no need to
     // recalc it n times, that's just stupid
