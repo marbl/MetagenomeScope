@@ -440,8 +440,11 @@ with open(asm_fn, 'r') as assembly_file:
                     nodeid2obj[curr_node_id] = n
                     # Record this node for graph statistics
                     total_node_count += 1
-                    total_bp_length += curr_node_bp
-                    bp_length_list.append(curr_node_bp)
+                    # NOTE commented below two lines out, since GraphML
+                    # files don't contain scaffold length information
+                    # (as far as I can tell)
+                    #total_bp_length += curr_node_bp
+                    #bp_length_list.append(curr_node_bp)
                     # Clear tmp/marker variables
                     parsing_node = False
                     curr_node_id = None
@@ -587,9 +590,15 @@ for n in nodes_to_draw:
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
-graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
-             total_edge_count, total_component_count, total_bp_length,
-             n50(bp_length_list))
+if parsing_LastGraph:
+    # Parsing a filetype for which node lengths are defined
+    graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
+                total_edge_count, total_component_count, total_bp_length,
+                n50(bp_length_list))
+else:
+    # AsmViz Viewer will see the "None"s and render them as "N/A"
+    graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
+                total_edge_count, total_component_count, None, None)
 cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?)", graphVals)    
 
 # Conclusion: Output (desired) components of nodes to the .gv file

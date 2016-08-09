@@ -496,11 +496,27 @@ function parseDBcomponents() {
     var fnInfo = graphInfo["filename"];
     var ftInfo = graphInfo["filetype"];
     var nodeInfo = graphInfo["node_count"].toLocaleString();
-    var bpInfo = graphInfo["total_length"].toLocaleString() + " bp";
+    // Record total node length -- not possible for GraphML files
+    var bpCt = graphInfo["total_length"];
+    var bpInfo;
+    if (bpCt !== null) {
+        bpInfo = bpCt.toLocaleString() + " bp";
+    }
+    else {
+        bpInfo = "N/A";
+    }
     var edgeInfo = graphInfo["edge_count"].toLocaleString();
     var compCt = graphInfo["component_count"];
     var compInfo = compCt.toLocaleString();
-    var n50Info = graphInfo["n50"].toLocaleString() + " bp";
+    // Record N50 -- same as with total node length, not poss. for GMLs
+    var n50 = graphInfo["n50"];
+    var n50Info;
+    if (n50 !== null) {
+        n50Info = n50.toLocaleString() + " bp";
+    }
+    else {
+        n50Info = "N/A";
+    }
     // Adjust UI elements
     document.title = fnInfo;
     $("#filenameEntry").text(fnInfo); 
