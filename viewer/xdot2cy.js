@@ -472,6 +472,9 @@ function loadgraphfile() {
     else if (inputfile.name.endsWith(".db")) {
         fr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
+                // Important -- remove old DB from memory if it exists
+                closeDB();
+                // Temporarily store .db file as array of 8-bit unsigned ints
                 var uIntArr = new Uint8Array(e.target.result);
                 CURR_DB = new SQL.Database(uIntArr);
                 parseDBcomponents();
