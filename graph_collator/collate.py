@@ -12,7 +12,7 @@
 # output_2.xdot and output_2.gv (if preserved), and so on.
 #
 # Syntax is:
-#   ./collate_clusters.py -i (input file name) -o (file prefix)
+#   ./collate.py -i (input file name) -o (file prefix)
 #       [-d (output directory name)] [-pg] [-px] [-w]
 #
 # If you'd like to preserve the DOT file(s) after the program's execution, you
