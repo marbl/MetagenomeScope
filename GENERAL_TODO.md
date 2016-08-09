@@ -36,21 +36,7 @@
 
 * Show interesting biological information extracted from a graph.
 
-* Use collator to, optionally, generate a HTML page that automatically loads
-  the generated neo4j database. As opposed to using a monolithic database
-  viewer.
-    * Can test on fedarko.github.io -- might need to generate a long URL
-      or something to only let certain people see it
-
 * Tutorial!!! (Add to repository)
-
-* Talk to Jayram (shares Todd's office) re: neo4j issues (browser
-  limitations, etc).
-    * py2neo to generate a database, and then read the resulting database
-      via javascript
-    * load xdot in the browser--support both.
-    * loading xdot in the browser would lose out on some of the extra data
-      stored in the neo4j database--present user with requisite disclaimers.
 
 * Spend some time creating a 2-ish page Google Doc with a brief
   introduction, a description of the results obtained (i.e. what the

@@ -26,14 +26,6 @@ definitely have to factor in node size here. THIS IS IMPORTANT!
 * Show multiple assembly files for the same data at once?
     * See [this Cytoscape.js demo](http://js.cytoscape.org/demos/310dca83ba6970812dd0/) for an example.
 
-* Account for edge multiplicity in the graph (via altering edge with in
-Cytoscape.js, and I think there's probably a way to do something similar in
-GraphViz -- we'd want to do this in both environments, so the GraphViz
-layout can support more separation for thicker edges) by displaying edges
-with greater multiplicity values as thicker, as done in Figure 3 in the
-Assembly Algorithms paper by Miller, Koren et al.
-    * Just need to implement in renderEdgeObject().
-
 * Write parsers for the other 2 types of assembly files Todd wanted me to
 support (GFA and FASTG), and also maybe for the Trinity FASTA file
 (but honestly I have no idea how to read those).

@@ -1,3 +1,5 @@
 *.pyc
 testgraphs/*
 testdbs/*
+demo/.htaccess
+demo/.htpasswd
