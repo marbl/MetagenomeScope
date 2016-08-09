@@ -1,0 +1,4 @@
+AuthUserFile /fs/www-users/mfedarko/AsmViz/.htpasswd
+AuthName "Secure Document"
+AuthType Basic
+require user john

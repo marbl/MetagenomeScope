@@ -1,0 +1,187 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="shortcut icon" href="bubble.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>AsmViz Viewer</title>
+        <!-- Load external libraries:
+             -Cytoscape.js (for drawing the graph)
+             -sql.js (for reading SQLite .db files)
+             -jQuery (for supporting jQuery UI)
+             -jQuery UI (for dialogs, other misc UI features) -->
+        <!-- TODO, ensure we use the minimized versions for release -->
+        <script src="https://code.jquery.com/jquery-3.1.0.min.js"
+            integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
+            crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"
+            integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E="
+            crossorigin="anonymous"></script>
+        <link rel="stylesheet"
+            href="https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
+        <link rel="stylesheet" href="viewer_style.css">
+        <!-- Initialize some jQuery UI things -->
+        <script>
+            $(function() {
+                $("#fsDialog").dialog({autoOpen: false, width: 'auto',
+                    height: 'auto'});
+                $("#loadDBbutton").button({icons: {primary:
+                    "ui-icon-check"}});
+                $("#infoDialog").dialog({autoOpen: false, width: 'auto',
+                    height: 'auto'});
+                $("#searchDialog").dialog({autoOpen: false});
+                $("#drawButton").button({icons: {primary: "ui-icon-pencil"},
+                    disabled: true});
+                $("#infoButton").button({icons: {primary: "ui-icon-info"},
+                    disabled: true});
+                $("#searchButton").button({icons: {primary:
+                    "ui-icon-search"}, disabled: true});
+                $("#fitButton").button({icons: {primary:
+                    "ui-icon-arrow-4-diag"}, disabled: true});
+                $("#collapseButton").button({icons: {primary:
+                    "ui-icon-minus"}, disabled: true});
+                $("#fileselectButton").button({icons: {primary:
+                    "ui-icon-folder-open"}});
+                $("#componentselector").spinner({min: 1, disabled: true});
+                $("#controls").controlgroup();
+                $("#rotation").selectmenu({change: changeRotation,
+                    width: 'auto', open: disableTooltip,
+                    close: enableTooltip});
+                $(document).tooltip();
+                $(window).on("beforeunload", closeDB);
+            });
+        </script>
+        <script src='cytoscape.js'></script>
+        <script src='sql.js'></script>
+        <script src='xdot2cy.js'></script>
+    </head>
+    <body>
+        <!-- We use the asmviz div here to fill up the entire page size
+            through relative positioning. This lets us size the
+            controls div to the minimum height needed and then allocate the
+            remaining page height to the cy div. -->
+        <div id="asmviz">
+            <div id="controls">
+                <button type='button' id="fileselectButton"
+                    onclick="openFileSelectDialog();">Choose .db file</button>
+
+                <input id='componentselector' value="1"
+                    title="Enter the size rank of the connected component to
+                    draw. 1 is the largest component (by number of nodes),
+                    2 is the second-largest, and so on." />
+
+                <button type='button' onclick='drawComponent();'
+                    id="drawButton">Draw connected component</button>
+    
+                <button type='button' onclick='displayInfo();'
+                    id="infoButton">Assembly information</button>
+    
+                <button type='button' onclick='showSearchDialog()'
+                    value="Search" id="searchButton">Search</button>
+                
+                <select id='rotation' 
+                    title="The general direction of the graph. You can modify
+                    this before the graph is loaded in order to set that
+                    particular rotation for viewing the graph; however, you can
+                    also modify the graph's rotation in place.">
+                    <option value="0">&#8595;</option>
+                    <option value="90" selected>&#8594;</option>
+                    <option value="180">&#8593;</option>
+                    <option value="270">&#8592;</option>
+                </select>
+    
+                <button type='button' onclick='fitGraph()' id="fitButton">Fit Graph</button>
+    
+                <!-- Value of this button will be toggled as all nodes in graph
+                     are collapsed/uncollapsed -->
+                <button type='button' id='collapseButton'
+                    onclick='startCollapseAll()'>Collapse All Node Groups</button>
+    
+                <div id='status'></div>
+            </div> <!-- end controls div -->
+            <div id="cy"></div> <!-- used as container for Cytoscape.js -->
+        </div> <!-- end asmviz div -->
+        <div id='fsDialog' title="Select a demo assembly file"
+            class="hiddenElement">
+            <!-- fix weird selection problem -->
+            <input autofocus class="hiddenElement" />
+            <label for="ecoli.db">E. coli (LastGraph [Velvet], 279 contigs, 332
+                edges)</label>
+            <input type="radio" name="fs" id="ecoli.db" checked="checked">
+            <br />
+            <label for="rf_oriented.db">E. coli (GraphML [Bambus 3], 21,610
+                scaffolds, 22,889 edges)</label>
+            <input type="radio" name="fs" id="rf_oriented.db">
+            <br />
+            <label for="small_ecoli.db">E. coli (GraphML [Bambus 3], 168
+                scaffolds, 478 edges)</label>
+            <input type="radio" name="fs" id="small_ecoli.db">
+            <br />
+            <label for="sample2.db">Unknown genome (LastGraph, 72 contigs, 91 edges)</label>
+            <input type="radio" name="fs" id="sample2.db">
+            <br />
+            <label for="longtest.db">Bogus test data for "long" bubbles/frayed ropes (LastGraph, 36 contigs, 36 edges)</label>
+            <input type="radio" name="fs" id="longtest.db">
+            <br />
+            <button type="button" id="loadDBbutton" onclick="loadajaxDB();">
+                Load selected file
+            </button>
+        </div>
+        <div id='infoDialog' title="Assembly Information"
+            class="hiddenElement">
+            <!-- We implement this hidden input with autofocus to fix the
+                 issue detailed here: http://stackoverflow.com/a/4814001
+                 Not having this input causes the dialog's close button to be
+                 automatically selected, which looks strange in this case. -->
+            <input autofocus class="hiddenElement" />
+            <table border="2">
+                <tr>
+                    <th>Filename</th>
+                    <th>Filetype</th>
+                    <th>Node Count</th>
+                    <th>Total Node Length</th>
+                    <th>Edge Count</th>
+                    <th>Connected Component Count</th>
+                    <th>N50</th>
+                </tr>
+                <tr>
+                    <td id="filenameEntry"></td>
+                    <td id="filetypeEntry"></td>
+                    <td id="nodeCtEntry"></td>
+                    <td id="totalBPLengthEntry"></td>
+                    <td id="edgeCountEntry"></td>
+                    <td id="connCmpCtEntry"></td>
+                    <td id="n50Entry"></td>
+                </tr>
+            </table>
+            <h4>For contig assembly graphs (LastGraph)</h4>
+            <p>The <strong>node count</strong>,
+            <strong>total node length</strong>, and <strong>edge count</strong>
+            fields only include
+            "positive" contigs from the assembly graph.<br />
+            If you would like to know these statistics with including
+            negative nodes, then you can just multiply those fields by two.</p>
+            <h4>For scaffold assembly graphs (GraphML)</h4>
+            <p>All nodes are included in
+            these statistics regardless of orientation.</p>
+            <p>Since GraphML files do not contain node length information,
+            the <strong>total node length</strong> and <strong>N50</strong>
+            fields are unused.</p>
+        </div>
+        <div id='searchDialog' title="Search for Nodes/Edges"
+            class="hiddenElement">
+            <p>Enter in the ID of a node, edge, or node group to search for.
+               You can enter a list of elements separated by commas, e.g.</p>
+            <p>1, 5-&gt;6, 9</p>
+            <input type='text' id='nodeselector' 
+                 class="grayText ui-corner-all ui-widget
+                 ui-widget-content" value='Enter node ID(s)'
+                 onfocus="if (this.value == 'Enter node ID(s)') {
+                    this.value = ''; this.style.color = '#000000'; }"
+                 onblur="if (this.value == '') {
+                    this.value = 'Enter node ID(s)';
+                    this.style.color='#999999'; }"
+                 onkeypress="searchWithEnter(event);" />
+        </div>
+    </body>
+</html>
