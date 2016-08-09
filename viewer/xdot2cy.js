@@ -172,7 +172,8 @@ function initGraph() {
             {
                 selector: 'edge',
                 style: {
-                    'target-arrow-shape':'triangle'
+                    'target-arrow-shape': 'triangle',
+                    'width': 'data(thickness)'
                 }
             },
             {
@@ -597,10 +598,32 @@ function drawComponent() {
             [bb['boundingbox_x'], bb['boundingbox_y']]
         );
     }
+    // NOTE that we intentionally only consider edges within this component.
+    // Multiplicity is an inherently relative measure, so outliers in other
+    // components will just mess things up in the current component.
+    var maxMult, minMult;
+    var maxMultiplicityStmt = CURR_DB.prepare(
+        "SELECT * FROM edges WHERE component_rank = ? " +
+        "ORDER BY multiplicity DESC LIMIT 1", [cmpRank]);
+    maxMultiplicityStmt.step();
+    maxMult = maxMultiplicityStmt.getAsObject()['multiplicity'];
+    // If the assembly doesn't have edge multiplicity data, don't bother
+    // trying to find the minimum -- that'll also be null.
+    if (maxMult !== null) {
+        var minMultiplicityStmt = CURR_DB.prepare(
+            "SELECT * FROM edges WHERE component_rank = ? " + 
+            "ORDER BY multiplicity LIMIT 1", [cmpRank]);
+        minMultiplicityStmt.step();
+        minMult = minMultiplicityStmt.getAsObject()['multiplicity'];
+    }
+    else {
+        minMult = null;
+    }
     var edgesStmt = CURR_DB.prepare(
         "SELECT * FROM edges WHERE component_rank = ?", [cmpRank]);
     while (edgesStmt.step()) {
-        renderEdgeObject(edgesStmt.getAsObject(), node2pos, bb);
+        renderEdgeObject(edgesStmt.getAsObject(), node2pos,
+            maxMult, minMult, bb);
     }
     // NOTE modified initClusters() to do cluster height after the fact.
     // This represents an inefficiency when parsing xdot files, although it
@@ -1454,9 +1477,19 @@ function renderClusterObject(clusterObj) {
  * in extreme cases -- therefore we have free reign in this function to
  * adjust edge thickness, independent of the other parts of AsmViz.
  */
-function renderEdgeObject(edgeObj, node2pos, boundingboxObject) {
+function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
+        boundingboxObject) {
     var sourceID = edgeObj['source_id'];
     var targetID = edgeObj['target_id'];
+    var multiplicity = edgeObj['multiplicity'];
+    // Default edge width setting of Cytoscape.js
+    var edgeWidth = 3;
+    // This discounts multiplicity data if:
+    // -All edges have same multiplicity (prevents division by 0 error)
+    // -No edges have multiplicity data (maxMult === minMult === null)
+    if (maxMult != minMult) {
+        edgeWidth = 3 + (((multiplicity - minMult)/(maxMult - minMult)) * 7);
+    }
     var edgeID = sourceID + "->" + targetID;
     if (edgeObj['parent_cluster_id'] !== null) {
         cy.scratch("_ele2parent")[edgeID] = edgeObj['parent_cluster_id'];
@@ -1466,7 +1499,8 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject) {
         // info, just render it as a bezier edge and be done with it
         cy.add({
             classes: "basicbezier",
-            data: {id: edgeID, source: sourceID, target: targetID}
+            data: {id: edgeID, source: sourceID, target: targetID,
+                   thickness: edgeWidth}
         });
         return;
     }
@@ -1542,7 +1576,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject) {
             classes: "unbundledbezier",
             data: {id: edgeID, source: sourceID,
                    target: targetID, cpd: ctrlPtDists,
-                   cpw: ctrlPtWeights}
+                   cpw: ctrlPtWeights, thickness: edgeWidth}
         });
     }
     else {
@@ -1550,7 +1584,8 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject) {
         // we can just represent this as a straight bezier curve
       cy.add({
           classes: "basicbezier",
-          data: {id: edgeID, source: sourceID, target: targetID}
+          data: {id: edgeID, source: sourceID, target: targetID,
+                 thickness: edgeWidth}
       });
     }
 }
