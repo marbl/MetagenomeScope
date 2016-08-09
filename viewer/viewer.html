@@ -48,7 +48,9 @@
             });
         </script>
         <script src='cytoscape.js'></script>
-        <script src='sql.js'></script>
+        <!-- Should fix some/most errors with memory usage.
+             See https://github.com/kripken/sql.js/issues/113 for info -->
+        <script src='sql-memory-growth.js'></script>
         <script src='xdot2cy.js'></script>
     </head>
     <body>
