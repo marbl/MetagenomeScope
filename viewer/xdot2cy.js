@@ -653,6 +653,40 @@ function closeDB() {
     }
 }
 
+/* Following two functions are for loading server-side .db files, located
+ * in the same directory as this script. Note that #fsDialog might not
+ * refer to an actual div, depending on what HTML page uses this file, so
+ * it's important to make sure the prerequisite features are there before
+ * using this particular infrastructure.
+ */
+function openFileSelectDialog() {
+    $("#fsDialog").dialog("open"); 
+}
+
+function loadajaxDB() {
+    // usually we won't have the luxury of ID === filename, but this is a
+    // demo so might as well
+    $("#fsDialog").dialog("close");
+    var filename = $("input[name=fs]:checked").attr('id');
+    // jQuery doesn't support arraybuffer responses so we have to manually
+    // use an XMLHttpRequest(), strange capitalization and all
+    // Credit to this approach goes here, btw:
+    // http://www.henryalgus.com/reading-binary-files-using-jquery-ajax/
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", filename, true);
+    xhr.responseType = 'arraybuffer';
+    xhr.onload = function(eve) {
+        if (this.status === 200) {
+            closeDB();
+            var uIntArr = new Uint8Array(this.response);
+            CURR_DB = new SQL.Database(uIntArr);
+            parseDBcomponents();
+        }
+    };
+    xhr.send();
+}
+/* End server-side.db specific functions */
+
 /* Pops up a dialog displaying assembly information. */
 function displayInfo() {
     $("#infoDialog").dialog("open");

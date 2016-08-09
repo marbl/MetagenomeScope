@@ -1,4 +1,4 @@
 URL is http://www.umiacs.umd.edu/~mfedarko/AsmViz/
 
-Modified versions of viewer.html (renamed index.html) and xdot2cy.js,
-designed to load .db files from the server.
+Modified versions of viewer.html (renamed index.html) designed to load
+.db files from the server.
