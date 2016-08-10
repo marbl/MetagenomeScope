@@ -15,7 +15,17 @@
 #
 # Syntax is:
 #   ./collate.py -i (input file name) -o (file prefix)
-#       [-d (output directory name)] [-pg] [-px] [-w]
+#       [-d (output directory name)] [-pg] [-px] [-w] [-nodna]
+#
+# For contig assembly graphs (which include DNA sequence information for
+# nodes), the DNA sequence is automatically stored in the .db
+# file. However, this information can take up a lot of space, resulting in
+# significantly larger .db files. So if you would like to generate a .db
+# file without DNA sequences included (everything else about the .db file
+# will be the same, but nodes' DNA sequences will not be able to be copied to
+# the clipboard in AsmViz viewer), you can pass the optional -nodna
+# argument. (Passing -nodna has no effect on scaffold assembly graphs, which
+# lack DNA sequence information.)
 #
 # If you'd like to preserve the DOT file(s) after the program's execution, you
 # can pass the argument -pg to this program to save the .gv files created.
@@ -64,12 +74,12 @@ dir_fn = ""
 preserve_gv = False
 preserve_xdot = False
 overwrite = False
+use_dna = True
 i = 0
 # Possible TODO here: use a try... block here to let the user know if they
 # passed in arguments incorrectly, in a more user-friendly way
 # Also we should probably validate that the filenames for -i and -o are
-# valid (and we should prompt the user if this'll result in other files
-# being overwritten)
+# valid
 for arg in argv:
     if arg == "-i":
         asm_fn = argv[i + 1]
@@ -85,6 +95,8 @@ for arg in argv:
         preserve_xdot = True
     elif arg == "-w":
         overwrite = True
+    elif arg == "-nodna":
+        use_dna = False
     i += 1
 
 if asm_fn == "" or output_fn == "":
@@ -340,8 +352,8 @@ with open(asm_fn, 'r') as assembly_file:
         curr_node_id = ""
         curr_node_bp = 1
         curr_node_depth = 1
-        curr_node_dnafwd = ""
-        curr_node_dnarev = ""
+        curr_node_dnafwd = None
+        curr_node_dnarev = None
         parsing_node = False
         parsed_fwdseq = False
         for line in assembly_file:
@@ -375,7 +387,8 @@ with open(asm_fn, 'r') as assembly_file:
                 # declaration, then it refers to the node's DNA sequence.
                 if parsed_fwdseq:
                     # Parsing reverse sequence
-                    curr_node_dnarev = line.strip()
+                    if use_dna:
+                        curr_node_dnarev = line.strip()
                     n = graph_objects.Node(curr_node_id, curr_node_bp, False,
                             depth=curr_node_depth, dna_fwd=curr_node_dnafwd,
                             is_scaffold=False)
@@ -394,8 +407,8 @@ with open(asm_fn, 'r') as assembly_file:
                     # Clear temporary/marker variables for later use
                     curr_node_id = ""
                     curr_node_bp = 1
-                    curr_node_dnafwd = ""
-                    curr_node_dnarev = ""
+                    curr_node_dnafwd = None
+                    curr_node_dnarev = None
                     parsing_node = False
                     parsed_fwdseq = False
                 else:
@@ -403,7 +416,8 @@ with open(asm_fn, 'r') as assembly_file:
                     # number of bp, so we should probably mention that in
                     # README or even in the Javascript graph viewer)
                     parsed_fwdseq = True
-                    curr_node_dnafwd = line.strip()
+                    if use_dna:
+                        curr_node_dnafwd = line.strip()
     # TODO -- wait, is bp/length stored in GML files???
     # I guess for now I'm just going to treat every node as the same size
     elif parsing_GraphML:
