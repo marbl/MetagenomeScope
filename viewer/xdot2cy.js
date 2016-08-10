@@ -597,6 +597,8 @@ function drawComponent() {
     }
     initGraph();
     setGraphBindings();
+    var componentNodeCount = 0;
+    var componentEdgeCount = 0;
     SELECTED_ELES = cy.collection();
     SELECTED_ELE_COUNT = 0;
     PREV_ROTATION = 0;
@@ -642,6 +644,7 @@ function drawComponent() {
             currNode['x'], currNode['y'],
             [bb['boundingbox_x'], bb['boundingbox_y']]
         );
+        componentNodeCount += 1;
     }
     // NOTE that we intentionally only consider edges within this component.
     // Multiplicity is an inherently relative measure, so outliers in other
@@ -669,7 +672,25 @@ function drawComponent() {
     while (edgesStmt.step()) {
         renderEdgeObject(edgesStmt.getAsObject(), node2pos,
             maxMult, minMult, bb);
+        componentEdgeCount += 1;
     }
+    var nodePercentage = (componentNodeCount /
+        (parseInt($("#nodeCtEntry").text()) * 2)) * 100;
+    var edgePercentage = (componentEdgeCount /
+        (parseInt($("#edgeCountEntry").text()) * 2)) * 100;
+    // This is incredibly minor, but I always get annoyed at software that
+    // doesn't use correct grammar for stuff like this nowadays :P
+    var nodeNoun = (componentNodeCount === 1) ? "node" : "nodes";
+    var edgeNoun = (componentEdgeCount === 1) ? "edge" : "edges";
+    $("#currComponentInfo").html("Including negative nodes and edges, "
+       + "the current component (size rank "
+       + cmpRank + ") has <strong>" + componentNodeCount + " " + nodeNoun
+       + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
+       + "</strong>."
+       + " This component contains <strong>" + nodePercentage.toFixed(2)
+       + "% of the nodes</strong> in the assembly and <strong>"
+       + edgePercentage.toFixed(2) + "% of the edges</strong>"
+       + " in the assembly.");
     // NOTE modified initClusters() to do cluster height after the fact.
     // This represents an inefficiency when parsing xdot files, although it
     // shouldn't really affect anything major.
