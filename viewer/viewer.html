@@ -27,8 +27,21 @@
             var windowHgt = $(window).height();
             $(function() {
                 $(".largeDialog").dialog({autoOpen: false,
-                    width: windowWdth * 0.75, height: windowHgt * 0.6});
+                    width: 'auto', height: 'auto'});
+                $("#selectedInfoDialog").dialog("option", "buttons",
+                    [
+                        {
+                            text: "Copy selected nodes' DNA sequences to clipboard",
+                            icons: {
+                                primary: "ui-icon-copy"
+                            },
+                            click: copySelectedNodeDNA
+                        }
+                    ]
+                );
                 $("#selectedInfoDialog").on("dialogclose", clearInfoTables);
+                $("#selectedInfoDialog").dialog("option", "resizable",
+                    false);
                 // We don't set searchDialog's width since it's tiny
                 $("#searchDialog").dialog({autoOpen: false});
                 $("#drawButton").button({icons: {primary: "ui-icon-pencil"},
@@ -121,7 +134,7 @@
                  Not having this input causes the dialog's close button to be
                  automatically selected, which looks strange in this case. -->
             <input autofocus class="hiddenElement" />
-            <table border="2">
+            <table border="2" class="centeredInDiv">
                 <tr>
                     <th>Filename</th>
                     <th>Filetype</th>
@@ -142,12 +155,11 @@
                 </tr>
             </table>
             <h4>For contig assembly graphs (LastGraph)</h4>
-            <p>The <strong>node count</strong>,
-            <strong>total node length</strong>, and <strong>edge count</strong>
+            <p>The <strong>node count</strong> and <strong>edge count</strong>
             fields only include
-            "positive" contigs from the assembly graph.<br />
+            "positive" contigs from the assembly graph.
             If you would like to know these statistics with negative nodes
-            included, then you can just multiply those fields by two.</p>
+            included, then you can just multiply these fields by two.</p>
             <h4>For scaffold assembly graphs (GraphML)</h4>
             <p>All nodes are included in
             these statistics regardless of orientation.</p>
@@ -158,15 +170,15 @@
         <div id='selectedInfoDialog' title="Selected node/edge information"
             class="hiddenElement largeDialog">
             <input autofocus class="hiddenElement" />
-            <table border="2" id="nodeInfoTable">
+            <table border="2" id="nodeInfoTable" class="centeredInDiv">
             </table>
-            <br />
-            <table border="2" id="edgeInfoTable">
+            <table border="2" id="edgeInfoTable" class="centeredInDiv">
             </table>
         </div>
         <div id='searchDialog' title="Search for Nodes/Edges"
             class="hiddenElement">
-            <p>Enter in the ID of a node, edge, or node group to search for.
+            <p>Enter in the ID of a node, edge, or node group to search for,
+               and search by pressing the "Enter" key.
                You can enter a list of elements separated by commas, e.g.</p>
             <p>1, 5-&gt;6, 9</p>
             <input type='text' id='nodeselector' 

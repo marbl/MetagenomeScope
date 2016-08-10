@@ -33,3 +33,6 @@ button {
 .hiddenElement {
     display: none;
 }
+.centeredInDiv {
+    margin: 0 auto;
+}

@@ -87,7 +87,7 @@ var cy = null;
 var SELECTED_ELE_COUNT = 0;
 var SELECTED_ELES = null;
 var EDGE_TABLE_HEADER = "<tr><th colspan='3'>Selected edge information</th></tr><tr><th>Source Node ID</th><th>Target Node ID</th><th>Multiplicity</th></tr>";
-var NODE_TABLE_HEADER = "<tr><th colspan='4'>Selected node information</th></tr><tr><th>ID</th><th>Length</th><th>Depth</th><th>DNA Sequence</th></tr>";
+var NODE_TABLE_HEADER = "<tr><th colspan='3'>Selected node information</th></tr><tr><th>ID</th><th>Length</th><th>Depth</th></tr>";
 
 if (!(window.File && window.FileReader)) {
 	// TODO handle this better -- user should still be able to
@@ -703,6 +703,7 @@ function closeDB() {
  */
 function openFileSelectDialog() {
     $("#fsDialog").dialog("open"); 
+    scaleDialog("#fsDialog");
 }
 
 function loadajaxDB() {
@@ -732,6 +733,7 @@ function loadajaxDB() {
 /* Pops up a dialog displaying assembly information. */
 function displayInfo() {
     $("#infoDialog").dialog("open");
+    scaleDialog("#infoDialog");
 }
 
 /* Pops up a dialog displaying information about selected nodes/edges.
@@ -750,7 +752,7 @@ function displaySelectedInfo() {
         $("#nodeInfoTable").show();
         content = NODE_TABLE_HEADER;
         selectedNodes.each(function(i, n) {
-            // TODO abstract repetitive null-checking to sep func
+            // TODO abstract repetitive null-checking to sep func?
             var lengthEntry, depthEntry, dnaEntry;
             if (n.data("length") == null) {
                 lengthEntry = "N/A";
@@ -764,20 +766,15 @@ function displaySelectedInfo() {
             else {
                 depthEntry = n.data("depth").toLocaleString() + "x";
             }
-            if (n.data("dnafwd") == null) {
-                dnaEntry = "N/A";
-            }
-            else {
-                dnaEntry = n.data("dnafwd");
-            }
             content += "<tr><td>" + n.id() + "</td><td>" + lengthEntry +
-                "</td><td>" + depthEntry + "</td><td>" + dnaEntry +
-                "</td></tr>";
+                "</td><td>" + depthEntry + "</td></tr>";
         });
         $("#nodeInfoTable").append(content);
+        $("#selectedInfoDialog").next(".ui-dialog-buttonpane").prop("disabled", false).removeClass("ui-state-disabled");
     }
     else {
         $("#nodeInfoTable").hide();
+        $("#selectedInfoDialog").next(".ui-dialog-buttonpane").prop("disabled", true).addClass("ui-state-disabled");
     }
     if (selectedEdges.nonempty()) {
         // Populate edge table
@@ -797,12 +794,33 @@ function displaySelectedInfo() {
         $("#edgeInfoTable").hide();
     }
     $("#selectedInfoDialog").dialog("open");
+    scaleDialog("#selectedInfoDialog");
 }
 
 // Clear node/edge info tables in selected node/edge dialog
 function clearInfoTables(ev, ui) {
     $("#nodeInfoTable tr").remove();
     $("#edgeInfoTable tr").remove();
+}
+
+// Pop up *another* dialog for copying?
+function copySelectedNodeDNA() {
+
+}
+
+// Scales down the dialog so that its width is no more than 75% of the
+// window width and its height is no more than 60% of the window height
+// The dialog should already be open when this function is called (otherwise
+// its width/height might be set to 0)
+function scaleDialog(dialogID) {
+    var maxDialogWidth = $(window).width() * 0.75;
+    var maxDialogHeight = $(window).height() * 0.6;
+    if ($(dialogID).width() > maxDialogWidth) {
+        $(dialogID).dialog("option", "width", maxDialogWidth);
+    }
+    if ($(dialogID).height() > maxDialogHeight) {
+        $(dialogID).dialog("option", "height", maxDialogHeight);
+    }
 }
 
 /* Fits the graph to all its nodes. This should be useful if the user
@@ -822,6 +840,7 @@ function fitGraph() {
 // Displays the search dialog
 function showSearchDialog() {
     $("#searchDialog").dialog("open");
+    scaleDialog("#searchDialog");
 }
 
 function disableTooltip() {
@@ -1598,7 +1617,7 @@ function renderNodeObject(nodeObj, boundingboxObject) {
                w: INCHES_TO_PIXELS * nodeObj['w'],
                h: INCHES_TO_PIXELS * nodeObj['h'],
                house: nodeObj['shape'] === 'house', depth: nodeObj['depth'],
-               length: nodeObj['length'], dnafwd: nodeObj['dnafwd']},
+               length: nodeObj['length']},
         position: {x: pos[0], y: pos[1]}
     });
     if (parentID !== null) {
