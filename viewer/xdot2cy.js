@@ -497,6 +497,12 @@ function loadgraphfile() {
 	    fr.readAsText(inputfile);
     }
     else if (inputfile.name.endsWith(".db")) {
+        $("#drawButton").button("disable");
+        $("#infoButton").button("disable");
+        $("#selectedInfoButton").button("disable");
+        $("#searchButton").button("disable");
+        $("#fitButton").button("disable");
+        $("#collapseButton").button("disable");
         fr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
                 // Important -- remove old DB from memory if it exists
@@ -564,10 +570,6 @@ function parseDBcomponents() {
     $("#componentselector").spinner("enable");
     $("#infoButton").button("enable");
     $("#drawButton").button("enable");
-    $("#selectedInfoButton").button("disable");
-    $("#searchButton").button("disable");
-    $("#fitButton").button("disable");
-    $("#collapseButton").button("disable");
 }
 
 /* Draws the selected connected component in the .db file -- its nodes, its
@@ -584,12 +586,19 @@ function drawComponent() {
     // Graph initialization stuff here (shamelessly taken from initGraph()
     // below -- I'm thinking we can just get rid of that when we're done
     // with this)
-    // destroyGraph() should have been called in parseDBcomponents()
+    if (cy !== null) {
+        // If we already have a graph instance, clear that graph before
+        // initializing another one
+        // This should have already been called in parseDBcomponents(),
+        // but since you can draw multiple components for the same .db file
+        // we include this here as well
+        destroyGraph();
+        $("#selectedInfoButton").button("disable");
+    }
     initGraph();
     setGraphBindings();
     SELECTED_ELES = cy.collection();
     SELECTED_ELE_COUNT = 0;
-    $("#selectedInfoButton").button("disable");
     PREV_ROTATION = 0;
     CURR_ROTATION = parseInt(document.getElementById("rotation").value);
     cy.scratch("_collapsed", cy.collection());
