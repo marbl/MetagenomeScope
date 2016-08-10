@@ -499,6 +499,8 @@ function loadgraphfile() {
     else if (inputfile.name.endsWith(".db")) {
         $("#drawButton").button("disable");
         $("#infoButton").button("disable");
+        $("#currComponentInfo").html(
+            "No connected component has been drawn yet.");
         $("#selectedInfoButton").button("disable");
         $("#searchButton").button("disable");
         $("#fitButton").button("disable");
