@@ -83,6 +83,11 @@ var CURR_ROTATION;
 var CURR_DB = null;
 // Cytoscape.js graph instance
 var cy = null;
+// Number of non-cluster nodes / edges currently selected.
+var SELECTED_ELE_COUNT = 0;
+var SELECTED_ELES = null;
+var EDGE_TABLE_HEADER = "<tr><th colspan='3'>Selected edge information</th></tr><tr><th>Source Node ID</th><th>Target Node ID</th><th>Multiplicity</th></tr>";
+var NODE_TABLE_HEADER = "<tr><th colspan='4'>Selected node information</th></tr><tr><th>ID</th><th>Length</th><th>Depth</th><th>DNA Sequence</th></tr>";
 
 if (!(window.File && window.FileReader)) {
 	// TODO handle this better -- user should still be able to
@@ -325,6 +330,28 @@ function setGraphBindings() {
         fixBadEdges();
         cy.offRender();
     });
+    cy.on('select', 'node.noncluster, edge',
+        function(e) {
+            SELECTED_ELE_COUNT += 1;
+            SELECTED_ELES = SELECTED_ELES.union(e.cyTarget);
+            // If this is the first selected element, enable the
+            // selectedInfo button
+            if (SELECTED_ELE_COUNT === 1) {
+                $("#selectedInfoButton").button("enable");
+            }
+        }
+    );
+    cy.on('unselect', 'node.noncluster, edge',
+        function(e) {
+            SELECTED_ELE_COUNT -= 1;
+            SELECTED_ELES = SELECTED_ELES.difference(e.cyTarget);
+            // Not sure how we'd have a negative amount of selected
+            // elements, but I figure we might as well cover our bases :P
+            if (SELECTED_ELE_COUNT <= 0) {
+                $("#selectedInfoButton").button("disable");
+            }
+        }
+    );
     // NOTE this binding works -- when dragging a node, if any of its edges
     // become invalid then this automatically switches them to basicbezier
     // edges. It works great on smaller graphs, but on huge graphs it can
@@ -494,6 +521,9 @@ function loadgraphfile() {
  */
 function parseDBcomponents() {
     // Get assembly-wide info from the graph
+    if (cy !== null) {
+        destroyGraph();
+    }
     var stmt = CURR_DB.prepare("SELECT * FROM assembly;");
     stmt.step();
     var graphInfo = stmt.getAsObject();
@@ -534,6 +564,10 @@ function parseDBcomponents() {
     $("#componentselector").spinner("enable");
     $("#infoButton").button("enable");
     $("#drawButton").button("enable");
+    $("#selectedInfoButton").button("disable");
+    $("#searchButton").button("disable");
+    $("#fitButton").button("disable");
+    $("#collapseButton").button("disable");
 }
 
 /* Draws the selected connected component in the .db file -- its nodes, its
@@ -550,13 +584,12 @@ function drawComponent() {
     // Graph initialization stuff here (shamelessly taken from initGraph()
     // below -- I'm thinking we can just get rid of that when we're done
     // with this)
-    if (cy !== null) {
-        // If we already have a graph instance, clear that graph before
-        // initializing another one
-        destroyGraph();
-    }
+    // destroyGraph() should have been called in parseDBcomponents()
     initGraph();
     setGraphBindings();
+    SELECTED_ELES = cy.collection();
+    SELECTED_ELE_COUNT = 0;
+    $("#selectedInfoButton").button("disable");
     PREV_ROTATION = 0;
     CURR_ROTATION = parseInt(document.getElementById("rotation").value);
     cy.scratch("_collapsed", cy.collection());
@@ -690,6 +723,77 @@ function loadajaxDB() {
 /* Pops up a dialog displaying assembly information. */
 function displayInfo() {
     $("#infoDialog").dialog("open");
+}
+
+/* Pops up a dialog displaying information about selected nodes/edges.
+ * Note that we gather the info to be stored in this dialog upon opening
+ * the dialog, rather than as we select elements in the graph:
+ * I think this approach works better because it adds no overhead when
+ * selecting elements, only when the user decides to inspect those elements
+ * in particular.
+ */
+function displaySelectedInfo() {
+    var selectedNodes = SELECTED_ELES.filter("node.noncluster");
+    var selectedEdges = SELECTED_ELES.filter("edge");
+    var content;
+    if (selectedNodes.nonempty()) {
+        // Populate node table
+        $("#nodeInfoTable").show();
+        content = NODE_TABLE_HEADER;
+        selectedNodes.each(function(i, n) {
+            // TODO abstract repetitive null-checking to sep func
+            var lengthEntry, depthEntry, dnaEntry;
+            if (n.data("length") == null) {
+                lengthEntry = "N/A";
+            }
+            else {
+                lengthEntry = n.data("length").toLocaleString() + " nt";
+            }
+            if (n.data("depth") == null) {
+                depthEntry = "N/A";
+            }
+            else {
+                depthEntry = n.data("depth").toLocaleString() + "x";
+            }
+            if (n.data("dnafwd") == null) {
+                dnaEntry = "N/A";
+            }
+            else {
+                dnaEntry = n.data("dnafwd");
+            }
+            content += "<tr><td>" + n.id() + "</td><td>" + lengthEntry +
+                "</td><td>" + depthEntry + "</td><td>" + dnaEntry +
+                "</td></tr>";
+        });
+        $("#nodeInfoTable").append(content);
+    }
+    else {
+        $("#nodeInfoTable").hide();
+    }
+    if (selectedEdges.nonempty()) {
+        // Populate edge table
+        $("#edgeInfoTable").show();
+        content = EDGE_TABLE_HEADER;
+        selectedEdges.each(function(i, e) {
+            var multEntry = e.data("mult");
+            if (multEntry == null) {
+                multEntry = "N/A";
+            }
+            content += "<tr><td>" + e.data("source") + "</td><td>" +
+                e.data("target") + "</td><td>" + multEntry + "</td></tr>";
+        });
+        $("#edgeInfoTable").append(content);
+    }
+    else {
+        $("#edgeInfoTable").hide();
+    }
+    $("#selectedInfoDialog").dialog("open");
+}
+
+// Clear node/edge info tables in selected node/edge dialog
+function clearInfoTables(ev, ui) {
+    $("#nodeInfoTable tr").remove();
+    $("#edgeInfoTable tr").remove();
 }
 
 /* Fits the graph to all its nodes. This should be useful if the user
@@ -1484,7 +1588,8 @@ function renderNodeObject(nodeObj, boundingboxObject) {
         data: {id: nodeID, parent: parentID, polypts: nodePolygonPts, 
                w: INCHES_TO_PIXELS * nodeObj['w'],
                h: INCHES_TO_PIXELS * nodeObj['h'],
-               house: nodeObj['shape'] === 'house'},
+               house: nodeObj['shape'] === 'house', depth: nodeObj['depth'],
+               length: nodeObj['length'], dnafwd: nodeObj['dnafwd']},
         position: {x: pos[0], y: pos[1]}
     });
     if (parentID !== null) {
@@ -1537,7 +1642,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         cy.add({
             classes: "basicbezier",
             data: {id: edgeID, source: sourceID, target: targetID,
-                   thickness: edgeWidth}
+                   thickness: edgeWidth, mult: multiplicity}
         });
         return;
     }
@@ -1613,7 +1718,8 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
             classes: "unbundledbezier",
             data: {id: edgeID, source: sourceID,
                    target: targetID, cpd: ctrlPtDists,
-                   cpw: ctrlPtWeights, thickness: edgeWidth}
+                   cpw: ctrlPtWeights, thickness: edgeWidth,
+                   mult: multiplicity}
         });
     }
     else {
@@ -1622,7 +1728,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
       cy.add({
           classes: "basicbezier",
           data: {id: edgeID, source: sourceID, target: targetID,
-                 thickness: edgeWidth}
+                 thickness: edgeWidth, mult: multiplicity}
       });
     }
 }

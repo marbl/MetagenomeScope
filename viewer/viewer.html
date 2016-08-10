@@ -22,14 +22,21 @@
         <link rel="stylesheet" href="viewer_style.css">
         <!-- Initialize some jQuery UI things -->
         <script>
+            // scale dialogs to fit within window
+            var windowWdth = $(window).width();
+            var windowHgt = $(window).height();
             $(function() {
-                $("#infoDialog").dialog({autoOpen: false, width: 'auto',
-                    height: 'auto'});
+                $(".largeDialog").dialog({autoOpen: false,
+                    width: windowWdth * 0.75, height: windowHgt * 0.6});
+                $("#selectedInfoDialog").on("dialogclose", clearInfoTables);
+                // We don't set searchDialog's width since it's tiny
                 $("#searchDialog").dialog({autoOpen: false});
                 $("#drawButton").button({icons: {primary: "ui-icon-pencil"},
                     disabled: true});
                 $("#infoButton").button({icons: {primary: "ui-icon-info"},
                     disabled: true});
+                $("#selectedInfoButton").button({icons: {primary:
+                    "ui-icon-note"}, disabled: true});
                 $("#searchButton").button({icons: {primary:
                     "ui-icon-search"}, disabled: true});
                 $("#fitButton").button({icons: {primary:
@@ -77,8 +84,11 @@
                     id="drawButton">Draw connected component</button>
     
                 <button type='button' onclick='displayInfo();'
-                    id="infoButton">Assembly information</button>
+                    id="infoButton">Assembly info</button>
     
+                <button type='button' onclick='displaySelectedInfo();'
+                    id="selectedInfoButton">Selected node/edge info</button>
+
                 <button type='button' onclick='showSearchDialog()'
                     value="Search" id="searchButton">Search</button>
                 
@@ -105,7 +115,7 @@
             <div id="cy"></div> <!-- used as container for Cytoscape.js -->
         </div> <!-- end asmviz div -->
         <div id='infoDialog' title="Assembly Information"
-            class="hiddenElement">
+            class="hiddenElement largeDialog">
             <!-- We implement this hidden input with autofocus to fix the
                  issue detailed here: http://stackoverflow.com/a/4814001
                  Not having this input causes the dialog's close button to be
@@ -144,6 +154,15 @@
             <p>Since GraphML files do not contain node length information,
             the <strong>total node length</strong> and <strong>N50</strong>
             fields are unused.</p>
+        </div>
+        <div id='selectedInfoDialog' title="Selected node/edge information"
+            class="hiddenElement largeDialog">
+            <input autofocus class="hiddenElement" />
+            <table border="2" id="nodeInfoTable">
+            </table>
+            <br />
+            <table border="2" id="edgeInfoTable">
+            </table>
         </div>
         <div id='searchDialog' title="Search for Nodes/Edges"
             class="hiddenElement">
