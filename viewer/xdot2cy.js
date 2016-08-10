@@ -535,6 +535,7 @@ function parseDBcomponents() {
     var stmt = CURR_DB.prepare("SELECT * FROM assembly;");
     stmt.step();
     var graphInfo = stmt.getAsObject();
+    stmt.free();
     var fnInfo = graphInfo["filename"];
     var ftInfo = graphInfo["filetype"];
     var nodeInfo = graphInfo["node_count"].toLocaleString();
@@ -615,6 +616,7 @@ function drawComponent() {
         "size_rank = ?", [cmpRank]);
     bbStmt.step();
     var bb = bbStmt.getAsObject();
+    bbStmt.free();
     // We need a fast way to associate node IDs with their x/y positions.
     // This is for calculating edge control point weight/distance.
     // And doing 2 DB queries (src + tgt) for each edge will take a lot of
@@ -633,6 +635,7 @@ function drawComponent() {
         clustersInComponent = true;
         renderClusterObject(clustersStmt.getAsObject());
     }
+    clustersStmt.free();
     var nodesStmt = CURR_DB.prepare(
         "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
     var currNode;
@@ -648,6 +651,7 @@ function drawComponent() {
         );
         componentNodeCount += 1;
     }
+    nodesStmt.free();
     // NOTE that we intentionally only consider edges within this component.
     // Multiplicity is an inherently relative measure, so outliers in other
     // components will just mess things up in the current component.
@@ -657,6 +661,7 @@ function drawComponent() {
         "ORDER BY multiplicity DESC LIMIT 1", [cmpRank]);
     maxMultiplicityStmt.step();
     maxMult = maxMultiplicityStmt.getAsObject()['multiplicity'];
+    maxMultiplicityStmt.free();
     // If the assembly doesn't have edge multiplicity data, don't bother
     // trying to find the minimum -- that'll also be null.
     if (maxMult !== null) {
@@ -665,6 +670,7 @@ function drawComponent() {
             "ORDER BY multiplicity LIMIT 1", [cmpRank]);
         minMultiplicityStmt.step();
         minMult = minMultiplicityStmt.getAsObject()['multiplicity'];
+        minMultiplicityStmt.free();
     }
     else {
         minMult = null;
@@ -676,6 +682,7 @@ function drawComponent() {
             maxMult, minMult, bb);
         componentEdgeCount += 1;
     }
+    edgesStmt.free();
     var nodePercentage = (componentNodeCount /
         (parseInt($("#nodeCtEntry").text()) * 2)) * 100;
     var edgePercentage = (componentEdgeCount /
