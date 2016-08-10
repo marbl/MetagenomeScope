@@ -1,15 +1,17 @@
 #!/usr/bin/env python
-# Converts assembly graph data to a DOT file, and lays out the DOT file
-# using GraphViz to produce an XDOT output file that can be read by
-# xdot2cy.js.
+# Converts assembly graph data to a DOT file, lays out the DOT file
+# using GraphViz to produce an XDOT output file, and then reconciles the
+# XDOT layout data with biological data in a .db file that can be read by
+# the AsmViz viewer.
 #
 # This generates multiple DOT (intermediate) and XDOT (output) files,
 # one for each connected component in the graph that contains a number of nodes
 # greater than or equal to config.MIN_COMPONENT_SIZE. These files are named
 # according to their connected components' relative sizes -- with a -o
-# option of "output", the largest component will have output_1.xdot and
-# output_1.gv (if preserved), the second largest component will have
-# output_2.xdot and output_2.gv (if preserved), and so on.
+# option of "output", the largest component will have output_1.xdot (if
+# preserved using -px) and output_1.gv (if preserved using -pg),
+# the second largest component will have output_2.xdot and output_2.gv if
+# preserved, and so on.
 #
 # Syntax is:
 #   ./collate.py -i (input file name) -o (file prefix)
@@ -17,34 +19,26 @@
 #
 # If you'd like to preserve the DOT file(s) after the program's execution, you
 # can pass the argument -pg to this program to save the .gv files created.
-# The .xdot file(s) generated after the program's execution (DOT files with
-# additional layout information, created by GraphViz) can similarly be
+# The XDOT file(s) generated after the program's execution can similarly be
 # preserved if the -px argument is passed to this program.
 #
 # By default, this outputs db and (if -pg and/or -px is set) xdot/gv files
-# to a directory created using the -o option. However, if you pass
+# to a directory created in the CWD using the -o option. However, if you pass
 # a directory name to -d, you can change the directory name to an arbitrary
 # name that you specify. (Making use of this feature is recommended for most
 # cases.)
 #
 # By default, this raises an error if any files in the output file directory
-# will be overwritten. Passing the -w argument results in these errors being
+# will be overwritten, even if their names collide with .gv/.xdot files that
+# will not be preserved. Passing the -w argument results in these errors being
 # ignored and the corresponding files being overwritten, but note that an
 # error be raised regardless if the output file directory name already
-# exists as a non-directory file in the current directory. Also, note that
-# files in the output file directory that have the same filename as any of the
-# output files generated here (for an assembly graph where -o = "foobar" and
-# one component exists, foobar_1.gv, foobar_1.xdot, foobar.db) but
-# different case (e.g. FOOBAR_1.gv, Foobar_1.xdot, fooBar.db) will cause
-# this script to break due to how os.path.exists() handles
-# case-sensitive filesystems.
+# exists as a non-directory file in the current directory.
 #
 # NOTE that this just calls dot directly, and doesn't use the gv python library
 # to do this. I guess there are some relative advantages and disadvantages to
-# this approach, but for now it works fine. (If distributing this, we'd
-# probably have to change this approach somewhat. Or we could just require
-# the user have dot installed.)
-# NOTE -- it turns out that the order of nodes in the graph actually changes
+# this approach, but for now it works fine.
+# NOTE -- The order of nodes in the graph actually changes
 # the graph's output picture. Look into optimizing that somehow?
 
 # For getting command-line arguments
