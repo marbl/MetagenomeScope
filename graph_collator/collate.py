@@ -383,10 +383,11 @@ with open(asm_fn, 'r') as assembly_file:
                     # Parsing reverse sequence
                     curr_node_dnarev = line.strip()
                     n = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                            depth=curr_node_depth, dna_fwd=curr_node_dnafwd)
+                            depth=curr_node_depth, dna_fwd=curr_node_dnafwd,
+                            is_scaffold=False)
                     c = graph_objects.Node('c' + curr_node_id,
                             curr_node_bp, True, depth=curr_node_depth,
-                            dna_fwd=curr_node_dnarev)
+                            dna_fwd=curr_node_dnarev, is_scaffold=False)
                     nodeid2obj[curr_node_id] = n
                     nodeid2obj['c' + curr_node_id] = c
                     # Record this node for graph statistics
@@ -436,7 +437,8 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_orientation = l[1] # either "FOW" or "REV"
                 elif line.endswith("]\n"):
                     n = graph_objects.Node(curr_node_id, curr_node_bp,
-                            (curr_node_orientation == '"REV"'))
+                            (curr_node_orientation == '"REV"'),
+                            is_scaffold=True)
                     nodeid2obj[curr_node_id] = n
                     # Record this node for graph statistics
                     total_node_count += 1
