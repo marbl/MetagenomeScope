@@ -781,6 +781,7 @@ function displaySelectedInfo() {
         // Populate node table
         $("#nodeInfoTable").show();
         content = NODE_TABLE_HEADER;
+        var existsDNA = true;
         selectedNodes.each(function(i, n) {
             // TODO abstract repetitive null-checking to sep func?
             var lengthEntry, depthEntry, dnaEntry;
@@ -796,15 +797,28 @@ function displaySelectedInfo() {
             else {
                 depthEntry = n.data("depth").toLocaleString() + "x";
             }
+            if (!n.data("hasDNA")) {
+                existsDNA = false;
+            }
             content += "<tr><td>" + n.id() + "</td><td>" + lengthEntry +
                 "</td><td>" + depthEntry + "</td></tr>";
         });
         $("#nodeInfoTable").append(content);
-        $("#selectedInfoDialog").next(".ui-dialog-buttonpane").prop("disabled", false).removeClass("ui-state-disabled");
+        if (existsDNA) {
+            $("#selectedInfoDialog").next(".ui-dialog-buttonpane").prop(
+                "disabled", false).removeClass("ui-state-disabled");
+        }
+        else {
+            // If at least one of the nodes doesn't have DNA associated w/ it,
+            // disable the "copy DNA" button
+            $("#selectedInfoDialog").next(".ui-dialog-buttonpane").prop(
+                "disabled", true).addClass("ui-state-disabled");
+        }
     }
     else {
         $("#nodeInfoTable").hide();
-        $("#selectedInfoDialog").next(".ui-dialog-buttonpane").prop("disabled", true).addClass("ui-state-disabled");
+        $("#selectedInfoDialog").next(".ui-dialog-buttonpane").prop(
+            "disabled", true).addClass("ui-state-disabled");
     }
     if (selectedEdges.nonempty()) {
         // Populate edge table
@@ -1647,7 +1661,7 @@ function renderNodeObject(nodeObj, boundingboxObject) {
                w: INCHES_TO_PIXELS * nodeObj['w'],
                h: INCHES_TO_PIXELS * nodeObj['h'],
                house: nodeObj['shape'] === 'house', depth: nodeObj['depth'],
-               length: nodeObj['length']},
+               length: nodeObj['length'], hasDNA: nodeObj['dnafwd'] !== null},
         position: {x: pos[0], y: pos[1]}
     });
     if (parentID !== null) {
