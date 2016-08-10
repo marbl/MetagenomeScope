@@ -22,13 +22,15 @@
         <link rel="stylesheet" href="viewer_style.css">
         <!-- Initialize some jQuery UI things -->
         <script>
+            var windowWdth = $(window).width() * 0.75;
+            var windowHgt = $(window).height() * 0.6;
             $(function() {
-                $("#fsDialog").dialog({autoOpen: false, width: 'auto',
-                    height: 'auto'});
+                $("#fsDialog").dialog({autoOpen: false, width: windowWdth,
+                    height: windowHgt});
                 $("#loadDBbutton").button({icons: {primary:
                     "ui-icon-check"}});
-                $("#infoDialog").dialog({autoOpen: false, width: 'auto',
-                    height: 'auto'});
+                $("#infoDialog").dialog({autoOpen: false, width:
+                    windowWdth, height: windowHgt});
                 $("#searchDialog").dialog({autoOpen: false});
                 $("#drawButton").button({icons: {primary: "ui-icon-pencil"},
                     disabled: true});
