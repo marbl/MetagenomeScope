@@ -84,6 +84,8 @@ var CURR_DB = null;
 // Total number of nodes and edges in the current asm graph
 var ASM_NODE_COUNT = 0;
 var ASM_EDGE_COUNT = 0;
+var CURR_NE = 0;
+var TOTAL_NE = ASM_NODE_COUNT + ASM_EDGE_COUNT;
 // Cytoscape.js graph instance
 var cy = null;
 // Number of non-cluster nodes / edges currently selected.
@@ -658,6 +660,7 @@ function drawComponent() {
             [bb['boundingbox_x'], bb['boundingbox_y']]
         );
         componentNodeCount += 1;
+        CURR_NE += 1;
     }
     nodesStmt.free();
     // NOTE that we intentionally only consider edges within this component.
@@ -689,6 +692,7 @@ function drawComponent() {
         renderEdgeObject(edgesStmt.getAsObject(), node2pos,
             maxMult, minMult, bb);
         componentEdgeCount += 1;
+        CURR_NE += 1;
     }
     edgesStmt.free();
     var intro = "The ";

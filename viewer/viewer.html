@@ -56,6 +56,10 @@
                 $("#fileselectButton").button({icons: {primary:
                     "ui-icon-folder-open"}});
                 $("#componentselector").spinner({min: 1, disabled: true});
+                $("#progressbar").progressbar();
+                // TODO adjust width relative to screen size? or not, 100px
+                // really isn't a lot on most screens
+                $("#progressbar").width(100);
                 $("#controls").controlgroup();
                 $("#rotation").selectmenu({change: changeRotation,
                     width: 'auto', open: disableTooltip,
@@ -120,6 +124,7 @@
                 <button type='button' id='collapseButton'
                     onclick='startCollapseAll()'>Collapse All Node Groups</button>
     
+                <div id='progressbar'></div>
                 <div id='status'></div>
             </div> <!-- end controls div -->
             <div id="cy"></div> <!-- used as container for Cytoscape.js -->
