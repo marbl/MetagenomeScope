@@ -14,6 +14,14 @@
  * graph instance.
  */
 
+// How often (e.g. after how many nodes/half-edges) we update the progress
+// bar with its new value. Higher values of this mean less timeouts, which
+// means the graph is loaded somewhat faster, while smaller values of this
+// mean more timeouts (slower loading) but choppier progress bar progress.
+// Might be a good idea to scale this relative to the total # of nodes/edges
+// in the graph, but worrying about that later
+const PROGRESS_BAR_UPDATE_FREQ = 3;
+
 // These sets of five points (in the format [[x1, y1], [x2, y2], ...])
 // detail the polygons drawn to represent an invhouse (facing down; the
 // shape of non-reverse-complement nodes) and a house (facing up; the
@@ -629,18 +637,15 @@ function drawComponent() {
     // But first we need to get the bounding box of this component.
     // Along with the component's total node count.
     var bbStmt = CURR_DB.prepare(
-        "SELECT boundingbox_x, boundingbox_y FROM components WHERE " +
-        "size_rank = ?", [cmpRank]);
+        "SELECT boundingbox_x, boundingbox_y, node_count, edge_count FROM components WHERE " +
+        "size_rank = ? LIMIT 1", [cmpRank]);
     bbStmt.step();
-    var bb = bbStmt.getAsObject();
+    var fullObj = bbStmt.getAsObject();
     bbStmt.free();
-    // TODO make more efficient by merging this statement with above and
-    // extracting pertinent info after the fact
-    var ctStmt = CURR_DB.prepare("SELECT node_count FROM components WHERE " +
-        "size_rank = ?", [cmpRank]);
-    ctStmt.step();
-    var totalCmpNodeCount = ctStmt.getAsObject()['node_count'];
-    ctStmt.free();
+    var bb = {'boundingbox_x': fullObj['boundingbox_x'],
+              'boundingbox_y': fullObj['boundingbox_y']};
+    var totalElementCount = fullObj['node_count'] +
+        (0.5 * fullObj['edge_count']); 
     // We need a fast way to associate node IDs with their x/y positions.
     // This is for calculating edge control point weight/distance.
     // And doing 2 DB queries (src + tgt) for each edge will take a lot of
@@ -663,14 +668,14 @@ function drawComponent() {
     var nodesStmt = CURR_DB.prepare(
         "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
     CURR_NE = 0;
-    drawComponentNodesEdges(nodesStmt, bb, cmpRank, node2pos,
+    drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalCmpNodeCount);
+        totalElementCount);
 }
 
-function drawComponentNodesEdges(nodesStmt, bb, cmpRank, node2pos,
+function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalCmpNodeCount) {
+        totalElementCount) {
     var currNode;
     if (nodesStmt.step()) {
         currNode = nodesStmt.getAsObject();
@@ -684,13 +689,20 @@ function drawComponentNodesEdges(nodesStmt, bb, cmpRank, node2pos,
         );
         componentNodeCount += 1;
         CURR_NE += 1;
-        $("#progressbar").progressbar("value",
-            (CURR_NE / totalCmpNodeCount) * 100);
-        window.setTimeout(function() {
-            drawComponentNodesEdges(nodesStmt, bb, cmpRank, node2pos,
+        if (CURR_NE % PROGRESS_BAR_UPDATE_FREQ === 0) {
+            $("#progressbar").progressbar("value",
+                (CURR_NE / totalElementCount) * 100);
+            window.setTimeout(function() {
+                drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
+                    clustersInComponent, componentNodeCount,
+                    componentEdgeCount, totalElementCount);
+            }, 2);
+        }
+        else {
+            drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                 clustersInComponent, componentNodeCount, componentEdgeCount,
-                totalCmpNodeCount);
-        }, 2);
+                totalElementCount);
+        }
     }
     else {
         nodesStmt.free();
@@ -719,49 +731,83 @@ function drawComponentNodesEdges(nodesStmt, bb, cmpRank, node2pos,
         }
         var edgesStmt = CURR_DB.prepare(
             "SELECT * FROM edges WHERE component_rank = ?", [cmpRank]);
-        while (edgesStmt.step()) {
-            renderEdgeObject(edgesStmt.getAsObject(), node2pos,
-                maxMult, minMult, bb);
-            componentEdgeCount += 1;
-        }
-        edgesStmt.free();
-        var intro = "The ";
-        var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
-        var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
-        if ($("#filetypeEntry").text() === "LastGraph") {
-            intro = "Including negative nodes and edges, the ";
-            nodePercentage /= 2;
-            edgePercentage /= 2;
-        }
-        // This is incredibly minor, but I always get annoyed at software that
-        // doesn't use correct grammar for stuff like this nowadays :P
-        var nodeNoun = (componentNodeCount === 1) ? "node" : "nodes";
-        var edgeNoun = (componentEdgeCount === 1) ? "edge" : "edges";
-        $("#currComponentInfo").html(intro + "current component (size rank "
-           + cmpRank + ") has <strong>" + componentNodeCount + " " + nodeNoun
-           + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
-           + "</strong>."
-           + " This component contains <strong>" + nodePercentage.toFixed(2)
-           + "% of the nodes</strong> in the assembly and <strong>"
-           + edgePercentage.toFixed(2) + "% of the edges</strong>"
-           + " in the assembly.");
-        // NOTE modified initClusters() to do cluster height after the fact.
-        // This represents an inefficiency when parsing xdot files, although it
-        // shouldn't really affect anything major.
-        initClusters();
-        cy.endBatch();
-        cy.fit();
-        fixBadEdges();
-        $("#searchButton").button("enable");
-        $("#fitButton").button("enable");
-        if (clustersInComponent) {
-            $("#collapseButton").button("enable");
-        }
-        else {
-            $("#collapseButton").button("disable");
-        }
+        drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
+            clustersInComponent, componentNodeCount, componentEdgeCount,
+            totalElementCount);
     }
 }
+
+function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
+        clustersInComponent, componentNodeCount, componentEdgeCount,
+        totalElementCount) {
+    if (edgesStmt.step()) {
+        renderEdgeObject(edgesStmt.getAsObject(), node2pos,
+            maxMult, minMult, bb, componentNodeCount, componentEdgeCount,
+            totalElementCount);
+        componentEdgeCount += 1;
+        CURR_NE += 0.5;
+        if (CURR_NE % PROGRESS_BAR_UPDATE_FREQ === 0) {
+            $("#progressbar").progressbar("value",
+                (CURR_NE / totalElementCount) * 100);
+            window.setTimeout(function() {
+                drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
+                    cmpRank, clustersInComponent, componentNodeCount,
+                    componentEdgeCount, totalElementCount);
+            }, 2);
+        }
+        else {
+            drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
+                cmpRank, clustersInComponent, componentNodeCount,
+                componentEdgeCount, totalElementCount);
+        }
+    }
+    else {
+        edgesStmt.free();
+        finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
+            clustersInComponent);
+    }
+}
+
+function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
+        clustersInComponent) {
+    var intro = "The ";
+    var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
+    var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
+    if ($("#filetypeEntry").text() === "LastGraph") {
+        intro = "Including negative nodes and edges, the ";
+        nodePercentage /= 2;
+        edgePercentage /= 2;
+    }
+    // This is incredibly minor, but I always get annoyed at software that
+    // doesn't use correct grammar for stuff like this nowadays :P
+    var nodeNoun = (componentNodeCount === 1) ? "node" : "nodes";
+    var edgeNoun = (componentEdgeCount === 1) ? "edge" : "edges";
+    $("#currComponentInfo").html(intro + "current component (size rank "
+       + cmpRank + ") has <strong>" + componentNodeCount + " " + nodeNoun
+       + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
+       + "</strong>."
+       + " This component contains <strong>" + nodePercentage.toFixed(2)
+       + "% of the nodes</strong> in the assembly and <strong>"
+       + edgePercentage.toFixed(2) + "% of the edges</strong>"
+       + " in the assembly.");
+    // NOTE modified initClusters() to do cluster height after the fact.
+    // This represents an inefficiency when parsing xdot files, although it
+    // shouldn't really affect anything major.
+    initClusters();
+    cy.endBatch();
+    cy.fit();
+    fixBadEdges();
+    $("#searchButton").button("enable");
+    $("#fitButton").button("enable");
+    if (clustersInComponent) {
+        $("#collapseButton").button("enable");
+    }
+    else {
+        $("#collapseButton").button("disable");
+    }
+    $("#progressbar").progressbar("value", 100);
+}
+
 // TODO verify that this doesn't mess stuff up when you back out of and then
 // return to the page. Also are memory leaks even a thing that we have
 // to worry about in Javascript?????????
