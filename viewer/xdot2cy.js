@@ -881,7 +881,11 @@ function copySelectedNodeDNA() {
         if (i > 0) {
             dnaSeqs += "\n";
         }
-        dnaSeqs += ">Node " + NODES_TO_QUERY[i] + "\n";
+        dnaSeqs += ">NODE_" + NODES_TO_QUERY[i] + "\n";
+        // TODO For outputting to FASTA files for BLAST/etc, make sure
+        // all lines are less than 80 chars wide.
+        // Although maybe it would be easier to just format that in
+        // collate.py and store the text in the .db file that way?
         dnaSeqs += dnaStmt.getAsObject()['dnafwd'];
         dnaStmt.free();
     }
