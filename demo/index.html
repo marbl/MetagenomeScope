@@ -22,20 +22,33 @@
         <link rel="stylesheet" href="viewer_style.css">
         <!-- Initialize some jQuery UI things -->
         <script>
-            var windowWdth = $(window).width() * 0.75;
-            var windowHgt = $(window).height() * 0.6;
             $(function() {
-                $("#fsDialog").dialog({autoOpen: false, width: windowWdth,
-                    height: windowHgt});
+                $(".largeDialog").dialog({autoOpen: false,
+                    width: 'auto', height: 'auto'});
+                $("#selectedInfoDialog").dialog("option", "buttons",
+                    [
+                        {
+                            text: "Copy selected nodes' DNA sequences to clipboard",
+                            icons: {
+                                primary: "ui-icon-copy"
+                            },
+                            click: copySelectedNodeDNA
+                        }
+                    ]
+                );
+                $("#selectedInfoDialog").on("dialogclose", clearInfoTables);
+                $("#selectedInfoDialog").dialog("option", "resizable",
+                    false);
                 $("#loadDBbutton").button({icons: {primary:
                     "ui-icon-check"}});
-                $("#infoDialog").dialog({autoOpen: false, width:
-                    windowWdth, height: windowHgt});
+                // We don't set searchDialog's width since it's tiny
                 $("#searchDialog").dialog({autoOpen: false});
                 $("#drawButton").button({icons: {primary: "ui-icon-pencil"},
                     disabled: true});
                 $("#infoButton").button({icons: {primary: "ui-icon-info"},
                     disabled: true});
+                $("#selectedInfoButton").button({icons: {primary:
+                    "ui-icon-note"}, disabled: true});
                 $("#searchButton").button({icons: {primary:
                     "ui-icon-search"}, disabled: true});
                 $("#fitButton").button({icons: {primary:
@@ -45,6 +58,10 @@
                 $("#fileselectButton").button({icons: {primary:
                     "ui-icon-folder-open"}});
                 $("#componentselector").spinner({min: 1, disabled: true});
+                $("#progressbar").progressbar();
+                // TODO adjust width relative to screen size? or not, 100px
+                // really isn't a lot on most screens
+                $("#progressbar").width(100);
                 $("#controls").controlgroup();
                 $("#rotation").selectmenu({change: changeRotation,
                     width: 'auto', open: disableTooltip,
@@ -54,7 +71,7 @@
             });
         </script>
         <script src='cytoscape.js'></script>
-        <script src='sql-memory-growth.js'></script>
+        <script src='sql.js'></script>
         <script src='xdot2cy.js'></script>
     </head>
     <body>
@@ -76,8 +93,11 @@
                     id="drawButton">Draw connected component</button>
     
                 <button type='button' onclick='displayInfo();'
-                    id="infoButton">Assembly information</button>
-    
+                    id="infoButton">Assembly info</button>
+ 
+                <button type='button' onclick='displaySelectedInfo();'
+                    id="selectedInfoButton">Selected node/edge info</button>
+   
                 <button type='button' onclick='showSearchDialog()'
                     value="Search" id="searchButton">Search</button>
                 
@@ -99,12 +119,13 @@
                 <button type='button' id='collapseButton'
                     onclick='startCollapseAll()'>Collapse All Node Groups</button>
     
+                <div id='progressbar'></div>
                 <div id='status'></div>
             </div> <!-- end controls div -->
             <div id="cy"></div> <!-- used as container for Cytoscape.js -->
         </div> <!-- end asmviz div -->
         <div id='fsDialog' title="Select a demo assembly file"
-            class="hiddenElement">
+            class="hiddenElement largeDialog">
             <!-- fix weird selection problem -->
             <input autofocus class="hiddenElement" />
             <label for="ecoli.db">E. coli (LastGraph [Velvet], 279 contigs, 332
@@ -130,13 +151,13 @@
             </button>
         </div>
         <div id='infoDialog' title="Assembly Information"
-            class="hiddenElement">
+            class="hiddenElement largeDialog">
             <!-- We implement this hidden input with autofocus to fix the
                  issue detailed here: http://stackoverflow.com/a/4814001
                  Not having this input causes the dialog's close button to be
                  automatically selected, which looks strange in this case. -->
             <input autofocus class="hiddenElement" />
-            <table border="2">
+            <table border="2" class="centeredInDiv">
                 <tr>
                     <th>Filename</th>
                     <th>Filetype</th>
@@ -156,23 +177,33 @@
                     <td id="n50Entry"></td>
                 </tr>
             </table>
-            <h4>For contig assembly graphs (LastGraph)</h4>
-            <p>The <strong>node count</strong>,
-            <strong>total node length</strong>, and <strong>edge count</strong>
+            <p id="currComponentInfo">No connected component has been
+                drawn yet.</p>
+            <h3>For contig assembly graphs (LastGraph)</h3>
+            <p>The <strong>node count</strong> and <strong>edge count</strong>
             fields only include
-            "positive" contigs from the assembly graph.<br />
-            If you would like to know these statistics with including
-            negative nodes, then you can just multiply those fields by two.</p>
-            <h4>For scaffold assembly graphs (GraphML)</h4>
+            "positive" contigs and their edges from the assembly graph.
+            If you would like to know these statistics with negative nodes
+            included, then you can just multiply these fields by two.</p>
+            <h3>For scaffold assembly graphs (GraphML)</h3>
             <p>All nodes are included in
             these statistics regardless of orientation.</p>
             <p>Since GraphML files do not contain node length information,
             the <strong>total node length</strong> and <strong>N50</strong>
             fields are unused.</p>
         </div>
+        <div id='selectedInfoDialog' title="Selected node/edge information"
+            class="hiddenElement largeDialog">
+            <input autofocus class="hiddenElement" />
+            <table border="2" id="nodeInfoTable" class="centeredInDiv">
+            </table>
+            <table border="2" id="edgeInfoTable" class="centeredInDiv">
+            </table>
+        </div>
         <div id='searchDialog' title="Search for Nodes/Edges"
             class="hiddenElement">
-            <p>Enter in the ID of a node, edge, or node group to search for.
+            <p>Enter in the ID of a node, edge, or node group to search for,
+               and search by pressing the "Enter" key.
                You can enter a list of elements separated by commas, e.g.</p>
             <p>1, 5-&gt;6, 9</p>
             <input type='text' id='nodeselector' 
@@ -184,6 +215,16 @@
                     this.value = 'Enter node ID(s)';
                     this.style.color='#999999'; }"
                  onkeypress="searchWithEnter(event);" />
+        </div>
+        <div id='dnaDialog' title="Selected contig DNA sequences"
+            class="hiddenElement largeDialog">
+            <p class="centeredInDiv" style="text-align: center">
+            Press CTRL-C (Windows/Linux) or CMD-C (OS X) to copy the
+            DNA sequence(s) below to the clipboard.</p>
+            <textarea id="dnaTextArea" rows="5" cols="50"
+                class="centeredInDiv ui-corner-all ui-widget ui-widget-content"
+                style="display:block; margin-left: auto; margin-right: auto">
+            </textarea>
         </div>
     </body>
 </html>

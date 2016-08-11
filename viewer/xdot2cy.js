@@ -755,6 +755,14 @@ function loadajaxDB() {
     // usually we won't have the luxury of ID === filename, but this is a
     // demo so might as well
     $("#fsDialog").dialog("close");
+    $("#drawButton").button("disable");
+    $("#infoButton").button("disable");
+    $("#currComponentInfo").html(
+        "No connected component has been drawn yet.");
+    $("#selectedInfoButton").button("disable");
+    $("#searchButton").button("disable");
+    $("#fitButton").button("disable");
+    $("#collapseButton").button("disable");
     var filename = $("input[name=fs]:checked").attr('id');
     // jQuery doesn't support arraybuffer responses so we have to manually
     // use an XMLHttpRequest(), strange capitalization and all
