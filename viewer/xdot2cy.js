@@ -81,6 +81,9 @@ var CURR_ROTATION;
 // A reference to the current SQL.Database object from which we obtain the
 // graph's layout and biological data
 var CURR_DB = null;
+// Total number of nodes and edges in the current asm graph
+var ASM_NODE_COUNT = 0;
+var ASM_EDGE_COUNT = 0;
 // Cytoscape.js graph instance
 var cy = null;
 // Number of non-cluster nodes / edges currently selected.
@@ -538,7 +541,8 @@ function parseDBcomponents() {
     stmt.free();
     var fnInfo = graphInfo["filename"];
     var ftInfo = graphInfo["filetype"];
-    var nodeInfo = graphInfo["node_count"].toLocaleString();
+    ASM_NODE_COUNT = graphInfo["node_count"];
+    var nodeInfo = ASM_NODE_COUNT.toLocaleString();
     // Record total node length -- not possible for GraphML files
     var bpCt = graphInfo["total_length"];
     var bpInfo;
@@ -548,7 +552,8 @@ function parseDBcomponents() {
     else {
         bpInfo = "N/A";
     }
-    var edgeInfo = graphInfo["edge_count"].toLocaleString();
+    ASM_EDGE_COUNT = graphInfo["edge_count"];
+    var edgeInfo = ASM_EDGE_COUNT.toLocaleString();
     var compCt = graphInfo["component_count"];
     var compInfo = compCt.toLocaleString();
     // Record N50 -- same as with total node length, not poss. for GMLs
@@ -683,16 +688,19 @@ function drawComponent() {
         componentEdgeCount += 1;
     }
     edgesStmt.free();
-    var nodePercentage = (componentNodeCount /
-        (parseInt($("#nodeCtEntry").text()) * 2)) * 100;
-    var edgePercentage = (componentEdgeCount /
-        (parseInt($("#edgeCountEntry").text()) * 2)) * 100;
+    var intro = "The ";
+    var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
+    var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
+    if ($("#filetypeEntry").text() === "LastGraph") {
+        intro = "Including negative nodes and edges, the ";
+        nodePercentage /= 2;
+        edgePercentage /= 2;
+    }
     // This is incredibly minor, but I always get annoyed at software that
     // doesn't use correct grammar for stuff like this nowadays :P
     var nodeNoun = (componentNodeCount === 1) ? "node" : "nodes";
     var edgeNoun = (componentEdgeCount === 1) ? "edge" : "edges";
-    $("#currComponentInfo").html("Including negative nodes and edges, "
-       + "the current component (size rank "
+    $("#currComponentInfo").html(intro + "current component (size rank "
        + cmpRank + ") has <strong>" + componentNodeCount + " " + nodeNoun
        + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
        + "</strong>."
