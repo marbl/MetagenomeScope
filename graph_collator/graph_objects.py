@@ -118,16 +118,20 @@ class Node(object):
            property, which represents the actual height of this node as
            determined by GraphViz.
         """
-        rounding_done = 0
-        h = sqrt(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
-        hs = h**2
-        if hs > config.MAX_CONTIG_AREA:
-            h = config.MAX_CONTIG_HEIGHT
-            rounding_done = 1
-        elif hs < config.MIN_CONTIG_AREA:
-            h = config.MIN_CONTIG_HEIGHT
-            rounding_done = -1
-        return (h, rounding_done)
+        if not self.is_scaffold:
+            rounding_done = 0
+            h = sqrt(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
+            hs = h**2
+            if hs > config.MAX_CONTIG_AREA:
+                h = config.MAX_CONTIG_HEIGHT
+                rounding_done = 1
+            elif hs < config.MIN_CONTIG_AREA:
+                h = config.MIN_CONTIG_HEIGHT
+                rounding_done = -1
+            return (h, rounding_done)
+        else:
+            # don't bother scaling scaffolds since they'll uniformly sized
+            return (config.MIN_CONTIG_AREA, 0)
 
     def node_info(self, custom_shape=None, custom_style=None):
         """Returns a string representing this node that can be used in a .dot
