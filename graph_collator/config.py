@@ -31,13 +31,13 @@ MIN_COMPONENT_SIZE = 1
 
 # If we opt not to use one or both of the bounds here, we can set these to
 # float("inf") or float("-inf"), respectively.
-MAX_CONTIG_AREA = 5
-MIN_CONTIG_AREA = 0.5
+MAX_CONTIG_AREA = 10
+MIN_CONTIG_AREA = 1
 MAX_CONTIG_HEIGHT = sqrt(MAX_CONTIG_AREA)
 MIN_CONTIG_HEIGHT = sqrt(MIN_CONTIG_AREA)
 WIDTH_HEIGHT_RATIO = 1.0
 # The base we use when logarithmically scaling contigs based on length
-CONTIG_SCALING_LOG_BASE = 100
+CONTIG_SCALING_LOG_BASE = 10
 
 ### Frequently-used GraphViz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html
