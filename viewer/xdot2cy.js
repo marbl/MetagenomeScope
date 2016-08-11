@@ -89,6 +89,9 @@ var cy = null;
 // Number of non-cluster nodes / edges currently selected.
 var SELECTED_ELE_COUNT = 0;
 var SELECTED_ELES = null;
+// Array of node IDs which the user requested info on. Used as "input"
+// for the DNA dialog.
+var NODES_TO_QUERY = [];
 var EDGE_TABLE_HEADER = "<tr><th colspan='3'>Selected edge information</th></tr><tr><th>Source Node ID</th><th>Target Node ID</th><th>Multiplicity</th></tr>";
 var NODE_TABLE_HEADER = "<tr><th colspan='3'>Selected node information</th></tr><tr><th>ID</th><th>Length</th><th>Depth</th></tr>";
 
@@ -807,9 +810,16 @@ function displaySelectedInfo() {
             }
             if (!n.data("hasDNA")) {
                 existsDNA = false;
+                NODES_TO_QUERY = [];
             }
             content += "<tr><td>" + n.id() + "</td><td>" + lengthEntry +
                 "</td><td>" + depthEntry + "</td></tr>";
+            // Save the node's ID for if the user requests DNA info
+            // We check existsDNA to avoid using up memory if the selected
+            // nodes don't have any DNA
+            if (existsDNA) {
+                NODES_TO_QUERY.push(n.id());
+            }
         });
         $("#nodeInfoTable").append(content);
         if (existsDNA) {
@@ -853,11 +863,34 @@ function displaySelectedInfo() {
 function clearInfoTables(ev, ui) {
     $("#nodeInfoTable tr").remove();
     $("#edgeInfoTable tr").remove();
+    // Clear NODES_TO_QUERY
+    NODES_TO_QUERY.length = 0;
 }
 
 // Pop up *another* dialog for copying?
 function copySelectedNodeDNA() {
-
+    // Get DNA sequences from database file, and append them to a string
+    var dnaStmt;
+    var dnaSeqs = "";
+    for (var i = 0; i < NODES_TO_QUERY.length; i++) {
+        // TODO Is there any way to make this more efficient? Like, via
+        // selecting multiple dnafwd values at once...?
+        dnaStmt = CURR_DB.prepare("SELECT dnafwd FROM nodes WHERE id = ?",
+            [NODES_TO_QUERY[i]]);
+        dnaStmt.step();
+        if (i > 0) {
+            dnaSeqs += "\n";
+        }
+        dnaSeqs += ">Node " + NODES_TO_QUERY[i] + "\n";
+        dnaSeqs += dnaStmt.getAsObject()['dnafwd'];
+        dnaStmt.free();
+    }
+    // Make that string the content of the DNA text area using jQuery
+    $("#dnaTextArea").text(dnaSeqs);
+    // Select it, to enable quick copying-to-clipboard
+    $("#dnaTextArea").select();
+    $("#dnaDialog").dialog("open");
+    scaleDialog("#dnaDialog");
 }
 
 // Scales down the dialog so that its width is no more than 75% of the
