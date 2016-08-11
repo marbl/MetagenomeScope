@@ -36,6 +36,8 @@ MIN_CONTIG_AREA = 0.5
 MAX_CONTIG_HEIGHT = sqrt(MAX_CONTIG_AREA)
 MIN_CONTIG_HEIGHT = sqrt(MIN_CONTIG_AREA)
 WIDTH_HEIGHT_RATIO = 1.0
+# The base we use when logarithmically scaling contigs based on length
+CONTIG_SCALING_LOG_BASE = 100
 
 ### Frequently-used GraphViz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html

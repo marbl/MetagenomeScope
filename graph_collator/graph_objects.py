@@ -119,7 +119,7 @@ class Node(object):
            determined by GraphViz.
         """
         rounding_done = 0
-        h = sqrt(log(self.bp, 100))
+        h = sqrt(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
         hs = h**2
         if hs > config.MAX_CONTIG_AREA:
             h = config.MAX_CONTIG_HEIGHT
