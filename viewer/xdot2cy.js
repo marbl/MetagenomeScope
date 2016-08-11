@@ -85,7 +85,7 @@ var CURR_DB = null;
 var ASM_NODE_COUNT = 0;
 var ASM_EDGE_COUNT = 0;
 var CURR_NE = 0;
-var TOTAL_NE = ASM_NODE_COUNT + ASM_EDGE_COUNT;
+var TOTAL_NE = 0;
 // Cytoscape.js graph instance
 var cy = null;
 // Number of non-cluster nodes / edges currently selected.
@@ -334,10 +334,15 @@ function setGraphBindings() {
     // the check for future rendering frames.
     // This ensures we call fixBadEdges() only after edges have been
     // displayed.
-    cy.onRender(function() {
-        fixBadEdges();
-        cy.offRender();
-    });
+    // UPDATE: It looks like adding in the progress bar stuff, likely due to
+    // use of timeouts, messes this up and prevents it from being run (?).
+    // Or maybe fixBadEdges() is just run too soon? Anyway, moving
+    // fixBadEdges() to after we call cy.fit() seems to work fine. So I'm
+    // just going to do that.
+    //cy.onRender(function() {
+    //    fixBadEdges();
+    //    cy.offRender();
+    //});
     cy.on('select', 'node.noncluster, edge',
         function(e) {
             SELECTED_ELE_COUNT += 1;
@@ -434,7 +439,7 @@ function changeRotation() {
     PREV_ROTATION = CURR_ROTATION;
     CURR_ROTATION = parseInt(document.getElementById("rotation").value);
     if (GRAPH_RENDERED || !$("#fitButton").button("option", "disabled")) {
-        updateStatus("Rotating graph...");
+        $("#progressbar").progressbar("value", false);
         window.setTimeout(function() {
             cy.startBatch();
             // This only rotates nodes that are not collapsed
@@ -445,8 +450,8 @@ function changeRotation() {
             });
             cy.endBatch();
             cy.fit();
-            updateStatus("Finished rotating graph.");
-        }, 10);
+            $("#progressbar").progressbar("value", 100);
+        }, 20);
     }
 }
 
@@ -558,6 +563,7 @@ function parseDBcomponents() {
         bpInfo = "N/A";
     }
     ASM_EDGE_COUNT = graphInfo["edge_count"];
+    TOTAL_NE = ASM_NODE_COUNT + ASM_EDGE_COUNT;
     var edgeInfo = ASM_EDGE_COUNT.toLocaleString();
     var compCt = graphInfo["component_count"];
     var compInfo = compCt.toLocaleString();
@@ -621,12 +627,20 @@ function drawComponent() {
     cy.scratch("_ele2parent", {});
     // Now we render the nodes, edges, and clusters of this component.
     // But first we need to get the bounding box of this component.
+    // Along with the component's total node count.
     var bbStmt = CURR_DB.prepare(
         "SELECT boundingbox_x, boundingbox_y FROM components WHERE " +
         "size_rank = ?", [cmpRank]);
     bbStmt.step();
     var bb = bbStmt.getAsObject();
     bbStmt.free();
+    // TODO make more efficient by merging this statement with above and
+    // extracting pertinent info after the fact
+    var ctStmt = CURR_DB.prepare("SELECT node_count FROM components WHERE " +
+        "size_rank = ?", [cmpRank]);
+    ctStmt.step();
+    var totalCmpNodeCount = ctStmt.getAsObject()['node_count'];
+    ctStmt.free();
     // We need a fast way to associate node IDs with their x/y positions.
     // This is for calculating edge control point weight/distance.
     // And doing 2 DB queries (src + tgt) for each edge will take a lot of
@@ -648,8 +662,17 @@ function drawComponent() {
     clustersStmt.free();
     var nodesStmt = CURR_DB.prepare(
         "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
+    CURR_NE = 0;
+    drawComponentNodesEdges(nodesStmt, bb, cmpRank, node2pos,
+        clustersInComponent, componentNodeCount, componentEdgeCount,
+        totalCmpNodeCount);
+}
+
+function drawComponentNodesEdges(nodesStmt, bb, cmpRank, node2pos,
+        clustersInComponent, componentNodeCount, componentEdgeCount,
+        totalCmpNodeCount) {
     var currNode;
-    while (nodesStmt.step()) {
+    if (nodesStmt.step()) {
         currNode = nodesStmt.getAsObject();
         renderNodeObject(currNode, bb);
         // TODO inefficiency -- only call gv2cyPoint once. We call it once
@@ -661,76 +684,84 @@ function drawComponent() {
         );
         componentNodeCount += 1;
         CURR_NE += 1;
-    }
-    nodesStmt.free();
-    // NOTE that we intentionally only consider edges within this component.
-    // Multiplicity is an inherently relative measure, so outliers in other
-    // components will just mess things up in the current component.
-    var maxMult, minMult;
-    var maxMultiplicityStmt = CURR_DB.prepare(
-        "SELECT * FROM edges WHERE component_rank = ? " +
-        "ORDER BY multiplicity DESC LIMIT 1", [cmpRank]);
-    maxMultiplicityStmt.step();
-    maxMult = maxMultiplicityStmt.getAsObject()['multiplicity'];
-    maxMultiplicityStmt.free();
-    // If the assembly doesn't have edge multiplicity data, don't bother
-    // trying to find the minimum -- that'll also be null.
-    if (maxMult !== null) {
-        var minMultiplicityStmt = CURR_DB.prepare(
-            "SELECT * FROM edges WHERE component_rank = ? " + 
-            "ORDER BY multiplicity LIMIT 1", [cmpRank]);
-        minMultiplicityStmt.step();
-        minMult = minMultiplicityStmt.getAsObject()['multiplicity'];
-        minMultiplicityStmt.free();
+        $("#progressbar").progressbar("value",
+            (CURR_NE / totalCmpNodeCount) * 100);
+        window.setTimeout(function() {
+            drawComponentNodesEdges(nodesStmt, bb, cmpRank, node2pos,
+                clustersInComponent, componentNodeCount, componentEdgeCount,
+                totalCmpNodeCount);
+        }, 2);
     }
     else {
-        minMult = null;
-    }
-    var edgesStmt = CURR_DB.prepare(
-        "SELECT * FROM edges WHERE component_rank = ?", [cmpRank]);
-    while (edgesStmt.step()) {
-        renderEdgeObject(edgesStmt.getAsObject(), node2pos,
-            maxMult, minMult, bb);
-        componentEdgeCount += 1;
-        CURR_NE += 1;
-    }
-    edgesStmt.free();
-    var intro = "The ";
-    var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
-    var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
-    if ($("#filetypeEntry").text() === "LastGraph") {
-        intro = "Including negative nodes and edges, the ";
-        nodePercentage /= 2;
-        edgePercentage /= 2;
-    }
-    // This is incredibly minor, but I always get annoyed at software that
-    // doesn't use correct grammar for stuff like this nowadays :P
-    var nodeNoun = (componentNodeCount === 1) ? "node" : "nodes";
-    var edgeNoun = (componentEdgeCount === 1) ? "edge" : "edges";
-    $("#currComponentInfo").html(intro + "current component (size rank "
-       + cmpRank + ") has <strong>" + componentNodeCount + " " + nodeNoun
-       + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
-       + "</strong>."
-       + " This component contains <strong>" + nodePercentage.toFixed(2)
-       + "% of the nodes</strong> in the assembly and <strong>"
-       + edgePercentage.toFixed(2) + "% of the edges</strong>"
-       + " in the assembly.");
-    // NOTE modified initClusters() to do cluster height after the fact.
-    // This represents an inefficiency when parsing xdot files, although it
-    // shouldn't really affect anything major.
-    initClusters();
-    cy.endBatch();
-    cy.fit();
-    $("#searchButton").button("enable");
-    $("#fitButton").button("enable");
-    if (clustersInComponent) {
-        $("#collapseButton").button("enable");
-    }
-    else {
-        $("#collapseButton").button("disable");
+        nodesStmt.free();
+        // NOTE that we intentionally only consider edges within this component
+        // Multiplicity is an inherently relative measure, so outliers in other
+        // components will just mess things up in the current component.
+        var maxMult, minMult;
+        var maxMultiplicityStmt = CURR_DB.prepare(
+            "SELECT * FROM edges WHERE component_rank = ? " +
+            "ORDER BY multiplicity DESC LIMIT 1", [cmpRank]);
+        maxMultiplicityStmt.step();
+        maxMult = maxMultiplicityStmt.getAsObject()['multiplicity'];
+        maxMultiplicityStmt.free();
+        // If the assembly doesn't have edge multiplicity data, don't bother
+        // trying to find the minimum -- that'll also be null.
+        if (maxMult !== null) {
+            var minMultiplicityStmt = CURR_DB.prepare(
+                "SELECT * FROM edges WHERE component_rank = ? " + 
+                "ORDER BY multiplicity LIMIT 1", [cmpRank]);
+            minMultiplicityStmt.step();
+            minMult = minMultiplicityStmt.getAsObject()['multiplicity'];
+            minMultiplicityStmt.free();
+        }
+        else {
+            minMult = null;
+        }
+        var edgesStmt = CURR_DB.prepare(
+            "SELECT * FROM edges WHERE component_rank = ?", [cmpRank]);
+        while (edgesStmt.step()) {
+            renderEdgeObject(edgesStmt.getAsObject(), node2pos,
+                maxMult, minMult, bb);
+            componentEdgeCount += 1;
+        }
+        edgesStmt.free();
+        var intro = "The ";
+        var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
+        var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
+        if ($("#filetypeEntry").text() === "LastGraph") {
+            intro = "Including negative nodes and edges, the ";
+            nodePercentage /= 2;
+            edgePercentage /= 2;
+        }
+        // This is incredibly minor, but I always get annoyed at software that
+        // doesn't use correct grammar for stuff like this nowadays :P
+        var nodeNoun = (componentNodeCount === 1) ? "node" : "nodes";
+        var edgeNoun = (componentEdgeCount === 1) ? "edge" : "edges";
+        $("#currComponentInfo").html(intro + "current component (size rank "
+           + cmpRank + ") has <strong>" + componentNodeCount + " " + nodeNoun
+           + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
+           + "</strong>."
+           + " This component contains <strong>" + nodePercentage.toFixed(2)
+           + "% of the nodes</strong> in the assembly and <strong>"
+           + edgePercentage.toFixed(2) + "% of the edges</strong>"
+           + " in the assembly.");
+        // NOTE modified initClusters() to do cluster height after the fact.
+        // This represents an inefficiency when parsing xdot files, although it
+        // shouldn't really affect anything major.
+        initClusters();
+        cy.endBatch();
+        cy.fit();
+        fixBadEdges();
+        $("#searchButton").button("enable");
+        $("#fitButton").button("enable");
+        if (clustersInComponent) {
+            $("#collapseButton").button("enable");
+        }
+        else {
+            $("#collapseButton").button("disable");
+        }
     }
 }
-
 // TODO verify that this doesn't mess stuff up when you back out of and then
 // return to the page. Also are memory leaks even a thing that we have
 // to worry about in Javascript?????????
@@ -929,12 +960,12 @@ function scaleDialog(dialogID) {
  * large graphs).
  */
 function fitGraph() {
-    updateStatus("Fitting graph...");
+    $("#progressbar").progressbar("value", false);
     window.setTimeout(
         function() {
             cy.fit();
-            updateStatus("Finished fitting graph.");
-        }, 10
+            $("#progressbar").progressbar("value", 100);
+        }, 20
     );
 }
 
@@ -1015,12 +1046,7 @@ function searchForNode() {
  */
 function startCollapseAll() {
     var currVal = $("#collapseButton").button("option", "label");
-    if (currVal[0] === 'U') {
-        updateStatus("Uncollapsing...");
-    }
-    else {
-        updateStatus("Collapsing...");
-    }
+    $("#progressbar").progressbar("value", false);
     window.setTimeout(function() { collapseAll(currVal[0]) }, 50);
 }
 
@@ -1037,7 +1063,6 @@ function collapseAll(operationCharacter) {
                 uncollapseCluster(cluster);
             }
         );
-        updateStatus("Finished uncollapsing.");
     }
     else {
         cy.scratch("_uncollapsed").each(
@@ -1045,8 +1070,8 @@ function collapseAll(operationCharacter) {
                 collapseCluster(cluster);
             }
         );
-        updateStatus("Finished collapsing.");
     }
+    $("#progressbar").progressbar("value", 100);
     cy.endBatch();
 }
 
@@ -1254,7 +1279,6 @@ function attemptAddNodeAttr(textLine, currNode, boundingbox) {
 // Alerts user with an error message and updates status accordingly.
 function xdotParsingError(errorMsg) {
     alert(errorMsg);
-    updateStatus("Halted xdot parsing due to error.");
 }
 
 // A common error needed in xdot parsing

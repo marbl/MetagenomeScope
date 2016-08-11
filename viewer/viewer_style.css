@@ -27,6 +27,9 @@ button {
     height: 100%;
     display: table-row;
 }
+#progressbar > .ui-progressbar-value {
+    background: #0099ff;
+}
 .grayText {
     color: #999999;
 }
