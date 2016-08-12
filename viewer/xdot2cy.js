@@ -510,6 +510,8 @@ function loadgraphfile() {
 	    fr.readAsText(inputfile);
     }
     else if (inputfile.name.endsWith(".db")) {
+        // Important -- remove old DB from memory if it exists
+        closeDB();
         $("#drawButton").button("disable");
         $("#infoButton").button("disable");
         $("#currComponentInfo").html(
@@ -520,21 +522,39 @@ function loadgraphfile() {
         $("#collapseButton").button("disable");
         fr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
-                // Important -- remove old DB from memory if it exists
-                closeDB();
-                // Temporarily store .db file as array of 8-bit unsigned ints
-                var uIntArr = new Uint8Array(e.target.result);
-                CURR_DB = new SQL.Database(uIntArr);
-                parseDBcomponents();
+                loadDBfile(e.target.result);
             }
         }
-        fr.readAsArrayBuffer(inputfile);
-        return;
+        // set progress bar to indeterminate state while we close
+        // the old DB (if needed) and load the new DB file.
+        // This isn't really that helpful on computers/fast-ish
+        // systems, but for large DB files or mobile devices
+        // (basically, anywhere sql.js might run slowly) this is
+        // useful.
+        // worth noting: we store this function call in an anonymous
+        // function in order to delay its execution to when the
+        // timeout happens
+        // (javascript can be strange sometimes)
+        $("#progressbar").progressbar("value", false);
+        window.setTimeout(function() {
+            fr.readAsArrayBuffer(inputfile);
+        }, 50);
     }
     else {
         alert("Please select a valid .db or .xdot file to display.");
-        return;
     }
+}
+
+/* Runs prep. tasks for loading the database file and parsing its assembly +
+ * component information
+ */
+function loadDBfile(fileData) {
+    // Temporarily store .db file as array of 8-bit unsigned ints
+    var uIntArr = new Uint8Array(fileData);
+    CURR_DB = new SQL.Database(uIntArr);
+    parseDBcomponents();
+    // Set progressbar to "finished" state
+    $("#progressbar").progressbar("value", 100);
 }
 
 /* Retrieves assembly-wide and component information from the database,
@@ -821,6 +841,8 @@ function openFileSelectDialog() {
 }
 
 function loadajaxDB() {
+    // Important -- remove old DB from memory if it exists
+    closeDB();
     // usually we won't have the luxury of ID === filename, but this is a
     // demo so might as well
     $("#fsDialog").dialog("close");
@@ -842,12 +864,10 @@ function loadajaxDB() {
     xhr.responseType = 'arraybuffer';
     xhr.onload = function(eve) {
         if (this.status === 200) {
-            closeDB();
-            var uIntArr = new Uint8Array(this.response);
-            CURR_DB = new SQL.Database(uIntArr);
-            parseDBcomponents();
+            loadDBfile(this.response);
         }
     };
+    $("#progressbar").progressbar("value", false);
     xhr.send();
 }
 /* End server-side.db specific functions */
