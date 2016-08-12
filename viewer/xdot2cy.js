@@ -696,7 +696,7 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                 drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                     clustersInComponent, componentNodeCount,
                     componentEdgeCount, totalElementCount);
-            }, 2);
+            }, 0);
         }
         else {
             drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
@@ -753,7 +753,7 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
                 drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
                     cmpRank, clustersInComponent, componentNodeCount,
                     componentEdgeCount, totalElementCount);
-            }, 2);
+            }, 0);
         }
         else {
             drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
