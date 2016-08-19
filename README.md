@@ -196,7 +196,7 @@ available features:
   right-clicking on them; however, note that you have to right-click on
   the node group itself to do this, not on any of the nodes/edges within
   the node group. Collapsing a node group will convert any incoming/outgoing
-  edges to that node group to straight-line bezier edges, since no GraphViz
+  edges to that node group to straight-line Bezier edges, since no GraphViz
   data exists defining such an edge.
 * You can **collapse and uncollapse all node groups in the graph** by using
   the "Collapse All Node Groups"/"Uncollapse All Node Groups" button located
