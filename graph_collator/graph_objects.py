@@ -258,6 +258,8 @@ class NodeGroup(Node):
             self.bp += n.bp
             self.id_string += "%s_" % (n.id_string)
             self.nodes.append(n)
+            n.used_in_collapsing = True
+            n.group = self
         self.id_string = self.id_string[:-1] # remove last underscore
         super(NodeGroup, self).__init__(self.id_string, self.bp, False)
 

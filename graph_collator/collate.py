@@ -504,9 +504,6 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
     if cycle_validity:
         # Found a cycle!
         new_cycle = graph_objects.Cycle(*member_nodes)
-        for x in member_nodes:
-            x.used_in_collapsing = True
-            x.group = new_cycle
         nodes_to_draw.append(new_cycle)
         clusterid2obj[new_cycle.id_string] = new_cycle
     elif len(outgoing) > 1:
@@ -515,9 +512,6 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
         if bubble_validity:
             # Found a bubble!
             new_bubble = graph_objects.Bubble(*member_nodes)
-            for x in member_nodes:
-                x.used_in_collapsing = True
-                x.group = new_bubble
             nodes_to_draw.append(new_bubble)
             clusterid2obj[new_bubble.id_string] = new_bubble
     elif len(outgoing) == 1:
@@ -527,9 +521,6 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
         if rope_validity:
             # Found a frayed rope!
             new_rope = graph_objects.Rope(*member_nodes)
-            for x in member_nodes:
-                x.used_in_collapsing = True
-                x.group = new_rope
             nodes_to_draw.append(new_rope)
             clusterid2obj[new_rope.id_string] = new_rope
         else:
@@ -538,9 +529,6 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
             if chain_validity:
                 # Found a chain!
                 new_chain = graph_objects.Chain(*member_nodes)
-                for x in member_nodes:
-                    x.used_in_collapsing = True
-                    x.group = new_chain
                 nodes_to_draw.append(new_chain)
                 clusterid2obj[new_chain.id_string] = new_chain
     if not n.used_in_collapsing:
