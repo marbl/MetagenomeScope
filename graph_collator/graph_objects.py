@@ -226,9 +226,9 @@ class Node(object):
         group_id = None
         if self.group != None:
             group_id = self.group.id_string
-        length = None
-        if not self.is_scaffold:
-            length = self.bp
+        length = self.bp
+        # if not self.is_scaffold:
+        #     length = self.bp
         return (self.id_string, length, self.dna_fwd, self.depth,
                 self.component_size_rank, self.xdot_x, self.xdot_y,
                 self.xdot_width, self.xdot_height, self.xdot_shape,
