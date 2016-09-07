@@ -118,15 +118,16 @@ class Node(object):
            property, which represents the actual height of this node as
            determined by GraphViz.
         """
-        rounding_done = 0
-        h = sqrt(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
-        hs = h**2
+        hs = log(self.bp, config.CONTIG_SCALING_LOG_BASE)
         if hs > config.MAX_CONTIG_AREA:
             h = config.MAX_CONTIG_HEIGHT
             rounding_done = 1
         elif hs < config.MIN_CONTIG_AREA:
             h = config.MIN_CONTIG_HEIGHT
             rounding_done = -1
+        else:
+            h = sqrt(hs)
+            rounding_done = 0
         return (h, rounding_done)
         # NOTE that, when this branch was still in use, we'd reach it if
         # is_scaffold was True (i.e. when we weren't scaling scaffolds)
