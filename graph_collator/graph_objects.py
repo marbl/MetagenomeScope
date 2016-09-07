@@ -53,7 +53,7 @@ class Node(object):
        and as the superclass for groups of nodes."""
 
     def __init__(self, id_string, bp, is_complement, depth=None,
-                 dna_fwd=None, is_scaffold=True):
+                 dna_fwd=None):
         """Initializes the object. bp initially stood for "base pairs," but
            it really just means the length of this node. In single graphs
            that's measured in bp and in double graphs that's measured in nt.
@@ -66,10 +66,6 @@ class Node(object):
         self.dna_fwd = dna_fwd
         # If True, we use the "flipped" node style
         self.is_complement = is_complement
-        # If True, this node is a scaffold and its length should be given as
-        # None in the database (we still use self.bp to determine the size
-        # of this node in GraphViz, though)
-        self.is_scaffold = is_scaffold
         # List of nodes to which this node has an outgoing edge
         self.outgoing_nodes = []
         # List of nodes from which this node has an incoming edge
@@ -118,20 +114,17 @@ class Node(object):
            property, which represents the actual height of this node as
            determined by GraphViz.
         """
-        if not self.is_scaffold:
-            rounding_done = 0
-            h = sqrt(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
-            hs = h**2
-            if hs > config.MAX_CONTIG_AREA:
-                h = config.MAX_CONTIG_HEIGHT
-                rounding_done = 1
-            elif hs < config.MIN_CONTIG_AREA:
-                h = config.MIN_CONTIG_HEIGHT
-                rounding_done = -1
-            return (h, rounding_done)
+        hs = log(self.bp, config.CONTIG_SCALING_LOG_BASE)
+        if hs > config.MAX_CONTIG_AREA:
+            h = config.MAX_CONTIG_HEIGHT
+            rounding_done = 1
+        elif hs < config.MIN_CONTIG_AREA:
+            h = config.MIN_CONTIG_HEIGHT
+            rounding_done = -1
         else:
-            # don't bother scaling scaffolds since they'll uniformly sized
-            return (config.MIN_CONTIG_AREA, 0)
+            h = sqrt(hs)
+            rounding_done = 0
+        return (h, rounding_done)
 
     def node_info(self, custom_shape=None, custom_style=None):
         """Returns a string representing this node that can be used in a .dot
@@ -226,9 +219,7 @@ class Node(object):
         group_id = None
         if self.group != None:
             group_id = self.group.id_string
-        length = None
-        if not self.is_scaffold:
-            length = self.bp
+        length = self.bp
         return (self.id_string, length, self.dna_fwd, self.depth,
                 self.component_size_rank, self.xdot_x, self.xdot_y,
                 self.xdot_width, self.xdot_height, self.xdot_shape,

@@ -390,11 +390,10 @@ with open(asm_fn, 'r') as assembly_file:
                     if use_dna:
                         curr_node_dnarev = line.strip()
                     n = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                            depth=curr_node_depth, dna_fwd=curr_node_dnafwd,
-                            is_scaffold=False)
+                            depth=curr_node_depth, dna_fwd=curr_node_dnafwd)
                     c = graph_objects.Node('c' + curr_node_id,
                             curr_node_bp, True, depth=curr_node_depth,
-                            dna_fwd=curr_node_dnarev, is_scaffold=False)
+                            dna_fwd=curr_node_dnarev)
                     nodeid2obj[curr_node_id] = n
                     nodeid2obj['c' + curr_node_id] = c
                     # Record this node for graph statistics
@@ -418,8 +417,6 @@ with open(asm_fn, 'r') as assembly_file:
                     parsed_fwdseq = True
                     if use_dna:
                         curr_node_dnafwd = line.strip()
-    # TODO -- wait, is bp/length stored in GML files???
-    # I guess for now I'm just going to treat every node as the same size
     elif parsing_GraphML:
         graph_filetype = "GraphML"
         # Record state -- parsing node or parsing edge?
@@ -439,22 +436,22 @@ with open(asm_fn, 'r') as assembly_file:
                 if line.startswith("   id"):
                     l = line.split()
                     curr_node_id = l[1]
-                    curr_node_bp = 100 # see TODO above
                 elif line.startswith("   orientation"):
                     l = line.split()
                     curr_node_orientation = l[1] # either "FOW" or "REV"
+                elif line.startswith("   length"):
+                    # fetch value from length attribute
+                    l = line.split()
+                    curr_node_bp = int(l[1].strip("\""))
                 elif line.endswith("]\n"):
+                    #print curr_node_bp
                     n = graph_objects.Node(curr_node_id, curr_node_bp,
-                            (curr_node_orientation == '"REV"'),
-                            is_scaffold=True)
+                            (curr_node_orientation == '"REV"'))
                     nodeid2obj[curr_node_id] = n
                     # Record this node for graph statistics
                     total_node_count += 1
-                    # NOTE commented below two lines out, since GraphML
-                    # files don't contain scaffold length information
-                    # (as far as I can tell)
-                    #total_bp_length += curr_node_bp
-                    #bp_length_list.append(curr_node_bp)
+                    total_bp_length += curr_node_bp
+                    bp_length_list.append(curr_node_bp)
                     # Clear tmp/marker variables
                     parsing_node = False
                     curr_node_id = None
@@ -481,6 +478,7 @@ with open(asm_fn, 'r') as assembly_file:
             # Start parsing edge
             elif line.endswith("edge [\n"):
                 parsing_edge = True
+
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
 # This means that graph_filetype, total_node_count, total_edge_count,
@@ -588,15 +586,10 @@ for n in nodes_to_draw:
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
-if parsing_LastGraph:
-    # Parsing a filetype for which node lengths are defined
-    graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
-                total_edge_count, total_component_count, total_bp_length,
-                n50(bp_length_list))
-else:
-    # AsmViz Viewer will see the "None"s and render them as "N/A"
-    graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
-                total_edge_count, total_component_count, None, None)
+# Insert general assembly information into the database
+graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
+            total_edge_count, total_component_count, total_bp_length,
+            n50(bp_length_list))
 cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?)", graphVals)    
 
 # Conclusion: Output (desired) components of nodes to the .gv file
