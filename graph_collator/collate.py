@@ -390,11 +390,10 @@ with open(asm_fn, 'r') as assembly_file:
                     if use_dna:
                         curr_node_dnarev = line.strip()
                     n = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                            depth=curr_node_depth, dna_fwd=curr_node_dnafwd,
-                            is_scaffold=False)
+                            depth=curr_node_depth, dna_fwd=curr_node_dnafwd)
                     c = graph_objects.Node('c' + curr_node_id,
                             curr_node_bp, True, depth=curr_node_depth,
-                            dna_fwd=curr_node_dnarev, is_scaffold=False)
+                            dna_fwd=curr_node_dnarev)
                     nodeid2obj[curr_node_id] = n
                     nodeid2obj['c' + curr_node_id] = c
                     # Record this node for graph statistics
@@ -447,8 +446,7 @@ with open(asm_fn, 'r') as assembly_file:
                 elif line.endswith("]\n"):
                     #print curr_node_bp
                     n = graph_objects.Node(curr_node_id, curr_node_bp,
-                            (curr_node_orientation == '"REV"'),
-                            is_scaffold=True)
+                            (curr_node_orientation == '"REV"'))
                     nodeid2obj[curr_node_id] = n
                     # Record this node for graph statistics
                     total_node_count += 1

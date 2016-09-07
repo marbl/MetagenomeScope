@@ -53,7 +53,7 @@ class Node(object):
        and as the superclass for groups of nodes."""
 
     def __init__(self, id_string, bp, is_complement, depth=None,
-                 dna_fwd=None, is_scaffold=True):
+                 dna_fwd=None):
         """Initializes the object. bp initially stood for "base pairs," but
            it really just means the length of this node. In single graphs
            that's measured in bp and in double graphs that's measured in nt.
@@ -66,10 +66,6 @@ class Node(object):
         self.dna_fwd = dna_fwd
         # If True, we use the "flipped" node style
         self.is_complement = is_complement
-        # If True, this node is a scaffold and its length should be given as
-        # None in the database (we still use self.bp to determine the size
-        # of this node in GraphViz, though)
-        self.is_scaffold = is_scaffold
         # List of nodes to which this node has an outgoing edge
         self.outgoing_nodes = []
         # List of nodes from which this node has an incoming edge
@@ -129,11 +125,6 @@ class Node(object):
             h = sqrt(hs)
             rounding_done = 0
         return (h, rounding_done)
-        # NOTE that, when this branch was still in use, we'd reach it if
-        # is_scaffold was True (i.e. when we weren't scaling scaffolds)
-        #else:
-        #    # don't bother scaling scaffolds since they'll uniformly sized
-        #    return (config.MIN_CONTIG_AREA, 0)
 
     def node_info(self, custom_shape=None, custom_style=None):
         """Returns a string representing this node that can be used in a .dot
@@ -229,8 +220,6 @@ class Node(object):
         if self.group != None:
             group_id = self.group.id_string
         length = self.bp
-        # if not self.is_scaffold:
-        #     length = self.bp
         return (self.id_string, length, self.dna_fwd, self.depth,
                 self.component_size_rank, self.xdot_x, self.xdot_y,
                 self.xdot_width, self.xdot_height, self.xdot_shape,
