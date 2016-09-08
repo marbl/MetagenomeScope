@@ -488,6 +488,10 @@ with open(asm_fn, 'r') as assembly_file:
 # As we check nodes, we add either the individual node (if it can't be
 # collapsed) or its collapsed "group" (if it could be collapsed) to a list
 # of nodes to draw, which will later be processed and output to the .gv file.
+
+# TODO -- add precedence for structural pattern detection
+# (bubbles > frayed ropes > chains > cycles).
+
 nodes_to_try_collapsing = nodeid2obj.values()
 nodes_to_draw = []
 nodes_to_draw_individually = []
