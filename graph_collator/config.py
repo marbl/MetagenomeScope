@@ -7,6 +7,12 @@
 from math import sqrt
 import re
 
+# NOTE that changing MAX_COMPONENTS or MIN_COMPONENT_SIZE will result in
+# strange behavior with those component ranks in the AsmViz viewer (see
+# #35 on the GitHub page).
+# Really, with the .db approach you should just be laying out all components at
+# once. But as long as this config feature is still here, I figured a warning
+# would be useful.
 # How many connected components to display. Displays largest (by number of
 # nodes) components first -- so MAX_COMPONENTS = 1 displays only the largest
 # component, = 2 displays only the two largest components, etc.
