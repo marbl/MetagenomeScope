@@ -489,67 +489,61 @@ with open(asm_fn, 'r') as assembly_file:
 # collapsed) or its collapsed "group" (if it could be collapsed) to a list
 # of nodes to draw, which will later be processed and output to the .gv file.
 
-# TODO -- add precedence for structural pattern detection
-# (bubbles > frayed ropes > chains > cycles).
-
+# We apply "precedence" here: identify all bubbles, then frayed ropes, then
+# cycles, then chains. A TODO is making that precedence configurable
+# (and generalizing this code to get rid of redundant stuff, maybe?)
 nodes_to_try_collapsing = nodeid2obj.values()
 nodes_to_draw = []
-nodes_to_draw_individually = []
-for n in nodes_to_try_collapsing: # Test n as the "starting" node for a group
-    if n.used_in_collapsing:
-        # If we've already collapsed n, don't try to collapse it again
+for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
+    if n.used_in_collapsing or len(n.outgoing_nodes) <= 1:
+        # If n doesn't lead to multiple nodes, it couldn't be a bubble start
         continue
-    outgoing = n.outgoing_nodes
-    # Cycle start positions can have >= 1 outgoing nodes, so we have to
-    # check those first.
+    bubble_validity, member_nodes = graph_objects.Bubble.is_valid_bubble(n)
+    if bubble_validity:
+        # Found a bubble!
+        new_bubble = graph_objects.Bubble(*member_nodes)
+        nodes_to_draw.append(new_bubble)
+        clusterid2obj[new_bubble.id_string] = new_bubble
+
+for n in nodes_to_try_collapsing: # Test n as the "starting" node for a rope
+    if n.used_in_collapsing or len(n.outgoing_nodes) != 1:
+        # If n doesn't lead to a single node, it couldn't be a rope start
+        continue
+    rope_validity, member_nodes = graph_objects.Rope.is_valid_rope(n)
+    if rope_validity:
+        # Found a frayed rope!
+        new_rope = graph_objects.Rope(*member_nodes)
+        nodes_to_draw.append(new_rope)
+        clusterid2obj[new_rope.id_string] = new_rope
+
+for n in nodes_to_try_collapsing: # Test n as the "starting" node for a cycle
+    if n.used_in_collapsing:
+        continue
     cycle_validity, member_nodes = graph_objects.Cycle.is_valid_cycle(n)
     if cycle_validity:
         # Found a cycle!
         new_cycle = graph_objects.Cycle(*member_nodes)
         nodes_to_draw.append(new_cycle)
         clusterid2obj[new_cycle.id_string] = new_cycle
-    elif len(outgoing) > 1:
-        # Identify bubbles
-        bubble_validity, member_nodes = graph_objects.Bubble.is_valid_bubble(n)
-        if bubble_validity:
-            # Found a bubble!
-            new_bubble = graph_objects.Bubble(*member_nodes)
-            nodes_to_draw.append(new_bubble)
-            clusterid2obj[new_bubble.id_string] = new_bubble
-    elif len(outgoing) == 1:
-        # n could be the start of either a chain or a frayed rope.
-        # Identify "frayed ropes"
-        rope_validity, member_nodes = graph_objects.Rope.is_valid_rope(n)
-        if rope_validity:
-            # Found a frayed rope!
-            new_rope = graph_objects.Rope(*member_nodes)
-            nodes_to_draw.append(new_rope)
-            clusterid2obj[new_rope.id_string] = new_rope
-        else:
-            # Try to identify "chains" of nodes
-            chain_validity,member_nodes = graph_objects.Chain.is_valid_chain(n)
-            if chain_validity:
-                # Found a chain!
-                new_chain = graph_objects.Chain(*member_nodes)
-                nodes_to_draw.append(new_chain)
-                clusterid2obj[new_chain.id_string] = new_chain
-    if not n.used_in_collapsing:
-        # If we didn't collapse the node in any groups while processing it --
-        # that is, this node is not the "start" of any groups -- then
-        # this node will later either be 1) drawn individually (not in any
-        # group) or 2) collapsed, but as the middle/end/etc. of a group.
-        # So we'll add this node to a special list and process other nodes,
-        # and then later check to see if this node wound up used in a group.
-        nodes_to_draw_individually.append(n)
 
-# Check if non-start nodes were used in any groups (i.e. the group a given node
-# was in has already been added to nodes_to_draw, and used_in_collapsing has
-# been set to True). If not, then just draw the nodes individually.
-# (We go to all this trouble to ensure that we don't accidentally draw a node
-# twice or do something silly like that.)
-for n in nodes_to_draw_individually:
+for n in nodes_to_try_collapsing: # Test n as the "starting" node for a chain
+    if n.used_in_collapsing or len(n.outgoing_nodes) != 1:
+        # If n doesn't lead to a single node, it couldn't be a chain start
+        continue
+    chain_validity, member_nodes = graph_objects.Chain.is_valid_chain(n)
+    if chain_validity:
+        # Found a chain!
+        new_chain = graph_objects.Chain(*member_nodes)
+        nodes_to_draw.append(new_chain)
+        clusterid2obj[new_chain.id_string] = new_chain
+
+# Add individual (not used in collapsing) nodes to the nodes_to_draw list
+# We could build this list up at the start and then gradually remove nodes as
+# we use nodes in collapsing, but remove() is an O(n) operation so that'd make
+# the above runtime O(4n^2) or something, so I figure just doing this here is
+# generally faster
+for n in nodes_to_try_collapsing:
     if not n.used_in_collapsing:
-        # The node wasn't collapsed in any groups.
         nodes_to_draw.append(n)
 
 # Identify connected components
