@@ -1027,6 +1027,12 @@ function fitGraph() {
     );
 }
 
+/* Exports PNG image of graph. */
+function exportGraph() {
+    // open PNG MIME repr of graph in new window/tab (browser dependent)
+    window.open(cy.png(), "_blank");
+}
+
 // Displays the search dialog
 function showSearchDialog() {
     $("#searchDialog").dialog("open");
