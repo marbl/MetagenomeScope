@@ -359,7 +359,8 @@ function setGraphBindings() {
             SELECTED_ELE_COUNT -= 1;
             SELECTED_ELES = SELECTED_ELES.difference(e.cyTarget);
             // Not sure how we'd have a negative amount of selected
-            // elements, but I figure we might as well cover our bases :P
+            // elements, but I figure we might as well cover our bases with
+            // the <= 0 here :P
             if (SELECTED_ELE_COUNT <= 0) {
                 $("#selectedInfoButton").button("disable");
             }
@@ -456,19 +457,19 @@ function changeRotation() {
 }
 
 // If toUncollapseReady is false, changes the collapse button to say
-// "Collapse All Node Groups" with a minus icon.
+// "Collapse All" with a minus icon.
 // If toUncollapseReady is true, changes the collapse button to say
-// "Uncollapse All Node Groups" with a plus icon.
+// "Uncollapse All" with a plus icon.
 function changeCollapseButton(toUncollapseReady) {
     if (toUncollapseReady) {
         $("#collapseButton").button("option", "label",
-            "Uncollapse All Node Groups");
+            "Uncollapse All");
         $("#collapseButton").button("option", {icons:
             {primary: "ui-icon-plus"}});
     }
     else {
         $("#collapseButton").button("option", "label",
-            "Collapse All Node Groups");
+            "Collapse All");
         $("#collapseButton").button("option", {icons:
             {primary: "ui-icon-minus"}});
     }
@@ -520,6 +521,7 @@ function loadgraphfile() {
         $("#searchButton").button("disable");
         $("#fitButton").button("disable");
         $("#collapseButton").button("disable");
+        $("#exportButton").button("disable");
         fr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
                 loadDBfile(e.target.result);
@@ -811,6 +813,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     fixBadEdges();
     $("#searchButton").button("enable");
     $("#fitButton").button("enable");
+    $("#exportButton").button("enable");
     if (clustersInComponent) {
         $("#collapseButton").button("enable");
     }
@@ -1029,7 +1032,8 @@ function fitGraph() {
 
 /* Exports PNG image of graph. */
 function exportGraph() {
-    // open PNG MIME repr of graph in new window/tab (browser dependent)
+    // open PNG data URI repr of graph in new window/tab (whether window or tab
+    // is chosen is browser+user dependent; "_blank" is sufficient)
     window.open(cy.png(), "_blank");
 }
 
