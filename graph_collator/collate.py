@@ -342,10 +342,13 @@ connection.commit()
 # -GraphML (Bambus 3)
 # Planned for support:
 # -FASTG (SPAdes)
-# -GFA
+# -GFA (working on it now)
 with open(asm_fn, 'r') as assembly_file:
-    parsing_LastGraph = asm_fn.endswith(config.LASTGRAPH_SUFFIX)
-    parsing_GraphML   = asm_fn.endswith(config.GRAPHML_SUFFIX)
+    # We don't really care about case in file extensions
+    lowercase_asm_fn = asm_fn.lower()
+    parsing_LastGraph = lowercase_asm_fn.endswith(config.LASTGRAPH_SUFFIX)
+    parsing_GraphML   = lowercase_asm_fn.endswith(config.GRAPHML_SUFFIX)
+    parsing_GFA       = lowercase_asm_fn.endswith(config.GFA_SUFFIX)
     if parsing_LastGraph:
         graph_filetype = "LastGraph"
         # TODO -- Should we account for SEQ/NR information here?
@@ -478,7 +481,11 @@ with open(asm_fn, 'r') as assembly_file:
             # Start parsing edge
             elif line.endswith("edge [\n"):
                 parsing_edge = True
-
+    elif parsing_GFA:
+        # TODO -- add behavior here.
+        print "Parsing GFA file"
+    else:
+        raise ValueError, "Invalid input filetype"
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
 # This means that graph_filetype, total_node_count, total_edge_count,

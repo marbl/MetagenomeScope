@@ -89,8 +89,9 @@ GLOBALEDGE_STYLE = "headport=n,tailport=s"
 # The filename suffixes indicating a file is of a certain type.
 # Ideally, we should be able to detect what filetype an assembly file is by
 # just examining the file's contents, but for now this is an okay workaround.
-LASTGRAPH_SUFFIX = "LastGraph"
-GRAPHML_SUFFIX   = ".gml"
+LASTGRAPH_SUFFIX = "lastgraph"
+GRAPHML_SUFFIX   = "gml"
+GFA_SUFFIX       = "gfa"
 
 # Regular expressions we use to parse .xdot (version 1.7) auto-generated
 # files. You shouldn't need to modify these for most use cases.
