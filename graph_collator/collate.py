@@ -181,6 +181,27 @@ def dfs(n, seen_nodes):
             seen_nodes = dfs(j, seen_nodes)
     return seen_nodes
 
+def reverse_complement(dna_string):
+    """Returns the reverse complement of a string of DNA.
+
+    e.g. reverse_complement("GCATATA") == "TATATGC"
+
+    This is used when getting data from GFA files (which only include positive
+    DNA sequence information).
+    
+    Note that this will break on invalid DNA input (so things like RNA [due to
+    Uracil] or protein sequences will cause this to fail). I'm not entirely
+    sure what we'd do to find the "reverse complement" of RNA or of a protein
+    sequence, since those types of data don't really have reverse complements
+    (since they're single-stranded). I guess we can handle RNA separately in
+    the future? (TODO -- look into if this is a silly question or not)"""
+
+    rc = ""
+    dna_last_char_index = len(dna_string) - 1
+    for nt in range(dna_last_char_index, -1, -1):
+        rc += config.COMPLEMENT[dna_string[nt]] 
+    return rc
+
 def negate_node_id(id_string):
     """Negates a node ID.
     
@@ -483,6 +504,8 @@ with open(asm_fn, 'r') as assembly_file:
                 parsing_edge = True
     elif parsing_GFA:
         # TODO -- add behavior here.
+        # Given a + DNA seq, its - DNA seq is the RC of that DNA seq.
+        # (TODO) we can use reverse_complement to do this.
         print "Parsing GFA file"
     else:
         raise ValueError, "Invalid input filetype"

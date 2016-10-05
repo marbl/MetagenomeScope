@@ -7,6 +7,11 @@
 from math import sqrt
 import re
 
+# This really shouldn't be messed with. Defines a dict of nucleotides to their
+# complements that we can use when getting the reverse complement of a sequence
+# from the GFA format.
+COMPLEMENT = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
+
 # NOTE that changing MAX_COMPONENTS or MIN_COMPONENT_SIZE will result in
 # strange behavior with those component ranks in the AsmViz viewer (see
 # #35 on the GitHub page).
