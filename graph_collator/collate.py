@@ -503,10 +503,69 @@ with open(asm_fn, 'r') as assembly_file:
             elif line.endswith("edge [\n"):
                 parsing_edge = True
     elif parsing_GFA:
-        # TODO -- add behavior here.
-        # Given a + DNA seq, its - DNA seq is the RC of that DNA seq.
-        # (TODO) we can use reverse_complement to do this.
-        print "Parsing GFA file"
+        graph_filetype = "GFA"
+        # NOTE--
+        # Currently, we only parse (S)egment and (L)ink lines in GFA files,
+        # and only take into account their "required" fields (as given on the
+        # GFA spec).
+        # TODO--
+        # We can look into parsing S+L optional fields, as well as
+        # (C)ontainment and (P)ath lines (and, more
+        # importantly, making use of this data in the AsmViz viewer) in the
+        # future, but for now having Segment + Link data should match what we
+        # have for the other two supported input assembly graph filetypes.
+        for line in assembly_file:
+            # Parsing a segment (node) line
+            if line.startswith("S"):
+                # For GFA files: given a + DNA seq, its - DNA seq is the
+                # reverse complement of that DNA seq.
+                l = line.split()
+                curr_node_id = l[1]
+                # The sequence data can be optionally not given -- in this
+                # case, a single asterisk, *, will be located at l[2].
+                curr_node_dnafwd = l[2]
+                if curr_node_dnafwd != "*":
+                    curr_node_bp = len(curr_node_dnafwd)
+                else:
+                    # TODO how to handle no-length-given nodes?
+                    # Using the same basic solution as I did for GraphML files
+                    # until recently -- not ideal if we can figure something
+                    # else out, but for now this is a viable workaround
+                    curr_node_bp = 100
+                    curr_node_dnafwd = None
+                nPos = graph_objects.Node(curr_node_id, curr_node_bp, False,
+                        dna_fwd=curr_node_dnafwd)
+                nNeg = graph_objects.Node('c' + curr_node_id, curr_node_bp,
+                        True, dna_fwd=reverse_complement(curr_node_dnafwd))
+                nodeid2obj[curr_node_id] = nPos
+                nodeid2obj['c' + curr_node_id] = nNeg
+                # Update stats
+                total_node_count += 1
+                # Note that total length and n50 are going to be off if no DNA
+                # sequences are given for certain nodes. TODO: address this.
+                total_bp_length += curr_node_bp
+                bp_length_list.append(curr_node_bp)
+                bp_length_list.append(curr_node_bp)
+                # Clear the used temporary/marker variables for later use
+                curr_node_id = ""
+                curr_node_bp = 1
+                curr_node_dnafwd = None
+            # Parsing a link (edge) line from some id1 to id2
+            # I really like the way GFA handles edges; it makes this simple :)
+            elif line.startswith("L"):
+                a = line.split()
+                id1 = a[1] if a[2] != '-' else 'c' + a[1]
+                id2 = a[3] if a[4] != '-' else 'c' + a[3]
+                nid2 = negate_node_id(id2)
+                nid1 = negate_node_id(id1)
+                nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2])
+                # TODO handle odd loop case here and for LastGraph files.
+                # See #105 on GitHub.
+                nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1])
+                print "created edge from %s to %s." % (id1, id2)
+                print "thus, created edge from %s to %s." % (nid2, nid1)
+                # Update stats
+                total_edge_count += 1
     else:
         raise ValueError, "Invalid input filetype"
 
