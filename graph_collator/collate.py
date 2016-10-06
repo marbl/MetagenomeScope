@@ -526,6 +526,7 @@ with open(asm_fn, 'r') as assembly_file:
                 curr_node_dnafwd = l[2]
                 if curr_node_dnafwd != "*":
                     curr_node_bp = len(curr_node_dnafwd)
+                    curr_node_dnarev = reverse_complement(curr_node_dnafwd)
                 else:
                     # TODO how to handle no-length-given nodes?
                     # Using the same basic solution as I did for GraphML files
@@ -533,10 +534,11 @@ with open(asm_fn, 'r') as assembly_file:
                     # else out, but for now this is a viable workaround
                     curr_node_bp = 100
                     curr_node_dnafwd = None
+                    curr_node_dnarev = None
                 nPos = graph_objects.Node(curr_node_id, curr_node_bp, False,
                         dna_fwd=curr_node_dnafwd)
                 nNeg = graph_objects.Node('c' + curr_node_id, curr_node_bp,
-                        True, dna_fwd=reverse_complement(curr_node_dnafwd))
+                        True, dna_fwd=curr_node_dnarev)
                 nodeid2obj[curr_node_id] = nPos
                 nodeid2obj['c' + curr_node_id] = nNeg
                 # Update stats
@@ -562,8 +564,6 @@ with open(asm_fn, 'r') as assembly_file:
                 # TODO handle odd loop case here and for LastGraph files.
                 # See #105 on GitHub.
                 nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1])
-                print "created edge from %s to %s." % (id1, id2)
-                print "thus, created edge from %s to %s." % (nid2, nid1)
                 # Update stats
                 total_edge_count += 1
     else:
