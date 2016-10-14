@@ -402,7 +402,10 @@ with open(asm_fn, 'r') as assembly_file:
                 nid1 = negate_node_id(id1)
                 mult = int(a[3])
                 nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2], mult)
-                nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1], mult)
+                # Only add implied edge if the edge does not imply itself
+                # (see issue #105 on GitHub for context)
+                if not (id1 == nid2 and id2 == nid1):
+                    nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1], mult)
                 # Record this edge for graph statistics
                 total_edge_count += 1
             elif parsing_node:
@@ -528,7 +531,7 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_bp = len(curr_node_dnafwd)
                     curr_node_dnarev = reverse_complement(curr_node_dnafwd)
                 else:
-                    # TODO how to handle no-length-given nodes?
+                    # TODO how to handle no-length-given nodes? (see #106)
                     # Using the same basic solution as I did for GraphML files
                     # until recently -- not ideal if we can figure something
                     # else out, but for now this is a viable workaround
@@ -561,9 +564,10 @@ with open(asm_fn, 'r') as assembly_file:
                 nid2 = negate_node_id(id2)
                 nid1 = negate_node_id(id1)
                 nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2])
-                # TODO handle odd loop case here and for LastGraph files.
-                # See #105 on GitHub.
-                nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1])
+                # Only add implied edge if the edge does not imply itself
+                # (see issue #105 on GitHub for context)
+                if not (id1 == nid2 and id2 == nid1):
+                    nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1])
                 # Update stats
                 total_edge_count += 1
     else:
