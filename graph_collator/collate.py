@@ -100,7 +100,7 @@ for arg in argv:
     i += 1
 
 if asm_fn == "" or output_fn == "":
-    raise ValueError("No input and/or output file name provided")
+    raise ValueError, "No input and/or output file name provided"
 
 try:
     os.makedirs(dir_fn)
