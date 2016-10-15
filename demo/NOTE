@@ -1,4 +1,5 @@
 URL is http://www.umiacs.umd.edu/~mfedarko/AsmViz/
 
-Modified versions of viewer.html (renamed index.html) designed to load
-.db files from the server.
+The demo requires most things in the viewer/ directory of AsmViz' code, along
+with a modified version of viewer.html (renamed index.html here) designed to
+load .db files from the server.
