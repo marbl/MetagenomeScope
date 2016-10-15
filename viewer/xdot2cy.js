@@ -787,10 +787,13 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     var intro = "The ";
     var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
     var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
-    if ($("#filetypeEntry").text() === "LastGraph") {
-        intro = "Including negative nodes and edges, the ";
+    var all_nodes_edges_modifier = "the";
+    if ($("#filetypeEntry").text() !== "GraphML") {
+        intro = "Including <strong>both positive and negative</strong>" +
+            " nodes and edges, the ";
         nodePercentage /= 2;
         edgePercentage /= 2;
+        all_nodes_edges_modifier = "all positive and negative";
     }
     // This is incredibly minor, but I always get annoyed at software that
     // doesn't use correct grammar for stuff like this nowadays :P
@@ -799,11 +802,11 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     $("#currComponentInfo").html(intro + "current component (size rank "
        + cmpRank + ") has <strong>" + componentNodeCount + " " + nodeNoun
        + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
-       + "</strong>."
-       + " This component contains <strong>" + nodePercentage.toFixed(2)
-       + "% of the nodes</strong> in the assembly and <strong>"
-       + edgePercentage.toFixed(2) + "% of the edges</strong>"
-       + " in the assembly.");
+       + "</strong>. This component contains <strong>"
+       + nodePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
+       + " nodes</strong> in the assembly and <strong>"
+       + edgePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
+       + " edges</strong> in the assembly.");
     // NOTE modified initClusters() to do cluster height after the fact.
     // This represents an inefficiency when parsing xdot files, although it
     // shouldn't really affect anything major.
