@@ -1008,6 +1008,9 @@ function exportSelectedNodeDNA() {
     // Get DNA sequences from database file, and append them to a string
     var dnaStmt;
     var dnaSeqs = "";
+    var currDnaSeq;
+    var seqIndex;
+    var afterFirstSeqLine;
     for (var i = 0; i < NODES_TO_QUERY.length; i++) {
         // TODO Is there any way to make this more efficient? Like, via
         // selecting multiple dnafwd values at once...?
@@ -1018,11 +1021,17 @@ function exportSelectedNodeDNA() {
             dnaSeqs += "\n";
         }
         dnaSeqs += ">NODE_" + NODES_TO_QUERY[i] + "\n";
-        // TODO For outputting to FASTA files for BLAST/etc, it's convention
-        // to make sure all lines are less than 80 chars wide.
-        // Although maybe it would be easier to just format that in
-        // collate.py and store the text in the .db file that way?
-        dnaSeqs += dnaStmt.getAsObject()['dnafwd'];
+        afterFirstSeqLine = false;
+        currDnaSeq = dnaStmt.getAsObject()['dnafwd'];
+        for (seqIndex = 0; seqIndex < currDnaSeq.length; seqIndex += 70) {
+            if (afterFirstSeqLine) {
+                dnaSeqs += "\n";
+            }
+            else {
+                afterFirstSeqLine = true;
+            }
+            dnaSeqs += currDnaSeq.substring(seqIndex, seqIndex + 70);
+        }
         dnaStmt.free();
     }
     // kind of a silly hack but it works
