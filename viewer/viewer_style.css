@@ -39,3 +39,6 @@ button {
 .centeredInDiv {
     margin: 0 auto;
 }
+.stackedButton {
+    display: block;
+}

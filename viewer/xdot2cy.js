@@ -1004,6 +1004,34 @@ function copySelectedNodeDNA() {
     scaleDialog("#dnaDialog");
 }
 
+function exportSelectedNodeDNA() {
+    // Get DNA sequences from database file, and append them to a string
+    var dnaStmt;
+    var dnaSeqs = "";
+    for (var i = 0; i < NODES_TO_QUERY.length; i++) {
+        // TODO Is there any way to make this more efficient? Like, via
+        // selecting multiple dnafwd values at once...?
+        dnaStmt = CURR_DB.prepare("SELECT dnafwd FROM nodes WHERE id = ?",
+            [NODES_TO_QUERY[i]]);
+        dnaStmt.step();
+        if (i > 0) {
+            dnaSeqs += "\n";
+        }
+        dnaSeqs += ">NODE_" + NODES_TO_QUERY[i] + "\n";
+        // TODO For outputting to FASTA files for BLAST/etc, it's convention
+        // to make sure all lines are less than 80 chars wide.
+        // Although maybe it would be easier to just format that in
+        // collate.py and store the text in the .db file that way?
+        dnaSeqs += dnaStmt.getAsObject()['dnafwd'];
+        dnaStmt.free();
+    }
+    // kind of a silly hack but it works
+    window.open(
+        "data:text/plain;charset=utf-8;base64," + window.btoa(dnaSeqs),
+        "_blank"
+    );
+}
+
 // Scales down the dialog so that its width is no more than 75% of the
 // window width and its height is no more than 60% of the window height
 // The dialog should already be open when this function is called (otherwise

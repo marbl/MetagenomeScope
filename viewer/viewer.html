@@ -28,11 +28,20 @@
                 $("#selectedInfoDialog").dialog("option", "buttons",
                     [
                         {
-                            text: "Copy selected nodes' DNA sequences to clipboard",
+                            html: "Copy selected DNA &#8594; clipboard",
                             icons: {
                                 primary: "ui-icon-copy"
                             },
-                            click: copySelectedNodeDNA
+                            click: copySelectedNodeDNA,
+                            class: 'stackedButton'
+                        },
+                        {
+                            html: "Export selected DNA &#8594; FASTA",
+                            icons: {
+                                primary: "ui-icon-copy"
+                            },
+                            click: exportSelectedNodeDNA,
+                            class: 'stackedButton'
                         }
                     ]
                 );
