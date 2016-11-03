@@ -974,37 +974,10 @@ function clearInfoTables(ev, ui) {
     NODES_TO_QUERY.length = 0;
 }
 
-// Pop up *another* dialog for copying?
-function copySelectedNodeDNA() {
-    // Get DNA sequences from database file, and append them to a string
-    var dnaStmt;
-    var dnaSeqs = "";
-    for (var i = 0; i < NODES_TO_QUERY.length; i++) {
-        // TODO Is there any way to make this more efficient? Like, via
-        // selecting multiple dnafwd values at once...?
-        dnaStmt = CURR_DB.prepare("SELECT dnafwd FROM nodes WHERE id = ?",
-            [NODES_TO_QUERY[i]]);
-        dnaStmt.step();
-        if (i > 0) {
-            dnaSeqs += "\n";
-        }
-        dnaSeqs += ">NODE_" + NODES_TO_QUERY[i] + "\n";
-        // TODO For outputting to FASTA files for BLAST/etc, make sure
-        // all lines are less than 80 chars wide.
-        // Although maybe it would be easier to just format that in
-        // collate.py and store the text in the .db file that way?
-        dnaSeqs += dnaStmt.getAsObject()['dnafwd'];
-        dnaStmt.free();
-    }
-    // Make that string the content of the DNA text area using jQuery
-    $("#dnaTextArea").text(dnaSeqs);
-    // Select it, to enable quick copying-to-clipboard
-    $("#dnaTextArea").select();
-    $("#dnaDialog").dialog("open");
-    scaleDialog("#dnaDialog");
-}
-
-function exportSelectedNodeDNA() {
+/* Return a single string containing the DNA sequences of the selected
+ * nodes, in FASTA format.
+ */
+function getSelectedNodeDNA() {
     // Get DNA sequences from database file, and append them to a string
     var dnaStmt;
     var dnaSeqs = "";
@@ -1034,9 +1007,23 @@ function exportSelectedNodeDNA() {
         }
         dnaStmt.free();
     }
-    // kind of a silly hack but it works
+    return dnaSeqs;
+}
+ 
+// Pop up *another* dialog for copying?
+function copySelectedNodeDNA() {
+    $("#dnaTextArea").text(getSelectedNodeDNA());
+    // Select it, to enable quick copying-to-clipboard
+    $("#dnaTextArea").select();
+    $("#dnaDialog").dialog("open");
+    scaleDialog("#dnaDialog");
+}
+
+/* Exports selected node DNA to a FASTA file via a data URI. */
+function exportSelectedNodeDNA() {
     window.open(
-        "data:text/plain;charset=utf-8;base64," + window.btoa(dnaSeqs),
+        "data:text/plain;charset=utf-8;base64," +
+        window.btoa(getSelectedNodeDNA()),
         "_blank"
     );
 }
