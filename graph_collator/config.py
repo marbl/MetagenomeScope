@@ -40,12 +40,18 @@ MAX_COMPONENTS = None
 # displayed.
 MIN_COMPONENT_SIZE = 1
 
+# These are used directly in GraphViz, so they're in "inches". Granted, the
+# .xdot file from GraphViz is used in the AsmViz viewer in Cytoscape.js, so
+# "inches" are really an intermediate unit from our perspective.
 # If we opt not to use one or both of the bounds here, we can set these to
-# float("inf") or float("-inf"), respectively.
-MAX_CONTIG_AREA = 10
-MIN_CONTIG_AREA = 1
-MAX_CONTIG_HEIGHT = sqrt(MAX_CONTIG_AREA)
-MIN_CONTIG_HEIGHT = sqrt(MIN_CONTIG_AREA)
+# float("inf") or 0, respectively. However, I'd prefer to at least keep a lower
+# bound of 1.0 on node height; that should help people who have trouble seeing
+# things tell what's going in an assembly graph.
+MAX_CONTIG_HEIGHT = 10
+MIN_CONTIG_HEIGHT = 1
+# Changing this causes strange things in the AsmViz viewer, since that's
+# designed to work with node polygons of matching width and height.
+# Keep it at 1.0 unless there's a good reason.
 WIDTH_HEIGHT_RATIO = 1.0
 # The base we use when logarithmically scaling contigs based on length
 CONTIG_SCALING_LOG_BASE = 10

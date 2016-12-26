@@ -114,15 +114,14 @@ class Node(object):
            property, which represents the actual height of this node as
            determined by GraphViz.
         """
-        hs = log(self.bp, config.CONTIG_SCALING_LOG_BASE)
-        if hs > config.MAX_CONTIG_AREA:
+        h = log(self.bp, config.CONTIG_SCALING_LOG_BASE)
+        if h > config.MAX_CONTIG_HEIGHT:
             h = config.MAX_CONTIG_HEIGHT
             rounding_done = 1
-        elif hs < config.MIN_CONTIG_AREA:
+        elif h < config.MIN_CONTIG_HEIGHT:
             h = config.MIN_CONTIG_HEIGHT
             rounding_done = -1
         else:
-            h = sqrt(hs)
             rounding_done = 0
         return (h, rounding_done)
 
