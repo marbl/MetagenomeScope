@@ -174,9 +174,9 @@ available features:
   nodes and edges**. If one or more nodes are selected and all of the selected
   nodes have DNA sequence information available (i.e. the current assembly
   graph's nodes are contigs, and `-nodna` was not used in collate.py), then
-  a button will be available in the node/edge information dialog that
-  creates a second dialog containing the selected nodes' DNA sequences in
-  FASTA format, which can be copied-and-pasted directly to tools like BLASTN.
+  the node/edge information dialog will contain two buttons that can be used to
+  either copy the DNA sequences of all selected nodes (in FASTA format)
+  to the clipboard or to export the DNA sequences directly to a FASTA file.
 * You can **search for nodes, edges, or node groups** using the "Search"
   button. Note that edge IDs are (currently) given as
   `node1->node2`, where `node1` is the name of the source node and `node2`
@@ -200,7 +200,6 @@ available features:
   data exists defining such an edge.
 * You can **collapse and uncollapse all node groups in the graph** by using
   the "Collapse All Node Groups"/"Uncollapse All Node Groups" button located
-  near the top-right corner of the screen. Note that this works perfectly
-  fine with individually-collapsed node groups; already-collapsed node
+  near the top-right corner of the screen. Individually-collapsed node
   groups will be ignored upon collapsing all nodes, and already-uncollapsed
   node groups will be ignored upon uncollapsing all nodes.
