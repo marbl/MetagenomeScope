@@ -361,9 +361,9 @@ connection.commit()
 # Currently supported:
 # -LastGraph (Velvet)
 # -GraphML (Bambus 3)
+# -GFA
 # Planned for support:
 # -FASTG (SPAdes)
-# -GFA (working on it now)
 with open(asm_fn, 'r') as assembly_file:
     # We don't really care about case in file extensions
     lowercase_asm_fn = asm_fn.lower()
