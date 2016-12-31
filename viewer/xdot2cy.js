@@ -1022,7 +1022,7 @@ function copySelectedNodeDNA() {
 /* Exports selected node DNA to a FASTA file via a data URI. */
 function exportSelectedNodeDNA() {
     window.open(
-        "data:text/plain;charset=utf-8;base64," +
+        "data:application/octet-stream;base64," +
         window.btoa(getSelectedNodeDNA()),
         "_blank"
     );
