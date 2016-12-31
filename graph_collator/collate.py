@@ -412,12 +412,15 @@ with open(asm_fn, 'r') as assembly_file:
                 # If we're in the middle of parsing a node's info and
                 # the current line doesn't match either a NODE or ARC
                 # declaration, then it refers to the node's DNA sequence.
+                # It can either refer to the forward or reverse sequence -- in
+                # LastGraph files, the forward sequence occurs first.
                 if parsed_fwdseq:
                     # Parsing reverse sequence
                     if use_dna:
                         curr_node_dnarev = line.strip()
-                    # In any case, now that we've parsed the node's DNA (or
-                    # ignored it if the user passed the -nodna flag), we are
+                    # In any case, now that we've parsed both the forward and
+                    # reverse sequences for the node's DNA (or ignored the
+                    # sequences, if the user passed the -nodna flag), we are
                     # done getting data for this node -- so we can create new
                     # Node objects to be added to the .db file and used in the
                     # graph layout.
