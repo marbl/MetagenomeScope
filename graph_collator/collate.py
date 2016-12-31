@@ -183,19 +183,16 @@ def dfs(n, seen_nodes):
 
 def reverse_complement(dna_string):
     """Returns the reverse complement of a string of DNA.
-
-    e.g. reverse_complement("GCATATA") == "TATATGC"
-
-    This is used when getting data from GFA files (which only include positive
-    DNA sequence information).
-    
-    Note that this will break on invalid DNA input (so things like RNA [due to
-    Uracil] or protein sequences will cause this to fail). I'm not entirely
-    sure what we'd do to find the "reverse complement" of RNA or of a protein
-    sequence, since those types of data don't really have reverse complements
-    (since they're single-stranded). I guess we can handle RNA separately in
-    the future? (TODO -- look into if this is a silly question or not)"""
-
+   
+       e.g. reverse_complement("GCATATA") == "TATATGC"
+   
+       This is used when getting data from GFA files (which only include
+       positive DNA sequence information).
+       
+       Note that this will break on invalid DNA input (so inputs like RNA
+       or protein sequences, or sequences that contain spaces, will cause
+       this to fail).
+    """
     rc = ""
     dna_last_char_index = len(dna_string) - 1
     for nt in range(dna_last_char_index, -1, -1):
