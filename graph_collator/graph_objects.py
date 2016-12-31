@@ -12,8 +12,8 @@ from math import log, sqrt
 class Edge(object):
     """A generic edge, used for storing layout data (e.g. control points)
        and, if applicable for this type of assembly file, biological
-       metadata (e.g. multiplicity, as given in LastGraph files)."""
-
+       metadata (e.g. multiplicity, as given in LastGraph files).
+    """
     def __init__(self, source_id, target_id, multiplicity=None):
         """Initializes the edge and all of its attributes."""
         self.source_id = source_id
@@ -50,8 +50,8 @@ class Edge(object):
 
 class Node(object):
     """A generic node. Used for representing individual contigs/scaffolds,
-       and as the superclass for groups of nodes."""
-
+       and as the superclass for groups of nodes.
+    """
     def __init__(self, id_string, bp, is_complement, depth=None,
                  gc_content=None, dna_fwd=None):
         """Initializes the object. bp initially stood for "base pairs," but
@@ -234,11 +234,11 @@ class NodeGroup(Node):
     
     def __init__(self, group_prefix, group_style, nodes):
         """Initializes the node group, given all the Node objects comprising
-        the node group, a prefix character for the group (i.e. 'R' for
-        frayed ropes, 'B' for bubbles, 'C' for chains, 'Y' for cycles),
-        and a GraphViz style setting for the group (generally from config.py).
+           the node group, a prefix character for the group (i.e. 'R' for
+           frayed ropes, 'B' for bubbles, 'C' for chains, 'Y' for cycles),
+           and a GraphViz style setting for the group (generally
+           from config.py).
         """
-        
         self.node_count = 0
         self.group_style = group_style
         self.bp = 0
@@ -279,8 +279,8 @@ class NodeGroup(Node):
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble. This consists of one
        node which points to >= 2 "middle" nodes, all of which in turn point
-       to one "end" node."""
-
+       to one "end" node.
+    """
     def __init__(self, *nodes):
         """Initializes the Bubble, given a list of nodes comprising it."""
         super(Bubble, self).__init__('B', config.BUBBLE_STYLE, nodes)
@@ -485,8 +485,8 @@ class Rope(NodeGroup):
 
 class Chain(NodeGroup):
     """A group of nodes collapsed into a Chain. This is defined as > 1
-       nodes that occur one after the other, with no intermediate edges."""
-
+       nodes that occur one after the other, with no intermediate edges.
+    """
     def __init__(self, *nodes):
         """Initializes the Chain, given all the nodes comprising the chain."""
         super(Chain, self).__init__('C', config.CHAIN_STYLE, nodes);
@@ -610,8 +610,8 @@ class Cycle(NodeGroup):
        the sequence of nodes repeats.
        
        (Less formally, this is essentially a Chain where the 'last' node has
-       one outgoing edge to the 'first' node."""
-
+       one outgoing edge to the 'first' node.
+    """
     def __init__(self, *nodes):
         """Initializes the Cycle, given all the nodes comprising it."""
         super(Cycle, self).__init__('Y', config.CYCLE_STYLE, nodes)
@@ -694,14 +694,13 @@ class Cycle(NodeGroup):
 class Component(object):
     """A connected component in the graph. We use this in order to
        maintain meta-information, such as node groups, for each connected
-       component we're interested in."""
-
+       component we're interested in.
+    """
     def __init__(self, node_list, node_group_list):
         """Given a list of all nodes (i.e. not node groups) and a list of
            all node groups in the connected component, intializes the
            connected component.
         """
-
         self.node_list = node_list
         self.node_group_list = node_group_list 
 
