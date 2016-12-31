@@ -416,6 +416,11 @@ with open(asm_fn, 'r') as assembly_file:
                     # Parsing reverse sequence
                     if use_dna:
                         curr_node_dnarev = line.strip()
+                    # In any case, now that we've parsed the node's DNA (or
+                    # ignored it if the user passed the -nodna flag), we are
+                    # done getting data for this node -- so we can create new
+                    # Node objects to be added to the .db file and used in the
+                    # graph layout.
                     n = graph_objects.Node(curr_node_id, curr_node_bp, False,
                             depth=curr_node_depth, dna_fwd=curr_node_dnafwd)
                     c = graph_objects.Node('c' + curr_node_id,
