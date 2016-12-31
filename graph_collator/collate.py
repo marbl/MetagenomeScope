@@ -566,14 +566,9 @@ with open(asm_fn, 'r') as assembly_file:
                     # once. This is not the case for LastGraph nodes, though.
                     curr_node_gc = gc_content(curr_node_dnafwd)
                 else:
-                    # TODO how to handle no-length-given nodes? (see #106)
-                    # Using the same basic solution as I did for GraphML files
-                    # until recently -- not ideal if we can figure something
-                    # else out, but for now this is a viable workaround
-                    curr_node_bp = 100
-                    curr_node_dnafwd = None
-                    curr_node_dnarev = None
-                    curr_node_gc = None
+                    raise ValueError, \
+                        "Sequence %s does not contain a DNA sequence" % \
+                            (curr_node_id)
                 nPos = graph_objects.Node(curr_node_id, curr_node_bp, False,
                         gc_content=curr_node_gc, dna_fwd=curr_node_dnafwd)
                 nNeg = graph_objects.Node('c' + curr_node_id, curr_node_bp,
