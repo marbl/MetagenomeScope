@@ -354,7 +354,7 @@ if check_file_existence(db_fullfn):
 connection = sqlite3.connect(db_fullfn)
 cursor = connection.cursor()
 cursor.execute("""CREATE TABLE nodes
-        (id text, length integer, dnafwd text, depth real,
+        (id text, length integer, dnafwd text, gc_content real, depth real,
         component_rank integer, x real, y real, w real, h real, shape text,
         parent_cluster_id text)""")
 cursor.execute("""CREATE TABLE edges
@@ -394,6 +394,8 @@ with open(asm_fn, 'r') as assembly_file:
         curr_node_depth = 1
         curr_node_dnafwd = None
         curr_node_dnarev = None
+        curr_node_gcfwd = None
+        curr_node_gcrev = None
         parsing_node = False
         parsed_fwdseq = False
         for line in assembly_file:
@@ -434,6 +436,7 @@ with open(asm_fn, 'r') as assembly_file:
                     # Parsing reverse sequence
                     if use_dna:
                         curr_node_dnarev = line.strip()
+                        curr_node_gcrev = gc_content(curr_node_dnarev)
                     # In any case, now that we've parsed both the forward and
                     # reverse sequences for the node's DNA (or ignored the
                     # sequences, if the user passed the -nodna flag), we are
@@ -441,9 +444,11 @@ with open(asm_fn, 'r') as assembly_file:
                     # Node objects to be added to the .db file and used in the
                     # graph layout.
                     n = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                            depth=curr_node_depth, dna_fwd=curr_node_dnafwd)
+                            depth=curr_node_depth, gc_content=curr_node_gcfwd,
+                            dna_fwd=curr_node_dnafwd)
                     c = graph_objects.Node('c' + curr_node_id,
                             curr_node_bp, True, depth=curr_node_depth,
+                            gc_content=curr_node_gcrev,
                             dna_fwd=curr_node_dnarev)
                     nodeid2obj[curr_node_id] = n
                     nodeid2obj['c' + curr_node_id] = c
@@ -459,6 +464,8 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_bp = 1
                     curr_node_dnafwd = None
                     curr_node_dnarev = None
+                    curr_node_gcfwd = None
+                    curr_node_gcrev = None
                     parsing_node = False
                     parsed_fwdseq = False
                 else:
@@ -468,6 +475,7 @@ with open(asm_fn, 'r') as assembly_file:
                     parsed_fwdseq = True
                     if use_dna:
                         curr_node_dnafwd = line.strip()
+                        curr_node_gcfwd = gc_content(curr_node_dnafwd)
     elif parsing_GraphML:
         graph_filetype = "GraphML"
         # Record state -- parsing node or parsing edge?
@@ -554,6 +562,14 @@ with open(asm_fn, 'r') as assembly_file:
                 if curr_node_dnafwd != "*":
                     curr_node_bp = len(curr_node_dnafwd)
                     curr_node_dnarev = reverse_complement(curr_node_dnafwd)
+                    # The G/C content of a DNA sequence "m" will always equal
+                    # the G/C content of the reverse complement of m, since
+                    # a reverse complement just flips A <-> T and C <-> G --
+                    # meaning that the total count of C + G occurrences does
+                    # not change.
+                    # Hence, we just need to calculate the G/C content here
+                    # once. This is not the case for LastGraph nodes, though.
+                    curr_node_gc = gc_content(curr_node_dnafwd)
                 else:
                     # TODO how to handle no-length-given nodes? (see #106)
                     # Using the same basic solution as I did for GraphML files
@@ -562,10 +578,11 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_bp = 100
                     curr_node_dnafwd = None
                     curr_node_dnarev = None
+                    curr_node_gc = None
                 nPos = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                        dna_fwd=curr_node_dnafwd)
+                        gc_content=curr_node_gc, dna_fwd=curr_node_dnafwd)
                 nNeg = graph_objects.Node('c' + curr_node_id, curr_node_bp,
-                        True, dna_fwd=curr_node_dnarev)
+                        True,gc_content=curr_node_gc, dna_fwd=curr_node_dnarev)
                 nodeid2obj[curr_node_id] = nPos
                 nodeid2obj['c' + curr_node_id] = nNeg
                 # Update stats
@@ -846,7 +863,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
                         curr_node.set_component_rank(component_size_rank)
                         # Output node info to database
                         cursor.execute("""INSERT INTO nodes
-                            VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
+                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
                             curr_node.db_values())
                         component_node_count += 1
                         component_total_length += curr_node.bp
