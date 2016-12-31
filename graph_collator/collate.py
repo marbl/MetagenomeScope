@@ -372,14 +372,9 @@ cursor.execute("""CREATE TABLE assembly
         n50 integer)""")
 connection.commit()
 
-# Process NODE (vertex) and ARC (edge) information
-# TODO Adapt this to parse multiple types of assembly graph files.
-# Currently supported:
-# -LastGraph (Velvet)
-# -GraphML (Bambus 3)
-# -GFA
-# Planned for support:
-# -FASTG (SPAdes)
+# Below "with" block parses the assembly file.
+# Please consult the README for the most accurate list of assembly graph
+# filetypes supported.
 with open(asm_fn, 'r') as assembly_file:
     # We don't really care about case in file extensions
     lowercase_asm_fn = asm_fn.lower()
