@@ -202,6 +202,25 @@ def reverse_complement(dna_string):
         rc += config.COMPLEMENT[dna_string[nt]] 
     return rc
 
+def gc_content(dna_string):
+    """Returns the GC content (as a float in the range [0, 1]) of a string of
+       DNA. Assumes that the string of DNA only contains nucleotides (e.g., it
+       doesn't contain any spaces).
+
+       For reference, the GC content of a DNA sequence is the percentage of
+       nucleotides within the sequence that are either G (guanine) or C
+       (cytosine).
+
+       e.g. gc_content("GCATTCAC") == 0.5
+    """
+    # len() of a str is a constant-time operation in Python
+    seq_len = len(dna_string)
+    gc_ct = 0
+    for nt in dna_string:
+        if nt == 'G' or nt == 'C':
+            gc_ct += 1
+    return float(gc_ct) / seq_len
+
 def negate_node_id(id_string):
     """Negates a node ID.
     
