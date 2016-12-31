@@ -592,10 +592,6 @@ with open(asm_fn, 'r') as assembly_file:
                 total_bp_length += curr_node_bp
                 bp_length_list.append(curr_node_bp)
                 bp_length_list.append(curr_node_bp)
-                # Clear the used temporary/marker variables for later use
-                curr_node_id = ""
-                curr_node_bp = 1
-                curr_node_dnafwd = None
             # Parsing a link (edge) line from some id1 to id2
             # I really like the way GFA handles edges; it makes this simple :)
             elif line.startswith("L"):
