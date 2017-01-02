@@ -571,6 +571,9 @@ with open(asm_fn, 'r') as assembly_file:
                     raise ValueError, \
                         "Sequence %s does not contain a DNA sequence" % \
                             (curr_node_id)
+                if not use_dna:
+                    curr_node_dnafwd = None
+                    curr_node_dnarev = None
                 nPos = graph_objects.Node(curr_node_id, curr_node_bp, False,
                         gc_content=curr_node_gc, dna_fwd=curr_node_dnafwd)
                 nNeg = graph_objects.Node('c' + curr_node_id, curr_node_bp,
