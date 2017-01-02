@@ -598,7 +598,7 @@ function parseDBcomponents() {
     var ftInfo = graphInfo["filetype"];
     ASM_NODE_COUNT = graphInfo["node_count"];
     var nodeInfo = ASM_NODE_COUNT.toLocaleString();
-    // Record total node length -- not possible for GraphML files
+    // Record total node length
     var bpCt = graphInfo["total_length"];
     var bpInfo;
     if (bpCt !== null) {
@@ -612,7 +612,7 @@ function parseDBcomponents() {
     var edgeInfo = ASM_EDGE_COUNT.toLocaleString();
     var compCt = graphInfo["component_count"];
     var compInfo = compCt.toLocaleString();
-    // Record N50 -- same as with total node length, not poss. for GMLs
+    // Record N50
     var n50 = graphInfo["n50"];
     var n50Info;
     if (n50 !== null) {
@@ -620,6 +620,15 @@ function parseDBcomponents() {
     }
     else {
         n50Info = "N/A";
+    }
+    // Record Assembly G/C content (not available for GML files)
+    var asmGC = graphInfo["gc_content"];
+    var asmGCInfo;
+    if (asmGC !== null) {
+        asmGCInfo = (asmGC * 100).toLocaleString() + "%";
+    }
+    else {
+        asmGCInfo = "N/A";
     }
     // Adjust UI elements
     document.title = fnInfo;
@@ -630,6 +639,7 @@ function parseDBcomponents() {
     $("#edgeCountEntry").text(edgeInfo);
     $("#connCmpCtEntry").text(compInfo);
     $("#n50Entry").text(n50Info);
+    $("#asmGCEntry").text(asmGCInfo);
     $("#componentselector").spinner("option", "max", compCt);
     $("#componentselector").spinner("enable");
     $("#infoButton").button("enable");
