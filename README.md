@@ -96,7 +96,7 @@ upon trying to overwrite any files in the directory.)
   data is being stored in the intended location).
 * `-nodna` This optional argument, if given, does not store the DNA
   sequences from contig assembly graph files in the output .db file. This
-  option can help save a large amount of space in .db files making
+  option can help save a large amount of space in .db files, making
   processing them in AsmViz viewer faster.
 * `-pg` This optional argument preserves DOT files (suffix .gv) in the output
   directory; if this argument is not given, then all .gv files will just be
