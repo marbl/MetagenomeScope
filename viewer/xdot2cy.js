@@ -942,7 +942,7 @@ function displaySelectedInfo() {
                 gcEntry = "N/A";
             }
             else {
-                gcEntry = (n.data("gc_content") * 100).toFixed(2) + "%";
+                gcEntry = (n.data("gc_content") * 100).toLocaleString() + "%";
             }
             if (!n.data("hasDNA")) {
                 existsDNA = false;
