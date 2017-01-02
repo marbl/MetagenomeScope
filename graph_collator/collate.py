@@ -75,12 +75,17 @@ preserve_gv = False
 preserve_xdot = False
 overwrite = False
 use_dna = True
-i = 0
+i = 1
 # Possible TODO here: use a try... block here to let the user know if they
 # passed in arguments incorrectly, in a more user-friendly way
 # Also we should probably validate that the filenames for -i and -o are
 # valid
-for arg in argv:
+for arg in argv[1:]:
+    if (arg == "-i" or arg == "-o" or arg == "-d") and i == len(argv) - 1:
+        # If this is the last argument, then no filename is given.
+        # This is obviously invalid. (This allows us to avoid out of bounds
+        # errors when accessing argv[i + 1].)
+        raise ValueError, "No filename provided for %s" % (arg)
     if arg == "-i":
         asm_fn = argv[i + 1]
     elif arg == "-o":
@@ -97,6 +102,12 @@ for arg in argv:
         overwrite = True
     elif arg == "-nodna":
         use_dna = False
+    elif i == 1 or argv[i - 1] not in ["-i", "-o", "-d"]:
+        # If a valid "argument" doesn't match any of the above types,
+        # then it must be a filename passed to -i, -o, or -d.
+        # If it isn't (what this elif case checks for), 
+        # then the argument is invalid and we need to raise an error.
+        raise ValueError, "Invalid argument: %s" % (arg)
     i += 1
 
 if asm_fn == "" or output_fn == "":
