@@ -95,7 +95,7 @@ var SELECTED_ELES = null;
 // for the DNA dialog.
 var NODES_TO_QUERY = [];
 var EDGE_TABLE_HEADER = "<tr><th colspan='3'>Selected edge information</th></tr><tr><th>Source Node ID</th><th>Target Node ID</th><th>Multiplicity</th></tr>";
-var NODE_TABLE_HEADER = "<tr><th colspan='3'>Selected node information</th></tr><tr><th>ID</th><th>Length</th><th>Depth</th></tr>";
+var NODE_TABLE_HEADER = "<tr><th colspan='4'>Selected node information</th></tr><tr><th>ID</th><th>Length</th><th>Depth</th><th>G/C Content</th></tr>";
 
 if (!(window.File && window.FileReader)) {
 	// TODO handle this better -- user should still be able to
@@ -136,7 +136,7 @@ function initGraph() {
                     height: 'data(h)'
                 }
             },
-            // Following four classes are used to set properties of
+            // Following five classes are used to set properties of
             // compound nodes (analogous to clusters in GraphViz) 
             {
                 selector: 'node.cluster',
@@ -179,7 +179,30 @@ function initGraph() {
                 selector: 'node.noncluster',
                 style: {
                     shape: 'polygon',
-                    'shape-polygon-points': 'data(polypts)'
+                    'shape-polygon-points': 'data(polypts)',
+                    'background-color': 'data(bg_color)'
+                }
+            },
+            {
+                selector: 'node.noncluster:selected',
+                style: {
+                    // NOTE I liked using a border for indicating selected
+                    // nodes, but it interfered with unbundled-bezier edges
+                    // occasionally. So we just darken selected nodes instead.
+                    //'border-color': '#000',
+                    //'border-opacity': 1,
+                    //'border-width': 5
+                    'background-blacken': 0.5
+                }
+            },
+            {
+                selector: 'edge:selected',
+                style: {
+                    'line-color': '#000',
+                    'source-arrow-color': '#000',
+                    'target-arrow-color': '#000',
+                    'mid-source-arrow-color': '#000',
+                    'mid-target-arrow-color': '#000'
                 }
             },
             {
@@ -902,7 +925,7 @@ function displaySelectedInfo() {
         var existsDNA = true;
         selectedNodes.each(function(i, n) {
             // TODO abstract repetitive null-checking to sep func?
-            var lengthEntry, depthEntry, dnaEntry;
+            var lengthEntry, depthEntry, dnaEntry, gcEntry;
             if (n.data("length") == null) {
                 lengthEntry = "N/A";
             }
@@ -915,12 +938,19 @@ function displaySelectedInfo() {
             else {
                 depthEntry = n.data("depth").toLocaleString() + "x";
             }
+            if (n.data("gc_content") == null) {
+                gcEntry = "N/A";
+            }
+            else {
+                gcEntry = (n.data("gc_content") * 100).toFixed(2) + "%";
+            }
             if (!n.data("hasDNA")) {
                 existsDNA = false;
                 NODES_TO_QUERY = [];
             }
             content += "<tr><td>" + n.id() + "</td><td>" + lengthEntry +
-                "</td><td>" + depthEntry + "</td></tr>";
+                "</td><td>" + depthEntry + "</td><td>" + gcEntry +
+                "</td></tr>";
             // Save the node's ID for if the user requests DNA info
             // We check existsDNA to avoid using up memory if the selected
             // nodes don't have any DNA
@@ -1831,13 +1861,36 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     // works perfectly for our use of the node parent field.
     // Hence why we can just use the parent_cluster_id field directly.
     var parentID = nodeObj['parent_cluster_id'];
+    var gc = nodeObj['gc_content'];
+    var bg_color = "#";
+    if (gc !== null) {
+        var red_i = gc * 255;
+        var green = "22";
+        var blue_i = 255 - red_i;
+        var red = Math.floor(red_i).toString(16);
+        var blue = Math.floor(blue_i).toString(16);
+        if (red.length === 1) {
+            red = "0" + red;
+        }
+        if (blue.length === 1) {
+            blue = "0" + blue;
+        }
+        bg_color += (red + green + blue);
+    }
+    else {
+        bg_color += "999999";
+    }
     cy.add({
         classes: 'noncluster',
         data: {id: nodeID, parent: parentID, polypts: nodePolygonPts, 
                w: INCHES_TO_PIXELS * nodeObj['w'],
                h: INCHES_TO_PIXELS * nodeObj['h'],
                house: nodeObj['shape'] === 'house', depth: nodeObj['depth'],
-               length: nodeObj['length'], hasDNA: nodeObj['dnafwd'] !== null},
+               // TODO: if we settle on always calculating G/C content when DNA
+               // is available, then we can use the gc_content variable as a
+               // flag for null instead of the explicit hasDNA data value.
+               length: nodeObj['length'], hasDNA: nodeObj['dnafwd'] !== null,
+               gc_content: gc, bg_color: bg_color},
         position: {x: pos[0], y: pos[1]}
     });
     if (parentID !== null) {
