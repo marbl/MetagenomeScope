@@ -201,14 +201,17 @@ def reverse_complement(dna_string):
 
 def gc_content(dna_string):
     """Returns the GC content (as a float in the range [0, 1]) of a string of
-       DNA. Assumes that the string of DNA only contains nucleotides (e.g., it
+       DNA, in a 2-tuple with the second element of the tuple being the
+       actual number of Gs and Cs in the dna_string.
+       
+       Assumes that the string of DNA only contains nucleotides (e.g., it
        doesn't contain any spaces).
 
        For reference, the GC content of a DNA sequence is the percentage of
        nucleotides within the sequence that are either G (guanine) or C
        (cytosine).
 
-       e.g. gc_content("GCATTCAC") == 0.5
+       e.g. gc_content("GCATTCAC") == (0.5, 4)
     """
     # len() of a str is a constant-time operation in Python
     seq_len = len(dna_string)
@@ -216,7 +219,17 @@ def gc_content(dna_string):
     for nt in dna_string:
         if nt == 'G' or nt == 'C':
             gc_ct += 1
-    return float(gc_ct) / seq_len
+    return (float(gc_ct) / seq_len), gc_ct
+
+def assembly_gc(gc_ct, total_bp):
+    """Returns the G/C content of an assembly, where total_bp is the number of
+       base pairs (2 * the number of nucleotides) and gc_ct is the number of
+       G/C nucleotides in the entire assembly.
+    """
+    if gc_ct == None:
+        return None
+    else:
+        return float(gc_ct) / (2 * total_bp)
 
 def negate_node_id(id_string):
     """Negates a node ID.
@@ -431,7 +444,8 @@ with open(asm_fn, 'r') as assembly_file:
                 if parsed_fwdseq:
                     # Parsing reverse sequence
                     curr_node_dnarev = line.strip()
-                    curr_node_gcrev = gc_content(curr_node_dnarev)
+                    curr_node_gcrev, gc_ct = gc_content(curr_node_dnarev)
+                    total_gc_nt_count += gc_ct
                     if not use_dna:
                         curr_node_dnarev = None
                     # In any case, now that we've parsed both the forward and
@@ -471,11 +485,14 @@ with open(asm_fn, 'r') as assembly_file:
                     # README or even in the Javascript graph viewer)
                     parsed_fwdseq = True
                     curr_node_dnafwd = line.strip()
-                    curr_node_gcfwd = gc_content(curr_node_dnafwd)
+                    curr_node_gcfwd, gc_ct = gc_content(curr_node_dnafwd)
+                    total_gc_nt_count += gc_ct
                     if not use_dna:
                         curr_node_dnafwd = None
     elif parsing_GraphML:
         graph_filetype = "GraphML"
+        # Since GraphML files don't contain DNA
+        total_gc_nt_count = None
         # Record state -- parsing node or parsing edge?
         # (This is kind of a lazy approach, but to be fair it's actually
         # sort of efficient)
@@ -567,7 +584,8 @@ with open(asm_fn, 'r') as assembly_file:
                     # not change.
                     # Hence, we just need to calculate the G/C content here
                     # once. This is not the case for LastGraph nodes, though.
-                    curr_node_gc = gc_content(curr_node_dnafwd)
+                    curr_node_gc, gc_ct = gc_content(curr_node_dnafwd)
+                    total_gc_nt_count += (2 * gc_ct)
                 else:
                     raise ValueError, \
                         "Sequence %s does not contain a DNA sequence" % \
@@ -711,8 +729,8 @@ connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 # Insert general assembly information into the database
 graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
             total_edge_count, total_component_count, total_length,
-            n50(bp_length_list))
-cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?)", graphVals)    
+            n50(bp_length_list), assembly_gc(total_gc_nt_count, total_length))
+cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?)", graphVals)    
 
 # Conclusion: Output (desired) components of nodes to the .gv file
 
