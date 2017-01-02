@@ -429,9 +429,10 @@ with open(asm_fn, 'r') as assembly_file:
                 # LastGraph files, the forward sequence occurs first.
                 if parsed_fwdseq:
                     # Parsing reverse sequence
-                    if use_dna:
-                        curr_node_dnarev = line.strip()
-                        curr_node_gcrev = gc_content(curr_node_dnarev)
+                    curr_node_dnarev = line.strip()
+                    curr_node_gcrev = gc_content(curr_node_dnarev)
+                    if not use_dna:
+                        curr_node_dnarev = None
                     # In any case, now that we've parsed both the forward and
                     # reverse sequences for the node's DNA (or ignored the
                     # sequences, if the user passed the -nodna flag), we are
@@ -468,9 +469,10 @@ with open(asm_fn, 'r') as assembly_file:
                     # number of bp, so we should probably mention that in
                     # README or even in the Javascript graph viewer)
                     parsed_fwdseq = True
-                    if use_dna:
-                        curr_node_dnafwd = line.strip()
-                        curr_node_gcfwd = gc_content(curr_node_dnafwd)
+                    curr_node_dnafwd = line.strip()
+                    curr_node_gcfwd = gc_content(curr_node_dnafwd)
+                    if not use_dna:
+                        curr_node_dnafwd = None
     elif parsing_GraphML:
         graph_filetype = "GraphML"
         # Record state -- parsing node or parsing edge?
