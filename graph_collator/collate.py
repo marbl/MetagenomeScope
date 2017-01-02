@@ -323,7 +323,8 @@ clusterid2obj = {}
 graph_filetype = ""
 total_node_count = 0
 total_edge_count = 0
-total_bp_length = 0
+total_length = 0
+total_gc_nt_count = 0
 total_component_count = 0
 # List of all the node lengths in the assembly. Used when calculating n50.
 bp_length_list = []
@@ -369,7 +370,7 @@ cursor.execute("""CREATE TABLE components
 cursor.execute("""CREATE TABLE assembly
         (filename text, filetype text, node_count integer,
         edge_count integer, component_count integer, total_length integer,
-        n50 integer)""")
+        n50 integer, gc_content real)""")
 connection.commit()
 
 # Below "with" block parses the assembly file.
@@ -452,7 +453,7 @@ with open(asm_fn, 'r') as assembly_file:
                     # Note that recording these statistics here ensures that
                     # only "fully complete" node definitions are recorded.
                     total_node_count += 1
-                    total_bp_length += curr_node_bp
+                    total_length += curr_node_bp
                     bp_length_list.append(curr_node_bp)
                     bp_length_list.append(curr_node_bp)
                     # Clear temporary/marker variables for later use
@@ -506,7 +507,7 @@ with open(asm_fn, 'r') as assembly_file:
                     nodeid2obj[curr_node_id] = n
                     # Record this node for graph statistics
                     total_node_count += 1
-                    total_bp_length += curr_node_bp
+                    total_length += curr_node_bp
                     bp_length_list.append(curr_node_bp)
                     # Clear tmp/marker variables
                     parsing_node = False
@@ -582,9 +583,7 @@ with open(asm_fn, 'r') as assembly_file:
                 nodeid2obj['c' + curr_node_id] = nNeg
                 # Update stats
                 total_node_count += 1
-                # Note that total length and n50 are going to be off if no DNA
-                # sequences are given for certain nodes. TODO: address this.
-                total_bp_length += curr_node_bp
+                total_length += curr_node_bp
                 bp_length_list.append(curr_node_bp)
                 bp_length_list.append(curr_node_bp)
             # Parsing a link (edge) line from some id1 to id2
@@ -607,7 +606,7 @@ with open(asm_fn, 'r') as assembly_file:
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
 # This means that graph_filetype, total_node_count, total_edge_count,
-# total_bp_length, and bp_length_list are all finalized.
+# total_length, and bp_length_list are all finalized.
 
 # Try to collapse special "groups" of Nodes (Bubbles, Ropes, etc.)
 # As we check nodes, we add either the individual node (if it can't be
@@ -711,7 +710,7 @@ connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
 # Insert general assembly information into the database
 graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
-            total_edge_count, total_component_count, total_bp_length,
+            total_edge_count, total_component_count, total_length,
             n50(bp_length_list))
 cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?)", graphVals)    
 
