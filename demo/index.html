@@ -28,11 +28,20 @@
                 $("#selectedInfoDialog").dialog("option", "buttons",
                     [
                         {
-                            text: "Copy selected nodes' DNA sequences to clipboard",
+                            html: "Copy selected DNA &#8594; clipboard",
                             icons: {
                                 primary: "ui-icon-copy"
                             },
-                            click: copySelectedNodeDNA
+                            click: copySelectedNodeDNA,
+                            class: 'stackedButton'
+                        },
+                        {
+                            html: "Export selected DNA &#8594; FASTA",
+                            icons: {
+                                primary: "ui-icon-copy"
+                            },
+                            click: exportSelectedNodeDNA,
+                            class: 'stackedButton'
                         }
                     ]
                 );
@@ -57,6 +66,8 @@
                     "ui-icon-minus"}, disabled: true});
                 $("#fileselectButton").button({icons: {primary:
                     "ui-icon-folder-open"}});
+                $("#xmlFileselectButton").button({icons: {primary:
+                    "ui-icon-arrowrefresh-1-s"}});
                 $("#exportButton").button({icons: {primary:
                     "ui-icon-image"}, disabled: true});
                 $("#componentselector").spinner({min: 1, disabled: true});
@@ -83,8 +94,16 @@
             remaining page height to the cy div. -->
         <div id="asmviz">
             <div id="controls">
+                <button type='button' id="xmlFileselectButton"
+                    onclick="openFileSelectDialog();">Demo .db</button>
+
                 <button type='button' id="fileselectButton"
-                    onclick="openFileSelectDialog();">Choose .db file</button>
+                    onclick="$('#fileselector').click();">Upload .db</button>
+                <!-- For some reason, giving this the hiddenElement class
+                    doesn't work; I suspect it's due to the way browsers handle
+                    styling of file inputs. Anyway, this should work fine. -->
+    	        <input type='file' id='fileselector'
+                    onchange='loadgraphfile();' style="display: none"/>
 
                 <input id='componentselector' value="1"
                     title="Enter the size rank of the connected component to
@@ -104,10 +123,7 @@
                     value="Search" id="searchButton">Search</button>
                 
                 <select id='rotation' 
-                    title="The general direction of the graph. You can modify
-                    this before the graph is loaded in order to set that
-                    particular rotation for viewing the graph; however, you can
-                    also modify the graph's rotation in place.">
+                    title="The general direction of the graph.">
                     <option value="0">&#8595;</option>
                     <option value="90" selected>&#8594;</option>
                     <option value="180">&#8593;</option>
@@ -121,7 +137,7 @@
                 <button type='button' id='collapseButton'
                     onclick='startCollapseAll()'>Collapse All</button>
 
-                 <button type='button' id='exportButton'
+                <button type='button' id='exportButton'
                     onclick='exportGraph()'>Export view</button>
    
                 <div id='progressbar'></div>
@@ -152,6 +168,15 @@
             <label for="sample_salmonella.db">Salmonella enterica (LastGraph, 61 contigs, 82 edges)</label>
             <input type="radio" name="fs" id="sample_salmonella.db">
             <br />
+            <label for="sample_gfa.db">sample.gfa from <a
+                   target="_blank" href="https://github.com/sjackman/assembly-graph/blob/master/sample.gfa">Shaun Jackman</a> (GFA, 6 contigs, 4 edges)</label>
+            <input type="radio" name="fs" id="sample_gfa.db">
+            <br />
+            <label for="loop_gfa.db">loop.gfa from <a
+                   target="_blank"
+                   href="https://github.com/sjackman/assembly-graph/blob/master/loop.gfa">Shaun Jackman</a> (GFA, 4 contigs, 4 edges)</label>
+            <input type="radio" name="fs" id="loop_gfa.db">
+            <br />
             <label for="longtest.db">Bogus test data for "long" bubbles/frayed ropes (LastGraph, 36 contigs, 36 edges)</label>
             <input type="radio" name="fs" id="longtest.db">
             <br />
@@ -175,6 +200,7 @@
                     <th>Edge Count</th>
                     <th>Connected Component Count</th>
                     <th>N50</th>
+                    <th>Assembly G/C Content</th>
                 </tr>
                 <tr>
                     <td id="filenameEntry"></td>
@@ -184,6 +210,7 @@
                     <td id="edgeCountEntry"></td>
                     <td id="connCmpCtEntry"></td>
                     <td id="n50Entry"></td>
+                    <td id="asmGCEntry"></td>
                 </tr>
             </table>
             <p id="currComponentInfo">No connected component has been
