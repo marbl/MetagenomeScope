@@ -598,15 +598,8 @@ function parseDBcomponents() {
     var ftInfo = graphInfo["filetype"];
     ASM_NODE_COUNT = graphInfo["node_count"];
     var nodeInfo = ASM_NODE_COUNT.toLocaleString();
-    // Record total node length
     var bpCt = graphInfo["total_length"];
-    var bpInfo;
-    if (bpCt !== null) {
-        bpInfo = bpCt.toLocaleString() + " bp";
-    }
-    else {
-        bpInfo = "N/A";
-    }
+    var bpInfo = bpCt.toLocaleString() + " bp";
     ASM_EDGE_COUNT = graphInfo["edge_count"];
     TOTAL_NE = ASM_NODE_COUNT + ASM_EDGE_COUNT;
     var edgeInfo = ASM_EDGE_COUNT.toLocaleString();
@@ -614,13 +607,7 @@ function parseDBcomponents() {
     var compInfo = compCt.toLocaleString();
     // Record N50
     var n50 = graphInfo["n50"];
-    var n50Info;
-    if (n50 !== null) {
-        n50Info = n50.toLocaleString() + " bp";
-    }
-    else {
-        n50Info = "N/A";
-    }
+    var n50Info = n50.toLocaleString() + " bp";
     // Record Assembly G/C content (not available for GML files)
     var asmGC = graphInfo["gc_content"];
     var asmGCInfo;
