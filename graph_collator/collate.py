@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-# Converts assembly graph data to a DOT file, lays out the DOT file
-# using GraphViz to produce an XDOT output file, and then reconciles the
-# XDOT layout data with biological data in a .db file that can be read by
-# the AsmViz viewer.
+# Converts an assembly graph (LastGraph, GFA, Bambus 3 GraphML) to a DOT file,
+# lays out the DOT file using GraphViz to produce an XDOT output file, and
+# then reconciles the XDOT layout data with biological data in a SQLite .db
+# file that can be read by the AsmViz viewer.
 #
 # This generates multiple DOT (intermediate) and XDOT (output) files,
 # one for each connected component in the graph that contains a number of nodes
@@ -17,15 +17,14 @@
 #   ./collate.py -i (input file name) -o (file prefix)
 #       [-d (output directory name)] [-pg] [-px] [-w] [-nodna]
 #
-# For contig assembly graphs (which include DNA sequence information for
-# nodes), the DNA sequence is automatically stored in the .db
+# For assembly graphs which include DNA sequence information for
+# nodes, that DNA sequence is automatically stored in the .db
 # file. However, this information can take up a lot of space, resulting in
-# significantly larger .db files. So if you would like to generate a .db
+# large .db files. So if you would like to generate a .db
 # file without DNA sequences included (everything else about the .db file
-# will be the same, but nodes' DNA sequences will not be able to be copied to
-# the clipboard in AsmViz viewer), you can pass the optional -nodna
-# argument. (Passing -nodna has no effect on scaffold assembly graphs, which
-# lack DNA sequence information.)
+# will be the same, but nodes' DNA sequences will not be able to be exported to
+# FASTA from the AsmViz viewer), then you can pass the optional -nodna
+# argument.
 #
 # If you'd like to preserve the DOT file(s) after the program's execution, you
 # can pass the argument -pg to this program to save the .gv files created.
