@@ -15,7 +15,7 @@
 #
 # Syntax is:
 #   ./collate.py -i (input file name) -o (file prefix)
-#       [-d (output directory name)] [-pg] [-px] [-w] [-nodna]
+#       [-d (output directory name)] [-pg] [-px] [-w] [-nodna] [-s]
 #
 # For assembly graphs which include DNA sequence information for
 # nodes, that DNA sequence is automatically stored in the .db
@@ -25,6 +25,14 @@
 # will be the same, but nodes' DNA sequences will not be able to be exported to
 # FASTA from the AsmViz viewer), then you can pass the optional -nodna
 # argument.
+#
+# For LastGraph and GFA assembly graphs (i.e. assembly graphs in which nodes
+# indicate contigs), passing the -s argument will cause a single graph to be
+# generated. Whereas a double graph (the default output of collate.py) contains
+# two nodes for each contig (one "positive" node and one "negative" node, where
+# one of those nodes arbitrarily represents the segment of DNA on the 5' -> 3'
+# strand and the other represents the segment of DNA on the 3' -> 5' strand),
+# a single graph contains only one node for each contig.
 #
 # If you'd like to preserve the DOT file(s) after the program's execution, you
 # can pass the argument -pg to this program to save the .gv files created.
@@ -74,6 +82,7 @@ preserve_gv = False
 preserve_xdot = False
 overwrite = False
 use_dna = True
+double_graph = True
 i = 1
 # Possible TODO here: use a try... block here to let the user know if they
 # passed in arguments incorrectly, in a more user-friendly way
@@ -101,6 +110,8 @@ for arg in argv[1:]:
         overwrite = True
     elif arg == "-nodna":
         use_dna = False
+    elif arg == "-s":
+        double_graph = False
     elif i == 1 or argv[i - 1] not in ["-i", "-o", "-d"]:
         # If a valid "argument" doesn't match any of the above types,
         # then it must be a filename passed to -i, -o, or -d.
