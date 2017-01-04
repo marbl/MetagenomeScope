@@ -17,9 +17,8 @@ definitely have to factor in node size here. THIS IS IMPORTANT!
 * Show multiple assembly files for the same data at once?
     * See [this Cytoscape.js demo](http://js.cytoscape.org/demos/310dca83ba6970812dd0/) for an example.
 
-* Write parsers for the other 2 types of assembly files Todd wanted me to
-support (GFA and FASTG), and also maybe for the Trinity FASTA file
-(but honestly I have no idea how to read those).
+* Write parser for the FASTG file format, and also maybe for the Trinity FASTA
+  file format (but honestly I have no idea how to read the latter).
 
 * Look into "efficient bubble detection" (Fasulo et al. 2002). To be fair,
 this might be for assemblers -- I'd guess that for assembly graphs already
