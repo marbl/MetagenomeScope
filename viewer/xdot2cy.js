@@ -1454,7 +1454,7 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     var parentID = nodeObj['parent_cluster_id'];
     var gc = nodeObj['gc_content'];
     var bg_color = "#";
-    if (gc !== null) {
+    if (gc !== null && gc !== undefined) {
         var red_i = gc * 255;
         var green = "22";
         var blue_i = 255 - red_i;
