@@ -258,7 +258,7 @@ function collapseCluster(cluster, moveMap) {
             changeCollapseButton(true);
         }
     }
-    cluster.data("interiorEles").remove();
+    cluster.scratch("_interiorEles").remove();
 }
 
 /* Uncollapses a given single cluster, making use of the cluster's actual
@@ -266,7 +266,7 @@ function collapseCluster(cluster, moveMap) {
  */
 function uncollapseCluster(cluster) {
     // Restore child nodes + interior edges
-    cluster.data("interiorEles").restore();
+    cluster.scratch("_interiorEles").restore();
     // "Reset" edges to their original target/source within the cluster
     for (var incomingEdgeID in cluster.data("incomingEdgeMap")) {
         var newTgt = cluster.data("incomingEdgeMap")[incomingEdgeID][1];
@@ -435,7 +435,7 @@ function changeRotation() {
             cy.filter('node').each(rotateNode);
             // Rotate nodes within currently collapsed node groups
             cy.scratch("_collapsed").each(function(i, n) {
-                n.data("interiorNodes").each(rotateNode);
+                n.scratch("_interiorNodes").each(rotateNode);
             });
             cy.endBatch();
             cy.fit();
@@ -1424,10 +1424,17 @@ function initClusters() {
             node.data({
                 "incomingEdgeMap": incomingEdgeMap,
                 "outgoingEdgeMap": outgoingEdgeMap,
-                "interiorEles"   : interiorEdges.union(children),
-                "interiorNodes"  : children,
                 "w"              : wid,
                 "h"              : hgt
+            });
+            // We store collections of elements in the cluster's scratch data.
+            // Storing it in the main "data" section will mess up the JSON
+            // exporting, since it isn't serializable.
+            // TODO reduce redundancy here -- only store interiorEles, and in
+            // rotateNodes just select nodes from interiorEles
+            node.scratch({
+                "_interiorEles": interiorEdges.union(children),
+                "_interiorNodes": children
             });
         }
     );
