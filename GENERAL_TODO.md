@@ -9,6 +9,11 @@
       export the JSON? That'd have a few advantages, one prominent one being
       that the user wouldn't have to open up the graph in the browser to get
       the pertinent JSON.
+        * Alternatively, we could just skip Cytoscape.js in this step and
+          figure out how to convert the data we have in the .db file to a JSON
+          object/something else that could be loaded into desktop Cytoscape.
+(There is a plugin for Cytoscape that loads .dot and .gv files---looked into it
+for a bit, seemed alright but not sure how useful it could be.)
 
 * File more issue reports with Cytoscape.js. Remaining errors:
     * unbundled-bezier causing the need for control-point-distances attributes
@@ -16,15 +21,6 @@
         * I need to actually work on getting this in a Minimal Working
           Example; for all I know this could just be some elaborate bug I
           accidentally introduced with data(cpd).
-    * Documentation might be wrong re: the edge weights supported by
-      Floyd-Warshall and Bellman-Ford algorithms (it should say "numeric,"
-      instead of "positive numeric" -- would need to verify this and then
-      submit a small pull request, I guess).
-    * Documentation is likely wrong re: using `eles.classes()` to clear an
-      element's style classes; I think it's actually `eles.classes("")`,
-      since when I tried the former Cytoscape.js gave me an error and when
-      I tried the latter it worked fine. I guess verify that this is the
-      case and then file a pull request if so?
 
 * Start thinking of scaling factors -- e.g. "up to this many thousands of
   nodes in the browser, or this many millions of nodes in the desktop
