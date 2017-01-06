@@ -84,7 +84,7 @@ function initGraph() {
         //minZoom: 0.01,
         //maxZoom: 15,
         pixelRatio: 1.0, // improves performance on high-density displays
-        //hideEdgesOnViewport: false, // = true might help optimize a bit 
+        hideEdgesOnViewport: true, // improves performance
         style: [
             {
                 selector: 'node',
