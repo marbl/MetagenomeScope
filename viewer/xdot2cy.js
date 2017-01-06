@@ -64,9 +64,7 @@ var NODE_TABLE_HEADER = "<tr><th colspan='4'>Selected node information</th></tr>
 
 if (!(window.File && window.FileReader)) {
 	// TODO handle this better -- user should still be able to
-	// play with sample assembly data
-	// (or maybe support loading files some other non-HTML5 way?
-	// something to look into)
+	// play with demo assembly data, if available?
 	alert("Your browser does not support the HTML5 File APIs.");
 }
 
