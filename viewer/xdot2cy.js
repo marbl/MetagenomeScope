@@ -147,6 +147,16 @@ function initGraph() {
                     'background-color': 'data(bg_color)'
                 }
             },
+            // Oddly enough, this doesn't seem to impact performance in
+            // component 1 of the Shakya assembly. It seems
+            // that the selection style stuff still happens here (?),
+            // regardless of the settings.
+            //{
+            //    selector: ':active',
+            //    style: {
+            //        'overlay-opacity': 0
+            //    }
+            //},
             {
                 selector: 'node.noncluster:selected',
                 style: {
