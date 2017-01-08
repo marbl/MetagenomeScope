@@ -180,6 +180,13 @@ function initGraph() {
                 }
             },
             {
+                selector: 'node.cluster:selected',
+                style: {
+                    'border-width': 5,
+                    'border-color': '#000'
+                }
+            },
+            {
                 selector: 'edge',
                 style: {
                     'target-arrow-shape': 'triangle',
