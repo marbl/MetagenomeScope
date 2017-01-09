@@ -110,7 +110,7 @@
                     id="infoButton">Assembly info</button>
     
                 <button type='button' onclick='displaySelectedInfo();'
-                    id="selectedInfoButton">Selected node/edge info</button>
+                    id="selectedInfoButton">Selected element info</button>
 
                 <button type='button' onclick='showSearchDialog()'
                     value="Search" id="searchButton">Search</button>
@@ -180,7 +180,7 @@
             <p>All nodes are included in
             these statistics regardless of orientation.</p>
         </div>
-        <div id='selectedInfoDialog' title="Selected node/edge information"
+        <div id='selectedInfoDialog' title="Selected element information"
             class="hiddenElement largeDialog">
             <input autofocus class="hiddenElement" />
             <table border="2" id="nodeInfoTable" class="centeredInDiv">
@@ -190,9 +190,9 @@
             <table border="2" id="clusterInfoTable" class="centeredInDiv">
             </table>
         </div>
-        <div id='searchDialog' title="Search for Nodes/Edges"
+        <div id='searchDialog' title="Search for Elements"
             class="hiddenElement">
-            <p>Enter in the ID of a node, edge, or node group to search for,
+            <p>Enter in the ID of a node, edge, or cluster to search for,
                and search by pressing the "Enter" key.
                You can enter a list of elements separated by commas, e.g.</p>
             <p>1, 5-&gt;6, 9</p>
