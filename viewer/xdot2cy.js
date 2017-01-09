@@ -59,8 +59,9 @@ var SELECTED_ELES = null;
 // Array of node IDs which the user requested info on. Used as "input"
 // for the DNA dialog.
 var NODES_TO_QUERY = [];
-var EDGE_TABLE_HEADER = "<tr><th colspan='3'>Selected edge information</th></tr><tr><th>Source Node ID</th><th>Target Node ID</th><th>Multiplicity</th></tr>";
-var NODE_TABLE_HEADER = "<tr><th colspan='4'>Selected node information</th></tr><tr><th>ID</th><th>Length</th><th>Depth</th><th>G/C Content</th></tr>";
+var EDGE_TABLE_HEADER = "<tr><th colspan='3'>Selected Edge Information</th></tr><tr><th>Source ID</th><th>Target ID</th><th>Multiplicity</th></tr>";
+var NODE_TABLE_HEADER = "<tr><th colspan='4'>Selected Node Information</th></tr><tr><th>ID</th><th>Length</th><th>Depth</th><th>G/C Content</th></tr>";
+var CLUSTER_TABLE_HEADER = "<tr><th colspan='3'>Selected Cluster Information</th></tr><tr><th>ID</th><th>Type</th><th>Child Count</th></tr>";
 
 if (!(window.File && window.FileReader)) {
 	// TODO handle this better -- user should still be able to
@@ -347,7 +348,11 @@ function setGraphBindings() {
     //    fixBadEdges();
     //    cy.offRender();
     //});
-    cy.on('select', 'node.noncluster, edge',
+    // TODO define 3 distinct events for selection for node.noncluster,
+    // edge, and node.cluster, adding to and removing from 3 corresponding
+    // collections. This allows us to remove the overhead of manipulating
+    // a monolithic collection of selected elements later.
+    cy.on('select', 'node.noncluster, edge, node.cluster',
         function(e) {
             SELECTED_ELE_COUNT += 1;
             SELECTED_ELES = SELECTED_ELES.union(e.cyTarget);
@@ -358,7 +363,7 @@ function setGraphBindings() {
             }
         }
     );
-    cy.on('unselect', 'node.noncluster, edge',
+    cy.on('unselect', 'node.noncluster, edge, node.cluster',
         function(e) {
             SELECTED_ELE_COUNT -= 1;
             SELECTED_ELES = SELECTED_ELES.difference(e.cyTarget);
@@ -876,6 +881,7 @@ function displayInfo() {
 function displaySelectedInfo() {
     var selectedNodes = SELECTED_ELES.filter("node.noncluster");
     var selectedEdges = SELECTED_ELES.filter("edge");
+    var selectedClusters = SELECTED_ELES.filter("node.cluster");
     var content;
     if (selectedNodes.nonempty()) {
         // Populate node table
@@ -951,6 +957,31 @@ function displaySelectedInfo() {
     else {
         $("#edgeInfoTable").hide();
     }
+    // TODO set existsDNA or something as a global variable for the assembly,
+    // and use that to determine whether or not to open the "export DNA"
+    // buttons and, then, to display this cluster's DNA
+    if (selectedClusters.nonempty()) {
+        // Populate edge table
+        $("#clusterInfoTable").show();
+        content = CLUSTER_TABLE_HEADER;
+        selectedClusters.each(function(i, c) {
+            var clustID = c.data("id");
+            var clustType;
+            if (clustID[0] === 'C') clustType = "Chain";
+            else if (clustID[0] === 'Y') clustType = "Cyclic Chain";
+            else if (clustID[0] === 'B') clustType = "Bubble";
+            else if (clustID[0] === 'R') clustType = "Frayed Rope";
+            else clustType = "Invalid (error)";
+            var clustSize = c.scratch("_interiorNodes").size(); 
+            content += "<tr><td>" + clustID + "</td><td>" +
+                clustType + "</td><td>" + clustSize + "</td></tr>";
+        });
+        $("#clusterInfoTable").append(content);
+    }
+    else {
+        $("#clusterInfoTable").hide();
+    }
+ 
     $("#selectedInfoDialog").dialog("open");
     scaleDialog("#selectedInfoDialog");
 }
@@ -959,6 +990,7 @@ function displaySelectedInfo() {
 function clearInfoTables(ev, ui) {
     $("#nodeInfoTable tr").remove();
     $("#edgeInfoTable tr").remove();
+    $("#clusterInfoTable tr").remove();
     // Clear NODES_TO_QUERY
     NODES_TO_QUERY.length = 0;
 }
