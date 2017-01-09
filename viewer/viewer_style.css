@@ -39,6 +39,7 @@ button {
 .centeredInDiv {
     margin: 0 auto;
 }
-.stackedButton {
-    display: block;
+.ui-dialog .ui-dialog-buttonpane .ui-dialog-buttonset {
+    text-align: center;
+    float: none;
 }
