@@ -879,6 +879,13 @@ function displayInfo() {
  * in particular.
  */
 function displaySelectedInfo() {
+    if ($("#selectedInfoDialog").dialog("isOpen")) {
+        // If the dialog's already open then don't do anything.
+        // I suppose we could have these buttons toggle the visibility of their
+        // respective dialogs, but not sure of the UI implications of that.
+        // In any case, this should prevent problems for now.
+        return;
+    }
     var selectedNodes = SELECTED_ELES.filter("node.noncluster");
     var selectedEdges = SELECTED_ELES.filter("edge");
     var selectedClusters = SELECTED_ELES.filter("node.cluster");
