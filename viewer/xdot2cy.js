@@ -1465,16 +1465,20 @@ function initClusters() {
                 incomingEdges).difference(outgoingEdges);
             var wid = 0;
             var hgt = 0;
+            // Basically, a cluster's width and height should be
+            // reflective of the widths and heights of its children.
+            // In the children.each block here we basically add the
+            // approximate DNA lengths of each child (as reflected
+            // in the width/height of the child node in question) to
+            // an accumulator, and after the block we treat these
+            // values like we treat normal node blocks and scale them
+            // the same way (logarithmically).
             children.each(function(i,e) {
-                wid += Math.pow(100,
-                        Math.pow(e.data("w") / INCHES_TO_PIXELS, 2)
-                );
-                hgt += Math.pow(100,
-                        Math.pow(e.data("h") / INCHES_TO_PIXELS, 2)
-                );
+                wid += Math.pow(10, e.data("w") / INCHES_TO_PIXELS);
+                hgt += Math.pow(10, e.data("h") / INCHES_TO_PIXELS);
             });
-            wid = INCHES_TO_PIXELS * Math.sqrt(Math.log(wid) / Math.log(100));
-            hgt = INCHES_TO_PIXELS * Math.sqrt(Math.log(hgt) / Math.log(100));
+            wid = INCHES_TO_PIXELS * (Math.log(wid) / Math.log(10));
+            hgt = INCHES_TO_PIXELS * (Math.log(hgt) / Math.log(10));
             // Record incoming/outgoing edges in this
             // cluster's data. Will be useful during collapsing.
             // We also record "interiorNodes" -- having a reference to just
