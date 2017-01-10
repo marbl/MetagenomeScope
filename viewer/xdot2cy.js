@@ -497,7 +497,7 @@ function loadgraphfile() {
     var fr = new FileReader();
 	var inputfile = document.getElementById('fileselector').files[0];
     if (inputfile === undefined) {
-        alert("Please select a .db file to display.");
+        alert("Please select a .db file to load.");
         return;
     }
     if (inputfile.name.endsWith(".db")) {
@@ -533,7 +533,7 @@ function loadgraphfile() {
         }, 50);
     }
     else {
-        alert("Please select a valid .db or .xdot file to display.");
+        alert("Please select a valid .db file to load.");
     }
 }
 
