@@ -426,6 +426,10 @@ function rotateNode(i, n) {
     n.position({x: newPt[0], y: newPt[1]});
     // Rotate node polygon definition
     if (n.hasClass("noncluster")) { 
+        // TODO Only use 8 polypts definitions: two per FWD/REV nodes per 4
+        // possible graph rotations. Define these as global variables above,
+        // instead of using .data() to store polypts (which is redundant for
+        // many nodes).
         var coordList = n.data('polypts').trim().split(" ");
         var clLen = coordList.length;
         var pointList = [];
