@@ -97,6 +97,15 @@ GLOBALNODE_STYLE = ""
 # NOTE: "dir=none" gives "undirected" edges
 GLOBALEDGE_STYLE = "headport=n,tailport=s"
 
+# Prefixes of certain messages that are output to the user at
+# certain points in the script's processing. Each message is followed by the
+# size rank of the connected component in question, which is in turn followed
+# by some punctuation (either an ellipsis (...) or a period (.)).
+START_LAYOUT_MSG = "Laying out connected component "
+DONE_LAYOUT_MSG = "Done laying out connected component "
+START_PARSING_MSG = "Parsing layout of connected component "
+DONE_PARSING_MSG = "Done parsing layout of connected component "
+
 # The filename suffixes indicating a file is of a certain type.
 # Ideally, we should be able to detect what filetype an assembly file is by
 # just examining the file's contents, but for now this is an okay workaround.

@@ -756,12 +756,20 @@ cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?)", graphVals)
 # Conclusion: Output (desired) components of nodes to the .gv file
 
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
+no_print = False # used to reduce excess printing (see issue #133 on GitHub)
 for component in connected_components[:config.MAX_COMPONENTS]:
     # Since the component list is in descending order, if the current
     # component has less than config.MIN_COMPONENT_SIZE nodes then we're
     # done with displaying components
     if len(component.node_list) < config.MIN_COMPONENT_SIZE:
         break
+    if not no_print and len(component.node_list) < 5:
+        no_print = True
+        # The current component is included within the small component count
+        small_component_ct = total_component_count - component_size_rank + 1
+        comp_noun = "components" if small_component_ct > 1 else "component"
+        print "Laying out %d " % (small_component_ct) + "small " + \
+            "(containing < 5 nodes) remaining %s..." % (comp_noun)
 
     # OK, we're displaying this component.
     # Get the node info (for both normal nodes and clusters), and the edge
@@ -796,9 +804,11 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     xdot_fullfn = os.path.join(dir_fn, component_prefix + ".xdot")
     check_file_existence(xdot_fullfn)
     with os.fdopen(os.open(xdot_fullfn, flags, 0644), 'w') as xdot_file_w:
-        print "Laying out connected component %d..." % (component_size_rank)
+        if not no_print:
+            print config.START_LAYOUT_MSG + "%d..." % (component_size_rank)
         call(["dot", gv_fullfn, "-Txdot"], stdout=xdot_file_w)
-        print "Done laying out connected component %d." % (component_size_rank)
+        if not no_print:
+            print config.DONE_LAYOUT_MSG + "%d." % (component_size_rank)
     # Read the .xdot file here and parse its layout information,
     # reconciling it with the corresponding nodes'/edges'/clusters'/
     # components'/graph information.
@@ -810,7 +820,8 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     component_edge_count   = 0
     component_total_length = 0
     with open(xdot_fullfn, 'r') as xdot_file_r:
-        print "Parsing layout of component %d..." % (component_size_rank)
+        if not no_print:
+            print config.START_PARSING_MSG + "%d..." % (component_size_rank)
         # Like the xdot2cy.js parser I originally wrote, this parser assumes
         # perfectly formatted output (including 1-attribute-per-line, etc).
         # It's designed for use with xdot version 1.7, so other xdot
@@ -971,7 +982,8 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         # meaningfully in the Javascript graph viewer. Raise an error.
         if not found_bounding_box:
             raise IOError, "No bounding box in %s." % (xdot_fullfn)
-        print "Done parsing layout of component %d." % (component_size_rank)
+        if not no_print:
+            print config.DONE_PARSING_MSG + "%d." % (component_size_rank)
 
     # Output component information to the database
     cursor.execute("""INSERT INTO components VALUES (?,?,?,?,?,?)""",
@@ -986,6 +998,9 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         safe_file_remove(xdot_fullfn)
 
     component_size_rank += 1
+
+if no_print:
+    print "Done laying out small components."
 
 connection.commit()
 # Close the database connection
