@@ -66,9 +66,9 @@
                     "ui-icon-image"}, disabled: true});
                 $("#componentselector").spinner({min: 1, disabled: true});
                 $("#progressbar").progressbar();
-                // TODO adjust width relative to screen size? or not, 100px
-                // really isn't a lot on most screens
-                $("#progressbar").width(100);
+                // For some reason a width of 100% here slightly extends past
+                // the width of controls, causing scrolling; this should work.
+                $("#progressbar").width("95%");
                 $("#controls").controlgroup();
                 $("#rotation").selectmenu({change: changeRotation,
                     width: 'auto', open: disableTooltip,
@@ -88,6 +88,8 @@
             remaining page height to the cy div. -->
         <div id="asmviz">
             <div id="controls">
+                <h2>File Selection</h2>
+                <p>
                 <button type='button' id="fileselectButton"
                     onclick="$('#fileselector').click();">Choose .db file</button>
                 <!-- For some reason, giving this the hiddenElement class
@@ -95,24 +97,54 @@
                     styling of file inputs. Anyway, this should work fine. -->
     	        <input type='file' id='fileselector'
                     onchange='loadgraphfile();' style="display: none"/>
+                <button type='button' onclick='displayInfo();'
+                    id="infoButton">Assembly info</button>
+                </p>
+                <p>
+                    <div id='progressbar' class="centeredInDiv"></div>
+                </p>
+                <hr />
+
+                <h2>Connected Components</h2>
     
+                <p>
                 <input id='componentselector' value="1"
                     title="Enter the size rank of the connected component to
                     draw. 1 is the largest component (by number of nodes),
                     2 is the second-largest, and so on." />
-
+                </p>
+                <p>
                 <button type='button' onclick='drawComponent();'
                     id="drawButton">Draw connected component</button>
-    
-                <button type='button' onclick='displayInfo();'
-                    id="infoButton">Assembly info</button>
+                </p>
+                <hr /> 
+
+                <h2>Selected Elements</h2>
+                <p>
     
                 <button type='button' onclick='displaySelectedInfo();'
                     id="selectedInfoButton">Selected element info</button>
 
+                </p>
+                <hr /> 
+
+                <h2>Search for Elements</h2>
+                <p>
                 <button type='button' onclick='showSearchDialog()'
                     value="Search" id="searchButton">Search</button>
-                
+                </p>
+                <hr />
+
+                <h2>Graph View Controls</h2>
+                <p>
+                <!-- Value of this button will be toggled as all nodes in graph
+                     are collapsed/uncollapsed -->
+                <button type='button' id='collapseButton'
+                    onclick='startCollapseAll()'>Collapse All</button>
+                </p>
+
+                <p>
+
                 <select id='rotation' 
                     title="The general direction of the graph.">
                     <option value="0">&#8595;</option>
@@ -123,15 +155,11 @@
     
                 <button type='button' onclick='fitGraph()' id="fitButton">Fit Graph</button>
     
-                <!-- Value of this button will be toggled as all nodes in graph
-                     are collapsed/uncollapsed -->
-                <button type='button' id='collapseButton'
-                    onclick='startCollapseAll()'>Collapse All</button>
     
                 <button type='button' id='exportButton'
                     onclick='exportGraph()'>Export view</button>
+                </p>
 
-                <div id='progressbar'></div>
                 <div id='status'></div>
             </div> <!-- end controls div -->
             <div id="cy"></div> <!-- used as container for Cytoscape.js -->

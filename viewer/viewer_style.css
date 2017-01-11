@@ -2,18 +2,23 @@ html, body, #asmviz {
     height: 100%;
     width: 100%;
     margin: 0;
-}
-#asmviz {
-    display: table;
+    overflow: hidden; /* Seems to work best with zooming and #cy */
 }
 #controls {
     /* We avoid specifying a height so that this div takes up the minimum
      * height needed to store all its content
      */
-    width: 100%;
+    width: 20%;
+    height: 100%;
+    float: left;
+    display: inline-block;
     font-size: 0.75em;
-    background-color: #AAAAAA;
-    display: table-row;
+    background-color: #777;
+    overflow-y: scroll;
+    text-align: center;
+}
+#controls p { /* not the greatest solution. work on something better-looking */
+    margin: 0.1em;
 }
 button {
     height: 2.3em;
@@ -23,9 +28,10 @@ button {
     height: 1.3em;
 }
 #cy {
-    width: 100%;
+    width: 80%;
     height: 100%;
-    display: table-row;
+    display: inline-block;
+    vertical-align: top;
 }
 #progressbar > .ui-progressbar-value {
     background: #0099ff;
