@@ -58,6 +58,8 @@
                     "ui-icon-search"}, disabled: true});
                 $("#fitButton").button({icons: {primary:
                     "ui-icon-arrow-4-diag"}, disabled: true});
+                $("#fitSelectedButton").button({icons: {primary:
+                    "ui-icon-arrow-4-diag"}, disabled: true});
                 $("#collapseButton").button({icons: {primary:
                     "ui-icon-minus"}, disabled: true});
                 $("#fileselectButton").button({icons: {primary:
@@ -153,7 +155,9 @@
                     <option value="270">&#8592;</option>
                 </select>
     
-                <button type='button' onclick='fitGraph()' id="fitButton">Fit Graph</button>
+                <button type='button' onclick='fitGraph(false)' id="fitButton">Fit Graph</button>
+                <button type='button' onclick='fitGraph(true)'
+                    id="fitSelectedButton">Fit to Selected</button>
     
     
                 <button type='button' id='exportButton'

@@ -514,6 +514,7 @@ function loadgraphfile() {
         $("#selectedInfoButton").button("disable");
         $("#searchButton").button("disable");
         $("#fitButton").button("disable");
+        $("#fitSelectedButton").button("disable");
         $("#collapseButton").button("disable");
         $("#exportButton").button("disable");
         fr.onload = function(e) {
@@ -807,6 +808,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     fixBadEdges();
     $("#searchButton").button("enable");
     $("#fitButton").button("enable");
+    $("#fitSelectedButton").button("enable");
     $("#exportButton").button("enable");
     if (clustersInComponent) {
         $("#collapseButton").button("enable");
@@ -850,6 +852,7 @@ function loadajaxDB() {
     $("#selectedInfoButton").button("disable");
     $("#searchButton").button("disable");
     $("#fitButton").button("disable");
+    $("#fitSelectedButton").button("disable");
     $("#collapseButton").button("disable");
     var filename = $("input[name=fs]:checked").attr('id');
     // jQuery doesn't support arraybuffer responses so we have to manually
@@ -1075,15 +1078,20 @@ function scaleDialog(dialogID) {
     }
 }
 
-/* Fits the graph to all its nodes. This should be useful if the user
- * somehow gets lost while navigating the graph (particularly for really
- * large graphs).
+/* Fits the graph to all its elements if toSelected is false, and to only
+ * selected elements if toSelected is true.
  */
-function fitGraph() {
+function fitGraph(toSelected) {
     $("#progressbar").progressbar("value", false);
     window.setTimeout(
         function() {
-            cy.fit();
+            if (toSelected) {
+                // Right now, we don't throw any sort of error here if
+                // SELECTED_ELES is empty. We could, though?
+                cy.fit(SELECTED_ELES);
+            } else {
+                cy.fit();
+            }
             $("#progressbar").progressbar("value", 100);
         }, 20
     );
