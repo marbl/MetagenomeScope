@@ -397,7 +397,8 @@ cursor.execute("""CREATE TABLE edges
         component_rank integer, control_point_string text,
         control_point_count integer, parent_cluster_id text)""") 
 cursor.execute("""CREATE TABLE clusters (cluster_id text,
-        component_rank integer)""")
+        component_rank integer, left real, bottom real, right real,
+        top real)""")
 cursor.execute("""CREATE TABLE components
         (size_rank integer, node_count integer, edge_count integer,
         total_length integer, boundingbox_x real, boundingbox_y real)""")
@@ -864,7 +865,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
                 if matches != None:
                     curr_cluster.component_size_rank = component_size_rank
                     cursor.execute("""INSERT INTO clusters
-                        VALUES (?,?)""", curr_cluster.db_values())
+                        VALUES (?,?,?,?,?,?)""", curr_cluster.db_values())
                     parsing_cluster = False
                     curr_cluster = None
                     continue
@@ -940,6 +941,15 @@ for component in connected_components[:config.MAX_COMPONENTS]:
                         parsing_edge = False
                         curr_edge = None
                         continue
+            # Check for cluster attributes in "intermediate lines"
+            if parsing_cluster:
+                bb_matches = config.CLUSBBOX_RE.search(line)
+                if bb_matches != None:
+                    grp = bb_matches.groups()
+                    curr_cluster.xdot_bb_left = float(grp[0])
+                    curr_cluster.xdot_bb_bottom = float(grp[1])
+                    curr_cluster.xdot_bb_right = float(grp[2])
+                    curr_cluster.xdot_bb_top = float(grp[3])
             # Check for node attributes in "intermediate lines"
             if parsing_node:
                 attempt_add_node_attr(line, curr_node)

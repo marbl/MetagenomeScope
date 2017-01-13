@@ -668,9 +668,13 @@ function drawComponent() {
         "SELECT * FROM clusters WHERE component_rank = ?", [cmpRank]);
     while (clustersStmt.step()) {
         clustersInComponent = true;
-        renderClusterObject(clustersStmt.getAsObject());
+        renderClusterObject(clustersStmt.getAsObject(), bb);
     }
     clustersStmt.free();
+    // Draw graph "iteratively" -- display all clusters.
+    cy.endBatch();
+    cy.fit();
+    cy.startBatch();
     var nodesStmt = CURR_DB.prepare(
         "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
     CURR_NE = 0;
@@ -712,6 +716,10 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
     }
     else {
         nodesStmt.free();
+        // Second part of "iterative" graph drawing: draw all nodes
+        cy.endBatch();
+        cy.fit();
+        cy.startBatch();
         // NOTE that we intentionally only consider edges within this component
         // Multiplicity is an inherently relative measure, so outliers in other
         // components will just mess things up in the current component.
@@ -1568,12 +1576,24 @@ function renderNodeObject(nodeObj, boundingboxObject) {
 }
 
 // Renders a cluster object.
-function renderClusterObject(clusterObj) {
+function renderClusterObject(clusterObj, boundingboxObject) {
     var clusterID = clusterObj["cluster_id"];
+    var bottomLeftPos = gv2cyPoint(clusterObj['left'], clusterObj['bottom'],
+        [boundingboxObject['boundingbox_x'],
+         boundingboxObject['boundingbox_y']]);
+    var topRightPos = gv2cyPoint(clusterObj['right'], clusterObj['top'],
+        [boundingboxObject['boundingbox_x'],
+         boundingboxObject['boundingbox_y']]);
+    console.log(topRightPos[0] - bottomLeftPos[0]);
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(
         cy.add({
             classes: clusterID[0] + ' cluster',
-            data: {id: clusterID, w: 5, h: 5, isCollapsed: false}
+            data: {id: clusterID,
+                w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
+                h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
+                isCollapsed: false},
+            position: {x: (bottomLeftPos[0] + topRightPos[0]) / 2,
+                       y: (bottomLeftPos[1] + topRightPos[1]) / 2}
         })
     ));
 }
@@ -1583,7 +1603,7 @@ function renderClusterObject(clusterObj) {
  * Uses node2pos (mapping of node object from DB -> [x, y] position)
  * to calcluate relative control point weight stuff.
  *
- * This also logarithmically scales edge thickness based on multiplicity.
+ * This also relatively scales edge thickness based on multiplicity.
  * NOTE that we don't scale edge thickness when using dot from collate.py,
  * since GraphViz doesn't adjust node placement based on edge thickness even
  * in extreme cases -- therefore we have free reign in this function to

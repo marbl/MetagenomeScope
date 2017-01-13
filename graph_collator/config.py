@@ -118,6 +118,8 @@ GFA_SUFFIX       = "gfa"
 GVNUMBER_RE = r'[\d\.e\+\-]+'
 
 BOUNDBOX_RE = re.compile(r'bb="0,0,(%s),(%s)"' % (GVNUMBER_RE, GVNUMBER_RE))
+CLUSBBOX_RE = re.compile(r'bb="(%s),(%s),(%s),(%s)"' % (GVNUMBER_RE,
+    GVNUMBER_RE, GVNUMBER_RE, GVNUMBER_RE))
 CLUSDECL_RE = re.compile(r'subgraph cluster_(\w+)\s\{')
 CLUS_END_RE = re.compile(r'(.+)\}')
 NODEDECL_RE = re.compile(r'(c?\d+)\s+\[')

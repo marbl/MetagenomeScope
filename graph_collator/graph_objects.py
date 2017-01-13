@@ -252,6 +252,10 @@ class NodeGroup(Node):
             n.used_in_collapsing = True
             n.group = self
         self.id_string = self.id_string[:-1] # remove last underscore
+        self.xdot_bb_left = None
+        self.xdot_bb_bottom = None
+        self.xdot_bb_right = None
+        self.xdot_bb_top = None
         super(NodeGroup, self).__init__(self.id_string, self.bp, False)
 
     def node_info(self):
@@ -267,14 +271,11 @@ class NodeGroup(Node):
 
     def db_values(self):
         """Returns a tuple containing the values associated with this group.
-
-           This is intentionally minimal -- we can infer node group type
-           from the first letter of the node group's id, and clusters (in
-           both GraphViz and Cytoscape.js) autofit to the dimensions of
-           their child nodes, so we don't need to record
-           position/dimensional information.
+           Should be called after parsing and assigning .xdot bounding box
+           values accordingly.
         """
-        return (self.id_string, self.component_size_rank)
+        return (self.id_string, self.component_size_rank, self.xdot_bb_left,
+                self.xdot_bb_bottom, self.xdot_bb_right, self.xdot_bb_top)
 
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble. This consists of one
