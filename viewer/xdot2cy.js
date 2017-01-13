@@ -672,6 +672,7 @@ function drawComponent() {
     }
     clustersStmt.free();
     // Draw graph "iteratively" -- display all clusters.
+    drawBoundingBoxEnforcingNodes(bb);
     cy.endBatch();
     cy.fit();
     cy.startBatch();
@@ -777,6 +778,7 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
     }
     else {
         edgesStmt.free();
+        removeBoundingBoxEnforcingNodes(bb);
         finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
             clustersInComponent);
     }
@@ -1573,6 +1575,28 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     if (parentID !== null) {
         cy.scratch("_ele2parent")[nodeID] = parentID;
     }
+}
+
+// Draws two invisible nodes that "enforce" the given bounding box.
+function drawBoundingBoxEnforcingNodes(boundingboxObject) {
+    var bb = [boundingboxObject['boundingbox_x'],
+              boundingboxObject['boundingbox_y']];
+    var bottomLeftPt = gv2cyPoint(0, 0, bb);
+    var topRightPt = gv2cyPoint(bb[0], bb[1], bb);
+    cy.add({
+        classes: "bb_enforcing",
+        data: {id: "bottom_left", w: 0, h: 0},
+        position: {x: bottomLeftPt[0], y: bottomLeftPt[1]}
+    });
+    cy.add({
+        classes: "bb_enforcing",
+        data: {id: "top_right", w: 0, h: 0},
+        position: {x: topRightPt[0], y: topRightPt[1]}
+    });
+}
+
+function removeBoundingBoxEnforcingNodes(boundingboxObject) {
+    cy.$("node.bb_enforcing").remove();
 }
 
 // Renders a cluster object.
