@@ -675,13 +675,23 @@ function drawComponent() {
     drawBoundingBoxEnforcingNodes(bb);
     cy.endBatch();
     cy.fit();
-    cy.startBatch();
-    var nodesStmt = CURR_DB.prepare(
-        "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
-    CURR_NE = 0;
-    drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
-        clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalElementCount);
+    window.setTimeout(function() {
+        /* I originally didn't have this wrapped in a timeout, but for some
+         * reason a few clusters in the test BAMBUS E. coli assembly weren't
+         * being rendered at the waiting point. It seemed some sort of race
+         * condition was happening, and wrapping this block of code in a
+         * timeout seems to solve the problem for iterative cluster drawing
+         * (iterative node/edge drawing is fine, since those already use
+         * timeouts to update the progress bar).
+         */
+        cy.startBatch();
+        var nodesStmt = CURR_DB.prepare(
+            "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
+        CURR_NE = 0;
+        drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
+            clustersInComponent, componentNodeCount, componentEdgeCount,
+            totalElementCount);
+    }, 0);
 }
 
 function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
