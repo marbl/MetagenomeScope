@@ -640,7 +640,6 @@ function drawComponent() {
         // but since you can draw multiple components for the same .db file
         // we include this here as well
         destroyGraph();
-        $("#selectedInfoButton").button("disable");
     }
     initGraph();
     setGraphBindings();
