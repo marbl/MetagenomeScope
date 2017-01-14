@@ -39,7 +39,6 @@ const INCHES_TO_PIXELS = 54;
 const CTRL_PT_DIST_EPSILON = 1.00;
 
 // Misc. global variables we use to get certain functionality
-var GRAPH_RENDERED = false;
 // In degrees CCW from the default up->down direction
 var PREV_ROTATION;
 var CURR_ROTATION;
@@ -452,7 +451,9 @@ function rotateNode(i, n) {
 function changeRotation() {
     PREV_ROTATION = CURR_ROTATION;
     CURR_ROTATION = parseInt(document.getElementById("rotation").value);
-    if (GRAPH_RENDERED || !$("#fitButton").button("option", "disabled")) {
+    // We use the fit button's disabled status as a way to gauge whether or not
+    // a graph is currently rendered; sorta hack-ish, but it works
+    if (!$("#fitButton").button("option", "disabled")) {
         $("#progressbar").progressbar("value", false);
         window.setTimeout(function() {
             cy.startBatch();
@@ -493,7 +494,6 @@ function changeCollapseButton(toUncollapseReady) {
 function destroyGraph() {
     cy.destroy();
     changeCollapseButton(false);
-    GRAPH_RENDERED = false;
 }
 
 /* Loads a .db file. */
@@ -507,16 +507,10 @@ function loadgraphfile() {
     if (inputfile.name.endsWith(".db")) {
         // Important -- remove old DB from memory if it exists
         closeDB();
-        $("#drawButton").button("disable");
+        changeVolatileControls("disable");
         $("#infoButton").button("disable");
         $("#currComponentInfo").html(
             "No connected component has been drawn yet.");
-        $("#selectedInfoButton").button("disable");
-        $("#searchButton").button("disable");
-        $("#fitButton").button("disable");
-        $("#fitSelectedButton").button("disable");
-        $("#collapseButton").button("disable");
-        $("#exportButton").button("disable");
         fr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
                 loadDBfile(e.target.result);
@@ -601,8 +595,30 @@ function parseDBcomponents() {
     $("#asmGCEntry").text(asmGCInfo);
     $("#componentselector").spinner("option", "max", compCt);
     $("#componentselector").spinner("enable");
+    $("#fileselectButton").button("enable");
     $("#infoButton").button("enable");
     $("#drawButton").button("enable");
+    $("#rotation").selectmenu("enable");
+}
+
+/* Depending on the argument (either "enable" or "disable"),
+ * either enables or disables some "volatile" (i.e. should be used atomically)
+ * controls of the graph. (This will not enable the selectedInfoButton or
+ * collapseButton, although it will disable them if requested.)
+ */
+function changeVolatileControls(ableType) {
+    $("#fileselectButton").button(ableType);
+    $("#drawButton").button(ableType);
+    $("#componentselector").spinner(ableType);
+    $("#searchButton").button(ableType);
+    if (ableType === "disable") {
+        $("#selectedInfoButton").button(ableType);
+        $("#collapseButton").button(ableType);
+    }
+    $("#rotation").selectmenu(ableType);
+    $("#fitButton").button(ableType);
+    $("#fitSelectedButton").button(ableType);
+    $("#exportButton").button(ableType);
 }
 
 /* Draws the selected connected component in the .db file -- its nodes, its
@@ -615,10 +631,8 @@ function drawComponent() {
         alert("Please enter a valid component rank using the input field.");
         return;
     }
+    changeVolatileControls("disable");
     // Okay, we can draw this component!
-    // Graph initialization stuff here (shamelessly taken from initGraph()
-    // below -- I'm thinking we can just get rid of that when we're done
-    // with this)
     if (cy !== null) {
         // If we already have a graph instance, clear that graph before
         // initializing another one
@@ -826,10 +840,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     cy.endBatch();
     cy.fit();
     fixBadEdges();
-    $("#searchButton").button("enable");
-    $("#fitButton").button("enable");
-    $("#fitSelectedButton").button("enable");
-    $("#exportButton").button("enable");
+    changeVolatileControls("enable");
     if (clustersInComponent) {
         $("#collapseButton").button("enable");
     }
@@ -865,15 +876,10 @@ function loadajaxDB() {
     // usually we won't have the luxury of ID === filename, but this is a
     // demo so might as well
     $("#fsDialog").dialog("close");
-    $("#drawButton").button("disable");
+    changeVolatileControls("disable");
     $("#infoButton").button("disable");
     $("#currComponentInfo").html(
         "No connected component has been drawn yet.");
-    $("#selectedInfoButton").button("disable");
-    $("#searchButton").button("disable");
-    $("#fitButton").button("disable");
-    $("#fitSelectedButton").button("disable");
-    $("#collapseButton").button("disable");
     var filename = $("input[name=fs]:checked").attr('id');
     // jQuery doesn't support arraybuffer responses so we have to manually
     // use an XMLHttpRequest(), strange capitalization and all
@@ -1618,7 +1624,6 @@ function renderClusterObject(clusterObj, boundingboxObject) {
     var topRightPos = gv2cyPoint(clusterObj['right'], clusterObj['top'],
         [boundingboxObject['boundingbox_x'],
          boundingboxObject['boundingbox_y']]);
-    console.log(topRightPos[0] - bottomLeftPos[0]);
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(
         cy.add({
             classes: clusterID[0] + ' cluster',
