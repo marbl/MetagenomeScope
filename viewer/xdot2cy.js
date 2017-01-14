@@ -86,6 +86,9 @@ function initGraph() {
         pixelRatio: 1.0, // improves performance on high-density displays
         hideEdgesOnViewport: true, // improves performance
         //textureOnViewport: true, // improves performance (but kind of ugly)
+        userPanningEnabled: false,
+        userZoomingEnabled: false,
+        boxSelectionEnabled: false,
         style: [
             {
                 selector: 'node',
@@ -331,9 +334,12 @@ function setGraphBindings() {
     // elements to remove/etc. once (the first time around)
     cy.on('cxttap', 'node',
         function(e) {
-            var node = e.cyTarget;
-            if (node.hasClass("cluster")) {
-                toggleCluster(node);
+            // Prevent collapsing being done during iterative drawing
+            if (!$("#fitButton").button("option", "disabled")) {
+                var node = e.cyTarget;
+                if (node.hasClass("cluster")) {
+                    toggleCluster(node);
+                }
             }
         }
     );
@@ -846,6 +852,9 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     cy.fit();
     fixBadEdges();
     changeVolatileControls("enable");
+    cy.userPanningEnabled(true);
+    cy.userZoomingEnabled(true);
+    cy.boxSelectionEnabled(true);
     if (clustersInComponent) {
         $("#collapseButton").button("enable");
     }
