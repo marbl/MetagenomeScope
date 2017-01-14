@@ -106,7 +106,13 @@ function initGraph() {
                 selector: 'node.cluster',
                 style: {
                     'background-opacity': 0.65,
-                    'shape': 'square'
+                    'shape': 'square',
+                    'compound-sizing-wrt-labels': 'exclude',
+                    'padding-top': 0,
+                    'padding-right': 0,
+                    'padding-left': 0,
+                    'padding-bottom': 0,
+                    'text-valign': 'bottom'
                 }
             },
             {
