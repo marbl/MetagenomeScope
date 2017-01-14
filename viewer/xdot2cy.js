@@ -89,6 +89,8 @@ function initGraph() {
         userPanningEnabled: false,
         userZoomingEnabled: false,
         boxSelectionEnabled: false,
+        autounselectify: true,
+        autoungrabify: true,
         style: [
             {
                 selector: 'node',
@@ -855,6 +857,8 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     cy.userPanningEnabled(true);
     cy.userZoomingEnabled(true);
     cy.boxSelectionEnabled(true);
+    cy.autounselectify(false);
+    cy.autoungrabify(false);
     if (clustersInComponent) {
         $("#collapseButton").button("enable");
     }
