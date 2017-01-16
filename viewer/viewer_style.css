@@ -2,7 +2,6 @@ html, body, #asmviz {
     height: 100%;
     width: 100%;
     margin: 0;
-    overflow: hidden; /* Seems to work best with zooming and #cy */
 }
 #controls {
     /* We avoid specifying a height so that this div takes up the minimum
