@@ -373,6 +373,7 @@ function setGraphBindings() {
             // selectedInfo button
             if (SELECTED_ELE_COUNT === 1) {
                 $("#selectedInfoButton").button("enable");
+                $("#fitSelectedButton").button("enable");
             }
         }
     );
@@ -385,6 +386,7 @@ function setGraphBindings() {
             // the <= 0 here :P
             if (SELECTED_ELE_COUNT <= 0) {
                 $("#selectedInfoButton").button("disable");
+                $("#fitSelectedButton").button("disable");
             }
         }
     );
@@ -617,8 +619,9 @@ function parseDBcomponents() {
 
 /* Depending on the argument (either "enable" or "disable"),
  * either enables or disables some "volatile" (i.e. should be used atomically)
- * controls of the graph. (This will not enable the selectedInfoButton or
- * collapseButton, although it will disable them if requested.)
+ * controls of the graph. (This will not enable the selectedInfoButton,
+ * fitSelectedButton, or collapseButton, although it will disable them
+ * if requested.)
  */
 function changeVolatileControls(ableType) {
     $("#fileselectButton").button(ableType);
@@ -626,12 +629,12 @@ function changeVolatileControls(ableType) {
     $("#componentselector").spinner(ableType);
     $("#searchButton").button(ableType);
     if (ableType === "disable") {
-        $("#selectedInfoButton").button(ableType);
-        $("#collapseButton").button(ableType);
+        $("#selectedInfoButton").button("disable");
+        $("#collapseButton").button("disable");
+        $("#fitSelectedButton").button("disable");
     }
     $("#rotation").selectmenu(ableType);
     $("#fitButton").button(ableType);
-    $("#fitSelectedButton").button(ableType);
     $("#exportButton").button(ableType);
 }
 
