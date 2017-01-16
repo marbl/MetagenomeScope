@@ -611,6 +611,8 @@ function parseDBcomponents() {
     $("#asmGCEntry").text(asmGCInfo);
     $("#componentselector").spinner("option", "max", compCt);
     $("#componentselector").spinner("enable");
+    $("#loadDBbutton").button("enable");
+    $("#xmlFileselectButton").button("enable");
     $("#fileselectButton").button("enable");
     $("#infoButton").button("enable");
     $("#drawButton").button("enable");
@@ -625,6 +627,8 @@ function parseDBcomponents() {
  */
 function changeVolatileControls(ableType) {
     $("#fileselectButton").button(ableType);
+    $("#loadDBbutton").button(ableType);
+    $("#xmlFileselectButton").button(ableType);
     $("#drawButton").button(ableType);
     $("#componentselector").spinner(ableType);
     $("#searchButton").button(ableType);
@@ -643,20 +647,20 @@ function updateTextStatus(text) {
 }
 
 function startDrawComponent() {
-    updateTextStatus("Drawing clusters...");
-    window.setTimeout(drawComponent, 0);
-}
-
-/* Draws the selected connected component in the .db file -- its nodes, its
- * edges, its clusters -- to the screen.
- */
-function drawComponent() {
     var cmpRank = $("#componentselector").spinner("value");
     if (!(Number.isInteger(cmpRank) && cmpRank >= 1
         && cmpRank <= $("#componentselector").spinner("option", "max"))) {
         alert("Please enter a valid component rank using the input field.");
         return;
     }
+    updateTextStatus("Drawing clusters...");
+    window.setTimeout(drawComponent(cmpRank), 0);
+}
+
+/* Draws the selected connected component in the .db file -- its nodes, its
+ * edges, its clusters -- to the screen.
+ */
+function drawComponent(cmpRank) {
     changeVolatileControls("disable");
     // Okay, we can draw this component!
     if (cy !== null) {

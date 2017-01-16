@@ -44,8 +44,8 @@
                     ]
                 );
                 $("#selectedInfoDialog").on("dialogclose", clearInfoTables);
-                $("#selectedInfoDialog").dialog("option", "resizable",
-                    false);
+                $("#selectedInfoDialog").dialog("option", "resizable", false);
+                $("#loadDBbutton").button({icons: {primary: "ui-icon-check"}});
                 // We don't set searchDialog's width since it's tiny
                 $("#searchDialog").dialog({autoOpen: false});
                 $("#drawButton").button({icons: {primary: "ui-icon-pencil"},
@@ -62,6 +62,11 @@
                     "ui-icon-arrow-4-diag"}, disabled: true});
                 $("#collapseButton").button({icons: {primary:
                     "ui-icon-minus"}, disabled: true});
+                // When hosting this in an environment with demo files, ensure
+                // the "disabled" parameter for xmlFileselectButton is false
+                // and modify the fsDialog accordingly.
+                $("#xmlFileselectButton").button({icons: {primary:
+                    "ui-icon-arrowrefresh-1-s"}, disabled: false});
                 $("#fileselectButton").button({icons: {primary:
                     "ui-icon-folder-open"}});
                 $("#exportButton").button({icons: {primary:
@@ -92,6 +97,8 @@
             <div id="controls">
                 <h2>File Selection</h2>
                 <p>
+                <button type='button' id="xmlFileselectButton"
+                    onclick="openFileSelectDialog();">Demo .db</button>
                 <button type='button' id="fileselectButton"
                     onclick="$('#fileselector').click();">Choose .db file</button>
                 <!-- For some reason, giving this the hiddenElement class
@@ -169,6 +176,45 @@
             </div> <!-- end controls div -->
             <div id="cy"></div> <!-- used as container for Cytoscape.js -->
         </div> <!-- end asmviz div -->
+        <div id='fsDialog' title="Select a demo assembly file"
+            class="hiddenElement largeDialog">
+            <!-- fix weird selection problem -->
+            <input autofocus class="hiddenElement" />
+            <label for="ecoli.db">E. coli (LastGraph [Velvet], 279 contigs, 332
+                edges)</label>
+            <input type="radio" name="fs" id="ecoli.db" checked="checked">
+            <br />
+            <label for="shakya.db">Bacterial/Archaeal Metagenome from 
+                <!-- We use target="_blank" to specify to open article in
+                    new tab or window (depends on browser) -->
+                <a target="_blank"
+                href="http://www.ncbi.nlm.nih.gov/pubmed/23387867"><em>Shakya
+                    et al.</em> 2013</a> (GML [Bambus 3], 21,950 scaffolds, 23,501 edges)</label>
+            <input type="radio" name="fs" id="shakya.db">
+            <br />
+            <label for="small_ecoli.db">E. coli (GML [Bambus 3], 168
+                scaffolds, 478 edges)</label>
+            <input type="radio" name="fs" id="small_ecoli.db">
+            <br />
+            <label for="sample_salmonella.db">Salmonella enterica (LastGraph, 61 contigs, 82 edges)</label>
+            <input type="radio" name="fs" id="sample_salmonella.db">
+            <br />
+            <label for="sample_gfa.db">sample.gfa from <a
+                   target="_blank" href="https://github.com/sjackman/assembly-graph/blob/master/sample.gfa">Shaun Jackman</a> (GFA, 6 contigs, 4 edges)</label>
+            <input type="radio" name="fs" id="sample_gfa.db">
+            <br />
+            <label for="loop_gfa.db">loop.gfa from <a
+                   target="_blank"
+                   href="https://github.com/sjackman/assembly-graph/blob/master/loop.gfa">Shaun Jackman</a> (GFA, 4 contigs, 4 edges)</label>
+            <input type="radio" name="fs" id="loop_gfa.db">
+            <br />
+            <label for="longtest.db">Bogus test data for "long" bubbles/frayed ropes (LastGraph, 36 contigs, 36 edges)</label>
+            <input type="radio" name="fs" id="longtest.db">
+            <br />
+            <button type="button" id="loadDBbutton" onclick="loadajaxDB();">
+                Load selected file
+            </button>
+        </div>
         <div id='infoDialog' title="Assembly Information"
             class="hiddenElement largeDialog">
             <!-- We implement this hidden input with autofocus to fix the
