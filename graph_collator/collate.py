@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# Converts an assembly graph (LastGraph, GFA, Bambus 3 GraphML) to a DOT file,
+# Converts an assembly graph (LastGraph, GFA, Bambus 3 GML) to a DOT file,
 # lays out the DOT file using GraphViz to produce an XDOT output file, and
 # then reconciles the XDOT layout data with biological data in a SQLite .db
 # file that can be read by the AsmViz viewer.
@@ -415,7 +415,7 @@ with open(asm_fn, 'r') as assembly_file:
     # We don't really care about case in file extensions
     lowercase_asm_fn = asm_fn.lower()
     parsing_LastGraph = lowercase_asm_fn.endswith(config.LASTGRAPH_SUFFIX)
-    parsing_GraphML   = lowercase_asm_fn.endswith(config.GRAPHML_SUFFIX)
+    parsing_GML   = lowercase_asm_fn.endswith(config.GRAPHML_SUFFIX)
     parsing_GFA       = lowercase_asm_fn.endswith(config.GFA_SUFFIX)
     if parsing_LastGraph:
         graph_filetype = "LastGraph"
@@ -511,9 +511,9 @@ with open(asm_fn, 'r') as assembly_file:
                     total_gc_nt_count += gc_ct
                     if not use_dna:
                         curr_node_dnafwd = None
-    elif parsing_GraphML:
-        graph_filetype = "GraphML"
-        # Since GraphML files don't contain DNA
+    elif parsing_GML:
+        graph_filetype = "GML"
+        # Since GML files don't contain DNA
         total_gc_nt_count = None
         # Record state -- parsing node or parsing edge?
         # (This is kind of a lazy approach, but to be fair it's actually

@@ -842,7 +842,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
     var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
     var all_nodes_edges_modifier = "the";
-    if ($("#filetypeEntry").text() !== "GraphML") {
+    if ($("#filetypeEntry").text() !== "GML") {
         intro = "Including <strong>both positive and negative</strong>" +
             " nodes and edges, the ";
         nodePercentage /= 2;

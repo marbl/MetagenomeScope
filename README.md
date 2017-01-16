@@ -20,7 +20,7 @@ AsmViz is composed of two main components:
    runs GraphViz on each component to be laid out, generating a SQLite
    .db file containing layout, pattern, and biological information extracted
    from GraphViz and from the original assembly graph file.
-   Currently, this supports LastGraph (Velvet), GraphML
+   Currently, this supports LastGraph (Velvet), GML
    (Bambus 3 scaffolds), and GFA assembly graph files, and support for GFA2
    and FASTG (SPAdes) files is planned. Please note that, although
    GFA files only have DNA sequences as an optional requirement
