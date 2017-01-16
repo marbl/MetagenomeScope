@@ -635,6 +635,15 @@ function changeVolatileControls(ableType) {
     $("#exportButton").button(ableType);
 }
 
+function updateTextStatus(text) {
+    $("#textStatus").html(text);
+}
+
+function startDrawComponent() {
+    updateTextStatus("Drawing clusters...");
+    window.setTimeout(drawComponent, 0);
+}
+
 /* Draws the selected connected component in the .db file -- its nodes, its
  * edges, its clusters -- to the screen.
  */
@@ -702,6 +711,7 @@ function drawComponent() {
     drawBoundingBoxEnforcingNodes(bb);
     cy.endBatch();
     cy.fit();
+    updateTextStatus("Drawing nodes...");
     window.setTimeout(function() {
         /* I originally didn't have this wrapped in a timeout, but for some
          * reason a few clusters in the test BAMBUS E. coli assembly weren't
@@ -757,6 +767,7 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         // Second part of "iterative" graph drawing: draw all nodes
         cy.endBatch();
         cy.fit();
+        updateTextStatus("Drawing edges...");
         cy.startBatch();
         // NOTE that we intentionally only consider edges within this component
         // Multiplicity is an inherently relative measure, so outliers in other
@@ -823,6 +834,7 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
 
 function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         clustersInComponent) {
+    updateTextStatus("&nbsp;");
     var intro = "The ";
     var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
     var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
