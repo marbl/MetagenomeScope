@@ -645,6 +645,7 @@ function disableVolatileControls() {
     disableButton("loadDBbutton");
     disableButton("xmlFileselectButton");
     disableButton("drawButton");
+    document.getElementById("searchInput").disabled = true;
     disableButton("searchButton");
     disableButton("selectedInfoButton");
     disableButton("collapseButton");
@@ -895,6 +896,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     enableButton("loadDBbutton");
     enableButton("xmlFileselectButton");
     enableButton("drawButton");
+    document.getElementById("searchInput").disabled = false;
     enableButton("searchButton");
     enableButton("fitButton");
     enableButton("exportButton");
@@ -1250,7 +1252,7 @@ function searchWithEnter(e) {
 // using Node1->Node2 or [B/R/C]Node1_Node2_Node3... syntax respectively.)
 function searchForNode() {
     var nodes =
-        document.getElementById('nodeselector').value.split(",");
+        document.getElementById('searchInput').value.split(",");
     var nodeEles = cy.collection(); // empty collection (for now)
     var newEle;
     var parentID;

@@ -41,8 +41,6 @@
                 );
                 $("#selectedInfoDialog").on("dialogclose", clearInfoTables);
                 $("#selectedInfoDialog").dialog("option", "resizable", false);
-                // We don't set searchDialog's width since it's tiny
-                $("#searchDialog").dialog({autoOpen: false});
                 $(window).on("beforeunload", closeDB);
             });
         </script>
@@ -119,7 +117,7 @@
                 <div class='input-group input-group-sm'>
                     <input type='text' class='form-control' type="number"
                         id="componentselector" min="0" value="1" step="1"
-                        disabled>
+                        disabled="disabled">
                     <span class='input-group-btn'>
                         <button class='btn btn-default disabled'
                             disabled="disabled"
@@ -149,13 +147,20 @@
 
             <h4>Search for Elements</h4>
             <p>
-            <button class='btn btn-default btn-sm disabled'
-                disabled="disabled"
-                onclick='showSearchDialog()' value="Search" 
-                id="searchButton">
-                <span class="glyphicon glyphicon-search"></span> &nbsp;
-                Search
-            </button>
+            <div class='input-group input-group-sm'>
+                <input type='text' class='form-control' 
+                    id="searchInput" disabled="disabled"
+                                     onkeypress="searchWithEnter(event);">
+                <span class='input-group-btn'>
+                    <button class='btn btn-default disabled'
+                        disabled="disabled"
+                        onclick='searchForNode();' type="button"
+                        id="searchButton" aria-label="Search">
+                        <span class="glyphicon glyphicon-search"
+                            aria-hidden="true"></span>
+                    </button>
+                </span>
+            </div>
             </p>
             <hr />
             <h4>Graph View Controls</h4>
@@ -309,22 +314,6 @@
             </table>
             <table border="2" id="clusterInfoTable" class="centeredInDiv">
             </table>
-        </div>
-        <div id='searchDialog' title="Search for Elements"
-            class="hiddenElement">
-            <p>Enter in the ID of a node, edge, or cluster to search for,
-               and search by pressing the "Enter" key.
-               You can enter a list of elements separated by commas, e.g.</p>
-            <p>1, 5-&gt;6, 9</p>
-            <input type='text' id='nodeselector' 
-                 class="grayText ui-corner-all ui-widget
-                 ui-widget-content" value='Enter node ID(s)'
-                 onfocus="if (this.value == 'Enter node ID(s)') {
-                    this.value = ''; this.style.color = '#000000'; }"
-                 onblur="if (this.value == '') {
-                    this.value = 'Enter node ID(s)';
-                    this.style.color='#999999'; }"
-                 onkeypress="searchWithEnter(event);" />
         </div>
     </body>
 </html>
