@@ -31,13 +31,6 @@
                 $("#selectedInfoDialog").dialog("option", "buttons",
                     [
                         {
-                            html: "Copy selected DNA &#8594; clipboard",
-                            icons: {
-                                primary: "ui-icon-copy"
-                            },
-                            click: copySelectedNodeDNA
-                        },
-                        {
                             html: "Export selected DNA &#8594; FASTA",
                             icons: {
                                 primary: "ui-icon-copy"
@@ -332,16 +325,6 @@
                     this.value = 'Enter node ID(s)';
                     this.style.color='#999999'; }"
                  onkeypress="searchWithEnter(event);" />
-        </div>
-        <div id='dnaDialog' title="Selected contig DNA sequences"
-            class="hiddenElement largeDialog">
-            <p class="centeredInDiv" style="text-align: center">
-            Press CTRL-C (Windows/Linux) or CMD-C (OS X) to copy the
-            DNA sequence(s) below to the clipboard.</p>
-            <textarea id="dnaTextArea" rows="5" cols="50"
-                class="centeredInDiv ui-corner-all ui-widget ui-widget-content"
-                style="display:block; margin-left: auto; margin-right: auto">
-            </textarea>
         </div>
     </body>
 </html>

@@ -1183,15 +1183,6 @@ function getSelectedNodeDNA() {
     return dnaSeqs;
 }
  
-// Pop up *another* dialog for copying?
-function copySelectedNodeDNA() {
-    $("#dnaTextArea").text(getSelectedNodeDNA());
-    // Select it, to enable quick copying-to-clipboard
-    $("#dnaTextArea").select();
-    $("#dnaDialog").dialog("open");
-    scaleDialog("#dnaDialog");
-}
-
 /* Exports selected node DNA to a FASTA file via a data URI. */
 function exportSelectedNodeDNA() {
     window.open(
