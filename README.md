@@ -40,8 +40,8 @@ AsmViz is composed of two main components:
       view it at a later time, without incurring the layout and
       patttern detection costs twice
     - The user can host `viewer.html` and a number of .db files on
-      their server, allowing many users to view the assembly graphs without any
-      of the costs associated with layout and pattern detection
+      their server, allowing many users to view the assembly graphs without
+      of the costs associated with layout and structural pattern detection
 
 ## System Requirements
 
@@ -217,8 +217,9 @@ available features:
   process .db files on the client side.
 * The AsmViz viewer uses [Cytoscape.js](https://js.cytoscape.org/) to render
   graphs on the client side.
-    * Also, the toggling method used for the control panel of the AsmViz viewer
-      was inspired by a similar toggling mechanism used in [this Cytoscape.js
+    * Also, the toggling protocol used for the control panel of the AsmViz
+      viewer was inspired by a similar toggling mechanism used in
+      [this Cytoscape.js
       demo](http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/).
 * The AsmViz viewer uses [jQuery](https://jquery.com/) and
   [Bootstrap](http://getbootstrap.com/) for various stylistic and functional
