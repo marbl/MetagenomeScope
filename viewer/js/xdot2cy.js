@@ -522,7 +522,7 @@ function loadgraphfile() {
         // Important -- remove old DB from memory if it exists
         closeDB();
         disableVolatileControls();
-        $("#infoButton").button("disable");
+        disableButton("infoButton");
         $("#currComponentInfo").html(
             "No connected component has been drawn yet.");
         fr.onload = function(e) {
@@ -929,6 +929,7 @@ function changeDropdownVal(arrowHTML) {
     $("#rotationDropdown").html(arrowHTML + " <span class='caret'></span>"); 
 }
 
+// Toggle visibility of the controls div.
 function toggleControls() {
     $("#controls").toggleClass("notviewable");
     $("#controls").toggleClass("viewable");
@@ -957,7 +958,7 @@ function loadajaxDB() {
     // demo so might as well
     $("#fsDialog").dialog("close");
     disableVolatileControls();
-    $("#infoButton").button("disable");
+    disableButton("infoButton");
     $("#currComponentInfo").html(
         "No connected component has been drawn yet.");
     var filename = $("input[name=fs]:checked").attr('id');
@@ -1245,14 +1246,6 @@ function exportGraph() {
 function showSearchDialog() {
     $("#searchDialog").dialog("open");
     scaleDialog("#searchDialog");
-}
-
-function disableTooltip() {
-    $(document).tooltip("disable");
-}
-
-function enableTooltip() {
-    $(document).tooltip("enable");
 }
 
 // Simple shortcut used to enable searching by pressing Enter (charCode 13)
