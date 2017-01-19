@@ -930,11 +930,10 @@ function changeDropdownVal(arrowHTML) {
 }
 
 function toggleControls() {
-    // There's probably a better way to do this using jQuery, TODO
-    document.getElementById("controls").classList.toggle("notviewable");
-    document.getElementById("controls").classList.toggle("viewable");
-    document.getElementById("cy").classList.toggle("nosubsume");
-    document.getElementById("cy").classList.toggle("subsume");
+    $("#controls").toggleClass("notviewable");
+    $("#controls").toggleClass("viewable");
+    $("#cy").toggleClass("nosubsume");
+    $("#cy").toggleClass("subsume");
     if (cy !== null) {
         cy.resize();
     }
