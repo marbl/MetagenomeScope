@@ -2,16 +2,14 @@
 
 (That's the tentative name for this, at least.)
 
-An interactive visualization tool for genomic assembly graphs. The goal
+An interactive visualization tool for sequence assembly graphs. The goal
 of this, as compared with other visualization tools, is to show the
 pertinent parts of a graph instead of just displaying the entire graph at once.
 
 To this end, AsmViz highlights certain patterns of contigs in the graph
 (bubbles, frayed ropes, chains, and "linear" cycles), splits graphs up by
-connected components (optionally displaying only a certain maximum number of
-components and/or only displaying components with a certain minimum number
-of contigs), and uses [GraphViz](http://www.graphviz.org/) to lay out each
-component.
+connected components, and uses [GraphViz](http://www.graphviz.org/)' `dot` tool
+to hierarchically lay out each connected component of an assembly graph.
 
 AsmViz is composed of two main components:
 
