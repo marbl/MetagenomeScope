@@ -1,0 +1,83 @@
+html, body {
+    height: 100%;
+    width: 100%;
+}
+#controlsToggler {
+    position: absolute;
+    left: 0em;
+    top: 0em;
+    z-index: 2;
+    cursor: pointer;
+}
+#fitButton {
+    position: absolute;
+    right: 0em; 
+    bottom: 0em;
+    z-index: 2;
+}
+#fitSelectedButton {
+    position: absolute;
+    right: 0em;
+    /* Should work as long as fitButton has the btn-sm class. TODO, test tho */
+    bottom: 35px; 
+    z-index: 2;
+}
+.viewable {
+    visibility: visible;
+    opacity: 1;
+    display: inline-block;
+    transition: visibility 0s linear 0s, opacity 300ms;
+}
+.notviewable {
+    visibility: hidden;
+    opacity: 0;
+    display: none;
+    transition: visibility 0s linear 300ms, opacity 300ms;
+}
+#controls {
+    position: absolute;
+    width: 20em;
+    top: 0em;
+    bottom: 0em;
+    background-color: #8A85EA;
+    overflow-y: auto;
+    text-align: center;
+}
+#controls p { /* not the greatest solution. work on something better-looking */
+    margin: 0.1em;
+}
+/* TODO in the future it might be nice to keep the graph view in place when
+ * uncollapsing or collapsing the controls div -- however, for now, this
+ * behavior is fine. */
+#cy {
+    position: absolute;
+    right: 0em;
+    top: 0em;
+    bottom: 0em;
+}
+.nosubsume {
+    left: 20em;
+}
+.subsume {
+    left: 0em;
+}
+.grayText {
+    color: #999999;
+}
+.hiddenElement {
+    display: none;
+}
+.centeredInDiv {
+    margin: 0 auto;
+}
+.progress {
+    margin-bottom: 0px;
+}
+/* Applied to the progress bar during "manual" animation. */
+.notransitions {
+    transition: none;
+    -webkit-transition: none;
+    -moz-transition: none;
+    -o-transition: none;
+    -ms-transition: none;
+}

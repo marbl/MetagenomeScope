@@ -3,7 +3,8 @@
     <head>
         <meta charset="utf-8" />
         <link rel="shortcut icon" href="bubble.ico" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport"
+            content="width=device-width,initial-scale=1,user-scalable=no" />
         <title>AsmViz Viewer</title>
         <!-- Load external libraries:
              -Cytoscape.js (for drawing the graph)
@@ -19,10 +20,12 @@
             crossorigin="anonymous"></script>
         <link rel="stylesheet"
             href="https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
-        <link rel="stylesheet" href="viewer_style.css">
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <link rel="stylesheet" href="css/viewer_style.css">
         <!-- Initialize some jQuery UI things -->
         <script>
             $(function() {
+                $("input[name=rotationRadio]").on("change", changeRotation);
                 $(".largeDialog").dialog({autoOpen: false,
                     width: 'auto', height: 'auto'});
                 $("#selectedInfoDialog").dialog("option", "buttons",
@@ -45,137 +48,184 @@
                 );
                 $("#selectedInfoDialog").on("dialogclose", clearInfoTables);
                 $("#selectedInfoDialog").dialog("option", "resizable", false);
-                $("#loadDBbutton").button({icons: {primary: "ui-icon-check"}});
                 // We don't set searchDialog's width since it's tiny
                 $("#searchDialog").dialog({autoOpen: false});
-                $("#drawButton").button({icons: {primary: "ui-icon-pencil"},
-                    disabled: true});
-                $("#infoButton").button({icons: {primary: "ui-icon-info"},
-                    disabled: true});
-                $("#selectedInfoButton").button({icons: {primary:
-                    "ui-icon-note"}, disabled: true});
-                $("#searchButton").button({icons: {primary:
-                    "ui-icon-search"}, disabled: true});
-                $("#fitButton").button({icons: {primary:
-                    "ui-icon-arrow-4-diag"}, disabled: true});
-                $("#fitSelectedButton").button({icons: {primary:
-                    "ui-icon-arrow-4-diag"}, disabled: true});
-                $("#collapseButton").button({icons: {primary:
-                    "ui-icon-minus"}, disabled: true});
-                // When hosting this in an environment with demo files, ensure
-                // the "disabled" parameter for xmlFileselectButton is false
-                // and modify the fsDialog accordingly.
-                $("#xmlFileselectButton").button({icons: {primary:
-                    "ui-icon-arrowrefresh-1-s"}, disabled: false});
-                $("#fileselectButton").button({icons: {primary:
-                    "ui-icon-folder-open"}});
-                $("#exportButton").button({icons: {primary:
-                    "ui-icon-image"}, disabled: true});
-                $("#componentselector").spinner({min: 1, disabled: true});
-                $("#progressbar").progressbar();
-                // For some reason a width of 100% here slightly extends past
-                // the width of controls, causing scrolling; this should work.
-                $("#progressbar").width("95%");
-                $("#controls").controlgroup();
-                $("#rotation").selectmenu({change: changeRotation,
-                    width: 'auto', open: disableTooltip,
-                    close: enableTooltip, disabled: true});
-                $(document).tooltip();
                 $(window).on("beforeunload", closeDB);
             });
         </script>
-        <script src='cytoscape.min.js'></script>
-        <script src='sql.js'></script>
-        <script src='xdot2cy.js'></script>
+        <script src='js/cytoscape.min.js'></script>
+        <script src='js/sql.js'></script>
+        <script src='js/xdot2cy.js'></script>
+        <script src='js/bootstrap.min.js'></script>
     </head>
     <body>
-        <!-- We use the asmviz div here to fill up the entire page size
-            through relative positioning. This lets us size the
-            controls div to the minimum height needed and then allocate the
-            remaining page height to the cy div. -->
-        <div id="asmviz">
-            <div id="controls">
-                <h2>File Selection</h2>
-                <p>
-                <button type='button' id="xmlFileselectButton"
-                    onclick="openFileSelectDialog();">Demo .db</button>
-                <button type='button' id="fileselectButton"
-                    onclick="$('#fileselector').click();">Choose .db file</button>
-                <!-- For some reason, giving this the hiddenElement class
-                    doesn't work; I suspect it's due to the way browsers handle
-                    styling of file inputs. Anyway, this should work fine. -->
-    	        <input type='file' id='fileselector'
-                    onchange='loadgraphfile();' style="display: none"/>
-                <button type='button' onclick='displayInfo();'
-                    id="infoButton">Assembly info</button>
-                </p>
-                <p>
-                    <div id='progressbar' class="centeredInDiv"></div>
-                    <div id='textStatus'>&nbsp;</div>
-                </p>
-                <hr />
+        <div id="controlsToggler" onclick="toggleControls();">
+           <span class="glyphicon glyphicon-menu-hamburger"></span>
+        </div>
 
-                <h2>Connected Components</h2>
+        <button class='btn btn-default btn-sm disabled'
+            onclick='fitGraph(false)' id="fitButton" disabled="disabled">
+            <span class="glyphicon glyphicon-resize-full"></span>
+        </button>
+
+        <button class='btn btn-default btn-sm disabled'
+            onclick='fitGraph(true)' id="fitSelectedButton"
+            disabled="disabled">
+            <span class="glyphicon glyphicon-resize-small"></span>
+        </button>
+
+        <div id="controls" class="viewable">
+            <h3>File Selection</h3>
+            <p>
+            <button class='btn btn-default btn-sm' id="xmlFileselectButton"
+                onclick="openFileSelectDialog();">
+                <span class="glyphicon glyphicon-repeat"
+                    aria-hidden="true"></span> &nbsp; Demo .db
+            </button>
+            <button class='btn btn-default btn-sm' id="fileselectButton"
+                onclick="$('#fileselector').click();">
+                <span class="glyphicon glyphicon-folder-open"
+                    aria-hidden="true"></span> &nbsp; Choose .db file
+            </button>
+            <!-- For some reason, giving this the hiddenElement class
+                doesn't work; I suspect it's due to the way browsers handle
+                styling of file inputs. Anyway, this should work fine. -->
+    	    <input type='file' id='fileselector'
+                onchange='loadgraphfile();' style="display: none"/>
+
+            <button class='btn btn-default btn-sm disabled'
+                disabled="disabled"
+                onclick='displayInfo();' id="infoButton">
+                <span class="glyphicon glyphicon-info-sign"
+                    aria-hidden="true"></span> &nbsp; Assembly info
+            </button>
+            </p>
+            <p>
+                <div class="progress">
+                    <div class="progress-bar notransitions" role="progressbar"
+                         aria-valuenow="0" aria-valuemin="0"
+                         aria-valuemax="100" style="width: 0%;">
+                        <span class="sr-only"></span>
+                    </div>
+                </div>
+                <div id='textStatus'>&nbsp;</div>
+            </p>
+            <hr />
+
+            <h3>Connected Components</h3>
     
-                <p>
-                <input id='componentselector' value="1"
-                    title="Enter the size rank of the connected component to
-                    draw. 1 is the largest component (by number of nodes),
-                    2 is the second-largest, and so on." />
-                </p>
-                <p>
-                <button type='button' onclick='startDrawComponent();'
-                    id="drawButton">Draw connected component</button>
-                </p>
-                <hr /> 
+            <p>
+            <!-- Actually use an integer spinner; maybe use something like
+                 -[text]+ with fancy -/+ buttons or something. alternatively
+                 use a a specialized bootstrap spinner extension, but that
+                 seems sort of excessive -->
+<!--        <input id='componentselector' value="1"
+                title="Enter the size rank of the connected component to
+                draw. 1 is the largest component (by number of nodes),
+                2 is the second-largest, and so on." /> -->
+                <div class='input-group input-group-sm'>
+                    <input type='text' class='form-control' type="number"
+                        id="componentselector" min="0" value="1" step="1"
+                        disabled>
+                    <span class='input-group-btn'>
+                        <button class='btn btn-default disabled'
+                            disabled="disabled"
+                            onclick='startDrawComponent();' type="button"
+                            id="drawButton">
+                            <span class="glyphicon glyphicon-pencil"
+                                aria-hidden="true"></span> &nbsp;
+                                Draw connected component
+                        </button>
+                    </span>
+                </div>
+            </p>
+            <hr /> 
 
-                <h2>Selected Elements</h2>
-                <p>
+            <h3>Selected Elements</h3>
+            <p>
     
-                <button type='button' onclick='displaySelectedInfo();'
-                    id="selectedInfoButton">Selected element info</button>
+            <button class='btn btn-default btn-sm disabled'
+                disabled="disabled"
+                onclick='displaySelectedInfo();' id="selectedInfoButton">
+                <span class="glyphicon glyphicon-list-alt"
+                    aria-hidden="true"></span> &nbsp;
+                Selected element info
+            </button>
+            </p>
+            <hr /> 
 
-                </p>
-                <hr /> 
+            <h3>Search for Elements</h3>
+            <p>
+            <button class='btn btn-default btn-sm disabled'
+                disabled="disabled"
+                onclick='showSearchDialog()' value="Search" 
+                id="searchButton">
+                <span class="glyphicon glyphicon-search"></span> &nbsp;
+                Search
+            </button>
+            </p>
+            <hr />
+            <h3>Graph View Controls</h3>
+            <p>
+            <!-- Value of this button will be toggled as all nodes in graph
+                 are collapsed/uncollapsed -->
+            <button class='btn btn-default btn-sm disabled'
+                disabled="disabled"
+                id='collapseButton' onclick='startCollapseAll()'>
+                <span id="collapseButtonIcon"
+                    class="glyphicon glyphicon-minus"></span> &nbsp;
+                <span id="collapseButtonText">Collapse All</span>
+            </button>
+            </p>
 
-                <h2>Search for Elements</h2>
-                <p>
-                <button type='button' onclick='showSearchDialog()'
-                    value="Search" id="searchButton">Search</button>
-                </p>
-                <hr />
+            <p>
 
-                <h2>Graph View Controls</h2>
-                <p>
-                <!-- Value of this button will be toggled as all nodes in graph
-                     are collapsed/uncollapsed -->
-                <button type='button' id='collapseButton'
-                    onclick='startCollapseAll()'>Collapse All</button>
-                </p>
-
-                <p>
-
-                <select id='rotation' 
-                    title="The direction of the graph's hierarchical node ranks.">
-                    <option value="0">&#8595;</option>
-                    <option value="90" selected>&#8594;</option>
-                    <option value="180">&#8593;</option>
-                    <option value="270">&#8592;</option>
-                </select>
+            <!-- As with other Bootstrap buttons, we need to do two "layers"
+                 of disabling. Adding the disabled class to a button makes
+                 Bootstrap style the button to look disabled, but the button
+                 will still be usable. Adding the disabled="disabled" attribute
+                 makes the button actually disabled (i.e. not usable).
+            
+                 To handle this properly, we use the enableButton and
+                 disableButton functions to ensure buttons are always properly
+                 disabled/enabled.
+            -->
+            <div class="btn-group" data-toggle="buttons"
+                aria-label="Graph hierarchical rank direction"
+                id="rotationButtonGroup">
+                <button class="btn btn-default disabled" value="0" id="dir0"
+                    disabled="disabled">
+                    <input type="radio" name="rotationRadio"
+                        autocomplete="off">&#8595;
+                </button>
+                <button class="btn btn-default active disabled" value="90"
+                    id="dir90" disabled="disabled">
+                    <input type="radio" name="rotationRadio" checked="checked"
+                        autocomplete="off">&#8594;
+                </button>
+                <button class="btn btn-default disabled" value="180"
+                    id="dir180" disabled="disabled">
+                    <input type="radio" name="rotationRadio"
+                        autocomplete="off">&#8593;
+                </button>
+                <button class="btn btn-default disabled" value="270"
+                    id="dir270" disabled="disabled">
+                    <input type="radio" name="rotationRadio"
+                        autocomplete="off">&#8592;
+                </button>
+            </div>
     
-                <button type='button' onclick='fitGraph(false)' id="fitButton">Fit Graph</button>
-                <button type='button' onclick='fitGraph(true)'
-                    id="fitSelectedButton">Fit to Selected</button>
-    
-    
-                <button type='button' id='exportButton'
-                    onclick='exportGraph()'>Export view</button>
-                </p>
+            <button class='btn btn-default btn-sm disabled'
+                disabled="disabled"
+                id='exportButton' onclick='exportGraph()'>
+                <span class="glyphicon glyphicon-picture"></span> &nbsp;
+                Export view
+            </button>
+            </p>
 
-                <div id='status'></div>
-            </div> <!-- end controls div -->
-            <div id="cy"></div> <!-- used as container for Cytoscape.js -->
-        </div> <!-- end asmviz div -->
+            <div id='status'></div>
+        </div> <!-- end controls div -->
+        <div id="cy" class="nosubsume"></div> <!--container for Cytoscape.js-->
         <div id='fsDialog' title="Select a demo assembly file"
             class="hiddenElement largeDialog">
             <!-- fix weird selection problem -->

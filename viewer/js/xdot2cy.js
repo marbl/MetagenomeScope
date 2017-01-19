@@ -63,9 +63,9 @@ var NODE_TABLE_HEADER = "<tr><th colspan='4'>Selected Node Information</th></tr>
 var CLUSTER_TABLE_HEADER = "<tr><th colspan='3'>Selected Cluster Information</th></tr><tr><th>ID</th><th>Type</th><th>Child Count</th></tr>";
 
 if (!(window.File && window.FileReader)) {
-	// TODO handle this better -- user should still be able to
-	// play with demo assembly data, if available?
-	alert("Your browser does not support the HTML5 File APIs.");
+	alert("Your browser does not support the HTML5 File APIs. " +
+          "You will not be able to upload any .db files, although " +
+          "you can still try out any available demo .db files.");
 }
 
 // Initializes the Cytoscape.js graph instance.
@@ -281,7 +281,7 @@ function collapseCluster(cluster, moveMap) {
     cy.scratch("_collapsed", cy.scratch("_collapsed").union(cluster));
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").difference(cluster));
     if (cy.scratch("_uncollapsed").empty()) {
-        if ($("#collapseButton").button("option", "label")[0] === 'C') {
+        if ($("#collapseButtonText").text()[0] === 'C') {
             changeCollapseButton(true);
         }
     }
@@ -322,7 +322,7 @@ function uncollapseCluster(cluster) {
     cy.scratch("_collapsed", cy.scratch("_collapsed").difference(cluster));
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(cluster));
     if (cy.scratch("_collapsed").empty()) {
-        if ($("#collapseButton").button("option", "label")[0] === 'U') {
+        if ($("#collapseButtonText").text()[0] === 'U') {
             changeCollapseButton(false);
         }
     }
@@ -337,7 +337,7 @@ function setGraphBindings() {
     cy.on('cxttap', 'node',
         function(e) {
             // Prevent collapsing being done during iterative drawing
-            if (!$("#fitButton").button("option", "disabled")) {
+            if (!$("#fitButton").hasClass("disabled")) {
                 var node = e.cyTarget;
                 if (node.hasClass("cluster")) {
                     toggleCluster(node);
@@ -372,8 +372,8 @@ function setGraphBindings() {
             // If this is the first selected element, enable the
             // selectedInfo button
             if (SELECTED_ELE_COUNT === 1) {
-                $("#selectedInfoButton").button("enable");
-                $("#fitSelectedButton").button("enable");
+                enableButton("selectedInfoButton");
+                enableButton("fitSelectedButton");
             }
         }
     );
@@ -385,8 +385,8 @@ function setGraphBindings() {
             // elements, but I figure we might as well cover our bases with
             // the <= 0 here :P
             if (SELECTED_ELE_COUNT <= 0) {
-                $("#selectedInfoButton").button("disable");
-                $("#fitSelectedButton").button("disable");
+                disableButton("selectedInfoButton");
+                disableButton("fitSelectedButton");
             }
         }
     );
@@ -466,11 +466,11 @@ function rotateNode(i, n) {
  */
 function changeRotation() {
     PREV_ROTATION = CURR_ROTATION;
-    CURR_ROTATION = parseInt(document.getElementById("rotation").value);
-    // We use the fit button's disabled status as a way to gauge whether or not
-    // a graph is currently rendered; sorta hack-ish, but it works
-    if (!$("#fitButton").button("option", "disabled")) {
-        $("#progressbar").progressbar("value", false);
+    CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active").attr("value"));
+    // We use the fit button's disabled status as a way to gauge whether
+    // or not a graph is currently rendered; sorta hack-ish, but it works
+    if (!$("#fitButton").hasClass("disabled")) {
+        startIndeterminateProgressBar();
         window.setTimeout(function() {
             cy.startBatch();
             // This only rotates nodes that are not collapsed
@@ -481,7 +481,7 @@ function changeRotation() {
             });
             cy.endBatch();
             cy.fit();
-            $("#progressbar").progressbar("value", 100);
+            finishProgressBar();
         }, 20);
     }
 }
@@ -492,16 +492,14 @@ function changeRotation() {
 // "Uncollapse All" with a plus icon.
 function changeCollapseButton(toUncollapseReady) {
     if (toUncollapseReady) {
-        $("#collapseButton").button("option", "label",
-            "Uncollapse All");
-        $("#collapseButton").button("option", {icons:
-            {primary: "ui-icon-plus"}});
+        $("#collapseButtonText").text("Uncollapse All");
+        $("#collapseButtonIcon").removeClass("glyphicon-minus").addClass(
+            "glyphicon-plus");
     }
     else {
-        $("#collapseButton").button("option", "label",
-            "Collapse All");
-        $("#collapseButton").button("option", {icons:
-            {primary: "ui-icon-minus"}});
+        $("#collapseButtonText").text("Collapse All");
+        $("#collapseButtonIcon").removeClass("glyphicon-plus").addClass(
+            "glyphicon-minus");
     }
 }
 
@@ -523,7 +521,7 @@ function loadgraphfile() {
     if (inputfile.name.endsWith(".db")) {
         // Important -- remove old DB from memory if it exists
         closeDB();
-        changeVolatileControls("disable");
+        disableVolatileControls();
         $("#infoButton").button("disable");
         $("#currComponentInfo").html(
             "No connected component has been drawn yet.");
@@ -542,7 +540,7 @@ function loadgraphfile() {
         // function in order to delay its execution to when the
         // timeout happens
         // (javascript can be strange sometimes)
-        $("#progressbar").progressbar("value", false);
+        startIndeterminateProgressBar();
         window.setTimeout(function() {
             fr.readAsArrayBuffer(inputfile);
         }, 50);
@@ -560,8 +558,8 @@ function loadDBfile(fileData) {
     var uIntArr = new Uint8Array(fileData);
     CURR_DB = new SQL.Database(uIntArr);
     parseDBcomponents();
-    // Set progressbar to "finished" state
-    $("#progressbar").progressbar("value", 100);
+    // Set progress bar to "finished" state
+    finishProgressBar();
 }
 
 /* Retrieves assembly-wide and component information from the database,
@@ -601,6 +599,8 @@ function parseDBcomponents() {
     }
     // Adjust UI elements
     document.title = fnInfo;
+    updateTextStatus("Loaded .db file for the assembly graph file " + fnInfo
+                        + ".");
     $("#filenameEntry").text(fnInfo); 
     $("#filetypeEntry").text(ftInfo);
     $("#nodeCtEntry").text(nodeInfo); 
@@ -609,37 +609,52 @@ function parseDBcomponents() {
     $("#connCmpCtEntry").text(compInfo);
     $("#n50Entry").text(n50Info);
     $("#asmGCEntry").text(asmGCInfo);
-    $("#componentselector").spinner("option", "max", compCt);
-    $("#componentselector").spinner("enable");
-    $("#loadDBbutton").button("enable");
-    $("#xmlFileselectButton").button("enable");
-    $("#fileselectButton").button("enable");
-    $("#infoButton").button("enable");
-    $("#drawButton").button("enable");
-    $("#rotation").selectmenu("enable");
+    document.getElementById("componentselector").max = compCt;
+    // TODO devise better way to enable/disable component selector
+    document.getElementById("componentselector").disabled = false;
+    enableButton("xmlFileselectButton");
+    enableButton("fileselectButton");
+    enableButton("drawButton");
+    enableButton("infoButton");
+    enableButton("dir0");
+    enableButton("dir90");
+    enableButton("dir180");
+    enableButton("dir270");
 }
 
-/* Depending on the argument (either "enable" or "disable"),
- * either enables or disables some "volatile" (i.e. should be used atomically)
- * controls of the graph. (This will not enable the selectedInfoButton,
- * fitSelectedButton, or collapseButton, although it will disable them
- * if requested.)
+/* Enables a disabled <button> element that is currently disabled: that is,
+ * it has the disabled class (which covers Bootstrap styling) and has the
+ * disabled="disabled" property.
  */
-function changeVolatileControls(ableType) {
-    $("#fileselectButton").button(ableType);
-    $("#loadDBbutton").button(ableType);
-    $("#xmlFileselectButton").button(ableType);
-    $("#drawButton").button(ableType);
-    $("#componentselector").spinner(ableType);
-    $("#searchButton").button(ableType);
-    if (ableType === "disable") {
-        $("#selectedInfoButton").button("disable");
-        $("#collapseButton").button("disable");
-        $("#fitSelectedButton").button("disable");
-    }
-    $("#rotation").selectmenu(ableType);
-    $("#fitButton").button(ableType);
-    $("#exportButton").button(ableType);
+function enableButton(buttonID) {
+    $("#" + buttonID).removeClass("disabled");
+    $("#" + buttonID).prop("disabled", false);
+}
+
+/* Disables an enabled <button> element. */
+function disableButton(buttonID) {
+    $("#" + buttonID).addClass("disabled");
+    $("#" + buttonID).prop("disabled", true);
+}
+
+/* Disables some "volatile" controls in the graph. Should be used when doing
+ * any sort of operation, I guess. */
+function disableVolatileControls() {
+    document.getElementById("componentselector").disabled = true;
+    disableButton("fileselectButton");
+    disableButton("loadDBbutton");
+    disableButton("xmlFileselectButton");
+    disableButton("drawButton");
+    disableButton("searchButton");
+    disableButton("selectedInfoButton");
+    disableButton("collapseButton");
+    disableButton("fitSelectedButton");
+    disableButton("fitButton");
+    disableButton("exportButton");
+    disableButton("dir0");
+    disableButton("dir90");
+    disableButton("dir180");
+    disableButton("dir270");
 }
 
 function updateTextStatus(text) {
@@ -647,9 +662,12 @@ function updateTextStatus(text) {
 }
 
 function startDrawComponent() {
-    var cmpRank = $("#componentselector").spinner("value");
+    var selectorObj = document.getElementById("componentselector");
+    // TODO will have to mess with this to get it strictly limited to actual
+    // integers (JavaScript's parseInt function is really, really lax).
+    var cmpRank = parseInt(selectorObj.value);
     if (!(Number.isInteger(cmpRank) && cmpRank >= 1
-        && cmpRank <= $("#componentselector").spinner("option", "max"))) {
+            && cmpRank <= selectorObj.max)) {
         alert("Please enter a valid component rank using the input field.");
         return;
     }
@@ -661,7 +679,7 @@ function startDrawComponent() {
  * edges, its clusters -- to the screen.
  */
 function drawComponent(cmpRank) {
-    changeVolatileControls("disable");
+    disableVolatileControls();
     // Okay, we can draw this component!
     if (cy !== null) {
         // If we already have a graph instance, clear that graph before
@@ -678,7 +696,7 @@ function drawComponent(cmpRank) {
     SELECTED_ELES = cy.collection();
     SELECTED_ELE_COUNT = 0;
     PREV_ROTATION = 0;
-    CURR_ROTATION = parseInt(document.getElementById("rotation").value);
+    CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active").attr("value"));
     cy.scratch("_collapsed", cy.collection());
     cy.scratch("_uncollapsed", cy.collection());
     cy.scratch("_ele2parent", {});
@@ -755,8 +773,7 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         componentNodeCount += 1;
         CURR_NE += 1;
         if (CURR_NE % PROGRESS_BAR_UPDATE_FREQ === 0) {
-            $("#progressbar").progressbar("value",
-                (CURR_NE / totalElementCount) * 100);
+            updateProgressBar((CURR_NE / totalElementCount) * 100);
             window.setTimeout(function() {
                 drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                     clustersInComponent, componentNodeCount,
@@ -817,8 +834,7 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
         componentEdgeCount += 1;
         CURR_NE += 0.5;
         if (CURR_NE % PROGRESS_BAR_UPDATE_FREQ === 0) {
-            $("#progressbar").progressbar("value",
-                (CURR_NE / totalElementCount) * 100);
+            updateProgressBar((CURR_NE / totalElementCount) * 100);
             window.setTimeout(function() {
                 drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
                     cmpRank, clustersInComponent, componentNodeCount,
@@ -872,19 +888,32 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     cy.endBatch();
     cy.fit();
     fixBadEdges();
-    changeVolatileControls("enable");
+    // disableVolatileControls, but reversed (enable everything sans selected
+    // stuff/collapse stuff)
+    document.getElementById("componentselector").disabled = false;
+    enableButton("fileselectButton");
+    enableButton("loadDBbutton");
+    enableButton("xmlFileselectButton");
+    enableButton("drawButton");
+    enableButton("searchButton");
+    enableButton("fitButton");
+    enableButton("exportButton");
+    enableButton("dir0");
+    enableButton("dir90");
+    enableButton("dir180");
+    enableButton("dir270");
     cy.userPanningEnabled(true);
     cy.userZoomingEnabled(true);
     cy.boxSelectionEnabled(true);
     cy.autounselectify(false);
     cy.autoungrabify(false);
     if (clustersInComponent) {
-        $("#collapseButton").button("enable");
+        enableButton("collapseButton");
     }
     else {
-        $("#collapseButton").button("disable");
+        disableButton("collapseButton");
     }
-    $("#progressbar").progressbar("value", 100);
+    finishProgressBar();
 }
 
 // TODO verify that this doesn't mess stuff up when you back out of and then
@@ -893,6 +922,21 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
 function closeDB() {
     if (CURR_DB !== null) {
         CURR_DB.close();
+    }
+}
+
+function changeDropdownVal(arrowHTML) {
+    $("#rotationDropdown").html(arrowHTML + " <span class='caret'></span>"); 
+}
+
+function toggleControls() {
+    // There's probably a better way to do this using jQuery, TODO
+    document.getElementById("controls").classList.toggle("notviewable");
+    document.getElementById("controls").classList.toggle("viewable");
+    document.getElementById("cy").classList.toggle("nosubsume");
+    document.getElementById("cy").classList.toggle("subsume");
+    if (cy !== null) {
+        cy.resize();
     }
 }
 
@@ -913,7 +957,7 @@ function loadajaxDB() {
     // usually we won't have the luxury of ID === filename, but this is a
     // demo so might as well
     $("#fsDialog").dialog("close");
-    changeVolatileControls("disable");
+    disableVolatileControls();
     $("#infoButton").button("disable");
     $("#currComponentInfo").html(
         "No connected component has been drawn yet.");
@@ -930,10 +974,41 @@ function loadajaxDB() {
             loadDBfile(this.response);
         }
     };
-    $("#progressbar").progressbar("value", false);
+    startIndeterminateProgressBar();
     xhr.send();
 }
-/* End server-side.db specific functions */
+
+// Given percentage lies within [0, 100]
+function updateProgressBar(percentage) {
+    $(".progress-bar").css("width", percentage + "%");
+    $(".progress-bar").attr("aria-valuenow", percentage);
+}
+
+function finishProgressBar() {
+    // We call updateProgressBar since, depending on the progress bar update
+    // frequency in the process that was ongoing before finishProgressBar() is
+    // called, the progress bar could be at a value less than 100%. So we call
+    // updateProgressBar(100) as a failsafe to make sure the progress bar
+    // always ends up at 100%, regardless of the update frequency.
+    updateProgressBar(100);
+    if (!$(".progress-bar").hasClass("notransitions")) {
+        $(".progress-bar").addClass("notransitions")
+    }
+    if ($(".progress-bar").hasClass("progress-bar-striped")) {
+        $(".progress-bar").removeClass("progress-bar-striped");
+    }
+    if ($(".progress-bar").hasClass("active")) {
+        $(".progress-bar").removeClass("active");
+    }
+}
+
+/* Assumes the progress bar is not already indeterminate. */
+function startIndeterminateProgressBar() {
+    $(".progress-bar").css("width", "100%");
+    $(".progress-bar").removeClass("notransitions");
+    $(".progress-bar").addClass("active");
+    $(".progress-bar").addClass("progress-bar-striped");
+}
 
 /* Pops up a dialog displaying assembly information. */
 function displayInfo() {
@@ -1145,7 +1220,7 @@ function scaleDialog(dialogID) {
  * selected elements if toSelected is true.
  */
 function fitGraph(toSelected) {
-    $("#progressbar").progressbar("value", false);
+    startIndeterminateProgressBar();
     window.setTimeout(
         function() {
             if (toSelected) {
@@ -1155,7 +1230,7 @@ function fitGraph(toSelected) {
             } else {
                 cy.fit();
             }
-            $("#progressbar").progressbar("value", 100);
+            finishProgressBar();
         }, 20
     );
 }
@@ -1236,8 +1311,8 @@ function searchForNode() {
  * process.
  */
 function startCollapseAll() {
-    var currVal = $("#collapseButton").button("option", "label");
-    $("#progressbar").progressbar("value", false);
+    var currVal = $("#collapseButtonText").text();
+    startIndeterminateProgressBar();
     window.setTimeout(function() { collapseAll(currVal[0]) }, 50);
 }
 
@@ -1262,7 +1337,7 @@ function collapseAll(operationCharacter) {
             }
         );
     }
-    $("#progressbar").progressbar("value", 100);
+    finishProgressBar();
     cy.endBatch();
 }
 
