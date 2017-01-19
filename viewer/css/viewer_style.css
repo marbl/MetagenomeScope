@@ -22,17 +22,16 @@ html, body {
     bottom: 35px; 
     z-index: 2;
 }
+/* Might want to consider adding some sort of transition, but not necessary */
 .viewable {
     visibility: visible;
     opacity: 1;
     display: inline-block;
-    transition: visibility 0s linear 0s, opacity 300ms;
 }
 .notviewable {
     visibility: hidden;
     opacity: 0;
     display: none;
-    transition: visibility 0s linear 300ms, opacity 300ms;
 }
 #controls {
     position: absolute;
