@@ -39,7 +39,7 @@ html, body {
     top: 0em;
     bottom: 0em;
     background-color: #8A85EA;
-    overflow-y: auto;
+    overflow-y: scroll;
     text-align: center;
 }
 #controls p { /* not the greatest solution. work on something better-looking */
