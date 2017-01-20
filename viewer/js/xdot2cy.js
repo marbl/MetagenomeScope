@@ -1218,7 +1218,8 @@ function fitGraph(toSelected) {
         function() {
             if (toSelected) {
                 // Right now, we don't throw any sort of error here if
-                // SELECTED_ELES is empty. We could, though?
+                // SELECTED_ELES is empty. This is because the fit selected
+                // button is only enabled when >= 1 elements are selected.
                 cy.fit(SELECTED_ELES);
             } else {
                 cy.fit();
