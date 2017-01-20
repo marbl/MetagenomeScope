@@ -1235,60 +1235,59 @@ function exportGraph() {
     window.open(cy.png(), "_blank");
 }
 
-// Displays the search dialog
-function showSearchDialog() {
-    $("#searchDialog").dialog("open");
-    scaleDialog("#searchDialog");
-}
-
 // Simple shortcut used to enable searching by pressing Enter (charCode 13)
 function searchWithEnter(e) {
     if (e.charCode === 13) {
-        searchForNode();
+        searchForEles();
     }
 }
 
-// Centers the graph on a given node (edges/clusters can also be specified,
-// using Node1->Node2 or [B/R/C]Node1_Node2_Node3... syntax respectively.)
-function searchForNode() {
-    var nodes =
-        document.getElementById('searchInput').value.split(",");
-    var nodeEles = cy.collection(); // empty collection (for now)
+// Centers the graph on a given list of elements separated by commas, with
+// spaces optional
+function searchForEles() {
+    var nameText =
+        document.getElementById('searchInput').value;
+    if (nameText.trim() === "") {
+        alert("Error -- please enter element name(s) to search for.");
+        return;
+    }
+    var names = nameText.split(",")
+    var eles = cy.collection(); // empty collection (for now)
     var newEle;
     var parentID;
-    for (var c = 0; c < nodes.length; c++) {
-        newEle = cy.getElementById(nodes[c].trim());
+    for (var c = 0; c < names.length; c++) {
+        newEle = cy.getElementById(names[c].trim());
         if (newEle.empty()) {
             // Check if this element is in the graph (but currently
             // collapsed, and therefore inaccessible) or if it just
             // never existed in the first place
-            parentID = cy.scratch("_ele2parent")[nodes[c].trim()];
+            parentID = cy.scratch("_ele2parent")[names[c].trim()];
             if (parentID !== undefined) {
                 // We've collapsed the parent of this element, so identify
                 // its parent instead
-                nodeEles = nodeEles.union(cy.getElementById(parentID));
+                eles = eles.union(cy.getElementById(parentID));
             }
             else {
                 // It's a bogus element
-                alert("Error -- element ID " + nodes[c].trim() +
+                alert("Error -- element ID " + names[c].trim() +
                       " is not in this component.");
                 return;
             }
         }
         else {
             // Identify the node in question
-            nodeEles = nodeEles.union(newEle);
+            eles = eles.union(newEle);
         }
     }
-    // Fit the graph to the identified nodes.
-    cy.fit(nodeEles);
-    // Unselect all previously-selected nodes
+    // Fit the graph to the identified names.
+    cy.fit(eles);
+    // Unselect all previously-selected names
     // (TODO: is this O(n)? because if so, it's not worth it, probably)
     // (Look into this)
     cy.filter(':selected').unselect();
-    // Select all identified nodes, so they can be dragged if desired
+    // Select all identified names, so they can be dragged if desired
     // (and also to highlight them).
-    nodeEles.select();
+    eles.select();
 }
 
 /* Determines whether collapsing or uncollapsing should be performed,
