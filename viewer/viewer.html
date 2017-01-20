@@ -22,26 +22,13 @@
             href="https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link rel="stylesheet" href="css/viewer_style.css">
-        <!-- Initialize some jQuery UI things -->
+        <!-- Initialize some things -->
         <script>
             $(function() {
+                $(window).on("beforeunload", closeDB);
                 $("input[name=rotationRadio]").on("change", changeRotation);
                 $(".largeDialog").dialog({autoOpen: false,
                     width: 'auto', height: 'auto'});
-                $("#selectedInfoDialog").dialog("option", "buttons",
-                    [
-                        {
-                            html: "Export selected DNA &#8594; FASTA",
-                            icons: {
-                                primary: "ui-icon-copy"
-                            },
-                            click: exportSelectedNodeDNA
-                        }
-                    ]
-                );
-                $("#selectedInfoDialog").on("dialogclose", clearInfoTables);
-                $("#selectedInfoDialog").dialog("option", "resizable", false);
-                $(window).on("beforeunload", closeDB);
             });
         </script>
         <script src='js/cytoscape.min.js'></script>
@@ -140,11 +127,25 @@
                 onclick='displaySelectedInfo();' id="selectedInfoButton">
                 <span class="glyphicon glyphicon-list-alt"
                     aria-hidden="true"></span> &nbsp;
-                Selected element info
+                View selected element info
             </button>
             <!-- TODO construct div to hold selected cluster info, selected
                 node info, selected edge info; with collapsing caret buttons
-                using glyphicons, etc. test it out-->
+                using glyphicons, etc. test it out -->
+            <div id="selectedInfo" class="notviewable">
+                <table border="2" id="nodeInfoTable" class="centeredInDiv">
+                </table>
+                <table border="2" id="edgeInfoTable" class="centeredInDiv">
+                </table>
+                <table border="2" id="clusterInfoTable" class="centeredInDiv">
+                </table>
+                <button class='btn btn-default btn-sm'
+                     onclick='exportSelectedNodeDNA();' id="dnaExportButton">
+                    <span class="glyphicon glyphicon-equalizer"></span> &nbsp;
+                        Export selected node DNA to FASTA
+                </button>
+            </div>
+
             </p>
             <hr /> 
 
@@ -307,16 +308,6 @@
             <h3>For scaffold assembly graphs (GML)</h3>
             <p>All nodes are included in
             these statistics regardless of orientation.</p>
-        </div>
-        <div id='selectedInfoDialog' title="Selected element information"
-            class="hiddenElement largeDialog">
-            <input autofocus class="hiddenElement" />
-            <table border="2" id="nodeInfoTable" class="centeredInDiv">
-            </table>
-            <table border="2" id="edgeInfoTable" class="centeredInDiv">
-            </table>
-            <table border="2" id="clusterInfoTable" class="centeredInDiv">
-            </table>
         </div>
     </body>
 </html>

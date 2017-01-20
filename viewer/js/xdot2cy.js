@@ -522,6 +522,7 @@ function loadgraphfile() {
         // Important -- remove old DB from memory if it exists
         closeDB();
         disableVolatileControls();
+        clearSelectedInfo();
         disableButton("infoButton");
         $("#currComponentInfo").html(
             "No connected component has been drawn yet.");
@@ -681,6 +682,7 @@ function startDrawComponent() {
  */
 function drawComponent(cmpRank) {
     disableVolatileControls();
+    clearSelectedInfo();
     // Okay, we can draw this component!
     if (cy !== null) {
         // If we already have a graph instance, clear that graph before
@@ -889,8 +891,6 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     cy.endBatch();
     cy.fit();
     fixBadEdges();
-    // disableVolatileControls, but reversed (enable everything sans selected
-    // stuff/collapse stuff)
     document.getElementById("componentselector").disabled = false;
     enableButton("fileselectButton");
     enableButton("loadDBbutton");
@@ -960,6 +960,7 @@ function loadajaxDB() {
     // demo so might as well
     $("#fsDialog").dialog("close");
     disableVolatileControls();
+    clearSelectedInfo();
     disableButton("infoButton");
     $("#currComponentInfo").html(
         "No connected component has been drawn yet.");
@@ -1018,6 +1019,12 @@ function displayInfo() {
     scaleDialog("#infoDialog");
 }
 
+function clearSelectedInfo() {
+    clearInfoTables();
+    $("#selectedInfo").addClass("notviewable");
+    $("#selectedInfo").removeClass("viewable");
+}
+
 /* Pops up a dialog displaying information about selected nodes/edges.
  * Note that we gather the info to be stored in this dialog upon opening
  * the dialog, rather than as we select elements in the graph:
@@ -1026,12 +1033,13 @@ function displayInfo() {
  * in particular.
  */
 function displaySelectedInfo() {
-    if ($("#selectedInfoDialog").dialog("isOpen")) {
-        // If the dialog's already open then don't do anything.
-        // I suppose we could have these buttons toggle the visibility of their
-        // respective dialogs, but not sure of the UI implications of that.
-        // In any case, this should prevent problems for now.
-        return;
+    if ($("#selectedInfo").hasClass("notviewable")) {
+        $("#selectedInfo").toggleClass("notviewable");
+        $("#selectedInfo").toggleClass("viewable");
+    }
+    else {
+        // Clear tables to prevent duplicate info showing up
+        clearInfoTables();
     }
     var selectedNodes = SELECTED_ELES.filter("node.noncluster");
     var selectedEdges = SELECTED_ELES.filter("edge");
@@ -1079,20 +1087,16 @@ function displaySelectedInfo() {
         });
         $("#nodeInfoTable").append(content);
         if (existsDNA) {
-            $("#selectedInfoDialog").next(".ui-dialog-buttonpane").prop(
-                "disabled", false).removeClass("ui-state-disabled");
+            enableButton("dnaExportButton");
         }
         else {
-            // If at least one of the nodes doesn't have DNA associated w/ it,
-            // disable the "copy DNA" button
-            $("#selectedInfoDialog").next(".ui-dialog-buttonpane").prop(
-                "disabled", true).addClass("ui-state-disabled");
+            disableButton("dnaExportButton");
         }
     }
     else {
+        // No nodes selected
         $("#nodeInfoTable").hide();
-        $("#selectedInfoDialog").next(".ui-dialog-buttonpane").prop(
-            "disabled", true).addClass("ui-state-disabled");
+        disableButton("dnaExportButton");
     }
     if (selectedEdges.nonempty()) {
         // Populate edge table
@@ -1135,9 +1139,6 @@ function displaySelectedInfo() {
     else {
         $("#clusterInfoTable").hide();
     }
- 
-    $("#selectedInfoDialog").dialog("open");
-    scaleDialog("#selectedInfoDialog");
 }
 
 // Clear node/edge info tables in selected node/edge dialog
