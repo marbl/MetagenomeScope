@@ -45,9 +45,6 @@ html, body {
 #controls p { /* not the greatest solution. work on something better-looking */
     margin: 0.1em;
 }
-h4 {
-    text-align: left;
-}
 .selectedEleHeader {
     text-align: left;
 }
