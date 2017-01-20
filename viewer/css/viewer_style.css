@@ -45,6 +45,12 @@ html, body {
 #controls p { /* not the greatest solution. work on something better-looking */
     margin: 0.1em;
 }
+h4 {
+    text-align: left;
+}
+.selectedEleHeader {
+    text-align: left;
+}
 /* TODO in the future it might be nice to keep the graph view in place when
  * uncollapsing or collapsing the controls div -- however, for now, this
  * behavior is fine. */

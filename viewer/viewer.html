@@ -37,7 +37,7 @@
         <script src='js/bootstrap.min.js'></script>
     </head>
     <body>
-        <div id="controlsToggler" onclick="toggleControls();">
+        <div id="controlsToggler" onclick="toggleControls();" class="btn">
            <span class="glyphicon glyphicon-menu-hamburger"></span>
         </div>
 
@@ -53,7 +53,8 @@
         </button>
 
         <div id="controls" class="viewable">
-            <h4>File Selection</h4>
+            <!-- TODO replace these headers with a nicer-looking system -->
+            <h4 style="margin-top: 26px;">File Selection</h4>
             <p>
             <button class='btn btn-default btn-sm' id="xmlFileselectButton"
                 onclick="openFileSelectDialog();">
@@ -129,9 +130,15 @@
                     aria-hidden="true"></span> &nbsp;
                 View selected element info
             </button>
-            <!-- TODO construct div to hold selected cluster info, selected
-                node info, selected edge info; with collapsing caret buttons
-                using glyphicons, etc. test it out -->
+            <div class="selectedEleHeader">
+                Nodes <span class="badge" id="selectedNodeBadge">0</span>
+            </div>
+            <div class="selectedEleHeader">
+                Edges <span class="badge" id="selectedEdgeBadge">0</span>
+            </div>
+            <div class="selectedEleHeader">
+                Clusters <span class="badge" id="selectedClusterBadge">0</span>
+            </div>
             <div id="selectedInfo" class="notviewable">
                 <table border="2" id="nodeInfoTable" class="centeredInDiv">
                 </table>
