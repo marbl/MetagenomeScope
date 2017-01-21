@@ -72,7 +72,7 @@ Running `collate.py` will process an assembly graph file so that
 it can be visualized. The syntax for this is
 
 `./collate.py -i (input file) -o (output file prefix)
-    [-d (output directory name)] [-pg] [-px] [-w]`
+    [-d (output directory name)] [-nodna] [-pg] [-px] [-w]`
 
 The script will produce a directory containing the created .xdot/.gv files.
 (If the directory already exists, it will just place the .xdot/.gv files in
