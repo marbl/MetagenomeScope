@@ -1128,15 +1128,8 @@ function toggleControls() {
     }
 }
 
-/* Following two functions are for loading server-side .db files, located
- * in the same directory as this script. Note that #fsDialog might not
- * refer to an actual div, depending on what HTML page uses this file, so
- * it's important to make sure the prerequisite features are there before
- * using this particular infrastructure.
- */
 function openFileSelectDialog() {
-    $("#fsDialog").dialog("open"); 
-    scaleDialog("#fsDialog");
+    $("#fsDialog").modal(); 
 }
 
 function loadajaxDB() {
@@ -1144,7 +1137,7 @@ function loadajaxDB() {
     closeDB();
     // usually we won't have the luxury of ID === filename, but this is a
     // demo so might as well
-    $("#fsDialog").dialog("close");
+    $("#fsDialog").modal("hide");
     disableVolatileControls();
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
