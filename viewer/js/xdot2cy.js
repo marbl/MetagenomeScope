@@ -602,13 +602,13 @@ function changeRotation() {
 function changeCollapseButton(toUncollapseReady) {
     if (toUncollapseReady) {
         $("#collapseButtonText").text("Uncollapse All");
-        $("#collapseButtonIcon").removeClass("glyphicon-minus").addClass(
-            "glyphicon-plus");
+        $("#collapseButtonIcon").removeClass("glyphicon-minus-sign").addClass(
+            "glyphicon-plus-sign");
     }
     else {
         $("#collapseButtonText").text("Collapse All");
-        $("#collapseButtonIcon").removeClass("glyphicon-plus").addClass(
-            "glyphicon-minus");
+        $("#collapseButtonIcon").removeClass("glyphicon-plus-sign").addClass(
+            "glyphicon-minus-sign");
     }
 }
 
