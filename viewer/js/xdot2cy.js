@@ -719,9 +719,10 @@ function parseDBcomponents() {
     $("#connCmpCtEntry").text(compInfo);
     $("#n50Entry").text(n50Info);
     $("#asmGCEntry").text(asmGCInfo);
-    document.getElementById("componentselector").max = compCt;
-    // TODO devise better way to enable/disable component selector
-    document.getElementById("componentselector").disabled = false;
+    $("#componentselector").prop("max", compCt);
+    $("#componentselector").prop("disabled", false);
+    enableButton("decrCompRankButton");
+    enableButton("incrCompRankButton");
     enableButton("xmlFileselectButton");
     enableButton("fileselectButton");
     enableButton("drawButton");
@@ -750,12 +751,14 @@ function disableButton(buttonID) {
 /* Disables some "volatile" controls in the graph. Should be used when doing
  * any sort of operation, I guess. */
 function disableVolatileControls() {
-    document.getElementById("componentselector").disabled = true;
+    $("#componentselector").prop("disabled", true);
+    disableButton("decrCompRankButton");
+    disableButton("incrCompRankButton");
     disableButton("fileselectButton");
     disableButton("loadDBbutton");
     disableButton("xmlFileselectButton");
     disableButton("drawButton");
-    document.getElementById("searchInput").disabled = true;
+    $("#searchInput").prop("disabled", true);
     disableButton("searchButton");
     disableButton("collapseButton");
     disableButton("fitSelectedButton");
@@ -771,6 +774,39 @@ function disableVolatileControls() {
 
 function updateTextStatus(text) {
     $("#textStatus").html(text);
+}
+
+function decrCompRank() {
+    // TODO create sanityCheck() for these vals (like just match against \d+)
+    // and if that fails set to 1 and return. otherwise, incr/decr?
+    // in any case we shouldn't need to reuse so much of this code :|
+    var currRank = parseInt($("#componentselector").val());
+    var minRank = $("#componentselector").prop("min");
+    var maxRank = $("#componentselector").prop("max");
+    if ((!Number.isInteger(currRank)) || currRank < (minRank + 1)) {
+        $("#componentselector").val(minRank);
+    }
+    else if (currRank > maxRank) {
+        $("#componentselector").val(maxRank);
+    }
+    else {
+        $("#componentselector").val(currRank - 1);
+    }
+}
+
+function incrCompRank() {
+    var currRank = parseInt($("#componentselector").val());
+    var minRank = $("#componentselector").prop("min");
+    var maxRank = $("#componentselector").prop("max");
+    if ((!Number.isInteger(currRank)) || currRank < minRank) {
+        $("#componentselector").val(minRank);
+    }
+    else if (currRank > (maxRank - 1)) {
+        $("#componentselector").val(maxRank);
+    }
+    else {
+        $("#componentselector").val(currRank + 1);
+    }
 }
 
 function startDrawComponent() {
@@ -1007,12 +1043,14 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     cy.endBatch();
     cy.fit();
     fixBadEdges();
-    document.getElementById("componentselector").disabled = false;
+    $("#componentselector").prop("disabled", false);
+    enableButton("decrCompRankButton");
+    enableButton("incrCompRankButton");
     enableButton("fileselectButton");
     enableButton("loadDBbutton");
     enableButton("xmlFileselectButton");
     enableButton("drawButton");
-    document.getElementById("searchInput").disabled = false;
+    $("#searchInput").prop("disabled", false);
     enableButton("searchButton");
     enableButton("fitButton");
     enableButton("exportButton");
@@ -1269,8 +1307,7 @@ function searchWithEnter(e) {
 // Centers the graph on a given list of elements separated by commas, with
 // spaces optional
 function searchForEles() {
-    var nameText =
-        document.getElementById('searchInput').value;
+    var nameText = $("#searchInput").val();
     if (nameText.trim() === "") {
         alert("Error -- please enter element name(s) to search for.");
         return;
