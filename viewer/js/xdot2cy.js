@@ -1196,8 +1196,7 @@ function startIndeterminateProgressBar() {
 
 /* Pops up a dialog displaying assembly information. */
 function displayInfo() {
-    $("#infoDialog").dialog("open");
-    scaleDialog("#infoDialog");
+    $("#infoDialog").modal();
 }
 
 /* eleType can be one of {"node", "edge", "cluster"} */
@@ -1275,21 +1274,6 @@ function exportSelectedNodeDNA() {
         window.btoa(getSelectedNodeDNA()),
         "_blank"
     );
-}
-
-// Scales down the dialog so that its width is no more than 75% of the
-// window width and its height is no more than 60% of the window height
-// The dialog should already be open when this function is called (otherwise
-// its width/height might be set to 0)
-function scaleDialog(dialogID) {
-    var maxDialogWidth = $(window).width() * 0.75;
-    var maxDialogHeight = $(window).height() * 0.6;
-    if ($(dialogID).width() > maxDialogWidth) {
-        $(dialogID).dialog("option", "width", maxDialogWidth);
-    }
-    if ($(dialogID).height() > maxDialogHeight) {
-        $(dialogID).dialog("option", "height", maxDialogHeight);
-    }
 }
 
 /* Fits the graph to all its elements if toSelected is false, and to only

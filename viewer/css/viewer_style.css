@@ -70,16 +70,16 @@ html, body {
 .grayText {
     color: #999999;
 }
-.hiddenElement {
-    display: none;
-}
 .infoTable {
     /* TODO: slightly increase spacing between cell contents and border? */
     margin: 0 auto; /* Centers the table */
     border-color: black;
 }
-.centeredInDiv {
-    margin: 0 auto;
+.modal-body {
+    /* TODO: come up with a cleaner way of representing the table on small
+     * screens?
+     */
+    overflow-x: auto;
 }
 .progress {
     margin-bottom: 0px;

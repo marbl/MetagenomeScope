@@ -10,31 +10,26 @@
              -Cytoscape.js (for drawing the graph)
              -sql.js (for reading SQLite .db files)
              -jQuery (for supporting jQuery UI)
-             -jQuery UI (for dialogs, other misc UI features) -->
-        <!-- TODO, ensure we use the minimized versions for release -->
+             -Bootstrap -->
+        <!-- TODO, ensure we use the minified versions for release. Also use a
+            customized version of Bootstrap that only supports what features we
+            need -->
         <script src="https://code.jquery.com/jquery-3.1.0.min.js"
             integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="
             crossorigin="anonymous"></script>
-        <script src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"
-            integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E="
-            crossorigin="anonymous"></script>
-        <link rel="stylesheet"
-            href="https://code.jquery.com/ui/1.12.0/themes/base/jquery-ui.css">
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link rel="stylesheet" href="css/viewer_style.css">
-        <!-- Initialize some things -->
-        <script>
-            $(function() {
-                $(window).on("beforeunload", closeDB);
-                $("input[name=rotationRadio]").on("change", changeRotation);
-                $(".largeDialog").dialog({autoOpen: false,
-                    width: 'auto', height: 'auto'});
-            });
-        </script>
         <script src='js/cytoscape.min.js'></script>
         <script src='js/sql.js'></script>
         <script src='js/xdot2cy.js'></script>
         <script src='js/bootstrap.min.js'></script>
+        <!-- Initialize some bindings for the application -->
+        <script>
+            $(function() {
+                $(window).on("beforeunload", closeDB);
+                $("input[name=rotationRadio]").on("change", changeRotation);
+            });
+        </script>
     </head>
     <body>
         <div id="controlsToggler" onclick="toggleControls();" class="btn">
@@ -66,7 +61,7 @@
                 <span class="glyphicon glyphicon-folder-open"
                     aria-hidden="true"></span> &nbsp; Choose .db file
             </button>
-            <!-- For some reason, giving this the hiddenElement class
+            <!-- For some reason, styling this with a "hiddenElement" CSS class
                 doesn't work; I suspect it's due to the way browsers handle
                 styling of file inputs. Anyway, this should work fine. -->
     	    <input type='file' id='fileselector'
@@ -350,47 +345,63 @@
                 </div> <!-- end modal-content div -->
             </div> <!-- end modal-dialog div -->
         </div> <!-- end modal div -->
-        <div id='infoDialog' title="Assembly Information"
-            class="hiddenElement largeDialog">
-            <!-- We implement this hidden input with autofocus to fix the
-                 issue detailed here: http://stackoverflow.com/a/4814001
-                 Not having this input causes the dialog's close button to be
-                 automatically selected, which looks strange in this case. -->
-            <input autofocus class="hiddenElement" />
-            <table border="2" class="centeredInDiv">
-                <tr>
-                    <th>Filename</th>
-                    <th>Filetype</th>
-                    <th>Node Count</th>
-                    <th>Total Node Length</th>
-                    <th>Edge Count</th>
-                    <th>Connected Component Count</th>
-                    <th>N50</th>
-                    <th>Assembly G/C Content</th>
-                </tr>
-                <tr>
-                    <td id="filenameEntry"></td>
-                    <td id="filetypeEntry"></td>
-                    <td id="nodeCtEntry"></td>
-                    <td id="totalBPLengthEntry"></td>
-                    <td id="edgeCountEntry"></td>
-                    <td id="connCmpCtEntry"></td>
-                    <td id="n50Entry"></td>
-                    <td id="asmGCEntry"></td>
-                </tr>
-            </table>
-            <p id="currComponentInfo">No connected component has been
-                drawn yet.</p>
-            <h3>For contig assembly graphs (LastGraph, GFA)</h3>
-            <p>The <strong>node count</strong> and <strong>edge count</strong>
-            fields in the table above (not in the percentage statistics)
-            only include "positive" contigs and their edges from the assembly
-            graph.
-            If you would like to know these statistics with negative nodes
-            included, then you can just multiply these fields by two.</p>
-            <h3>For scaffold assembly graphs (GML)</h3>
-            <p>All nodes are included in
-            these statistics regardless of orientation.</p>
-        </div>
+        <!-- Assembly info dialog -->
+        <div class="modal fade" tabindex="-1" role="dialog" id='infoDialog'>
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close"
+                            data-dismiss="modal" aria-label="Close dialog">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title">
+                            Assembly information
+                        </h4>
+                    </div> <!-- end modal-header div -->
+                    <div class="modal-body">
+                        <table border="2" class="infoTable">
+                            <tr>
+                                <th>Filename</th>
+                                <th>Filetype</th>
+                                <th>Node Count</th>
+                                <th>Total Node Length</th>
+                                <th>Edge Count</th>
+                                <th>Connected Component Count</th>
+                                <th>N50</th>
+                                <th>Assembly G/C Content</th>
+                            </tr>
+                            <tr>
+                                <td id="filenameEntry"></td>
+                                <td id="filetypeEntry"></td>
+                                <td id="nodeCtEntry"></td>
+                                <td id="totalBPLengthEntry"></td>
+                                <td id="edgeCountEntry"></td>
+                                <td id="connCmpCtEntry"></td>
+                                <td id="n50Entry"></td>
+                                <td id="asmGCEntry"></td>
+                            </tr>
+                        </table>
+                        <p id="currComponentInfo">
+                            No connected component has been drawn yet.
+                        </p>
+                        <h3>For contig assembly graphs (LastGraph, GFA)</h3>
+                        <p>
+                            The <strong>node count</strong> and
+                            <strong>edge count</strong> fields in the table
+                            above (not in the percentage statistics) only
+                            include "positive" contigs and their edges from
+                            the assembly graph. If you would like to know
+                            these statistics with negative nodes included,
+                            then you can just multiply these fields by two.
+                        </p>
+                        <h3>For scaffold assembly graphs (GML)</h3>
+                        <p>
+                            All nodes are included in
+                            these statistics regardless of orientation.
+                        </p>
+                    </div>
+                </div> <!-- end modal-content div -->
+            </div> <!-- end modal-dialog div -->
+        </div> <!-- end modal div -->
     </body>
 </html>
