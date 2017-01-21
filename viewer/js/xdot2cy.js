@@ -727,6 +727,7 @@ function parseDBcomponents() {
     enableButton("incrCompRankButton");
     enableButton("xmlFileselectButton");
     enableButton("fileselectButton");
+    enableButton("loadDBbutton");
     enableButton("drawButton");
     enableButton("infoButton");
     enableButton("dir0");
