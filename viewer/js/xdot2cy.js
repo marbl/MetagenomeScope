@@ -61,6 +61,8 @@ var SELECTED_CLUSTER_COUNT = 0;
 var SELECTED_NODES = null;
 var SELECTED_EDGES = null;
 var SELECTED_CLUSTERS = null;
+// Regular expression we use when matching connected component ranks.
+var COMP_RANK_RE = /^\d+$/;
 
 if (!(window.File && window.FileReader)) {
 	alert("Your browser does not support the HTML5 File APIs. " +
@@ -776,51 +778,81 @@ function updateTextStatus(text) {
     $("#textStatus").html(text);
 }
 
+/* Returns null if the value indicated by the string is not an integer (that
+ * is, it matches the COMP_RANK_RE regex).
+ * Returns -1 if it is an integer but is less than the min component rank
+ * (using the min property of #componentselector in the DOM as a reference).
+ * Returns 1 if it is an integer but is greater than the max component rank
+ * (using the max property of #componentselector in the DOM as a reference).
+ * Returns 0 if it is an integer and is within the range [min rank, max rank].
+ *
+ * We use this instead of just parseInt() because parseInt is (IMO) too
+ * lenient when parsing integer values from strings, which can cause confusion
+ * for users (e.g. a user enters in "2c" as a connected component and
+ * component 2 is drawn, leading the user to somehow think that "2c" is a valid
+ * connected component size rank).
+ */
+function compRankValidity(strVal) {
+    if (strVal.match(COMP_RANK_RE) === null) return null;
+    var intVal = parseInt(strVal);
+    if (intVal < parseInt($("#componentselector").prop("min"))) return -1;
+    if (intVal > parseInt($("#componentselector").prop("max"))) return 1;
+    return 0;
+}
+
+/* Decrements the size rank of the component selector by 1. If the current
+ * value of the component selector is not an integer, then the size rank is set
+ * to the minimum size rank; if the current value is an integer that is greater
+ * than the maximum size rank, then the size rank is set to the maximum size
+ * rank.
+ *
+ * Also, if the size rank is equal to the minimum size rank, nothing happens.
+ */
 function decrCompRank() {
-    // TODO create sanityCheck() for these vals (like just match against \d+)
-    // and if that fails set to 1 and return. otherwise, incr/decr?
-    // in any case we shouldn't need to reuse so much of this code :|
-    var currRank = parseInt($("#componentselector").val());
-    var minRank = $("#componentselector").prop("min");
-    var maxRank = $("#componentselector").prop("max");
-    if ((!Number.isInteger(currRank)) || currRank < (minRank + 1)) {
+    var currRank = $("#componentselector").val();
+    var minRank = parseInt($("#componentselector").prop("min"));
+    var validity = compRankValidity(currRank);
+    if (validity === null || parseInt(currRank) < (minRank + 1)) {
         $("#componentselector").val(minRank);
     }
-    else if (currRank > maxRank) {
-        $("#componentselector").val(maxRank);
+    else if (validity === 1) {
+        $("#componentselector").val($("#componentselector").prop("max"));
     }
     else {
-        $("#componentselector").val(currRank - 1);
+        $("#componentselector").val(parseInt(currRank) - 1);
     }
 }
 
+/* Increments the size rank of the component selector by 1. Same "limits" as
+ * in the first paragraph of decrCompRank()'s comments.
+ *
+ * Also, if the size rank is equal to the maximum size rank, nothing happens.
+ */
 function incrCompRank() {
-    var currRank = parseInt($("#componentselector").val());
-    var minRank = $("#componentselector").prop("min");
-    var maxRank = $("#componentselector").prop("max");
-    if ((!Number.isInteger(currRank)) || currRank < minRank) {
-        $("#componentselector").val(minRank);
+    var currRank = $("#componentselector").val();
+    var maxRank = parseInt($("#componentselector").prop("max"));
+    var validity = compRankValidity(currRank);
+    if (validity === null || validity === -1) {
+        $("#componentselector").val($("#componentselector").prop("min"));
     }
     else if (currRank > (maxRank - 1)) {
         $("#componentselector").val(maxRank);
     }
     else {
-        $("#componentselector").val(currRank + 1);
+        $("#componentselector").val(parseInt(currRank) + 1);
     }
 }
 
 function startDrawComponent() {
-    var selectorObj = document.getElementById("componentselector");
-    // TODO will have to mess with this to get it strictly limited to actual
-    // integers (JavaScript's parseInt function is really, really lax).
-    var cmpRank = parseInt(selectorObj.value);
-    if (!(Number.isInteger(cmpRank) && cmpRank >= 1
-            && cmpRank <= selectorObj.max)) {
+    var currRank = $("#componentselector").val();
+    if (compRankValidity(currRank) !== 0) {
         alert("Please enter a valid component rank using the input field.");
         return;
     }
+    // if compRankValidity === 0, then currRank must represent just an
+    // integer: so parseInt is fine to run on it
     updateTextStatus("Drawing clusters...");
-    window.setTimeout(drawComponent(cmpRank), 0);
+    window.setTimeout(drawComponent(parseInt(currRank)), 0);
 }
 
 /* Draws the selected connected component in the .db file -- its nodes, its
