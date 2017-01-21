@@ -45,6 +45,8 @@ var CURR_ROTATION;
 // A reference to the current SQL.Database object from which we obtain the
 // graph's layout and biological data
 var CURR_DB = null;
+// Filetype of the assembly; used for determining bp vs. nt for nodes
+var ASM_FILETYPE;
 // Total number of nodes and edges in the current asm graph
 var ASM_NODE_COUNT = 0;
 var ASM_EDGE_COUNT = 0;
@@ -52,15 +54,13 @@ var CURR_NE = 0;
 var TOTAL_NE = 0;
 // Cytoscape.js graph instance
 var cy = null;
-// Number of non-cluster nodes / edges currently selected.
-var SELECTED_ELE_COUNT = 0;
-var SELECTED_ELES = null;
-// Array of node IDs which the user requested info on. Used as "input"
-// for the DNA dialog.
-var NODES_TO_QUERY = [];
-var EDGE_TABLE_HEADER = "<tr><th colspan='3'>Selected Edge Information</th></tr><tr><th>Source ID</th><th>Target ID</th><th>Multiplicity</th></tr>";
-var NODE_TABLE_HEADER = "<tr><th colspan='4'>Selected Node Information</th></tr><tr><th>ID</th><th>Length</th><th>Depth</th><th>G/C Content</th></tr>";
-var CLUSTER_TABLE_HEADER = "<tr><th colspan='3'>Selected Cluster Information</th></tr><tr><th>ID</th><th>Type</th><th>Child Count</th></tr>";
+// Numbers of selected elements, and collections of those selected elements.
+var SELECTED_NODE_COUNT = 0;
+var SELECTED_EDGE_COUNT = 0;
+var SELECTED_CLUSTER_COUNT = 0;
+var SELECTED_NODES = null;
+var SELECTED_EDGES = null;
+var SELECTED_CLUSTERS = null;
 
 if (!(window.File && window.FileReader)) {
 	alert("Your browser does not support the HTML5 File APIs. " +
@@ -328,6 +328,75 @@ function uncollapseCluster(cluster) {
     }
 }
 
+// TODO move to be near the toggling stuff -- or move that here, I guess
+function addSelectedNodeInfo(ele) {
+    var lengthEntry, depthEntry, dnaEntry, gcEntry;
+    if (ele.data("length") === null) {
+        lengthEntry = "N/A";
+    }
+    else {
+        lengthEntry = ele.data("length").toLocaleString();
+        if (ASM_FILETYPE === "GML") { // scaffolds
+            lengthEntry += " bp";
+        } else { // contigs in a "double graph"
+            lengthEntry += " nt";
+        }
+    }
+    if (ele.data("depth") === null) {
+        depthEntry = "N/A";
+    }
+    else {
+        depthEntry = ele.data("depth").toLocaleString() + "x";
+    }
+    if (ele.data("gc_content") === null) {
+        gcEntry = "N/A";
+    }
+    else {
+        gcEntry = (ele.data("gc_content") * 100).toLocaleString() + "%";
+    }
+    $("#nodeInfoTable").append("<tr class='nonheader' id='row" + ele.id() +
+        "'><td>" + ele.id() + "</td><td>" + lengthEntry + "</td><td>" +
+        depthEntry + "</td><td>" + gcEntry + "</td></tr>");
+    if (ele.data("hasDNA")) {
+        enableButton("dnaExportButton");
+    }
+    else {
+        disableButton("dnaExportButton");
+    }
+}
+
+function addSelectedEdgeInfo(ele) {
+    var multEntry = ele.data("mult");
+    if (multEntry === null) {
+        multEntry = "N/A";
+    }
+    $("#edgeInfoTable").append("<tr class='nonheader' id='row" +
+        ele.id().replace(">", "") +
+        "'><td>" + ele.data("source") + "</td><td>" + ele.data("target") +
+        "</td><td>" + multEntry + "</td></tr>");
+}
+
+function addSelectedClusterInfo(ele) {
+    var clustID = ele.data("id");
+    var clustType;
+    switch(clustID[0]) {
+        case 'C': clustType = "Chain"; break;
+        case 'Y': clustType = "Cyclic Chain"; break;
+        case 'B': clustType = "Bubble"; break;
+        case 'R': clustType = "Frayed Rope"; break;
+        default: clustType = "Invalid (error)";
+    }
+    var clustSize = ele.scratch("_interiorNodes").size(); 
+    $("#clusterInfoTable").append("<tr class='nonheader' id='row" + ele.id() +
+        "'><td>" + clustID + "</td><td>" + clustType + "</td><td>" +
+        clustSize + "</td></tr>");
+}
+
+function removeSelectedEleInfo(ele) {
+    // supports edges in old HTML versions, where > isn't allowed but - is
+    $("#row" + ele.id().replace(">", "")).remove();
+}
+
 // Sets bindings for certain objects in the graph.
 function setGraphBindings() {
     // Enable right-clicking to collapse/uncollapse compound nodes
@@ -365,27 +434,65 @@ function setGraphBindings() {
     // edge, and node.cluster, adding to and removing from 3 corresponding
     // collections. This allows us to remove the overhead of manipulating
     // a monolithic collection of selected elements later.
+    // Hmm -- I don't really want to define 6 event bindings. maybe manipulate
+    // within these? hasClass() should be efficient since we already get
+    // e.cyTarget
     cy.on('select', 'node.noncluster, edge, node.cluster',
         function(e) {
-            SELECTED_ELE_COUNT += 1;
-            SELECTED_ELES = SELECTED_ELES.union(e.cyTarget);
+            var x = e.cyTarget;
+            if (x.hasClass("noncluster")) {
+                SELECTED_NODE_COUNT += 1;
+                SELECTED_NODES = SELECTED_NODES.union(x);
+                $("#selectedNodeBadge").text(SELECTED_NODE_COUNT);
+                addSelectedNodeInfo(x);
+            } else if (x.isEdge()) {
+                SELECTED_EDGE_COUNT += 1;
+                SELECTED_EDGES = SELECTED_EDGES.union(x);
+                $("#selectedEdgeBadge").text(SELECTED_EDGE_COUNT);
+                addSelectedEdgeInfo(x);
+            } else {
+                SELECTED_CLUSTER_COUNT += 1;
+                SELECTED_CLUSTERS = SELECTED_CLUSTERS.union(x);
+                $("#selectedClusterBadge").text(SELECTED_CLUSTER_COUNT);
+                addSelectedClusterInfo(x);
+            }
+
             // If this is the first selected element, enable the
-            // selectedInfo button
-            if (SELECTED_ELE_COUNT === 1) {
-                enableButton("selectedInfoButton");
+            // fitSelected button
+            if (SELECTED_NODE_COUNT + SELECTED_EDGE_COUNT +
+                    SELECTED_CLUSTER_COUNT === 1) {
                 enableButton("fitSelectedButton");
             }
         }
     );
     cy.on('unselect', 'node.noncluster, edge, node.cluster',
         function(e) {
-            SELECTED_ELE_COUNT -= 1;
-            SELECTED_ELES = SELECTED_ELES.difference(e.cyTarget);
+            var x = e.cyTarget;
+            if (x.hasClass("noncluster")) {
+                SELECTED_NODE_COUNT -= 1;
+                SELECTED_NODES = SELECTED_NODES.difference(x);
+                $("#selectedNodeBadge").text(SELECTED_NODE_COUNT);
+                removeSelectedEleInfo(x);
+                if (SELECTED_NODE_COUNT <= 0) {
+                    disableButton("dnaExportButton");
+                }
+            } else if (x.isEdge()) {
+                SELECTED_EDGE_COUNT -= 1;
+                SELECTED_EDGES = SELECTED_EDGES.difference(x);
+                $("#selectedEdgeBadge").text(SELECTED_EDGE_COUNT);
+                removeSelectedEleInfo(x);
+            } else {
+                SELECTED_CLUSTER_COUNT -= 1;
+                SELECTED_CLUSTERS = SELECTED_CLUSTERS.difference(x);
+                $("#selectedClusterBadge").text(SELECTED_CLUSTER_COUNT);
+                removeSelectedEleInfo(x);
+            }
+
             // Not sure how we'd have a negative amount of selected
             // elements, but I figure we might as well cover our bases with
             // the <= 0 here :P
-            if (SELECTED_ELE_COUNT <= 0) {
-                disableButton("selectedInfoButton");
+            if (SELECTED_NODE_COUNT + SELECTED_EDGE_COUNT +
+                    SELECTED_CLUSTER_COUNT <= 0) {
                 disableButton("fitSelectedButton");
             }
         }
@@ -522,7 +629,9 @@ function loadgraphfile() {
         // Important -- remove old DB from memory if it exists
         closeDB();
         disableVolatileControls();
-        clearSelectedInfo();
+        $("#selectedNodeBadge").text(0);
+        $("#selectedEdgeBadge").text(0);
+        $("#selectedClusterBadge").text(0);
         disableButton("infoButton");
         $("#currComponentInfo").html(
             "No connected component has been drawn yet.");
@@ -576,7 +685,7 @@ function parseDBcomponents() {
     var graphInfo = stmt.getAsObject();
     stmt.free();
     var fnInfo = graphInfo["filename"];
-    var ftInfo = graphInfo["filetype"];
+    ASM_FILETYPE = graphInfo["filetype"];
     ASM_NODE_COUNT = graphInfo["node_count"];
     var nodeInfo = ASM_NODE_COUNT.toLocaleString();
     var bpCt = graphInfo["total_length"];
@@ -603,7 +712,7 @@ function parseDBcomponents() {
     updateTextStatus("Loaded .db file for the assembly graph file " + fnInfo
                         + ".");
     $("#filenameEntry").text(fnInfo); 
-    $("#filetypeEntry").text(ftInfo);
+    $("#filetypeEntry").text(ASM_FILETYPE);
     $("#nodeCtEntry").text(nodeInfo); 
     $("#totalBPLengthEntry").text(bpInfo); 
     $("#edgeCountEntry").text(edgeInfo);
@@ -648,7 +757,6 @@ function disableVolatileControls() {
     disableButton("drawButton");
     document.getElementById("searchInput").disabled = true;
     disableButton("searchButton");
-    disableButton("selectedInfoButton");
     disableButton("collapseButton");
     disableButton("fitSelectedButton");
     disableButton("fitButton");
@@ -657,6 +765,8 @@ function disableVolatileControls() {
     disableButton("dir90");
     disableButton("dir180");
     disableButton("dir270");
+    clearSelectedInfo();
+    disableButton("dnaExportButton");
 }
 
 function updateTextStatus(text) {
@@ -682,7 +792,6 @@ function startDrawComponent() {
  */
 function drawComponent(cmpRank) {
     disableVolatileControls();
-    clearSelectedInfo();
     // Okay, we can draw this component!
     if (cy !== null) {
         // If we already have a graph instance, clear that graph before
@@ -696,8 +805,15 @@ function drawComponent(cmpRank) {
     setGraphBindings();
     var componentNodeCount = 0;
     var componentEdgeCount = 0;
-    SELECTED_ELES = cy.collection();
-    SELECTED_ELE_COUNT = 0;
+    SELECTED_NODES = cy.collection();
+    SELECTED_EDGES = cy.collection();
+    SELECTED_CLUSTERS = cy.collection();
+    SELECTED_NODE_COUNT = 0;
+    SELECTED_EDGE_COUNT = 0;
+    SELECTED_CLUSTER_COUNT = 0;
+    $("#selectedNodeBadge").text(0);
+    $("#selectedEdgeBadge").text(0);
+    $("#selectedClusterBadge").text(0);
     PREV_ROTATION = 0;
     CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active").attr("value"));
     cy.scratch("_collapsed", cy.collection());
@@ -960,7 +1076,9 @@ function loadajaxDB() {
     // demo so might as well
     $("#fsDialog").dialog("close");
     disableVolatileControls();
-    clearSelectedInfo();
+    $("#selectedNodeBadge").text(0);
+    $("#selectedEdgeBadge").text(0);
+    $("#selectedClusterBadge").text(0);
     disableButton("infoButton");
     $("#currComponentInfo").html(
         "No connected component has been drawn yet.");
@@ -1019,135 +1137,36 @@ function displayInfo() {
     scaleDialog("#infoDialog");
 }
 
+/* eleType can be one of {"node", "edge", "cluster"} */
+function toggleEleInfo(eleType) {
+    var openerID = "#" + eleType + "Opener";
+    var infoDivID = "#" + eleType + "Info";
+    if ($(openerID).hasClass("glyphicon-triangle-right")) {
+        $(openerID).removeClass("glyphicon-triangle-right"); 
+        $(openerID).addClass("glyphicon-triangle-bottom"); 
+    }
+    else { 
+        $(openerID).removeClass("glyphicon-triangle-bottom"); 
+        $(openerID).addClass("glyphicon-triangle-right"); 
+    }
+    $(infoDivID).toggleClass("notviewable");
+    $(infoDivID).toggleClass("viewable");
+}
+
 function clearSelectedInfo() {
-    clearInfoTables();
-    $("#selectedInfo").addClass("notviewable");
-    $("#selectedInfo").removeClass("viewable");
-}
-
-/* Pops up a dialog displaying information about selected nodes/edges.
- * Note that we gather the info to be stored in this dialog upon opening
- * the dialog, rather than as we select elements in the graph:
- * I think this approach works better because it adds no overhead when
- * selecting elements, only when the user decides to inspect those elements
- * in particular.
- */
-function displaySelectedInfo() {
-    if ($("#selectedInfo").hasClass("notviewable")) {
-        $("#selectedInfo").toggleClass("notviewable");
-        $("#selectedInfo").toggleClass("viewable");
+    $("#nodeInfoTable tr.nonheader").remove();
+    $("#edgeInfoTable tr.nonheader").remove();
+    $("#clusterInfoTable tr.nonheader").remove();
+    disableButton("dnaExportButton");
+    if ($("#nodeOpener").hasClass("glyphicon-triangle-bottom")) {
+        toggleEleInfo('node');
     }
-    else {
-        // Clear tables to prevent duplicate info showing up
-        clearInfoTables();
+    if ($("#edgeOpener").hasClass("glyphicon-triangle-bottom")) {
+        toggleEleInfo('edge');
     }
-    var selectedNodes = SELECTED_ELES.filter("node.noncluster");
-    var selectedEdges = SELECTED_ELES.filter("edge");
-    var selectedClusters = SELECTED_ELES.filter("node.cluster");
-    var content;
-    if (selectedNodes.nonempty()) {
-        // Populate node table
-        $("#nodeInfoTable").show();
-        content = NODE_TABLE_HEADER;
-        var existsDNA = true;
-        selectedNodes.each(function(i, n) {
-            // TODO abstract repetitive null-checking to sep func?
-            var lengthEntry, depthEntry, dnaEntry, gcEntry;
-            if (n.data("length") == null) {
-                lengthEntry = "N/A";
-            }
-            else {
-                lengthEntry = n.data("length").toLocaleString() + " nt";
-            }
-            if (n.data("depth") == null) {
-                depthEntry = "N/A";
-            }
-            else {
-                depthEntry = n.data("depth").toLocaleString() + "x";
-            }
-            if (n.data("gc_content") == null) {
-                gcEntry = "N/A";
-            }
-            else {
-                gcEntry = (n.data("gc_content") * 100).toLocaleString() + "%";
-            }
-            if (!n.data("hasDNA")) {
-                existsDNA = false;
-                NODES_TO_QUERY = [];
-            }
-            content += "<tr><td>" + n.id() + "</td><td>" + lengthEntry +
-                "</td><td>" + depthEntry + "</td><td>" + gcEntry +
-                "</td></tr>";
-            // Save the node's ID for if the user requests DNA info
-            // We check existsDNA to avoid using up memory if the selected
-            // nodes don't have any DNA
-            if (existsDNA) {
-                NODES_TO_QUERY.push(n.id());
-            }
-        });
-        $("#nodeInfoTable").append(content);
-        if (existsDNA) {
-            enableButton("dnaExportButton");
-        }
-        else {
-            disableButton("dnaExportButton");
-        }
+    if ($("#clusterOpener").hasClass("glyphicon-triangle-bottom")) {
+        toggleEleInfo('cluster');
     }
-    else {
-        // No nodes selected
-        $("#nodeInfoTable").hide();
-        disableButton("dnaExportButton");
-    }
-    if (selectedEdges.nonempty()) {
-        // Populate edge table
-        $("#edgeInfoTable").show();
-        content = EDGE_TABLE_HEADER;
-        selectedEdges.each(function(i, e) {
-            var multEntry = e.data("mult");
-            if (multEntry == null) {
-                multEntry = "N/A";
-            }
-            content += "<tr><td>" + e.data("source") + "</td><td>" +
-                e.data("target") + "</td><td>" + multEntry + "</td></tr>";
-        });
-        $("#edgeInfoTable").append(content);
-    }
-    else {
-        $("#edgeInfoTable").hide();
-    }
-    // TODO set existsDNA or something as a global variable for the assembly,
-    // and use that to determine whether or not to open the "export DNA"
-    // buttons and, then, to display this cluster's DNA
-    if (selectedClusters.nonempty()) {
-        // Populate edge table
-        $("#clusterInfoTable").show();
-        content = CLUSTER_TABLE_HEADER;
-        selectedClusters.each(function(i, c) {
-            var clustID = c.data("id");
-            var clustType;
-            if (clustID[0] === 'C') clustType = "Chain";
-            else if (clustID[0] === 'Y') clustType = "Cyclic Chain";
-            else if (clustID[0] === 'B') clustType = "Bubble";
-            else if (clustID[0] === 'R') clustType = "Frayed Rope";
-            else clustType = "Invalid (error)";
-            var clustSize = c.scratch("_interiorNodes").size(); 
-            content += "<tr><td>" + clustID + "</td><td>" +
-                clustType + "</td><td>" + clustSize + "</td></tr>";
-        });
-        $("#clusterInfoTable").append(content);
-    }
-    else {
-        $("#clusterInfoTable").hide();
-    }
-}
-
-// Clear node/edge info tables in selected node/edge dialog
-function clearInfoTables(ev, ui) {
-    $("#nodeInfoTable tr").remove();
-    $("#edgeInfoTable tr").remove();
-    $("#clusterInfoTable tr").remove();
-    // Clear NODES_TO_QUERY
-    NODES_TO_QUERY.length = 0;
 }
 
 /* Return a single string containing the DNA sequences of the selected
@@ -1160,16 +1179,16 @@ function getSelectedNodeDNA() {
     var currDnaSeq;
     var seqIndex;
     var afterFirstSeqLine;
-    for (var i = 0; i < NODES_TO_QUERY.length; i++) {
+    SELECTED_NODES.each(function(i, e) {
         // TODO Is there any way to make this more efficient? Like, via
         // selecting multiple dnafwd values at once...?
         dnaStmt = CURR_DB.prepare("SELECT dnafwd FROM nodes WHERE id = ?",
-            [NODES_TO_QUERY[i]]);
+            [e.id()]);
         dnaStmt.step();
         if (i > 0) {
             dnaSeqs += "\n";
         }
-        dnaSeqs += ">NODE_" + NODES_TO_QUERY[i] + "\n";
+        dnaSeqs += ">NODE_" + e.id() + "\n";
         afterFirstSeqLine = false;
         currDnaSeq = dnaStmt.getAsObject()['dnafwd'];
         for (seqIndex = 0; seqIndex < currDnaSeq.length; seqIndex += 70) {
@@ -1182,7 +1201,7 @@ function getSelectedNodeDNA() {
             dnaSeqs += currDnaSeq.substring(seqIndex, seqIndex + 70);
         }
         dnaStmt.free();
-    }
+    });
     return dnaSeqs;
 }
  
@@ -1219,9 +1238,12 @@ function fitGraph(toSelected) {
         function() {
             if (toSelected) {
                 // Right now, we don't throw any sort of error here if
-                // SELECTED_ELES is empty. This is because the fit selected
+                // no elements are selected. This is because the fit-selected
                 // button is only enabled when >= 1 elements are selected.
-                cy.fit(SELECTED_ELES);
+                cy.fit(
+                    SELECTED_NODES.union(SELECTED_EDGES).union(
+                        SELECTED_CLUSTERS)
+                );
             } else {
                 cy.fit();
             }

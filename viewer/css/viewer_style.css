@@ -26,7 +26,6 @@ html, body {
 .viewable {
     visibility: visible;
     opacity: 1;
-    display: inline-block;
 }
 .notviewable {
     visibility: hidden;
@@ -46,7 +45,12 @@ html, body {
     margin: 0.1em;
 }
 .selectedEleHeader {
+    cursor: pointer;
     text-align: left;
+}
+.opener {
+    margin-right: 0.1em;
+    float: right;
 }
 /* TODO in the future it might be nice to keep the graph view in place when
  * uncollapsing or collapsing the controls div -- however, for now, this
@@ -68,6 +72,11 @@ html, body {
 }
 .hiddenElement {
     display: none;
+}
+.infoTable {
+    /* TODO: slightly increase spacing between cell contents and border? */
+    margin: 0 auto; /* Centers the table */
+    border-color: black;
 }
 .centeredInDiv {
     margin: 0 auto;

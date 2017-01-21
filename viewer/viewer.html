@@ -123,34 +123,69 @@
             <h4>Selected Elements</h4>
             <p>
     
-            <button class='btn btn-default btn-sm disabled'
-                disabled="disabled"
-                onclick='displaySelectedInfo();' id="selectedInfoButton">
-                <span class="glyphicon glyphicon-list-alt"
-                    aria-hidden="true"></span> &nbsp;
-                View selected element info
-            </button>
-            <div class="selectedEleHeader">
+            <!-- Selected node info -->
+            <div class="selectedEleHeader"
+                    onclick="toggleEleInfo('node');">
                 Nodes <span class="badge" id="selectedNodeBadge">0</span>
+                <span class="glyphicon glyphicon-triangle-right opener"
+                    id="nodeOpener"></span>
             </div>
-            <div class="selectedEleHeader">
-                Edges <span class="badge" id="selectedEdgeBadge">0</span>
-            </div>
-            <div class="selectedEleHeader">
-                Clusters <span class="badge" id="selectedClusterBadge">0</span>
-            </div>
-            <div id="selectedInfo" class="notviewable">
-                <table border="2" id="nodeInfoTable" class="centeredInDiv">
+            <div id="nodeInfo" class="notviewable">
+                <table border="2" id="nodeInfoTable" class="infoTable">
+                    <tr>
+                        <th colspan='4'>Selected Node Information</th>
+                    </tr>
+                    <tr>
+                        <th>ID</th>
+                        <th>Length</th>
+                        <th>Depth</th>
+                        <th>G/C Content</th>
+                    </tr>
                 </table>
-                <table border="2" id="edgeInfoTable" class="centeredInDiv">
-                </table>
-                <table border="2" id="clusterInfoTable" class="centeredInDiv">
-                </table>
-                <button class='btn btn-default btn-sm'
-                     onclick='exportSelectedNodeDNA();' id="dnaExportButton">
-                    <span class="glyphicon glyphicon-equalizer"></span> &nbsp;
+                <button class='btn btn-default btn-sm disabled'
+                    disabled="disabled" onclick='exportSelectedNodeDNA();'
+                    id="dnaExportButton">
+                    <span class="glyphicon glyphicon-export"></span> &nbsp;
                         Export selected node DNA to FASTA
                 </button>
+            </div>
+            <!-- Selected edge info -->
+            <div class="selectedEleHeader"
+                    onclick="toggleEleInfo('edge');">
+                Edges <span class="badge" id="selectedEdgeBadge">0</span>
+                <span class="glyphicon glyphicon-triangle-right opener"
+                    id="edgeOpener"></span>
+            </div>
+            <div id="edgeInfo" class="notviewable">
+                <table border="2" id="edgeInfoTable" class="infoTable">
+                <tr>
+                    <th colspan='3'>Selected Edge Information</th>
+                </tr>
+                <tr>
+                    <th>Source ID</th>
+                    <th>Target ID</th>
+                    <th>Multiplicity</th>
+                </tr>
+                </table>
+            </div>
+            <!-- Selected cluster info -->
+            <div class="selectedEleHeader"
+                    onclick="toggleEleInfo('cluster');">
+                Clusters <span class="badge" id="selectedClusterBadge">0</span>
+                <span class="glyphicon glyphicon-triangle-right opener"
+                    id="clusterOpener"></span>
+            </div>
+            <div id="clusterInfo" class="notviewable">
+                <table border="2" id="clusterInfoTable" class="infoTable">
+                <tr>
+                    <th colspan='3'>Selected Cluster Information</th>
+                </tr>
+                <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Child Count</th>
+                </tr>
+                </table>
             </div>
 
             </p>
