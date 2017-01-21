@@ -28,10 +28,13 @@
             $(function() {
                 $(window).on("beforeunload", closeDB);
                 $("input[name=rotationRadio]").on("change", changeRotation);
+                // If we add any tooltips, use this line to initialize them
+                //$("[data-toggle='tooltip']").tooltip();
             });
         </script>
     </head>
     <body>
+        <!-- Absolutely positioned tools -->
         <div id="controlsToggler" onclick="toggleControls();" class="btn">
            <span class="glyphicon glyphicon-menu-hamburger"></span>
         </div>
