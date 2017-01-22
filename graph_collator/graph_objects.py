@@ -1,10 +1,6 @@
-# This file contains various objects defining a "node" in the visualized
-# assembly graph: both individual nodes and nodes that represent groups of
-# child nodes (as in the Bubble, Rope, Chain, and Cycle objects).
-# 
-# Note that these node groups are used to create "clusters" in GraphViz,
-# which preserves their child nodes. (It's similar to Cytoscape.js' concept
-# of a "compound node," for reference.)
+# This file contains various objects defining nodes, node groups, and edges
+# in the assembly graph. We use these objects to simplify the process of
+# storing information about the assembly graph.
 
 import config
 from math import log, sqrt
@@ -230,7 +226,16 @@ class Node(object):
         return "Node %s" % (self.id_string)
 
 class NodeGroup(Node):
-    """A group of nodes, accessible via the .nodes attribute."""
+    """A group of nodes, accessible via the .nodes attribute.
+
+       Note that node groups here are used to create "clusters" in GraphViz,
+       in which a cluster is composed of >= 1 child nodes.
+
+       (This is similar to Cytoscape.js' concept of a "compound node," for
+       reference -- with the distinction that in Cytoscape.js a compound
+       node is an actual "node," while in GraphViz a cluster is merely a
+       "subgraph.")
+    """
     
     def __init__(self, group_prefix, group_style, nodes):
         """Initializes the node group, given all the Node objects comprising
