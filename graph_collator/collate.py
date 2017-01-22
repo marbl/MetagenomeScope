@@ -714,8 +714,6 @@ for n in nodes_to_try_collapsing:
 # NOTE that nodes_to_draw only contains node groups and nodes that aren't in
 # node groups. This allows us to run DFS on the nodes "inside" the node
 # groups, preserving the groups' existence while not counting them in DFS.
-# TODO make an actual component object? (so as to maintain both a list of
-# nodes and a list of node groups)
 connected_components = []
 for n in nodes_to_draw:
     if not n.seen_in_ccomponent and not n.is_subsumed:
