@@ -257,6 +257,9 @@ class NodeGroup(Node):
             n.used_in_collapsing = True
             n.group = self
         self.id_string = self.id_string[:-1] # remove last underscore
+        # TODO pipe .gv into dot to lay out & parse this component?
+        # Of course, we'd have to do parsing here, but if we use pygraphviz
+        # (see #28 on github) then this won't be that bad.
         self.xdot_bb_left = None
         self.xdot_bb_bottom = None
         self.xdot_bb_right = None
