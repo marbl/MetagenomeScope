@@ -45,10 +45,9 @@ AsmViz is composed of two main components:
 
 ### collate.py
 
-* Python 2.7, with the following standard library modules installed (all
-  should be installed by default with Python 2.7):
+* Python 2.7, with [pygraphviz](https://pygraphviz.github.io/) and the
+  following standard library modules installed:
     * [sys](https://docs.python.org/2/library/sys.html)
-    * [subprocess](https://docs.python.org/2/library/subprocess.html)
     * [os](https://docs.python.org/2/library/os.html)
     * [errno](https://docs.python.org/2/library/errno.html)
     * [math](https://docs.python.org/2/library/math.html)
@@ -71,57 +70,49 @@ for information on what other software needs to be installed.
 Running `collate.py` will process an assembly graph file so that
 it can be visualized. The syntax for this is
 
-`./collate.py -i (input file) -o (output file prefix)
+`./collate.py -i (input file) -o (output filename prefix)
     [-d (output directory name)] [-nodna] [-pg] [-px] [-w]`
 
-The script will produce a directory containing the created .xdot/.gv files.
-(If the directory already exists, it will just place the .xdot/.gv files in
-that directory; however, unless `-w` is passed, this will throw an error
-upon trying to overwrite any files in the directory.)
+The script will always produce a `.db` file that can be loaded in the viewer
+application. If the `-pg` argument is passed, `.gv` files (in the DOT language)
+for each connected component of the assembly graph will be generated; if the
+`-px` argument is passed, `.xdot` files (in the xdot language) for each
+connected component of the assembly graph will be generated.
 
 ### Command-line argument descriptions
 
 * `-i` The input assembly graph file to be used.
-* `-o` The file prefix to be used for .db/.xdot/.gv files generated. These
-  files will be formatted something like foobar\_1.gv, foobar\_1.xdot,
-  foobar\_2.gv, foobar\_2.xdot, ... foobar.db for an argument of `foobar`
-  to `-o`.
+* `-o` The file prefix to be used for all files generated. As an example, given 
+  the argument
+  `-o prefix`, the file `prefix.db` would be generated. If .gv and/or .xdot
+  files are created (depending on the `-pg` or `-px` arguments, respectively),
+  then those files will be numbered according to the relative size rank
+  (in nodes) of their respective connected component within the assembly graph.
 * `-d` This optional argument specifies the name of the directory in which
-  .xdot/.gv output files will be stored. If no name is specified then the
-  argument of `-o` will be used as the directory name (to be created or used
-  in the current working directory; note, however,  that it's strongly
-  recommended you explicitly specify an output directory using `-d` to ensure
-  data is being stored in the intended location).
+  all output files will be stored. If this argument is not indicated, then all
+  files will be generated in the current working directory.
 * `-nodna` This optional argument, if given, does not store the DNA
-  sequences from contig assembly graph files in the output .db file. This
+  sequences from assembly graph files in the output .db file. This
   option can help save a large amount of space in .db files, making
   processing them in AsmViz viewer faster.
-* `-pg` This optional argument preserves DOT files (suffix .gv) in the output
-  directory; if this argument is not given, then all .gv files will just be
-  deleted after they are used to create their corresponding .xdot file.
-* `-px` This optional argument preserves .xdot files in the output
-  directory; if this argument is not given, then all .xdot files will just be
-  deleted after their layout information is parsed and stored in the .db
-  file.
-* `-w` This optional argument overwrites output files (.db/.xdot/.gv) in the
-  output directory. If this argument is not given, then an error will be
+* `-pg` This optional argument produces DOT files (suffix .gv) in the output
+  directory. As an example, given the arguments `-o prefix` and `-pg` for an
+  assembly graph with 3 connected components, the files `prefix.db`,
+  `prefix_1.gv`, `prefix_2.gv`, and `prefix_3.gv` would be created (where
+  `prefix_1.gv` indicates the largest connected component by number of nodes,
+  `prefix_2.gv` indicates the next largest connected component, and so on).
+* `-px` This optional argument produces .xdot files in the output
+  directory. These files are labelled in an identical fashion to `.gv` files,
+  with the only difference in naming being the file suffix (.xdot instead of
+  .gv).
+* `-w` This optional argument allows the overwriting of output files
+  (.db/.xdot/.gv). If this argument is not given, then an error will be
   raised if writing an output file would cause another file in the output
   directory (if it already exists) to be overwritten.
     * Note that the presence of files in the
       output directory that are named as folders (e.g. a directory named
       `foobar.db` in the output directory) will cause an error to be raised
       regardless of whether or not `-w` is set.
-    * Also note that, if the output folder is synced with Dropbox and the
-      filesystem is case-sensitive, then the output folder should not
-      contain any files with the same name as any of the output files but
-      different case. If so, the files this script generates will
-      automatically be renamed by your Dropbox daemon, and this will likely
-      result in filename inconsistencies that cause the script to terminate.
-      To solve this problem, it's recommended that your output directory not
-      contain any files that might overlap with the specified output file
-      names in this respect. (See
-      [#26](https://github.com/fedarko/AsmViz/issues/26#issuecomment-237120787)
-      for a thorough description of this problem.)
 
 ## Running viewer.html
 
