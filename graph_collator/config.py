@@ -87,6 +87,7 @@ CYCLE_STYLE      = "\tstyle=filled;\n\tfillcolor=darkgoldenrod1;\n"
 # Note that we rely on having a rankdir value of "TB" for the entire graph, 
 # in order to facilitate rotation in the .xdot viewer. (So I'd recommend not
 # changing that unless you have a good reason.)
+# Any text here must end without a semicolon.
 GRAPH_STYLE      = "xdotversion=1.7"
 
 # Style applied to every node in the graph.
