@@ -14,8 +14,6 @@ import pygraphviz
 import os
 # For checking I/O errors
 import errno
-# For parsing .xdot files
-import re
 # For interfacing with the SQLite Database
 import sqlite3
 
@@ -238,61 +236,6 @@ def n50(node_lengths):
         i += 1
     # Return length of shortest node that was used in the running sum
     return sorted_lengths[i - 1]
-
-def attempt_add_node_attr(text_line, n):
-    """Attempts to add additional node information stored on a line of text
-       from a .xdot file to a given node n.
-       
-       This function is sort of ugly, but it's decently efficient in the
-       average case: moreso than just checking each compiled Regex against
-       the line every time.
-    """
-    matches = config.NODEHGHT_RE.search(text_line)
-    if matches != None:
-        # Add height info
-        n.xdot_height = float(matches.groups()[0])
-    else:
-        matches = config.NODEWDTH_RE.search(text_line)
-        if matches != None:
-            # Add width info
-            n.xdot_width = float(matches.groups()[0])
-        else:
-            matches = config.NODEPOSN_RE.search(text_line)
-            if matches != None:
-                # Add positional info
-                n.xdot_x = float(matches.groups()[0])
-                n.xdot_y = float(matches.groups()[1])
-            else:
-                matches = config.NODESHAP_RE.search(text_line)
-                if matches != None:
-                    # Add shape info
-                    n.xdot_shape = matches.groups()[0]
-
-def attempt_find_ctrl_pts(text_line):
-    """Attempts to find control point information stored on a line of text
-       in a .xdot file.
-
-       Returns a 3-tuple of the control point information ("" if no such
-       information was found), the control point count (-1 if no information
-       was found), and (True if more control point information remains to
-       parse in following lines of text, False if this line contained all
-       the control point information for the edge currently being parsed
-       when this function was called, and None if no control point
-       information at all was found).
-    """
-    c_matches = config.CPTSDECL_RE.search(text_line)
-    if c_matches != None:
-        more_left = True
-        grps = c_matches.groups()
-        point_count = int(grps[0])
-        point_string = grps[1].strip() + " "
-        e_c_matches = config.CPTS_END_RE.search(text_line)
-        if e_c_matches != None:
-            # If the control point declaration is only one line
-            # long, don't try to parse > 1 lines of it
-            more_left = False
-        return point_string, point_count, more_left
-    return "", -1, None
 
 # Maps Node ID (as int) to the Node object in question
 # This is nice, since it allows us to do things like nodeid2obj.values()
@@ -729,6 +672,11 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     node_info, edge_info = component.node_and_edge_info()
     component_prefix = "%s_%d" % (output_fn, component_size_rank)
 
+    # NOTE/TODO: Currently, we reduce each component of the asm. graph to a DOT
+    # string that we send to pygraphviz. However, we could also send
+    # nodes/edges/clusters procedurally, using add_edge(), add_node(),
+    # add_subgraph(), etc. That might be faster, and it might be worth doing;
+    # however, for now I think this approach should be fine (knock on wood).
     gv_input = ""
     gv_input += ("digraph asm {\n");
     if config.GRAPH_STYLE != "":
@@ -740,7 +688,6 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     gv_input += (node_info)
     gv_input += (edge_info)
     gv_input += ("}")
-
     h = pygraphviz.AGraph(gv_input)
     # save the .gv file if the user requested .gv preservation
     if preserve_gv:
@@ -752,8 +699,9 @@ for component in connected_components[:config.MAX_COMPONENTS]:
 
     if not no_print:
         print config.START_LAYOUT_MSG + "%d..." % (component_size_rank)
-    # lay out the graph in .xdot
-    xdot_string = h.draw(format='xdot', prog='dot')
+    # lay out the graph in .xdot -- this step is the main bottleneck in the
+    # python side of AsmViz
+    h.layout(prog='dot')
     if not no_print:
         print config.DONE_LAYOUT_MSG + "%d." % (component_size_rank)
     # save the .xdot file if the user requested .xdot preservation
@@ -762,186 +710,80 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         if check_file_existence(xdot_fullfn):
             safe_file_remove(xdot_fullfn)
         with open(xdot_fullfn, 'w') as xdot_file:
-            xdot_file.write(xdot_string)
-    # Read the .xdot file here and parse its layout information,
-    # reconciling it with the corresponding nodes'/edges'/clusters'/
-    # components'/graph information.
-    # Then output that info to the SQLite database using the cursor and
-    # connection variables we defined above.
-    
-    # Increment these vars. as we parse nodes/edges of this component
+            # the AGraph.draw() function doesn't perform graph positioning if
+            # layout() has already been called on the given AGraph and no prog
+            # is specified -- so this should be relatively fast
+            xdot_file.write(h.draw(format="xdot"))
+
+    # Record the layout information of the graph's nodes, edges, and clusters
+    if not no_print:
+        print config.START_PARSING_MSG + "%d..." % (component_size_rank)
+
+    # various stats we build up about the current component as we parse layout
     component_node_count   = 0
     component_edge_count   = 0
     component_total_length = 0
-    if not no_print:
-        print config.START_PARSING_MSG + "%d..." % (component_size_rank)
-    # Like the xdot2cy.js parser I originally wrote, this parser assumes
-    # perfectly formatted output (including 1-attribute-per-line, etc).
-    # It's designed for use with xdot version 1.7, so other xdot
-    # versions may cause this to break.
+    # We're using this as a temporary "bounding box," even though we don't
+    # really need it. See #147 & #28 on github.
+    # Well... we don't need the bounding box for positioning the entire graph.
+    # However, we do use it for positioning clusters/nodes individually when we
+    # "iteratively" draw the graph -- without an accurate bounding box, the
+    # iterative drawing is going to look weird
+    bounding_box = (0, 0)
+    # We can't reliably access h.graph_attr due to a bug in pygraphviz.
+    # See https://github.com/pygraphviz/pygraphviz/issues/113 for context.
+    # If we could access the bounding box, here's how we'd do it --
+    #bb = h.graph_attr[u'bb'].split(',')[2:]
+    #bounding_box = [float(c) for c in bb]
 
-    # Misc. useful variables
-    bounding_box = ()
-    found_bounding_box = False
-    # ...for when we're parsing a cluster
-    parsing_cluster = False
-    curr_cluster = None
-    # ...for when we're parsing a node
-    parsing_node = False
-    curr_node = None
-    # ...for when we're parsing an edge
-    parsing_edge = False
-    parsing_ctrl_pts = False
-    curr_edge = None
-    # Iterate line-by-line through the file, identifying cluster, node,
-    # and edge declarations, attributes, and declaration closings as we
-    # go along. TODO -- replace with a less ugly method (see #28 on github)
-    for line in xdot_string.split('\n'):
-        # Check for the .xdot file's bounding box
-        if not parsing_cluster and not found_bounding_box:
-            matches = config.BOUNDBOX_RE.search(line)
-            if matches != None:
-                bounding_box = matches.groups()
-                found_bounding_box = True
-                continue
-        # Check for cluster declarations
-        if not parsing_cluster and not parsing_node and not parsing_edge:
-            matches = config.CLUSDECL_RE.search(line)
-            if matches != None:
-                parsing_cluster = True
-                curr_cluster = clusterid2obj[matches.groups()[0]]
-                continue
-        # Check for cluster declaration ending
-        if parsing_cluster and not parsing_node and not parsing_edge:
-            matches = config.CLUS_END_RE.search(line)
-            if matches != None:
-                curr_cluster.component_size_rank = component_size_rank
-                cursor.execute("""INSERT INTO clusters
-                    VALUES (?,?,?,?,?,?)""", curr_cluster.db_values())
-                parsing_cluster = False
-                curr_cluster = None
-                continue
-        # Check for node/edge declarations
-        if not parsing_node and not parsing_edge:
-            matches = config.NODEDECL_RE.search(line)
-            if matches != None:
-                # Node declaration
-                parsing_node = True
-                curr_node = nodeid2obj[matches.groups()[0]]
-                attempt_add_node_attr(line, curr_node)
-                continue
-            else:
-                matches = config.EDGEDECL_RE.search(line)
-                if matches != None:
-                    # Edge declaration
-                    parsing_edge = True
-                    source = nodeid2obj[matches.groups()[0]]
-                    sink_id = matches.groups()[1]
-                    curr_edge = source.outgoing_edge_objects[sink_id]
-                    # Check for control points declared on same line as
-                    # edge declaration
-                    cps, cpc, cps_more_left = attempt_find_ctrl_pts(line)
-                    if cps != "":
-                        curr_edge.xdot_ctrl_pt_str = cps
-                        curr_edge.xdot_ctrl_pt_count = cpc
-                        parsing_ctrl_pts = cps_more_left
-                    continue
-        # Check for node/edge declaration ending
-        if parsing_node or parsing_edge:
-            matches = config.NDEG_END_RE.search(line)
-            if matches != None:
-                if parsing_node:
-                    # Node declaration ending
-                    attempt_add_node_attr(line, curr_node)
-                    curr_node.set_component_rank(component_size_rank)
-                    # Output node info to database
-                    cursor.execute("""INSERT INTO nodes
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
-                        curr_node.db_values())
-                    component_node_count += 1
-                    component_total_length += curr_node.bp
-                    parsing_node = False
-                    curr_node = None
-                    continue
-                elif parsing_edge:
-                    # Edge declaration ending
-                    if parsing_ctrl_pts:
-                        # As I mentioned in xdot2cy.js: I don't think
-                        # this should ever happen (from what I can tell,
-                        # _draw_ is always the 1st attr. of an edge in
-                        # xdot), but this does work: if _draw_ is the
-                        # last attr., we still detect all of it.
-                        last_info = matches.groups()[0].strip()
-                        last_info = last_info.replace('"', "")
-                        curr_edge.xdot_ctrl_pt_str += last_info
-                        parsing_ctrl_pts = False
-                    # Verify this edge's control points are valid
-                    ctrl_pt_coords = curr_edge.xdot_ctrl_pt_str.split()
-                    ctrl_pt_coord_ct = len(ctrl_pt_coords)
-                    if (ctrl_pt_coord_ct % 2 != 0 or
-                          ctrl_pt_coord_ct / 2 !=
-                            curr_edge.xdot_ctrl_pt_count):
-                        raise IOError, "Invalid control points for \
-                            edge %s -> %s." % \
-                            (curr_edge.source_id, curr_edge.target_id)
-                    if parsing_cluster:
-                        curr_edge.group = curr_cluster
-                    cursor.execute("""INSERT INTO edges
-                        VALUES (?,?,?,?,?,?,?)""", curr_edge.db_values())
-                    component_edge_count += 1
-                    parsing_edge = False
-                    curr_edge = None
-                    continue
-        # Check for cluster attributes in "intermediate lines"
-        if parsing_cluster:
-            bb_matches = config.CLUSBBOX_RE.search(line)
-            if bb_matches != None:
-                grp = bb_matches.groups()
-                curr_cluster.xdot_left = float(grp[0])
-                curr_cluster.xdot_bottom = float(grp[1])
-                curr_cluster.xdot_right = float(grp[2])
-                curr_cluster.xdot_top = float(grp[3])
-        # Check for node attributes in "intermediate lines"
-        if parsing_node:
-            attempt_add_node_attr(line, curr_node)
-            continue
-        # Check for edge control point info in "intermediate lines"
-        if parsing_edge:
-            if not parsing_ctrl_pts:
-                cps, cpc, cps_more_left = attempt_find_ctrl_pts(line)
-                if cps != "":
-                    curr_edge.xdot_ctrl_pt_str = cps
-                    curr_edge.xdot_ctrl_pt_count = cpc
-                    parsing_ctrl_pts = cps_more_left
-                continue
-            # If we're here, then we are parsing curr_edge's ctrl. pts.
-            # on the current line.
-            # Check for the ending of a control point declaration
-            e_matches = config.CPTS_END_RE.search(line)
-            if e_matches == None:
-                # Check for the continuation ("next lines", abbreviated
-                # as "NXL") of an ongoing control point declaration
-                n_matches = config.CPTS_NXL_RE.search(line)
-                if n_matches == None:
-                    # Since parsing_ctrl_pts is True, something's off
-                    # about the control points for this edge.
-                    raise IOError, "Invalid control point statement \
-                        for edge %s -> %s in file." % \
-                        (curr_edge.source_id, curr_edge.target_id)
-                else:
-                    curr_edge.xdot_ctrl_pt_str += \
-                        n_matches.groups()[0].strip()
-                    curr_edge.xdot_ctrl_pt_str += " "
-            else:
-                curr_edge.xdot_ctrl_pt_str += e_matches.groups()[0].strip()
-                curr_edge.xdot_ctrl_pt_str += " "
-                parsing_ctrl_pts = False
+    # Record layout info of clusters, as well as their child nodes and edges
+    for c in h.subgraphs():
+        # Our cluster IDs omit the standard "cluster_" prefix
+        curr_cluster_id = c.get_name()[8:]
+        # Associate this cluster with an actual cluster object in our code
+        curr_cluster = clusterid2obj[curr_cluster_id]
+        # Get the cluster's bounding box for positioning
+        # It seems that graph_attr works fine on subgraphs, for some reason.
+        cbb = c.graph_attr[u'bb'].split(',')
+        c_bounding_box = tuple(float(c) for c in cbb)
+        curr_cluster.xdot_left, curr_cluster.xdot_bottom, \
+            curr_cluster.xdot_right, curr_cluster.xdot_top = c_bounding_box
+        curr_cluster.component_size_rank = component_size_rank
+        cursor.execute("INSERT INTO clusters VALUES (?,?,?,?,?,?)",
+            curr_cluster.db_values())
+        # Record this cluster as the parent of its child nodes/edges
+        for n in c.nodes():
+            nodeid2obj[str(n.get_name())].group = curr_cluster
+        for e in c.edges():
+            source = nodeid2obj[str(e[0])]
+            curr_edge = source.outgoing_edge_objects[str(e[1])]
+            curr_edge.group = curr_cluster
+    # Record layout info of nodes
+    for n in h.nodes():
+        curr_node = nodeid2obj[str(n)]
+        ep = n.attr[u'pos'].split(',')
+        curr_node.xdot_x, curr_node.xdot_y = tuple(float(c) for c in ep)
+        curr_node.xdot_width = float(n.attr[u'width'])
+        curr_node.xdot_height = float(n.attr[u'height'])
+        curr_node.xdot_shape = str(n.attr[u'shape'])
+        curr_node.set_component_rank(component_size_rank)
+        cursor.execute("INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            curr_node.db_values())
+        component_node_count += 1
+        component_total_length += curr_node.bp
+    # Record layout info of edges
+    for e in h.edges():
+        source = nodeid2obj[str(e[0])]
+        curr_edge = source.outgoing_edge_objects[str(e[1])]
+        pt_start = e.attr[u'pos'].index(" ") + 1
+        curr_edge.xdot_ctrl_pt_str = \
+            str(e.attr[u'pos'][pt_start:].replace(","," "))
+        curr_edge.xdot_ctrl_pt_count = \
+            len(curr_edge.xdot_ctrl_pt_str.split())/2
+        cursor.execute("INSERT INTO edges VALUES (?,?,?,?,?,?,?)",
+            curr_edge.db_values())
+        component_edge_count += 1
 
-    # If we didn't find a bounding box definition for the entire graph
-    # within the xdot file, then we can't interpret its coordinates
-    # meaningfully in the Javascript graph viewer. Raise an error.
-    if not found_bounding_box:
-        raise IOError, "No bounding box."
     if not no_print:
         print config.DONE_PARSING_MSG + "%d." % (component_size_rank)
 
@@ -950,6 +792,8 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         (component_size_rank, component_node_count, component_edge_count,
         component_total_length, bounding_box[0], bounding_box[1]))
 
+    h.clear()
+    h.close()
     component_size_rank += 1
 
 if no_print:

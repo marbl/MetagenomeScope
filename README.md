@@ -52,7 +52,6 @@ AsmViz is composed of two main components:
     * [errno](https://docs.python.org/2/library/errno.html)
     * [math](https://docs.python.org/2/library/math.html)
     * [sqlite3](https://docs.python.org/2/library/sqlite3.html)
-    * [re](https://docs.python.org/2/library/re.html)
 * GraphViz (with [dot](http://www.graphviz.org/Documentation/dotguide.pdf) program, which should be installed by default with GraphViz)
 
 ### viewer.html

@@ -5,7 +5,6 @@
 # right of each variable.
 
 from math import sqrt
-import re
 
 # This really shouldn't be messed with. Defines a dict of nucleotides to their
 # complements that we can use when getting the reverse complement of a sequence
@@ -113,28 +112,3 @@ DONE_PARSING_MSG = "Done parsing layout of connected component "
 LASTGRAPH_SUFFIX = "lastgraph"
 GRAPHML_SUFFIX   = "gml"
 GFA_SUFFIX       = "gfa"
-
-# Regular expressions we use to parse .xdot (version 1.7) auto-generated
-# files. You shouldn't need to modify these for most use cases.
-GVNUMBER_RE = r'[\d\.e\+\-]+'
-
-BOUNDBOX_RE = re.compile(r'bb="0,0,(%s),(%s)"' % (GVNUMBER_RE, GVNUMBER_RE))
-CLUSBBOX_RE = re.compile(r'bb="(%s),(%s),(%s),(%s)"' % (GVNUMBER_RE,
-    GVNUMBER_RE, GVNUMBER_RE, GVNUMBER_RE))
-CLUSDECL_RE = re.compile(r'subgraph cluster_(\w+)\s\{')
-CLUS_END_RE = re.compile(r'(.+)\}')
-NODEDECL_RE = re.compile(r'(c?\d+)\s+\[')
-EDGEDECL_RE = re.compile(r'(c?\d+):[nsew]\s+->\s+(c?\d+):[nsew]\s+\[')
-NDEG_END_RE = re.compile(r'(.+)\];')
-
-NODEHGHT_RE = re.compile(r'height=(%s)' % (GVNUMBER_RE))
-NODEWDTH_RE = re.compile(r'width=(%s)' % (GVNUMBER_RE))
-NODEPOSN_RE = re.compile(r'pos="(%s),(%s)"' % (GVNUMBER_RE, GVNUMBER_RE))
-NODESHAP_RE = re.compile(r'shape=(house|invhouse)')
-
-# Regexes for detecting edge control points
-CPTSTRNG_RE = r'[\d\.e\+\-\s]*'
-CPTSDECL_RE = re.compile(r'_draw_="c 7 -#[\dABCDEF]{6} B ([\de\+\-]+) (%s)' % \
-                    (CPTSTRNG_RE))
-CPTS_NXL_RE = re.compile(r'(%s)' % (CPTSTRNG_RE))
-CPTS_END_RE = re.compile(r'(.+)",')
