@@ -10,6 +10,10 @@ from math import sqrt
 # complements that we can use when getting the reverse complement of a sequence
 # from the GFA format.
 COMPLEMENT = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
+# The conversion factor between points (in GraphViz output) and inches, as used
+# by GraphViz. By default GraphViz uses 72 points per inch, so changing this is
+# not recommended.
+POINTS_PER_INCH = 72
 
 # NOTE that changing MAX_COMPONENTS or MIN_COMPONENT_SIZE will result in
 # strange behavior with those component ranks in the AsmViz viewer (see
@@ -90,12 +94,17 @@ CYCLE_STYLE      = "\tstyle=filled;\n\tfillcolor=darkgoldenrod1;\n"
 GRAPH_STYLE      = "xdotversion=1.7"
 
 # Style applied to every node in the graph.
-# NOTE -- fixedsize=true ensures accaccurate node scaling
-GLOBALNODE_STYLE = ""
+# We use fixedsize here because the default node label, "\N", actually makes
+# the node's id/name its label -- so fixedsize prevents this from influencing
+# node dimensions.
+GLOBALNODE_STYLE = "fixedsize=true"
 
 # Style applied to every edge in the graph.
 # NOTE: "dir=none" gives "undirected" edges
 GLOBALEDGE_STYLE = "headport=n,tailport=s"
+
+# Style applied (directly) to every cluster in the graph.
+GLOBALCLUSTER_STYLE = "margin=0"
 
 # Prefixes of certain messages that are output to the user at
 # certain points in the script's processing. Each message is followed by the

@@ -139,10 +139,7 @@ class Node(object):
            use special style information, but custom_style overrides that.
         """
         h, r = self.get_height()
-        # We purposely omit node labels in xdot, since they'll be applied
-        # anyway in Cytoscape.js and node labels can result in erroneously
-        # resized nodes (to contain node labels)
-        info = "\t%s [label=\"\",height=%g,width=%g,shape=" % \
+        info = "\t%s [height=%g,width=%g,shape=" % \
                 (self.id_string, h, config.WIDTH_HEIGHT_RATIO * h)
         if custom_shape == None:
             if not self.is_complement:
@@ -272,6 +269,8 @@ class NodeGroup(Node):
            This finds the node_info() of all its children, naturally.
         """
         info = "subgraph cluster_%s {\n" % (self.id_string)
+        if config.GLOBALCLUSTER_STYLE != "":
+            info += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
         for n in self.nodes:
             info += n.node_info()
         info += self.group_style + "}\n"

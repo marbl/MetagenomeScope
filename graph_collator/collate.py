@@ -729,7 +729,11 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     # However, we do use it for positioning clusters/nodes individually when we
     # "iteratively" draw the graph -- without an accurate bounding box, the
     # iterative drawing is going to look weird
-    bounding_box = (0, 0)
+    # where "bounding box" refers to just the (x, y) coord of the rightmost &
+    # topmost point in the graph: (0, 0) is always the bottom left corner of
+    # the total bounding box.
+    bounding_box_right = 0
+    bounding_box_top = 0
     # We can't reliably access h.graph_attr due to a bug in pygraphviz.
     # See https://github.com/pygraphviz/pygraphviz/issues/113 for context.
     # If we could access the bounding box, here's how we'd do it --
@@ -748,10 +752,16 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         c_bounding_box = tuple(float(c) for c in cbb)
         curr_cluster.xdot_left, curr_cluster.xdot_bottom, \
             curr_cluster.xdot_right, curr_cluster.xdot_top = c_bounding_box
+        # Try to expand the component bounding box
+        if curr_cluster.xdot_right > bounding_box_right:
+            bounding_box_right = curr_cluster.xdot_right
+        if curr_cluster.xdot_top > bounding_box_top:
+            bounding_box_top = curr_cluster.xdot_top
+        # Save the cluster in the .db
         curr_cluster.component_size_rank = component_size_rank
         cursor.execute("INSERT INTO clusters VALUES (?,?,?,?,?,?)",
             curr_cluster.db_values())
-        # Record this cluster as the parent of its child nodes/edges
+        # Record this cluster as the parent of its child nodes/edges for later
         for n in c.nodes():
             nodeid2obj[str(n.get_name())].group = curr_cluster
         for e in c.edges():
@@ -765,6 +775,14 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         curr_node.xdot_x, curr_node.xdot_y = tuple(float(c) for c in ep)
         curr_node.xdot_width = float(n.attr[u'width'])
         curr_node.xdot_height = float(n.attr[u'height'])
+        # Try to expand the component bounding box
+        right_side = curr_node.xdot_x + \
+            (config.POINTS_PER_INCH * (curr_node.xdot_width/2.0))
+        top_side = curr_node.xdot_y + \
+            (config.POINTS_PER_INCH * (curr_node.xdot_height/2.0))
+        if right_side > bounding_box_right: bounding_box_right = right_side
+        if top_side > bounding_box_top: bounding_box_top = top_side
+        # Save this cluster in the .db
         curr_node.xdot_shape = str(n.attr[u'shape'])
         curr_node.set_component_rank(component_size_rank)
         cursor.execute("INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -775,22 +793,34 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     for e in h.edges():
         source = nodeid2obj[str(e[0])]
         curr_edge = source.outgoing_edge_objects[str(e[1])]
+        # Skip the first control point
         pt_start = e.attr[u'pos'].index(" ") + 1
         curr_edge.xdot_ctrl_pt_str = \
             str(e.attr[u'pos'][pt_start:].replace(","," "))
-        curr_edge.xdot_ctrl_pt_count = \
-            len(curr_edge.xdot_ctrl_pt_str.split())/2
+        coord_list = curr_edge.xdot_ctrl_pt_str.split()
+        # If len(coord_list) % 2 != 0 something has gone quite wrong
+        if len(coord_list) % 2 != 0:
+            raise ValueError, "Invalid edge control points for", curr_edge
+        curr_edge.xdot_ctrl_pt_count = len(coord_list) / 2
+        # Try to expand the component bounding box
+        p = 0
+        while p <= curr_edge.xdot_ctrl_pt_count:
+            x_coord = float(coord_list[p])
+            y_coord = float(coord_list[p + 1])
+            if x_coord > bounding_box_right: bounding_box_right = x_coord
+            if y_coord > bounding_box_top: bounding_box_top = y_coord
+            p += 2
+        # Save this edge in the .db
         cursor.execute("INSERT INTO edges VALUES (?,?,?,?,?,?,?)",
             curr_edge.db_values())
         component_edge_count += 1
 
     if not no_print:
         print config.DONE_PARSING_MSG + "%d." % (component_size_rank)
-
     # Output component information to the database
     cursor.execute("""INSERT INTO components VALUES (?,?,?,?,?,?)""",
         (component_size_rank, component_node_count, component_edge_count,
-        component_total_length, bounding_box[0], bounding_box[1]))
+        component_total_length, bounding_box_right, bounding_box_top))
 
     h.clear()
     h.close()
