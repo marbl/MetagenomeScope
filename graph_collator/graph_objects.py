@@ -260,10 +260,10 @@ class NodeGroup(Node):
         # TODO pipe .gv into dot to lay out & parse this component?
         # Of course, we'd have to do parsing here, but if we use pygraphviz
         # (see #28 on github) then this won't be that bad.
-        self.xdot_bb_left = None
-        self.xdot_bb_bottom = None
-        self.xdot_bb_right = None
-        self.xdot_bb_top = None
+        self.xdot_left = None
+        self.xdot_bottom = None
+        self.xdot_right = None
+        self.xdot_top = None
         super(NodeGroup, self).__init__(self.id_string, self.bp, False)
 
     def node_info(self):
@@ -282,8 +282,8 @@ class NodeGroup(Node):
            Should be called after parsing and assigning .xdot bounding box
            values accordingly.
         """
-        return (self.id_string, self.component_size_rank, self.xdot_bb_left,
-                self.xdot_bb_bottom, self.xdot_bb_right, self.xdot_bb_top)
+        return (self.id_string, self.component_size_rank, self.xdot_left,
+                self.xdot_bottom, self.xdot_right, self.xdot_top)
 
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble. This consists of one

@@ -897,10 +897,10 @@ for component in connected_components[:config.MAX_COMPONENTS]:
             bb_matches = config.CLUSBBOX_RE.search(line)
             if bb_matches != None:
                 grp = bb_matches.groups()
-                curr_cluster.xdot_bb_left = float(grp[0])
-                curr_cluster.xdot_bb_bottom = float(grp[1])
-                curr_cluster.xdot_bb_right = float(grp[2])
-                curr_cluster.xdot_bb_top = float(grp[3])
+                curr_cluster.xdot_left = float(grp[0])
+                curr_cluster.xdot_bottom = float(grp[1])
+                curr_cluster.xdot_right = float(grp[2])
+                curr_cluster.xdot_top = float(grp[3])
         # Check for node attributes in "intermediate lines"
         if parsing_node:
             attempt_add_node_attr(line, curr_node)
