@@ -88,7 +88,7 @@ def check_file_existence(filepath):
 
        Returns False if the given filepath does not exist at all.
 
-       Raises an IOError if:
+       Raises errors if:
         -The given filepath does exist but overwrite is False
         -The given filepath exists as a directory
 
@@ -236,6 +236,33 @@ def n50(node_lengths):
         i += 1
     # Return length of shortest node that was used in the running sum
     return sorted_lengths[i - 1]
+
+def save_aux_file(aux_filename, source):
+    """Given a filename and a source of "input" for the file, writes to that
+       file (using check_file_existence() and safe_file_remove() accordingly).
+
+       If aux_filename ends with ".xdot", we assume that source is a
+       pygraphviz.AGraph object of which we will write its "drawn" xdot output
+       to the file.
+
+       Otherwise, we assume that source is just a string of text to write
+       to the file.
+    """
+    fullfn = os.path.join(dir_fn, aux_filename)
+    ex = None
+    try:
+        ex = check_file_existence(fullfn)
+    except IOError, e:
+        # Don't save this file, but continue the script's execution
+        print "Not saving %s: %s" % (fullfn, e)
+    else:
+        if ex:
+            safe_file_remove(fullfn)
+        with open(fullfn, 'w') as file_obj:
+            if aux_filename.endswith(".xdot"):
+                file_obj.write(source.draw(format="xdot"))
+            else:
+                file_obj.write(source)
 
 # Maps Node ID (as int) to the Node object in question
 # This is nice, since it allows us to do things like nodeid2obj.values()
@@ -691,11 +718,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     h = pygraphviz.AGraph(gv_input)
     # save the .gv file if the user requested .gv preservation
     if preserve_gv:
-        gv_fullfn = os.path.join(dir_fn, component_prefix + ".gv")
-        if check_file_existence(gv_fullfn):
-            safe_file_remove(gv_fullfn)
-        with open(gv_fullfn, 'w') as gv_file:
-            gv_file.write(gv_input)
+        save_aux_file(component_prefix + ".gv", gv_input)
 
     if not no_print:
         print config.START_LAYOUT_MSG + "%d..." % (component_size_rank)
@@ -706,14 +729,10 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         print config.DONE_LAYOUT_MSG + "%d." % (component_size_rank)
     # save the .xdot file if the user requested .xdot preservation
     if preserve_xdot:
-        xdot_fullfn = os.path.join(dir_fn, component_prefix + ".xdot")
-        if check_file_existence(xdot_fullfn):
-            safe_file_remove(xdot_fullfn)
-        with open(xdot_fullfn, 'w') as xdot_file:
-            # the AGraph.draw() function doesn't perform graph positioning if
-            # layout() has already been called on the given AGraph and no prog
-            # is specified -- so this should be relatively fast
-            xdot_file.write(h.draw(format="xdot"))
+        # AGraph.draw() doesn't perform graph positioning if layout()
+        # has already been called on the given AGraph and no prog is
+        # specified -- so this should be relatively fast
+        save_aux_file(component_prefix + ".xdot", h)
 
     # Record the layout information of the graph's nodes, edges, and clusters
     if not no_print:
