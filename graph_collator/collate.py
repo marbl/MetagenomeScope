@@ -255,51 +255,6 @@ total_component_count = 0
 # List of all the node lengths in the assembly. Used when calculating n50.
 bp_length_list = []
 
-# Create a SQLite database in which we store biological and graph layout
-# information. This will be opened in the Javascript graph viewer.
-db_fullfn = os.path.join(dir_fn, output_fn + ".db")
-if check_file_existence(db_fullfn):
-    # The user asked to overwrite this database via -w, so remove it
-    safe_file_remove(db_fullfn)
-
-# Note that there's technically a race condition here, but SQLite handles
-# itself so well that we don't need to bother catching it. If, somehow, a
-# file with the name db_fullfn is created in between when we run
-# check_file_existence(db_fullfn) and sqlite3.connect(db_fullfn), then that
-# file will either:
-# -Be repurposed as a database containing this data in addition to
-#  its original data (if the file is a SQLite database, but stores other
-#  data -- expected behavior for this case)
-# -Cause the first cursor.execute() call to fail since the database already
-#  has a nodes table (if the file is a SQLite database this program has
-#  generated -- expected behavior for this case)
-# -Cause the first cursor.execute() call to fail since the file is not a
-#  SQLite database (expected behavior for this case)
-# Essentially, we're okay here -- SQLite will handle the race condition
-# properly, should one arise. (I doubt that race conditions will happen
-# here, but I suppose you can't be too safe.)
-connection = sqlite3.connect(db_fullfn)
-cursor = connection.cursor()
-cursor.execute("""CREATE TABLE nodes
-        (id text, length integer, dnafwd text, gc_content real, depth real,
-        component_rank integer, x real, y real, w real, h real, shape text,
-        parent_cluster_id text)""")
-cursor.execute("""CREATE TABLE edges
-        (source_id text, target_id text, multiplicity integer,
-        component_rank integer, control_point_string text,
-        control_point_count integer, parent_cluster_id text)""") 
-cursor.execute("""CREATE TABLE clusters (cluster_id text,
-        component_rank integer, left real, bottom real, right real,
-        top real)""")
-cursor.execute("""CREATE TABLE components
-        (size_rank integer, node_count integer, edge_count integer,
-        total_length integer, boundingbox_x real, boundingbox_y real)""")
-cursor.execute("""CREATE TABLE assembly
-        (filename text, filetype text, node_count integer,
-        edge_count integer, component_count integer, total_length integer,
-        n50 integer, gc_content real)""")
-connection.commit()
-
 # Below "with" block parses the assembly file.
 # Please consult the README for the most accurate list of assembly graph
 # filetypes supported.
@@ -638,14 +593,59 @@ for n in nodes_to_draw:
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
+# Now that we've done all our processing on the assembly graph, we create the
+# output file: a SQLite database in which we store biological and graph layout
+# information. This will be opened in the Javascript graph viewer.
+db_fullfn = os.path.join(dir_fn, output_fn + ".db")
+if check_file_existence(db_fullfn):
+    # The user asked to overwrite this database via -w, so remove it
+    safe_file_remove(db_fullfn)
+
+# Note that there's technically a race condition here, but SQLite handles
+# itself so well that we don't need to bother catching it. If, somehow, a
+# file with the name db_fullfn is created in between when we run
+# check_file_existence(db_fullfn) and sqlite3.connect(db_fullfn), then that
+# file will either:
+# -Be repurposed as a database containing this data in addition to
+#  its original data (if the file is a SQLite database, but stores other
+#  data -- expected behavior for this case)
+# -Cause the first cursor.execute() call to fail since the database already
+#  has a nodes table (if the file is a SQLite database this program has
+#  generated -- expected behavior for this case)
+# -Cause the first cursor.execute() call to fail since the file is not a
+#  SQLite database (expected behavior for this case)
+# Essentially, we're okay here -- SQLite will handle the race condition
+# properly, should one arise. (I doubt that race conditions will happen
+# here, but I suppose you can't be too safe.)
+connection = sqlite3.connect(db_fullfn)
+cursor = connection.cursor()
+cursor.execute("""CREATE TABLE nodes
+        (id text, length integer, dnafwd text, gc_content real, depth real,
+        component_rank integer, x real, y real, w real, h real, shape text,
+        parent_cluster_id text)""")
+cursor.execute("""CREATE TABLE edges
+        (source_id text, target_id text, multiplicity integer,
+        component_rank integer, control_point_string text,
+        control_point_count integer, parent_cluster_id text)""") 
+cursor.execute("""CREATE TABLE clusters (cluster_id text,
+        component_rank integer, left real, bottom real, right real,
+        top real)""")
+cursor.execute("""CREATE TABLE components
+        (size_rank integer, node_count integer, edge_count integer,
+        total_length integer, boundingbox_x real, boundingbox_y real)""")
+cursor.execute("""CREATE TABLE assembly
+        (filename text, filetype text, node_count integer,
+        edge_count integer, component_count integer, total_length integer,
+        n50 integer, gc_content real)""")
+connection.commit()
+
 # Insert general assembly information into the database
 graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
             total_edge_count, total_component_count, total_length,
             n50(bp_length_list), assembly_gc(total_gc_nt_count, total_length))
 cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?)", graphVals)    
 
-# Conclusion: Output (desired) components of nodes to the .gv file
-
+# Conclusion of script: Output (desired) components of nodes to the .gv file
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
 no_print = False # used to reduce excess printing (see issue #133 on GitHub)
 for component in connected_components[:config.MAX_COMPONENTS]:
