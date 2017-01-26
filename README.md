@@ -45,7 +45,7 @@ AsmViz is composed of two main components:
 
 ### collate.py
 
-* Python 2.7, with [pygraphviz](https://pygraphviz.github.io/) and the
+* Python 2.7, with [PyGraphviz](https://pygraphviz.github.io/) and the
   following standard library modules installed:
     * [sys](https://docs.python.org/2/library/sys.html)
     * [os](https://docs.python.org/2/library/os.html)
@@ -106,16 +106,17 @@ connected component of the assembly graph will be generated.
   .gv).
 * `-w` This optional argument allows the overwriting of output files
   (.db/.xdot/.gv). If this argument is **not** given, then:
-    * An error will be raised if writing a .db file would cause another
+    1. An error will be raised if writing a .db file would cause another
       .db file to be overwritten.
-    * A warning will be displayed if writing to a .gv or .xdot file would cause
+    2. A warning will be displayed if writing to a .gv or .xdot file would
+      cause
       another .gv/.xdot file to be overwritten. In this case, the .gv/.xdot
       file in question simply would not be saved.
-    * Note that the presence of files in the
-      output directory that are conflicting-named folders (e.g. a
-      directory named `e_coli.db` in the output directory while attempting to
-      produce a file named `e_coli.db`) will cause an error/warning to be
-      raised regardless of whether or not `-w` is set.
+  Note that the presence of files in the
+  output directory that are conflicting-named folders (e.g. a
+  directory named `e_coli.db/` in the output directory while attempting to
+  produce a file named `e_coli.db`) will cause an error/warning to be
+  raised regardless of whether or not `-w` is set.
 
 ## Running viewer.html
 
@@ -208,7 +209,7 @@ available features:
 
 * `collate.py` uses GraphViz'
   [`dot`](http://graphviz.org/Documentation/dotguide.pdf) layout tool via the
-  [pygraphviz](http://pygraphviz.github.io/) interface.
+  [PyGraphviz](http://pygraphviz.github.io/) interface.
 * Both `collate.py` and the AsmViz viewer use [sqlite3](https://sqlite.org/).
   In particular, `collate.py` uses the aforementioned Python sqlite3 module
   while the AsmViz viewer uses [sql.js](https://github.com/kripken/sql.js/) to
