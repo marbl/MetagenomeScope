@@ -729,7 +729,6 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     node_info, edge_info = component.node_and_edge_info()
     component_prefix = "%s_%d" % (output_fn, component_size_rank)
 
-    gv_fullfn = os.path.join(dir_fn, component_prefix + ".gv")
     gv_input = ""
     gv_input += ("digraph asm {\n");
     if config.GRAPH_STYLE != "":
@@ -745,6 +744,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     h = pygraphviz.AGraph(gv_input)
     # save the .gv file if the user requested .gv preservation
     if preserve_gv:
+        gv_fullfn = os.path.join(dir_fn, component_prefix + ".gv")
         if check_file_existence(gv_fullfn):
             safe_file_remove(gv_fullfn)
         with open(gv_fullfn, 'w') as gv_file:
@@ -795,7 +795,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     curr_edge = None
     # Iterate line-by-line through the file, identifying cluster, node,
     # and edge declarations, attributes, and declaration closings as we
-    # go along. TODO -- replace with pygraphviz iteration
+    # go along. TODO -- replace with a less ugly method (see #28 on github)
     for line in xdot_string.split('\n'):
         # Check for the .xdot file's bounding box
         if not parsing_cluster and not found_bounding_box:
