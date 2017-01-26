@@ -105,11 +105,12 @@ connected component of the assembly graph will be generated.
   with the only difference in naming being the file suffix (.xdot instead of
   .gv).
 * `-w` This optional argument allows the overwriting of output files
-  (.db/.xdot/.gv). If this argument is not given, then an error will be
-  raised if writing a .db file would cause another .db file in the output
-  directory (if it already exists) to be overwritten and a warning will be
-  given if writing to a .gv or .xdot file would cause another .gv/.xdot file in
-  the output directory to be overwritten.
+  (.db/.xdot/.gv). If this argument is **not** given, then:
+    * An error will be raised if writing a .db file would cause another
+      .db file to be overwritten.
+    * A warning will be displayed if writing to a .gv or .xdot file would cause
+      another .gv/.xdot file to be overwritten. In this case, the .gv/.xdot
+      file in question simply would not be saved.
     * Note that the presence of files in the
       output directory that are conflicting-named folders (e.g. a
       directory named `e_coli.db` in the output directory while attempting to
