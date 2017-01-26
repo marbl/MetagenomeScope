@@ -206,7 +206,8 @@ available features:
 ## Acknowledgements: tools used
 
 * `collate.py` uses GraphViz'
-  [`dot`](http://graphviz.org/Documentation/dotguide.pdf) layout tool.
+  [`dot`](http://graphviz.org/Documentation/dotguide.pdf) layout tool via the
+  [pygraphviz](http://pygraphviz.github.io/) interface.
 * Both `collate.py` and the AsmViz viewer use [sqlite3](https://sqlite.org/).
   In particular, `collate.py` uses the aforementioned Python sqlite3 module
   while the AsmViz viewer uses [sql.js](https://github.com/kripken/sql.js/) to
