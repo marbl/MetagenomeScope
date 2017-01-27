@@ -204,10 +204,10 @@ def negate_node_id(id_string):
     
        e.g. "c18" -> "18", "18" -> "c18"
     """
-    if id_string[0] == 'c':
+    if id_string[0] == '-':
         return id_string[1:]
     else:
-        return 'c' + id_string
+        return '-' + id_string
 
 def n50(node_lengths):
     """Determines the N50 statistic of an assembly, given its node lengths.
@@ -319,8 +319,8 @@ with open(asm_fn, 'r') as assembly_file:
                 # an arc from node A to B and another, with same
                 # multiplicity, from -B to -A."
                 # (http://computing.bio.cam.ac.uk/local/doc/velvet.pdf)
-                id1 = a[1] if a[1][0] != '-' else 'c' + a[1][1:]
-                id2 = a[2] if a[2][0] != '-' else 'c' + a[2][1:]
+                id1 = a[1]
+                id2 = a[2]
                 nid2 = negate_node_id(id2)
                 nid1 = negate_node_id(id1)
                 mult = int(a[3])
@@ -353,12 +353,12 @@ with open(asm_fn, 'r') as assembly_file:
                     n = graph_objects.Node(curr_node_id, curr_node_bp, False,
                             depth=curr_node_depth, gc_content=curr_node_gcfwd,
                             dna_fwd=curr_node_dnafwd)
-                    c = graph_objects.Node('c' + curr_node_id,
+                    c = graph_objects.Node('-' + curr_node_id,
                             curr_node_bp, True, depth=curr_node_depth,
                             gc_content=curr_node_gcrev,
                             dna_fwd=curr_node_dnarev)
                     nodeid2obj[curr_node_id] = n
-                    nodeid2obj['c' + curr_node_id] = c
+                    nodeid2obj['-' + curr_node_id] = c
                     # Record this node for graph statistics
                     # Note that recording these statistics here ensures that
                     # only "fully complete" node definitions are recorded.
@@ -491,10 +491,10 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_dnarev = None
                 nPos = graph_objects.Node(curr_node_id, curr_node_bp, False,
                         gc_content=curr_node_gc, dna_fwd=curr_node_dnafwd)
-                nNeg = graph_objects.Node('c' + curr_node_id, curr_node_bp,
+                nNeg = graph_objects.Node('-' + curr_node_id, curr_node_bp,
                         True,gc_content=curr_node_gc, dna_fwd=curr_node_dnarev)
                 nodeid2obj[curr_node_id] = nPos
-                nodeid2obj['c' + curr_node_id] = nNeg
+                nodeid2obj['-' + curr_node_id] = nNeg
                 # Update stats
                 total_node_count += 1
                 total_length += curr_node_bp
@@ -504,8 +504,8 @@ with open(asm_fn, 'r') as assembly_file:
             # I really like the way GFA handles edges; it makes this simple :)
             elif line.startswith("L"):
                 a = line.split()
-                id1 = a[1] if a[2] != '-' else 'c' + a[1]
-                id2 = a[3] if a[4] != '-' else 'c' + a[3]
+                id1 = a[1] if a[2] != '-' else '-' + a[1]
+                id2 = a[3] if a[4] != '-' else '-' + a[3]
                 nid2 = negate_node_id(id2)
                 nid1 = negate_node_id(id1)
                 nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2])

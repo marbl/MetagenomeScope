@@ -36,7 +36,7 @@ class Edge(object):
         """
         group_id = None
         if self.group != None:
-            group_id = self.group.id_string
+            group_id = self.group.cy_id_string
         return (self.source_id, self.target_id, self.multiplicity,
                 self.component_size_rank, self.xdot_ctrl_pt_str,
                 self.xdot_ctrl_pt_count, group_id)
@@ -211,7 +211,7 @@ class Node(object):
         # (where NULL denotes no parent cluster), so we decide that here.
         group_id = None
         if self.group != None:
-            group_id = self.group.id_string
+            group_id = self.group.cy_id_string
         length = self.bp
         return (self.id_string, length, self.dna_fwd, self.gc_content,
                 self.depth, self.component_size_rank, self.xdot_x,
@@ -240,20 +240,30 @@ class NodeGroup(Node):
            frayed ropes, 'B' for bubbles, 'C' for chains, 'Y' for cycles),
            and a GraphViz style setting for the group (generally
            from config.py).
+
+           Note that we use two IDs for Node Groups: one with '-'s replaced
+           with 'c's (since GraphViz only allows '-' in IDs when it's the
+           first character and the other ID characters are numbers), and one
+           with the original ID names. The 'c' version is passed into GraphViz,
+           and the '-' version is passed into the .db file to be used in
+           Cytoscape.js.
         """
         self.node_count = 0
         self.group_style = group_style
         self.bp = 0
-        self.id_string = "%s" % (group_prefix)
+        self.gv_id_string = "%s" % (group_prefix)
+        self.cy_id_string = "%s" % (group_prefix)
         self.nodes = []
         for n in nodes:
             self.node_count += 1
             self.bp += n.bp
-            self.id_string += "%s_" % (n.id_string)
+            self.gv_id_string += "%s_" % (n.id_string.replace('-', 'c'))
+            self.cy_id_string += "%s_" % (n.id_string)
             self.nodes.append(n)
             n.used_in_collapsing = True
             n.group = self
-        self.id_string = self.id_string[:-1] # remove last underscore
+        self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
+        self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
         # TODO pipe .gv into dot to lay out & parse this component?
         # Of course, we'd have to do parsing here, but if we use pygraphviz
         # (see #28 on github) then this won't be that bad.
@@ -261,14 +271,14 @@ class NodeGroup(Node):
         self.xdot_bottom = None
         self.xdot_right = None
         self.xdot_top = None
-        super(NodeGroup, self).__init__(self.id_string, self.bp, False)
+        super(NodeGroup, self).__init__(self.gv_id_string, self.bp, False)
 
     def node_info(self):
         """Returns a string of the node_info() of this NodeGroup.
 
            This finds the node_info() of all its children, naturally.
         """
-        info = "subgraph cluster_%s {\n" % (self.id_string)
+        info = "subgraph cluster_%s {\n" % (self.gv_id_string)
         if config.GLOBALCLUSTER_STYLE != "":
             info += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
         for n in self.nodes:
@@ -281,7 +291,7 @@ class NodeGroup(Node):
            Should be called after parsing and assigning .xdot bounding box
            values accordingly.
         """
-        return (self.id_string, self.component_size_rank, self.xdot_left,
+        return (self.cy_id_string, self.component_size_rank, self.xdot_left,
                 self.xdot_bottom, self.xdot_right, self.xdot_top)
 
 class Bubble(NodeGroup):
