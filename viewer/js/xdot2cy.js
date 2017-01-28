@@ -766,11 +766,13 @@ function disableVolatileControls() {
     disableButton("collapseButton");
     disableButton("fitSelectedButton");
     disableButton("fitButton");
-    disableButton("exportButton");
+    disableButton("exportImageButton");
     disableButton("dir0");
     disableButton("dir90");
     disableButton("dir180");
     disableButton("dir270");
+    disableButton("pngOption");
+    disableButton("jpgOption");
     clearSelectedInfo();
     disableButton("dnaExportButton");
 }
@@ -1086,11 +1088,13 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     $("#searchInput").prop("disabled", false);
     enableButton("searchButton");
     enableButton("fitButton");
-    enableButton("exportButton");
+    enableButton("exportImageButton");
     enableButton("dir0");
     enableButton("dir90");
     enableButton("dir180");
     enableButton("dir270");
+    enableButton("pngOption");
+    enableButton("jpgOption");
     cy.userPanningEnabled(true);
     cy.userZoomingEnabled(true);
     cy.boxSelectionEnabled(true);
@@ -1300,11 +1304,15 @@ function fitGraph(toSelected) {
     );
 }
 
-/* Exports PNG image of graph. */
-function exportGraph() {
-    // open PNG data URI repr of graph in new window/tab (whether window or tab
-    // is chosen is browser+user dependent; "_blank" is sufficient)
-    window.open(cy.png(), "_blank");
+/* Exports image of graph. */
+function exportGraphView() {
+    var imgType = $("#imgTypeButtonGroup .btn.active").attr("value");
+    if (imgType === "PNG") {
+        window.open(cy.png(), "_blank");
+    }
+    else {
+        window.open(cy.jpg(), "_blank");
+    }
 }
 
 // Simple shortcut used to enable searching by pressing Enter (charCode 13)

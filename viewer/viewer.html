@@ -227,7 +227,7 @@
                  are collapsed/uncollapsed -->
             <button class='btn btn-default btn-sm disabled'
                 disabled="disabled"
-                id='collapseButton' onclick='startCollapseAll()'>
+                id='collapseButton' onclick='startCollapseAll();'>
                 <span id="collapseButtonIcon"
                     class="glyphicon glyphicon-minus-sign"></span> &nbsp;
                 <span id="collapseButtonText">Collapse All</span>
@@ -262,13 +262,29 @@
 
             <hr />
             <h4>Export Graph View</h4>
+            <p>
+            <div class="btn-group" data-toggle="buttons"
+                id="imgTypeButtonGroup"
+                aria-label="Image type (PNG vs. JPG) selector">
+                <button class="btn btn-default active disabled btn-sm"
+                    value="PNG" id="pngOption" disabled="disabled">
+                    <input type="radio" name="imgTypeRadio" checked="checked"
+                        autocomplete="off">PNG
+                </button>
+                <button class="btn btn-default disabled btn-sm" value="JPG"
+                    id="jpgOption" disabled="disabled">
+                    <input type="radio" name="imgTypeRadio"
+                        autocomplete="off">JPG
+                </button>
+            </div>
+
             <button class='btn btn-default btn-sm disabled'
                 disabled="disabled"
-                id='exportButton' onclick='exportGraph()'>
+                id='exportImageButton' onclick='exportGraphView();'>
                 <span class="glyphicon glyphicon-picture"></span> &nbsp;
-                Export view as PNG
+                Export
             </button>
-
+            </p>
             <!-- hideEdgesOnViewport and textureOnViewport checkboxes here -->
 
             <div id='status'></div>
