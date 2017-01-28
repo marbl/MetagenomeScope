@@ -28,6 +28,8 @@
             $(function() {
                 $(window).on("beforeunload", closeDB);
                 $("input[name=rotationRadio]").on("change", changeRotation);
+                $("#hideEdgesCheckbox").on("change", toggleHEV);
+                $("#useTexturesCheckbox").on("change", toggleUTV);
                 // If we add any tooltips, use this line to initialize them
                 //$("[data-toggle='tooltip']").tooltip();
             });
@@ -221,17 +223,6 @@
                     </button>
                 </span>
             </div>
-            <hr />
-            <h4>Node Groups</h4>
-            <!-- Value of this button will be toggled as all nodes in graph
-                 are collapsed/uncollapsed -->
-            <button class='btn btn-default btn-sm disabled'
-                disabled="disabled"
-                id='collapseButton' onclick='startCollapseAll();'>
-                <span id="collapseButtonIcon"
-                    class="glyphicon glyphicon-minus-sign"></span> &nbsp;
-                <span id="collapseButtonText">Collapse All</span>
-            </button>
             
             <hr />
             <h4>Display Options</h4>
@@ -259,6 +250,39 @@
                     <input type="radio" name="rotationRadio"
                         autocomplete="off">&#8592;
                 </button>
+            </div>
+
+            <p>
+            <!-- Value of this button will be toggled as all nodes in graph
+                 are collapsed/uncollapsed -->
+            <button class='btn btn-default btn-sm disabled'
+                disabled="disabled"
+                id='collapseButton' onclick='startCollapseAll();'>
+                <span id="collapseButtonIcon"
+                    class="glyphicon glyphicon-minus-sign"></span> &nbsp;
+                <span id="collapseButtonText">Collapse All Node Groups</span>
+            </button>
+            </p>
+
+            <hr />
+            <h4>Performance Options</h4>
+            <p id="performanceOptionsInfo">
+                Changes to these settings will take effect upon drawing a
+                graph.
+            </p>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" id="hideEdgesCheckbox"
+                        disabled="disabled">
+                    Hide edges during movement
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox" id="useTexturesCheckbox"
+                        disabled="disabled">
+                    Use a texture during movement
+                </label>
             </div>
 
             <hr />

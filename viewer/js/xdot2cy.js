@@ -42,6 +42,9 @@ const CTRL_PT_DIST_EPSILON = 1.00;
 // In degrees CCW from the default up->down direction
 var PREV_ROTATION;
 var CURR_ROTATION;
+// Booleans for whether or not to use certain performance options
+var HIDE_EDGES_ON_VIEWPORT = false;
+var TEXTURE_ON_VIEWPORT = false;
 // A reference to the current SQL.Database object from which we obtain the
 // graph's layout and biological data
 var CURR_DB = null;
@@ -85,9 +88,12 @@ function initGraph() {
         // NOTE setting these off for now
         //minZoom: 0.01,
         //maxZoom: 15,
-        pixelRatio: 1.0, // improves performance on high-density displays
-        hideEdgesOnViewport: true, // improves performance
-        //textureOnViewport: true, // improves performance (but kind of ugly)
+        // (sometimes slight) performance improvements
+        pixelRatio: 1.0,
+        hideEdgesOnViewport: HIDE_EDGES_ON_VIEWPORT,
+        textureOnViewport: TEXTURE_ON_VIEWPORT,
+        // options we use to prevent user from messing with the graph before
+        // it's been fully drawn
         userPanningEnabled: false,
         userZoomingEnabled: false,
         boxSelectionEnabled: false,
@@ -596,17 +602,17 @@ function changeRotation() {
 }
 
 // If toUncollapseReady is false, changes the collapse button to say
-// "Collapse All" with a minus icon.
+// "Collapse All Node Groups" with a minus icon.
 // If toUncollapseReady is true, changes the collapse button to say
-// "Uncollapse All" with a plus icon.
+// "Uncollapse All Node Groups" with a plus icon.
 function changeCollapseButton(toUncollapseReady) {
     if (toUncollapseReady) {
-        $("#collapseButtonText").text("Uncollapse All");
+        $("#collapseButtonText").text("Uncollapse All Node Groups");
         $("#collapseButtonIcon").removeClass("glyphicon-minus-sign").addClass(
             "glyphicon-plus-sign");
     }
     else {
-        $("#collapseButtonText").text("Collapse All");
+        $("#collapseButtonText").text("Collapse All Node Groups");
         $("#collapseButtonIcon").removeClass("glyphicon-plus-sign").addClass(
             "glyphicon-minus-sign");
     }
@@ -734,6 +740,8 @@ function parseDBcomponents() {
     enableButton("dir90");
     enableButton("dir180");
     enableButton("dir270");
+    $("#hideEdgesCheckbox").prop("disabled", false);
+    $("#useTexturesCheckbox").prop("disabled", false);
 }
 
 /* Enables a disabled <button> element that is currently disabled: that is,
@@ -754,6 +762,8 @@ function disableButton(buttonID) {
 /* Disables some "volatile" controls in the graph. Should be used when doing
  * any sort of operation, I guess. */
 function disableVolatileControls() {
+    $("#hideEdgesCheckbox").prop("disabled", true);
+    $("#useTexturesCheckbox").prop("disabled", true);
     $("#componentselector").prop("disabled", true);
     disableButton("decrCompRankButton");
     disableButton("incrCompRankButton");
@@ -779,6 +789,13 @@ function disableVolatileControls() {
 
 function updateTextStatus(text) {
     $("#textStatus").html(text);
+}
+
+function toggleHEV() {
+    HIDE_EDGES_ON_VIEWPORT = !HIDE_EDGES_ON_VIEWPORT;
+}
+function toggleUTV() {
+    TEXTURE_ON_VIEWPORT = !TEXTURE_ON_VIEWPORT;
 }
 
 /* Returns null if the value indicated by the string is not an integer (that
@@ -1095,6 +1112,8 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     enableButton("dir270");
     enableButton("pngOption");
     enableButton("jpgOption");
+    $("#hideEdgesCheckbox").prop("disabled", false);
+    $("#useTexturesCheckbox").prop("disabled", false);
     cy.userPanningEnabled(true);
     cy.userZoomingEnabled(true);
     cy.boxSelectionEnabled(true);
