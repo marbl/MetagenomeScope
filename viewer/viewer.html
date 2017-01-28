@@ -23,7 +23,7 @@
         <script src='js/sql.js'></script>
         <script src='js/xdot2cy.js'></script>
         <script src='js/bootstrap.min.js'></script>
-        <!-- Initialize some bindings for the application -->
+        <!-- Initialize some event bindings for the application -->
         <script>
             $(function() {
                 $(window).on("beforeunload", closeDB);
@@ -39,6 +39,16 @@
            <span class="glyphicon glyphicon-menu-hamburger"></span>
         </div>
 
+        <!-- NOTE: For all Bootstrap buttons, we need to do two "layers"
+             of disabling. Adding the disabled class to a button makes
+             Bootstrap style the button to look disabled, but the button
+             will still be usable. Adding the disabled="disabled" attribute
+             makes the button actually disabled (i.e. not usable).
+        
+             To handle this properly, we use the enableButton and
+             disableButton functions (defined in xdot2cy.js) to ensure
+             buttons are always properly disabled/enabled.
+        -->
         <button class='btn btn-default btn-sm disabled'
             onclick='fitGraph(false)' id="fitButton" disabled="disabled">
             <span class="glyphicon glyphicon-resize-full"></span>
@@ -231,16 +241,6 @@
 
             <p>
 
-            <!-- As with other Bootstrap buttons, we need to do two "layers"
-                 of disabling. Adding the disabled class to a button makes
-                 Bootstrap style the button to look disabled, but the button
-                 will still be usable. Adding the disabled="disabled" attribute
-                 makes the button actually disabled (i.e. not usable).
-            
-                 To handle this properly, we use the enableButton and
-                 disableButton functions to ensure buttons are always properly
-                 disabled/enabled.
-            -->
             <div class="btn-group" data-toggle="buttons"
                 aria-label="Graph hierarchical rank direction"
                 id="rotationButtonGroup">
