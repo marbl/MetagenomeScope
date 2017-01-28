@@ -87,16 +87,14 @@
                     aria-hidden="true"></span> &nbsp; Assembly info
             </button>
             </p>
-            <p>
-                <div class="progress">
-                    <div class="progress-bar notransitions" role="progressbar"
-                         aria-valuenow="0" aria-valuemin="0"
-                         aria-valuemax="100" style="width: 0%;">
-                        <span class="sr-only"></span>
-                    </div>
+            <div class="progress">
+                <div class="progress-bar notransitions" role="progressbar"
+                     aria-valuenow="0" aria-valuemin="0"
+                     aria-valuemax="100" style="width: 0%;">
+                    <span class="sr-only"></span>
                 </div>
-                <div id='textStatus'>&nbsp;</div>
-            </p>
+            </div>
+            <div id='textStatus'>&nbsp;</div>
             <hr />
 
             <h4>Connected Components</h4>
@@ -209,7 +207,6 @@
             <hr /> 
 
             <h4>Search for Elements</h4>
-            <p>
             <div class='input-group input-group-sm'>
                 <input type='text' class='form-control'
                     placeholder="Element ID(s)" id="searchInput"
@@ -224,10 +221,8 @@
                     </button>
                 </span>
             </div>
-            </p>
             <hr />
-            <h4>Graph View Controls</h4>
-            <p>
+            <h4>Node Groups</h4>
             <!-- Value of this button will be toggled as all nodes in graph
                  are collapsed/uncollapsed -->
             <button class='btn btn-default btn-sm disabled'
@@ -237,10 +232,9 @@
                     class="glyphicon glyphicon-minus-sign"></span> &nbsp;
                 <span id="collapseButtonText">Collapse All</span>
             </button>
-            </p>
-
-            <p>
-
+            
+            <hr />
+            <h4>Graph Rotation</h4>
             <div class="btn-group" data-toggle="buttons"
                 aria-label="Graph hierarchical rank direction"
                 id="rotationButtonGroup">
@@ -265,14 +259,17 @@
                         autocomplete="off">&#8592;
                 </button>
             </div>
-    
+
+            <hr />
+            <h4>Export Graph View</h4>
             <button class='btn btn-default btn-sm disabled'
                 disabled="disabled"
                 id='exportButton' onclick='exportGraph()'>
                 <span class="glyphicon glyphicon-picture"></span> &nbsp;
-                Export view
+                Export view as PNG
             </button>
-            </p>
+
+            <!-- hideEdgesOnViewport and textureOnViewport checkboxes here -->
 
             <div id='status'></div>
         </div> <!-- end controls div -->
