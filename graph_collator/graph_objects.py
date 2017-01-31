@@ -98,6 +98,9 @@ class Node(object):
         self.xdot_x      = None
         self.xdot_y      = None
         self.xdot_shape  = None
+        # Optional layout data (used for nodes within subgraphs)
+        self.xdot_rel_x  = None
+        self.xdot_rel_y  = None
         
     def get_height(self):
         """Calculates the "height" of this node.
@@ -261,6 +264,7 @@ class NodeGroup(Node):
         self.gv_id_string = "%s" % (group_prefix)
         self.cy_id_string = "%s" % (group_prefix)
         self.nodes = []
+        childid2obj = {}
         for n in nodes:
             self.node_count += 1
             self.bp += n.bp
@@ -269,6 +273,7 @@ class NodeGroup(Node):
             self.nodes.append(n)
             n.used_in_collapsing = True
             n.group = self
+            childid2obj[n.id_string] = n
         self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
         self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
         # pipe .gv into pygraphviz to lay out this node group
@@ -293,14 +298,27 @@ class NodeGroup(Node):
             # the node group in question
             gv_input += n.edge_info(constrained_nodes=self.nodes)
         gv_input += "}"
-        c = pygraphviz.AGraph(gv_input)
-        c.layout(prog='dot')
+        cg = pygraphviz.AGraph(gv_input)
+        cg.layout(prog='dot')
         # Obtain cluster width and height from the layout
-        bounding_box_text = c.subgraphs()[0].graph_attr[u'bb']
+        bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
         bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
         self.xdot_width = bounding_box_numeric[2] - bounding_box_numeric[0]
         self.xdot_height = bounding_box_numeric[3] - bounding_box_numeric[1]
-        # TODO: obtain and assign node + edge layout info
+        # Obtain node info
+        # NOTE: we could iterate over the subgraph's nodes or over the entire
+        # graph (cg)'s nodes -- same result, since the only nodes in the graph
+        # are in the subgraph.
+        for n in cg.nodes():
+            curr_node = childid2obj[str(n)]
+            # Record the relative position (within the node group's bounding
+            # box) of this child node.
+            ep = n.attr[u'pos'].split(',')
+            curr_node.xdot_rel_x = float(ep[0])
+            curr_node.xdot_rel_y = float(ep[1])
+            curr_node.xdot_width = float(n.attr[u'width'])
+            curr_node.xdot_height = float(n.attr[u'height'])
+        # TODO: obtain and assign edge layout info
         self.xdot_left = None
         self.xdot_bottom = None
         self.xdot_right = None
