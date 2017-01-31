@@ -4,6 +4,7 @@
 
 import config
 from math import log, sqrt
+import pygraphviz
 
 class Edge(object):
     """A generic edge, used for storing layout data (e.g. control points)
@@ -170,18 +171,24 @@ class Node(object):
         self.outgoing_edge_objects[node2.id_string] = \
             Edge(self.id_string, node2.id_string, multiplicity)
 
-    def edge_info(self):
+    def edge_info(self, constrained_nodes=None):
         """Returns a GraphViz-compatible string containing all information
            about outgoing edges from this node.
 
            Useful for only printing edges relevant to the nodes we're
            interested in.
+
+           If constrained_nodes is not None, then it is interpreted as a list
+           of nodes to "constrain" the edges: that is, edges pointing to the
+           nodes within this list are the only edges whose info will be
+           included in the returned string.
         """
         o = ""
         # Since we only care about the target ID and not about any other
         # edge data it's most efficient to just traverse self.outgoing_nodes
         for m in self.outgoing_nodes:
-            o += "\t%s -> %s\n" % (self.id_string, m.id_string)
+            if (constrained_nodes is None) or (m in constrained_nodes):
+                o += "\t%s -> %s\n" % (self.id_string, m.id_string)
         return o
 
     def set_component_rank(self, component_size_rank):
@@ -264,9 +271,36 @@ class NodeGroup(Node):
             n.group = self
         self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
         self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
-        # TODO pipe .gv into dot to lay out & parse this component?
-        # Of course, we'd have to do parsing here, but if we use pygraphviz
-        # (see #28 on github) then this won't be that bad.
+        # pipe .gv into pygraphviz to lay out this node group
+        gv_input = ""
+        gv_input += "digraph nodegroup {\n"
+        # TODO abstract this header generation code to some function in this
+        # file that will be called by here, and by collate?
+        # ... or just rework the _STYLE variables to make them easier to
+        # integrate, I suppose.
+        # ... or just deal with 6 lines of repeated code, I guess -- not the
+        # worst thing that we could be dealing with :)
+        if config.GRAPH_STYLE != "":
+            gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
+        if config.GLOBALNODE_STYLE != "":
+            gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
+        if config.GLOBALEDGE_STYLE != "":
+            gv_input += "\tedge [%s];\n" % (config.GLOBALEDGE_STYLE)
+        gv_input += self.node_info()
+        for n in self.nodes:
+            # Ensure that only the edges that point to nodes that are within
+            # the node group are present; ensures layout is restricted to just
+            # the node group in question
+            gv_input += n.edge_info(constrained_nodes=self.nodes)
+        gv_input += "}"
+        c = pygraphviz.AGraph(gv_input)
+        c.layout(prog='dot')
+        # Obtain cluster width and height from the layout
+        bounding_box_text = c.subgraphs()[0].graph_attr[u'bb']
+        bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
+        self.xdot_width = bounding_box_numeric[2] - bounding_box_numeric[0]
+        self.xdot_height = bounding_box_numeric[3] - bounding_box_numeric[1]
+        # TODO: obtain and assign node + edge layout info
         self.xdot_left = None
         self.xdot_bottom = None
         self.xdot_right = None
