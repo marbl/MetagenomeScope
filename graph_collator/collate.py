@@ -742,22 +742,35 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     component_node_count   = 0
     component_edge_count   = 0
     component_total_length = 0
-    # We're using this as a temporary "bounding box," even though we don't
-    # really need it. See #147 & #28 on github.
-    # Well... we don't need the bounding box for positioning the entire graph.
+    # We use the term "bounding box" here, where "bounding box" refers to
+    # just the (x, y) coord of the rightmost & topmost point in the graph:
+    # (0, 0) is always the bottom left corner of the total bounding box
+    # (although I have seen some negative "origin" points, which is confusing
+    # and might contribute to a loss of accuracy for iterative drawing -- see
+    # #148 for further information).
+    #
+    # So: we don't need the bounding box for positioning the entire graph.
     # However, we do use it for positioning clusters/nodes individually when we
     # "iteratively" draw the graph -- without an accurate bounding box, the
-    # iterative drawing is going to look weird
-    # where "bounding box" refers to just the (x, y) coord of the rightmost &
-    # topmost point in the graph: (0, 0) is always the bottom left corner of
-    # the total bounding box.
-    bounding_box_right = 0
-    bounding_box_top = 0
+    # iterative drawing is going to look weird if clusters aren't positioned
+    # "frequently" throughout the graph. (See #28 for reference.)
+    #
     # We can't reliably access h.graph_attr due to a bug in pygraphviz.
     # See https://github.com/pygraphviz/pygraphviz/issues/113 for context.
     # If we could access the bounding box, here's how we'd do it --
     #bb = h.graph_attr[u'bb'].split(',')[2:]
     #bounding_box = [float(c) for c in bb]
+    # 
+    # So, then, we obtain the bounding box "approximately," by finding the
+    # right-most and top-most coordinates within the graph from:
+    # -Cluster bounding boxes (which we can access fine, for some reason.)
+    # -Node boundaries (we use some math to determine the actual borders of
+    #  nodes, since node position refers to the center of the node)
+    # -Edge control points -- note that this may cause something of a loss in
+    #  precision if we convert edge control points in Cytoscape.js in a way
+    #  that changes the edge structure significantly
+    bounding_box_right = 0
+    bounding_box_top = 0
 
     # Record layout info of clusters, as well as their child nodes and edges
     for c in h.subgraphs():
