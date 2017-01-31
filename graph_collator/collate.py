@@ -705,16 +705,16 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     # add_subgraph(), etc. That might be faster, and it might be worth doing;
     # however, for now I think this approach should be fine (knock on wood).
     gv_input = ""
-    gv_input += ("digraph asm {\n");
+    gv_input += "digraph asm {\n"
     if config.GRAPH_STYLE != "":
-        gv_input += ("\t%s;\n" % (config.GRAPH_STYLE))
+        gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
     if config.GLOBALNODE_STYLE != "":
-        gv_input += ("\tnode [%s];\n" % (config.GLOBALNODE_STYLE))
+        gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
     if config.GLOBALEDGE_STYLE != "":
-        gv_input += ("\tedge [%s];\n" % (config.GLOBALEDGE_STYLE))
-    gv_input += (node_info)
-    gv_input += (edge_info)
-    gv_input += ("}")
+        gv_input += "\tedge [%s];\n" % (config.GLOBALEDGE_STYLE)
+    gv_input += node_info
+    gv_input += edge_info
+    gv_input += "}"
     h = pygraphviz.AGraph(gv_input)
     # save the .gv file if the user requested .gv preservation
     if preserve_gv:
