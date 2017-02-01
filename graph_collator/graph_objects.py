@@ -295,7 +295,10 @@ class NodeGroup(Node):
         for n in self.nodes:
             # Ensure that only the edges that point to nodes that are within
             # the node group are present; ensures layout is restricted to just
-            # the node group in question
+            # the node group in question.
+            # This works because the edges we consider in the first place all
+            # originate from nodes within the node group, so we don't have to
+            # worry about edges originating from nodes outside the node group.
             gv_input += n.edge_info(constrained_nodes=self.nodes)
         gv_input += "}"
         cg = pygraphviz.AGraph(gv_input)
@@ -318,7 +321,17 @@ class NodeGroup(Node):
             curr_node.xdot_rel_y = float(ep[1])
             curr_node.xdot_width = float(n.attr[u'width'])
             curr_node.xdot_height = float(n.attr[u'height'])
-        # TODO: obtain and assign edge layout info
+        for e in cg.edges():
+            source_node = childid2obj[str(e[0])]
+            curr_edge = source_node.outgoing_edge_objects[str(e[1])]
+            pt_start = e.attr[u'pos'].index(" ") + 1
+            curr_edge.xdot_ctrl_pt_str = \
+                str(e.attr[u'pos'][pt_start:].replace(","," "))
+            coord_list = curr_edge.xdot_ctrl_pt_str.split()
+            # If len(coord_list) % 2 != 0 something has gone quite wrong
+            if len(coord_list) % 2 != 0:
+                raise ValueError, "Invalid edge control points for", curr_edge
+            curr_edge.xdot_ctrl_pt_count = len(coord_list) / 2
         self.xdot_left = None
         self.xdot_bottom = None
         self.xdot_right = None
