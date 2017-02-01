@@ -332,6 +332,7 @@ class NodeGroup(Node):
             if len(coord_list) % 2 != 0:
                 raise ValueError, "Invalid edge control points for", curr_edge
             curr_edge.xdot_ctrl_pt_count = len(coord_list) / 2
+            curr_edge.group = self
         self.xdot_left = None
         self.xdot_bottom = None
         self.xdot_right = None

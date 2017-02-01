@@ -793,13 +793,6 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         curr_cluster.component_size_rank = component_size_rank
         cursor.execute("INSERT INTO clusters VALUES (?,?,?,?,?,?)",
             curr_cluster.db_values())
-        # Record this cluster as the parent of its child nodes/edges for later
-        for n in c.nodes():
-            nodeid2obj[str(n.get_name())].group = curr_cluster
-        for e in c.edges():
-            source = nodeid2obj[str(e[0])]
-            curr_edge = source.outgoing_edge_objects[str(e[1])]
-            curr_edge.group = curr_cluster
     # Record layout info of nodes
     for n in h.nodes():
         curr_node = nodeid2obj[str(n)]
