@@ -339,10 +339,12 @@ class NodeGroup(Node):
         super(NodeGroup, self).__init__(self.gv_id_string, self.bp, False)
 
     def node_info(self):
-        """Returns a string of the node_info() of this NodeGroup.
-
-           This finds the node_info() of all its children, naturally.
-        """
+        """Returns a string of the node_info() of this NodeGroup."""
+        # TODO -- just return a solid rectangle of specified xdot_width and
+        # xdot_height here.
+        # As for edges, in __init__ reassign edges to point to/from the node
+        # group in question. Or maybe do that after __init__, so as to not
+        # accidentally create meta-node groups.
         info = "subgraph cluster_%s {\n" % (self.gv_id_string)
         if config.GLOBALCLUSTER_STYLE != "":
             info += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
