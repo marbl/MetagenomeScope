@@ -128,40 +128,17 @@ class Node(object):
             rounding_done = 0
         return (h, rounding_done)
 
-    def node_info(self, custom_shape=None, custom_style=None):
+    def node_info(self):
         """Returns a string representing this node that can be used in a .dot
            file for input to GraphViz.
-
-           You can change custom_shape to give the node a particular shape; by
-           default, this uses config.BASIC_NODE_SHAPE for "normal" nodes and
-           config.RCOMP_NODE_SHAPE for "reverse complement" nodes.
-           I don't think anything in this program uses custom_shape any
-           more; I used to use it when we collapsed node groups into squares
-           on the Python side of this program, and not in the JS side.
-
-           If custom_style is passed (e.g. as config.BUBBLE_STYLE or
-           config.FRAYEDROPE_STYLE) then that style information will be used.
-           By default, nodes that have been rounded up or down in height will
-           use special style information, but custom_style overrides that.
         """
         h, r = self.get_height()
         info = "\t%s [height=%g,width=%g,shape=" % \
                 (self.id_string, h, config.WIDTH_HEIGHT_RATIO * h)
-        # TODO rework this code to get rid of "custom shapes"
-        if custom_shape == None:
-            if not self.is_complement:
-                info += config.BASIC_NODE_SHAPE
-            else:
-                info += config.RCOMP_NODE_SHAPE
+        if not self.is_complement:
+            info += config.BASIC_NODE_SHAPE
         else:
-            info += custom_shape
-        if custom_style == None:
-            if r > 0:
-               info += ',' + config.ROUNDED_DN_STYLE
-            elif r < 0:
-               info += ',' + config.ROUNDED_UP_STYLE
-        else:
-            info += ',' + custom_style
+            info += config.RCOMP_NODE_SHAPE
         info += "];\n"
         return info
 

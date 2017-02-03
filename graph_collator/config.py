@@ -72,13 +72,6 @@ CONTIG_SCALING_LOG_BASE = 10
 # add some functionality re: that later).
 BASIC_NODE_SHAPE = "invhouse"
 RCOMP_NODE_SHAPE = "house"
-BUBBLE_SHAPE     = "square"                        # we don't use these now
-FRAYEDROPE_SHAPE = "square"                        # we don't use these now
-CHAIN_SHAPE      = "square"                        # we don't use these now
-CYCLE_SHAPE      = "square"                        # we don't use these now
-ROUNDED_UP_STYLE = "style=filled,fillcolor=gray64" # we don't use these now
-ROUNDED_DN_STYLE = "style=filled,fillcolor=black"  # we don't use these now
-CCOMPONENT_STYLE = "style=filled,fillcolor=red"    # we don't use these now
 BUBBLE_STYLE     = "\tstyle=filled;\n\tfillcolor=cornflowerblue;\n"
 FRAYEDROPE_STYLE = "\tstyle=filled;\n\tfillcolor=green;\n"
 CHAIN_STYLE      = "\tstyle=filled;\n\tfillcolor=salmon;\n"
