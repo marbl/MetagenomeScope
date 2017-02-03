@@ -154,7 +154,7 @@ class Node(object):
         self.outgoing_edge_objects[node2.id_string] = \
             Edge(self.id_string, node2.id_string, multiplicity)
 
-    def edge_info(self, constrained_nodes=None, reassign_exteriors=False):
+    def edge_info(self, constrained_nodes=None):
         """Returns a GraphViz-compatible string containing all information
            about outgoing edges from this node.
 
@@ -165,44 +165,47 @@ class Node(object):
            of nodes to "constrain" the edges: that is, edges pointing to the
            nodes within this list are the only edges whose info will be
            included in the returned string.
-
-           If reassign_exteriors is True, then edges where .group == None that
-           point to/from nodes where .group != None will be reassigned to point
-           to/from those node groups, and edges where .group != None will not
-           be included in the string. Also, all edges will have a comment
-           attribute of the format "a,b" where a is the id_string of the
-           original source node of the edge and b is the id_string of the
-           original target node of the edge.
-           
-           (We assume that reassign_exteriors and constrained_nodes will never
-           both be true -- if both are true, reassign_exteriors' behavior is
-           applied.)
         """
         o = ""
         # Since we only care about the target ID and not about any other
         # edge data it's most efficient to just traverse self.outgoing_nodes
-        if reassign_exteriors:
-            if self.group != None:
-                source_id = "cluster_" + self.group.gv_id_string
-            else:
-                source_id = self.id_string
-            for m in self.outgoing_nodes:
-                # Used to record the actual edge source/target
-                comment = "[comment=\"%s,%s\"]" % (self.id_string, m.id_string)
-                # Only record edges that are not in a group (however, this
-                # includes edges potentially between groups)
-                if self.outgoing_edge_objects[m.id_string].group == None:
-                    if m.group == None:
-                        o += "\t%s -> %s %s\n" % (source_id, m.id_string, \
-                            comment)
-                    else:
-                        o += "\t%s -> %s %s\n" % (source_id, \
-                            "cluster_" + m.group.gv_id_string, comment)
+        for m in self.outgoing_nodes:
+            if (constrained_nodes is None) or (m in constrained_nodes):
+                o += "\t%s -> %s\n" % (self.id_string, m.id_string)
+        return o
+
+    def collapsed_edge_info(self):
+        """Returns a GraphViz-compatible string (like in edge_info()) but:
+        
+           -Edges that have a .group attribute of None that point to/from
+            nodes that have a .group attribute that != None will be
+            reassigned (in the string) to point to/from those node groups.
+
+           -Edges that have a .group attribute that != None will not be
+            included in the string.
+           
+           -All edges will have a comment attribute of the format "a,b" where
+            a is the id_string of the original source node of the edge (so,
+            not a node group) and b is the id_string of the original target
+            node of the edge.
+        """
+        o = ""
+        if self.group != None:
+            source_id = "cluster_" + self.group.gv_id_string
         else:
-            # Normal behavior -- list all edges
-            for m in self.outgoing_nodes:
-                if (constrained_nodes is None) or (m in constrained_nodes):
-                    o += "\t%s -> %s\n" % (self.id_string, m.id_string)
+            source_id = self.id_string
+        for m in self.outgoing_nodes:
+            # Used to record the actual edge source/target
+            comment = "[comment=\"%s,%s\"]" % (self.id_string, m.id_string)
+            # Only record edges that are not in a group (however, this
+            # includes edges potentially between groups)
+            if self.outgoing_edge_objects[m.id_string].group == None:
+                if m.group == None:
+                    o += "\t%s -> %s %s\n" % (source_id, m.id_string, \
+                        comment)
+                else:
+                    o += "\t%s -> %s %s\n" % (source_id, \
+                        "cluster_" + m.group.gv_id_string, comment)
         return o
 
     def set_component_rank(self, component_size_rank):
@@ -849,7 +852,7 @@ class Component(object):
         for n in self.node_list:
             if not n.used_in_collapsing:
                 node_info += n.node_info()
-            edge_info += n.edge_info(reassign_exteriors=True)
+            edge_info += n.collapsed_edge_info()
 
         return node_info, edge_info
 
