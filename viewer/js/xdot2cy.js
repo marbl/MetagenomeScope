@@ -216,11 +216,6 @@ function initGraph() {
                 // Used for edges that were assigned valid (i.e. not
                 // just a straight line or self-directed edge)
                 // cpd/cpw properties from the xdot file.
-                // As is discussed a number of times throughout this file
-                // (and in an external document -- see
-                // cytoscape_unbundledbeziernodes_report.md), using
-                // unbundled-bezier curves causes a number of odd bugs in
-                // Cytoscape.js. Hence why some things might seem strange.
                 selector: 'edge.unbundledbezier',
                 style: {
                     'curve-style': 'unbundled-bezier',
