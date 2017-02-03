@@ -292,6 +292,23 @@ class NodeGroup(Node):
             childid2obj[n.id_string] = n
         self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
         self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
+        self.xdot_c_width = 0
+        self.xdot_c_height = 0
+        self.layout_isolated(childid2obj)
+        self.xdot_left = None
+        self.xdot_bottom = None
+        self.xdot_right = None
+        self.xdot_top = None
+        super(NodeGroup, self).__init__(self.gv_id_string, self.bp, False)
+
+    def layout_isolated(self, childid2obj):
+        """Lays out this node group by itself. Stores layout information in
+           the attributes of both this NodeGroup object and its child
+           nodes/edges.
+
+           childid2obj is a dict that maps node id_strings to the corresponding
+           Node objects, by the way.
+        """
         # pipe .gv into pygraphviz to lay out this node group
         gv_input = ""
         gv_input += "digraph nodegroup {\n"
@@ -327,7 +344,7 @@ class NodeGroup(Node):
         # convert width and height from points to inches
         self.xdot_c_width /= config.POINTS_PER_INCH
         self.xdot_c_height /= config.POINTS_PER_INCH
-        # Obtain node info
+        # Obtain node layout info
         # NOTE: we could iterate over the subgraph's nodes or over the entire
         # graph (cg)'s nodes -- same result, since the only nodes in the graph
         # are in the subgraph.
@@ -340,6 +357,7 @@ class NodeGroup(Node):
             curr_node.xdot_rel_y = float(ep[1]) - bounding_box_numeric[1]
             curr_node.xdot_width = float(n.attr[u'width'])
             curr_node.xdot_height = float(n.attr[u'height'])
+        # Obtain edge layout info
         for e in cg.edges():
             self.edge_count += 1
             source_node = childid2obj[str(e[0])]
@@ -365,11 +383,6 @@ class NodeGroup(Node):
                 curr_edge.xdot_rel_ctrl_pt_str += str(y_coord)
                 p += 2
             curr_edge.group = self
-        self.xdot_left = None
-        self.xdot_bottom = None
-        self.xdot_right = None
-        self.xdot_top = None
-        super(NodeGroup, self).__init__(self.gv_id_string, self.bp, False)
 
     def node_info(self, backfill=True):
         """Returns a string of the node_info() of this NodeGroup.
