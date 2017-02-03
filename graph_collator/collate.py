@@ -825,10 +825,6 @@ for component in connected_components[:config.MAX_COMPONENTS]:
             for n in curr_cluster.nodes:
                 n.xdot_x = curr_cluster.xdot_left + n.xdot_rel_x
                 n.xdot_y = curr_cluster.xdot_bottom + n.xdot_rel_y
-                if n.is_complement:
-                    n.xdot_shape = config.RCOMP_NODE_SHAPE
-                else:
-                    n.xdot_shape = config.BASIC_NODE_SHAPE
                 n.set_component_rank(component_size_rank)
                 cursor.execute( \
                     "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",

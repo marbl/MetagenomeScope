@@ -357,6 +357,7 @@ class NodeGroup(Node):
             curr_node.xdot_rel_y = float(ep[1]) - bounding_box_numeric[1]
             curr_node.xdot_width = float(n.attr[u'width'])
             curr_node.xdot_height = float(n.attr[u'height'])
+            curr_node.xdot_shape = str(n.attr[u'shape'])
         # Obtain edge layout info
         for e in cg.edges():
             self.edge_count += 1
