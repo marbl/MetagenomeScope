@@ -381,9 +381,6 @@ class NodeGroup(Node):
            If backfill is True, however, this node group is just treated
            as a rectangular normal node.
         """
-        # As for edges, in __init__ reassign edges to point to/from the node
-        # group in question. Or maybe do that after __init__, so as to not
-        # accidentally create meta-node groups.
         if backfill:
             return "\tcluster_%s [height=%g,width=%g,shape=rectangle];\n" % \
                     (self.gv_id_string, self.xdot_c_height, self.xdot_c_width)
