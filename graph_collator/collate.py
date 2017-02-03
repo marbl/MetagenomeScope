@@ -414,7 +414,6 @@ with open(asm_fn, 'r') as assembly_file:
                     l = line.split()
                     curr_node_bp = int(l[1].strip("\""))
                 elif line.endswith("]\n"):
-                    #print curr_node_bp
                     n = graph_objects.Node(curr_node_id, curr_node_bp,
                             (curr_node_orientation == '"REV"'))
                     nodeid2obj[curr_node_id] = n
@@ -701,8 +700,8 @@ for component in connected_components[:config.MAX_COMPONENTS]:
 
     # NOTE/TODO: Currently, we reduce each component of the asm. graph to a DOT
     # string that we send to pygraphviz. However, we could also send
-    # nodes/edges/clusters procedurally, using add_edge(), add_node(),
-    # add_subgraph(), etc. That might be faster, and it might be worth doing;
+    # nodes/edges procedurally, using add_edge(), add_node(), etc.
+    # That might be faster, and it might be worth doing;
     # however, for now I think this approach should be fine (knock on wood).
     gv_input = ""
     gv_input += "digraph asm {\n"
@@ -772,52 +771,104 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     bounding_box_right = 0
     bounding_box_top = 0
 
-    # Record layout info of clusters, as well as their child nodes and edges
-    for c in h.subgraphs():
-        # Our cluster IDs omit the standard "cluster_" prefix
-        curr_cluster_id = c.get_name()[8:]
-        # Associate this cluster with an actual cluster object in our code
-        curr_cluster = clusterid2obj[curr_cluster_id]
-        # Get the cluster's bounding box for positioning
-        # It seems that graph_attr works fine on subgraphs, for some reason.
-        cbb = c.graph_attr[u'bb'].split(',')
-        c_bounding_box = tuple(float(c) for c in cbb)
-        curr_cluster.xdot_left, curr_cluster.xdot_bottom, \
-            curr_cluster.xdot_right, curr_cluster.xdot_top = c_bounding_box
-        # Try to expand the component bounding box
-        if curr_cluster.xdot_right > bounding_box_right:
-            bounding_box_right = curr_cluster.xdot_right
-        if curr_cluster.xdot_top > bounding_box_top:
-            bounding_box_top = curr_cluster.xdot_top
-        # Save the cluster in the .db
-        curr_cluster.component_size_rank = component_size_rank
-        cursor.execute("INSERT INTO clusters VALUES (?,?,?,?,?,?)",
-            curr_cluster.db_values())
-    # Record layout info of nodes
+    # Record layout info of nodes (incl. rectangular "empty" node groups)
     for n in h.nodes():
-        curr_node = nodeid2obj[str(n)]
-        ep = n.attr[u'pos'].split(',')
-        curr_node.xdot_x, curr_node.xdot_y = tuple(float(c) for c in ep)
-        curr_node.xdot_width = float(n.attr[u'width'])
-        curr_node.xdot_height = float(n.attr[u'height'])
-        # Try to expand the component bounding box
-        right_side = curr_node.xdot_x + \
-            (config.POINTS_PER_INCH * (curr_node.xdot_width/2.0))
-        top_side = curr_node.xdot_y + \
-            (config.POINTS_PER_INCH * (curr_node.xdot_height/2.0))
-        if right_side > bounding_box_right: bounding_box_right = right_side
-        if top_side > bounding_box_top: bounding_box_top = top_side
-        # Save this cluster in the .db
-        curr_node.xdot_shape = str(n.attr[u'shape'])
-        curr_node.set_component_rank(component_size_rank)
-        cursor.execute("INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-            curr_node.db_values())
-        component_node_count += 1
-        component_total_length += curr_node.bp
-    # Record layout info of edges
+        try:
+            curr_node = nodeid2obj[str(n)]
+            component_node_count += 1
+            component_total_length += curr_node.bp
+            if curr_node.group != None:
+                continue
+            ep = n.attr[u'pos'].split(',')
+            curr_node.xdot_x, curr_node.xdot_y = tuple(float(c) for c in ep)
+            curr_node.xdot_width = float(n.attr[u'width'])
+            curr_node.xdot_height = float(n.attr[u'height'])
+            # Try to expand the component bounding box
+            right_side = curr_node.xdot_x + \
+                (config.POINTS_PER_INCH * (curr_node.xdot_width/2.0))
+            top_side = curr_node.xdot_y + \
+                (config.POINTS_PER_INCH * (curr_node.xdot_height/2.0))
+            if right_side > bounding_box_right: bounding_box_right = right_side
+            if top_side > bounding_box_top: bounding_box_top = top_side
+            # Save this cluster in the .db
+            curr_node.xdot_shape = str(n.attr[u'shape'])
+            curr_node.set_component_rank(component_size_rank)
+            cursor.execute( \
+                "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                curr_node.db_values())
+        except KeyError: # arising from nodeid2obj[a cluster id]
+            # We use [8:] to slice off the "cluster_" prefix on every rectangle
+            # node that is actually a node group that will be backfilled (#80)
+            curr_cluster = clusterid2obj[str(n)[8:]]
+            component_node_count += curr_cluster.node_count
+            component_edge_count += curr_cluster.edge_count
+            component_total_length += curr_cluster.bp
+            ep = n.attr[u'pos'].split(',')
+            curr_cluster.xdot_x = float(ep[0])
+            curr_cluster.xdot_y = float(ep[1])
+            curr_cluster.xdot_width = float(n.attr[u'width'])
+            curr_cluster.xdot_height = float(n.attr[u'height'])
+            half_width_pts = \
+                (config.POINTS_PER_INCH * (curr_cluster.xdot_width/2.0))
+            half_height_pts = \
+                (config.POINTS_PER_INCH * (curr_cluster.xdot_height/2.0))
+            curr_cluster.xdot_left = curr_cluster.xdot_x - half_width_pts
+            curr_cluster.xdot_right = curr_cluster.xdot_x + half_width_pts
+            curr_cluster.xdot_bottom = curr_cluster.xdot_y - half_height_pts
+            curr_cluster.xdot_top = curr_cluster.xdot_y + half_height_pts
+            # Try to expand the component bounding box
+            if curr_cluster.xdot_right > bounding_box_right:
+                bounding_box_right = curr_cluster.xdot_right
+            if curr_cluster.xdot_top > bounding_box_top:
+                bounding_box_top = curr_cluster.xdot_top
+            # Reconcile child nodes -- add to .db
+            for n in curr_cluster.nodes:
+                n.xdot_x = curr_cluster.xdot_left + n.xdot_rel_x
+                n.xdot_y = curr_cluster.xdot_bottom + n.xdot_rel_y
+                if n.is_complement:
+                    n.xdot_shape = config.RCOMP_NODE_SHAPE
+                else:
+                    n.xdot_shape = config.BASIC_NODE_SHAPE
+                n.set_component_rank(component_size_rank)
+                cursor.execute( \
+                    "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+                    n.db_values())
+            # Reconcile child edges -- add to .db
+            for e in curr_cluster.edges:
+                # Don't bother trying to expand the component bounding box,
+                # since interior edges should be entirely within their node
+                # group's bounding box
+                # However, we do adjust the control points to be relative to
+                # the entire component
+                p = 0
+                coord_list = e.xdot_rel_ctrl_pt_str.split()
+                e.xdot_ctrl_pt_str = ""
+                while p <= len(coord_list) - 2:
+                    if p > 0:
+                        e.xdot_ctrl_pt_str += " "
+                    xp = float(coord_list[p])
+                    yp = float(coord_list[p + 1])
+                    e.xdot_ctrl_pt_str += str(curr_cluster.xdot_left + xp)
+                    e.xdot_ctrl_pt_str += " "
+                    e.xdot_ctrl_pt_str += str(curr_cluster.xdot_bottom + yp)
+                    p += 2
+                # Save this edge in the .db
+                cursor.execute("INSERT INTO edges VALUES (?,?,?,?,?,?,?)",
+                    e.db_values())
+            # Save the cluster in the .db
+            curr_cluster.component_size_rank = component_size_rank
+            cursor.execute("INSERT INTO clusters VALUES (?,?,?,?,?,?)",
+                curr_cluster.db_values())
+    # Record layout info of edges (that aren't inside node groups)
     for e in h.edges():
-        source = nodeid2obj[str(e[0])]
-        curr_edge = source.outgoing_edge_objects[str(e[1])]
+        # Since edges could point to/from node groups, we store their actual
+        # source/target nodes in a comment attribute
+        source_id, target_id = e.attr[u'comment'].split(',')
+        source = nodeid2obj[source_id]
+        curr_edge = source.outgoing_edge_objects[target_id]
+        component_edge_count += 1
+        if curr_edge.group != None:
+            continue
         # Skip the first control point
         pt_start = e.attr[u'pos'].index(" ") + 1
         curr_edge.xdot_ctrl_pt_str = \
@@ -829,7 +880,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         curr_edge.xdot_ctrl_pt_count = len(coord_list) / 2
         # Try to expand the component bounding box
         p = 0
-        while p <= curr_edge.xdot_ctrl_pt_count:
+        while p <= len(coord_list) - 2:
             x_coord = float(coord_list[p])
             y_coord = float(coord_list[p + 1])
             if x_coord > bounding_box_right: bounding_box_right = x_coord
@@ -838,7 +889,6 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         # Save this edge in the .db
         cursor.execute("INSERT INTO edges VALUES (?,?,?,?,?,?,?)",
             curr_edge.db_values())
-        component_edge_count += 1
 
     if not no_print:
         print config.DONE_PARSING_MSG + "%d." % (component_size_rank)

@@ -25,6 +25,8 @@ class Edge(object):
         # to lay out the component in which this edge is stored
         self.xdot_ctrl_pt_str = None
         self.xdot_ctrl_pt_count  = None
+        # used for interior edges in node groups
+        self.xdot_rel_ctrl_pt_str = None
 
     def db_values(self):
         """Returns a tuple containing the values of this edge.
@@ -145,6 +147,7 @@ class Node(object):
         h, r = self.get_height()
         info = "\t%s [height=%g,width=%g,shape=" % \
                 (self.id_string, h, config.WIDTH_HEIGHT_RATIO * h)
+        # TODO rework this code to get rid of "custom shapes"
         if custom_shape == None:
             if not self.is_complement:
                 info += config.BASIC_NODE_SHAPE
@@ -174,7 +177,7 @@ class Node(object):
         self.outgoing_edge_objects[node2.id_string] = \
             Edge(self.id_string, node2.id_string, multiplicity)
 
-    def edge_info(self, constrained_nodes=None):
+    def edge_info(self, constrained_nodes=None, reassign_exteriors=False):
         """Returns a GraphViz-compatible string containing all information
            about outgoing edges from this node.
 
@@ -185,13 +188,44 @@ class Node(object):
            of nodes to "constrain" the edges: that is, edges pointing to the
            nodes within this list are the only edges whose info will be
            included in the returned string.
+
+           If reassign_exteriors is True, then edges where .group == None that
+           point to/from nodes where .group != None will be reassigned to point
+           to/from those node groups, and edges where .group != None will not
+           be included in the string. Also, all edges will have a comment
+           attribute of the format "a,b" where a is the id_string of the
+           original source node of the edge and b is the id_string of the
+           original target node of the edge.
+           
+           (We assume that reassign_exteriors and constrained_nodes will never
+           both be true -- if both are true, reassign_exteriors' behavior is
+           applied.)
         """
         o = ""
         # Since we only care about the target ID and not about any other
         # edge data it's most efficient to just traverse self.outgoing_nodes
-        for m in self.outgoing_nodes:
-            if (constrained_nodes is None) or (m in constrained_nodes):
-                o += "\t%s -> %s\n" % (self.id_string, m.id_string)
+        if reassign_exteriors:
+            if self.group != None:
+                source_id = "cluster_" + self.group.gv_id_string
+            else:
+                source_id = self.id_string
+            for m in self.outgoing_nodes:
+                # Used to record the actual edge source/target
+                comment = "[comment=\"%s,%s\"]" % (self.id_string, m.id_string)
+                # Only record edges that are not in a group (however, this
+                # includes edges potentially between groups)
+                if self.outgoing_edge_objects[m.id_string].group == None:
+                    if m.group == None:
+                        o += "\t%s -> %s %s\n" % (source_id, m.id_string, \
+                            comment)
+                    else:
+                        o += "\t%s -> %s %s\n" % (source_id, \
+                            "cluster_" + m.group.gv_id_string, comment)
+        else:
+            # Normal behavior -- list all edges
+            for m in self.outgoing_nodes:
+                if (constrained_nodes is None) or (m in constrained_nodes):
+                    o += "\t%s -> %s\n" % (self.id_string, m.id_string)
         return o
 
     def set_component_rank(self, component_size_rank):
@@ -259,11 +293,13 @@ class NodeGroup(Node):
            Cytoscape.js.
         """
         self.node_count = 0
+        self.edge_count = 0
         self.group_style = group_style
         self.bp = 0
         self.gv_id_string = "%s" % (group_prefix)
         self.cy_id_string = "%s" % (group_prefix)
         self.nodes = []
+        self.edges = []
         childid2obj = {}
         for n in nodes:
             self.node_count += 1
@@ -291,7 +327,7 @@ class NodeGroup(Node):
             gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
         if config.GLOBALEDGE_STYLE != "":
             gv_input += "\tedge [%s];\n" % (config.GLOBALEDGE_STYLE)
-        gv_input += self.node_info()
+        gv_input += self.node_info(backfill=False)
         for n in self.nodes:
             # Ensure that only the edges that point to nodes that are within
             # the node group are present; ensures layout is restricted to just
@@ -306,8 +342,11 @@ class NodeGroup(Node):
         # Obtain cluster width and height from the layout
         bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
         bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
-        self.xdot_width = bounding_box_numeric[2] - bounding_box_numeric[0]
-        self.xdot_height = bounding_box_numeric[3] - bounding_box_numeric[1]
+        self.xdot_c_width = bounding_box_numeric[2] - bounding_box_numeric[0]
+        self.xdot_c_height = bounding_box_numeric[3] - bounding_box_numeric[1]
+        # convert width and height from points to inches
+        self.xdot_c_width /= config.POINTS_PER_INCH
+        self.xdot_c_height /= config.POINTS_PER_INCH
         # Obtain node info
         # NOTE: we could iterate over the subgraph's nodes or over the entire
         # graph (cg)'s nodes -- same result, since the only nodes in the graph
@@ -317,21 +356,34 @@ class NodeGroup(Node):
             # Record the relative position (within the node group's bounding
             # box) of this child node.
             ep = n.attr[u'pos'].split(',')
-            curr_node.xdot_rel_x = float(ep[0])
-            curr_node.xdot_rel_y = float(ep[1])
+            curr_node.xdot_rel_x = float(ep[0]) - bounding_box_numeric[0]
+            curr_node.xdot_rel_y = float(ep[1]) - bounding_box_numeric[1]
             curr_node.xdot_width = float(n.attr[u'width'])
             curr_node.xdot_height = float(n.attr[u'height'])
         for e in cg.edges():
+            self.edge_count += 1
             source_node = childid2obj[str(e[0])]
             curr_edge = source_node.outgoing_edge_objects[str(e[1])]
+            self.edges.append(curr_edge)
             pt_start = e.attr[u'pos'].index(" ") + 1
-            curr_edge.xdot_ctrl_pt_str = \
-                str(e.attr[u'pos'][pt_start:].replace(","," "))
-            coord_list = curr_edge.xdot_ctrl_pt_str.split()
+            # Get control points, then find them relative to cluster dimensions
+            ctrl_pt_str = str(e.attr[u'pos'][pt_start:].replace(","," "))
+            coord_list = ctrl_pt_str.split()
             # If len(coord_list) % 2 != 0 something has gone quite wrong
             if len(coord_list) % 2 != 0:
                 raise ValueError, "Invalid edge control points for", curr_edge
             curr_edge.xdot_ctrl_pt_count = len(coord_list) / 2
+            curr_edge.xdot_rel_ctrl_pt_str = ""
+            p = 0
+            while p <= len(coord_list) - 2:
+                if p > 0:
+                    curr_edge.xdot_rel_ctrl_pt_str += " "
+                x_coord = float(coord_list[p]) - bounding_box_numeric[0]
+                y_coord = float(coord_list[p + 1]) - bounding_box_numeric[1]
+                curr_edge.xdot_rel_ctrl_pt_str += str(x_coord)
+                curr_edge.xdot_rel_ctrl_pt_str += " "
+                curr_edge.xdot_rel_ctrl_pt_str += str(y_coord)
+                p += 2
             curr_edge.group = self
         self.xdot_left = None
         self.xdot_bottom = None
@@ -339,20 +391,30 @@ class NodeGroup(Node):
         self.xdot_top = None
         super(NodeGroup, self).__init__(self.gv_id_string, self.bp, False)
 
-    def node_info(self):
-        """Returns a string of the node_info() of this NodeGroup."""
-        # TODO -- just return a solid rectangle of specified xdot_width and
-        # xdot_height here.
+    def node_info(self, backfill=True):
+        """Returns a string of the node_info() of this NodeGroup.
+        
+           If backfill is False, this works as normal: this node group is
+           treated as a subgraph cluster, and all its child information is
+           returned.
+           
+           If backfill is True, however, this node group is just treated
+           as a rectangular normal node.
+        """
         # As for edges, in __init__ reassign edges to point to/from the node
         # group in question. Or maybe do that after __init__, so as to not
         # accidentally create meta-node groups.
-        info = "subgraph cluster_%s {\n" % (self.gv_id_string)
-        if config.GLOBALCLUSTER_STYLE != "":
-            info += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
-        for n in self.nodes:
-            info += n.node_info()
-        info += self.group_style + "}\n"
-        return info
+        if backfill:
+            return "\tcluster_%s [height=%g,width=%g,shape=rectangle];\n" % \
+                    (self.gv_id_string, self.xdot_c_height, self.xdot_c_width)
+        else:
+            info = "subgraph cluster_%s {\n" % (self.gv_id_string)
+            if config.GLOBALCLUSTER_STYLE != "":
+                info += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
+            for n in self.nodes:
+                info += n.node_info()
+            info += self.group_style + "}\n"
+            return info
 
     def db_values(self):
         """Returns a tuple containing the values associated with this group.
@@ -810,7 +872,7 @@ class Component(object):
         for n in self.node_list:
             if not n.used_in_collapsing:
                 node_info += n.node_info()
-            edge_info += n.edge_info()
+            edge_info += n.edge_info(reassign_exteriors=True)
 
         return node_info, edge_info
 
