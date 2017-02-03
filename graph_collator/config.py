@@ -12,8 +12,8 @@ from math import sqrt
 COMPLEMENT = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
 # The conversion factor between points (in GraphViz output) and inches, as used
 # by GraphViz. By default GraphViz uses 72 points per inch, so changing this is
-# not recommended.
-POINTS_PER_INCH = 72
+# not recommended. (This must be a float.)
+POINTS_PER_INCH = 72.0
 
 # NOTE that changing MAX_COMPONENTS or MIN_COMPONENT_SIZE will result in
 # strange behavior with those component ranks in the AsmViz viewer (see
