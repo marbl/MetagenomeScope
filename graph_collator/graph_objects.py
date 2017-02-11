@@ -57,7 +57,8 @@ class Node(object):
            it really just means the length of this node. In single graphs
            that's measured in bp and in double graphs that's measured in nt.
            
-           We'll scale it later if we actually decide to draw this node.
+           Size scaling based on length is done in self.get_height(), if the
+           component containing this node is laid out.
         """
         self.id_string = id_string
         self.bp = bp
