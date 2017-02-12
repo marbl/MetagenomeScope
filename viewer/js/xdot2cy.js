@@ -6,14 +6,6 @@
  * graph instance.
  */
 
-// How often (e.g. after how many nodes/half-edges) we update the progress
-// bar with its new value. Higher values of this mean less timeouts, which
-// means the graph is loaded somewhat faster, while smaller values of this
-// mean more timeouts (slower loading) but choppier progress bar progress.
-// Might be a good idea to scale this relative to the total # of nodes/edges
-// in the graph, but worrying about that later
-const PROGRESS_BAR_UPDATE_FREQ = 3;
-
 // These sets of five points (in the format [[x1, y1], [x2, y2], ...])
 // detail the polygons drawn to represent an invhouse (facing down; the
 // shape of non-reverse-complement nodes) and a house (facing up; the
@@ -55,6 +47,18 @@ var ASM_NODE_COUNT = 0;
 var ASM_EDGE_COUNT = 0;
 var CURR_NE = 0;
 var TOTAL_NE = 0;
+// How often (e.g. after how many nodes/half-edges) we update the progress
+// bar with its new value. Will be set in drawComponent() for the current
+// component being drawn, taking into account PROGRESSBAR_FREQ_PERCENT.
+// Higher values of this mean less timeouts are used to update the
+// progress bar, which means the graph is loaded somewhat faster,
+// while smaller values of this mean more timeouts are used (i.e.
+// slower graph loading) but choppier progress bar progress occurs.
+var PROGRESSBAR_FREQ;
+// PROGRESSBAR_FREQ = Math.floor(PROGRESSBAR_FREQ_PERCENT * SIZE), where
+// SIZE = (number of nodes to be drawn) + 0.5*(number of edges to be drawn)
+const PROGRESSBAR_FREQ_PERCENT = 0.05;
+
 // Cytoscape.js graph instance
 var cy = null;
 // Numbers of selected elements, and collections of those selected elements.
@@ -915,6 +919,11 @@ function drawComponent(cmpRank) {
               'boundingbox_y': fullObj['boundingbox_y']};
     var totalElementCount = fullObj['node_count'] +
         (0.5 * fullObj['edge_count']); 
+    // here we scale PROGRESSBAR_FREQ to totalElementCount for the
+    // component to be drawn (see top of file for reference)
+    // As we draw other components later within the same session of the viewer
+    // application, PROGRESSBAR_FREQ will be updated accordingly
+    PROGRESSBAR_FREQ= Math.floor(PROGRESSBAR_FREQ_PERCENT * totalElementCount);
     // We need a fast way to associate node IDs with their x/y positions.
     // This is for calculating edge control point weight/distance.
     // And doing 2 DB queries (src + tgt) for each edge will take a lot of
@@ -974,7 +983,7 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         );
         componentNodeCount += 1;
         CURR_NE += 1;
-        if (CURR_NE % PROGRESS_BAR_UPDATE_FREQ === 0) {
+        if (CURR_NE % PROGRESSBAR_FREQ === 0) {
             updateProgressBar((CURR_NE / totalElementCount) * 100);
             window.setTimeout(function() {
                 drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
@@ -991,6 +1000,10 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
     else {
         nodesStmt.free();
         // Second part of "iterative" graph drawing: draw all nodes
+        // For what it's worth: This next line (endBatch()) actually draws all
+        // nodes, giving the user the appearance of the progress bar slowing
+        // down significantly at this point. Not sure if there's a way to
+        // circumvent this?
         cy.endBatch();
         cy.fit();
         updateTextStatus("Drawing edges...");
@@ -1035,7 +1048,7 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
             totalElementCount);
         componentEdgeCount += 1;
         CURR_NE += 0.5;
-        if (CURR_NE % PROGRESS_BAR_UPDATE_FREQ === 0) {
+        if (CURR_NE % PROGRESSBAR_FREQ === 0) {
             updateProgressBar((CURR_NE / totalElementCount) * 100);
             window.setTimeout(function() {
                 drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
