@@ -133,6 +133,20 @@ def safe_file_remove(filepath):
             # error to inform the user.
             raise
 
+# Right off the bat, check if the .db file name causes an error somehow.
+# (See check_file_existence() for possible causes.)
+# This prevents us from doing a lot of work and then realizing that due to the
+# nature of the .db file name we can't continue.
+# Yeah, there is technically a race condition here where the user/some process
+# could create a file with the same .db name in between us checking for its
+# existence here/etc. and us actually connecting to the .db file using SQLite.
+# However, as is detailed below, that doesn't really matter -- SQLite will
+# handle that condition suitably.
+db_fullfn = os.path.join(dir_fn, db_fn)
+if check_file_existence(db_fullfn):
+    # The user asked to overwrite this database via -w, so remove it
+    safe_file_remove(db_fullfn)
+
 def dfs(n, seen_nodes):
     """Recursively runs depth-first search, starting at node n.
 
@@ -670,11 +684,7 @@ operation_msg(config.DB_INIT_MSG + "%s..." % (db_fn))
 # Now that we've done all our processing on the assembly graph, we create the
 # output file: a SQLite database in which we store biological and graph layout
 # information. This will be opened in the Javascript graph viewer.
-db_fullfn = os.path.join(dir_fn, db_fn)
-if check_file_existence(db_fullfn):
-    # The user asked to overwrite this database via -w, so remove it
-    safe_file_remove(db_fullfn)
-
+#
 # Note that there's technically a race condition here, but SQLite handles
 # itself so well that we don't need to bother catching it. If, somehow, a
 # file with the name db_fullfn is created in between when we run
