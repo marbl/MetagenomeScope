@@ -107,10 +107,11 @@ def check_file_existence(filepath):
        message to the user here, before we even try to open the file.
     """
     if os.path.exists(filepath):
+        basename = os.path.basename(filepath)
         if os.path.isdir(filepath):
-            raise IOError, "%s is a directory" % (filepath)
+            raise IOError, "%s is a directory" % (basename)
         if not overwrite:
-            raise IOError, "%s already exists and -w is not set" % (filepath)
+            raise IOError, "%s already exists and -w is not set" % (basename)
         return True
     return False
 
@@ -237,7 +238,7 @@ def n50(node_lengths):
     # Return length of shortest node that was used in the running sum
     return sorted_lengths[i - 1]
 
-def save_aux_file(aux_filename, source):
+def save_aux_file(aux_filename, source, layout_msg_printed):
     """Given a filename and a source of "input" for the file, writes to that
        file (using check_file_existence() and safe_file_remove() accordingly).
 
@@ -247,6 +248,15 @@ def save_aux_file(aux_filename, source):
 
        Otherwise, we assume that source is just a string of text to write
        to the file.
+
+       If check_file_existence() gives us an error, we just don't save the
+       aux file in particular. We print an error message accordingly (its
+       formatting depends partly on whether or not a layout message for
+       the current component was printed (given here as layout_msg_printed,
+       a boolean variable) -- if so (i.e. layout_msg_printed is True), the
+       error message here is printed on a explicit newline and followed
+       by a trailing newline. Otherwise, the error message here is just printed
+       with a trailing newline.
     """
     fullfn = os.path.join(dir_fn, aux_filename)
     ex = None
@@ -254,7 +264,12 @@ def save_aux_file(aux_filename, source):
         ex = check_file_existence(fullfn)
     except IOError, e:
         # Don't save this file, but continue the script's execution
-        print "Not saving %s: %s" % (fullfn, e)
+        if layout_msg_printed:
+            operation_msg("\nNot saving %s: %s" % (aux_filename, e), \
+                newline=True)
+        else:
+            operation_msg("Not saving %s: %s" % (aux_filename, e), \
+                newline=True)
     else:
         if ex:
             safe_file_remove(fullfn)
@@ -264,14 +279,15 @@ def save_aux_file(aux_filename, source):
             else:
                 file_obj.write(source)
 
-def operation_msg(message):
-    """Prints a message (no trailing newline) and then flushes stdout.
+def operation_msg(message, newline=False):
+    """Prints a message (by default, no trailing newline), then flushes stdout.
 
        Flushing stdout helps to ensure that the user sees the message (even
        if it is followed by a long operation in this program). The trailing
        newline is intended for use with conclude_msg(), defined below.
     """
-    print message,
+    if newline: print message
+    else: print message,
     stdout.flush()
 
 def conclude_msg(message="Done."):
@@ -708,6 +724,10 @@ conclude_msg()
 # Conclusion of script: Output (desired) components of nodes to the .gv file
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
 no_print = False # used to reduce excess printing (see issue #133 on GitHub)
+# used in a silly corner case in which we 1) trigger the small component
+# message below and 2) the first "small" component has aux file(s) that cannot
+# be saved.
+first_small_component = False 
 for component in connected_components[:config.MAX_COMPONENTS]:
     # Since the component list is in descending order, if the current
     # component has less than config.MIN_COMPONENT_SIZE nodes then we're
@@ -715,9 +735,11 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     component_node_ct = len(component.node_list)
     if component_node_ct < config.MIN_COMPONENT_SIZE:
         break
+    first_small_component = False
     if not no_print:
         if component_node_ct < 5:
             no_print = True
+            first_small_component = True
             # The current component is included in the small component count
             small_component_ct= total_component_count - component_size_rank + 1
             comp_noun = "components" if small_component_ct > 1 else "component"
@@ -754,8 +776,9 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     gv_input += "}"
     h = pygraphviz.AGraph(gv_input)
     # save the .gv file if the user requested .gv preservation
+    layout_msg_printed = (not no_print) or first_small_component
     if preserve_gv:
-        save_aux_file(component_prefix + ".gv", gv_input)
+        save_aux_file(component_prefix + ".gv", gv_input, layout_msg_printed)
 
     # lay out the graph in .xdot -- this step is the main bottleneck in the
     # python side of AsmViz
@@ -765,7 +788,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         # AGraph.draw() doesn't perform graph positioning if layout()
         # has already been called on the given AGraph and no prog is
         # specified -- so this should be relatively fast
-        save_aux_file(component_prefix + ".xdot", h)
+        save_aux_file(component_prefix + ".xdot", h, layout_msg_printed)
 
     # Record the layout information of the graph's nodes, edges, and clusters
 
