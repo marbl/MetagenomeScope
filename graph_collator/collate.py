@@ -264,6 +264,25 @@ def save_aux_file(aux_filename, source):
             else:
                 file_obj.write(source)
 
+def operation_msg(message):
+    """Prints a message (no trailing newline) and then flushes stdout.
+
+       Flushing stdout helps to ensure that the user sees the message (even
+       if it is followed by a long operation in this program). The trailing
+       newline is intended for use with conclude_msg(), defined below.
+    """
+    print message,
+    stdout.flush()
+
+def conclude_msg(message="Done."):
+    """Prints a message indicating that a long operation was just finished.
+       
+       This message will usually be appended on to the end of the previous
+       printed text (due to use of operation_msg), to save vertical terminal
+       space (and look a bit fancy).
+    """       
+    print message
+
 # Maps Node ID (as int) to the Node object in question
 # This is nice, since it allows us to do things like nodeid2obj.values()
 # to get a list of every Node object that's been processed
@@ -285,8 +304,8 @@ bp_length_list = []
 # Below "with" block parses the assembly file.
 # Please consult the README for the most accurate list of assembly graph
 # filetypes supported.
-print "Reading and parsing input file %s..." % (os.path.basename(asm_fn)),
-stdout.flush()
+operation_msg("Reading and parsing input file %s..." % \
+    (os.path.basename(asm_fn)))
 with open(asm_fn, 'r') as assembly_file:
     # We don't really care about case in file extensions
     lowercase_asm_fn = asm_fn.lower()
@@ -518,7 +537,7 @@ with open(asm_fn, 'r') as assembly_file:
                 total_edge_count += 1
     else:
         raise ValueError, "Invalid input filetype"
-print "Done."
+conclude_msg()
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
 # This means that graph_filetype, total_node_count, total_edge_count,
@@ -532,8 +551,7 @@ print "Done."
 # We apply "precedence" here: identify all bubbles, then frayed ropes, then
 # cycles, then chains. A TODO is making that precedence configurable
 # (and generalizing this code to get rid of redundant stuff, maybe?)
-print "Looking for bubbles in the graph...",
-stdout.flush()
+operation_msg("Looking for bubbles in the graph...")
 nodes_to_try_collapsing = nodeid2obj.values()
 nodes_to_draw = []
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
@@ -547,8 +565,8 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
         nodes_to_draw.append(new_bubble)
         clusterid2obj[new_bubble.id_string] = new_bubble
 
-print "Done.\nLooking for frayed ropes in the graph...",
-stdout.flush()
+conclude_msg()
+operation_msg("Looking for frayed ropes in the graph...")
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a rope
     if n.used_in_collapsing or len(n.outgoing_nodes) != 1:
         # If n doesn't lead to a single node, it couldn't be a rope start
@@ -560,8 +578,8 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a rope
         nodes_to_draw.append(new_rope)
         clusterid2obj[new_rope.id_string] = new_rope
 
-print "Done.\nLooking for cyclic chains in the graph...",
-stdout.flush()
+conclude_msg()
+operation_msg("Looking for cyclic chains in the graph...")
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a cycle
     if n.used_in_collapsing:
         continue
@@ -572,8 +590,8 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a cycle
         nodes_to_draw.append(new_cycle)
         clusterid2obj[new_cycle.id_string] = new_cycle
 
-print "Done.\nLooking for chains in the graph...",
-stdout.flush()
+conclude_msg()
+operation_msg("Looking for chains in the graph...")
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a chain
     if n.used_in_collapsing or len(n.outgoing_nodes) != 1:
         # If n doesn't lead to a single node, it couldn't be a chain start
@@ -585,7 +603,7 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a chain
         nodes_to_draw.append(new_chain)
         clusterid2obj[new_chain.id_string] = new_chain
 
-print "Done."
+conclude_msg()
 # Add individual (not used in collapsing) nodes to the nodes_to_draw list
 # We could build this list up at the start and then gradually remove nodes as
 # we use nodes in collapsing, but remove() is an O(n) operation so that'd make
@@ -599,8 +617,7 @@ for n in nodes_to_try_collapsing:
 # NOTE that nodes_to_draw only contains node groups and nodes that aren't in
 # node groups. This allows us to run DFS on the nodes "inside" the node
 # groups, preserving the groups' existence while not counting them in DFS.
-print "Identifying connected components within the graph...",
-stdout.flush()
+operation_msg("Identifying connected components within the graph...")
 connected_components = []
 for n in nodes_to_draw:
     if not n.seen_in_ccomponent and not n.is_subsumed:
@@ -632,10 +649,9 @@ for n in nodes_to_draw:
             graph_objects.Component(node_list, node_group_list))
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
-print "Done."
+conclude_msg()
 
-print "Initializing output file %s..." % (output_fn + ".db"),
-stdout.flush()
+operation_msg("Initializing output file %s..." % (output_fn + ".db"))
 # Now that we've done all our processing on the assembly graph, we create the
 # output file: a SQLite database in which we store biological and graph layout
 # information. This will be opened in the Javascript graph viewer.
@@ -687,7 +703,7 @@ graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
             total_edge_count, total_component_count, total_length,
             n50(bp_length_list), assembly_gc(total_gc_nt_count, total_length))
 cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?)", graphVals)    
-print "Done."
+conclude_msg()
 
 # Conclusion of script: Output (desired) components of nodes to the .gv file
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
@@ -705,12 +721,11 @@ for component in connected_components[:config.MAX_COMPONENTS]:
             # The current component is included in the small component count
             small_component_ct= total_component_count - component_size_rank + 1
             comp_noun = "components" if small_component_ct > 1 else "component"
-            print "Laying out %d " % (small_component_ct) + "small " + \
-                "(containing < 5 nodes) remaining %s..." % (comp_noun),
-            stdout.flush()
+            operation_msg("Laying out %d " % (small_component_ct) + \
+                "small (containing < 5 nodes) remaining %s..." % (comp_noun))
         else:
-            print config.START_LAYOUT_MSG + "%d..." % (component_size_rank),
-            stdout.flush()
+            operation_msg(config.START_LAYOUT_MSG + "%d..." % \
+                (component_size_rank))
 
     # OK, we're displaying this component.
     # Get the node info (for both normal nodes and clusters), and the edge
@@ -904,7 +919,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
             curr_edge.db_values())
 
     if not no_print:
-        print "Done."
+        conclude_msg()
     # Output component information to the database
     cursor.execute("""INSERT INTO components VALUES (?,?,?,?,?,?)""",
         (component_size_rank, component_node_count, component_edge_count,
@@ -915,11 +930,10 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     component_size_rank += 1
 
 if no_print:
-    print "Done."
+    conclude_msg()
 
-print "Saving information to %s..." % (output_fn + ".db"),
-stdout.flush()
+operation_msg("Saving information to %s..." % (output_fn + ".db"))
 connection.commit()
-print "Done."
+conclude_msg()
 # Close the database connection
 connection.close()
