@@ -99,7 +99,7 @@ GLOBALEDGE_STYLE = "headport=n,tailport=s"
 # Style applied (directly) to every cluster in the graph.
 GLOBALCLUSTER_STYLE = "margin=0"
 
-# Various messages/message prefixes that are displayed to the user.
+# Various status messages/message prefixes that are displayed to the user.
 BUBBLE_SEARCH_MSG = "Looking for bubbles in the graph..."
 FRAYEDROPE_SEARCH_MSG = "Looking for frayed ropes in the graph..."
 CYCLE_SEARCH_MSG = "Looking for cyclic chains in the graph..."
@@ -113,6 +113,19 @@ SMALL_COMPONENTS_MSG = "small (containing < 5 nodes) remaining components..."
 START_LAYOUT_MSG = "Laying out connected component "
 DB_SAVE_MSG = "Saving information to "
 DONE_MSG = "Done."
+# Error messages (and occasional "helper" messages for constructing error msgs)
+SEQ_NOUN = "Sequence "
+NO_DNA_ERR = " does not contain a DNA sequence"
+FILETYPE_ERR = "Invalid input filetype; see README for accepted file types"
+EDGE_CTRL_PT_ERR = "Invalid edge control points for"
+NO_FN_ERR = "No filename provided for "
+ARG_ERR = "Invalid argument: "
+NO_FN_PROVIDED_ERR = "No input and/or output file name provided"
+EXISTS_AS_NON_DIR_ERR = " already exists as a non-directory file"
+IS_DIR_ERR = " is a directory"
+EXISTS_ERR = " already exists and -w is not set"
+EMPTY_LIST_N50_ERR = "N50 of an empty list does not exist"
+N50_CALC_ERR = "N50 calculation error"
 
 # The filename suffixes indicating a file is of a certain type.
 # Ideally, we should be able to detect what filetype an assembly file is by

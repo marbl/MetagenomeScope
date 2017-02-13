@@ -371,7 +371,7 @@ class NodeGroup(Node):
             coord_list = ctrl_pt_str.split()
             # If len(coord_list) % 2 != 0 something has gone quite wrong
             if len(coord_list) % 2 != 0:
-                raise ValueError, "Invalid edge control points for", curr_edge
+                raise ValueError, config.EDGE_CTRL_PT_ERR, curr_edge
             curr_edge.xdot_ctrl_pt_count = len(coord_list) / 2
             curr_edge.xdot_rel_ctrl_pt_str = ""
             p = 0

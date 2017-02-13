@@ -40,7 +40,7 @@ for arg in argv[1:]:
         # If this is the last argument, then no filename is given.
         # This is obviously invalid. (This allows us to avoid out of bounds
         # errors when accessing argv[i + 1].)
-        raise ValueError, "No filename provided for %s" % (arg)
+        raise ValueError, config.NO_FN_ERR + arg
     if arg == "-i":
         asm_fn = argv[i + 1]
     elif arg == "-o":
@@ -63,11 +63,11 @@ for arg in argv[1:]:
         # then it must be a filename passed to -i, -o, or -d.
         # If it isn't (what this elif case checks for), 
         # then the argument is invalid and we need to raise an error.
-        raise ValueError, "Invalid argument: %s" % (arg)
+        raise ValueError, config.ARG_ERR + arg
     i += 1
 
 if asm_fn == "" or output_fn == "":
-    raise ValueError, "No input and/or output file name provided"
+    raise ValueError, config.NO_FN_PROVIDED_ERR
 
 if dir_fn == "":
     dir_fn = os.getcwd()
@@ -76,7 +76,7 @@ try:
     os.makedirs(dir_fn)
 except:
     if not os.path.isdir(dir_fn):
-        raise IOError, "%s already exists as a non-directory file" % (dir_fn)
+        raise IOError, dir_fn + config.EXISTS_AS_NON_DIR_ERR
 
 # Assign flags for file creation
 if overwrite:
@@ -111,9 +111,9 @@ def check_file_existence(filepath):
     if os.path.exists(filepath):
         basename = os.path.basename(filepath)
         if os.path.isdir(filepath):
-            raise IOError, "%s is a directory" % (basename)
+            raise IOError, basename + config.IS_DIR_ERR
         if not overwrite:
-            raise IOError, "%s already exists and -w is not set" % (basename)
+            raise IOError, basename + config.EXISTS_ERR
         return True
     return False
 
@@ -226,7 +226,7 @@ def n50(node_lengths):
     """
 
     if len(node_lengths) == 0:
-        raise ValueError, "N50 of an empty list does not exist"
+        raise ValueError, config.EMPTY_LIST_N50_ERR
     sorted_lengths = sorted(node_lengths, reverse=True)
     i = 0
     running_sum = 0
@@ -234,7 +234,7 @@ def n50(node_lengths):
     while running_sum < half_total_length:
         if i >= len(sorted_lengths):
             # This should never happen, but just in case
-            raise IndexError, "N50 calculation error"
+            raise IndexError, config.N50_CALC_ERR
         running_sum += sorted_lengths[i]
         i += 1
     # Return length of shortest node that was used in the running sum
@@ -519,9 +519,8 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_gc, gc_ct = gc_content(curr_node_dnafwd)
                     total_gc_nt_count += (2 * gc_ct)
                 else:
-                    raise ValueError, \
-                        "Sequence %s does not contain a DNA sequence" % \
-                            (curr_node_id)
+                    errmsg = config.SEQ_NOUN + curr_node_id + config.NO_DNA_ERR
+                    raise ValueError, errmsg
                 if not use_dna:
                     curr_node_dnafwd = None
                     curr_node_dnarev = None
@@ -552,7 +551,7 @@ with open(asm_fn, 'r') as assembly_file:
                 # Update stats
                 total_edge_count += 1
     else:
-        raise ValueError, "Invalid input filetype"
+        raise ValueError, config.FILETYPE_ERR
 conclude_msg()
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
@@ -929,7 +928,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         coord_list = curr_edge.xdot_ctrl_pt_str.split()
         # If len(coord_list) % 2 != 0 something has gone quite wrong
         if len(coord_list) % 2 != 0:
-            raise ValueError, "Invalid edge control points for", curr_edge
+            raise ValueError, config.EDGE_CTRL_PT_ERR, curr_edge
         curr_edge.xdot_ctrl_pt_count = len(coord_list) / 2
         # Try to expand the component bounding box
         p = 0
