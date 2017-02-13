@@ -281,7 +281,8 @@ class NodeGroup(Node):
         self.cy_id_string = "%s" % (group_prefix)
         self.nodes = []
         self.edges = []
-        childid2obj = {}
+        # dict that maps node id_strings to the corresponding Node objects
+        self.childid2obj = {}
         for n in nodes:
             self.node_count += 1
             self.bp += n.bp
@@ -290,25 +291,22 @@ class NodeGroup(Node):
             self.nodes.append(n)
             n.used_in_collapsing = True
             n.group = self
-            childid2obj[n.id_string] = n
+            self.childid2obj[n.id_string] = n
         self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
         self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
         self.xdot_c_width = 0
         self.xdot_c_height = 0
-        self.layout_isolated(childid2obj)
         self.xdot_left = None
         self.xdot_bottom = None
         self.xdot_right = None
         self.xdot_top = None
         super(NodeGroup, self).__init__(self.gv_id_string, self.bp, False)
 
-    def layout_isolated(self, childid2obj):
+    def layout_isolated(self):
         """Lays out this node group by itself. Stores layout information in
            the attributes of both this NodeGroup object and its child
            nodes/edges.
 
-           childid2obj is a dict that maps node id_strings to the corresponding
-           Node objects, by the way.
         """
         # pipe .gv into pygraphviz to lay out this node group
         gv_input = ""
@@ -350,7 +348,7 @@ class NodeGroup(Node):
         # graph (cg)'s nodes -- same result, since the only nodes in the graph
         # are in the subgraph.
         for n in cg.nodes():
-            curr_node = childid2obj[str(n)]
+            curr_node = self.childid2obj[str(n)]
             # Record the relative position (within the node group's bounding
             # box) of this child node.
             ep = n.attr[u'pos'].split(',')
@@ -362,7 +360,7 @@ class NodeGroup(Node):
         # Obtain edge layout info
         for e in cg.edges():
             self.edge_count += 1
-            source_node = childid2obj[str(e[0])]
+            source_node = self.childid2obj[str(e[0])]
             curr_edge = source_node.outgoing_edge_objects[str(e[1])]
             self.edges.append(curr_edge)
             pt_start = e.attr[u'pos'].index(" ") + 1

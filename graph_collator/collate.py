@@ -760,6 +760,9 @@ for component in connected_components[:config.MAX_COMPONENTS]:
             operation_msg(config.START_LAYOUT_MSG + "%d..." % \
                 (component_size_rank))
 
+    # Lay out all clusters individually, to be backfilled
+    for ng in component.node_group_list:
+        ng.layout_isolated()
     # OK, we're displaying this component.
     # Get the node info (for both normal nodes and clusters), and the edge
     # info (obtained by just getting the outgoing edge list for each normal
