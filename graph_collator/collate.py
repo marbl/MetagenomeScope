@@ -7,7 +7,7 @@
 # For usage information, please see README.md in the root directory of AsmViz.
 
 # For getting command-line arguments
-from sys import argv
+from sys import argv, stdout
 # For running dot, GraphViz' main layout manager
 import pygraphviz
 # For creating a directory in which we store xdot/gv files, and for file I/O
@@ -285,11 +285,13 @@ bp_length_list = []
 # Below "with" block parses the assembly file.
 # Please consult the README for the most accurate list of assembly graph
 # filetypes supported.
+print "Reading and parsing input file %s..." % (os.path.basename(asm_fn)),
+stdout.flush()
 with open(asm_fn, 'r') as assembly_file:
     # We don't really care about case in file extensions
     lowercase_asm_fn = asm_fn.lower()
     parsing_LastGraph = lowercase_asm_fn.endswith(config.LASTGRAPH_SUFFIX)
-    parsing_GML   = lowercase_asm_fn.endswith(config.GRAPHML_SUFFIX)
+    parsing_GML       = lowercase_asm_fn.endswith(config.GRAPHML_SUFFIX)
     parsing_GFA       = lowercase_asm_fn.endswith(config.GFA_SUFFIX)
     if parsing_LastGraph:
         graph_filetype = "LastGraph"
@@ -516,6 +518,7 @@ with open(asm_fn, 'r') as assembly_file:
                 total_edge_count += 1
     else:
         raise ValueError, "Invalid input filetype"
+print "Done."
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
 # This means that graph_filetype, total_node_count, total_edge_count,
@@ -529,6 +532,8 @@ with open(asm_fn, 'r') as assembly_file:
 # We apply "precedence" here: identify all bubbles, then frayed ropes, then
 # cycles, then chains. A TODO is making that precedence configurable
 # (and generalizing this code to get rid of redundant stuff, maybe?)
+print "Looking for bubbles in the graph...",
+stdout.flush()
 nodes_to_try_collapsing = nodeid2obj.values()
 nodes_to_draw = []
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
@@ -542,6 +547,8 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
         nodes_to_draw.append(new_bubble)
         clusterid2obj[new_bubble.id_string] = new_bubble
 
+print "Done.\nLooking for frayed ropes in the graph...",
+stdout.flush()
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a rope
     if n.used_in_collapsing or len(n.outgoing_nodes) != 1:
         # If n doesn't lead to a single node, it couldn't be a rope start
@@ -553,6 +560,8 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a rope
         nodes_to_draw.append(new_rope)
         clusterid2obj[new_rope.id_string] = new_rope
 
+print "Done.\nLooking for cyclic chains in the graph...",
+stdout.flush()
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a cycle
     if n.used_in_collapsing:
         continue
@@ -563,6 +572,8 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a cycle
         nodes_to_draw.append(new_cycle)
         clusterid2obj[new_cycle.id_string] = new_cycle
 
+print "Done.\nLooking for chains in the graph...",
+stdout.flush()
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a chain
     if n.used_in_collapsing or len(n.outgoing_nodes) != 1:
         # If n doesn't lead to a single node, it couldn't be a chain start
@@ -574,6 +585,7 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a chain
         nodes_to_draw.append(new_chain)
         clusterid2obj[new_chain.id_string] = new_chain
 
+print "Done."
 # Add individual (not used in collapsing) nodes to the nodes_to_draw list
 # We could build this list up at the start and then gradually remove nodes as
 # we use nodes in collapsing, but remove() is an O(n) operation so that'd make
@@ -587,6 +599,8 @@ for n in nodes_to_try_collapsing:
 # NOTE that nodes_to_draw only contains node groups and nodes that aren't in
 # node groups. This allows us to run DFS on the nodes "inside" the node
 # groups, preserving the groups' existence while not counting them in DFS.
+print "Identifying connected components within the graph...",
+stdout.flush()
 connected_components = []
 for n in nodes_to_draw:
     if not n.seen_in_ccomponent and not n.is_subsumed:
@@ -618,7 +632,10 @@ for n in nodes_to_draw:
             graph_objects.Component(node_list, node_group_list))
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
+print "Done."
 
+print "Initializing output file %s..." % (output_fn + ".db"),
+stdout.flush()
 # Now that we've done all our processing on the assembly graph, we create the
 # output file: a SQLite database in which we store biological and graph layout
 # information. This will be opened in the Javascript graph viewer.
@@ -670,6 +687,7 @@ graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
             total_edge_count, total_component_count, total_length,
             n50(bp_length_list), assembly_gc(total_gc_nt_count, total_length))
 cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?)", graphVals)    
+print "Done."
 
 # Conclusion of script: Output (desired) components of nodes to the .gv file
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
@@ -678,15 +696,21 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     # Since the component list is in descending order, if the current
     # component has less than config.MIN_COMPONENT_SIZE nodes then we're
     # done with displaying components
-    if len(component.node_list) < config.MIN_COMPONENT_SIZE:
+    component_node_ct = len(component.node_list)
+    if component_node_ct < config.MIN_COMPONENT_SIZE:
         break
-    if not no_print and len(component.node_list) < 5:
-        no_print = True
-        # The current component is included within the small component count
-        small_component_ct = total_component_count - component_size_rank + 1
-        comp_noun = "components" if small_component_ct > 1 else "component"
-        print "Laying out %d " % (small_component_ct) + "small " + \
-            "(containing < 5 nodes) remaining %s..." % (comp_noun)
+    if not no_print:
+        if component_node_ct < 5:
+            no_print = True
+            # The current component is included in the small component count
+            small_component_ct= total_component_count - component_size_rank + 1
+            comp_noun = "components" if small_component_ct > 1 else "component"
+            print "Laying out %d " % (small_component_ct) + "small " + \
+                "(containing < 5 nodes) remaining %s..." % (comp_noun),
+            stdout.flush()
+        else:
+            print config.START_LAYOUT_MSG + "%d..." % (component_size_rank),
+            stdout.flush()
 
     # OK, we're displaying this component.
     # Get the node info (for both normal nodes and clusters), and the edge
@@ -697,7 +721,6 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     # with the previously-stored biological data.
     node_info, edge_info = component.node_and_edge_info()
     component_prefix = "%s_%d" % (output_fn, component_size_rank)
-
     # NOTE/TODO: Currently, we reduce each component of the asm. graph to a DOT
     # string that we send to pygraphviz. However, we could also send
     # nodes/edges procedurally, using add_edge(), add_node(), etc.
@@ -719,13 +742,9 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     if preserve_gv:
         save_aux_file(component_prefix + ".gv", gv_input)
 
-    if not no_print:
-        print config.START_LAYOUT_MSG + "%d..." % (component_size_rank)
     # lay out the graph in .xdot -- this step is the main bottleneck in the
     # python side of AsmViz
     h.layout(prog='dot')
-    if not no_print:
-        print config.DONE_LAYOUT_MSG + "%d." % (component_size_rank)
     # save the .xdot file if the user requested .xdot preservation
     if preserve_xdot:
         # AGraph.draw() doesn't perform graph positioning if layout()
@@ -734,8 +753,6 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         save_aux_file(component_prefix + ".xdot", h)
 
     # Record the layout information of the graph's nodes, edges, and clusters
-    if not no_print:
-        print config.START_PARSING_MSG + "%d..." % (component_size_rank)
 
     # various stats we build up about the current component as we parse layout
     component_node_count   = 0
@@ -887,7 +904,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
             curr_edge.db_values())
 
     if not no_print:
-        print config.DONE_PARSING_MSG + "%d." % (component_size_rank)
+        print "Done."
     # Output component information to the database
     cursor.execute("""INSERT INTO components VALUES (?,?,?,?,?,?)""",
         (component_size_rank, component_node_count, component_edge_count,
@@ -898,8 +915,11 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     component_size_rank += 1
 
 if no_print:
-    print "Done laying out small components."
+    print "Done."
 
+print "Saving information to %s..." % (output_fn + ".db"),
+stdout.flush()
 connection.commit()
+print "Done."
 # Close the database connection
 connection.close()
