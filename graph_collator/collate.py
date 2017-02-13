@@ -23,6 +23,7 @@ import config
 # Get argument information
 asm_fn = ""
 output_fn = ""
+db_fn = ""
 dir_fn = ""
 preserve_gv = False
 preserve_xdot = False
@@ -44,6 +45,7 @@ for arg in argv[1:]:
         asm_fn = argv[i + 1]
     elif arg == "-o":
         output_fn = argv[i + 1]
+        db_fn = output_fn + ".db"
     elif arg == "-d":
         dir_fn = argv[i + 1]
     elif arg == "-pg":
@@ -264,12 +266,11 @@ def save_aux_file(aux_filename, source, layout_msg_printed):
         ex = check_file_existence(fullfn)
     except IOError, e:
         # Don't save this file, but continue the script's execution
+        msg = config.SAVE_AUX_FAIL_MSG + "%s: %s" % (aux_filename, e)
         if layout_msg_printed:
-            operation_msg("\nNot saving %s: %s" % (aux_filename, e), \
-                newline=True)
+            operation_msg("\n" + msg, newline=True)
         else:
-            operation_msg("Not saving %s: %s" % (aux_filename, e), \
-                newline=True)
+            operation_msg(msg, newline=True)
     else:
         if ex:
             safe_file_remove(fullfn)
@@ -290,7 +291,7 @@ def operation_msg(message, newline=False):
     else: print message,
     stdout.flush()
 
-def conclude_msg(message="Done."):
+def conclude_msg(message=config.DONE_MSG):
     """Prints a message indicating that a long operation was just finished.
        
        This message will usually be appended on to the end of the previous
@@ -320,8 +321,7 @@ bp_length_list = []
 # Below "with" block parses the assembly file.
 # Please consult the README for the most accurate list of assembly graph
 # filetypes supported.
-operation_msg("Reading and parsing input file %s..." % \
-    (os.path.basename(asm_fn)))
+operation_msg(config.READ_FILE_MSG + "%s..." % (os.path.basename(asm_fn)))
 with open(asm_fn, 'r') as assembly_file:
     # We don't really care about case in file extensions
     lowercase_asm_fn = asm_fn.lower()
@@ -567,7 +567,7 @@ conclude_msg()
 # We apply "precedence" here: identify all bubbles, then frayed ropes, then
 # cycles, then chains. A TODO is making that precedence configurable
 # (and generalizing this code to get rid of redundant stuff, maybe?)
-operation_msg("Looking for bubbles in the graph...")
+operation_msg(config.BUBBLE_SEARCH_MSG)
 nodes_to_try_collapsing = nodeid2obj.values()
 nodes_to_draw = []
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
@@ -582,7 +582,7 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
         clusterid2obj[new_bubble.id_string] = new_bubble
 
 conclude_msg()
-operation_msg("Looking for frayed ropes in the graph...")
+operation_msg(config.FRAYEDROPE_SEARCH_MSG)
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a rope
     if n.used_in_collapsing or len(n.outgoing_nodes) != 1:
         # If n doesn't lead to a single node, it couldn't be a rope start
@@ -595,7 +595,7 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a rope
         clusterid2obj[new_rope.id_string] = new_rope
 
 conclude_msg()
-operation_msg("Looking for cyclic chains in the graph...")
+operation_msg(config.CYCLE_SEARCH_MSG)
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a cycle
     if n.used_in_collapsing:
         continue
@@ -607,7 +607,7 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a cycle
         clusterid2obj[new_cycle.id_string] = new_cycle
 
 conclude_msg()
-operation_msg("Looking for chains in the graph...")
+operation_msg(config.CHAIN_SEARCH_MSG)
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a chain
     if n.used_in_collapsing or len(n.outgoing_nodes) != 1:
         # If n doesn't lead to a single node, it couldn't be a chain start
@@ -633,7 +633,7 @@ for n in nodes_to_try_collapsing:
 # NOTE that nodes_to_draw only contains node groups and nodes that aren't in
 # node groups. This allows us to run DFS on the nodes "inside" the node
 # groups, preserving the groups' existence while not counting them in DFS.
-operation_msg("Identifying connected components within the graph...")
+operation_msg(config.COMPONENT_MSG)
 connected_components = []
 for n in nodes_to_draw:
     if not n.seen_in_ccomponent and not n.is_subsumed:
@@ -667,11 +667,11 @@ for n in nodes_to_draw:
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 conclude_msg()
 
-operation_msg("Initializing output file %s..." % (output_fn + ".db"))
+operation_msg(config.DB_INIT_MSG + "%s..." % (db_fn))
 # Now that we've done all our processing on the assembly graph, we create the
 # output file: a SQLite database in which we store biological and graph layout
 # information. This will be opened in the Javascript graph viewer.
-db_fullfn = os.path.join(dir_fn, output_fn + ".db")
+db_fullfn = os.path.join(dir_fn, db_fn)
 if check_file_existence(db_fullfn):
     # The user asked to overwrite this database via -w, so remove it
     safe_file_remove(db_fullfn)
@@ -738,14 +738,16 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     first_small_component = False
     if not no_print:
         if component_node_ct < 5:
-            no_print = True
-            first_small_component = True
             # The current component is included in the small component count
             small_component_ct= total_component_count - component_size_rank + 1
-            comp_noun = "components" if small_component_ct > 1 else "component"
-            operation_msg("Laying out %d " % (small_component_ct) + \
-                "small (containing < 5 nodes) remaining %s..." % (comp_noun))
-        else:
+            if small_component_ct > 1:
+                no_print = True
+                first_small_component = True
+                operation_msg(config.LAYOUT_MSG + \
+                    "%d " % (small_component_ct) + config.SMALL_COMPONENTS_MSG)
+            # If only one small component is left, just treat it as a normal
+            # component: there's no point pointing it out as a small component
+        if not no_print:
             operation_msg(config.START_LAYOUT_MSG + "%d..." % \
                 (component_size_rank))
 
@@ -955,7 +957,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
 if no_print:
     conclude_msg()
 
-operation_msg("Saving information to %s..." % (output_fn + ".db"))
+operation_msg(config.DB_SAVE_MSG + "%s..." % (db_fn))
 connection.commit()
 conclude_msg()
 # Close the database connection

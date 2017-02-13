@@ -99,14 +99,20 @@ GLOBALEDGE_STYLE = "headport=n,tailport=s"
 # Style applied (directly) to every cluster in the graph.
 GLOBALCLUSTER_STYLE = "margin=0"
 
-# Prefixes of certain messages that are output to the user at
-# certain points in the script's processing. Each message is followed by the
-# size rank of the connected component in question, which is in turn followed
-# by some punctuation (either an ellipsis (...) or a period (.)).
+# Various messages/message prefixes that are displayed to the user.
+BUBBLE_SEARCH_MSG = "Looking for bubbles in the graph..."
+FRAYEDROPE_SEARCH_MSG = "Looking for frayed ropes in the graph..."
+CYCLE_SEARCH_MSG = "Looking for cyclic chains in the graph..."
+CHAIN_SEARCH_MSG = "Looking for chains in the graph..."
+COMPONENT_MSG = "Identifying connected components within the graph..."
+READ_FILE_MSG = "Reading and parsing input file "
+DB_INIT_MSG = "Initializing output file "
+SAVE_AUX_FAIL_MSG = "Not saving "
+LAYOUT_MSG = "Laying out "
+SMALL_COMPONENTS_MSG = "small (containing < 5 nodes) remaining components..."
 START_LAYOUT_MSG = "Laying out connected component "
-DONE_LAYOUT_MSG = "Done laying out connected component "
-START_PARSING_MSG = "Parsing layout of connected component "
-DONE_PARSING_MSG = "Done parsing layout of connected component "
+DB_SAVE_MSG = "Saving information to "
+DONE_MSG = "Done."
 
 # The filename suffixes indicating a file is of a certain type.
 # Ideally, we should be able to detect what filetype an assembly file is by
