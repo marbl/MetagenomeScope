@@ -87,10 +87,12 @@ CYCLE_STYLE      = "\tstyle=filled;\n\tfillcolor=darkgoldenrod1;\n"
 GRAPH_STYLE      = "xdotversion=1.7"
 
 # Style applied to every node in the graph.
-# We use fixedsize here because the default node label, "\N", actually makes
-# the node's id/name its label -- so fixedsize prevents this from influencing
-# node dimensions.
-GLOBALNODE_STYLE = "fixedsize=true"
+# Keeping label="" is strongly recommended -- otherwise, node sizes will change
+# to accommodate labels, which throws off the usefulness of scaling to indicate
+# contig/scaffold length. You could set fixedsize=true to allow for labels
+# within the .gv/.xdot output, but that can cause warnings due to the resulting
+# labels not having enough room for certain nodes.
+GLOBALNODE_STYLE = "label=\"\""
 
 # Style applied to every edge in the graph.
 # NOTE: "dir=none" gives "undirected" edges
