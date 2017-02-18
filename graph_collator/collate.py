@@ -78,7 +78,7 @@ except:
     if not os.path.isdir(dir_fn):
         raise IOError, dir_fn + config.EXISTS_AS_NON_DIR_ERR
 
-# Assign flags for file creation
+# Assign flags for auxiliary file creation
 if overwrite:
     flags = os.O_CREAT | os.O_TRUNC | os.O_WRONLY
 else:
@@ -102,11 +102,13 @@ def check_file_existence(filepath):
          opening
 
        We get around this by using os.fdopen() wrapped to os.open() with
-       certain flags (based on whether or not the user passed -w) set. This
-       allows us to guarantee an error will be thrown and no data will be
-       erroneously written in the first two cases, while (for most
-       non-race-condition cases) allowing us to display a detailed error
-       message to the user here, before we even try to open the file.
+       certain flags (based on whether or not the user passed -w) set,
+       for the one place in this script where we directly write to a file
+       (in save_aux_file()). This allows us to guarantee an error will be
+       thrown and no data will be erroneously written in the first two cases,
+       while (for most non-race-condition cases) allowing us to display a
+       detailed error message to the user here, before we even try to open the
+       file.
     """
     if os.path.exists(filepath):
         basename = os.path.basename(filepath)
@@ -123,7 +125,7 @@ def safe_file_remove(filepath):
     """
     try:
         os.remove(filepath)
-    except OSError, error:
+    except OSError as error:
         if error.errno == errno.ENOENT:
             # Something removed the file before we could. That's alright.
             pass
@@ -256,7 +258,7 @@ def n50(node_lengths):
 
 def save_aux_file(aux_filename, source, layout_msg_printed):
     """Given a filename and a source of "input" for the file, writes to that
-       file (using check_file_existence() and safe_file_remove() accordingly).
+       file (using check_file_existence() accordingly).
 
        If aux_filename ends with ".xdot", we assume that source is a
        pygraphviz.AGraph object of which we will write its "drawn" xdot output
@@ -265,7 +267,8 @@ def save_aux_file(aux_filename, source, layout_msg_printed):
        Otherwise, we assume that source is just a string of text to write
        to the file.
 
-       If check_file_existence() gives us an error, we just don't save the
+       If check_file_existence() gives us an error (or if os.open() gives
+       us an error due to the flags we've used), we just don't save the
        aux file in particular. We print an error message accordingly (its
        formatting depends partly on whether or not a layout message for
        the current component was printed (given here as layout_msg_printed,
@@ -273,26 +276,33 @@ def save_aux_file(aux_filename, source, layout_msg_printed):
        error message here is printed on a explicit newline and followed
        by a trailing newline. Otherwise, the error message here is just printed
        with a trailing newline.
+
+       Returns True if the file was written successfully; else, returns False.
     """
     fullfn = os.path.join(dir_fn, aux_filename)
     ex = None
     try:
         ex = check_file_existence(fullfn)
-    except IOError, e:
+        # We use the defined flags (based on whether or not -w was passed)
+        # to ensure some degree of atomicity in our file operations here,
+        # preventing errors whenever possible
+        with os.fdopen(os.open(fullfn, flags, config.AUXMOD), 'w') as file_obj:
+            if aux_filename.endswith(".xdot"):
+                file_obj.write(source.draw(format="xdot"))
+            else:
+                file_obj.write(source)
+        return True
+    except (IOError, OSError) as e:
         # Don't save this file, but continue the script's execution
+        # An IOError indicates check_file_existence failed, and (far less
+        # likely, but still technically possible) an OSError indicates
+        # os.open failed
         msg = config.SAVE_AUX_FAIL_MSG + "%s: %s" % (aux_filename, e)
         if layout_msg_printed:
             operation_msg("\n" + msg, newline=True)
         else:
             operation_msg(msg, newline=True)
-    else:
-        if ex:
-            safe_file_remove(fullfn)
-        with open(fullfn, 'w') as file_obj:
-            if aux_filename.endswith(".xdot"):
-                file_obj.write(source.draw(format="xdot"))
-            else:
-                file_obj.write(source)
+        return False
 
 def operation_msg(message, newline=False):
     """Prints a message (by default, no trailing newline), then flushes stdout.
@@ -806,8 +816,11 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     h = pygraphviz.AGraph(gv_input)
     # save the .gv file if the user requested .gv preservation
     layout_msg_printed = (not no_print) or first_small_component
+    # We use "r" to determine whether or not to print a newline before the
+    # .xdot file error message, if we would print an error message there
+    r = True
     if preserve_gv:
-        save_aux_file(component_prefix + ".gv", gv_input, layout_msg_printed)
+        r=save_aux_file(component_prefix + ".gv", gv_input, layout_msg_printed)
 
     # lay out the graph in .xdot -- this step is the main bottleneck in the
     # python side of AsmViz
@@ -817,6 +830,8 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         # AGraph.draw() doesn't perform graph positioning if layout()
         # has already been called on the given AGraph and no prog is
         # specified -- so this should be relatively fast
+        if not r:
+            layout_msg_printed = False
         save_aux_file(component_prefix + ".xdot", h, layout_msg_printed)
 
     # Record the layout information of the graph's nodes, edges, and clusters

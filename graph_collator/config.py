@@ -5,6 +5,7 @@
 # right of each variable.
 
 from math import sqrt
+import stat
 
 # This really shouldn't be messed with. Defines a dict of nucleotides to their
 # complements that we can use when getting the reverse complement of a sequence
@@ -14,6 +15,10 @@ COMPLEMENT = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
 # by GraphViz. By default GraphViz uses 72 points per inch, so changing this is
 # not recommended. (This must be a float.)
 POINTS_PER_INCH = 72.0
+
+# File mode used for auxiliary files (.gv/.xdot)
+# This should match up with the defaults on most systems.
+AUXMOD = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
 
 # NOTE that changing MAX_COMPONENTS or MIN_COMPONENT_SIZE will result in
 # strange behavior with those component ranks in the AsmViz viewer (see
@@ -42,7 +47,6 @@ MAX_COMPONENTS = None
 # or MAX_COMPONENTS > 2, only the first two connected components will be
 # displayed.
 MIN_COMPONENT_SIZE = 1
-
 # These are used directly in GraphViz, so they're in "inches". Granted, the
 # .xdot file from GraphViz is used in the AsmViz viewer in Cytoscape.js, so
 # "inches" are really an intermediate unit from our perspective.
