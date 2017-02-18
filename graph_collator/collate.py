@@ -375,11 +375,13 @@ with open(asm_fn, 'r') as assembly_file:
                 nid2 = negate_node_id(id2)
                 nid1 = negate_node_id(id1)
                 mult = int(a[3])
-                nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2], mult)
+                nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2],
+                        multiplicity=mult)
                 # Only add implied edge if the edge does not imply itself
                 # (see issue #105 on GitHub for context)
                 if not (id1 == nid2 and id2 == nid1):
-                    nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1], mult)
+                    nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1],
+                            multiplicity=mult)
                 # Record this edge for graph statistics
                 total_edge_count += 1
             elif parsing_node:
@@ -451,6 +453,8 @@ with open(asm_fn, 'r') as assembly_file:
         parsing_edge = False
         curr_edge_src_id = None
         curr_edge_tgt_id = None
+        curr_edge_orientation = None
+        curr_edge_bundlesize = None
         for line in assembly_file:
             # Record node attributes/detect end of node declaration
             if parsing_node:
@@ -484,14 +488,24 @@ with open(asm_fn, 'r') as assembly_file:
                 elif line.startswith("   target"):
                     l = line.split()
                     curr_edge_tgt_id = l[1]
+                elif line.startswith("   orientation"):
+                    l = line.split()
+                    curr_edge_orientation = l[1].strip('"')
+                elif line.startswith("   bsize"):
+                    l = line.split()
+                    curr_edge_bundlesize = int(l[1])
                 elif line.endswith("]\n"):
                     nodeid2obj[curr_edge_src_id].add_outgoing_edge(
-                            nodeid2obj[curr_edge_tgt_id])
+                            nodeid2obj[curr_edge_tgt_id],
+                            orientation=curr_edge_orientation,
+                            bundlesize=curr_edge_bundlesize)
                     total_edge_count += 1
                     # Clear tmp/marker vars
                     parsing_edge = False
                     curr_edge_src_id = None
                     curr_edge_tgt_id = None
+                    curr_edge_orientation = None
+                    curr_edge_bundlesize = None
             # Start parsing node
             elif line.endswith("node [\n"):
                 parsing_node = True
@@ -709,8 +723,9 @@ cursor.execute("""CREATE TABLE nodes
         parent_cluster_id text)""")
 cursor.execute("""CREATE TABLE edges
         (source_id text, target_id text, multiplicity integer,
-        component_rank integer, control_point_string text,
-        control_point_count integer, parent_cluster_id text)""") 
+        orientation text, bundlesize integer, component_rank integer,
+        control_point_string text, control_point_count integer,
+        parent_cluster_id text)""") 
 cursor.execute("""CREATE TABLE clusters (cluster_id text,
         component_rank integer, left real, bottom real, right real,
         top real)""")
@@ -918,7 +933,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
                     e.xdot_ctrl_pt_str += str(curr_cluster.xdot_bottom + yp)
                     p += 2
                 # Save this edge in the .db
-                cursor.execute("INSERT INTO edges VALUES (?,?,?,?,?,?,?)",
+                cursor.execute("INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?)",
                     e.db_values())
             # Save the cluster in the .db
             curr_cluster.component_size_rank = component_size_rank
@@ -952,7 +967,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
             if y_coord > bounding_box_top: bounding_box_top = y_coord
             p += 2
         # Save this edge in the .db
-        cursor.execute("INSERT INTO edges VALUES (?,?,?,?,?,?,?)",
+        cursor.execute("INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?)",
             curr_edge.db_values())
 
     if not no_print:

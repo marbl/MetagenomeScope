@@ -11,11 +11,14 @@ class Edge(object):
        and, if applicable for this type of assembly file, biological
        metadata (e.g. multiplicity, as given in LastGraph files).
     """
-    def __init__(self, source_id, target_id, multiplicity=None):
+    def __init__(self, source_id, target_id, multiplicity=None,
+            orientation=None, bundlesize=None):
         """Initializes the edge and all of its attributes."""
         self.source_id = source_id
         self.target_id = target_id
         self.multiplicity = multiplicity
+        self.orientation = orientation
+        self.bundlesize = bundlesize
         # For if the edge is an "interior" edge of a node group
         self.group = None
         # Will be replaced with the size rank of the connected component to
@@ -41,8 +44,8 @@ class Edge(object):
         if self.group != None:
             group_id = self.group.cy_id_string
         return (self.source_id, self.target_id, self.multiplicity,
-                self.component_size_rank, self.xdot_ctrl_pt_str,
-                self.xdot_ctrl_pt_count, group_id)
+                self.orientation, self.bundlesize, self.component_size_rank,
+                self.xdot_ctrl_pt_str, self.xdot_ctrl_pt_count, group_id)
 
     def __repr__(self):
         return "Edge from %s to %s" % (self.source_id, self.target_id)
@@ -143,17 +146,19 @@ class Node(object):
         info += "];\n"
         return info
 
-    def add_outgoing_edge(self, node2, multiplicity=None):
+    def add_outgoing_edge(self, node2, multiplicity=None, orientation=None,
+            bundlesize=None):
         """Adds an outgoing edge from this node to another node, and adds an
            incoming edge from the other node referencing this node.
 
-           Also adds an Edge with the given multiplicity data to this node's
+           Also adds an Edge with any specified data to this node's
            dict of outgoing Edge objects.
         """
         self.outgoing_nodes.append(node2)
         node2.incoming_nodes.append(self)
         self.outgoing_edge_objects[node2.id_string] = \
-            Edge(self.id_string, node2.id_string, multiplicity)
+            Edge(self.id_string, node2.id_string, multiplicity, orientation,
+                    bundlesize)
 
     def edge_info(self, constrained_nodes=None):
         """Returns a GraphViz-compatible string containing all information
