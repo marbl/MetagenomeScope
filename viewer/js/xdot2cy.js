@@ -59,6 +59,9 @@ var PROGRESSBAR_FREQ;
 // SIZE = (number of nodes to be drawn) + 0.5*(number of edges to be drawn)
 const PROGRESSBAR_FREQ_PERCENT = 0.05;
 
+// Minimum bundle size needed for us to show an edge
+const MIN_BUNDLE_SIZE = 5;
+
 // Cytoscape.js graph instance
 var cy = null;
 // Numbers of selected elements, and collections of those selected elements.
@@ -1855,6 +1858,12 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     var sourceID = edgeObj['source_id'];
     var targetID = edgeObj['target_id'];
     var multiplicity = edgeObj['multiplicity'];
+    // If bundle sizes are available, then don't show edges with a bundle size
+    // below a certain threshold
+    var bundlesize = edgeObj['bundlesize'];
+    if (bundlesize !== undefined && bundlesize < MIN_BUNDLE_SIZE) {
+        return;
+    }
     // Default edge width setting of Cytoscape.js
     var edgeWidth = 3;
     // This discounts multiplicity data if:
