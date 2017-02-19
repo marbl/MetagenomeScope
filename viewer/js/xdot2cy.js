@@ -774,6 +774,8 @@ function disableVolatileControls() {
     disableButton("xmlFileselectButton");
     disableButton("drawButton");
     $("#searchInput").prop("disabled", true);
+    $("#layoutInput").prop("disabled", true);
+    disableButton("layoutButton");
     disableButton("searchButton");
     disableButton("collapseButton");
     disableButton("fitSelectedButton");
@@ -1114,6 +1116,8 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     enableButton("xmlFileselectButton");
     enableButton("drawButton");
     $("#searchInput").prop("disabled", false);
+    $("#layoutInput").prop("disabled", false);
+    enableButton("layoutButton");
     enableButton("searchButton");
     enableButton("fitButton");
     enableButton("exportImageButton");
@@ -1342,6 +1346,32 @@ function exportGraphView() {
     }
     else {
         window.open(cy.jpg(), "_blank");
+    }
+}
+
+// Like searchWithEnter() but for testLayout()
+function layoutWithEnter(e) {
+    if (e.charCode === 13) {
+        testLayout();
+    }
+}
+
+// Allows user to test one of Cytoscape.js' predefined layouts
+function testLayout() {
+    if ($("#layoutInput").val() !== "") {
+        startIndeterminateProgressBar();
+        window.setTimeout(function() {
+            // Change to simple bezier edges, since node placement
+            // will be changed
+            cy.filter("edge.unbundledbezier").each(
+                function(i,e) {
+                    e.removeClass("unbundledbezier");
+                    e.addClass("basicbezier");
+                }
+            );
+            cy.layout({name: $("#layoutInput").val()});
+            finishProgressBar();
+        }, 20);
     }
 }
 

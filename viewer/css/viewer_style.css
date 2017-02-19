@@ -92,3 +92,12 @@ html, body {
     -o-transition: none;
     -ms-transition: none;
 }
+.actuallyalink:link {
+    color: #700; 
+}
+.actuallyalink:visited {
+    color: #700; 
+}
+.monospace {
+    font-family: monospace;
+}
