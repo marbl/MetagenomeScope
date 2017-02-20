@@ -468,13 +468,13 @@ with open(asm_fn, 'r') as assembly_file:
         for line in assembly_file:
             # Record node attributes/detect end of node declaration
             if parsing_node:
-                if line.startswith("   id"):
+                if line.strip().startswith("id"):
                     l = line.split()
                     curr_node_id = l[1]
-                elif line.startswith("   orientation"):
+                elif line.strip().startswith("orientation"):
                     l = line.split()
                     curr_node_orientation = l[1] # either "FOW" or "REV"
-                elif line.startswith("   length"):
+                elif line.strip().startswith("length"):
                     # fetch value from length attribute
                     l = line.split()
                     curr_node_bp = int(l[1].strip("\""))
@@ -492,16 +492,16 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_bp = 0
                     curr_node_orientation = None
             elif parsing_edge:
-                if line.startswith("   source"):
+                if line.strip().startswith("source"):
                     l = line.split()
                     curr_edge_src_id = l[1]
-                elif line.startswith("   target"):
+                elif line.strip().startswith("target"):
                     l = line.split()
                     curr_edge_tgt_id = l[1]
-                elif line.startswith("   orientation"):
+                elif line.strip().startswith("orientation"):
                     l = line.split()
                     curr_edge_orientation = l[1].strip('"')
-                elif line.startswith("   bsize"):
+                elif line.strip().startswith("bsize"):
                     l = line.split()
                     curr_edge_bundlesize = int(l[1])
                 elif line.endswith("]\n"):
