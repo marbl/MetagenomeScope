@@ -1891,7 +1891,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     // If bundle sizes are available, then don't show edges with a bundle size
     // below a certain threshold
     var bundlesize = edgeObj['bundlesize'];
-    if (bundlesize !== undefined && bundlesize < MIN_BUNDLE_SIZE) {
+    if (bundlesize !== null && bundlesize < MIN_BUNDLE_SIZE) {
         return;
     }
     // Default edge width setting of Cytoscape.js
