@@ -110,12 +110,6 @@ function initGraph() {
             {
                 selector: 'node',
                 style: {
-                    label: 'data(id)',
-                    // rendering text is computationally expensive, so if
-                    // we're zoomed out so much that the text would be
-                    // illegible (or hard-to-read, at least) then don't
-                    // render the text.
-                    'min-zoomed-font-size': 12,
                     width: 'data(w)',
                     height: 'data(h)'
                 }
@@ -168,6 +162,12 @@ function initGraph() {
             {
                 selector: 'node.noncluster',
                 style: {
+                    label: 'data(id)',
+                    // rendering text is computationally expensive, so if
+                    // we're zoomed out so much that the text would be
+                    // illegible (or hard-to-read, at least) then don't
+                    // render the text.
+                    'min-zoomed-font-size': 12,
                     shape: 'polygon',
                     'shape-polygon-points': 'data(polypts)',
                     'background-color': 'data(bg_color)'
