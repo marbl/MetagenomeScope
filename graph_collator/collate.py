@@ -8,6 +8,8 @@
 
 # For getting command-line arguments
 from sys import argv, stdout
+# For running the C++ spqr script binary
+from subprocess import check_output, STDOUT
 # For running dot, GraphViz' main layout manager
 import pygraphviz
 # For creating a directory in which we store xdot/gv files, and for file I/O
@@ -57,6 +59,7 @@ for arg in argv[1:]:
     elif arg == "-nodna":
         use_dna = False
     elif arg == "-s":
+        # we don't do anything with this yet (see #10 on GitHub)
         double_graph = False
     elif i == 1 or argv[i - 1] not in ["-i", "-o", "-d"]:
         # If a valid "argument" doesn't match any of the above types,
@@ -256,7 +259,7 @@ def n50(node_lengths):
     # Return length of shortest node that was used in the running sum
     return sorted_lengths[i - 1]
 
-def save_aux_file(aux_filename, source, layout_msg_printed):
+def save_aux_file(aux_filename, source, layout_msg_printed, warnings=True):
     """Given a filename and a source of "input" for the file, writes to that
        file (using check_file_existence() accordingly).
 
@@ -268,14 +271,24 @@ def save_aux_file(aux_filename, source, layout_msg_printed):
        to the file.
 
        If check_file_existence() gives us an error (or if os.open() gives
-       us an error due to the flags we've used), we just don't save the
-       aux file in particular. We print an error message accordingly (its
+       us an error due to the flags we've used), we don't save the
+       aux file in particular. The default behavior (if warnings=True) in this
+       case is to print an error message accordingly (its
        formatting depends partly on whether or not a layout message for
-       the current component was printed (given here as layout_msg_printed,
-       a boolean variable) -- if so (i.e. layout_msg_printed is True), the
+       the current component was printed [given here as layout_msg_printed,
+       a boolean variable] -- if so [i.e. layout_msg_printed is True], the
        error message here is printed on a explicit newline and followed
        by a trailing newline. Otherwise, the error message here is just printed
-       with a trailing newline.
+       with a trailing newline).
+       
+       However, if warnings=False and we get an error from either possible
+       source (check_file_existence() or os.open()) then this will
+       throw an error. Setting warnings=False should only be done for
+       operations that are required to generate a .db file -- care should be
+       taken to ensure that .db files aren't partially created before trying
+       save_aux_file with warnings=False, since that could result in an
+       incomplete .db file being generated (which might confuse users).
+       If warnings=False, then the value of layout_msg_printed is not used.
 
        Returns True if the file was written successfully; else, returns False.
     """
@@ -293,11 +306,14 @@ def save_aux_file(aux_filename, source, layout_msg_printed):
                 file_obj.write(source)
         return True
     except (IOError, OSError) as e:
-        # Don't save this file, but continue the script's execution
         # An IOError indicates check_file_existence failed, and (far less
         # likely, but still technically possible) an OSError indicates
         # os.open failed
         msg = config.SAVE_AUX_FAIL_MSG + "%s: %s" % (aux_filename, e)
+        if not warnings:
+            raise type(e), msg
+        # If we're here, then warnings = True.
+        # Don't save this file, but continue the script's execution.
         if layout_msg_printed:
             operation_msg("\n" + msg, newline=True)
         else:
@@ -607,16 +623,72 @@ conclude_msg()
 operation_msg(config.BUBBLE_SEARCH_MSG)
 nodes_to_try_collapsing = nodeid2obj.values()
 nodes_to_draw = []
-for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
-    if n.used_in_collapsing or len(n.outgoing_nodes) <= 1:
-        # If n doesn't lead to multiple nodes, it couldn't be a bubble start
-        continue
-    bubble_validity, member_nodes = graph_objects.Bubble.is_valid_bubble(n)
-    if bubble_validity:
-        # Found a bubble!
-        new_bubble = graph_objects.Bubble(*member_nodes)
+
+# Use the SPQR tree decomposition code to locate bubbles within the graph
+# The input for this is a list of edges in the graph
+edges_fn = output_fn + "_links"
+edges_fn_text = ""
+for n in nodes_to_try_collapsing:
+    for e in n.outgoing_nodes:
+        line = n.id_string + "\tB\t" + e.id_string + "\tB\t0\t0\t0\n"
+        edges_fn_text += line
+save_aux_file(edges_fn, edges_fn_text, False, warnings=False)
+edges_fullfn = os.path.join(dir_fn, edges_fn)
+bicmps_fullfn = os.path.join(dir_fn, output_fn + "_bicmps")
+if check_file_existence(bicmps_fullfn):
+    safe_file_remove(bicmps_fullfn)
+# Get the location of the spqr script -- it should be in the same directory as
+# collate.py, i.e. the currently running python script
+spqr_fullfn = os.path.join(os.path.dirname(os.path.realpath(__file__)), "spqr")
+# TODO may need to change this to work on Windows machines
+spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-o", bicmps_fullfn]
+# Some of the spqr script's output is sent to stderr, so we merge that with
+# the output. Note that we don't really check the output of this, although
+# we could if the need arises -- the main purpose of using check_output() here
+# is to catch all the printed output of the spqr script.
+# NOTE that this is ostensibly vulnerable to a silly race condition in
+# which some process creates a file with the exact filename of bicmps_fullfn
+# after we call check_file_existence but before the spqr script begins
+# outputting to that. We prevent this race condition with .db, .gv, and .xdot
+# file outputs by using os.open(), but here that isn't really an option.
+# In any case, I doubt this will be a problem -- but it's worth noting.
+check_output(spqr_invocation, stderr=STDOUT)
+
+# Now that the potential bubbles have been detected by the spqr script, we
+# sort them ascending order of size and then create Bubble objects accordingly.
+with open(bicmps_fullfn, "r") as potential_bubbles_file:
+    bubble_lines = potential_bubbles_file.readlines()
+# Sort the bubbles in ascending order of number of nodes contained.
+# This can be done by counting the number of tabs, since those are the
+# separators between nodes on each line: therefore, more tabs = more nodes
+bubble_lines.sort(key=lambda c: c.count("\t"))
+for b in bubble_lines:
+    curr_bubble_nodeobjs = []
+    bubble_to_be_created = True
+    # The first two nodes listed on a line are the source and sink node of the
+    # biconnected component; they're listed later on the line, so we ignore
+    # them for now.
+    for node_id in b.split()[2:]:
+        if nodeid2obj[node_id].used_in_collapsing:
+            bubble_to_be_created = False
+            break
+        curr_bubble_nodeobjs.append(nodeid2obj[node_id])
+    if bubble_to_be_created:
+        new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
         nodes_to_draw.append(new_bubble)
         clusterid2obj[new_bubble.id_string] = new_bubble
+
+# Old way of finding bubbles --
+#for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
+#    if n.used_in_collapsing or len(n.outgoing_nodes) <= 1:
+#        # If n doesn't lead to multiple nodes, it couldn't be a bubble start
+#        continue
+#    bubble_validity, member_nodes = graph_objects.Bubble.is_valid_bubble(n)
+#    if bubble_validity:
+#        # Found a bubble!
+#        new_bubble = graph_objects.Bubble(*member_nodes)
+#        nodes_to_draw.append(new_bubble)
+#        clusterid2obj[new_bubble.id_string] = new_bubble
 
 conclude_msg()
 operation_msg(config.FRAYEDROPE_SEARCH_MSG)

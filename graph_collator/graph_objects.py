@@ -420,9 +420,19 @@ class NodeGroup(Node):
                 self.xdot_bottom, self.xdot_right, self.xdot_top)
 
 class Bubble(NodeGroup):
-    """A group of nodes collapsed into a Bubble. This consists of one
-       node which points to >= 2 "middle" nodes, all of which in turn point
-       to one "end" node.
+    """A group of nodes collapsed into a Bubble.
+    
+       Formerly, this consisted of one node which points to >= 2 "middle"
+       nodes, all of which in turn have linear paths that point to one "end"
+       node -- this is the relatively strict definition of a Bubble we used
+       until now.
+
+       Now, though, we use OGDF (via the spqr script) to decompose the graph
+       into biconnected components within the graph. Many of these biconnected
+       components should be similar to what we want to identify as "bubbles."
+
+       (In any case, this Bubble class is agnostic as to the structure of its
+       nodes; all that's needed to create a Bubble is a list of its nodes.)
     """
     def __init__(self, *nodes):
         """Initializes the Bubble, given a list of nodes comprising it."""
