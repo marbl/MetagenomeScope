@@ -875,8 +875,8 @@ for component in connected_components[:config.MAX_COMPONENTS]:
             # If only one small component is left, just treat it as a normal
             # component: there's no point pointing it out as a small component
         if not no_print:
-            operation_msg(config.START_LAYOUT_MSG + "%d..." % \
-                (component_size_rank))
+            operation_msg(config.START_LAYOUT_MSG + "%d (%d nodes)..." % \
+                (component_size_rank, component_node_ct))
 
     # Lay out all clusters individually, to be backfilled
     for ng in component.node_group_list:
