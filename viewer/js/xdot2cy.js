@@ -295,6 +295,10 @@ function collapseCluster(cluster, moveMap) {
             changeCollapseButton(true);
         }
     }
+    // Unselect the elements before removing them (fixes #158 on GitHub)
+    cluster.scratch("_interiorEles").unselect();
+    // "Remove" the elements (they can be added back to the graph upon
+    // uncollapsing this cluster, of course)
     cluster.scratch("_interiorEles").remove();
 }
 
