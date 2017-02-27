@@ -168,9 +168,9 @@ def dfs(n):
        component node list returned.)
 
        I modified this function to not use recursion since Python isn't
-       super great at that --
-       this allows us to avoid hitting the maximum recursion depth and getting
-       a RuntimeError for really large connected components.
+       super great at that -- this allows us to avoid hitting the maximum
+       recursion depth, which would cause us to get a RuntimeError for
+       really large connected components.
     """
     nodes_to_check = [n]
     nodes_in_ccomponent = []
