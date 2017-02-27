@@ -152,24 +152,45 @@ if check_file_existence(db_fullfn):
     # The user asked to overwrite this database via -w, so remove it
     safe_file_remove(db_fullfn)
 
-def dfs(n, seen_nodes):
+def dfs(n):
     """Recursively runs depth-first search, starting at node n.
-
-       At the end of this function's execution, the value of seen_nodes
-       returned will be whatever was in the initial list of seen_nodes
-       combined with all the nodes in the entire connected component of the
-       graph in which n is.
+       Returns a list of all nodes found that corresponds to a list of all
+       nodes within the entire connected component (ignoring edge
+       directionality) in which n resides.
        
-       (If you just want to find an entire connected component by itself,
-       you can just pass in [] for seen_nodes.)
+       This assumes that the connected component containing n has not had this
+       method run on it before (due to its reliance on the .seen_in_dfs Node
+       property).
+
+       (In identifying a connected component, the graph is treated as if
+       its edges are undirected, so the actual starting node within a
+       connected component should not make a difference on the connected
+       component node list returned.)
+
+       I modified this function to not use recursion since Python isn't
+       super great at that --
+       this allows us to avoid hitting the maximum recursion depth and getting
+       a RuntimeError for really large connected components.
     """
-    n.seen_in_dfs = True
-    seen_nodes.append(n)
-    adjacent_nodes = n.outgoing_nodes + n.incoming_nodes
-    for j in adjacent_nodes:
-        if not j.seen_in_dfs:
-            seen_nodes = dfs(j, seen_nodes)
-    return seen_nodes
+    nodes_to_check = [n]
+    nodes_in_ccomponent = []
+    # len() of a list in python is a constant-time operation, so this is okay--
+    while len(nodes_to_check) > 0:
+        # We rely on the invariant that all nodes in nodes_to_check have
+        # seen_in_dfs = False, and that no duplicate nodes exist within
+        # nodes_to_check
+        j = nodes_to_check.pop()
+        j.seen_in_dfs = True
+        nodes_in_ccomponent.append(j)
+        tentative_nodes = j.outgoing_nodes + j.incoming_nodes
+        # Only travel to unvisited and not already-marked-to-visit neighbor
+        # nodes of j
+        for m in tentative_nodes:
+            if not m.seen_in_dfs and not m.in_nodes_to_check:
+                # in_nodes_to_check prevents duplicate nodes in that list
+                m.in_nodes_to_check = True
+                nodes_to_check.append(m)
+    return nodes_in_ccomponent
 
 def reverse_complement(dna_string):
     """Returns the reverse complement of a string of DNA.
@@ -755,11 +776,11 @@ for n in nodes_to_draw:
             # n is a node group
             if n.nodes[0].seen_in_ccomponent:
                 continue
-            node_list = dfs(n.nodes[0], [])
+            node_list = dfs(n.nodes[0])
         else:
             # It's just a normal Node, but it could certainly be connected
             # to a group of nodes (not that it really matters)
-            node_list = dfs(n, [])
+            node_list = dfs(n)
 
         # Now that we've ran DFS to discover all the nodes in this connected
         # component, we go through each node to identify their groups (if

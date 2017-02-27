@@ -85,6 +85,7 @@ class Node(object):
         # more efficient (maintaining a list or dict of this info is more
         # expensive than just using attributes, like this)
         self.seen_in_dfs = False
+        self.in_nodes_to_check = False
         self.seen_in_ccomponent = False
         self.used_in_collapsing = False
         # If we decide to subsume a node group into another node group,
