@@ -360,13 +360,15 @@ function addSelectedNodeInfo(ele) {
         depthEntry = "N/A";
     }
     else {
-        depthEntry = ele.data("depth").toLocaleString() + "x";
+        // Round to two decimal places
+        depthEntry = Math.round(ele.data("depth") * 100) / 100 + "x";
     }
     if (ele.data("gc_content") === null) {
         gcEntry = "N/A";
     }
     else {
-        gcEntry = (ele.data("gc_content") * 100).toLocaleString() + "%";
+        // Round to two decimal places
+        gcEntry = Math.round((ele.data("gc_content") * 100) * 100) / 100 + "%";
     }
     $("#nodeInfoTable").append("<tr class='nonheader' id='row" + ele.id() +
         "'><td>" + ele.id() + "</td><td>" + lengthEntry + "</td><td>" +
@@ -380,14 +382,25 @@ function addSelectedNodeInfo(ele) {
 }
 
 function addSelectedEdgeInfo(ele) {
-    var multEntry = ele.data("mult");
-    if (multEntry === null) {
-        multEntry = "N/A";
+    var TD_CLOSE = "</td>";
+    var TD_START = "<td>";
+    var edgeRowHTML = "<tr class='nonheader' id='row" +
+        ele.id().replace(">", "") + "'><td>" +
+        ele.data("source") + "</td><td>" +
+        ele.data("target") + TD_CLOSE;
+    if (ASM_FILETYPE === "GML" || ASM_FILETYPE === "LastGraph")
+        edgeRowHTML += TD_START + ele.data("multiplicity") + TD_CLOSE;
+    if (ASM_FILETYPE === "GML") {
+        // Round mean and stdev entries both to two decimal places
+        // These values are just estimates so this rounding is okay
+        var meanEntry = Math.round(ele.data("mean") * 100) / 100;
+        var stdevEntry = Math.round(ele.data("stdev") * 100) / 100;
+        edgeRowHTML += TD_START + ele.data("orientation") + TD_CLOSE;
+        edgeRowHTML += TD_START + meanEntry + TD_CLOSE;
+        edgeRowHTML += TD_START + stdevEntry + TD_CLOSE;
     }
-    $("#edgeInfoTable").append("<tr class='nonheader' id='row" +
-        ele.id().replace(">", "") +
-        "'><td>" + ele.data("source") + "</td><td>" + ele.data("target") +
-        "</td><td>" + multEntry + "</td></tr>");
+    edgeRowHTML += "</tr>";
+    $("#edgeInfoTable").append(edgeRowHTML);
 }
 
 function addSelectedClusterInfo(ele) {
@@ -716,15 +729,17 @@ function parseDBcomponents() {
     var asmGC = graphInfo["gc_content"];
     var asmGCInfo;
     if (asmGC !== null) {
-        asmGCInfo = (asmGC * 100).toLocaleString() + "%";
+        // Round to two decimal places
+        asmGCInfo = Math.round((asmGC * 100) * 100) / 100 + "%";
     }
     else {
         asmGCInfo = "N/A";
     }
     // Adjust UI elements
     document.title = fnInfo;
-    updateTextStatus("Loaded .db file for the assembly graph file " + fnInfo
-                        + ".");
+    updateTextStatus("Loaded .db file for the assembly graph file " + fnInfo +
+                        ".<br />You can draw a connected component using" +
+                        " the \"Draw Connected Component\" button below.");
     $("#filenameEntry").text(fnInfo); 
     $("#filetypeEntry").text(ASM_FILETYPE);
     $("#nodeCtEntry").text(nodeInfo); 
@@ -748,6 +763,31 @@ function parseDBcomponents() {
     enableButton("dir270");
     $("#hideEdgesCheckbox").prop("disabled", false);
     $("#useTexturesCheckbox").prop("disabled", false);
+    // Adjust selected info tables based on filetype (i.e. what info is
+    // available)
+    if (ASM_FILETYPE === "GML") {
+        $("#edgeTH").prop("colspan", 6);
+        $("#multiplicityCol").text("B. size");
+        $("#multiplicityCol").removeClass("notviewable");
+        $("#orientationCol").removeClass("notviewable");
+        $("#meanCol").removeClass("notviewable");
+        $("#stdevCol").removeClass("notviewable");
+    }
+    else if (ASM_FILETYPE === "LastGraph") {
+        $("#edgeTH").prop("colspan", 3);
+        $("#multiplicityCol").text("Mult");
+        $("#multiplicityCol").removeClass("notviewable");
+        $("#orientationCol").addClass("notviewable");
+        $("#meanCol").addClass("notviewable");
+        $("#stdevCol").addClass("notviewable");
+    }
+    else if (ASM_FILETYPE === "GFA") {
+        $("#edgeTH").prop("colspan", 2);
+        $("#multiplicityCol").addClass("notviewable");
+        $("#orientationCol").addClass("notviewable");
+        $("#meanCol").addClass("notviewable");
+        $("#stdevCol").addClass("notviewable");
+    }
 }
 
 /* Enables a disabled <button> element that is currently disabled: that is,
@@ -1163,7 +1203,6 @@ function changeDropdownVal(arrowHTML) {
 // Toggle visibility of the controls div.
 function toggleControls() {
     $("#controls").toggleClass("notviewable");
-    $("#controls").toggleClass("viewable");
     $("#cy").toggleClass("nosubsume");
     $("#cy").toggleClass("subsume");
     if (cy !== null) {
@@ -1255,7 +1294,6 @@ function toggleEleInfo(eleType) {
         $(openerID).addClass("glyphicon-triangle-right"); 
     }
     $(infoDivID).toggleClass("notviewable");
-    $(infoDivID).toggleClass("viewable");
 }
 
 function clearSelectedInfo() {
@@ -1892,12 +1930,20 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     var sourceID = edgeObj['source_id'];
     var targetID = edgeObj['target_id'];
     var multiplicity = edgeObj['multiplicity'];
+    var orientation = edgeObj['orientation'];
+    var mean = edgeObj['mean'];
+    var stdev = edgeObj['stdev'];
     // If bundle sizes are available, then don't show edges with a bundle size
-    // below a certain threshold
-    var bundlesize = edgeObj['bundlesize'];
-    if (bundlesize !== null && bundlesize < MIN_BUNDLE_SIZE) {
-        return;
-    }
+    // below a certain threshold. NOTE that this feature is disabled for the
+    // time being, but can be reenabled eventually (consider adding a minimum
+    // bundle size threshold that is configurably by the user; also, rewrite
+    // to focus on multiplicity instead of bundlesize since the two terms are
+    // basically equivalent)
+    //var bundlesize = edgeObj['bundlesize'];
+    //if (bundlesize !== null && bundlesize < MIN_BUNDLE_SIZE) {
+    //    return;
+    //}
+
     // Default edge width setting of Cytoscape.js
     var edgeWidth = 3;
     // This discounts multiplicity data if:
@@ -1916,7 +1962,8 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         cy.add({
             classes: "basicbezier",
             data: {id: edgeID, source: sourceID, target: targetID,
-                   thickness: edgeWidth, mult: multiplicity}
+                   thickness: edgeWidth, multiplicity: multiplicity,
+                   orientation: orientation, mean: mean, stdev: stdev}
         });
         return;
     }
@@ -1990,10 +2037,10 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         // The control points should (hopefully) be valid
         cy.add({
             classes: "unbundledbezier",
-            data: {id: edgeID, source: sourceID,
-                   target: targetID, cpd: ctrlPtDists,
-                   cpw: ctrlPtWeights, thickness: edgeWidth,
-                   mult: multiplicity}
+          data: {id: edgeID, source: sourceID, target: targetID,
+                 cpd: ctrlPtDists, cpw: ctrlPtWeights,
+                 thickness: edgeWidth, multiplicity: multiplicity,
+                 orientation: orientation, mean: mean, stdev: stdev}
         });
     }
     else {
@@ -2002,7 +2049,8 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
       cy.add({
           classes: "basicbezier",
           data: {id: edgeID, source: sourceID, target: targetID,
-                 thickness: edgeWidth, mult: multiplicity}
+                 thickness: edgeWidth, multiplicity: multiplicity,
+                 orientation: orientation, mean: mean, stdev: stdev}
       });
     }
 }

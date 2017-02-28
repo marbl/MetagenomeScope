@@ -9,16 +9,27 @@ import pygraphviz
 class Edge(object):
     """A generic edge, used for storing layout data (e.g. control points)
        and, if applicable for this type of assembly file, biological
-       metadata (e.g. multiplicity, as given in LastGraph files).
+       metadata (e.g. multiplicity).
     """
     def __init__(self, source_id, target_id, multiplicity=None,
-            orientation=None, bundlesize=None):
+            orientation=None, mean=None, stdev=None):
         """Initializes the edge and all of its attributes."""
         self.source_id = source_id
         self.target_id = target_id
+        # Refers to either multiplicity (in LastGraph files) or bundle size (in
+        # Bambus 3's GML files)
         self.multiplicity = multiplicity
+        # Used to characterize edges in Bambus 3's GML files. Can be one of
+        # four possible options: "BB", "BE", "EB", or "EE".
         self.orientation = orientation
-        self.bundlesize = bundlesize
+        # Per Jay: "estimated distance between two contigs if they are part of
+        # the same scaffold. If this number is negative, it means that these
+        # contigs overlap by that many bases. If it is positive then there
+        # exists a gap of that particular size between two contigs."
+        # (For Bambus 3's GML files)
+        self.mean = mean
+        # For Bambus 3's GML files. I don't really know what this means
+        self.stdev = stdev
         # For if the edge is an "interior" edge of a node group
         self.group = None
         # Will be replaced with the size rank of the connected component to
@@ -44,7 +55,8 @@ class Edge(object):
         if self.group != None:
             group_id = self.group.cy_id_string
         return (self.source_id, self.target_id, self.multiplicity,
-                self.orientation, self.bundlesize, self.component_size_rank,
+                self.orientation, self.mean, self.stdev,
+                self.component_size_rank,
                 self.xdot_ctrl_pt_str, self.xdot_ctrl_pt_count, group_id)
 
     def __repr__(self):
@@ -148,7 +160,7 @@ class Node(object):
         return info
 
     def add_outgoing_edge(self, node2, multiplicity=None, orientation=None,
-            bundlesize=None):
+            mean=None, stdev=None):
         """Adds an outgoing edge from this node to another node, and adds an
            incoming edge from the other node referencing this node.
 
@@ -158,8 +170,8 @@ class Node(object):
         self.outgoing_nodes.append(node2)
         node2.incoming_nodes.append(self)
         self.outgoing_edge_objects[node2.id_string] = \
-            Edge(self.id_string, node2.id_string, multiplicity, orientation,
-                    bundlesize)
+            Edge(self.id_string, node2.id_string, multiplicity=multiplicity,
+                    orientation=orientation, mean=mean, stdev=stdev)
 
     def edge_info(self, constrained_nodes=None):
         """Returns a GraphViz-compatible string containing all information

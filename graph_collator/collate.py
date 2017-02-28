@@ -501,6 +501,8 @@ with open(asm_fn, 'r') as assembly_file:
         curr_edge_src_id = None
         curr_edge_tgt_id = None
         curr_edge_orientation = None
+        curr_edge_mean = None
+        curr_edge_stdev = None
         curr_edge_bundlesize = None
         for line in assembly_file:
             # Record node attributes/detect end of node declaration
@@ -540,12 +542,20 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_edge_orientation = l[1].strip('"')
                 elif line.strip().startswith("bsize"):
                     l = line.split()
-                    curr_edge_bundlesize = int(l[1])
+                    curr_edge_bundlesize = int(l[1].strip('"'))
+                elif line.strip().startswith("mean"):
+                    l = line.split()
+                    curr_edge_mean = float(l[1].strip('"'))
+                elif line.strip().startswith("stdev"):
+                    l = line.split()
+                    curr_edge_stdev = float(l[1].strip('"'))
                 elif line.endswith("]\n"):
                     nodeid2obj[curr_edge_src_id].add_outgoing_edge(
                             nodeid2obj[curr_edge_tgt_id],
+                            multiplicity=curr_edge_bundlesize,
                             orientation=curr_edge_orientation,
-                            bundlesize=curr_edge_bundlesize)
+                            mean=curr_edge_mean,
+                            stdev=curr_edge_stdev)
                     total_edge_count += 1
                     # Clear tmp/marker vars
                     parsing_edge = False
@@ -553,6 +563,8 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_edge_tgt_id = None
                     curr_edge_orientation = None
                     curr_edge_bundlesize = None
+                    curr_edge_mean = None
+                    curr_edge_stdev = None
             # Start parsing node
             elif line.endswith("node [\n"):
                 parsing_node = True
@@ -820,13 +832,20 @@ operation_msg(config.DB_INIT_MSG + "%s..." % (db_fn))
 # here, but I suppose you can't be too safe.)
 connection = sqlite3.connect(db_fullfn)
 cursor = connection.cursor()
+# Define statements used for inserting a value into these tables
+# The number of question marks has to match the number of table columns
+NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?)"
+CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
+COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
+ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?)"
 cursor.execute("""CREATE TABLE nodes
         (id text, length integer, dnafwd text, gc_content real, depth real,
         component_rank integer, x real, y real, w real, h real, shape text,
         parent_cluster_id text)""")
 cursor.execute("""CREATE TABLE edges
         (source_id text, target_id text, multiplicity integer,
-        orientation text, bundlesize integer, component_rank integer,
+        orientation text, mean real, stdev real, component_rank integer,
         control_point_string text, control_point_count integer,
         parent_cluster_id text)""") 
 cursor.execute("""CREATE TABLE clusters (cluster_id text,
@@ -845,7 +864,7 @@ connection.commit()
 graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
             total_edge_count, total_component_count, total_length,
             n50(bp_length_list), assembly_gc(total_gc_nt_count, total_length))
-cursor.execute("INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?)", graphVals)    
+cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
 
 # Conclusion of script: Output (desired) components of nodes to the .gv file
@@ -985,9 +1004,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
             # Save this cluster in the .db
             curr_node.xdot_shape = str(n.attr[u'shape'])
             curr_node.set_component_rank(component_size_rank)
-            cursor.execute( \
-                "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-                curr_node.db_values())
+            cursor.execute(NODE_INSERTION_STMT, curr_node.db_values())
         except KeyError: # arising from nodeid2obj[a cluster id]
             # We use [8:] to slice off the "cluster_" prefix on every rectangle
             # node that is actually a node group that will be backfilled (#80)
@@ -1018,9 +1035,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
                 n.xdot_x = curr_cluster.xdot_left + n.xdot_rel_x
                 n.xdot_y = curr_cluster.xdot_bottom + n.xdot_rel_y
                 n.set_component_rank(component_size_rank)
-                cursor.execute( \
-                    "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-                    n.db_values())
+                cursor.execute(NODE_INSERTION_STMT, n.db_values())
             # Reconcile child edges -- add to .db
             for e in curr_cluster.edges:
                 # Don't bother trying to expand the component bounding box,
@@ -1041,12 +1056,10 @@ for component in connected_components[:config.MAX_COMPONENTS]:
                     e.xdot_ctrl_pt_str += str(curr_cluster.xdot_bottom + yp)
                     p += 2
                 # Save this edge in the .db
-                cursor.execute("INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?)",
-                    e.db_values())
+                cursor.execute(EDGE_INSERTION_STMT, e.db_values())
             # Save the cluster in the .db
             curr_cluster.component_size_rank = component_size_rank
-            cursor.execute("INSERT INTO clusters VALUES (?,?,?,?,?,?)",
-                curr_cluster.db_values())
+            cursor.execute(CLUSTER_INSERTION_STMT, curr_cluster.db_values())
     # Record layout info of edges (that aren't inside node groups)
     for e in h.edges():
         # Since edges could point to/from node groups, we store their actual
@@ -1075,13 +1088,12 @@ for component in connected_components[:config.MAX_COMPONENTS]:
             if y_coord > bounding_box_top: bounding_box_top = y_coord
             p += 2
         # Save this edge in the .db
-        cursor.execute("INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?)",
-            curr_edge.db_values())
+        cursor.execute(EDGE_INSERTION_STMT, curr_edge.db_values())
 
     if not no_print:
         conclude_msg()
     # Output component information to the database
-    cursor.execute("""INSERT INTO components VALUES (?,?,?,?,?,?)""",
+    cursor.execute(COMPONENT_INSERTION_STMT,
         (component_size_rank, component_node_count, component_edge_count,
         component_total_length, bounding_box_right, bounding_box_top))
 

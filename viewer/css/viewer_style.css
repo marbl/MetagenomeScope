@@ -22,11 +22,8 @@ html, body {
     bottom: 35px; 
     z-index: 2;
 }
-/* Might want to consider adding some sort of transition, but not necessary */
-.viewable {
-    visibility: visible;
-    opacity: 1;
-}
+/* Might want to consider adding some sort of transition on going to
+ * .notviewable, but not necessary */
 .notviewable {
     visibility: hidden;
     opacity: 0;

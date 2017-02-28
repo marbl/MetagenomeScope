@@ -68,7 +68,7 @@
             <span class="glyphicon glyphicon-resize-small"></span>
         </button>
 
-        <div id="controls" class="viewable">
+        <div id="controls">
             <!-- TODO replace these headers with a nicer-looking system -->
             <h4 style="margin-top: 26px;">File Selection</h4>
             <p>
@@ -182,12 +182,15 @@
             <div id="edgeInfo" class="notviewable">
                 <table border="2" id="edgeInfoTable" class="infoTable">
                 <tr>
-                    <th colspan='3'>Selected Edge Information</th>
+                    <th colspan='6' id="edgeTH">Selected Edge Information</th>
                 </tr>
                 <tr>
-                    <th>Source ID</th>
-                    <th>Target ID</th>
-                    <th>Multiplicity</th>
+                    <th>Src ID</th>
+                    <th>Tgt ID</th>
+                    <th id="multiplicityCol">Mult</th>
+                    <th id="orientationCol">Orient</th>
+                    <th id="meanCol">Mean</th>
+                    <th id="stdevCol">Std. Dev</th>
                 </tr>
                 </table>
             </div>
