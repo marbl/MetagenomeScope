@@ -721,13 +721,15 @@ function parseDBcomponents() {
     var n50Info = n50.toLocaleString() + " bp";
     // Record Assembly G/C content (not available for GML files)
     var asmGC = graphInfo["gc_content"];
-    var asmGCInfo;
-    if (asmGC !== null) {
+    if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA") {
         // Round to two decimal places
-        asmGCInfo = Math.round((asmGC * 100) * 100) / 100 + "%";
-    }
-    else {
-        asmGCInfo = "N/A";
+        var asmGCInfo = Math.round((asmGC * 100) * 100) / 100 + "%";
+        $("#asmGCEntry").text(asmGCInfo);
+        $("#asmGCTH").removeClass("notviewable");
+        $("#asmGCEntry").removeClass("notviewable");
+    } else {
+        $("#asmGCTH").addClass("notviewable");
+        $("#asmGCEntry").addClass("notviewable");
     }
     // Adjust UI elements
     document.title = fnInfo;
@@ -741,7 +743,6 @@ function parseDBcomponents() {
     $("#edgeCountEntry").text(edgeInfo);
     $("#connCmpCtEntry").text(compInfo);
     $("#n50Entry").text(n50Info);
-    $("#asmGCEntry").text(asmGCInfo);
     $("#componentselector").prop("max", compCt);
     $("#componentselector").prop("disabled", false);
     enableButton("decrCompRankButton");
