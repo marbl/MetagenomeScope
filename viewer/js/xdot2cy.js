@@ -378,10 +378,12 @@ function addSelectedNodeInfo(ele) {
 }
 
 function addSelectedEdgeInfo(ele) {
+    // returns an array of two elements: [source node id, target node id]
+    var canonicalSourceAndTargetNode = ele.id().split("->");
     var edgeRowHTML = "<tr class='nonheader' id='row" +
         ele.id().replace(">", "") + "'><td>" +
-        ele.data("source") + "</td><td>" +
-        ele.data("target") + TD_CLOSE;
+        canonicalSourceAndTargetNode[0] + "</td><td>" +
+        canonicalSourceAndTargetNode[1] + TD_CLOSE;
     if (ASM_FILETYPE === "GML" || ASM_FILETYPE === "LastGraph")
         edgeRowHTML += TD_START + ele.data("multiplicity") + TD_CLOSE;
     if (ASM_FILETYPE === "GML") {
