@@ -71,6 +71,9 @@ var SELECTED_CLUSTER_COUNT = 0;
 var SELECTED_NODES = null;
 var SELECTED_EDGES = null;
 var SELECTED_CLUSTERS = null;
+// HTML snippets used while auto-creating info tables about selected elements
+const TD_CLOSE = "</td>";
+const TD_START = "<td>";
 // Regular expression we use when matching connected component ranks.
 var COMP_RANK_RE = /^\d+$/;
 
@@ -342,37 +345,30 @@ function uncollapseCluster(cluster) {
     }
 }
 
-// TODO move to be near the toggling stuff -- or move that here, I guess
 function addSelectedNodeInfo(ele) {
-    var lengthEntry, depthEntry, dnaEntry, gcEntry;
-    if (ele.data("length") === null) {
-        lengthEntry = "N/A";
+    var lengthEntry = ele.data("length").toLocaleString();
+    if (ASM_FILETYPE === "GML") { // scaffolds
+        lengthEntry += " bp";
+    } else { // contigs in a "double graph"
+        lengthEntry += " nt";
     }
-    else {
-        lengthEntry = ele.data("length").toLocaleString();
-        if (ASM_FILETYPE === "GML") { // scaffolds
-            lengthEntry += " bp";
-        } else { // contigs in a "double graph"
-            lengthEntry += " nt";
-        }
-    }
-    if (ele.data("depth") === null) {
-        depthEntry = "N/A";
-    }
-    else {
+    var nodeRowHTML = "<tr class='nonheader' id='row" + ele.id() +
+        "'><td>" + ele.id() + "</td><td>" + lengthEntry + TD_CLOSE;
+    if (ASM_FILETYPE === "LastGraph") {
         // Round to two decimal places
-        depthEntry = Math.round(ele.data("depth") * 100) / 100 + "x";
+        var depthEntry = Math.round(ele.data("depth") * 100) / 100 + "x";
+        nodeRowHTML += TD_START + depthEntry + TD_CLOSE;
     }
-    if (ele.data("gc_content") === null) {
-        gcEntry = "N/A";
-    }
-    else {
+    if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA") {
         // Round to two decimal places
-        gcEntry = Math.round((ele.data("gc_content") * 100) * 100) / 100 + "%";
+        // we multiply by 10000 because we're really multiplying by 100
+        // twice: first to convert to a percentage, then to start the
+        // rounding process
+        var gcEntry = Math.round(ele.data("gc_content") * 10000) / 100 + "%";
+        nodeRowHTML += TD_START + gcEntry + TD_CLOSE;
     }
-    $("#nodeInfoTable").append("<tr class='nonheader' id='row" + ele.id() +
-        "'><td>" + ele.id() + "</td><td>" + lengthEntry + "</td><td>" +
-        depthEntry + "</td><td>" + gcEntry + "</td></tr>");
+    nodeRowHTML += "</tr>";
+    $("#nodeInfoTable").append(nodeRowHTML);
     if (ele.data("hasDNA")) {
         enableButton("dnaExportButton");
     }
@@ -382,8 +378,6 @@ function addSelectedNodeInfo(ele) {
 }
 
 function addSelectedEdgeInfo(ele) {
-    var TD_CLOSE = "</td>";
-    var TD_START = "<td>";
     var edgeRowHTML = "<tr class='nonheader' id='row" +
         ele.id().replace(">", "") + "'><td>" +
         ele.data("source") + "</td><td>" +
@@ -766,6 +760,11 @@ function parseDBcomponents() {
     // Adjust selected info tables based on filetype (i.e. what info is
     // available)
     if (ASM_FILETYPE === "GML") {
+        // Node info adjustments
+        $("#nodeTH").prop("colspan", 2);
+        $("#depthCol").addClass("notviewable");
+        $("#gcContentCol").addClass("notviewable");
+        // Edge info adjustments
         $("#edgeTH").prop("colspan", 6);
         $("#multiplicityCol").text("B. size");
         $("#multiplicityCol").removeClass("notviewable");
@@ -774,6 +773,11 @@ function parseDBcomponents() {
         $("#stdevCol").removeClass("notviewable");
     }
     else if (ASM_FILETYPE === "LastGraph") {
+        // Node info adjustments
+        $("#nodeTH").prop("colspan", 4);
+        $("#depthCol").removeClass("notviewable");
+        $("#gcContentCol").removeClass("notviewable");
+        // Edge info adjustments
         $("#edgeTH").prop("colspan", 3);
         $("#multiplicityCol").text("Mult");
         $("#multiplicityCol").removeClass("notviewable");
@@ -782,6 +786,11 @@ function parseDBcomponents() {
         $("#stdevCol").addClass("notviewable");
     }
     else if (ASM_FILETYPE === "GFA") {
+        // Node info adjustments
+        $("#nodeTH").prop("colspan", 3);
+        $("#depthCol").addClass("notviewable");
+        $("#gcContentCol").removeClass("notviewable");
+        // Edge info adjustments
         $("#edgeTH").prop("colspan", 2);
         $("#multiplicityCol").addClass("notviewable");
         $("#orientationCol").addClass("notviewable");

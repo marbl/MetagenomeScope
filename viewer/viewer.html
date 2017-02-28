@@ -156,13 +156,14 @@
             <div id="nodeInfo" class="notviewable">
                 <table border="2" id="nodeInfoTable" class="infoTable">
                     <tr>
-                        <th colspan='4'>Selected Node Information</th>
+                        <th colspan='4' id="nodeTH">
+                            Selected Node Information</th>
                     </tr>
                     <tr>
                         <th>ID</th>
                         <th>Length</th>
-                        <th>Depth</th>
-                        <th>G/C Content</th>
+                        <th id="depthCol">Depth</th>
+                        <th id="gcContentCol">G/C Content</th>
                     </tr>
                 </table>
                 <button class='btn btn-default btn-sm disabled'
