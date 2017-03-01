@@ -76,7 +76,7 @@ CONTIG_SCALING_LOG_BASE = 10
 # add some functionality re: that later).
 BASIC_NODE_SHAPE = "invhouse"
 RCOMP_NODE_SHAPE = "house"
-SINGLE_NODE_SHAPE = "rectangle" # if we ever draw "single graphs"
+SINGLE_NODE_SHAPE = "rectangle"
 BUBBLE_STYLE     = "\tstyle=filled;\n\tfillcolor=cornflowerblue;\n"
 FRAYEDROPE_STYLE = "\tstyle=filled;\n\tfillcolor=green;\n"
 CHAIN_STYLE      = "\tstyle=filled;\n\tfillcolor=salmon;\n"

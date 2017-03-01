@@ -16,6 +16,8 @@ const INVHOUSE_POLYPTS =
     [[-1, -1], [-1, 0.23587], [0, 1], [1, 0.23587], [1, -1]];
 const HOUSE_POLYPTS =
     [[-1, 1], [-1, -0.23587], [0, -1], [1, -0.23587], [1, 1]];
+const SQUARE_POLYPTS =
+    [[-1, -1], [-1, 1], [1, 1], [1, -1]];
 
 // Approximate conversion factor from inches (the unit used by GraphViz for
 // node width/height measurements) to pixels. TODO, we might want to
@@ -1833,8 +1835,11 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     if (nodeObj['shape'] === 'house') {
         var nodePolygonPts = rotateCoordinatesToStr(HOUSE_POLYPTS);
     }
-    else {
+    else if (nodeObj['shape'] === 'invhouse') {
         var nodePolygonPts = rotateCoordinatesToStr(INVHOUSE_POLYPTS);
+    }
+    else {
+        var nodePolygonPts = rotateCoordinatesToStr(SQUARE_POLYPTS);
     }
     var pos = gv2cyPoint(nodeObj['x'], nodeObj['y'],
         [boundingboxObject['boundingbox_x'],
