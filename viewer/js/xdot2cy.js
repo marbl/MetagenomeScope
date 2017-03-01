@@ -409,10 +409,9 @@ function addSelectedClusterInfo(ele) {
         case 'R': clustType = "Frayed Rope"; break;
         default: clustType = "Invalid (error)";
     }
-    var clustSize = ele.scratch("_interiorNodes").size(); 
+    var clustSize = ele.scratch("_interiorNodes").size();
     $("#clusterInfoTable").append("<tr class='nonheader' id='row" + ele.id() +
-        "'><td>" + clustID + "</td><td>" + clustType + "</td><td>" +
-        clustSize + "</td></tr>");
+        "'><td>" + clustType + "</td><td>" + clustSize + "</td></tr>");
 }
 
 function removeSelectedEleInfo(ele) {
