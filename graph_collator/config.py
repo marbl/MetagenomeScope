@@ -122,7 +122,7 @@ DB_SAVE_MSG = "Saving information to "
 DONE_MSG = "Done."
 # Error messages (and occasional "helper" messages for constructing error msgs)
 SEQ_NOUN = "Sequence "
-NO_DNA_ERR = " does not contain a DNA sequence"
+NO_DNA_ERR = " does not contain a DNA sequence or length property"
 FILETYPE_ERR = "Invalid input filetype; see README for accepted file types"
 EDGE_CTRL_PT_ERR = "Invalid edge control points for"
 NO_FN_ERR = "No filename provided for "

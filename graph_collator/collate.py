@@ -583,6 +583,11 @@ with open(asm_fn, 'r') as assembly_file:
         # importantly, making use of this data in the AsmViz viewer) in the
         # future, but for now having Segment + Link data should match what we
         # have for the other two supported input assembly graph filetypes.
+        curr_node_id = None
+        curr_node_bp = None
+        curr_node_gc = None
+        curr_node_dnafwd = None
+        curr_node_dnarev = None
         for line in assembly_file:
             # Parsing a segment (node) line
             if line.startswith("S"):
@@ -590,6 +595,8 @@ with open(asm_fn, 'r') as assembly_file:
                 # reverse complement of that DNA seq.
                 l = line.split()
                 curr_node_id = l[1]
+                if curr_node_id.startswith("NODE_"):
+                    curr_node_id = curr_node_id.split("_")[1]
                 # The sequence data can be optionally not given -- in this
                 # case, a single asterisk, *, will be located at l[2].
                 curr_node_dnafwd = l[2]
@@ -606,8 +613,16 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_gc, gc_ct = gc_content(curr_node_dnafwd)
                     total_gc_nt_count += (2 * gc_ct)
                 else:
-                    errmsg = config.SEQ_NOUN + curr_node_id + config.NO_DNA_ERR
-                    raise ValueError, errmsg
+                    # Allow user to not include DNA but indicate seq length via
+                    # the LN property
+                    curr_node_bp = None
+                    for seq_attr in l[3:]:
+                        if seq_attr.startswith("LN:i:"):
+                            curr_node_bp = int(seq_attr[5:])
+                            break
+                    if curr_node_bp == None:
+                        errmsg = config.SEQ_NOUN+curr_node_id+config.NO_DNA_ERR
+                        raise ValueError, errmsg
                 if not use_dna:
                     curr_node_dnafwd = None
                     curr_node_dnarev = None
@@ -622,12 +637,20 @@ with open(asm_fn, 'r') as assembly_file:
                 total_length += curr_node_bp
                 bp_length_list.append(curr_node_bp)
                 bp_length_list.append(curr_node_bp)
+                curr_node_id = None
+                curr_node_bp = None
+                curr_node_gc = None
+                curr_node_dnafwd = None
+                curr_node_dnarev = None
             # Parsing a link (edge) line from some id1 to id2
-            # I really like the way GFA handles edges; it makes this simple :)
             elif line.startswith("L"):
                 a = line.split()
-                id1 = a[1] if a[2] != '-' else '-' + a[1]
-                id2 = a[3] if a[4] != '-' else '-' + a[3]
+                id1 = a[1]
+                id2 = a[3]
+                if id1.startswith("NODE_"): id1 = id1.split("_")[1]
+                if id2.startswith("NODE_"): id2 = id2.split("_")[1]
+                id1 = id1 if a[2] != '-' else '-' + id1
+                id2 = id2 if a[4] != '-' else '-' + id2
                 nid2 = negate_node_id(id2)
                 nid1 = negate_node_id(id1)
                 nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2])
