@@ -1039,14 +1039,9 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
     var currNode;
     if (nodesStmt.step()) {
         currNode = nodesStmt.getAsObject();
-        renderNodeObject(currNode, bb, invhouseCoords, houseCoords);
-        // TODO inefficiency -- only call gv2cyPoint once. We call it once
-        // in renderNodeObject() and once here. To rectify, call after
-        // init'ing currNode and then pass to renderNodeObject().
-        node2pos[currNode['id']] = gv2cyPoint(
-            currNode['x'], currNode['y'],
-            [bb['boundingbox_x'], bb['boundingbox_y']]
-        );
+        // Render the node object and save its position
+        node2pos[currNode['id']] = renderNodeObject(currNode, bb,
+            invhouseCoords, houseCoords);
         componentNodeCount += 1;
         CURR_NE += 1;
         if (CURR_NE % PROGRESSBAR_FREQ === 0) {
@@ -1834,6 +1829,7 @@ function initClusters() {
 
 // Renders a given node object, obtained by getAsObject() from running a
 // query on CURR_DB for selecting rows from table nodes.
+// Returns the new (in Cytoscape.js coordinates) position of the node.
 function renderNodeObject(nodeObj, boundingboxObject, invhouseCoords,
         houseCoords) {
     if (nodeObj['shape'] === 'house') {
@@ -1888,6 +1884,7 @@ function renderNodeObject(nodeObj, boundingboxObject, invhouseCoords,
     if (parentID !== null) {
         cy.scratch("_ele2parent")[nodeID] = parentID;
     }
+    return pos;
 }
 
 // Draws two invisible nodes that "enforce" the given bounding box.
