@@ -8,6 +8,7 @@ html, body {
     top: 0em;
     z-index: 2;
     cursor: pointer;
+    color: #777;
 }
 #fitButton {
     position: absolute;
