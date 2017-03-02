@@ -578,6 +578,12 @@ function rotateNode(i, n) {
         // possible graph rotations. Define these as global variables above,
         // instead of using .data() to store polypts (which is redundant for
         // many nodes).
+        // We can use 8 classes (houseleftdir, houserightdir, houseupdir,
+        // housedowndir, invhouseleftdir, invhouserightdir, invhouseupdir,
+        // invhousedowndir) to accomplish this, also. We should be able to
+        // entirely phase out the use of rotateCoordinatesToStr() (comment it
+        // out of the code, of course). I can use that function to calculate
+        // the constant POLYPTS definitions in the dev console, actually.
         var coordList = n.data('polypts').trim().split(" ");
         var clLen = coordList.length;
         var pointList = [];
