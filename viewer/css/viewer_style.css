@@ -34,9 +34,11 @@ html, body {
     width: 20em;
     top: 0em;
     bottom: 0em;
-    background-color: #8A85EA;
+    background-color: #123;
     overflow-y: scroll;
     text-align: center;
+    z-index: 1;
+    color: #ccc;
 }
 #controls p { /* not the greatest solution. work on something better-looking */
     margin: 0.1em;
@@ -57,15 +59,13 @@ html, body {
     right: 0em;
     top: 0em;
     bottom: 0em;
+    z-index: 0;
 }
 .nosubsume {
     left: 20em;
 }
 .subsume {
     left: 0em;
-}
-.grayText {
-    color: #999999;
 }
 .infoTable {
     /* TODO: slightly increase spacing between cell contents and border? */
@@ -90,10 +90,10 @@ html, body {
     -ms-transition: none;
 }
 .actuallyalink:link {
-    color: #700; 
+    color: #d22; 
 }
 .actuallyalink:visited {
-    color: #700; 
+    color: #d22; 
 }
 .monospace {
     font-family: monospace;
