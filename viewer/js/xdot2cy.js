@@ -145,13 +145,39 @@ function initGraph() {
                     // (but honestly I just picked what I considered to be
                     // the least visually offensive shade of green)
                     'background-color':'#00EE00',
+                    shape: 'polygon'
                 }
             },
             {
                 selector: 'node.B',
                 style: {
                     // matches 'cornflowerblue' in graphviz
-                    'background-color':'#6495ED'
+                    'background-color':'#6495ED',
+                    shape: 'polygon'
+                }
+            },
+            {
+                selector: 'node.B.leftrightdir',
+                style: {
+                    'shape-polygon-points': BUBBLE_LEFTRIGHTDIR
+                }
+            },
+            {
+                selector: 'node.B.updowndir',
+                style: {
+                    'shape-polygon-points': BUBBLE_UPDOWNDIR
+                }
+            },
+            {
+                selector: 'node.R.leftrightdir',
+                style: {
+                    'shape-polygon-points': FRAYED_ROPE_LEFTRIGHTDIR
+                }
+            },
+            {
+                selector: 'node.R.updowndir',
+                style: {
+                    'shape-polygon-points': FRAYED_ROPE_UPDOWNDIR
                 }
             },
             {
@@ -165,7 +191,8 @@ function initGraph() {
                 selector: 'node.Y',
                 style: {
                     // matches 'darkgoldenrod1' in graphviz
-                    'background-color':'#FFB90F'
+                    'background-color':'#FFB90F',
+                    'shape': 'ellipse'
                 }
             },
             {
@@ -589,7 +616,15 @@ function rotateNode(i, n) {
         else if (n.hasClass("downdir")) n.removeClass("downdir");
         else if (n.hasClass("leftdir")) n.removeClass("leftdir");
         else if (n.hasClass("rightdir")) n.removeClass("rightdir");
-        n.addClass(getCoordClass(n.data("house")));
+        n.addClass(getNodeCoordClass(n.data("house")));
+    }
+    // We don't bother rotating cyclic chains or chains' shapes, because those
+    // shapes are directionless (whereas the bubble/frayed rope shapes have
+    // directionality that it looks nice to change with the graph's rotation)
+    else if (n.hasClass("B") || n.hasClass("R")) {
+        if (n.hasClass("updowndir")) n.removeClass("updowndir");
+        else if (n.hasClass("leftrightdir")) n.removeClass("leftrightdir");
+        n.addClass(getClusterCoordClass());
     }
 }
 
@@ -1825,7 +1860,19 @@ function initClusters() {
     );
 }
 
-function getCoordClass(isHouse) {
+// returns the coordinate class for a cluster node in the graph (only
+// respective to left/right vs. up/down direction)
+function getClusterCoordClass() {
+    if (CURR_ROTATION === 0 || CURR_ROTATION === 180) {
+        return "updowndir";
+    }
+    else {
+        return "leftrightdir";
+    }
+}
+
+// returns the coordinate class for a noncluster node in the graph
+function getNodeCoordClass(isHouse) {
     switch (CURR_ROTATION) {
         case 0:
             return isHouse ? "updir" : "downdir";
@@ -1871,7 +1918,7 @@ function renderNodeObject(nodeObj, boundingboxObject) {
         bg_color += "999999";
     }
     cy.add({
-        classes: 'noncluster' + ' ' + getCoordClass(isHouse),
+        classes: 'noncluster' + ' ' + getNodeCoordClass(isHouse),
         data: {id: nodeID, parent: parentID,
                w: INCHES_TO_PIXELS * nodeObj['w'],
                h: INCHES_TO_PIXELS * nodeObj['h'],
@@ -1923,7 +1970,7 @@ function renderClusterObject(clusterObj, boundingboxObject) {
          boundingboxObject['boundingbox_y']]);
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(
         cy.add({
-            classes: clusterID[0] + ' cluster',
+            classes: clusterID[0] + ' cluster ' + getClusterCoordClass(),
             data: {id: clusterID,
                 w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
                 h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
