@@ -7,17 +7,26 @@
  */
 
 // These sets of five points (in the format [[x1, y1], [x2, y2], ...])
-// detail the polygons drawn to represent an invhouse (facing down; the
-// shape of non-reverse-complement nodes) and a house (facing up; the
-// shape of reverse-complement nodes).
-// These points will be modified later to be rotated according to the
-// graph's rotation.
+// detail the polygons drawn to represent an invhouse (facing right in the
+// default direction; the shape of non-reverse-complement nodes) and a house
+// (facing left in the default direction; the shape of reverse-complement
+// nodes).
 const INVHOUSE_POLYPTS =
     [[-1, -1], [-1, 0.23587], [0, 1], [1, 0.23587], [1, -1]];
 const HOUSE_POLYPTS =
     [[-1, 1], [-1, -0.23587], [0, -1], [1, -0.23587], [1, 1]];
+// Copies of the _POLYPTS constants defined above. These points will be
+// modified later to be rotated according to the graph's rotation.
+// We store these points as global variables here in order to avoid having
+// to rotate every individual node's shape every time we rotate the graph.
+var INVHOUSE_POLYPTS_CURR_ROTATION =
+    [[-1, -1], [-1, 0.23587], [0, 1], [1, 0.23587], [1, -1]];
+var HOUSE_POLYPTS_CURR_ROTATION =
+    [[-1, 1], [-1, -0.23587], [0, -1], [1, -0.23587], [1, 1]];
+// following constant is unused for now (just use the square shape) --
 const SQUARE_POLYPTS =
     [[-1, -1], [-1, 1], [1, 1], [1, -1]];
+const SQUARE_COORDS = "-1 -1 -1 1 1 1 1 -1";
 
 // Approximate conversion factor from inches (the unit used by GraphViz for
 // node width/height measurements) to pixels. TODO, we might want to
@@ -1023,19 +1032,21 @@ function drawComponent(cmpRank) {
         var nodesStmt = CURR_DB.prepare(
             "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
         CURR_NE = 0;
+        var invhouseCoords = rotateCoordinatesToStr(INVHOUSE_POLYPTS);
+        var houseCoords = rotateCoordinatesToStr(HOUSE_POLYPTS);
         drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             clustersInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount);
+            totalElementCount, invhouseCoords, houseCoords);
     }, 0);
 }
 
 function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalElementCount) {
+        totalElementCount, invhouseCoords, houseCoords) {
     var currNode;
     if (nodesStmt.step()) {
         currNode = nodesStmt.getAsObject();
-        renderNodeObject(currNode, bb);
+        renderNodeObject(currNode, bb, invhouseCoords, houseCoords);
         // TODO inefficiency -- only call gv2cyPoint once. We call it once
         // in renderNodeObject() and once here. To rectify, call after
         // init'ing currNode and then pass to renderNodeObject().
@@ -1050,13 +1061,14 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             window.setTimeout(function() {
                 drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                     clustersInComponent, componentNodeCount,
-                    componentEdgeCount, totalElementCount);
+                    componentEdgeCount, totalElementCount,
+                    invhouseCoords, houseCoords);
             }, 0);
         }
         else {
             drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                 clustersInComponent, componentNodeCount, componentEdgeCount,
-                totalElementCount);
+                totalElementCount, invhouseCoords, houseCoords);
         }
     }
     else {
@@ -1829,17 +1841,16 @@ function initClusters() {
 
 // Renders a given node object, obtained by getAsObject() from running a
 // query on CURR_DB for selecting rows from table nodes.
-function renderNodeObject(nodeObj, boundingboxObject) {
-    // TODO find a way to only do this once per render job -- no need to
-    // recalc it n times, that's just stupid
+function renderNodeObject(nodeObj, boundingboxObject, invhouseCoords,
+        houseCoords) {
     if (nodeObj['shape'] === 'house') {
-        var nodePolygonPts = rotateCoordinatesToStr(HOUSE_POLYPTS);
+        var nodePolygonPts = houseCoords;
     }
     else if (nodeObj['shape'] === 'invhouse') {
-        var nodePolygonPts = rotateCoordinatesToStr(INVHOUSE_POLYPTS);
+        var nodePolygonPts = invhouseCoords;
     }
     else {
-        var nodePolygonPts = rotateCoordinatesToStr(SQUARE_POLYPTS);
+        var nodePolygonPts = SQUARE_COORDS;
     }
     var pos = gv2cyPoint(nodeObj['x'], nodeObj['y'],
         [boundingboxObject['boundingbox_x'],
