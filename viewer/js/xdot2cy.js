@@ -463,13 +463,6 @@ function setGraphBindings() {
     //    fixBadEdges();
     //    cy.offRender();
     //});
-    // TODO define 3 distinct events for selection for node.noncluster,
-    // edge, and node.cluster, adding to and removing from 3 corresponding
-    // collections. This allows us to remove the overhead of manipulating
-    // a monolithic collection of selected elements later.
-    // Hmm -- I don't really want to define 6 event bindings. maybe manipulate
-    // within these? hasClass() should be efficient since we already get
-    // e.cyTarget
     cy.on('select', 'node.noncluster, edge, node.cluster',
         function(e) {
             var x = e.cyTarget;
