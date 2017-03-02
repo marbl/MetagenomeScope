@@ -1625,41 +1625,6 @@ function rotateCoordinate(xCoord, yCoord) {
     }
 }
 
-// Used for angles not divisible by 90 degrees. Technically this is used for
-// 180, 270, etc, but those are due to rounding errors (only an
-// infinitesimal part of the polygon is lost, so it doesn't really count)
-function boundCoordinate(coord, lowerBound, upperBound) {
-    if (coord >= lowerBound) {
-        if (coord <= upperBound) {
-            return coord;
-        }
-        else {
-            return upperBound;
-        }
-    }
-    else {
-        return lowerBound;
-    }
-}
-
-/* Given an array of [x, y] coordinates (e.g. [[0, 0], [-1, 1], [0.5, 0]]),
- * rotates each coordinate about the axis by the specified
- * rotation angle (in degrees), returning a Cytoscape.js-acceptable string
- * of the points in the format "x1 y1 x2 y2"..."xn yn".
- */
-function rotateCoordinatesToStr(coordinateList) {
-    var outputString = "";
-    var currCoord, rotatedCoord;
-    var newX, newY;
-    for (var c = 0; c < coordinateList.length; c++) {
-        currCoord = coordinateList[c];
-        rotatedCoord = rotateCoordinate(currCoord[0], currCoord[1]);
-        outputString += boundCoordinate(rotatedCoord[0], -1, 1) + " ";
-        outputString += boundCoordinate(rotatedCoord[1], -1, 1) + " ";
-    }
-    return outputString.trim();
-}
-
 /* Given the bounding box of the graph, a graph rotation angle (in degrees),
  * and a point specified by x and y coordinates, converts the point from
  * GraphViz' coordinate system to Cytoscape.js' coordinate system, rotating
