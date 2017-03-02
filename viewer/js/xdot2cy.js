@@ -6,27 +6,22 @@
  * graph instance.
  */
 
-// These sets of five points (in the format [[x1, y1], [x2, y2], ...])
-// detail the polygons drawn to represent an invhouse (facing right in the
-// default direction; the shape of non-reverse-complement nodes) and a house
-// (facing left in the default direction; the shape of reverse-complement
-// nodes).
-const INVHOUSE_POLYPTS =
-    [[-1, -1], [-1, 0.23587], [0, 1], [1, 0.23587], [1, -1]];
-const HOUSE_POLYPTS =
-    [[-1, 1], [-1, -0.23587], [0, -1], [1, -0.23587], [1, 1]];
-// Copies of the _POLYPTS constants defined above. These points will be
-// modified later to be rotated according to the graph's rotation.
-// We store these points as global variables here in order to avoid having
-// to rotate every individual node's shape every time we rotate the graph.
-var INVHOUSE_POLYPTS_CURR_ROTATION =
-    [[-1, -1], [-1, 0.23587], [0, 1], [1, 0.23587], [1, -1]];
-var HOUSE_POLYPTS_CURR_ROTATION =
-    [[-1, 1], [-1, -0.23587], [0, -1], [1, -0.23587], [1, 1]];
-// following constant is unused for now (just use the square shape) --
-const SQUARE_POLYPTS =
-    [[-1, -1], [-1, 1], [1, 1], [1, -1]];
-const SQUARE_COORDS = "-1 -1 -1 1 1 1 1 -1";
+// Various coordinates that are used to define polygon node shapes in
+// Cytoscape.js (see their documentation for the format specs of these
+// coordinates).
+// The suffix indicates the directionality for which the polygon should be
+// used. LEFTRIGHT means that the polygon should be used for either the default
+// direction (LEFT, ->) or its opposite (RIGHT, <-); UPDOWN has similar
+// meaning.
+const FRAYED_ROPE_LEFTRIGHTDIR = "-1 -1 0 -0.5 1 -1 1 1 0 0.5 -1 1";
+const FRAYED_ROPE_UPDOWNDIR =    "1 -1 0.5 0 1 1 -1 1 -0.5 0 -1 -1";
+const BUBBLE_LEFTRIGHTDIR =      "-1 0 -0.5 -1 0.5 -1 1 0 0.5 1 -0.5 1";
+const BUBBLE_UPDOWNDIR =         "-1 -0.5 0 -1 1 -0.5 1 0.5 0 1 -1 0.5";
+const NODE_LEFTDIR =             "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1";
+const NODE_RIGHTDIR =            "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1";
+const NODE_UPDIR =               "-1 1 -1 -0.23587 0 -1 1 -0.23587 1 1";
+const NODE_DOWNDIR =             "-1 -1 -1 0.23587 0 1 1 0.23587 1 -1";
+const SQUARE_COORDS =            "-1 -1 -1 1 1 1 1 -1";
 
 // Approximate conversion factor from inches (the unit used by GraphViz for
 // node width/height measurements) to pixels. TODO, we might want to
@@ -183,20 +178,33 @@ function initGraph() {
                     // render the text.
                     'min-zoomed-font-size': 12,
                     shape: 'polygon',
-                    'shape-polygon-points': 'data(polypts)',
                     'background-color': 'data(bg_color)'
                 }
             },
-            // Oddly enough, this doesn't seem to impact performance in
-            // component 1 of the Shakya assembly. It seems
-            // that the selection style stuff still happens here (?),
-            // regardless of the settings.
-            //{
-            //    selector: ':active',
-            //    style: {
-            //        'overlay-opacity': 0
-            //    }
-            //},
+            {
+                selector: 'node.noncluster.updir',
+                style: {
+                    'shape-polygon-points': NODE_UPDIR
+                }
+            },
+            {
+                selector: 'node.noncluster.downdir',
+                style: {
+                    'shape-polygon-points': NODE_DOWNDIR
+                }
+            },
+            {
+                selector: 'node.noncluster.leftdir',
+                style: {
+                    'shape-polygon-points': NODE_LEFTDIR
+                }
+            },
+            {
+                selector: 'node.noncluster.rightdir',
+                style: {
+                    'shape-polygon-points': NODE_RIGHTDIR
+                }
+            },
             {
                 selector: 'node.noncluster:selected',
                 style: {
@@ -573,29 +581,15 @@ function rotateNode(i, n) {
     var newPt = rotateCoordinate(oldPt['x'], oldPt['y']);
     n.position({x: newPt[0], y: newPt[1]});
     // Rotate node polygon definition
+    // Doing this via classes is probably more efficient than giving each
+    // node its own polygon points and rotating every node's polygon points
+    // every time we rotate the graph
     if (n.hasClass("noncluster")) { 
-        // TODO Only use 8 polypts definitions: two per FWD/REV nodes per 4
-        // possible graph rotations. Define these as global variables above,
-        // instead of using .data() to store polypts (which is redundant for
-        // many nodes).
-        // We can use 8 classes (houseleftdir, houserightdir, houseupdir,
-        // housedowndir, invhouseleftdir, invhouserightdir, invhouseupdir,
-        // invhousedowndir) to accomplish this, also. We should be able to
-        // entirely phase out the use of rotateCoordinatesToStr() (comment it
-        // out of the code, of course). I can use that function to calculate
-        // the constant POLYPTS definitions in the dev console, actually.
-        var coordList = n.data('polypts').trim().split(" ");
-        var clLen = coordList.length;
-        var pointList = [];
-        var currPoint = [];
-        for (var i = 0; i < clLen; i++) {
-            if (i % 2 === 0) {
-                // i/2 is always an integer, since i is even
-                pointList[i / 2] =
-                    [parseFloat(coordList[i]), parseFloat(coordList[i + 1])];
-            }
-        }
-        n.data('polypts', rotateCoordinatesToStr(pointList));
+        if (n.hasClass("updir")) n.removeClass("updir");
+        else if (n.hasClass("downdir")) n.removeClass("downdir");
+        else if (n.hasClass("leftdir")) n.removeClass("leftdir");
+        else if (n.hasClass("rightdir")) n.removeClass("rightdir");
+        n.addClass(getCoordClass(n.data("house")));
     }
 }
 
@@ -605,7 +599,8 @@ function rotateNode(i, n) {
  */
 function changeRotation() {
     PREV_ROTATION = CURR_ROTATION;
-    CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active").attr("value"));
+    CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active")
+        .attr("value"));
     // We use the fit button's disabled status as a way to gauge whether
     // or not a graph is currently rendered; sorta hack-ish, but it works
     if (!$("#fitButton").hasClass("disabled")) {
@@ -972,7 +967,8 @@ function drawComponent(cmpRank) {
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
     PREV_ROTATION = 0;
-    CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active").attr("value"));
+    CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active")
+        .attr("value"));
     cy.scratch("_collapsed", cy.collection());
     cy.scratch("_uncollapsed", cy.collection());
     cy.scratch("_ele2parent", {});
@@ -1031,23 +1027,20 @@ function drawComponent(cmpRank) {
         var nodesStmt = CURR_DB.prepare(
             "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
         CURR_NE = 0;
-        var invhouseCoords = rotateCoordinatesToStr(INVHOUSE_POLYPTS);
-        var houseCoords = rotateCoordinatesToStr(HOUSE_POLYPTS);
         drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             clustersInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount, invhouseCoords, houseCoords);
+            totalElementCount);
     }, 0);
 }
 
 function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalElementCount, invhouseCoords, houseCoords) {
+        totalElementCount) {
     var currNode;
     if (nodesStmt.step()) {
         currNode = nodesStmt.getAsObject();
         // Render the node object and save its position
-        node2pos[currNode['id']] = renderNodeObject(currNode, bb,
-            invhouseCoords, houseCoords);
+        node2pos[currNode['id']] = renderNodeObject(currNode, bb);
         componentNodeCount += 1;
         CURR_NE += 1;
         if (CURR_NE % PROGRESSBAR_FREQ === 0) {
@@ -1055,14 +1048,13 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             window.setTimeout(function() {
                 drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                     clustersInComponent, componentNodeCount,
-                    componentEdgeCount, totalElementCount,
-                    invhouseCoords, houseCoords);
+                    componentEdgeCount, totalElementCount);
             }, 0);
         }
         else {
             drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                 clustersInComponent, componentNodeCount, componentEdgeCount,
-                totalElementCount, invhouseCoords, houseCoords);
+                totalElementCount);
         }
     }
     else {
@@ -1833,23 +1825,27 @@ function initClusters() {
     );
 }
 
+function getCoordClass(isHouse) {
+    switch (CURR_ROTATION) {
+        case 0:
+            return isHouse ? "updir" : "downdir";
+        case 90:
+            return isHouse ? "leftdir" : "rightdir";
+        case 180:
+            return isHouse ? "downdir" : "updir";
+        case 270:
+            return isHouse ? "rightdir" : "leftdir";
+    }
+}
+
 // Renders a given node object, obtained by getAsObject() from running a
 // query on CURR_DB for selecting rows from table nodes.
 // Returns the new (in Cytoscape.js coordinates) position of the node.
-function renderNodeObject(nodeObj, boundingboxObject, invhouseCoords,
-        houseCoords) {
-    if (nodeObj['shape'] === 'house') {
-        var nodePolygonPts = houseCoords;
-    }
-    else if (nodeObj['shape'] === 'invhouse') {
-        var nodePolygonPts = invhouseCoords;
-    }
-    else {
-        var nodePolygonPts = SQUARE_COORDS;
-    }
+function renderNodeObject(nodeObj, boundingboxObject) {
     var pos = gv2cyPoint(nodeObj['x'], nodeObj['y'],
         [boundingboxObject['boundingbox_x'],
          boundingboxObject['boundingbox_y']]);
+    var isHouse = nodeObj['shape'] === 'house';
     var nodeID = nodeObj['id'];
     // NOTE that NULL in sqlite gets translated to Javascript as null, which
     // works perfectly for our use of the node parent field.
@@ -1875,11 +1871,12 @@ function renderNodeObject(nodeObj, boundingboxObject, invhouseCoords,
         bg_color += "999999";
     }
     cy.add({
-        classes: 'noncluster',
-        data: {id: nodeID, parent: parentID, polypts: nodePolygonPts, 
+        classes: 'noncluster' + ' ' + getCoordClass(isHouse),
+        data: {id: nodeID, parent: parentID,
                w: INCHES_TO_PIXELS * nodeObj['w'],
                h: INCHES_TO_PIXELS * nodeObj['h'],
-               house: nodeObj['shape'] === 'house', depth: nodeObj['depth'],
+               // TODO: the "house" parameter might be too expensive?
+               house: isHouse, depth: nodeObj['depth'],
                // TODO: if we settle on always calculating G/C content when DNA
                // is available, then we can use the gc_content variable as a
                // flag for null instead of the explicit hasDNA data value.
