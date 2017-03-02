@@ -31,9 +31,8 @@ const SQUARE_COORDS =            "-1 -1 -1 1 1 1 1 -1";
 const INCHES_TO_PIXELS = 54;
 
 // Anything less than this constant will be considered a "straight" control
-// point distance. Used for preventing the "badBezier" cytoscape.js bug, in
-// which straight lines are considered "impossible" to draw.
-// (I know, it sounds ridiculous to me.)
+// point distance. This way we can approximate simple B-splines with straight
+// bezier curves (which are cheaper and easier to draw).
 const CTRL_PT_DIST_EPSILON = 1.00;
 
 // Misc. global variables we use to get certain functionality
@@ -66,6 +65,7 @@ var PROGRESSBAR_FREQ;
 const PROGRESSBAR_FREQ_PERCENT = 0.05;
 
 // Minimum bundle size needed for us to show an edge
+// TODO actually use this (see #160 on GitHub)
 const MIN_BUNDLE_SIZE = 5;
 
 // Cytoscape.js graph instance
