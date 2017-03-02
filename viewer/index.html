@@ -273,6 +273,20 @@
             </button>
             </p>
 
+            <div class='input-group input-group-sm'>
+                <span class='input-group-btn'>
+                    <button class='btn btn-default disabled'
+                        disabled="disabled" onclick='cullEdges();'
+                        type="button" id="cullEdgesButton">
+                        <span class="glyphicon glyphicon-remove"
+                            aria-hidden="true"></span> &nbsp;
+                        Hide edges below a weight of
+                    </button>
+                </span>
+                <input type='text' class='form-control'
+                    id="cullEdgesInput" value="0" disabled="disabled">
+            </div>
+
             <hr />
             <h4>Test Layouts</h4>
             <p>

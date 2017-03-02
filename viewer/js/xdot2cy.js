@@ -64,10 +64,6 @@ var PROGRESSBAR_FREQ;
 // SIZE = (number of nodes to be drawn) + 0.5*(number of edges to be drawn)
 const PROGRESSBAR_FREQ_PERCENT = 0.05;
 
-// Minimum bundle size needed for us to show an edge
-// TODO actually use this (see #160 on GitHub)
-const MIN_BUNDLE_SIZE = 5;
-
 // Cytoscape.js graph instance
 var cy = null;
 // Numbers of selected elements, and collections of those selected elements.
@@ -77,11 +73,14 @@ var SELECTED_CLUSTER_COUNT = 0;
 var SELECTED_NODES = null;
 var SELECTED_EDGES = null;
 var SELECTED_CLUSTERS = null;
+// Collection of removed edges (due to a minimum bundle size threshold).
+var REMOVED_EDGES = null;
+var PREV_EDGE_WEIGHT_THRESHOLD = null;
 // HTML snippets used while auto-creating info tables about selected elements
 const TD_CLOSE = "</td>";
 const TD_START = "<td>";
-// Regular expression we use when matching connected component ranks.
-var COMP_RANK_RE = /^\d+$/;
+// Regular expression we use when matching integers.
+var INTEGER_RE = /^\d+$/;
 
 if (!(window.File && window.FileReader)) {
 	alert("Your browser does not support the HTML5 File APIs. " +
@@ -870,6 +869,9 @@ function disableVolatileControls() {
     disableButton("drawButton");
     $("#searchInput").prop("disabled", true);
     $("#layoutInput").prop("disabled", true);
+    $("#cullEdgesInput").prop("disabled", true);
+    $("#cullEdgesInput").val("0"); // reset to avoid confusion
+    disableButton("cullEdgesButton");
     disableButton("layoutButton");
     disableButton("searchButton");
     disableButton("collapseButton");
@@ -898,7 +900,7 @@ function toggleUTV() {
 }
 
 /* Returns null if the value indicated by the string is not an integer (that
- * is, it matches the COMP_RANK_RE regex).
+ * is, it matches the INTEGER_RE regex).
  * Returns -1 if it is an integer but is less than the min component rank
  * (using the min property of #componentselector in the DOM as a reference).
  * Returns 1 if it is an integer but is greater than the max component rank
@@ -912,7 +914,7 @@ function toggleUTV() {
  * connected component size rank).
  */
 function compRankValidity(strVal) {
-    if (strVal.match(COMP_RANK_RE) === null) return null;
+    if (strVal.match(INTEGER_RE) === null) return null;
     var intVal = parseInt(strVal);
     if (intVal < parseInt($("#componentselector").prop("min"))) return -1;
     if (intVal > parseInt($("#componentselector").prop("max"))) return 1;
@@ -998,6 +1000,7 @@ function drawComponent(cmpRank) {
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
     SELECTED_CLUSTER_COUNT = 0;
+    REMOVED_EDGES = cy.collection();
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
@@ -1207,6 +1210,12 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     enableButton("drawButton");
     $("#searchInput").prop("disabled", false);
     $("#layoutInput").prop("disabled", false);
+    if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GML") {
+        // Only enable the edge culling features for graphs that have edge
+        // weights (multiplicity or bundle size)
+        $("#cullEdgesInput").prop("disabled", false);
+        enableButton("cullEdgesButton");
+    }
     enableButton("layoutButton");
     enableButton("searchButton");
     enableButton("fitButton");
@@ -1434,6 +1443,53 @@ function exportGraphView() {
     }
     else {
         window.open(cy.jpg(), "_blank");
+    }
+}
+
+/* Hides edges below a minimum edge weight (multiplicity or bundle size,
+ * depending on the assembly graph that has been loaded).
+ * This should only be called if the assembly graph that has been loaded has
+ * edge weights as a property (e.g. LastGraph or Bambus 3 GML graphs).
+ */
+function cullEdges() {
+    var strVal = $("#cullEdgesInput").val();
+    // Check that the input is a nonnegative integer
+    // (parseInt() is pretty lax)
+    if (strVal.match(INTEGER_RE) === null) {
+        alert("Please enter a valid minimum edge weight (a nonnegative " +
+              "integer) using the input field.");
+        return;
+    }
+    var threshold = parseInt(strVal);
+    // Use PREV_EDGE_WEIGHT_THRESHOLD to prevent redundant operations being
+    // done when the user double-clicks this button
+    if (PREV_EDGE_WEIGHT_THRESHOLD !== threshold) {
+        cy.startBatch();
+        // Restore removed edges that would fit within a lowered threshold
+        // Also, remove these edges from REMOVED_EDGES
+        var restoredEdges = cy.collection();
+        REMOVED_EDGES.each(
+            function(i, e) {
+                if (e.data("multiplicity") >= threshold) {
+                    e.restore();
+                    restoredEdges = restoredEdges.union(e);
+                }
+            }
+        );
+        REMOVED_EDGES = REMOVED_EDGES.difference(restoredEdges);
+        // Remove edges that have multiplicity less than the specified
+        // threshold
+        cy.$("edge").each(
+            function(i, e) {
+                if (e.data("multiplicity") < threshold) {
+                    if (e.selected())
+                        e.unselect();
+                    REMOVED_EDGES = REMOVED_EDGES.union(e.remove());
+                }
+            }
+        );
+        cy.endBatch();
+        PREV_EDGE_WEIGHT_THRESHOLD = threshold;
     }
 }
 
