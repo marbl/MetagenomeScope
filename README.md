@@ -47,7 +47,10 @@ AsmViz is composed of two main components:
 
 * Python 2.7, with [PyGraphviz](https://pygraphviz.github.io/) and the
   following standard library modules installed:
+    * [argparse](https://docs.python.org/2/library/argparse.html)
     * [sys](https://docs.python.org/2/library/sys.html)
+    * [stat](https://docs.python.org/2/library/stat.html)
+    * [subprocess](https://docs.python.org/2/library/subprocess.html)
     * [os](https://docs.python.org/2/library/os.html)
     * [errno](https://docs.python.org/2/library/errno.html)
     * [math](https://docs.python.org/2/library/math.html)
