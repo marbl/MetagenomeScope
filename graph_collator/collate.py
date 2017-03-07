@@ -44,6 +44,10 @@ parser.add_argument("-w", "--overwrite", required=False, default=False,
         action="store_true", help="overwrite output (.db/.gv/.xdot) files")
 parser.add_argument("-nodna", required=False, default=False,
         action="store_true", help="do not store DNA sequences in .db file")
+parser.add_argument("-b", "--bicomponentsfile", required=False,
+    help="file containing bicomponent information for the assembly graph" + \
+        " (will be generated using the SPQR script in the output directory" + \
+        " if not passed)")
 args = parser.parse_args()
 asm_fn = args.inputfile
 output_fn = args.outputprefix
@@ -53,6 +57,7 @@ preserve_gv = args.preservegv
 preserve_xdot = args.preservexdot
 overwrite = args.overwrite
 use_dna = not args.nodna
+bicmps_fullfn = args.bicomponentsfile
 # NOTE is unused
 double_graph = True
 
@@ -662,34 +667,38 @@ nodes_to_try_collapsing = nodeid2obj.values()
 nodes_to_draw = []
 
 # Use the SPQR tree decomposition code to locate bubbles within the graph
+# This is only done if the user hasn't passed in a bicomponents file using -b
 # The input for this is a list of edges in the graph
-edges_fn = output_fn + "_links"
-edges_fn_text = ""
-for n in nodes_to_try_collapsing:
-    for e in n.outgoing_nodes:
-        line = n.id_string + "\tB\t" + e.id_string + "\tB\t0\t0\t0\n"
-        edges_fn_text += line
-save_aux_file(edges_fn, edges_fn_text, False, warnings=False)
-edges_fullfn = os.path.join(dir_fn, edges_fn)
-bicmps_fullfn = os.path.join(dir_fn, output_fn + "_bicmps")
-if check_file_existence(bicmps_fullfn):
-    safe_file_remove(bicmps_fullfn)
-# Get the location of the spqr script -- it should be in the same directory as
-# collate.py, i.e. the currently running python script
-spqr_fullfn = os.path.join(os.path.dirname(os.path.realpath(__file__)), "spqr")
-# TODO may need to change this to work on Windows machines
-spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-o", bicmps_fullfn]
-# Some of the spqr script's output is sent to stderr, so we merge that with
-# the output. Note that we don't really check the output of this, although
-# we could if the need arises -- the main purpose of using check_output() here
-# is to catch all the printed output of the spqr script.
-# NOTE that this is ostensibly vulnerable to a silly race condition in
-# which some process creates a file with the exact filename of bicmps_fullfn
-# after we call check_file_existence but before the spqr script begins
-# outputting to that. We prevent this race condition with .db, .gv, and .xdot
-# file outputs by using os.open(), but here that isn't really an option.
-# In any case, I doubt this will be a problem -- but it's worth noting.
-check_output(spqr_invocation, stderr=STDOUT)
+if bicmps_fullfn == None:
+    edges_fn = output_fn + "_links"
+    edges_fn_text = ""
+    for n in nodes_to_try_collapsing:
+        for e in n.outgoing_nodes:
+            line = n.id_string + "\tB\t" + e.id_string + "\tB\t0\t0\t0\n"
+            edges_fn_text += line
+    save_aux_file(edges_fn, edges_fn_text, False, warnings=False)
+    edges_fullfn = os.path.join(dir_fn, edges_fn)
+    bicmps_fullfn = os.path.join(dir_fn, output_fn + "_bicmps")
+    if check_file_existence(bicmps_fullfn):
+        safe_file_remove(bicmps_fullfn)
+    # Get the location of the spqr script -- it should be in the same dir as
+    # collate.py, i.e. the currently running python script
+    spqr_fullfn = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+        "spqr")
+    # TODO may need to change this to work on Windows machines
+    spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-o", bicmps_fullfn]
+    # Some of the spqr script's output is sent to stderr, so we merge that with
+    # the output. Note that we don't really check the output of this, although
+    # we could if the need arises -- the main purpose of using check_output()
+    # here is to catch all the printed output of the spqr script.
+    # NOTE that this is ostensibly vulnerable to a silly race condition in
+    # which some process creates a file with the exact filename of
+    # bicmps_fullfn after we call check_file_existence but before the spqr
+    # script begins outputting to that. We prevent this race condition with
+    # .db, .gv, and .xdot file outputs by using os.open(), but here that
+    # isn't really an option.
+    # In any case, I doubt this will be a problem -- but it's worth noting.
+    check_output(spqr_invocation, stderr=STDOUT)
 
 # Now that the potential bubbles have been detected by the spqr script, we
 # sort them ascending order of size and then create Bubble objects accordingly.
@@ -706,10 +715,14 @@ for b in bubble_lines:
     # biconnected component; they're listed later on the line, so we ignore
     # them for now.
     for node_id in b.split()[2:]:
-        if nodeid2obj[node_id].used_in_collapsing:
-            bubble_to_be_created = False
-            break
-        curr_bubble_nodeobjs.append(nodeid2obj[node_id])
+        try:
+            if nodeid2obj[node_id].used_in_collapsing:
+                bubble_to_be_created = False
+                break
+            curr_bubble_nodeobjs.append(nodeid2obj[node_id])
+        except KeyError, e:
+            raise KeyError, "Bicomponents file %s contains invalid node %s" % \
+                (bicmps_fullfn, e)
     if bubble_to_be_created:
         new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
         nodes_to_draw.append(new_bubble)
