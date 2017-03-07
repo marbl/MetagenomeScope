@@ -6,8 +6,10 @@
 #
 # For usage information, please see README.md in the root directory of AsmViz.
 
-# For getting command-line arguments
-from sys import argv, stdout
+# For parsing command-line arguments
+import argparse
+# For flushing the output
+from sys import stdout
 # For running the C++ spqr script binary
 from subprocess import check_output, STDOUT
 # For running dot, GraphViz' main layout manager
@@ -23,57 +25,36 @@ import graph_objects
 import config
 
 # Get argument information
-asm_fn = ""
-output_fn = ""
-db_fn = ""
-dir_fn = ""
-preserve_gv = False
-preserve_xdot = False
-overwrite = False
-use_dna = True
+parser = argparse.ArgumentParser(description=config.COLLATE_DESCRIPTION)
+parser.add_argument("-i", "--inputfile", required=True,
+    help="input assembly graph filename (LastGraph, GFA, or Bambus 3 GML)")
+parser.add_argument("-o", "--outputprefix", required=True,
+    help="output file prefix for .db and .xdot/.gv files")
+parser.add_argument("-d", "--outputdirectory", required=False,
+    default=os.getcwd(),
+    help="directory in which all output files will be stored;" + \
+        " defaults to current working directory")
+parser.add_argument("-pg", "--preservegv", required=False, action="store_true",
+        default=False,
+        help="save all .gv (DOT) files generated for connected components")
+parser.add_argument("-px", "--preservexdot", required=False, default=False,
+        action="store_true",
+        help="save all .xdot files generated for connected components")
+parser.add_argument("-w", "--overwrite", required=False, default=False,
+        action="store_true", help="overwrite output (.db/.gv/.xdot) files")
+parser.add_argument("-nodna", required=False, default=False,
+        action="store_true", help="do not store DNA sequences in .db file")
+args = parser.parse_args()
+asm_fn = args.inputfile
+output_fn = args.outputprefix
+db_fn = output_fn + ".db"
+dir_fn = args.outputdirectory
+preserve_gv = args.preservegv
+preserve_xdot = args.preservexdot
+overwrite = args.overwrite
+use_dna = not args.nodna
+# NOTE is unused
 double_graph = True
-i = 1
-# Possible TODO here: use a try... block here to let the user know if they
-# passed in arguments incorrectly, in a more user-friendly way
-# Also we should probably validate that the filenames for -i and -o are
-# valid -- look into ArgParse?
-for arg in argv[1:]:
-    if (arg == "-i" or arg == "-o" or arg == "-d") and i == len(argv) - 1:
-        # If this is the last argument, then no filename is given.
-        # This is obviously invalid. (This allows us to avoid out of bounds
-        # errors when accessing argv[i + 1].)
-        raise ValueError, config.NO_FN_ERR + arg
-    if arg == "-i":
-        asm_fn = argv[i + 1]
-    elif arg == "-o":
-        output_fn = argv[i + 1]
-        db_fn = output_fn + ".db"
-    elif arg == "-d":
-        dir_fn = argv[i + 1]
-    elif arg == "-pg":
-        preserve_gv = True
-    elif arg == "-px":
-        preserve_xdot = True
-    elif arg == "-w":
-        overwrite = True
-    elif arg == "-nodna":
-        use_dna = False
-    elif arg == "-s":
-        # we don't do anything with this yet (see #10 on GitHub)
-        double_graph = False
-    elif i == 1 or argv[i - 1] not in ["-i", "-o", "-d"]:
-        # If a valid "argument" doesn't match any of the above types,
-        # then it must be a filename passed to -i, -o, or -d.
-        # If it isn't (what this elif case checks for), 
-        # then the argument is invalid and we need to raise an error.
-        raise ValueError, config.ARG_ERR + arg
-    i += 1
-
-if asm_fn == "" or output_fn == "":
-    raise ValueError, config.NO_FN_PROVIDED_ERR
-
-if dir_fn == "":
-    dir_fn = os.getcwd()
 
 try:
     os.makedirs(dir_fn)

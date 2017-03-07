@@ -107,6 +107,9 @@ GLOBALEDGE_STYLE = "headport=n,tailport=s"
 GLOBALCLUSTER_STYLE = "margin=0"
 
 # Various status messages/message prefixes that are displayed to the user.
+# Displayed during command-line argument parsing
+COLLATE_DESCRIPTION = "Prepare an assembly graph file for visualization, " + \
+"generating a SQLite 3 database that can be loaded in the AsmViz viewer."
 BUBBLE_SEARCH_MSG = \
     "Looking for bubbles in the graph using SPQR tree decomposition..."
 FRAYEDROPE_SEARCH_MSG = "Looking for frayed ropes in the graph..."
