@@ -547,8 +547,7 @@ int main(int argc, char* argv[])
                 // For each S, P, and R node, output the contained nodes.
                 // Separate by sections (e.g. "S nodes:", "P nodes:", ...)
                 // Note that node indices may not be encountered in order.
-		        for(ListIterator <node> iter = sNodes.begin(); iter.valid();
-                    ++iter) {
+		        for(ListIterator <node> iter = sNodes.begin(); iter.valid(); ++iter) {
                     Skeleton &node_skeleton = spqr.skeleton(*iter);
                     // The skeleton contains the nodes and edges that comprise
                     // this meta-node. We extract the node IDs from this
