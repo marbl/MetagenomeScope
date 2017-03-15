@@ -666,9 +666,29 @@ operation_msg(config.BUBBLE_SEARCH_MSG)
 nodes_to_try_collapsing = nodeid2obj.values()
 nodes_to_draw = []
 
+# Find "standard" bubbles. Our algorithm here classifies a bubble as a set of
+# nodes with a starting node, a set of middle nodes, and ending node, where the
+# starting node has at least two outgoing paths: all of which linearly extend
+# to the ending node.
+# This ignores some types of bubbles that exhibit a more complex structure --
+# hence why we use the bicomponent bubble detection using the SPQR script.
+for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
+    if n.used_in_collapsing or len(n.outgoing_nodes) <= 1:
+        # If n doesn't lead to multiple nodes, it couldn't be a bubble start
+        continue
+    bubble_validity, member_nodes = graph_objects.Bubble.is_valid_bubble(n)
+    if bubble_validity:
+        # Found a bubble!
+        new_bubble = graph_objects.Bubble(*member_nodes)
+        nodes_to_draw.append(new_bubble)
+        clusterid2obj[new_bubble.id_string] = new_bubble
+
+conclude_msg()
 # Use the SPQR tree decomposition code to locate bubbles within the graph
 # This is only done if the user hasn't passed in a bicomponents file using -b
 # The input for this is a list of edges in the graph
+operation_msg(config.BICOMPONENT_BUBBLE_SEARCH_MSG)
+
 if bicmps_fullfn == None:
     edges_fn = output_fn + "_links"
     edges_fn_text = ""
@@ -709,12 +729,20 @@ with open(bicmps_fullfn, "r") as potential_bubbles_file:
 # separators between nodes on each line: therefore, more tabs = more nodes
 bubble_lines.sort(key=lambda c: c.count("\t"))
 for b in bubble_lines:
+    bubble_line_node_ids = b.split()[2:]
+    # As a heuristic, we disallow complex bubbles of node size > 10. This is to
+    # prevent bubbles being detected that are so complex that they "aren't
+    # really bubbles."
+    if len(bubble_line_node_ids) > 10:
+        # We can just break here, since the bubble lines are sorted in
+        # ascending order of size
+        break
     curr_bubble_nodeobjs = []
     bubble_to_be_created = True
     # The first two nodes listed on a line are the source and sink node of the
     # biconnected component; they're listed later on the line, so we ignore
     # them for now.
-    for node_id in b.split()[2:]:
+    for node_id in bubble_line_node_ids:
         try:
             if nodeid2obj[node_id].used_in_collapsing:
                 bubble_to_be_created = False
@@ -727,18 +755,6 @@ for b in bubble_lines:
         new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
         nodes_to_draw.append(new_bubble)
         clusterid2obj[new_bubble.id_string] = new_bubble
-
-# Old way of finding bubbles --
-#for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
-#    if n.used_in_collapsing or len(n.outgoing_nodes) <= 1:
-#        # If n doesn't lead to multiple nodes, it couldn't be a bubble start
-#        continue
-#    bubble_validity, member_nodes = graph_objects.Bubble.is_valid_bubble(n)
-#    if bubble_validity:
-#        # Found a bubble!
-#        new_bubble = graph_objects.Bubble(*member_nodes)
-#        nodes_to_draw.append(new_bubble)
-#        clusterid2obj[new_bubble.id_string] = new_bubble
 
 conclude_msg()
 operation_msg(config.FRAYEDROPE_SEARCH_MSG)
