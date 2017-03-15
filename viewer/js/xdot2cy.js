@@ -358,6 +358,11 @@ function uncollapseCluster(cluster) {
     cluster.scratch("_interiorEles").restore();
     // "Reset" edges to their original target/source within the cluster
     for (var incomingEdgeID in cluster.data("incomingEdgeMap")) {
+        if (REMOVED_EDGES.is("[id=\"" + incomingEdgeID + "\"]")) {
+            // The edge has probably been removed from the graph due to 
+            // the edge weight thing -- ignore it
+            continue;
+        }
         var newTgt = cluster.data("incomingEdgeMap")[incomingEdgeID][1];
         var oldEdge = cy.getElementById(incomingEdgeID);
         // If the edge isn't connected to another cluster, and the edge
@@ -370,6 +375,9 @@ function uncollapseCluster(cluster) {
         oldEdge.move({target: newTgt});
     }
     for (var outgoingEdgeID in cluster.data("outgoingEdgeMap")) {
+        if (REMOVED_EDGES.is("[id=\"" + outgoingEdgeID + "\"]")) {
+            continue;
+        }
         var newSrc = cluster.data("outgoingEdgeMap")[outgoingEdgeID][0];
         var oldEdge = cy.getElementById(outgoingEdgeID);
         if (!oldEdge.target().hasClass("cluster") && oldEdge.data("cpd")) {
@@ -1471,6 +1479,20 @@ function cullEdges() {
         REMOVED_EDGES.each(
             function(i, e) {
                 if (e.data("multiplicity") >= threshold) {
+                    // If the edge points to/from a node within a collapsed
+                    // cluster, then make the edge a basicbezier and move the
+                    // edge to point to the cluster accordingly.
+                    // TODO, consult point 2 on issue #161
+                    if (e.source().removed()) {
+                        e.removeClass("unbundledbezier");
+                        e.addClass("basicbezier");
+                        e.move({source: e.source().data("parent")});
+                    }
+                    if (e.target().removed()) {
+                        e.removeClass("unbundledbezier");
+                        e.addClass("basicbezier");
+                        e.move({target: e.target().data("parent")});
+                    }
                     e.restore();
                     restoredEdges = restoredEdges.union(e);
                 }
