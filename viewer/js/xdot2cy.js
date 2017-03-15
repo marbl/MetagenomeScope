@@ -197,7 +197,7 @@ function initGraph() {
             {
                 selector: 'node.noncluster',
                 style: {
-                    label: 'data(id)',
+                    label: 'data(label)',
                     // rendering text is computationally expensive, so if
                     // we're zoomed out so much that the text would be
                     // illegible (or hard-to-read, at least) then don't
@@ -405,8 +405,11 @@ function addSelectedNodeInfo(ele) {
     } else { // contigs in a "double graph"
         lengthEntry += " nt";
     }
+    var eleNameUsed;
+    var eleLabel = ele.data("label");
+    eleNameUsed = (eleLabel === null) ? ele.data("id") : ele.data("label");
     var nodeRowHTML = "<tr class='nonheader' id='row" + ele.id() +
-        "'><td>" + ele.id() + "</td><td>" + lengthEntry + TD_CLOSE;
+        "'><td>" + eleNameUsed + "</td><td>" + lengthEntry + TD_CLOSE;
     if (ASM_FILETYPE === "LastGraph") {
         // Round to two decimal places
         var depthEntry = Math.round(ele.data("depth") * 100) / 100 + "x";
@@ -811,6 +814,7 @@ function parseDBcomponents() {
     if (ASM_FILETYPE === "GML") {
         // Node info adjustments
         $("#nodeTH").prop("colspan", 2);
+        $("#nameCol").text("Label");
         $("#depthCol").addClass("notviewable");
         $("#gcContentCol").addClass("notviewable");
         // Edge info adjustments
@@ -824,6 +828,7 @@ function parseDBcomponents() {
     else if (ASM_FILETYPE === "LastGraph") {
         // Node info adjustments
         $("#nodeTH").prop("colspan", 4);
+        $("#nameCol").text("ID");
         $("#depthCol").removeClass("notviewable");
         $("#gcContentCol").removeClass("notviewable");
         // Edge info adjustments
@@ -837,6 +842,7 @@ function parseDBcomponents() {
     else if (ASM_FILETYPE === "GFA") {
         // Node info adjustments
         $("#nodeTH").prop("colspan", 3);
+        $("#nameCol").text("ID");
         $("#depthCol").addClass("notviewable");
         $("#gcContentCol").removeClass("notviewable");
         // Edge info adjustments
@@ -1937,6 +1943,7 @@ function renderNodeObject(nodeObj, boundingboxObject) {
          boundingboxObject['boundingbox_y']]);
     var isHouse = nodeObj['shape'] === 'house';
     var nodeID = nodeObj['id'];
+    var nodeLabel = nodeObj['label'];
     // NOTE that NULL in sqlite gets translated to Javascript as null, which
     // works perfectly for our use of the node parent field.
     // Hence why we can just use the parent_cluster_id field directly.
@@ -1960,9 +1967,10 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     else {
         bg_color += "999999";
     }
+    var labelUsed = (nodeLabel === null) ? nodeID : nodeLabel;
     cy.add({
         classes: 'noncluster' + ' ' + getNodeCoordClass(isHouse),
-        data: {id: nodeID, parent: parentID,
+        data: {id: nodeID, parent: parentID, label: labelUsed,
                w: INCHES_TO_PIXELS * nodeObj['w'],
                h: INCHES_TO_PIXELS * nodeObj['h'],
                // TODO: the "house" parameter might be too expensive?
