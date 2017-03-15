@@ -496,6 +496,12 @@ with open(asm_fn, 'r') as assembly_file:
                 if line.strip().startswith("id"):
                     l = line.split()
                     curr_node_id = l[1]
+                if line.strip().startswith("label"):
+                    l = line.split()
+                    curr_node_label = l[1].strip("\"")
+                    if curr_node_label.startswith("NODE_"):
+                        label_parts = curr_node_label.split("_")
+                        curr_node_label = "NODE_" + label_parts[1]
                 elif line.strip().startswith("orientation"):
                     l = line.split()
                     curr_node_orientation = l[1] # either "FOW" or "REV"
@@ -505,7 +511,8 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_bp = int(l[1].strip("\""))
                 elif line.endswith("]\n"):
                     n = graph_objects.Node(curr_node_id, curr_node_bp,
-                            (curr_node_orientation == '"REV"'))
+                            (curr_node_orientation == '"REV"'),
+                            label=curr_node_label)
                     nodeid2obj[curr_node_id] = n
                     # Record this node for graph statistics
                     total_node_count += 1
@@ -867,15 +874,15 @@ connection = sqlite3.connect(db_fullfn)
 cursor = connection.cursor()
 # Define statements used for inserting a value into these tables
 # The number of question marks has to match the number of table columns
-NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
 EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?)"
 CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
 ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?)"
 cursor.execute("""CREATE TABLE nodes
-        (id text, length integer, dnafwd text, gc_content real, depth real,
-        component_rank integer, x real, y real, w real, h real, shape text,
-        parent_cluster_id text)""")
+        (id text, label text, length integer, dnafwd text, gc_content real,
+        depth real, component_rank integer, x real, y real, w real, h real,
+        shape text, parent_cluster_id text)""")
 cursor.execute("""CREATE TABLE edges
         (source_id text, target_id text, multiplicity integer,
         orientation text, mean real, stdev real, component_rank integer,
