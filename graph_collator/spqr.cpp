@@ -352,6 +352,21 @@ node original(node &n, BCTree &bc, const GraphCopy &GC, Skeleton &sk)
 	return np;
 }
 
+// test function
+void writeMetaNodeInformation(node &n, StaticSPQRTree &spqr, ofstream &ofile) {
+    // The skeleton contains the nodes and edges that comprise
+    // this meta-node. We extract the node IDs from this
+    // structure in order to output them.
+    Skeleton &skeleton = spqr.skeleton(n);
+    Graph &skeleton_graph = skeleton.getGraph();
+    node orig;
+    forall_nodes(orig, skeleton_graph) {
+        int gNodeIndex = skeleton.original(orig) -> index();
+        ofile << "\t" << gNodeIndex << " (" << intid2contig[gNodeIndex] << ")";
+    }
+    ofile << endl;
+}
+
 int main(int argc, char* argv[])
 {	
 	cmdline ::parser pr;
@@ -540,6 +555,11 @@ int main(int argc, char* argv[])
 					
 				}
                 // BEGIN TODO STUFF
+                // output root node information...? Wait, isn't a SPQR tree
+                // unrooted?
+                ofile << "Root node";
+                node r = spqr.rootNode();
+                writeMetaNodeInformation(r, spqr, ofile);
                 // Get S, P, and R nodes literally and output their contents
                 List<node> sNodes = spqr.nodesOfType(spqr.SNode);
                 List<node> pNodes = spqr.nodesOfType(spqr.PNode);
@@ -547,20 +567,17 @@ int main(int argc, char* argv[])
                 // For each S, P, and R node, output the contained nodes.
                 // Separate by sections (e.g. "S nodes:", "P nodes:", ...)
                 // Note that node indices may not be encountered in order.
-		        for(ListIterator <node> iter = sNodes.begin(); iter.valid(); ++iter) {
-                    Skeleton &node_skeleton = spqr.skeleton(*iter);
-                    // The skeleton contains the nodes and edges that comprise
-                    // this meta-node. We extract the node IDs from this
-                    // structure in order to output them.
-                    Graph &skeleton_graph = node_skeleton.getGraph();
-                    node orig;
-                    ofile << "S ";
-                    forall_nodes(orig, skeleton_graph) {
-                        // Output the node in the original assembly
-                        int gNodeIndex = node_skeleton.original(orig)->index();
-                        ofile << "\t" << gNodeIndex << " (" << intid2contig[gNodeIndex] << ")";
-                    }
-                    ofile << endl;
+		        for(ListIterator <node> s_iter = sNodes.begin(); s_iter.valid(); ++s_iter) {
+                    ofile << "S";
+                    writeMetaNodeInformation(*s_iter, spqr, ofile);
+                }
+		        for(ListIterator <node> p_iter = pNodes.begin(); p_iter.valid(); ++p_iter) {
+                    ofile << "P";
+                    writeMetaNodeInformation(*p_iter, spqr, ofile);
+                }
+		        for(ListIterator <node> r_iter = rNodes.begin(); r_iter.valid(); ++r_iter) {
+                    ofile << "P";
+                    writeMetaNodeInformation(*r_iter, spqr, ofile);
                 }
                 // END TODO STUFF
 				for(int i = 0;i < pairs.size();i++)
