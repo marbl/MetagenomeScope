@@ -1509,7 +1509,8 @@ function cullEdges() {
         // threshold
         cy.$("edge").each(
             function(i, e) {
-                if (e.data("multiplicity") < threshold) {
+                var mult = e.data("multiplicity");
+                if (mult !== null && mult < threshold) {
                     if (e.selected())
                         e.unselect();
                     REMOVED_EDGES = REMOVED_EDGES.union(e.remove());
