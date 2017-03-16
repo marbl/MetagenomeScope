@@ -699,7 +699,7 @@ function loadgraphfile() {
         alert("Please select a .db file to load.");
         return;
     }
-    if (inputfile.name.endsWith(".db")) {
+    if (inputfile.name.toLowerCase().endsWith(".db")) {
         // Important -- remove old DB from memory if it exists
         closeDB();
         disableVolatileControls();
@@ -1521,6 +1521,23 @@ function cullEdges() {
         );
         cy.endBatch();
         PREV_EDGE_WEIGHT_THRESHOLD = threshold;
+    }
+}
+
+/* Loads an AGP scaffold file (work in progress). */
+function loadAGPfile() {
+    //var sfr = new FileReader();
+	var inputfile = document.getElementById('scaffoldFileSelector').files[0];
+    if (inputfile === undefined) {
+        alert("Please select an AGP file to load.");
+        return;
+    }
+    if (inputfile.name.toLowerCase().endsWith(".agp")) {
+        //startIndeterminateProgressBar();
+        //window.setTimeout(function() {
+        //    fr.readAsArrayBuffer(inputfile);
+        //}, 50);
+        alert("Uploaded " + inputfile.name);
     }
 }
 

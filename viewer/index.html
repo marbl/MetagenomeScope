@@ -289,6 +289,17 @@
             </div>
 
             <hr />
+            <h4>View Scaffolds</h4>
+
+            <button class='btn btn-default btn-sm' id="scaffoldFileselectButton"
+                onclick="$('#scaffoldFileSelector').click();">
+                <span class="glyphicon glyphicon-folder-open"
+                    aria-hidden="true"></span> &nbsp; Choose AGP file
+            </button>
+    	    <input type='file' id='scaffoldFileSelector'
+                onchange='loadAGPfile();' style="display: none"/>
+
+            <hr />
             <h4>Test Layouts</h4>
             <p>
             See <a class="actuallyalink" target="_blank"
