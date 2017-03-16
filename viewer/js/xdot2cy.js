@@ -405,11 +405,13 @@ function addSelectedNodeInfo(ele) {
     } else { // contigs in a "double graph"
         lengthEntry += " nt";
     }
-    var eleNameUsed;
-    var eleLabel = ele.data("label");
-    eleNameUsed = (eleLabel === null) ? ele.data("id") : ele.data("label");
-    var nodeRowHTML = "<tr class='nonheader' id='row" + ele.id() +
-        "'><td>" + eleNameUsed + "</td><td>" + lengthEntry + TD_CLOSE;
+    var eleID = ele.id();
+    var nodeRowHTML = "<tr class='nonheader' id='row" + eleID + "'><td>" +
+        eleID + TD_CLOSE;
+    if (ASM_FILETYPE === "GML") {
+        nodeRowHTML += TD_START + ele.data("label") + TD_CLOSE;
+    }
+    nodeRowHTML += TD_START + lengthEntry + TD_CLOSE;
     if (ASM_FILETYPE === "LastGraph") {
         // Round to two decimal places
         var depthEntry = Math.round(ele.data("depth") * 100) / 100 + "x";
@@ -813,9 +815,9 @@ function parseDBcomponents() {
     // available)
     if (ASM_FILETYPE === "GML") {
         // Node info adjustments
-        $("#nodeTH").prop("colspan", 2);
-        $("#nameCol").text("Label");
+        $("#nodeTH").prop("colspan", 3);
         $("#depthCol").addClass("notviewable");
+        $("#labelCol").removeClass("notviewable");
         $("#gcContentCol").addClass("notviewable");
         // Edge info adjustments
         $("#edgeTH").prop("colspan", 6);
@@ -828,8 +830,8 @@ function parseDBcomponents() {
     else if (ASM_FILETYPE === "LastGraph") {
         // Node info adjustments
         $("#nodeTH").prop("colspan", 4);
-        $("#nameCol").text("ID");
         $("#depthCol").removeClass("notviewable");
+        $("#labelCol").addClass("notviewable");
         $("#gcContentCol").removeClass("notviewable");
         // Edge info adjustments
         $("#edgeTH").prop("colspan", 3);
@@ -842,8 +844,8 @@ function parseDBcomponents() {
     else if (ASM_FILETYPE === "GFA") {
         // Node info adjustments
         $("#nodeTH").prop("colspan", 3);
-        $("#nameCol").text("ID");
         $("#depthCol").addClass("notviewable");
+        $("#labelCol").addClass("notviewable");
         $("#gcContentCol").removeClass("notviewable");
         // Edge info adjustments
         $("#edgeTH").prop("colspan", 2);
