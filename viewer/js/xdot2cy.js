@@ -898,6 +898,7 @@ function disableVolatileControls() {
     $("#cullEdgesInput").val("0"); // reset to avoid confusion
     disableButton("cullEdgesButton");
     disableButton("layoutButton");
+    disableButton("scaffoldFileselectButton");
     disableButton("searchButton");
     disableButton("collapseButton");
     disableButton("fitSelectedButton");
@@ -1242,6 +1243,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("cullEdgesButton");
     }
     enableButton("layoutButton");
+    enableButton("scaffoldFileselectButton");
     enableButton("searchButton");
     enableButton("fitButton");
     enableButton("exportImageButton");
@@ -1546,7 +1548,8 @@ function loadAGPfile() {
         //window.setTimeout(function() {
         //    fr.readAsArrayBuffer(inputfile);
         //}, 50);
-        alert("Uploaded " + inputfile.name);
+        alert("Uploaded AGP file " + inputfile.name +
+              ". Will do something here in the future.");
     }
 }
 
