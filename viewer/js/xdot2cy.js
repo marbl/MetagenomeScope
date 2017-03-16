@@ -1558,7 +1558,9 @@ function searchWithEnter(e) {
 }
 
 // Centers the graph on a given list of elements separated by commas, with
-// spaces optional
+// spaces optional.
+// If any terms entered start with "contig" or "NODE", then this searches on
+// node labels for those terms.
 function searchForEles() {
     var nameText = $("#searchInput").val();
     if (nameText.trim() === "") {
@@ -1569,13 +1571,18 @@ function searchForEles() {
     var eles = cy.collection(); // empty collection (for now)
     var newEle;
     var parentID;
+    var queriedName;
     for (var c = 0; c < names.length; c++) {
-        newEle = cy.getElementById(names[c].trim());
+        queriedName = names[c].trim();
+        if (queriedName.startsWith("contig") || queriedName.startsWith("NODE"))
+            newEle = cy.filter("[label=\"" + queriedName + "\"]");
+        else
+            newEle = cy.getElementById(queriedName);
         if (newEle.empty()) {
             // Check if this element is in the graph (but currently
             // collapsed, and therefore inaccessible) or if it just
             // never existed in the first place
-            parentID = cy.scratch("_ele2parent")[names[c].trim()];
+            parentID = cy.scratch("_ele2parent")[queriedName];
             if (parentID !== undefined) {
                 // We've collapsed the parent of this element, so identify
                 // its parent instead
@@ -1583,7 +1590,7 @@ function searchForEles() {
             }
             else {
                 // It's a bogus element
-                alert("Error -- element ID " + names[c].trim() +
+                alert("Error -- element ID/label " + queriedName +
                       " is not in this component.");
                 return;
             }
@@ -1987,6 +1994,12 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     });
     if (parentID !== null) {
         cy.scratch("_ele2parent")[nodeID] = parentID;
+        // Allow for searching via node labels. This does increase the number
+        // of entries in _ele2parent by |Nodes| (assuming every node in the
+        // graph has a label given) -- so if that is too expensive for some
+        // reason, I suppose this could be disallowed.
+        if (nodeLabel !== null)
+            cy.scratch("_ele2parent")[nodeLabel] = parentID;
     }
     return pos;
 }
