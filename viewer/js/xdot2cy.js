@@ -122,7 +122,7 @@ function initGraph() {
                     height: 'data(h)'
                 }
             },
-            // Following five classes are used to set properties of
+            // The following few classes are used to set properties of
             // compound nodes (analogous to clusters in GraphViz) 
             {
                 selector: 'node.cluster',
@@ -133,8 +133,18 @@ function initGraph() {
                     'padding-top': 0,
                     'padding-right': 0,
                     'padding-left': 0,
-                    'padding-bottom': 0,
-                    'text-valign': 'bottom'
+                    'padding-bottom': 0
+                }
+            },
+            {
+                // Give collapsed clusters a number indicating child count
+                selector: 'node.cluster[?isCollapsed]',
+                style: {
+                    'min-zoomed-font-size': 12,
+                    'font-size': 48,
+                    'label': 'data(interiorNodeCount)',
+                    'text-valign': 'center',
+                    'font-weight': 'bold',
                 }
             },
             {
@@ -333,7 +343,6 @@ function collapseCluster(cluster, moveMap) {
         oldEdge.addClass("basicbezier");
         oldEdge.move({source: cluster.id()});
     }
-    // Update local flag for collapsed status (useful for local toggling)
     cluster.data("isCollapsed", true);
     // Update list of locally collapsed nodes (useful for global toggling)
     cy.scratch("_collapsed", cy.scratch("_collapsed").union(cluster));
@@ -467,7 +476,7 @@ function addSelectedClusterInfo(ele) {
         case 'R': clustType = "Frayed Rope"; break;
         default: clustType = "Invalid (error)";
     }
-    var clustSize = ele.scratch("_interiorNodes").size();
+    var clustSize = ele.data("interiorNodeCount");
     $("#clusterInfoTable").append("<tr class='nonheader' id='row" + ele.id() +
         "'><td>" + clustType + "</td><td>" + clustSize + "</td></tr>");
 }
@@ -1918,10 +1927,11 @@ function initClusters() {
             // these nodes saves us the time of filtering nodes out of
             // interiorEles when rotating collapsed node groups.
             node.data({
-                "incomingEdgeMap": incomingEdgeMap,
-                "outgoingEdgeMap": outgoingEdgeMap,
-                "w"              : wid,
-                "h"              : hgt
+                "incomingEdgeMap"   : incomingEdgeMap,
+                "outgoingEdgeMap"   : outgoingEdgeMap,
+                "w"                 : wid,
+                "h"                 : hgt,
+                "interiorNodeCount" : children.size()
             });
             // We store collections of elements in the cluster's scratch data.
             // Storing it in the main "data" section will mess up the JSON
