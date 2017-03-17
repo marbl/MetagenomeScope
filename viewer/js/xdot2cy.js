@@ -1537,20 +1537,75 @@ function cullEdges() {
 
 /* Loads an AGP scaffold file (work in progress). */
 function loadAGPfile() {
-    //var sfr = new FileReader();
+    var sfr = new FileReader();
 	var inputfile = document.getElementById('scaffoldFileSelector').files[0];
     if (inputfile === undefined) {
         alert("Please select an AGP file to load.");
         return;
     }
     if (inputfile.name.toLowerCase().endsWith(".agp")) {
-        //startIndeterminateProgressBar();
-        //window.setTimeout(function() {
-        //    fr.readAsArrayBuffer(inputfile);
-        //}, 50);
-        alert("Uploaded AGP file " + inputfile.name +
-              ". Will do something here in the future.");
+        startIndeterminateProgressBar();
+        sfr.onload = function(e) {
+            if (e.target.readyState === FileReader.DONE) {
+                integrateScaffoldFile(e.target.result);
+            }
+        }
+        window.setTimeout(function() {
+            sfr.readAsText(inputfile);
+        }, 50);
     }
+    else {
+        alert("Please select a valid AGP file to load.");
+    }
+}
+
+// integrate a scaffold file with the UI -- construct a table row for each
+// scaffold given in the AGP file
+function integrateScaffoldFile(fileData) {
+    $("#scaffoldInfoHeader").removeClass("notviewable");
+    var lines = fileData.split("\n");
+    var scaffEntryLine, lineColumns;
+    var prevScaffoldID = null;
+    var currScaffoldID;
+    var currContigLabel;
+    var currContig;
+    var scaffoldsIntegrated = false;
+    for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+        scaffEntryLine = lines[lineIndex]; 
+        // Don't show comment lines or empty lines in AGP files
+        if (scaffEntryLine[0] === "#" || scaffEntryLine.trim().length === 0) {
+            continue;
+        }
+        lineColumns = scaffEntryLine.split("\t");
+        // Truncate metadata from node IDs, if extant
+        currContigLabel = lineColumns[5];
+        if (currContigLabel.startsWith("NODE")) {
+            currContigLabel = "NODE_" + currContigLabel.split("_")[1];
+        }
+        // Don't show scaffolds not present in current connected component
+        currContig = cy.filter("[label=\"" + currContigLabel + "\"]");
+        if (currContig.empty() &&
+                cy.scratch("_ele2parent")[currContigLabel] === undefined) {
+            continue;
+        }
+        currScaffoldID = lineColumns[0];
+        if (prevScaffoldID === null || prevScaffoldID !== currScaffoldID) {
+            $("#scaffoldListGroup").append(
+                "<li class='list-group-item scaffold'>" + currScaffoldID +
+                "</li>");
+            prevScaffoldID = currScaffoldID;
+        }
+        scaffoldsIntegrated = true;
+    }
+    if (scaffoldsIntegrated) {
+        $("#scaffoldInfoHeader").html("Scaffolds in Connected Component<br/>" +
+            "(Click to highlight)");
+    }
+    else {
+        $("#scaffoldInfoHeader").html("No scaffolds apply to the contigs " +
+            "in this connected component.");
+    }
+    finishProgressBar();
 }
 
 // Like searchWithEnter() but for testLayout()

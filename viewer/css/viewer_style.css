@@ -99,3 +99,9 @@ html, body {
 .monospace {
     font-family: monospace;
 }
+.scaffold {
+    cursor: pointer;
+    background-color: #333;
+    height: 100%;
+    line-height: 100%;
+}
