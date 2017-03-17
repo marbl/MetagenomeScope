@@ -555,8 +555,7 @@ int main(int argc, char* argv[])
 					
 				}
                 // BEGIN TODO STUFF
-                // output root node information...? Wait, isn't a SPQR tree
-                // unrooted?
+                // output root node information?
                 ofile << "Root node";
                 node r = spqr.rootNode();
                 writeMetaNodeInformation(r, spqr, ofile);
@@ -576,7 +575,7 @@ int main(int argc, char* argv[])
                     writeMetaNodeInformation(*p_iter, spqr, ofile);
                 }
 		        for(ListIterator <node> r_iter = rNodes.begin(); r_iter.valid(); ++r_iter) {
-                    ofile << "P";
+                    ofile << "R";
                     writeMetaNodeInformation(*r_iter, spqr, ofile);
                 }
                 // END TODO STUFF
