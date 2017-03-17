@@ -76,6 +76,10 @@ var SELECTED_CLUSTERS = null;
 // Collection of removed edges (due to a minimum bundle size threshold).
 var REMOVED_EDGES = null;
 var PREV_EDGE_WEIGHT_THRESHOLD = null;
+// Mapping of scaffold ID to labels of nodes contained in it, as a list. Used
+// when highlighting nodes contained within a scaffold.
+var SCAFFOLDID2NODELABELS = {};
+
 // HTML snippets used while auto-creating info tables about selected elements
 const TD_CLOSE = "</td>";
 const TD_START = "<td>";
@@ -1023,6 +1027,9 @@ function drawComponent(cmpRank) {
     SELECTED_NODES = cy.collection();
     SELECTED_EDGES = cy.collection();
     SELECTED_CLUSTERS = cy.collection();
+    SCAFFOLDID2NODELABELS = {};
+    $("#scaffoldInfoHeader").addClass("notviewable");
+    $("#scaffoldListGroup").empty();
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
     SELECTED_CLUSTER_COUNT = 0;
@@ -1545,9 +1552,11 @@ function loadAGPfile() {
     }
     if (inputfile.name.toLowerCase().endsWith(".agp")) {
         startIndeterminateProgressBar();
+        $("#scaffoldListGroup").empty();
         sfr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
                 integrateScaffoldFile(e.target.result);
+                document.getElementById('scaffoldFileSelector').value = "";
             }
         }
         window.setTimeout(function() {
@@ -1577,6 +1586,7 @@ function integrateScaffoldFile(fileData) {
             continue;
         }
         lineColumns = scaffEntryLine.split("\t");
+        currScaffoldID = lineColumns[0];
         // Truncate metadata from node IDs, if extant
         currContigLabel = lineColumns[5];
         if (currContigLabel.startsWith("NODE")) {
@@ -1588,24 +1598,58 @@ function integrateScaffoldFile(fileData) {
                 cy.scratch("_ele2parent")[currContigLabel] === undefined) {
             continue;
         }
-        currScaffoldID = lineColumns[0];
+        if (SCAFFOLDID2NODELABELS[currScaffoldID] === undefined) {
+            SCAFFOLDID2NODELABELS[currScaffoldID] = [currContigLabel];
+        }
+        else {
+            SCAFFOLDID2NODELABELS[currScaffoldID].push(currContigLabel);
+        }
+        // Only add an item for this scaffold if we haven't already done so
+        // (i.e. the scaffold consists of multiple contigs -- we add the
+        // scaffold item when processing the first line containing a contig
+        // in that scaffold, and in all other lines re: that scaffold we
+        // don't add the scaffold item)
         if (prevScaffoldID === null || prevScaffoldID !== currScaffoldID) {
             $("#scaffoldListGroup").append(
-                "<li class='list-group-item scaffold'>" + currScaffoldID +
-                "</li>");
+                "<li class='list-group-item scaffold' " +
+                "onclick='highlightScaffold(\"" + currScaffoldID + "\");'>" +
+                currScaffoldID + "</li>");
             prevScaffoldID = currScaffoldID;
         }
         scaffoldsIntegrated = true;
     }
     if (scaffoldsIntegrated) {
         $("#scaffoldInfoHeader").html("Scaffolds in Connected Component<br/>" +
-            "(Click to highlight)");
+            "(Click to highlight in graph)");
     }
     else {
         $("#scaffoldInfoHeader").html("No scaffolds apply to the contigs " +
             "in this connected component.");
     }
     finishProgressBar();
+}
+
+// Highlights the contigs within a scaffold by selecting them
+function highlightScaffold(scaffoldID) {
+    cy.filter(':selected').unselect();
+    var contigLabels = SCAFFOLDID2NODELABELS[scaffoldID];
+    var nodesToHighlight = cy.collection();
+    var nodeToAdd;
+    for (var i = 0; i < contigLabels.length; i++) {
+        nodeToAdd = cy.filter("[label=\"" + contigLabels[i] + "\"]");
+        if (nodeToAdd.empty()) {
+            nodeToAdd = cy.getElementById(
+                cy.scratch("_ele2parent")[contigLabels[i]]
+            );
+            if (nodeToAdd === undefined) {
+                alert("Invalid node with label " + contigLabels[i] +
+                      " detected when highlighting scaffold " + scaffoldID +
+                      ".");
+            }
+        }
+        nodesToHighlight = nodesToHighlight.union(nodeToAdd);
+    }
+    nodesToHighlight.select();
 }
 
 // Like searchWithEnter() but for testLayout()
