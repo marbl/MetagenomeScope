@@ -1,9 +1,19 @@
 #!/usr/bin/env python
 # Test of different potential scaling methods for AsmViz.
 # Things to observe:
-# -relationship btwn. contig length and total area
+# -ensuring that contig length is proportional to total area
+# -scaling house "length" (given as "height" here due to rotation stuff) faster
+# than house "height" (given as "width" here due to aforementioned reason)
+# -trying out "real" (i.e. relative) scaling vs. log scaling
 # -how the "roof" of houses scales to large sizes (and ensuring that this is
 # constant in cytoscape.js)
+#
+# Observations thus far:
+# -Using a relationship of house height = sqrt(house length) doesn't really
+# look that different from scaling method 2 given here (which is
+# house height = 0.5 * (house length). The reason for this is that, for
+# small-ish numbers (n within [1, 5]), sqrt(n) ~ 0.5*n. For larger values of n
+# (or even for smaller values of n), a discrepancy is noticeable.
 
 from math import log
 import pygraphviz
@@ -101,6 +111,6 @@ h.add_subgraph(["a4", "b4", "c4", "d4", "e4", "f4", "g4"], name="cluster_4")
 
 h.layout(prog='dot')
 h.draw("scaling_test.png")
-# Export h to PNG
+#h.draw("scaling_test.xdot")
 h.clear()
 h.close()
