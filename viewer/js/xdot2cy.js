@@ -1774,50 +1774,6 @@ function collapseAll(operationCharacter) {
     cy.endBatch();
 }
 
-/* Simple classes (well, not really classes, but they're basically as
- * close as you can get in Javascript?) defining attributes of
- * nodes/edges/clusters.
- */
-function Node(id, x, y, width, height, shape) {
-    this.id = id;
-    this.x = x;
-    this.y = y;
-    this.width = width;
-    this.height = height;
-    this.shape = shape; // can be either "house" or "invhouse"
-}
-
-function Edge(sourceID, sinkID) {
-    this.sourceID = sourceID;
-    this.sinkID = sinkID;
-    // We use a -> in the edge ID instead of just concatenating the
-    // source and sink IDs. I was originally just concatenating the
-    // IDs, but that actually caused a problem when I had an edge
-    // between nodes "c3" and "9" -- it made the edge's ID "c39",
-    // conflicting with the actual node with the ID "c39"!
-    // I'm pretty sure - and > are illegal characters for GraphViz
-    // node IDs, so this should be safe.
-    // NOTE for future reference: the error message I got in the
-    // dev. console said Cytoscape.js couldn't add another
-    // "element" with the ID "c39". Turns out "element" can mean
-    // either node or edge...
-    this.id = this.sourceID + "->" + this.sinkID;
-    this.ctrlPts = [];
-    // Number of control points this edge has; obtained directly from xdot
-    // file's information (defined in _draw_ as B n, where n is the number
-    // of control points)
-    // Useful for testing, I guess.
-    this.ctrlPtNum = 0;    
-    // String used as intermediate format to store ctrl points
-    this.ctrlPtStr = "";
-}
-
-function Cluster(id, nodes, edges) {
-    this.id = id;
-    this.nodes = nodes;
-    this.edges = edges;
-}
-
 // Converts an angle in degrees to radians (for use with Javascript's trig
 // functions)
 function degreesToRadians(angle) {
