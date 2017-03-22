@@ -6,6 +6,9 @@
  * graph instance.
  */
 
+// How many bytes to read at once from a .agp file
+const BLOB_SIZE = 256;
+
 // Various coordinates that are used to define polygon node shapes in
 // Cytoscape.js (see their documentation for the format specs of these
 // coordinates).
@@ -1542,8 +1545,7 @@ function cullEdges() {
     }
 }
 
-/* Loads an AGP scaffold file (work in progress). */
-function loadAGPfile() {
+function beginLoadAGPfile() {
     var sfr = new FileReader();
 	var inputfile = document.getElementById('scaffoldFileSelector').files[0];
     if (inputfile === undefined) {
@@ -1551,21 +1553,96 @@ function loadAGPfile() {
         return;
     }
     if (inputfile.name.toLowerCase().endsWith(".agp")) {
+        // The file is valid. We can load it.
         startIndeterminateProgressBar();
         $("#scaffoldListGroup").empty();
+        sfr.nextStartPosition = 0;
+        // This is called after every Blob (manageably-sized chunk of the file)
+        // is loaded via this FileReader object.
         sfr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
-                integrateScaffoldFile(e.target.result);
-                document.getElementById('scaffoldFileSelector').value = "";
+                // TODO: split by newlines:
+                // -Reconcile parts of blob before first \n with parts after
+                // last \n in previous blob by adding to SCAFFOLD thing
+                // -Reconcile parts of blob in between \n's within this blob
+                // by directly adding to SCAFFOLD thing
+                // -Reconcile parts of blob after last \n by saving in a string
+                // named PARTIAL_LINE or something
+                // OR (TODO):
+                // -Maintain a PARTIAL_LINE string variable. Set to ""
+                // initially.
+                // -Split input by newlines. Store as bloblines.
+                //      -If len(bloblines) > 1, then:
+                //          -Get bloblines[0].
+                //           =>If the first character of the input is a \n,
+                //           then process PARTIAL_LINE if != "".
+                //           => Otherwise (first character of the input is not
+                //           a \n), Process line of PARTIAL_LINE+bloblines[0].
+                //          -Get bloblines[x] for all x that aren't the first
+                //          or last lines in bloblines. Process these lines.
+                //          -Get bloblines[y] where y = bloblines.length - 1.
+                //           =>If the last character of the input is a \n, then
+                //           process bloblines[y]. Set PARTIAL_LINE = "".
+                //           =>Otherwise (last character of the input is not a
+                //           \n), Store bloblines[y] in PARTIAL_LINE.
+                //      -If len(bloblines) = 1, then
+                //          => If the first character of the input is a \n
+                //          AND the last character of the input is a \n, then
+                //          process PARTIAL_LINE (if != "") and process the
+                //          current line.
+                //          => If the first character of the input is a \n and
+                //          the last char isn't a \n, then process PARTIAL_LINE
+                //          (if != "") and then store the current line in
+                //          PARTIAL_LINE.
+                //          => If the last character of the input is a \n and
+                //          the first char isn't a \n, then process line of
+                //          PARTIAL_LINE + current line.
+                //          => If neither first or last character is a \n, then
+                //          add the current line to PARTIAL_LINE.
+                //      -If len(bloblines) = 0, then
+                //          -We must have a blob consisting only of \n. Process
+                //          PARTIAL_LINE.
+                var currentBlobText = e.target.result; 
+                console.log(currentBlobText);
+                loadAGPfile(this, inputfile, this.nextStartPosition);
             }
         }
-        window.setTimeout(function() {
-            sfr.readAsText(inputfile);
-        }, 50);
+        loadAGPfile(sfr, inputfile, 0);
     }
     else {
         alert("Please select a valid AGP file to load.");
     }
+}
+
+/* Recursively loads the AGP file using Blobs. (After the FileReader loads a
+ * Blob, it calls this method for the next Blob.)
+ *
+ * fileReader and file should remain constant through the recursive loading
+ * process, while filePosition will be updated as the file is loaded.
+ * The initial call to loadAGPfile() should use filePosition = 0 (in order to
+ * start reading the file from its 0th byte, i.e. its beginning).
+ */
+function loadAGPfile(fileReader, file, filePosition) {
+    // Only get a Blob if it'd have some data in it
+    if (filePosition <= file.size) {
+        // In interval notation, the slice includes bytes in the range
+        // [filePosition, endPosition). That is, the endPosition byte is not
+        // included in currentBlob.
+        var endPosition = filePosition + BLOB_SIZE;
+        var currentBlob = file.slice(filePosition, endPosition);
+        fileReader.nextStartPosition = endPosition;
+        fileReader.readAsText(currentBlob);
+    }
+    else {
+        finishLoadAGPfile();
+    }
+}
+
+// Allow for the same AGP file to be loaded again if necessary
+// should be called after an AGP file is loaded/integrated
+function finishLoadAGPfile() {
+    document.getElementById('scaffoldFileSelector').value = "";
+    finishProgressBar();
 }
 
 // integrate a scaffold file with the UI -- construct a table row for each
