@@ -1603,7 +1603,7 @@ function beginLoadAGPfile() {
                 //          -We must have a blob consisting only of \n. Process
                 //          PARTIAL_LINE.
                 var currentBlobText = e.target.result; 
-                console.log(currentBlobText);
+                //console.log(currentBlobText);
                 loadAGPfile(this, inputfile, this.nextStartPosition);
             }
         }
