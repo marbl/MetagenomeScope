@@ -1556,54 +1556,52 @@ function beginLoadAGPfile() {
         // The file is valid. We can load it.
         startIndeterminateProgressBar();
         $("#scaffoldListGroup").empty();
+        // Set some attributes of the FileReader object that we update while
+        // reading the file.
         sfr.nextStartPosition = 0;
+        sfr.partialLine = "";
+        sfr.readingFinalBlob = false;
         // This is called after every Blob (manageably-sized chunk of the file)
         // is loaded via this FileReader object.
         sfr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
-                // TODO: split by newlines:
-                // -Reconcile parts of blob before first \n with parts after
-                // last \n in previous blob by adding to SCAFFOLD thing
-                // -Reconcile parts of blob in between \n's within this blob
-                // by directly adding to SCAFFOLD thing
-                // -Reconcile parts of blob after last \n by saving in a string
-                // named PARTIAL_LINE or something
-                // OR (TODO):
-                // -Maintain a PARTIAL_LINE string variable. Set to ""
-                // initially.
-                // -Split input by newlines. Store as bloblines.
-                //      -If len(bloblines) > 1, then:
-                //          -Get bloblines[0].
-                //           =>If the first character of the input is a \n,
-                //           then process PARTIAL_LINE if != "".
-                //           => Otherwise (first character of the input is not
-                //           a \n), Process line of PARTIAL_LINE+bloblines[0].
-                //          -Get bloblines[x] for all x that aren't the first
-                //          or last lines in bloblines. Process these lines.
-                //          -Get bloblines[y] where y = bloblines.length - 1.
-                //           =>If the last character of the input is a \n, then
-                //           process bloblines[y]. Set PARTIAL_LINE = "".
-                //           =>Otherwise (last character of the input is not a
-                //           \n), Store bloblines[y] in PARTIAL_LINE.
-                //      -If len(bloblines) = 1, then
-                //          => If the first character of the input is a \n
-                //          AND the last character of the input is a \n, then
-                //          process PARTIAL_LINE (if != "") and process the
-                //          current line.
-                //          => If the first character of the input is a \n and
-                //          the last char isn't a \n, then process PARTIAL_LINE
-                //          (if != "") and then store the current line in
-                //          PARTIAL_LINE.
-                //          => If the last character of the input is a \n and
-                //          the first char isn't a \n, then process line of
-                //          PARTIAL_LINE + current line.
-                //          => If neither first or last character is a \n, then
-                //          add the current line to PARTIAL_LINE.
-                //      -If len(bloblines) = 0, then
-                //          -We must have a blob consisting only of \n. Process
-                //          PARTIAL_LINE.
-                var currentBlobText = e.target.result; 
-                //console.log(currentBlobText);
+                var blobText = e.target.result;
+                var blobLines = blobText.split("\n");
+                // Newlines located at the very start or end of blobText will
+                // cause .split() to add "" in those places, which makes
+                // integrating sfr.partialLine with this a lot easier.
+                // (As opposed to us having to manually check for newlines in
+                // those places.)
+                if (blobLines.length > 1) {
+                    // Process first line, which may or may not include
+                    // sfr.partialLine's contents (sfr.partialLine may be "",
+                    // or blobLines[0] may be "").
+                    integrateAGPline(sfr.partialLine + blobLines[0]);
+                    sfr.partialLine = "";
+                    // Process "intermediate" lines
+                    for (var i = 1; i < blobLines.length - 1; i++) {
+                        integrateAGPline(blobLines[i]);
+                    }
+                    // Process last line in the blob: if we know this is the
+                    // last Blob we can read then we treat this last line as a
+                    // complete line. Otherwise, we just store it in
+                    // sfr.partialLine.
+                    if (sfr.readingFinalBlob) {
+                        integrateAGPline(blobLines[blobLines.length - 1]);
+                    }
+                    else {
+                        sfr.partialLine = blobLines[blobLines.length - 1];
+                    }
+                }
+                else if (blobLines.length === 1) {
+                    // blobText doesn't contain any newlines
+                    if (sfr.readingFinalBlob) {
+                        integrateAGPline(sfr.partialLine + blobText);
+                    }
+                    else {
+                        sfr.partialLine += blobText;
+                    }
+                }
                 loadAGPfile(this, inputfile, this.nextStartPosition);
             }
         }
@@ -1611,6 +1609,19 @@ function beginLoadAGPfile() {
     }
     else {
         alert("Please select a valid AGP file to load.");
+    }
+}
+
+/* Given a line of text (i.e. no newline characters are in the line), adds the
+ * contig referenced in that line to the SCAFFOLDID2NODELABELS mapping. Also
+ * adds the scaffold referenced in that line, if not already defined (i.e. this
+ * is the first line we've called this function on that references that
+ * scaffold).
+ */
+function integrateAGPline(lineText) {
+    // Avoid using empty lines (e.g. due to trailing newlines in files)
+    if (lineText != "") {
+        console.log(lineText);
     }
 }
 
@@ -1630,6 +1641,9 @@ function loadAGPfile(fileReader, file, filePosition) {
         // included in currentBlob.
         var endPosition = filePosition + BLOB_SIZE;
         var currentBlob = file.slice(filePosition, endPosition);
+        if (endPosition > file.size) {
+            fileReader.readingFinalBlob = true;
+        }
         fileReader.nextStartPosition = endPosition;
         fileReader.readAsText(currentBlob);
     }
