@@ -10,13 +10,6 @@
 # consistent in cytoscape.js -- looks like the ratio of ["width" taken up by
 # the house roof] to [total node "width"] stays constant regardless of total
 # node width).
-#
-# Observations thus far:
-# -Using a relationship of house height = sqrt(house length) doesn't really
-# look that different from scaling method 2 given here (which is
-# house height = 0.5 * (house length). The reason for this is that, for
-# small-ish numbers (n within [1, 5]), sqrt(n) ~ 0.5*n. For larger values of n
-# (or even for smaller values of n), a discrepancy is noticeable.
 
 from math import log, sqrt
 import pygraphviz
