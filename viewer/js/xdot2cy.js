@@ -7,7 +7,7 @@
  */
 
 // How many bytes to read at once from a .agp file
-const BLOB_SIZE = 256;
+const BLOB_SIZE = 8192;
 
 // Various coordinates that are used to define polygon node shapes in
 // Cytoscape.js (see their documentation for the format specs of these
