@@ -92,6 +92,8 @@ var SCAFFOLDID2NODELABELS = {};
 // from the AGP file -- this, in turn, is used to determine what text to
 // display to the user in the "View Scaffolds" area.
 var COMPONENT_HAS_SCAFFOLDS = false;
+// Used in determining which scaffolds are in the component.
+var COMPONENT_NODE_LABELS = [];
 
 // HTML snippets used while auto-creating info tables about selected elements
 const TD_CLOSE = "</td>";
@@ -1045,6 +1047,7 @@ function drawComponent(cmpRank) {
     SCAFFOLDID2NODELABELS = {};
     $("#scaffoldInfoHeader").addClass("notviewable");
     $("#scaffoldListGroup").empty();
+    COMPONENT_NODE_LABELS = [];
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
     SELECTED_CLUSTER_COUNT = 0;
@@ -1653,16 +1656,9 @@ function integrateAGPline(lineText) {
             contigLabel = "NODE_" + contigLabel.split("_")[1];
         }
         // Check if this contig is in the current connected component.
-        // We could try speeding this up by, upon detecting that a scaffold has
-        // a contig not in the current connected component, adding that
-        // scaffold ID to a list of invalid scaffold IDs -- and when this
-        // function is called again, we can check the scaffold ID against that
-        // list and disqualify it accordingly without having to run
-        // cy.filter().
-        var contigNode = cy.filter("[label=\"" + contigLabel + "\"]");
-        if (contigNode.empty()
-                && cy.scratch("_ele2parent")[contigLabel] === undefined) {
-            // This contig is not in the current connected component
+        // We use COMPONENT_NODE_LABELS because running cy.filter() repeatedly
+        // can get really slow.
+        if (COMPONENT_NODE_LABELS.indexOf(contigLabel) === -1) {
             return;
         }
         COMPONENT_HAS_SCAFFOLDS = true;
@@ -2133,6 +2129,7 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     var isHouse = nodeObj['shape'] === 'house';
     var nodeID = nodeObj['id'];
     var nodeLabel = nodeObj['label'];
+    COMPONENT_NODE_LABELS.push(nodeLabel);
     // NOTE that NULL in sqlite gets translated to Javascript as null, which
     // works perfectly for our use of the node parent field.
     // Hence why we can just use the parent_cluster_id field directly.
