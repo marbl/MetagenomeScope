@@ -56,11 +56,7 @@ MIN_COMPONENT_SIZE = 1
 # things tell what's going in an assembly graph.
 MAX_CONTIG_HEIGHT = 10
 MIN_CONTIG_HEIGHT = 1
-# Ratio of width to height (where "height" refers to the vertical side of
-# a node in the default top-to-bottom graph orientation, and "width" refers
-# to the horizontal side of a node).
-WIDTH_HEIGHT_RATIO = 0.25
-# The base we use when logarithmically scaling contigs based on length
+# The base we use when logarithmically scaling contig dimensions from length
 CONTIG_SCALING_LOG_BASE = 10
 
 ### Frequently-used GraphViz settings ###
