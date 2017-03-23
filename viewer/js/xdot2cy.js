@@ -826,6 +826,7 @@ function parseDBcomponents() {
     $("#n50Entry").text(n50Info);
     $("#componentselector").prop("max", compCt);
     $("#componentselector").prop("disabled", false);
+    SCAFFOLDID2NODELABELS = {};
     $("#scaffoldInfoHeader").addClass("notviewable");
     $("#scaffoldListGroup").empty();
     enableButton("decrCompRankButton");
@@ -1572,6 +1573,8 @@ function beginLoadAGPfile() {
     if (inputfile.name.toLowerCase().endsWith(".agp")) {
         // The file is valid. We can load it.
         startIndeterminateProgressBar();
+        SCAFFOLDID2NODELABELS = {};
+        $("#scaffoldInfoHeader").addClass("notviewable");
         $("#scaffoldListGroup").empty();
         // Set some attributes of the FileReader object that we update while
         // reading the file.
@@ -1706,7 +1709,6 @@ function loadAGPfile(fileReader, file, filePosition) {
 // Allow for the same AGP file to be loaded again if necessary
 // should be called after an AGP file is loaded/integrated
 function finishLoadAGPfile() {
-    $("#scaffoldInfoHeader").removeClass("notviewable");
     if (COMPONENT_HAS_SCAFFOLDS) {
         $("#scaffoldInfoHeader").html("Scaffolds in Connected Component<br/>" +
             "(Click to highlight in graph)");
@@ -1715,6 +1717,7 @@ function finishLoadAGPfile() {
         $("#scaffoldInfoHeader").html("No scaffolds apply to the contigs " +
             "in this connected component.");
     }
+    $("#scaffoldInfoHeader").removeClass("notviewable");
     document.getElementById('scaffoldFileSelector').value = "";
     finishProgressBar();
 }
