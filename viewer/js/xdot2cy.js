@@ -2160,8 +2160,8 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     cy.add({
         classes: 'noncluster' + ' ' + getNodeCoordClass(isHouse),
         data: {id: nodeID, parent: parentID, label: labelUsed,
-               w: INCHES_TO_PIXELS * nodeObj['w'],
-               h: INCHES_TO_PIXELS * nodeObj['h'],
+               w: INCHES_TO_PIXELS * nodeObj['h'],
+               h: INCHES_TO_PIXELS * nodeObj['w'],
                // TODO: the "house" parameter might be too expensive?
                house: isHouse, depth: nodeObj['depth'],
                // TODO: if we settle on always calculating G/C content when DNA

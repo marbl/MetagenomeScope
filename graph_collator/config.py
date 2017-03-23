@@ -56,10 +56,10 @@ MIN_COMPONENT_SIZE = 1
 # things tell what's going in an assembly graph.
 MAX_CONTIG_HEIGHT = 10
 MIN_CONTIG_HEIGHT = 1
-# Changing this causes strange things in the AsmViz viewer, since that's
-# designed to work with node polygons of matching width and height.
-# Keep it at 1.0 unless there's a good reason.
-WIDTH_HEIGHT_RATIO = 1.0
+# Ratio of width to height (where "height" refers to the vertical side of
+# a node in the default top-to-bottom graph orientation, and "width" refers
+# to the horizontal side of a node).
+WIDTH_HEIGHT_RATIO = 0.25
 # The base we use when logarithmically scaling contigs based on length
 CONTIG_SCALING_LOG_BASE = 10
 

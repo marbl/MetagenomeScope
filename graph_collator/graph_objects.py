@@ -72,8 +72,7 @@ class Node(object):
            it really just means the length of this node. In single graphs
            that's measured in bp and in double graphs that's measured in nt.
            
-           Size scaling based on length is done in self.get_height(), if the
-           component containing this node is laid out.
+           (Size scaling based on length is done in self.get_dimensions().)
         """
         self.id_string = id_string
         self.bp = bp
@@ -122,37 +121,34 @@ class Node(object):
         self.xdot_rel_x  = None
         self.xdot_rel_y  = None
         
-    def get_height(self):
-        """Calculates the "height" of this node.
+    def get_dimensions(self):
+        """Calculates the width and height of this node.
+
+           Returns a 2-tuple of (width, height).
+
+           NOTE that "height" and "width" are relative to the default vertical
+           layout of the nodes (from top to bottom) -- so height refers to the
+           long side of the node and width refers to the short side.
         
-           Returns a 2-tuple of the node height and an int indicating
-           any rounding up/down done
-           (a value of 0 indicates no rounding,
-           positive values indicate rounding down being done,
-           negative values indicate rounding up being done).
-           
-           NOTE that this shouldn't be confused with the .xdot_height
-           property, which represents the actual height of this node as
-           determined by GraphViz.
+           ALSO NOTE that this shouldn't be confused with the .xdot_height
+           or .xdot_width properties, which represent the actual dimensions of
+           this node as determined by GraphViz.
         """
         h = log(self.bp, config.CONTIG_SCALING_LOG_BASE)
         if h > config.MAX_CONTIG_HEIGHT:
             h = config.MAX_CONTIG_HEIGHT
-            rounding_done = 1
         elif h < config.MIN_CONTIG_HEIGHT:
             h = config.MIN_CONTIG_HEIGHT
-            rounding_done = -1
-        else:
-            rounding_done = 0
-        return (h, rounding_done)
+        w = sqrt(h)
+        return (w, h)
 
     def node_info(self):
         """Returns a string representing this node that can be used in a .dot
            file for input to GraphViz.
         """
-        h, r = self.get_height()
+        w, h = self.get_dimensions()
         info = "\t%s [height=%g,width=%g,shape=" % \
-                (self.id_string, h, config.WIDTH_HEIGHT_RATIO * h)
+                (self.id_string, h, w)
         if not self.is_complement:
             info += config.BASIC_NODE_SHAPE
         else:
