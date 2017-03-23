@@ -7,7 +7,13 @@
  */
 
 // How many bytes to read at once from a .agp file
-const BLOB_SIZE = 8192;
+// For now, we set this to 1 MiB. The maximum Blob size in most browsers is
+// around 500 - 600 MiB, so this should be well within that range.
+// (We want to strike a balance between a small Blob size -- which causes lots
+// of reading operations to be done, which takes a lot of time -- and a huge
+// Blob size, which can potentially run out of memory, causing the read
+// operation to fail.)
+const BLOB_SIZE = 1048576;
 
 // Various coordinates that are used to define polygon node shapes in
 // Cytoscape.js (see their documentation for the format specs of these
@@ -82,6 +88,10 @@ var PREV_EDGE_WEIGHT_THRESHOLD = null;
 // Mapping of scaffold ID to labels of nodes contained in it, as a list. Used
 // when highlighting nodes contained within a scaffold.
 var SCAFFOLDID2NODELABELS = {};
+// Used to indicate whether or not the current component has scaffolds added
+// from the AGP file -- this, in turn, is used to determine what text to
+// display to the user in the "View Scaffolds" area.
+var COMPONENT_HAS_SCAFFOLDS = false;
 
 // HTML snippets used while auto-creating info tables about selected elements
 const TD_CLOSE = "</td>";
@@ -814,6 +824,8 @@ function parseDBcomponents() {
     $("#n50Entry").text(n50Info);
     $("#componentselector").prop("max", compCt);
     $("#componentselector").prop("disabled", false);
+    $("#scaffoldInfoHeader").addClass("notviewable");
+    $("#scaffoldListGroup").empty();
     enableButton("decrCompRankButton");
     enableButton("incrCompRankButton");
     enableButton("xmlFileselectButton");
@@ -1547,6 +1559,8 @@ function cullEdges() {
 
 function beginLoadAGPfile() {
     var sfr = new FileReader();
+    // will be set to true if we find suitable scaffolds
+    COMPONENT_HAS_SCAFFOLDS = false;
 	var inputfile = document.getElementById('scaffoldFileSelector').files[0];
     if (inputfile === undefined) {
         alert("Please select an AGP file to load.");
@@ -1617,11 +1631,52 @@ function beginLoadAGPfile() {
  * adds the scaffold referenced in that line, if not already defined (i.e. this
  * is the first line we've called this function on that references that
  * scaffold).
+ *
+ * Saves contig/scaffold info for the entire assembly graph, not just the
+ * current connected component. This will allow us to reuse the same mapping
+ * for multiple connected components' visualizations.
  */
 function integrateAGPline(lineText) {
-    // Avoid using empty lines (e.g. due to trailing newlines in files)
-    if (lineText != "") {
-        console.log(lineText);
+    // Avoid processing empty lines (e.g. due to trailing newlines in files)
+    // Also avoid processing comment lines (lines that start with #)
+    if (lineText != "" && lineText[0] !== "#") {
+        // TODO save info in SCAFFOLDID2NODES, for all scaffolds
+        // For now, just add scaffolds pertinent to current connected component
+        // to the table. Consider exporting that functionality to another
+        // function we can run when an AGP file for the curr. assembly has
+        // already been loaded.
+        var lineColumns = lineText.split("\t");
+        var scaffoldID = lineColumns[0];
+        var contigLabel = lineColumns[5];
+        // If the node ID has metadata, truncate it
+        if (contigLabel.startsWith("NODE")) {
+            contigLabel = "NODE_" + contigLabel.split("_")[1];
+        }
+        // Check if this contig is in the current connected component.
+        // We could try speeding this up by, upon detecting that a scaffold has
+        // a contig not in the current connected component, adding that
+        // scaffold ID to a list of invalid scaffold IDs -- and when this
+        // function is called again, we can check the scaffold ID against that
+        // list and disqualify it accordingly without having to run
+        // cy.filter().
+        var contigNode = cy.filter("[label=\"" + contigLabel + "\"]");
+        if (contigNode.empty()
+                && cy.scratch("_ele2parent")[contigLabel] === undefined) {
+            // This contig is not in the current connected component
+            return;
+        }
+        COMPONENT_HAS_SCAFFOLDS = true;
+        if (SCAFFOLDID2NODELABELS[scaffoldID] === undefined) {
+            SCAFFOLDID2NODELABELS[scaffoldID] = [contigLabel];
+            // Add a list item for this scaffold
+            $("#scaffoldListGroup").append(
+                "<li class='list-group-item scaffold' " +
+                "onclick='highlightScaffold(\"" + scaffoldID + "\");'>" +
+                scaffoldID + "</li>");
+        }
+        else {
+            SCAFFOLDID2NODELABELS[scaffoldID].push(contigLabel);
+        }
     }
 }
 
@@ -1655,61 +1710,8 @@ function loadAGPfile(fileReader, file, filePosition) {
 // Allow for the same AGP file to be loaded again if necessary
 // should be called after an AGP file is loaded/integrated
 function finishLoadAGPfile() {
-    document.getElementById('scaffoldFileSelector').value = "";
-    finishProgressBar();
-}
-
-// integrate a scaffold file with the UI -- construct a table row for each
-// scaffold given in the AGP file
-function integrateScaffoldFile(fileData) {
     $("#scaffoldInfoHeader").removeClass("notviewable");
-    var lines = fileData.split("\n");
-    var scaffEntryLine, lineColumns;
-    var prevScaffoldID = null;
-    var currScaffoldID;
-    var currContigLabel;
-    var currContig;
-    var scaffoldsIntegrated = false;
-    for (var lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-        scaffEntryLine = lines[lineIndex]; 
-        // Don't show comment lines or empty lines in AGP files
-        if (scaffEntryLine[0] === "#" || scaffEntryLine.trim().length === 0) {
-            continue;
-        }
-        lineColumns = scaffEntryLine.split("\t");
-        currScaffoldID = lineColumns[0];
-        // Truncate metadata from node IDs, if extant
-        currContigLabel = lineColumns[5];
-        if (currContigLabel.startsWith("NODE")) {
-            currContigLabel = "NODE_" + currContigLabel.split("_")[1];
-        }
-        // Don't show scaffolds not present in current connected component
-        currContig = cy.filter("[label=\"" + currContigLabel + "\"]");
-        if (currContig.empty() &&
-                cy.scratch("_ele2parent")[currContigLabel] === undefined) {
-            continue;
-        }
-        if (SCAFFOLDID2NODELABELS[currScaffoldID] === undefined) {
-            SCAFFOLDID2NODELABELS[currScaffoldID] = [currContigLabel];
-        }
-        else {
-            SCAFFOLDID2NODELABELS[currScaffoldID].push(currContigLabel);
-        }
-        // Only add an item for this scaffold if we haven't already done so
-        // (i.e. the scaffold consists of multiple contigs -- we add the
-        // scaffold item when processing the first line containing a contig
-        // in that scaffold, and in all other lines re: that scaffold we
-        // don't add the scaffold item)
-        if (prevScaffoldID === null || prevScaffoldID !== currScaffoldID) {
-            $("#scaffoldListGroup").append(
-                "<li class='list-group-item scaffold' " +
-                "onclick='highlightScaffold(\"" + currScaffoldID + "\");'>" +
-                currScaffoldID + "</li>");
-            prevScaffoldID = currScaffoldID;
-        }
-        scaffoldsIntegrated = true;
-    }
-    if (scaffoldsIntegrated) {
+    if (COMPONENT_HAS_SCAFFOLDS) {
         $("#scaffoldInfoHeader").html("Scaffolds in Connected Component<br/>" +
             "(Click to highlight in graph)");
     }
@@ -1717,6 +1719,7 @@ function integrateScaffoldFile(fileData) {
         $("#scaffoldInfoHeader").html("No scaffolds apply to the contigs " +
             "in this connected component.");
     }
+    document.getElementById('scaffoldFileSelector').value = "";
     finishProgressBar();
 }
 
