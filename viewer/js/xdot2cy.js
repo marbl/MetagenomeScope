@@ -829,6 +829,7 @@ function parseDBcomponents() {
     SCAFFOLDID2NODELABELS = {};
     $("#scaffoldInfoHeader").addClass("notviewable");
     $("#scaffoldListGroup").empty();
+    COMPONENT_NODE_LABELS = [];
     enableButton("decrCompRankButton");
     enableButton("incrCompRankButton");
     enableButton("xmlFileselectButton");
@@ -1045,9 +1046,12 @@ function drawComponent(cmpRank) {
     SELECTED_NODES = cy.collection();
     SELECTED_EDGES = cy.collection();
     SELECTED_CLUSTERS = cy.collection();
-    SCAFFOLDID2NODELABELS = {};
-    $("#scaffoldInfoHeader").addClass("notviewable");
     $("#scaffoldListGroup").empty();
+    // will be set to true if we find suitable scaffolds
+    // the actual work of finding those scaffolds (if SCAFFOLDID2NODELABELS is
+    // not empty, of course) is done in finishDrawComponent().
+    COMPONENT_HAS_SCAFFOLDS = false;
+    $("#scaffoldInfoHeader").addClass("notviewable");
     COMPONENT_NODE_LABELS = [];
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
@@ -1222,7 +1226,6 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
 
 function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         clustersInComponent) {
-    updateTextStatus("&nbsp;");
     var intro = "The ";
     var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
     var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
@@ -1253,46 +1256,69 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     cy.endBatch();
     cy.fit();
     fixBadEdges();
-    $("#componentselector").prop("disabled", false);
-    enableButton("decrCompRankButton");
-    enableButton("incrCompRankButton");
-    enableButton("fileselectButton");
-    enableButton("loadDBbutton");
-    enableButton("xmlFileselectButton");
-    enableButton("drawButton");
-    $("#searchInput").prop("disabled", false);
-    $("#layoutInput").prop("disabled", false);
-    if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GML") {
-        // Only enable the edge culling features for graphs that have edge
-        // weights (multiplicity or bundle size)
-        $("#cullEdgesInput").prop("disabled", false);
-        enableButton("cullEdgesButton");
+    updateTextStatus("Preparing interface...");
+    window.setTimeout(function() {
+        // If we have scaffold data still loaded for this assembly, use it
+        // for the newly drawn connected component.
+        if (isObjectNonempty(SCAFFOLDID2NODELABELS)) {
+            updateScaffoldsInComponentList();
+        }
+        // At this point, all of the hard work has been done. All that's left
+        // to do now is re-enable controls, enable graph interaction, etc.
+        $("#componentselector").prop("disabled", false);
+        enableButton("decrCompRankButton");
+        enableButton("incrCompRankButton");
+        enableButton("fileselectButton");
+        enableButton("loadDBbutton");
+        enableButton("xmlFileselectButton");
+        enableButton("drawButton");
+        $("#searchInput").prop("disabled", false);
+        $("#layoutInput").prop("disabled", false);
+        if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GML") {
+            // Only enable the edge culling features for graphs that have edge
+            // weights (multiplicity or bundle size)
+            $("#cullEdgesInput").prop("disabled", false);
+            enableButton("cullEdgesButton");
+        }
+        enableButton("layoutButton");
+        enableButton("scaffoldFileselectButton");
+        enableButton("searchButton");
+        enableButton("fitButton");
+        enableButton("exportImageButton");
+        enableButton("dir0");
+        enableButton("dir90");
+        enableButton("dir180");
+        enableButton("dir270");
+        enableButton("pngOption");
+        enableButton("jpgOption");
+        $("#hideEdgesCheckbox").prop("disabled", false);
+        $("#useTexturesCheckbox").prop("disabled", false);
+        cy.userPanningEnabled(true);
+        cy.userZoomingEnabled(true);
+        cy.boxSelectionEnabled(true);
+        cy.autounselectify(false);
+        cy.autoungrabify(false);
+        if (clustersInComponent) {
+            enableButton("collapseButton");
+        }
+        else {
+            disableButton("collapseButton");
+        }
+        updateTextStatus("&nbsp;");
+        finishProgressBar();
+    }, 0);
+}
+
+/* Returns true if the specified object is not empty, false otherwise.
+ * (We assume that the object is just a normal "mapping." This is only really
+ * intended to work for SCAFFOLDID2NODELABELS at present -- I can't guarantee
+ * it'll work for other JavaScript objects.)
+ */
+function isObjectNonempty(object) {
+    for (var k in object) {
+        return true;
     }
-    enableButton("layoutButton");
-    enableButton("scaffoldFileselectButton");
-    enableButton("searchButton");
-    enableButton("fitButton");
-    enableButton("exportImageButton");
-    enableButton("dir0");
-    enableButton("dir90");
-    enableButton("dir180");
-    enableButton("dir270");
-    enableButton("pngOption");
-    enableButton("jpgOption");
-    $("#hideEdgesCheckbox").prop("disabled", false);
-    $("#useTexturesCheckbox").prop("disabled", false);
-    cy.userPanningEnabled(true);
-    cy.userZoomingEnabled(true);
-    cy.boxSelectionEnabled(true);
-    cy.autounselectify(false);
-    cy.autoungrabify(false);
-    if (clustersInComponent) {
-        enableButton("collapseButton");
-    }
-    else {
-        disableButton("collapseButton");
-    }
-    finishProgressBar();
+    return false;
 }
 
 // TODO verify that this doesn't mess stuff up when you back out of and then
@@ -1646,11 +1672,6 @@ function integrateAGPline(lineText) {
     // Avoid processing empty lines (e.g. due to trailing newlines in files)
     // Also avoid processing comment lines (lines that start with #)
     if (lineText != "" && lineText[0] !== "#") {
-        // TODO save info in SCAFFOLDID2NODES, for all scaffolds
-        // For now, just add scaffolds pertinent to current connected component
-        // to the table. Consider exporting that functionality to another
-        // function we can run when an AGP file for the curr. assembly has
-        // already been loaded.
         var lineColumns = lineText.split("\t");
         var scaffoldID = lineColumns[0];
         var contigLabel = lineColumns[5];
@@ -1658,25 +1679,53 @@ function integrateAGPline(lineText) {
         if (contigLabel.startsWith("NODE")) {
             contigLabel = "NODE_" + contigLabel.split("_")[1];
         }
-        // Check if this contig is in the current connected component.
-        // We use COMPONENT_NODE_LABELS because running cy.filter() repeatedly
-        // can get really slow.
-        if (COMPONENT_NODE_LABELS.indexOf(contigLabel) === -1) {
-            return;
-        }
-        COMPONENT_HAS_SCAFFOLDS = true;
+        // Save scaffold node composition data for all scaffolds, not just
+        // scaffolds pertinent to the current connected component
         if (SCAFFOLDID2NODELABELS[scaffoldID] === undefined) {
             SCAFFOLDID2NODELABELS[scaffoldID] = [contigLabel];
-            // Add a list item for this scaffold
-            $("#scaffoldListGroup").append(
-                "<li class='list-group-item scaffold' " +
-                "onclick='highlightScaffold(\"" + scaffoldID + "\");'>" +
-                scaffoldID + "</li>");
+            // Check if this contig is in the current connected component and,
+            // if so, add a list group item for its scaffold (since this is the
+            // first time we're seeing this scaffold).
+            // (We use COMPONENT_NODE_LABELS for this because running
+            // cy.filter() repeatedly can get really slow.)
+            if (COMPONENT_NODE_LABELS.indexOf(contigLabel) !== -1) {
+                addScaffoldListGroupItem(scaffoldID);
+            }
         }
         else {
             SCAFFOLDID2NODELABELS[scaffoldID].push(contigLabel);
         }
     }
+}
+
+/* Creates a list group item for a scaffold with the given ID.
+ * (The ID should match up with a key in SCAFFOLDID2NODELABELS.)
+ */
+function addScaffoldListGroupItem(scaffoldID) {
+    COMPONENT_HAS_SCAFFOLDS = true;
+    // Add a list item for this scaffold
+    $("#scaffoldListGroup").append(
+        "<li class='list-group-item scaffold' " +
+        "onclick='highlightScaffold(\"" + scaffoldID + "\");'>" +
+        scaffoldID + "</li>");
+}
+
+/* Identifies scaffolds located in the current connected component (using the
+ * keys to SCAFFOLDID2NODELABELS as a list of scaffolds to try) and, for those
+ * scaffolds, calls addScaffoldListGroupItem().
+ */
+function updateScaffoldsInComponentList() {
+    for (var s in SCAFFOLDID2NODELABELS) {
+        // All nodes within a scaffold are in the same connected component, so
+        // we can just use the first node in a scaffold as an indicator for
+        // whether or not that scaffold is in the current connected component.
+        // (This is pretty much the same way we do this when initially loading
+        // scaffold data, as with integrateAGPline() above.)
+        if (COMPONENT_NODE_LABELS.indexOf(SCAFFOLDID2NODELABELS[s][0]) !== -1){
+            addScaffoldListGroupItem(s);
+        }
+    }
+    updateScaffoldInfoHeader(false);
 }
 
 /* Recursively loads the AGP file using Blobs. (After the FileReader loads a
@@ -1702,13 +1751,20 @@ function loadAGPfile(fileReader, file, filePosition) {
         fileReader.readAsText(currentBlob);
     }
     else {
-        finishLoadAGPfile();
+        updateScaffoldInfoHeader(true);
     }
 }
 
-// Allow for the same AGP file to be loaded again if necessary
-// should be called after an AGP file is loaded/integrated
-function finishLoadAGPfile() {
+/* Updates scaffoldInfoHeader depending on whether or not scaffolds were
+ * identified in the current connected component.
+ *
+ * If agpFileJustLoaded is true, then the scaffoldFileSelector will have its
+ * value cleared (to allow for the same AGP file to be loaded again if
+ * necessary) and finishProgressBar() will be called. Therefore,
+ * agpFileJustLoaded should only be set to true when this function is being
+ * called after an AGP file has just been loaded.
+ */
+function updateScaffoldInfoHeader(agpFileJustLoaded) {
     if (COMPONENT_HAS_SCAFFOLDS) {
         $("#scaffoldInfoHeader").html("Scaffolds in Connected Component<br/>" +
             "(Click to highlight in graph)");
@@ -1718,8 +1774,13 @@ function finishLoadAGPfile() {
             "in this connected component.");
     }
     $("#scaffoldInfoHeader").removeClass("notviewable");
-    document.getElementById('scaffoldFileSelector').value = "";
-    finishProgressBar();
+    // Perform a few useful operations if the user just loaded this AGP file.
+    // These operations are not useful, however, if the AGP file as already
+    // been loaded and we just ran updateScaffoldsInComponentList().
+    if (agpFileJustLoaded) {
+        document.getElementById('scaffoldFileSelector').value = "";
+        finishProgressBar();
+    }
 }
 
 // Highlights the contigs within a scaffold by selecting them
