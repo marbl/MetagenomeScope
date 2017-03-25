@@ -833,6 +833,7 @@ function parseDBcomponents() {
     $("#componentselector").prop("max", compCt);
     $("#componentselector").prop("disabled", false);
     SCAFFOLDID2NODELABELS = {};
+    $("#agpLoadedFileName").addClass("notviewable");
     $("#scaffoldInfoHeader").addClass("notviewable");
     $("#scaffoldListGroup").empty();
     COMPONENT_NODE_LABELS = [];
@@ -1771,11 +1772,11 @@ function loadAGPfile(fileReader, file, filePosition) {
 /* Updates scaffoldInfoHeader depending on whether or not scaffolds were
  * identified in the current connected component.
  *
- * If agpFileJustLoaded is true, then the scaffoldFileSelector will have its
- * value cleared (to allow for the same AGP file to be loaded again if
- * necessary) and finishProgressBar() will be called. Therefore,
- * agpFileJustLoaded should only be set to true when this function is being
- * called after an AGP file has just been loaded.
+ * If agpFileJustLoaded is true, then the agpLoadedFileName will be updated,
+ * scaffoldFileSelector will have its value cleared (to allow for the same
+ * AGP file to be loaded again if necessary) finishProgressBar() will be
+ * called. Therefore, agpFileJustLoaded should only be set to true when this
+ * function is being called after an AGP file has just been loaded.
  */
 function updateScaffoldInfoHeader(agpFileJustLoaded) {
     if (COMPONENT_HAS_SCAFFOLDS) {
@@ -1791,6 +1792,9 @@ function updateScaffoldInfoHeader(agpFileJustLoaded) {
     // These operations are not useful, however, if the AGP file as already
     // been loaded and we just ran updateScaffoldsInComponentList().
     if (agpFileJustLoaded) {
+        $("#agpLoadedFileName").html(
+            document.getElementById("scaffoldFileSelector").files[0].name);
+        $("#agpLoadedFileName").removeClass("notviewable");
         document.getElementById('scaffoldFileSelector').value = "";
         finishProgressBar();
     }
