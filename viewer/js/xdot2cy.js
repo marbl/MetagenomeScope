@@ -1848,7 +1848,10 @@ function testLayout() {
                     e.addClass("basicbezier");
                 }
             );
+            // Adjust min zoom to scope of new layout
+            cy.minZoom(1e-50);
             cy.layout({name: $("#layoutInput").val()});
+            cy.minZoom(cy.zoom());
             finishProgressBar();
         }, 20);
     }
