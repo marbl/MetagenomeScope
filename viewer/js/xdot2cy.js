@@ -119,9 +119,11 @@ function initGraph() {
             // use the "preset" Cytoscape.js layout.
             name: 'preset'
         },
-        // NOTE setting these off for now
-        //minZoom: 0.01,
-        //maxZoom: 15,
+        // We set minZoom based on the zoom level obtained by cy.fit().
+        // maxZoom, however, is defined based on the zoom level of zooming to
+        // fit around a single node -- which usually has an upper bound of 9 or
+        // so, based on some tests. (Hence why we just set maxZoom here.)
+        maxZoom: 9,
         // (sometimes slight) performance improvements
         pixelRatio: 1.0,
         hideEdgesOnViewport: HIDE_EDGES_ON_VIEWPORT,
@@ -1266,6 +1268,9 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     initClusters();
     cy.endBatch();
     cy.fit();
+    // Set minZoom to whatever the zoom level when viewing the entire drawn
+    // component at once (i.e. right now) is
+    cy.minZoom(cy.zoom());
     fixBadEdges();
     updateTextStatus("Preparing interface...");
     window.setTimeout(function() {
