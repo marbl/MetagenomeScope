@@ -1852,18 +1852,24 @@ function testLayout() {
  * hiding/unhiding edges below/above a certain multiplicity).
  */
 function reduceEdgesToStraightLines() {
-    cy.filter("edge").each(
-        function(i, e) {
-            // We can safely use this even for non-unbundledbezier edges.
-            // The reason we don't restrict this loop to unbundledbezier edges
-            // is that we want to apply this even to unbundledbezier edges that
-            // have been temporarily reduced to basicbezier edges due to node
-            // group collapsing.
-            e.removeClass("unbundledbezier");
-            e.addClass("reducededge");
-            e.addClass("basicbezier");
-        }
-    );
+    startIndeterminateProgressBar();
+    window.setTimeout(function() {
+        cy.startBatch();
+        cy.filter("edge").each(
+            function(i, e) {
+                // We can safely use this even for non-unbundledbezier edges.
+                // The reason we don't restrict this loop to unbundledbezier
+                // edges is that we want to apply this even to unbundledbezier
+                // edges that have been temporarily reduced to basicbezier
+                // edges due to node group collapsing.
+                e.removeClass("unbundledbezier");
+                e.addClass("reducededge");
+                e.addClass("basicbezier");
+            }
+        );
+        cy.endBatch();
+    }, 50);
+    finishProgressBar();
 }
 
 // Simple shortcut used to enable searching by pressing Enter (charCode 13)
