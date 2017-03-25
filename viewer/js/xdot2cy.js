@@ -1868,8 +1868,8 @@ function reduceEdgesToStraightLines() {
             }
         );
         cy.endBatch();
+        finishProgressBar();
     }, 50);
-    finishProgressBar();
 }
 
 // Simple shortcut used to enable searching by pressing Enter (charCode 13)
