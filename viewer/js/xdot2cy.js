@@ -397,8 +397,10 @@ function uncollapseCluster(cluster) {
         // wasn't a basicbezier to start off with (i.e. it has control point
         // data), then change its classes to update its style.
         if (!oldEdge.source().hasClass("cluster") && oldEdge.data("cpd")) {
-            oldEdge.removeClass("basicbezier");
-            oldEdge.addClass("unbundledbezier");
+            if (!oldEdge.hasClass("reducededge")) {
+                oldEdge.removeClass("basicbezier");
+                oldEdge.addClass("unbundledbezier");
+            }
         }
         oldEdge.move({target: newTgt});
     }
@@ -409,8 +411,10 @@ function uncollapseCluster(cluster) {
         var newSrc = cluster.data("outgoingEdgeMap")[outgoingEdgeID][0];
         var oldEdge = cy.getElementById(outgoingEdgeID);
         if (!oldEdge.target().hasClass("cluster") && oldEdge.data("cpd")) {
-            oldEdge.removeClass("basicbezier");
-            oldEdge.addClass("unbundledbezier");
+            if (!oldEdge.hasClass("reducededge")) {
+                oldEdge.removeClass("basicbezier");
+                oldEdge.addClass("unbundledbezier");
+            }
         }
         oldEdge.move({source: newSrc});
     }
@@ -1848,9 +1852,15 @@ function testLayout() {
  * hiding/unhiding edges below/above a certain multiplicity).
  */
 function reduceEdgesToStraightLines() {
-    cy.filter("edge.unbundledbezier").each(
+    cy.filter("edge").each(
         function(i, e) {
+            // We can safely use this even for non-unbundledbezier edges.
+            // The reason we don't restrict this loop to unbundledbezier edges
+            // is that we want to apply this even to unbundledbezier edges that
+            // have been temporarily reduced to basicbezier edges due to node
+            // group collapsing.
             e.removeClass("unbundledbezier");
+            e.addClass("reducededge");
             e.addClass("basicbezier");
         }
     );
