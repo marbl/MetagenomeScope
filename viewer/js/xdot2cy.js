@@ -671,6 +671,8 @@ function rotateNode(i, n) {
 /* Modifies the graph's nodes and compound nodes "in situ" to move their
  * positions, along with rotating the control points of edges and the
  * definition of the house/invhouse node polygons.
+ *
+ * NOTE -- DISABLED ROTATION -- this function is unused at present
  */
 function changeRotation() {
     PREV_ROTATION = CURR_ROTATION;
@@ -1061,8 +1063,11 @@ function drawComponent(cmpRank) {
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
     PREV_ROTATION = 0;
-    CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active")
-        .attr("value"));
+    // NOTE -- DISABLED ROTATION -- to allow rotation uncomment below and
+    // replace CURR_ROTATION = 90 line
+    //CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active")
+    //    .attr("value"));
+    CURR_ROTATION = 90;
     cy.scratch("_collapsed", cy.collection());
     cy.scratch("_uncollapsed", cy.collection());
     cy.scratch("_ele2parent", {});
