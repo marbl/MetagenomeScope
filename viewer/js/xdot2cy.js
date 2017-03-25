@@ -698,17 +698,17 @@ function changeRotation() {
 }
 
 // If toUncollapseReady is false, changes the collapse button to say
-// "Collapse All Node Groups" with a minus icon.
+// "Collapse all node groups" with a minus icon.
 // If toUncollapseReady is true, changes the collapse button to say
-// "Uncollapse All Node Groups" with a plus icon.
+// "Uncollapse all node groups" with a plus icon.
 function changeCollapseButton(toUncollapseReady) {
     if (toUncollapseReady) {
-        $("#collapseButtonText").text("Uncollapse All Node Groups");
+        $("#collapseButtonText").text("Uncollapse all node groups");
         $("#collapseButtonIcon").removeClass("glyphicon-minus-sign").addClass(
             "glyphicon-plus-sign");
     }
     else {
-        $("#collapseButtonText").text("Collapse All Node Groups");
+        $("#collapseButtonText").text("Collapse all node groups");
         $("#collapseButtonIcon").removeClass("glyphicon-plus-sign").addClass(
             "glyphicon-minus-sign");
     }
@@ -922,6 +922,7 @@ function disableVolatileControls() {
     $("#cullEdgesInput").prop("disabled", true);
     $("#cullEdgesInput").val("0"); // reset to avoid confusion
     disableButton("cullEdgesButton");
+    disableButton("reduceEdgesButton");
     disableButton("layoutButton");
     disableButton("scaffoldFileselectButton");
     disableButton("searchButton");
@@ -1284,6 +1285,9 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
             // weights (multiplicity or bundle size)
             $("#cullEdgesInput").prop("disabled", false);
             enableButton("cullEdgesButton");
+        }
+        if (componentEdgeCount > 0) {
+            enableButton("reduceEdgesButton");
         }
         enableButton("layoutButton");
         enableButton("scaffoldFileselectButton");
@@ -1835,6 +1839,21 @@ function testLayout() {
             finishProgressBar();
         }, 20);
     }
+}
+
+/* Reduces all unbundledbezier edges to basicbezier edges.
+ * I guess it'd be nice to eventually add in support to revert these edges to
+ * their unbundledbezier forms, but that might require some extra logic
+ * (due to collapsing/uncollapsing -- similar to the issues we ran into with
+ * hiding/unhiding edges below/above a certain multiplicity).
+ */
+function reduceEdgesToStraightLines() {
+    cy.filter("edge.unbundledbezier").each(
+        function(i, e) {
+            e.removeClass("unbundledbezier");
+            e.addClass("basicbezier");
+        }
+    );
 }
 
 // Simple shortcut used to enable searching by pressing Enter (charCode 13)
