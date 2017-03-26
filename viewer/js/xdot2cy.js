@@ -1839,20 +1839,17 @@ function layoutWithEnter(e) {
 function testLayout() {
     if ($("#layoutInput").val() !== "") {
         startIndeterminateProgressBar();
+        cy.minZoom(0);
         window.setTimeout(function() {
             // Change to simple bezier edges, since node placement
             // will be changed
             // Adjust min zoom to scope of new layout
             reduceEdgesToStraightLines(false);
-            cy.minZoom(0);
-            window.setTimeout(function() {
-                cy.layout({name: $("#layoutInput").val(),
-                    fit: true, padding: 0,
-                    stop: function() {
-                        cy.minZoom(cy.zoom());
-                        finishProgressBar();
-                    }});
-            }, 20);
+            cy.layout({name: $("#layoutInput").val(), fit: true, padding: 0,
+                stop: function() {
+                    finishProgressBar();
+                }
+            });
         }, 20);
     }
 }
