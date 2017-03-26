@@ -1842,17 +1842,17 @@ function testLayout() {
         window.setTimeout(function() {
             // Change to simple bezier edges, since node placement
             // will be changed
-            cy.filter("edge.unbundledbezier").each(
-                function(i,e) {
-                    e.removeClass("unbundledbezier");
-                    e.addClass("basicbezier");
-                }
-            );
             // Adjust min zoom to scope of new layout
-            cy.minZoom(1e-50);
-            cy.layout({name: $("#layoutInput").val()});
-            cy.minZoom(cy.zoom());
-            finishProgressBar();
+            reduceEdgesToStraightLines(false);
+            cy.minZoom(0);
+            window.setTimeout(function() {
+                cy.layout({name: $("#layoutInput").val(),
+                    fit: true, padding: 0,
+                    stop: function() {
+                        cy.minZoom(cy.zoom());
+                        finishProgressBar();
+                    }});
+            }, 20);
         }, 20);
     }
 }
@@ -1862,26 +1862,40 @@ function testLayout() {
  * their unbundledbezier forms, but that might require some extra logic
  * (due to collapsing/uncollapsing -- similar to the issues we ran into with
  * hiding/unhiding edges below/above a certain multiplicity).
+ *
+ * If useProgressBar is true, then an indeterminate progress bar will be
+ * started and finished before/after reducing all edges. If useProgressBar is
+ * false, then the progress bar will not be triggered.
  */
-function reduceEdgesToStraightLines() {
-    startIndeterminateProgressBar();
-    window.setTimeout(function() {
-        cy.startBatch();
-        cy.filter("edge").each(
-            function(i, e) {
-                // We can safely use this even for non-unbundledbezier edges.
-                // The reason we don't restrict this loop to unbundledbezier
-                // edges is that we want to apply this even to unbundledbezier
-                // edges that have been temporarily reduced to basicbezier
-                // edges due to node group collapsing.
-                e.removeClass("unbundledbezier");
-                e.addClass("reducededge");
-                e.addClass("basicbezier");
-            }
-        );
-        cy.endBatch();
-        finishProgressBar();
-    }, 50);
+function reduceEdgesToStraightLines(useProgressBar) {
+    if (useProgressBar) {
+        startIndeterminateProgressBar();
+        window.setTimeout(function() {
+            doReduceEdges();
+            finishProgressBar();
+        }, 50);
+    }
+    else {
+        doReduceEdges();
+    }
+}
+
+/* Actually does the work of reducing edges. */
+function doReduceEdges() {
+    cy.startBatch();
+    cy.filter("edge").each(
+        function(i, e) {
+            // We can safely use this even for non-unbundledbezier edges.
+            // The reason we don't restrict this loop to unbundledbezier
+            // edges is that we want to apply this even to unbundledbezier
+            // edges that have been temporarily reduced to basicbezier
+            // edges due to node group collapsing.
+            e.removeClass("unbundledbezier");
+            e.addClass("reducededge");
+            e.addClass("basicbezier");
+        }
+    );
+    cy.endBatch();
 }
 
 // Simple shortcut used to enable searching by pressing Enter (charCode 13)
