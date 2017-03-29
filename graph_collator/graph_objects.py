@@ -4,6 +4,7 @@
 
 import config
 from math import log, sqrt
+from collections import deque
 import pygraphviz
 
 class Edge(object):
@@ -447,6 +448,68 @@ class Bubble(NodeGroup):
     def __init__(self, *nodes):
         """Initializes the Bubble, given a list of nodes comprising it."""
         super(Bubble, self).__init__('B', config.BUBBLE_STYLE, nodes)
+
+    @staticmethod
+    def is_valid_source_sink_pair(nodes):
+        """Returns True if the separation pair defined by the given list of
+           Node objects is a valid "source-sink pair" (see Nijkamp et al. 2013
+           for a discussion of this process -- it's the paper on MaryGold).
+           
+           The input to this function should be a list of Nodes where the
+           first Node is the proposed source of the source-sink pair, 
+           the second node is the proposed sink, and the remaining Nodes are
+           the member nodes comprising the source-sink pair (including the
+           source and sink node again).
+           
+           The code in this function is mostly taken from test_pair() in
+           layout.py, from Bambus 3.
+        """
+        # NOTE this is still very much a work in progress
+        for n in nodes:
+            if n.used_in_collapsing:
+                return False
+        # Run basically BFS/DFS from the source node, checking to ensure that
+        # all paths from the source node 1) converge to the sink node and 2)
+        # involve only the member nodes. At first hint of a node that isn't in
+        # the member nodes, return False.
+        # Also ensure that all member nodes don't have incoming nodes that
+        # aren't in the member node list. This can be done by using
+        # incoming_nodes starting from the sink and tracing all paths back to
+        # the source -- if they hit a node that isn't the source, hit a
+        # dead-end, or result in a cycle, then return false.
+        # TODO make this actually work
+        visited_nodes = {}
+        visited_nodes[nodes[0]] = True
+        q = deque()
+        at_sink = False
+        for n in nodes[0].outgoing_nodes:
+            q.appendleft(n)
+        while len(q) > 0:
+            go_ahead = True
+            curr_node = q.pop()
+            # Return False if a path from the source node wound up hitting a
+            # node that wasn't in the list of nodes in the pair.
+            if curr_node not in nodes:
+                return False
+            visited_nodes[curr_node] = True
+            if curr_node == nodes[1]:
+                at_sink = True
+                continue
+            for n in curr_node.incoming_nodes:
+                if n not in visited_nodes:
+                    go_ahead = False
+                    break
+            # I'm not sure if this part is right
+            if go_ahead:
+                visited_nodes[n] = True # ???????
+                for n in curr_node.outgoing_nodes:
+                    if n not in visited_nodes:
+                        q.appendleft(n)
+                        visited_nodes[n] = True
+        if at_sink:
+            return True
+        else:
+            return False
 
     @staticmethod
     def is_valid_bubble(s):

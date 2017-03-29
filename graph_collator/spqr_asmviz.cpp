@@ -1,5 +1,3 @@
-// NOTE -- This code was written by Jay Ghurye for the BAMBUS 3 scaffolder
-// See https://github.com/marbl/bambus3
 #include <iostream>
 #include <set>
 #include <map>
@@ -352,21 +350,6 @@ node original(node &n, BCTree &bc, const GraphCopy &GC, Skeleton &sk)
 	return np;
 }
 
-// test function
-void writeMetaNodeInformation(node &n, StaticSPQRTree &spqr, ofstream &ofile) {
-    // The skeleton contains the nodes and edges that comprise
-    // this meta-node. We extract the node IDs from this
-    // structure in order to output them.
-    Skeleton &skeleton = spqr.skeleton(n);
-    Graph &skeleton_graph = skeleton.getGraph();
-    node orig;
-    forall_nodes(orig, skeleton_graph) {
-        int gNodeIndex = skeleton.original(orig) -> index();
-        ofile << "\t" << gNodeIndex << " (" << intid2contig[gNodeIndex] << ")";
-    }
-    ofile << endl;
-}
-
 int main(int argc, char* argv[])
 {	
 	cmdline ::parser pr;
@@ -390,6 +373,7 @@ int main(int argc, char* argv[])
     	istringstream iss(line);
     	if(!(iss >> a >> b >> c >> d >> e >> f >> g))
     		break;
+    	cout<<a<<"\t"<<c<<endl;
     	//Link l(linkid,a,b,c,d,e,f,g);
         //Link l(linkid,a,b,c,d,e,f);
         node first = 0, second = 0;
@@ -498,6 +482,7 @@ int main(int argc, char* argv[])
 		const Graph &auxgraph = p_bct->auxiliaryGraph();
 		cerr<<"graph made"<<endl;
 		node bcTreeNode;
+		int tree_index = 1;
 		forall_nodes(bcTreeNode,bc.bcTree())
 		{
 
@@ -531,54 +516,35 @@ int main(int argc, char* argv[])
 				//cout<<"SPQR generated"<<endl;
 				const Graph &T = spqr.tree();
 				//cout<<"SPQR tree made"<<endl;
-				GraphIO::writeDOT(T,"tmp/spqr.dot");
+				GraphIO::writeGML(T,"spqr"+to_string(tree_index)+".gml");
 				// cout<<"S nodes: "<<spqr.numberOfSNodes()<<endl;
 				// cout<<"P nodes: "<<spqr.numberOfPNodes()<<endl;
 				// cout<<"R nodes: "<<spqr.numberOfRNodes()<<endl;
 				int c = 0;
 				GraphCopy GCopy(T);
 				node n,Nn,cn;
+				ofstream compfile("component_"+to_string(tree_index)+".info");
+				tree_index++;
 				forall_nodes(n, T) 
 				{
 					const Graph &Gn = spqr.skeleton(n).getGraph(); // Print the skeleton of a tree node to dis
 
 					// Generate hash table: sk2orig[Skeleton node] = Original node 
+					compfile<<n<<endl;
+					compfile << getTypeString(n, spqr)<<endl;
 					forall_nodes(Nn, Gn) 
 					{
 						cn = original(Nn,bc,GC,spqr.skeleton(n)); //Node in original graph G
 						sk2orig[Nn->index()] = cn->index();
+						compfile<<Nn->index()<<"\t"<<intid2contig[cn->index()]<<endl;
 					}
 									
-					string type = getTypeString(n, spqr);	
+						
 					//Get 2-vertex cuts
+					string type = getTypeString(n, spqr);
 					findTwoVertexCuts(bicomp,spqr.skeleton(n) , sk2orig, type);
 					
 				}
-                // BEGIN TODO STUFF
-                // output root node information?
-                ofile << "Root node";
-                node r = spqr.rootNode();
-                writeMetaNodeInformation(r, spqr, ofile);
-                // Get S, P, and R nodes literally and output their contents
-                List<node> sNodes = spqr.nodesOfType(spqr.SNode);
-                List<node> pNodes = spqr.nodesOfType(spqr.PNode);
-                List<node> rNodes = spqr.nodesOfType(spqr.RNode);
-                // For each S, P, and R node, output the contained nodes.
-                // Separate by sections (e.g. "S nodes:", "P nodes:", ...)
-                // Note that node indices may not be encountered in order.
-		        for(ListIterator <node> s_iter = sNodes.begin(); s_iter.valid(); ++s_iter) {
-                    ofile << "S";
-                    writeMetaNodeInformation(*s_iter, spqr, ofile);
-                }
-		        for(ListIterator <node> p_iter = pNodes.begin(); p_iter.valid(); ++p_iter) {
-                    ofile << "P";
-                    writeMetaNodeInformation(*p_iter, spqr, ofile);
-                }
-		        for(ListIterator <node> r_iter = rNodes.begin(); r_iter.valid(); ++r_iter) {
-                    ofile << "R";
-                    writeMetaNodeInformation(*r_iter, spqr, ofile);
-                }
-                // END TODO STUFF
 				for(int i = 0;i < pairs.size();i++)
 				{
 					ofile<<intid2contig[pairs[i].first]<<"\t"<<intid2contig[pairs[i].second];

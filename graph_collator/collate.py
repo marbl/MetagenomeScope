@@ -711,7 +711,7 @@ if bicmps_fullfn == None:
     # Get the location of the spqr script -- it should be in the same dir as
     # collate.py, i.e. the currently running python script
     spqr_fullfn = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-        "spqr")
+        "spqr_asmviz")
     # TODO may need to change this to work on Windows machines
     spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-o", bicmps_fullfn]
     # Some of the spqr script's output is sent to stderr, so we merge that with
@@ -736,7 +736,17 @@ with open(bicmps_fullfn, "r") as potential_bubbles_file:
 # separators between nodes on each line: therefore, more tabs = more nodes
 bubble_lines.sort(key=lambda c: c.count("\t"))
 for b in bubble_lines:
-    bubble_line_node_ids = b.split()[2:]
+    bubble_nodes = b.split()
+    # The first two nodes listed on a line are the source and sink node of the
+    # biconnected component; they're listed later on the line, so we ignore
+    # them when actually drawing the bubble.
+    bubble_line_node_ids = bubble_nodes[2:]
+
+    # Validate this "separation pair" as a source-sink pair (i.e. an actual
+    # bubble). If validation fails, move on.
+    bubble_node_objects = [nodeid2obj[k] for k in bubble_nodes]
+    if not graph_objects.Bubble.is_valid_source_sink_pair(bubble_node_objects):
+        continue
     # As a heuristic, we disallow complex bubbles of node size > 10. This is to
     # prevent bubbles being detected that are so complex that they "aren't
     # really bubbles."
@@ -746,11 +756,10 @@ for b in bubble_lines:
         break
     curr_bubble_nodeobjs = []
     bubble_to_be_created = True
-    # The first two nodes listed on a line are the source and sink node of the
-    # biconnected component; they're listed later on the line, so we ignore
-    # them for now.
     for node_id in bubble_line_node_ids:
         try:
+            # TODO checking .used_in_collapsing might be unnecessary now thanks
+            # to Bubble.is_valid_source_sink_pair()
             if nodeid2obj[node_id].used_in_collapsing:
                 bubble_to_be_created = False
                 break
