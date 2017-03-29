@@ -90,7 +90,7 @@ class Node(object):
         # Dict of Edge objects that have this node as a source -- used for
         # storing/reading more detailed edge information, not used for graph
         # traversal. Edge objects are stored as values, and their
-        # corresponding key is the sink (target) node of the edge.
+        # corresponding key is the sink (target) node ID of the edge.
         # ...e.g. for 1->2, 1->3, 1->4, outgoing_edge_objects would look like
         # {2: Edge(1, 2), 3: Edge(1, 3), 4: Edge(1, 4)}
         self.outgoing_edge_objects = {}
