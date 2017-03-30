@@ -31,6 +31,10 @@ class Edge(object):
         self.mean = mean
         # For Bambus 3's GML files. I don't really know what this means
         self.stdev = stdev
+        # We'll eventually assign this edge a "thickness" percentage somewhere
+        # in the range [0, 1] (the actual process for doing that is in
+        # collate.py). This attribute will contain that information.
+        self.thickness = 1
         # For if the edge is an "interior" edge of a node group
         self.group = None
         # Will be replaced with the size rank of the connected component to
@@ -56,9 +60,9 @@ class Edge(object):
         if self.group != None:
             group_id = self.group.cy_id_string
         return (self.source_id, self.target_id, self.multiplicity,
-                self.orientation, self.mean, self.stdev,
-                self.component_size_rank,
-                self.xdot_ctrl_pt_str, self.xdot_ctrl_pt_count, group_id)
+                self.thickness, self.orientation, self.mean, self.stdev,
+                self.component_size_rank, self.xdot_ctrl_pt_str,
+                self.xdot_ctrl_pt_count, group_id)
 
     def __repr__(self):
         return "Edge from %s to %s" % (self.source_id, self.target_id)

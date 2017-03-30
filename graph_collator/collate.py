@@ -815,10 +815,35 @@ conclude_msg()
 # We could build this list up at the start and then gradually remove nodes as
 # we use nodes in collapsing, but remove() is an O(n) operation so that'd make
 # the above runtime O(4n^2) or something, so I figure just doing this here is
-# generally faster
+# generally faster.
+#
+# While doing that, we also scale all edges (by multiplicity or bundle size)
+# relative to other edges originating from their "source node."
+# This produces a percentage (in the range [0, 1]) which indicates the relative
+# thickness of the edge in the viewer application.
+# See issue #169 on GitHub for more info.
 for n in nodes_to_try_collapsing:
     if not n.used_in_collapsing:
         nodes_to_draw.append(n)
+    if len(n.outgoing_nodes) >= 1:
+        # Determine minimum and maximum multiplicity of edges originating at n.
+        sample_node_id = n.outgoing_nodes[0].id_string
+        max_multiplicity = n.outgoing_edge_objects[sample_node_id].multiplicity
+        min_multiplicity = max_multiplicity
+        outgoing_edges = n.outgoing_edge_objects.values()
+        for e in outgoing_edges:
+            if e.multiplicity > max_multiplicity:
+                max_multiplicity = e.multiplicity
+            elif e.multiplicity < min_multiplicity:
+                min_multiplicity = e.multiplicity
+        # At this point, we have a minimum and maximum multiplicity established
+        # for all edges outgoing from this node.
+        # Assign thickness to each of the edges.
+        mrange = float(max_multiplicity - min_multiplicity)
+        for e in outgoing_edges:
+            e.thickness = 1
+            if max_multiplicity != min_multiplicity: # prevent div-by-0 error
+                e.thickness = (e.multiplicity - min_multiplicity) / mrange
 
 # Identify connected components
 # NOTE that nodes_to_draw only contains node groups and nodes that aren't in
@@ -884,7 +909,7 @@ cursor = connection.cursor()
 # Define statements used for inserting a value into these tables
 # The number of question marks has to match the number of table columns
 NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
-EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?)"
+EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
 ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?)"
@@ -893,7 +918,7 @@ cursor.execute("""CREATE TABLE nodes
         depth real, component_rank integer, x real, y real, w real, h real,
         shape text, parent_cluster_id text)""")
 cursor.execute("""CREATE TABLE edges
-        (source_id text, target_id text, multiplicity integer,
+        (source_id text, target_id text, multiplicity integer, thickness real,
         orientation text, mean real, stdev real, component_rank integer,
         control_point_string text, control_point_count integer,
         parent_cluster_id text)""") 
