@@ -43,6 +43,14 @@ const INCHES_TO_PIXELS = 54;
 // point distance. This way we can approximate simple B-splines with straight
 // bezier curves (which are cheaper and easier to draw).
 const CTRL_PT_DIST_EPSILON = 1.00;
+// Edge thickness stuff, as will be rendered by Cytoscape.js
+// Used in tandem with the "thickness" percentage associated with each edge in
+// the input .db file to scale edges' displayed "weight" accordingly
+const MAX_EDGE_THICKNESS = 7;
+const MIN_EDGE_THICKNESS = 3;
+// We just calculate this here to save on the costs of calculating it |edges|
+// times during drawing:
+const EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
 
 // Misc. global variables we use to get certain functionality
 // In degrees CCW from the default up->down direction
@@ -2367,6 +2375,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     var sourceID = edgeObj['source_id'];
     var targetID = edgeObj['target_id'];
     var multiplicity = edgeObj['multiplicity'];
+    var thickness = edgeObj['thickness'];
     var orientation = edgeObj['orientation'];
     var mean = edgeObj['mean'];
     var stdev = edgeObj['stdev'];
@@ -2381,14 +2390,8 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     //    return;
     //}
 
-    // Default edge width setting of Cytoscape.js
-    var edgeWidth = 3;
-    // This discounts multiplicity data if:
-    // -All edges have same multiplicity (prevents division by 0 error)
-    // -No edges have multiplicity data (maxMult === minMult === null)
-    if (maxMult != minMult) {
-        edgeWidth = 3 + (((multiplicity - minMult)/(maxMult - minMult)) * 7);
-    }
+    // Scale edge thickness using the "thickness" .db file attribute
+    var edgeWidth = MIN_EDGE_THICKNESS + (thickness * EDGE_THICKNESS_RANGE);
     var edgeID = sourceID + "->" + targetID;
     if (edgeObj['parent_cluster_id'] !== null) {
         cy.scratch("_ele2parent")[edgeID] = edgeObj['parent_cluster_id'];
