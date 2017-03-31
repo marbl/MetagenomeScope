@@ -362,6 +362,14 @@ total_edge_count = 0
 total_length = 0
 total_gc_nt_count = 0
 total_component_count = 0
+# Used to determine whether or not we can scale edges by multiplicity/bundle
+# size. Currently we make the following assumptions (might need to change) --
+# -All LastGraph files contain edge multiplicity values
+# -Some GML files contain edge bundle size values, and some do not
+#   -The presence of a single edge in a GML file without a bundle size
+#    attribute will result in edge_weights_available being set to False.
+# -All GFA files do not contain edge multiplicity values
+edge_weights_available = True
 # List of all the node lengths in the assembly. Used when calculating n50.
 bp_length_list = []
 
@@ -550,6 +558,8 @@ with open(asm_fn, 'r') as assembly_file:
                             mean=curr_edge_mean,
                             stdev=curr_edge_stdev)
                     total_edge_count += 1
+                    if curr_edge_bundlesize == None:
+                        edge_weights_available = False
                     # Clear tmp/marker vars
                     parsing_edge = False
                     curr_edge_src_id = None
@@ -566,6 +576,7 @@ with open(asm_fn, 'r') as assembly_file:
                 parsing_edge = True
     elif parsing_GFA:
         graph_filetype = "GFA"
+        edge_weights_available = False
         # NOTE--
         # Currently, we only parse (S)egment and (L)ink lines in GFA files,
         # and only take into account their "required" fields (as given on the
@@ -825,7 +836,7 @@ conclude_msg()
 for n in nodes_to_try_collapsing:
     if not n.used_in_collapsing:
         nodes_to_draw.append(n)
-    if len(n.outgoing_nodes) >= 1:
+    if edge_weights_available and len(n.outgoing_nodes) >= 1:
         # Determine minimum and maximum multiplicity of edges originating at n.
         sample_node_id = n.outgoing_nodes[0].id_string
         max_multiplicity = n.outgoing_edge_objects[sample_node_id].multiplicity

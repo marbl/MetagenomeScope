@@ -2390,11 +2390,19 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     //    return;
     //}
 
-    // Scale edge thickness using the "thickness" .db file attribute
-    var edgeWidth = MIN_EDGE_THICKNESS + (thickness * EDGE_THICKNESS_RANGE);
-    var edgeID = sourceID + "->" + targetID;
-    if (edgeObj['parent_cluster_id'] !== null) {
-        cy.scratch("_ele2parent")[edgeID] = edgeObj['parent_cluster_id'];
+    var edgeWidth;
+    if (thickness !== null) {
+        // Scale edge thickness using the "thickness" .db file attribute
+        // (If edge thickness data is available)
+        edgeWidth = MIN_EDGE_THICKNESS + (thickness*EDGE_THICKNESS_RANGE);
+        var edgeID = sourceID + "->" + targetID;
+        if (edgeObj['parent_cluster_id'] !== null) {
+            cy.scratch("_ele2parent")[edgeID] = edgeObj['parent_cluster_id'];
+        }
+    }
+    else {
+        // Assign each edge a uniform thickness
+        edgeWidth = MAX_EDGE_THICKNESS;
     }
     if (sourceID === targetID) {
         // It's a self-directed edge; don't bother parsing ctrl pt
