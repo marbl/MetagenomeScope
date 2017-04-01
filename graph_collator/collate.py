@@ -1123,11 +1123,8 @@ for component in connected_components[:config.MAX_COMPONENTS]:
                 cursor.execute(NODE_INSERTION_STMT, n.db_values())
             # Reconcile child edges -- add to .db
             for e in curr_cluster.edges:
-                # Don't bother trying to expand the component bounding box,
-                # since interior edges should be entirely within their node
-                # group's bounding box
-                # However, we do adjust the control points to be relative to
-                # the entire component
+                # Adjust the control points to be relative to the entire
+                # component. Also, try to expand to the component bounding box.
                 p = 0
                 coord_list = e.xdot_rel_ctrl_pt_str.split()
                 e.xdot_ctrl_pt_str = ""
@@ -1139,6 +1136,12 @@ for component in connected_components[:config.MAX_COMPONENTS]:
                     e.xdot_ctrl_pt_str += str(curr_cluster.xdot_left + xp)
                     e.xdot_ctrl_pt_str += " "
                     e.xdot_ctrl_pt_str += str(curr_cluster.xdot_bottom + yp)
+                    # Try to expand the component bounding box -- interior
+                    # edges should normally be entirely within the bounding box
+                    # of their node group, but complex bubbles might contain
+                    # interior edges that go outside of the node group's b. box
+                    if xp > bounding_box_right: bounding_box_right = xp
+                    if yp > bounding_box_top: bounding_box_top = yp
                     p += 2
                 # Save this edge in the .db
                 cursor.execute(EDGE_INSERTION_STMT, e.db_values())
