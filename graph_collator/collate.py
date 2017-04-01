@@ -1171,8 +1171,14 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         if len(coord_list) % 2 != 0:
             raise ValueError, config.EDGE_CTRL_PT_ERR, curr_edge
         curr_edge.xdot_ctrl_pt_count = len(coord_list) / 2
-        # If target_id != e[1] or source_id != e[0], add control points
-        # accordingly
+        if source_id != e[0]:
+            # TODO
+            # Add control points from source to the first current control pt.
+            pass
+        if target_id != e[1]:
+            # TODO
+            # Add control points from the last current control pt. to target.
+            pass
         # Try to expand the component bounding box
         p = 0
         while p <= len(coord_list) - 2:
