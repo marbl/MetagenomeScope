@@ -234,6 +234,17 @@ function initGraph() {
                 }
             },
             {
+                selector: 'node.bb_enforcing',
+                style: {
+                    // Make these nodes invisible
+                    'background-opacity': 0,
+                    // A width/height of zero just results in Cytoscape.js not
+                    // drawing these nodes -- hence a width/height of one
+                    width: 1,
+                    height: 1
+                }
+            },
+            {
                 selector: 'node.noncluster',
                 style: {
                     label: 'data(label)',
@@ -2315,20 +2326,18 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     return pos;
 }
 
-// Draws two invisible nodes that "enforce" the given bounding box.
+// Draws two nodes that "enforce" the given bounding box.
 function drawBoundingBoxEnforcingNodes(boundingboxObject) {
     var bb = [boundingboxObject['boundingbox_x'],
               boundingboxObject['boundingbox_y']];
     var bottomLeftPt = gv2cyPoint(0, 0, bb);
     var topRightPt = gv2cyPoint(bb[0], bb[1], bb);
     cy.add({
-        classes: "bb_enforcing",
-        data: {id: "bottom_left", w: 0, h: 0},
+        classes: "bb_enforcing", data: {id: "bottom_left"},
         position: {x: bottomLeftPt[0], y: bottomLeftPt[1]}
     });
     cy.add({
-        classes: "bb_enforcing",
-        data: {id: "top_right", w: 0, h: 0},
+        classes: "bb_enforcing", data: {id: "top_right"},
         position: {x: topRightPt[0], y: topRightPt[1]}
     });
 }
