@@ -355,10 +355,15 @@ int main(int argc, char* argv[])
 	cmdline ::parser pr;
     pr.add<string>("oriented_graph",'l',"list of oriented links",true,"");
     pr.add<string>("output",'o',"output file tow write sep pairs",true,"");
+    pr.add<string>("directory",'d',"directory to output files to",false,"");
     pr.parse_check(argc,argv);
     Graph G;
+    string directory = pr.get<string>("directory");
+    if (directory != "" && directory[directory.length() - 1] != '/') {
+       directory += "/";
+    }
     ifstream linkfile(getCharExpr(pr.get<string>("oriented_graph")));
-    ofstream ofile(getCharExpr(pr.get<string>("output")));
+    ofstream ofile(getCharExpr(directory + pr.get<string>("output")));
     string line;
     //unordered_map<int, Link> linkmap;
    
@@ -516,14 +521,14 @@ int main(int argc, char* argv[])
 				//cout<<"SPQR generated"<<endl;
 				const Graph &T = spqr.tree();
 				//cout<<"SPQR tree made"<<endl;
-				GraphIO::writeGML(T,"spqr"+to_string(tree_index)+".gml");
+				GraphIO::writeGML(T,directory+"spqr"+to_string(tree_index)+".gml");
 				// cout<<"S nodes: "<<spqr.numberOfSNodes()<<endl;
 				// cout<<"P nodes: "<<spqr.numberOfPNodes()<<endl;
 				// cout<<"R nodes: "<<spqr.numberOfRNodes()<<endl;
 				int c = 0;
 				GraphCopy GCopy(T);
 				node n,Nn,cn;
-				ofstream compfile("component_"+to_string(tree_index)+".info");
+				ofstream compfile(directory+"component_"+to_string(tree_index)+".info");
 				tree_index++;
 				forall_nodes(n, T) 
 				{

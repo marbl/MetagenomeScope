@@ -716,7 +716,8 @@ if bicmps_fullfn == None:
             edges_fn_text += line
     save_aux_file(edges_fn, edges_fn_text, False, warnings=False)
     edges_fullfn = os.path.join(dir_fn, edges_fn)
-    bicmps_fullfn = os.path.join(dir_fn, output_fn + "_bicmps")
+    bicmps_fn = output_fn + "_bicmps"
+    bicmps_fullfn = os.path.join(dir_fn, bicmps_fn)
     if check_file_existence(bicmps_fullfn):
         safe_file_remove(bicmps_fullfn)
     # Get the location of the spqr script -- it should be in the same dir as
@@ -724,7 +725,10 @@ if bicmps_fullfn == None:
     spqr_fullfn = os.path.join(os.path.dirname(os.path.realpath(__file__)),
         "spqr_asmviz")
     # TODO may need to change this to work on Windows machines
-    spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-o", bicmps_fullfn]
+    # The SPQR script also makes a few assumptions on a Unix environment
+    # (e.g. using / for separating filenames)
+    spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-o", bicmps_fn,
+            "-d", dir_fn]
     # Some of the spqr script's output is sent to stderr, so we merge that with
     # the output. Note that we don't really check the output of this, although
     # we could if the need arises -- the main purpose of using check_output()
