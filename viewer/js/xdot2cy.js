@@ -64,6 +64,8 @@ var TEXTURE_ON_VIEWPORT = false;
 var CURR_DB = null;
 // Filetype of the assembly; used for determining bp vs. nt for nodes
 var ASM_FILETYPE;
+// FIlename of the currently loaded .db file
+var DB_FILENAME;
 // Total number of nodes and edges in the current asm graph
 var ASM_NODE_COUNT = 0;
 var ASM_EDGE_COUNT = 0;
@@ -746,7 +748,7 @@ function destroyGraph() {
     changeCollapseButton(false);
 }
 
-/* Loads a .db file. */
+/* Loads a .db file from the user's local system. */
 function loadgraphfile() {
     var fr = new FileReader();
 	var inputfile = document.getElementById('fileselector').files[0];
@@ -755,6 +757,7 @@ function loadgraphfile() {
         return;
     }
     if (inputfile.name.toLowerCase().endsWith(".db")) {
+        DB_FILENAME = inputfile.name;
         // Important -- remove old DB from memory if it exists
         closeDB();
         disableVolatileControls();
@@ -840,7 +843,7 @@ function parseDBcomponents() {
         $("#asmGCEntry").addClass("notviewable");
     }
     // Adjust UI elements
-    document.title = fnInfo;
+    document.title = DB_FILENAME + " (" + fnInfo + ")";
     updateTextStatus("Loaded .db file for the assembly graph file " + fnInfo +
                         ".<br />You can draw a connected component using" +
                         " the \"Draw Connected Component\" button below.");
@@ -1386,6 +1389,7 @@ function openFileSelectDialog() {
     $("#fsDialog").modal(); 
 }
 
+/* Loads a .db file using an XML HTTP Request. */
 function loadajaxDB() {
     // Important -- remove old DB from memory if it exists
     closeDB();
@@ -1400,6 +1404,7 @@ function loadajaxDB() {
     $("#currComponentInfo").html(
         "No connected component has been drawn yet.");
     var filename = $("input[name=fs]:checked").attr('id');
+    DB_FILENAME = filename;
     // jQuery doesn't support arraybuffer responses so we have to manually
     // use an XMLHttpRequest(), strange capitalization and all
     // Credit to this approach goes here, btw:
