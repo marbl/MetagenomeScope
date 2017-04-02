@@ -102,9 +102,9 @@ def check_file_existence(filepath):
     if os.path.exists(filepath):
         basename = os.path.basename(filepath)
         if os.path.isdir(filepath):
-            raise IOError, basename + config.IS_DIR_ERR
+            raise IOError, filepath + config.IS_DIR_ERR
         if not overwrite:
-            raise IOError, basename + config.EXISTS_ERR
+            raise IOError, filepath + config.EXISTS_ERR
         return True
     return False
 
