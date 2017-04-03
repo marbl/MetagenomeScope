@@ -47,6 +47,38 @@ class Edge(object):
         # used for interior edges in node groups
         self.xdot_rel_ctrl_pt_str = None
 
+    @staticmethod
+    def get_control_points(position):
+        """Removes "startp" and "endp" data, if present, from a string
+           definining the "position" attribute (i.e. the spline control
+           points) of an edge object in pygraphviz.
+
+           Also replaces all commas in the filtered string with spaces,
+           to make splitting the string easier.
+
+           Returns a 3-tuple of the filtered string, the split list of
+           string coordinates (in the format [x1, y1, x2, y2, ... , xn, yn]),
+           and the number of points specified by the coordinate list (in the
+           example list just given, this would be n).
+
+           Raises a ValueError if the number of remaining coordinates (i.e.
+           the length of the split list to be returned) is not divisible by 2.
+
+           See http://www.graphviz.org/doc/Dot.ref for more information on
+           how splines work in GraphViz.
+        """
+        # Remove startp data
+        if position.startswith("s,"):
+            position = position[position.index(" ") + 1:]
+        # remove endp data
+        if position.startswith("e,"):
+            position = position[position.index(" ") + 1:]
+        points_str = position.replace(",", " ")
+        coord_list = points_str.split()
+        if len(coord_list) % 2 != 0:
+            raise ValueError, config.EDGE_CTRL_PT_ERR
+        return points_str, coord_list, len(coord_list) / 2
+
     def db_values(self):
         """Returns a tuple containing the values of this edge.
 
@@ -383,14 +415,9 @@ class NodeGroup(Node):
             source_node = self.childid2obj[str(e[0])]
             curr_edge = source_node.outgoing_edge_objects[str(e[1])]
             self.edges.append(curr_edge)
-            pt_start = e.attr[u'pos'].index(" ") + 1
             # Get control points, then find them relative to cluster dimensions
-            ctrl_pt_str = str(e.attr[u'pos'][pt_start:].replace(","," "))
-            coord_list = ctrl_pt_str.split()
-            # If len(coord_list) % 2 != 0 something has gone quite wrong
-            if len(coord_list) % 2 != 0:
-                raise ValueError, config.EDGE_CTRL_PT_ERR, curr_edge
-            curr_edge.xdot_ctrl_pt_count = len(coord_list) / 2
+            ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = \
+                Edge.get_control_points(e.attr[u'pos'])
             curr_edge.xdot_rel_ctrl_pt_str = ""
             p = 0
             while p <= len(coord_list) - 2:

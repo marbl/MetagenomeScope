@@ -1162,15 +1162,8 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         component_edge_count += 1
         if curr_edge.group != None:
             continue
-        # Skip the first control point
-        pt_start = e.attr[u'pos'].index(" ") + 1
-        curr_edge.xdot_ctrl_pt_str = \
-            str(e.attr[u'pos'][pt_start:].replace(","," "))
-        coord_list = curr_edge.xdot_ctrl_pt_str.split()
-        # If len(coord_list) % 2 != 0 something has gone quite wrong
-        if len(coord_list) % 2 != 0:
-            raise ValueError, config.EDGE_CTRL_PT_ERR, curr_edge
-        curr_edge.xdot_ctrl_pt_count = len(coord_list) / 2
+        curr_edge.xdot_ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count= \
+            graph_objects.Edge.get_control_points(e.attr[u'pos'])
         if source_id != e[0]:
             # TODO
             # Add control points from source to the first current control pt.
