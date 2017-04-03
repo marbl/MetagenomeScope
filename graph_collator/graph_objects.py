@@ -57,9 +57,10 @@ class Edge(object):
            to make splitting the string easier.
 
            Returns a 3-tuple of the filtered string, the split list of
-           string coordinates (in the format [x1, y1, x2, y2, ... , xn, yn]),
-           and the number of points specified by the coordinate list (in the
-           example list just given, this would be n).
+           coordinates (in the format [x1, y1, x2, y2, ... , xn, yn] where
+           each coordinate is a float), and the number of points specified by
+           the coordinate list (equal to the length of the coordinate list
+           divided by 2).
 
            Raises a ValueError if the number of remaining coordinates (i.e.
            the length of the split list to be returned) is not divisible by 2.
@@ -74,7 +75,7 @@ class Edge(object):
         if position.startswith("e,"):
             position = position[position.index(" ") + 1:]
         points_str = position.replace(",", " ")
-        coord_list = points_str.split()
+        coord_list = [float(c) for c in points_str.split()]
         if len(coord_list) % 2 != 0:
             raise ValueError, config.EDGE_CTRL_PT_ERR
         return points_str, coord_list, len(coord_list) / 2
@@ -423,8 +424,8 @@ class NodeGroup(Node):
             while p <= len(coord_list) - 2:
                 if p > 0:
                     curr_edge.xdot_rel_ctrl_pt_str += " "
-                x_coord = float(coord_list[p]) - bounding_box_numeric[0]
-                y_coord = float(coord_list[p + 1]) - bounding_box_numeric[1]
+                x_coord = coord_list[p] - bounding_box_numeric[0]
+                y_coord = coord_list[p + 1] - bounding_box_numeric[1]
                 curr_edge.xdot_rel_ctrl_pt_str += str(x_coord)
                 curr_edge.xdot_rel_ctrl_pt_str += " "
                 curr_edge.xdot_rel_ctrl_pt_str += str(y_coord)

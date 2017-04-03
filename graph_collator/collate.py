@@ -1130,13 +1130,13 @@ for component in connected_components[:config.MAX_COMPONENTS]:
                 # Adjust the control points to be relative to the entire
                 # component. Also, try to expand to the component bounding box.
                 p = 0
-                coord_list = e.xdot_rel_ctrl_pt_str.split()
+                coord_list = [float(c) for c in e.xdot_rel_ctrl_pt_str.split()]
                 e.xdot_ctrl_pt_str = ""
                 while p <= len(coord_list) - 2:
                     if p > 0:
                         e.xdot_ctrl_pt_str += " "
-                    xp = float(coord_list[p])
-                    yp = float(coord_list[p + 1])
+                    xp = coord_list[p]
+                    yp = coord_list[p + 1]
                     e.xdot_ctrl_pt_str += str(curr_cluster.xdot_left + xp)
                     e.xdot_ctrl_pt_str += " "
                     e.xdot_ctrl_pt_str += str(curr_cluster.xdot_bottom + yp)
@@ -1175,8 +1175,8 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         # Try to expand the component bounding box
         p = 0
         while p <= len(coord_list) - 2:
-            x_coord = float(coord_list[p])
-            y_coord = float(coord_list[p + 1])
+            x_coord = coord_list[p]
+            y_coord = coord_list[p + 1]
             if x_coord > bounding_box_right: bounding_box_right = x_coord
             if y_coord > bounding_box_top: bounding_box_top = y_coord
             p += 2
