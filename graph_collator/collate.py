@@ -1165,13 +1165,28 @@ for component in connected_components[:config.MAX_COMPONENTS]:
         curr_edge.xdot_ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count= \
             graph_objects.Edge.get_control_points(e.attr[u'pos'])
         if source_id != e[0]:
-            # TODO
-            # Add control points from source to the first current control pt.
-            pass
+            # Adjust edge to point from interior node "source"'s tailport
+            pts_height = source.xdot_height * config.POINTS_PER_INCH
+            tail_y = source.xdot_y - (pts_height / 2)
+            new_points = "%g %g " % (source.xdot_x, tail_y)
+            xcps = curr_edge.xdot_ctrl_pt_str
+            # Remove first control point (at tailport of the bounding box
+            # rectangle of the node group that "source" is in)
+            xcps = xcps[xcps.index(" ") + 1:]
+            xcps = xcps[xcps.index(" ") + 1:]
+            curr_edge.xdot_ctrl_pt_str = new_points + xcps
         if target_id != e[1]:
-            # TODO
-            # Add control points from the last current control pt. to target.
-            pass
+            # Adjust edge to point to interior node "target"'s headport
+            target = nodeid2obj[target_id]
+            pts_height = target.xdot_height * config.POINTS_PER_INCH
+            tail_y = target.xdot_y + (pts_height / 2)
+            new_points = "%g %g" % (target.xdot_x, tail_y)
+            xcps = curr_edge.xdot_ctrl_pt_str
+            # Remove last control point (at headport of the bounding box
+            # rectangle of the node group that "target" is in)
+            xcps = xcps[:xcps.rindex(" ")]
+            xcps = xcps[:xcps.rindex(" ")]
+            curr_edge.xdot_ctrl_pt_str = xcps + " " + new_points
         # Try to expand the component bounding box
         p = 0
         while p <= len(coord_list) - 2:
