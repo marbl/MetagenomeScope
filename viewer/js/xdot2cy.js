@@ -1876,7 +1876,7 @@ function startFinishing() {
         FINISHING_MODE_ON = true;
         cy.filter(':selected').unselect();
         cy.autounselectify(true);
-        cy.on("tapstart", "node",
+        cy.on("click", "node",
             function(e) {
                 var node = e.cyTarget;
                 if (node.hasClass("noncluster")) {
