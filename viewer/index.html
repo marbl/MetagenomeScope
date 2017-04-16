@@ -320,19 +320,27 @@
             <h4>Assembly Finishing</h4>
 
             <button class='btn btn-success btn-sm disabled'
-                id="startFinishingButton" disabled="disabled">
+                id="startFinishingButton" disabled="disabled"
+                onclick="startFinishing();">
                 <span class="glyphicon glyphicon-play"
                     aria-hidden="true"></span> &nbsp; Start
             </button>
 
             <button class='btn btn-danger btn-sm disabled'
-                id="endFinishingButton" disabled="disabled">
+                id="endFinishingButton" disabled="disabled"
+                onclick="endFinishing();">
                 <span class="glyphicon glyphicon-stop"
                     aria-hidden="true"></span> &nbsp; End
             </button>
 
-            <p id="assembledNodes">
-            </p>
+            <button class='btn btn-info btn-sm disabled'
+                id="exportPathButton" disabled="disabled"
+                onclick="exportPath();">
+                <span class="glyphicon glyphicon-download-alt"
+                    aria-hidden="true"></span> &nbsp; Export Path
+            </button>
+
+            <p id="assembledNodes"></p>
 
             <hr />
             <h4>Test Layouts</h4>

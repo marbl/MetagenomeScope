@@ -104,6 +104,17 @@ var SCAFFOLDID2NODELABELS = {};
 var COMPONENT_HAS_SCAFFOLDS = false;
 // Used in determining which scaffolds are in the component.
 var COMPONENT_NODE_LABELS = [];
+// Flag indicating whether or not the application is in "finishing mode," in
+// which the user can select nodes to manually construct a path through the
+// assembly.
+var FINISHING_MODE_ON = false;
+// Flag indicating whether or not a previous finishing process was performed.
+var FINISHING_MODE_PREVIOUSLY_DONE = false;
+// String of the node IDs (in order -- the first node ID is the first ID in the
+// reconstructed sequence, and so on) that are part of the constructed path.
+// In the format "N1,N2,N3,N4" where N1 is the first node ID, N2 is the second
+// node ID, and so on (allowing repeat duplicate IDs).
+var FINISHING_NODE_IDS = "";
 
 // HTML snippets used while auto-creating info tables about selected elements
 const TD_CLOSE = "</td>";
@@ -861,6 +872,10 @@ function parseDBcomponents() {
     $("#scaffoldInfoHeader").addClass("notviewable");
     $("#scaffoldListGroup").empty();
     COMPONENT_NODE_LABELS = [];
+    $("#assembledNodes").empty();
+    FINISHING_MODE_ON = false;
+    FINISHING_MODE_PREVIOUSLY_DONE = false;
+    FINISHING_NODE_IDS = "";
     enableButton("decrCompRankButton");
     enableButton("incrCompRankButton");
     enableButton("xmlFileselectButton");
@@ -956,6 +971,8 @@ function disableVolatileControls() {
     disableButton("scaffoldFileselectButton");
     disableButton("startFinishingButton");
     disableButton("endFinishingButton");
+    disableButton("exportPathButton");
+    $("#assembledNodes").empty();
     disableButton("searchButton");
     disableButton("collapseButton");
     disableButton("fitSelectedButton");
@@ -1087,6 +1104,10 @@ function drawComponent(cmpRank) {
     COMPONENT_HAS_SCAFFOLDS = false;
     $("#scaffoldInfoHeader").addClass("notviewable");
     COMPONENT_NODE_LABELS = [];
+    $("#assembledNodes").empty();
+    FINISHING_MODE_ON = false;
+    FINISHING_MODE_PREVIOUSLY_DONE = false;
+    FINISHING_NODE_IDS = "";
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
     SELECTED_CLUSTER_COUNT = 0;
@@ -1326,7 +1347,6 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("layoutButton");
         enableButton("scaffoldFileselectButton");
         enableButton("startFinishingButton");
-        enableButton("endFinishingButton");
         enableButton("searchButton");
         enableButton("fitButton");
         enableButton("exportImageButton");
@@ -1854,6 +1874,56 @@ function highlightScaffold(scaffoldID) {
         nodesToHighlight = nodesToHighlight.union(nodeToAdd);
     }
     nodesToHighlight.select();
+}
+
+function startFinishing() {
+    if (!FINISHING_MODE_ON) {
+        disableButton("startFinishingButton");
+        if (FINISHING_MODE_PREVIOUSLY_DONE) {
+            FINISHING_NODE_IDS = "";
+            $("#assembledNodes").empty();
+            disableButton("exportPathButton");
+        }
+        FINISHING_MODE_ON = true;
+        cy.filter(':selected').unselect();
+        cy.autounselectify(true);
+        cy.on("tapstart", "node",
+            function(e) {
+                var node = e.cyTarget;
+                if (node.hasClass("noncluster")) {
+                    var nodeID = node.id();
+                    if (FINISHING_NODE_IDS.length > 0) {
+                        $("#assembledNodes").append(", " + nodeID);
+                        FINISHING_NODE_IDS += "," + nodeID;
+                    }
+                    else {
+                        $("#assembledNodes").append(nodeID);
+                        FINISHING_NODE_IDS += nodeID;
+                    }
+                }
+            }
+        );
+    }
+    enableButton("endFinishingButton");
+}
+
+function endFinishing() {
+    FINISHING_MODE_ON = false;
+    FINISHING_MODE_PREVIOUSLY_DONE = true;
+    cy.autounselectify(false);
+    cy.off("tapstart");
+    enableButton("exportPathButton");
+    enableButton("startFinishingButton");
+    disableButton("endFinishingButton");
+}
+
+function exportPath() {
+    var node_ids = "";
+    window.open(
+        "data:text/plain;charset=utf-8;base64," +
+        window.btoa(FINISHING_NODE_IDS),
+        "_blank"
+    );
 }
 
 // Like searchWithEnter() but for testLayout()
