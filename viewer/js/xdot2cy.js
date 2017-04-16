@@ -954,6 +954,8 @@ function disableVolatileControls() {
     disableButton("reduceEdgesButton");
     disableButton("layoutButton");
     disableButton("scaffoldFileselectButton");
+    disableButton("startFinishingButton");
+    disableButton("endFinishingButton");
     disableButton("searchButton");
     disableButton("collapseButton");
     disableButton("fitSelectedButton");
@@ -1323,6 +1325,8 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         }
         enableButton("layoutButton");
         enableButton("scaffoldFileselectButton");
+        enableButton("startFinishingButton");
+        enableButton("endFinishingButton");
         enableButton("searchButton");
         enableButton("fitButton");
         enableButton("exportImageButton");
