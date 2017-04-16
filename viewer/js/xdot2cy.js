@@ -493,12 +493,6 @@ function addSelectedNodeInfo(ele) {
     }
     nodeRowHTML += "</tr>";
     $("#nodeInfoTable").append(nodeRowHTML);
-    if (ele.data("hasDNA")) {
-        enableButton("dnaExportButton");
-    }
-    else {
-        disableButton("dnaExportButton");
-    }
 }
 
 function addSelectedEdgeInfo(ele) {
@@ -612,9 +606,6 @@ function setGraphBindings() {
                 SELECTED_NODES = SELECTED_NODES.difference(x);
                 $("#selectedNodeBadge").text(SELECTED_NODE_COUNT);
                 removeSelectedEleInfo(x);
-                if (SELECTED_NODE_COUNT <= 0) {
-                    disableButton("dnaExportButton");
-                }
             } else if (x.isEdge()) {
                 SELECTED_EDGE_COUNT -= 1;
                 SELECTED_EDGES = SELECTED_EDGES.difference(x);
@@ -985,7 +976,6 @@ function disableVolatileControls() {
     disableButton("pngOption");
     disableButton("jpgOption");
     clearSelectedInfo();
-    disableButton("dnaExportButton");
 }
 
 function updateTextStatus(text) {
@@ -1501,7 +1491,6 @@ function clearSelectedInfo() {
     $("#nodeInfoTable tr.nonheader").remove();
     $("#edgeInfoTable tr.nonheader").remove();
     $("#clusterInfoTable tr.nonheader").remove();
-    disableButton("dnaExportButton");
     if ($("#nodeOpener").hasClass("glyphicon-triangle-bottom")) {
         toggleEleInfo('node');
     }
