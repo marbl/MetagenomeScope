@@ -2375,11 +2375,7 @@ function renderNodeObject(nodeObj, boundingboxObject) {
                h: INCHES_TO_PIXELS * nodeObj['w'],
                // TODO: the "house" parameter might be too expensive?
                house: isHouse, depth: nodeObj['depth'],
-               // TODO: if we settle on always calculating G/C content when DNA
-               // is available, then we can use the gc_content variable as a
-               // flag for null instead of the explicit hasDNA data value.
-               length: nodeObj['length'], hasDNA: nodeObj['dnafwd'] !== null,
-               gc_content: gc, bg_color: bg_color},
+               length: nodeObj['length'], gc_content: gc, bg_color: bg_color},
         position: {x: pos[0], y: pos[1]}
     });
     if (parentID !== null) {
