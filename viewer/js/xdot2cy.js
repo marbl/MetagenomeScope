@@ -115,6 +115,9 @@ var FINISHING_MODE_PREVIOUSLY_DONE = false;
 // In the format "N1,N2,N3,N4" where N1 is the first node ID, N2 is the second
 // node ID, and so on (allowing repeat duplicate IDs).
 var FINISHING_NODE_IDS = "";
+// Node IDs of the nodes that are outgoing from the last-added node to the
+// reconstructed path.
+var NEXT_NODE_IDS;
 
 // HTML snippets used while auto-creating info tables about selected elements
 const TD_CLOSE = "</td>";
@@ -292,6 +295,12 @@ function initGraph() {
                 selector: 'node.noncluster.rightdir',
                 style: {
                     'shape-polygon-points': NODE_RIGHTDIR
+                }
+            },
+            {
+                selector: 'node.noncluster.tentative',
+                style: {
+                    'background-color': '#925E89',
                 }
             },
             {
@@ -1098,6 +1107,7 @@ function drawComponent(cmpRank) {
     FINISHING_MODE_ON = false;
     FINISHING_MODE_PREVIOUSLY_DONE = false;
     FINISHING_NODE_IDS = "";
+    NEXT_NODE_IDS = cy.collection();
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
     SELECTED_CLUSTER_COUNT = 0;
@@ -1844,6 +1854,7 @@ function updateScaffoldInfoHeader(agpFileJustLoaded) {
 
 // Highlights the contigs within a scaffold by selecting them
 function highlightScaffold(scaffoldID) {
+    // TODO can make this more efficient -- see #115, etc.
     cy.filter(':selected').unselect();
     var contigLabels = SCAFFOLDID2NODELABELS[scaffoldID];
     var nodesToHighlight = cy.collection();
@@ -1865,6 +1876,52 @@ function highlightScaffold(scaffoldID) {
     nodesToHighlight.select();
 }
 
+function addNodeFromEventToPath(e) {
+    var node = e.cyTarget;
+    // TODO If the node to be added has no outgoing nodes, then call
+    // endFinishing(). Maybe push a status update also?
+    // Also, TODO: add a status update <div> or something in the ctrl panel
+    if (node.hasClass("noncluster")) {
+        var nodeID = node.id();
+        if (FINISHING_NODE_IDS.length > 0) {
+            if (NEXT_NODE_IDS.is("#" + nodeID)) {
+                cy.startBatch();
+                for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
+                    NEXT_NODE_IDS[i].removeClass("tentative");
+                }
+                NEXT_NODE_IDS = node.outgoers("node");
+                if (NEXT_NODE_IDS.size() === 0) {
+                    endFinishing();
+                }
+                for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
+                    NEXT_NODE_IDS[i].addClass("tentative");
+                }
+                cy.endBatch();
+                $("#assembledNodes").append(", " + nodeID);
+                FINISHING_NODE_IDS += "," + nodeID;
+            }
+            else {
+                return;
+            }
+        }
+        else {
+            cy.startBatch();
+            // TODO abstract repeated code to a function
+            NEXT_NODE_IDS = node.outgoers("node");
+            if (NEXT_NODE_IDS.size() === 0) {
+                endFinishing();
+                return;
+            }
+            for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
+                NEXT_NODE_IDS[i].addClass("tentative");
+            }
+            cy.endBatch();
+            $("#assembledNodes").append(nodeID);
+            FINISHING_NODE_IDS += nodeID;
+        }
+    }
+}
+
 function startFinishing() {
     if (!FINISHING_MODE_ON) {
         disableButton("startFinishingButton");
@@ -1874,24 +1931,10 @@ function startFinishing() {
             disableButton("exportPathButton");
         }
         FINISHING_MODE_ON = true;
+        // TODO can make this more efficient -- see #115, etc.
         cy.filter(':selected').unselect();
         cy.autounselectify(true);
-        cy.on("click", "node",
-            function(e) {
-                var node = e.cyTarget;
-                if (node.hasClass("noncluster")) {
-                    var nodeID = node.id();
-                    if (FINISHING_NODE_IDS.length > 0) {
-                        $("#assembledNodes").append(", " + nodeID);
-                        FINISHING_NODE_IDS += "," + nodeID;
-                    }
-                    else {
-                        $("#assembledNodes").append(nodeID);
-                        FINISHING_NODE_IDS += nodeID;
-                    }
-                }
-            }
-        );
+        cy.on("click", "node", addNodeFromEventToPath);
     }
     enableButton("endFinishingButton");
 }
@@ -1899,6 +1942,12 @@ function startFinishing() {
 function endFinishing() {
     FINISHING_MODE_ON = false;
     FINISHING_MODE_PREVIOUSLY_DONE = true;
+    cy.startBatch();
+    for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
+        NEXT_NODE_IDS[i].removeClass("tentative");
+    }
+    cy.endBatch();
+    NEXT_NODE_IDS = cy.collection();
     cy.autounselectify(false);
     cy.off("tapstart");
     enableButton("exportPathButton");
@@ -2037,6 +2086,7 @@ function searchForEles() {
     // Unselect all previously-selected names
     // (TODO: is this O(n)? because if so, it's not worth it, probably)
     // (Look into this)
+    // TODO can make this more efficient -- see #115, etc.
     cy.filter(':selected').unselect();
     // Select all identified names, so they can be dragged if desired
     // (and also to highlight them).
