@@ -354,8 +354,10 @@ int main(int argc, char* argv[])
 {	
 	cmdline ::parser pr;
     pr.add<string>("oriented_graph",'l',"list of oriented links",true,"");
-    pr.add<string>("output",'o',"output file tow write sep pairs",true,"");
-    pr.add<string>("directory",'d',"directory to output files to",false,"");
+    pr.add<string>("output",'o',
+        "output file to write separation pairs to",true,"");
+    pr.add<string>("directory",'d',
+        "directory to output all files to",false,"");
     pr.parse_check(argc,argv);
     Graph G;
     string directory = pr.get<string>("directory");
