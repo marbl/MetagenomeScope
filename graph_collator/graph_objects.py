@@ -496,52 +496,54 @@ class Bubble(NodeGroup):
            The code in this function is mostly taken from test_pair() in
            layout.py, from Bambus 3.
         """
-        # NOTE this is still very much a work in progress
+        # Disallow any nodes that are already parts of other node groups
         for n in nodes:
             if n.used_in_collapsing:
                 return False
-        # Run basically BFS/DFS from the source node, checking to ensure that
-        # all paths from the source node 1) converge to the sink node and 2)
-        # involve only the member nodes. At first hint of a node that isn't in
-        # the member nodes, return False.
-        # Also ensure that all member nodes don't have incoming nodes that
-        # aren't in the member node list. This can be done by using
-        # incoming_nodes starting from the sink and tracing all paths back to
-        # the source -- if they hit a node that isn't the source, hit a
-        # dead-end, or result in a cycle, then return false.
-        # TODO make this actually work
-        visited_nodes = {}
-        visited_nodes[nodes[0]] = True
-        q = deque()
+        source = nodes[0]
+        sink = nodes[1]
+        # For simplicity, we don't use the actual Edge class here (since that's
+        # mainly used for storing ancillary biological/layout data) and instead
+        # store edges as simple 2-tuples of (Source Node obj, Target Node obj).
+        # This enables us to easily access the Node objects comprising an edge.
+        visited_edges = {}
+        # Queue of edges to check. The use of this structure is based on
+        # the test_pair() function from Bambus 3, which is in turn based on
+        # section 2.2.2 of the MaryGold paper.
+        Q = deque()
         at_sink = False
-        for n in nodes[0].outgoing_nodes:
-            q.appendleft(n)
-        while len(q) > 0:
-            go_ahead = True
-            curr_node = q.pop()
-            # Return False if a path from the source node wound up hitting a
-            # node that wasn't in the list of nodes in the pair.
-            if curr_node not in nodes:
+        for n in source.outgoing_nodes:
+            outgoing_edge = (source, n)
+            Q.appendleft(outgoing_edge)
+            visited_edges[outgoing_edge] = True
+        while len(Q) > 0:
+            all_v_incoming_edges_visited = True
+            curr_edge = Q.pop()
+            u = curr_edge[0]
+            v = curr_edge[1]
+            if v not in nodes:
+                # If this edge takes us to a node outside of the list of
+                # "member" nodes of this separation pair, then the separation
+                # pair is not a valid source-sink pair.
                 return False
-            visited_nodes[curr_node] = True
-            if curr_node == nodes[1]:
+            if v == sink:
                 at_sink = True
                 continue
-            for n in curr_node.incoming_nodes:
-                if n not in visited_nodes:
-                    go_ahead = False
+            for n in v.incoming_nodes:
+                if (n, v) not in visited_edges:
+                    # We haven't visited all of the edges incident upon
+                    # v. Therefore, we can't move forward to the outgoing edges
+                    # of v yet. Check other edges in the queue.
+                    all_v_incoming_edges_visited = False
                     break
-            # I'm not sure if this part is right
-            if go_ahead:
-                visited_nodes[n] = True # ???????
-                for n in curr_node.outgoing_nodes:
-                    if n not in visited_nodes:
-                        q.appendleft(n)
-                        visited_nodes[n] = True
-        if at_sink:
-            return True
-        else:
-            return False
+            if all_v_incoming_edges_visited:
+                for n in v.outgoing_nodes:
+                    outgoing_edge = (v, n)
+                    if outgoing_edge not in visited_edges:
+                        Q.appendleft(outgoing_edge)
+                        visited_edges[outgoing_edge] = True
+        # At this point, we've exhausted our queue of edges to visit.
+        return at_sink
 
     @staticmethod
     def is_valid_bubble(s):
