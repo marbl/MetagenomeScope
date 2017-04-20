@@ -1881,6 +1881,11 @@ function addNodeFromEventToPath(e) {
     // TODO If the node to be added has no outgoing nodes, then call
     // endFinishing(). Maybe push a status update also?
     // Also, TODO: add a status update <div> or something in the ctrl panel
+    // TODO don't select the last node on the path automatically, as seems to
+    // happen now (?) -- look at the code, see if anything looks weird/is
+    // causing that
+    // TODO fix selecting single-node paths (where the first node picked is a
+    // dead end)
     if (node.hasClass("noncluster")) {
         var nodeID = node.id();
         if (FINISHING_NODE_IDS.length > 0) {
