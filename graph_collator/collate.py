@@ -14,8 +14,10 @@ from sys import stdout
 from subprocess import check_output, STDOUT
 # For running dot, GraphViz' main layout manager
 import pygraphviz
-# For creating a directory in which we store xdot/gv files, and for file I/O
+# For creating the output directory, and for file I/O
 import os
+# For parsing certain filenames easily
+import re
 # For checking I/O errors
 import errno
 # For interfacing with the SQLite Database
@@ -741,6 +743,90 @@ if bicmps_fullfn == None:
     # isn't really an option.
     # In any case, I doubt this will be a problem -- but it's worth noting.
     check_output(spqr_invocation, stderr=STDOUT)
+
+# NOTE this makes the assumption that these component and spqr files aren't
+# deleted after running the SPQR script. If they are for whatever reason, then
+# this script will fail to recognize the corresponding biconnected component
+# information (thus failing to draw a SPQR tree, and likely causing an error of
+# some sort when creating the database file).
+bicomponentid2fn = {}
+cfn_regex = re.compile("component_(\d)\.info")
+for fn in os.listdir(dir_fn):
+    match = cfn_regex.match(fn)
+    if match is not None:
+        c_fullfn = os.path.join(dir_fn, fn)
+        if os.path.isfile(c_fullfn):
+            bicomponentid2fn[match.group(1)] = c_fullfn
+
+metanode_id_regex = re.compile("^\d+\n")
+metanode_type_regex = re.compile("^[SPR]\n")
+for cfn_id in bicomponentid2fn:
+    with open(bicomponentid2fn[cfn_id], "r") as component_info_file:
+        metanodeid2obj = {}
+        curr_id = ""
+        curr_type = ""
+        curr_nodes = []
+        for line in component_info_file:
+            if metanode_id_regex.match(line):
+                if curr_id != "":
+                    # save previous metanode info
+                    new_metanode = graph_objects.SPQRMetaNode(curr_id, \
+                        curr_type, curr_nodes)
+                    metanodeid2obj[curr_id] = new_metanode
+                curr_id = line.strip()
+                curr_type = ""
+                curr_nodes = []
+            elif metanode_type_regex.match(line):
+                curr_type = line.strip()
+            else:
+                # This line must describe a node within the metanode
+                curr_nodes.append(nodeid2obj[line.split()[1]])
+        # Save the last metanode in the file (won't be "covered" in loop above)
+        new_metanode = graph_objects.SPQRMetaNode(curr_id, curr_type, \
+            curr_nodes)
+        metanodeid2obj[curr_id] = new_metanode
+    # At this point, we have all nodes in the entire SPQR tree for a
+    # given biconnected component saved in metanodes_in_bicomponent.
+    # For now, let's just parse the structure of this tree and lay it out using
+    # GraphViz -- will implement in the web visualization tool soon.
+    tree_structure_fn = os.path.join(dir_fn, "spqr%s.gml" % (cfn_id))
+    with open(tree_structure_fn, "r") as spqr_structure_file:
+        parsing_edge = False
+        source_metanode = None
+        target_metanode = None
+        for line in spqr_structure_file:
+            if line.strip().startswith("edge ["):
+                parsing_edge = True
+            elif parsing_edge:
+                if line.strip().startswith("]"):
+                    parsing_edge = False
+                    # save edge data
+                    source_metanode.add_outgoing_edge(target_metanode)
+                    source_metanode = None
+                    target_metanode = None
+                else:
+                    id_line_parts = line.strip().split()
+                    if id_line_parts[0] == "source":
+                        source_metanode = metanodeid2obj[id_line_parts[1]]
+                    elif id_line_parts[0] == "target":
+                        target_metanode = metanodeid2obj[id_line_parts[1]]
+    # At this point, we have the entire structure of the SPQR tree (including
+    # edges between metanodes) saved. Eventually we'll save this to the .db
+    # file and, in turn, utilize that in the visualization tool -- for now,
+    # though, we'll just output the tree in GraphViz as a demonstration.
+    spqr_output_fn = os.path.join(dir_fn, "spqr_tree_%s.gv" % (cfn_id))
+    with open(spqr_output_fn, "w") as spqr_output_file:
+        spqr_output_file.write("digraph spqr_tree_%s {\n" % (cfn_id))
+        # Write metanode info
+        for mn in metanodeid2obj.values():
+            spqr_output_file.write("\t%s_%s;\n" % (mn.metanode_type, mn.spqr_id))
+        # Write info for edges between metanodes
+        for mn in metanodeid2obj.values():
+            for mn2 in mn.outgoing_nodes:
+                spqr_output_file.write("\t%s_%s -> %s_%s;\n" % \
+                    (mn.metanode_type, mn.spqr_id, mn2.metanode_type, \
+                    mn2.spqr_id))
+        spqr_output_file.write("}");
 
 # Now that the potential bubbles have been detected by the spqr script, we
 # sort them ascending order of size and then create Bubble objects accordingly.

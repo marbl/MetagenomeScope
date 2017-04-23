@@ -312,7 +312,7 @@ class NodeGroup(Node):
        "subgraph.")
     """
     
-    def __init__(self, group_prefix, group_style, nodes):
+    def __init__(self, group_prefix, group_style, nodes, spqr_related=False):
         """Initializes the node group, given all the Node objects comprising
            the node group, a prefix character for the group (i.e. 'R' for
            frayed ropes, 'B' for bubbles, 'C' for chains, 'Y' for cycles),
@@ -342,8 +342,12 @@ class NodeGroup(Node):
             self.gv_id_string += "%s_" % (n.id_string.replace('-', 'c'))
             self.cy_id_string += "%s_" % (n.id_string)
             self.nodes.append(n)
-            n.used_in_collapsing = True
-            n.group = self
+            # To avoid messing up the detection of normal node groups (bubbles,
+            # etc.), node groups pertaining to SPQR metanodes don't impact
+            # anything about the state of their child nodes.
+            if not spqr_related:
+                n.used_in_collapsing = True
+                n.group = self
             self.childid2obj[n.id_string] = n
         self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
         self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
@@ -461,6 +465,31 @@ class NodeGroup(Node):
         """
         return (self.cy_id_string, self.component_size_rank, self.xdot_left,
                 self.xdot_bottom, self.xdot_right, self.xdot_top)
+
+class SPQRMetaNode(NodeGroup):
+    """A group of nodes collapsed into a metanode in a SPQR tree.
+
+       We use OGDF (via the SPQR script) to construct SPQR trees. That
+       particular implementation of the algorithm for construction does not
+       create "Q" nodes, so the only possible types of metanodes we'll identify
+       are S, P, and R metanodes.
+
+       For some high-level background on SPQR trees, Wikipedia is a good
+       resource -- see https://en.wikipedia.org/wiki/SPQR_tree. For details on
+       the linear-time implementation used in OGDF, see
+       http://www.ogdf.net/doc-ogdf/classogdf_1_1_s_p_q_r_tree.html#details.
+
+       TODO: Once we get the internal structure of metanodes parsed, we should
+       really have this class subclass NodeGroup instead of Node (so as to use
+       backfilling, etc.)
+    """
+
+    def __init__(self, spqr_id, metanode_type, nodes):
+        # The ID used in spqr*.gml files to describe the structure of the tree
+        self.spqr_id = spqr_id
+        self.metanode_type = metanode_type
+        super(SPQRMetaNode, self).__init__("SPQR_" + self.metanode_type + "_",
+            "", nodes, spqr_related=True)
 
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.
