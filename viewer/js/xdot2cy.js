@@ -304,6 +304,12 @@ function initGraph() {
                 }
             },
             {
+                selector: 'node.noncluster.tentativedock',
+                style: {
+                    'background-color': '#994700',
+                }
+            },
+            {
                 selector: 'node.noncluster:selected',
                 style: {
                     // NOTE I liked using a border for indicating selected
@@ -1893,6 +1899,21 @@ function addNodeFromEventToPath(e) {
                 cy.endBatch();
                 NEXT_NODE_IDS = node.outgoers("node");
                 var size = NEXT_NODE_IDS.size();
+                if (size === 1) {
+                    while (size === 1) {
+                        $("#assembledNodes").append(", " + nodeID);
+                        FINISHING_NODE_IDS += "," + nodeID;
+                        node = NEXT_NODE_IDS[0];
+                        nodeID = node.id();
+                        NEXT_NODE_IDS = node.outgoers("node");
+                        size = NEXT_NODE_IDS.size();
+                    }
+                }
+                // TODO add something that keeps track of previous node and
+                // removes this class from it
+                // don't use cy.js to do a filter, just cache the ID or
+                // something to be more efficient
+                //node.addClass("tentativedock");
                 if (size === 0) {
                     endFinishing();
                 }
