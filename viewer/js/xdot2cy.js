@@ -1890,14 +1890,18 @@ function addNodeFromEventToPath(e) {
                 for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
                     NEXT_NODE_IDS[i].removeClass("tentative");
                 }
+                cy.endBatch();
                 NEXT_NODE_IDS = node.outgoers("node");
                 if (NEXT_NODE_IDS.size() === 0) {
                     endFinishing();
                 }
-                for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
-                    NEXT_NODE_IDS[i].addClass("tentative");
+                else {
+                    cy.startBatch();
+                    for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
+                        NEXT_NODE_IDS[i].addClass("tentative");
+                    }
+                    cy.endBatch();
                 }
-                cy.endBatch();
                 $("#assembledNodes").append(", " + nodeID);
                 FINISHING_NODE_IDS += "," + nodeID;
             }
