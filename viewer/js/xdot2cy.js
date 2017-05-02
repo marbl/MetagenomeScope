@@ -1892,12 +1892,13 @@ function addNodeFromEventToPath(e) {
                 }
                 cy.endBatch();
                 NEXT_NODE_IDS = node.outgoers("node");
-                if (NEXT_NODE_IDS.size() === 0) {
+                var size = NEXT_NODE_IDS.size();
+                if (size === 0) {
                     endFinishing();
                 }
                 else {
                     cy.startBatch();
-                    for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
+                    for (var i = 0; i < size; i++) {
                         NEXT_NODE_IDS[i].addClass("tentative");
                     }
                     cy.endBatch();
@@ -1912,14 +1913,15 @@ function addNodeFromEventToPath(e) {
         else {
             // TODO abstract repeated code to a function
             NEXT_NODE_IDS = node.outgoers("node");
-            if (NEXT_NODE_IDS.size() === 0) {
+            var size = NEXT_NODE_IDS.size();
+            if (size === 0) {
                 $("#assembledNodes").append(nodeID);
                 FINISHING_NODE_IDS += nodeID;
                 endFinishing();
                 return;
             }
             cy.startBatch();
-            for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
+            for (var i = 0; i < size; i++) {
                 NEXT_NODE_IDS[i].addClass("tentative");
             }
             cy.endBatch();
