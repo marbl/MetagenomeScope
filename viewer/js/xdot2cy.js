@@ -300,7 +300,7 @@ function initGraph() {
             {
                 selector: 'node.noncluster.tentative',
                 style: {
-                    'background-color': '#925E89',
+                    'background-color': '#000000',
                 }
             },
             {
