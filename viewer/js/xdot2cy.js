@@ -118,6 +118,8 @@ var FINISHING_NODE_IDS = "";
 // Node IDs of the nodes that are outgoing from the last-added node to the
 // reconstructed path.
 var NEXT_NODE_IDS;
+// Boolean used to indicate when finishing a linear cycle is happening.
+var FINISHING_LINEAR_CYCLE;
 
 // HTML snippets used while auto-creating info tables about selected elements
 const TD_CLOSE = "</td>";
@@ -1114,6 +1116,7 @@ function drawComponent(cmpRank) {
     FINISHING_MODE_PREVIOUSLY_DONE = false;
     FINISHING_NODE_IDS = "";
     NEXT_NODE_IDS = cy.collection();
+    FINISHING_LINEAR_CYCLE = false;
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
     SELECTED_CLUSTER_COUNT = 0;
@@ -1888,6 +1891,15 @@ function addNodeFromEventToPath(e) {
     // TODO don't select the last node on the path automatically, as seems to
     // happen now (?) -- look at the code, see if anything looks weird/is
     // causing that
+    // TODO: make autofinishing work when first node clicked in finishing has
+    // unambiguous outgoing edge
+    // TODO: make autofinishing stop when it gets to linear cycles
+    // Options:
+    //  -Traverse entire linear cycle once and then provide option to users to
+    //   traverse it again
+    //  -Just stop autofinishing as soon as a node is identified in a linear
+    //   cycle
+    var justStartedLinearCycleFinishing = false;
     if (node.hasClass("noncluster")) {
         var nodeID = node.id();
         if (FINISHING_NODE_IDS.length > 0) {
@@ -1899,16 +1911,23 @@ function addNodeFromEventToPath(e) {
                 cy.endBatch();
                 NEXT_NODE_IDS = node.outgoers("node");
                 var size = NEXT_NODE_IDS.size();
-                if (size === 1) {
-                    while (size === 1) {
-                        $("#assembledNodes").append(", " + nodeID);
-                        FINISHING_NODE_IDS += "," + nodeID;
-                        node = NEXT_NODE_IDS[0];
-                        nodeID = node.id();
-                        NEXT_NODE_IDS = node.outgoers("node");
-                        size = NEXT_NODE_IDS.size();
-                    }
-                }
+                //if (!FINISHING_LINEAR_CYCLE && size === 1) {
+                //    var autofinishingSeenNodeIDs = [];
+                //    while (size === 1) {
+                //        if (autofinishingSeenNodeIDs.indexOf(nodeID) !== -1){
+                //            FINISHING_LINEAR_CYCLE = true;
+                //            justStartedLinearCycleFinishing = true;
+                //            break;
+                //        }
+                //        $("#assembledNodes").append(", " + nodeID);
+                //        FINISHING_NODE_IDS += "," + nodeID;
+                //        autofinishingSeenNodeIDs.push(nodeID);
+                //        node = NEXT_NODE_IDS[0];
+                //        nodeID = node.id();
+                //        NEXT_NODE_IDS = node.outgoers("node");
+                //        size = NEXT_NODE_IDS.size();
+                //    }
+                //}
                 // TODO add something that keeps track of previous node and
                 // removes this class from it
                 // don't use cy.js to do a filter, just cache the ID or
@@ -1917,7 +1936,7 @@ function addNodeFromEventToPath(e) {
                 if (size === 0) {
                     endFinishing();
                 }
-                else {
+                else { // includes case where FINISHING_LINEAR_CYCLE is true
                     cy.startBatch();
                     for (var i = 0; i < size; i++) {
                         NEXT_NODE_IDS[i].addClass("tentative");
@@ -1972,6 +1991,7 @@ function startFinishing() {
 function endFinishing() {
     FINISHING_MODE_ON = false;
     FINISHING_MODE_PREVIOUSLY_DONE = true;
+    FINISHING_LINEAR_CYCLE = false;
     cy.startBatch();
     for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
         NEXT_NODE_IDS[i].removeClass("tentative");
