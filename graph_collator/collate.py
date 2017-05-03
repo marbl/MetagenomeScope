@@ -750,7 +750,7 @@ if bicmps_fullfn == None:
 # information (thus failing to draw a SPQR tree, and likely causing an error of
 # some sort when creating the database file).
 bicomponentid2fn = {}
-cfn_regex = re.compile("component_(\d)\.info")
+cfn_regex = re.compile("component_(\d+)\.info")
 for fn in os.listdir(dir_fn):
     match = cfn_regex.match(fn)
     if match is not None:
@@ -819,7 +819,9 @@ for cfn_id in bicomponentid2fn:
         spqr_output_file.write("digraph spqr_tree_%s {\n" % (cfn_id))
         # Write metanode info
         for mn in metanodeid2obj.values():
-            spqr_output_file.write("\t%s_%s;\n" % (mn.metanode_type, mn.spqr_id))
+            spqr_output_file.write("\t%s_%s [label=\"%s%s\"];\n" % \
+                (mn.metanode_type, mn.spqr_id, mn.metanode_type,
+                str(mn.nodes).replace("Node", "").replace(" ", "")))
         # Write info for edges between metanodes
         for mn in metanodeid2obj.values():
             for mn2 in mn.outgoing_nodes:
