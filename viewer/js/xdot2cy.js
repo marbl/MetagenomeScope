@@ -564,7 +564,7 @@ function setGraphBindings() {
         function(e) {
             // Prevent collapsing being done during iterative drawing
             if (!$("#fitButton").hasClass("disabled")) {
-                var node = e.cyTarget;
+                var node = e.target;
                 if (node.hasClass("cluster")) {
                     toggleCluster(node);
                 }
@@ -589,7 +589,7 @@ function setGraphBindings() {
     //});
     cy.on('select', 'node.noncluster, edge, node.cluster',
         function(e) {
-            var x = e.cyTarget;
+            var x = e.target;
             if (x.hasClass("noncluster")) {
                 SELECTED_NODE_COUNT += 1;
                 SELECTED_NODES = SELECTED_NODES.union(x);
@@ -617,7 +617,7 @@ function setGraphBindings() {
     );
     cy.on('unselect', 'node.noncluster, edge, node.cluster',
         function(e) {
-            var x = e.cyTarget;
+            var x = e.target;
             if (x.hasClass("noncluster")) {
                 SELECTED_NODE_COUNT -= 1;
                 SELECTED_NODES = SELECTED_NODES.difference(x);
@@ -664,7 +664,7 @@ function setGraphBindings() {
     // (Maybe make this an option for the user?) TODO get this faster
     //cy.on('drag', 'node',
     //    function(e) {
-    //        var node = e.cyTarget;
+    //        var node = e.target;
     //        fixBadEdges(node.data("adjacentEdges"));
     //    }
     //);
@@ -674,7 +674,7 @@ function setGraphBindings() {
     // to register a tap event)
     //cy.on('tapstart', 'node',
     //    function(e) {
-    //        var node = e.cyTarget;
+    //        var node = e.target;
     //        console.log(node);
     //        cy.style().selector("[id = '" + node.id() + "']").style({
     //            'label': 'data(id)'
@@ -688,7 +688,7 @@ function setGraphBindings() {
  * compound node is collapsed -- as soon as that compound node regains
  * one or more of its children, its position is neglected again.
  */
-function rotateNode(i, n) {
+function rotateNode(n, i) {
     // Rotate node position
     var oldPt = n.position();
     var newPt = rotateCoordinate(oldPt['x'], oldPt['y']);
@@ -733,7 +733,7 @@ function changeRotation() {
             // This only rotates nodes that are not collapsed
             cy.filter('node').each(rotateNode);
             // Rotate nodes within currently collapsed node groups
-            cy.scratch("_collapsed").each(function(i, n) {
+            cy.scratch("_collapsed").each(function(n, i) {
                 n.scratch("_interiorNodes").each(rotateNode);
             });
             cy.endBatch();
@@ -1531,7 +1531,7 @@ function getSelectedNodeDNA() {
     var currDnaSeq;
     var seqIndex;
     var afterFirstSeqLine;
-    SELECTED_NODES.each(function(i, e) {
+    SELECTED_NODES.each(function(e, i) {
         // TODO Is there any way to make this more efficient? Like, via
         // selecting multiple dnafwd values at once...?
         dnaStmt = CURR_DB.prepare("SELECT dnafwd FROM nodes WHERE id = ?",
@@ -1623,7 +1623,7 @@ function cullEdges() {
         // Also, remove these edges from REMOVED_EDGES
         var restoredEdges = cy.collection();
         REMOVED_EDGES.each(
-            function(i, e) {
+            function(e, i) {
                 if (e.data("multiplicity") >= threshold) {
                     // If the edge points to/from a node within a collapsed
                     // cluster, then make the edge a basicbezier and move the
@@ -1648,7 +1648,7 @@ function cullEdges() {
         // Remove edges that have multiplicity less than the specified
         // threshold
         cy.$("edge").each(
-            function(i, e) {
+            function(e, i) {
                 var mult = e.data("multiplicity");
                 if (mult !== null && mult < threshold) {
                     if (e.selected())
@@ -1886,7 +1886,7 @@ function highlightScaffold(scaffoldID) {
 }
 
 function addNodeFromEventToPath(e) {
-    var node = e.cyTarget;
+    var node = e.target;
     // TODO: add a status update <div> or something in the ctrl panel
     // TODO don't select the last node on the path automatically, as seems to
     // happen now (?) -- look at the code, see if anything looks weird/is
@@ -2035,7 +2035,7 @@ function testLayout() {
                 stop: function() {
                     finishProgressBar();
                 }
-            });
+            }).run();
         }, 20);
     }
 }
@@ -2067,7 +2067,7 @@ function reduceEdgesToStraightLines(useProgressBar) {
 function doReduceEdges() {
     cy.startBatch();
     cy.filter("edge").each(
-        function(i, e) {
+        function(e, i) {
             // We can safely use this even for non-unbundledbezier edges.
             // The reason we don't restrict this loop to unbundledbezier
             // edges is that we want to apply this even to unbundledbezier
@@ -2162,14 +2162,14 @@ function collapseAll(operationCharacter) {
     cy.startBatch();
     if (operationCharacter === 'U') {
         cy.scratch("_collapsed").each(
-            function(i, cluster) {
+            function(cluster, i) {
                 uncollapseCluster(cluster);
             }
         );
     }
     else {
         cy.scratch("_uncollapsed").each(
-            function(i, cluster) {
+            function(cluster, i) {
                 collapseCluster(cluster);
             }
         );
@@ -2291,7 +2291,7 @@ function fixBadEdges(edgeList) {
  * NOTE that this class should be called from within a batch operation, to
  * prevent style class collisions.
  */
-function fixSingleEdge(i, e) {
+function fixSingleEdge(e, i) {
     if (e._private.rscratch['badBezier'] || e._private.rscratch['badLine']) {
         e.removeClass('unbundledbezier');
         e.removeData('cpd');
@@ -2311,7 +2311,7 @@ function fixSingleEdge(i, e) {
  */
 function initNodeAdjacents() {
     cy.filter('node.noncluster').each(
-        function(i, node) {
+        function(node, i) {
             node.data("adjacentEdges",
                 node.incomers('edge').union(node.outgoers('edge'))
             );
@@ -2330,7 +2330,7 @@ function initNodeAdjacents() {
 function initClusters() {
     // For each compound node...
     cy.scratch("_uncollapsed").each(
-        function(i, node) {
+        function(node, i) {
             var children = node.children();        
             // Unfiltered incoming/outgoing edges
             var uIncomingEdges = children.incomers('edge');
@@ -2348,13 +2348,13 @@ function initClusters() {
             // are used to represent the ideal connections
             // between nodes regardless of collapsing
             incomingEdges.each(
-                function(j, edge) {
+                function(edge, j) {
                     incomingEdgeMap[edge.id()] =
                         [edge.source().id(), edge.target().id()];
                 }
             );
             outgoingEdges.each(
-                function(j, edge) {
+                function(edge, j) {
                     outgoingEdgeMap[edge.id()] =
                         [edge.source().id(), edge.target().id()];
                 }
@@ -2377,7 +2377,7 @@ function initClusters() {
             // an accumulator, and after the block we treat these
             // values like we treat normal node blocks and scale them
             // the same way (logarithmically).
-            children.each(function(i,e) {
+            children.each(function(e, i) {
                 wid += Math.pow(10, e.data("w") / INCHES_TO_PIXELS);
                 hgt += Math.pow(10, e.data("h") / INCHES_TO_PIXELS);
             });
