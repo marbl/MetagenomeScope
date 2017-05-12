@@ -543,29 +543,29 @@ int main(int argc, char* argv[])
 					forall_nodes(Nn, Gn) 
 					{
 						cn = original(Nn,bc,GC,spqr.skeleton(n)); //Node in original graph G
-                        // For all edges starting at cn, output the edge
-                        // source and target.
-                        // Note that, as the input graphs to the SPQR tree
-                        // structure are undirected, the notions of
-                        // source/target here aren't relevant to the actual
-                        // source/target relationships in the original graph.
-                        forall_adj_edges(Ee, Nn) {
-                            if (Ee -> source() -> index() == Nn -> index()) {
-                                if (spqr.skeleton(n).isVirtual(Ee)) {
-                                    compfile << "virtual\t";
-                                }
-                                else {
-                                    compfile << "real\t";
-                                }
-                                // Get original target node
-                                Tn = Ee -> target();
-                                tn=original(Tn,bc,GC,spqr.skeleton(n));
-                                compfile << intid2contig[cn -> index()];
-                                compfile << "\t";
-                                compfile << intid2contig[tn -> index()];
-                                compfile << endl;;
-                            }
-                        }
+						// For all edges starting at cn, output the edge
+						// source and target.
+						// Note that, as the input graphs to the SPQR tree
+						// structure are undirected, the notions of
+						// source/target here aren't relevant to the actual
+						// source/target relationships in the original graph.
+						forall_adj_edges(Ee, Nn) {
+							if (Ee -> source() -> index() == Nn -> index()) {
+								if (spqr.skeleton(n).isVirtual(Ee)) {
+									compfile << "virtual\t";
+								}
+								else {
+									compfile << "real\t";
+								}
+								// Get original target node
+								Tn = Ee -> target();
+								tn=original(Tn,bc,GC,spqr.skeleton(n));
+								compfile << intid2contig[cn -> index()];
+								compfile << "\t";
+								compfile << intid2contig[tn -> index()];
+								compfile << endl;
+							}
+						}
 						sk2orig[Nn->index()] = cn->index();
 						compfile<<Nn->index()<<"\t"<<intid2contig[cn->index()]<<endl;
 					}
