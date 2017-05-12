@@ -760,6 +760,7 @@ for fn in os.listdir(dir_fn):
 
 metanode_id_regex = re.compile("^\d+\n")
 metanode_type_regex = re.compile("^[SPR]\n")
+edge_line_regex = re.compile("^virtual|real")
 for cfn_id in bicomponentid2fn:
     with open(bicomponentid2fn[cfn_id], "r") as component_info_file:
         metanodeid2obj = {}
@@ -767,7 +768,10 @@ for cfn_id in bicomponentid2fn:
         curr_type = ""
         curr_nodes = []
         for line in component_info_file:
-            if metanode_id_regex.match(line):
+            if edge_line_regex.match(line):
+                # Ignore for now (TODO save this data with the metanode info)
+                pass
+            elif metanode_id_regex.match(line):
                 if curr_id != "":
                     # save previous metanode info
                     new_metanode = graph_objects.SPQRMetaNode(curr_id, \
