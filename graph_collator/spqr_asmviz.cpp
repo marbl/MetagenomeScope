@@ -552,10 +552,10 @@ int main(int argc, char* argv[])
 						forall_adj_edges(Ee, Nn) {
 							if (Ee -> source() -> index() == Nn -> index()) {
 								if (spqr.skeleton(n).isVirtual(Ee)) {
-									compfile << "virtual\t";
+									compfile << "v\t";
 								}
 								else {
-									compfile << "real\t";
+									compfile << "r\t";
 								}
 								// Get original target node
 								Tn = Ee -> target();

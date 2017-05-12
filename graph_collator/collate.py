@@ -760,7 +760,7 @@ for fn in os.listdir(dir_fn):
 
 metanode_id_regex = re.compile("^\d+\n")
 metanode_type_regex = re.compile("^[SPR]\n")
-edge_line_regex = re.compile("^virtual|real")
+edge_line_regex = re.compile("^v|r")
 for cfn_id in bicomponentid2fn:
     with open(bicomponentid2fn[cfn_id], "r") as component_info_file:
         metanodeid2obj = {}
