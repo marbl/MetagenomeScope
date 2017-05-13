@@ -758,8 +758,8 @@ for fn in os.listdir(dir_fn):
         if os.path.isfile(c_fullfn):
             bicomponentid2fn[match.group(1)] = c_fullfn
 
-metanode_id_regex = re.compile("^\d+\n")
-metanode_type_regex = re.compile("^[SPR]\n")
+metanode_id_regex = re.compile("^\d+$")
+metanode_type_regex = re.compile("^[SPR]$")
 edge_line_regex = re.compile("^v|r")
 for cfn_id in bicomponentid2fn:
     with open(bicomponentid2fn[cfn_id], "r") as component_info_file:
