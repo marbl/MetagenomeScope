@@ -158,6 +158,11 @@ class Node(object):
         # Optional layout data (used for nodes within subgraphs)
         self.xdot_rel_x  = None
         self.xdot_rel_y  = None
+        # Corresponding layout data used for the SPQR tree view
+        self.sxdot_x     = None
+        self.sxdot_y     = None
+        self.sxdot_rel_x = None
+        self.sxdot_rel_y = None
         
     def get_dimensions(self):
         """Calculates the width and height of this node.
@@ -363,7 +368,6 @@ class NodeGroup(Node):
         """Lays out this node group by itself. Stores layout information in
            the attributes of both this NodeGroup object and its child
            nodes/edges.
-
         """
         # pipe .gv into pygraphviz to lay out this node group
         gv_input = ""
@@ -478,18 +482,89 @@ class SPQRMetaNode(NodeGroup):
        resource -- see https://en.wikipedia.org/wiki/SPQR_tree. For details on
        the linear-time implementation used in OGDF, see
        http://www.ogdf.net/doc-ogdf/classogdf_1_1_s_p_q_r_tree.html#details.
-
-       TODO: Once we get the internal structure of metanodes parsed, we should
-       really have this class subclass NodeGroup instead of Node (so as to use
-       backfilling, etc.)
     """
 
-    def __init__(self, spqr_id, metanode_type, nodes):
+    def __init__(self, spqr_id, metanode_type, nodes, internal_edges):
         # The ID used in spqr*.gml files to describe the structure of the tree
         self.spqr_id = spqr_id
         self.metanode_type = metanode_type
+        self.internal_edges = internal_edges
         super(SPQRMetaNode, self).__init__("SPQR_" + self.metanode_type + "_",
             "", nodes, spqr_related=True)
+
+    def layout_isolated(self):
+        """Similar to NodeGroup.layout_isolated(), but with metanode-specific
+           stuff.
+        """
+        # pipe .gv into pygraphviz to lay out this node group
+        gv_input = ""
+        gv_input += "digraph nodegroup {\n"
+        if config.GRAPH_STYLE != "":
+            gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
+        if config.GLOBALNODE_STYLE != "":
+            gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
+        if config.GLOBALEDGE_STYLE != "":
+            gv_input += "\tedge [%s];\n" % (config.GLOBALEDGE_STYLE)
+        gv_input += self.node_info(backfill=False)
+        for e in self.internal_edges:
+            n1 = self.childid2obj[e[1]]
+            n2 = self.childid2obj[e[2]]
+            if e[0] == "v":
+                # Virtual edge
+                # TODO orient these correctly
+                gv_input += "\t%s -> %s [style=dotted];\n" % (e[1], e[2])
+            else:
+                # Real edge
+                if n2 in n1.outgoing_nodes:
+                    gv_input += "\t%s -> %s;\n" % (e[1], e[2])
+                elif n1 in n2.outgoing_nodes:
+                    gv_input += "\t%s -> %s;\n" % (e[2], e[1])
+                else:
+                    raise ValueError, "Real SPQR edge does not exist in graph"
+        gv_input += "}"
+        cg = pygraphviz.AGraph(gv_input)
+        cg.layout(prog='dot')
+        # Obtain cluster width and height from the layout
+        bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
+        bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
+        self.xdot_c_width = bounding_box_numeric[2] - bounding_box_numeric[0]
+        self.xdot_c_height = bounding_box_numeric[3] - bounding_box_numeric[1]
+        # convert width and height from points to inches
+        self.xdot_c_width /= config.POINTS_PER_INCH
+        self.xdot_c_height /= config.POINTS_PER_INCH
+        # Obtain node layout info
+        for n in cg.nodes():
+            curr_node = self.childid2obj[str(n)]
+            # Record the relative position (within the node group's bounding
+            # box) of this child node.
+            ep = n.attr[u'pos'].split(',')
+            curr_node.sxdot_rel_x = float(ep[0]) - bounding_box_numeric[0]
+            curr_node.sxdot_rel_y = float(ep[1]) - bounding_box_numeric[1]
+        # Obtain edge layout info
+        for e in cg.edges():
+            self.edge_count += 1
+            # TODO: Figure out "orientations" (i.e. which node is source, and
+            # which is the target) for all edges. Then we can construct new
+            # Edge objects here for all (virtual and real) internal edges, and
+            # I guess we can save that as a property of this metanode?
+            #source_node = self.childid2obj[str(e[0])]
+            #curr_edge = source_node.outgoing_edge_objects[str(e[1])]
+            #self.edges.append(curr_edge)
+            # Get control points, then find them relative to cluster dimensions
+            #ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = \
+            #    Edge.get_control_points(e.attr[u'pos'])
+            #curr_edge.xdot_rel_ctrl_pt_str = ""
+            #p = 0
+            #while p <= len(coord_list) - 2:
+            #    if p > 0:
+            #        curr_edge.xdot_rel_ctrl_pt_str += " "
+            #    x_coord = coord_list[p] - bounding_box_numeric[0]
+            #    y_coord = coord_list[p + 1] - bounding_box_numeric[1]
+            #    curr_edge.xdot_rel_ctrl_pt_str += str(x_coord)
+            #    curr_edge.xdot_rel_ctrl_pt_str += " "
+            #    curr_edge.xdot_rel_ctrl_pt_str += str(y_coord)
+            #    p += 2
+            #curr_edge.group = self
 
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.

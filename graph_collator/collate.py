@@ -704,10 +704,9 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
         clusterid2obj[new_bubble.id_string] = new_bubble
 
 conclude_msg()
-# Use the SPQR tree decomposition code to locate bubbles within the graph
-# This is only done if the user hasn't passed in a bicomponents file using -b
-# The input for this is a list of edges in the graph
-operation_msg(config.BICOMPONENT_BUBBLE_SEARCH_MSG)
+# Run the SPQR script, use its output to create SPQR trees and detect complex
+# bubbles
+operation_msg(config.SPQR_MSG)
 
 if bicmps_fullfn == None:
     edges_fn = output_fn + "_links"
@@ -767,19 +766,21 @@ for cfn_id in bicomponentid2fn:
         curr_id = ""
         curr_type = ""
         curr_nodes = []
+        curr_edges = []
         for line in component_info_file:
             if edge_line_regex.match(line):
-                # Ignore for now (TODO save this data with the metanode info)
-                pass
+                curr_edges.append(line.split())
             elif metanode_id_regex.match(line):
                 if curr_id != "":
                     # save previous metanode info
                     new_metanode = graph_objects.SPQRMetaNode(curr_id, \
-                        curr_type, curr_nodes)
+                        curr_type, curr_nodes, curr_edges)
                     metanodeid2obj[curr_id] = new_metanode
+                    new_metanode.layout_isolated()
                 curr_id = line.strip()
                 curr_type = ""
                 curr_nodes = []
+                curr_edges = []
             elif metanode_type_regex.match(line):
                 curr_type = line.strip()
             else:
@@ -787,8 +788,9 @@ for cfn_id in bicomponentid2fn:
                 curr_nodes.append(nodeid2obj[line.split()[1]])
         # Save the last metanode in the file (won't be "covered" in loop above)
         new_metanode = graph_objects.SPQRMetaNode(curr_id, curr_type, \
-            curr_nodes)
+            curr_nodes, curr_edges)
         metanodeid2obj[curr_id] = new_metanode
+        new_metanode.layout_isolated()
     # At this point, we have all nodes in the entire SPQR tree for a
     # given biconnected component saved in metanodes_in_bicomponent.
     # For now, let's just parse the structure of this tree and lay it out using
@@ -836,6 +838,9 @@ for cfn_id in bicomponentid2fn:
 
 # Now that the potential bubbles have been detected by the spqr script, we
 # sort them ascending order of size and then create Bubble objects accordingly.
+conclude_msg()
+operation_msg(config.BICOMPONENT_BUBBLE_SEARCH_MSG)
+
 with open(bicmps_fullfn, "r") as potential_bubbles_file:
     bubble_lines = potential_bubbles_file.readlines()
 # Sort the bubbles in ascending order of number of nodes contained.
