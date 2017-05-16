@@ -794,6 +794,10 @@ for cfn_id in bicomponentid2fn:
     # For now, let's just parse the structure of this tree and lay it out using
     # GraphViz -- will implement in the web visualization tool soon.
     tree_structure_fn = os.path.join(dir_fn, "spqr%s.gml" % (cfn_id))
+    # List of 2-tuples of SPQRMetaNode objects.
+    # These edges are currently unoriented -- will be assigned an orientation
+    # later.
+    metanode_edges = []
     with open(tree_structure_fn, "r") as spqr_structure_file:
         parsing_edge = False
         source_metanode = None
@@ -805,7 +809,7 @@ for cfn_id in bicomponentid2fn:
                 if line.strip().startswith("]"):
                     parsing_edge = False
                     # save edge data
-                    source_metanode.add_outgoing_edge(target_metanode)
+                    metanode_edges.append((source_metanode, target_metanode))
                     source_metanode = None
                     target_metanode = None
                 else:
