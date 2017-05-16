@@ -776,7 +776,6 @@ for cfn_id in bicomponentid2fn:
                     new_metanode = graph_objects.SPQRMetaNode(curr_id, \
                         curr_type, curr_nodes, curr_edges)
                     metanodeid2obj[curr_id] = new_metanode
-                    new_metanode.layout_isolated()
                 curr_id = line.strip()
                 curr_type = ""
                 curr_nodes = []
@@ -790,9 +789,8 @@ for cfn_id in bicomponentid2fn:
         new_metanode = graph_objects.SPQRMetaNode(curr_id, curr_type, \
             curr_nodes, curr_edges)
         metanodeid2obj[curr_id] = new_metanode
-        new_metanode.layout_isolated()
     # At this point, we have all nodes in the entire SPQR tree for a
-    # given biconnected component saved in metanodes_in_bicomponent.
+    # given biconnected component saved in metanodeid2obj.
     # For now, let's just parse the structure of this tree and lay it out using
     # GraphViz -- will implement in the web visualization tool soon.
     tree_structure_fn = os.path.join(dir_fn, "spqr%s.gml" % (cfn_id))
@@ -816,6 +814,9 @@ for cfn_id in bicomponentid2fn:
                         source_metanode = metanodeid2obj[id_line_parts[1]]
                     elif id_line_parts[0] == "target":
                         target_metanode = metanodeid2obj[id_line_parts[1]]
+    # TODO. Orient virtual edges
+    # TODO. Orient edges between metanodes
+    # TODO. Call .layout_isolated() for all metanodes
     # At this point, we have the entire structure of the SPQR tree (including
     # edges between metanodes) saved. Eventually we'll save this to the .db
     # file and, in turn, utilize that in the visualization tool -- for now,
