@@ -818,8 +818,29 @@ for cfn_id in bicomponentid2fn:
                         source_metanode = metanodeid2obj[id_line_parts[1]]
                     elif id_line_parts[0] == "target":
                         target_metanode = metanodeid2obj[id_line_parts[1]]
-    # TODO. Orient virtual edges
     # TODO. Orient edges between metanodes
+    # TODO. Ensure that this operation is only done when > 1 metanode exists
+    # in the tree
+    for mn in metanodeid2obj.values():
+        # Detect leaves -- a leaf, here, is a metanode with 1 virtual edge
+        # and only 1 edge to another metanode. (This definition holds in
+        # general, correct?)
+        virtual_edge_ct = 0
+        for e in mn.internal_edges:
+            if e[0] == "v":
+                virtual_edge_ct += 1
+        if virtual_edge_ct == 1:
+            incident_edge = None
+            incident_edge_ct = 0
+            for (a, b) in metanode_edges:
+                if mn == a or mn == b:
+                    incident_edge_ct += 1
+                    incident_edge = (a, b)
+            if incident_edge_ct == 1:
+                # mn is a leaf.
+                # TODO Orient edges in the tree accordingly
+                print mn, "is a leaf"
+    # TODO. Orient virtual edges
     # TODO. Call .layout_isolated() for all metanodes
     # At this point, we have the entire structure of the SPQR tree (including
     # edges between metanodes) saved. Eventually we'll save this to the .db
