@@ -371,6 +371,14 @@ function initGraph() {
                 style: {
                     'curve-style': 'bezier'
                 }
+            },
+            {
+                // Used to differentiate edges without an overlap between nodes
+                // in graphs where overlap data is given
+                selector: 'edge.nooverlap',
+                style: {
+                    'line-style': 'dotted'
+                }
             }
         ]
     });
@@ -2654,10 +2662,19 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     }
     ctrlPtDists = ctrlPtDists.trim();
     ctrlPtWeights = ctrlPtWeights.trim();
+    var optionalClass;
+    if (ASM_FILETYPE === "GML") {
+        // Mark edges where nodes don't overlap
+        // TODO: Make this work with GFA edges also.
+        // (See #190 on GitHub.)
+        if (mean > 0) {
+            optionalClass = " nooverlap";
+        }
+    }
     if (nonzero) {
         // The control points should (hopefully) be valid
         cy.add({
-            classes: "unbundledbezier",
+            classes: "unbundledbezier" + optionalClass,
           data: {id: edgeID, source: sourceID, target: targetID,
                  cpd: ctrlPtDists, cpw: ctrlPtWeights,
                  thickness: edgeWidth, multiplicity: multiplicity,
@@ -2668,7 +2685,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         // The control point distances are small enough that
         // we can just represent this as a straight bezier curve
       cy.add({
-          classes: "basicbezier",
+          classes: "basicbezier" + optionalClass,
           data: {id: edgeID, source: sourceID, target: targetID,
                  thickness: edgeWidth, multiplicity: multiplicity,
                  orientation: orientation, mean: mean, stdev: stdev}
