@@ -2662,7 +2662,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     }
     ctrlPtDists = ctrlPtDists.trim();
     ctrlPtWeights = ctrlPtWeights.trim();
-    var optionalClass;
+    var optionalClass = "";
     if (ASM_FILETYPE === "GML") {
         // Mark edges where nodes don't overlap
         // TODO: Make this work with GFA edges also.
