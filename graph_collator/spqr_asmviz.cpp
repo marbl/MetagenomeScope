@@ -361,6 +361,12 @@ int main(int argc, char* argv[])
     pr.parse_check(argc,argv);
     Graph G;
     string directory = pr.get<string>("directory");
+    // NOTE this won't create directories if the directory in question
+    // doesn't already exist. Not really a bug in the AsmViz preprocessing
+    // script's usage of this (since that script will always create the output
+    // directory before calling this), but it's something to be wary of:
+    // in the future it might be a good idea to include some library that takes
+    // care of directory creation if necessary, makes this cross-platform, etc.
     if (directory != "" && directory[directory.length() - 1] != '/') {
        directory += "/";
     }
@@ -519,6 +525,9 @@ int main(int argc, char* argv[])
            	
 		        }
 		        getCutVertexPair(GC,bcTreeNode,bc,j,bicomp);
+                // TODO Root the SPQR tree at the metanode containing the
+                // "overall structure" of the biconnected component, if poss.
+                // (via rootAtNode() or something)
 				StaticSPQRTree spqr(GC);
 				//cout<<"SPQR generated"<<endl;
 				const Graph &T = spqr.tree();
