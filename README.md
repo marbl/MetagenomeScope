@@ -81,6 +81,37 @@ for each connected component of the assembly graph will be generated; if the
 `-px` argument is passed, `.xdot` files (in the xdot language) for each
 connected component of the assembly graph will be generated.
 
+The script will also generate a few types of auxiliary files containing various
+information about the structure of the assembly graph. These files are:
+
+* `prefix_links`, where `prefix` is the output prefix passed via `-o`. Only one
+  of these files will be generated per execution of `collate.py`. This file
+  indicates all the edges in the assembly graph.
+* `prefix_bicmps`, where `prefix` is the output prefix passed via `-o`. Only
+  one   of these files will be generated per execution of `collate.py`. This
+  file indicates the various separation pairs contained within the assembly
+  graph (see [Nijkamp et al.](https://www.ncbi.nlm.nih.gov/pubmed/24058058)
+  for a brief overview of separation pairs and their usage in bubble
+  detection).
+* `component_D.info`, where `D` is an integer greater than 0. There will be one
+  of these files created for every biconnected component contained within the
+  assembly graph: these files indicate the contents of the SPQR tree defined
+  for their corresponding biconnected component.
+* `spqrD.gml`, where `D` is an integer greater than 0. These files correspond
+  to `component_D.info` files: they indicate the connections between the
+  metanodes of a SPQR tree.
+
+The script requires all `component_D.info` and `spqrD.gml` files to be
+removed from the output directory before it generates more of them.
+If `-w` is enabled, then all existing files with corresponding names in the
+output directory will be deleted; however, if `-w` is not enabled, then an
+error will be raised.
+
+Similarly, if files exist in the output directory with filenames overlapping 
+those of the `prefix_links` and `prefix_bicmps` files, then those files will be
+either deleted (if `-w` is enabled) or an error will be raised (if `-w` is not
+enabled).
+
 ### Command-line argument descriptions
 
 * `-i` The input assembly graph file to be used.

@@ -708,6 +708,23 @@ conclude_msg()
 # bubbles
 operation_msg(config.SPQR_MSG)
 
+# Clear extraneous component_*.info files from the output directory, if present
+# (see issue #191 on the GitHub page)
+cfn_regex = re.compile("component_(\d+)\.info")
+sfn_regex = re.compile("spqr\d+\.gml")
+for fn in os.listdir(dir_fn):
+    match = cfn_regex.match(fn)
+    if match is not None:
+        c_fullfn = os.path.join(dir_fn, fn)
+        if check_file_existence(c_fullfn):
+            safe_file_remove(c_fullfn)
+    else:
+        s_match = sfn_regex.match(fn)
+        if s_match is not None:
+            s_fullfn = os.path.join(dir_fn, fn)
+            if check_file_existence(s_fullfn):
+                safe_file_remove(s_fullfn)
+
 if bicmps_fullfn == None:
     edges_fn = output_fn + "_links"
     edges_fn_text = ""
@@ -749,7 +766,6 @@ if bicmps_fullfn == None:
 # information (thus failing to draw a SPQR tree, and likely causing an error of
 # some sort when creating the database file).
 bicomponentid2fn = {}
-cfn_regex = re.compile("component_(\d+)\.info")
 for fn in os.listdir(dir_fn):
     match = cfn_regex.match(fn)
     if match is not None:
