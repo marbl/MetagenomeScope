@@ -357,6 +357,12 @@ nodeid2obj = {}
 # Like nodeid2obj, but for preserving references to clusters (NodeGroups)
 clusterid2obj = {}
 
+# List of 2-tuples, where each 2-tuple contains two node IDs
+# For GML files this will just contain all the normal connections in the graph
+# For LastGraph/GFA files, though, this will contain half of the connections
+# in the graph, due to no edges being "implied"
+single_graph_edges = []
+
 # Pertinent Assembly-wide information we use 
 graph_filetype = ""
 total_node_count = 0
@@ -420,6 +426,9 @@ with open(asm_fn, 'r') as assembly_file:
                 mult = int(a[3])
                 nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2],
                         multiplicity=mult)
+                pid1 = id1[1:] if id1[0] == '-' else id1
+                pid2 = id2[1:] if id2[0] == '-' else id2
+                single_graph_edges.append((pid1, pid2))
                 # Only add implied edge if the edge does not imply itself
                 # (see issue #105 on GitHub for context)
                 if not (id1 == nid2 and id2 == nid1):
@@ -655,6 +664,7 @@ with open(asm_fn, 'r') as assembly_file:
                 id2 = a[3]
                 if id1.startswith("NODE_"): id1 = id1.split("_")[1]
                 if id2.startswith("NODE_"): id2 = id2.split("_")[1]
+                single_graph_edges.append((id1, id2))
                 id1 = id1 if a[2] != '-' else '-' + id1
                 id2 = id2 if a[4] != '-' else '-' + id2
                 nid2 = negate_node_id(id2)
@@ -669,6 +679,18 @@ with open(asm_fn, 'r') as assembly_file:
     else:
         raise ValueError, config.FILETYPE_ERR
 conclude_msg()
+
+# TODO just a temporary measure; output the entire single graph as a .gv file
+# I guess eventually we'd lay this out using pygraphviz and store the nodes'
+# position data?
+# Also NOTE that this omits isolated contigs, i.e. nodes that do not have any
+# edges incident on them. When laying out the SPQR tree/drawing single
+# graphs/etc. we need to account for those isolated contigs.
+with open("single.gv", "w") as sgraphfile:
+    sgraphfile.write("graph {\n")
+    for e in single_graph_edges:
+        sgraphfile.write("\t%s -- %s;\n" % (e[0], e[1]))
+    sgraphfile.write("}")
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
 # This means that graph_filetype, total_node_count, total_edge_count,
