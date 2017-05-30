@@ -784,8 +784,8 @@ if bicmps_fullfn == None:
     # TODO may need to change this to work on Windows machines
     # The SPQR script also makes a few assumptions on a Unix environment
     # (e.g. using / for separating filenames)
-    spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-o", bicmps_fn,
-            "-d", dir_fn]
+    spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-s", "-t", "-o",
+            bicmps_fn, "-d", dir_fn]
     # Some of the spqr script's output is sent to stderr, so we merge that with
     # the output. Note that we don't really check the output of this, although
     # we could if the need arises -- the main purpose of using check_output()

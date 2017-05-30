@@ -353,11 +353,15 @@ node original(node &n, BCTree &bc, const GraphCopy &GC, Skeleton &sk)
 int main(int argc, char* argv[])
 {	
 	cmdline ::parser pr;
-    pr.add<string>("oriented_graph",'l',"list of oriented links",true,"");
+    pr.add<string>("oriented_graph",'l',"file of list of oriented links",
+        true,"");
+    pr.add("seppairs",'s', "output separation pairs to a file");
+    pr.add("spqrtree",'t',"output SPQR tree files for each bicomponent");
     pr.add<string>("output",'o',
-        "output file to write separation pairs to",true,"");
+        "file to write separation pairs to; used if -s is passed",false,
+        "");
     pr.add<string>("directory",'d',
-        "directory to output all files to",false,"");
+        "existing directory relative to CWD to output all files to",false,"");
     pr.parse_check(argc,argv);
     Graph G;
     string directory = pr.get<string>("directory");
@@ -371,7 +375,17 @@ int main(int argc, char* argv[])
        directory += "/";
     }
     ifstream linkfile(getCharExpr(pr.get<string>("oriented_graph")));
-    ofstream ofile(getCharExpr(directory + pr.get<string>("output")));
+    bool write_seppairs = pr.exist("seppairs");
+    bool write_spqrtree = pr.exist("spqrtree");
+    ofstream ofile;
+    if (write_seppairs) {
+        string seppairs_filename = pr.get<string>("output");
+        if (seppairs_filename.empty()) {
+            cerr << "Error: -s option requires -o to be specified" << endl;
+            return 1;
+        }
+        ofile.open(getCharExpr(directory + seppairs_filename));
+    }
     string line;
     //unordered_map<int, Link> linkmap;
    
@@ -528,11 +542,15 @@ int main(int argc, char* argv[])
                 // TODO Root the SPQR tree at the metanode containing the
                 // "overall structure" of the biconnected component, if poss.
                 // (via rootAtNode() or something)
+                // (we could also use heuristics, e.g. find the metanode with
+                // the greatest sum of |V| + |E| and set that as the root)
 				StaticSPQRTree spqr(GC);
 				//cout<<"SPQR generated"<<endl;
 				const Graph &T = spqr.tree();
 				//cout<<"SPQR tree made"<<endl;
-				GraphIO::writeGML(T,directory+"spqr"+to_string(tree_index)+".gml");
+                if (write_spqrtree) {
+				    GraphIO::writeGML(T,directory+"spqr"+to_string(tree_index)+".gml");
+                }
 				// cout<<"S nodes: "<<spqr.numberOfSNodes()<<endl;
 				// cout<<"P nodes: "<<spqr.numberOfPNodes()<<endl;
 				// cout<<"R nodes: "<<spqr.numberOfRNodes()<<endl;
@@ -540,15 +558,20 @@ int main(int argc, char* argv[])
 				GraphCopy GCopy(T);
 				node n,Nn,cn,tn,Tn;
                 edge Ee;
-				ofstream compfile(directory+"component_"+to_string(tree_index)+".info");
+                ofstream compfile;
+                if (write_spqrtree) {
+				    compfile.open(directory+"component_"+to_string(tree_index)+".info");
+                }
 				tree_index++;
 				forall_nodes(n, T) 
 				{
 					const Graph &Gn = spqr.skeleton(n).getGraph(); // Print the skeleton of a tree node to dis
 
 					// Generate hash table: sk2orig[Skeleton node] = Original node 
-					compfile<<n<<endl;
-					compfile << getTypeString(n, spqr)<<endl;
+                    if (write_spqrtree) {
+					    compfile<<n<<endl;
+					    compfile << getTypeString(n, spqr)<<endl;
+                    }
 					forall_nodes(Nn, Gn) 
 					{
 						cn = original(Nn,bc,GC,spqr.skeleton(n)); //Node in original graph G
@@ -585,16 +608,18 @@ int main(int argc, char* argv[])
 					findTwoVertexCuts(bicomp,spqr.skeleton(n) , sk2orig, type);
 					
 				}
-				for(int i = 0;i < pairs.size();i++)
-				{
-					ofile<<intid2contig[pairs[i].first]<<"\t"<<intid2contig[pairs[i].second];
-					for(set<int> :: iterator it = memberNodes.begin(); it != memberNodes.end();++it)
-					{
-						ofile<<"\t"<<intid2contig[*it];
-					}
-					ofile<<endl;
-				}
-				pairs.clear();
+                if (write_seppairs) {
+				    for(int i = 0;i < pairs.size();i++)
+				    {
+				    	ofile<<intid2contig[pairs[i].first]<<"\t"<<intid2contig[pairs[i].second];
+				    	for(set<int> :: iterator it = memberNodes.begin(); it != memberNodes.end();++it)
+				    	{
+				    		ofile<<"\t"<<intid2contig[*it];
+				    	}
+				    	ofile<<endl;
+				    }
+				    pairs.clear();
+                }
 			}
 		}	
 	}
