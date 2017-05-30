@@ -688,6 +688,9 @@ conclude_msg()
 # graphs/etc. we need to account for those isolated contigs.
 with open("single.gv", "w") as sgraphfile:
     sgraphfile.write("graph {\n")
+    for n in nodeid2obj.values():
+        if n.id_string[0] != '-':
+            sgraphfile.write("\t%s;\n" % (n.id_string))
     for e in single_graph_edges:
         sgraphfile.write("\t%s -- %s;\n" % (e[0], e[1]))
     sgraphfile.write("}")
