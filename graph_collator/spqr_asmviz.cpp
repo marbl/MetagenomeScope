@@ -539,15 +539,25 @@ int main(int argc, char* argv[])
            	
 		        }
 		        getCutVertexPair(GC,bcTreeNode,bc,j,bicomp);
-                // TODO Root the SPQR tree at the metanode containing the
-                // "overall structure" of the biconnected component, if poss.
-                // (via rootAtNode() or something)
-                // (we could also use heuristics, e.g. find the metanode with
-                // the greatest sum of |V| + |E| and set that as the root)
 				StaticSPQRTree spqr(GC);
 				//cout<<"SPQR generated"<<endl;
 				const Graph &T = spqr.tree();
 				//cout<<"SPQR tree made"<<endl;
+                // Root the SPQR tree at the node with the largest value of
+                // |V| + |E|, where |V| = number of nodes in the skeleton graph
+                // and |E| = number of edges (real and virtual) in the skeleton
+                // graph.
+                node m, currentRootNode;
+                int maxNodeEdgeSum = 0;
+                forall_nodes(m, T) {
+                    const Graph &Gn = spqr.skeleton(m).getGraph();
+                    int nodeEdgeSum = Gn.numberOfNodes() + Gn.numberOfEdges();
+                    if (nodeEdgeSum > maxNodeEdgeSum) {
+                        currentRootNode = m;
+                        maxNodeEdgeSum = nodeEdgeSum;
+                    }
+                }
+                spqr.rootTreeAt(currentRootNode);
                 if (write_spqrtree) {
 				    GraphIO::writeGML(T,directory+"spqr"+to_string(tree_index)+".gml");
                 }
