@@ -568,6 +568,8 @@ with open(asm_fn, 'r') as assembly_file:
                             orientation=curr_edge_orientation,
                             mean=curr_edge_mean,
                             stdev=curr_edge_stdev)
+                    single_graph_edges.append((curr_edge_src_id, \
+                        curr_edge_tgt_id))
                     total_edge_count += 1
                     if curr_edge_bundlesize == None:
                         edge_weights_available = False
@@ -682,18 +684,30 @@ conclude_msg()
 
 # TODO just a temporary measure; output the entire single graph as a .gv file
 # I guess eventually we'd lay this out using pygraphviz and store the nodes'
-# position data?
-# Also NOTE that this omits isolated contigs, i.e. nodes that do not have any
-# edges incident on them. When laying out the SPQR tree/drawing single
-# graphs/etc. we need to account for those isolated contigs.
-with open("single.gv", "w") as sgraphfile:
-    sgraphfile.write("graph {\n")
-    for n in nodeid2obj.values():
-        if n.id_string[0] != '-':
-            sgraphfile.write("\t%s;\n" % (n.id_string))
-    for e in single_graph_edges:
-        sgraphfile.write("\t%s -- %s;\n" % (e[0], e[1]))
-    sgraphfile.write("}")
+# position data? But for debugging, etc. this is a nice feature to keep around
+#with open("single.gv", "w") as sgraphfile:
+#    sgraphfile.write("graph {\n")
+#    for n in nodeid2obj.values():
+#        if n.id_string[0] != '-':
+#            sgraphfile.write("\t%s;\n" % (n.id_string))
+#    for e in single_graph_edges:
+#        sgraphfile.write("\t%s -- %s;\n" % (e[0], e[1]))
+#    sgraphfile.write("}")
+
+# Construct links file for the single graph
+# (this is unnecessary for Bambus 3 GML files, but for LastGraph/GFA files it's
+# important)
+s_edges_fn = output_fn + "_single_links"
+s_edges_fn_text = ""
+for e in single_graph_edges:
+    line = e[0] + "\tB\t" + e[1] + "\tB\t0\t0\t0\n"
+    s_edges_fn_text += line
+save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
+s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
+# TODO call SPQR script with special options using s_edges_fullfn
+# Also TODO, make SPQR script only output SPQR aux files when the "special
+# options" indicating a single graph being passed are used
+# Also TODO, update README re: _single_links file
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
 # This means that graph_filetype, total_node_count, total_edge_count,
