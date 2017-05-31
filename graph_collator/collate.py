@@ -708,6 +708,8 @@ if distinct_single_graph:
     save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
     s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
 # TODO call SPQR script with special options using s_edges_fullfn
+# TODO use -b data to only call the SPQR script with -t??? not super important
+# at present
 # TODO, update README re: _single_links file
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
@@ -926,22 +928,15 @@ for b in bubble_lines:
         # ascending order of size
         break
     curr_bubble_nodeobjs = []
-    bubble_to_be_created = True
     for node_id in bubble_line_node_ids:
         try:
-            # TODO checking .used_in_collapsing might be unnecessary now thanks
-            # to Bubble.is_valid_source_sink_pair()
-            if nodeid2obj[node_id].used_in_collapsing:
-                bubble_to_be_created = False
-                break
             curr_bubble_nodeobjs.append(nodeid2obj[node_id])
         except KeyError, e:
             raise KeyError, "Bicomponents file %s contains invalid node %s" % \
                 (bicmps_fullfn, e)
-    if bubble_to_be_created:
-        new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
-        nodes_to_draw.append(new_bubble)
-        clusterid2obj[new_bubble.id_string] = new_bubble
+    new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
+    nodes_to_draw.append(new_bubble)
+    clusterid2obj[new_bubble.id_string] = new_bubble
 
 conclude_msg()
 operation_msg(config.FRAYEDROPE_SEARCH_MSG)
