@@ -708,9 +708,7 @@ if distinct_single_graph:
     save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
     s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
 # TODO call SPQR script with special options using s_edges_fullfn
-# Also TODO, make SPQR script only output SPQR aux files when the "special
-# options" indicating a single graph being passed are used
-# Also TODO, update README re: _single_links file
+# TODO, update README re: _single_links file
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
 # This means that graph_filetype, total_node_count, total_edge_count,
@@ -876,10 +874,6 @@ for cfn_id in bicomponentid2fn:
                         source_metanode = metanodeid2obj[id_line_parts[1]]
                     elif id_line_parts[0] == "target":
                         target_metanode = metanodeid2obj[id_line_parts[1]]
-    # TODO. Orient edges between metanodes
-    # TODO. Ensure that this operation is only done when > 1 metanode exists
-    # in the tree
-    # TODO. Orient virtual edges
     # TODO. Call .layout_isolated() for all metanodes
     # At this point, we have the entire structure of the SPQR tree (including
     # edges between metanodes) saved. Eventually we'll save this to the .db
