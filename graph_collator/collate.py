@@ -365,6 +365,7 @@ single_graph_edges = []
 
 # Pertinent Assembly-wide information we use 
 graph_filetype = ""
+distinct_single_graph = True
 total_node_count = 0
 total_edge_count = 0
 total_length = 0
@@ -492,6 +493,7 @@ with open(asm_fn, 'r') as assembly_file:
                         curr_node_dnafwd = None
     elif parsing_GML:
         graph_filetype = "GML"
+        distinct_single_graph = False
         # Since GML files don't contain DNA
         total_gc_nt_count = None
         # Record state -- parsing node or parsing edge?
@@ -568,8 +570,8 @@ with open(asm_fn, 'r') as assembly_file:
                             orientation=curr_edge_orientation,
                             mean=curr_edge_mean,
                             stdev=curr_edge_stdev)
-                    single_graph_edges.append((curr_edge_src_id, \
-                        curr_edge_tgt_id))
+                    #single_graph_edges.append((curr_edge_src_id, \
+                    #    curr_edge_tgt_id))
                     total_edge_count += 1
                     if curr_edge_bundlesize == None:
                         edge_weights_available = False
@@ -697,13 +699,14 @@ conclude_msg()
 # Construct links file for the single graph
 # (this is unnecessary for Bambus 3 GML files, but for LastGraph/GFA files it's
 # important)
-s_edges_fn = output_fn + "_single_links"
-s_edges_fn_text = ""
-for e in single_graph_edges:
-    line = e[0] + "\tB\t" + e[1] + "\tB\t0\t0\t0\n"
-    s_edges_fn_text += line
-save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
-s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
+if distinct_single_graph:
+    s_edges_fn = output_fn + "_single_links"
+    s_edges_fn_text = ""
+    for e in single_graph_edges:
+        line = e[0] + "\tB\t" + e[1] + "\tB\t0\t0\t0\n"
+        s_edges_fn_text += line
+    save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
+    s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
 # TODO call SPQR script with special options using s_edges_fullfn
 # Also TODO, make SPQR script only output SPQR aux files when the "special
 # options" indicating a single graph being passed are used
