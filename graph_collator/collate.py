@@ -60,8 +60,6 @@ preserve_xdot = args.preservexdot
 overwrite = args.overwrite
 use_dna = not args.nodna
 bicmps_fullfn = args.bicomponentsfile
-# NOTE is unused
-double_graph = True
 
 try:
     os.makedirs(dir_fn)
