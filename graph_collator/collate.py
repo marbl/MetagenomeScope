@@ -697,6 +697,7 @@ conclude_msg()
 # Construct links file for the single graph
 # (this is unnecessary for Bambus 3 GML files, but for LastGraph/GFA files it's
 # important)
+s_edges_fullfn = None
 if distinct_single_graph:
     s_edges_fn = output_fn + "_single_links"
     s_edges_fn_text = ""
@@ -765,46 +766,82 @@ for fn in os.listdir(dir_fn):
             if check_file_existence(s_fullfn):
                 safe_file_remove(s_fullfn)
 
-if bicmps_fullfn == None:
-    edges_fn = output_fn + "_links"
-    edges_fn_text = ""
-    for n in nodes_to_try_collapsing:
-        for e in n.outgoing_nodes:
-            line = n.id_string + "\tB\t" + e.id_string + "\tB\t0\t0\t0\n"
-            edges_fn_text += line
-    save_aux_file(edges_fn, edges_fn_text, False, warnings=False)
-    edges_fullfn = os.path.join(dir_fn, edges_fn)
+
+# Prepare non-single-graph _links file
+edges_fn = output_fn + "_links"
+edges_fn_text = ""
+for n in nodes_to_try_collapsing:
+    for e in n.outgoing_nodes:
+        line = n.id_string + "\tB\t" + e.id_string + "\tB\t0\t0\t0\n"
+        edges_fn_text += line
+save_aux_file(edges_fn, edges_fn_text, False, warnings=False)
+edges_fullfn = os.path.join(dir_fn, edges_fn)
+
+# Get the location of the spqr script -- it should be in the same dir as
+# collate.py, i.e. the currently running python script
+#
+# NOTE: Some of the spqr script's output is sent to stderr, so when we run the
+# script we merge that with the output. Note that we don't really check the
+# output of this, although we could if the need arises -- the main purpose
+# of using check_output() here is to catch all the printed output of the
+# spqr script.
+#
+# TODO: will need to change some script miscellany to work in non-Unix envs.
+spqr_fullfn = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+    "spqr_asmviz")
+spqr_invocation = []
+if bicmps_fullfn != None:
+    # -b has been passed: we already have the file indicating separation pairs
+    # This means we only need to call the script once, to output the SPQR tree
+    if not distinct_single_graph:
+        # Input file has oriented contigs (e.g. Bambus 3 GML output)
+        # Call script once with -t and the normal links file
+        spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-t",
+            "-d", dir_fn]
+    else:
+        # Input file has unoriented contigs (e.g. Velvet LastGraph output)
+        # Call script once with -t and the single links file
+        # NOTE generating a normal _links file is technically unnecessary here,
+        # but I'm keeping it for now for the sake of simplicity and consistency
+        spqr_invocation = [spqr_fullfn, "-l", s_edges_fullfn, "-t",
+            "-d", dir_fn]
+else:
+    # -b has not been passed: we need to call the SPQR script to generate the
+    # separation pairs file
+    # Detect (and remove) a file with a conflicting name, if present
     bicmps_fn = output_fn + "_bicmps"
     bicmps_fullfn = os.path.join(dir_fn, bicmps_fn)
     if check_file_existence(bicmps_fullfn):
         safe_file_remove(bicmps_fullfn)
-    # Get the location of the spqr script -- it should be in the same dir as
-    # collate.py, i.e. the currently running python script
-    spqr_fullfn = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-        "spqr_asmviz")
-    # TODO may need to change this to work on Windows machines
-    # The SPQR script also makes a few assumptions on a Unix environment
-    # (e.g. using / for separating filenames)
-    spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-s", "-t", "-o",
-            bicmps_fn, "-d", dir_fn]
-    # Some of the spqr script's output is sent to stderr, so we merge that with
-    # the output. Note that we don't really check the output of this, although
-    # we could if the need arises -- the main purpose of using check_output()
-    # here is to catch all the printed output of the spqr script.
-    # NOTE that this is ostensibly vulnerable to a silly race condition in
-    # which some process creates a file with the exact filename of
-    # bicmps_fullfn after we call check_file_existence but before the spqr
-    # script begins outputting to that. We prevent this race condition with
-    # .db, .gv, and .xdot file outputs by using os.open(), but here that
-    # isn't really an option.
-    # In any case, I doubt this will be a problem -- but it's worth noting.
-    check_output(spqr_invocation, stderr=STDOUT)
 
-# NOTE this makes the assumption that these component and spqr files aren't
+    if not distinct_single_graph:
+        # Input file has oriented contigs
+        # Call script once with -s and -t, and the normal links file
+        spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-t",
+            "-s", "-o", bicmps_fn, "-d", dir_fn]
+    else:
+        # Input files has unoriented contigs
+        # Call script twice: once with -s and the normal links file, and once
+        # with -t and the single links file
+        spqr_invocation = [spqr_fullfn, "-l", edges_fullfn,
+            "-s", "-o", bicmps_fn, "-d", dir_fn]
+        spqr_invocation_2 = [spqr_fullfn, "-l", s_edges_fullfn, "-t",
+            "-d", dir_fn]
+        check_output(spqr_invocation_2, stderr=STDOUT)
+check_output(spqr_invocation, stderr=STDOUT)
+
+# NOTE we make the assumption that these component and spqr files aren't
 # deleted after running the SPQR script. If they are for whatever reason, then
 # this script will fail to recognize the corresponding biconnected component
 # information (thus failing to draw a SPQR tree, and likely causing an error of
 # some sort when creating the database file).
+#
+# (As with the potential case where the separation pairs file is deleted after
+# being generated but before being read, this falls under the scope of
+# "silly race conditions that probably won't ever happen but are still
+# ostensibly possible".)
+
+# Identify the component_*.info files representing the SPQR tree's composition
 bicomponentid2fn = {}
 for fn in os.listdir(dir_fn):
     match = cfn_regex.match(fn)
@@ -813,6 +850,7 @@ for fn in os.listdir(dir_fn):
         if os.path.isfile(c_fullfn):
             bicomponentid2fn[match.group(1)] = c_fullfn
 
+# Get info from the SPQR tree auxiliary files (component_*.info and spqr*.gml)
 metanode_id_regex = re.compile("^\d+$")
 metanode_type_regex = re.compile("^[SPR]$")
 edge_line_regex = re.compile("^v|r")
