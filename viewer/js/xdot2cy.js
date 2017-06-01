@@ -2643,7 +2643,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     // If bundle sizes are available, then don't show edges with a bundle size
     // below a certain threshold. NOTE that this feature is disabled for the
     // time being, but can be reenabled eventually (consider adding a minimum
-    // bundle size threshold that is configurably by the user; also, rewrite
+    // bundle size threshold that is configurable by the user; also, rewrite
     // to focus on multiplicity instead of bundlesize since the two terms are
     // basically equivalent)
     //var bundlesize = edgeObj['bundlesize'];
