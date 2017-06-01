@@ -1991,7 +1991,7 @@ function startFinishing() {
         // TODO can make this more efficient -- see #115, etc.
         cy.filter(':selected').unselect();
         cy.autounselectify(true);
-        cy.on("click", "node", addNodeFromEventToPath);
+        cy.on("tap", "node", addNodeFromEventToPath);
     }
     enableButton("endFinishingButton");
 }
@@ -2020,6 +2020,27 @@ function exportPath() {
         window.btoa(FINISHING_NODE_IDS),
         "_blank"
     );
+}
+
+/* Returns a #RRGGBB string indicating the color of a node, scaled by G/C
+ * colorization (although this is extensible to other attributes, of course).
+ * At present this just scales nodes between red (#FF2200) and blue (#0022FF),
+ * although implementing other color scales (or user-selectable scales, for
+ * that matter) should not be too difficult to integrate with this.
+ */
+function getNodeColorization(gc) {
+    var red_i = gc * 255;
+    var green = "22";
+    var blue_i = 255 - red_i;
+    var red = Math.floor(red_i).toString(16);
+    var blue = Math.floor(blue_i).toString(16);
+    if (red.length === 1) {
+        red = "0" + red;
+    }
+    if (blue.length === 1) {
+        blue = "0" + blue;
+    }
+    return "#" + red + green + blue;
 }
 
 // Like searchWithEnter() but for testLayout()
@@ -2457,24 +2478,7 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     // Hence why we can just use the parent_cluster_id field directly.
     var parentID = nodeObj['parent_cluster_id'];
     var gc = nodeObj['gc_content'];
-    var bg_color = "#";
-    if (gc !== null && gc !== undefined) {
-        var red_i = gc * 255;
-        var green = "22";
-        var blue_i = 255 - red_i;
-        var red = Math.floor(red_i).toString(16);
-        var blue = Math.floor(blue_i).toString(16);
-        if (red.length === 1) {
-            red = "0" + red;
-        }
-        if (blue.length === 1) {
-            blue = "0" + blue;
-        }
-        bg_color += (red + green + blue);
-    }
-    else {
-        bg_color += "999999";
-    }
+    var bg_color = "#999999";
     var labelUsed = (nodeLabel === null) ? nodeID : nodeLabel;
     cy.add({
         classes: 'noncluster' + ' ' + getNodeCoordClass(isHouse),
