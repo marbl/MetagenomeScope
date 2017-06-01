@@ -56,6 +56,9 @@ const EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
 // In degrees CCW from the default up->down direction
 var PREV_ROTATION;
 var CURR_ROTATION;
+// The current colorization "value" -- used to prevent redundant applications
+// of changing colorization.
+var CURR_NODE_COLORIZATION = null;
 // Booleans for whether or not to use certain performance options
 var HIDE_EDGES_ON_VIEWPORT = false;
 var TEXTURE_ON_VIEWPORT = false;
@@ -271,8 +274,19 @@ function initGraph() {
                     // illegible (or hard-to-read, at least) then don't
                     // render the text.
                     'min-zoomed-font-size': 12,
-                    shape: 'polygon',
-                    'background-color': 'data(bg_color)'
+                    shape: 'polygon'
+                }
+            },
+            {
+                selector: 'node.noncluster.noncolorized',
+                style: {
+                    'background-color': '#999999'
+                }
+            },
+            {
+                selector: 'node.noncluster.gccolorized',
+                style: {
+                    'background-color': 'data(gc_color)'
                 }
             },
             {
@@ -1000,6 +1014,9 @@ function disableVolatileControls() {
     disableButton("dir270");
     disableButton("pngOption");
     disableButton("jpgOption");
+    disableButton("changeNodeColorizationButton");
+    disableButton("noNodeColorizationOption");
+    disableButton("gcNodeColorizationOption");
     clearSelectedInfo();
 }
 
@@ -1132,6 +1149,11 @@ function drawComponent(cmpRank) {
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
+    // Disable other node colorization settings and check the "none" node
+    // colorization option by default
+    $("#noNodeColorizationOption").addClass("active");
+    $("#gcNodeColorizationOption").removeClass("active")
+    CURR_NODE_COLORIZATION = "none";
     PREV_ROTATION = 0;
     // NOTE -- DISABLED ROTATION -- to allow rotation uncomment below and
     // replace CURR_ROTATION = 90 line
@@ -1373,6 +1395,14 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("dir270");
         enableButton("pngOption");
         enableButton("jpgOption");
+        if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA") {
+            // G/C content is available, so enable the corresponding buttons
+            // We'll have to change this protocol when we add more colorization
+            // options based on different data
+            enableButton("changeNodeColorizationButton");
+            enableButton("noNodeColorizationOption");
+            enableButton("gcNodeColorizationOption");
+        }
         $("#hideEdgesCheckbox").prop("disabled", false);
         $("#useTexturesCheckbox").prop("disabled", false);
         cy.userPanningEnabled(true);
@@ -2022,8 +2052,51 @@ function exportPath() {
     );
 }
 
-/* Returns a #RRGGBB string indicating the color of a node, scaled by G/C
- * colorization (although this is extensible to other attributes, of course).
+function removeNodeColorization(node) {
+    node.removeClass("gccolorized");
+    node.addClass("noncolorized");
+}
+
+function addGCNodeColorization(node) {
+    node.removeClass("noncolorized");
+    node.addClass("gccolorized");
+}
+
+function startChangeNodeColorization() {
+    var newColorization = $("#nodeColorizationButtonGroup .btn.active")
+        .attr("value");
+    // We check to ensure the new colorization would be different from the
+    // current one -- if not, we don't bother doing anything
+    if (newColorization !== CURR_NODE_COLORIZATION) {
+        startIndeterminateProgressBar();
+        window.setTimeout(function() {
+            changeNodeColorization(newColorization);
+            finishProgressBar();
+        }, 50);
+    }
+}
+
+function changeNodeColorization(newColorization) {
+    cy.startBatch();
+    var nodeStyleFunction;
+    if (newColorization === "gc") {
+        nodeStyleFunction = addGCNodeColorization;
+    }
+    else {
+        nodeStyleFunction = removeNodeColorization;
+    }
+    cy.filter('node.noncluster').each(nodeStyleFunction);
+    // Make sure to apply the colorization to collapsed nodes, also!
+    cy.scratch("_collapsed").each(function(nodeGroup, i) {
+        nodeGroup.scratch("_interiorNodes").each(nodeStyleFunction);
+    });
+    CURR_NODE_COLORIZATION = newColorization;
+    cy.endBatch();
+}
+
+/* Returns a #RRGGBB string indicating the color of a node, scaled by a
+ * percentage (some value in the range [0, 1]).
+ *
  * At present this just scales nodes between red (#FF2200) and blue (#0022FF),
  * although implementing other color scales (or user-selectable scales, for
  * that matter) should not be too difficult to integrate with this.
@@ -2478,16 +2551,19 @@ function renderNodeObject(nodeObj, boundingboxObject) {
     // Hence why we can just use the parent_cluster_id field directly.
     var parentID = nodeObj['parent_cluster_id'];
     var gc = nodeObj['gc_content'];
-    var bg_color = "#999999";
+    var gcColor = null;
+    if (gc !== null && gc !== undefined) {
+        gcColor = getNodeColorization(gc); 
+    }
     var labelUsed = (nodeLabel === null) ? nodeID : nodeLabel;
     cy.add({
-        classes: 'noncluster' + ' ' + getNodeCoordClass(isHouse),
+        classes: 'noncluster noncolorized ' + getNodeCoordClass(isHouse),
         data: {id: nodeID, parent: parentID, label: labelUsed,
                w: INCHES_TO_PIXELS * nodeObj['h'],
                h: INCHES_TO_PIXELS * nodeObj['w'],
                // TODO: the "house" parameter might be too expensive?
                house: isHouse, depth: nodeObj['depth'],
-               length: nodeObj['length'], gc_content: gc, bg_color: bg_color},
+               length: nodeObj['length'], gc_content: gc, gc_color: gcColor},
         position: {x: pos[0], y: pos[1]}
     });
     if (parentID !== null) {
