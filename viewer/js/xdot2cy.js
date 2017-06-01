@@ -1274,7 +1274,7 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         if (maxMult !== null) {
             var minMultiplicityStmt = CURR_DB.prepare(
                 "SELECT * FROM edges WHERE component_rank = ? " + 
-                "ORDER BY multiplicity LIMIT 1", [cmpRank]);
+                "ORDER BY multiplicity ASC LIMIT 1", [cmpRank]);
             minMultiplicityStmt.step();
             minMult = minMultiplicityStmt.getAsObject()['multiplicity'];
             minMultiplicityStmt.free();
@@ -2651,9 +2651,17 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     //    return;
     //}
 
-    var edgeWidth;
+    var edgeWidth = MAX_EDGE_THICKNESS;
+    // NOTE -- commented out for now in lieu of global edge thickness scaling
     // Scale edge thickness using the "thickness" .db file attribute
-    edgeWidth = MIN_EDGE_THICKNESS + (thickness * EDGE_THICKNESS_RANGE);
+    //edgeWidth = MIN_EDGE_THICKNESS + (thickness * EDGE_THICKNESS_RANGE);
+    // Scale edge thickness relative to all other edges in the current
+    // connected component
+    if (maxMult !== minMult) {
+        edgeWidth = MIN_EDGE_THICKNESS + (
+            ((multiplicity-minMult)/(maxMult-minMult)) * EDGE_THICKNESS_RANGE
+        );
+    }
     var edgeID = sourceID + "->" + targetID;
     if (edgeObj['parent_cluster_id'] !== null) {
         cy.scratch("_ele2parent")[edgeID] = edgeObj['parent_cluster_id'];
