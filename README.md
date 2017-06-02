@@ -72,11 +72,15 @@ for information on what other software needs to be installed.
 Running `collate.py` will process an assembly graph file so that
 it can be visualized. The syntax for this is
 
-`./collate.py -i (input file) -o (output filename prefix)
-    [-d (output directory name)] [-nodna] [-pg] [-px] [-w]`
+`./collate.py [-h] -i INPUTFILE -o OUTPUTPREFIX [-d OUTPUTDIRECTORY] [-pg]
+    [-px] [-w] [-nodna] [-b BICOMPONENTSFILE]`
+
+### Script output
 
 The script will always produce a `.db` file that can be loaded in the viewer
-application. If the `-pg` argument is passed, `.gv` files (in the DOT language)
+application to visualize the assembly graph.
+
+If the `-pg` argument is passed, `.gv` files (in the DOT language)
 for each connected component of the assembly graph will be generated; if the
 `-px` argument is passed, `.xdot` files (in the xdot language) for each
 connected component of the assembly graph will be generated.
@@ -86,13 +90,22 @@ information about the structure of the assembly graph. These files are:
 
 * `prefix_links`, where `prefix` is the output prefix passed via `-o`. Only one
   of these files will be generated per execution of `collate.py`. This file
-  indicates all the edges in the assembly graph.
+  indicates all the edges in the assembly graph. If you pass in `-b` and the
+  input assembly graph has unoriented contigs, then this file will not be
+  generated (since it would be equivalent to the _single_links file in that
+  case).
+* `prefix_single_links`, where `prefix` is the output prefix passed via `-o`.
+  This file will only be generated if the input assembly graph has unoriented
+  contigs. In terms of currently supported input filetypes, this means that
+  this file will only be generated when the input assembly graph is of type
+  LastGraph or GFA.
 * `prefix_bicmps`, where `prefix` is the output prefix passed via `-o`. Only
-  one   of these files will be generated per execution of `collate.py`. This
+  one of these files will be generated per execution of `collate.py`. This
   file indicates the various separation pairs contained within the assembly
   graph (see [Nijkamp et al.](https://www.ncbi.nlm.nih.gov/pubmed/24058058)
   for a brief overview of separation pairs and their usage in bubble
-  detection).
+  detection). It's possible to pass an existing version of this file using `-b`
+  to the script, to prevent having to do the work of creating the file again.
 * `component_D.info`, where `D` is an integer greater than 0. There will be one
   of these files created for every biconnected component contained within the
   assembly graph: these files indicate the contents of the SPQR tree defined
@@ -115,7 +128,7 @@ enabled).
 ### Command-line argument descriptions
 
 * `-i` The input assembly graph file to be used.
-* `-o` The file prefix to be used for all files generated. As an example, given 
+* `-o` The file prefix to be used for all files generated. As an example, given
   the argument
   `-o prefix`, the file `prefix.db` would be generated. If .gv and/or .xdot
   files are created (depending on the `-pg` or `-px` arguments, respectively),
@@ -138,8 +151,12 @@ enabled).
   directory. These files are labelled in an identical fashion to `.gv` files,
   with the only difference in naming being the file suffix (.xdot instead of
   .gv).
+* `-b` This optional argument lets you pass in an existing file indicating the
+  separation pairs in the graph (to be used in the detection of complex
+  bubbles) to the script.
 * `-w` This optional argument allows the overwriting of output files
-  (.db/.xdot/.gv). If this argument is **not** given, then:
+  (.db/.xdot/.gv/links/single_links/bicmps/.info/spqr.gml files).
+  If this argument is **not** given, then:
     * An error will be raised if writing a .db file would cause another
       .db file to be overwritten.
     * A warning will be displayed if writing to a .gv or .xdot file would cause

@@ -761,7 +761,6 @@ if distinct_single_graph:
         s_edges_fn_text += line
     save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
     s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
-# TODO, update README re: _single_links file
 
 # Prepare non-single-graph _links file
 # (unnecessary for the case where -b is passed and the input graph has a
