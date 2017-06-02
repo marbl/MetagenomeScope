@@ -694,23 +694,6 @@ conclude_msg()
 #        sgraphfile.write("\t%s -- %s;\n" % (e[0], e[1]))
 #    sgraphfile.write("}")
 
-# Construct links file for the single graph
-# (this is unnecessary for Bambus 3 GML files, but for LastGraph/GFA files it's
-# important)
-s_edges_fullfn = None
-if distinct_single_graph:
-    s_edges_fn = output_fn + "_single_links"
-    s_edges_fn_text = ""
-    for e in single_graph_edges:
-        line = e[0] + "\tB\t" + e[1] + "\tB\t0\t0\t0\n"
-        s_edges_fn_text += line
-    save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
-    s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
-# TODO call SPQR script with special options using s_edges_fullfn
-# TODO use -b data to only call the SPQR script with -t??? not super important
-# at present
-# TODO, update README re: _single_links file
-
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
 # This means that graph_filetype, total_node_count, total_edge_count,
 # total_length, and bp_length_list are all finalized.
@@ -749,7 +732,7 @@ conclude_msg()
 # bubbles
 operation_msg(config.SPQR_MSG)
 
-# Clear extraneous component_*.info files from the output directory, if present
+# Clear extraneous SPQR auxiliary files from the output directory, if present
 # (see issue #191 on the GitHub page)
 cfn_regex = re.compile("component_(\d+)\.info")
 sfn_regex = re.compile("spqr\d+\.gml")
@@ -766,16 +749,33 @@ for fn in os.listdir(dir_fn):
             if check_file_existence(s_fullfn):
                 safe_file_remove(s_fullfn)
 
+# Construct links file for the single graph
+# (this is unnecessary for Bambus 3 GML files, but for LastGraph/GFA files it's
+# needed in order to generate the SPQR tree)
+s_edges_fullfn = None
+if distinct_single_graph:
+    s_edges_fn = output_fn + "_single_links"
+    s_edges_fn_text = ""
+    for e in single_graph_edges:
+        line = e[0] + "\tB\t" + e[1] + "\tB\t0\t0\t0\n"
+        s_edges_fn_text += line
+    save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
+    s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
+# TODO, update README re: _single_links file
 
 # Prepare non-single-graph _links file
-edges_fn = output_fn + "_links"
-edges_fn_text = ""
-for n in nodes_to_try_collapsing:
-    for e in n.outgoing_nodes:
-        line = n.id_string + "\tB\t" + e.id_string + "\tB\t0\t0\t0\n"
-        edges_fn_text += line
-save_aux_file(edges_fn, edges_fn_text, False, warnings=False)
-edges_fullfn = os.path.join(dir_fn, edges_fn)
+# (unnecessary for the case where -b is passed and the input graph has a
+# distinct single graph)
+edges_fullfn = None
+if bicmps_fullfn == None or not distinct_single_graph:
+    edges_fn = output_fn + "_links"
+    edges_fn_text = ""
+    for n in nodes_to_try_collapsing:
+        for e in n.outgoing_nodes:
+            line = n.id_string + "\tB\t" + e.id_string + "\tB\t0\t0\t0\n"
+            edges_fn_text += line
+    save_aux_file(edges_fn, edges_fn_text, False, warnings=False)
+    edges_fullfn = os.path.join(dir_fn, edges_fn)
 
 # Get the location of the spqr script -- it should be in the same dir as
 # collate.py, i.e. the currently running python script
@@ -801,8 +801,6 @@ if bicmps_fullfn != None:
     else:
         # Input file has unoriented contigs (e.g. Velvet LastGraph output)
         # Call script once with -t and the single links file
-        # NOTE generating a normal _links file is technically unnecessary here,
-        # but I'm keeping it for now for the sake of simplicity and consistency
         spqr_invocation = [spqr_fullfn, "-l", s_edges_fullfn, "-t",
             "-d", dir_fn]
 else:
@@ -830,11 +828,12 @@ else:
         check_output(spqr_invocation_2, stderr=STDOUT)
 check_output(spqr_invocation, stderr=STDOUT)
 
-# NOTE we make the assumption that these component and spqr files aren't
-# deleted after running the SPQR script. If they are for whatever reason, then
-# this script will fail to recognize the corresponding biconnected component
-# information (thus failing to draw a SPQR tree, and likely causing an error of
-# some sort when creating the database file).
+# NOTE we make the assumption that the generated component and spqr files
+# aren't deleted after running the SPQR script but before they're read here.
+# If they are for whatever reason, then this script will fail to recognize
+# the corresponding biconnected component information (thus failing to draw
+# a SPQR tree, and likely causing an error of some sort when creating the
+# .db file).
 #
 # (As with the potential case where the separation pairs file is deleted after
 # being generated but before being read, this falls under the scope of
