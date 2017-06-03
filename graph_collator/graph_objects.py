@@ -407,7 +407,6 @@ class NodeGroup(Node):
         gv_input += "}"
         cg = pygraphviz.AGraph(gv_input)
         cg.layout(prog='dot')
-        cg.draw(self.gv_id_string + ".png")
         # Obtain cluster width and height from the layout
         bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
         bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
@@ -452,7 +451,7 @@ class NodeGroup(Node):
                 p += 2
             curr_edge.group = self
 
-    def node_info(self, backfill=True):
+    def node_info(self, backfill=True, incl_cluster_prefix=True):
         """Returns a string of the node_info() of this NodeGroup.
         
            If backfill is False, this works as normal: this node group is
@@ -460,11 +459,18 @@ class NodeGroup(Node):
            returned.
            
            If backfill is True, however, this node group is just treated
-           as a rectangular normal node.
+           as a rectangular normal node. Furthermore, the resulting node
+           "definition" line will be prefixed with "cluster_" if
+           incl_cluster_prefix is True. (The value of incl_cluster_prefix is
+           only utilized if backfill is True.)
         """
         if backfill:
-            return "\tcluster_%s [height=%g,width=%g,shape=rectangle];\n" % \
-                    (self.gv_id_string, self.xdot_c_height, self.xdot_c_width)
+            output = "\t"
+            if incl_cluster_prefix:
+                output += "cluster_"
+            output += "%s [height=%g,width=%g,shape=rectangle];\n" % \
+                (self.gv_id_string, self.xdot_c_height, self.xdot_c_width)
+            return output
         else:
             info = "subgraph cluster_%s {\n" % (self.gv_id_string)
             if config.GLOBALCLUSTER_STYLE != "":
@@ -537,11 +543,11 @@ class SPQRMetaNode(NodeGroup):
                 gv_input += "\t%s -- %s;\n" % (e[1], e[2])
         gv_input += "}"
         cg = pygraphviz.AGraph(gv_input)
-        # sfdp works really well for some of these structrues. (we can play
+        # sfdp works really well for some of these structures. (we can play
         # around with different layout options in the future, of course)
         cg.layout(prog='sfdp')
         # below invocation of cg.draw() is for debugging (also it looks cool)
-        cg.draw("%s.png" % (self.gv_id_string))
+        #cg.draw("%s.png" % (self.gv_id_string))
         # Obtain cluster width and height from the layout
         bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
         bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
@@ -636,12 +642,74 @@ class Bicomponent(NodeGroup):
         """
         for mn in self.metanode_list:
             mn.layout_isolated()
-        # TODO lay out this bicomponent here
-        # Represent its metanodes as solid rectangular nodes with their
-        # corresponding xdot_c_width and xdot_c_height values
-        # Might take a bit of work; probably easiest to just copy&paste my
-        # NodeGroup.layout_isolated() code and alter accordingly
-        # (can worry about being elegant later)
+        # Most of the rest of this function is copied from
+        # NodeGroup.layout_isolated(), with a few changes.
+        # To anyone reading this -- sorry the code's a bit ugly. I might come
+        # back and fix this in the future to just use the superclass
+        # NodeGroup.layout_isolated() method, if time permits.
+        gv_input = ""
+        gv_input += "digraph spqrtree {\n"
+        if config.GRAPH_STYLE != "":
+            gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
+        if config.GLOBALNODE_STYLE != "":
+            gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
+        if config.GLOBALEDGE_STYLE != "":
+            gv_input += "\tedge [%s];\n" % (config.GLOBALEDGE_STYLE)
+        gv_input += "subgraph cluster_%s {\n" % (self.gv_id_string)
+        if config.GLOBALCLUSTER_STYLE != "":
+            gv_input += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
+        for mn in self.metanode_list:
+            gv_input += mn.node_info(backfill=True, incl_cluster_prefix=False)
+        gv_input += "}\n"
+        for n in self.metanode_list:
+            gv_input += n.edge_info(constrained_nodes=self.nodes)
+        gv_input += "}"
+        cg = pygraphviz.AGraph(gv_input)
+        cg.layout(prog='dot')
+        #cg.draw(self.gv_id_string + ".png")
+        # Obtain cluster width and height from the layout
+        bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
+        bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
+        self.xdot_c_width = bounding_box_numeric[2] - bounding_box_numeric[0]
+        self.xdot_c_height = bounding_box_numeric[3] - bounding_box_numeric[1]
+        # convert width and height from points to inches
+        self.xdot_c_width /= config.POINTS_PER_INCH
+        self.xdot_c_height /= config.POINTS_PER_INCH
+        # Obtain node layout info
+        # NOTE: we could iterate over the subgraph's nodes or over the entire
+        # graph (cg)'s nodes -- same result, since the only nodes in the graph
+        # are in the subgraph.
+        for n in cg.nodes():
+            curr_node = self.childid2obj[str(n)]
+            # Record the relative position (within the node group's bounding
+            # box) of this child node.
+            ep = n.attr[u'pos'].split(',')
+            curr_node.xdot_rel_x = float(ep[0]) - bounding_box_numeric[0]
+            curr_node.xdot_rel_y = float(ep[1]) - bounding_box_numeric[1]
+            curr_node.xdot_width = float(n.attr[u'width'])
+            curr_node.xdot_height = float(n.attr[u'height'])
+            curr_node.xdot_shape = str(n.attr[u'shape'])
+        # Obtain edge layout info
+        for e in cg.edges():
+            self.edge_count += 1
+            source_node = self.childid2obj[str(e[0])]
+            curr_edge = source_node.outgoing_edge_objects[str(e[1])]
+            self.edges.append(curr_edge)
+            # Get control points, then find them relative to cluster dimensions
+            ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = \
+                Edge.get_control_points(e.attr[u'pos'])
+            curr_edge.xdot_rel_ctrl_pt_str = ""
+            p = 0
+            while p <= len(coord_list) - 2:
+                if p > 0:
+                    curr_edge.xdot_rel_ctrl_pt_str += " "
+                x_coord = coord_list[p] - bounding_box_numeric[0]
+                y_coord = coord_list[p + 1] - bounding_box_numeric[1]
+                curr_edge.xdot_rel_ctrl_pt_str += str(x_coord)
+                curr_edge.xdot_rel_ctrl_pt_str += " "
+                curr_edge.xdot_rel_ctrl_pt_str += str(y_coord)
+                p += 2
+            curr_edge.group = self
 
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.

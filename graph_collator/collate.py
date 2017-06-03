@@ -854,6 +854,8 @@ check_output(spqr_invocation, stderr=STDOUT)
 # "silly race conditions that probably won't ever happen but are still
 # ostensibly possible".)
 
+conclude_msg()
+operation_msg(config.SPQR_LAYOUT_MSG)
 # Identify the component_*.info files representing the SPQR tree's composition
 bicomponentid2fn = {}
 for fn in os.listdir(dir_fn):
