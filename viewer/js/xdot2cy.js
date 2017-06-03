@@ -198,7 +198,7 @@ function initGraph() {
                 }
             },
             {
-                selector: 'node.R',
+                selector: 'node.F',
                 style: {
                     // matches 'green2' in graphviz
                     // (but honestly I just picked what I considered to be
@@ -228,13 +228,13 @@ function initGraph() {
                 }
             },
             {
-                selector: 'node.R.leftrightdir',
+                selector: 'node.F.leftrightdir',
                 style: {
                     'shape-polygon-points': FRAYED_ROPE_LEFTRIGHTDIR
                 }
             },
             {
-                selector: 'node.R.updowndir',
+                selector: 'node.F.updowndir',
                 style: {
                     'shape-polygon-points': FRAYED_ROPE_UPDOWNDIR
                 }
@@ -563,7 +563,7 @@ function addSelectedClusterInfo(ele) {
         case 'C': clustType = "Chain"; break;
         case 'Y': clustType = "Cyclic Chain"; break;
         case 'B': clustType = "Bubble"; break;
-        case 'R': clustType = "Frayed Rope"; break;
+        case 'F': clustType = "Frayed Rope"; break;
         default: clustType = "Invalid (error)";
     }
     var clustSize = ele.data("interiorNodeCount");
@@ -729,7 +729,7 @@ function rotateNode(n, i) {
     // We don't bother rotating cyclic chains or chains' shapes, because those
     // shapes are directionless (whereas the bubble/frayed rope shapes have
     // directionality that it looks nice to change with the graph's rotation)
-    else if (n.hasClass("B") || n.hasClass("R")) {
+    else if (n.hasClass("B") || n.hasClass("F")) {
         if (n.hasClass("updowndir")) n.removeClass("updowndir");
         else if (n.hasClass("leftrightdir")) n.removeClass("leftrightdir");
         n.addClass(getClusterCoordClass());
