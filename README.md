@@ -8,16 +8,16 @@ pertinent parts of a graph instead of just displaying the entire graph at once.
 
 To this end, AsmViz highlights certain patterns of contigs in the graph
 (bubbles, frayed ropes, chains, and "linear" cycles), splits graphs up by
-connected components, and uses [GraphViz](http://www.graphviz.org/)' `dot` tool
+connected components, and uses [Graphviz](http://www.graphviz.org/)' `dot` tool
 to hierarchically lay out each connected component of an assembly graph.
 
 AsmViz is composed of two main components:
 
 1. `collate.py`, a Python script that reads an assembly graph file,
    identifies patterns in it, separates it by connected components, and
-   runs GraphViz on each component to be laid out, generating a SQLite
+   runs Graphviz on each component to be laid out, generating a SQLite
    .db file containing layout, pattern, and biological information extracted
-   from GraphViz and from the original assembly graph file.
+   from Graphviz and from the original assembly graph file.
    Currently, this supports LastGraph (Velvet), GML
    (Bambus 3 scaffolds), and GFA assembly graph files, and support for GFA2
    and FASTG (SPAdes) files is planned. Please note that, although
@@ -55,7 +55,7 @@ AsmViz is composed of two main components:
     * [errno](https://docs.python.org/2/library/errno.html)
     * [math](https://docs.python.org/2/library/math.html)
     * [sqlite3](https://docs.python.org/2/library/sqlite3.html)
-* GraphViz (with [dot](http://www.graphviz.org/Documentation/dotguide.pdf) program, which should be installed by default with GraphViz)
+* Graphviz (with the `dot` and `sfdp` layout programs installed)
 
 ### viewer.html
 
@@ -247,7 +247,7 @@ available features:
   right-clicking on them; however, note that you have to right-click on
   the node group itself to do this, not on any of the nodes/edges within
   the node group. Collapsing a node group will convert any incoming/outgoing
-  edges to that node group to straight-line Bezier edges, since no GraphViz
+  edges to that node group to straight-line Bezier edges, since no Graphviz
   data exists defining such an edge.
 * You can **collapse and uncollapse all node groups in the graph** by using
   the "Collapse All Node Groups"/"Uncollapse All Node Groups" button located
@@ -257,8 +257,7 @@ available features:
 
 ## Acknowledgements: tools used
 
-* `collate.py` uses GraphViz'
-  [`dot`](http://graphviz.org/Documentation/dotguide.pdf) layout tool via the
+* `collate.py` uses Graphviz' dot and sfdp layout tools via the
   [PyGraphviz](http://pygraphviz.github.io/) interface.
 * Both `collate.py` and the AsmViz viewer use [sqlite3](https://sqlite.org/).
   In particular, `collate.py` uses the aforementioned Python sqlite3 module
