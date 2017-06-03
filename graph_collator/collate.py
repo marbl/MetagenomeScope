@@ -934,7 +934,6 @@ for cfn_id in bicomponentid2fn:
     metanode_list = metanodeid2obj.values()
     bicomponentid2obj[cfn_id] = graph_objects.Bicomponent(cfn_id, \
         metanode_list)
-    bicomponentid2obj[cfn_id].layout_isolated()
 
 # Now that the potential bubbles have been detected by the spqr script, we
 # sort them ascending order of size and then create Bubble objects accordingly.
@@ -1126,12 +1125,7 @@ if not distinct_single_graph:
 # components replaced with solid rectangles.
 single_connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
-for scc in single_connected_components:
-    # TODO layout component scc
-    pass
-
 conclude_msg()
-
 operation_msg(config.DB_INIT_MSG + "%s..." % (db_fn))
 # Now that we've done all our processing on the assembly graph, we create the
 # output file: a SQLite database in which we store biological and graph layout
@@ -1189,6 +1183,30 @@ graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
             n50(bp_length_list), assembly_gc(total_gc_nt_count, total_length))
 cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
+
+single_component_size_rank = 1
+for scc in single_connected_components:
+    # TODO layout component scc
+    # TODO send requisite operation_msgs?
+    # Also TODO maybe use sfdp to lay out these graphs? or something, idk
+    # Also also TODO if there's enough similarities, consider merging this
+    # process with the layout process for normal connected components below
+    # into a function or something.
+    # (...or just use a modified version of the process' code, that would
+    # probably be faster to implement)
+    for bicomp in scc.node_group_list:
+        bicomp.layout_isolated()
+    # 1. send info to graphviz here, including:
+    # -node info of nodes not in any bicomponents, as well as edge info for
+    # edges with no .group attribute (with connections to nodes in bicomponents
+    # replaced with connections to the bicomponents themselves -- also, if a
+    # given node is in multiple bicomponents, duplicate the edges. TODO see
+    # what Dr. Pop has to say about that but I think that approach is ok)
+    # -bicomponents, represented as rectangular nodes
+    # 2. retrieve layout information for edges, bicomponents, nodes in
+    # bicomponents
+    # 3. send info for single nodes, single edges, metanodes, edges between
+    # metanodes, bicomponents, and single connected components to the .db file
 
 # Conclusion of script: Output (desired) components of nodes to the .gv file
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
