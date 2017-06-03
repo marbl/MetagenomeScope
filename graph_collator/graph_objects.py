@@ -13,7 +13,7 @@ class Edge(object):
        metadata (e.g. multiplicity).
     """
     def __init__(self, source_id, target_id, multiplicity=None,
-            orientation=None, mean=None, stdev=None):
+            orientation=None, mean=None, stdev=None, is_virtual=False):
         """Initializes the edge and all of its attributes."""
         self.source_id = source_id
         self.target_id = target_id
@@ -46,6 +46,8 @@ class Edge(object):
         self.xdot_ctrl_pt_count  = None
         # used for interior edges in node groups
         self.xdot_rel_ctrl_pt_str = None
+        # used for edges inside metanodes in an SPQR tree
+        self.is_virtual = is_virtual
 
     @staticmethod
     def get_control_points(position):
@@ -105,7 +107,7 @@ class Node(object):
        and as the superclass for groups of nodes.
     """
     def __init__(self, id_string, bp, is_complement, depth=None,
-                 gc_content=None, dna_fwd=None, label=None):
+                 gc_content=None, dna_fwd=None, label=None, is_single=False):
         """Initializes the object. bp initially stood for "base pairs," but
            it really just means the length of this node. In single graphs
            that's measured in bp and in double graphs that's measured in nt.
@@ -120,6 +122,8 @@ class Node(object):
         self.label = label
         # If True, we use the "flipped" node style
         self.is_complement = is_complement
+        # If True, we draw nodes without direction
+        self.is_single = is_single
         # List of nodes to which this node has an outgoing edge
         self.outgoing_nodes = []
         # List of nodes from which this node has an incoming edge
@@ -145,6 +149,9 @@ class Node(object):
         # When we collapse nodes into a node group, we change this variable
         # to reference the NodeGroup object in question
         self.group = None
+        # Used in the case of nodes in an SPQR tree
+        self.parent_metanodes = []
+        self.parent_metanode2relpos = {}
         # Reference to the "size rank" (1 for largest, 2 for 2nd largest,
         # ...) of the connected component to which this node belongs.
         self.component_size_rank = -1
@@ -158,11 +165,6 @@ class Node(object):
         # Optional layout data (used for nodes within subgraphs)
         self.xdot_rel_x  = None
         self.xdot_rel_y  = None
-        # Corresponding layout data used for the SPQR tree view
-        self.sxdot_x     = None
-        self.sxdot_y     = None
-        self.sxdot_rel_x = None
-        self.sxdot_rel_y = None
         
     def get_dimensions(self):
         """Calculates the width and height of this node.
@@ -192,10 +194,12 @@ class Node(object):
         w, h = self.get_dimensions()
         info = "\t%s [height=%g,width=%g,shape=" % \
                 (self.id_string, h, w)
-        if not self.is_complement:
-            info += config.BASIC_NODE_SHAPE
-        else:
+        if self.is_complement:
             info += config.RCOMP_NODE_SHAPE
+        elif self.is_single:
+            info += config.SINGLE_NODE_SHAPE
+        else:
+            info += config.BASIC_NODE_SHAPE
         info += "];\n"
         return info
 
@@ -317,9 +321,10 @@ class NodeGroup(Node):
        "subgraph.")
     """
     
-    def __init__(self, group_prefix, group_style, nodes, spqr_related=False):
+    def __init__(self, group_prefix, group_style, nodes, spqr_related=False,
+            unique_num_id=None):
         """Initializes the node group, given all the Node objects comprising
-           the node group, a prefix character for the group (i.e. 'R' for
+           the node group, a prefix character for the group (i.e. 'F' for
            frayed ropes, 'B' for bubbles, 'C' for chains, 'Y' for cycles),
            and a GraphViz style setting for the group (generally
            from config.py).
@@ -330,6 +335,13 @@ class NodeGroup(Node):
            with the original ID names. The 'c' version is passed into GraphViz,
            and the '-' version is passed into the .db file to be used in
            Cytoscape.js.
+
+           Also, if this NodeGroup has some unique numerical ID, then you can
+           pass that here via the unique_num_id argument. This makes the
+           NodeGroup ID's just the group_prefix + the unique_num_id, instead
+           of a combination of all of the node names contained within this
+           NodeGroup (this approach is useful for NodeGroups of NodeGroups,
+           e.g. Bicomponents).
         """
         self.node_count = 0
         self.edge_count = 0
@@ -344,24 +356,29 @@ class NodeGroup(Node):
         for n in nodes:
             self.node_count += 1
             self.bp += n.bp
-            self.gv_id_string += "%s_" % (n.id_string.replace('-', 'c'))
-            self.cy_id_string += "%s_" % (n.id_string)
+            if unique_num_id == None:
+                self.gv_id_string += "%s_" % (n.id_string.replace('-', 'c'))
+                self.cy_id_string += "%s_" % (n.id_string)
             self.nodes.append(n)
-            # To avoid messing up the detection of normal node groups (bubbles,
-            # etc.), node groups pertaining to SPQR metanodes don't impact
-            # anything about the state of their child nodes.
+            # We don't do this stuff if the node group in question is a SPQR
+            # metanode, since the model of <= 1 node group per node doesn't
+            # really hold here
             if not spqr_related:
                 n.used_in_collapsing = True
                 n.group = self
             self.childid2obj[n.id_string] = n
-        self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
-        self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
+        if unique_num_id == None:
+            self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
+            self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
         self.xdot_c_width = 0
         self.xdot_c_height = 0
         self.xdot_left = None
         self.xdot_bottom = None
         self.xdot_right = None
         self.xdot_top = None
+        if unique_num_id != None:
+            self.gv_id_string += unique_num_id
+            self.cy_id_string = self.gv_id_string
         super(NodeGroup, self).__init__(self.gv_id_string, self.bp, False)
 
     def layout_isolated(self):
@@ -372,12 +389,6 @@ class NodeGroup(Node):
         # pipe .gv into pygraphviz to lay out this node group
         gv_input = ""
         gv_input += "digraph nodegroup {\n"
-        # TODO abstract this header generation code to some function in this
-        # file that will be called by here, and by collate?
-        # ... or just rework the _STYLE variables to make them easier to
-        # integrate, I suppose.
-        # ... or just deal with 6 lines of repeated code, I guess -- not the
-        # worst thing that we could be dealing with :)
         if config.GRAPH_STYLE != "":
             gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
         if config.GLOBALNODE_STYLE != "":
@@ -396,6 +407,7 @@ class NodeGroup(Node):
         gv_input += "}"
         cg = pygraphviz.AGraph(gv_input)
         cg.layout(prog='dot')
+        cg.draw(self.gv_id_string + ".png")
         # Obtain cluster width and height from the layout
         bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
         bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
@@ -484,13 +496,21 @@ class SPQRMetaNode(NodeGroup):
        http://www.ogdf.net/doc-ogdf/classogdf_1_1_s_p_q_r_tree.html#details.
     """
 
-    def __init__(self, spqr_id, metanode_type, nodes, internal_edges):
+    def __init__(self, bicomponent_id, spqr_id, metanode_type, nodes,
+            internal_edges):
+        # Matches a number in the filenames of component_*.info and spqr*gml
+        self.bicomponent_id = bicomponent_id
         # The ID used in spqr*.gml files to describe the structure of the tree
         self.spqr_id = spqr_id
         self.metanode_type = metanode_type
         self.internal_edges = internal_edges
-        super(SPQRMetaNode, self).__init__("SPQR_" + self.metanode_type + "_",
-            "", nodes, spqr_related=True)
+        # Used to maintain a list of edges we haven't reconciled with fancy
+        # Edge objects yet (see layout_isolated() in this class)
+        self.nonlaidout_edges = internal_edges[:]
+        for sn in nodes:
+            sn.parent_metanodes.append(self) 
+        super(SPQRMetaNode, self).__init__(self.metanode_type, "", nodes,
+                spqr_related=True)
 
     def layout_isolated(self):
         """Similar to NodeGroup.layout_isolated(), but with metanode-specific
@@ -498,32 +518,30 @@ class SPQRMetaNode(NodeGroup):
         """
         # pipe .gv into pygraphviz to lay out this node group
         gv_input = ""
-        gv_input += "digraph nodegroup {\n"
+        gv_input += "graph metanode {\n"
         if config.GRAPH_STYLE != "":
             gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
-        if config.GLOBALNODE_STYLE != "":
-            gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
-        if config.GLOBALEDGE_STYLE != "":
-            gv_input += "\tedge [%s];\n" % (config.GLOBALEDGE_STYLE)
+        #if config.GLOBALNODE_STYLE != "":
+        #    gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
+        # We don't pass in edge style info (re: ports) because these edges are
+        # undirected
         gv_input += self.node_info(backfill=False)
         for e in self.internal_edges:
             n1 = self.childid2obj[e[1]]
             n2 = self.childid2obj[e[2]]
             if e[0] == "v":
                 # Virtual edge
-                # TODO orient these correctly
-                gv_input += "\t%s -> %s [style=dotted];\n" % (e[1], e[2])
+                gv_input += "\t%s -- %s [style=dotted];\n" % (e[1], e[2])
             else:
                 # Real edge
-                if n2 in n1.outgoing_nodes:
-                    gv_input += "\t%s -> %s;\n" % (e[1], e[2])
-                elif n1 in n2.outgoing_nodes:
-                    gv_input += "\t%s -> %s;\n" % (e[2], e[1])
-                else:
-                    raise ValueError, "Real SPQR edge does not exist in graph"
+                gv_input += "\t%s -- %s;\n" % (e[1], e[2])
         gv_input += "}"
         cg = pygraphviz.AGraph(gv_input)
-        cg.layout(prog='dot')
+        # sfdp works really well for some of these structrues. (we can play
+        # around with different layout options in the future, of course)
+        cg.layout(prog='sfdp')
+        # below invocation of cg.draw() is for debugging (also it looks cool)
+        cg.draw("%s.png" % (self.gv_id_string))
         # Obtain cluster width and height from the layout
         bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
         bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
@@ -538,33 +556,92 @@ class SPQRMetaNode(NodeGroup):
             # Record the relative position (within the node group's bounding
             # box) of this child node.
             ep = n.attr[u'pos'].split(',')
-            curr_node.sxdot_rel_x = float(ep[0]) - bounding_box_numeric[0]
-            curr_node.sxdot_rel_y = float(ep[1]) - bounding_box_numeric[1]
+            rel_x = float(ep[0]) - bounding_box_numeric[0]
+            rel_y = float(ep[1]) - bounding_box_numeric[1]
+            curr_node.parent_metanode2relpos[self] = (rel_x, rel_y)
         # Obtain edge layout info
         for e in cg.edges():
             self.edge_count += 1
-            # TODO: Figure out "orientations" (i.e. which node is source, and
-            # which is the target) for all edges. Then we can construct new
-            # Edge objects here for all (virtual and real) internal edges, and
-            # I guess we can save that as a property of this metanode?
-            #source_node = self.childid2obj[str(e[0])]
-            #curr_edge = source_node.outgoing_edge_objects[str(e[1])]
-            #self.edges.append(curr_edge)
+            # technically the distinction btwn. "source" and "target" is
+            # meaningless in an undirected graph, but we use that terminology
+            # anyway because it doesn't really matter from a layout perspective
+            source_id = str(e[0])
+            target_id = str(e[1])
+            curr_edge = None
+            for en in self.nonlaidout_edges:
+                if set(en[1:]) == set([source_id, target_id]):
+                    # This edge matches a non-laid-out edge.
+                    is_virt = (en[0] == "v")
+                    curr_edge = Edge(source_id, target_id, is_virtual=is_virt)
+                    self.nonlaidout_edges.remove(en)
+                    break
+            if curr_edge == None:
+                raise ValueError, "unknown edge obtained from layout"
+            self.edges.append(curr_edge)
             # Get control points, then find them relative to cluster dimensions
-            #ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = \
-            #    Edge.get_control_points(e.attr[u'pos'])
-            #curr_edge.xdot_rel_ctrl_pt_str = ""
-            #p = 0
-            #while p <= len(coord_list) - 2:
-            #    if p > 0:
-            #        curr_edge.xdot_rel_ctrl_pt_str += " "
-            #    x_coord = coord_list[p] - bounding_box_numeric[0]
-            #    y_coord = coord_list[p + 1] - bounding_box_numeric[1]
-            #    curr_edge.xdot_rel_ctrl_pt_str += str(x_coord)
-            #    curr_edge.xdot_rel_ctrl_pt_str += " "
-            #    curr_edge.xdot_rel_ctrl_pt_str += str(y_coord)
-            #    p += 2
-            #curr_edge.group = self
+            ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = \
+                Edge.get_control_points(e.attr[u'pos'])
+            curr_edge.xdot_rel_ctrl_pt_str = ""
+            p = 0
+            while p <= len(coord_list) - 2:
+                if p > 0:
+                    curr_edge.xdot_rel_ctrl_pt_str += " "
+                x_coord = coord_list[p] - bounding_box_numeric[0]
+                y_coord = coord_list[p + 1] - bounding_box_numeric[1]
+                curr_edge.xdot_rel_ctrl_pt_str += str(x_coord)
+                curr_edge.xdot_rel_ctrl_pt_str += " "
+                curr_edge.xdot_rel_ctrl_pt_str += str(y_coord)
+                p += 2
+            curr_edge.group = self
+        if len(self.nonlaidout_edges) > 0:
+            raise ValueError, "All edges in metanode %s were not laid out" % \
+                (self.gv_id_string)
+
+class Bicomponent(NodeGroup):
+    """A biconnected component in the graph. We use this to store
+       information about the metanodes contained within the SPQR tree
+       decomposition corresponding to this biconnected component.
+       
+       The process of constructing the "SPQR-integrated" view of the graph is
+       relatively involved. Briefly speaking, it involves
+       1) Identifying all biconnected components in the assembly graph
+       2) Obtaining the SPQR tree decomposition of each biconnected component
+       3) Laying out each metanode within a SPQR tree in isolation
+       4) Laying out each entire SPQR tree, with metanodes "filled in"
+          as solid rectangular nodes (with the width/height determined from
+          step 3)
+       5) Laying out each connected component of the "single graph," with
+          biconnected components "filled in" as solid rectangular nodes (with
+          the width/height determined from step 4)
+
+       Note while this is a group of SPQRMetaNodes, we don't subclass NodeGroup
+       because we don't really need many of its added features
+    """
+
+    def __init__(self, bicomponent_id, metanode_list):
+        # a string representation of an integer that matches an ID in
+        # one component_*.info and one spqr*.gml file
+        self.bicomponent_id = bicomponent_id
+        self.metanode_list = metanode_list
+        super(Bicomponent, self).__init__("I", "", self.metanode_list,
+            spqr_related=True, unique_num_id=self.bicomponent_id)
+
+    def layout_isolated(self):
+        """Lays out in isolation the metanodes within this bicomponent by
+           calling their respective SPQRMetaNode.layout_isolated() methods.
+
+           After that, lays out the entire SPQR tree structure defined for this
+           Bicomponent, representing each metanode as a solid rectangle defined
+           by its xdot_c_width and xdot_c_height properties.
+        """
+        for mn in self.metanode_list:
+            mn.layout_isolated()
+        # TODO lay out this bicomponent here
+        # Represent its metanodes as solid rectangular nodes with their
+        # corresponding xdot_c_width and xdot_c_height values
+        # Might take a bit of work; probably easiest to just copy&paste my
+        # NodeGroup.layout_isolated() code and alter accordingly
+        # (can worry about being elegant later)
 
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.
@@ -760,7 +837,7 @@ class Rope(NodeGroup):
 
     def __init__(self, *nodes):
         """Initializes the Rope, given a list of nodes comprising it."""
-        super(Rope, self).__init__('R', config.FRAYEDROPE_STYLE, nodes)
+        super(Rope, self).__init__('F', config.FRAYEDROPE_STYLE, nodes)
      
     @staticmethod
     def is_valid_rope(s):

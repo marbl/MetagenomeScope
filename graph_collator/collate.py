@@ -355,6 +355,9 @@ nodeid2obj = {}
 # Like nodeid2obj, but for preserving references to clusters (NodeGroups)
 clusterid2obj = {}
 
+# Like nodeid2obj but for "single" Nodes, to be used in the SPQR-integrated
+# graph
+single_nodeid2obj = {}
 # List of 2-tuples, where each 2-tuple contains two node IDs
 # For GML files this will just contain all the normal connections in the graph
 # For LastGraph/GFA files, though, this will contain half of the connections
@@ -463,6 +466,10 @@ with open(asm_fn, 'r') as assembly_file:
                             dna_fwd=curr_node_dnarev)
                     nodeid2obj[curr_node_id] = n
                     nodeid2obj['-' + curr_node_id] = c
+                    # Create single Node object, for the SPQR-integrated graph
+                    sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
+                            is_single=True)
+                    single_nodeid2obj[curr_node_id] = sn
                     # Record this node for graph statistics
                     # Note that recording these statistics here ensures that
                     # only "fully complete" node definitions are recorded.
@@ -533,6 +540,10 @@ with open(asm_fn, 'r') as assembly_file:
                             (curr_node_orientation == '"REV"'),
                             label=curr_node_label)
                     nodeid2obj[curr_node_id] = n
+                    # Create single Node object, for the SPQR-integrated graph
+                    sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
+                            is_single=True)
+                    single_nodeid2obj[curr_node_id] = sn
                     # Record this node for graph statistics
                     total_node_count += 1
                     total_length += curr_node_bp
@@ -649,6 +660,10 @@ with open(asm_fn, 'r') as assembly_file:
                         True,gc_content=curr_node_gc, dna_fwd=curr_node_dnarev)
                 nodeid2obj[curr_node_id] = nPos
                 nodeid2obj['-' + curr_node_id] = nNeg
+                # Create single Node object, for the SPQR-integrated graph
+                sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
+                        is_single=True)
+                single_nodeid2obj[curr_node_id] = sn
                 # Update stats
                 total_node_count += 1
                 total_length += curr_node_bp
@@ -849,6 +864,7 @@ for fn in os.listdir(dir_fn):
             bicomponentid2fn[match.group(1)] = c_fullfn
 
 # Get info from the SPQR tree auxiliary files (component_*.info and spqr*.gml)
+bicomponentid2obj = {}
 metanode_id_regex = re.compile("^\d+$")
 metanode_type_regex = re.compile("^[SPR]$")
 edge_line_regex = re.compile("^v|r")
@@ -865,7 +881,7 @@ for cfn_id in bicomponentid2fn:
             elif metanode_id_regex.match(line):
                 if curr_id != "":
                     # save previous metanode info
-                    new_metanode = graph_objects.SPQRMetaNode(curr_id, \
+                    new_metanode = graph_objects.SPQRMetaNode(cfn_id, curr_id,
                         curr_type, curr_nodes, curr_edges)
                     metanodeid2obj[curr_id] = new_metanode
                 curr_id = line.strip()
@@ -876,9 +892,9 @@ for cfn_id in bicomponentid2fn:
                 curr_type = line.strip()
             else:
                 # This line must describe a node within the metanode
-                curr_nodes.append(nodeid2obj[line.split()[1]])
+                curr_nodes.append(single_nodeid2obj[line.split()[1]])
         # Save the last metanode in the file (won't be "covered" in loop above)
-        new_metanode = graph_objects.SPQRMetaNode(curr_id, curr_type, \
+        new_metanode = graph_objects.SPQRMetaNode(cfn_id, curr_id, curr_type,
             curr_nodes, curr_edges)
         metanodeid2obj[curr_id] = new_metanode
     # At this point, we have all nodes in the entire SPQR tree for a
@@ -887,9 +903,6 @@ for cfn_id in bicomponentid2fn:
     # GraphViz -- will implement in the web visualization tool soon.
     tree_structure_fn = os.path.join(dir_fn, "spqr%s.gml" % (cfn_id))
     # List of 2-tuples of SPQRMetaNode objects.
-    # These edges are currently unoriented -- will be assigned an orientation
-    # later.
-    unoriented_edges = set()
     with open(tree_structure_fn, "r") as spqr_structure_file:
         parsing_edge = False
         source_metanode = None
@@ -910,26 +923,15 @@ for cfn_id in bicomponentid2fn:
                         source_metanode = metanodeid2obj[id_line_parts[1]]
                     elif id_line_parts[0] == "target":
                         target_metanode = metanodeid2obj[id_line_parts[1]]
-    # TODO. Call .layout_isolated() for all metanodes
-    # At this point, we have the entire structure of the SPQR tree (including
-    # edges between metanodes) saved. Eventually we'll save this to the .db
-    # file and, in turn, utilize that in the visualization tool -- for now,
-    # though, we'll just output the tree in GraphViz as a demonstration.
-    spqr_output_fn = os.path.join(dir_fn, "spqr_tree_%s.gv" % (cfn_id))
-    with open(spqr_output_fn, "w") as spqr_output_file:
-        spqr_output_file.write("digraph spqr_tree_%s {\n" % (cfn_id))
-        # Write metanode info
-        for mn in metanodeid2obj.values():
-            spqr_output_file.write("\t%s_%s [label=\"%s%s\"];\n" % \
-                (mn.metanode_type, mn.spqr_id, mn.metanode_type,
-                str(mn.nodes).replace("Node", "").replace(" ", "")))
-        # Write info for edges between metanodes
-        for mn in metanodeid2obj.values():
-            for mn2 in mn.outgoing_nodes:
-                spqr_output_file.write("\t%s_%s -> %s_%s;\n" % \
-                    (mn.metanode_type, mn.spqr_id, mn2.metanode_type, \
-                    mn2.spqr_id))
-        spqr_output_file.write("}");
+    # At this point, we've obtained the full contents of the tree: both the
+    # skeletons of its metanodes, and the edges between metanodes. (This data
+    # is stored as attributes of the SPQRMetaNode objects in question.)
+    metanode_list = metanodeid2obj.values()
+    bicomponentid2obj[cfn_id] = graph_objects.Bicomponent(cfn_id, \
+        metanode_list)
+    # TODO consider delaying this until later (at least let the user know it's
+    # happening, since it might take a while for large graphs)
+    bicomponentid2obj[cfn_id].layout_isolated()
 
 # Now that the potential bubbles have been detected by the spqr script, we
 # sort them ascending order of size and then create Bubble objects accordingly.
@@ -1183,7 +1185,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     # with the previously-stored biological data.
     node_info, edge_info = component.node_and_edge_info()
     component_prefix = "%s_%d" % (output_fn, component_size_rank)
-    # NOTE/TODO: Currently, we reduce each component of the asm. graph to a DOT
+    # NOTE: Currently, we reduce each component of the asm. graph to a DOT
     # string that we send to pygraphviz. However, we could also send
     # nodes/edges procedurally, using add_edge(), add_node(), etc.
     # That might be faster, and it might be worth doing;
