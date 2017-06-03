@@ -152,6 +152,8 @@ class Node(object):
         # Used in the case of nodes in an SPQR tree
         self.parent_metanodes = []
         self.parent_metanode2relpos = {}
+        # Indicates the Bicomponent(s) in which this node is present
+        self.parent_bicomponents = []
         # Reference to the "size rank" (1 for largest, 2 for 2nd largest,
         # ...) of the connected component to which this node belongs.
         self.component_size_rank = -1
@@ -626,6 +628,12 @@ class Bicomponent(NodeGroup):
         # one component_*.info and one spqr*.gml file
         self.bicomponent_id = bicomponent_id
         self.metanode_list = metanode_list
+        # Record this Bicomponent object as a parent of each single node within
+        # each metanode.
+        for mn in self.metanode_list:
+            for n in mn.nodes:
+                if self not in n.parent_bicomponents:
+                    n.parent_bicomponents.append(self)
         super(Bicomponent, self).__init__("I", "", self.metanode_list,
             spqr_related=True, unique_num_id=self.bicomponent_id)
 
