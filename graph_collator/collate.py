@@ -931,8 +931,6 @@ for cfn_id in bicomponentid2fn:
     metanode_list = metanodeid2obj.values()
     bicomponentid2obj[cfn_id] = graph_objects.Bicomponent(cfn_id, \
         metanode_list)
-    # TODO consider delaying this until later (at least let the user know it's
-    # happening, since it might take a while for large graphs)
     bicomponentid2obj[cfn_id].layout_isolated()
 
 # Now that the potential bubbles have been detected by the spqr script, we
