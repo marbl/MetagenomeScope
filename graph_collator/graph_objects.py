@@ -619,9 +619,6 @@ class Bicomponent(NodeGroup):
        5) Laying out each connected component of the "single graph," with
           biconnected components "filled in" as solid rectangular nodes (with
           the width/height determined from step 4)
-
-       Note while this is a group of SPQRMetaNodes, we don't subclass NodeGroup
-       because we don't really need many of its added features
     """
 
     def __init__(self, bicomponent_id, metanode_list):
