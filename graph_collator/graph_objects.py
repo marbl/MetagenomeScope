@@ -153,7 +153,7 @@ class Node(object):
         self.parent_metanodes = []
         self.parent_metanode2relpos = {}
         # Indicates the Bicomponent(s) in which this node is present
-        self.parent_bicomponents = []
+        self.parent_bicomponents = set()
         # Reference to the "size rank" (1 for largest, 2 for 2nd largest,
         # ...) of the connected component to which this node belongs.
         self.component_size_rank = -1
@@ -632,8 +632,7 @@ class Bicomponent(NodeGroup):
         # each metanode.
         for mn in self.metanode_list:
             for n in mn.nodes:
-                if self not in n.parent_bicomponents:
-                    n.parent_bicomponents.append(self)
+                n.parent_bicomponents.add(self)
         super(Bicomponent, self).__init__("I", "", self.metanode_list,
             spqr_related=True, unique_num_id=self.bicomponent_id)
 

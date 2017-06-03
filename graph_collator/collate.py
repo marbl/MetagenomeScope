@@ -357,7 +357,7 @@ clusterid2obj = {}
 
 # Like nodeid2obj but for "single" Nodes, to be used in the SPQR-integrated
 # graph
-single_nodeid2obj = {}
+singlenodeid2obj = {}
 # List of 2-tuples, where each 2-tuple contains two node IDs
 # For GML files this will just contain all the normal connections in the graph
 # For LastGraph/GFA files, though, this will contain half of the connections
@@ -372,6 +372,7 @@ total_edge_count = 0
 total_length = 0
 total_gc_nt_count = 0
 total_component_count = 0
+total_single_component_count = 0
 # Used to determine whether or not we can scale edges by multiplicity/bundle
 # size. Currently we make the following assumptions (might need to change) --
 # -All LastGraph files contain edge multiplicity values
@@ -431,6 +432,7 @@ with open(asm_fn, 'r') as assembly_file:
                 pid1 = id1[1:] if id1[0] == '-' else id1
                 pid2 = id2[1:] if id2[0] == '-' else id2
                 single_graph_edges.append((pid1, pid2))
+                singlenodeid2obj[pid1].add_outgoing_edge(singlenodeid2obj[pid2])
                 # Only add implied edge if the edge does not imply itself
                 # (see issue #105 on GitHub for context)
                 if not (id1 == nid2 and id2 == nid1):
@@ -469,7 +471,7 @@ with open(asm_fn, 'r') as assembly_file:
                     # Create single Node object, for the SPQR-integrated graph
                     sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
                             is_single=True)
-                    single_nodeid2obj[curr_node_id] = sn
+                    singlenodeid2obj[curr_node_id] = sn
                     # Record this node for graph statistics
                     # Note that recording these statistics here ensures that
                     # only "fully complete" node definitions are recorded.
@@ -543,7 +545,7 @@ with open(asm_fn, 'r') as assembly_file:
                     # Create single Node object, for the SPQR-integrated graph
                     sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
                             is_single=True)
-                    single_nodeid2obj[curr_node_id] = sn
+                    singlenodeid2obj[curr_node_id] = sn
                     # Record this node for graph statistics
                     total_node_count += 1
                     total_length += curr_node_bp
@@ -663,7 +665,7 @@ with open(asm_fn, 'r') as assembly_file:
                 # Create single Node object, for the SPQR-integrated graph
                 sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
                         is_single=True)
-                single_nodeid2obj[curr_node_id] = sn
+                singlenodeid2obj[curr_node_id] = sn
                 # Update stats
                 total_node_count += 1
                 total_length += curr_node_bp
@@ -682,6 +684,7 @@ with open(asm_fn, 'r') as assembly_file:
                 if id1.startswith("NODE_"): id1 = id1.split("_")[1]
                 if id2.startswith("NODE_"): id2 = id2.split("_")[1]
                 single_graph_edges.append((id1, id2))
+                singlenodeid2obj[id1].add_outgoing_edge(singlenodeid2obj[id2])
                 id1 = id1 if a[2] != '-' else '-' + id1
                 id2 = id2 if a[4] != '-' else '-' + id2
                 nid2 = negate_node_id(id2)
@@ -894,7 +897,7 @@ for cfn_id in bicomponentid2fn:
                 curr_type = line.strip()
             else:
                 # This line must describe a node within the metanode
-                curr_nodes.append(single_nodeid2obj[line.split()[1]])
+                curr_nodes.append(singlenodeid2obj[line.split()[1]])
         # Save the last metanode in the file (won't be "covered" in loop above)
         new_metanode = graph_objects.SPQRMetaNode(cfn_id, curr_id, curr_type,
             curr_nodes, curr_edges)
@@ -1047,11 +1050,32 @@ for n in nodes_to_try_collapsing:
             if max_multiplicity != min_multiplicity: # prevent div-by-0 error
                 e.thickness = (e.multiplicity - min_multiplicity) / mrange
 
-# Identify connected components
+# Identify connected components in the "single" graph
+# We'll need to actually run DFS if distinct_single_graph is True.
+# However, if it's False, then we can just run DFS on the "double" graph to
+# identify its connected components -- and then use those connected components'
+# nodes' IDs to construct the single graph's connected components.
+operation_msg(config.COMPONENT_MSG)
+single_connected_components = []
+if distinct_single_graph:
+    for n in singlenodeid2obj.values():
+        if not n.seen_in_ccomponent:
+            # We've identified a node within an unseen connected component.
+            # Run DFS to identify all nodes in its connected component.
+            # (Also identify all bicomponents in the connected component)
+            node_list = dfs(n)
+            bicomponent_set = set()
+            for m in node_list:
+                m.seen_in_ccomponent = True
+                bicomponent_set = bicomponent_set.union(m.parent_bicomponents)
+            single_connected_components.append(
+                graph_objects.Component(node_list, bicomponent_set))
+            total_single_component_count += 1
+
+# Identify connected components in the normal (non-"single") graph
 # NOTE that nodes_to_draw only contains node groups and nodes that aren't in
 # node groups. This allows us to run DFS on the nodes "inside" the node
 # groups, preserving the groups' existence while not counting them in DFS.
-operation_msg(config.COMPONENT_MSG)
 connected_components = []
 for n in nodes_to_draw:
     if not n.seen_in_ccomponent and not n.is_subsumed:
@@ -1083,6 +1107,29 @@ for n in nodes_to_draw:
             graph_objects.Component(node_list, node_group_list))
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
+
+if not distinct_single_graph:
+    # Get single_connected_components from connected_components
+    for c in connected_components:
+        single_node_list = []
+        bicomponent_set = set()
+        for n in c.node_list:
+            s = singlenodeid2obj[n.id_string]
+            single_node_list.append(s)
+            bicomponent_set = bicomponent_set.union(s.parent_bicomponents)
+        single_connected_components.append(
+            graph_objects.Component(single_node_list, bicomponent_set))
+        total_single_component_count += 1
+
+# At this point, we have single_connected_components ready. We're now able to
+# iterate through it and lay out each connected component, with biconnected
+# components replaced with solid rectangles.
+single_connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
+
+for scc in single_connected_components:
+    # TODO layout component scc
+    pass
+
 conclude_msg()
 
 operation_msg(config.DB_INIT_MSG + "%s..." % (db_fn))
