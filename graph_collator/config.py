@@ -111,6 +111,8 @@ SPQR_MSG = \
     "Generating SPQR tree decompositions for the bicomponents of the graph..."
 SPQR_LAYOUT_MSG = \
     "Laying out SPQR trees for each bicomponent in the graph..."
+SPQRVIEW_LAYOUT_MSG = \
+    "Laying out a SPQR-tree-integrated view of the graph..."
 BICOMPONENT_BUBBLE_SEARCH_MSG = \
     "Looking for complex bubbles in the graph using SPQR tree decompositions..."
 FRAYEDROPE_SEARCH_MSG = "Looking for frayed ropes in the graph..."

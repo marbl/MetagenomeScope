@@ -1187,17 +1187,13 @@ graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
             n50(bp_length_list), assembly_gc(total_gc_nt_count, total_length))
 cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
-
+operation_msg(config.SPQRVIEW_LAYOUT_MSG)
 single_component_size_rank = 1
+# NOTE code's a little redundant here, sorry
 for scc in single_connected_components:
-    # TODO layout component scc
-    # TODO send requisite operation_msgs?
-    # Also TODO maybe use sfdp to lay out these graphs? or something, idk
-    # Also also TODO if there's enough similarities, consider merging this
-    # process with the layout process for normal connected components below
-    # into a function or something.
-    # (...or just use a modified version of the process' code, that would
-    # probably be faster to implement)
+    # Layout this "single" connected component of the SPQR view
+    # TODO send operation_msgs per connected component, instead of just using
+    # the single "SPQRVIEW_LAYOUT_MSG"
     for bicomp in scc.node_group_list:
         bicomp.layout_isolated()
     # 1. send info to graphviz here, including:
@@ -1211,7 +1207,43 @@ for scc in single_connected_components:
     # bicomponents
     # 3. send info for single nodes, single edges, metanodes, edges between
     # metanodes, bicomponents, and single connected components to the .db file
+    scc_prefix = "%s_spqrview_%d" % (output_fn, single_component_size_rank)
+    gv_input = ""
+    gv_input += "digraph asm {\n"
+    if config.GRAPH_STYLE != "":
+        gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
+    if config.GLOBALNODE_STYLE != "":
+        gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
+    # In the layout of this single connected component, include:
+    # -rectangle nodes representing each bicomponent (will be backfilled)
+    # -nodes that aren't present in any biconnected components
+    # -edges that are not "in" any biconnected components (includes edges
+    # incident on biconnected components)
+    for bicomp in scc.node_group_list:
+        gv_input += bicomp.node_info()
+    for n in scc.node_list:
+        if len(n.parent_bicomponents) == 0:
+            gv_input += n.node_info()
+    # TODO add external edges here
+    # node -> node, node -> bicmp, bicmp -> node, bicmp -> bicmp
+    gv_input += "}"
+    h = pygraphviz.AGraph(gv_input)
+    # save the .gv file if the user requested .gv preservation
+    # NOTE the error messages from if these cannot be saved might be very
+    # slightly improperly formatted wonky (i.e. may contain an extra newline
+    # or so) because we don't handle that very in-depth here, unlike in the
+    # main loop below through the "normal" connected components in the graph.
+    # Will fix that later. (TODO)
+    if preserve_gv:
+        save_aux_file(scc_prefix + ".gv", gv_input, True)
+    # lay out the graph
+    h.layout(prog='sfdp')
+    # save the .xdot file if the user requested .xdot preservation
+    if preserve_xdot:
+        save_aux_file(scc_prefix + ".xdot", h, True)
+    # TODO get layout information
 
+conclude_msg()
 # Conclusion of script: Output (desired) components of nodes to the .gv file
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
 no_print = False # used to reduce excess printing (see issue #133 on GitHub)
