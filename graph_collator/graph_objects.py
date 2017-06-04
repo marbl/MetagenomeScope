@@ -99,6 +99,29 @@ class Edge(object):
                 self.component_size_rank, self.xdot_ctrl_pt_str,
                 self.xdot_ctrl_pt_count, group_id)
 
+    def s_db_values(self):
+        """Returns a tuple of the "values" of this Edge, for insertion
+           as a single edge contained within a metanode's skeleton in the
+           SPQR-integrated graph.
+
+           Should only be called after this edge has been laid out.
+        """
+        is_virtual_num = 1 if self.is_virtual else 0
+        return (self.source_id, self.target_id, self.component_size_rank,
+                self.xdot_ctrl_pt_str, self.xdot_ctrl_pt_count,
+                self.group.id_string, is_virtual_num)
+
+    def metanode_edge_db_values(self):
+        """Returns a tuple containing the values of this edge,
+           relying on the assumption that this edge is an edge between
+           metanodes inside a Bicomponent.
+
+           Should be called after parsing .xdot layout info for this edge.
+        """
+        return (self.source_id, self.target_id, self.component_size_rank,
+                self.xdot_ctrl_pt_str, self.xdot_ctrl_pt_count,
+                self.group.id_string)
+
     def __repr__(self):
         return "Edge from %s to %s" % (self.source_id, self.target_id)
 
@@ -150,7 +173,6 @@ class Node(object):
         # to reference the NodeGroup object in question
         self.group = None
         # Used in the case of nodes in an SPQR tree
-        self.parent_metanodes = []
         self.parent_metanode2relpos = {}
         # Indicates the Bicomponent(s) in which this node is present
         self.parent_bicomponents = set()
@@ -280,6 +302,35 @@ class Node(object):
         self.component_size_rank = component_size_rank
         for e in self.outgoing_edge_objects.values():
             e.component_size_rank = component_size_rank
+
+    def s_db_values(self, parent_metanode=None):
+        """Returns a tuple of the "values" of this Node, for insertion
+           as a single node (i.e. a node in the SPQR-integrated graph view).
+
+           If parent_metanode == None, then this just returns these values
+           with the parent_metanode_id entry set as None. (It's assumed in
+           this case that this node is not in any metanodes, and has
+           been assigned .xdot_x and .xdot_y values accordingly.)
+
+           Should only be called after this node (and its parent metanode,
+           if applicable) have been laid out.
+        """
+        x = y = 0
+        parent_metanode_id = None
+        if parent_metanode == None:
+            x = self.xdot_x
+            y = self.xdot_y
+        else:
+            # Use the coordinates of the node group in question to obtain
+            # the proper x and y coordinates of this node.
+            # also, get the ID string of the parent_metanode in question and
+            # set p_mn_id equal to that
+            relpos = self.parent_metanode2relpos[parent_metanode]
+            x = parent_metanode.xdot_left + relpos[0]
+            y = parent_metanode.xdot_bottom + relpos[1]
+            parent_metanode_id = parent_metanode.cy_id_string
+        return (self.id_string, self.component_size_rank, x, y,
+                self.xdot_width, self.xdot_height, parent_metanode_id)
 
     def db_values(self):
         """Returns a tuple of the "values" of this Node.
@@ -507,7 +558,7 @@ class SPQRMetaNode(NodeGroup):
     def __init__(self, bicomponent_id, spqr_id, metanode_type, nodes,
             internal_edges):
         # Matches a number in the filenames of component_*.info and spqr*gml
-        self.bicomponent_id = bicomponent_id
+        self.bicomponent_id = int(bicomponent_id)
         # The ID used in spqr*.gml files to describe the structure of the tree
         self.spqr_id = spqr_id
         self.metanode_type = metanode_type
@@ -515,8 +566,6 @@ class SPQRMetaNode(NodeGroup):
         # Used to maintain a list of edges we haven't reconciled with fancy
         # Edge objects yet (see layout_isolated() in this class)
         self.nonlaidout_edges = internal_edges[:]
-        for sn in nodes:
-            sn.parent_metanodes.append(self) 
         super(SPQRMetaNode, self).__init__(self.metanode_type, "", nodes,
                 spqr_related=True)
 
@@ -566,6 +615,8 @@ class SPQRMetaNode(NodeGroup):
             ep = n.attr[u'pos'].split(',')
             rel_x = float(ep[0]) - bounding_box_numeric[0]
             rel_y = float(ep[1]) - bounding_box_numeric[1]
+            curr_node.xdot_width = float(n.attr[u'width'])
+            curr_node.xdot_height = float(n.attr[u'height'])
             curr_node.parent_metanode2relpos[self] = (rel_x, rel_y)
         # Obtain edge layout info
         for e in cg.edges():
@@ -604,6 +655,17 @@ class SPQRMetaNode(NodeGroup):
         if len(self.nonlaidout_edges) > 0:
             raise ValueError, "All edges in metanode %s were not laid out" % \
                 (self.gv_id_string)
+
+    def db_values(self):
+        """Returns a tuple containing the values of this metanode, for
+           insertion into the .db file.
+
+           Should be called after parsing .xdot layout information for this
+           metanode.
+        """
+        return (self.id_string, self.component_size_rank, self.bicomponent_id,
+                self.xdot_left, self.xdot_bottom, self.xdot_right,
+                self.xdot_top)
 
 class Bicomponent(NodeGroup):
     """A biconnected component in the graph. We use this to store
@@ -692,7 +754,6 @@ class Bicomponent(NodeGroup):
             curr_node.xdot_rel_y = float(ep[1]) - bounding_box_numeric[1]
             curr_node.xdot_width = float(n.attr[u'width'])
             curr_node.xdot_height = float(n.attr[u'height'])
-            curr_node.xdot_shape = str(n.attr[u'shape'])
         # Obtain edge layout info
         for e in cg.edges():
             self.edge_count += 1
@@ -714,6 +775,17 @@ class Bicomponent(NodeGroup):
                 curr_edge.xdot_rel_ctrl_pt_str += str(y_coord)
                 p += 2
             curr_edge.group = self
+
+    def db_values(self):
+        """Returns the "values" of this Bicomponent, suitable for inserting
+           into the .db file.
+           
+           Note that this should only be called after this Bicomponent has
+           been laid out in the context of a single connected component.
+        """
+        return (int(self.bicomponent_id), self.component_size_rank,
+                self.xdot_left, self.xdot_bottom, self.xdot_right,
+                self.xdot_top)
 
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.
