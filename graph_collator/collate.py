@@ -373,6 +373,7 @@ total_length = 0
 total_gc_nt_count = 0
 total_component_count = 0
 total_single_component_count = 0
+total_bicomponent_count = 0
 # Used to determine whether or not we can scale edges by multiplicity/bundle
 # size. Currently we make the following assumptions (might need to change) --
 # -All LastGraph files contain edge multiplicity values
@@ -934,6 +935,7 @@ for cfn_id in bicomponentid2fn:
     metanode_list = metanodeid2obj.values()
     bicomponentid2obj[cfn_id] = graph_objects.Bicomponent(cfn_id, \
         metanode_list)
+    total_bicomponent_count += 1
 
 # Now that the potential bubbles have been detected by the spqr script, we
 # sort them ascending order of size and then create Bubble objects accordingly.
@@ -1155,7 +1157,7 @@ NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
 EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
-ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?)"
+ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?)"
 cursor.execute("""CREATE TABLE nodes
         (id text, label text, length integer, dnafwd text, gc_content real,
         depth real, component_rank integer, x real, y real, w real, h real,
@@ -1173,13 +1175,15 @@ cursor.execute("""CREATE TABLE components
         total_length integer, boundingbox_x real, boundingbox_y real)""")
 cursor.execute("""CREATE TABLE assembly
         (filename text, filetype text, node_count integer,
-        edge_count integer, component_count integer, total_length integer,
-        n50 integer, gc_content real)""")
+        edge_count integer, component_count integer, bicomponent_count integer,
+        single_component_count integer, total_length integer, n50 integer,
+        gc_content real)""")
 connection.commit()
 
 # Insert general assembly information into the database
 graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
-            total_edge_count, total_component_count, total_length,
+            total_edge_count, total_component_count, total_bicomponent_count,
+            total_single_component_count, total_length,
             n50(bp_length_list), assembly_gc(total_gc_nt_count, total_length))
 cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
