@@ -584,6 +584,8 @@ with open(asm_fn, 'r') as assembly_file:
                             stdev=curr_edge_stdev)
                     #single_graph_edges.append((curr_edge_src_id, \
                     #    curr_edge_tgt_id))
+                    singlenodeid2obj[curr_edge_src_id].add_outgoing_edge(
+                            singlenodeid2obj[curr_edge_tgt_id])
                     total_edge_count += 1
                     if curr_edge_bundlesize == None:
                         edge_weights_available = False
@@ -1196,20 +1198,9 @@ for scc in single_connected_components:
     # the single "SPQRVIEW_LAYOUT_MSG"
     for bicomp in scc.node_group_list:
         bicomp.layout_isolated()
-    # 1. send info to graphviz here, including:
-    # -node info of nodes not in any bicomponents, as well as edge info for
-    # edges with no .group attribute (with connections to nodes in bicomponents
-    # replaced with connections to the bicomponents themselves -- also, if a
-    # given node is in multiple bicomponents, duplicate the edges. TODO see
-    # what Dr. Pop has to say about that but I think that approach is ok)
-    # -bicomponents, represented as rectangular nodes
-    # 2. retrieve layout information for edges, bicomponents, nodes in
-    # bicomponents
-    # 3. send info for single nodes, single edges, metanodes, edges between
-    # metanodes, bicomponents, and single connected components to the .db file
     scc_prefix = "%s_spqrview_%d" % (output_fn, single_component_size_rank)
     gv_input = ""
-    gv_input += "digraph asm {\n"
+    gv_input += "graph single_ccomp {\n"
     if config.GRAPH_STYLE != "":
         gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
     if config.GLOBALNODE_STYLE != "":
@@ -1221,11 +1212,56 @@ for scc in single_connected_components:
     # incident on biconnected components)
     for bicomp in scc.node_group_list:
         gv_input += bicomp.node_info()
-    for n in scc.node_list:
-        if len(n.parent_bicomponents) == 0:
-            gv_input += n.node_info()
-    # TODO add external edges here
-    # node -> node, node -> bicmp, bicmp -> node, bicmp -> bicmp
+    for m in scc.node_list:
+        # Get node info for nodes not present in any bicomponents
+        # Also get edge info for edges "external" to bicomponents
+        if len(m.parent_bicomponents) == 0:
+            gv_input += m.node_info()
+            # We know m is not in a bicomponent. Get its "outgoing" edge info.
+            for n in m.outgoing_nodes:
+                if len(n.parent_bicomponents) == 0:
+                    # This edge is between two nodes, neither of which is in a
+                    # bicomponent. We can lay this edge out.
+                    gv_input += "\t%s -- %s;\n" % (m.id_string, n.id_string)
+                else:
+                    # m is not in a bicomponent, but n is. Lay out edges
+                    # between m and all of the parent bicomponents of n.
+                    for b in n.parent_bicomponents:
+                        gv_input += "\t%s -- cluster_%s;\n" % (m.id_string, \
+                            b.id_string)
+        else:
+            # We know m is in at least one bicomponent.
+            # Get its "outgoing" edge info (in case there are edges incident on
+            # m from outside one of its parent bicomponents)
+            for n in m.outgoing_nodes:
+                if len(n.parent_bicomponents) == 0:
+                    # m is in a bicomponent, but n is not. Lay out edges
+                    # between n and all of the parent bicomponents of m.
+                    for b in m.parent_bicomponents:
+                        gv_input += "\tcluster_%s -- %s;\n" % (b.id_string, \
+                            n.id_string)
+                else:
+                    # Both nodes are in at least one bicomponent.
+                    if len(m.parent_bicomponents.intersection( \
+                            n.parent_bicomponents)) > 0:
+                        # Since these two nodes share at least one bicomponent,
+                        # the edge between them must be present within a
+                        # bicomponent. Therefore rendering that edge would be
+                        # redundant.
+                        continue
+                    else:
+                        # Although both nodes are in >= 1 bicmps, they're in
+                        # different bicomponents (this is entirely possible;
+                        # consider the case where two 4-node "bubbles" in an
+                        # undirected graph are joined by a single edge between
+                        # two of their nodes).
+                        # Thus, this edge info is not present in either set of
+                        # bicomponents. So we should lay out edge(s) between
+                        # the parent bicomponents of m and n.
+                        for b1 in m.parent_bicomponents:
+                            for b2 in n.parent_bicomponents:
+                                gv_input += "\tcluster_%s -- cluster_%s;\n" % \
+                                        (b1.id_string, b2.id_string)
     gv_input += "}"
     h = pygraphviz.AGraph(gv_input)
     # save the .gv file if the user requested .gv preservation
@@ -1233,7 +1269,7 @@ for scc in single_connected_components:
     # slightly improperly formatted wonky (i.e. may contain an extra newline
     # or so) because we don't handle that very in-depth here, unlike in the
     # main loop below through the "normal" connected components in the graph.
-    # Will fix that later. (TODO)
+    # Will fix that later. (see TODO above)
     if preserve_gv:
         save_aux_file(scc_prefix + ".gv", gv_input, True)
     # lay out the graph
@@ -1241,7 +1277,11 @@ for scc in single_connected_components:
     # save the .xdot file if the user requested .xdot preservation
     if preserve_xdot:
         save_aux_file(scc_prefix + ".xdot", h, True)
-    # TODO get layout information
+    # TODO get layout information! Then reconcile it in the .db file!
+    # retrieve layout information for edges, bicomponents, nodes in
+    # bicomponents; send info for single nodes, single edges, metanodes,
+    # edges between metanodes, bicomponents, and single connected components
+    # to the .db file
 
 conclude_msg()
 # Conclusion of script: Output (desired) components of nodes to the .gv file
