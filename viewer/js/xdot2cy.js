@@ -73,7 +73,6 @@ var DB_FILENAME;
 var ASM_NODE_COUNT = 0;
 var ASM_EDGE_COUNT = 0;
 var CURR_NE = 0;
-var TOTAL_NE = 0;
 // How often (e.g. after how many nodes/half-edges) we update the progress
 // bar with its new value. Will be set in drawComponent() for the current
 // component being drawn, taking into account PROGRESSBAR_FREQ_PERCENT.
@@ -863,16 +862,15 @@ function parseDBcomponents() {
     var nodeInfo = ASM_NODE_COUNT.toLocaleString();
     var bpCt = graphInfo["total_length"];
     var bpInfo = bpCt.toLocaleString();
-    ASM_EDGE_COUNT = graphInfo["edge_count"];
-    TOTAL_NE = ASM_NODE_COUNT + ASM_EDGE_COUNT;
-    var edgeInfo = ASM_EDGE_COUNT.toLocaleString();
+    ASM_EDGE_COUNT = graphInfo["all_edge_count"];
+    var edgeCount = graphInfo["edge_count"];
+    var edgeInfo = edgeCount.toLocaleString();
     var compCt = graphInfo["component_count"];
     var compInfo = compCt.toLocaleString();
     var sccCt = graphInfo["single_component_count"];
     var sccInfo = sccCt.toLocaleString();
     var bicmpCt = graphInfo["bicomponent_count"];
     var bicmpInfo = bicmpCt.toLocaleString();
-    console.log(sccCt + " sccs, " + bicmpCt + " bicmps");
     // Record N50
     var n50 = graphInfo["n50"];
     var n50Info = n50.toLocaleString();
@@ -1354,7 +1352,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         intro = "Including <strong>both positive and negative</strong>" +
             " nodes and edges, the ";
         nodePercentage /= 2;
-        edgePercentage /= 2;
+        edgePercentage;
         all_nodes_edges_modifier = "all positive and negative";
     }
     // This is incredibly minor, but I always get annoyed at software that

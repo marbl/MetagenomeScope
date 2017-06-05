@@ -369,6 +369,7 @@ graph_filetype = ""
 distinct_single_graph = True
 total_node_count = 0
 total_edge_count = 0
+total_all_edge_count = 0
 total_length = 0
 total_gc_nt_count = 0
 total_component_count = 0
@@ -439,6 +440,10 @@ with open(asm_fn, 'r') as assembly_file:
                 if not (id1 == nid2 and id2 == nid1):
                     nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1],
                             multiplicity=mult)
+                    # Use total_all_edge_count to keep track of self-implying
+                    # edges' impact on the assembly; is used in viewer tool
+                    total_all_edge_count += 1
+                total_all_edge_count += 1
                 # Record this edge for graph statistics
                 total_edge_count += 1
             elif parsing_node:
@@ -587,6 +592,7 @@ with open(asm_fn, 'r') as assembly_file:
                     singlenodeid2obj[curr_edge_src_id].add_outgoing_edge(
                             singlenodeid2obj[curr_edge_tgt_id])
                     total_edge_count += 1
+                    total_all_edge_count += 1
                     if curr_edge_bundlesize == None:
                         edge_weights_available = False
                     # Clear tmp/marker vars
@@ -697,6 +703,8 @@ with open(asm_fn, 'r') as assembly_file:
                 # (see issue #105 on GitHub for context)
                 if not (id1 == nid2 and id2 == nid1):
                     nodeid2obj[nid2].add_outgoing_edge(nodeid2obj[nid1])
+                    total_all_edge_count += 1
+                total_all_edge_count += 1
                 # Update stats
                 total_edge_count += 1
     else:
@@ -1159,7 +1167,7 @@ NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
 EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
-ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?)"
+ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 SINGLENODE_INSERTION_STMT = "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?)"
 SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?,?,?)"
 BICOMPONENT_INSERTION_STMT = "INSERT INTO bicomponents VALUES (?,?,?,?,?,?)"
@@ -1183,9 +1191,9 @@ cursor.execute("""CREATE TABLE components
         total_length integer, boundingbox_x real, boundingbox_y real)""")
 cursor.execute("""CREATE TABLE assembly
         (filename text, filetype text, node_count integer,
-        edge_count integer, component_count integer, bicomponent_count integer,
-        single_component_count integer, total_length integer, n50 integer,
-        gc_content real)""")
+        edge_count integer, all_edge_count integer, component_count integer,
+        bicomponent_count integer, single_component_count integer,
+        total_length integer, n50 integer, gc_content real)""")
 # SPQR view tables
 cursor.execute("""CREATE TABLE singlenodes
         (id text, scc_rank integer, x real, y real, w real, h real,
@@ -1210,9 +1218,10 @@ connection.commit()
 
 # Insert general assembly information into the database
 graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
-            total_edge_count, total_component_count, total_bicomponent_count,
-            total_single_component_count, total_length,
-            n50(bp_length_list), assembly_gc(total_gc_nt_count, total_length))
+            total_edge_count, total_all_edge_count, total_component_count,
+            total_bicomponent_count, total_single_component_count,
+            total_length, n50(bp_length_list),
+            assembly_gc(total_gc_nt_count, total_length))
 cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
 operation_msg(config.SPQRVIEW_LAYOUT_MSG)
