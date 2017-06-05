@@ -254,6 +254,13 @@ function initGraph() {
                 }
             },
             {
+                selector: 'node.I',
+                style: {
+                    'border-width': 5,
+                    'border-color': '#000'
+                }
+            },
+            {
                 selector: 'node.S',
                 style: {
                     'background-color':'#F44242'
@@ -291,7 +298,15 @@ function initGraph() {
                     // illegible (or hard-to-read, at least) then don't
                     // render the text.
                     'min-zoomed-font-size': 12,
-                    shape: 'polygon'
+                }
+            },
+            {
+                // Used for individual nodes in a SPQR-integrated view
+                // (these nodes lack orientation, so they're drawn as just
+                // rectangles)
+                selector: 'node.noncluster.singlenode',
+                style: {
+                    shape: 'rectangle'
                 }
             },
             {
@@ -309,25 +324,29 @@ function initGraph() {
             {
                 selector: 'node.noncluster.updir',
                 style: {
-                    'shape-polygon-points': NODE_UPDIR
+                    'shape-polygon-points': NODE_UPDIR,
+                    shape: 'polygon'
                 }
             },
             {
                 selector: 'node.noncluster.downdir',
                 style: {
-                    'shape-polygon-points': NODE_DOWNDIR
+                    'shape-polygon-points': NODE_DOWNDIR,
+                    shape: 'polygon'
                 }
             },
             {
                 selector: 'node.noncluster.leftdir',
                 style: {
-                    'shape-polygon-points': NODE_LEFTDIR
+                    'shape-polygon-points': NODE_LEFTDIR,
+                    shape: 'polygon'
                 }
             },
             {
                 selector: 'node.noncluster.rightdir',
                 style: {
-                    'shape-polygon-points': NODE_RIGHTDIR
+                    'shape-polygon-points': NODE_RIGHTDIR,
+                    shape: 'polygon'
                 }
             },
             {
@@ -741,6 +760,8 @@ function rotateNode(n, i) {
         else if (n.hasClass("downdir")) n.removeClass("downdir");
         else if (n.hasClass("leftdir")) n.removeClass("leftdir");
         else if (n.hasClass("rightdir")) n.removeClass("rightdir");
+        // NOTE removed the data(house) property so if this is reimplemented it
+        // probably won't work properly without a bit of messing with it
         n.addClass(getNodeCoordClass(n.data("house")));
     }
     // We don't bother rotating cyclic chains or chains' shapes, because those
@@ -1252,15 +1273,15 @@ function drawSPQRComponent(cmpRank) {
     // Draw single nodes.
     updateTextStatus("Drawing nodes...");
     window.setTimeout(function() {
-        //cy.startBatch();
-        //var nodesStmt = CURR_DB.prepare(
-        //    "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
-        //CURR_NE = 0;
-        // TODO draw all single nodes, then metanode edges, then
-        // singleedges
-        //drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
-        //    clustersInComponent, componentNodeCount, componentEdgeCount,
-        //    totalElementCount);
+        cy.startBatch();
+        var nodesStmt = CURR_DB.prepare(
+            "SELECT * FROM singlenodes WHERE scc_rank = ?", [cmpRank]);
+        CURR_NE = 0;
+        // Draw all single nodes. After that's done, we'll draw all metanode
+        // edges, and then all single edges.
+        drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
+            bicmpsInComponent, componentNodeCount, componentEdgeCount,
+            totalElementCount, "SPQR");
     }, 0);
 }
 
@@ -1376,18 +1397,30 @@ function drawComponent(cmpRank) {
         CURR_NE = 0;
         drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             clustersInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount);
+            totalElementCount, "double");
     }, 0);
 }
 
+/* Draws nodes in the component, then switches to drawing edges.
+ * If mode is "SPQR" then this will handle those nodes' IDs/etc. specially.
+ * Otherwise, it's assumed that nodes are in a normal double graph.
+ */
 function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalElementCount) {
-    var currNode;
+        totalElementCount, mode) {
     if (nodesStmt.step()) {
-        currNode = nodesStmt.getAsObject();
+        var currNode = nodesStmt.getAsObject();
+        var currNodeID = currNode['id'];
+        var parentMetaNodeID = currNode['parent_metanode_id'];
         // Render the node object and save its position
-        node2pos[currNode['id']] = renderNodeObject(currNode, bb);
+        if (mode === "SPQR" && parentMetaNodeID !== null) {
+            // It's possible for us to have duplicates of this node, in this
+            // case. We construct this node's ID in Cytoscape.js as its actual
+            // ID suffixed by its parent metanode ID in order to disambiguate
+            // it from other nodes with the same ID in different metanodes.
+            currNodeID += ("_" + parentMetaNodeID);
+        }
+        node2pos[currNodeID]= renderNodeObject(currNode, currNodeID, bb, mode);
         componentNodeCount += 1;
         CURR_NE += 1;
         if (CURR_NE % PROGRESSBAR_FREQ === 0) {
@@ -1395,22 +1428,18 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             window.setTimeout(function() {
                 drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                     clustersInComponent, componentNodeCount,
-                    componentEdgeCount, totalElementCount);
+                    componentEdgeCount, totalElementCount, mode);
             }, 0);
         }
         else {
             drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                 clustersInComponent, componentNodeCount, componentEdgeCount,
-                totalElementCount);
+                totalElementCount, mode);
         }
     }
     else {
         nodesStmt.free();
         // Second part of "iterative" graph drawing: draw all nodes
-        // For what it's worth: This next line (endBatch()) actually draws all
-        // nodes, giving the user the appearance of the progress bar slowing
-        // down significantly at this point. Not sure if there's a way to
-        // circumvent this?
         cy.endBatch();
         cy.fit();
         updateTextStatus("Drawing edges...");
@@ -1418,31 +1447,40 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         // NOTE that we intentionally only consider edges within this component
         // Multiplicity is an inherently relative measure, so outliers in other
         // components will just mess things up in the current component.
-        var maxMult, minMult;
-        var maxMultiplicityStmt = CURR_DB.prepare(
-            "SELECT * FROM edges WHERE component_rank = ? " +
-            "ORDER BY multiplicity DESC LIMIT 1", [cmpRank]);
-        maxMultiplicityStmt.step();
-        maxMult = maxMultiplicityStmt.getAsObject()['multiplicity'];
-        maxMultiplicityStmt.free();
-        // If the assembly doesn't have edge multiplicity data, don't bother
-        // trying to find the minimum -- that'll also be null.
-        if (maxMult !== null) {
-            var minMultiplicityStmt = CURR_DB.prepare(
-                "SELECT * FROM edges WHERE component_rank = ? " + 
-                "ORDER BY multiplicity ASC LIMIT 1", [cmpRank]);
-            minMultiplicityStmt.step();
-            minMult = minMultiplicityStmt.getAsObject()['multiplicity'];
-            minMultiplicityStmt.free();
+        var maxMult = null;
+        var minMult = null;
+        var edgesStmt;
+        if (mode !== "SPQR") {
+            var maxMultiplicityStmt = CURR_DB.prepare(
+                "SELECT * FROM edges WHERE component_rank = ? " +
+                "ORDER BY multiplicity DESC LIMIT 1", [cmpRank]);
+            maxMultiplicityStmt.step();
+            maxMult = maxMultiplicityStmt.getAsObject()['multiplicity'];
+            maxMultiplicityStmt.free();
+            // If the assembly doesn't have edge multiplicity data, don't
+            // bother trying to find the minimum -- that'll also be null.
+            if (maxMult !== null) {
+                var minMultiplicityStmt = CURR_DB.prepare(
+                    "SELECT * FROM edges WHERE component_rank = ? " + 
+                    "ORDER BY multiplicity ASC LIMIT 1", [cmpRank]);
+                minMultiplicityStmt.step();
+                minMult = minMultiplicityStmt.getAsObject()['multiplicity'];
+                minMultiplicityStmt.free();
+            }
+            else {
+                minMult = null;
+            }
+            edgesStmt = CURR_DB.prepare(
+                "SELECT * FROM edges WHERE component_rank = ?", [cmpRank]);
         }
         else {
-            minMult = null;
+            edgesStmt = CURR_DB.prepare(
+                "SELECT * from metanodeedges where scc_rank = ?", [cmpRank]);
         }
-        var edgesStmt = CURR_DB.prepare(
-            "SELECT * FROM edges WHERE component_rank = ?", [cmpRank]);
-        drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
-            clustersInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount);
+        // TODO draw metanode edges and then single edges
+        //drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
+        //    clustersInComponent, componentNodeCount, componentEdgeCount,
+        //    totalElementCount);
     }
 }
 
@@ -2696,39 +2734,59 @@ function getNodeCoordClass(isHouse) {
     }
 }
 
-// Renders a given node object, obtained by getAsObject() from running a
-// query on CURR_DB for selecting rows from table nodes.
-// Returns the new (in Cytoscape.js coordinates) position of the node.
-function renderNodeObject(nodeObj, boundingboxObject) {
+/* Renders a given node object, obtained by getAsObject() from running a
+ * query on CURR_DB for selecting rows from table nodes.
+ * Returns the new (in Cytoscape.js coordinates) position of the node.
+ * cyNodeID is used as the node in Cytoscape.js for this node.
+ * If mode is "SPQR", then this handles that accordingly w/r/t node shape, etc.
+ */
+function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     var pos = gv2cyPoint(nodeObj['x'], nodeObj['y'],
         [boundingboxObject['boundingbox_x'],
          boundingboxObject['boundingbox_y']]);
-    var isHouse = nodeObj['shape'] === 'house';
-    var nodeID = nodeObj['id'];
-    var nodeLabel = nodeObj['label'];
-    COMPONENT_NODE_LABELS.push(nodeLabel);
-    // NOTE that NULL in sqlite gets translated to Javascript as null, which
-    // works perfectly for our use of the node parent field.
-    // Hence why we can just use the parent_cluster_id field directly.
-    var parentID = nodeObj['parent_cluster_id'];
-    var gc = nodeObj['gc_content'];
-    var gcColor = null;
-    if (gc !== null && gc !== undefined) {
-        gcColor = getNodeColorization(gc); 
+    
+    var nodeShapeClass = "singlenode";
+    if (mode !== "SPQR") {
+        nodeShapeClass = getNodeCoordClass(nodeObj['shape'] === 'house');
     }
-    var labelUsed = (nodeLabel === null) ? nodeID : nodeLabel;
-    cy.add({
-        classes: 'noncluster noncolorized ' + getNodeCoordClass(isHouse),
-        data: {id: nodeID, parent: parentID, label: labelUsed,
+    var nodeLabel = nodeObj['label'];
+    if (nodeLabel !== null && nodeLabel !== undefined) {
+        COMPONENT_NODE_LABELS.push(nodeLabel);
+    }
+    var parentID;
+    var nodeDepth, nodeLength, nodeGC;
+    if (mode === "SPQR") {
+        parentID = nodeObj['parent_metanode_id'];
+        // get metadata from the corresponding node in the "normal" graph
+        // (since we don't store metadata with singlenodes, for space purposes)
+        var nodeMetadataStmt = CURR_DB.prepare(
+            "SELECT length, depth, gc_content FROM nodes WHERE id = ?",
+            [nodeObj['id']]);
+        nodeMetadataStmt.step();
+        var nodeMetadataObj = nodeMetadataStmt.getAsObject()
+        nodeDepth = nodeMetadataObj['depth'];
+        nodeLength = nodeMetadataObj['length'];
+        nodeGC = nodeMetadataObj['gc_content'];
+        nodeMetadataStmt.free();
+    }
+    else {
+        parentID = nodeObj['parent_cluster_id'];
+        nodeDepth = nodeObj['depth'];
+        nodeLength = nodeObj['length'];
+        nodeGC = nodeObj['gc_content'];
+    }
+    var gcColor = null;
+    if (nodeGC !== null && nodeGC !== undefined) {
+        gcColor = getNodeColorization(nodeGC); 
+    }
+    var labelUsed = (nodeLabel === null) ? cyNodeID : nodeLabel;
+    var nodeData = {id: cyNodeID, label: labelUsed,
                w: INCHES_TO_PIXELS * nodeObj['h'],
-               h: INCHES_TO_PIXELS * nodeObj['w'],
-               // TODO: the "house" parameter might be too expensive?
-               house: isHouse, depth: nodeObj['depth'],
-               length: nodeObj['length'], gc_content: gc, gc_color: gcColor},
-        position: {x: pos[0], y: pos[1]}
-    });
+               h: INCHES_TO_PIXELS * nodeObj['w'], depth: nodeDepth,
+               length: nodeLength, gc_content: nodeGC, gc_color: gcColor};
     if (parentID !== null) {
-        cy.scratch("_ele2parent")[nodeID] = parentID;
+        nodeData["parent"] = parentID;
+        cy.scratch("_ele2parent")[cyNodeID] = parentID;
         // Allow for searching via node labels. This does increase the number
         // of entries in _ele2parent by |Nodes| (assuming every node in the
         // graph has a label given) -- so if that is too expensive for some
@@ -2736,6 +2794,10 @@ function renderNodeObject(nodeObj, boundingboxObject) {
         if (nodeLabel !== null)
             cy.scratch("_ele2parent")[nodeLabel] = parentID;
     }
+    cy.add({
+        classes: 'noncluster noncolorized ' + nodeShapeClass, data: nodeData,
+        position: {x: pos[0], y: pos[1]}
+    });
     return pos;
 }
 
@@ -2784,18 +2846,12 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     var topRightPos = gv2cyPoint(clusterObj['right'], clusterObj['top'],
         [boundingboxObject['boundingbox_x'],
          boundingboxObject['boundingbox_y']]);
-    var clusterData;
-    if (parent_bicmp_id === null) {
-        clusterData = {id: clusterID,
-            w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
-            h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
-            isCollapsed: false};
-    }
-    else {
-        clusterData = {id: clusterID, parent: parent_bicmp_id,
-            w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
-            h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
-            isCollapsed: false};
+    var clusterData = {id: clusterID,
+        w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
+        h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
+        isCollapsed: false};
+    if (parent_bicmp_id !== null) {
+        clusterData["parent"] = parent_bicmp_id;
     }
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(
         cy.add({
