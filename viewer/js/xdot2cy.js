@@ -1130,16 +1130,34 @@ function incrCompRank(componentSelectorID) {
     }
 }
 
-function startDrawComponent() {
-    var currRank = $("#componentselector").val();
-    if (compRankValidity(currRank, "#componentselector") !== 0) {
+/* If mode == "SPQR", begins drawing the SPQR-integrated component of the
+ * corresponding component rank selector; else, draws a component of the normal
+ * (double) graph.
+ */
+function startDrawComponent(mode) {
+    var selector = "#componentselector";
+    var drawFunc = drawComponent;
+    if (mode == "SPQR") {
+        selector = "#SPQRcomponentselector";
+        drawFunc = drawSPQRComponent;
+    }
+    var currRank = $(selector).val();
+    if (compRankValidity(currRank, selector) !== 0) {
         alert("Please enter a valid component rank using the input field.");
         return;
     }
     // if compRankValidity === 0, then currRank must represent just an
     // integer: so parseInt is fine to run on it
     updateTextStatus("Drawing clusters...");
-    window.setTimeout(drawComponent(parseInt(currRank)), 0);
+    window.setTimeout(drawFunc(parseInt(currRank)), 0);
+}
+
+/* Draws the selected connected component of the SPQR view. */
+function drawSPQRComponent(cmpRank) {
+    disableVolatileControls();
+    if (cy !== null) {
+        destroyGraph();
+    }
 }
 
 /* Draws the selected connected component in the .db file -- its nodes, its
