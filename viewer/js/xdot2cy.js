@@ -1061,13 +1061,15 @@ function toggleUTV() {
     TEXTURE_ON_VIEWPORT = !TEXTURE_ON_VIEWPORT;
 }
 
-/* Returns null if the value indicated by the string is not an integer (that
- * is, it matches the INTEGER_RE regex).
- * Returns -1 if it is an integer but is less than the min component rank
- * (using the min property of #componentselector in the DOM as a reference).
- * Returns 1 if it is an integer but is greater than the max component rank
- * (using the max property of #componentselector in the DOM as a reference).
+/* Returns null if the value indicated by the string is not an integer (we
+ * consider a string to be an integer if it matches the INTEGER_RE regex).
+ * Returns -1 if it is an integer but is less than the min component rank.
+ * Returns 1 if it is an integer but is greater than the max component rank.
  * Returns 0 if it is an integer and is within the range [min rank, max rank].
+ *
+ * (The min/max component rank values are obtained from $(csIDstr) -- it's
+ * assumed csIDstr is some string of the format "#xyz" where xyz corresponds to
+ * the ID of some input element with min/max properties.)
  *
  * We use this instead of just parseInt() because parseInt is (IMO) too
  * lenient when parsing integer values from strings, which can cause confusion
@@ -1130,7 +1132,7 @@ function incrCompRank(componentSelectorID) {
 
 function startDrawComponent() {
     var currRank = $("#componentselector").val();
-    if (compRankValidity(currRank) !== 0) {
+    if (compRankValidity(currRank, "#componentselector") !== 0) {
         alert("Please enter a valid component rank using the input field.");
         return;
     }
