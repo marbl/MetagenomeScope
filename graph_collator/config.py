@@ -85,7 +85,7 @@ CYCLE_STYLE      = "\tstyle=filled;\n\tfillcolor=darkgoldenrod1;\n"
 # in order to facilitate rotation in the .xdot viewer. (So I'd recommend not
 # changing that unless you have a good reason.)
 # Any text here must end without a semicolon.
-GRAPH_STYLE      = "xdotversion=1.7"
+GRAPH_STYLE      = "xdotversion=1.7;\n\toverlap=false"
 
 # Style applied to every node in the graph.
 # Keeping label="" is strongly recommended -- otherwise, node sizes will change
