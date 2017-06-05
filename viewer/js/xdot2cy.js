@@ -256,19 +256,21 @@ function initGraph() {
                 selector: 'node.I',
                 style: {
                     'border-width': 5,
-                    'border-color': '#000'
+                    'border-color': '#000',
+                    'background-color': '#aad'
+
                 }
             },
             {
                 selector: 'node.S',
                 style: {
-                    'background-color':'#F44242'
+                    'background-color':'#FFD644'
                 }
             },
             {
                 selector: 'node.P',
                 style: {
-                    'background-color':'#7E2DAD'
+                    'background-color':'#EB8EF9'
                 }
             },
             {
@@ -392,8 +394,13 @@ function initGraph() {
             {
                 selector: 'edge',
                 style: {
-                    'target-arrow-shape': 'triangle',
                     'width': 'data(thickness)'
+                }
+            },
+            {
+                selector: 'edge.oriented',
+                style: {
+                    'target-arrow-shape': 'triangle'
                 }
             },
             {
@@ -419,6 +426,12 @@ function initGraph() {
                 selector: 'edge.basicbezier',
                 style: {
                     'curve-style': 'bezier'
+                }
+            },
+            {
+                selector: 'edge.virtual',
+                style: {
+                    'line-style': 'dashed'
                 }
             },
             {
@@ -599,6 +612,10 @@ function addSelectedClusterInfo(ele) {
         case 'Y': clustType = "Cyclic Chain"; break;
         case 'B': clustType = "Bubble"; break;
         case 'F': clustType = "Frayed Rope"; break;
+        case 'I': clustType = "Bicomponent"; break;
+        case 'S': clustType = "Series Metanode"; break;
+        case 'P': clustType = "Parallel Metanode"; break;
+        case 'R': clustType = "Rigid Metanode"; break;
         default: clustType = "Invalid (error)";
     }
     var clustSize = ele.data("interiorNodeCount");
@@ -1205,6 +1222,7 @@ function drawSPQRComponent(cmpRank) {
     // Clear selected element information
     SELECTED_NODES = cy.collection();
     SELECTED_EDGES = cy.collection();
+    SELECTED_CLUSTERS = cy.collection();
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
     SELECTED_CLUSTER_COUNT = 0;
@@ -1250,9 +1268,12 @@ function drawSPQRComponent(cmpRank) {
     cy.startBatch();
     var bicmpsStmt = CURR_DB.prepare(
         "SELECT * FROM bicomponents WHERE scc_rank = ?", [cmpRank]);
+    // Use the return value of renderClusterObject() to update node2pos
+    var da;
     while (bicmpsStmt.step()) {
         bicmpsInComponent = true;
-        renderClusterObject(bicmpsStmt.getAsObject(), bb, "bicomponent");
+        da = renderClusterObject(bicmpsStmt.getAsObject(), bb, "bicomponent");
+        node2pos[da[0]] = da[1];
     }
     bicmpsStmt.free();
     // Draw graph "iteratively" -- display all clusters.
@@ -1264,7 +1285,8 @@ function drawSPQRComponent(cmpRank) {
     var metanodesStmt = CURR_DB.prepare(
         "SELECT * FROM metanodes where scc_rank = ?", [cmpRank]);
     while (metanodesStmt.step()) {
-        renderClusterObject(metanodesStmt.getAsObject(), bb, "metanode");
+        da = renderClusterObject(metanodesStmt.getAsObject(), bb, "metanode");
+        node2pos[da[0]] = da[1];
     }
     metanodesStmt.free();
     cy.endBatch();
@@ -1449,6 +1471,7 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         var maxMult = null;
         var minMult = null;
         var edgesStmt;
+        var edgeType = "doubleedge";
         if (mode !== "SPQR") {
             var maxMultiplicityStmt = CURR_DB.prepare(
                 "SELECT * FROM edges WHERE component_rank = ? " +
@@ -1475,21 +1498,22 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         else {
             edgesStmt = CURR_DB.prepare(
                 "SELECT * from metanodeedges where scc_rank = ?", [cmpRank]);
+            edgeType = "metanodeedge";
         }
-        // TODO draw metanode edges and then single edges
         drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
             clustersInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount);
+            totalElementCount, edgeType, mode);
     }
 }
 
+// If edgeType !== "double" then draws edges accordingly
+// related: if mode === "SPQR" then draws edges accordingly
 function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
         clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalElementCount) {
+        totalElementCount, edgeType, mode) {
     if (edgesStmt.step()) {
         renderEdgeObject(edgesStmt.getAsObject(), node2pos,
-            maxMult, minMult, bb, componentNodeCount, componentEdgeCount,
-            totalElementCount);
+            maxMult, minMult, bb, edgeType, mode);
         componentEdgeCount += 1;
         CURR_NE += 0.5;
         if (CURR_NE % PROGRESSBAR_FREQ === 0) {
@@ -1497,20 +1521,31 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
             window.setTimeout(function() {
                 drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
                     cmpRank, clustersInComponent, componentNodeCount,
-                    componentEdgeCount, totalElementCount);
+                    componentEdgeCount, totalElementCount, edgeType, mode);
             }, 0);
         }
         else {
             drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
                 cmpRank, clustersInComponent, componentNodeCount,
-                componentEdgeCount, totalElementCount);
+                componentEdgeCount, totalElementCount, edgeType, mode);
         }
     }
     else {
         edgesStmt.free();
-        removeBoundingBoxEnforcingNodes(bb);
-        finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
-            clustersInComponent);
+        if (mode === "SPQR" && edgeType === "metanodeedge") {
+            // we've drawn all the edges between metanodes. now draw all single
+            // edges -- that is, edges outside of biconnected components.
+            var singleEdgesStmt = CURR_DB.prepare(
+                "SELECT * from singleedges where scc_rank = ?", [cmpRank]);
+            drawComponentEdges(singleEdgesStmt, bb, node2pos, maxMult, minMult,
+                cmpRank, clustersInComponent, componentNodeCount,
+                componentEdgeCount, totalElementCount, "singleedge", mode);
+        }
+        else {
+            removeBoundingBoxEnforcingNodes(bb);
+            finishDrawComponent(cmpRank, componentNodeCount,
+                componentEdgeCount, clustersInComponent);
+        }
     }
 }
 
@@ -2778,7 +2813,13 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     if (nodeGC !== null && nodeGC !== undefined) {
         gcColor = getNodeColorization(nodeGC); 
     }
-    var labelUsed = (nodeLabel === null) ? cyNodeID : nodeLabel;
+    var labelUsed;
+    if (nodeLabel === null || nodeLabel == undefined) {
+        labelUsed = nodeObj['id'];
+    }
+    else {
+        labelUsed = nodeLabel;
+    }
     var nodeData = {id: cyNodeID, label: labelUsed,
                w: INCHES_TO_PIXELS * nodeObj['h'],
                h: INCHES_TO_PIXELS * nodeObj['w'], depth: nodeDepth,
@@ -2826,6 +2867,8 @@ function removeBoundingBoxEnforcingNodes(boundingboxObject) {
 // If spqrtype is "bicomponent" or "metanode", this does things slightly
 // differently than normal to make that work. Else, it just infers information
 // about this metanode from the clusterObj.
+// Returns an array of [clusterID, drawn position of this cluster], where the
+// position is itself an array of [x pos, y pos].
 function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     var clusterID;
     var parent_bicmp_id = null;
@@ -2852,14 +2895,15 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     if (parent_bicmp_id !== null) {
         clusterData["parent"] = parent_bicmp_id;
     }
+    var pos = [(bottomLeftPos[0] + topRightPos[0]) / 2,
+               (bottomLeftPos[1] + topRightPos[1]) / 2];
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(
         cy.add({
             classes: clusterID[0] + ' cluster ' + getClusterCoordClass(),
-            data: clusterData,
-            position: {x: (bottomLeftPos[0] + topRightPos[0]) / 2,
-                       y: (bottomLeftPos[1] + topRightPos[1]) / 2}
+            data: clusterData, position: {x: pos[0], y: pos[1]}
         })
     ));
+    return [clusterID, pos];
 }
 
 /* Renders edge object. Hopefully in a not-terrible way.
@@ -2867,21 +2911,60 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
  * Uses node2pos (mapping of node object from DB -> [x, y] position)
  * to calcluate relative control point weight stuff.
  *
- * This also relatively scales edge thickness based on multiplicity.
+ * If edgeType === "metanodeedge" then this accesses the edge's attributes
+ * accordingly. Otherwise, it assumes the edge has normal source_id and
+ * target_id parameters.
+ *
+ * If mode === "SPQR" then this does a few things differently (mostly related
+ * to not getting certain values from the edge's attributes, etc).
+ *
+ * This also relatively scales edge thickness based on multiplicity if
+ * maxMult === minMult.
  * NOTE that we don't scale edge thickness when using dot from collate.py,
  * since GraphViz doesn't adjust node placement based on edge thickness even
  * in extreme cases -- therefore we have free reign in this function to
  * adjust edge thickness, independent of the other parts of AsmViz.
  */
 function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
-        boundingboxObject) {
-    var sourceID = edgeObj['source_id'];
-    var targetID = edgeObj['target_id'];
-    var multiplicity = edgeObj['multiplicity'];
-    var thickness = edgeObj['thickness'];
-    var orientation = edgeObj['orientation'];
-    var mean = edgeObj['mean'];
-    var stdev = edgeObj['stdev'];
+        boundingboxObject, edgeType, mode) {
+    var sourceID, targetID;
+    if (edgeType === "metanodeedge") {
+        sourceID = edgeObj['source_metanode_id'];
+        targetID = edgeObj['target_metanode_id'];
+    }
+    else {
+        sourceID = edgeObj['source_id'];
+        targetID = edgeObj['target_id'];
+        if (mode === "SPQR") {
+            // we're drawing a singleedge.
+            // However, we may need to disambiguate the nodes in question.
+            var parent_mn_id = edgeObj['parent_metanode_id'];
+            if (parent_mn_id !== null) {
+                // This singleedge is in a metanode's skeleton. So we just draw
+                // it as a basicbezier edge and leave things at that.
+                sourceID += "_" + parent_mn_id;
+                targetID += "_" + parent_mn_id;
+                var edgeClasses = "basicbezier";
+                if (edgeObj['is_virtual'] !== 0) {
+                    edgeClasses += " virtual";
+                }
+                cy.add({
+                    classes: edgeClasses,
+                    data: {source: sourceID, target: targetID,
+                           thickness: MAX_EDGE_THICKNESS}
+                });
+                return;
+            }
+        }
+    }
+    var multiplicity, thickness, orientation, mean, stdev;
+    if (mode !== "SPQR") {
+        multiplicity = edgeObj['multiplicity'];
+        thickness = edgeObj['thickness'];
+        orientation = edgeObj['orientation'];
+        mean = edgeObj['mean'];
+        stdev = edgeObj['stdev'];
+    }
     // If bundle sizes are available, then don't show edges with a bundle size
     // below a certain threshold. NOTE that this feature is disabled for the
     // time being, but can be reenabled eventually (consider adding a minimum
@@ -2904,16 +2987,16 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
             ((multiplicity-minMult)/(maxMult-minMult)) * EDGE_THICKNESS_RANGE
         );
     }
-    var edgeID = sourceID + "->" + targetID;
-    if (edgeObj['parent_cluster_id'] !== null) {
-        cy.scratch("_ele2parent")[edgeID] = edgeObj['parent_cluster_id'];
-    }
+    //var edgeID = sourceID + "->" + targetID;
+    //if (edgeObj['parent_cluster_id'] !== null) {
+    //    cy.scratch("_ele2parent")[edgeID] = edgeObj['parent_cluster_id'];
+    //}
     if (sourceID === targetID) {
         // It's a self-directed edge; don't bother parsing ctrl pt
         // info, just render it as a bezier edge and be done with it
         cy.add({
-            classes: "basicbezier",
-            data: {id: edgeID, source: sourceID, target: targetID,
+            classes: "basicbezier oriented",
+            data: {source: sourceID, target: targetID,
                    thickness: edgeWidth, multiplicity: multiplicity,
                    orientation: orientation, mean: mean, stdev: stdev}
         });
@@ -2921,6 +3004,8 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     }
     var srcPos = node2pos[sourceID];
     var tgtPos = node2pos[targetID];
+    //console.log("src: " + sourceID);
+    //console.log("tgt: " + targetID);
     var srcSinkDist = distance(srcPos, tgtPos);
     var ctrlPts = ctrlPtStrToList(edgeObj['control_point_string'],
             [boundingboxObject['boundingbox_x'],
@@ -2985,20 +3070,24 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     }
     ctrlPtDists = ctrlPtDists.trim();
     ctrlPtWeights = ctrlPtWeights.trim();
-    var optionalClass = "";
+    var optionalClasses = "";
     if (ASM_FILETYPE === "GML") {
         // Mark edges where nodes don't overlap
         // TODO: Make this work with GFA edges also.
         // (See #190 on GitHub.)
-        if (mean > 0) {
-            optionalClass = " nooverlap";
+        if (mean !== null && mean !== undefined && mean > 0) {
+            optionalClasses += " nooverlap";
         }
     }
+    if (mode !== "SPQR" || edgeType === "metanodeedge") {
+        optionalClasses += " oriented";
+    }
+    // TODO add edge IDs back?
     if (nonzero) {
         // The control points should (hopefully) be valid
         cy.add({
-            classes: "unbundledbezier" + optionalClass,
-          data: {id: edgeID, source: sourceID, target: targetID,
+            classes: "unbundledbezier" + optionalClasses,
+          data: {source: sourceID, target: targetID,
                  cpd: ctrlPtDists, cpw: ctrlPtWeights,
                  thickness: edgeWidth, multiplicity: multiplicity,
                  orientation: orientation, mean: mean, stdev: stdev}
@@ -3008,8 +3097,8 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         // The control point distances are small enough that
         // we can just represent this as a straight bezier curve
       cy.add({
-          classes: "basicbezier" + optionalClass,
-          data: {id: edgeID, source: sourceID, target: targetID,
+          classes: "basicbezier" + optionalClasses,
+          data: {source: sourceID, target: targetID,
                  thickness: edgeWidth, multiplicity: multiplicity,
                  orientation: orientation, mean: mean, stdev: stdev}
       });
