@@ -1075,11 +1075,11 @@ function toggleUTV() {
  * component 2 is drawn, leading the user to somehow think that "2c" is a valid
  * connected component size rank).
  */
-function compRankValidity(strVal) {
+function compRankValidity(strVal, csIDstr) {
     if (strVal.match(INTEGER_RE) === null) return null;
     var intVal = parseInt(strVal);
-    if (intVal < parseInt($("#componentselector").prop("min"))) return -1;
-    if (intVal > parseInt($("#componentselector").prop("max"))) return 1;
+    if (intVal < parseInt($(csIDstr).prop("min"))) return -1;
+    if (intVal > parseInt($(csIDstr).prop("max"))) return 1;
     return 0;
 }
 
@@ -1091,18 +1091,19 @@ function compRankValidity(strVal) {
  *
  * Also, if the size rank is equal to the minimum size rank, nothing happens.
  */
-function decrCompRank() {
-    var currRank = $("#componentselector").val();
-    var minRank = parseInt($("#componentselector").prop("min"));
-    var validity = compRankValidity(currRank);
+function decrCompRank(componentSelectorID) {
+    var csIDstr = "#" + componentSelectorID;
+    var currRank = $(csIDstr).val();
+    var minRank = parseInt($(csIDstr).prop("min"));
+    var validity = compRankValidity(currRank, csIDstr);
     if (validity === null || parseInt(currRank) < (minRank + 1)) {
-        $("#componentselector").val(minRank);
+        $(csIDstr).val(minRank);
     }
     else if (validity === 1) {
-        $("#componentselector").val($("#componentselector").prop("max"));
+        $(csIDstr).val($(csIDstr).prop("max"));
     }
     else {
-        $("#componentselector").val(parseInt(currRank) - 1);
+        $(csIDstr).val(parseInt(currRank) - 1);
     }
 }
 
@@ -1111,18 +1112,19 @@ function decrCompRank() {
  *
  * Also, if the size rank is equal to the maximum size rank, nothing happens.
  */
-function incrCompRank() {
-    var currRank = $("#componentselector").val();
-    var maxRank = parseInt($("#componentselector").prop("max"));
-    var validity = compRankValidity(currRank);
+function incrCompRank(componentSelectorID) {
+    var csIDstr = "#" + componentSelectorID;
+    var currRank = $(csIDstr).val();
+    var maxRank = parseInt($(csIDstr).prop("max"));
+    var validity = compRankValidity(currRank, csIDstr);
     if (validity === null || validity === -1) {
-        $("#componentselector").val($("#componentselector").prop("min"));
+        $(csIDstr).val($(csIDstr).prop("min"));
     }
     else if (currRank > (maxRank - 1)) {
-        $("#componentselector").val(maxRank);
+        $(csIDstr).val(maxRank);
     }
     else {
-        $("#componentselector").val(parseInt(currRank) + 1);
+        $(csIDstr).val(parseInt(currRank) + 1);
     }
 }
 
