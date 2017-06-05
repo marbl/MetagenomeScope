@@ -12,5 +12,6 @@
 ./graph_collator/collate.py -i testgraphs/ship_hull_biofilm/oriented_judson.gml -o biofilm_judson -d testdbs/ -w
 ./graph_collator/collate.py -i testgraphs/ship_hull_biofilm/oriented_judson_2.gml -o biofilm_judson2 -d testdbs/ -w
 ./graph_collator/collate.py -i testgraphs/UpdatedBAMBUSfiles/oriented.gml -o 20170220 -d testdbs/ -w
+./graph_collator/collate.py - testgraphs/marygold/marygold_test.gml -o marygoldtest -d testdbs/ -w
 echo "Creating the (unsimplified) Shakya graph. This might take a few minutes."
 ./graph_collator/collate.py -i testgraphs/RF_oriented_lengthinfo.gml -o shakya -d testdbs/ -w
