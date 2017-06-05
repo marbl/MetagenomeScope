@@ -178,7 +178,6 @@ function initGraph() {
                 style: {
                     'background-opacity': 0.65,
                     'shape': 'square',
-                    'compound-sizing-wrt-labels': 'exclude',
                     'padding-top': 0,
                     'padding-right': 0,
                     'padding-left': 0,
@@ -1478,9 +1477,9 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                 "SELECT * from metanodeedges where scc_rank = ?", [cmpRank]);
         }
         // TODO draw metanode edges and then single edges
-        //drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
-        //    clustersInComponent, componentNodeCount, componentEdgeCount,
-        //    totalElementCount);
+        drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
+            clustersInComponent, componentNodeCount, componentEdgeCount,
+            totalElementCount);
     }
 }
 
