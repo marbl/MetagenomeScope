@@ -254,6 +254,24 @@ function initGraph() {
                 }
             },
             {
+                selector: 'node.S',
+                style: {
+                    'background-color':'#F44242'
+                }
+            },
+            {
+                selector: 'node.P',
+                style: {
+                    'background-color':'#7E2DAD'
+                }
+            },
+            {
+                selector: 'node.R',
+                style: {
+                    'background-color':'#31BF6F'
+                }
+            },
+            {
                 selector: 'node.bb_enforcing',
                 style: {
                     // Make these nodes invisible
@@ -1154,10 +1172,96 @@ function startDrawComponent(mode) {
 
 /* Draws the selected connected component of the SPQR view. */
 function drawSPQRComponent(cmpRank) {
+    // I copied most of this function from drawComponent() and pared it down to
+    // what we need for this use-case; sorry it's a bit gross
     disableVolatileControls();
     if (cy !== null) {
         destroyGraph();
     }
+    initGraph();
+    setGraphBindings();
+    var componentNodeCount = 0;
+    var componentEdgeCount = 0;
+    // Clear selected element information
+    SELECTED_NODES = cy.collection();
+    SELECTED_EDGES = cy.collection();
+    SELECTED_NODE_COUNT = 0;
+    SELECTED_EDGE_COUNT = 0;
+    SELECTED_CLUSTER_COUNT = 0;
+    $("#selectedNodeBadge").text(0);
+    $("#selectedEdgeBadge").text(0);
+    $("#selectedClusterBadge").text(0);
+    //// Disable other node colorization settings and check the "none" node
+    //// colorization option by default
+    //$("#noNodeColorizationOption").addClass("active");
+    //$("#gcNodeColorizationOption").removeClass("active")
+    //CURR_NODE_COLORIZATION = "none";
+    PREV_ROTATION = 0;
+    CURR_ROTATION = 90;
+    cy.scratch("_collapsed", cy.collection());
+    cy.scratch("_uncollapsed", cy.collection());
+    cy.scratch("_ele2parent", {});
+    // Now we render the nodes, edges, and clusters of this component.
+    // But first we need to get the bounding box of this component.
+    // Along with the component's total node count.
+    var bbStmt = CURR_DB.prepare(
+        "SELECT boundingbox_x, boundingbox_y, node_count, edge_count FROM " +
+        "singlecomponents WHERE size_rank = ? LIMIT 1", [cmpRank]);
+    bbStmt.step();
+    var fullObj = bbStmt.getAsObject();
+    bbStmt.free();
+    var bb = {'boundingbox_x': fullObj['boundingbox_x'],
+              'boundingbox_y': fullObj['boundingbox_y']};
+    var totalElementCount = fullObj['node_count'] +
+        (0.5 * fullObj['edge_count']); 
+    // Scale PROGRESS_BAR_FREQ relative to component size of nodes/edges
+    // This does ignore metanodes/bicomponents, but it's a decent approximation
+    PROGRESSBAR_FREQ= Math.floor(PROGRESSBAR_FREQ_PERCENT * totalElementCount);
+    // for calculating edge control point weight/distance
+    var node2pos = {};
+    // We check to see if the component contains >= 1 bicomponent. If so, we
+    // enable the collapse/uncollapse button; if not, we don't bother
+    // enabling the button and keep it disabled because it'd be useless.
+    // (We only need to check the bicomponents since metanodes will only be
+    // present in a SPQR-view connected component if there are also
+    // bicomponents [i.e. SPQR trees] for those metanodes to reside in.)
+    var bicmpsInComponent = false;
+    // Draw biconnected components.
+    cy.startBatch();
+    var bicmpsStmt = CURR_DB.prepare(
+        "SELECT * FROM bicomponents WHERE scc_rank = ?", [cmpRank]);
+    while (bicmpsStmt.step()) {
+        bicmpsInComponent = true;
+        renderClusterObject(bicmpsStmt.getAsObject(), bb, "bicomponent");
+    }
+    bicmpsStmt.free();
+    // Draw graph "iteratively" -- display all clusters.
+    drawBoundingBoxEnforcingNodes(bb);
+    cy.endBatch();
+    cy.fit();
+    // Draw metanodes.
+    cy.startBatch();
+    var metanodesStmt = CURR_DB.prepare(
+        "SELECT * FROM metanodes where scc_rank = ?", [cmpRank]);
+    while (metanodesStmt.step()) {
+        renderClusterObject(metanodesStmt.getAsObject(), bb, "metanode");
+    }
+    metanodesStmt.free();
+    cy.endBatch();
+    cy.fit();
+    // Draw single nodes.
+    updateTextStatus("Drawing nodes...");
+    window.setTimeout(function() {
+        //cy.startBatch();
+        //var nodesStmt = CURR_DB.prepare(
+        //    "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
+        //CURR_NE = 0;
+        // TODO draw all single nodes, then metanode edges, then
+        // singleedges
+        //drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
+        //    clustersInComponent, componentNodeCount, componentEdgeCount,
+        //    totalElementCount);
+    }, 0);
 }
 
 /* Draws the selected connected component in the .db file -- its nodes, its
@@ -1249,7 +1353,7 @@ function drawComponent(cmpRank) {
         "SELECT * FROM clusters WHERE component_rank = ?", [cmpRank]);
     while (clustersStmt.step()) {
         clustersInComponent = true;
-        renderClusterObject(clustersStmt.getAsObject(), bb);
+        renderClusterObject(clustersStmt.getAsObject(), bb, "cluster");
     }
     clustersStmt.free();
     // Draw graph "iteratively" -- display all clusters.
@@ -2656,21 +2760,47 @@ function removeBoundingBoxEnforcingNodes(boundingboxObject) {
 }
 
 // Renders a cluster object.
-function renderClusterObject(clusterObj, boundingboxObject) {
-    var clusterID = clusterObj["cluster_id"];
+// Used to draw bubbles, frayed ropes, chains, cyclic chains, bicomponents, and
+// metanodes.
+// If spqrtype is "bicomponent" or "metanode", this does things slightly
+// differently than normal to make that work. Else, it just infers information
+// about this metanode from the clusterObj.
+function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
+    var clusterID;
+    var parent_bicmp_id = null;
+    if (spqrtype == "bicomponent") {
+        clusterID = "I" + clusterObj["id_num"];
+    }
+    else if (spqrtype == "metanode") {
+        clusterID = clusterObj["metanode_id"]; 
+        parent_bicmp_id = "I" + clusterObj["parent_bicomponent_id_num"];
+    }
+    else {
+        clusterID = clusterObj["cluster_id"];
+    }
     var bottomLeftPos = gv2cyPoint(clusterObj['left'], clusterObj['bottom'],
         [boundingboxObject['boundingbox_x'],
          boundingboxObject['boundingbox_y']]);
     var topRightPos = gv2cyPoint(clusterObj['right'], clusterObj['top'],
         [boundingboxObject['boundingbox_x'],
          boundingboxObject['boundingbox_y']]);
+    var clusterData;
+    if (parent_bicmp_id === null) {
+        clusterData = {id: clusterID,
+            w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
+            h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
+            isCollapsed: false};
+    }
+    else {
+        clusterData = {id: clusterID, parent: parent_bicmp_id,
+            w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
+            h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
+            isCollapsed: false};
+    }
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(
         cy.add({
             classes: clusterID[0] + ' cluster ' + getClusterCoordClass(),
-            data: {id: clusterID,
-                w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
-                h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
-                isCollapsed: false},
+            data: clusterData,
             position: {x: (bottomLeftPos[0] + topRightPos[0]) / 2,
                        y: (bottomLeftPos[1] + topRightPos[1]) / 2}
         })
