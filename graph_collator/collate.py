@@ -1398,23 +1398,10 @@ for scc in single_connected_components:
                     cursor.execute(SINGLENODE_INSERTION_STMT,
                             sn.s_db_values(mn))
                 # Add edges between nodes within this metanode's skeleton to
-                # the .db file.
+                # the .db file. We just treat these edges as straight lines in
+                # the viewer, so we don't bother saving their layout info.
                 for se in mn.edges:
-                    p = 0
-                    clist = [float(c) for c in se.xdot_rel_ctrl_pt_str.split()]
-                    se.xdot_ctrl_pt_str = ""
-                    while p <= len(clist) - 2:
-                        if p > 0:
-                            se.xdot_ctrl_pt_str += " "
-                        xp = clist[p]
-                        yp = clist[p + 1]
-                        se.xdot_ctrl_pt_str += str(mn.xdot_left + xp)
-                        se.xdot_ctrl_pt_str += " "
-                        se.xdot_ctrl_pt_str += str(mn.xdot_bottom + yp)
-                        # Try to expand the component bounding box
-                        if xp > bounding_box_right: bounding_box_right = xp
-                        if yp > bounding_box_top: bounding_box_top = yp
-                        p += 2
+                    se.xdot_ctrl_pt_str = se.xdot_ctrl_pt_count = None
                     # Save this edge in the .db
                     single_component_edge_count += 1
                     se.component_size_rank = single_component_size_rank
