@@ -598,8 +598,10 @@
                                 <tr>
                                     <th>Input Filename</th>
                                     <th>Input Filetype</th>
-                                    <th>Node Count</th>
-                                    <th>Edge Count</th>
+                                    <th id="asmNodeCtTH">
+                                        Positive Node Count</th>
+                                    <th id="asmEdgeCtTH">
+                                        Positive Edge Count</th>
                                 </tr>
                                 <tr>
                                     <td id="filenameEntry"></td>
@@ -628,7 +630,8 @@
                             <table border="2"
                                     class="table table-condensed asmInfoTable">
                                 <tr>
-                                    <th>Total Node Length</th>
+                                    <th id="asmNodeLenTH">
+                                        Total Positive Node Length</th>
                                     <th>N50</th>
                                     <th id="asmGCTH">Assembly G/C Content</th>
                                 </tr>
@@ -641,22 +644,6 @@
                         </div>
                         <p id="currComponentInfo">
                             No connected component has been drawn yet.
-                        </p>
-                        <h3>For contig assembly graphs (LastGraph, GFA)</h3>
-                        <p>
-                            The <strong>node count</strong> and
-                            <strong>edge count</strong> fields in the table
-                            above (not in the percentage statistics) only
-                            include "positive" contigs and their edges from
-                            the assembly graph. If you would like to know
-                            these statistics with negative nodes included,
-                            then you can just multiply these fields by two.
-                        </p>
-                        <h3>For scaffolded assembly graphs
-                            (GML [Bambus 3])</h3>
-                        <p>
-                            All nodes are included in
-                            these statistics regardless of orientation.
                         </p>
                     </div>
                 </div> <!-- end modal-content div -->

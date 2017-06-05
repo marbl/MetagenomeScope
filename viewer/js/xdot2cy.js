@@ -862,7 +862,7 @@ function parseDBcomponents() {
     ASM_NODE_COUNT = graphInfo["node_count"];
     var nodeInfo = ASM_NODE_COUNT.toLocaleString();
     var bpCt = graphInfo["total_length"];
-    var bpInfo = bpCt.toLocaleString() + " bp";
+    var bpInfo = bpCt.toLocaleString();
     ASM_EDGE_COUNT = graphInfo["edge_count"];
     TOTAL_NE = ASM_NODE_COUNT + ASM_EDGE_COUNT;
     var edgeInfo = ASM_EDGE_COUNT.toLocaleString();
@@ -875,7 +875,7 @@ function parseDBcomponents() {
     console.log(sccCt + " sccs, " + bicmpCt + " bicmps");
     // Record N50
     var n50 = graphInfo["n50"];
-    var n50Info = n50.toLocaleString() + " bp";
+    var n50Info = n50.toLocaleString();
     // Record Assembly G/C content (not available for GML files)
     var asmGC = graphInfo["gc_content"];
     if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA") {
@@ -884,9 +884,25 @@ function parseDBcomponents() {
         $("#asmGCEntry").text(asmGCInfo);
         $("#asmGCTH").removeClass("notviewable");
         $("#asmGCEntry").removeClass("notviewable");
+        // Since the nodes in these graphs are unoriented (i.e. we draw both
+        // strands of each sequence of DNA included in the assembly graph),
+        // the individual nodes' units are in nucleotides (nt).
+        $("#asmNodeCtTH").text("Positive Node Count");
+        $("#asmEdgeCtTH").text("Positive Edge Count");
+        $("#asmNodeLenTH").text("Total Positive Node Length");
+        n50Info += " nt";
+        bpInfo += " nt";
     } else {
+        // The nodes in these graphs are oriented (i.e. each contig has a
+        // specified orientation), so we just draw one node per sequence.
+        // Thus, the individual nodes' units are in base pairs (bp).
         $("#asmGCTH").addClass("notviewable");
         $("#asmGCEntry").addClass("notviewable");
+        $("#asmNodeCtTH").text("Node Count");
+        $("#asmEdgeCtTH").text("Edge Count");
+        $("#asmNodeLenTH").text("Total Node Length");
+        n50Info += " bp";
+        bpInfo += " bp";
     }
     // Adjust UI elements
     document.title = DB_FILENAME + " (" + fnInfo + ")";
@@ -1346,7 +1362,8 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     var nodeNoun = (componentNodeCount === 1) ? "node" : "nodes";
     var edgeNoun = (componentEdgeCount === 1) ? "edge" : "edges";
     $("#currComponentInfo").html(intro + "current component (size rank "
-       + cmpRank + ") has <strong>" + componentNodeCount + " " + nodeNoun
+       + "<strong>" + cmpRank + "</strong>) has <strong>"
+       + componentNodeCount + " " + nodeNoun
        + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
        + "</strong>. This component contains <strong>"
        + nodePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
