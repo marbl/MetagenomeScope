@@ -69,9 +69,11 @@ html, body {
     left: 0em;
 }
 .infoTable {
-    /* TODO: slightly increase spacing between cell contents and border? */
     margin: 0 auto; /* Centers the table */
-    border-color: black;
+    border-color: #777;
+    /* slightly increase space between table's cells and borders */
+    border-collapse: separate;
+    border-spacing: 5px 0;
 }
 .modal-body {
     /* TODO: come up with a cleaner way of representing the table on small
