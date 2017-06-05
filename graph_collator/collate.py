@@ -1173,7 +1173,8 @@ SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?,?,?)"
 BICOMPONENT_INSERTION_STMT = "INSERT INTO bicomponents VALUES (?,?,?,?,?,?)"
 METANODE_INSERTION_STMT = "INSERT INTO metanodes VALUES (?,?,?,?,?,?,?)"
 METANODEEDGE_INSERTION_STMT = "INSERT INTO metanodeedges VALUES (?,?,?,?,?,?)"
-SINGLECOMPONENT_INSERTION_STMT = "INSERT INTO singlecomponents VALUES (?,?,?)"
+SINGLECOMPONENT_INSERTION_STMT = \
+    "INSERT INTO singlecomponents VALUES (?,?,?,?,?)"
 cursor.execute("""CREATE TABLE nodes
         (id text, label text, length integer, dnafwd text, gc_content real,
         depth real, component_rank integer, x real, y real, w real, h real,
@@ -1213,7 +1214,8 @@ cursor.execute("""CREATE TABLE metanodeedges
         control_point_string text, control_point_count integer,
         parent_bicomponent_id_num integer)""")
 cursor.execute("""CREATE TABLE singlecomponents
-        (size_rank integer, boundingbox_x real, boundingbox_y real)""")
+        (size_rank integer, node_count integer, edge_count integer,
+        boundingbox_x real, boundingbox_y real)""")
 connection.commit()
 
 # Insert general assembly information into the database
@@ -1224,6 +1226,7 @@ graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
             assembly_gc(total_gc_nt_count, total_length))
 cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
+
 operation_msg(config.SPQRVIEW_LAYOUT_MSG)
 single_component_size_rank = 1
 # NOTE code's a little redundant here, sorry
@@ -1231,6 +1234,8 @@ for scc in single_connected_components:
     # Layout this "single" connected component of the SPQR view
     # TODO send operation_msgs per connected component, instead of just using
     # the single "SPQRVIEW_LAYOUT_MSG"
+    # Lay out each Bicomponent in this component (this also lays out its child
+    # metanodes)
     for bicomp in scc.node_group_list:
         bicomp.layout_isolated()
     scc_prefix = "%s_spqrview_%d" % (output_fn, single_component_size_rank)
@@ -1313,6 +1318,8 @@ for scc in single_connected_components:
     if preserve_xdot:
         save_aux_file(scc_prefix + ".xdot", h, True)
 
+    single_component_node_count = 0
+    single_component_edge_count = 0
     # Retrieve layout information and use it to populate the .db file with
     # the necessary information to render the SPQR-integrated graph view
     # will be the bounding box of this single connected component's graph
@@ -1337,6 +1344,7 @@ for scc in single_connected_components:
             if right_side > bounding_box_right: bounding_box_right = right_side
             if top_side > bounding_box_top: bounding_box_top = top_side
             # Save this single node in the .db
+            single_component_node_count += 1
             curr_node.set_component_rank(single_component_size_rank)
             cursor.execute(SINGLENODE_INSERTION_STMT, curr_node.s_db_values())
         except KeyError: # arising from nodeid2obj[a bicomponent id]
@@ -1385,6 +1393,7 @@ for scc in single_connected_components:
                     # This is done this way because the "same" node can be in
                     # multiple metanodes in a SPQR, and -- even crazier, I know
                     # -- the same node can be in multiple bicomponents.
+                    single_component_node_count += 1
                     sn.set_component_rank(single_component_size_rank)
                     cursor.execute(SINGLENODE_INSERTION_STMT,
                             sn.s_db_values(mn))
@@ -1407,6 +1416,7 @@ for scc in single_connected_components:
                         if yp > bounding_box_top: bounding_box_top = yp
                         p += 2
                     # Save this edge in the .db
+                    single_component_edge_count += 1
                     se.component_size_rank = single_component_size_rank
                     cursor.execute(SINGLEEDGE_INSERTION_STMT, se.s_db_values())
             # Reconcile edges between metanodes in this bicomponent
@@ -1456,10 +1466,12 @@ for scc in single_connected_components:
         # Save this edge in the .db
         db_values = (source_id, target_id, single_component_size_rank,
                 xdot_ctrl_pt_str, xdot_ctrl_pt_count, None, 0)
+        single_component_edge_count += 1
         cursor.execute(SINGLEEDGE_INSERTION_STMT, db_values)
     # Output component information to the database
     cursor.execute(SINGLECOMPONENT_INSERTION_STMT,
-        (single_component_size_rank, bounding_box_right, bounding_box_top))
+        (single_component_size_rank, single_component_node_count,
+            single_component_edge_count, bounding_box_right, bounding_box_top))
 
     h.clear()
     h.close()
