@@ -868,6 +868,11 @@ function parseDBcomponents() {
     var edgeInfo = ASM_EDGE_COUNT.toLocaleString();
     var compCt = graphInfo["component_count"];
     var compInfo = compCt.toLocaleString();
+    var sccCt = graphInfo["single_component_count"];
+    var sccInfo = sccCt.toLocaleString();
+    var bicmpCt = graphInfo["bicomponent_count"];
+    var bicmpInfo = bicmpCt.toLocaleString();
+    console.log(sccCt + " sccs, " + bicmpCt + " bicmps");
     // Record N50
     var n50 = graphInfo["n50"];
     var n50Info = n50.toLocaleString() + " bp";
@@ -893,6 +898,8 @@ function parseDBcomponents() {
     $("#nodeCtEntry").text(nodeInfo); 
     $("#totalBPLengthEntry").text(bpInfo); 
     $("#edgeCountEntry").text(edgeInfo);
+    $("#sccCountEntry").text(sccInfo);
+    $("#bicmpCountEntry").text(bicmpInfo);
     $("#connCmpCtEntry").text(compInfo);
     $("#n50Entry").text(n50Info);
     $("#componentselector").prop("max", compCt);

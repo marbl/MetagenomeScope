@@ -193,7 +193,8 @@
                     id="nodeOpener"></span>
             </div>
             <div id="nodeInfo" class="notviewable">
-                <table border="2" id="nodeInfoTable" class="infoTable">
+                <table border="2" id="nodeInfoTable"
+                        class="eleInfoTable">
                     <tr>
                         <th colspan='5' id="nodeTH">
                             Selected Node Information</th>
@@ -215,7 +216,8 @@
                     id="edgeOpener"></span>
             </div>
             <div id="edgeInfo" class="notviewable">
-                <table border="2" id="edgeInfoTable" class="infoTable">
+                <table border="2" id="edgeInfoTable"
+                    class="eleInfoTable">
                 <tr>
                     <th colspan='6' id="edgeTH">Selected Edge Information</th>
                 </tr>
@@ -237,7 +239,8 @@
                     id="clusterOpener"></span>
             </div>
             <div id="clusterInfo" class="notviewable">
-                <table border="2" id="clusterInfoTable" class="infoTable">
+                <table border="2" id="clusterInfoTable"
+                    class="eleInfoTable">
                 <tr>
                     <th colspan='2'>Selected Cluster Information</th>
                 </tr>
@@ -589,28 +592,53 @@
                         </h4>
                     </div> <!-- end modal-header div -->
                     <div class="modal-body">
-                        <table border="2" class="infoTable">
-                            <tr>
-                                <th>Filename</th>
-                                <th>Filetype</th>
-                                <th>Node Count</th>
-                                <th>Total Node Length</th>
-                                <th>Edge Count</th>
-                                <th>Connected Component Count</th>
-                                <th>N50</th>
-                                <th id="asmGCTH">Assembly G/C Content</th>
-                            </tr>
-                            <tr>
-                                <td id="filenameEntry"></td>
-                                <td id="filetypeEntry"></td>
-                                <td id="nodeCtEntry"></td>
-                                <td id="totalBPLengthEntry"></td>
-                                <td id="edgeCountEntry"></td>
-                                <td id="connCmpCtEntry"></td>
-                                <td id="n50Entry"></td>
-                                <td id="asmGCEntry"></td>
-                            </tr>
-                        </table>
+                        <div class="table-responsive">
+                            <table border="2"
+                                    class="table table-condensed asmInfoTable">
+                                <tr>
+                                    <th>Input Filename</th>
+                                    <th>Input Filetype</th>
+                                    <th>Node Count</th>
+                                    <th>Edge Count</th>
+                                </tr>
+                                <tr>
+                                    <td id="filenameEntry"></td>
+                                    <td id="filetypeEntry"></td>
+                                    <td id="nodeCtEntry"></td>
+                                    <td id="edgeCountEntry"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="table-responsive">
+                            <table border="2"
+                                    class="table table-condensed asmInfoTable">
+                                <tr>
+                                    <th>"SPQR-view" Connected Component Count</th>
+                                    <th>Biconnected Component Count</th>
+                                    <th>Connected Component Count</th>
+                                </tr>
+                                <tr>
+                                    <td id="sccCountEntry"></td>
+                                    <td id="bicmpCountEntry"></td>
+                                    <td id="connCmpCtEntry"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="table-responsive">
+                            <table border="2"
+                                    class="table table-condensed asmInfoTable">
+                                <tr>
+                                    <th>Total Node Length</th>
+                                    <th>N50</th>
+                                    <th id="asmGCTH">Assembly G/C Content</th>
+                                </tr>
+                                <tr>
+                                    <td id="totalBPLengthEntry"></td>
+                                    <td id="n50Entry"></td>
+                                    <td id="asmGCEntry"></td>
+                                </tr>
+                            </table>
+                        </div>
                         <p id="currComponentInfo">
                             No connected component has been drawn yet.
                         </p>

@@ -68,8 +68,13 @@ html, body {
 .subsume {
     left: 0em;
 }
-.infoTable {
-    margin: 0 auto; /* Centers the table */
+.asmInfoTable {
+    /* Override Bootstrap's default CSS (which gives a margin-bottom of 20px on
+     * elements with class .table) */
+    margin-bottom: 10px !important;
+}
+.eleInfoTable {
+    margin: 0 auto; /* Center the table */
     border-color: #777;
     /* slightly increase space between table's cells and borders */
     border-collapse: separate;
