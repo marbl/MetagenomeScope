@@ -1453,6 +1453,14 @@ for scc in single_connected_components:
     for e in h.edges():
         source_id = e[0]
         target_id = e[1]
+        # slice off the "cluster_" prefix if this edge is incident on one or
+        # more biconnected components
+        # (this'll save space in the database, and it'll make interpreting this
+        # edge in the viewer application easier)
+        if source_id.startswith("cluster_"):
+            source_id = source_id[8:]
+        if target_id.startswith("cluster_"):
+            target_id = target_id[8:]
         xdot_ctrl_pt_str, coord_list, xdot_ctrl_pt_count = \
             graph_objects.Edge.get_control_points(e.attr[u'pos'])
         # Try to expand the component bounding box
