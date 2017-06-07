@@ -75,10 +75,10 @@ html, body {
 }
 .eleInfoTable {
     margin: 0 auto; /* Center the table */
-    border-color: #777;
-    /* slightly increase space between table's cells and borders */
-    border-collapse: separate;
-    border-spacing: 5px 0;
+    border-color: #555;
+}
+.eleInfoTable * {
+    text-align: center;
 }
 .modal-body {
     /* TODO: come up with a cleaner way of representing the table on small
