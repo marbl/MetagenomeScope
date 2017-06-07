@@ -180,7 +180,12 @@ function initGraph(viewType) {
                 selector: 'node.cluster',
                 style: {
                     'background-opacity': 0.65,
-                    'shape': 'square',
+                    'shape': 'square'
+                }
+            },
+            {
+                selector: 'node.cluster.structuralPattern',
+                style: {
                     'padding-top': 0,
                     'padding-right': 0,
                     'padding-left': 0,
@@ -258,9 +263,7 @@ function initGraph(viewType) {
             {
                 selector: 'node.I',
                 style: {
-                    'border-width': 5,
-                    'border-color': '#000',
-                    'background-color': '#aad'
+                    'background-color': '#aaa'
 
                 }
             },
@@ -2960,10 +2963,15 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     }
     var pos = [(bottomLeftPos[0] + topRightPos[0]) / 2,
                (bottomLeftPos[1] + topRightPos[1]) / 2];
+    var abbrev = clusterID[0];
+    var classes = abbrev + ' cluster ' + getClusterCoordClass();
+    if (abbrev === 'B' || abbrev === 'F' || abbrev === 'C' || abbrev === 'Y') {
+        classes += ' structuralPattern';
+    }
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(
         cy.add({
-            classes: clusterID[0] + ' cluster ' + getClusterCoordClass(),
-            data: clusterData, position: {x: pos[0], y: pos[1]}
+            classes: classes, data: clusterData,
+            position: {x: pos[0], y: pos[1]}
         })
     ));
     return [clusterID, pos];
