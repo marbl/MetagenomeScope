@@ -598,21 +598,41 @@ function addSelectedNodeInfo(ele) {
 
 function addSelectedEdgeInfo(ele) {
     // returns an array of two elements: [source node id, target node id]
-    var canonicalSourceAndTargetNode = ele.id().split("->");
+    var displaySourceID, displayTargetID;
+    if (CURR_VIEWTYPE === "SPQR" && ele.data("dispsrc") !== undefined) {
+        displaySourceID = ele.data("dispsrc");
+        displayTargetID = ele.data("disptgt");
+    }
+    else {
+        var canonicalSourceAndTargetNode = ele.id().split("->");
+        displaySourceID = canonicalSourceAndTargetNode[0];
+        displayTargetID = canonicalSourceAndTargetNode[1];
+    }
     var edgeRowHTML = "<tr class='nonheader' id='row" +
         ele.id().replace(">", "") + "'><td>" +
-        canonicalSourceAndTargetNode[0] + "</td><td>" +
-        canonicalSourceAndTargetNode[1] + TD_CLOSE;
+        displaySourceID + "</td><td>" + displayTargetID + TD_CLOSE;
     if (ASM_FILETYPE === "GML" || ASM_FILETYPE === "LastGraph")
-        edgeRowHTML += TD_START + ele.data("multiplicity") + TD_CLOSE;
+        edgeRowHTML += TD_START;
+        if (CURR_VIEWTYPE !== "SPQR") {
+            edgeRowHTML += ele.data("multiplicity");
+        }
+        else {
+            edgeRowHTML += "N/A";
+        }
+        edgeRowHTML += TD_CLOSE;
     if (ASM_FILETYPE === "GML") {
-        // Round mean and stdev entries both to two decimal places
-        // These values are just estimates so this rounding is okay
-        var meanEntry = Math.round(ele.data("mean") * 100) / 100;
-        var stdevEntry = Math.round(ele.data("stdev") * 100) / 100;
-        edgeRowHTML += TD_START + ele.data("orientation") + TD_CLOSE;
-        edgeRowHTML += TD_START + meanEntry + TD_CLOSE;
-        edgeRowHTML += TD_START + stdevEntry + TD_CLOSE;
+        if (CURR_VIEWTYPE === "SPQR") {
+            edgeRowHTML += "<td>N/A</td>N/A<td>N/A</td>N/A<td>N/A</td>";
+        }
+        else {
+            // Round mean and stdev entries both to two decimal places
+            // These values are just estimates so this rounding is okay
+            var meanEntry = Math.round(ele.data("mean") * 100) / 100;
+            var stdevEntry = Math.round(ele.data("stdev") * 100) / 100;
+            edgeRowHTML += TD_START + ele.data("orientation") + TD_CLOSE;
+            edgeRowHTML += TD_START + meanEntry + TD_CLOSE;
+            edgeRowHTML += TD_START + stdevEntry + TD_CLOSE;
+        }
     }
     edgeRowHTML += "</tr>";
     $("#edgeInfoTable").append(edgeRowHTML);
@@ -2929,13 +2949,20 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
 function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         boundingboxObject, edgeType, mode) {
     var sourceID, targetID;
+    // If the edge is in "regular mode", make its ID what it was before:
+    // srcID + "->" + tgtID.
+    // If this is in SPQR mode, give the edge displaySourceID and
+    // displayTargetID properties and then we'll use those in
+    // addSelectedEdgeInfo() based on CURR_VIEWTYPE.
     if (edgeType === "metanodeedge") {
         sourceID = edgeObj['source_metanode_id'];
         targetID = edgeObj['target_metanode_id'];
     }
     else {
-        sourceID = edgeObj['source_id'];
-        targetID = edgeObj['target_id'];
+        var displaySourceID = edgeObj['source_id'];
+        var displayTargetID = edgeObj['target_id'];
+        sourceID = displaySourceID;
+        targetID = displayTargetID;
         if (mode === "SPQR") {
             // we're drawing an edge in the SPQR-integrated view that is not
             // incident on metanodes. That is, this edge is either between two
@@ -2958,18 +2985,27 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
             cy.add({
                 classes: edgeClasses,
                 data: {source: sourceID, target: targetID,
+                       dispsrc: displaySourceID, disptgt: displayTargetID,
                        thickness: MAX_EDGE_THICKNESS}
             });
             return;
         }
     }
     var multiplicity, thickness, orientation, mean, stdev;
-    if (mode !== "SPQR") {
+    if (mode !== "SPQR") { // (edges between metanodes don't have metadata)
         multiplicity = edgeObj['multiplicity'];
         //thickness = edgeObj['thickness'];
         orientation = edgeObj['orientation'];
         mean = edgeObj['mean'];
         stdev = edgeObj['stdev'];
+    }
+    // If we're at this point, we're either in the regular view mode or we're
+    // drawing an edge between metanodes. In either case, this means that we
+    // know that this edge is not a multi-edge (i.e. it has a unique source and
+    // target). Therefore we can set the edge's ID as follows.
+    var edgeID = sourceID + "->" + targetID;
+    if (edgeObj['parent_cluster_id'] !== null) {
+        cy.scratch("_ele2parent")[edgeID] = edgeObj['parent_cluster_id'];
     }
     // If bundle sizes are available, then don't show edges with a bundle size
     // below a certain threshold. NOTE that this feature is disabled for the
@@ -2993,16 +3029,12 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
             ((multiplicity-minMult)/(maxMult-minMult)) * EDGE_THICKNESS_RANGE
         );
     }
-    //var edgeID = sourceID + "->" + targetID;
-    //if (edgeObj['parent_cluster_id'] !== null) {
-    //    cy.scratch("_ele2parent")[edgeID] = edgeObj['parent_cluster_id'];
-    //}
     if (sourceID === targetID) {
         // It's a self-directed edge; don't bother parsing ctrl pt
         // info, just render it as a bezier edge and be done with it
         cy.add({
             classes: "basicbezier oriented",
-            data: {source: sourceID, target: targetID,
+            data: {id: edgeID, source: sourceID, target: targetID,
                    thickness: edgeWidth, multiplicity: multiplicity,
                    orientation: orientation, mean: mean, stdev: stdev}
         });
@@ -3093,7 +3125,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         // The control points should (hopefully) be valid
         cy.add({
             classes: "unbundledbezier" + optionalClasses,
-          data: {source: sourceID, target: targetID,
+          data: {id: edgeID, source: sourceID, target: targetID,
                  cpd: ctrlPtDists, cpw: ctrlPtWeights,
                  thickness: edgeWidth, multiplicity: multiplicity,
                  orientation: orientation, mean: mean, stdev: stdev}
@@ -3104,7 +3136,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         // we can just represent this as a straight bezier curve
       cy.add({
           classes: "basicbezier" + optionalClasses,
-          data: {source: sourceID, target: targetID,
+          data: {id: edgeID, source: sourceID, target: targetID,
                  thickness: edgeWidth, multiplicity: multiplicity,
                  orientation: orientation, mean: mean, stdev: stdev}
       });
