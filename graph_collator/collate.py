@@ -934,12 +934,20 @@ for cfn_id in bicomponentid2fn:
                         source_metanode = metanodeid2obj[id_line_parts[1]]
                     elif id_line_parts[0] == "target":
                         target_metanode = metanodeid2obj[id_line_parts[1]]
+    # Determine root of the bicomponent and store it as part of the bicomponent
+    curr_metanode = metanodeid2obj.values()[0] 
+    while len(curr_metanode.incoming_nodes) > 0:
+        # A metanode in the tree can have at most 1 parent (because that is how
+        # trees work), so it's ok to just move up in the tree like so (because
+        # the .incoming_node lists of SPQRMetaNode objects will always
+        # have length 1)
+        curr_metanode = curr_metanode.incoming_nodes[0]
     # At this point, we've obtained the full contents of the tree: both the
     # skeletons of its metanodes, and the edges between metanodes. (This data
     # is stored as attributes of the SPQRMetaNode objects in question.)
     metanode_list = metanodeid2obj.values()
     bicomponentid2obj[cfn_id] = graph_objects.Bicomponent(cfn_id, \
-        metanode_list)
+        metanode_list, curr_metanode)
     total_bicomponent_count += 1
 
 # Now that the potential bubbles have been detected by the spqr script, we
@@ -1166,7 +1174,7 @@ ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 SINGLENODE_INSERTION_STMT = \
     "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?)"
-BICOMPONENT_INSERTION_STMT = "INSERT INTO bicomponents VALUES (?,?,?,?,?,?)"
+BICOMPONENT_INSERTION_STMT = "INSERT INTO bicomponents VALUES (?,?,?,?,?,?,?)"
 METANODE_INSERTION_STMT = "INSERT INTO metanodes VALUES (?,?,?,?,?,?,?)"
 METANODEEDGE_INSERTION_STMT = "INSERT INTO metanodeedges VALUES (?,?,?,?,?,?)"
 SINGLECOMPONENT_INSERTION_STMT = \
@@ -1200,8 +1208,8 @@ cursor.execute("""CREATE TABLE singleedges
         (source_id text, target_id text, scc_rank integer,
         parent_metanode_id text, is_virtual integer)""")
 cursor.execute("""CREATE TABLE bicomponents
-        (id_num integer, scc_rank integer, left real, bottom real, right real,
-        top real)""")
+        (id_num integer, root_metanode_id string, scc_rank integer, left real,
+        bottom real, right real, top real)""")
 cursor.execute("""CREATE TABLE metanodes
         (metanode_id text, scc_rank integer, parent_bicomponent_id_num integer,
         left real, bottom real, right real, top real)""")

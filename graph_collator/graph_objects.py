@@ -685,11 +685,12 @@ class Bicomponent(NodeGroup):
           the width/height determined from step 4)
     """
 
-    def __init__(self, bicomponent_id, metanode_list):
+    def __init__(self, bicomponent_id, metanode_list, root_metanode):
         # a string representation of an integer that matches an ID in
         # one component_*.info and one spqr*.gml file
         self.bicomponent_id = bicomponent_id
         self.metanode_list = metanode_list
+        self.root_metanode = root_metanode
         # Record this Bicomponent object as a parent of each single node within
         # each metanode.
         for mn in self.metanode_list:
@@ -783,9 +784,9 @@ class Bicomponent(NodeGroup):
            Note that this should only be called after this Bicomponent has
            been laid out in the context of a single connected component.
         """
-        return (int(self.bicomponent_id), self.component_size_rank,
-                self.xdot_left, self.xdot_bottom, self.xdot_right,
-                self.xdot_top)
+        return (int(self.bicomponent_id), self.root_metanode.id_string,
+                self.component_size_rank, self.xdot_left,
+                self.xdot_bottom, self.xdot_right, self.xdot_top)
 
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.
