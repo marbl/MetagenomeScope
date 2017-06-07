@@ -1841,7 +1841,12 @@ function clearSelectedInfo() {
 }
 
 /* Return a single string containing the DNA sequences of the selected
- * nodes, in FASTA format.
+ * nodes, in FASTA format. NOTE that this only works if nodes in the database
+ * have a dnafwd column, which (as of June 7, 2017) they don't. Hence why the
+ * button for calling this function is disabled at present.
+ * (There's some limits on data URI sizes that, given sufficiently large
+ * contigs, is relatively easy to hit -- that's why this feature is
+ * disabled at present.)
  */
 function getSelectedNodeDNA() {
     // Get DNA sequences from database file, and append them to a string
@@ -1851,7 +1856,7 @@ function getSelectedNodeDNA() {
     var seqIndex;
     var afterFirstSeqLine;
     SELECTED_NODES.each(function(e, i) {
-        // TODO Is there any way to make this more efficient? Like, via
+        // Is there any way to make this more efficient? Like, via
         // selecting multiple dnafwd values at once...?
         dnaStmt = CURR_DB.prepare("SELECT dnafwd FROM nodes WHERE id = ?",
             [e.id()]);

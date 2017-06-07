@@ -130,7 +130,7 @@ class Node(object):
        and as the superclass for groups of nodes.
     """
     def __init__(self, id_string, bp, is_complement, depth=None,
-                 gc_content=None, dna_fwd=None, label=None, is_single=False):
+                 gc_content=None, label=None, is_single=False):
         """Initializes the object. bp initially stood for "base pairs," but
            it really just means the length of this node. In single graphs
            that's measured in bp and in double graphs that's measured in nt.
@@ -141,7 +141,6 @@ class Node(object):
         self.bp = bp
         self.depth = depth
         self.gc_content = gc_content
-        self.dna_fwd = dna_fwd
         self.label = label
         # If True, we use the "flipped" node style
         self.is_complement = is_complement
@@ -354,7 +353,7 @@ class Node(object):
         if self.group != None:
             group_id = self.group.cy_id_string
         length = self.bp
-        return (self.id_string, self.label, length, self.dna_fwd, self.gc_content,
+        return (self.id_string, self.label, length, self.gc_content,
                 self.depth, self.component_size_rank, self.xdot_x,
                 self.xdot_y, self.xdot_width, self.xdot_height,
                 self.xdot_shape, group_id)

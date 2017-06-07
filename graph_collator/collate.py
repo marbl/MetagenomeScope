@@ -44,8 +44,6 @@ parser.add_argument("-px", "--preservexdot", required=False, default=False,
         help="save all .xdot files generated for connected components")
 parser.add_argument("-w", "--overwrite", required=False, default=False,
         action="store_true", help="overwrite output (.db/.gv/.xdot) files")
-parser.add_argument("-nodna", required=False, default=False,
-        action="store_true", help="do not store DNA sequences in .db file")
 parser.add_argument("-b", "--bicomponentsfile", required=False,
     help="file containing bicomponent information for the assembly graph" + \
         " (will be generated using the SPQR script in the output directory" + \
@@ -58,7 +56,6 @@ dir_fn = args.outputdirectory
 preserve_gv = args.preservegv
 preserve_xdot = args.preservexdot
 overwrite = args.overwrite
-use_dna = not args.nodna
 bicmps_fullfn = args.bicomponentsfile
 
 try:
@@ -457,8 +454,7 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_dnarev = line.strip()
                     curr_node_gcrev, gc_ct = gc_content(curr_node_dnarev)
                     total_gc_nt_count += gc_ct
-                    if not use_dna:
-                        curr_node_dnarev = None
+                    curr_node_dnarev = None
                     # In any case, now that we've parsed both the forward and
                     # reverse sequences for the node's DNA (or ignored the
                     # sequences, if the user passed the -nodna flag), we are
@@ -466,12 +462,10 @@ with open(asm_fn, 'r') as assembly_file:
                     # Node objects to be added to the .db file and used in the
                     # graph layout.
                     n = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                            depth=curr_node_depth, gc_content=curr_node_gcfwd,
-                            dna_fwd=curr_node_dnafwd)
+                            depth=curr_node_depth, gc_content=curr_node_gcfwd)
                     c = graph_objects.Node('-' + curr_node_id,
                             curr_node_bp, True, depth=curr_node_depth,
-                            gc_content=curr_node_gcrev,
-                            dna_fwd=curr_node_dnarev)
+                            gc_content=curr_node_gcrev)
                     nodeid2obj[curr_node_id] = n
                     nodeid2obj['-' + curr_node_id] = c
                     # Create single Node object, for the SPQR-integrated graph
@@ -503,8 +497,7 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_dnafwd = line.strip()
                     curr_node_gcfwd, gc_ct = gc_content(curr_node_dnafwd)
                     total_gc_nt_count += gc_ct
-                    if not use_dna:
-                        curr_node_dnafwd = None
+                    curr_node_dnafwd = None
     elif parsing_GML:
         graph_filetype = "GML"
         distinct_single_graph = False
@@ -663,13 +656,12 @@ with open(asm_fn, 'r') as assembly_file:
                     if curr_node_bp == None:
                         errmsg = config.SEQ_NOUN+curr_node_id+config.NO_DNA_ERR
                         raise ValueError, errmsg
-                if not use_dna:
-                    curr_node_dnafwd = None
-                    curr_node_dnarev = None
+                curr_node_dnafwd = None
+                curr_node_dnarev = None
                 nPos = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                        gc_content=curr_node_gc, dna_fwd=curr_node_dnafwd)
+                        gc_content=curr_node_gc)
                 nNeg = graph_objects.Node('-' + curr_node_id, curr_node_bp,
-                        True,gc_content=curr_node_gc, dna_fwd=curr_node_dnarev)
+                        True,gc_content=curr_node_gc)
                 nodeid2obj[curr_node_id] = nPos
                 nodeid2obj['-' + curr_node_id] = nNeg
                 # Create single Node object, for the SPQR-integrated graph
@@ -1166,7 +1158,7 @@ connection = sqlite3.connect(db_fullfn)
 cursor = connection.cursor()
 # Define statements used for inserting a value into these tables
 # The number of question marks has to match the number of table columns
-NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
@@ -1180,8 +1172,8 @@ METANODEEDGE_INSERTION_STMT = "INSERT INTO metanodeedges VALUES (?,?,?,?,?,?)"
 SINGLECOMPONENT_INSERTION_STMT = \
     "INSERT INTO singlecomponents VALUES (?,?,?,?,?)"
 cursor.execute("""CREATE TABLE nodes
-        (id text, label text, length integer, dnafwd text, gc_content real,
-        depth real, component_rank integer, x real, y real, w real, h real,
+        (id text, label text, length integer, gc_content real, depth real,
+        component_rank integer, x real, y real, w real, h real,
         shape text, parent_cluster_id text)""")
 cursor.execute("""CREATE TABLE edges
         (source_id text, target_id text, multiplicity integer, thickness real,

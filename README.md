@@ -73,7 +73,7 @@ Running `collate.py` will process an assembly graph file so that
 it can be visualized. The syntax for this is
 
 `./collate.py [-h] -i INPUTFILE -o OUTPUTPREFIX [-d OUTPUTDIRECTORY] [-pg]
-    [-px] [-w] [-nodna] [-b BICOMPONENTSFILE]`
+    [-px] [-w] [-b BICOMPONENTSFILE]`
 
 ### Script output
 
@@ -137,10 +137,6 @@ enabled).
 * `-d` This optional argument specifies the name of the directory in which
   all output files will be stored. If this argument is not indicated, then all
   files will be generated in the current working directory.
-* `-nodna` This optional argument, if given, does not store the DNA
-  sequences from assembly graph files in the output .db file. This
-  option can help save a large amount of space in .db files, making
-  processing them in AsmViz viewer faster.
 * `-pg` This optional argument produces DOT files (suffix .gv) in the output
   directory. As an example, given the arguments `-o prefix` and `-pg` for an
   assembly graph with 3 connected components, the files `prefix.db`,
@@ -171,7 +167,7 @@ enabled).
 ## Running viewer.html
 
 _NOTE -- due to a restructuring of the viewer user interface, this section is
-fairly out of date, sorry. I'll rewrite it when we're done or close to being
+out of date, sorry. I'll rewrite it when we're done or close to being
 done with the viewer UI; in the interim, if you have any questions about the
 viewer, please feel free to email me at mfedarko@umd.edu._
 
