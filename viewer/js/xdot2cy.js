@@ -556,9 +556,15 @@ function uncollapseCluster(cluster) {
 
 function addSelectedNodeInfo(ele) {
     var lengthEntry = ele.data("length").toLocaleString();
-    if (ASM_FILETYPE === "GML") { // scaffolds
+    if (ASM_FILETYPE === "GML" || CURR_VIEWTYPE === "SPQR") {
+        // These are oriented contigs (in a GML file), or they're directionless
+        // contigs (in the undirected SPQR view).
         lengthEntry += " bp";
-    } else { // contigs in a "double graph"
+    } else {
+        // These are unoriented contigs; each contig represents a piece of DNA,
+        // but since the contigs are unoriented we don't know which strand of
+        // DNA the contigs arise from. Therefore we represent them as two
+        // separate contigs, referred to as +/-.
         lengthEntry += " nt";
     }
     var eleID = ele.id();
