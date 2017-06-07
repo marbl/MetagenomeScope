@@ -1307,14 +1307,18 @@ function drawSPQRComponent(cmpRank) {
     var bicmpsStmt = CURR_DB.prepare(
         "SELECT * FROM bicomponents WHERE scc_rank = ?", [cmpRank]);
     var bicmpObj;
-    var root_metanode_ids = [];
+    var metanodeParams = [cmpRank];
+    var rootmnQuestionMarks = "(?,";
     while (bicmpsStmt.step()) {
         bicmpsInComponent = true;
         bicmpObj = bicmpsStmt.getAsObject();
         renderClusterObject(bicmpObj, bb, "bicomponent");
-        root_metanode_ids.push(bicmpObj['root_metanode_id']);
+        metanodeParams.push(bicmpObj['root_metanode_id']);
+        rootmnQuestionMarks += "?,";
     }
     bicmpsStmt.free();
+    rootmnQuestionMarks = rootmnQuestionMarks.substr(
+            0, rootmnQuestionMarks.lastIndexOf(",")) + ")";
     // Draw graph "iteratively" -- display all clusters.
     drawBoundingBoxEnforcingNodes(bb);
     cy.endBatch();
@@ -1322,8 +1326,10 @@ function drawSPQRComponent(cmpRank) {
     // Draw metanodes.
     cy.startBatch();
     var da;
+    // select only the root metanodes from this connected component
     var metanodesStmt = CURR_DB.prepare(
-        "SELECT * FROM metanodes where scc_rank = ?", [cmpRank]);
+        "SELECT * FROM metanodes WHERE scc_rank = ? AND metanode_id IN"
+        + rootmnQuestionMarks, metanodeParams);
     while (metanodesStmt.step()) {
         da = renderClusterObject(metanodesStmt.getAsObject(), bb, "metanode");
         // Use the return value of renderClusterObject() to update node2pos
@@ -1339,14 +1345,16 @@ function drawSPQRComponent(cmpRank) {
     updateTextStatus("Drawing nodes...");
     window.setTimeout(function() {
         cy.startBatch();
+        var spqrSpecs = "WHERE scc_rank = ? AND (parent_metanode_id IS NULL "
+            + "OR parent_metanode_id IN" + rootmnQuestionMarks + ")";
         var nodesStmt = CURR_DB.prepare(
-            "SELECT * FROM singlenodes WHERE scc_rank = ?", [cmpRank]);
+            "SELECT * FROM singlenodes " + spqrSpecs, metanodeParams);
         CURR_NE = 0;
         // Draw all single nodes. After that's done, we'll draw all metanode
         // edges, and then all single edges.
         drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             bicmpsInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount, "SPQR");
+            totalElementCount, "SPQR", spqrSpecs, metanodeParams);
     }, 0);
 }
 
@@ -1462,17 +1470,22 @@ function drawComponent(cmpRank) {
         CURR_NE = 0;
         drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             clustersInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount, "double");
+            totalElementCount, "double", "", []);
     }, 0);
 }
 
 /* Draws nodes in the component, then switches to drawing edges.
  * If mode is "SPQR" then this will handle those nodes' IDs/etc. specially.
  * Otherwise, it's assumed that nodes are in a normal double graph.
+ *
+ * (If mode is "SPQR" then spqrSpecs is interpreted as a string that can be
+ * suffixed to a SQLite query for selecting singlenodes/singleedges, and
+ * metanodeParams is interpreted as an array of cmpRank followed by all the
+ * root metanode IDs. If mode is not "SPQR" then those two values aren't used.)
  */
 function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalElementCount, mode) {
+        totalElementCount, mode, spqrSpecs, metanodeParams) {
     if (nodesStmt.step()) {
         var currNode = nodesStmt.getAsObject();
         var currNodeID = currNode['id'];
@@ -1493,13 +1506,14 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             window.setTimeout(function() {
                 drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                     clustersInComponent, componentNodeCount,
-                    componentEdgeCount, totalElementCount, mode);
+                    componentEdgeCount, totalElementCount, mode, spqrSpecs,
+                    metanodeParams);
             }, 0);
         }
         else {
             drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                 clustersInComponent, componentNodeCount, componentEdgeCount,
-                totalElementCount, mode);
+                totalElementCount, mode, spqrSpecs, metanodeParams);
         }
     }
     else {
@@ -1540,9 +1554,15 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                 "SELECT * FROM edges WHERE component_rank = ?", [cmpRank]);
         }
         else {
+            // Our use of spqrSpecs and metanodeParams in constructing this
+            // query is the only reason we bother passing them to
+            // drawComponentNodes() after we used them earlier to construct the
+            // query on singlenodes. Now that we have edgesStmt ready, we don't
+            // need to bother saving spqrSpecs and metanodeParams.
+            edgeType = "singleedge";
             edgesStmt = CURR_DB.prepare(
-                "SELECT * from metanodeedges where scc_rank = ?", [cmpRank]);
-            edgeType = "metanodeedge";
+                "SELECT * FROM singleedges " + spqrSpecs, metanodeParams);
+            // NOTE don't draw metanodeedges by default due to autocollapsing
         }
         drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
             clustersInComponent, componentNodeCount, componentEdgeCount,
@@ -1576,20 +1596,9 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
     }
     else {
         edgesStmt.free();
-        if (mode === "SPQR" && edgeType === "metanodeedge") {
-            // we've drawn all the edges between metanodes. now draw all single
-            // edges -- that is, edges outside of biconnected components.
-            var singleEdgesStmt = CURR_DB.prepare(
-                "SELECT * from singleedges where scc_rank = ?", [cmpRank]);
-            drawComponentEdges(singleEdgesStmt, bb, node2pos, maxMult, minMult,
-                cmpRank, clustersInComponent, componentNodeCount,
-                componentEdgeCount, totalElementCount, "singleedge", mode);
-        }
-        else {
-            removeBoundingBoxEnforcingNodes(bb);
-            finishDrawComponent(cmpRank, componentNodeCount,
-                componentEdgeCount, clustersInComponent, mode);
-        }
+        removeBoundingBoxEnforcingNodes(bb);
+        finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
+            clustersInComponent, mode);
     }
 }
 
