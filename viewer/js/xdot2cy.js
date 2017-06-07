@@ -1576,37 +1576,53 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
         else {
             removeBoundingBoxEnforcingNodes(bb);
             finishDrawComponent(cmpRank, componentNodeCount,
-                componentEdgeCount, clustersInComponent);
+                componentEdgeCount, clustersInComponent, mode);
         }
     }
 }
 
-function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
-        clustersInComponent) {
+// Updates a paragraph contained in the assembly info dialog with some general
+// information about the current connected component.
+function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
+        mode) {
     var intro = "The ";
-    var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
-    var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
+    var nodePercentage, edgePercentage;
+    if (mode !== "SPQR") {
+        var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
+        var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
+    }
     var all_nodes_edges_modifier = "the";
-    if ($("#filetypeEntry").text() !== "GML") {
+    if (mode !== "SPQR" && $("#filetypeEntry").text() !== "GML") {
         intro = "Including <strong>both positive and negative</strong>" +
             " nodes and edges, the ";
         nodePercentage /= 2;
-        edgePercentage;
         all_nodes_edges_modifier = "all positive and negative";
     }
     // This is incredibly minor, but I always get annoyed at software that
     // doesn't use correct grammar for stuff like this nowadays :P
     var nodeNoun = (componentNodeCount === 1) ? "node" : "nodes";
     var edgeNoun = (componentEdgeCount === 1) ? "edge" : "edges";
-    $("#currComponentInfo").html(intro + "current component (size rank "
-       + "<strong>" + cmpRank + "</strong>) has <strong>"
-       + componentNodeCount + " " + nodeNoun
+    var bodyText = intro + "current component (size rank <strong>"
+        + cmpRank + "</strong>) ";
+    if (mode === "SPQR") {
+        bodyText += "in the SPQR view ";
+    }
+    bodyText += "has <strong>" + componentNodeCount + " " + nodeNoun
        + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
-       + "</strong>. This component contains <strong>"
-       + nodePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
-       + " nodes</strong> in the assembly and <strong>"
-       + edgePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
-       + " edges</strong> in the assembly.");
+       + "</strong>.";
+    if (mode !== "SPQR") {
+        bodyText += " This component contains <strong>"
+            + nodePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
+            + " nodes</strong> in the assembly and <strong>"
+            + edgePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
+            + " edges</strong> in the assembly.";
+    }
+    $("#currComponentInfo").html(bodyText);
+}
+
+function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
+        clustersInComponent, mode) {
+    updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount, mode);
     // NOTE modified initClusters() to do cluster height after the fact.
     // This represents an inefficiency when parsing xdot files, although it
     // shouldn't really affect anything major.
