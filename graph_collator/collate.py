@@ -1169,7 +1169,7 @@ CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
 ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 SINGLENODE_INSERTION_STMT = "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?)"
-SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?,?,?)"
+SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?)"
 BICOMPONENT_INSERTION_STMT = "INSERT INTO bicomponents VALUES (?,?,?,?,?,?)"
 METANODE_INSERTION_STMT = "INSERT INTO metanodes VALUES (?,?,?,?,?,?,?)"
 METANODEEDGE_INSERTION_STMT = "INSERT INTO metanodeedges VALUES (?,?,?,?,?,?)"
@@ -1201,7 +1201,6 @@ cursor.execute("""CREATE TABLE singlenodes
         parent_metanode_id text)""")
 cursor.execute("""CREATE TABLE singleedges
         (source_id text, target_id text, scc_rank integer,
-        control_point_string text, control_point_count integer,
         parent_metanode_id text, is_virtual integer)""")
 cursor.execute("""CREATE TABLE bicomponents
         (id_num integer, scc_rank integer, left real, bottom real, right real,
@@ -1435,8 +1434,10 @@ for scc in single_connected_components:
             curr_cluster.component_size_rank = single_component_size_rank
             cursor.execute(BICOMPONENT_INSERTION_STMT,curr_cluster.db_values())
     # Record layout info of edges that aren't inside any bicomponents.
-    # We may have constructed duplicates of these edges, so we have to fill in
-    # the single edge insertion statement ourselves.
+    # Due to the possible construction of duplicates of these edges, we don't
+    # actually create Edge objects for these particular edges. So we
+    # have to fill in the single edge insertion statement ourselves (I guess we
+    # could just declare Edge objects right here, but that'd be kind of silly)
     for e in h.edges():
         source_id = e[0]
         target_id = e[1]
@@ -1450,7 +1451,7 @@ for scc in single_connected_components:
             target_id = target_id[8:]
         xdot_ctrl_pt_str, coord_list, xdot_ctrl_pt_count = \
             graph_objects.Edge.get_control_points(e.attr[u'pos'])
-        # Try to expand the component bounding box
+        # Try to expand the component bounding box (just to be safe)
         p = 0
         while p <= len(coord_list) - 2:
             x_coord = coord_list[p]
@@ -1459,8 +1460,17 @@ for scc in single_connected_components:
             if y_coord > bounding_box_top: bounding_box_top = y_coord
             p += 2
         # Save this edge in the .db
-        db_values = (source_id, target_id, single_component_size_rank,
-                xdot_ctrl_pt_str, xdot_ctrl_pt_count, None, 0)
+        # NOTE -- as of now we don't bother rendering this edge's
+        # sfdp-determined control points in the viewer interface, since
+        # most of these edges end up being normal straight lines/bezier curves
+        # anyway. If we decide to change this behavior to display these edges
+        # with control point info, then we can modify SINGLEEDGE_INSERTION_STMT
+        # above (as well as the database schema for the singleedges table) to
+        # store this data accordingly. (At this point, we've already computed
+        # xdot_ctrl_pt_str and xdot_ctrl_pt_count, so all that would really
+        # remain is storing that info in the database and handling it properly
+        # in the viewer interface.)
+        db_values = (source_id, target_id, single_component_size_rank, None, 0)
         single_component_edge_count += 1
         cursor.execute(SINGLEEDGE_INSERTION_STMT, db_values)
     # Output component information to the database

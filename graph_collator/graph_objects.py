@@ -104,11 +104,11 @@ class Edge(object):
            as a single edge contained within a metanode's skeleton in the
            SPQR-integrated graph.
 
-           Should only be called after this edge has been laid out.
+           Should only be called after this edge has been assigned a
+           component_size_rank.
         """
         is_virtual_num = 1 if self.is_virtual else 0
         return (self.source_id, self.target_id, self.component_size_rank,
-                self.xdot_ctrl_pt_str, self.xdot_ctrl_pt_count,
                 self.group.id_string, is_virtual_num)
 
     def metanode_edge_db_values(self):

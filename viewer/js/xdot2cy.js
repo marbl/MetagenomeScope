@@ -2788,20 +2788,11 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         COMPONENT_NODE_LABELS.push(nodeLabel);
     }
     var parentID;
-    var nodeDepth, nodeLength, nodeGC;
+    var nodeDepth = null;
+    var nodeLength = null;
+    var nodeGC = null;
     if (mode === "SPQR") {
         parentID = nodeObj['parent_metanode_id'];
-        // get metadata from the corresponding node in the "normal" graph
-        // (since we don't store metadata with singlenodes, for space purposes)
-        var nodeMetadataStmt = CURR_DB.prepare(
-            "SELECT length, depth, gc_content FROM nodes WHERE id = ?",
-            [nodeObj['id']]);
-        nodeMetadataStmt.step();
-        var nodeMetadataObj = nodeMetadataStmt.getAsObject()
-        nodeDepth = nodeMetadataObj['depth'];
-        nodeLength = nodeMetadataObj['length'];
-        nodeGC = nodeMetadataObj['gc_content'];
-        nodeMetadataStmt.free();
     }
     else {
         parentID = nodeObj['parent_cluster_id'];
@@ -2810,7 +2801,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         nodeGC = nodeObj['gc_content'];
     }
     var gcColor = null;
-    if (nodeGC !== null && nodeGC !== undefined) {
+    if (nodeGC !== null) {
         gcColor = getNodeColorization(nodeGC); 
     }
     var labelUsed;
@@ -2936,25 +2927,30 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         sourceID = edgeObj['source_id'];
         targetID = edgeObj['target_id'];
         if (mode === "SPQR") {
-            // we're drawing a singleedge.
-            // However, we may need to disambiguate the nodes in question.
+            // we're drawing an edge in the SPQR-integrated view that is not
+            // incident on metanodes. That is, this edge is either between two
+            // actual nodes, between a node and a bicomponent, or between two
+            // bicomponents.
+            // We render these edges as normal basicbeziers to simplify things
+            // (they usually seem to be straight lines/normal beziers anyway)
+            var edgeClasses = "basicbezier";
             var parent_mn_id = edgeObj['parent_metanode_id'];
             if (parent_mn_id !== null) {
-                // This singleedge is in a metanode's skeleton. So we just draw
-                // it as a basicbezier edge and leave things at that.
+                // This singleedge is in a metanode's skeleton.
                 sourceID += "_" + parent_mn_id;
                 targetID += "_" + parent_mn_id;
-                var edgeClasses = "basicbezier";
                 if (edgeObj['is_virtual'] !== 0) {
+                    // We do this check here because virtual edges can only
+                    // exist in metanode skeletons
                     edgeClasses += " virtual";
                 }
-                cy.add({
-                    classes: edgeClasses,
-                    data: {source: sourceID, target: targetID,
-                           thickness: MAX_EDGE_THICKNESS}
-                });
-                return;
             }
+            cy.add({
+                classes: edgeClasses,
+                data: {source: sourceID, target: targetID,
+                       thickness: MAX_EDGE_THICKNESS}
+            });
+            return;
         }
     }
     var multiplicity, thickness, orientation, mean, stdev;
