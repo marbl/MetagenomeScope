@@ -2784,8 +2784,13 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         nodeShapeClass = getNodeCoordClass(nodeObj['shape'] === 'house');
     }
     var nodeLabel = nodeObj['label'];
+    var labelUsed;
     if (nodeLabel !== null && nodeLabel !== undefined) {
         COMPONENT_NODE_LABELS.push(nodeLabel);
+        labelUsed = nodeLabel;
+    }
+    else {
+        labelUsed = nodeObj['id'];
     }
     var parentID;
     var nodeDepth = null;
@@ -2796,20 +2801,13 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     }
     else {
         parentID = nodeObj['parent_cluster_id'];
-        nodeDepth = nodeObj['depth'];
-        nodeLength = nodeObj['length'];
-        nodeGC = nodeObj['gc_content'];
     }
+    nodeDepth = nodeObj['depth'];
+    nodeLength = nodeObj['length'];
+    nodeGC = nodeObj['gc_content'];
     var gcColor = null;
     if (nodeGC !== null) {
         gcColor = getNodeColorization(nodeGC); 
-    }
-    var labelUsed;
-    if (nodeLabel === null || nodeLabel == undefined) {
-        labelUsed = nodeObj['id'];
-    }
-    else {
-        labelUsed = nodeLabel;
     }
     var nodeData = {id: cyNodeID, label: labelUsed,
                w: INCHES_TO_PIXELS * nodeObj['h'],
@@ -2956,7 +2954,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     var multiplicity, thickness, orientation, mean, stdev;
     if (mode !== "SPQR") {
         multiplicity = edgeObj['multiplicity'];
-        thickness = edgeObj['thickness'];
+        //thickness = edgeObj['thickness'];
         orientation = edgeObj['orientation'];
         mean = edgeObj['mean'];
         stdev = edgeObj['stdev'];
