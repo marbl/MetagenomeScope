@@ -53,6 +53,8 @@ const MIN_EDGE_THICKNESS = 3;
 const EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
 
 // Misc. global variables we use to get certain functionality
+// The current "view type" -- will always be one of {"SPQR", "double"}
+var CURR_VIEWTYPE;
 // In degrees CCW from the default up->down direction
 var PREV_ROTATION;
 var CURR_ROTATION;
@@ -136,9 +138,10 @@ if (!(window.File && window.FileReader)) {
 }
 
 // Initializes the Cytoscape.js graph instance.
-// Takes as two arguments the polygon-point strings used for non-RC nodes
-// (invhousePolygonPts) and for RC nodes (housePolygonPts).
-function initGraph() {
+// Takes as argument the "view type" of the graph to be drawn (see top of file
+// defn. of CURR_VIEWTYPE for details).
+function initGraph(viewType) {
+    CURR_VIEWTYPE = viewType;
     cy = cytoscape({
         container: document.getElementById("cy"),
         layout: {
@@ -559,8 +562,19 @@ function addSelectedNodeInfo(ele) {
         lengthEntry += " nt";
     }
     var eleID = ele.id();
-    var nodeRowHTML = "<tr class='nonheader' id='row" + eleID + "'><td>" +
-        eleID + TD_CLOSE;
+    var nodeRowHTML = "<tr class='nonheader' id='row" + eleID + "'><td>";
+    // Add node ID here. If we're in the SPQR viewing mode, nodes' IDs are
+    // unambiguous, but contain extra info (they're suffixed by the name of
+    // their parent metanode, if present). However, there's not really a need
+    // to show the user this information, so we truncate the displayed IDs
+    // accordingly. (Otherwise, we just show the user the entire node ID.)
+    if (CURR_VIEWTYPE === "SPQR") {
+        nodeRowHTML += eleID.split("_")[0];
+    }
+    else {
+        nodeRowHTML += eleID;
+    }
+    nodeRowHTML += TD_CLOSE;
     if (ASM_FILETYPE === "GML") {
         nodeRowHTML += TD_START + ele.data("label") + TD_CLOSE;
     }
@@ -1215,7 +1229,7 @@ function drawSPQRComponent(cmpRank) {
     if (cy !== null) {
         destroyGraph();
     }
-    initGraph();
+    initGraph("SPQR");
     setGraphBindings();
     var componentNodeCount = 0;
     var componentEdgeCount = 0;
@@ -1229,11 +1243,9 @@ function drawSPQRComponent(cmpRank) {
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
-    //// Disable other node colorization settings and check the "none" node
-    //// colorization option by default
-    //$("#noNodeColorizationOption").addClass("active");
-    //$("#gcNodeColorizationOption").removeClass("active")
-    //CURR_NODE_COLORIZATION = "none";
+    $("#noNodeColorizationOption").addClass("active");
+    $("#gcNodeColorizationOption").removeClass("active")
+    CURR_NODE_COLORIZATION = "none";
     PREV_ROTATION = 0;
     CURR_ROTATION = 90;
     cy.scratch("_collapsed", cy.collection());
@@ -1320,7 +1332,7 @@ function drawComponent(cmpRank) {
         // we include this here as well
         destroyGraph();
     }
-    initGraph();
+    initGraph("double");
     setGraphBindings();
     var componentNodeCount = 0;
     var componentEdgeCount = 0;
