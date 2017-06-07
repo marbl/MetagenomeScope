@@ -443,9 +443,12 @@ function initGraph(viewType) {
             {
                 // Used to differentiate edges without an overlap between nodes
                 // in graphs where overlap data is given
+                // this conflicts with virtual edges' style, so we may want to
+                // change this in the future
+                // (using "dotted" lines was really slow)
                 selector: 'edge.nooverlap',
                 style: {
-                    'line-style': 'dotted'
+                    'line-style': 'dashed'
                 }
             }
         ]
@@ -677,9 +680,13 @@ function setGraphBindings() {
     // We store added edges + removed nodes/edges in element-level
     // data, to facilitate only doing the work of determining which
     // elements to remove/etc. once (the first time around)
-    cy.on('cxttap', 'node',
+    cy.on('cxttap', 'node.cluster.structuralPattern',
         function(e) {
             // Prevent collapsing being done during iterative drawing
+            // NOTE: In retrospect, I think that thanks to the use of
+            // autoungrabify/autounselectify while drawing the graph that
+            // this is arguably not needed, but there isn't really any harm
+            // in keeping it around for the time being
             if (!$("#fitButton").hasClass("disabled")) {
                 var node = e.target;
                 if (node.hasClass("cluster")) {
@@ -2560,9 +2567,11 @@ function searchForEles() {
  * process.
  */
 function startCollapseAll() {
-    var currVal = $("#collapseButtonText").text();
-    startIndeterminateProgressBar();
-    window.setTimeout(function() { collapseAll(currVal[0]) }, 50);
+    if (CURR_VIEWTYPE !== "SPQR") {
+        var currVal = $("#collapseButtonText").text();
+        startIndeterminateProgressBar();
+        window.setTimeout(function() { collapseAll(currVal[0]) }, 50);
+    }
 }
 
 /* Collapse/uncollapse all compound nodes in the graph.
