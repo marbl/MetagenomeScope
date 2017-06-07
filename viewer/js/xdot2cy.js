@@ -688,13 +688,20 @@ function setGraphBindings() {
             // this is arguably not needed, but there isn't really any harm
             // in keeping it around for the time being
             if (!$("#fitButton").hasClass("disabled")) {
-                var node = e.target;
-                if (node.hasClass("cluster")) {
-                    toggleCluster(node);
-                }
+                toggleCluster(e.target);
             }
         }
     );
+
+    // Enable SPQR tree expansion/compression
+    cy.on('cxttap', 'node.cluster.spqrMetanode',
+        function(e) {
+            if (!$("#fitButton").hasClass("disabled")) {
+                var mn = e.target;
+            }
+        }
+    );
+
     // I can't believe this actually works -- "this is too convenient
     // to actually work the first time I try it"...
     // This fixes all bad (invalid, so invisible) edges as soon as the
@@ -2977,6 +2984,11 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     if (abbrev === 'B' || abbrev === 'F' || abbrev === 'C' || abbrev === 'Y') {
         classes += ' structuralPattern';
     }
+    else if (abbrev === 'S' || abbrev === 'P' || abbrev === 'R') {
+        classes += ' spqrMetanode';
+    }
+    // NOTE that bicomponents don't match either of the above conditions, so we
+    // don't tag them as metanodes or as structural patterns. This is intended.
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(
         cy.add({
             classes: classes, data: clusterData,
