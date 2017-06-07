@@ -1306,12 +1306,13 @@ function drawSPQRComponent(cmpRank) {
     cy.startBatch();
     var bicmpsStmt = CURR_DB.prepare(
         "SELECT * FROM bicomponents WHERE scc_rank = ?", [cmpRank]);
-    // Use the return value of renderClusterObject() to update node2pos
-    var da;
+    var bicmpObj;
+    var root_metanode_ids = [];
     while (bicmpsStmt.step()) {
         bicmpsInComponent = true;
-        da = renderClusterObject(bicmpsStmt.getAsObject(), bb, "bicomponent");
-        node2pos[da[0]] = da[1];
+        bicmpObj = bicmpsStmt.getAsObject();
+        renderClusterObject(bicmpObj, bb, "bicomponent");
+        root_metanode_ids.push(bicmpObj['root_metanode_id']);
     }
     bicmpsStmt.free();
     // Draw graph "iteratively" -- display all clusters.
@@ -1320,10 +1321,15 @@ function drawSPQRComponent(cmpRank) {
     cy.fit();
     // Draw metanodes.
     cy.startBatch();
+    var da;
     var metanodesStmt = CURR_DB.prepare(
         "SELECT * FROM metanodes where scc_rank = ?", [cmpRank]);
     while (metanodesStmt.step()) {
         da = renderClusterObject(metanodesStmt.getAsObject(), bb, "metanode");
+        // Use the return value of renderClusterObject() to update node2pos
+        // (we don't do this for bicomponents because the edges incident on
+        // those are all drawn as basicbeziers, so there's no need to know
+        // bicomponents' positions)
         node2pos[da[0]] = da[1];
     }
     metanodesStmt.free();
