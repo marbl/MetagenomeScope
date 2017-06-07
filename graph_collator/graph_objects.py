@@ -329,7 +329,8 @@ class Node(object):
             x = parent_metanode.xdot_left + relpos[0]
             y = parent_metanode.xdot_bottom + relpos[1]
             parent_metanode_id = parent_metanode.cy_id_string
-        return (self.id_string, self.component_size_rank, x, y,
+        return (self.id_string, self.label, self.bp, self.gc_content,
+                self.depth, self.component_size_rank, x, y,
                 self.xdot_width, self.xdot_height, parent_metanode_id)
 
     def db_values(self):

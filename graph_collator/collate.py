@@ -476,6 +476,7 @@ with open(asm_fn, 'r') as assembly_file:
                     nodeid2obj['-' + curr_node_id] = c
                     # Create single Node object, for the SPQR-integrated graph
                     sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
+                            depth=curr_node_depth, gc_content=curr_node_gcfwd,
                             is_single=True)
                     singlenodeid2obj[curr_node_id] = sn
                     # Record this node for graph statistics
@@ -550,7 +551,7 @@ with open(asm_fn, 'r') as assembly_file:
                     nodeid2obj[curr_node_id] = n
                     # Create single Node object, for the SPQR-integrated graph
                     sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                            is_single=True)
+                            label=curr_node_label, is_single=True)
                     singlenodeid2obj[curr_node_id] = sn
                     # Record this node for graph statistics
                     total_node_count += 1
@@ -673,7 +674,7 @@ with open(asm_fn, 'r') as assembly_file:
                 nodeid2obj['-' + curr_node_id] = nNeg
                 # Create single Node object, for the SPQR-integrated graph
                 sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                        is_single=True)
+                        gc_content=curr_node_gc, is_single=True)
                 singlenodeid2obj[curr_node_id] = sn
                 # Update stats
                 total_node_count += 1
@@ -1168,7 +1169,8 @@ EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
 ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?)"
-SINGLENODE_INSERTION_STMT = "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?)"
+SINGLENODE_INSERTION_STMT = \
+    "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?)"
 BICOMPONENT_INSERTION_STMT = "INSERT INTO bicomponents VALUES (?,?,?,?,?,?)"
 METANODE_INSERTION_STMT = "INSERT INTO metanodes VALUES (?,?,?,?,?,?,?)"
@@ -1197,7 +1199,8 @@ cursor.execute("""CREATE TABLE assembly
         total_length integer, n50 integer, gc_content real)""")
 # SPQR view tables
 cursor.execute("""CREATE TABLE singlenodes
-        (id text, scc_rank integer, x real, y real, w real, h real,
+        (id text, label text, length integer, gc_content real, depth real,
+        scc_rank integer, x real, y real, w real, h real,
         parent_metanode_id text)""")
 cursor.execute("""CREATE TABLE singleedges
         (source_id text, target_id text, scc_rank integer,
