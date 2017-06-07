@@ -787,6 +787,8 @@ if distinct_single_graph:
     s_edges_fn = output_fn + "_single_links"
     s_edges_fn_text = ""
     for e in single_graph_edges:
+        # (the other values we add are just dummy values -- they don't impact
+        # the biconnected components/SPQR trees that we obtain from the script)
         line = e[0] + "\tB\t" + e[1] + "\tB\t0\t0\t0\n"
         s_edges_fn_text += line
     save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
