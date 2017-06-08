@@ -664,7 +664,7 @@ class SPQRMetaNode(NodeGroup):
            metanode.
         """
         return (self.id_string, self.component_size_rank, self.bicomponent_id,
-                self.xdot_left, self.xdot_bottom, self.xdot_right,
+                self.bp, self.xdot_left, self.xdot_bottom, self.xdot_right,
                 self.xdot_top)
 
 class Bicomponent(NodeGroup):

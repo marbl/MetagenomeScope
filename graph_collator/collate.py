@@ -1175,10 +1175,10 @@ SINGLENODE_INSERTION_STMT = \
     "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?)"
 BICOMPONENT_INSERTION_STMT = "INSERT INTO bicomponents VALUES (?,?,?,?,?,?,?)"
-METANODE_INSERTION_STMT = "INSERT INTO metanodes VALUES (?,?,?,?,?,?,?)"
+METANODE_INSERTION_STMT = "INSERT INTO metanodes VALUES (?,?,?,?,?,?,?,?)"
 METANODEEDGE_INSERTION_STMT = "INSERT INTO metanodeedges VALUES (?,?,?,?,?,?)"
 SINGLECOMPONENT_INSERTION_STMT = \
-    "INSERT INTO singlecomponents VALUES (?,?,?,?,?)"
+    "INSERT INTO singlecomponents VALUES (?,?,?,?,?,?,?,?)"
 cursor.execute("""CREATE TABLE nodes
         (id text, label text, length integer, gc_content real, depth real,
         component_rank integer, x real, y real, w real, h real,
@@ -1212,13 +1212,15 @@ cursor.execute("""CREATE TABLE bicomponents
         bottom real, right real, top real)""")
 cursor.execute("""CREATE TABLE metanodes
         (metanode_id text, scc_rank integer, parent_bicomponent_id_num integer,
-        left real, bottom real, right real, top real)""")
+        total_length integer, left real, bottom real, right real, top real)""")
 cursor.execute("""CREATE TABLE metanodeedges
         (source_metanode_id text, target_metanode_id text, scc_rank integer,
         control_point_string text, control_point_count integer,
         parent_bicomponent_id_num integer)""")
 cursor.execute("""CREATE TABLE singlecomponents
-        (size_rank integer, node_count integer, edge_count integer,
+        (size_rank integer, uncompressed_node_count integer,
+        uncompressed_edge_count integer, compressed_node_count integer,
+        compressed_edge_count integer, bicomponent_count integer,
         boundingbox_x real, boundingbox_y real)""")
 connection.commit()
 
@@ -1254,25 +1256,39 @@ for scc in single_connected_components:
     # -nodes that aren't present in any biconnected components
     # -edges that are not "in" any biconnected components (includes edges
     # incident on biconnected components)
+
+    # Keep track of counts of singlenodes and singleedges that are
+    # specifically contained within either the root metanodes of the graph,
+    # or outside of any bicomponents. Since these nodes and edges are going to
+    # be drawn when the SPQR view is initially rendered, we need to know these
+    # counts so we can update the progress bar accordingly.
+    sc_compressed_node_count = 0
+    sc_compressed_edge_count = 0
+    sc_bicomponent_count = len(scc.node_group_list)
     for bicomp in scc.node_group_list:
         gv_input += bicomp.node_info()
+        sc_compressed_node_count += len(bicomp.root_metanode.nodes)
+        sc_compressed_edge_count += len(bicomp.root_metanode.internal_edges)
     for m in scc.node_list:
         # Get node info for nodes not present in any bicomponents
         # Also get edge info for edges "external" to bicomponents
         if len(m.parent_bicomponents) == 0:
             gv_input += m.node_info()
+            sc_compressed_node_count += 1
             # We know m is not in a bicomponent. Get its "outgoing" edge info.
             for n in m.outgoing_nodes:
                 if len(n.parent_bicomponents) == 0:
                     # This edge is between two nodes, neither of which is in a
                     # bicomponent. We can lay this edge out.
                     gv_input += "\t%s -- %s;\n" % (m.id_string, n.id_string)
+                    sc_compressed_edge_count += 1
                 else:
                     # m is not in a bicomponent, but n is. Lay out edges
                     # between m and all of the parent bicomponents of n.
                     for b in n.parent_bicomponents:
                         gv_input += "\t%s -- cluster_%s;\n" % (m.id_string, \
                             b.id_string)
+                        sc_compressed_edge_count += 1
         else:
             # We know m is in at least one bicomponent.
             # Get its "outgoing" edge info (in case there are edges incident on
@@ -1284,6 +1300,7 @@ for scc in single_connected_components:
                     for b in m.parent_bicomponents:
                         gv_input += "\tcluster_%s -- %s;\n" % (b.id_string, \
                             n.id_string)
+                        sc_compressed_edge_count += 1
                 else:
                     # Both nodes are in at least one bicomponent.
                     if len(m.parent_bicomponents.intersection( \
@@ -1306,6 +1323,7 @@ for scc in single_connected_components:
                             for b2 in n.parent_bicomponents:
                                 gv_input += "\tcluster_%s -- cluster_%s;\n" % \
                                         (b1.id_string, b2.id_string)
+                                sc_compressed_edge_count += 1
     gv_input += "}"
     h = pygraphviz.AGraph(gv_input)
     # save the .gv file if the user requested .gv preservation
@@ -1322,8 +1340,8 @@ for scc in single_connected_components:
     if preserve_xdot:
         save_aux_file(scc_prefix + ".xdot", h, True)
 
-    single_component_node_count = 0
-    single_component_edge_count = 0
+    sc_node_count = 0
+    sc_edge_count = 0
     # Retrieve layout information and use it to populate the .db file with
     # the necessary information to render the SPQR-integrated graph view
     # will be the bounding box of this single connected component's graph
@@ -1348,7 +1366,7 @@ for scc in single_connected_components:
             if right_side > bounding_box_right: bounding_box_right = right_side
             if top_side > bounding_box_top: bounding_box_top = top_side
             # Save this single node in the .db
-            single_component_node_count += 1
+            sc_node_count += 1
             curr_node.set_component_rank(single_component_size_rank)
             cursor.execute(SINGLENODE_INSERTION_STMT, curr_node.s_db_values())
         except KeyError: # arising from nodeid2obj[a bicomponent id]
@@ -1397,7 +1415,7 @@ for scc in single_connected_components:
                     # This is done this way because the "same" node can be in
                     # multiple metanodes in a SPQR, and -- even crazier, I know
                     # -- the same node can be in multiple bicomponents.
-                    single_component_node_count += 1
+                    sc_node_count += 1
                     sn.set_component_rank(single_component_size_rank)
                     cursor.execute(SINGLENODE_INSERTION_STMT,
                             sn.s_db_values(mn))
@@ -1407,7 +1425,7 @@ for scc in single_connected_components:
                 for se in mn.edges:
                     se.xdot_ctrl_pt_str = se.xdot_ctrl_pt_count = None
                     # Save this edge in the .db
-                    single_component_edge_count += 1
+                    sc_edge_count += 1
                     se.component_size_rank = single_component_size_rank
                     cursor.execute(SINGLEEDGE_INSERTION_STMT, se.s_db_values())
             # Reconcile edges between metanodes in this bicomponent
@@ -1433,6 +1451,7 @@ for scc in single_connected_components:
                     if yp > bounding_box_top: bounding_box_top = yp
                     p += 2
                 # Save this edge in the .db
+                sc_edge_count += 1
                 cursor.execute(METANODEEDGE_INSERTION_STMT,
                         e.metanode_edge_db_values())
             # Save this bicomponent's information in the .db
@@ -1476,12 +1495,13 @@ for scc in single_connected_components:
         # remain is storing that info in the database and handling it properly
         # in the viewer interface.)
         db_values = (source_id, target_id, single_component_size_rank, None, 0)
-        single_component_edge_count += 1
+        sc_edge_count += 1
         cursor.execute(SINGLEEDGE_INSERTION_STMT, db_values)
     # Output component information to the database
     cursor.execute(SINGLECOMPONENT_INSERTION_STMT,
-        (single_component_size_rank, single_component_node_count,
-            single_component_edge_count, bounding_box_right, bounding_box_top))
+        (single_component_size_rank, sc_node_count, sc_edge_count,
+            sc_compressed_node_count, sc_compressed_edge_count,
+            sc_bicomponent_count, bounding_box_right, bounding_box_top))
 
     h.clear()
     h.close()
