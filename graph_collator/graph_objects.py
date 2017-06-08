@@ -6,6 +6,7 @@ import config
 from math import log, sqrt
 from collections import deque
 import pygraphviz
+import uuid
 
 class Edge(object):
     """A generic edge, used for storing layout data (e.g. control points)
@@ -375,7 +376,7 @@ class NodeGroup(Node):
     """
     
     def __init__(self, group_prefix, group_style, nodes, spqr_related=False,
-            unique_num_id=None):
+            unique_id=None):
         """Initializes the node group, given all the Node objects comprising
            the node group, a prefix character for the group (i.e. 'F' for
            frayed ropes, 'B' for bubbles, 'C' for chains, 'Y' for cycles),
@@ -389,9 +390,9 @@ class NodeGroup(Node):
            and the '-' version is passed into the .db file to be used in
            Cytoscape.js.
 
-           Also, if this NodeGroup has some unique numerical ID, then you can
-           pass that here via the unique_num_id argument. This makes the
-           NodeGroup ID's just the group_prefix + the unique_num_id, instead
+           Also, if this NodeGroup has some unique ID, then you can
+           pass that here via the unique_id argument. This makes the
+           NodeGroup ID's just the group_prefix + the unique_id, instead
            of a combination of all of the node names contained within this
            NodeGroup (this approach is useful for NodeGroups of NodeGroups,
            e.g. Bicomponents).
@@ -409,7 +410,7 @@ class NodeGroup(Node):
         for n in nodes:
             self.node_count += 1
             self.bp += n.bp
-            if unique_num_id == None:
+            if unique_id == None:
                 self.gv_id_string += "%s_" % (n.id_string.replace('-', 'c'))
                 self.cy_id_string += "%s_" % (n.id_string)
             self.nodes.append(n)
@@ -420,7 +421,7 @@ class NodeGroup(Node):
                 n.used_in_collapsing = True
                 n.group = self
             self.childid2obj[n.id_string] = n
-        if unique_num_id == None:
+        if unique_id == None:
             self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
             self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
         self.xdot_c_width = 0
@@ -429,8 +430,8 @@ class NodeGroup(Node):
         self.xdot_bottom = None
         self.xdot_right = None
         self.xdot_top = None
-        if unique_num_id != None:
-            self.gv_id_string += unique_num_id
+        if unique_id != None:
+            self.gv_id_string += unique_id
             self.cy_id_string = self.gv_id_string
         super(NodeGroup, self).__init__(self.gv_id_string, self.bp, False)
 
@@ -566,8 +567,9 @@ class SPQRMetaNode(NodeGroup):
         # Used to maintain a list of edges we haven't reconciled with fancy
         # Edge objects yet (see layout_isolated() in this class)
         self.nonlaidout_edges = internal_edges[:]
+        unique_id = str(uuid.uuid4()).replace("-", "_")
         super(SPQRMetaNode, self).__init__(self.metanode_type, "", nodes,
-                spqr_related=True)
+                spqr_related=True, unique_id=unique_id)
 
     def layout_isolated(self):
         """Similar to NodeGroup.layout_isolated(), but with metanode-specific
@@ -697,7 +699,7 @@ class Bicomponent(NodeGroup):
             for n in mn.nodes:
                 n.parent_bicomponents.add(self)
         super(Bicomponent, self).__init__("I", "", self.metanode_list,
-            spqr_related=True, unique_num_id=self.bicomponent_id)
+            spqr_related=True, unique_id=self.bicomponent_id)
 
     def layout_isolated(self):
         """Lays out in isolation the metanodes within this bicomponent by
