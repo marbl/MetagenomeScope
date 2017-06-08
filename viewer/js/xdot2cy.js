@@ -3109,7 +3109,8 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     }
     var newObj = cy.add({
         classes: classes, data: clusterData,
-        position: {x: pos[0], y: pos[1]}
+        position: {x: pos[0], y: pos[1]},
+        locked: spqrRelated
     });
     if (!spqrRelated) {
         cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(newObj));
