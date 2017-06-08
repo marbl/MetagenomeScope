@@ -666,8 +666,8 @@ class SPQRMetaNode(NodeGroup):
            metanode.
         """
         return (self.id_string, self.component_size_rank, self.bicomponent_id,
-                self.bp, self.xdot_left, self.xdot_bottom, self.xdot_right,
-                self.xdot_top)
+                self.node_count, self.bp, self.xdot_left, self.xdot_bottom,
+                self.xdot_right, self.xdot_top)
 
 class Bicomponent(NodeGroup):
     """A biconnected component in the graph. We use this to store
