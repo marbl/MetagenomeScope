@@ -1353,12 +1353,7 @@ function drawSPQRComponent(cmpRank) {
     bicmpsStmt.free();
     rootmnQuestionMarks = rootmnQuestionMarks.substr(
             0, rootmnQuestionMarks.lastIndexOf(",")) + ")";
-    // Draw graph "iteratively" -- display all clusters.
-    drawBoundingBoxEnforcingNodes(bb);
-    cy.endBatch();
-    cy.fit();
     // Draw metanodes.
-    cy.startBatch();
     var da;
     // select only the root metanodes from this connected component
     var metanodesStmt = CURR_DB.prepare(
@@ -1373,6 +1368,8 @@ function drawSPQRComponent(cmpRank) {
         node2pos[da[0]] = da[1];
     }
     metanodesStmt.free();
+    // Draw graph "iteratively" -- display all clusters.
+    drawBoundingBoxEnforcingNodes(bb);
     cy.endBatch();
     cy.fit();
     // Draw single nodes.
