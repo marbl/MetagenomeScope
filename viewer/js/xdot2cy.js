@@ -265,14 +265,20 @@ function initGraph(viewType) {
             {
                 selector: 'node.cluster.pseudoparent',
                 style: {
-                    'z-index-compare': 'manual',
-                    'z-index': 0
+                    'z-index-compare': 'manual'
                 }
             },
             {
                 selector: 'node.I',
                 style: {
-                    'background-color': '#aaa'
+                    'background-color': '#aaa',
+                    'z-index': -1
+                }
+            },
+            {
+                selector: 'node.cluster.spqrMetanode',
+                style: {
+                    'z-index': 0
                 }
             },
             {
@@ -3092,6 +3098,9 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         // child nodes are in the same parent. To compensate for this, we just
         // make these nodes "pseudoparents" -- they're styled similarly to
         // normal compound nodes, but they don't actually contain any nodes.
+        // Note that pseudoparent nodes still need to have a low z-index
+        // explicitly set, as we do here with bicomponents (z-index of -1) and
+        // metanodes (z-index of 0).
         classes += ' spqrMetanode pseudoparent';
         clusterData["descendantCount"]=clusterObj["descendant_metanode_count"];
         // since we "collapse" all metanodes by default (collapsing takes on a
