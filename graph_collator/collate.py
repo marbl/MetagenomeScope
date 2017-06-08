@@ -1174,7 +1174,8 @@ ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 SINGLENODE_INSERTION_STMT = \
     "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?)"
-BICOMPONENT_INSERTION_STMT = "INSERT INTO bicomponents VALUES (?,?,?,?,?,?,?)"
+BICOMPONENT_INSERTION_STMT = \
+    "INSERT INTO bicomponents VALUES (?,?,?,?,?,?,?,?)"
 METANODE_INSERTION_STMT = "INSERT INTO metanodes VALUES (?,?,?,?,?,?,?,?,?)"
 METANODEEDGE_INSERTION_STMT = "INSERT INTO metanodeedges VALUES (?,?,?,?,?,?)"
 SINGLECOMPONENT_INSERTION_STMT = \
@@ -1208,8 +1209,8 @@ cursor.execute("""CREATE TABLE singleedges
         (source_id text, target_id text, scc_rank integer,
         parent_metanode_id text, is_virtual integer)""")
 cursor.execute("""CREATE TABLE bicomponents
-        (id_num integer, root_metanode_id string, scc_rank integer, left real,
-        bottom real, right real, top real)""")
+        (id_num integer, root_metanode_id string, scc_rank integer,
+        node_count integer, left real, bottom real, right real, top real)""")
 cursor.execute("""CREATE TABLE metanodes
         (metanode_id text, scc_rank integer, parent_bicomponent_id_num integer,
         node_count integer, total_length integer, left real, bottom real,

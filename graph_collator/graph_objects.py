@@ -695,7 +695,9 @@ class Bicomponent(NodeGroup):
         self.root_metanode = root_metanode
         # Record this Bicomponent object as a parent of each single node within
         # each metanode.
+        self.singlenode_count = 0
         for mn in self.metanode_list:
+            self.singlenode_count += len(mn.nodes) # len() is O(1) so this's ok
             for n in mn.nodes:
                 n.parent_bicomponents.add(self)
         super(Bicomponent, self).__init__("I", "", self.metanode_list,
@@ -787,8 +789,9 @@ class Bicomponent(NodeGroup):
            been laid out in the context of a single connected component.
         """
         return (int(self.bicomponent_id), self.root_metanode.id_string,
-                self.component_size_rank, self.xdot_left,
-                self.xdot_bottom, self.xdot_right, self.xdot_top)
+                self.component_size_rank, self.singlenode_count,
+                self.xdot_left, self.xdot_bottom, self.xdot_right,
+                self.xdot_top)
 
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.

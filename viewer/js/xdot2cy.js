@@ -704,6 +704,7 @@ function setGraphBindings() {
         function(e) {
             if (!$("#fitButton").hasClass("disabled")) {
                 var mn = e.target;
+                // TODO do collapsing/uncollapsing here! This is it!
             }
         }
     );
@@ -1705,7 +1706,9 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     // NOTE modified initClusters() to do cluster height after the fact.
     // This represents an inefficiency when parsing xdot files, although it
     // shouldn't really affect anything major.
-    initClusters();
+    if (mode !== "SPQR") {
+        initClusters();
+    }
     cy.endBatch();
     cy.fit();
     // Set minZoom to whatever the zoom level when viewing the entire drawn
@@ -3001,12 +3004,15 @@ function removeBoundingBoxEnforcingNodes(boundingboxObject) {
 function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     var clusterID;
     var parent_bicmp_id = null;
-    if (spqrtype == "bicomponent") {
+    var spqrRelated = false;
+    if (spqrtype === "bicomponent") {
         clusterID = "I" + clusterObj["id_num"];
+        spqrRelated = true;
     }
-    else if (spqrtype == "metanode") {
+    else if (spqrtype === "metanode") {
         clusterID = clusterObj["metanode_id"]; 
         parent_bicmp_id = "I" + clusterObj["parent_bicomponent_id_num"];
+        spqrRelated = true;
     }
     else {
         clusterID = clusterObj["cluster_id"];
@@ -3032,19 +3038,29 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         classes += ' structuralPattern';
     }
     else if (abbrev === 'S' || abbrev === 'P' || abbrev === 'R') {
+        // We use the "pseudoparent" class to represent compound nodes that
+        // have the potential to contain an arbitrarily large amount of child
+        // nodes. Initial rendering performance drops noticeably when many
+        // child nodes are in the same parent. To compensate for this, we just
+        // make these nodes "pseudoparents" -- they're styled similarly to
+        // normal compound nodes, but they don't actually contain any nodes.
         classes += ' spqrMetanode pseudoparent';
     }
     else if (abbrev === 'I') {
         classes += ' pseudoparent';
     }
-    // NOTE that bicomponents don't match either of the above conditions, so we
-    // don't tag them as metanodes or as structural patterns. This is intended.
-    cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(
-        cy.add({
-            classes: classes, data: clusterData,
-            position: {x: pos[0], y: pos[1]}
-        })
-    ));
+    if (spqrRelated) {
+        // Since this node won't actually be assigned child nodes (but still
+        // has "children" in some abstract way), we manually set its node count
+        clusterData["interiorNodeCount"] = clusterObj["node_count"];
+    }
+    var newObj = cy.add({
+        classes: classes, data: clusterData,
+        position: {x: pos[0], y: pos[1]}
+    });
+    if (!spqrRelated) {
+        cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(newObj));
+    }
     return [clusterID, pos];
 }
 
