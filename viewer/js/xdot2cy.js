@@ -261,10 +261,16 @@ function initGraph(viewType) {
                 }
             },
             {
+                selector: 'node.cluster.pseudoparent',
+                style: {
+                    'z-index-compare': 'manual',
+                    'z-index': 0
+                }
+            },
+            {
                 selector: 'node.I',
                 style: {
                     'background-color': '#aaa'
-
                 }
             },
             {
@@ -2942,7 +2948,13 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
                h: INCHES_TO_PIXELS * nodeObj['w'], depth: nodeDepth,
                length: nodeLength, gc_content: nodeGC, gc_color: gcColor};
     if (parentID !== null) {
-        nodeData["parent"] = parentID;
+        var typeTag = parentID[0];
+        // Don't assign explicit parents for metanodes/bicomponents in the SPQR
+        // view. See issue #209 on GitHub for details.
+        if (typeTag === 'B' || typeTag === 'F' || typeTag === 'C'
+                || typeTag === 'Y') {
+            nodeData["parent"] = parentID;
+        }
         cy.scratch("_ele2parent")[cyNodeID] = parentID;
         // Allow for searching via node labels. This does increase the number
         // of entries in _ele2parent by |Nodes| (assuming every node in the
@@ -3020,7 +3032,10 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         classes += ' structuralPattern';
     }
     else if (abbrev === 'S' || abbrev === 'P' || abbrev === 'R') {
-        classes += ' spqrMetanode';
+        classes += ' spqrMetanode pseudoparent';
+    }
+    else if (abbrev === 'I') {
+        classes += ' pseudoparent';
     }
     // NOTE that bicomponents don't match either of the above conditions, so we
     // don't tag them as metanodes or as structural patterns. This is intended.
