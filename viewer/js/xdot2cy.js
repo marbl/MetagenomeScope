@@ -3240,8 +3240,6 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         });
         return;
     }
-    console.log(node2pos);
-    console.log(sourceID + " -> " + targetID);
     var srcPos = node2pos[sourceID];
     var tgtPos = node2pos[targetID];
     //console.log("src: " + sourceID);
