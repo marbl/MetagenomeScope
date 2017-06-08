@@ -1298,15 +1298,32 @@ function drawSPQRComponent(cmpRank) {
     // But first we need to get the bounding box of this component.
     // Along with the component's total node count.
     var bbStmt = CURR_DB.prepare(
-        "SELECT boundingbox_x, boundingbox_y, node_count, edge_count FROM " +
-        "singlecomponents WHERE size_rank = ? LIMIT 1", [cmpRank]);
+        "SELECT boundingbox_x, boundingbox_y, uncompressed_node_count, "
+        + "uncompressed_edge_count, compressed_node_count, "
+        + "compressed_edge_count, bicomponent_count FROM singlecomponents "
+        + "WHERE size_rank = ? LIMIT 1", [cmpRank]);
     bbStmt.step();
     var fullObj = bbStmt.getAsObject();
     bbStmt.free();
     var bb = {'boundingbox_x': fullObj['boundingbox_x'],
               'boundingbox_y': fullObj['boundingbox_y']};
-    var totalElementCount = fullObj['node_count'] +
-        (0.5 * fullObj['edge_count']); 
+    var bicmpCount = fullObj['bicomponent_count'];
+    // the compressed counts are the amounts of nodes and edges that'll be
+    // drawn when the graph is first drawn (and all the SPQR trees are
+    // collapsed to their root).
+    // the uncompressed counts are the amounts of nodes and edges in the
+    // graph total (i.e. how many of each are displayed when all the SPQR
+    // trees are fully uncollapsed).
+    // Note that "nodes" here only refers to normal contigs, not metanodes.
+    // However, "edges" here do include edges between metanodes.
+    // (if that distinction turns out to be troublesome, we can change it)
+    var cNodeCount = fullObj['compressed_node_count'];
+    var cEdgeCount = fullObj['compressed_edge_count'];
+    // "totalElementCount" is the max value on the progress bar while first
+    // drawing this component
+    var totalElementCount = (0.5 * cEdgeCount) + (cNodeCount);
+    var ucNodeCount = fullObj['uncompressed_node_count'];
+    var ucEdgeCount = fullObj['uncompressed_edge_count'];
     // Scale PROGRESS_BAR_FREQ relative to component size of nodes/edges
     // This does ignore metanodes/bicomponents, but it's a decent approximation
     PROGRESSBAR_FREQ= Math.floor(PROGRESSBAR_FREQ_PERCENT * totalElementCount);
@@ -1371,7 +1388,8 @@ function drawSPQRComponent(cmpRank) {
         // edges, and then all single edges.
         drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             bicmpsInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount, "SPQR", spqrSpecs, metanodeParams);
+            totalElementCount, "SPQR", spqrSpecs, metanodeParams,
+            [cNodeCount, cEdgeCount, ucNodeCount, ucEdgeCount, bicmpCount]);
     }, 0);
 }
 
@@ -1487,7 +1505,7 @@ function drawComponent(cmpRank) {
         CURR_NE = 0;
         drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             clustersInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount, "double", "", []);
+            totalElementCount, "double", "", [], []);
     }, 0);
 }
 
@@ -1498,11 +1516,16 @@ function drawComponent(cmpRank) {
  * (If mode is "SPQR" then spqrSpecs is interpreted as a string that can be
  * suffixed to a SQLite query for selecting singlenodes/singleedges, and
  * metanodeParams is interpreted as an array of cmpRank followed by all the
- * root metanode IDs. If mode is not "SPQR" then those two values aren't used.)
+ * root metanode IDs. counts will also be interpreted as an array of
+ * [compressed node count, compressed edge count, uncompressed node count,
+ * uncompressed edge count, bicomponent count].
+ * If mode is not "SPQR" then those three values aren't used.)
+ *
+ * (sorry this code wound up being ugly)
  */
 function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalElementCount, mode, spqrSpecs, metanodeParams) {
+        totalElementCount, mode, spqrSpecs, metanodeParams, counts) {
     if (nodesStmt.step()) {
         var currNode = nodesStmt.getAsObject();
         var currNodeID = currNode['id'];
@@ -1524,13 +1547,13 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                 drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                     clustersInComponent, componentNodeCount,
                     componentEdgeCount, totalElementCount, mode, spqrSpecs,
-                    metanodeParams);
+                    metanodeParams, counts);
             }, 0);
         }
         else {
             drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                 clustersInComponent, componentNodeCount, componentEdgeCount,
-                totalElementCount, mode, spqrSpecs, metanodeParams);
+                totalElementCount, mode, spqrSpecs, metanodeParams, counts);
         }
     }
     else {
@@ -1583,15 +1606,16 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         }
         drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
             clustersInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount, edgeType, mode);
+            totalElementCount, edgeType, mode, counts);
     }
 }
 
 // If edgeType !== "double" then draws edges accordingly
 // related: if mode === "SPQR" then draws edges accordingly
+// also if mode === "SPQR" then passes counts on to finishDrawComponent()
 function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
         clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalElementCount, edgeType, mode) {
+        totalElementCount, edgeType, mode, counts) {
     if (edgesStmt.step()) {
         renderEdgeObject(edgesStmt.getAsObject(), node2pos,
             maxMult, minMult, bb, edgeType, mode);
@@ -1602,27 +1626,28 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
             window.setTimeout(function() {
                 drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
                     cmpRank, clustersInComponent, componentNodeCount,
-                    componentEdgeCount, totalElementCount, edgeType, mode);
+                    componentEdgeCount, totalElementCount, edgeType, mode,
+                    counts);
             }, 0);
         }
         else {
             drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
                 cmpRank, clustersInComponent, componentNodeCount,
-                componentEdgeCount, totalElementCount, edgeType, mode);
+                componentEdgeCount, totalElementCount, edgeType, mode, counts);
         }
     }
     else {
         edgesStmt.free();
         removeBoundingBoxEnforcingNodes(bb);
         finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
-            clustersInComponent, mode);
+            clustersInComponent, mode, counts);
     }
 }
 
 // Updates a paragraph contained in the assembly info dialog with some general
 // information about the current connected component.
 function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
-        mode) {
+        mode, counts) {
     var intro = "The ";
     var nodePercentage, edgePercentage;
     if (mode !== "SPQR") {
@@ -1638,18 +1663,26 @@ function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
     }
     // This is incredibly minor, but I always get annoyed at software that
     // doesn't use correct grammar for stuff like this nowadays :P
-    var nodeNoun = (componentNodeCount === 1) ? "node" : "nodes";
-    var edgeNoun = (componentEdgeCount === 1) ? "edge" : "edges";
     var bodyText = intro + "current component (size rank <strong>"
         + cmpRank + "</strong>) ";
     if (mode === "SPQR") {
-        bodyText += "in the SPQR view ";
+        bodyText += "in the SPQR view, when fully collapsed, has <strong>"
+            + counts[0] + " " + getSuffix(counts[0], "node") + "</strong> and "
+            + "<strong>" + counts[1] + " " + getSuffix(counts[1], "edge")
+            + "</strong>. When fully uncollapsed, the component has <strong>"
+            + counts[2] + " " + getSuffix(counts[2], "node") + "</strong> and "
+            + "<strong>" + counts[3] + " " + getSuffix(counts[3], "edge")
+            + "</strong>. The component has <strong>" + counts[4] + " "
+            + getSuffix(counts[4], "biconnected component") + "</strong>. "
+            + "(These figures do not include SPQR tree metanodes, although "
+            + "they do include the edges between them when uncollapsed.)";
     }
-    bodyText += "has <strong>" + componentNodeCount + " " + nodeNoun
-       + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
-       + "</strong>.";
-    if (mode !== "SPQR") {
-        bodyText += " This component contains <strong>"
+    else {
+        var nodeNoun = getSuffix(componentNodeCount, "node");
+        var edgeNoun = getSuffix(componentEdgeCount, "edge");
+        bodyText += "has <strong>" + componentNodeCount + " " + nodeNoun
+            + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
+            + "</strong>. This component contains <strong>"
             + nodePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
             + " nodes</strong> in the assembly and <strong>"
             + edgePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
@@ -1658,9 +1691,14 @@ function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
     $("#currComponentInfo").html(bodyText);
 }
 
+function getSuffix(countOfSomething, noun) {
+    return (countOfSomething === 1) ? noun : noun + "s";
+}
+
 function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
-        clustersInComponent, mode) {
-    updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount, mode);
+        clustersInComponent, mode, counts) {
+    updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount, mode,
+        counts);
     // NOTE modified initClusters() to do cluster height after the fact.
     // This represents an inefficiency when parsing xdot files, although it
     // shouldn't really affect anything major.
