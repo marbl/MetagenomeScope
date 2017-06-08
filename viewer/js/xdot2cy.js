@@ -55,6 +55,8 @@ const EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
 // Misc. global variables we use to get certain functionality
 // The current "view type" -- will always be one of {"SPQR", "double"}
 var CURR_VIEWTYPE;
+// The bounding box of the graph
+var CURR_BOUNDINGBOX;
 // In degrees CCW from the default up->down direction
 var PREV_ROTATION;
 var CURR_ROTATION;
@@ -193,8 +195,8 @@ function initGraph(viewType) {
                 }
             },
             {
-                // Give collapsed clusters a number indicating child count
-                selector: 'node.cluster[?isCollapsed]',
+                // Give collapsed variants a number indicating child count
+                selector: 'node.cluster.structuralPattern[?isCollapsed]',
                 style: {
                     'min-zoomed-font-size': 12,
                     'font-size': 48,
@@ -413,6 +415,16 @@ function initGraph(viewType) {
                 selector: 'edge.oriented',
                 style: {
                     'target-arrow-shape': 'triangle'
+                }
+            },
+            {
+                // The target-endpoint and source-endpoint attributes are
+                // needed to make Graphviz edges "work" here -- otherwise,
+                // edges will show up missing, etc.
+                selector: 'edge.oriented.nonloop',
+                style: {
+                    'target-endpoint': '-50% 0%',
+                    'source-endpoint': '50% 0'
                 }
             },
             {
@@ -700,31 +712,25 @@ function setGraphBindings() {
     );
 
     // Enable SPQR tree expansion/compression
+    // User can click on an uncollapsed metanode to reveal its immediate
+    // children
+    // User can click on a collapsed metanode to remove its immediate children
     cy.on('cxttap', 'node.cluster.spqrMetanode',
         function(e) {
             if (!$("#fitButton").hasClass("disabled")) {
                 var mn = e.target;
-                // TODO do collapsing/uncollapsing here! This is it!
+                if (mn.data("descendantCount") > 0) {
+                    if (mn.data("isCollapsed")) {
+                        cy.batch(function() { uncollapseSPQRMetanode(mn); });
+                    }
+                    else {
+                        cy.batch(function() { collapseSPQRMetanode(mn); });
+                    }
+                }
             }
         }
     );
 
-    // I can't believe this actually works -- "this is too convenient
-    // to actually work the first time I try it"...
-    // This fixes all bad (invalid, so invisible) edges as soon as the
-    // graph is first rendered, and then calls cy.offRender() to disable
-    // the check for future rendering frames.
-    // This ensures we call fixBadEdges() only after edges have been
-    // displayed.
-    // UPDATE: It looks like adding in the progress bar stuff, likely due to
-    // use of timeouts, messes this up and prevents it from being run (?).
-    // Or maybe fixBadEdges() is just run too soon? Anyway, moving
-    // fixBadEdges() to after we call cy.fit() seems to work fine. So I'm
-    // just going to do that.
-    //cy.onRender(function() {
-    //    fixBadEdges();
-    //    cy.offRender();
-    //});
     cy.on('select', 'node.noncluster, edge, node.cluster',
         function(e) {
             var x = e.target;
@@ -782,30 +788,6 @@ function setGraphBindings() {
             }
         }
     );
-    // NOTE this binding works -- when dragging a node, if any of its edges
-    // become invalid then this automatically switches them to basicbezier
-    // edges. It works great on smaller graphs, but on huge graphs it can
-    // make dragging nodes painfully slow.
-    // We can optimize this a bit by caching the node incomer/
-    // outgoer lists (see initNodeAdjacents()), but we'd have to keep
-    // those updated through collapsing.
-    // And even with cached lists, this is pretty slow. I guess we could
-    // somehow reduce the granularity of this (e.g. only register something
-    // every other frame?), though? But then we'd want to keep this
-    // reliable, also.
-    // Also, this removes edges' control point info, meaning once an edge
-    // has been modified to a basicbezier it stays that way until the graph
-    // is reloaded. Not sure if there's a way to check if the edge is valid
-    // (and change it back to an unbundledbezier) without using the
-    // Cytoscape.js renderer, so this would only make sense for graphs we
-    // want to generally have as static.
-    // (Maybe make this an option for the user?) TODO get this faster
-    //cy.on('drag', 'node',
-    //    function(e) {
-    //        var node = e.target;
-    //        fixBadEdges(node.data("adjacentEdges"));
-    //    }
-    //);
     // TODO look into getting this more efficient in the future, if possible
     // (Renders labels only on tapping elements; doesn't really save that
     // much time, and might actually be less efficient due to the time taken
@@ -1642,7 +1624,7 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
     }
     else {
         edgesStmt.free();
-        removeBoundingBoxEnforcingNodes(bb);
+        CURR_BOUNDINGBOX = bb;
         finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
             clustersInComponent, mode, counts);
     }
@@ -1711,10 +1693,13 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     }
     cy.endBatch();
     cy.fit();
+    // we do this after fitting to ensure the best precision possible
+    // (also, this helps when drawing collapsed SPQR trees. See the MaryGold
+    // test graph as a good example of why this is needed)
+    cy.batch(function() { removeBoundingBoxEnforcingNodes(); });
     // Set minZoom to whatever the zoom level when viewing the entire drawn
     // component at once (i.e. right now) is
     cy.minZoom(cy.zoom());
-    fixBadEdges();
     updateTextStatus("Preparing interface...");
     window.setTimeout(function() {
         // If we have scaffold data still loaded for this assembly, use it
@@ -2613,6 +2598,98 @@ function searchForEles() {
     eles.select();
 }
 
+/* Reveals the descendant metanodes of the passed metanode from the display.
+ *
+ * (This function should only be called if the metanode in question has
+ * immediate descendants and is currently collapsed.)
+ */
+function uncollapseSPQRMetanode(mn) {
+    var mnID = mn.id();
+    // 1. Get outgoing edges from this metanode
+    var outgoingEdgesStmt = CURR_DB.prepare(
+        "SELECT * FROM metanodeedges WHERE source_metanode_id = ?", [mnID]);
+    var outgoingEdgeObjects = [];
+    var descendantMetanodeIDs = [];
+    var descendantMetanodeQMs = "("; // this is a bit silly
+    var edgeObj;
+    while (outgoingEdgesStmt.step()) {
+        edgeObj = outgoingEdgesStmt.getAsObject();
+        outgoingEdgeObjects.push(edgeObj);
+        descendantMetanodeIDs.push(edgeObj["target_metanode_id"]);
+        descendantMetanodeQMs += "?,"
+    }
+    outgoingEdgesStmt.free();
+    // 2. Get immediate descendant metanodes
+    descendantMetanodeQMs = descendantMetanodeQMs.slice(0,
+        descendantMetanodeQMs.length - 1) + ")";
+    var descendantMetanodesStmt = CURR_DB.prepare(
+        "SELECT * FROM metanodes WHERE metanode_id IN "
+      + descendantMetanodeQMs, descendantMetanodeIDs);
+    var descendantMetanodeObjects = [];
+    while (descendantMetanodesStmt.step()) {
+        descendantMetanodeObjects.push(descendantMetanodesStmt.getAsObject());
+    }
+    descendantMetanodesStmt.free();
+    // 3. Get singlenodes contained within the skeletons of the descendants
+    var singlenodesStmt = CURR_DB.prepare(
+        "SELECT * FROM singlenodes WHERE parent_metanode_id IN"
+      + descendantMetanodeQMs, descendantMetanodeIDs);
+    var singlenodeObjects = [];
+    while (singlenodesStmt.step()) {
+        singlenodeObjects.push(singlenodesStmt.getAsObject());
+    }
+    singlenodesStmt.free();
+    // 4. Get singleedges contained within the skeletons of the descendants
+    var singleedgesStmt = CURR_DB.prepare(
+        "SELECT * FROM singleedges WHERE parent_metanode_id IN"
+      + descendantMetanodeQMs, descendantMetanodeIDs);
+    var singleedgeObjects = [];
+    while (singleedgesStmt.step()) {
+        singleedgeObjects.push(singleedgesStmt.getAsObject());
+    }
+    singleedgesStmt.free();
+    // At this point, we have all the new elements ready to draw.
+    // So draw them!
+    var a = 0;
+    // We prepare this mapping to pass it to renderEdgeObject()
+    // It's used in control point calculations for unbundled-bezier edges,
+    // which metanodeedges are currently rendered as.
+    var sourcePos = mn.position();
+    var descendantID2pos = {};
+    descendantID2pos[mnID] = [sourcePos['x'], sourcePos['y']];
+    var clusterIDandPos = [];
+    for (a = 0; a < descendantMetanodeObjects.length; a++) {
+        clusterIDandPos = renderClusterObject(descendantMetanodeObjects[a],
+            CURR_BOUNDINGBOX, "metanode");
+        descendantID2pos[clusterIDandPos[0]] = clusterIDandPos[1];
+    }
+    for (a = 0; a < outgoingEdgeObjects.length; a++) {
+        renderEdgeObject(outgoingEdgeObjects[a], descendantID2pos, null, null,
+            CURR_BOUNDINGBOX, "metanodeedge", "SPQR");
+    }
+    var cyNodeID;
+    for (a = 0; a < singlenodeObjects.length; a++) {
+        cyNodeID = singlenodeObjects[a]['id'] + "_"
+            + singlenodeObjects[a]['parent_metanode_id'];
+        renderNodeObject(singlenodeObjects[a],
+            cyNodeID, CURR_BOUNDINGBOX, "SPQR");
+    }
+    for (a = 0; a < singleedgeObjects.length; a++) {
+        renderEdgeObject(singleedgeObjects[a], {}, null, null,
+            CURR_BOUNDINGBOX, "singleedge", "SPQR");
+    }
+    mn.data("isCollapsed", false);
+}
+
+/* Removes the descendant metanodes of the passed metanode from the display.
+ *
+ * (This function should only be called if the metanode in question has
+ * immediate descendants and is currently uncollapsed.)
+ */
+function collapseSPQRMetanode(mn) {
+    // TODO: this
+}
+
 /* Determines whether collapsing or uncollapsing should be performed,
  * updates the status div accordingly, and begins the (un)collasping
  * process.
@@ -2740,35 +2817,6 @@ function ctrlPtStrToList(ctrlPointStr, boundingbox) {
             }
         }
         return pointList;
-    }
-}
-
-// Identifies invalid (per Cytoscape.js) edges and converts them to basic
-// bezier edges that can be properly rendered.
-// If provided, will only check edgeList.
-function fixBadEdges(edgeList) {
-    cy.batch(
-        function() {
-            if (edgeList === undefined) {
-                cy.filter('edge.unbundledbezier').each(fixSingleEdge);
-            }
-            else {
-                edgeList.each(fixSingleEdge);
-            }
-        }
-    );
-}
-
-/* If the given edge is a badBezier or badLine, converts it to a basicbezier
- * NOTE that this class should be called from within a batch operation, to
- * prevent style class collisions.
- */
-function fixSingleEdge(e, i) {
-    if (e._private.rscratch['badBezier'] || e._private.rscratch['badLine']) {
-        e.removeClass('unbundledbezier');
-        e.removeData('cpd');
-        e.removeData('cpw');
-        e.addClass('basicbezier');
     }
 }
 
@@ -2989,7 +3037,7 @@ function drawBoundingBoxEnforcingNodes(boundingboxObject) {
     });
 }
 
-function removeBoundingBoxEnforcingNodes(boundingboxObject) {
+function removeBoundingBoxEnforcingNodes() {
     cy.$("node.bb_enforcing").remove();
 }
 
@@ -3034,10 +3082,10 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
                (bottomLeftPos[1] + topRightPos[1]) / 2];
     var abbrev = clusterID[0];
     var classes = abbrev + ' cluster ' + getClusterCoordClass();
-    if (abbrev === 'B' || abbrev === 'F' || abbrev === 'C' || abbrev === 'Y') {
+    if (!spqrRelated) {
         classes += ' structuralPattern';
     }
-    else if (abbrev === 'S' || abbrev === 'P' || abbrev === 'R') {
+    else if (spqrtype === "metanode") {
         // We use the "pseudoparent" class to represent compound nodes that
         // have the potential to contain an arbitrarily large amount of child
         // nodes. Initial rendering performance drops noticeably when many
@@ -3045,8 +3093,13 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         // make these nodes "pseudoparents" -- they're styled similarly to
         // normal compound nodes, but they don't actually contain any nodes.
         classes += ' spqrMetanode pseudoparent';
+        clusterData["descendantCount"]=clusterObj["descendant_metanode_count"];
+        // since we "collapse" all metanodes by default (collapsing takes on a
+        // different meaning w/r/t SPQR metanodes, as opposed to normal
+        // structural variants)
+        clusterData["isCollapsed"] = true;
     }
-    else if (abbrev === 'I') {
+    else if (spqrtype === "bicomponent") {
         classes += ' pseudoparent';
     }
     if (spqrRelated) {
@@ -3177,6 +3230,8 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         });
         return;
     }
+    console.log(node2pos);
+    console.log(sourceID + " -> " + targetID);
     var srcPos = node2pos[sourceID];
     var tgtPos = node2pos[targetID];
     //console.log("src: " + sourceID);
@@ -3245,23 +3300,19 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     }
     ctrlPtDists = ctrlPtDists.trim();
     ctrlPtWeights = ctrlPtWeights.trim();
-    var optionalClasses = "";
+    var extraClasses = " nonloop oriented";
     if (ASM_FILETYPE === "GML") {
         // Mark edges where nodes don't overlap
         // TODO: Make this work with GFA edges also.
         // (See #190 on GitHub.)
         if (mean !== null && mean !== undefined && mean > 0) {
-            optionalClasses += " nooverlap";
+            extraClasses += " nooverlap";
         }
     }
-    if (mode !== "SPQR" || edgeType === "metanodeedge") {
-        optionalClasses += " oriented";
-    }
-    // TODO add edge IDs back?
     if (nonzero) {
         // The control points should (hopefully) be valid
         cy.add({
-            classes: "unbundledbezier" + optionalClasses,
+            classes: "unbundledbezier" + extraClasses,
           data: {id: edgeID, source: sourceID, target: targetID,
                  cpd: ctrlPtDists, cpw: ctrlPtWeights,
                  thickness: edgeWidth, multiplicity: multiplicity,
@@ -3272,7 +3323,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         // The control point distances are small enough that
         // we can just represent this as a straight bezier curve
       cy.add({
-          classes: "basicbezier" + optionalClasses,
+          classes: "basicbezier" + extraClasses,
           data: {id: edgeID, source: sourceID, target: targetID,
                  thickness: edgeWidth, multiplicity: multiplicity,
                  orientation: orientation, mean: mean, stdev: stdev}
