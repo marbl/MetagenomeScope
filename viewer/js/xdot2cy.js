@@ -265,20 +265,14 @@ function initGraph(viewType) {
             {
                 selector: 'node.cluster.pseudoparent',
                 style: {
-                    'z-index-compare': 'manual'
+                    'z-index-compare': 'manual',
+                    'z-index': 0
                 }
             },
             {
                 selector: 'node.I',
                 style: {
-                    'background-color': '#aaa',
-                    'z-index': -1
-                }
-            },
-            {
-                selector: 'node.cluster.spqrMetanode',
-                style: {
-                    'z-index': 0
+                    'background-color': '#aaa'
                 }
             },
             {
