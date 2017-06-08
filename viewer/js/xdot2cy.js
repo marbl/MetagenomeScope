@@ -1558,7 +1558,7 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
     }
     else {
         nodesStmt.free();
-        // Second part of "iterative" graph drawing: draw all nodes
+        // Second part of "iterative" graph drawing: draw all edges
         cy.endBatch();
         cy.fit();
         updateTextStatus("Drawing edges...");
