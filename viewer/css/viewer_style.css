@@ -10,6 +10,12 @@ html, body {
     cursor: pointer;
     color: #777;
 }
+#floatingExportButton {
+    position: absolute;
+    right: 0em; 
+    top: 0em;
+    z-index: 2;
+}
 #fitButton {
     position: absolute;
     right: 0em; 

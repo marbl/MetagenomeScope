@@ -1133,6 +1133,7 @@ function disableVolatileControls() {
     disableButton("startFinishingButton");
     disableButton("endFinishingButton");
     disableButton("exportPathButton");
+    disableButton("floatingExportButton");
     $("#assembledNodes").empty();
     disableButton("searchButton");
     disableButton("collapseButton");
@@ -1749,6 +1750,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("searchButton");
         enableButton("fitButton");
         enableButton("exportImageButton");
+        enableButton("floatingExportButton");
         enableButton("dir0");
         enableButton("dir90");
         enableButton("dir180");
@@ -1996,7 +1998,7 @@ function fitGraph(toSelected) {
 function exportGraphView() {
     var imgType = $("#imgTypeButtonGroup .btn.active").attr("value");
     if (imgType === "PNG") {
-        window.open(cy.png(), "_blank");
+        window.open(cy.png({bg: "#fff"}), "_blank");
     }
     else {
         window.open(cy.jpg(), "_blank");

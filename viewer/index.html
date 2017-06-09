@@ -58,6 +58,12 @@
              buttons are always properly disabled/enabled.
         -->
         <button class='btn btn-default btn-sm disabled'
+            onclick='exportGraphView();' id="floatingExportButton"
+            disabled="disabled">
+            <span class="glyphicon glyphicon-camera"></span>
+        </button>
+
+        <button class='btn btn-default btn-sm disabled'
             onclick='fitGraph(false)' id="fitButton" disabled="disabled">
             <span class="glyphicon glyphicon-resize-full"></span>
         </button>
@@ -425,7 +431,7 @@
                 <button class='btn btn-default btn-sm disabled'
                     disabled="disabled"
                     id='exportImageButton' onclick='exportGraphView();'>
-                    <span class="glyphicon glyphicon-picture"></span> &nbsp;
+                    <span class="glyphicon glyphicon-camera"></span> &nbsp;
                     Export
                 </button>
                 </p>
