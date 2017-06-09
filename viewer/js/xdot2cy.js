@@ -1275,6 +1275,11 @@ function drawSPQRComponent(cmpRank) {
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
+    $("#searchForElementsControls").addClass("notviewable");
+    $("#assemblyFinishingControls").addClass("notviewable");
+    $("#viewScaffoldsControls").addClass("notviewable");
+    $("#testLayoutsControls").addClass("notviewable");
+    $("#collapseButtonControls").addClass("notviewable");
     $("#noNodeColorizationOption").addClass("active");
     $("#gcNodeColorizationOption").removeClass("active")
     CURR_NODE_COLORIZATION = "none";
@@ -1420,6 +1425,13 @@ function drawComponent(cmpRank) {
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
+    // Set the controls that aren't viewable in the SPQR view to be viewable,
+    // since we're not drawing the SPQR view
+    $("#searchForElementsControls").removeClass("notviewable");
+    $("#assemblyFinishingControls").removeClass("notviewable");
+    $("#viewScaffoldsControls").removeClass("notviewable");
+    $("#testLayoutsControls").removeClass("notviewable");
+    $("#collapseButtonControls").removeClass("notviewable");
     // Disable other node colorization settings and check the "none" node
     // colorization option by default
     $("#noNodeColorizationOption").addClass("active");

@@ -287,7 +287,7 @@
             </div>
             <div id="displayOptionsControls">
             <h4>Display Options</h4>
-                <p>
+                <p id="collapseButtonControls">
                 <!-- Value of this button will be toggled as all nodes in graph
                      are collapsed/uncollapsed -->
                 <button class='btn btn-default btn-sm disabled'
@@ -451,10 +451,13 @@
                         Use a texture during movement
                     </label>
                 </div>
-
-                <hr />
             </div>
-            <div id="layoutTestControls">
+            <div id="testLayoutsControls">
+                <!-- We include the <hr /> here because the testLayoutsControls
+                    are optional (may or may not be viewable), but the
+                    performanceOptionsControls are always viewable.
+                -->
+                <hr />
                 <h4>Test Layouts</h4>
                 <p>
                 See <a class="actuallyalink" target="_blank"
