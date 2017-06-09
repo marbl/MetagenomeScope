@@ -2619,6 +2619,8 @@ function uncollapseSPQRMetanode(mn) {
         descendantMetanodeQMs += "?,"
     }
     outgoingEdgesStmt.free();
+    // For future use, when re-collapsing this metanode
+    mn.scratch("_descendantMetanodeIDs", descendantMetanodeIDs);
     // 2. Get immediate descendant metanodes
     descendantMetanodeQMs = descendantMetanodeQMs.slice(0,
         descendantMetanodeQMs.length - 1) + ")";
@@ -2687,7 +2689,28 @@ function uncollapseSPQRMetanode(mn) {
  * immediate descendants and is currently uncollapsed.)
  */
 function collapseSPQRMetanode(mn) {
-    // TODO: this
+    var a, b;
+    var descendantMetanodeIDs = mn.scratch("_descendantMetanodeIDs");
+    var mn2;
+    var singlenodeIDs;
+    for (a = 0; a < descendantMetanodeIDs.length; a++) {
+        mn2 = cy.getElementById(descendantMetanodeIDs[a]);
+        if (mn2.data("descendantCount") > 0 && !(mn2.data("isCollapsed"))) {
+            // We have to recursively collapse mn2
+            collapseSPQRMetanode(mn2);
+        }
+        // Now, we remove the contents of mn2
+        singlenodeIDs = mn2.scratch("_singlenodeIDs");
+        for (b = 0; b < singlenodeIDs.length; b++) {
+            // Calling cy.remove() on a node also removes the edges incident
+            // upon it, so we don't need to worry about explicitly removing
+            // the singleedges contained in the skeleton of mn2
+            cy.remove(cy.getElementById(singlenodeIDs[b]));
+        }
+        // Now we can remove mn2 itself
+        cy.remove(mn2);
+    }
+    mn.data("isCollapsed", true);
 }
 
 /* Determines whether collapsing or uncollapsing should be performed,
@@ -3005,6 +3028,10 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         if (typeTag === 'B' || typeTag === 'F' || typeTag === 'C'
                 || typeTag === 'Y') {
             nodeData["parent"] = parentID;
+        } else {
+            // For SPQR metanode collapsing
+            cy.getElementById(parentID).scratch(
+                "_singlenodeIDs").push(cyNodeID);
         }
         cy.scratch("_ele2parent")[cyNodeID] = parentID;
         // Allow for searching via node labels. This does increase the number
@@ -3115,7 +3142,12 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         position: {x: pos[0], y: pos[1]},
         locked: spqrRelated
     });
-    if (!spqrRelated) {
+    if (spqrRelated) {
+        // For SPQR metanode collapsing/uncollapsing
+        newObj.scratch("_singlenodeIDs", []);
+    }
+    else {
+        // For variant collapsing/uncollapsing
         cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(newObj));
     }
     return [clusterID, pos];
