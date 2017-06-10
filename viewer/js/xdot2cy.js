@@ -1070,7 +1070,7 @@ function parseDBcomponents() {
         $("#gcContentCol").removeClass("notviewable");
         // Edge info adjustments
         $("#edgeTH").prop("colspan", 3);
-        $("#multiplicityCol").text("Mult");
+        $("#multiplicityCol").text("Multiplicity");
         $("#multiplicityCol").removeClass("notviewable");
         $("#orientationCol").addClass("notviewable");
         $("#meanCol").addClass("notviewable");
