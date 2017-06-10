@@ -1202,7 +1202,7 @@ class Cycle(NodeGroup):
        the sequence of nodes repeats.
        
        (Less formally, this is essentially a Chain where the 'last' node has
-       one outgoing edge to the 'first' node.
+       one outgoing edge to the 'first' node.)
     """
     def __init__(self, *nodes):
         """Initializes the Cycle, given all the nodes comprising it."""
