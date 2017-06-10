@@ -133,6 +133,8 @@ const TD_START = "<td>";
 // Regular expression we use when matching integers.
 var INTEGER_RE = /^\d+$/;
 
+var startDrawDate, endDrawDate;
+
 if (!(window.File && window.FileReader)) {
 	alert("Your browser does not support the HTML5 File APIs. " +
           "You will not be able to upload any .db files, although " +
@@ -1237,6 +1239,7 @@ function incrCompRank(componentSelectorID) {
  * (double) graph.
  */
 function startDrawComponent(mode) {
+    startDrawDate = new Date();
     var selector = "#componentselector";
     var drawFunc = drawComponent;
     if (mode == "SPQR") {
@@ -1780,6 +1783,9 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         }
         updateTextStatus("&nbsp;");
         finishProgressBar();
+        endDrawDate = new Date();
+        var drawTime = endDrawDate.getTime() - startDrawDate.getTime();
+        console.log("Drawing took " + drawTime + "ms");
     }, 0);
 }
 
