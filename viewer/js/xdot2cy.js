@@ -3353,9 +3353,9 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         // Mark edges where nodes don't overlap
         // TODO: Make this work with GFA edges also.
         // (See #190 on GitHub.)
-        if (mean !== null && mean !== undefined && mean > 0) {
-            extraClasses += " nooverlap";
-        }
+        //if (mean !== null && mean !== undefined && mean > 0) {
+        //    extraClasses += " nooverlap";
+        //}
     }
     if (nonzero) {
         // The control points should (hopefully) be valid
