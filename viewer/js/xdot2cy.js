@@ -46,7 +46,7 @@ const CTRL_PT_DIST_EPSILON = 1.00;
 // Edge thickness stuff, as will be rendered by Cytoscape.js
 // Used in tandem with the "thickness" percentage associated with each edge in
 // the input .db file to scale edges' displayed "weight" accordingly
-const MAX_EDGE_THICKNESS = 7;
+const MAX_EDGE_THICKNESS = 10;
 const MIN_EDGE_THICKNESS = 3;
 // We just calculate this here to save on the costs of calculating it |edges|
 // times during drawing:
