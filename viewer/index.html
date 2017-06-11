@@ -20,12 +20,8 @@
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link rel="stylesheet" href="css/viewer_style.css">
         <script src='js/cytoscape.min.js'></script>
-        <script src='js/cytoscape-cose-bilkent.js'></script>
-        <!-- next two scripts are for the dagre layout -->
-        <script
-            src="https://cdn.rawgit.com/cpettitt/dagre/v0.7.4/dist/dagre.js">
-        </script>
-        <script src='js/cytoscape-dagre.js'></script>
+        <!-- NOTE if including Cytoscape.js layout plugins for testing, those
+            can go here -->
         <script src='js/sql.js'></script>
         <script src='js/xdot2cy.js'></script>
         <script src='js/bootstrap.min.js'></script>
@@ -487,11 +483,6 @@
                 See <a class="actuallyalink" target="_blank"
                 href="http://js.cytoscape.org/#layouts">here</a> for a
                 list of predefined layouts.
-                The <span class="monospace">cose-bilkent</span> and
-                <span class="monospace">dagre</span> layout extensions are also
-                available. Note that some of these layouts might take a
-                while to run, and might look a bit strange; consider
-                collapsing all node groups before running.
                 <div class='input-group input-group-sm'>
                     <input type='text' class='form-control'
                         placeholder="Layout name" id="layoutInput"
