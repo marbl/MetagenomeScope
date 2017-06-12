@@ -3190,7 +3190,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
  * NOTE that we don't scale edge thickness when using dot from collate.py,
  * since GraphViz doesn't adjust node placement based on edge thickness even
  * in extreme cases -- therefore we have free reign in this function to
- * adjust edge thickness, independent of the other parts of AsmViz.
+ * adjust edge thickness, independent of the other parts of MetagenomeScope.
  */
 function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
         boundingboxObject, edgeType, mode) {

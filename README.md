@@ -1,17 +1,15 @@
-# AsmViz
-
-(That's the tentative name for this, at least.)
+# MetagenomeScope
 
 An interactive visualization tool for sequence assembly graphs. The goal
 of this, as compared with other visualization tools, is to show the
 pertinent parts of a graph instead of just displaying the entire graph at once.
 
-To this end, AsmViz highlights certain patterns of contigs in the graph
+To this end, MetagenomeScope highlights certain patterns of contigs in the graph
 (bubbles, frayed ropes, chains, and "linear" cycles), splits graphs up by
 connected components, and uses [Graphviz](http://www.graphviz.org/)' `dot` tool
 to hierarchically lay out each connected component of an assembly graph.
 
-AsmViz is composed of two main components:
+MetagenomeScope is composed of two main components:
 
 1. `collate.py`, a Python script that reads an assembly graph file,
    identifies patterns in it, separates it by connected components, and
@@ -253,19 +251,19 @@ available features:
 
 ## Acknowledgements: tools used
 
-* `collate.py` uses Graphviz' dot and sfdp layout tools via the
+* `collate.py` uses [Graphviz](http://www.graphviz.org/)' dot and sfdp layout programs via the
   [PyGraphviz](http://pygraphviz.github.io/) interface.
-* Both `collate.py` and the AsmViz viewer use [sqlite3](https://sqlite.org/).
+* Both `collate.py` and the MetagenomeScope viewer use [sqlite3](https://sqlite.org/).
   In particular, `collate.py` uses the aforementioned Python sqlite3 module
-  while the AsmViz viewer uses [sql.js](https://github.com/kripken/sql.js/) to
+  while the MetagenomeScope viewer uses [sql.js](https://github.com/kripken/sql.js/) to
   process .db files on the client side.
-* The AsmViz viewer uses [Cytoscape.js](https://js.cytoscape.org/) to render
+* The MetagenomeScope viewer uses [Cytoscape.js](https://js.cytoscape.org/) to render
   graphs on the client side.
-    * Also, the toggling protocol used for the control panel of the AsmViz
+    * Also, the toggling protocol used for the control panel of the MetagenomeScope
       viewer was inspired by a similar toggling mechanism used in
       [this Cytoscape.js
       demo](http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/).
-* The AsmViz viewer uses [jQuery](https://jquery.com/) and
+* The MetagenomeScope viewer uses [jQuery](https://jquery.com/) and
   [Bootstrap](http://getbootstrap.com/) for various stylistic and functional
   purposes in the application.
     * The icons used to theme various controls in the viewer application are
