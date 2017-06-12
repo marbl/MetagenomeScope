@@ -22,6 +22,8 @@ import re
 import errno
 # For interfacing with the SQLite Database
 import sqlite3
+# For benchmarking
+import time
 
 import graph_objects
 import config
@@ -951,7 +953,8 @@ for cfn_id in bicomponentid2fn:
     total_bicomponent_count += 1
 
 # Now that the potential bubbles have been detected by the spqr script, we
-# sort them ascending order of size and then create Bubble objects accordingly.
+# sort them in ascending order of size and then create Bubble objects
+# accordingly.
 conclude_msg()
 operation_msg(config.BICOMPONENT_BUBBLE_SEARCH_MSG)
 
@@ -1238,6 +1241,12 @@ conclude_msg()
 
 operation_msg(config.SPQRVIEW_LAYOUT_MSG)
 single_component_size_rank = 1
+for scc in single_connected_components:
+    # Layout the "implicit" view of this connected component
+    pass
+
+t1 = time.time()
+single_component_size_rank = 1
 # NOTE code's a little redundant here, sorry
 for scc in single_connected_components:
     # Layout this "single" connected component of the SPQR view
@@ -1509,9 +1518,13 @@ for scc in single_connected_components:
     h.clear()
     h.close()
     single_component_size_rank += 1
+t2 = time.time()
+print "SPQR explicit view layout time:"
+print t1, t2, t2 - t1
 
 conclude_msg()
 # Conclusion of script: Output (desired) components of nodes to the .gv file
+t3 = time.time()
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
 no_print = False # used to reduce excess printing (see issue #133 on GitHub)
 # used in a silly corner case in which we 1) trigger the small component
@@ -1764,8 +1777,11 @@ for component in connected_components[:config.MAX_COMPONENTS]:
     h.close()
     component_size_rank += 1
 
+t4 = time.time()
 if no_print:
     conclude_msg()
+print "Std. view layout time:"
+print t3, t4, t4 - t3
 
 operation_msg(config.DB_SAVE_MSG + "%s..." % (db_fn))
 connection.commit()
