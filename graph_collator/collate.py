@@ -971,11 +971,6 @@ for b in bubble_lines:
     # them when actually drawing the bubble.
     bubble_line_node_ids = bubble_nodes[2:]
 
-    # Validate this "separation pair" as a source-sink pair (i.e. an actual
-    # bubble). If validation fails, move on.
-    bubble_node_objects = [nodeid2obj[k] for k in bubble_nodes]
-    if not graph_objects.Bubble.is_valid_source_sink_pair(bubble_node_objects):
-        continue
     # As a heuristic, we disallow complex bubbles of node size > 10. This is to
     # prevent bubbles being detected that are so complex that they "aren't
     # really bubbles."
@@ -983,6 +978,12 @@ for b in bubble_lines:
         # We can just break here, since the bubble lines are sorted in
         # ascending order of size
         break
+
+    # Validate this "separation pair" as a source-sink pair (i.e. an actual
+    # bubble). If validation fails, move on.
+    bubble_node_objects = [nodeid2obj[k] for k in bubble_nodes]
+    if not graph_objects.Bubble.is_valid_source_sink_pair(bubble_node_objects):
+        continue
     curr_bubble_nodeobjs = []
     for node_id in bubble_line_node_ids:
         try:
