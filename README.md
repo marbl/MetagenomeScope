@@ -1,6 +1,7 @@
 # MetagenomeScope
 
-An interactive visualization tool for sequence assembly graphs. The goal
+An interactive visualization tool designed for metagenomic sequence assembly
+and scaffold graphs. The goal
 of this, as compared with other visualization tools, is to show the
 pertinent parts of a graph instead of just displaying the entire graph at once.
 
@@ -17,7 +18,8 @@ MetagenomeScope is composed of two main components:
    .db file containing layout, pattern, and biological information extracted
    from Graphviz and from the original assembly graph file.
    Currently, this supports LastGraph (Velvet), GML
-   (Bambus 3 scaffolds), and GFA assembly graph files, and support for GFA2
+   ([MetaCarvel](https://github.com/marbl/bambus3)), and GFA input
+   files, and support for GFA2
    and FASTG (SPAdes) files is planned. Please note that, although
    GFA files only have DNA sequences as an optional requirement
    (it's possible to denote the DNA of a sequence with just an asterisk),
