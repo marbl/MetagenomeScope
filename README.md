@@ -45,6 +45,7 @@ MetagenomeScope is composed of two main components:
 
 ### collate.py
 
+* Linux (in order to run the C++ binary contained in `graph_collator/spqr_asmviz`) -- working on getting a makefile set up to make this platform-independent eventually
 * [Python 2.7](https://www.python.org/)
 * [PyGraphviz](https://pygraphviz.github.io/)
 * [Graphviz](http://graphviz.org/), with the `dot` and `sfdp` layout programs installed
