@@ -704,7 +704,22 @@ class Bicomponent(NodeGroup):
         super(Bicomponent, self).__init__("I", "", self.metanode_list,
             spqr_related=True, unique_id=self.bicomponent_id)
 
-    def layout_isolated(self):
+    def implicit_layout_isolated(self):
+        """Lays out all the singlenodes within this bicomponent, ignoring the
+           presence of metanodes in this bicomponent when running layout.
+
+           After that, goes through each metanode to determine its coordinates
+           in relation to the singlenodes contained here.
+        """
+        # TODO do this
+        # Basically look at how SPQRMetaNode.layout_isolated() works and use
+        # that here
+        #gv_input = ""
+        #for mn in self.metanode_list:
+        #    gv_input += mn.node_info(backfill=False)
+        pass
+
+    def explicit_layout_isolated(self):
         """Lays out in isolation the metanodes within this bicomponent by
            calling their respective SPQRMetaNode.layout_isolated() methods.
 
