@@ -106,7 +106,7 @@ GLOBALCLUSTER_STYLE = "margin=0"
 # Displayed during command-line argument parsing
 COLLATE_DESCRIPTION = "Prepare an assembly graph file for visualization, " + \
 "generating a SQLite 3 database that can be loaded in the AsmViz viewer."
-BUBBLE_SEARCH_MSG = "Looking for standard bubbles in the graph..."
+BUBBLE_SEARCH_MSG = "Looking for simple bubbles in the graph..."
 SPQR_MSG = \
     "Generating SPQR tree decompositions for the bicomponents of the graph..."
 SPQR_LAYOUT_MSG = \
