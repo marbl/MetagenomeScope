@@ -818,65 +818,24 @@ class Bubble(NodeGroup):
         """Returns True if the separation pair defined by the given list of
            Node objects is a valid "source-sink pair" (see Nijkamp et al. 2013
            for a discussion of this process -- it's the paper on MaryGold).
+           Note that our algorithm here is a bit different from that described
+           in MaryGold.
            
            The input to this function should be a list of Nodes where the
            first Node is the proposed source of the source-sink pair, 
            the second node is the proposed sink, and the remaining Nodes are
            the member nodes comprising the source-sink pair (including the
            source and sink node again).
-           
-           The code in this function is mostly taken from test_pair() in
-           layout.py, from Bambus 3.
         """
-        # Disallow any nodes that are already parts of other node groups
-        for n in nodes:
-            if n.used_in_collapsing:
-                return False
-        source = nodes[0]
-        sink = nodes[1]
-        # For simplicity, we don't use the actual Edge class here (since that's
-        # mainly used for storing ancillary biological/layout data) and instead
-        # store edges as simple 2-tuples of (Source Node obj, Target Node obj).
-        # This enables us to easily access the Node objects comprising an edge.
-        visited_edges = {}
-        # Queue of edges to check. The use of this structure is based on
-        # the test_pair() function from Bambus 3, which is in turn based on
-        # section 2.2.2 of the MaryGold paper.
-        Q = deque()
-        at_sink = False
-        for n in source.outgoing_nodes:
-            outgoing_edge = (source, n)
-            Q.appendleft(outgoing_edge)
-            visited_edges[outgoing_edge] = True
-        while len(Q) > 0:
-            all_v_incoming_edges_visited = True
-            curr_edge = Q.pop()
-            u = curr_edge[0]
-            v = curr_edge[1]
-            if v not in nodes:
-                # If this edge takes us to a node outside of the list of
-                # "member" nodes of this separation pair, then the separation
-                # pair is not a valid source-sink pair.
-                return False
-            if v == sink:
-                at_sink = True
-                continue
-            for n in v.incoming_nodes:
-                if (n, v) not in visited_edges:
-                    # We haven't visited all of the edges incident upon
-                    # v. Therefore, we can't move forward to the outgoing edges
-                    # of v yet. Check other edges in the queue.
-                    all_v_incoming_edges_visited = False
-                    break
-            if all_v_incoming_edges_visited:
-                for n in v.outgoing_nodes:
-                    outgoing_edge = (v, n)
-                    if outgoing_edge not in visited_edges:
-                        Q.appendleft(outgoing_edge)
-                        visited_edges[outgoing_edge] = True
-        # At this point, we've exhausted our queue of edges to visit.
-        return at_sink
 
+        return False
+        #source = nodes[0]
+        #sink = nodes[1]
+        #if at_sink and len(visited_nodes) == len(nodes):
+        #    return True
+        #else:
+        #    return False
+        
     @staticmethod
     def is_valid_bubble(s):
         """Returns a 2-tuple of True and a list of the nodes comprising the
