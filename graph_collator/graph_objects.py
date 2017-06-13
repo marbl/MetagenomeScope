@@ -713,6 +713,13 @@ class Bicomponent(NodeGroup):
         super(Bicomponent, self).__init__("I", "", self.metanode_list,
             spqr_related=True, unique_id=self.bicomponent_id)
 
+    def implicit_backfill_node_info(self):
+        """Like calling Bicomponent.node_info(), but using the "implicit"
+           decomposition mode dimensions instead of the explicit dimensions.
+        """
+        return "\tcluster_%s [height=%g,width=%g,shape=rectangle];\n" % \
+            (self.gv_id_string, self.xdot_ic_height, self.xdot_ic_width)
+
     def implicit_layout_isolated(self):
         """Lays out all the singlenodes within this bicomponent, ignoring the
            presence of metanodes in this bicomponent when running layout.
