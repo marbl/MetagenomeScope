@@ -1029,6 +1029,8 @@ function parseDBcomponents() {
     enableButton("decrSPQRCompRankButton");
     enableButton("incrSPQRCompRankButton");
     enableButton("drawSPQRButton");
+    enableButton("implicitSPQROption");
+    enableButton("explicitSPQROption");
     SCAFFOLDID2NODELABELS = {};
     $("#agpLoadedFileName").addClass("notviewable");
     $("#scaffoldInfoHeader").addClass("notviewable");
@@ -1121,6 +1123,8 @@ function disableVolatileControls() {
     disableButton("decrSPQRCompRankButton");
     disableButton("incrSPQRCompRankButton");
     disableButton("drawSPQRButton");
+    disableButton("implicitSPQROption");
+    disableButton("explicitSPQROption");
     disableButton("fileselectButton");
     disableButton("loadDBbutton");
     disableButton("xmlFileselectButton");
@@ -1733,6 +1737,8 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("decrSPQRCompRankButton");
         enableButton("incrSPQRCompRankButton");
         enableButton("drawSPQRButton");
+        enableButton("implicitSPQROption");
+        enableButton("explicitSPQROption");
         enableButton("fileselectButton");
         enableButton("loadDBbutton");
         enableButton("xmlFileselectButton");
