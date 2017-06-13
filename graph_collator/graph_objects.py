@@ -309,35 +309,44 @@ class Node(object):
         for e in self.outgoing_edge_objects.values():
             e.component_size_rank = component_size_rank
 
-    def s_db_values(self, parent_spqrnode=None):
+    def s_db_values(self, parent_metanode=None):
         """Returns a tuple of the "values" of this Node, for insertion
            as a single node (i.e. a node in the SPQR-integrated graph view).
 
-           If parent_spqrnode == None, then this just returns these values
-           with the parent_spqrnode_id entry set as None. (It's assumed in
+           If parent_metanode == None, then this just returns these values
+           with the parent_metanode_id entry set as None. (It's assumed in
            this case that this node is not in any metanodes, and has
            been assigned .xdot_x and .xdot_y values accordingly.)
 
            Should only be called after this node (and its parent metanode,
            if applicable) have been laid out.
         """
-        x = y = 0
-        parent_spqrnode_id = None
-        if parent_spqrnode == None:
+        ix = iy = x = y = 0
+        parent_metanode_id = None
+        if parent_metanode == None:
             x = self.xdot_x
             y = self.xdot_y
+            ix = self.xdot_ix
+            iy = self.xdot_iy
         else:
             # Use the coordinates of the node group in question to obtain
             # the proper x and y coordinates of this node.
-            # also, get the ID string of the parent_spqrnode in question and
+            # also, get the ID string of the parent_metanode in question and
             # set p_mn_id equal to that
-            relpos = self.parent_spqrnode2relpos[parent_spqrnode]
-            x = parent_spqrnode.xdot_left + relpos[0]
-            y = parent_spqrnode.xdot_bottom + relpos[1]
-            parent_spqrnode_id = parent_spqrnode.cy_id_string
+            relpos = self.parent_spqrnode2relpos[parent_metanode]
+            x = parent_metanode.xdot_left + relpos[0]
+            y = parent_metanode.xdot_bottom + relpos[1]
+            parent_metanode_id = parent_metanode.cy_id_string
+            # Use the bicomponent of the parent metanode to deduce which ix/iy
+            # positions should be used for this particular row in the database
+            # (since a singlenode can be in multiple bicomponents)
+            parent_bicmp = parent_metanode.parent_bicomponent
+            irelpos = self.parent_spqrnode2relpos[parent_bicmp]
+            ix = parent_bicmp.xdot_ileft + irelpos[0]
+            iy = parent_bicmp.xdot_ibottom + irelpos[1]
         return (self.id_string, self.label, self.bp, self.gc_content,
-                self.depth, self.component_size_rank, x, y,
-                self.xdot_width, self.xdot_height, parent_spqrnode_id)
+                self.depth, self.component_size_rank, x, y, ix, iy,
+                self.xdot_width, self.xdot_height, parent_metanode_id)
 
     def db_values(self):
         """Returns a tuple of the "values" of this Node.
@@ -574,6 +583,9 @@ class SPQRMetaNode(NodeGroup):
             internal_edges):
         # Matches a number in the filenames of component_*.info and spqr*gml
         self.bicomponent_id = int(bicomponent_id)
+        # Will be updated after the parent Bicomponent of this object has been
+        # initialized: the parent bicomponent of this node
+        self.parent_bicomponent = None
         # The ID used in spqr*.gml files to describe the structure of the tree
         self.spqr_id = spqr_id
         self.metanode_type = metanode_type
@@ -584,6 +596,28 @@ class SPQRMetaNode(NodeGroup):
         unique_id = str(uuid.uuid4()).replace("-", "_")
         super(SPQRMetaNode, self).__init__(self.metanode_type, "", nodes,
                 spqr_related=True, unique_id=unique_id)
+
+    def assign_implicit_spqr_borders(self, parent_bicomponent_obj):
+        """Uses this metanode's child nodes' (ix, iy) positions to determine
+           the left/right/bottom/top positions of this metanode in the implicit
+           SPQR decomposition mode layout.
+           
+           Takes the parent Bicomponent of this metanode as an argument, in
+           order to get the exact position of the child node in question.
+        """
+        for n in self.nodes:
+            hw_pts = config.POINTS_PER_INCH * (n.xdot_width / 2.0)
+            hh_pts = config.POINTS_PER_INCH * (n.xdot_height / 2.0)
+            ix = n.parent_spqrnode2relpos[parent_bicomponent_obj][0] + hw_pts
+            iy = n.parent_spqrnode2relpos[parent_bicomponent_obj][1] + hh_pts
+            if self.xdot_ileft == None or ix < self.xdot_ileft:
+                self.xdot_ileft = ix
+            if self.xdot_iright == None or ix > self.xdot_iright:
+                self.xdot_iright = ix
+            if self.xdot_ibottom == None or iy > self.xdot_ibottom:
+                self.xdot_ibottom = iy
+            if self.xdot_itop == None or iy > self.xdot_itop:
+                self.xdot_itop = iy
 
     def layout_isolated(self):
         """Similar to NodeGroup.layout_isolated(), but with metanode-specific
@@ -688,7 +722,8 @@ class SPQRMetaNode(NodeGroup):
         return (self.id_string, self.component_size_rank, self.bicomponent_id,
                 len(self.outgoing_nodes), self.node_count, self.bp,
                 self.xdot_left, self.xdot_bottom, self.xdot_right,
-                self.xdot_top)
+                self.xdot_top, self.xdot_ileft, self.xdot_ibottom,
+                self.xdot_iright, self.xdot_itop)
 
 class Bicomponent(NodeGroup):
     """A biconnected component in the graph. We use this to store
@@ -721,6 +756,7 @@ class Bicomponent(NodeGroup):
             self.singlenode_count += len(mn.nodes) # len() is O(1) so this's ok
             for n in mn.nodes:
                 n.parent_bicomponents.add(self)
+            mn.parent_bicomponent = self
         super(Bicomponent, self).__init__("I", "", self.metanode_list,
             spqr_related=True, unique_id=self.bicomponent_id)
 
@@ -784,6 +820,8 @@ class Bicomponent(NodeGroup):
             ep = n.attr[u'pos'].split(',')
             rel_x = float(ep[0]) - bounding_box_numeric[0]
             rel_y = float(ep[1]) - bounding_box_numeric[1]
+            curr_node.xdot_width = float(n.attr[u'width'])
+            curr_node.xdot_height = float(n.attr[u'height'])
             # we don't bother assigning xdot_width/xdot_height since that'll be
             # done when these nodes are laid out in their respective metanodes
             curr_node.parent_spqrnode2relpos[self] = (rel_x, rel_y)
@@ -880,7 +918,8 @@ class Bicomponent(NodeGroup):
         return (int(self.bicomponent_id), self.root_metanode.id_string,
                 self.component_size_rank, self.singlenode_count,
                 self.xdot_left, self.xdot_bottom, self.xdot_right,
-                self.xdot_top)
+                self.xdot_top, self.xdot_ileft, self.xdot_ibottom,
+                self.xdot_iright, self.xdot_itop)
 
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.

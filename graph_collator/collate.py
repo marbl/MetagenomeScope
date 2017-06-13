@@ -1176,14 +1176,15 @@ CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
 ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 SINGLENODE_INSERTION_STMT = \
-    "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?)"
+    "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
 SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?)"
 BICOMPONENT_INSERTION_STMT = \
-    "INSERT INTO bicomponents VALUES (?,?,?,?,?,?,?,?)"
-METANODE_INSERTION_STMT = "INSERT INTO metanodes VALUES (?,?,?,?,?,?,?,?,?,?)"
+    "INSERT INTO bicomponents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+METANODE_INSERTION_STMT = \
+    "INSERT INTO metanodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 METANODEEDGE_INSERTION_STMT = "INSERT INTO metanodeedges VALUES (?,?,?,?,?,?)"
 SINGLECOMPONENT_INSERTION_STMT = \
-    "INSERT INTO singlecomponents VALUES (?,?,?,?,?,?,?,?)"
+    "INSERT INTO singlecomponents VALUES (?,?,?,?,?,?,?,?,?,?)"
 cursor.execute("""CREATE TABLE nodes
         (id text, label text, length integer, gc_content real, depth real,
         component_rank integer, x real, y real, w real, h real,
@@ -1207,19 +1208,20 @@ cursor.execute("""CREATE TABLE assembly
 # SPQR view tables
 cursor.execute("""CREATE TABLE singlenodes
         (id text, label text, length integer, gc_content real, depth real,
-        scc_rank integer, x real, y real, w real, h real,
+        scc_rank integer, x real, y real, i_x real, i_y real, w real, h real,
         parent_metanode_id text)""")
 cursor.execute("""CREATE TABLE singleedges
         (source_id text, target_id text, scc_rank integer,
         parent_metanode_id text, is_virtual integer)""")
 cursor.execute("""CREATE TABLE bicomponents
         (id_num integer, root_metanode_id string, scc_rank integer,
-        node_count integer, left real, bottom real, right real, top real)""")
+        node_count integer, left real, bottom real, right real, top real,
+        i_left real, i_bottom real, i_right real, i_top real)""")
 cursor.execute("""CREATE TABLE metanodes
         (metanode_id text, scc_rank integer, parent_bicomponent_id_num integer,
         descendant_metanode_count integer, node_count integer,
         total_length integer, left real, bottom real, right real,
-        top real)""")
+        top real, i_left real, i_bottom real, i_right real, i_top real)""")
 cursor.execute("""CREATE TABLE metanodeedges
         (source_metanode_id text, target_metanode_id text, scc_rank integer,
         control_point_string text, control_point_count integer,
@@ -1228,7 +1230,8 @@ cursor.execute("""CREATE TABLE singlecomponents
         (size_rank integer, uncompressed_node_count integer,
         uncompressed_edge_count integer, compressed_node_count integer,
         compressed_edge_count integer, bicomponent_count integer,
-        boundingbox_x real, boundingbox_y real)""")
+        boundingbox_x real, boundingbox_y real, i_boundingbox_x real,
+        i_boundingbox_y real)""")
 connection.commit()
 
 # Insert general assembly information into the database
@@ -1243,8 +1246,14 @@ conclude_msg()
 operation_msg(config.SPQRVIEW_LAYOUT_MSG)
 
 # Layout both the implicit and explicit SPQR tree views
-# TODO change below to ("explicit", "implicit")
-for mode in ("explicit",):
+# NOTE that the order matters, since things are written to the database after
+# laying out the explicit mode but not after laying out the implicit mode
+# (that's done because many rows in the database are used for both layouts)
+
+# list of all the (right, top) coords of the bounding boxes of each implicit
+# single connected component
+implicit_spqr_bounding_boxes = []
+for mode in ("implicit", "explicit"):
     t1 = time.time()
     single_component_size_rank = 1
     for scc in single_connected_components:
@@ -1282,7 +1291,10 @@ for mode in ("explicit",):
         sc_compressed_edge_count = 0
         sc_bicomponent_count = len(scc.node_group_list)
         for bicomp in scc.node_group_list:
-            gv_input += bicomp.node_info()
+            if mode == "implicit":
+                gv_input += bicomp.implicit_backfill_node_info()
+            else:
+                gv_input += bicomp.node_info()
             sc_compressed_node_count +=len(bicomp.root_metanode.nodes)
             sc_compressed_edge_count +=len(bicomp.root_metanode.internal_edges)
         for m in scc.node_list:
@@ -1370,58 +1382,103 @@ for mode in ("explicit",):
         bounding_box_right = 0
         bounding_box_top = 0
         # Record layout info of nodes (incl. temporarily-"empty" Bicomponents)
-        # TODO modify everything from here down to assign properties/etc. based
-        # on whether or not mode is implicit or explicit
         for n in h.nodes():
             try:
                 curr_node = singlenodeid2obj[str(n)]
                 # Since we didn't just get a KeyError, curr_node must be a
                 # single node that was just laid out (and not a Bicomponent).
                 # So we can process its position, width, etc. info accordingly.
-                ep = n.attr[u'pos'].split(',')
-                curr_node.xdot_x, curr_node.xdot_y = \
-                        tuple(float(c) for c in ep)
-                curr_node.xdot_width = float(n.attr[u'width'])
-                curr_node.xdot_height = float(n.attr[u'height'])
+                posns = tuple(float(c) for c in n.attr[u'pos'].split(','))
+                exx = exy = None
+                if mode == "explicit":
+                    curr_node.xdot_x, curr_node.xdot_y = posns
+                    exx = curr_node.xdot_x
+                    exy = curr_node.xdot_y
+                else:
+                    curr_node.xdot_ix, curr_node.xdot_iy = posns
+                    curr_node.xdot_width = float(n.attr[u'width'])
+                    curr_node.xdot_height = float(n.attr[u'height'])
+                    exx = curr_node.xdot_ix
+                    exy = curr_node.xdot_iy
                 # Try to expand the component bounding box
-                right_side = curr_node.xdot_x + \
+                right_side = exx + \
                     (config.POINTS_PER_INCH * (curr_node.xdot_width/2.0))
-                top_side = curr_node.xdot_y + \
+                top_side = exy + \
                     (config.POINTS_PER_INCH * (curr_node.xdot_height/2.0))
                 if right_side > bounding_box_right: bounding_box_right = \
                         right_side
                 if top_side > bounding_box_top: bounding_box_top = top_side
                 # Save this single node in the .db
                 sc_node_count += 1
-                curr_node.set_component_rank(single_component_size_rank)
-                cursor.execute(SINGLENODE_INSERTION_STMT,
-                        curr_node.s_db_values())
-            except KeyError: # arising from nodeid2obj[a bicomponent id]
+                if mode == "explicit":
+                    curr_node.set_component_rank(single_component_size_rank)
+                    cursor.execute(SINGLENODE_INSERTION_STMT,
+                            curr_node.s_db_values())
+            except KeyError: # arising from singlenodeid2obj[a bicomponent id]
                 # We use [9:] to slice off the "cluster_I" prefix on every
                 # bicomponent node here
                 curr_cluster = bicomponentid2obj[str(n)[9:]]
                 ep = n.attr[u'pos'].split(',')
-                curr_cluster.xdot_x = float(ep[0])
-                curr_cluster.xdot_y = float(ep[1])
-                curr_cluster.xdot_width = float(n.attr[u'width'])
-                curr_cluster.xdot_height = float(n.attr[u'height'])
+                # NOTE for anyone who's reading this: So, my code assigned the
+                # .xdot_width and .xdot_height property to all NodeGroups while
+                # it was parsing their layout. It's done this for a while. I
+                # just realized now, though, that this is really silly, since
+                # those properties (in the context of NodeGroups) are never
+                # used for anything except calculating half_width_pts and
+                # half_height_pts. I've modified the SPQR layout loop to not
+                # store this as a class attribute; modifying the std. mode
+                # layout loop below might be a good idea, also.
+                if mode == "explicit":
+                    curr_cluster.xdot_x = float(ep[0])
+                    curr_cluster.xdot_y = float(ep[1])
+                    xdot_width = float(n.attr[u'width'])
+                    xdot_height = float(n.attr[u'height'])
+                else:
+                    curr_cluster.xdot_ix = float(ep[0])
+                    curr_cluster.xdot_iy = float(ep[1])
+                    xdot_width = float(n.attr[u'width'])
+                    xdot_height = float(n.attr[u'height'])
                 half_width_pts = \
-                    (config.POINTS_PER_INCH * (curr_cluster.xdot_width/2.0))
+                    (config.POINTS_PER_INCH * (xdot_width/2.0))
                 half_height_pts = \
-                    (config.POINTS_PER_INCH * (curr_cluster.xdot_height/2.0))
-                curr_cluster.xdot_left = curr_cluster.xdot_x - half_width_pts
-                curr_cluster.xdot_right = curr_cluster.xdot_x + half_width_pts
-                curr_cluster.xdot_bottom =curr_cluster.xdot_y - half_height_pts
-                curr_cluster.xdot_top = curr_cluster.xdot_y + half_height_pts
+                    (config.POINTS_PER_INCH * (xdot_height/2.0))
+                exr = ext = None
+                if mode == "explicit":
+                    curr_cluster.xdot_left = \
+                            curr_cluster.xdot_x - half_width_pts
+                    curr_cluster.xdot_right = \
+                            curr_cluster.xdot_x + half_width_pts
+                    curr_cluster.xdot_bottom =  \
+                            curr_cluster.xdot_y - half_height_pts
+                    curr_cluster.xdot_top = \
+                            curr_cluster.xdot_y + half_height_pts
+                    exr = curr_cluster.xdot_right
+                    ext = curr_cluster.xdot_top
+                else:
+                    curr_cluster.xdot_ileft = \
+                            curr_cluster.xdot_ix - half_width_pts
+                    curr_cluster.xdot_iright = \
+                            curr_cluster.xdot_ix + half_width_pts
+                    curr_cluster.xdot_ibottom =  \
+                            curr_cluster.xdot_iy - half_height_pts
+                    curr_cluster.xdot_itop = \
+                            curr_cluster.xdot_iy + half_height_pts
+                    exr = curr_cluster.xdot_iright
+                    ext = curr_cluster.xdot_itop
                 # Try to expand the component bounding box
-                if curr_cluster.xdot_right > bounding_box_right:
-                    bounding_box_right = curr_cluster.xdot_right
-                if curr_cluster.xdot_top > bounding_box_top:
-                    bounding_box_top = curr_cluster.xdot_top
+                if exr > bounding_box_right:
+                    bounding_box_right = exr
+                if ext > bounding_box_top:
+                    bounding_box_top = ext
                 # Reconcile metanodes in this bicomponent
                 # No need to attempt to expand the component bounding box here,
                 # since we know that all children of the bicomponent must fit
                 # inside the bicomponent's area
+                if mode == "implicit":
+                    # compute positions of metanodes relative to child nodes
+                    for mn in curr_cluster.metanode_list:
+                        mn.assign_implicit_spqr_borders(curr_cluster)
+                    continue
                 for mn in curr_cluster.metanode_list:
                     mn.xdot_x = curr_cluster.xdot_left + mn.xdot_rel_x
                     mn.xdot_y = curr_cluster.xdot_bottom + mn.xdot_rel_y
@@ -1494,6 +1551,14 @@ for mode in ("explicit",):
                 curr_cluster.component_size_rank = single_component_size_rank
                 cursor.execute(BICOMPONENT_INSERTION_STMT, \
                         curr_cluster.db_values())
+        # We don't need to get edge info or store anything in the .db just yet,
+        # so just move on to the next single connected component.
+        # We'll populate the .db file during the explicit layout process.
+        if mode == "implicit":
+            implicit_spqr_bounding_boxes.append((bounding_box_right,
+                bounding_box_top))
+            single_component_size_rank += 1
+            continue
         # Record layout info of edges that aren't inside any bicomponents.
         # Due to the possible construction of duplicates of these edges,
         # we don't actually create Edge objects for these particular edges.
@@ -1542,7 +1607,9 @@ for mode in ("explicit",):
         cursor.execute(SINGLECOMPONENT_INSERTION_STMT,
             (single_component_size_rank, sc_node_count, sc_edge_count,
                 sc_compressed_node_count, sc_compressed_edge_count,
-                sc_bicomponent_count, bounding_box_right, bounding_box_top))
+                sc_bicomponent_count, bounding_box_right, bounding_box_top,
+                implicit_spqr_bounding_boxes[single_component_size_rank-1][0],
+                implicit_spqr_bounding_boxes[single_component_size_rank-1][1]))
     
         h.clear()
         h.close()
