@@ -1264,7 +1264,7 @@ for mode in ("explicit",):
         gv_input += "graph single_ccomp {\n"
         if config.GRAPH_STYLE != "":
             gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
-        gv_input += "\tsmoothing=\"triangle\";\n";
+        gv_input += "\tsmoothing=\"triangle\";\n"
         if config.GLOBALNODE_STYLE != "":
             gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
         # In the layout of this single connected component, include:
