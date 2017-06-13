@@ -192,6 +192,9 @@ class Node(object):
         # Optional layout data (used for nodes within subgraphs)
         self.xdot_rel_x  = None
         self.xdot_rel_y  = None
+        # Used for nodes in the "implicit" SPQR decomposition mode:
+        self.xdot_ix     = None
+        self.xdot_iy     = None
         
     def get_dimensions(self):
         """Calculates the width and height of this node.
@@ -433,6 +436,14 @@ class NodeGroup(Node):
         self.xdot_bottom = None
         self.xdot_right = None
         self.xdot_top = None
+        # Used specifically for Bicomponents/SPQRMetaNodes in the "implicit"
+        # SPQR decomposition mode
+        self.xdot_ic_width = 0
+        self.xdot_ic_height = 0
+        self.xdot_ileft = None
+        self.xdot_ibottom = None
+        self.xdot_iright = None
+        self.xdot_itop = None
         if unique_id != None:
             self.gv_id_string += unique_id
             self.cy_id_string = self.gv_id_string
