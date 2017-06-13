@@ -173,7 +173,10 @@ class Node(object):
         # to reference the NodeGroup object in question
         self.group = None
         # Used in the case of nodes in an SPQR tree
-        self.parent_metanode2relpos = {}
+        # there should be m + 1 entries in this thing, where m = # of metanodes
+        # in the SPQR tree that this node is in. The + 1 is for the parent
+        # bicomponent of this node.
+        self.parent_spqrnode2relpos = {}
         # Indicates the Bicomponent(s) in which this node is present
         self.parent_bicomponents = set()
         # Reference to the "size rank" (1 for largest, 2 for 2nd largest,
@@ -303,12 +306,12 @@ class Node(object):
         for e in self.outgoing_edge_objects.values():
             e.component_size_rank = component_size_rank
 
-    def s_db_values(self, parent_metanode=None):
+    def s_db_values(self, parent_spqrnode=None):
         """Returns a tuple of the "values" of this Node, for insertion
            as a single node (i.e. a node in the SPQR-integrated graph view).
 
-           If parent_metanode == None, then this just returns these values
-           with the parent_metanode_id entry set as None. (It's assumed in
+           If parent_spqrnode == None, then this just returns these values
+           with the parent_spqrnode_id entry set as None. (It's assumed in
            this case that this node is not in any metanodes, and has
            been assigned .xdot_x and .xdot_y values accordingly.)
 
@@ -316,22 +319,22 @@ class Node(object):
            if applicable) have been laid out.
         """
         x = y = 0
-        parent_metanode_id = None
-        if parent_metanode == None:
+        parent_spqrnode_id = None
+        if parent_spqrnode == None:
             x = self.xdot_x
             y = self.xdot_y
         else:
             # Use the coordinates of the node group in question to obtain
             # the proper x and y coordinates of this node.
-            # also, get the ID string of the parent_metanode in question and
+            # also, get the ID string of the parent_spqrnode in question and
             # set p_mn_id equal to that
-            relpos = self.parent_metanode2relpos[parent_metanode]
-            x = parent_metanode.xdot_left + relpos[0]
-            y = parent_metanode.xdot_bottom + relpos[1]
-            parent_metanode_id = parent_metanode.cy_id_string
+            relpos = self.parent_spqrnode2relpos[parent_spqrnode]
+            x = parent_spqrnode.xdot_left + relpos[0]
+            y = parent_spqrnode.xdot_bottom + relpos[1]
+            parent_spqrnode_id = parent_spqrnode.cy_id_string
         return (self.id_string, self.label, self.bp, self.gc_content,
                 self.depth, self.component_size_rank, x, y,
-                self.xdot_width, self.xdot_height, parent_metanode_id)
+                self.xdot_width, self.xdot_height, parent_spqrnode_id)
 
     def db_values(self):
         """Returns a tuple of the "values" of this Node.
@@ -580,6 +583,12 @@ class SPQRMetaNode(NodeGroup):
         gv_input += "graph metanode {\n"
         if config.GRAPH_STYLE != "":
             gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
+        # NOTE even though we lay these interiors out using sfdp, we don't use
+        # the triangle smoothing parameter like we do for laying out entire
+        # single-connected components
+        # (...The reason for this is that I tried that, and I thought the
+        # metanode interiors looked better without the triangle smoothing
+        # applied)
         #if config.GLOBALNODE_STYLE != "":
         #    gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
         # We don't pass in edge style info (re: ports) because these edges are
@@ -619,7 +628,7 @@ class SPQRMetaNode(NodeGroup):
             rel_y = float(ep[1]) - bounding_box_numeric[1]
             curr_node.xdot_width = float(n.attr[u'width'])
             curr_node.xdot_height = float(n.attr[u'height'])
-            curr_node.parent_metanode2relpos[self] = (rel_x, rel_y)
+            curr_node.parent_spqrnode2relpos[self] = (rel_x, rel_y)
         # Obtain edge layout info
         for e in cg.edges():
             self.edge_count += 1
@@ -711,13 +720,59 @@ class Bicomponent(NodeGroup):
            After that, goes through each metanode to determine its coordinates
            in relation to the singlenodes contained here.
         """
-        # TODO do this
-        # Basically look at how SPQRMetaNode.layout_isolated() works and use
-        # that here
-        #gv_input = ""
-        #for mn in self.metanode_list:
-        #    gv_input += mn.node_info(backfill=False)
-        pass
+        gv_input = ""
+        gv_input += "graph bicomponent {\n"
+        if config.GRAPH_STYLE != "":
+            gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
+        # enclosing these singlenodes/singleedges in a cluster is mostly taken
+        # from the NodeGroup.node_info() function, seen above
+        gv_input += "subgraph cluster_%s {\n" % (self.gv_id_string)
+        if config.GLOBALCLUSTER_STYLE != "":
+            gv_input += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
+        snid2obj = {}
+        for mn in self.metanode_list:
+            # Get a set of singlenodes, since we don't want to include
+            # duplicate node info declarations
+            for n in mn.nodes:
+                snid2obj[n.id_string] = n
+        # Explicitly provide node info first
+        # This seems to help a bit with avoiding edge-node crossings
+        for n in snid2obj.values():
+            gv_input += n.node_info()
+        for mn in self.metanode_list:
+            for e in mn.internal_edges:
+                n1 = mn.childid2obj[e[1]]
+                n2 = mn.childid2obj[e[2]]
+                if e[0] == "r":
+                    # real edge
+                    gv_input += "\t%s -- %s;\n" % (e[1], e[2])
+        gv_input += "}\n}"
+        cg = pygraphviz.AGraph(gv_input)
+        cg.layout(prog='sfdp')
+        #cg.draw("%s.png" % (self.gv_id_string))
+        # Obtain cluster width and height from the layout
+        bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
+        bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
+        self.xdot_ic_width = bounding_box_numeric[2] - bounding_box_numeric[0]
+        self.xdot_ic_height = bounding_box_numeric[3] - bounding_box_numeric[1]
+        # convert width and height from points to inches
+        self.xdot_ic_width /= config.POINTS_PER_INCH
+        self.xdot_ic_height /= config.POINTS_PER_INCH
+        # Obtain node layout info
+        for n in cg.nodes():
+            curr_node = snid2obj[str(n)]
+            # Record the relative position (within the node group's bounding
+            # box) of this child node.
+            ep = n.attr[u'pos'].split(',')
+            rel_x = float(ep[0]) - bounding_box_numeric[0]
+            rel_y = float(ep[1]) - bounding_box_numeric[1]
+            # we don't bother assigning xdot_width/xdot_height since that'll be
+            # done when these nodes are laid out in their respective metanodes
+            curr_node.parent_spqrnode2relpos[self] = (rel_x, rel_y)
+        # Don't even bother getting edge layout info, since we treat all
+        # singleedges as straight lines and since we'll be getting edges to put
+        # in this bicomponent by looking at the real edges of the metanodes in
+        # the tree
 
     def explicit_layout_isolated(self):
         """Lays out in isolation the metanodes within this bicomponent by
