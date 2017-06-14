@@ -55,6 +55,8 @@ const EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
 // Misc. global variables we use to get certain functionality
 // The current "view type" -- will always be one of {"SPQR", "double"}
 var CURR_VIEWTYPE;
+// The current "SPQR mode" -- will always be one of {"implicit", explicit"}
+var CURR_SPQRMODE;
 // The bounding box of the graph
 var CURR_BOUNDINGBOX;
 // In degrees CCW from the default up->down direction
@@ -1270,6 +1272,8 @@ function drawSPQRComponent(cmpRank) {
         destroyGraph();
     }
     initGraph("SPQR");
+    CURR_SPQRMODE = $("#decompositionOptionButtonGroup .btn.active")
+            .attr("value");
     setGraphBindings();
     var componentNodeCount = 0;
     var componentEdgeCount = 0;
