@@ -1,0 +1,1544 @@
+Reading and parsing input file E_coli_LastGraph... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file ecoli.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497418980.08 1497418980.6 0.520550966263
+SPQR explicit view layout time:
+1497418980.6 1497418981.65 1.04621982574
+Done.
+Laying out connected component 1 (436 nodes)... Done.
+Laying out connected component 2 (24 nodes)... Done.
+Laying out connected component 3 (24 nodes)... Done.
+Laying out connected component 4 (9 nodes)... Done.
+Laying out connected component 5 (9 nodes)... Done.
+Laying out 56 small (containing < 5 nodes) remaining components... Done.
+Std. view layout time:
+1497418981.65 1497418983.82 2.17113804817
+Saving information to ecoli.db... Done.
+Reading and parsing input file sample.gfa... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file sample_gfa.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497418984.32 1497418984.34 0.0173199176788
+SPQR explicit view layout time:
+1497418984.34 1497418984.35 0.0149488449097
+Done.
+Laying out connected component 1 (5 nodes)... Done.
+Laying out connected component 2 (5 nodes)... Done.
+Laying out 2 small (containing < 5 nodes) remaining components... Done.
+Std. view layout time:
+1497418984.35 1497418984.4 0.0423901081085
+Saving information to sample_gfa.db... Done.
+Reading and parsing input file loop.gfa... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file loop_gfa.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497418984.87 1497418984.91 0.0351450443268
+SPQR explicit view layout time:
+1497418984.91 1497418984.94 0.0305910110474
+Done.
+Laying out 6 small (containing < 5 nodes) remaining components... Done.
+Std. view layout time:
+1497418984.94 1497418985.02 0.0816609859467
+Saving information to loop_gfa.db... Done.
+Reading and parsing input file marygold_test.gml... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file marygoldtest.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497418985.49 1497418985.53 0.0360379219055
+SPQR explicit view layout time:
+1497418985.53 1497418985.73 0.20020699501
+Done.
+Laying out connected component 1 (12 nodes)... Done.
+Std. view layout time:
+1497418985.73 1497418985.74 0.0181801319122
+Saving information to marygoldtest.db... Done.
+Reading and parsing input file sample_LastGraph... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file sample_LastGraph.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497418986.35 1497418986.47 0.123428106308
+SPQR explicit view layout time:
+1497418986.47 1497418987.53 1.05987000465
+Done.
+Laying out connected component 1 (122 nodes)... Done.
+Std. view layout time:
+1497418987.53 1497418987.72 0.18336391449
+Saving information to sample_LastGraph.db... Done.
+Reading and parsing input file longtest_LastGraph... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file longtest.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497418988.26 1497418988.34 0.0768389701843
+SPQR explicit view layout time:
+1497418988.34 1497418988.42 0.0817749500275
+Done.
+Laying out connected component 1 (10 nodes)... Done.
+Laying out connected component 2 (10 nodes)... Done.
+Laying out connected component 3 (9 nodes)... Done.
+Laying out connected component 4 (9 nodes)... Done.
+Laying out connected component 5 (9 nodes)... Done.
+Laying out connected component 6 (9 nodes)... Done.
+Laying out connected component 7 (8 nodes)... Done.
+Laying out connected component 8 (8 nodes)... Done.
+Std. view layout time:
+1497418988.42 1497418988.55 0.134674072266
+Saving information to longtest.db... Done.
+Reading and parsing input file oriented_lengthinfo.gml... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file small_ecoli.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497418989.1 1497418989.26 0.160638809204
+SPQR explicit view layout time:
+1497418989.26 1497418990.4 1.13913106918
+Done.
+Laying out connected component 1 (168 nodes)... Done.
+Std. view layout time:
+1497418990.4 1497418992.21 1.81487417221
+Saving information to small_ecoli.db... Done.
+Reading and parsing input file shakya_oriented.gml... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file shakya_new.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497418992.69 1497418993.78 1.08459997177
+SPQR explicit view layout time:
+1497418993.78 1497418994.98 1.20226502419
+Done.
+Laying out connected component 1 (37 nodes)... Done.
+Laying out connected component 2 (30 nodes)... Done.
+Laying out connected component 3 (18 nodes)... Done.
+Laying out connected component 4 (9 nodes)... Done.
+Laying out connected component 5 (9 nodes)... Done.
+Laying out connected component 6 (8 nodes)... Done.
+Laying out connected component 7 (7 nodes)... Done.
+Laying out connected component 8 (7 nodes)... Done.
+Laying out connected component 9 (7 nodes)... Done.
+Laying out connected component 10 (7 nodes)... Done.
+Laying out connected component 11 (6 nodes)... Done.
+Laying out connected component 12 (6 nodes)... Done.
+Laying out connected component 13 (6 nodes)... Done.
+Laying out connected component 14 (6 nodes)... Done.
+Laying out connected component 15 (5 nodes)... Done.
+Laying out connected component 16 (5 nodes)... Done.
+Laying out connected component 17 (5 nodes)... Done.
+Laying out 139 small (containing < 5 nodes) remaining components... Done.
+Std. view layout time:
+1497418994.98 1497418996.57 1.58654093742
+Saving information to shakya_new.db... Done.
+Reading and parsing input file oriented_judson.gml... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file biofilm_judson.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497419006.75 1497419166.85 160.093885899
+SPQR explicit view layout time:
+1497419166.85 1497419383.67 216.817884922
+Done.
+Laying out connected component 1 (3003 nodes)... Done.
+Laying out connected component 2 (1208 nodes)... Done.
+Laying out connected component 3 (129 nodes)... Done.
+Laying out connected component 4 (94 nodes)... Done.
+Laying out connected component 5 (79 nodes)... Done.
+Laying out connected component 6 (72 nodes)... Done.
+Laying out connected component 7 (69 nodes)... Done.
+Laying out connected component 8 (69 nodes)... Done.
+Laying out connected component 9 (66 nodes)... Done.
+Laying out connected component 10 (61 nodes)... Done.
+Laying out connected component 11 (59 nodes)... Done.
+Laying out connected component 12 (59 nodes)... Done.
+Laying out connected component 13 (59 nodes)... Done.
+Laying out connected component 14 (58 nodes)... Done.
+Laying out connected component 15 (57 nodes)... Done.
+Laying out connected component 16 (57 nodes)... Done.
+Laying out connected component 17 (55 nodes)... Done.
+Laying out connected component 18 (54 nodes)... Done.
+Laying out connected component 19 (50 nodes)... Done.
+Laying out connected component 20 (50 nodes)... Done.
+Laying out connected component 21 (48 nodes)... Done.
+Laying out connected component 22 (47 nodes)... Done.
+Laying out connected component 23 (46 nodes)... Done.
+Laying out connected component 24 (45 nodes)... Done.
+Laying out connected component 25 (45 nodes)... Done.
+Laying out connected component 26 (43 nodes)... Done.
+Laying out connected component 27 (43 nodes)... Done.
+Laying out connected component 28 (43 nodes)... Done.
+Laying out connected component 29 (43 nodes)... Done.
+Laying out connected component 30 (43 nodes)... Done.
+Laying out connected component 31 (43 nodes)... Done.
+Laying out connected component 32 (41 nodes)... Done.
+Laying out connected component 33 (41 nodes)... Done.
+Laying out connected component 34 (41 nodes)... Done.
+Laying out connected component 35 (41 nodes)... Done.
+Laying out connected component 36 (40 nodes)... Done.
+Laying out connected component 37 (39 nodes)... Done.
+Laying out connected component 38 (39 nodes)... Done.
+Laying out connected component 39 (39 nodes)... Done.
+Laying out connected component 40 (39 nodes)... Done.
+Laying out connected component 41 (38 nodes)... Done.
+Laying out connected component 42 (38 nodes)... Done.
+Laying out connected component 43 (37 nodes)... Done.
+Laying out connected component 44 (37 nodes)... Done.
+Laying out connected component 45 (37 nodes)... Done.
+Laying out connected component 46 (36 nodes)... Done.
+Laying out connected component 47 (36 nodes)... Done.
+Laying out connected component 48 (36 nodes)... Done.
+Laying out connected component 49 (36 nodes)... Done.
+Laying out connected component 50 (35 nodes)... Done.
+Laying out connected component 51 (35 nodes)... Done.
+Laying out connected component 52 (34 nodes)... Done.
+Laying out connected component 53 (34 nodes)... Done.
+Laying out connected component 54 (34 nodes)... Done.
+Laying out connected component 55 (33 nodes)... Done.
+Laying out connected component 56 (33 nodes)... Done.
+Laying out connected component 57 (33 nodes)... Done.
+Laying out connected component 58 (32 nodes)... Done.
+Laying out connected component 59 (32 nodes)... Done.
+Laying out connected component 60 (32 nodes)... Done.
+Laying out connected component 61 (32 nodes)... Done.
+Laying out connected component 62 (32 nodes)... Done.
+Laying out connected component 63 (32 nodes)... Done.
+Laying out connected component 64 (32 nodes)... Done.
+Laying out connected component 65 (32 nodes)... Done.
+Laying out connected component 66 (32 nodes)... Done.
+Laying out connected component 67 (31 nodes)... Done.
+Laying out connected component 68 (31 nodes)... Done.
+Laying out connected component 69 (31 nodes)... Done.
+Laying out connected component 70 (31 nodes)... Done.
+Laying out connected component 71 (30 nodes)... Done.
+Laying out connected component 72 (30 nodes)... Done.
+Laying out connected component 73 (30 nodes)... Done.
+Laying out connected component 74 (30 nodes)... Done.
+Laying out connected component 75 (30 nodes)... Done.
+Laying out connected component 76 (29 nodes)... Done.
+Laying out connected component 77 (29 nodes)... Done.
+Laying out connected component 78 (29 nodes)... Done.
+Laying out connected component 79 (29 nodes)... Done.
+Laying out connected component 80 (28 nodes)... Done.
+Laying out connected component 81 (28 nodes)... Done.
+Laying out connected component 82 (28 nodes)... Done.
+Laying out connected component 83 (28 nodes)... Done.
+Laying out connected component 84 (28 nodes)... Done.
+Laying out connected component 85 (28 nodes)... Done.
+Laying out connected component 86 (27 nodes)... Done.
+Laying out connected component 87 (27 nodes)... Done.
+Laying out connected component 88 (26 nodes)... Done.
+Laying out connected component 89 (26 nodes)... Done.
+Laying out connected component 90 (26 nodes)... Done.
+Laying out connected component 91 (26 nodes)... Done.
+Laying out connected component 92 (26 nodes)... Done.
+Laying out connected component 93 (26 nodes)... Done.
+Laying out connected component 94 (26 nodes)... Done.
+Laying out connected component 95 (26 nodes)... Done.
+Laying out connected component 96 (25 nodes)... Done.
+Laying out connected component 97 (25 nodes)... Done.
+Laying out connected component 98 (25 nodes)... Done.
+Laying out connected component 99 (25 nodes)... Done.
+Laying out connected component 100 (25 nodes)... Done.
+Laying out connected component 101 (24 nodes)... Done.
+Laying out connected component 102 (24 nodes)... Done.
+Laying out connected component 103 (24 nodes)... Done.
+Laying out connected component 104 (24 nodes)... Done.
+Laying out connected component 105 (24 nodes)... Done.
+Laying out connected component 106 (24 nodes)... Done.
+Laying out connected component 107 (23 nodes)... Done.
+Laying out connected component 108 (23 nodes)... Done.
+Laying out connected component 109 (23 nodes)... Done.
+Laying out connected component 110 (23 nodes)... Done.
+Laying out connected component 111 (23 nodes)... Done.
+Laying out connected component 112 (23 nodes)... Done.
+Laying out connected component 113 (23 nodes)... Done.
+Laying out connected component 114 (23 nodes)... Done.
+Laying out connected component 115 (23 nodes)... Done.
+Laying out connected component 116 (23 nodes)... Done.
+Laying out connected component 117 (23 nodes)... Done.
+Laying out connected component 118 (22 nodes)... Done.
+Laying out connected component 119 (22 nodes)... Done.
+Laying out connected component 120 (22 nodes)... Done.
+Laying out connected component 121 (22 nodes)... Done.
+Laying out connected component 122 (22 nodes)... Done.
+Laying out connected component 123 (22 nodes)... Done.
+Laying out connected component 124 (22 nodes)... Done.
+Laying out connected component 125 (21 nodes)... Done.
+Laying out connected component 126 (21 nodes)... Done.
+Laying out connected component 127 (21 nodes)... Done.
+Laying out connected component 128 (21 nodes)... Done.
+Laying out connected component 129 (21 nodes)... Done.
+Laying out connected component 130 (21 nodes)... Done.
+Laying out connected component 131 (21 nodes)... Done.
+Laying out connected component 132 (21 nodes)... Done.
+Laying out connected component 133 (21 nodes)... Done.
+Laying out connected component 134 (21 nodes)... Done.
+Laying out connected component 135 (20 nodes)... Done.
+Laying out connected component 136 (20 nodes)... Done.
+Laying out connected component 137 (20 nodes)... Done.
+Laying out connected component 138 (20 nodes)... Done.
+Laying out connected component 139 (20 nodes)... Done.
+Laying out connected component 140 (20 nodes)... Done.
+Laying out connected component 141 (20 nodes)... Done.
+Laying out connected component 142 (20 nodes)... Done.
+Laying out connected component 143 (20 nodes)... Done.
+Laying out connected component 144 (19 nodes)... Done.
+Laying out connected component 145 (19 nodes)... Done.
+Laying out connected component 146 (19 nodes)... Done.
+Laying out connected component 147 (19 nodes)... Done.
+Laying out connected component 148 (19 nodes)... Done.
+Laying out connected component 149 (19 nodes)... Done.
+Laying out connected component 150 (19 nodes)... Done.
+Laying out connected component 151 (19 nodes)... Done.
+Laying out connected component 152 (19 nodes)... Done.
+Laying out connected component 153 (19 nodes)... Done.
+Laying out connected component 154 (19 nodes)... Done.
+Laying out connected component 155 (19 nodes)... Done.
+Laying out connected component 156 (18 nodes)... Done.
+Laying out connected component 157 (18 nodes)... Done.
+Laying out connected component 158 (18 nodes)... Done.
+Laying out connected component 159 (18 nodes)... Done.
+Laying out connected component 160 (18 nodes)... Done.
+Laying out connected component 161 (18 nodes)... Done.
+Laying out connected component 162 (18 nodes)... Done.
+Laying out connected component 163 (18 nodes)... Done.
+Laying out connected component 164 (18 nodes)... Done.
+Laying out connected component 165 (18 nodes)... Done.
+Laying out connected component 166 (18 nodes)... Done.
+Laying out connected component 167 (18 nodes)... Done.
+Laying out connected component 168 (18 nodes)... Done.
+Laying out connected component 169 (18 nodes)... Done.
+Laying out connected component 170 (18 nodes)... Done.
+Laying out connected component 171 (18 nodes)... Done.
+Laying out connected component 172 (18 nodes)... Done.
+Laying out connected component 173 (17 nodes)... Done.
+Laying out connected component 174 (17 nodes)... Done.
+Laying out connected component 175 (17 nodes)... Done.
+Laying out connected component 176 (17 nodes)... Done.
+Laying out connected component 177 (17 nodes)... Done.
+Laying out connected component 178 (17 nodes)... Done.
+Laying out connected component 179 (17 nodes)... Done.
+Laying out connected component 180 (17 nodes)... Done.
+Laying out connected component 181 (17 nodes)... Done.
+Laying out connected component 182 (17 nodes)... Done.
+Laying out connected component 183 (17 nodes)... Done.
+Laying out connected component 184 (17 nodes)... Done.
+Laying out connected component 185 (17 nodes)... Done.
+Laying out connected component 186 (17 nodes)... Done.
+Laying out connected component 187 (17 nodes)... Done.
+Laying out connected component 188 (17 nodes)... Done.
+Laying out connected component 189 (17 nodes)... Done.
+Laying out connected component 190 (16 nodes)... Done.
+Laying out connected component 191 (16 nodes)... Done.
+Laying out connected component 192 (16 nodes)... Done.
+Laying out connected component 193 (16 nodes)... Done.
+Laying out connected component 194 (16 nodes)... Done.
+Laying out connected component 195 (16 nodes)... Done.
+Laying out connected component 196 (16 nodes)... Done.
+Laying out connected component 197 (16 nodes)... Done.
+Laying out connected component 198 (16 nodes)... Done.
+Laying out connected component 199 (16 nodes)... Done.
+Laying out connected component 200 (16 nodes)... Done.
+Laying out connected component 201 (16 nodes)... Done.
+Laying out connected component 202 (16 nodes)... Done.
+Laying out connected component 203 (16 nodes)... Done.
+Laying out connected component 204 (16 nodes)... Done.
+Laying out connected component 205 (16 nodes)... Done.
+Laying out connected component 206 (16 nodes)... Done.
+Laying out connected component 207 (16 nodes)... Done.
+Laying out connected component 208 (16 nodes)... Done.
+Laying out connected component 209 (15 nodes)... Done.
+Laying out connected component 210 (15 nodes)... Done.
+Laying out connected component 211 (15 nodes)... Done.
+Laying out connected component 212 (15 nodes)... Done.
+Laying out connected component 213 (15 nodes)... Done.
+Laying out connected component 214 (15 nodes)... Done.
+Laying out connected component 215 (15 nodes)... Done.
+Laying out connected component 216 (15 nodes)... Done.
+Laying out connected component 217 (15 nodes)... Done.
+Laying out connected component 218 (15 nodes)... Done.
+Laying out connected component 219 (15 nodes)... Done.
+Laying out connected component 220 (15 nodes)... Done.
+Laying out connected component 221 (15 nodes)... Done.
+Laying out connected component 222 (15 nodes)... Done.
+Laying out connected component 223 (15 nodes)... Done.
+Laying out connected component 224 (15 nodes)... Done.
+Laying out connected component 225 (15 nodes)... Done.
+Laying out connected component 226 (15 nodes)... Done.
+Laying out connected component 227 (15 nodes)... Done.
+Laying out connected component 228 (15 nodes)... Done.
+Laying out connected component 229 (15 nodes)... Done.
+Laying out connected component 230 (15 nodes)... Done.
+Laying out connected component 231 (15 nodes)... Done.
+Laying out connected component 232 (14 nodes)... Done.
+Laying out connected component 233 (14 nodes)... Done.
+Laying out connected component 234 (14 nodes)... Done.
+Laying out connected component 235 (14 nodes)... Done.
+Laying out connected component 236 (14 nodes)... Done.
+Laying out connected component 237 (14 nodes)... Done.
+Laying out connected component 238 (14 nodes)... Done.
+Laying out connected component 239 (14 nodes)... Done.
+Laying out connected component 240 (14 nodes)... Done.
+Laying out connected component 241 (14 nodes)... Done.
+Laying out connected component 242 (14 nodes)... Done.
+Laying out connected component 243 (14 nodes)... Done.
+Laying out connected component 244 (14 nodes)... Done.
+Laying out connected component 245 (14 nodes)... Done.
+Laying out connected component 246 (14 nodes)... Done.
+Laying out connected component 247 (14 nodes)... Done.
+Laying out connected component 248 (14 nodes)... Done.
+Laying out connected component 249 (14 nodes)... Done.
+Laying out connected component 250 (14 nodes)... Done.
+Laying out connected component 251 (14 nodes)... Done.
+Laying out connected component 252 (14 nodes)... Done.
+Laying out connected component 253 (14 nodes)... Done.
+Laying out connected component 254 (14 nodes)... Done.
+Laying out connected component 255 (14 nodes)... Done.
+Laying out connected component 256 (14 nodes)... Done.
+Laying out connected component 257 (14 nodes)... Done.
+Laying out connected component 258 (14 nodes)... Done.
+Laying out connected component 259 (13 nodes)... Done.
+Laying out connected component 260 (13 nodes)... Done.
+Laying out connected component 261 (13 nodes)... Done.
+Laying out connected component 262 (13 nodes)... Done.
+Laying out connected component 263 (13 nodes)... Done.
+Laying out connected component 264 (13 nodes)... Done.
+Laying out connected component 265 (13 nodes)... Done.
+Laying out connected component 266 (13 nodes)... Done.
+Laying out connected component 267 (13 nodes)... Done.
+Laying out connected component 268 (13 nodes)... Done.
+Laying out connected component 269 (13 nodes)... Done.
+Laying out connected component 270 (13 nodes)... Done.
+Laying out connected component 271 (13 nodes)... Done.
+Laying out connected component 272 (13 nodes)... Done.
+Laying out connected component 273 (13 nodes)... Done.
+Laying out connected component 274 (13 nodes)... Done.
+Laying out connected component 275 (13 nodes)... Done.
+Laying out connected component 276 (13 nodes)... Done.
+Laying out connected component 277 (13 nodes)... Done.
+Laying out connected component 278 (13 nodes)... Done.
+Laying out connected component 279 (13 nodes)... Done.
+Laying out connected component 280 (13 nodes)... Done.
+Laying out connected component 281 (13 nodes)... Done.
+Laying out connected component 282 (13 nodes)... Done.
+Laying out connected component 283 (13 nodes)... Done.
+Laying out connected component 284 (13 nodes)... Done.
+Laying out connected component 285 (12 nodes)... Done.
+Laying out connected component 286 (12 nodes)... Done.
+Laying out connected component 287 (12 nodes)... Done.
+Laying out connected component 288 (12 nodes)... Done.
+Laying out connected component 289 (12 nodes)... Done.
+Laying out connected component 290 (12 nodes)... Done.
+Laying out connected component 291 (12 nodes)... Done.
+Laying out connected component 292 (12 nodes)... Done.
+Laying out connected component 293 (12 nodes)... Done.
+Laying out connected component 294 (12 nodes)... Done.
+Laying out connected component 295 (12 nodes)... Done.
+Laying out connected component 296 (12 nodes)... Done.
+Laying out connected component 297 (12 nodes)... Done.
+Laying out connected component 298 (12 nodes)... Done.
+Laying out connected component 299 (12 nodes)... Done.
+Laying out connected component 300 (12 nodes)... Done.
+Laying out connected component 301 (12 nodes)... Done.
+Laying out connected component 302 (12 nodes)... Done.
+Laying out connected component 303 (12 nodes)... Done.
+Laying out connected component 304 (12 nodes)... Done.
+Laying out connected component 305 (12 nodes)... Done.
+Laying out connected component 306 (12 nodes)... Done.
+Laying out connected component 307 (12 nodes)... Done.
+Laying out connected component 308 (12 nodes)... Done.
+Laying out connected component 309 (12 nodes)... Done.
+Laying out connected component 310 (12 nodes)... Done.
+Laying out connected component 311 (12 nodes)... Done.
+Laying out connected component 312 (12 nodes)... Done.
+Laying out connected component 313 (12 nodes)... Done.
+Laying out connected component 314 (11 nodes)... Done.
+Laying out connected component 315 (11 nodes)... Done.
+Laying out connected component 316 (11 nodes)... Done.
+Laying out connected component 317 (11 nodes)... Done.
+Laying out connected component 318 (11 nodes)... Done.
+Laying out connected component 319 (11 nodes)... Done.
+Laying out connected component 320 (11 nodes)... Done.
+Laying out connected component 321 (11 nodes)... Done.
+Laying out connected component 322 (11 nodes)... Done.
+Laying out connected component 323 (11 nodes)... Done.
+Laying out connected component 324 (11 nodes)... Done.
+Laying out connected component 325 (11 nodes)... Done.
+Laying out connected component 326 (11 nodes)... Done.
+Laying out connected component 327 (11 nodes)... Done.
+Laying out connected component 328 (11 nodes)... Done.
+Laying out connected component 329 (11 nodes)... Done.
+Laying out connected component 330 (11 nodes)... Done.
+Laying out connected component 331 (11 nodes)... Done.
+Laying out connected component 332 (11 nodes)... Done.
+Laying out connected component 333 (11 nodes)... Done.
+Laying out connected component 334 (11 nodes)... Done.
+Laying out connected component 335 (11 nodes)... Done.
+Laying out connected component 336 (11 nodes)... Done.
+Laying out connected component 337 (11 nodes)... Done.
+Laying out connected component 338 (11 nodes)... Done.
+Laying out connected component 339 (11 nodes)... Done.
+Laying out connected component 340 (11 nodes)... Done.
+Laying out connected component 341 (11 nodes)... Done.
+Laying out connected component 342 (11 nodes)... Done.
+Laying out connected component 343 (11 nodes)... Done.
+Laying out connected component 344 (11 nodes)... Done.
+Laying out connected component 345 (11 nodes)... Done.
+Laying out connected component 346 (11 nodes)... Done.
+Laying out connected component 347 (10 nodes)... Done.
+Laying out connected component 348 (10 nodes)... Done.
+Laying out connected component 349 (10 nodes)... Done.
+Laying out connected component 350 (10 nodes)... Done.
+Laying out connected component 351 (10 nodes)... Done.
+Laying out connected component 352 (10 nodes)... Done.
+Laying out connected component 353 (10 nodes)... Done.
+Laying out connected component 354 (10 nodes)... Done.
+Laying out connected component 355 (10 nodes)... Done.
+Laying out connected component 356 (10 nodes)... Done.
+Laying out connected component 357 (10 nodes)... Done.
+Laying out connected component 358 (10 nodes)... Done.
+Laying out connected component 359 (10 nodes)... Done.
+Laying out connected component 360 (10 nodes)... Done.
+Laying out connected component 361 (10 nodes)... Done.
+Laying out connected component 362 (10 nodes)... Done.
+Laying out connected component 363 (10 nodes)... Done.
+Laying out connected component 364 (10 nodes)... Done.
+Laying out connected component 365 (10 nodes)... Done.
+Laying out connected component 366 (10 nodes)... Done.
+Laying out connected component 367 (10 nodes)... Done.
+Laying out connected component 368 (10 nodes)... Done.
+Laying out connected component 369 (10 nodes)... Done.
+Laying out connected component 370 (10 nodes)... Done.
+Laying out connected component 371 (10 nodes)... Done.
+Laying out connected component 372 (10 nodes)... Done.
+Laying out connected component 373 (10 nodes)... Done.
+Laying out connected component 374 (10 nodes)... Done.
+Laying out connected component 375 (10 nodes)... Done.
+Laying out connected component 376 (10 nodes)... Done.
+Laying out connected component 377 (10 nodes)... Done.
+Laying out connected component 378 (10 nodes)... Done.
+Laying out connected component 379 (10 nodes)... Done.
+Laying out connected component 380 (10 nodes)... Done.
+Laying out connected component 381 (10 nodes)... Done.
+Laying out connected component 382 (10 nodes)... Done.
+Laying out connected component 383 (10 nodes)... Done.
+Laying out connected component 384 (10 nodes)... Done.
+Laying out connected component 385 (10 nodes)... Done.
+Laying out connected component 386 (10 nodes)... Done.
+Laying out connected component 387 (10 nodes)... Done.
+Laying out connected component 388 (10 nodes)... Done.
+Laying out connected component 389 (10 nodes)... Done.
+Laying out connected component 390 (10 nodes)... Done.
+Laying out connected component 391 (10 nodes)... Done.
+Laying out connected component 392 (10 nodes)... Done.
+Laying out connected component 393 (9 nodes)... Done.
+Laying out connected component 394 (9 nodes)... Done.
+Laying out connected component 395 (9 nodes)... Done.
+Laying out connected component 396 (9 nodes)... Done.
+Laying out connected component 397 (9 nodes)... Done.
+Laying out connected component 398 (9 nodes)... Done.
+Laying out connected component 399 (9 nodes)... Done.
+Laying out connected component 400 (9 nodes)... Done.
+Laying out connected component 401 (9 nodes)... Done.
+Laying out connected component 402 (9 nodes)... Done.
+Laying out connected component 403 (9 nodes)... Done.
+Laying out connected component 404 (9 nodes)... Done.
+Laying out connected component 405 (9 nodes)... Done.
+Laying out connected component 406 (9 nodes)... Done.
+Laying out connected component 407 (9 nodes)... Done.
+Laying out connected component 408 (9 nodes)... Done.
+Laying out connected component 409 (9 nodes)... Done.
+Laying out connected component 410 (9 nodes)... Done.
+Laying out connected component 411 (9 nodes)... Done.
+Laying out connected component 412 (9 nodes)... Done.
+Laying out connected component 413 (9 nodes)... Done.
+Laying out connected component 414 (9 nodes)... Done.
+Laying out connected component 415 (9 nodes)... Done.
+Laying out connected component 416 (9 nodes)... Done.
+Laying out connected component 417 (9 nodes)... Done.
+Laying out connected component 418 (9 nodes)... Done.
+Laying out connected component 419 (9 nodes)... Done.
+Laying out connected component 420 (9 nodes)... Done.
+Laying out connected component 421 (9 nodes)... Done.
+Laying out connected component 422 (9 nodes)... Done.
+Laying out connected component 423 (9 nodes)... Done.
+Laying out connected component 424 (9 nodes)... Done.
+Laying out connected component 425 (9 nodes)... Done.
+Laying out connected component 426 (9 nodes)... Done.
+Laying out connected component 427 (9 nodes)... Done.
+Laying out connected component 428 (9 nodes)... Done.
+Laying out connected component 429 (9 nodes)... Done.
+Laying out connected component 430 (9 nodes)... Done.
+Laying out connected component 431 (9 nodes)... Done.
+Laying out connected component 432 (9 nodes)... Done.
+Laying out connected component 433 (9 nodes)... Done.
+Laying out connected component 434 (9 nodes)... Done.
+Laying out connected component 435 (9 nodes)... Done.
+Laying out connected component 436 (9 nodes)... Done.
+Laying out connected component 437 (9 nodes)... Done.
+Laying out connected component 438 (9 nodes)... Done.
+Laying out connected component 439 (9 nodes)... Done.
+Laying out connected component 440 (9 nodes)... Done.
+Laying out connected component 441 (9 nodes)... Done.
+Laying out connected component 442 (9 nodes)... Done.
+Laying out connected component 443 (9 nodes)... Done.
+Laying out connected component 444 (9 nodes)... Done.
+Laying out connected component 445 (8 nodes)... Done.
+Laying out connected component 446 (8 nodes)... Done.
+Laying out connected component 447 (8 nodes)... Done.
+Laying out connected component 448 (8 nodes)... Done.
+Laying out connected component 449 (8 nodes)... Done.
+Laying out connected component 450 (8 nodes)... Done.
+Laying out connected component 451 (8 nodes)... Done.
+Laying out connected component 452 (8 nodes)... Done.
+Laying out connected component 453 (8 nodes)... Done.
+Laying out connected component 454 (8 nodes)... Done.
+Laying out connected component 455 (8 nodes)... Done.
+Laying out connected component 456 (8 nodes)... Done.
+Laying out connected component 457 (8 nodes)... Done.
+Laying out connected component 458 (8 nodes)... Done.
+Laying out connected component 459 (8 nodes)... Done.
+Laying out connected component 460 (8 nodes)... Done.
+Laying out connected component 461 (8 nodes)... Done.
+Laying out connected component 462 (8 nodes)... Done.
+Laying out connected component 463 (8 nodes)... Done.
+Laying out connected component 464 (8 nodes)... Done.
+Laying out connected component 465 (8 nodes)... Done.
+Laying out connected component 466 (8 nodes)... Done.
+Laying out connected component 467 (8 nodes)... Done.
+Laying out connected component 468 (8 nodes)... Done.
+Laying out connected component 469 (8 nodes)... Done.
+Laying out connected component 470 (8 nodes)... Done.
+Laying out connected component 471 (8 nodes)... Done.
+Laying out connected component 472 (8 nodes)... Done.
+Laying out connected component 473 (8 nodes)... Done.
+Laying out connected component 474 (8 nodes)... Done.
+Laying out connected component 475 (8 nodes)... Done.
+Laying out connected component 476 (8 nodes)... Done.
+Laying out connected component 477 (8 nodes)... Done.
+Laying out connected component 478 (8 nodes)... Done.
+Laying out connected component 479 (8 nodes)... Done.
+Laying out connected component 480 (8 nodes)... Done.
+Laying out connected component 481 (8 nodes)... Done.
+Laying out connected component 482 (8 nodes)... Done.
+Laying out connected component 483 (8 nodes)... Done.
+Laying out connected component 484 (8 nodes)... Done.
+Laying out connected component 485 (8 nodes)... Done.
+Laying out connected component 486 (8 nodes)... Done.
+Laying out connected component 487 (8 nodes)... Done.
+Laying out connected component 488 (8 nodes)... Done.
+Laying out connected component 489 (8 nodes)... Done.
+Laying out connected component 490 (8 nodes)... Done.
+Laying out connected component 491 (8 nodes)... Done.
+Laying out connected component 492 (8 nodes)... Done.
+Laying out connected component 493 (8 nodes)... Done.
+Laying out connected component 494 (8 nodes)... Done.
+Laying out connected component 495 (8 nodes)... Done.
+Laying out connected component 496 (8 nodes)... Done.
+Laying out connected component 497 (8 nodes)... Done.
+Laying out connected component 498 (8 nodes)... Done.
+Laying out connected component 499 (8 nodes)... Done.
+Laying out connected component 500 (8 nodes)... Done.
+Laying out connected component 501 (8 nodes)... Done.
+Laying out connected component 502 (8 nodes)... Done.
+Laying out connected component 503 (8 nodes)... Done.
+Laying out connected component 504 (8 nodes)... Done.
+Laying out connected component 505 (8 nodes)... Done.
+Laying out connected component 506 (8 nodes)... Done.
+Laying out connected component 507 (8 nodes)... Done.
+Laying out connected component 508 (8 nodes)... Done.
+Laying out connected component 509 (8 nodes)... Done.
+Laying out connected component 510 (8 nodes)... Done.
+Laying out connected component 511 (8 nodes)... Done.
+Laying out connected component 512 (8 nodes)... Done.
+Laying out connected component 513 (8 nodes)... Done.
+Laying out connected component 514 (8 nodes)... Done.
+Laying out connected component 515 (8 nodes)... Done.
+Laying out connected component 516 (8 nodes)... Done.
+Laying out connected component 517 (8 nodes)... Done.
+Laying out connected component 518 (8 nodes)... Done.
+Laying out connected component 519 (8 nodes)... Done.
+Laying out connected component 520 (8 nodes)... Done.
+Laying out connected component 521 (7 nodes)... Done.
+Laying out connected component 522 (7 nodes)... Done.
+Laying out connected component 523 (7 nodes)... Done.
+Laying out connected component 524 (7 nodes)... Done.
+Laying out connected component 525 (7 nodes)... Done.
+Laying out connected component 526 (7 nodes)... Done.
+Laying out connected component 527 (7 nodes)... Done.
+Laying out connected component 528 (7 nodes)... Done.
+Laying out connected component 529 (7 nodes)... Done.
+Laying out connected component 530 (7 nodes)... Done.
+Laying out connected component 531 (7 nodes)... Done.
+Laying out connected component 532 (7 nodes)... Done.
+Laying out connected component 533 (7 nodes)... Done.
+Laying out connected component 534 (7 nodes)... Done.
+Laying out connected component 535 (7 nodes)... Done.
+Laying out connected component 536 (7 nodes)... Done.
+Laying out connected component 537 (7 nodes)... Done.
+Laying out connected component 538 (7 nodes)... Done.
+Laying out connected component 539 (7 nodes)... Done.
+Laying out connected component 540 (7 nodes)... Done.
+Laying out connected component 541 (7 nodes)... Done.
+Laying out connected component 542 (7 nodes)... Done.
+Laying out connected component 543 (7 nodes)... Done.
+Laying out connected component 544 (7 nodes)... Done.
+Laying out connected component 545 (7 nodes)... Done.
+Laying out connected component 546 (7 nodes)... Done.
+Laying out connected component 547 (7 nodes)... Done.
+Laying out connected component 548 (7 nodes)... Done.
+Laying out connected component 549 (7 nodes)... Done.
+Laying out connected component 550 (7 nodes)... Done.
+Laying out connected component 551 (7 nodes)... Done.
+Laying out connected component 552 (7 nodes)... Done.
+Laying out connected component 553 (7 nodes)... Done.
+Laying out connected component 554 (7 nodes)... Done.
+Laying out connected component 555 (7 nodes)... Done.
+Laying out connected component 556 (7 nodes)... Done.
+Laying out connected component 557 (7 nodes)... Done.
+Laying out connected component 558 (7 nodes)... Done.
+Laying out connected component 559 (7 nodes)... Done.
+Laying out connected component 560 (7 nodes)... Done.
+Laying out connected component 561 (7 nodes)... Done.
+Laying out connected component 562 (7 nodes)... Done.
+Laying out connected component 563 (7 nodes)... Done.
+Laying out connected component 564 (7 nodes)... Done.
+Laying out connected component 565 (7 nodes)... Done.
+Laying out connected component 566 (7 nodes)... Done.
+Laying out connected component 567 (7 nodes)... Done.
+Laying out connected component 568 (7 nodes)... Done.
+Laying out connected component 569 (7 nodes)... Done.
+Laying out connected component 570 (7 nodes)... Done.
+Laying out connected component 571 (7 nodes)... Done.
+Laying out connected component 572 (7 nodes)... Done.
+Laying out connected component 573 (7 nodes)... Done.
+Laying out connected component 574 (7 nodes)... Done.
+Laying out connected component 575 (7 nodes)... Done.
+Laying out connected component 576 (7 nodes)... Done.
+Laying out connected component 577 (7 nodes)... Done.
+Laying out connected component 578 (7 nodes)... Done.
+Laying out connected component 579 (7 nodes)... Done.
+Laying out connected component 580 (7 nodes)... Done.
+Laying out connected component 581 (7 nodes)... Done.
+Laying out connected component 582 (7 nodes)... Done.
+Laying out connected component 583 (7 nodes)... Done.
+Laying out connected component 584 (7 nodes)... Done.
+Laying out connected component 585 (7 nodes)... Done.
+Laying out connected component 586 (7 nodes)... Done.
+Laying out connected component 587 (7 nodes)... Done.
+Laying out connected component 588 (7 nodes)... Done.
+Laying out connected component 589 (7 nodes)... Done.
+Laying out connected component 590 (7 nodes)... Done.
+Laying out connected component 591 (7 nodes)... Done.
+Laying out connected component 592 (7 nodes)... Done.
+Laying out connected component 593 (7 nodes)... Done.
+Laying out connected component 594 (7 nodes)... Done.
+Laying out connected component 595 (7 nodes)... Done.
+Laying out connected component 596 (7 nodes)... Done.
+Laying out connected component 597 (7 nodes)... Done.
+Laying out connected component 598 (7 nodes)... Done.
+Laying out connected component 599 (7 nodes)... Done.
+Laying out connected component 600 (7 nodes)... Done.
+Laying out connected component 601 (7 nodes)... Done.
+Laying out connected component 602 (7 nodes)... Done.
+Laying out connected component 603 (7 nodes)... Done.
+Laying out connected component 604 (7 nodes)... Done.
+Laying out connected component 605 (7 nodes)... Done.
+Laying out connected component 606 (7 nodes)... Done.
+Laying out connected component 607 (7 nodes)... Done.
+Laying out connected component 608 (6 nodes)... Done.
+Laying out connected component 609 (6 nodes)... Done.
+Laying out connected component 610 (6 nodes)... Done.
+Laying out connected component 611 (6 nodes)... Done.
+Laying out connected component 612 (6 nodes)... Done.
+Laying out connected component 613 (6 nodes)... Done.
+Laying out connected component 614 (6 nodes)... Done.
+Laying out connected component 615 (6 nodes)... Done.
+Laying out connected component 616 (6 nodes)... Done.
+Laying out connected component 617 (6 nodes)... Done.
+Laying out connected component 618 (6 nodes)... Done.
+Laying out connected component 619 (6 nodes)... Done.
+Laying out connected component 620 (6 nodes)... Done.
+Laying out connected component 621 (6 nodes)... Done.
+Laying out connected component 622 (6 nodes)... Done.
+Laying out connected component 623 (6 nodes)... Done.
+Laying out connected component 624 (6 nodes)... Done.
+Laying out connected component 625 (6 nodes)... Done.
+Laying out connected component 626 (6 nodes)... Done.
+Laying out connected component 627 (6 nodes)... Done.
+Laying out connected component 628 (6 nodes)... Done.
+Laying out connected component 629 (6 nodes)... Done.
+Laying out connected component 630 (6 nodes)... Done.
+Laying out connected component 631 (6 nodes)... Done.
+Laying out connected component 632 (6 nodes)... Done.
+Laying out connected component 633 (6 nodes)... Done.
+Laying out connected component 634 (6 nodes)... Done.
+Laying out connected component 635 (6 nodes)... Done.
+Laying out connected component 636 (6 nodes)... Done.
+Laying out connected component 637 (6 nodes)... Done.
+Laying out connected component 638 (6 nodes)... Done.
+Laying out connected component 639 (6 nodes)... Done.
+Laying out connected component 640 (6 nodes)... Done.
+Laying out connected component 641 (6 nodes)... Done.
+Laying out connected component 642 (6 nodes)... Done.
+Laying out connected component 643 (6 nodes)... Done.
+Laying out connected component 644 (6 nodes)... Done.
+Laying out connected component 645 (6 nodes)... Done.
+Laying out connected component 646 (6 nodes)... Done.
+Laying out connected component 647 (6 nodes)... Done.
+Laying out connected component 648 (6 nodes)... Done.
+Laying out connected component 649 (6 nodes)... Done.
+Laying out connected component 650 (6 nodes)... Done.
+Laying out connected component 651 (6 nodes)... Done.
+Laying out connected component 652 (6 nodes)... Done.
+Laying out connected component 653 (6 nodes)... Done.
+Laying out connected component 654 (6 nodes)... Done.
+Laying out connected component 655 (6 nodes)... Done.
+Laying out connected component 656 (6 nodes)... Done.
+Laying out connected component 657 (6 nodes)... Done.
+Laying out connected component 658 (6 nodes)... Done.
+Laying out connected component 659 (6 nodes)... Done.
+Laying out connected component 660 (6 nodes)... Done.
+Laying out connected component 661 (6 nodes)... Done.
+Laying out connected component 662 (6 nodes)... Done.
+Laying out connected component 663 (6 nodes)... Done.
+Laying out connected component 664 (6 nodes)... Done.
+Laying out connected component 665 (6 nodes)... Done.
+Laying out connected component 666 (6 nodes)... Done.
+Laying out connected component 667 (6 nodes)... Done.
+Laying out connected component 668 (6 nodes)... Done.
+Laying out connected component 669 (6 nodes)... Done.
+Laying out connected component 670 (6 nodes)... Done.
+Laying out connected component 671 (6 nodes)... Done.
+Laying out connected component 672 (6 nodes)... Done.
+Laying out connected component 673 (6 nodes)... Done.
+Laying out connected component 674 (6 nodes)... Done.
+Laying out connected component 675 (6 nodes)... Done.
+Laying out connected component 676 (6 nodes)... Done.
+Laying out connected component 677 (6 nodes)... Done.
+Laying out connected component 678 (6 nodes)... Done.
+Laying out connected component 679 (6 nodes)... Done.
+Laying out connected component 680 (6 nodes)... Done.
+Laying out connected component 681 (6 nodes)... Done.
+Laying out connected component 682 (6 nodes)... Done.
+Laying out connected component 683 (6 nodes)... Done.
+Laying out connected component 684 (6 nodes)... Done.
+Laying out connected component 685 (6 nodes)... Done.
+Laying out connected component 686 (6 nodes)... Done.
+Laying out connected component 687 (6 nodes)... Done.
+Laying out connected component 688 (6 nodes)... Done.
+Laying out connected component 689 (6 nodes)... Done.
+Laying out connected component 690 (6 nodes)... Done.
+Laying out connected component 691 (6 nodes)... Done.
+Laying out connected component 692 (6 nodes)... Done.
+Laying out connected component 693 (6 nodes)... Done.
+Laying out connected component 694 (6 nodes)... Done.
+Laying out connected component 695 (6 nodes)... Done.
+Laying out connected component 696 (6 nodes)... Done.
+Laying out connected component 697 (6 nodes)... Done.
+Laying out connected component 698 (6 nodes)... Done.
+Laying out connected component 699 (6 nodes)... Done.
+Laying out connected component 700 (6 nodes)... Done.
+Laying out connected component 701 (6 nodes)... Done.
+Laying out connected component 702 (6 nodes)... Done.
+Laying out connected component 703 (6 nodes)... Done.
+Laying out connected component 704 (6 nodes)... Done.
+Laying out connected component 705 (6 nodes)... Done.
+Laying out connected component 706 (6 nodes)... Done.
+Laying out connected component 707 (6 nodes)... Done.
+Laying out connected component 708 (6 nodes)... Done.
+Laying out connected component 709 (6 nodes)... Done.
+Laying out connected component 710 (6 nodes)... Done.
+Laying out connected component 711 (6 nodes)... Done.
+Laying out connected component 712 (6 nodes)... Done.
+Laying out connected component 713 (6 nodes)... Done.
+Laying out connected component 714 (6 nodes)... Done.
+Laying out connected component 715 (6 nodes)... Done.
+Laying out connected component 716 (6 nodes)... Done.
+Laying out connected component 717 (6 nodes)... Done.
+Laying out connected component 718 (6 nodes)... Done.
+Laying out connected component 719 (6 nodes)... Done.
+Laying out connected component 720 (6 nodes)... Done.
+Laying out connected component 721 (6 nodes)... Done.
+Laying out connected component 722 (6 nodes)... Done.
+Laying out connected component 723 (6 nodes)... Done.
+Laying out connected component 724 (6 nodes)... Done.
+Laying out connected component 725 (6 nodes)... Done.
+Laying out connected component 726 (6 nodes)... Done.
+Laying out connected component 727 (6 nodes)... Done.
+Laying out connected component 728 (6 nodes)... Done.
+Laying out connected component 729 (6 nodes)... Done.
+Laying out connected component 730 (6 nodes)... Done.
+Laying out connected component 731 (6 nodes)... Done.
+Laying out connected component 732 (6 nodes)... Done.
+Laying out connected component 733 (6 nodes)... Done.
+Laying out connected component 734 (6 nodes)... Done.
+Laying out connected component 735 (6 nodes)... Done.
+Laying out connected component 736 (6 nodes)... Done.
+Laying out connected component 737 (6 nodes)... Done.
+Laying out connected component 738 (6 nodes)... Done.
+Laying out connected component 739 (6 nodes)... Done.
+Laying out connected component 740 (6 nodes)... Done.
+Laying out connected component 741 (6 nodes)... Done.
+Laying out connected component 742 (6 nodes)... Done.
+Laying out connected component 743 (6 nodes)... Done.
+Laying out connected component 744 (6 nodes)... Done.
+Laying out connected component 745 (6 nodes)... Done.
+Laying out connected component 746 (6 nodes)... Done.
+Laying out connected component 747 (6 nodes)... Done.
+Laying out connected component 748 (6 nodes)... Done.
+Laying out connected component 749 (6 nodes)... Done.
+Laying out connected component 750 (6 nodes)... Done.
+Laying out connected component 751 (6 nodes)... Done.
+Laying out connected component 752 (6 nodes)... Done.
+Laying out connected component 753 (6 nodes)... Done.
+Laying out connected component 754 (6 nodes)... Done.
+Laying out connected component 755 (6 nodes)... Done.
+Laying out connected component 756 (6 nodes)... Done.
+Laying out connected component 757 (6 nodes)... Done.
+Laying out connected component 758 (6 nodes)... Done.
+Laying out connected component 759 (6 nodes)... Done.
+Laying out connected component 760 (6 nodes)... Done.
+Laying out connected component 761 (6 nodes)... Done.
+Laying out connected component 762 (6 nodes)... Done.
+Laying out connected component 763 (6 nodes)... Done.
+Laying out connected component 764 (6 nodes)... Done.
+Laying out connected component 765 (6 nodes)... Done.
+Laying out connected component 766 (6 nodes)... Done.
+Laying out connected component 767 (6 nodes)... Done.
+Laying out connected component 768 (6 nodes)... Done.
+Laying out connected component 769 (6 nodes)... Done.
+Laying out connected component 770 (5 nodes)... Done.
+Laying out connected component 771 (5 nodes)... Done.
+Laying out connected component 772 (5 nodes)... Done.
+Laying out connected component 773 (5 nodes)... Done.
+Laying out connected component 774 (5 nodes)... Done.
+Laying out connected component 775 (5 nodes)... Done.
+Laying out connected component 776 (5 nodes)... Done.
+Laying out connected component 777 (5 nodes)... Done.
+Laying out connected component 778 (5 nodes)... Done.
+Laying out connected component 779 (5 nodes)... Done.
+Laying out connected component 780 (5 nodes)... Done.
+Laying out connected component 781 (5 nodes)... Done.
+Laying out connected component 782 (5 nodes)... Done.
+Laying out connected component 783 (5 nodes)... Done.
+Laying out connected component 784 (5 nodes)... Done.
+Laying out connected component 785 (5 nodes)... Done.
+Laying out connected component 786 (5 nodes)... Done.
+Laying out connected component 787 (5 nodes)... Done.
+Laying out connected component 788 (5 nodes)... Done.
+Laying out connected component 789 (5 nodes)... Done.
+Laying out connected component 790 (5 nodes)... Done.
+Laying out connected component 791 (5 nodes)... Done.
+Laying out connected component 792 (5 nodes)... Done.
+Laying out connected component 793 (5 nodes)... Done.
+Laying out connected component 794 (5 nodes)... Done.
+Laying out connected component 795 (5 nodes)... Done.
+Laying out connected component 796 (5 nodes)... Done.
+Laying out connected component 797 (5 nodes)... Done.
+Laying out connected component 798 (5 nodes)... Done.
+Laying out connected component 799 (5 nodes)... Done.
+Laying out connected component 800 (5 nodes)... Done.
+Laying out connected component 801 (5 nodes)... Done.
+Laying out connected component 802 (5 nodes)... Done.
+Laying out connected component 803 (5 nodes)... Done.
+Laying out connected component 804 (5 nodes)... Done.
+Laying out connected component 805 (5 nodes)... Done.
+Laying out connected component 806 (5 nodes)... Done.
+Laying out connected component 807 (5 nodes)... Done.
+Laying out connected component 808 (5 nodes)... Done.
+Laying out connected component 809 (5 nodes)... Done.
+Laying out connected component 810 (5 nodes)... Done.
+Laying out connected component 811 (5 nodes)... Done.
+Laying out connected component 812 (5 nodes)... Done.
+Laying out connected component 813 (5 nodes)... Done.
+Laying out connected component 814 (5 nodes)... Done.
+Laying out connected component 815 (5 nodes)... Done.
+Laying out connected component 816 (5 nodes)... Done.
+Laying out connected component 817 (5 nodes)... Done.
+Laying out connected component 818 (5 nodes)... Done.
+Laying out connected component 819 (5 nodes)... Done.
+Laying out connected component 820 (5 nodes)... Done.
+Laying out connected component 821 (5 nodes)... Done.
+Laying out connected component 822 (5 nodes)... Done.
+Laying out connected component 823 (5 nodes)... Done.
+Laying out connected component 824 (5 nodes)... Done.
+Laying out connected component 825 (5 nodes)... Done.
+Laying out connected component 826 (5 nodes)... Done.
+Laying out connected component 827 (5 nodes)... Done.
+Laying out connected component 828 (5 nodes)... Done.
+Laying out connected component 829 (5 nodes)... Done.
+Laying out connected component 830 (5 nodes)... Done.
+Laying out connected component 831 (5 nodes)... Done.
+Laying out connected component 832 (5 nodes)... Done.
+Laying out connected component 833 (5 nodes)... Done.
+Laying out connected component 834 (5 nodes)... Done.
+Laying out connected component 835 (5 nodes)... Done.
+Laying out connected component 836 (5 nodes)... Done.
+Laying out connected component 837 (5 nodes)... Done.
+Laying out connected component 838 (5 nodes)... Done.
+Laying out connected component 839 (5 nodes)... Done.
+Laying out connected component 840 (5 nodes)... Done.
+Laying out connected component 841 (5 nodes)... Done.
+Laying out connected component 842 (5 nodes)... Done.
+Laying out connected component 843 (5 nodes)... Done.
+Laying out connected component 844 (5 nodes)... Done.
+Laying out connected component 845 (5 nodes)... Done.
+Laying out connected component 846 (5 nodes)... Done.
+Laying out connected component 847 (5 nodes)... Done.
+Laying out connected component 848 (5 nodes)... Done.
+Laying out connected component 849 (5 nodes)... Done.
+Laying out connected component 850 (5 nodes)... Done.
+Laying out connected component 851 (5 nodes)... Done.
+Laying out connected component 852 (5 nodes)... Done.
+Laying out connected component 853 (5 nodes)... Done.
+Laying out connected component 854 (5 nodes)... Done.
+Laying out connected component 855 (5 nodes)... Done.
+Laying out connected component 856 (5 nodes)... Done.
+Laying out connected component 857 (5 nodes)... Done.
+Laying out connected component 858 (5 nodes)... Done.
+Laying out connected component 859 (5 nodes)... Done.
+Laying out connected component 860 (5 nodes)... Done.
+Laying out connected component 861 (5 nodes)... Done.
+Laying out connected component 862 (5 nodes)... Done.
+Laying out connected component 863 (5 nodes)... Done.
+Laying out connected component 864 (5 nodes)... Done.
+Laying out connected component 865 (5 nodes)... Done.
+Laying out connected component 866 (5 nodes)... Done.
+Laying out connected component 867 (5 nodes)... Done.
+Laying out connected component 868 (5 nodes)... Done.
+Laying out connected component 869 (5 nodes)... Done.
+Laying out connected component 870 (5 nodes)... Done.
+Laying out connected component 871 (5 nodes)... Done.
+Laying out connected component 872 (5 nodes)... Done.
+Laying out connected component 873 (5 nodes)... Done.
+Laying out connected component 874 (5 nodes)... Done.
+Laying out connected component 875 (5 nodes)... Done.
+Laying out connected component 876 (5 nodes)... Done.
+Laying out connected component 877 (5 nodes)... Done.
+Laying out connected component 878 (5 nodes)... Done.
+Laying out connected component 879 (5 nodes)... Done.
+Laying out connected component 880 (5 nodes)... Done.
+Laying out connected component 881 (5 nodes)... Done.
+Laying out connected component 882 (5 nodes)... Done.
+Laying out connected component 883 (5 nodes)... Done.
+Laying out connected component 884 (5 nodes)... Done.
+Laying out connected component 885 (5 nodes)... Done.
+Laying out connected component 886 (5 nodes)... Done.
+Laying out connected component 887 (5 nodes)... Done.
+Laying out connected component 888 (5 nodes)... Done.
+Laying out connected component 889 (5 nodes)... Done.
+Laying out connected component 890 (5 nodes)... Done.
+Laying out connected component 891 (5 nodes)... Done.
+Laying out connected component 892 (5 nodes)... Done.
+Laying out connected component 893 (5 nodes)... Done.
+Laying out connected component 894 (5 nodes)... Done.
+Laying out connected component 895 (5 nodes)... Done.
+Laying out connected component 896 (5 nodes)... Done.
+Laying out connected component 897 (5 nodes)... Done.
+Laying out connected component 898 (5 nodes)... Done.
+Laying out connected component 899 (5 nodes)... Done.
+Laying out connected component 900 (5 nodes)... Done.
+Laying out connected component 901 (5 nodes)... Done.
+Laying out connected component 902 (5 nodes)... Done.
+Laying out connected component 903 (5 nodes)... Done.
+Laying out connected component 904 (5 nodes)... Done.
+Laying out connected component 905 (5 nodes)... Done.
+Laying out connected component 906 (5 nodes)... Done.
+Laying out connected component 907 (5 nodes)... Done.
+Laying out connected component 908 (5 nodes)... Done.
+Laying out connected component 909 (5 nodes)... Done.
+Laying out connected component 910 (5 nodes)... Done.
+Laying out connected component 911 (5 nodes)... Done.
+Laying out connected component 912 (5 nodes)... Done.
+Laying out connected component 913 (5 nodes)... Done.
+Laying out connected component 914 (5 nodes)... Done.
+Laying out connected component 915 (5 nodes)... Done.
+Laying out connected component 916 (5 nodes)... Done.
+Laying out connected component 917 (5 nodes)... Done.
+Laying out connected component 918 (5 nodes)... Done.
+Laying out connected component 919 (5 nodes)... Done.
+Laying out connected component 920 (5 nodes)... Done.
+Laying out connected component 921 (5 nodes)... Done.
+Laying out connected component 922 (5 nodes)... Done.
+Laying out connected component 923 (5 nodes)... Done.
+Laying out connected component 924 (5 nodes)... Done.
+Laying out connected component 925 (5 nodes)... Done.
+Laying out connected component 926 (5 nodes)... Done.
+Laying out connected component 927 (5 nodes)... Done.
+Laying out connected component 928 (5 nodes)... Done.
+Laying out connected component 929 (5 nodes)... Done.
+Laying out connected component 930 (5 nodes)... Done.
+Laying out connected component 931 (5 nodes)... Done.
+Laying out connected component 932 (5 nodes)... Done.
+Laying out connected component 933 (5 nodes)... Done.
+Laying out connected component 934 (5 nodes)... Done.
+Laying out connected component 935 (5 nodes)... Done.
+Laying out connected component 936 (5 nodes)... Done.
+Laying out connected component 937 (5 nodes)... Done.
+Laying out connected component 938 (5 nodes)... Done.
+Laying out connected component 939 (5 nodes)... Done.
+Laying out connected component 940 (5 nodes)... Done.
+Laying out connected component 941 (5 nodes)... Done.
+Laying out connected component 942 (5 nodes)... Done.
+Laying out connected component 943 (5 nodes)... Done.
+Laying out connected component 944 (5 nodes)... Done.
+Laying out connected component 945 (5 nodes)... Done.
+Laying out connected component 946 (5 nodes)... Done.
+Laying out connected component 947 (5 nodes)... Done.
+Laying out connected component 948 (5 nodes)... Done.
+Laying out connected component 949 (5 nodes)... Done.
+Laying out connected component 950 (5 nodes)... Done.
+Laying out connected component 951 (5 nodes)... Done.
+Laying out connected component 952 (5 nodes)... Done.
+Laying out connected component 953 (5 nodes)... Done.
+Laying out connected component 954 (5 nodes)... Done.
+Laying out connected component 955 (5 nodes)... Done.
+Laying out connected component 956 (5 nodes)... Done.
+Laying out connected component 957 (5 nodes)... Done.
+Laying out connected component 958 (5 nodes)... Done.
+Laying out connected component 959 (5 nodes)... Done.
+Laying out connected component 960 (5 nodes)... Done.
+Laying out connected component 961 (5 nodes)... Done.
+Laying out connected component 962 (5 nodes)... Done.
+Laying out connected component 963 (5 nodes)... Done.
+Laying out connected component 964 (5 nodes)... Done.
+Laying out connected component 965 (5 nodes)... Done.
+Laying out connected component 966 (5 nodes)... Done.
+Laying out connected component 967 (5 nodes)... Done.
+Laying out connected component 968 (5 nodes)... Done.
+Laying out connected component 969 (5 nodes)... Done.
+Laying out connected component 970 (5 nodes)... Done.
+Laying out connected component 971 (5 nodes)... Done.
+Laying out connected component 972 (5 nodes)... Done.
+Laying out connected component 973 (5 nodes)... Done.
+Laying out connected component 974 (5 nodes)... Done.
+Laying out connected component 975 (5 nodes)... Done.
+Laying out connected component 976 (5 nodes)... Done.
+Laying out connected component 977 (5 nodes)... Done.
+Laying out connected component 978 (5 nodes)... Done.
+Laying out connected component 979 (5 nodes)... Done.
+Laying out connected component 980 (5 nodes)... Done.
+Laying out connected component 981 (5 nodes)... Done.
+Laying out connected component 982 (5 nodes)... Done.
+Laying out connected component 983 (5 nodes)... Done.
+Laying out connected component 984 (5 nodes)... Done.
+Laying out connected component 985 (5 nodes)... Done.
+Laying out connected component 986 (5 nodes)... Done.
+Laying out connected component 987 (5 nodes)... Done.
+Laying out connected component 988 (5 nodes)... Done.
+Laying out connected component 989 (5 nodes)... Done.
+Laying out connected component 990 (5 nodes)... Done.
+Laying out connected component 991 (5 nodes)... Done.
+Laying out connected component 992 (5 nodes)... Done.
+Laying out connected component 993 (5 nodes)... Done.
+Laying out connected component 994 (5 nodes)... Done.
+Laying out connected component 995 (5 nodes)... Done.
+Laying out connected component 996 (5 nodes)... Done.
+Laying out connected component 997 (5 nodes)... Done.
+Laying out connected component 998 (5 nodes)... Done.
+Laying out connected component 999 (5 nodes)... Done.
+Laying out connected component 1000 (5 nodes)... Done.
+Laying out connected component 1001 (5 nodes)... Done.
+Laying out connected component 1002 (5 nodes)... Done.
+Laying out connected component 1003 (5 nodes)... Done.
+Laying out connected component 1004 (5 nodes)... Done.
+Laying out connected component 1005 (5 nodes)... Done.
+Laying out connected component 1006 (5 nodes)... Done.
+Laying out connected component 1007 (5 nodes)... Done.
+Laying out connected component 1008 (5 nodes)... Done.
+Laying out connected component 1009 (5 nodes)... Done.
+Laying out connected component 1010 (5 nodes)... Done.
+Laying out connected component 1011 (5 nodes)... Done.
+Laying out connected component 1012 (5 nodes)... Done.
+Laying out connected component 1013 (5 nodes)... Done.
+Laying out 6713 small (containing < 5 nodes) remaining components... Done.
+Std. view layout time:
+1497419383.67 1497419770.25 386.579694033
+Saving information to biofilm_judson.db... Done.
+Reading and parsing input file oriented_judson_2.gml... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file biofilm_judson2.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497419771.21 1497419781.16 9.95076990128
+SPQR explicit view layout time:
+1497419781.16 1497419790.47 9.31116485596
+Done.
+Laying out connected component 1 (9 nodes)... Done.
+Laying out connected component 2 (7 nodes)... Done.
+Laying out connected component 3 (7 nodes)... Done.
+Laying out connected component 4 (7 nodes)... Done.
+Laying out connected component 5 (6 nodes)... Done.
+Laying out connected component 6 (6 nodes)... Done.
+Laying out connected component 7 (5 nodes)... Done.
+Laying out connected component 8 (5 nodes)... Done.
+Laying out connected component 9 (5 nodes)... Done.
+Laying out connected component 10 (5 nodes)... Done.
+Laying out connected component 11 (5 nodes)... Done.
+Laying out connected component 12 (5 nodes)... Done.
+Laying out 1329 small (containing < 5 nodes) remaining components... Done.
+Std. view layout time:
+1497419790.47 1497419802.15 11.6728432178
+Saving information to biofilm_judson2.db... Done.
+Reading and parsing input file oriented.gml... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file 20170220.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497419809.3 1497419820.79 11.4939181805
+SPQR explicit view layout time:
+1497419820.79 1497419869.71 48.9160161018
+Done.
+Laying out connected component 1 (3275 nodes)... Done.
+Laying out connected component 2 (19 nodes)... Done.
+Laying out connected component 3 (17 nodes)... Done.
+Laying out connected component 4 (11 nodes)... Done.
+Laying out connected component 5 (11 nodes)... Done.
+Laying out connected component 6 (9 nodes)... Done.
+Laying out connected component 7 (8 nodes)... Done.
+Laying out connected component 8 (8 nodes)... Done.
+Laying out connected component 9 (7 nodes)... Done.
+Laying out connected component 10 (7 nodes)... Done.
+Laying out connected component 11 (7 nodes)... Done.
+Laying out connected component 12 (7 nodes)... Done.
+Laying out connected component 13 (6 nodes)... Done.
+Laying out connected component 14 (6 nodes)... Done.
+Laying out connected component 15 (6 nodes)... Done.
+Laying out connected component 16 (6 nodes)... Done.
+Laying out connected component 17 (6 nodes)... Done.
+Laying out connected component 18 (5 nodes)... Done.
+Laying out connected component 19 (5 nodes)... Done.
+Laying out connected component 20 (5 nodes)... Done.
+Laying out connected component 21 (5 nodes)... Done.
+Laying out connected component 22 (5 nodes)... Done.
+Laying out connected component 23 (5 nodes)... Done.
+Laying out connected component 24 (5 nodes)... Done.
+Laying out connected component 25 (5 nodes)... Done.
+Laying out connected component 26 (5 nodes)... Done.
+Laying out connected component 27 (5 nodes)... Done.
+Laying out connected component 28 (5 nodes)... Done.
+Laying out connected component 29 (5 nodes)... Done.
+Laying out connected component 30 (5 nodes)... Done.
+Laying out connected component 31 (5 nodes)... Done.
+Laying out connected component 32 (5 nodes)... Done.
+Laying out connected component 33 (5 nodes)... Done.
+Laying out connected component 34 (5 nodes)... Done.
+Laying out 199 small (containing < 5 nodes) remaining components... Done.
+Std. view layout time:
+1497419869.71 1497419917.42 47.710299015
+Saving information to 20170220.db... Done.
+Creating the (unsimplified) Shakya graph. This might take a few minutes.
+Reading and parsing input file RF_oriented_lengthinfo.gml... Done.
+Looking for simple bubbles in the graph... Done.
+Generating SPQR tree decompositions for the bicomponents of the graph... Done.
+Laying out SPQR trees for each bicomponent in the graph... Done.
+Looking for complex bubbles in the graph using SPQR tree decompositions... Done.
+Looking for frayed ropes in the graph... Done.
+Looking for cyclic chains in the graph... Done.
+Looking for chains in the graph... Done.
+Identifying connected components within the graph... Done.
+Initializing output file shakya.db... Done.
+Laying out a SPQR-tree-integrated view of the graph... SPQR implicit view layout time:
+1497419950.99 1497420092.99 141.994979858
+SPQR explicit view layout time:
+1497420092.99 1497420322.93 229.94343996
+Done.
+Laying out connected component 1 (6083 nodes)... Done.
+Laying out connected component 2 (1963 nodes)... Done.
+Laying out connected component 3 (870 nodes)... Done.
+Laying out connected component 4 (401 nodes)... Done.
+Laying out connected component 5 (191 nodes)... Done.
+Laying out connected component 6 (167 nodes)... Done.
+Laying out connected component 7 (128 nodes)... Done.
+Laying out connected component 8 (127 nodes)... Done.
+Laying out connected component 9 (120 nodes)... Done.
+Laying out connected component 10 (119 nodes)... Done.
+Laying out connected component 11 (110 nodes)... Done.
+Laying out connected component 12 (102 nodes)... Done.
+Laying out connected component 13 (99 nodes)... Done.
+Laying out connected component 14 (95 nodes)... Done.
+Laying out connected component 15 (93 nodes)... Done.
+Laying out connected component 16 (93 nodes)... Done.
+Laying out connected component 17 (91 nodes)... Done.
+Laying out connected component 18 (88 nodes)... Done.
+Laying out connected component 19 (85 nodes)... Done.
+Laying out connected component 20 (84 nodes)... Done.
+Laying out connected component 21 (79 nodes)... Done.
+Laying out connected component 22 (75 nodes)... Done.
+Laying out connected component 23 (73 nodes)... Done.
+Laying out connected component 24 (72 nodes)... Done.
+Laying out connected component 25 (71 nodes)... Done.
+Laying out connected component 26 (70 nodes)... Done.
+Laying out connected component 27 (69 nodes)... Done.
+Laying out connected component 28 (67 nodes)... Done.
+Laying out connected component 29 (66 nodes)... Done.
+Laying out connected component 30 (66 nodes)... Done.
+Laying out connected component 31 (65 nodes)... Done.
+Laying out connected component 32 (65 nodes)... Done.
+Laying out connected component 33 (65 nodes)... Done.
+Laying out connected component 34 (63 nodes)... Done.
+Laying out connected component 35 (63 nodes)... Done.
+Laying out connected component 36 (61 nodes)... Done.
+Laying out connected component 37 (60 nodes)... Done.
+Laying out connected component 38 (59 nodes)... Done.
+Laying out connected component 39 (59 nodes)... Done.
+Laying out connected component 40 (56 nodes)... Done.
+Laying out connected component 41 (56 nodes)... Done.
+Laying out connected component 42 (54 nodes)... Done.
+Laying out connected component 43 (54 nodes)... Done.
+Laying out connected component 44 (51 nodes)... Done.
+Laying out connected component 45 (50 nodes)... Done.
+Laying out connected component 46 (48 nodes)... Done.
+Laying out connected component 47 (46 nodes)... Done.
+Laying out connected component 48 (45 nodes)... Done.
+Laying out connected component 49 (45 nodes)... Done.
+Laying out connected component 50 (43 nodes)... Done.
+Laying out connected component 51 (43 nodes)... Done.
+Laying out connected component 52 (40 nodes)... Done.
+Laying out connected component 53 (37 nodes)... Done.
+Laying out connected component 54 (36 nodes)... Done.
+Laying out connected component 55 (35 nodes)... Done.
+Laying out connected component 56 (35 nodes)... Done.
+Laying out connected component 57 (34 nodes)... Done.
+Laying out connected component 58 (34 nodes)... Done.
+Laying out connected component 59 (33 nodes)... Done.
+Laying out connected component 60 (31 nodes)... Done.
+Laying out connected component 61 (30 nodes)... Done.
+Laying out connected component 62 (30 nodes)... Done.
+Laying out connected component 63 (27 nodes)... Done.
+Laying out connected component 64 (26 nodes)... Done.
+Laying out connected component 65 (25 nodes)... Done.
+Laying out connected component 66 (24 nodes)... Done.
+Laying out connected component 67 (24 nodes)... Done.
+Laying out connected component 68 (24 nodes)... Done.
+Laying out connected component 69 (24 nodes)... Done.
+Laying out connected component 70 (24 nodes)... Done.
+Laying out connected component 71 (23 nodes)... Done.
+Laying out connected component 72 (22 nodes)... Done.
+Laying out connected component 73 (22 nodes)... Done.
+Laying out connected component 74 (21 nodes)... Done.
+Laying out connected component 75 (21 nodes)... Done.
+Laying out connected component 76 (20 nodes)... Done.
+Laying out connected component 77 (20 nodes)... Done.
+Laying out connected component 78 (20 nodes)... Done.
+Laying out connected component 79 (19 nodes)... Done.
+Laying out connected component 80 (19 nodes)... Done.
+Laying out connected component 81 (19 nodes)... Done.
+Laying out connected component 82 (18 nodes)... Done.
+Laying out connected component 83 (18 nodes)... Done.
+Laying out connected component 84 (17 nodes)... Done.
+Laying out connected component 85 (17 nodes)... Done.
+Laying out connected component 86 (16 nodes)... Done.
+Laying out connected component 87 (16 nodes)... Done.
+Laying out connected component 88 (16 nodes)... Done.
+Laying out connected component 89 (16 nodes)... Done.
+Laying out connected component 90 (15 nodes)... Done.
+Laying out connected component 91 (15 nodes)... Done.
+Laying out connected component 92 (15 nodes)... Done.
+Laying out connected component 93 (15 nodes)... Done.
+Laying out connected component 94 (14 nodes)... Done.
+Laying out connected component 95 (14 nodes)... Done.
+Laying out connected component 96 (14 nodes)... Done.
+Laying out connected component 97 (14 nodes)... Done.
+Laying out connected component 98 (14 nodes)... Done.
+Laying out connected component 99 (13 nodes)... Done.
+Laying out connected component 100 (13 nodes)... Done.
+Laying out connected component 101 (13 nodes)... Done.
+Laying out connected component 102 (13 nodes)... Done.
+Laying out connected component 103 (12 nodes)... Done.
+Laying out connected component 104 (12 nodes)... Done.
+Laying out connected component 105 (12 nodes)... Done.
+Laying out connected component 106 (12 nodes)... Done.
+Laying out connected component 107 (12 nodes)... Done.
+Laying out connected component 108 (11 nodes)... Done.
+Laying out connected component 109 (11 nodes)... Done.
+Laying out connected component 110 (11 nodes)... Done.
+Laying out connected component 111 (11 nodes)... Done.
+Laying out connected component 112 (11 nodes)... Done.
+Laying out connected component 113 (11 nodes)... Done.
+Laying out connected component 114 (11 nodes)... Done.
+Laying out connected component 115 (11 nodes)... Done.
+Laying out connected component 116 (10 nodes)... Done.
+Laying out connected component 117 (10 nodes)... Done.
+Laying out connected component 118 (10 nodes)... Done.
+Laying out connected component 119 (10 nodes)... Done.
+Laying out connected component 120 (10 nodes)... Done.
+Laying out connected component 121 (10 nodes)... Done.
+Laying out connected component 122 (9 nodes)... Done.
+Laying out connected component 123 (9 nodes)... Done.
+Laying out connected component 124 (9 nodes)... Done.
+Laying out connected component 125 (9 nodes)... Done.
+Laying out connected component 126 (9 nodes)... Done.
+Laying out connected component 127 (9 nodes)... Done.
+Laying out connected component 128 (9 nodes)... Done.
+Laying out connected component 129 (9 nodes)... Done.
+Laying out connected component 130 (9 nodes)... Done.
+Laying out connected component 131 (9 nodes)... Done.
+Laying out connected component 132 (9 nodes)... Done.
+Laying out connected component 133 (9 nodes)... Done.
+Laying out connected component 134 (9 nodes)... Done.
+Laying out connected component 135 (8 nodes)... Done.
+Laying out connected component 136 (8 nodes)... Done.
+Laying out connected component 137 (8 nodes)... Done.
+Laying out connected component 138 (8 nodes)... Done.
+Laying out connected component 139 (8 nodes)... Done.
+Laying out connected component 140 (8 nodes)... Done.
+Laying out connected component 141 (8 nodes)... Done.
+Laying out connected component 142 (8 nodes)... Done.
+Laying out connected component 143 (8 nodes)... Done.
+Laying out connected component 144 (7 nodes)... Done.
+Laying out connected component 145 (7 nodes)... Done.
+Laying out connected component 146 (7 nodes)... Done.
+Laying out connected component 147 (7 nodes)... Done.
+Laying out connected component 148 (7 nodes)... Done.
+Laying out connected component 149 (7 nodes)... Done.
+Laying out connected component 150 (7 nodes)... Done.
+Laying out connected component 151 (7 nodes)... Done.
+Laying out connected component 152 (7 nodes)... Done.
+Laying out connected component 153 (7 nodes)... Done.
+Laying out connected component 154 (7 nodes)... Done.
+Laying out connected component 155 (7 nodes)... Done.
+Laying out connected component 156 (7 nodes)... Done.
+Laying out connected component 157 (7 nodes)... Done.
+Laying out connected component 158 (7 nodes)... Done.
+Laying out connected component 159 (7 nodes)... Done.
+Laying out connected component 160 (7 nodes)... Done.
+Laying out connected component 161 (7 nodes)... Done.
+Laying out connected component 162 (6 nodes)... Done.
+Laying out connected component 163 (6 nodes)... Done.
+Laying out connected component 164 (6 nodes)... Done.
+Laying out connected component 165 (6 nodes)... Done.
+Laying out connected component 166 (6 nodes)... Done.
+Laying out connected component 167 (6 nodes)... Done.
+Laying out connected component 168 (6 nodes)... Done.
+Laying out connected component 169 (6 nodes)... Done.
+Laying out connected component 170 (6 nodes)... Done.
+Laying out connected component 171 (6 nodes)... Done.
+Laying out connected component 172 (6 nodes)... Done.
+Laying out connected component 173 (6 nodes)... Done.
+Laying out connected component 174 (6 nodes)... Done.
+Laying out connected component 175 (6 nodes)... Done.
+Laying out connected component 176 (6 nodes)... Done.
+Laying out connected component 177 (6 nodes)... Done.
+Laying out connected component 178 (6 nodes)... Done.
+Laying out connected component 179 (6 nodes)... Done.
+Laying out connected component 180 (6 nodes)... Done.
+Laying out connected component 181 (6 nodes)... Done.
+Laying out connected component 182 (6 nodes)... Done.
+Laying out connected component 183 (6 nodes)... Done.
+Laying out connected component 184 (6 nodes)... Done.
+Laying out connected component 185 (6 nodes)... Done.
+Laying out connected component 186 (6 nodes)... Done.
+Laying out connected component 187 (6 nodes)... Done.
+Laying out connected component 188 (5 nodes)... Done.
+Laying out connected component 189 (5 nodes)... Done.
+Laying out connected component 190 (5 nodes)... Done.
+Laying out connected component 191 (5 nodes)... Done.
+Laying out connected component 192 (5 nodes)... Done.
+Laying out connected component 193 (5 nodes)... Done.
+Laying out connected component 194 (5 nodes)... Done.
+Laying out connected component 195 (5 nodes)... Done.
+Laying out connected component 196 (5 nodes)... Done.
+Laying out connected component 197 (5 nodes)... Done.
+Laying out connected component 198 (5 nodes)... Done.
+Laying out connected component 199 (5 nodes)... Done.
+Laying out connected component 200 (5 nodes)... Done.
+Laying out connected component 201 (5 nodes)... Done.
+Laying out connected component 202 (5 nodes)... Done.
+Laying out connected component 203 (5 nodes)... Done.
+Laying out connected component 204 (5 nodes)... Done.
+Laying out connected component 205 (5 nodes)... Done.
+Laying out connected component 206 (5 nodes)... Done.
+Laying out connected component 207 (5 nodes)... Done.
+Laying out connected component 208 (5 nodes)... Done.
+Laying out connected component 209 (5 nodes)... Done.
+Laying out connected component 210 (5 nodes)... Done.
+Laying out connected component 211 (5 nodes)... Done.
+Laying out connected component 212 (5 nodes)... Done.
+Laying out connected component 213 (5 nodes)... Done.
+Laying out connected component 214 (5 nodes)... Done.
+Laying out connected component 215 (5 nodes)... Done.
+Laying out connected component 216 (5 nodes)... Done.
+Laying out connected component 217 (5 nodes)... Done.
+Laying out connected component 218 (5 nodes)... Done.
+Laying out connected component 219 (5 nodes)... Done.
+Laying out connected component 220 (5 nodes)... Done.
+Laying out connected component 221 (5 nodes)... Done.
+Laying out connected component 222 (5 nodes)... Done.
+Laying out connected component 223 (5 nodes)... Done.
+Laying out connected component 224 (5 nodes)... Done.
+Laying out connected component 225 (5 nodes)... Done.
+Laying out 5561 small (containing < 5 nodes) remaining components... Done.
+Std. view layout time:
+1497420322.93 1497421269.58 946.645476103
+Saving information to shakya.db... Done.
