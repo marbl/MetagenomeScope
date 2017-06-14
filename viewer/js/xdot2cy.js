@@ -1303,16 +1303,32 @@ function drawSPQRComponent(cmpRank) {
     // Now we render the nodes, edges, and clusters of this component.
     // But first we need to get the bounding box of this component.
     // Along with the component's total node count.
-    var bbStmt = CURR_DB.prepare(
-        "SELECT boundingbox_x, boundingbox_y, uncompressed_node_count, "
-        + "uncompressed_edge_count, compressed_node_count, "
-        + "compressed_edge_count, bicomponent_count FROM singlecomponents "
-        + "WHERE size_rank = ? LIMIT 1", [cmpRank]);
+    var query;
+    if (CURR_SPQRMODE === "explicit") {
+        query = "SELECT boundingbox_x, boundingbox_y, uncompressed_node_count,"
+            + " uncompressed_edge_count, compressed_node_count,"
+            + " compressed_edge_count, bicomponent_count FROM singlecomponents"
+            + " WHERE size_rank = ? LIMIT 1";
+    }
+    else {
+        query = "SELECT i_boundingbox_x, i_boundingbox_y,"
+            + " compressed_node_count, compressed_edge_count,"
+            + " bicomponent_count FROM singlecomponents"
+            + " WHERE size_rank = ? LIMIT 1";
+    }
+    var bbStmt = CURR_DB.prepare(query, [cmpRank]);
     bbStmt.step();
     var fullObj = bbStmt.getAsObject();
     bbStmt.free();
-    var bb = {'boundingbox_x': fullObj['boundingbox_x'],
+    var bb;
+    if (CURR_SPQRMODE === "explicit") {
+        bb = {'boundingbox_x': fullObj['boundingbox_x'],
               'boundingbox_y': fullObj['boundingbox_y']};
+    }
+    else {
+        bb = {'boundingbox_x': fullObj['i_boundingbox_x'],
+              'boundingbox_y': fullObj['i_boundingbox_y']};
+    }
     var bicmpCount = fullObj['bicomponent_count'];
     // the compressed counts are the amounts of nodes and edges that'll be
     // drawn when the graph is first drawn (and all the SPQR trees are
@@ -1328,8 +1344,12 @@ function drawSPQRComponent(cmpRank) {
     // "totalElementCount" is the max value on the progress bar while first
     // drawing this component
     var totalElementCount = (0.5 * cEdgeCount) + (cNodeCount);
-    var ucNodeCount = fullObj['uncompressed_node_count'];
-    var ucEdgeCount = fullObj['uncompressed_edge_count'];
+    var ucNodeCount = null;
+    var ucEdgeCount = null;
+    if (CURR_SPQRMODE === "explicit") {
+        ucNodeCount = fullObj['uncompressed_node_count'];
+        ucEdgeCount = fullObj['uncompressed_edge_count'];
+    }
     // Scale PROGRESS_BAR_FREQ relative to component size of nodes/edges
     // This does ignore metanodes/bicomponents, but it's a decent approximation
     PROGRESSBAR_FREQ= Math.floor(PROGRESSBAR_FREQ_PERCENT * totalElementCount);
@@ -3122,10 +3142,20 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     else {
         clusterID = clusterObj["cluster_id"];
     }
-    var bottomLeftPos = gv2cyPoint(clusterObj['left'], clusterObj['bottom'],
+    var l = "left";
+    var b = "bottom";
+    var r = "right";
+    var t = "top";
+    if (spqrRelated && CURR_SPQRMODE === "implicit") {
+        l = "i_" + l;
+        b = "i_" + b;
+        r = "i_" + r;
+        t = "i_" + t;
+    }
+    var bottomLeftPos = gv2cyPoint(clusterObj[l], clusterObj[b],
         [boundingboxObject['boundingbox_x'],
          boundingboxObject['boundingbox_y']]);
-    var topRightPos = gv2cyPoint(clusterObj['right'], clusterObj['top'],
+    var topRightPos = gv2cyPoint(clusterObj[r], clusterObj[t],
         [boundingboxObject['boundingbox_x'],
          boundingboxObject['boundingbox_y']]);
     var clusterData = {id: clusterID,
