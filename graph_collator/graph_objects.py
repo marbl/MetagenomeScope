@@ -598,9 +598,9 @@ class SPQRMetaNode(NodeGroup):
                 spqr_related=True, unique_id=unique_id)
 
     def assign_implicit_spqr_borders(self, parent_bicomponent_obj):
-        """Uses this metanode's child nodes' (ix, iy) positions to determine
-           the left/right/bottom/top positions of this metanode in the implicit
-           SPQR decomposition mode layout.
+        """Uses this metanode's child nodes' positions to determine
+           the left/right/bottom/top positions of this metanode in the
+           implicit SPQR decomposition mode layout.
            
            Takes the parent Bicomponent of this metanode as an argument, in
            order to get the exact position of the child node in question.
@@ -608,16 +608,18 @@ class SPQRMetaNode(NodeGroup):
         for n in self.nodes:
             hw_pts = config.POINTS_PER_INCH * (n.xdot_width / 2.0)
             hh_pts = config.POINTS_PER_INCH * (n.xdot_height / 2.0)
-            ix = n.parent_spqrnode2relpos[parent_bicomponent_obj][0] + hw_pts
-            iy = n.parent_spqrnode2relpos[parent_bicomponent_obj][1] + hh_pts
-            if self.xdot_ileft == None or ix < self.xdot_ileft:
-                self.xdot_ileft = ix
-            if self.xdot_iright == None or ix > self.xdot_iright:
-                self.xdot_iright = ix
-            if self.xdot_ibottom == None or iy > self.xdot_ibottom:
-                self.xdot_ibottom = iy
-            if self.xdot_itop == None or iy > self.xdot_itop:
-                self.xdot_itop = iy
+            il = n.parent_spqrnode2relpos[parent_bicomponent_obj][0] - hw_pts
+            ib = n.parent_spqrnode2relpos[parent_bicomponent_obj][1] - hh_pts
+            ir = n.parent_spqrnode2relpos[parent_bicomponent_obj][0] + hw_pts
+            it = n.parent_spqrnode2relpos[parent_bicomponent_obj][1] + hh_pts
+            if self.xdot_ileft == None or il < self.xdot_ileft:
+                self.xdot_ileft = il
+            if self.xdot_iright == None or ir > self.xdot_iright:
+                self.xdot_iright = ir
+            if self.xdot_ibottom == None or ib < self.xdot_ibottom:
+                self.xdot_ibottom = ib
+            if self.xdot_itop == None or it > self.xdot_itop:
+                self.xdot_itop = it
 
     def layout_isolated(self):
         """Similar to NodeGroup.layout_isolated(), but with metanode-specific

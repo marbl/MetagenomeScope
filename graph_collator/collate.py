@@ -1488,6 +1488,10 @@ for mode in ("implicit", "explicit"):
                     mn.xdot_right = mn.xdot_x + mn_hw_pts
                     mn.xdot_bottom = mn.xdot_y - mn_hh_pts
                     mn.xdot_top = mn.xdot_y + mn_hh_pts
+                    mn.xdot_ileft += curr_cluster.xdot_left
+                    mn.xdot_iright += curr_cluster.xdot_left
+                    mn.xdot_itop += curr_cluster.xdot_bottom
+                    mn.xdot_ibottom += curr_cluster.xdot_bottom
                     mn.set_component_rank(single_component_size_rank)
                     cursor.execute(METANODE_INSERTION_STMT, mn.db_values())
                     # Add nodes in this metanode (...in this bicomponent) to
