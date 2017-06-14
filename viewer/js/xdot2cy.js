@@ -2648,7 +2648,12 @@ function searchForEles() {
     eles.select();
 }
 
-/* Reveals the descendant metanodes of the passed metanode from the display.
+/* In explicit mode, reveals the descendant metanodes (and their skeletons) of
+ * the passed metanode.
+ *
+ * In implicit mode, adds the real edges and new singlenodes of the skeletons
+ * of the descendant metanodes to the skeleton of the current metanode.
+ * (TODO, I need to implement that functionality.)
  *
  * (This function should only be called if the metanode in question has
  * immediate descendants and is currently collapsed.)
