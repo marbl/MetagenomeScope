@@ -1176,7 +1176,7 @@ CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
 ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 SINGLENODE_INSERTION_STMT = \
-    "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?)"
 BICOMPONENT_INSERTION_STMT = \
     "INSERT INTO bicomponents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
@@ -1209,7 +1209,7 @@ cursor.execute("""CREATE TABLE assembly
 cursor.execute("""CREATE TABLE singlenodes
         (id text, label text, length integer, gc_content real, depth real,
         scc_rank integer, x real, y real, i_x real, i_y real, w real, h real,
-        parent_metanode_id text)""")
+        parent_metanode_id text, parent_bicomponent_id text)""")
 cursor.execute("""CREATE TABLE singleedges
         (source_id text, target_id text, scc_rank integer,
         parent_metanode_id text, is_virtual integer)""")

@@ -2720,9 +2720,11 @@ function uncollapseSPQRMetanode(mn) {
             CURR_BOUNDINGBOX, "metanode");
         descendantID2pos[clusterIDandPos[0]] = clusterIDandPos[1];
     }
-    for (a = 0; a < outgoingEdgeObjects.length; a++) {
-        renderEdgeObject(outgoingEdgeObjects[a], descendantID2pos, null, null,
-            CURR_BOUNDINGBOX, "metanodeedge", "SPQR");
+    if (CURR_SPQRMODE === "explicit") {
+        for (a = 0; a < outgoingEdgeObjects.length; a++) {
+            renderEdgeObject(outgoingEdgeObjects[a], descendantID2pos, null,
+                null, CURR_BOUNDINGBOX, "metanodeedge", "SPQR");
+        }
     }
     var cyNodeID;
     for (a = 0; a < singlenodeObjects.length; a++) {
@@ -2735,7 +2737,12 @@ function uncollapseSPQRMetanode(mn) {
         renderEdgeObject(singleedgeObjects[a], {}, null, null,
             CURR_BOUNDINGBOX, "singleedge", "SPQR");
     }
-    mn.data("isCollapsed", false);
+    if (CURR_SPQRMODE === "explicit") {
+        mn.data("isCollapsed", false);
+    }
+    else {
+        cy.remove(mn);
+    }
 }
 
 /* Removes the descendant metanodes of the passed metanode from the display.
@@ -3064,11 +3071,22 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         labelUsed = nodeObj['id'];
     }
     var parentID;
+    var parentBicmpID = null;
     var nodeDepth = null;
     var nodeLength = null;
     var nodeGC = null;
     if (mode === "SPQR") {
         parentID = nodeObj['parent_metanode_id'];
+        if (CURR_SPQRMODE === "implicit") {
+            // ensure this data is present for each bicomponent
+            // there's probably a more efficient way to do this, but it's 2am
+            // and I'm really tired so let's revisit this later (TODO #115)
+            parentBicmpID = nodeObj['parent_bicomponent_id'];
+            if (parentBicmpID !== null && parentBicmpID !== undefined) {
+                cy.getElementById(parentBicmpID)
+                    .scratch("_visibleSingleNodeIDs").push(cyNodeID);
+            }
+        }
     }
     else {
         parentID = nodeObj['parent_cluster_id'];
@@ -3175,7 +3193,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
         h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
         isCollapsed: false};
-    if (parent_bicmp_id !== null) {
+    if (parent_bicmp_id !== null && CURR_SPQRMODE === "explicit") {
         clusterData["parent"] = parent_bicmp_id;
     }
     var pos = [(bottomLeftPos[0] + topRightPos[0]) / 2,
@@ -3215,9 +3233,15 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         position: {x: pos[0], y: pos[1]},
         locked: spqrRelated
     });
-    if (spqrRelated) {
+    if (spqrtype === "metanode") {
         // For SPQR metanode collapsing/uncollapsing
         newObj.scratch("_singlenodeIDs", []);
+    }
+    else if (spqrtype === "bicomponent") {
+        // for implicit mode uncollapsing
+        // array of IDs of visible singlenodes -- updated as we expand the tree
+        // used to prevent adding duplicates
+        newObj.scratch("_visibleSingleNodeIDs", []);
     }
     else {
         // For variant collapsing/uncollapsing

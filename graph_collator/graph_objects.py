@@ -322,7 +322,7 @@ class Node(object):
            if applicable) have been laid out.
         """
         ix = iy = x = y = 0
-        parent_metanode_id = None
+        parent_metanode_id = parent_bicmp_id = None
         if parent_metanode == None:
             x = self.xdot_x
             y = self.xdot_y
@@ -341,12 +341,14 @@ class Node(object):
             # positions should be used for this particular row in the database
             # (since a singlenode can be in multiple bicomponents)
             parent_bicmp = parent_metanode.parent_bicomponent
+            parent_bicmp_id = parent_bicmp.id_string
             irelpos = self.parent_spqrnode2relpos[parent_bicmp]
             ix = parent_bicmp.xdot_ileft + irelpos[0]
             iy = parent_bicmp.xdot_ibottom + irelpos[1]
         return (self.id_string, self.label, self.bp, self.gc_content,
                 self.depth, self.component_size_rank, x, y, ix, iy,
-                self.xdot_width, self.xdot_height, parent_metanode_id)
+                self.xdot_width, self.xdot_height, parent_metanode_id,
+                parent_bicmp_id)
 
     def db_values(self):
         """Returns a tuple of the "values" of this Node.
