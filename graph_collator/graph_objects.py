@@ -597,21 +597,18 @@ class SPQRMetaNode(NodeGroup):
         super(SPQRMetaNode, self).__init__(self.metanode_type, "", nodes,
                 spqr_related=True, unique_id=unique_id)
 
-    def assign_implicit_spqr_borders(self, parent_bicomponent_obj):
+    def assign_implicit_spqr_borders(self):
         """Uses this metanode's child nodes' positions to determine
            the left/right/bottom/top positions of this metanode in the
            implicit SPQR decomposition mode layout.
-           
-           Takes the parent Bicomponent of this metanode as an argument, in
-           order to get the exact position of the child node in question.
         """
         for n in self.nodes:
             hw_pts = config.POINTS_PER_INCH * (n.xdot_width / 2.0)
             hh_pts = config.POINTS_PER_INCH * (n.xdot_height / 2.0)
-            il = n.parent_spqrnode2relpos[parent_bicomponent_obj][0] - hw_pts
-            ib = n.parent_spqrnode2relpos[parent_bicomponent_obj][1] - hh_pts
-            ir = n.parent_spqrnode2relpos[parent_bicomponent_obj][0] + hw_pts
-            it = n.parent_spqrnode2relpos[parent_bicomponent_obj][1] + hh_pts
+            il = n.parent_spqrnode2relpos[self.parent_bicomponent][0] - hw_pts
+            ib = n.parent_spqrnode2relpos[self.parent_bicomponent][1] - hh_pts
+            ir = n.parent_spqrnode2relpos[self.parent_bicomponent][0] + hw_pts
+            it = n.parent_spqrnode2relpos[self.parent_bicomponent][1] + hh_pts
             if self.xdot_ileft == None or il < self.xdot_ileft:
                 self.xdot_ileft = il
             if self.xdot_iright == None or ir > self.xdot_iright:

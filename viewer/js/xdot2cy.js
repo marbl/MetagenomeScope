@@ -3033,8 +3033,16 @@ function getNodeCoordClass(isHouse) {
  * If mode is "SPQR", then this handles that accordingly w/r/t node shape, etc.
  */
 function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
-    var pos = gv2cyPoint(nodeObj['x'], nodeObj['y'],
-        [boundingboxObject['boundingbox_x'],
+    var nx, ny;
+    if (mode === "SPQR" && CURR_SPQRMODE === "implicit") {
+        nx = nodeObj['i_x'];
+        ny = nodeObj['i_y'];
+    }
+    else {
+        nx = nodeObj['x'];
+        ny = nodeObj['y'];
+    }
+    var pos = gv2cyPoint(nx, ny, [boundingboxObject['boundingbox_x'],
          boundingboxObject['boundingbox_y']]);
     
     var nodeShapeClass = "singlenode";

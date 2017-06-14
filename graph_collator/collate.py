@@ -1370,6 +1370,7 @@ for mode in ("implicit", "explicit"):
         # lay out the graph (singlenodes and singleedges outside of
         # bicomponents, and bicomponent general structures)
         h.layout(prog='sfdp')
+        #h.draw(scc_prefix + ".png")
         # save the .xdot file if the user requested .xdot preservation
         if preserve_xdot:
             save_aux_file(scc_prefix + ".xdot", h, True)
@@ -1477,7 +1478,7 @@ for mode in ("implicit", "explicit"):
                 if mode == "implicit":
                     # compute positions of metanodes relative to child nodes
                     for mn in curr_cluster.metanode_list:
-                        mn.assign_implicit_spqr_borders(curr_cluster)
+                        mn.assign_implicit_spqr_borders()
                     continue
                 for mn in curr_cluster.metanode_list:
                     mn.xdot_x = curr_cluster.xdot_left + mn.xdot_rel_x
@@ -1488,10 +1489,10 @@ for mode in ("implicit", "explicit"):
                     mn.xdot_right = mn.xdot_x + mn_hw_pts
                     mn.xdot_bottom = mn.xdot_y - mn_hh_pts
                     mn.xdot_top = mn.xdot_y + mn_hh_pts
-                    mn.xdot_ileft += curr_cluster.xdot_left
-                    mn.xdot_iright += curr_cluster.xdot_left
-                    mn.xdot_itop += curr_cluster.xdot_bottom
-                    mn.xdot_ibottom += curr_cluster.xdot_bottom
+                    mn.xdot_ileft += curr_cluster.xdot_ileft
+                    mn.xdot_iright += curr_cluster.xdot_ileft
+                    mn.xdot_itop += curr_cluster.xdot_ibottom
+                    mn.xdot_ibottom += curr_cluster.xdot_ibottom
                     mn.set_component_rank(single_component_size_rank)
                     cursor.execute(METANODE_INSERTION_STMT, mn.db_values())
                     # Add nodes in this metanode (...in this bicomponent) to
