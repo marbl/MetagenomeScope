@@ -3193,7 +3193,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
         h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
         isCollapsed: false};
-    if (parent_bicmp_id !== null && CURR_SPQRMODE === "explicit") {
+    if (parent_bicmp_id !== null) {
         clusterData["parent"] = parent_bicmp_id;
     }
     var pos = [(bottomLeftPos[0] + topRightPos[0]) / 2,
