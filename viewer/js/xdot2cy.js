@@ -316,7 +316,7 @@ function initGraph(viewType) {
                     // we're zoomed out so much that the text would be
                     // illegible (or hard-to-read, at least) then don't
                     // render the text.
-                    'min-zoomed-font-size': 12,
+                    'min-zoomed-font-size': 12
                 }
             },
             {
@@ -412,7 +412,8 @@ function initGraph(viewType) {
             {
                 selector: 'edge',
                 style: {
-                    'width': 'data(thickness)'
+                    'width': 'data(thickness)',
+                    'z-index': 10
                 }
             },
             {
@@ -1648,7 +1649,7 @@ function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
         totalElementCount, edgeType, mode, counts) {
     if (edgesStmt.step()) {
         renderEdgeObject(edgesStmt.getAsObject(), node2pos,
-            maxMult, minMult, bb, edgeType, mode);
+            maxMult, minMult, bb, edgeType, mode, {});
         componentEdgeCount += 1;
         CURR_NE += 0.5;
         if (CURR_NE % PROGRESSBAR_FREQ === 0) {
@@ -2653,7 +2654,6 @@ function searchForEles() {
  *
  * In implicit mode, adds the real edges and new singlenodes of the skeletons
  * of the descendant metanodes to the skeleton of the current metanode.
- * (TODO, I need to implement that functionality.)
  *
  * (This function should only be called if the metanode in question has
  * immediate descendants and is currently collapsed.)
@@ -2707,7 +2707,7 @@ function uncollapseSPQRMetanode(mn) {
     singleedgesStmt.free();
     // At this point, we have all the new elements ready to draw.
     // So draw them!
-    var a = 0;
+    var a, b;
     // We prepare this mapping to pass it to renderEdgeObject()
     // It's used in control point calculations for unbundled-bezier edges,
     // which metanodeedges are currently rendered as.
@@ -2716,31 +2716,58 @@ function uncollapseSPQRMetanode(mn) {
     descendantID2pos[mnID] = [sourcePos['x'], sourcePos['y']];
     var clusterIDandPos = [];
     for (a = 0; a < descendantMetanodeObjects.length; a++) {
-        clusterIDandPos = renderClusterObject(descendantMetanodeObjects[a],
-            CURR_BOUNDINGBOX, "metanode");
-        descendantID2pos[clusterIDandPos[0]] = clusterIDandPos[1];
+        if (CURR_SPQRMODE === "explicit" ||
+                descendantMetanodeObjects[a]['descendant_metanode_count'] > 0){
+            clusterIDandPos = renderClusterObject(descendantMetanodeObjects[a],
+                CURR_BOUNDINGBOX, "metanode");
+            descendantID2pos[clusterIDandPos[0]] = clusterIDandPos[1];
+        }
     }
     if (CURR_SPQRMODE === "explicit") {
         for (a = 0; a < outgoingEdgeObjects.length; a++) {
             renderEdgeObject(outgoingEdgeObjects[a], descendantID2pos, null,
-                null, CURR_BOUNDINGBOX, "metanodeedge", "SPQR");
+                null, CURR_BOUNDINGBOX, "metanodeedge", "SPQR", {});
         }
     }
-    var cyNodeID;
+    var cyNodeID, normalID;
+    var currIDs;
+    var alreadyVisible;
+    var singlenodeMapping = {};
     for (a = 0; a < singlenodeObjects.length; a++) {
-        cyNodeID = singlenodeObjects[a]['id'] + "_"
-            + singlenodeObjects[a]['parent_metanode_id'];
-        renderNodeObject(singlenodeObjects[a],
-            cyNodeID, CURR_BOUNDINGBOX, "SPQR");
+        normalID = singlenodeObjects[a]['id'];
+        // In implicit mode, only render a new singlenode if it isn't already
+        // visible in the parent bicomponent
+        if (CURR_SPQRMODE === "implicit") {
+            currIDs = mn.parent().scratch("_visibleSingleNodeIDs");
+            alreadyVisible = false;
+            for (b = 0; b < currIDs.length; b++) {
+                if (normalID === currIDs[b].split("_")[0]) {
+                    alreadyVisible = true;
+                    singlenodeMapping[normalID] = currIDs[b];
+                    break;
+                }
+            }
+            if (alreadyVisible) {
+                continue;
+            }
+        } 
+        cyNodeID = normalID + "_"
+                + singlenodeObjects[a]['parent_metanode_id'];
+        renderNodeObject(singlenodeObjects[a], cyNodeID, CURR_BOUNDINGBOX,
+                "SPQR");
     }
     for (a = 0; a < singleedgeObjects.length; a++) {
         renderEdgeObject(singleedgeObjects[a], {}, null, null,
-            CURR_BOUNDINGBOX, "singleedge", "SPQR");
+            CURR_BOUNDINGBOX, "singleedge", "SPQR", singlenodeMapping);
     }
     if (CURR_SPQRMODE === "explicit") {
         mn.data("isCollapsed", false);
     }
     else {
+        var edgesToRemove = mn.scratch("_virtualedgeIDs");
+        for (var c = 0; c < edgesToRemove.length; c++) {
+            cy.remove(cy.getElementById(edgesToRemove[c]));
+        }
         cy.remove(mn);
     }
 }
@@ -3083,6 +3110,8 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             // and I'm really tired so let's revisit this later (TODO #115)
             parentBicmpID = nodeObj['parent_bicomponent_id'];
             if (parentBicmpID !== null && parentBicmpID !== undefined) {
+                // Since a bicomponent can contain only one node with a given
+                // ID, we store normal node IDs and not unambiguous IDs here
                 cy.getElementById(parentBicmpID)
                     .scratch("_visibleSingleNodeIDs").push(cyNodeID);
             }
@@ -3111,8 +3140,10 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             nodeData["parent"] = parentID;
         } else {
             // For SPQR metanode collapsing
-            cy.getElementById(parentID).scratch(
-                "_singlenodeIDs").push(cyNodeID);
+            if (CURR_SPQRMODE === "explicit") {
+                cy.getElementById(parentID).scratch(
+                    "_singlenodeIDs").push(cyNodeID);
+            }
         }
         cy.scratch("_ele2parent")[cyNodeID] = parentID;
         // Allow for searching via node labels. This does increase the number
@@ -3226,7 +3257,12 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     if (spqrRelated) {
         // Since this node won't actually be assigned child nodes (but still
         // has "children" in some abstract way), we manually set its node count
-        clusterData["interiorNodeCount"] = clusterObj["node_count"];
+        if (CURR_SPQRMODE === "implicit" && spqrtype === "bicomponent") {
+            clusterData["interiorNodeCount"] = "N/A";
+        }
+        else {
+            clusterData["interiorNodeCount"] = clusterObj["node_count"];
+        }
     }
     var newObj = cy.add({
         classes: classes, data: clusterData,
@@ -3234,8 +3270,14 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         locked: spqrRelated
     });
     if (spqrtype === "metanode") {
-        // For SPQR metanode collapsing/uncollapsing
-        newObj.scratch("_singlenodeIDs", []);
+        if (CURR_SPQRMODE === "explicit") {
+            // For SPQR metanode collapsing/uncollapsing
+            newObj.scratch("_singlenodeIDs", []);
+        }
+        else {
+            // For implicit SPQR collapsing
+            newObj.scratch("_virtualedgeIDs", []);
+        }
     }
     else if (spqrtype === "bicomponent") {
         // for implicit mode uncollapsing
@@ -3268,9 +3310,16 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
  * since GraphViz doesn't adjust node placement based on edge thickness even
  * in extreme cases -- therefore we have free reign in this function to
  * adjust edge thickness, independent of the other parts of MetagenomeScope.
+ *
+ * If actualIDmapping !== {}, then the source/target IDs assigned to this edge
+ * will be replaced accordingly. So, for example, if we were going to render an
+ * edge from singlenode 3 to 4 (both in, say, a P-metanode with ID abc), but
+ * actualIDmapping says something like {"3": "3def", "4": "4def"}, then we'll
+ * adjust the node IDs to use the "def" suffix instead. This feature is used
+ * when adding edges in the implicit SPQR mode uncollapsing feature.
  */
 function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
-        boundingboxObject, edgeType, mode) {
+        boundingboxObject, edgeType, mode, actualIDmapping) {
     var sourceID, targetID;
     // If the edge is in "regular mode", make its ID what it was before:
     // srcID + "->" + tgtID.
@@ -3295,22 +3344,47 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
             // (they usually seem to be straight lines/normal beziers anyway)
             var edgeClasses = "basicbezier";
             var parent_mn_id = edgeObj['parent_metanode_id'];
+            var isVirtual = false;
             if (parent_mn_id !== null) {
                 // This singleedge is in a metanode's skeleton.
-                sourceID += "_" + parent_mn_id;
-                targetID += "_" + parent_mn_id;
+                if (actualIDmapping[sourceID] !== undefined) {
+                    sourceID = actualIDmapping[sourceID];
+                }
+                else {
+                    sourceID += "_" + parent_mn_id;
+                }
+                if (actualIDmapping[targetID] !== undefined) {
+                    targetID = actualIDmapping[targetID];
+                }
+                else {
+                    targetID += "_" + parent_mn_id;
+                }
                 if (edgeObj['is_virtual'] !== 0) {
                     // We do this check here because virtual edges can only
                     // exist in metanode skeletons
                     edgeClasses += " virtual";
+                    isVirtual = true;
                 }
             }
-            cy.add({
+            var addNote = false;
+            if (CURR_SPQRMODE === "implicit" && isVirtual) {
+                if (cy.getElementById(parent_mn_id).empty()) {
+                    return;
+                }
+                else {
+                    addNote = true;
+                }
+            }
+            var e = cy.add({
                 classes: edgeClasses,
                 data: {source: sourceID, target: targetID,
                        dispsrc: displaySourceID, disptgt: displayTargetID,
                        thickness: MAX_EDGE_THICKNESS}
             });
+            if (addNote) {
+                cy.getElementById(parent_mn_id).scratch(
+                    "_virtualedgeIDs").push(e.id());
+            }
             return;
         }
     }
