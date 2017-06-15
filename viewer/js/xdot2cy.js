@@ -3235,6 +3235,13 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
         h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
         isCollapsed: false};
+    // TODO only assign the metanode a parent when in explicit mode
+    // need to alter the use of .parent() accordingly, to store
+    // bicomponent-level lists/etc as maybe mappings to lists or something
+    // (e.g. instead of I2.scratch("_visibleSingleNodeIDs") = [1,2,100], we use
+    // something like {"I2" => [1,2,100], "I3" => ...})
+    // yeah that'd make sense. just implement the change, figure out what it
+    // causes errors in, and fix accordingly.
     if (parent_bicmp_id !== null) {
         clusterData["parent"] = parent_bicmp_id;
     }
