@@ -276,7 +276,7 @@ function initGraph(viewType) {
             {
                 selector: 'node.I',
                 style: {
-                    'background-color': '#aaa'
+                    'background-color': '#ddd'
                 }
             },
             {
@@ -316,7 +316,8 @@ function initGraph(viewType) {
                     // we're zoomed out so much that the text would be
                     // illegible (or hard-to-read, at least) then don't
                     // render the text.
-                    'min-zoomed-font-size': 12
+                    'min-zoomed-font-size': 12,
+                    'z-index': 2
                 }
             },
             {
@@ -413,7 +414,7 @@ function initGraph(viewType) {
                 selector: 'edge',
                 style: {
                     'width': 'data(thickness)',
-                    'z-index': 10
+                    'z-index': 1
                 }
             },
             {
@@ -2738,6 +2739,7 @@ function uncollapseSPQRMetanode(mn) {
         // In implicit mode, only render a new singlenode if it isn't already
         // visible in the parent bicomponent
         if (CURR_SPQRMODE === "implicit") {
+            // TODO store visibleSingleNodeIDs in an independent mapping
             currIDs = mn.parent().scratch("_visibleSingleNodeIDs");
             alreadyVisible = false;
             for (b = 0; b < currIDs.length; b++) {
@@ -2750,7 +2752,7 @@ function uncollapseSPQRMetanode(mn) {
             if (alreadyVisible) {
                 continue;
             }
-        } 
+        }
         cyNodeID = normalID + "_"
                 + singlenodeObjects[a]['parent_metanode_id'];
         renderNodeObject(singlenodeObjects[a], cyNodeID, CURR_BOUNDINGBOX,
@@ -2768,7 +2770,16 @@ function uncollapseSPQRMetanode(mn) {
         for (var c = 0; c < edgesToRemove.length; c++) {
             cy.remove(cy.getElementById(edgesToRemove[c]));
         }
+        var parentBicmp = mn.parent();
         cy.remove(mn);
+        if (parentBicmp.children().empty()) {
+            parentBicmp.unlock();
+            parentBicmp.position(
+                {x: parseFloat(parentBicmp.data("xPos")),
+                    y: parseFloat(parentBicmp.data("yPos"))}
+            );
+            parentBicmp.lock();
+        }
     }
 }
 
@@ -3253,6 +3264,8 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     }
     else if (spqrtype === "bicomponent") {
         classes += ' pseudoparent';
+        clusterData["xPos"] = pos[0];
+        clusterData["yPos"] = pos[1];
     }
     if (spqrRelated) {
         // Since this node won't actually be assigned child nodes (but still
