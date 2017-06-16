@@ -36,12 +36,12 @@ public:
     double mean;
     double stdev;
     int bundle_size;
-	Link() {};
+    Link() {};
     Link(int id, string contig_a, string contig_a_orientation, string contig_b, string contig_b_orientation, double mean, double stdev);
-	Link(int id, string contig_a, string contig_a_orientation, string contig_b, string contig_b_orientation, double mean, double stdev, int bundle_size);
-	double getmean();
-	double getstdev();
-	string getlinkorientation();
+    Link(int id, string contig_a, string contig_a_orientation, string contig_b, string contig_b_orientation, double mean, double stdev, int bundle_size);
+    double getmean();
+    double getstdev();
+    string getlinkorientation();
     string getcontigs();
     string getfirstcontig();
     string getsecondcontig();
@@ -53,13 +53,13 @@ public:
 
 Link :: Link(int id, string contig_a, string contig_a_orientation, string contig_b, string contig_b_orientation, double mean, double stdev, int bundle_size)
 {
-	this->id = id;
-	this->contig_a = contig_a;
-	this->contig_b = contig_b;
-	this->contig_a_orientation = contig_a_orientation;
-	this->contig_b_orientation = contig_b_orientation;
-	this->mean = mean;
-	this->stdev = stdev;
+    this->id = id;
+    this->contig_a = contig_a;
+    this->contig_b = contig_b;
+    this->contig_a_orientation = contig_a_orientation;
+    this->contig_b_orientation = contig_b_orientation;
+    this->mean = mean;
+    this->stdev = stdev;
     this->bundle_size = bundle_size;
 }
 
@@ -102,17 +102,17 @@ int Link :: get_bundle_size()
 
 double Link :: getmean()
 {
-	return this->mean;
+    return this->mean;
 }
 
 double Link :: getstdev()
 {
-	return this->stdev;
+    return this->stdev;
 }
 
 string Link :: getlinkorientation()
 {
-	return this->contig_a_orientation + this->contig_b_orientation;
+    return this->contig_a_orientation + this->contig_b_orientation;
 }
 
 string Link :: getcontigs()
@@ -134,8 +134,8 @@ char* getCharExpr(string s)
 }
 
 class Bicomponent {
-	private:
-	  std::set<int> memberNodes;
+    private:
+      std::set<int> memberNodes;
     
     std::set<int>::iterator nextIter(std::set<int>::iterator iter) {
       return ++iter;
@@ -150,50 +150,50 @@ class Bicomponent {
 
 int searchList (SList <edge> S,edge e) 
 {
-		int x = 0;
-		
-		for(SListIterator <edge> i = S.begin(); i.valid(); ++i, ++x) 
-		{
-				if(*i == e) 
-				{
-					return x;
-				}
-		}
-		return -1;
+        int x = 0;
+        
+        for(SListIterator <edge> i = S.begin(); i.valid(); ++i, ++x) 
+        {
+                if(*i == e) 
+                {
+                    return x;
+                }
+        }
+        return -1;
 }
 
 string getTypeString(node &n, StaticSPQRTree &s) {
-	std::string res = "unkown";	
-	int type = s.typeOf(n);
-	switch (type) {
-		case 0:
-			res = "S";
-			break;
-		case 1:
-			res = "P";
-			break;
-		case 2:
-			res = "R";
-			break;
-	}
-	return res;
+    std::string res = "unkown";    
+    int type = s.typeOf(n);
+    switch (type) {
+        case 0:
+            res = "S";
+            break;
+        case 1:
+            res = "P";
+            break;
+        case 2:
+            res = "R";
+            break;
+    }
+    return res;
 }
 
 void write_dot(Graph G, map<int,int> sk2origin, string file,Skeleton &sk)
 {
-	ofstream of(getCharExpr(file));
-	of << "digraph {"<<endl;
-	edge e;
-	forall_edges(e,G)
-	{
-		if(!sk.isVirtual(e))
-		{
-			int source = sk2origin[e->source()->index()];
-			int target = sk2origin[e->target()->index()];
-			of <<"\t"<<source<<"->"<<target<<endl;
-		}
-	}
-	of<<"}";
+    ofstream of(getCharExpr(file));
+    of << "digraph {"<<endl;
+    edge e;
+    forall_edges(e,G)
+    {
+        if(!sk.isVirtual(e))
+        {
+            int source = sk2origin[e->source()->index()];
+            int target = sk2origin[e->target()->index()];
+            of <<"\t"<<source<<"->"<<target<<endl;
+        }
+    }
+    of<<"}";
 }
 
 void getCutVertexPair(const GraphCopy &GC, node bcTreeNode,BCTree &bc, int CC, \
@@ -252,107 +252,107 @@ struct pair_hash {
 
 void findTwoVertexCuts(Bicomponent &bicomp, Skeleton &sk, unordered_map<int,int> sk2orig, std::string type) 
 {
-	const Graph &G = sk.getGraph();
-	int virtualCount;
-	edge e;
-	
-	node n1;
-	const int nrNodes = G.numberOfNodes();
-	//cout<<"Number of nodes = "<<nrNodes<<endl;
-	int allnodes[nrNodes];
-	int count = 0;
-	
-	forall_nodes(n1, G) {
-		allnodes[count] = sk2orig[n1->index()];
-		count++;
-	}
-	//cout<<"Done"<<endl;
-	if (type == "R") {
-		//cout<<"R"<<endl;
-		//A virtual edge in an R node represents a two vertex cut
-		forall_edges(e,G) {
-			if (sk.isVirtual(e))
-				pairs.push_back(make_pair(sk2orig[e->source()->index()], sk2orig[e->target()->index()]));
-		} //forall edges
-	}//if
-	else if (type == "P") {
-		//Node associated with p-nodes with two or more virtual edges are 2-vertex cuts
-		//cout<<"P"<<endl;
-		virtualCount = 0;
-		forall_edges(e,G) {
-			if (sk.isVirtual(e)) {
-				virtualCount++;
-				if (virtualCount > 1) {
-					pairs.push_back(make_pair(sk2orig[e->source()->index()], sk2orig[e->target()->index()]));
-					break;
-				}//if
-			}//if
-		}//forall_edges
-	}//else if
-	else if (type == "S") 
-	{
-		//cout<<"S"<<endl;
-		// A virtual edge in an S node represents a 2-vertex cuts
-		unordered_map<pair<int,int>, bool, pair_hash > adjacent;
-		forall_edges(e,G) {
-			if (sk.isVirtual(e)) 
-				pairs.push_back(make_pair(sk2orig[e->source()->index()], sk2orig[e->target()->index()]));
-			else
-				adjacent[make_pair(sk2orig[e->source()->index()], sk2orig[e->target()->index()])] = true;
-				adjacent[make_pair(sk2orig[e->target()->index()], sk2orig[e->source()->index()])] = true;
-		} //forall edges
-		
+    const Graph &G = sk.getGraph();
+    int virtualCount;
+    edge e;
+    
+    node n1;
+    const int nrNodes = G.numberOfNodes();
+    //cout<<"Number of nodes = "<<nrNodes<<endl;
+    int allnodes[nrNodes];
+    int count = 0;
+    
+    forall_nodes(n1, G) {
+        allnodes[count] = sk2orig[n1->index()];
+        count++;
+    }
+    //cout<<"Done"<<endl;
+    if (type == "R") {
+        //cout<<"R"<<endl;
+        //A virtual edge in an R node represents a two vertex cut
+        forall_edges(e,G) {
+            if (sk.isVirtual(e))
+                pairs.push_back(make_pair(sk2orig[e->source()->index()], sk2orig[e->target()->index()]));
+        } //forall edges
+    }//if
+    else if (type == "P") {
+        //Node associated with p-nodes with two or more virtual edges are 2-vertex cuts
+        //cout<<"P"<<endl;
+        virtualCount = 0;
+        forall_edges(e,G) {
+            if (sk.isVirtual(e)) {
+                virtualCount++;
+                if (virtualCount > 1) {
+                    pairs.push_back(make_pair(sk2orig[e->source()->index()], sk2orig[e->target()->index()]));
+                    break;
+                }//if
+            }//if
+        }//forall_edges
+    }//else if
+    else if (type == "S") 
+    {
+        //cout<<"S"<<endl;
+        // A virtual edge in an S node represents a 2-vertex cuts
+        unordered_map<pair<int,int>, bool, pair_hash > adjacent;
+        forall_edges(e,G) {
+            if (sk.isVirtual(e)) 
+                pairs.push_back(make_pair(sk2orig[e->source()->index()], sk2orig[e->target()->index()]));
+            else
+                adjacent[make_pair(sk2orig[e->source()->index()], sk2orig[e->target()->index()])] = true;
+                adjacent[make_pair(sk2orig[e->target()->index()], sk2orig[e->source()->index()])] = true;
+        } //forall edges
+        
 
-		// All non-adjacent nodes in an S-node are cut-vertices
-		for (int i = 0; i < nrNodes-1; i++)
-				for(int j = i+1; j < nrNodes; j++)
-						if(adjacent.find(make_pair(allnodes[i], allnodes[j])) == adjacent.end() or adjacent.find(make_pair(allnodes[j], allnodes[i])) == adjacent.end())
-							pairs.push_back(make_pair(allnodes[i], allnodes[j]));
-	}//else if
-	//cout<<pairs.size()<<endl;
+        // All non-adjacent nodes in an S-node are cut-vertices
+        for (int i = 0; i < nrNodes-1; i++)
+                for(int j = i+1; j < nrNodes; j++)
+                        if(adjacent.find(make_pair(allnodes[i], allnodes[j])) == adjacent.end() or adjacent.find(make_pair(allnodes[j], allnodes[i])) == adjacent.end())
+                            pairs.push_back(make_pair(allnodes[i], allnodes[j]));
+    }//else if
+    //cout<<pairs.size()<<endl;
 } //getTwoVertexCuts
 
 std::set<int> getBiComponent(GraphCopy *GC, BCTree *p_bct, node bcTreeNode) 
 {
-	node n;
-	edge e;
-	std::set<int> memberNodes; // Members of the N-node
-	
-	const Graph &auxGraph = p_bct->auxiliaryGraph();
-	//GraphCopy GC(auxGraph); 					                     //copy of original
-	SList <edge> componentEdges = p_bct->hEdges(bcTreeNode); //edges in component bcTreeNode
-	forall_edges (e, auxGraph) {							 						   //Check if edge belongs to component
-		//cerr << "Testing edge " << e << endl;
-		if (searchList(componentEdges,e) == -1) {			         //If not, delete edge from copy 
-			GC->delEdge(GC->copy(e));
-		}
-	}
-	forall_nodes(n, auxGraph)
-	{								               //Delete nodes without edges
-		if (!GC->copy(n)->degree()) 
-		{
-			//cerr << "Deleting node: " << n->index() << endl;
-			GC->delNode(GC->copy(n));
-		} //if
-		else 
-		{
-		  int index = p_bct->original(n)->index();
-		  memberNodes.insert(index);
-		} //else
-	}// forall_nodes
-	return memberNodes;
+    node n;
+    edge e;
+    std::set<int> memberNodes; // Members of the N-node
+    
+    const Graph &auxGraph = p_bct->auxiliaryGraph();
+    //GraphCopy GC(auxGraph);                                          //copy of original
+    SList <edge> componentEdges = p_bct->hEdges(bcTreeNode); //edges in component bcTreeNode
+    forall_edges (e, auxGraph) {                                                        //Check if edge belongs to component
+        //cerr << "Testing edge " << e << endl;
+        if (searchList(componentEdges,e) == -1) {                     //If not, delete edge from copy 
+            GC->delEdge(GC->copy(e));
+        }
+    }
+    forall_nodes(n, auxGraph)
+    {                                               //Delete nodes without edges
+        if (!GC->copy(n)->degree()) 
+        {
+            //cerr << "Deleting node: " << n->index() << endl;
+            GC->delNode(GC->copy(n));
+        } //if
+        else 
+        {
+          int index = p_bct->original(n)->index();
+          memberNodes.insert(index);
+        } //else
+    }// forall_nodes
+    return memberNodes;
 }
 
 node original(node &n, BCTree &bc, const GraphCopy &GC, Skeleton &sk)
 {
-	node np;
-	np = bc.original(GC.original(sk.original(n)));
-	return np;
+    node np;
+    np = bc.original(GC.original(sk.original(n)));
+    return np;
 }
 
 int main(int argc, char* argv[])
-{	
-	cmdline ::parser pr;
+{    
+    cmdline ::parser pr;
     pr.add<string>("oriented_graph",'l',"file of list of oriented links",
         true,"");
     pr.add("seppairs",'s', "output separation pairs to a file");
@@ -393,37 +393,37 @@ int main(int argc, char* argv[])
     int contig_id = 1, linkid = 0;
     while(getline(linkfile,line))
     {
-    	//cout<<line<<endl;	
-    	string a,b,c,d;
-    	double e,f;
+        //cout<<line<<endl;    
+        string a,b,c,d;
+        double e,f;
         int g;
-    	istringstream iss(line);
-    	if(!(iss >> a >> b >> c >> d >> e >> f >> g))
-    		break;
-    	cout<<a<<"\t"<<c<<endl;
-    	//Link l(linkid,a,b,c,d,e,f,g);
+        istringstream iss(line);
+        if(!(iss >> a >> b >> c >> d >> e >> f >> g))
+            break;
+        cout<<a<<"\t"<<c<<endl;
+        //Link l(linkid,a,b,c,d,e,f,g);
         //Link l(linkid,a,b,c,d,e,f);
         node first = 0, second = 0;
-       	if(revid2contig.find(a) == revid2contig.end())
-       	{
-       		
-       		first = G.newNode(contig_id);
-       		id2contig[first] = a;
-       		intid2contig[contig_id] = a;
-       		revid2contig[a] = first;
-       		contig_id++;
-       	}
-       	if(revid2contig.find(c) == revid2contig.end())
-       	{
-       		second = G.newNode(contig_id);
-       		intid2contig[contig_id] = c;
-       		revid2contig[c] = second;
-       		id2contig[second] = c;
-       		contig_id++;
-       	}
-       	// cout<<first<<"\t"<<second<<endl;
-       	// G.newEdge((node)first,(node)second);
-       	// cout<<"edge added"<<endl;
+           if(revid2contig.find(a) == revid2contig.end())
+           {
+               
+               first = G.newNode(contig_id);
+               id2contig[first] = a;
+               intid2contig[contig_id] = a;
+               revid2contig[a] = first;
+               contig_id++;
+           }
+           if(revid2contig.find(c) == revid2contig.end())
+           {
+               second = G.newNode(contig_id);
+               intid2contig[contig_id] = c;
+               revid2contig[c] = second;
+               id2contig[second] = c;
+               contig_id++;
+           }
+           // cout<<first<<"\t"<<second<<endl;
+           // G.newEdge((node)first,(node)second);
+           // cout<<"edge added"<<endl;
         //contigs2bundle[a+c] = g;
     }
     linkfile.close();
@@ -431,103 +431,103 @@ int main(int argc, char* argv[])
     ifstream linkfile1(getCharExpr(pr.get<string>("oriented_graph")));
     while(getline(linkfile1,line))
     {
-    	//cout<<line<<endl;	
-    	string a,b,c,d;
-    	double e,f;
+        //cout<<line<<endl;    
+        string a,b,c,d;
+        double e,f;
         int g;
-    	istringstream iss(line);
-    	if(!(iss >> a >> b >> c >> d >> e >> f >> g))
-    		break;
-    	//Link l(linkid,a,b,c,d,e,f,g);
+        istringstream iss(line);
+        if(!(iss >> a >> b >> c >> d >> e >> f >> g))
+            break;
+        //Link l(linkid,a,b,c,d,e,f,g);
         //Link l(linkid,a,b,c,d,e,f);
         node first = revid2contig[a];
         node second = revid2contig[c];
-       	cout<<first<<"\t"<<second<<endl;
-       	edge x = G.newEdge(node(first),node(second));
-       	//cout<<"edge added"<<endl;
+           cout<<first<<"\t"<<second<<endl;
+           edge x = G.newEdge(node(first),node(second));
+           //cout<<"edge added"<<endl;
         //contigs2bundle[a+c] = g;
     }
 
-	cerr<<"Nodes: "<<G.numberOfNodes()<<endl;
-	cerr<<"Edges: "<<G.numberOfEdges()<<endl;
-	// GraphAttributes GA(G, GraphAttributes::nodeId);
-	// bool ok = GraphIO::readGML(GA,G,"test_graph/oriented.gml");
-	//since this is giving an error, lets just read tsv file and construct graph ourself
+    cerr<<"Nodes: "<<G.numberOfNodes()<<endl;
+    cerr<<"Edges: "<<G.numberOfEdges()<<endl;
+    // GraphAttributes GA(G, GraphAttributes::nodeId);
+    // bool ok = GraphIO::readGML(GA,G,"test_graph/oriented.gml");
+    //since this is giving an error, lets just read tsv file and construct graph ourself
 
-	// GraphIO::writeDOT(G,"tmp/original.dot");
-	// cout<<ok<<endl;
-	// if(ok)
-	// {
-	// 	cout<<"Graph loaded correctly!"<<endl;
-	// }
-	// else
-	// {
-	// 	cout<<"Graph loaded incorrectly!"<<endl;
-	// }
-	
-	
-	//decompose into connected components
-	int nrCC = 0;
-	NodeArray<int> node2cc(G);
-	nrCC = connectedComponents(G, node2cc);
-	cerr<<"Number of connected components = "<<nrCC<<endl;
+    // GraphIO::writeDOT(G,"tmp/original.dot");
+    // cout<<ok<<endl;
+    // if(ok)
+    // {
+    //     cout<<"Graph loaded correctly!"<<endl;
+    // }
+    // else
+    // {
+    //     cout<<"Graph loaded incorrectly!"<<endl;
+    // }
+    
+    
+    //decompose into connected components
+    int nrCC = 0;
+    NodeArray<int> node2cc(G);
+    nrCC = connectedComponents(G, node2cc);
+    cerr<<"Number of connected components = "<<nrCC<<endl;
 
-	node startNodes[nrCC];
-	int index = 0;
-	node n;
-	forall_nodes(n, G) 
-	{
-		if (node2cc[n] == index)
-		{
-			startNodes[index] = n;
-			index++;
-		}
-		if (index == nrCC)
-			break;
-	}	
-	set<int> memberNodes;
-	unordered_map<int,int> sk2orig; // node mapping
-	//Building BC tree for each component
-	Graph G_new;
-	int new_node_index = 1;
-	map<int,vector<node> > nodemapping;
-	for(int j = 0;j < nrCC; j++)
-	{
-		BCTree bc(G,startNodes[j]);
-		BCTree *p_bct = &bc;
-		cerr<<"Number of Biconnected Components = "<<bc.numberOfBComps()<<endl;
+    node startNodes[nrCC];
+    int index = 0;
+    node n;
+    forall_nodes(n, G) 
+    {
+        if (node2cc[n] == index)
+        {
+            startNodes[index] = n;
+            index++;
+        }
+        if (index == nrCC)
+            break;
+    }
+    set<int> memberNodes;
+    unordered_map<int,int> sk2orig; // node mapping
+    //Building BC tree for each component
+    Graph G_new;
+    int new_node_index = 1;
+    map<int,vector<node> > nodemapping;
+    for(int j = 0;j < nrCC; j++)
+    {
+        BCTree bc(G,startNodes[j]);
+        BCTree *p_bct = &bc;
+        cerr<<"Number of Biconnected Components = "<<bc.numberOfBComps()<<endl;
 
-		if(bc.numberOfBComps() == 0)
-		{
-			continue;
-			//do some special processing here
-		}
-		//Now, for each Biconnected Component, build SPQR tree 
-		//Connected Components in auxgraph are the biconnected components of original graph
+        if(bc.numberOfBComps() == 0)
+        {
+            continue;
+            //do some special processing here
+        }
+        //Now, for each Biconnected Component, build SPQR tree 
+        //Connected Components in auxgraph are the biconnected components of original graph
 
 
-		const Graph &auxgraph = p_bct->auxiliaryGraph();
-		cerr<<"graph made"<<endl;
-		node bcTreeNode;
-		int tree_index = 1;
-		forall_nodes(bcTreeNode,bc.bcTree())
-		{
+        const Graph &auxgraph = p_bct->auxiliaryGraph();
+        cerr<<"graph made"<<endl;
+        node bcTreeNode;
+        int tree_index = 1;
+        forall_nodes(bcTreeNode,bc.bcTree())
+        {
 
-			if(bc.typeOfBNode(bcTreeNode) == 0)
-			{
-				GraphCopy GC(p_bct->auxiliaryGraph());
-				memberNodes = getBiComponent(&GC,p_bct,bcTreeNode);
-				cerr<<memberNodes.size()<<endl;
-				Bicomponent bicomp(memberNodes);
-				//cer<<"membernodes found"<<endl;
-				//Now Generate SPQR tree for this component
+            if(bc.typeOfBNode(bcTreeNode) == 0)
+            {
+                GraphCopy GC(p_bct->auxiliaryGraph());
+                memberNodes = getBiComponent(&GC,p_bct,bcTreeNode);
+                cerr<<memberNodes.size()<<endl;
+                Bicomponent bicomp(memberNodes);
+                //cer<<"membernodes found"<<endl;
+                //Now Generate SPQR tree for this component
 
-				bool biconnected = isBiconnected(GC);
-		        int  nrEdges     = GC.numberOfEdges();
-		        bool loopfree    = isLoopFree(GC);
-		        if(!biconnected || nrEdges <= 2 || !loopfree) 
-		        {
-		        	continue;
+                bool biconnected = isBiconnected(GC);
+                int  nrEdges     = GC.numberOfEdges();
+                bool loopfree    = isLoopFree(GC);
+                if(!biconnected || nrEdges <= 2 || !loopfree) 
+                {
+                    continue;
                     cerr << "Graph is not a valid input for SPQR-tree decomposition!" << endl;
                     cerr << "Reason(s):" << endl;
                     if (!biconnected)
@@ -536,13 +536,13 @@ int main(int argc, char* argv[])
                             cerr << "-> Graph has "<< nrEdges << " edge(s). Should be more than 2." << endl;
                     if (!loopfree)
                             cerr << "-> Graph is not loop free" << endl;
-           	
-		        }
-		        getCutVertexPair(GC,bcTreeNode,bc,j,bicomp);
-				StaticSPQRTree spqr(GC);
-				//cout<<"SPQR generated"<<endl;
-				const Graph &T = spqr.tree();
-				//cout<<"SPQR tree made"<<endl;
+               
+                }
+                getCutVertexPair(GC,bcTreeNode,bc,j,bicomp);
+                StaticSPQRTree spqr(GC);
+                //cout<<"SPQR generated"<<endl;
+                const Graph &T = spqr.tree();
+                //cout<<"SPQR tree made"<<endl;
                 // Root the SPQR tree at the node with the largest value of
                 // |V| + |E|, where |V| = number of nodes in the skeleton graph
                 // and |E| = number of edges (real and virtual) in the skeleton
@@ -559,80 +559,80 @@ int main(int argc, char* argv[])
                 }
                 spqr.rootTreeAt(currentRootNode);
                 if (write_spqrtree) {
-				    GraphIO::writeGML(T,directory+"spqr"+to_string(tree_index)+".gml");
+                    GraphIO::writeGML(T,directory+"spqr"+to_string(tree_index)+".gml");
                 }
-				// cout<<"S nodes: "<<spqr.numberOfSNodes()<<endl;
-				// cout<<"P nodes: "<<spqr.numberOfPNodes()<<endl;
-				// cout<<"R nodes: "<<spqr.numberOfRNodes()<<endl;
-				int c = 0;
-				GraphCopy GCopy(T);
-				node n,Nn,cn,tn,Tn;
+                // cout<<"S nodes: "<<spqr.numberOfSNodes()<<endl;
+                // cout<<"P nodes: "<<spqr.numberOfPNodes()<<endl;
+                // cout<<"R nodes: "<<spqr.numberOfRNodes()<<endl;
+                int c = 0;
+                GraphCopy GCopy(T);
+                node n,Nn,cn,tn,Tn;
                 edge Ee;
                 ofstream compfile;
                 if (write_spqrtree) {
-				    compfile.open(directory+"component_"+to_string(tree_index)+".info");
+                    compfile.open(directory+"component_"+to_string(tree_index)+".info");
                 }
-				tree_index++;
-				forall_nodes(n, T) 
-				{
-					const Graph &Gn = spqr.skeleton(n).getGraph(); // Print the skeleton of a tree node to dis
+                tree_index++;
+                forall_nodes(n, T) 
+                {
+                    const Graph &Gn = spqr.skeleton(n).getGraph(); // Print the skeleton of a tree node to dis
 
-					// Generate hash table: sk2orig[Skeleton node] = Original node 
+                    // Generate hash table: sk2orig[Skeleton node] = Original node 
                     if (write_spqrtree) {
-					    compfile<<n<<endl;
-					    compfile << getTypeString(n, spqr)<<endl;
+                        compfile<<n<<endl;
+                        compfile << getTypeString(n, spqr)<<endl;
                     }
-					forall_nodes(Nn, Gn) 
-					{
-						cn = original(Nn,bc,GC,spqr.skeleton(n)); //Node in original graph G
-						// For all edges starting at cn, output the edge
-						// source and target.
-						// Note that, as the input graphs to the SPQR tree
-						// structure are undirected, the notions of
-						// source/target here aren't relevant to the actual
-						// source/target relationships in the original graph.
-						forall_adj_edges(Ee, Nn) {
-							if (Ee -> source() -> index() == Nn -> index()) {
-								if (spqr.skeleton(n).isVirtual(Ee)) {
-									compfile << "v\t";
-								}
-								else {
-									compfile << "r\t";
-								}
-								// Get original target node
-								Tn = Ee -> target();
-								tn=original(Tn,bc,GC,spqr.skeleton(n));
-								compfile << intid2contig[cn -> index()];
-								compfile << "\t";
-								compfile << intid2contig[tn -> index()];
-								compfile << endl;
-							}
-						}
-						sk2orig[Nn->index()] = cn->index();
-						compfile<<Nn->index()<<"\t"<<intid2contig[cn->index()]<<endl;
-					}
-									
-						
-					//Get 2-vertex cuts
-					string type = getTypeString(n, spqr);
-					findTwoVertexCuts(bicomp,spqr.skeleton(n) , sk2orig, type);
-					
-				}
-                if (write_seppairs) {
-				    for(int i = 0;i < pairs.size();i++)
-				    {
-				    	ofile<<intid2contig[pairs[i].first]<<"\t"<<intid2contig[pairs[i].second];
-				    	for(set<int> :: iterator it = memberNodes.begin(); it != memberNodes.end();++it)
-				    	{
-				    		ofile<<"\t"<<intid2contig[*it];
-				    	}
-				    	ofile<<endl;
-				    }
-				    pairs.clear();
+                    forall_nodes(Nn, Gn) 
+                    {
+                        cn = original(Nn,bc,GC,spqr.skeleton(n)); //Node in original graph G
+                        // For all edges starting at cn, output the edge
+                        // source and target.
+                        // Note that, as the input graphs to the SPQR tree
+                        // structure are undirected, the notions of
+                        // source/target here aren't relevant to the actual
+                        // source/target relationships in the original graph.
+                        forall_adj_edges(Ee, Nn) {
+                            if (Ee -> source() -> index() == Nn -> index()) {
+                                if (spqr.skeleton(n).isVirtual(Ee)) {
+                                    compfile << "v\t";
+                                }
+                                else {
+                                    compfile << "r\t";
+                                }
+                                // Get original target node
+                                Tn = Ee -> target();
+                                tn=original(Tn,bc,GC,spqr.skeleton(n));
+                                compfile << intid2contig[cn -> index()];
+                                compfile << "\t";
+                                compfile << intid2contig[tn -> index()];
+                                compfile << endl;
+                            }
+                        }
+                        sk2orig[Nn->index()] = cn->index();
+                        compfile<<Nn->index()<<"\t"<<intid2contig[cn->index()]<<endl;
+                    }
+                                    
+                        
+                    //Get 2-vertex cuts
+                    string type = getTypeString(n, spqr);
+                    findTwoVertexCuts(bicomp,spqr.skeleton(n) , sk2orig, type);
+                    
                 }
-			}
-		}	
-	}
-	//add edges in this new graph based on original graph
-	return 0;
+                if (write_seppairs) {
+                    for(int i = 0;i < pairs.size();i++)
+                    {
+                        ofile<<intid2contig[pairs[i].first]<<"\t"<<intid2contig[pairs[i].second];
+                        for(set<int> :: iterator it = memberNodes.begin(); it != memberNodes.end();++it)
+                        {
+                            ofile<<"\t"<<intid2contig[*it];
+                        }
+                        ofile<<endl;
+                    }
+                    pairs.clear();
+                }
+            }
+        }    
+    }
+    //add edges in this new graph based on original graph
+    return 0;
 }
