@@ -2,6 +2,3 @@
 spqrtests/*
 testgraphs/*
 testdbs/*
-demo/.htaccess
-demo/.htpasswd
-graph_collator/cmdline.h
