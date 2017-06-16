@@ -469,12 +469,21 @@ int main(int argc, char* argv[])
     //decompose into connected components
     int nrCC = 0;
     NodeArray<int> node2cc(G);
+    // number of connected components will be off for some graphs because
+    // (since this script only takes in a list of edges as input) the connected
+    // components in the graph that are just single edges can't be represented
+    // here. This shouldn't pose a problem, although perhaps it does have an
+    // impact on the current bug we're having here of certain c.comps'
+    // bicomponents not being detected.
     nrCC = connectedComponents(G, node2cc);
     cerr<<"Number of connected components = "<<nrCC<<endl;
 
     node startNodes[nrCC];
     int index = 0;
     node n;
+    // this seems like it could go wrong (e.g. the connected components in a
+    // graph are exhausted before we finish iterating through the nodes?) but
+    // for right now I don't know either way
     forall_nodes(n, G) 
     {
         if (node2cc[n] == index)
@@ -513,7 +522,7 @@ int main(int argc, char* argv[])
         forall_nodes(bcTreeNode,bc.bcTree())
         {
 
-            if(bc.typeOfBNode(bcTreeNode) == 0)
+            if(bc.typeOfBNode(bcTreeNode) == BCTree::BNodeType::BComp)
             {
                 GraphCopy GC(p_bct->auxiliaryGraph());
                 memberNodes = getBiComponent(&GC,p_bct,bcTreeNode);
