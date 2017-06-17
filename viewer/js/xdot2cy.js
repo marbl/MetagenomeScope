@@ -3286,7 +3286,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
             newObj.scratch("_virtualedgeIDs", []);
         }
     }
-    else if (spqrtype === "bicomponent") {
+    else if (spqrtype === "bicomponent" && CURR_SPQRMODE === "implicit") {
         // for implicit mode uncollapsing
         // mapping of bicomponent IDs to visible singlenode IDs -- updated as
         // we expand the SPQR tree represented by the given bicomponent
