@@ -57,6 +57,9 @@ const EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
 var CURR_VIEWTYPE;
 // The current "SPQR mode" -- will always be one of {"implicit", explicit"}
 var CURR_SPQRMODE;
+// mapping of {bicomponent ID => an array of the IDs of the visible singlenodes
+// in that bicomponent}
+var BICOMPONENTID2VISIBLESINGLENODEIDS = {};
 // The bounding box of the graph
 var CURR_BOUNDINGBOX;
 // In degrees CCW from the default up->down direction
@@ -1036,6 +1039,7 @@ function parseDBcomponents() {
     enableButton("implicitSPQROption");
     enableButton("explicitSPQROption");
     SCAFFOLDID2NODELABELS = {};
+    BICOMPONENTID2VISIBLESINGLENODEIDS = {};
     $("#agpLoadedFileName").addClass("notviewable");
     $("#scaffoldInfoHeader").addClass("notviewable");
     $("#scaffoldListGroup").empty();
@@ -1289,13 +1293,14 @@ function drawSPQRComponent(cmpRank) {
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
+    BICOMPONENTID2VISIBLESINGLENODEIDS = {};
     $("#searchForElementsControls").addClass("notviewable");
     $("#assemblyFinishingControls").addClass("notviewable");
     $("#viewScaffoldsControls").addClass("notviewable");
     $("#testLayoutsControls").addClass("notviewable");
     $("#collapseButtonControls").addClass("notviewable");
     $("#noNodeColorizationOption").addClass("active");
-    $("#gcNodeColorizationOption").removeClass("active")
+    $("#gcNodeColorizationOption").removeClass("active");
     CURR_NODE_COLORIZATION = "none";
     PREV_ROTATION = 0;
     CURR_ROTATION = 90;
@@ -1459,6 +1464,7 @@ function drawComponent(cmpRank) {
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
+    BICOMPONENTID2VISIBLESINGLENODEIDS = {};
     // Set the controls that aren't viewable in the SPQR view to be viewable,
     // since we're not drawing the SPQR view
     $("#searchForElementsControls").removeClass("notviewable");
@@ -2730,7 +2736,7 @@ function uncollapseSPQRMetanode(mn) {
                 null, CURR_BOUNDINGBOX, "metanodeedge", "SPQR", {});
         }
     }
-    var cyNodeID, normalID;
+    var cyNodeID, normalID, parentBicmpID;
     var currIDs;
     var alreadyVisible;
     var singlenodeMapping = {};
@@ -2739,8 +2745,8 @@ function uncollapseSPQRMetanode(mn) {
         // In implicit mode, only render a new singlenode if it isn't already
         // visible in the parent bicomponent
         if (CURR_SPQRMODE === "implicit") {
-            // TODO store visibleSingleNodeIDs in an independent mapping
-            currIDs = mn.parent().scratch("_visibleSingleNodeIDs");
+            parentBicmpID = singlenodeObjects[a]['parent_bicomponent_id'];
+            currIDs = BICOMPONENTID2VISIBLESINGLENODEIDS[parentBicmpID];
             alreadyVisible = false;
             for (b = 0; b < currIDs.length; b++) {
                 if (normalID === currIDs[b].split("_")[0]) {
@@ -2770,16 +2776,7 @@ function uncollapseSPQRMetanode(mn) {
         for (var c = 0; c < edgesToRemove.length; c++) {
             cy.remove(cy.getElementById(edgesToRemove[c]));
         }
-        var parentBicmp = mn.parent();
         cy.remove(mn);
-        if (parentBicmp.children().empty()) {
-            parentBicmp.unlock();
-            parentBicmp.position(
-                {x: parseFloat(parentBicmp.data("xPos")),
-                    y: parseFloat(parentBicmp.data("yPos"))}
-            );
-            parentBicmp.lock();
-        }
     }
 }
 
@@ -3123,8 +3120,8 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             if (parentBicmpID !== null && parentBicmpID !== undefined) {
                 // Since a bicomponent can contain only one node with a given
                 // ID, we store normal node IDs and not unambiguous IDs here
-                cy.getElementById(parentBicmpID)
-                    .scratch("_visibleSingleNodeIDs").push(cyNodeID);
+                BICOMPONENTID2VISIBLESINGLENODEIDS[parentBicmpID]
+                    .push(cyNodeID);
             }
         }
     }
@@ -3235,14 +3232,8 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
         h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
         isCollapsed: false};
-    // TODO only assign the metanode a parent when in explicit mode
-    // need to alter the use of .parent() accordingly, to store
-    // bicomponent-level lists/etc as maybe mappings to lists or something
-    // (e.g. instead of I2.scratch("_visibleSingleNodeIDs") = [1,2,100], we use
-    // something like {"I2" => [1,2,100], "I3" => ...})
-    // yeah that'd make sense. just implement the change, figure out what it
-    // causes errors in, and fix accordingly.
-    if (parent_bicmp_id !== null) {
+    // Only assign the metanode a bicomponent parent when in explicit mode
+    if (parent_bicmp_id !== null && CURR_SPQRMODE === "explicit") {
         clusterData["parent"] = parent_bicmp_id;
     }
     var pos = [(bottomLeftPos[0] + topRightPos[0]) / 2,
@@ -3262,19 +3253,15 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         // Note that pseudoparent nodes still need to have a low z-index
         // explicitly set, as we do here with bicomponents (z-index of -1) and
         // metanodes (z-index of 0).
-        classes += ' spqrMetanode pseudoparent';
+        classes += ' spqrMetanode';
         clusterData["descendantCount"]=clusterObj["descendant_metanode_count"];
         // since we "collapse" all metanodes by default (collapsing takes on a
         // different meaning w/r/t SPQR metanodes, as opposed to normal
         // structural variants)
         clusterData["isCollapsed"] = true;
     }
-    else if (spqrtype === "bicomponent") {
-        classes += ' pseudoparent';
-        clusterData["xPos"] = pos[0];
-        clusterData["yPos"] = pos[1];
-    }
     if (spqrRelated) {
+        classes += ' pseudoparent';
         // Since this node won't actually be assigned child nodes (but still
         // has "children" in some abstract way), we manually set its node count
         if (CURR_SPQRMODE === "implicit" && spqrtype === "bicomponent") {
@@ -3301,9 +3288,10 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     }
     else if (spqrtype === "bicomponent") {
         // for implicit mode uncollapsing
-        // array of IDs of visible singlenodes -- updated as we expand the tree
-        // used to prevent adding duplicates
-        newObj.scratch("_visibleSingleNodeIDs", []);
+        // mapping of bicomponent IDs to visible singlenode IDs -- updated as
+        // we expand the SPQR tree represented by the given bicomponent
+        // this is done to prevent adding duplicates within a given tree
+        BICOMPONENTID2VISIBLESINGLENODEIDS[clusterID] = [];
     }
     else {
         // For variant collapsing/uncollapsing
