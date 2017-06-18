@@ -478,22 +478,27 @@ int main(int argc, char* argv[])
     nrCC = connectedComponents(G, node2cc);
     cerr<<"Number of connected components = "<<nrCC<<endl;
 
-    node startNodes[nrCC];
+    // initialize all eles in startNodes to NULL at first
+    // then iterate through all nodes in the graph, ensuring that each c.comp
+    // has a corresponding startNode indicated
+    node startNodes[nrCC] = {NULL};
     int index = 0;
     node n;
-    // this seems like it could go wrong (e.g. the connected components in a
-    // graph are exhausted before we finish iterating through the nodes?) but
-    // for right now I don't know either way
     forall_nodes(n, G) 
     {
-        if (node2cc[n] == index)
-        {
+        index = node2cc[n];
+        cout << "Node " << intid2contig[n -> index()] << " in cc " << index << endl;
+        if (startNodes[index] == NULL) {
             startNodes[index] = n;
-            index++;
         }
-        if (index == nrCC)
-            break;
+        index++;
     }
+    // following commented-out code verifies that startNodes is being set
+    // correctly.
+    //for (int asdf = 0; asdf < nrCC; asdf++) {
+    //    cout << "startNodes[" << asdf << "] = "
+    //      << intid2contig[startNodes[asdf] -> index()] << endl;
+    //}
     set<int> memberNodes;
     unordered_map<int,int> sk2orig; // node mapping
     //Building BC tree for each component
