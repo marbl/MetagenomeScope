@@ -487,7 +487,8 @@ int main(int argc, char* argv[])
     forall_nodes(n, G) 
     {
         index = node2cc[n];
-        cout << "Node " << intid2contig[n -> index()] << " in cc " << index << endl;
+        cout << "Node " << intid2contig[n -> index()] << " in cc "
+            << index << endl;
         if (startNodes[index] == NULL) {
             startNodes[index] = n;
         }
