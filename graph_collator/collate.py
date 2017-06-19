@@ -813,7 +813,7 @@ if bicmps_fullfn == None or not distinct_single_graph:
 #
 # TODO: will need to change some script miscellany to work in non-Unix envs.
 spqr_fullfn = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    "spqr_asmviz")
+    "spqr")
 spqr_invocation = []
 if bicmps_fullfn != None:
     # -b has been passed: we already have the file indicating separation pairs
