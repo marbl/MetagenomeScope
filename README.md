@@ -45,12 +45,13 @@ MetagenomeScope is composed of two main components:
 
 The bifurcated nature of the tool lends it a few advantages that have proved
 beneficial when analyzing large graphs:
-    - The user can save a .db file and visualize the contents of the file
-      an arbitrary number of later times, without incurring the costs of
-      layout/pattern detection/etc. twice
-    - The user can host the viewer interface and a number of .db files on
-      a server, allowing many users to view graphs with the only costs incurred
-      being those of rendering the graphs in question
+
+- The user can save a .db file and visualize the contents of the file
+  an arbitrary number of later times, without incurring the costs of
+  layout/pattern detection/etc. twice
+- The user can host the viewer interface and a number of .db files on
+  a server, allowing many users to view graphs with the only costs incurred
+  being those of rendering the graphs in question
 
 ## System Requirements
 
