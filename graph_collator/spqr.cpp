@@ -323,6 +323,12 @@ std::set<int> getBiComponent(GraphCopy *GC, BCTree *p_bct, node bcTreeNode)
     SList <edge> componentEdges = p_bct->hEdges(bcTreeNode); //edges in component bcTreeNode
     forall_edges (e, auxGraph) {                                                        //Check if edge belongs to component
         //cerr << "Testing edge " << e << endl;
+        // rewritten to not use searchList(); didn't make a difference in
+        // fixing the problem we were having, but worth keeping around for
+        // debugging
+        //if (! (componentEdges.search(e).valid())) {
+        //    GC -> delEdge(GC -> copy(e));
+        //}
         if (searchList(componentEdges,e) == -1) {                     //If not, delete edge from copy 
             GC->delEdge(GC->copy(e));
         }
@@ -505,6 +511,8 @@ int main(int argc, char* argv[])
     Graph G_new;
     int new_node_index = 1;
     map<int,vector<node> > nodemapping;
+    // Don't reset the tree index every CC; only set it it once
+    int tree_index = 1;
     for(int j = 0;j < nrCC; j++)
     {
         BCTree bc(G,startNodes[j]);
@@ -525,7 +533,6 @@ int main(int argc, char* argv[])
         const Graph &auxgraph = p_bct->auxiliaryGraph();
         cerr<<"graph made"<<endl;
         node bcTreeNode;
-        int tree_index = 1;
         forall_nodes(bcTreeNode,bc.bcTree())
         {
 
@@ -543,6 +550,8 @@ int main(int argc, char* argv[])
                 bool loopfree    = isLoopFree(GC);
                 if(!biconnected || nrEdges <= 2 || !loopfree) 
                 {
+                    // NOTE modified this to explicitly say these messages
+                    // instead of continue-ing without saying anything
                     cerr << "Graph is not a valid input for SPQR-tree decomposition!" << endl;
                     cerr << "Reason(s):" << endl;
                     if (!biconnected)
@@ -574,6 +583,7 @@ int main(int argc, char* argv[])
                 }
                 spqr.rootTreeAt(currentRootNode);
                 if (write_spqrtree) {
+                    //cout << "Making SPQR tree " << tree_index << endl;
                     GraphIO::writeGML(T,directory+"spqr"+to_string(tree_index)+".gml");
                 }
                 // cout<<"S nodes: "<<spqr.numberOfSNodes()<<endl;
