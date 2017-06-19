@@ -509,6 +509,8 @@ int main(int argc, char* argv[])
     {
         BCTree bc(G,startNodes[j]);
         BCTree *p_bct = &bc;
+        cerr << "Made BCTree for CC " << j << " with startNode " <<
+            intid2contig[startNodes[j] -> index()] << endl; 
         cerr<<"Number of Biconnected Components = "<<bc.numberOfBComps()<<endl;
 
         if(bc.numberOfBComps() == 0)
@@ -541,7 +543,6 @@ int main(int argc, char* argv[])
                 bool loopfree    = isLoopFree(GC);
                 if(!biconnected || nrEdges <= 2 || !loopfree) 
                 {
-                    continue;
                     cerr << "Graph is not a valid input for SPQR-tree decomposition!" << endl;
                     cerr << "Reason(s):" << endl;
                     if (!biconnected)
@@ -550,7 +551,7 @@ int main(int argc, char* argv[])
                             cerr << "-> Graph has "<< nrEdges << " edge(s). Should be more than 2." << endl;
                     if (!loopfree)
                             cerr << "-> Graph is not loop free" << endl;
-               
+                    continue;
                 }
                 getCutVertexPair(GC,bcTreeNode,bc,j,bicomp);
                 StaticSPQRTree spqr(GC);
