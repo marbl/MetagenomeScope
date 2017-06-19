@@ -219,9 +219,11 @@ In the "implicit" decomposition mode, expansions to the root node of a SPQR
 tree show iteratively larger amounts of detail added to the root. In the
 "explicit" decomposition mode, expansions actually result in the immediate
 descendant metanodes in the SPQR tree being drawn, revealing more and more of
-the literal SPQR tree structure for a given biconnected component. Although
-"implicit" and "explicit" decompositions both render the same amount of nodes
-and edges upon first being drawn, the layouts involving explicit decomposition
+the literal SPQR tree structure for a given biconnected component.
+
+Although "implicit" and "explicit" decompositions both show the same amount of
+nodes and edges upon first being drawn, the layouts involving explicit
+decomposition
 will usually be messier (since more space needs to be allocated for the SPQR
 tree structures) and will involve more nodes than their corresponding implicit
 decomposition upon fully being uncollapsed.
