@@ -2,8 +2,8 @@
 
 An interactive visualization tool designed for metagenomic sequence assembly
 and scaffold graphs. The tool aims to prevent a semi-linearized,
-hierarchical overview of the input graph in question while emphasizing the
-presence of certain structural patterns in the graph.
+hierarchical overview of the input graphs while emphasizing the
+presence of certain structural patterns in these graphs.
 
 To this end, MetagenomeScope highlights certain patterns of contigs in the
 graph (bubbles, frayed ropes, chains, and "linear" cycles), splits graphs up by
@@ -11,7 +11,7 @@ their connected components, and uses [Graphviz](http://www.graphviz.org/)'
 `dot` tool to hierarchically lay out each connected component of a graph.
 MetagenomeScope also supports the use of
 [SPQR tree](https://en.wikipedia.org/wiki/SPQR_tree) decompositions
-(computed using [OGDF](http://www.ogdf.net/doku.php) to present an
+(computed using [OGDF](http://www.ogdf.net/doku.php)) to present an
 iteratively expandable hierarchical overview of a graph.
 
 MetagenomeScope is composed of two main components:
