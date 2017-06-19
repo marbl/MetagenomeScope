@@ -482,9 +482,9 @@ int main(int argc, char* argv[])
     // then iterate through all nodes in the graph, ensuring that each c.comp
     // has a corresponding startNode indicated
     node startNodes[nrCC] = {NULL};
-    int index = 0;
+    int index;
     node n;
-    forall_nodes(n, G) 
+    forall_nodes(n, G)
     {
         index = node2cc[n];
         cout << "Node " << intid2contig[n -> index()] << " in cc "
@@ -492,7 +492,6 @@ int main(int argc, char* argv[])
         if (startNodes[index] == NULL) {
             startNodes[index] = n;
         }
-        index++;
     }
     // following commented-out code verifies that startNodes is being set
     // correctly.
