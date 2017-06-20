@@ -228,6 +228,15 @@ will usually be messier (since more space needs to be allocated for the SPQR
 tree structures) and will involve more nodes than their corresponding implicit
 decomposition upon fully being uncollapsed.
 
+## License
+
+MetagenomeScope is licensed under the
+[GNU GPL, version 3](https://www.gnu.org/copyleft/gpl.html).
+
+## Contact
+
+`mfedarko at umd dot edu`
+
 ## Acknowledgements
 
 * The preprocessing script (in `collate.py`) uses
