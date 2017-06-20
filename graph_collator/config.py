@@ -39,8 +39,8 @@ POINTS_PER_INCH = 72.0
 AUXMOD = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
 
 # NOTE that changing MAX_COMPONENTS or MIN_COMPONENT_SIZE will result in
-# strange behavior with those component ranks in the AsmViz viewer (see
-# #35 on the GitHub page).
+# strange behavior with those component ranks in the MetagenomeScope viewer
+# (see #35 on the GitHub page).
 # Really, with the .db approach you should just be laying out all components at
 # once. But as long as this config feature is still here, I figured a warning
 # would be useful.
@@ -65,9 +65,9 @@ MAX_COMPONENTS = None
 # or MAX_COMPONENTS > 2, only the first two connected components will be
 # displayed.
 MIN_COMPONENT_SIZE = 1
-# These are used directly in GraphViz, so they're in "inches". Granted, the
-# .xdot file from GraphViz is used in the AsmViz viewer in Cytoscape.js, so
-# "inches" are really an intermediate unit from our perspective.
+# These are used directly in GraphViz, so they're in "inches". Granted,
+# "inches" are really an intermediate unit from our perspective since they're
+# converted to pixels in the viewer interface's code.
 # If we opt not to use one or both of the bounds here, we can set these to
 # float("inf") or 0, respectively. However, I'd prefer to at least keep a lower
 # bound of 1.0 on node height; that should help people who have trouble seeing
@@ -123,7 +123,7 @@ GLOBALCLUSTER_STYLE = "margin=0"
 # Various status messages/message prefixes that are displayed to the user.
 # Displayed during command-line argument parsing
 COLLATE_DESCRIPTION = "Prepare an assembly graph file for visualization, " + \
-"generating a SQLite 3 database that can be loaded in the AsmViz viewer."
+"generating a database file that can be loaded in the MetagenomeScope viewer."
 BUBBLE_SEARCH_MSG = "Looking for simple bubbles in the graph..."
 SPQR_MSG = \
     "Generating SPQR tree decompositions for the bicomponents of the graph..."

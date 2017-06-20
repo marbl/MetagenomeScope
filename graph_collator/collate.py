@@ -17,12 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 ####
-# Converts an assembly graph (LastGraph, GFA, Bambus 3 GML) to a DOT file,
-# lays out the DOT file using GraphViz to produce XDOT output, and
-# then reconciles the layout data with biological data in a SQLite .db
-# file that can be read by the AsmViz viewer.
+# Converts an assembly graph (LastGraph, GFA, MetaCarvel GML) to a DOT file,
+# lays out the DOT file using Graphviz, and then reconciles the layout data
+# with biological data in a SQLite .db file that can be read by the
+# MetagenomeScope viewer interface.
 #
-# For usage information, please see README.md in the root directory of AsmViz.
+# For usage information, please see README.md in the root directory of
+# MetagenomeScope.
 
 # For parsing command-line arguments
 import argparse
@@ -30,7 +31,8 @@ import argparse
 from sys import stdout
 # For running the C++ spqr script binary
 from subprocess import check_output, STDOUT
-# For running dot, GraphViz' main layout manager
+# For laying out graphs using Graphviz (in particular, via the dot and sfdp
+# layout tools)
 import pygraphviz
 # For creating the output directory, and for file I/O
 import os
@@ -38,7 +40,7 @@ import os
 import re
 # For checking I/O errors
 import errno
-# For interfacing with the SQLite Database
+# For interfacing SQLite
 import sqlite3
 # For benchmarking
 import time

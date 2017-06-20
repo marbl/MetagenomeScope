@@ -16,9 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 ####
-# This file contains various objects defining nodes, node groups, and edges
-# in the assembly graph. We use these objects to simplify the process of
-# storing information about the assembly graph.
+# This file contains various objects defining nodes, node groups, edges, etc.
+# in the graph. We use these objects to simplify the process of storing
+# information about the graph.
 
 import config
 from math import log, sqrt
