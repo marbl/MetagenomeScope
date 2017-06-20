@@ -331,6 +331,7 @@ function initGraph(viewType) {
                 selector: 'node.noncluster',
                 style: {
                     label: 'data(label)',
+                    'text-valign': 'center',
                     // rendering text is computationally expensive, so if
                     // we're zoomed out so much that the text would be
                     // illegible (or hard-to-read, at least) then don't
@@ -358,7 +359,8 @@ function initGraph(viewType) {
             {
                 selector: 'node.noncluster.gccolorized',
                 style: {
-                    'background-color': 'data(gc_color)'
+                    'background-color': 'data(gc_color)',
+                    'color': '#FFFFFF'
                 }
             },
             {
@@ -393,6 +395,7 @@ function initGraph(viewType) {
                 selector: 'node.noncluster.tentative',
                 style: {
                     'background-color': '#000000',
+                    'color': '#FFFFFF'
                 }
             },
             {
@@ -410,7 +413,8 @@ function initGraph(viewType) {
                     //'border-color': '#000',
                     //'border-opacity': 1,
                     //'border-width': 5
-                    'background-blacken': 0.5
+                    'background-blacken': 0.5,
+                    'color': '#FFFFFF'
                 }
             },
             {
