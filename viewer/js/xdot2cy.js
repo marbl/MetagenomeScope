@@ -2797,10 +2797,14 @@ function uncollapseSPQRMetanode(mn) {
     }
     else {
         var edgesToRemove = mn.scratch("_virtualedgeIDs");
+        var edgeToRemove;
         for (var c = 0; c < edgesToRemove.length; c++) {
-            cy.remove(cy.getElementById(edgesToRemove[c]));
+            edgeToRemove = cy.getElementById(edgesToRemove[c]);
+            edgeToRemove.unselect();
+            edgeToRemove.remove();
         }
-        cy.remove(mn);
+        mn.unselect();
+        mn.remove();
     }
 }
 
