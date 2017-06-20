@@ -336,7 +336,8 @@ function initGraph(viewType) {
                     // illegible (or hard-to-read, at least) then don't
                     // render the text.
                     'min-zoomed-font-size': 12,
-                    'z-index': 2
+                    'z-index': 2,
+                    'z-index-compare': 'manual'
                 }
             },
             {
@@ -413,16 +414,6 @@ function initGraph(viewType) {
                 }
             },
             {
-                selector: 'edge:selected',
-                style: {
-                    'line-color': '#000',
-                    'source-arrow-color': '#000',
-                    'target-arrow-color': '#000',
-                    'mid-source-arrow-color': '#000',
-                    'mid-target-arrow-color': '#000'
-                }
-            },
-            {
                 selector: 'node.cluster:selected',
                 style: {
                     'border-width': 5,
@@ -433,7 +424,20 @@ function initGraph(viewType) {
                 selector: 'edge',
                 style: {
                     'width': 'data(thickness)',
-                    'z-index': 1
+                    'line-color': '#777',
+                    'target-arrow-color': '#777',
+                    'z-index': 3,
+                    'z-index-compare': 'manual'
+                }
+            },
+            {
+                selector: 'edge:selected',
+                style: {
+                    'line-color': '#000',
+                    'source-arrow-color': '#000',
+                    'target-arrow-color': '#000',
+                    'mid-source-arrow-color': '#000',
+                    'mid-target-arrow-color': '#000'
                 }
             },
             {
