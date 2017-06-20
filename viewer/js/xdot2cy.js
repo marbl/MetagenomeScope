@@ -2826,14 +2826,27 @@ function collapseSPQRMetanode(mn) {
         }
         // Now, we remove the contents of mn2
         singlenodeIDs = mn2.scratch("_singlenodeIDs");
+        var nodeToRemove;
         for (b = 0; b < singlenodeIDs.length; b++) {
             // Calling cy.remove() on a node also removes the edges incident
             // upon it, so we don't need to worry about explicitly removing
             // the singleedges contained in the skeleton of mn2
-            cy.remove(cy.getElementById(singlenodeIDs[b]));
+            nodeToRemove = cy.getElementById(singlenodeIDs[b]);
+            nodeToRemove.unselect();
+            // This isn't actually that bad performance-wise -- it's still
+            // linear in the number of edges to be removed. Since (as noted
+            // above) edges are automatically removed when a node they're
+            // incident on is removed, edges we've previously unselected won't
+            // be returned in future connectedEdges() calls. So the only
+            // inefficiency here is on calling connectedEdges() on nodes where
+            // there will potentially be no incident edges, but I doubt that'll
+            // have a significant impact on the performance of the application.
+            nodeToRemove.connectedEdges().unselect();
+            nodeToRemove.remove();
         }
         // Now we can remove mn2 itself
-        cy.remove(mn2);
+        mn2.unselect();
+        mn2.remove();
     }
     mn.data("isCollapsed", true);
 }
