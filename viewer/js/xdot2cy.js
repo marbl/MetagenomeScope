@@ -29,7 +29,7 @@
 // of reading operations to be done, which takes a lot of time -- and a huge
 // Blob size, which can potentially run out of memory, causing the read
 // operation to fail.)
-const BLOB_SIZE = 1048576;
+var BLOB_SIZE = 1048576;
 
 // Various coordinates that are used to define polygon node shapes in
 // Cytoscape.js (see their documentation for the format specs of these
@@ -38,35 +38,35 @@ const BLOB_SIZE = 1048576;
 // used. LEFTRIGHT means that the polygon should be used for either the default
 // direction (LEFT, ->) or its opposite (RIGHT, <-); UPDOWN has similar
 // meaning.
-const FRAYED_ROPE_LEFTRIGHTDIR = "-1 -1 0 -0.5 1 -1 1 1 0 0.5 -1 1";
-const FRAYED_ROPE_UPDOWNDIR =    "1 -1 0.5 0 1 1 -1 1 -0.5 0 -1 -1";
-const BUBBLE_LEFTRIGHTDIR =      "-1 0 -0.5 -1 0.5 -1 1 0 0.5 1 -0.5 1";
-const BUBBLE_UPDOWNDIR =         "-1 -0.5 0 -1 1 -0.5 1 0.5 0 1 -1 0.5";
-const NODE_LEFTDIR =             "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1";
-const NODE_RIGHTDIR =            "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1";
-const NODE_UPDIR =               "-1 1 -1 -0.23587 0 -1 1 -0.23587 1 1";
-const NODE_DOWNDIR =             "-1 -1 -1 0.23587 0 1 1 0.23587 1 -1";
-const SQUARE_COORDS =            "-1 -1 -1 1 1 1 1 -1";
+var FRAYED_ROPE_LEFTRIGHTDIR = "-1 -1 0 -0.5 1 -1 1 1 0 0.5 -1 1";
+var FRAYED_ROPE_UPDOWNDIR =    "1 -1 0.5 0 1 1 -1 1 -0.5 0 -1 -1";
+var BUBBLE_LEFTRIGHTDIR =      "-1 0 -0.5 -1 0.5 -1 1 0 0.5 1 -0.5 1";
+var BUBBLE_UPDOWNDIR =         "-1 -0.5 0 -1 1 -0.5 1 0.5 0 1 -1 0.5";
+var NODE_LEFTDIR =             "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1";
+var NODE_RIGHTDIR =            "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1";
+var NODE_UPDIR =               "-1 1 -1 -0.23587 0 -1 1 -0.23587 1 1";
+var NODE_DOWNDIR =             "-1 -1 -1 0.23587 0 1 1 0.23587 1 -1";
+var SQUARE_COORDS =            "-1 -1 -1 1 1 1 1 -1";
 
 // Approximate conversion factor from inches (the unit used by GraphViz for
 // node width/height measurements) to pixels. TODO, we might want to
 // consider node size more closely to see how accurate we can get it?
 // Also -- maybe multiply coordinates by this, to get things worked out?
 // 72 ppi?
-const INCHES_TO_PIXELS = 54;
+var INCHES_TO_PIXELS = 54;
 
 // Anything less than this constant will be considered a "straight" control
 // point distance. This way we can approximate simple B-splines with straight
 // bezier curves (which are cheaper and easier to draw).
-const CTRL_PT_DIST_EPSILON = 1.00;
+var CTRL_PT_DIST_EPSILON = 1.00;
 // Edge thickness stuff, as will be rendered by Cytoscape.js
 // Used in tandem with the "thickness" percentage associated with each edge in
 // the input .db file to scale edges' displayed "weight" accordingly
-const MAX_EDGE_THICKNESS = 10;
-const MIN_EDGE_THICKNESS = 3;
+var MAX_EDGE_THICKNESS = 10;
+var MIN_EDGE_THICKNESS = 3;
 // We just calculate this here to save on the costs of calculating it |edges|
 // times during drawing:
-const EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
+var EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
 
 // Misc. global variables we use to get certain functionality
 // The current "view type" -- will always be one of {"SPQR", "double"}
@@ -108,7 +108,7 @@ var CURR_NE = 0;
 var PROGRESSBAR_FREQ;
 // PROGRESSBAR_FREQ = Math.floor(PROGRESSBAR_FREQ_PERCENT * SIZE), where
 // SIZE = (number of nodes to be drawn) + 0.5*(number of edges to be drawn)
-const PROGRESSBAR_FREQ_PERCENT = 0.05;
+var PROGRESSBAR_FREQ_PERCENT = 0.05;
 
 // Cytoscape.js graph instance
 var cy = null;
@@ -149,8 +149,8 @@ var NEXT_NODE_IDS;
 var FINISHING_LINEAR_CYCLE;
 
 // HTML snippets used while auto-creating info tables about selected elements
-const TD_CLOSE = "</td>";
-const TD_START = "<td>";
+var TD_CLOSE = "</td>";
+var TD_START = "<td>";
 // Regular expression we use when matching integers.
 var INTEGER_RE = /^\d+$/;
 
