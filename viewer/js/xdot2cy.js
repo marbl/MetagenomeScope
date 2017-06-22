@@ -2396,10 +2396,12 @@ function addNodeFromEventToPath(e) {
     //  -Just stop autofinishing as soon as a node is identified in a linear
     //   cycle
     var justStartedLinearCycleFinishing = false;
+    var justAddedCollapsedCyclicChain = false;
     if (!(node.hasClass("cluster") && !node.data("isCollapsed"))) {
         // Don't add uncollapsed clusters, but allow collapsed clusters to be
         // added
         var nodeID = node.id();
+        justAddedCollapsedCyclicChain = node.hasClass("Y");
         if (FINISHING_NODE_IDS.length > 0) {
             if (NEXT_NODE_IDS.is("#" + nodeID)) {
                 cy.startBatch();
@@ -2408,6 +2410,9 @@ function addNodeFromEventToPath(e) {
                 }
                 cy.endBatch();
                 NEXT_NODE_IDS = node.outgoers("node");
+                if (justAddedCollapsedCyclicChain) {
+                    NEXT_NODE_IDS = NEXT_NODE_IDS.union(node);
+                }
                 var size = NEXT_NODE_IDS.size();
                 //if (!FINISHING_LINEAR_CYCLE && size === 1) {
                 //    var autofinishingSeenNodeIDs = [];
@@ -2451,6 +2456,9 @@ function addNodeFromEventToPath(e) {
         else {
             // TODO abstract repeated code to a function
             NEXT_NODE_IDS = node.outgoers("node");
+            if (justAddedCollapsedCyclicChain) {
+                NEXT_NODE_IDS = NEXT_NODE_IDS.union(node);
+            }
             var size = NEXT_NODE_IDS.size();
             if (size === 0) {
                 $("#assembledNodes").append(nodeID);
@@ -2497,7 +2505,7 @@ function endFinishing() {
     cy.endBatch();
     NEXT_NODE_IDS = cy.collection();
     cy.autounselectify(false);
-    cy.off("tapstart");
+    cy.off("tap");
     enableButton("exportPathButton");
     enableButton("startFinishingButton");
     disableButton("endFinishingButton");
