@@ -399,6 +399,13 @@ function initGraph(viewType) {
                 }
             },
             {
+                selector: 'node.cluster.tentative',
+                style: {
+                    'border-width': 5,
+                    'border-color': '#000'
+                }
+            },
+            {
                 selector: 'node.noncluster.tentativedock',
                 style: {
                     'background-color': '#994700',
@@ -529,6 +536,15 @@ function toggleCluster(cluster) {
  */
 function collapseCluster(cluster, moveMap) {
     var children = cluster.children();
+    // Prevent this cluster from being collapsed if any of its children are
+    // tentative nodes in finishing mode
+    if (FINISHING_MODE_ON) {
+        for (var ci = 0; ci < children.length; ci++) {
+            if (children[ci].hasClass("tentative")) {
+                return;
+            }
+        }
+    }
     // For each edge with a target in the compound node...
     for (var incomingEdgeID in cluster.data("incomingEdgeMap")) {
         var oldEdge = cy.getElementById(incomingEdgeID);
@@ -563,6 +579,13 @@ function collapseCluster(cluster, moveMap) {
  * and canonical exterior edge data.
  */
 function uncollapseCluster(cluster) {
+    // Prevent this cluster from being uncollapsed if it's a "tentative" node
+    // in finishing mode
+    if (FINISHING_MODE_ON) {
+        if (cluster.hasClass("tentative")) {
+            return;
+        }
+    }
     // Restore child nodes + interior edges
     cluster.scratch("_interiorEles").restore();
     // "Reset" edges to their original target/source within the cluster
@@ -2373,7 +2396,9 @@ function addNodeFromEventToPath(e) {
     //  -Just stop autofinishing as soon as a node is identified in a linear
     //   cycle
     var justStartedLinearCycleFinishing = false;
-    if (node.hasClass("noncluster")) {
+    if (!(node.hasClass("cluster") && !node.data("isCollapsed"))) {
+        // Don't add uncollapsed clusters, but allow collapsed clusters to be
+        // added
         var nodeID = node.id();
         if (FINISHING_NODE_IDS.length > 0) {
             if (NEXT_NODE_IDS.is("#" + nodeID)) {
