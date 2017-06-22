@@ -2405,9 +2405,7 @@ function addNodeFromEventToPath(e) {
         if (FINISHING_NODE_IDS.length > 0) {
             if (NEXT_NODE_IDS.is("#" + nodeID)) {
                 cy.startBatch();
-                for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
-                    NEXT_NODE_IDS[i].removeClass("tentative");
-                }
+                NEXT_NODE_IDS.removeClass("tentative");
                 cy.endBatch();
                 NEXT_NODE_IDS = node.outgoers("node");
                 if (justAddedCollapsedCyclicChain) {
@@ -2441,9 +2439,7 @@ function addNodeFromEventToPath(e) {
                 }
                 else { // includes case where FINISHING_LINEAR_CYCLE is true
                     cy.startBatch();
-                    for (var i = 0; i < size; i++) {
-                        NEXT_NODE_IDS[i].addClass("tentative");
-                    }
+                    NEXT_NODE_IDS.addClass("tentative");
                     cy.endBatch();
                 }
                 $("#assembledNodes").append(", " + nodeID);
@@ -2467,9 +2463,7 @@ function addNodeFromEventToPath(e) {
                 return;
             }
             cy.startBatch();
-            for (var i = 0; i < size; i++) {
-                NEXT_NODE_IDS[i].addClass("tentative");
-            }
+            NEXT_NODE_IDS.addClass("tentative");
             cy.endBatch();
             $("#assembledNodes").append(nodeID);
             FINISHING_NODE_IDS += nodeID;
@@ -2499,9 +2493,7 @@ function endFinishing() {
     FINISHING_MODE_PREVIOUSLY_DONE = true;
     FINISHING_LINEAR_CYCLE = false;
     cy.startBatch();
-    for (var i = 0; i < NEXT_NODE_IDS.size(); i++) {
-        NEXT_NODE_IDS[i].removeClass("tentative");
-    }
+    NEXT_NODE_IDS.removeClass("tentative");
     cy.endBatch();
     NEXT_NODE_IDS = cy.collection();
     cy.autounselectify(false);
