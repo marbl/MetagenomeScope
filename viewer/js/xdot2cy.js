@@ -142,9 +142,8 @@ var FINISHING_MODE_PREVIOUSLY_DONE = false;
 // In the format "N1,N2,N3,N4" where N1 is the first node ID, N2 is the second
 // node ID, and so on (allowing repeat duplicate IDs).
 var FINISHING_NODE_IDS = "";
-// Node IDs of the nodes that are outgoing from the last-added node to the
-// reconstructed path.
-var NEXT_NODE_IDS;
+// Nodes that are outgoing from the last-added node to the reconstructed path.
+var NEXT_NODES;
 // Boolean used to indicate when finishing a linear cycle is happening.
 var FINISHING_LINEAR_CYCLE;
 
@@ -1502,7 +1501,7 @@ function drawComponent(cmpRank) {
     FINISHING_MODE_ON = false;
     FINISHING_MODE_PREVIOUSLY_DONE = false;
     FINISHING_NODE_IDS = "";
-    NEXT_NODE_IDS = cy.collection();
+    NEXT_NODES = cy.collection();
     FINISHING_LINEAR_CYCLE = false;
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
@@ -2403,15 +2402,15 @@ function addNodeFromEventToPath(e) {
         var nodeID = node.id();
         justAddedCollapsedCyclicChain = node.hasClass("Y");
         if (FINISHING_NODE_IDS.length > 0) {
-            if (NEXT_NODE_IDS.is("#" + nodeID)) {
+            if (NEXT_NODES.is("#" + nodeID)) {
                 cy.startBatch();
-                NEXT_NODE_IDS.removeClass("tentative");
+                NEXT_NODES.removeClass("tentative");
                 cy.endBatch();
-                NEXT_NODE_IDS = node.outgoers("node");
+                NEXT_NODES = node.outgoers("node");
                 if (justAddedCollapsedCyclicChain) {
-                    NEXT_NODE_IDS = NEXT_NODE_IDS.union(node);
+                    NEXT_NODES = NEXT_NODES.union(node);
                 }
-                var size = NEXT_NODE_IDS.size();
+                var size = NEXT_NODES.size();
                 //if (!FINISHING_LINEAR_CYCLE && size === 1) {
                 //    var autofinishingSeenNodeIDs = [];
                 //    while (size === 1) {
@@ -2423,10 +2422,10 @@ function addNodeFromEventToPath(e) {
                 //        $("#assembledNodes").append(", " + nodeID);
                 //        FINISHING_NODE_IDS += "," + nodeID;
                 //        autofinishingSeenNodeIDs.push(nodeID);
-                //        node = NEXT_NODE_IDS[0];
+                //        node = NEXT_NODES[0];
                 //        nodeID = node.id();
-                //        NEXT_NODE_IDS = node.outgoers("node");
-                //        size = NEXT_NODE_IDS.size();
+                //        NEXT_NODES = node.outgoers("node");
+                //        size = NEXT_NODES.size();
                 //    }
                 //}
                 // TODO add something that keeps track of previous node and
@@ -2439,7 +2438,7 @@ function addNodeFromEventToPath(e) {
                 }
                 else { // includes case where FINISHING_LINEAR_CYCLE is true
                     cy.startBatch();
-                    NEXT_NODE_IDS.addClass("tentative");
+                    NEXT_NODES.addClass("tentative");
                     cy.endBatch();
                 }
                 $("#assembledNodes").append(", " + nodeID);
@@ -2451,11 +2450,11 @@ function addNodeFromEventToPath(e) {
         }
         else {
             // TODO abstract repeated code to a function
-            NEXT_NODE_IDS = node.outgoers("node");
+            NEXT_NODES = node.outgoers("node");
             if (justAddedCollapsedCyclicChain) {
-                NEXT_NODE_IDS = NEXT_NODE_IDS.union(node);
+                NEXT_NODES = NEXT_NODES.union(node);
             }
-            var size = NEXT_NODE_IDS.size();
+            var size = NEXT_NODES.size();
             if (size === 0) {
                 $("#assembledNodes").append(nodeID);
                 FINISHING_NODE_IDS += nodeID;
@@ -2463,7 +2462,7 @@ function addNodeFromEventToPath(e) {
                 return;
             }
             cy.startBatch();
-            NEXT_NODE_IDS.addClass("tentative");
+            NEXT_NODES.addClass("tentative");
             cy.endBatch();
             $("#assembledNodes").append(nodeID);
             FINISHING_NODE_IDS += nodeID;
@@ -2493,9 +2492,9 @@ function endFinishing() {
     FINISHING_MODE_PREVIOUSLY_DONE = true;
     FINISHING_LINEAR_CYCLE = false;
     cy.startBatch();
-    NEXT_NODE_IDS.removeClass("tentative");
+    NEXT_NODES.removeClass("tentative");
     cy.endBatch();
-    NEXT_NODE_IDS = cy.collection();
+    NEXT_NODES = cy.collection();
     cy.autounselectify(false);
     cy.off("tap");
     enableButton("exportPathButton");
