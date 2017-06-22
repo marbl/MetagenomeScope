@@ -1,5 +1,7 @@
 # MetagenomeScope
 
+![Screenshot of MetagenomeScope's standard mode](https://user-images.githubusercontent.com/4177727/27416728-4c6297d8-56dd-11e7-9d89-472686c7a29e.png)
+
 An interactive visualization tool designed for metagenomic sequence assembly
 and scaffold graphs. The tool aims to prevent a semi-linearized,
 hierarchical overview of the input graphs while emphasizing the
