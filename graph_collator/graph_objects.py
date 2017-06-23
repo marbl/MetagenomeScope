@@ -776,6 +776,26 @@ class Bicomponent(NodeGroup):
             for n in mn.nodes:
                 n.parent_bicomponents.add(self)
             mn.parent_bicomponent = self
+        # Get a dict mapping singlenode IDs to their corresponding objects.
+        # The length of this dict also provides us with the number of
+        # singlenodes contained within this bicomponent when fully implicitly
+        # uncollapsed.
+        self.snid2obj = {}
+        for mn in self.metanode_list:
+            # Get a set of singlenodes, since we don't want to include
+            # duplicate node info declarations
+            for n in mn.nodes:
+                self.snid2obj[n.id_string] = n
+        # Get a list of real edges contained in the metanodes in this
+        # bicomponent.
+        self.real_edges = []
+        for mn in self.metanode_list:
+            for e in mn.internal_edges:
+                n1 = mn.childid2obj[e[1]]
+                n2 = mn.childid2obj[e[2]]
+                if e[0] == "r":
+                    # This is a real edge
+                    self.real_edges.append((e[1], e[2]))
         super(Bicomponent, self).__init__("I", "", self.metanode_list,
             spqr_related=True, unique_id=self.bicomponent_id)
 
@@ -802,23 +822,12 @@ class Bicomponent(NodeGroup):
         gv_input += "subgraph cluster_%s {\n" % (self.gv_id_string)
         if config.GLOBALCLUSTER_STYLE != "":
             gv_input += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
-        snid2obj = {}
-        for mn in self.metanode_list:
-            # Get a set of singlenodes, since we don't want to include
-            # duplicate node info declarations
-            for n in mn.nodes:
-                snid2obj[n.id_string] = n
         # Explicitly provide node info first
         # This seems to help a bit with avoiding edge-node crossings
-        for n in snid2obj.values():
+        for n in self.snid2obj.values():
             gv_input += n.node_info()
-        for mn in self.metanode_list:
-            for e in mn.internal_edges:
-                n1 = mn.childid2obj[e[1]]
-                n2 = mn.childid2obj[e[2]]
-                if e[0] == "r":
-                    # real edge
-                    gv_input += "\t%s -- %s;\n" % (e[1], e[2])
+        for e in self.real_edges:
+            gv_input += "\t%s -- %s;\n" % (e[0], e[1])
         gv_input += "}\n}"
         cg = pygraphviz.AGraph(gv_input)
         cg.layout(prog='sfdp')
@@ -833,7 +842,7 @@ class Bicomponent(NodeGroup):
         self.xdot_ic_height /= config.POINTS_PER_INCH
         # Obtain node layout info
         for n in cg.nodes():
-            curr_node = snid2obj[str(n)]
+            curr_node = self.snid2obj[str(n)]
             # Record the relative position (within the node group's bounding
             # box) of this child node.
             ep = n.attr[u'pos'].split(',')

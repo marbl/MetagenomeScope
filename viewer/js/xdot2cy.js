@@ -1358,13 +1358,15 @@ function drawSPQRComponent(cmpRank) {
     // Along with the component's total node count.
     var query;
     if (CURR_SPQRMODE === "explicit") {
-        query = "SELECT boundingbox_x, boundingbox_y, uncompressed_node_count,"
-            + " uncompressed_edge_count, compressed_node_count,"
-            + " compressed_edge_count, bicomponent_count FROM singlecomponents"
-            + " WHERE size_rank = ? LIMIT 1";
+        query = "SELECT boundingbox_x, boundingbox_y,"
+            + " ex_uncompressed_node_count, ex_uncompressed_edge_count,"
+            + " compressed_node_count, compressed_edge_count,"
+            + " bicomponent_count FROM singlecomponents WHERE size_rank = ?"
+            + " LIMIT 1";
     }
     else {
         query = "SELECT i_boundingbox_x, i_boundingbox_y,"
+            + " im_uncompressed_node_count, im_uncompressed_edge_count,"
             + " compressed_node_count, compressed_edge_count,"
             + " bicomponent_count FROM singlecomponents"
             + " WHERE size_rank = ? LIMIT 1";
@@ -1400,8 +1402,12 @@ function drawSPQRComponent(cmpRank) {
     var ucNodeCount = null;
     var ucEdgeCount = null;
     if (CURR_SPQRMODE === "explicit") {
-        ucNodeCount = fullObj['uncompressed_node_count'];
-        ucEdgeCount = fullObj['uncompressed_edge_count'];
+        ucNodeCount = fullObj['ex_uncompressed_node_count'];
+        ucEdgeCount = fullObj['ex_uncompressed_edge_count'];
+    }
+    else {
+        ucNodeCount = fullObj['im_uncompressed_node_count'];
+        ucEdgeCount = fullObj['im_uncompressed_edge_count'];
     }
     // Scale PROGRESS_BAR_FREQ relative to component size of nodes/edges
     // This does ignore metanodes/bicomponents, but it's a decent approximation
@@ -1753,13 +1759,17 @@ function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
         bodyText += "in the SPQR view, when fully collapsed, has <strong>"
             + counts[0] + " " + getSuffix(counts[0], "node") + "</strong> and "
             + "<strong>" + counts[1] + " " + getSuffix(counts[1], "edge")
-            + "</strong>. When fully uncollapsed, the component has <strong>"
+            + "</strong>. When fully " + CURR_SPQRMODE + "ly uncollapsed, "
+            + "the component has <strong>"
             + counts[2] + " " + getSuffix(counts[2], "node") + "</strong> and "
             + "<strong>" + counts[3] + " " + getSuffix(counts[3], "edge")
             + "</strong>. The component has <strong>" + counts[4] + " "
-            + getSuffix(counts[4], "biconnected component") + "</strong>. "
-            + "(These figures do not include SPQR tree metanodes, although "
-            + "they do include the edges between them when uncollapsed.)";
+            + getSuffix(counts[4], "biconnected component") + "</strong>. ";
+        if (CURR_SPQRMODE === "explicit") {
+            bodyText+= "(These figures do not include SPQR tree metanodes, "
+                + "although they do include the edges between them when "
+                + "uncollapsed.)";
+        }
     }
     else {
         var nodeNoun = getSuffix(componentNodeCount, "node");

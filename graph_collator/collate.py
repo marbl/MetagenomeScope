@@ -767,7 +767,7 @@ conclude_msg()
 # of nodes to draw, which will later be processed and output to the .gv file.
 
 # We apply "precedence" here: identify all bubbles, then frayed ropes, then
-# cycles, then chains. A TODO is making that precedence configurable
+# cycles, then chains. A TODO is making that precedence configurable; see #87
 # (and generalizing this code to get rid of redundant stuff, maybe?)
 operation_msg(config.BUBBLE_SEARCH_MSG)
 nodes_to_try_collapsing = nodeid2obj.values()
@@ -1224,7 +1224,7 @@ METANODE_INSERTION_STMT = \
     "INSERT INTO metanodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 METANODEEDGE_INSERTION_STMT = "INSERT INTO metanodeedges VALUES (?,?,?,?,?,?)"
 SINGLECOMPONENT_INSERTION_STMT = \
-    "INSERT INTO singlecomponents VALUES (?,?,?,?,?,?,?,?,?,?)"
+    "INSERT INTO singlecomponents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 cursor.execute("""CREATE TABLE nodes
         (id text, label text, length integer, gc_content real, depth real,
         component_rank integer, x real, y real, w real, h real,
@@ -1268,8 +1268,9 @@ cursor.execute("""CREATE TABLE metanodeedges
         control_point_string text, control_point_count integer,
         parent_bicomponent_id_num integer)""")
 cursor.execute("""CREATE TABLE singlecomponents
-        (size_rank integer, uncompressed_node_count integer,
-        uncompressed_edge_count integer, compressed_node_count integer,
+        (size_rank integer, ex_uncompressed_node_count integer,
+        ex_uncompressed_edge_count integer, im_uncompressed_node_count integer,
+        im_uncompressed_edge_count integer, compressed_node_count integer,
         compressed_edge_count integer, bicomponent_count integer,
         boundingbox_x real, boundingbox_y real, i_boundingbox_x real,
         i_boundingbox_y real)""")
@@ -1298,6 +1299,10 @@ operation_msg(config.SPQRVIEW_LAYOUT_MSG)
 # list of all the (right, top) coords of the bounding boxes of each implicit
 # single connected component
 implicit_spqr_bounding_boxes = []
+# lists of uncompressed node counts and of uncompressed edge counts for each
+# implicit single connected component (see #223 on GitHub)
+implicit_spqr_node_counts = []
+implicit_spqr_edge_counts = []
 for mode in ("implicit", "explicit"):
     t1 = time.time()
     single_component_size_rank = 1
@@ -1521,6 +1526,8 @@ for mode in ("implicit", "explicit"):
                 # since we know that all children of the bicomponent must fit
                 # inside the bicomponent's area
                 if mode == "implicit":
+                    sc_node_count += len(curr_cluster.snid2obj)
+                    sc_edge_count += len(curr_cluster.real_edges)
                     # compute positions of metanodes relative to child nodes
                     for mn in curr_cluster.metanode_list:
                         mn.assign_implicit_spqr_borders()
@@ -1607,6 +1614,10 @@ for mode in ("implicit", "explicit"):
         if mode == "implicit":
             implicit_spqr_bounding_boxes.append((bounding_box_right,
                 bounding_box_top))
+            # Account for edges not in any bicomponents
+            sc_edge_count += len(h.edges())
+            implicit_spqr_node_counts.append(sc_node_count)
+            implicit_spqr_edge_counts.append(sc_edge_count)
             single_component_size_rank += 1
             continue
         # Record layout info of edges that aren't inside any bicomponents.
@@ -1656,6 +1667,8 @@ for mode in ("implicit", "explicit"):
         # Output component information to the database
         cursor.execute(SINGLECOMPONENT_INSERTION_STMT,
             (single_component_size_rank, sc_node_count, sc_edge_count,
+                implicit_spqr_node_counts[single_component_size_rank - 1],
+                implicit_spqr_edge_counts[single_component_size_rank - 1],
                 sc_compressed_node_count, sc_compressed_edge_count,
                 sc_bicomponent_count, bounding_box_right, bounding_box_top,
                 implicit_spqr_bounding_boxes[single_component_size_rank-1][0],
