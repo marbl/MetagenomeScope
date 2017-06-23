@@ -1753,18 +1753,19 @@ function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
     }
     // This is incredibly minor, but I always get annoyed at software that
     // doesn't use correct grammar for stuff like this nowadays :P
-    var bodyText = intro + "current component (size rank <strong>"
+    var bodyText = intro + "current connected component (size rank <strong>"
         + cmpRank + "</strong>) ";
     if (mode === "SPQR") {
         bodyText += "in the SPQR view, when fully collapsed, has <strong>"
             + counts[0] + " " + getSuffix(counts[0], "node") + "</strong> and "
             + "<strong>" + counts[1] + " " + getSuffix(counts[1], "edge")
             + "</strong>. When fully " + CURR_SPQRMODE + "ly uncollapsed, "
-            + "the component has <strong>"
+            + "the connected component has <strong>"
             + counts[2] + " " + getSuffix(counts[2], "node") + "</strong> and "
             + "<strong>" + counts[3] + " " + getSuffix(counts[3], "edge")
-            + "</strong>. The component has <strong>" + counts[4] + " "
-            + getSuffix(counts[4], "biconnected component") + "</strong>. ";
+            + "</strong>. The connected component has <strong>" + counts[4]
+            + " " + getSuffix(counts[4], "biconnected component")
+            + "</strong>. ";
         if (CURR_SPQRMODE === "explicit") {
             bodyText+= "(These figures do not include SPQR tree metanodes, "
                 + "although they do include the edges between them when "
@@ -1776,7 +1777,7 @@ function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
         var edgeNoun = getSuffix(componentEdgeCount, "edge");
         bodyText += "has <strong>" + componentNodeCount + " " + nodeNoun
             + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
-            + "</strong>. This component contains <strong>"
+            + "</strong>. This connected component contains <strong>"
             + nodePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
             + " nodes</strong> in the assembly and <strong>"
             + edgePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
