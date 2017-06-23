@@ -68,11 +68,12 @@ beneficial when analyzing large graphs:
 
 ### Viewer interface
 
-* Any modern internet browser (smartphone/tablet mobile browsers should
-  work, also) supported by Cytoscape.js
-    * Google Chrome and Mozilla Firefox are recommended, but others should
-      be fine. If you run into any problems using the viewer application on
-      any browser, please let me know and I can look into it.
+* Any modern internet browser (with JavaScript enabled) should be
+  fine. At present, Google Chrome and Mozilla Firefox are recommended,
+  since I haven't done a lot of testing on other browsers yet.
+  (If you run into any problems using the viewer interface on
+  your browser of choice, please [let me know](#contact) and I can look
+  into it.)
 
 ## Running the preprocessing script
 
