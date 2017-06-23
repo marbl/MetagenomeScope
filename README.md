@@ -238,7 +238,7 @@ MetagenomeScope is licensed under the
 
 ## Contact
 
-`mfedarko at umd dot edu`
+I can be reached via email at `mfedarko at umd dot edu`.
 
 ## Acknowledgements
 
