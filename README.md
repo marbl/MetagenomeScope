@@ -234,7 +234,13 @@ MetagenomeScope is licensed under the
 
 ## Contact
 
-I can be reached via email at `mfedarko at umd dot edu`.
+Feel free to let me know if you have any suggestions, comments, or other
+feedback about the tool.
+
+I can be reached via email at `mfedarko at umd dot edu`. 
+
+You can also open an [issue](https://github.com/fedarko/MetagenomeScope/issues)
+in this repository, if you'd like.
 
 ## Acknowledgements
 
