@@ -30,10 +30,6 @@ MetagenomeScope is composed of two main components:
    Currently, this supports LastGraph (Velvet), GML
    ([MetaCarvel](https://github.com/marbl/bambus3)), and GFA input
    files. Support for GFA2 and FASTG (SPAdes) files is planned.
-   Please note that, although
-   GFA files only have DNA sequences as an optional requirement
-   (it's possible to denote the DNA of a sequence with just an asterisk),
-   including DNA sequences in GFA files is currently required.
 
 2. The viewer interface (contained in the `viewer/` directory of this
    repository), a client-side web application that reads a .db file
