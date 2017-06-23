@@ -386,6 +386,13 @@ single_graph_edges = []
 # Pertinent Assembly-wide information we use 
 graph_filetype = ""
 distinct_single_graph = True
+# If DNA is given for each contig, then we can calculate GC content
+# (In LastGraph files, DNA is always given; in GML files, DNA is never given;
+# in GFA files, DNA is sometimes given.)
+# (That being said, it's ostensibly possible to store DNA in an external FASTA
+# file along with GML/GFA files that don't have DNA explicitly given -- so
+# these constraints are subject to change.)
+dna_given = True
 total_node_count = 0
 total_edge_count = 0
 total_all_edge_count = 0
@@ -417,6 +424,7 @@ with open(asm_fn, 'r') as assembly_file:
     parsing_GFA       = lowercase_asm_fn.endswith(config.GFA_SUFFIX)
     if parsing_LastGraph:
         graph_filetype = "LastGraph"
+        dna_given = True
         # TODO -- Should we account for SEQ/NR information here?
         curr_node_id = ""
         curr_node_bp = 1
@@ -522,6 +530,7 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_dnafwd = None
     elif parsing_GML:
         graph_filetype = "GML"
+        dna_given = False
         distinct_single_graph = False
         # Since GML files don't contain DNA
         total_gc_nt_count = None
@@ -627,6 +636,9 @@ with open(asm_fn, 'r') as assembly_file:
                 parsing_edge = True
     elif parsing_GFA:
         graph_filetype = "GFA"
+        # Assume initially that DNA is given. If we encounter any contigs where
+        # DNA is not given, then set this to False.
+        dna_given = True
         edge_weights_available = False
         # NOTE--
         # Currently, we only parse (S)egment and (L)ink lines in GFA files,
@@ -666,10 +678,17 @@ with open(asm_fn, 'r') as assembly_file:
                     # Hence, we just need to calculate the G/C content here
                     # once. This is not the case for LastGraph nodes, though.
                     curr_node_gc, gc_ct = gc_content(curr_node_dnafwd)
-                    total_gc_nt_count += (2 * gc_ct)
+                    if dna_given:
+                        # If DNA is not given for at least one contig seen thus
+                        # far, don't bother updating this further. (We'll only
+                        # display assembly GC content info in the viewer
+                        # interface if DNA was given for all contigs, not just
+                        # for some of them.)
+                        total_gc_nt_count += (2 * gc_ct)
                 else:
                     # Allow user to not include DNA but indicate seq length via
                     # the LN property
+                    dna_given = False
                     curr_node_bp = None
                     for seq_attr in l[3:]:
                         if seq_attr.startswith("LN:i:"):
@@ -1194,7 +1213,8 @@ NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
-ASSEMBLY_INSERTION_STMT = "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?)"
+ASSEMBLY_INSERTION_STMT = \
+    "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 SINGLENODE_INSERTION_STMT = \
     "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?)"
@@ -1224,7 +1244,8 @@ cursor.execute("""CREATE TABLE assembly
         (filename text, filetype text, node_count integer,
         edge_count integer, all_edge_count integer, component_count integer,
         bicomponent_count integer, single_component_count integer,
-        total_length integer, n50 integer, gc_content real)""")
+        total_length integer, n50 integer, gc_content real,
+        dna_given integer)""")
 # SPQR view tables
 cursor.execute("""CREATE TABLE singlenodes
         (id text, label text, length integer, gc_content real, depth real,
@@ -1255,11 +1276,15 @@ cursor.execute("""CREATE TABLE singlecomponents
 connection.commit()
 
 # Insert general assembly information into the database
+asm_gc = None
+dna_given_val = 0
+if dna_given:
+    asm_gc = assembly_gc(total_gc_nt_count, total_length)
+    dna_given_val = 1
 graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
             total_edge_count, total_all_edge_count, total_component_count,
             total_bicomponent_count, total_single_component_count,
-            total_length, n50(bp_length_list),
-            assembly_gc(total_gc_nt_count, total_length))
+            total_length, n50(bp_length_list), asm_gc, dna_given_val)
 cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
 
