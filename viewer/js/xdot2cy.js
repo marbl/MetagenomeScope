@@ -92,6 +92,9 @@ var TEXTURE_ON_VIEWPORT = false;
 var CURR_DB = null;
 // Filetype of the assembly; used for determining bp vs. nt for nodes
 var ASM_FILETYPE;
+// Whether or not actual DNA sequences were provided to the preprocessing
+// script (impacts the availability of GC content display and colorization)
+var DNA_AVAILABLE;
 // FIlename of the currently loaded .db file
 var DB_FILENAME;
 // Total number of nodes and edges in the current asm graph
@@ -669,7 +672,7 @@ function addSelectedNodeInfo(ele) {
         var depthEntry = Math.round(ele.data("depth") * 100) / 100 + "x";
         nodeRowHTML += TD_START + depthEntry + TD_CLOSE;
     }
-    if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA") {
+    if (DNA_AVAILABLE) {
         // Round to two decimal places
         // we multiply by 10000 because we're really multiplying by 100
         // twice: first to convert to a percentage, then to start the
@@ -1032,12 +1035,8 @@ function parseDBcomponents() {
     var n50Info = n50.toLocaleString();
     // Record Assembly G/C content (not available for GML files)
     var asmGC = graphInfo["gc_content"];
+    DNA_AVAILABLE = (graphInfo["dna_given"] === 1) ? true : false;
     if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA") {
-        // Round to two decimal places
-        var asmGCInfo = Math.round((asmGC * 100) * 100) / 100 + "%";
-        $("#asmGCEntry").text(asmGCInfo);
-        $("#asmGCTH").removeClass("notviewable");
-        $("#asmGCEntry").removeClass("notviewable");
         // Since the nodes in these graphs are unoriented (i.e. we draw both
         // strands of each sequence of DNA included in the assembly graph),
         // the individual nodes' units are in nucleotides (nt).
@@ -1050,13 +1049,21 @@ function parseDBcomponents() {
         // The nodes in these graphs are oriented (i.e. each contig has a
         // specified orientation), so we just draw one node per sequence.
         // Thus, the individual nodes' units are in base pairs (bp).
-        $("#asmGCTH").addClass("notviewable");
-        $("#asmGCEntry").addClass("notviewable");
         $("#asmNodeCtTH").text("Node Count");
         $("#asmEdgeCtTH").text("Edge Count");
         $("#asmNodeLenTH").text("Total Node Length");
         n50Info += " bp";
         bpInfo += " bp";
+    }
+    if (DNA_AVAILABLE) {
+        // Round to two decimal places
+        var asmGCInfo = Math.round((asmGC * 100) * 100) / 100 + "%";
+        $("#asmGCEntry").text(asmGCInfo);
+        $("#asmGCTH").removeClass("notviewable");
+        $("#asmGCEntry").removeClass("notviewable");
+    } else {
+        $("#asmGCTH").addClass("notviewable");
+        $("#asmGCEntry").addClass("notviewable");
     }
     // Adjust UI elements
     document.title = DB_FILENAME + " (" + fnInfo + ")";
@@ -1104,14 +1111,20 @@ function parseDBcomponents() {
     enableButton("dir270");
     $("#hideEdgesCheckbox").prop("disabled", false);
     $("#useTexturesCheckbox").prop("disabled", false);
-    // Adjust selected info tables based on filetype (i.e. what info is
-    // available)
+    // Adjust selected info tables based on what info is available
+    var extraNodeCols = 0;
+    if (DNA_AVAILABLE) {
+        $("#gcContentCol").removeClass("notviewable");
+        extraNodeCols++;
+    } else {
+        $("#gcContentCol").addClass("notviewable");
+    }
     if (ASM_FILETYPE === "GML") {
         // Node info adjustments
-        $("#nodeTH").prop("colspan", 3);
+        // All contigs in GML files have at minimum ID, label, length given
+        $("#nodeTH").prop("colspan", 3 + extraNodeCols);
         $("#depthCol").addClass("notviewable");
         $("#labelCol").removeClass("notviewable");
-        $("#gcContentCol").addClass("notviewable");
         // Edge info adjustments
         $("#edgeTH").prop("colspan", 6);
         $("#multiplicityCol").text("B. size");
@@ -1122,10 +1135,13 @@ function parseDBcomponents() {
     }
     else if (ASM_FILETYPE === "LastGraph") {
         // Node info adjustments
-        $("#nodeTH").prop("colspan", 4);
+        // All contigs in LastGraph files have at min. ID, length, depth given
+        // (they also always have GC content given, since LastGraph files seem
+        // to always have sequences given, but we use extraNodeCols anyway to make
+        // this more flexible)
+        $("#nodeTH").prop("colspan", 3 + extraNodeCols);
         $("#depthCol").removeClass("notviewable");
         $("#labelCol").addClass("notviewable");
-        $("#gcContentCol").removeClass("notviewable");
         // Edge info adjustments
         $("#edgeTH").prop("colspan", 3);
         $("#multiplicityCol").text("Multiplicity");
@@ -1136,10 +1152,10 @@ function parseDBcomponents() {
     }
     else if (ASM_FILETYPE === "GFA") {
         // Node info adjustments
-        $("#nodeTH").prop("colspan", 3);
+        // All contigs in GFA files have at minimum ID, length given
+        $("#nodeTH").prop("colspan", 2 + extraNodeCols);
         $("#depthCol").addClass("notviewable");
         $("#labelCol").addClass("notviewable");
-        $("#gcContentCol").removeClass("notviewable");
         // Edge info adjustments
         $("#edgeTH").prop("colspan", 2);
         $("#multiplicityCol").addClass("notviewable");
@@ -1855,7 +1871,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("dir270");
         enableButton("pngOption");
         enableButton("jpgOption");
-        if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA") {
+        if (DNA_AVAILABLE) {
             // G/C content is available, so enable the corresponding buttons
             // We'll have to change this protocol when we add more colorization
             // options based on different data
