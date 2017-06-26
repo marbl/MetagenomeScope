@@ -653,8 +653,8 @@ class SPQRMetaNode(NodeGroup):
         # (...The reason for this is that I tried that, and I thought the
         # metanode interiors looked better without the triangle smoothing
         # applied)
-        #if config.GLOBALNODE_STYLE != "":
-        #    gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
+        if config.GLOBALNODE_STYLE != "":
+            gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
         # We don't pass in edge style info (re: ports) because these edges are
         # undirected
         gv_input += self.node_info(backfill=False)
@@ -822,6 +822,8 @@ class Bicomponent(NodeGroup):
         gv_input += "subgraph cluster_%s {\n" % (self.gv_id_string)
         if config.GLOBALCLUSTER_STYLE != "":
             gv_input += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
+        if config.GLOBALNODE_STYLE != "":
+            gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
         # Explicitly provide node info first
         # This seems to help a bit with avoiding edge-node crossings
         for n in self.snid2obj.values():
