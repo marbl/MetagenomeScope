@@ -677,22 +677,31 @@ class SPQRMetaNode(NodeGroup):
         # Obtain cluster width and height from the layout
         bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
         bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
+        if self.metanode_type == "P":
+            bounding_box_numeric[2] += 100
         self.xdot_c_width = bounding_box_numeric[2] - bounding_box_numeric[0]
         self.xdot_c_height = bounding_box_numeric[3] - bounding_box_numeric[1]
         # convert width and height from points to inches
         self.xdot_c_width /= config.POINTS_PER_INCH
         self.xdot_c_height /= config.POINTS_PER_INCH
         # Obtain node layout info
+        farthest_right_node = None
         for n in cg.nodes():
             curr_node = self.childid2obj[str(n)]
             # Record the relative position (within the node group's bounding
             # box) of this child node.
             ep = n.attr[u'pos'].split(',')
             rel_x = float(ep[0]) - bounding_box_numeric[0]
+            if self.metanode_type == "P":
+                if farthest_right_node == None or (rel_x > \
+                        farthest_right_node.parent_spqrnode2relpos[self][0]):
+                    farthest_right_node = curr_node
             rel_y = float(ep[1]) - bounding_box_numeric[1]
             curr_node.xdot_width = float(n.attr[u'width'])
             curr_node.xdot_height = float(n.attr[u'height'])
-            curr_node.parent_spqrnode2relpos[self] = (rel_x, rel_y)
+            curr_node.parent_spqrnode2relpos[self] = [rel_x, rel_y]
+        if self.metanode_type == "P":
+            farthest_right_node.parent_spqrnode2relpos[self][0] += 100
         # Obtain edge layout info
         for e in cg.edges():
             self.edge_count += 1
