@@ -396,8 +396,8 @@ function initGraph(viewType) {
             {
                 selector: 'node.noncluster.tentative',
                 style: {
-                    'background-color': '#000000',
-                    'color': '#FFFFFF'
+                    'border-width': 5,
+                    'border-color': '#000'
                 }
             },
             {
