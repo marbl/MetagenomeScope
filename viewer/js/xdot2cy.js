@@ -3489,6 +3489,11 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
         mean = edgeObj['mean'];
         stdev = edgeObj['stdev'];
     }
+    else {
+        // Make edges between metanodes be handled properly
+        thickness = 0.5;
+        is_outlier = 0;
+    }
     // If we're at this point, we're either in the regular view mode or we're
     // drawing an edge between metanodes. In either case, this means that we
     // know that this edge is not a multi-edge (i.e. it has a unique source and
