@@ -439,6 +439,7 @@ function initGraph(viewType) {
                     'width': 'data(thickness)',
                     'line-color': '#777',
                     'target-arrow-color': '#777',
+                    'loop-direction': '30deg',
                     'z-index': 3,
                     'z-index-compare': 'manual'
                 }
@@ -446,25 +447,17 @@ function initGraph(viewType) {
             {
                 selector: 'edge:selected',
                 style: {
-                    'line-color': '#000',
-                    'source-arrow-color': '#000',
-                    'target-arrow-color': '#000',
-                    'mid-source-arrow-color': '#000',
-                    'mid-target-arrow-color': '#000'
+                    'line-color': '#222',
+                    'source-arrow-color': '#222',
+                    'target-arrow-color': '#222',
+                    'mid-source-arrow-color': '#222',
+                    'mid-target-arrow-color': '#222'
                 }
             },
             {
                 selector: 'edge.oriented',
                 style: {
-                    'target-arrow-shape': 'triangle'
-                }
-            },
-            {
-                // The target-endpoint and source-endpoint attributes are
-                // needed to make Graphviz edges "work" here -- otherwise,
-                // edges will show up missing, etc.
-                selector: 'edge.oriented.nonloop',
-                style: {
+                    'target-arrow-shape': 'triangle',
                     'target-endpoint': '-50% 0%',
                     'source-endpoint': '50% 0'
                 }
@@ -498,6 +491,26 @@ function initGraph(viewType) {
                 selector: 'edge.virtual',
                 style: {
                     'line-style': 'dashed'
+                }
+            },
+            {
+                selector: 'edge.outlier',
+                style: {
+                    'line-color': '#ff0000',
+                    'source-arrow-color': '#ff0000',
+                    'target-arrow-color': '#ff0000',
+                    'mid-source-arrow-color': '#ff0000',
+                    'mid-target-arrow-color': '#ff0000'
+                }
+            },
+            {
+                selector: 'edge.outlier:selected',
+                style: {
+                    'line-color': '#800000',
+                    'source-arrow-color': '#800000',
+                    'target-arrow-color': '#800000',
+                    'mid-source-arrow-color': '#800000',
+                    'mid-target-arrow-color': '#800000'
                 }
             },
             {
@@ -1672,30 +1685,9 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         // NOTE that we intentionally only consider edges within this component
         // Multiplicity is an inherently relative measure, so outliers in other
         // components will just mess things up in the current component.
-        var maxMult = null;
-        var minMult = null;
         var edgesStmt;
         var edgeType = "doubleedge";
         if (mode !== "SPQR") {
-            var maxMultiplicityStmt = CURR_DB.prepare(
-                "SELECT * FROM edges WHERE component_rank = ? " +
-                "ORDER BY multiplicity DESC LIMIT 1", [cmpRank]);
-            maxMultiplicityStmt.step();
-            maxMult = maxMultiplicityStmt.getAsObject()['multiplicity'];
-            maxMultiplicityStmt.free();
-            // If the assembly doesn't have edge multiplicity data, don't
-            // bother trying to find the minimum -- that'll also be null.
-            if (maxMult !== null) {
-                var minMultiplicityStmt = CURR_DB.prepare(
-                    "SELECT * FROM edges WHERE component_rank = ? " + 
-                    "ORDER BY multiplicity ASC LIMIT 1", [cmpRank]);
-                minMultiplicityStmt.step();
-                minMult = minMultiplicityStmt.getAsObject()['multiplicity'];
-                minMultiplicityStmt.free();
-            }
-            else {
-                minMult = null;
-            }
             edgesStmt = CURR_DB.prepare(
                 "SELECT * FROM edges WHERE component_rank = ?", [cmpRank]);
         }
@@ -1710,7 +1702,7 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                 "SELECT * FROM singleedges " + spqrSpecs, metanodeParams);
             // NOTE don't draw metanodeedges by default due to autocollapsing
         }
-        drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
+        drawComponentEdges(edgesStmt, bb, node2pos, cmpRank,
             clustersInComponent, componentNodeCount, componentEdgeCount,
             totalElementCount, edgeType, mode, counts);
     }
@@ -1719,25 +1711,25 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
 // If edgeType !== "double" then draws edges accordingly
 // related: if mode === "SPQR" then draws edges accordingly
 // also if mode === "SPQR" then passes counts on to finishDrawComponent()
-function drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult, cmpRank,
+function drawComponentEdges(edgesStmt, bb, node2pos, cmpRank,
         clustersInComponent, componentNodeCount, componentEdgeCount,
         totalElementCount, edgeType, mode, counts) {
     if (edgesStmt.step()) {
-        renderEdgeObject(edgesStmt.getAsObject(), node2pos,
-            maxMult, minMult, bb, edgeType, mode, {});
+        renderEdgeObject(edgesStmt.getAsObject(), node2pos, bb, edgeType,
+                mode, {});
         componentEdgeCount += 1;
         CURR_NE += 0.5;
         if (CURR_NE % PROGRESSBAR_FREQ === 0) {
             updateProgressBar((CURR_NE / totalElementCount) * 100);
             window.setTimeout(function() {
-                drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
+                drawComponentEdges(edgesStmt, bb, node2pos,
                     cmpRank, clustersInComponent, componentNodeCount,
                     componentEdgeCount, totalElementCount, edgeType, mode,
                     counts);
             }, 0);
         }
         else {
-            drawComponentEdges(edgesStmt, bb, node2pos, maxMult, minMult,
+            drawComponentEdges(edgesStmt, bb, node2pos,
                 cmpRank, clustersInComponent, componentNodeCount,
                 componentEdgeCount, totalElementCount, edgeType, mode, counts);
         }
@@ -3401,13 +3393,6 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
  * If mode === "SPQR" then this does a few things differently (mostly related
  * to not getting certain values from the edge's attributes, etc).
  *
- * This also relatively scales edge thickness based on multiplicity if
- * maxMult === minMult.
- * NOTE that we don't scale edge thickness when using dot from collate.py,
- * since GraphViz doesn't adjust node placement based on edge thickness even
- * in extreme cases -- therefore we have free reign in this function to
- * adjust edge thickness, independent of the other parts of MetagenomeScope.
- *
  * If actualIDmapping !== {}, then the source/target IDs assigned to this edge
  * will be replaced accordingly. So, for example, if we were going to render an
  * edge from singlenode 3 to 4 (both in, say, a P-metanode with ID abc), but
@@ -3415,8 +3400,8 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
  * adjust the node IDs to use the "def" suffix instead. This feature is used
  * when adding edges in the implicit SPQR mode uncollapsing feature.
  */
-function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
-        boundingboxObject, edgeType, mode, actualIDmapping) {
+function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
+        mode, actualIDmapping) {
     var sourceID, targetID;
     // If the edge is in "regular mode", make its ID what it was before:
     // srcID + "->" + tgtID.
@@ -3485,10 +3470,11 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
             return;
         }
     }
-    var multiplicity, thickness, orientation, mean, stdev;
+    var multiplicity, thickness, is_outlier, orientation, mean, stdev;
     if (mode !== "SPQR") { // (edges between metanodes don't have metadata)
         multiplicity = edgeObj['multiplicity'];
-        //thickness = edgeObj['thickness'];
+        thickness = edgeObj['thickness'];
+        is_outlier = edgeObj['is_outlier'];
         orientation = edgeObj['orientation'];
         mean = edgeObj['mean'];
         stdev = edgeObj['stdev'];
@@ -3515,19 +3501,15 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     var edgeWidth = MAX_EDGE_THICKNESS;
     // NOTE -- commented out for now in lieu of global edge thickness scaling
     // Scale edge thickness using the "thickness" .db file attribute
-    //edgeWidth = MIN_EDGE_THICKNESS + (thickness * EDGE_THICKNESS_RANGE);
+    edgeWidth = MIN_EDGE_THICKNESS + (thickness * EDGE_THICKNESS_RANGE);
+    var isOutlierClass = is_outlier === 0 ? "" : " outlier";
     // Scale edge thickness relative to all other edges in the current
     // connected component
-    if (maxMult !== minMult) {
-        edgeWidth = MIN_EDGE_THICKNESS + (
-            ((multiplicity-minMult)/(maxMult-minMult)) * EDGE_THICKNESS_RANGE
-        );
-    }
     if (sourceID === targetID) {
         // It's a self-directed edge; don't bother parsing ctrl pt
         // info, just render it as a bezier edge and be done with it
         cy.add({
-            classes: "basicbezier oriented",
+            classes: "basicbezier oriented" + isOutlierClass,
             data: {id: edgeID, source: sourceID, target: targetID,
                    thickness: edgeWidth, multiplicity: multiplicity,
                    orientation: orientation, mean: mean, stdev: stdev}
@@ -3602,7 +3584,7 @@ function renderEdgeObject(edgeObj, node2pos, maxMult, minMult,
     }
     ctrlPtDists = ctrlPtDists.trim();
     ctrlPtWeights = ctrlPtWeights.trim();
-    var extraClasses = " nonloop oriented";
+    var extraClasses = " oriented" + isOutlierClass;
     if (ASM_FILETYPE === "GML") {
         // Mark edges where nodes don't overlap
         // TODO: Make this work with GFA edges also.

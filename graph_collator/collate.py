@@ -38,9 +38,11 @@ import pygraphviz
 import os
 # For parsing certain filenames easily
 import re
+# For calculating quartiles, etc. for edge weight outlier detection
+import numpy
 # For checking I/O errors
 import errno
-# For interfacing SQLite
+# For interfacing with SQLite
 import sqlite3
 # For benchmarking
 import time
@@ -1140,6 +1142,17 @@ for n in nodes_to_draw:
         total_component_count += 1
 connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
+# Loop through connected_components. For each cc:
+#   Set edge_weights = []
+#   For all nodes in the cc:
+#     For all outgoing edges of the node:
+#       Append the edge's multiplicity to edge_weights
+#   Get min_mult = min(edge_weights), max_mult = max(edge_weights)
+#   For all nodes in the cc, again:  
+#     For all outgoing edges of the node:
+#       Scale the edge's thickness relative to min/max mult (see xdot2cy.js)
+# ... later we'll do IQR stuff (using numpy.percentile(), maybe?)
+
 if not distinct_single_graph:
     # Get single_connected_components from connected_components
     for c in connected_components:
@@ -1159,6 +1172,66 @@ if not distinct_single_graph:
 single_connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
 conclude_msg()
+# Scale "non-outlier" edges relatively. We use "Tukey fences" to identify
+# outlier edge weights (see issue #184 on GitHub for context on this).
+if edge_weights_available:
+    operation_msg(config.EDGE_SCALING_MSG)
+    for c in connected_components:
+        edge_weights = []
+        for n in c.node_list:
+            for e in n.outgoing_edge_objects.values():
+                edge_weights.append(e.multiplicity)
+        # At this point, we have a list of every edge weight contained within
+        # this connected component.
+        non_outlier_edges = []
+        non_outlier_edge_weights = []
+        # (If there are < 4 edges in this connected component, don't bother
+        # with flagging outliers -- at that point, computing quartiles becomes
+        # a bit silly)
+        if len(edge_weights) >= 4:
+            # Now, calculate lower and upper Tukey fences.
+            # First, calculate lower and upper quartiles (aka the
+            # 25th and 75th percentiles)
+            lq, uq = numpy.percentile(edge_weights, [25, 75])
+            # Then, determine 1.5 * the interquartile range
+            # (we can use other values than 1.5 if desired -- not set in stone)
+            d = 1.5 * (uq - lq)
+            # Now we can calculate the actual Tukey fences:
+            lf = lq - d
+            uf = uq + d
+            # Now, iterate through every edge again and flag outliers.
+            # Non-outlier edges will be added to a list of edges that we will
+            # scale relatively
+            for n in c.node_list:
+                for e in n.outgoing_edge_objects.values():
+                    if e.multiplicity > uf:
+                        e.is_outlier = 1
+                        e.thickness = 1
+                    elif e.multiplicity < lf:
+                        e.is_outlier = -1
+                        e.thickness = 0
+                    else:
+                        non_outlier_edges.append(e)
+                        non_outlier_edge_weights.append(e.multiplicity)
+        else:
+            for n in c.node_list:
+                for e in n.outgoing_edge_objects.values():
+                    non_outlier_edges.append(e)
+                    non_outlier_edge_weights.append(e.multiplicity)
+        # Perform relative scaling for non_outlier_edges
+        # (Assuming, of course, that we have at least 2 non_outlier_edges)
+        if len(non_outlier_edges) >= 2:
+            min_ew = min(non_outlier_edge_weights)
+            max_ew = max(non_outlier_edge_weights)
+            if min_ew == max_ew:
+                # All the outliers have the same value: we don't need to bother
+                # with scaling the non-outliers
+                continue
+            ew_range = float(max_ew - min_ew)
+            for e in non_outlier_edges:
+                e.thickness = (e.multiplicity - min_ew) / ew_range
+    conclude_msg()
+
 operation_msg(config.DB_INIT_MSG + "%s..." % (db_fn))
 # Now that we've done all our processing on the assembly graph, we create the
 # output file: a SQLite database in which we store biological and graph layout
@@ -1185,7 +1258,7 @@ cursor = connection.cursor()
 # Define statements used for inserting a value into these tables
 # The number of question marks has to match the number of table columns
 NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
-EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?)"
+EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
 ASSEMBLY_INSERTION_STMT = \
@@ -1206,9 +1279,9 @@ cursor.execute("""CREATE TABLE nodes
         shape text, parent_cluster_id text)""")
 cursor.execute("""CREATE TABLE edges
         (source_id text, target_id text, multiplicity integer, thickness real,
-        orientation text, mean real, stdev real, component_rank integer,
-        control_point_string text, control_point_count integer,
-        parent_cluster_id text)""") 
+        is_outlier integer, orientation text, mean real, stdev real,
+        component_rank integer, control_point_string text,
+        control_point_count integer, parent_cluster_id text)""") 
 cursor.execute("""CREATE TABLE clusters (cluster_id text,
         component_rank integer, left real, bottom real, right real,
         top real)""")
@@ -1653,8 +1726,9 @@ for mode in ("implicit", "explicit"):
         h.close()
         single_component_size_rank += 1
     t2 = time.time()
-    print "SPQR %s view layout time:" % (mode)
-    print t1, t2, t2 - t1
+    if mode == "implicit": print "\n",
+    print "SPQR %s view layout time:" % (mode),
+    print "%g seconds" % (t2 - t1)
 
 conclude_msg()
 # Conclusion of script: Output (desired) components of nodes to the .gv file
@@ -1914,8 +1988,7 @@ for component in connected_components[:config.MAX_COMPONENTS]:
 t4 = time.time()
 if no_print:
     conclude_msg()
-print "Std. view layout time:"
-print t3, t4, t4 - t3
+print "Standard view layout time: %g seconds" % (t4 - t3)
 
 operation_msg(config.DB_SAVE_MSG + "%s..." % (db_fn))
 connection.commit()

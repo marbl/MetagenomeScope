@@ -53,7 +53,15 @@ class Edge(object):
         # We'll eventually assign this edge a "thickness" percentage somewhere
         # in the range [0, 1] (the actual process for doing that is in
         # collate.py). This attribute will contain that information.
-        self.thickness = 1
+        self.thickness = 0.5
+        # If we calculate Tukey fences for the edge weights in the connected
+        # component that this edge is in -- and if this edge is classified as
+        # an outlier during that process -- then we'll set this attribute to
+        # either -1 (if this edge is a "low" outlier) or 1 (if this edge is a
+        # "high" outlier)
+        # (if we don't calculate Tukey fences at all, or if we do but this edge
+        # isn't classified as an outlier, then we keep this attribute as 0)
+        self.is_outlier = 0
         # For if the edge is an "interior" edge of a node group
         self.group = None
         # Will be replaced with the size rank of the connected component to
@@ -114,9 +122,9 @@ class Edge(object):
         if self.group != None:
             group_id = self.group.cy_id_string
         return (self.source_id, self.target_id, self.multiplicity,
-                self.thickness, self.orientation, self.mean, self.stdev,
-                self.component_size_rank, self.xdot_ctrl_pt_str,
-                self.xdot_ctrl_pt_count, group_id)
+                self.thickness, self.is_outlier, self.orientation,
+                self.mean, self.stdev, self.component_size_rank,
+                self.xdot_ctrl_pt_str, self.xdot_ctrl_pt_count, group_id)
 
     def s_db_values(self):
         """Returns a tuple of the "values" of this Edge, for insertion
