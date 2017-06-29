@@ -463,6 +463,13 @@ function initGraph(viewType) {
                 }
             },
             {
+                selector: 'edge.unoriented_loop',
+                style: {
+                    'target-endpoint': '-50% 0%',
+                    'source-endpoint': '50% 0'
+                }
+            },
+            {
                 // Used for edges that were assigned valid (i.e. not
                 // just a straight line or self-directed edge)
                 // cpd/cpw properties from the xdot file.
@@ -2799,8 +2806,8 @@ function uncollapseSPQRMetanode(mn) {
     }
     if (CURR_SPQRMODE === "explicit") {
         for (a = 0; a < outgoingEdgeObjects.length; a++) {
-            renderEdgeObject(outgoingEdgeObjects[a], descendantID2pos, null,
-                null, CURR_BOUNDINGBOX, "metanodeedge", "SPQR", {});
+            renderEdgeObject(outgoingEdgeObjects[a], descendantID2pos,
+                    CURR_BOUNDINGBOX, "metanodeedge", "SPQR", {});
         }
     }
     var cyNodeID, normalID, parentBicmpID;
@@ -2832,7 +2839,7 @@ function uncollapseSPQRMetanode(mn) {
                 "SPQR");
     }
     for (a = 0; a < singleedgeObjects.length; a++) {
-        renderEdgeObject(singleedgeObjects[a], {}, null, null,
+        renderEdgeObject(singleedgeObjects[a], {},
             CURR_BOUNDINGBOX, "singleedge", "SPQR", singlenodeMapping);
     }
     if (CURR_SPQRMODE === "explicit") {
@@ -3425,6 +3432,9 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
             // We render these edges as normal basicbeziers to simplify things
             // (they usually seem to be straight lines/normal beziers anyway)
             var edgeClasses = "basicbezier";
+            if (sourceID === targetID) {
+                edgeClasses += " unoriented_loop";
+            }
             var parent_mn_id = edgeObj['parent_metanode_id'];
             var isVirtual = false;
             if (parent_mn_id !== null) {
@@ -3498,10 +3508,9 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
     //    return;
     //}
 
-    var edgeWidth = MAX_EDGE_THICKNESS;
     // NOTE -- commented out for now in lieu of global edge thickness scaling
     // Scale edge thickness using the "thickness" .db file attribute
-    edgeWidth = MIN_EDGE_THICKNESS + (thickness * EDGE_THICKNESS_RANGE);
+    var edgeWidth = MIN_EDGE_THICKNESS + (thickness * EDGE_THICKNESS_RANGE);
     var isOutlierClass = is_outlier === 0 ? "" : " outlier";
     // Scale edge thickness relative to all other edges in the current
     // connected component
