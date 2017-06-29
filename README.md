@@ -55,10 +55,11 @@ beneficial when analyzing large graphs:
 
 ### Preprocessing script
 
-* Linux (in order to run the C++ binary contained in `graph_collator/spqr`) --
-  working on getting a makefile set up to make this platform-independent
-  eventually
+* 64-bit Linux system (in order to run the C++ binary contained in
+  `graph_collator/spqr`) -- I'm working on getting a makefile set up to
+  make this platform-independent eventually (#218)
 * [Python 2.7](https://www.python.org/)
+* [NumPy](http://www.numpy.org/)
 * [PyGraphviz](https://pygraphviz.github.io/)
 * [Graphviz](http://graphviz.org/), with the `dot` and `sfdp` layout programs installed
 
@@ -247,6 +248,9 @@ in this repository, if you'd like.
 * The preprocessing script (in `collate.py`) uses
   [Graphviz](http://www.graphviz.org/)' `dot` and `sfdp` layout programs
   via [PyGraphviz](http://pygraphviz.github.io/).
+* The preprocessing script (in `collate.py`) also uses
+  [NumPy](http://www.numpy.org/) to calculate percentiles during edge thickness
+  scaling.
 * The preprocessing script (in `spqr.cpp`) uses
   [OGDF](http://www.ogdf.net/doku.php) to construct SPQR trees.
 * Both the preprocessing script and the viewer interface use
