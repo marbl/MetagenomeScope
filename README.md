@@ -4,8 +4,8 @@
 
 An interactive visualization tool designed for metagenomic sequence assembly
 and scaffold graphs. The tool aims to prevent a semi-linearized,
-hierarchical overview of the input graphs while emphasizing the
-presence of certain structural patterns in these graphs.
+hierarchical overview of the input graph while emphasizing the
+presence of certain structural patterns in the graph.
 
 To this end, MetagenomeScope highlights certain patterns of contigs in the
 graph (bubbles, frayed ropes, chains, and "linear" cycles), splits graphs up by
