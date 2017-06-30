@@ -3,14 +3,16 @@
 ![Screenshot of MetagenomeScope's standard mode, zoomed in on a region of a biofilm scaffold graph](https://user-images.githubusercontent.com/4177727/27416728-4c6297d8-56dd-11e7-9d89-472686c7a29e.png "Screenshot of MetagenomeScope's standard mode, zoomed in on a region of a biofilm scaffold graph.")
 
 An interactive visualization tool designed for metagenomic sequence assembly
-and scaffold graphs. The tool aims to prevent a semi-linearized,
+and scaffold graphs. The tool aims to display a semi-linearized,
 hierarchical overview of the input graph while emphasizing the
 presence of certain structural patterns in the graph.
 
 To this end, MetagenomeScope highlights certain patterns of contigs in the
-graph (bubbles, frayed ropes, chains, and "linear" cycles), splits graphs up by
-their connected components, and uses [Graphviz](http://www.graphviz.org/)'
-`dot` tool to hierarchically lay out each connected component of a graph.
+graph (bubbles, frayed ropes, chains, and "linear" cycles),
+splits the graph into its connected components (only displaying one connected
+component at a time),
+and uses [Graphviz](http://www.graphviz.org/)' `dot` tool to hierarchically
+lay out each connected component of a graph.
 MetagenomeScope also supports the use of
 [SPQR tree](https://en.wikipedia.org/wiki/SPQR_tree) decompositions
 (computed using [OGDF](http://www.ogdf.net/doku.php)) to present an
