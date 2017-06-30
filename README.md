@@ -16,7 +16,8 @@ lay out each connected component of a graph.
 MetagenomeScope also supports the use of
 [SPQR tree](https://en.wikipedia.org/wiki/SPQR_tree) decompositions
 (computed using [OGDF](http://www.ogdf.net/doku.php)) to present an
-iteratively expandable hierarchical overview of a graph.
+iteratively expandable hierarchical overview of the biconnected components of
+the graph.
 
 MetagenomeScope is composed of two main components:
 
