@@ -501,7 +501,7 @@ function initGraph(viewType) {
                 }
             },
             {
-                selector: 'edge.outlier',
+                selector: 'edge.high_outlier',
                 style: {
                     'line-color': '#ff0000',
                     'source-arrow-color': '#ff0000',
@@ -511,13 +511,33 @@ function initGraph(viewType) {
                 }
             },
             {
-                selector: 'edge.outlier:selected',
+                selector: 'edge.high_outlier:selected',
                 style: {
                     'line-color': '#800000',
                     'source-arrow-color': '#800000',
                     'target-arrow-color': '#800000',
                     'mid-source-arrow-color': '#800000',
                     'mid-target-arrow-color': '#800000'
+                }
+            },
+            {
+                selector: 'edge.low_outlier',
+                style: {
+                    'line-color': '#0000ff',
+                    'source-arrow-color': '#0000ff',
+                    'target-arrow-color': '#0000ff',
+                    'mid-source-arrow-color': '#0000ff',
+                    'mid-target-arrow-color': '#0000ff'
+                }
+            },
+            {
+                selector: 'edge.low_outlier:selected',
+                style: {
+                    'line-color': '#000080',
+                    'source-arrow-color': '#000080',
+                    'target-arrow-color': '#000080',
+                    'mid-source-arrow-color': '#000080',
+                    'mid-target-arrow-color': '#000080'
                 }
             },
             {
@@ -3516,7 +3536,11 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
     // NOTE -- commented out for now in lieu of global edge thickness scaling
     // Scale edge thickness using the "thickness" .db file attribute
     var edgeWidth = MIN_EDGE_THICKNESS + (thickness * EDGE_THICKNESS_RANGE);
-    var isOutlierClass = is_outlier === 0 ? "" : " outlier";
+    var isOutlierClass = "";
+    if (is_outlier === 1)
+        isOutlierClass = " high_outlier";
+    else if (is_outlier === -1)
+        isOutlierClass = " low_outlier";
     // Scale edge thickness relative to all other edges in the current
     // connected component
     if (sourceID === targetID) {
