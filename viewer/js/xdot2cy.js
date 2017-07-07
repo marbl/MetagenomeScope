@@ -2601,13 +2601,45 @@ function changeNodeColorization(newColorization) {
 
 /* Returns a #RRGGBB string indicating the color of a node, scaled by a
  * percentage (some value in the range [0, 1]).
- *
- * At present this just scales nodes between red (#FF2200) and blue (#0022FF),
- * although implementing other color scales (or user-selectable scales, for
- * that matter) should not be too difficult to integrate with this.
  */
 function getNodeColorization(gc) {
-    var red_i = gc * 255;
+    var percentageUsedInColorization = gc;
+    //// Discrete colorization, where ranges of size percentageBin are colorized
+    //// equally. So if p = 100 / percentageBin, then percentage ranges of
+    //// [0, p), [p, 2p), [2p, 3p), ... will all be colorized equally.
+    //// TODO make percentageBin a user-configurable thing, if we incorporate
+    //// this feature into the tool
+    //// Also I think percentageBin might only make sense as an integer, due to
+    //// our use of modulus? Not sure, though.
+    //var percentageBin = 30;
+    //var t;
+    //// NOTE that there's the potential for some weirdness here due to our use
+    //// of Math.floor() in computing "bins." If 100 is divisible by
+    //// percentageBin then there will actually be an extra "bin" created for
+    //// the case where gc = 1 -- this is expected. If we used Math.ceil()
+    //// instead, we'd similarly have an extra bin created for the case where
+    //// gc = 0. To rectify this we just merge the extra bin with the bin below
+    //// it.
+    //// That being said, this has the effect of making the "max" color (#FF2200)
+    //// not actually used in these cases. It'd be worth taking some time
+    //// to fix that (i.e. making it so that the "penultimate" bin is treated as
+    //// if it corresponds to 100%, and the intermediate colors are adjusted
+    //// accordingly) -- not exactly sure how to go about doing that.
+    //if (gc === 1 && (100 % percentageBin === 0)) {
+    //    t = (100 / percentageBin) - 1;
+    //}
+    //else {
+    //    // t is the lower value of the "range" into which the specified
+    //    // GC-content is placed. For example, if percentageBin = 10% then the
+    //    // t-value of 3.1% would be 0 and the t-value of 25% would be 3. 
+    //    t = Math.floor((gc * 100) / percentageBin);
+
+    //}
+    //percentageUsedInColorization = ((t * percentageBin) / 100);
+    // Everything from here on down is normal continuous colorization.
+    // Uncomment the stuff above in this function to make this discrete
+    // colorization.
+    var red_i = percentageUsedInColorization * 255;
     var green = "22";
     var blue_i = 255 - red_i;
     var red = Math.floor(red_i).toString(16);
