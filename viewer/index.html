@@ -630,27 +630,51 @@
                         <h4 class="modal-title">Initialization Settings</h4>
                     </div> <!-- end modal-header div -->
                     <div class="modal-body">
-                        <div id="performanceOptionsControls">
-                            <p>Changes to these settings will take effect upon
-                            drawing a graph.</p>
-                            <h4>Performance Options</h4>
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" disabled="disabled"
-                                        id="hideEdgesCheckbox">
-                                    Hide edges during movement
-                                </label>
-                            </div>
-                            <div class="checkbox">
-                                <label>
-                                    <input type="checkbox" disabled="disabled"
-                                        id="useTexturesCheckbox">
-                                    Use a texture during movement
-                                </label>
-                            </div>
-                            <h4>Color Preferences</h4>
-                            (TODO)
-                        </div>
+                        <p>Changes to these settings will take effect upon
+                        drawing a graph.</p>
+                        <div>
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li role="presentation" class="active">
+                                    <a href="#performancetab"
+                                    aria-controls="performance"
+                                    role="tab" data-toggle="tab">
+                                    Performance</a>
+                                </li>
+                                <li role="presentation">
+                                    <a href="#colortab"
+                                    aria-controls="colors"
+                                    role="tab" data-toggle="tab">
+                                    Colors</a>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div role="tabpanel" class="tab-pane
+                                    active" id="performancetab">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox"
+                                                disabled="disabled"
+                                                id="hideEdgesCheckbox">
+                                            Hide edges during movement
+                                        </label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox"
+                                                disabled="disabled"
+                                                id="useTexturesCheckbox">
+                                            Use a texture during movement
+                                        </label>
+                                    </div>
+                                </div> <!-- end performancetab -->
+                                <div role="tabpanel" class="tab-pane"
+                                    id="colortab">
+                                    <p style="margin-top:10px">
+                                    TODO: put stuff here
+                                    </p>
+                                </div>
+                            </div> <!-- end tab-content -->
+                        </div> <!-- end tab div -->
                     </div>
                     <div class="modal-footer">
                         <!-- TODO: add "reset defaults" button? -->
