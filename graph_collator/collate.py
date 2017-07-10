@@ -1371,7 +1371,10 @@ for mode in ("implicit", "explicit"):
         gv_input += "graph single_ccomp {\n"
         if config.GRAPH_STYLE != "":
             gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
-        gv_input += "\tsmoothing=\"triangle\";\n"
+        # NOTE commented out because it doesn't seem to work for me in Graphviz
+        # version 2.38.0 -- see issue #235 on GitHub as rationale for using
+        # that version of Graphviz.
+        #gv_input += "\tsmoothing=\"triangle\";\n"
         if config.GLOBALNODE_STYLE != "":
             gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
         # In the layout of this single connected component, include:
