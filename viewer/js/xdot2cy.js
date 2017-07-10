@@ -1149,6 +1149,7 @@ function parseDBcomponents() {
     enableButton("dir90");
     enableButton("dir180");
     enableButton("dir270");
+    enableButton("settingsButton");
     $("#hideEdgesCheckbox").prop("disabled", false);
     $("#useTexturesCheckbox").prop("disabled", false);
     // Adjust selected info tables based on what info is available
@@ -1223,6 +1224,7 @@ function disableButton(buttonID) {
 /* Disables some "volatile" controls in the graph. Should be used when doing
  * any sort of operation, I guess. */
 function disableVolatileControls() {
+    disableButton("settingsButton");
     $("#hideEdgesCheckbox").prop("disabled", true);
     $("#useTexturesCheckbox").prop("disabled", true);
     $("#componentselector").prop("disabled", true);
@@ -1898,6 +1900,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
             enableButton("noNodeColorizationOption");
             enableButton("gcNodeColorizationOption");
         }
+        enableButton("settingsButton");
         $("#hideEdgesCheckbox").prop("disabled", false);
         $("#useTexturesCheckbox").prop("disabled", false);
         cy.userPanningEnabled(true);
@@ -2020,6 +2023,11 @@ function startIndeterminateProgressBar() {
     $(".progress-bar").removeClass("notransitions");
     $(".progress-bar").addClass("active");
     $(".progress-bar").addClass("progress-bar-striped");
+}
+
+/* Pops up the dialog for color preference selection. */
+function displaySettings() {
+    $("#settingsDialog").modal();
 }
 
 /* Pops up a dialog displaying assembly information. */

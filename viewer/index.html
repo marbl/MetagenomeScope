@@ -108,6 +108,12 @@
                 <span class="glyphicon glyphicon-info-sign"
                     aria-hidden="true"></span> &nbsp; Assembly info
             </button>
+            <button class='btn btn-default btn-sm disabled'
+                disabled="disabled" id='settingsButton'
+                onclick='displaySettings();'>
+                <span class="glyphicon glyphicon-cog"></span> &nbsp;
+                <span>Init. Settings</span>
+            </button>
             </p>
             <div class="progress">
                 <div class="progress-bar notransitions" role="progressbar"
@@ -350,14 +356,6 @@
                 </button>
                 </p>
 
-                <p>
-                <button class='btn btn-default btn-sm disabled'
-                    disabled="disabled" id='colorConfigButton'
-                    onclick='openColorConfig();'>
-                    <span class="glyphicon glyphicon-tint"></span> &nbsp;
-                    <span>Color preferences</span>
-                </button>
-                </p>
                 <!-- NOTE this feature doesn't work very well with
                     collapsing yet; hiding it for the time being
                 <div class='input-group input-group-sm'>
@@ -479,28 +477,6 @@
                     Export
                 </button>
                 </p>
-                <hr />
-            </div>
-            <div id="performanceOptionsControls">
-                <h4>Performance Options</h4>
-                <p id="performanceOptionsInfo">
-                    Changes to these settings will take effect upon drawing a
-                    graph.
-                </p>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" id="hideEdgesCheckbox"
-                            disabled="disabled">
-                        Hide edges during movement
-                    </label>
-                </div>
-                <div class="checkbox">
-                    <label>
-                        <input type="checkbox" id="useTexturesCheckbox"
-                            disabled="disabled">
-                        Use a texture during movement
-                    </label>
-                </div>
             </div>
             <div id="testLayoutsControls">
                 <!-- We include the <hr /> here because the testLayoutsControls
@@ -636,6 +612,50 @@
                         <button type="button" class="btn btn-primary"
                             id="loadDBbutton" onclick="loadajaxDB();">
                             Load selected file
+                        </button>
+                    </div>
+                </div> <!-- end modal-content div -->
+            </div> <!-- end modal-dialog div -->
+        </div> <!-- end modal div -->
+        <!-- Settings dialog -->
+        <div class="modal fade" tabindex="-1" role="dialog"
+                                              id="settingsDialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close"
+                            data-dismiss="modal" aria-label="Close dialog">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title">Initialization Settings</h4>
+                    </div> <!-- end modal-header div -->
+                    <div class="modal-body">
+                        <div id="performanceOptionsControls">
+                            <p>Changes to these settings will take effect upon
+                            drawing a graph.</p>
+                            <h4>Performance Options</h4>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" disabled="disabled"
+                                        id="hideEdgesCheckbox">
+                                    Hide edges during movement
+                                </label>
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    <input type="checkbox" disabled="disabled"
+                                        id="useTexturesCheckbox">
+                                    Use a texture during movement
+                                </label>
+                            </div>
+                            <h4>Color Preferences</h4>
+                            (TODO)
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <!-- TODO: add "reset defaults" button? -->
+                        <button type="button" class="btn btn-default"
+                            data-dismiss="modal">Close
                         </button>
                     </div>
                 </div> <!-- end modal-content div -->
