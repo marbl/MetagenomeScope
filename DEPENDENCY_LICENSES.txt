@@ -39,9 +39,10 @@ Furthermore, the visualization interface is distributed with:
 
 -bootstrap-colorpicker
     -https://farbelous.github.io/bootstrap-colorpicker
-    -Copyright 2012 Stefan Petre
+    -Copyright is contained in
+     dependency_licenses/bootstrap-colorpicker/license
     -Licensed under the Apache License, version 2.0
-     (included in dependency_licenses/bootstrap-colorpicker.license)
+     (included in dependency_licenses/bootstrap-colorpicker/apache-license-2.0)
 
 -sql.js
     -https://github.com/kripken/sql.js
