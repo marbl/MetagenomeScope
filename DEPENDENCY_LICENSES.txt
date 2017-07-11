@@ -33,6 +33,11 @@ Furthermore, the visualization interface is distributed with:
     -Licensed under the MIT license
      (included in dependency_licenses/bootstrap.license)
 
+-bootstrap-colorpicker
+    -https://farbelous.github.io/bootstrap-colorpicker
+    -Licensed under the Apache License, version 2.0
+     (included in dependency_licenses/bootstrap-colorpicker.license)
+
 -sql.js
     -https://github.com/kripken/sql.js
     -Licensed under the MIT license

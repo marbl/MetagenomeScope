@@ -31,12 +31,14 @@
         </script>
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link rel="stylesheet" href="css/viewer_style.css">
+        <link rel="stylesheet" href="css/bootstrap-colorpicker.min.css">
         <script src='js/cytoscape.min.js'></script>
         <!-- NOTE if including Cytoscape.js layout plugins for testing, those
             can go here -->
         <script src='js/sql.js'></script>
         <script src='js/xdot2cy.js'></script>
         <script src='js/bootstrap.min.js'></script>
+        <script src='js/bootstrap-colorpicker.min.js'></script>
         <!-- Initialize some event bindings for the application -->
         <script>
             $(function() {
@@ -46,6 +48,15 @@
                 $("#useTexturesCheckbox").on("change", toggleUTV);
                 // If we add any tooltips, use this line to initialize them
                 //$("[data-toggle='tooltip']").tooltip();
+            });
+        </script>
+        <!-- Initialize colorpickers -->
+        <script>
+            $(function() {
+                $("#usncp").colorpicker();
+                $("#sncp").colorpicker();
+                $("#usecp").colorpicker();
+                $("#secp").colorpicker();
             });
         </script>
     </head>
@@ -669,10 +680,58 @@
                                 </div> <!-- end performancetab -->
                                 <div role="tabpanel" class="tab-pane"
                                     id="colortab">
-                                    <p style="margin-top:10px">
-                                    TODO: put stuff here
-                                    </p>
-                                </div>
+                                    <!-- the margin-top:10px matches the
+                                        default checkbox formatting in
+                                        bootstrap, making switching between
+                                        tabs look smooth.
+                                    -->
+                                    <div class="row">
+                                    <!-- Left column of colorpickers -->
+                                    <div class="col-lg-6">
+                                        <label class="cplabel" for="usncp">
+                                            Nodes</label>
+                                        <div id="usncp" class="input-group
+                                        colorpicker-component">
+                                            <input type="text" value="#777777"
+                                                class="form-control" />
+                                            <!-- following <span> is needed to
+                                                display the color "preview" -->
+                                            <span class="input-group-addon">
+                                                <i></i></span>
+                                        </div>
+                                        <label class="cplabel" for="sncp">
+                                            Selected Nodes</label>
+                                        <div id="sncp" class="input-group
+                                            colorpicker-component">
+                                            <input type="text" value="#444444"
+                                                class="form-control" />
+                                            <span class="input-group-addon">
+                                                <i></i></span>
+                                        </div>
+                                    </div>
+                                    <!-- Right column of colorpickers -->
+                                    <div class="col-lg-6">
+                                        <label class="cplabel" for="usecp">
+                                            Edges</label>
+                                        <div id="usecp" class="input-group
+                                            colorpicker-component">
+                                            <input type="text" value="#111111"
+                                                class="form-control" />
+                                            <span class="input-group-addon">
+                                                <i></i></span>
+                                        </div>
+                                        <label class="cplabel" for="secp">
+                                            Selected Edges</label>
+                                        <div id="secp" class="input-group
+                                            colorpicker-component">
+                                            <input type="text" value="#000000"
+                                                class="form-control" />
+                                            <span class="input-group-addon">
+                                                <i></i></span>
+                                        </div>
+                                    </div>
+                                    </div> <!-- end row div -->
+                                </div> <!-- end colortab -->
                             </div> <!-- end tab-content -->
                         </div> <!-- end tab div -->
                     </div>
