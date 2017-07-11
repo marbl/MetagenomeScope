@@ -233,18 +233,18 @@ function initGraph(viewType) {
             {
                 selector: 'node.F',
                 style: {
-                    // matches 'green2' in graphviz
+                    // default color matches 'green2' in graphviz
                     // (but honestly I just picked what I considered to be
                     // the least visually offensive shade of green)
-                    'background-color':'#00EE00',
+                    'background-color': $("#fropecp").colorpicker("getValue"),
                     shape: 'polygon'
                 }
             },
             {
                 selector: 'node.B',
                 style: {
-                    // matches 'cornflowerblue' in graphviz
-                    'background-color':'#6495ED',
+                    // default color matches 'cornflowerblue' in graphviz
+                    'background-color': $("#bubblecp").colorpicker("getValue"),
                     shape: 'polygon'
                 }
             },
@@ -275,15 +275,15 @@ function initGraph(viewType) {
             {
                 selector: 'node.C',
                 style: {
-                    // matches 'salmon' in graphviz
-                    'background-color':'#FA8072'
+                    // default color matches 'salmon' in graphviz
+                    'background-color': $("#chaincp").colorpicker("getValue")
                 }
             },
             {
                 selector: 'node.Y',
                 style: {
-                    // matches 'darkgoldenrod1' in graphviz
-                    'background-color':'#FFB90F',
+                    // default color matches 'darkgoldenrod1' in graphviz
+                    'background-color': $("#ychaincp").colorpicker("getValue"),
                     'shape': 'ellipse'
                 }
             },
@@ -355,7 +355,7 @@ function initGraph(viewType) {
             {
                 selector: 'node.noncluster.noncolorized',
                 style: {
-                    'background-color': '#999999'
+                    'background-color': $("#usncp").colorpicker("getValue")
                 }
             },
             {
@@ -437,8 +437,8 @@ function initGraph(viewType) {
                 selector: 'edge',
                 style: {
                     'width': 'data(thickness)',
-                    'line-color': '#777',
-                    'target-arrow-color': '#777',
+                    'line-color': $("#usecp").colorpicker("getValue"),
+                    'target-arrow-color': $("#usecp").colorpicker("getValue"),
                     'loop-direction': '30deg',
                     'z-index': 3,
                     'z-index-compare': 'manual'
@@ -447,11 +447,8 @@ function initGraph(viewType) {
             {
                 selector: 'edge:selected',
                 style: {
-                    'line-color': '#222',
-                    'source-arrow-color': '#222',
-                    'target-arrow-color': '#222',
-                    'mid-source-arrow-color': '#222',
-                    'mid-target-arrow-color': '#222'
+                    'line-color': $("#secp").colorpicker("getValue"),
+                    'target-arrow-color': $("#secp").colorpicker("getValue")
                 }
             },
             {
@@ -504,40 +501,28 @@ function initGraph(viewType) {
                 selector: 'edge.high_outlier',
                 style: {
                     'line-color': '#ff0000',
-                    'source-arrow-color': '#ff0000',
                     'target-arrow-color': '#ff0000',
-                    'mid-source-arrow-color': '#ff0000',
-                    'mid-target-arrow-color': '#ff0000'
                 }
             },
             {
                 selector: 'edge.high_outlier:selected',
                 style: {
                     'line-color': '#800000',
-                    'source-arrow-color': '#800000',
                     'target-arrow-color': '#800000',
-                    'mid-source-arrow-color': '#800000',
-                    'mid-target-arrow-color': '#800000'
                 }
             },
             {
                 selector: 'edge.low_outlier',
                 style: {
                     'line-color': '#0000ff',
-                    'source-arrow-color': '#0000ff',
                     'target-arrow-color': '#0000ff',
-                    'mid-source-arrow-color': '#0000ff',
-                    'mid-target-arrow-color': '#0000ff'
                 }
             },
             {
                 selector: 'edge.low_outlier:selected',
                 style: {
                     'line-color': '#000080',
-                    'source-arrow-color': '#000080',
                     'target-arrow-color': '#000080',
-                    'mid-source-arrow-color': '#000080',
-                    'mid-target-arrow-color': '#000080'
                 }
             },
             {

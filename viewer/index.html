@@ -54,7 +54,10 @@
         <script>
             $(function() {
                 $("#usncp").colorpicker();
-                $("#sncp").colorpicker();
+                $("#bubblecp").colorpicker();
+                $("#fropecp").colorpicker();
+                $("#chaincp").colorpicker();
+                $("#ychaincp").colorpicker();
                 $("#usecp").colorpicker();
                 $("#secp").colorpicker();
             });
@@ -689,21 +692,48 @@
                                     <!-- Left column of colorpickers -->
                                     <div class="col-lg-6">
                                         <label class="cplabel" for="usncp">
-                                            Nodes</label>
+                                            Nodes (default)</label>
                                         <div id="usncp" class="input-group
                                         colorpicker-component">
-                                            <input type="text" value="#777777"
+                                            <input type="text" value="#999999"
                                                 class="form-control" />
                                             <!-- following <span> is needed to
                                                 display the color "preview" -->
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="sncp">
-                                            Selected Nodes</label>
-                                        <div id="sncp" class="input-group
+                                        <label class="cplabel" for="bubblecp">
+                                            Bubbles</label>
+                                        <div id="bubblecp" class="input-group
                                             colorpicker-component">
-                                            <input type="text" value="#444444"
+                                            <input type="text" value="#6495ED"
+                                                class="form-control" />
+                                            <span class="input-group-addon">
+                                                <i></i></span>
+                                        </div>
+                                        <label class="cplabel" for="fropecp">
+                                            Frayed Ropes</label>
+                                        <div id="fropecp" class="input-group
+                                            colorpicker-component">
+                                            <input type="text" value="#00EE00"
+                                                class="form-control" />
+                                            <span class="input-group-addon">
+                                                <i></i></span>
+                                        </div>
+                                        <label class="cplabel" for="chaincp">
+                                            Chains</label>
+                                        <div id="chaincp" class="input-group
+                                            colorpicker-component">
+                                            <input type="text" value="#FA8072"
+                                                class="form-control" />
+                                            <span class="input-group-addon">
+                                                <i></i></span>
+                                        </div>
+                                        <label class="cplabel" for="chaincp">
+                                            Cyclic Chains</label>
+                                        <div id="ychaincp" class="input-group
+                                            colorpicker-component">
+                                            <input type="text" value="#FFB90F"
                                                 class="form-control" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
@@ -712,19 +742,19 @@
                                     <!-- Right column of colorpickers -->
                                     <div class="col-lg-6">
                                         <label class="cplabel" for="usecp">
-                                            Edges</label>
+                                            Edges (default)</label>
                                         <div id="usecp" class="input-group
                                             colorpicker-component">
-                                            <input type="text" value="#111111"
+                                            <input type="text" value="#777777"
                                                 class="form-control" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
                                         <label class="cplabel" for="secp">
-                                            Selected Edges</label>
+                                            Edges (selected)</label>
                                         <div id="secp" class="input-group
                                             colorpicker-component">
-                                            <input type="text" value="#000000"
+                                            <input type="text" value="#222222"
                                                 class="form-control" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
