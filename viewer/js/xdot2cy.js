@@ -303,19 +303,19 @@ function initGraph(viewType) {
             {
                 selector: 'node.S',
                 style: {
-                    'background-color':'#FFD644'
+                    'background-color': $("#spqrscp").colorpicker("getValue")
                 }
             },
             {
                 selector: 'node.P',
                 style: {
-                    'background-color':'#EB8EF9'
+                    'background-color': $("#spqrpcp").colorpicker("getValue")
                 }
             },
             {
                 selector: 'node.R',
                 style: {
-                    'background-color':'#31BF6F'
+                    'background-color': $("#spqrrcp").colorpicker("getValue")
                 }
             },
             {
