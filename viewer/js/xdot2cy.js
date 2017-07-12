@@ -501,29 +501,29 @@ function initGraph(viewType) {
             {
                 selector: 'edge.high_outlier',
                 style: {
-                    'line-color': '#ff0000',
-                    'target-arrow-color': '#ff0000',
+                    'line-color': $("#hoecp").colorpicker("getValue"),
+                    'target-arrow-color': $("#hoecp").colorpicker("getValue")
                 }
             },
             {
                 selector: 'edge.high_outlier:selected',
                 style: {
-                    'line-color': '#800000',
-                    'target-arrow-color': '#800000',
+                    'line-color': $("#hosecp").colorpicker("getValue"),
+                    'target-arrow-color': $("#hosecp").colorpicker("getValue")
                 }
             },
             {
                 selector: 'edge.low_outlier',
                 style: {
-                    'line-color': '#0000ff',
-                    'target-arrow-color': '#0000ff',
+                    'line-color': $("#loecp").colorpicker("getValue"),
+                    'target-arrow-color': $("#loecp").colorpicker("getValue")
                 }
             },
             {
                 selector: 'edge.low_outlier:selected',
                 style: {
-                    'line-color': '#000080',
-                    'target-arrow-color': '#000080',
+                    'line-color': $("#losecp").colorpicker("getValue"),
+                    'target-arrow-color': $("#losecp").colorpicker("getValue")
                 }
             },
             {
