@@ -364,7 +364,7 @@ function initGraph(viewType) {
                 selector: 'node.noncluster.gccolorized',
                 style: {
                     'background-color': 'data(gc_color)',
-                    'color': '#FFFFFF'
+                    'color': $("#cnlcp").colorpicker("getValue")
                 }
             },
             {
@@ -424,8 +424,19 @@ function initGraph(viewType) {
                     //'border-color': '#000',
                     //'border-opacity': 1,
                     //'border-width': 5
-                    'background-blacken': 0.5,
+                    'background-blacken': 0.5
+                }
+            },
+            {
+                selector: 'node.noncluster.noncolorized:selected',
+                style: {
                     'color': $("#snlcp").colorpicker("getValue")
+                }
+            },
+            {
+                selector: 'node.noncluster.gccolorized:selected',
+                style: {
+                    'color': $("#csnlcp").colorpicker("getValue")
                 }
             },
             {
