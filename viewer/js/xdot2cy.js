@@ -169,6 +169,7 @@ if (!(window.File && window.FileReader)) {
 // defn. of CURR_VIEWTYPE for details).
 function initGraph(viewType) {
     CURR_VIEWTYPE = viewType;
+    $("#cy").css("background", $("#bgcp").colorpicker("getValue"));
     cy = cytoscape({
         container: document.getElementById("cy"),
         layout: {
