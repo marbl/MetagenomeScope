@@ -297,7 +297,7 @@ function initGraph(viewType) {
             {
                 selector: 'node.I',
                 style: {
-                    'background-color': '#ddd'
+                    'background-color': $("#bicmpcp").colorpicker("getValue")
                 }
             },
             {
