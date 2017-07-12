@@ -356,7 +356,8 @@ function initGraph(viewType) {
             {
                 selector: 'node.noncluster.noncolorized',
                 style: {
-                    'background-color': $("#usncp").colorpicker("getValue")
+                    'background-color': $("#usncp").colorpicker("getValue"),
+                    'color': $("#usnlcp").colorpicker("getValue")
                 }
             },
             {
@@ -424,7 +425,7 @@ function initGraph(viewType) {
                     //'border-opacity': 1,
                     //'border-width': 5
                     'background-blacken': 0.5,
-                    'color': '#FFFFFF'
+                    'color': $("#snlcp").colorpicker("getValue")
                 }
             },
             {
