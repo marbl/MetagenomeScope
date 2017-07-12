@@ -2645,18 +2645,29 @@ function getNodeColorization(gc) {
     // Everything from here on down is normal continuous colorization.
     // Uncomment the stuff above in this function to make this discrete
     // colorization.
-    var red_i = percentageUsedInColorization * 255;
-    var green = "22";
-    var blue_i = 255 - red_i;
+    // NOTE if this is slow, we can precompute these values and save as globals
+    // yeah do that (TODO)
+    var maxRGB = $("#maxcncp").data("colorpicker").color.toRGB();
+    var minRGB = $("#mincncp").data("colorpicker").color.toRGB();
+    // Linearly scale each RGB value between the extreme colors'
+    // corresponding RGB values
+    var red_i = (gc * (maxRGB['r'] - minRGB['r'])) + minRGB['r'];
+    var green_i = (gc * (maxRGB['g'] - minRGB['g'])) + minRGB['g'];
+    var blue_i = (gc * (maxRGB['b'] - minRGB['b'])) + minRGB['b'];
+    // Convert resulting RGB decimal values (should be in the range [0, 255])
+    // to hexadecimal and use them to construct a color string
     var red = Math.floor(red_i).toString(16);
+    var green = Math.floor(green_i).toString(16);
     var blue = Math.floor(blue_i).toString(16);
-    if (red.length === 1) {
-        red = "0" + red;
+    // Ensure that the color string is 6 characters long (for single-digit
+    // channel values, we need to pad on the left with a zero)
+    var channels = [red, green, blue];
+    for (var ch = 0; ch < 3; ch++) {
+        if (channels[ch].length === 1) {
+            channels[ch] = "0" + channels[ch];
+        }
     }
-    if (blue.length === 1) {
-        blue = "0" + blue;
-    }
-    return "#" + red + green + blue;
+    return "#" + channels[0] + channels[1] + channels[2];
 }
 
 // Like searchWithEnter() but for testLayout()
