@@ -84,6 +84,13 @@ var CURR_ROTATION;
 // The current colorization "value" -- used to prevent redundant applications
 // of changing colorization.
 var CURR_NODE_COLORIZATION = null;
+// Objects containing the RGB data for the maximum/minimum color in
+// colorization schemes, respectively. We precompute these values and store
+// them in these variables in initGraph(). This avoids making 2|V| calls to
+// .toRGB() (i.e. getting these values in getNodeColorization()) when just 2
+// calls would suffice.
+var MAX_RGB;
+var MIN_RGB;
 // Booleans for whether or not to use certain performance options
 var HIDE_EDGES_ON_VIEWPORT = false;
 var TEXTURE_ON_VIEWPORT = false;
@@ -169,6 +176,9 @@ if (!(window.File && window.FileReader)) {
 // defn. of CURR_VIEWTYPE for details).
 function initGraph(viewType) {
     CURR_VIEWTYPE = viewType;
+    // used in node colorization -- stored here to avoid recomputing
+    MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
+    MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
     $("#cy").css("background", $("#bgcp").colorpicker("getValue"));
     cy = cytoscape({
         container: document.getElementById("cy"),
@@ -2639,21 +2649,15 @@ function getNodeColorization(gc) {
     //    // GC-content is placed. For example, if percentageBin = 10% then the
     //    // t-value of 3.1% would be 0 and the t-value of 25% would be 3. 
     //    t = Math.floor((gc * 100) / percentageBin);
-
     //}
     //percentageUsedInColorization = ((t * percentageBin) / 100);
+    //
     // Everything from here on down is normal continuous colorization.
-    // Uncomment the stuff above in this function to make this discrete
-    // colorization.
-    // NOTE if this is slow, we can precompute these values and save as globals
-    // yeah do that (TODO)
-    var maxRGB = $("#maxcncp").data("colorpicker").color.toRGB();
-    var minRGB = $("#mincncp").data("colorpicker").color.toRGB();
     // Linearly scale each RGB value between the extreme colors'
     // corresponding RGB values
-    var red_i = (gc * (maxRGB['r'] - minRGB['r'])) + minRGB['r'];
-    var green_i = (gc * (maxRGB['g'] - minRGB['g'])) + minRGB['g'];
-    var blue_i = (gc * (maxRGB['b'] - minRGB['b'])) + minRGB['b'];
+    var red_i = (gc * (MAX_RGB['r'] - MIN_RGB['r'])) + MIN_RGB['r'];
+    var green_i = (gc * (MAX_RGB['g'] - MIN_RGB['g'])) + MIN_RGB['g'];
+    var blue_i = (gc * (MAX_RGB['b'] - MIN_RGB['b'])) + MIN_RGB['b'];
     // Convert resulting RGB decimal values (should be in the range [0, 255])
     // to hexadecimal and use them to construct a color string
     var red = Math.floor(red_i).toString(16);
