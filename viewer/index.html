@@ -54,6 +54,12 @@
         <script>
             $(function() {
                 $(".colorpicker-component").colorpicker({format: 'hex'});
+                $("#mincncp").on("changeColor", function(e) {
+                    redrawGradientPreview(e.color.toHex(), -1);
+                });
+                $("#maxcncp").on("changeColor", function(e) {
+                    redrawGradientPreview(e.color.toHex(), 1);
+                });
             });
         </script>
     </head>
@@ -682,6 +688,24 @@
                                         bootstrap, making switching between
                                         tabs look smooth.
                                     -->
+                                    <!-- Gradient preview -->
+                                    <div class="gradient_preview">
+                                        <span id="0gp" style="background-color:
+                                        rgb(0, 34, 255);">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                        <span id="25gp" style="background-color:
+                                        rgb(64, 34, 191);">
+                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                        <span id="50gp" style="background-color:
+                                        rgb(128, 34, 128);">
+                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                        <span id="75gp" style="background-color:
+                                        rgb(191, 34, 64);">
+                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                        <span id="100gp" style="background-color:
+                                        rgb(255, 34, 0);">
+                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                    </div>
                                     <!-- Colorpickers for node colorization -->
                                     <div class="row">
                                     <!-- Left column -->
@@ -708,24 +732,6 @@
                                                 <i></i></span>
                                         </div>
                                     </div>
-                                    </div>
-                                    <!-- Gradient preview -->
-                                    <div class="gradient_preview">
-                                        <span style="background-color:
-                                        rgb(0, 34, 255);">
-                                            &nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                        <span style="background-color:
-                                        rgb(64, 34, 191);">
-                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                        <span style="background-color:
-                                        rgb(128, 34, 128);">
-                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                        <span style="background-color:
-                                        rgb(191, 34, 64);">
-                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
-                                        <span style="background-color:
-                                        rgb(255, 34, 0);">
-                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
                                     </div>
                                     <!-- Colorpickers for labels of colorized
                                         nodes; placed here in order to be

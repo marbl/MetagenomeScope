@@ -89,8 +89,8 @@ var CURR_NODE_COLORIZATION = null;
 // them in these variables in initGraph(). This avoids making 2|V| calls to
 // .toRGB() (i.e. getting these values in getNodeColorization()) when just 2
 // calls would suffice.
-var MAX_RGB;
-var MIN_RGB;
+var MAX_RGB = undefined;
+var MIN_RGB = undefined;
 // Booleans for whether or not to use certain performance options
 var HIDE_EDGES_ON_VIEWPORT = false;
 var TEXTURE_ON_VIEWPORT = false;
@@ -176,9 +176,19 @@ if (!(window.File && window.FileReader)) {
 // defn. of CURR_VIEWTYPE for details).
 function initGraph(viewType) {
     CURR_VIEWTYPE = viewType;
-    // used in node colorization -- stored here to avoid recomputing
-    MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
-    MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
+    // MAX_RGB and MIN_RGB will only be computed if they haven't been set
+    // already (i.e. if the user hasn't changed the default colors and hasn't
+    // drawn any connected components yet).
+    // We take this approach (instead of just giving MAX_RGB and MIN_RGB their
+    // default values here) in order to reduce redundancy, to thus make
+    // changing the default values easier in the future (only have to change
+    // the HTML, instead of both HTML and JS).
+    if (MAX_RGB === undefined) {
+        MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
+    }
+    if (MIN_RGB === undefined) {
+        MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
+    }
     $("#cy").css("background", $("#bgcp").colorpicker("getValue"));
     cy = cytoscape({
         container: document.getElementById("cy"),
@@ -2672,6 +2682,31 @@ function getNodeColorization(gc) {
         }
     }
     return "#" + channels[0] + channels[1] + channels[2];
+}
+
+/* Redraws the gradient preview for node colorization.
+ * If minOrMax is -1, then we use hexColor as the new minimum color.
+ * Otherwise, we use hexColor as the new maximum color.
+ */
+function redrawGradientPreview(hexColor, minOrMax) {
+    if (minOrMax === -1) {
+        $("#0gp").css("background-color", hexColor);
+        MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
+        if (MAX_RGB === undefined) {
+            MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
+        }
+    }
+    else {
+        $("#100gp").css("background-color", hexColor);
+        MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
+        if (MIN_RGB === undefined) {
+            MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
+        }
+    }
+    // Change intermediate colors in the gradient
+    $("#25gp").css("background-color", getNodeColorization(0.25));
+    $("#50gp").css("background-color", getNodeColorization(0.50));
+    $("#75gp").css("background-color", getNodeColorization(0.75));
 }
 
 // Like searchWithEnter() but for testLayout()
