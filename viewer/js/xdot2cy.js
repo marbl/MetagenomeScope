@@ -227,8 +227,13 @@ function initGraph(viewType) {
             {
                 selector: 'node.cluster',
                 style: {
-                    'background-opacity': 0.65,
                     'shape': 'rectangle'
+                }
+            },
+            {
+                selector: 'node.cluster.spqrMetanode',
+                style: {
+                    'background-opacity': 0.65
                 }
             },
             {
