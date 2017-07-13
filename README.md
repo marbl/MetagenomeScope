@@ -66,6 +66,9 @@ beneficial when analyzing large graphs:
 * [NumPy](http://www.numpy.org/)
 * [PyGraphviz](https://pygraphviz.github.io/)
 * [Graphviz](http://graphviz.org/), with the `dot` and `sfdp` layout programs installed
+  * Using a version after `2.41.20170712.0019` is recommended (see
+    [this issue](https://github.com/fedarko/MetagenomeScope/issues/235)
+    for details).
 
 ### Viewer interface
 
