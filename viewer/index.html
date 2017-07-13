@@ -682,6 +682,83 @@
                                         bootstrap, making switching between
                                         tabs look smooth.
                                     -->
+                                    <!-- Colorpickers for node colorization -->
+                                    <div class="row">
+                                    <!-- Left column -->
+                                    <div class="col-lg-6">
+                                        <label class="cplabel" for="mincncp">
+                                            Nodes (colorized: 0%)</label>
+                                        <div id="mincncp" class="input-group
+                                            colorpicker-component">
+                                            <input type="text" value="#0022ff"
+                                                class="form-control" />
+                                            <span class="input-group-addon">
+                                                <i></i></span>
+                                        </div>
+                                    </div>
+                                    <!-- Right column -->
+                                    <div class="col-lg-6">
+                                        <label class="cplabel" for="maxcncp">
+                                            Nodes (colorized: 100%)</label>
+                                        <div id="maxcncp" class="input-group
+                                            colorpicker-component">
+                                            <input type="text" value="#ff2200"
+                                                class="form-control" />
+                                            <span class="input-group-addon">
+                                                <i></i></span>
+                                        </div>
+                                    </div>
+                                    </div>
+                                    <!-- Gradient preview -->
+                                    <div class="gradient_preview">
+                                        <span style="background-color:
+                                        rgb(0, 34, 255);">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                        <span style="background-color:
+                                        rgb(64, 34, 191);">
+                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                        <span style="background-color:
+                                        rgb(128, 34, 128);">
+                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                        <span style="background-color:
+                                        rgb(191, 34, 64);">
+                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                        <span style="background-color:
+                                        rgb(255, 34, 0);">
+                                          &nbsp;&nbsp;&nbsp;&nbsp;</span>
+                                    </div>
+                                    <!-- Colorpickers for labels of colorized
+                                        nodes; placed here in order to be
+                                        close to other node colorization
+                                        colorpickers --> 
+                                    <div class="row">
+                                    <div class="col-lg-6">
+                                        <label class="cplabel" for="cnlcp">
+                                            Node labels (colorized)</label>
+                                        <div id="cnlcp" class="input-group
+                                            colorpicker-component">
+                                            <input type="text" value="#ffffff"
+                                                class="form-control" />
+                                            <span class="input-group-addon">
+                                                <i></i></span>
+                                        </div>
+                                    </div>
+                                    <!-- Right column -->
+                                    <div class="col-lg-6">
+                                        <label class="cplabel" for="csnlcp">
+                                            Node labels (colorized, selected)
+                                        </label>
+                                        <div id="csnlcp" class="input-group
+                                            colorpicker-component">
+                                            <input type="text" value="#ffffff"
+                                                class="form-control" />
+                                            <span class="input-group-addon">
+                                                <i></i></span>
+                                        </div>
+                                    </div>
+                                    </div>
+                                    <!-- Colorpickers for non-node-
+                                        colorization stuff -->
                                     <div class="row">
                                     <!-- Left column of colorpickers -->
                                     <div class="col-lg-6">
@@ -693,24 +770,6 @@
                                                 class="form-control" />
                                             <!-- following <span> is needed to
                                                 display the color "preview" -->
-                                            <span class="input-group-addon">
-                                                <i></i></span>
-                                        </div>
-                                        <label class="cplabel" for="maxcncp">
-                                            Nodes (colorized: 100%)</label>
-                                        <div id="maxcncp" class="input-group
-                                            colorpicker-component">
-                                            <input type="text" value="#ff2200"
-                                                class="form-control" />
-                                            <span class="input-group-addon">
-                                                <i></i></span>
-                                        </div>
-                                        <label class="cplabel" for="mincncp">
-                                            Nodes (colorized: 0%)</label>
-                                        <div id="mincncp" class="input-group
-                                            colorpicker-component">
-                                            <input type="text" value="#0022ff"
-                                                class="form-control" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
@@ -799,27 +858,9 @@
                                                 <i></i></span>
                                         </div>
                                         <label class="cplabel" for="snlcp">
-                                            Node labels (selected)</label>
-                                        <div id="snlcp" class="input-group
-                                            colorpicker-component">
-                                            <input type="text" value="#ffffff"
-                                                class="form-control" />
-                                            <span class="input-group-addon">
-                                                <i></i></span>
-                                        </div>
-                                        <label class="cplabel" for="cnlcp">
-                                            Node labels (colorized)</label>
-                                        <div id="cnlcp" class="input-group
-                                            colorpicker-component">
-                                            <input type="text" value="#ffffff"
-                                                class="form-control" />
-                                            <span class="input-group-addon">
-                                                <i></i></span>
-                                        </div>
-                                        <label class="cplabel" for="csnlcp">
-                                            Node labels (colorized, selected)
+                                            Node labels (default, selected)
                                         </label>
-                                        <div id="csnlcp" class="input-group
+                                        <div id="snlcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#ffffff"
                                                 class="form-control" />
