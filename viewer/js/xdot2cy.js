@@ -228,7 +228,7 @@ function initGraph(viewType) {
                 selector: 'node.cluster',
                 style: {
                     'background-opacity': 0.65,
-                    'shape': 'square'
+                    'shape': 'rectangle'
                 }
             },
             {
