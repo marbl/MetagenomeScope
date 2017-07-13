@@ -2660,9 +2660,9 @@ function getNodeColorization(gc) {
     var blue_i = (gc * (MAX_RGB['b'] - MIN_RGB['b'])) + MIN_RGB['b'];
     // Convert resulting RGB decimal values (should be in the range [0, 255])
     // to hexadecimal and use them to construct a color string
-    var red = Math.floor(red_i).toString(16);
-    var green = Math.floor(green_i).toString(16);
-    var blue = Math.floor(blue_i).toString(16);
+    var red = Math.round(red_i).toString(16);
+    var green = Math.round(green_i).toString(16);
+    var blue = Math.round(blue_i).toString(16);
     // Ensure that the color string is 6 characters long (for single-digit
     // channel values, we need to pad on the left with a zero)
     var channels = [red, green, blue];
