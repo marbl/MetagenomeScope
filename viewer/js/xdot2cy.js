@@ -91,6 +91,8 @@ var CURR_NODE_COLORIZATION = null;
 // calls would suffice.
 var MAX_RGB = undefined;
 var MIN_RGB = undefined;
+// The background color of the graph. Set in initGraph().
+var BG_COLOR = undefined;
 // Booleans for whether or not to use certain performance options
 var HIDE_EDGES_ON_VIEWPORT = false;
 var TEXTURE_ON_VIEWPORT = false;
@@ -189,7 +191,8 @@ function initGraph(viewType) {
     if (MIN_RGB === undefined) {
         MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
     }
-    $("#cy").css("background", $("#bgcp").colorpicker("getValue"));
+    BG_COLOR = $("#bgcp").colorpicker("getValue");
+    $("#cy").css("background", BG_COLOR);
     cy = cytoscape({
         container: document.getElementById("cy"),
         layout: {
@@ -2165,7 +2168,7 @@ function fitGraph(toSelected) {
 function exportGraphView() {
     var imgType = $("#imgTypeButtonGroup .btn.active").attr("value");
     if (imgType === "PNG") {
-        window.open(cy.png({bg: "#fff"}), "_blank");
+        window.open(cy.png({bg: BG_COLOR}), "_blank");
     }
     else {
         window.open(cy.jpg(), "_blank");
