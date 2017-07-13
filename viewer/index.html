@@ -46,6 +46,9 @@
                 $("input[name=rotationRadio]").on("change", changeRotation);
                 $("#hideEdgesCheckbox").on("change", toggleHEV);
                 $("#useTexturesCheckbox").on("change", toggleUTV);
+                $("#settingsDialog").on("hide.bs.modal", function(e) {
+                    $(".colorpicker-component").colorpicker("hide");
+                });
                 // If we add any tooltips, use this line to initialize them
                 //$("[data-toggle='tooltip']").tooltip();
             });
