@@ -257,6 +257,7 @@ function initGraph(viewType) {
                     'label': 'data(interiorNodeCount)',
                     'text-valign': 'center',
                     'font-weight': 'bold',
+                    'color': $("#cngcccp").colorpicker("getValue")
                 }
             },
             {
@@ -471,7 +472,7 @@ function initGraph(viewType) {
                 selector: 'node.cluster:selected',
                 style: {
                     'border-width': 5,
-                    'border-color': '#000'
+                    'border-color': $("#sngbcp").colorpicker("getValue")
                 }
             },
             {
