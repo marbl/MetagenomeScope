@@ -230,7 +230,8 @@ function initGraph(viewType) {
             {
                 selector: 'node.cluster',
                 style: {
-                    'shape': 'rectangle'
+                    'shape': 'rectangle',
+                    'border-width': 0
                 }
             },
             {
