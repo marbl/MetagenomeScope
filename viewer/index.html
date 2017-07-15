@@ -366,8 +366,8 @@
 
                 <p>
                 <button class='btn btn-default btn-sm disabled'
-                    disabled="disabled" id='edgeWeightPrefsBtn'
-                    onclick='openEdgeWeightDialog();'>
+                    disabled="disabled" id='filterEdgesButton'
+                    onclick='openEdgeFilteringDialog();'>
                     <span class="glyphicon glyphicon-filter"></span> &nbsp;
                     <span>Filter edges by weight</span>
                 </button>
@@ -956,6 +956,29 @@
                             data-dismiss="modal">Close
                         </button>
                     </div>
+                </div> <!-- end modal-content div -->
+            </div> <!-- end modal-dialog div -->
+        </div> <!-- end modal div -->
+        <!-- Edge filtering dialog -->
+        <div class="modal fade" tabindex="-1" role="dialog"
+            id='edgeFilteringDialog'>
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close"
+                            data-dismiss="modal" aria-label="Close dialog">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title">Edge filtering</h4>
+                    </div> <!-- end modal-header div -->
+                    <div class="modal-body">
+                        (fancy stuff goes here)
+                    </div> <!-- end modal-body div -->
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default"
+                            data-dismiss="modal">Close
+                        </button>
+                    </div> <!-- end modal-footer div -->
                 </div> <!-- end modal-content div -->
             </div> <!-- end modal-dialog div -->
         </div> <!-- end modal div -->

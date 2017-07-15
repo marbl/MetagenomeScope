@@ -1271,6 +1271,7 @@ function disableVolatileControls() {
     $("#cullEdgesInput").prop("disabled", true);
     $("#cullEdgesInput").val("0"); // reset to avoid confusion
     disableButton("cullEdgesButton");
+    disableButton("filterEdgesButton");
     disableButton("reduceEdgesButton");
     disableButton("layoutButton");
     disableButton("scaffoldFileselectButton");
@@ -1901,6 +1902,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
             // weights (multiplicity or bundle size)
             $("#cullEdgesInput").prop("disabled", false);
             enableButton("cullEdgesButton");
+            enableButton("filterEdgesButton");
         }
         if (componentEdgeCount > 0) {
             enableButton("reduceEdgesButton");
@@ -2173,6 +2175,15 @@ function exportGraphView() {
     else {
         window.open(cy.jpg(), "_blank");
     }
+}
+
+/* Opens the dialog for filtering edges. */ 
+function openEdgeFilteringDialog() {
+    $("#edgeFilteringDialog").modal();
+    // TODOs:
+    // -move edge filtering textbox to dialog
+    // -add d3 chart stuff
+    // -etc
 }
 
 /* Hides edges below a minimum edge weight (multiplicity or bundle size,
