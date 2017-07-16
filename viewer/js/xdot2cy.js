@@ -2183,7 +2183,6 @@ function exportGraphView() {
 function openEdgeFilteringDialog() {
     $("#edgeFilteringDialog").modal();
     // TODOs:
-    // -move edge filtering textbox to dialog
     // -add d3 chart stuff
     // -etc
 }

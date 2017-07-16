@@ -373,22 +373,6 @@
                 </button>
                 </p>
 
-                <!-- NOTE this feature doesn't work very well with
-                    collapsing yet; TODO subsume into dialog -->
-                <div class='input-group input-group-sm'>
-                    <span class='input-group-btn'>
-                        <button class='btn btn-default disabled'
-                            disabled="disabled" onclick='cullEdges();'
-                            type="button" id="cullEdgesButton">
-                            <span class="glyphicon glyphicon-remove"
-                                aria-hidden="true"></span> &nbsp;
-                            Hide edges below a weight of
-                        </button>
-                    </span>
-                    <input type='text' class='form-control'
-                        id="cullEdgesInput" value="0" disabled="disabled">
-                </div>
-
                 <hr />
             </div>
             <div id="nodeColorizationControls">
@@ -1019,6 +1003,22 @@
                     </div> <!-- end modal-header div -->
                     <div class="modal-body">
                         (fancy stuff goes here)
+                        <!-- NOTE this feature doesn't work very well with
+                            collapsing yet -->
+                        <div class='input-group input-group-sm'>
+                            <span class='input-group-btn'>
+                                <button class='btn btn-default disabled'
+                                    disabled="disabled" onclick='cullEdges();'
+                                    type="button" id="cullEdgesButton">
+                                    <span class="glyphicon glyphicon-remove"
+                                        aria-hidden="true"></span> &nbsp;
+                                    Hide edges below a weight of
+                                </button>
+                            </span>
+                            <input type='text' class='form-control'
+                                id="cullEdgesInput" value="0"
+                                disabled="disabled">
+                        </div>
                     </div> <!-- end modal-body div -->
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default"
