@@ -2179,12 +2179,13 @@ function exportGraphView() {
     }
 }
 
-/* Opens the dialog for filtering edges. */ 
+/* Opens the dialog for filtering edges. */
 function openEdgeFilteringDialog() {
     $("#edgeFilteringDialog").modal();
-    // TODOs:
-    // -add d3 chart stuff
-    // -etc
+    var chartSvg = d3.select("#edgeWeightChart");
+    chartSvg.style("background-color", "maroon");
+    // TODO generate "bins," then generate resulting chart
+    // incl. axes, bars, etc.
 }
 
 /* Hides edges below a minimum edge weight (multiplicity or bundle size,

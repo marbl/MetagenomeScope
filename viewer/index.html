@@ -39,6 +39,7 @@
         <script src='js/xdot2cy.js'></script>
         <script src='js/bootstrap.min.js'></script>
         <script src='js/bootstrap-colorpicker.min.js'></script>
+        <script src='js/d3.v4.min.js'></script>
         <!-- Initialize some event bindings for the application -->
         <script>
             $(function() {
@@ -1002,7 +1003,9 @@
                         <h4 class="modal-title">Filter edges by weight</h4>
                     </div> <!-- end modal-header div -->
                     <div class="modal-body">
-                        (fancy stuff goes here)
+                        <svg id="edgeWeightChart" width="550" height="200">
+                        </svg>
+
                         <!-- NOTE this feature doesn't work very well with
                             collapsing yet -->
                         <div class='input-group input-group-sm'>
