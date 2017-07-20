@@ -2467,10 +2467,16 @@ function highlightScaffold(scaffoldID) {
             nodeToAdd = cy.getElementById(contigKeys[i]);
         }
         if (nodeToAdd.empty()) {
+            // The node could still be contained within a collapsed node group.
+            // In that case, we'd highlight the node group in question.
             nodeToAdd = cy.getElementById(
                 cy.scratch("_ele2parent")[contigKeys[i]]
             );
             if (nodeToAdd === undefined) {
+                // If we've reached this point in the code, the node is not
+                // contained within the current connected component at all.
+                // Throw an error (since this scaffold was supposed to only
+                // describe nodes in the current connected component).
                 var keyType = " ID ";
                 if (ASM_FILETYPE === "GML") {
                     keyType = " label ";
