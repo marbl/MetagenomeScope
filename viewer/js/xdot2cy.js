@@ -2472,18 +2472,20 @@ function highlightScaffold(scaffoldID) {
             nodeToAdd = cy.getElementById(
                 cy.scratch("_ele2parent")[contigKeys[i]]
             );
-            if (nodeToAdd === undefined) {
+            if (nodeToAdd.empty()) {
                 // If we've reached this point in the code, the node is not
                 // contained within the current connected component at all.
                 // Throw an error (since this scaffold was supposed to only
                 // describe nodes in the current connected component).
-                var keyType = " ID ";
+                var keyType = "ID ";
                 if (ASM_FILETYPE === "GML") {
-                    keyType = " label ";
+                    keyType = "label ";
                 }
-                alert("Invalid node with " + keyType + contigKeys[i] +
-                      " detected when highlighting scaffold " + scaffoldID +
-                      ".");
+                alert("Node with " + keyType + contigKeys[i] +
+                      " in scaffold \"" + scaffoldID + "\"" +
+                      " is not present in the currently drawn connected" +
+                      " component. This scaffold is invalid.");
+                return;
             }
         }
         nodesToHighlight = nodesToHighlight.union(nodeToAdd);
