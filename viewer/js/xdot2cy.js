@@ -134,15 +134,18 @@ var SELECTED_CLUSTERS = null;
 // Collection of removed edges (due to a minimum bundle size threshold).
 var REMOVED_EDGES = null;
 var PREV_EDGE_WEIGHT_THRESHOLD = null;
-// Mapping of scaffold ID to labels of nodes contained in it, as a list. Used
-// when highlighting nodes contained within a scaffold.
-var SCAFFOLDID2NODELABELS = {};
+// Mapping of scaffold ID to labels or IDs (should depend on the assembly
+// filetype, but really can refer to anything in COMPONENT_NODE_KEYS) of the
+// nodes contained within the scaffold, as an array.
+// Used when highlighting nodes contained within a scaffold.
+var SCAFFOLDID2NODEKEYS = {};
 // Used to indicate whether or not the current component has scaffolds added
 // from the AGP file -- this, in turn, is used to determine what text to
 // display to the user in the "View Scaffolds" area.
 var COMPONENT_HAS_SCAFFOLDS = false;
-// Used in determining which scaffolds are in the component.
-var COMPONENT_NODE_LABELS = [];
+// "Keys" referring to nodes in the currently-drawn connected component.
+// Used in determining which scaffolds are in the current connected component.
+var COMPONENT_NODE_KEYS = [];
 // Flag indicating whether or not the application is in "finishing mode," in
 // which the user can select nodes to manually construct a path through the
 // assembly.
@@ -1159,12 +1162,12 @@ function parseDBcomponents() {
     enableButton("drawSPQRButton");
     enableButton("implicitSPQROption");
     enableButton("explicitSPQROption");
-    SCAFFOLDID2NODELABELS = {};
+    SCAFFOLDID2NODEKEYS = {};
     BICOMPONENTID2VISIBLESINGLENODEIDS = {};
     $("#agpLoadedFileName").addClass("notviewable");
     $("#scaffoldInfoHeader").addClass("notviewable");
     $("#scaffoldListGroup").empty();
-    COMPONENT_NODE_LABELS = [];
+    COMPONENT_NODE_KEYS = [];
     $("#assembledNodes").empty();
     FINISHING_MODE_ON = false;
     FINISHING_MODE_PREVIOUSLY_DONE = false;
@@ -1585,11 +1588,11 @@ function drawComponent(cmpRank) {
     SELECTED_CLUSTERS = cy.collection();
     $("#scaffoldListGroup").empty();
     // will be set to true if we find suitable scaffolds
-    // the actual work of finding those scaffolds (if SCAFFOLDID2NODELABELS is
+    // the actual work of finding those scaffolds (if SCAFFOLDID2NODEKEYS is
     // not empty, of course) is done in finishDrawComponent().
     COMPONENT_HAS_SCAFFOLDS = false;
     $("#scaffoldInfoHeader").addClass("notviewable");
-    COMPONENT_NODE_LABELS = [];
+    COMPONENT_NODE_KEYS = [];
     $("#assembledNodes").empty();
     FINISHING_MODE_ON = false;
     FINISHING_MODE_PREVIOUSLY_DONE = false;
@@ -1879,7 +1882,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     window.setTimeout(function() {
         // If we have scaffold data still loaded for this assembly, use it
         // for the newly drawn connected component.
-        if (isObjectNonempty(SCAFFOLDID2NODELABELS)) {
+        if (isObjectNonempty(SCAFFOLDID2NODEKEYS)) {
             updateScaffoldsInComponentList();
         }
         // At this point, all of the hard work has been done. All that's left
@@ -1954,7 +1957,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
 
 /* Returns true if the specified object is not empty, false otherwise.
  * (We assume that the object is just a normal "mapping." This is only really
- * intended to work for SCAFFOLDID2NODELABELS at present -- I can't guarantee
+ * intended to work for SCAFFOLDID2NODEKEYS at present -- I can't guarantee
  * it'll work for other JavaScript objects.)
  */
 function isObjectNonempty(object) {
@@ -2262,7 +2265,7 @@ function beginLoadAGPfile() {
     if (inputfile.name.toLowerCase().endsWith(".agp")) {
         // The file is valid. We can load it.
         startIndeterminateProgressBar();
-        SCAFFOLDID2NODELABELS = {};
+        SCAFFOLDID2NODEKEYS = {};
         $("#scaffoldInfoHeader").addClass("notviewable");
         $("#scaffoldListGroup").empty();
         // Set some attributes of the FileReader object that we update while
@@ -2322,7 +2325,7 @@ function beginLoadAGPfile() {
 }
 
 /* Given a line of text (i.e. no newline characters are in the line), adds the
- * contig referenced in that line to the SCAFFOLDID2NODELABELS mapping. Also
+ * contig referenced in that line to the SCAFFOLDID2NODEKEYS mapping. Also
  * adds the scaffold referenced in that line, if not already defined (i.e. this
  * is the first line we've called this function on that references that
  * scaffold).
@@ -2337,32 +2340,32 @@ function integrateAGPline(lineText) {
     if (lineText != "" && lineText[0] !== "#") {
         var lineColumns = lineText.split("\t");
         var scaffoldID = lineColumns[0];
-        var contigLabel = lineColumns[5];
+        var contigKey = lineColumns[5];
         // If the node ID has metadata, truncate it
-        if (contigLabel.startsWith("NODE")) {
-            contigLabel = "NODE_" + contigLabel.split("_")[1];
+        if (contigKey.startsWith("NODE")) {
+            contigKey = "NODE_" + contigKey.split("_")[1];
         }
         // Save scaffold node composition data for all scaffolds, not just
         // scaffolds pertinent to the current connected component
-        if (SCAFFOLDID2NODELABELS[scaffoldID] === undefined) {
-            SCAFFOLDID2NODELABELS[scaffoldID] = [contigLabel];
+        if (SCAFFOLDID2NODEKEYS[scaffoldID] === undefined) {
+            SCAFFOLDID2NODEKEYS[scaffoldID] = [contigKey];
             // Check if this contig is in the current connected component and,
             // if so, add a list group item for its scaffold (since this is the
             // first time we're seeing this scaffold).
-            // (We use COMPONENT_NODE_LABELS for this because running
+            // (We use COMPONENT_NODE_KEYS for this because running
             // cy.filter() repeatedly can get really slow.)
-            if (COMPONENT_NODE_LABELS.indexOf(contigLabel) !== -1) {
+            if (COMPONENT_NODE_KEYS.indexOf(contigKey) !== -1) {
                 addScaffoldListGroupItem(scaffoldID);
             }
         }
         else {
-            SCAFFOLDID2NODELABELS[scaffoldID].push(contigLabel);
+            SCAFFOLDID2NODEKEYS[scaffoldID].push(contigKey);
         }
     }
 }
 
 /* Creates a list group item for a scaffold with the given ID.
- * (The ID should match up with a key in SCAFFOLDID2NODELABELS.)
+ * (The ID should match up with a key in SCAFFOLDID2NODEKEYS.)
  */
 function addScaffoldListGroupItem(scaffoldID) {
     COMPONENT_HAS_SCAFFOLDS = true;
@@ -2374,17 +2377,17 @@ function addScaffoldListGroupItem(scaffoldID) {
 }
 
 /* Identifies scaffolds located in the current connected component (using the
- * keys to SCAFFOLDID2NODELABELS as a list of scaffolds to try) and, for those
+ * keys to SCAFFOLDID2NODEKEYS as a list of scaffolds to try) and, for those
  * scaffolds, calls addScaffoldListGroupItem().
  */
 function updateScaffoldsInComponentList() {
-    for (var s in SCAFFOLDID2NODELABELS) {
+    for (var s in SCAFFOLDID2NODEKEYS) {
         // All nodes within a scaffold are in the same connected component, so
         // we can just use the first node in a scaffold as an indicator for
         // whether or not that scaffold is in the current connected component.
         // (This is pretty much the same way we do this when initially loading
         // scaffold data, as with integrateAGPline() above.)
-        if (COMPONENT_NODE_LABELS.indexOf(SCAFFOLDID2NODELABELS[s][0]) !== -1){
+        if (COMPONENT_NODE_KEYS.indexOf(SCAFFOLDID2NODEKEYS[s][0]) !== -1){
             addScaffoldListGroupItem(s);
         }
     }
@@ -2453,17 +2456,26 @@ function updateScaffoldInfoHeader(agpFileJustLoaded) {
 function highlightScaffold(scaffoldID) {
     // TODO can make this more efficient -- see #115, etc.
     cy.filter(':selected').unselect();
-    var contigLabels = SCAFFOLDID2NODELABELS[scaffoldID];
+    var contigKeys = SCAFFOLDID2NODEKEYS[scaffoldID];
     var nodesToHighlight = cy.collection();
     var nodeToAdd;
-    for (var i = 0; i < contigLabels.length; i++) {
-        nodeToAdd = cy.filter("[label=\"" + contigLabels[i] + "\"]");
+    for (var i = 0; i < contigKeys.length; i++) {
+        if (ASM_FILETYPE === "GML") {
+            nodeToAdd = cy.filter("[label=\"" + contigKeys[i] + "\"]");
+        }
+        else {
+            nodeToAdd = cy.getElementById(contigKeys[i]);
+        }
         if (nodeToAdd.empty()) {
             nodeToAdd = cy.getElementById(
-                cy.scratch("_ele2parent")[contigLabels[i]]
+                cy.scratch("_ele2parent")[contigKeys[i]]
             );
             if (nodeToAdd === undefined) {
-                alert("Invalid node with label " + contigLabels[i] +
+                var keyType = " ID ";
+                if (ASM_FILETYPE === "GML") {
+                    keyType = " label ";
+                }
+                alert("Invalid node with " + keyType + contigKeys[i] +
                       " detected when highlighting scaffold " + scaffoldID +
                       ".");
             }
@@ -3318,11 +3330,26 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     }
     var nodeLabel = nodeObj['label'];
     var labelUsed;
-    if (nodeLabel !== null && nodeLabel !== undefined) {
-        COMPONENT_NODE_LABELS.push(nodeLabel);
-        labelUsed = nodeLabel;
+    // Determine 1) accession keys for nodes in scaffold detection, and 2) the
+    // label to be shown when the node is drawn.
+    if (ASM_FILETYPE === "GML") {
+        if (nodeLabel !== null && nodeLabel !== undefined) {
+            COMPONENT_NODE_KEYS.push(nodeLabel);
+            labelUsed = nodeLabel;
+        }
+        else {
+            // Fail silently (for now), allowing nodes without labels.
+            // This will mean that this node will not be detected as being a
+            // part of any scaffolds, since the scaffold detection process is
+            // based on the filetype of the original input assembly graph.
+            // (That is, scaffolds used for GML files are assumed to refer to
+            // the labels of nodes, while scaffolds used for other filetypes
+            // are assumed to refer to the IDs of nodes.)
+            labelUsed = nodeObj['id'];
+        }
     }
     else {
+        COMPONENT_NODE_KEYS.push(nodeObj['id']);
         labelUsed = nodeObj['id'];
     }
     var parentID;
