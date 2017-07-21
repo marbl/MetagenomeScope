@@ -430,26 +430,45 @@
             <div id="assemblyFinishingControls">
                 <h4>Assembly Finishing</h4>
 
-                <button class='btn btn-success btn-sm disabled'
-                    id="startFinishingButton" disabled="disabled"
-                    onclick="startFinishing();">
-                    <span class="glyphicon glyphicon-play"
-                        aria-hidden="true"></span> &nbsp; Start
-                </button>
+                <p>
+                    <button class='btn btn-success btn-sm disabled'
+                        id="startFinishingButton" disabled="disabled"
+                        onclick="startFinishing();">
+                        <span class="glyphicon glyphicon-play"
+                            aria-hidden="true"></span> &nbsp; Start
+                    </button>
 
-                <button class='btn btn-danger btn-sm disabled'
-                    id="endFinishingButton" disabled="disabled"
-                    onclick="endFinishing();">
-                    <span class="glyphicon glyphicon-stop"
-                        aria-hidden="true"></span> &nbsp; End
-                </button>
+                    <button class='btn btn-danger btn-sm disabled'
+                        id="endFinishingButton" disabled="disabled"
+                        onclick="endFinishing();">
+                        <span class="glyphicon glyphicon-stop"
+                            aria-hidden="true"></span> &nbsp; End
+                    </button>
+                </p>
 
-                <button class='btn btn-info btn-sm disabled'
-                    id="exportPathButton" disabled="disabled"
-                    onclick="exportPath();">
-                    <span class="glyphicon glyphicon-download-alt"
-                        aria-hidden="true"></span> &nbsp; Export Path
-                </button>
+                <p>
+                    <div class="btn-group" data-toggle="buttons"
+                        id="pathExportButtonGroup"
+                        aria-label="Path export type (AGP vs. CSV) selector">
+                        <button class="btn btn-info active disabled btn-sm"
+                            value="AGP" id="agpOption" disabled="disabled">
+                            <input type="radio" name="pathExportTypeRadio"
+                                checked="checked" autocomplete="off">AGP
+                        </button>
+                        <button class="btn btn-info disabled btn-sm"
+                            value="CSV" id="csvOption" disabled="disabled">
+                            <input type="radio" name="pathExportTypeRadio"
+                                autocomplete="off">CSV
+                        </button>
+                    </div>
+
+                    <button class='btn btn-info btn-sm disabled'
+                        id="exportPathButton" disabled="disabled"
+                        onclick="exportPath();">
+                        <span class="glyphicon glyphicon-download-alt"
+                            aria-hidden="true"></span> &nbsp; Export Path
+                    </button>
+                </p>
 
                 <p id="assembledNodes"></p>
 
