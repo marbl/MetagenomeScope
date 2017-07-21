@@ -309,3 +309,5 @@ in this repository, if you'd like.
     * The icons used to theme various controls in the viewer application are
       from the [Glyphicon](http://glyphicons.com/) Halflings set,
       included with Bootstrap.
+    * The color selection functionality in the viewer interface uses the
+      [Bootstrap Colorpicker](https://farbelous.github.io/bootstrap-colorpicker/) plugin.
