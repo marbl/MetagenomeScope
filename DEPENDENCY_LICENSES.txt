@@ -79,6 +79,10 @@ MetagenomeScope:
     -https://github.com/ghaering/pysqlite
     -License is here: https://github.com/ghaering/pysqlite/blob/master/LICENSE
 
+-NumPy
+    -http://www.numpy.org
+    -Licensed under the BSD 3-clause License
+
 -Python 2.7
     -https://www.python.org
     -Licensed under the Python Software Foundation License
