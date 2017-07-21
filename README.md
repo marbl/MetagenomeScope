@@ -292,6 +292,8 @@ in this repository, if you'd like.
   scaling.
 * The preprocessing script (in `spqr.cpp`) uses
   [OGDF](http://www.ogdf.net/doku.php) to construct SPQR trees.
+  * `spqr.cpp` also uses [cmdline.h](https://github.com/tanakh/cmdline) to
+    parse command-line arguments.
 * Both the preprocessing script and the viewer interface use
   [sqlite3](https://sqlite.org/).
   In particular, the preprocessing script uses the built-in
