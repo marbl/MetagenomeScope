@@ -157,6 +157,9 @@ var FINISHING_MODE_PREVIOUSLY_DONE = false;
 // In the format "N1,N2,N3,N4" where N1 is the first node ID, N2 is the second
 // node ID, and so on (allowing repeat duplicate IDs).
 var FINISHING_NODE_IDS = "";
+// Like FINISHING_NODE_IDS, but each element in this list is the actual
+// Cytoscape.js object for the corresponding node in the path
+var FINISHING_NODE_OBJS = [];
 // Nodes that are outgoing from the last-added node to the reconstructed path.
 var NEXT_NODES;
 // Boolean used to indicate when finishing a linear cycle is happening.
@@ -1172,6 +1175,7 @@ function parseDBcomponents() {
     FINISHING_MODE_ON = false;
     FINISHING_MODE_PREVIOUSLY_DONE = false;
     FINISHING_NODE_IDS = "";
+    FINISHING_NODE_OBJS = [];
     enableButton("xmlFileselectButton");
     enableButton("fileselectButton");
     enableButton("loadDBbutton");
@@ -1599,6 +1603,7 @@ function drawComponent(cmpRank) {
     FINISHING_MODE_ON = false;
     FINISHING_MODE_PREVIOUSLY_DONE = false;
     FINISHING_NODE_IDS = "";
+    FINISHING_NODE_OBJS = [];
     NEXT_NODES = cy.collection();
     FINISHING_LINEAR_CYCLE = false;
     SELECTED_NODE_COUNT = 0;
@@ -2560,6 +2565,7 @@ function addNodeFromEventToPath(e) {
                 }
                 $("#assembledNodes").append(", " + nodeID);
                 FINISHING_NODE_IDS += "," + nodeID;
+                FINISHING_NODE_OBJS.push(node);
             }
             else {
                 return;
@@ -2575,6 +2581,7 @@ function addNodeFromEventToPath(e) {
             if (size === 0) {
                 $("#assembledNodes").append(nodeID);
                 FINISHING_NODE_IDS += nodeID;
+                FINISHING_NODE_OBJS.push(node);
                 endFinishing();
                 return;
             }
@@ -2583,6 +2590,7 @@ function addNodeFromEventToPath(e) {
             cy.endBatch();
             $("#assembledNodes").append(nodeID);
             FINISHING_NODE_IDS += nodeID;
+            FINISHING_NODE_OBJS.push(node);
         }
     }
 }
@@ -2592,6 +2600,7 @@ function startFinishing() {
         disableButton("startFinishingButton");
         if (FINISHING_MODE_PREVIOUSLY_DONE) {
             FINISHING_NODE_IDS = "";
+            FINISHING_NODE_OBJS = [];
             $("#assembledNodes").empty();
             disableButton("exportPathButton");
         }
@@ -2621,18 +2630,43 @@ function endFinishing() {
 
 function exportPath() {
     var exportFileType = $("#pathExportButtonGroup .btn.active").attr("value");
-    console.log(exportFileType);
+    var textToExport = "";
     if (exportFileType === "AGP") {
-        // export AGP (TODO)
+        // export AGP
+        var nextStartPos = 1;
+        var nextEndPos;
+        var nodeLen, nodeOrient, nodeID;
+        for (var i = 0; i < FINISHING_NODE_OBJS.length; i++) {
+            nodeLen = FINISHING_NODE_OBJS[i].data("length");
+            // NOTE that we assume that nodes with the "rightdir" class must
+            // all have a forward orientation. If dynamic graph rotation
+            // gets added back in, that will break this.
+            // (In that case, the ideal solution would be to just give
+            // forward-oriented nodes a "is_fwd" data() attribute or
+            // something.)
+            if (FINISHING_NODE_OBJS[i].hasClass("rightdir")) {
+                nodeOrient = "+";
+            }
+            else {
+                nodeOrient = "-";
+            }
+            nodeID = FINISHING_NODE_OBJS[i].id();
+            // Add a line for this contig
+            nextEndPos = (nextStartPos - 1) + nodeLen;
+            textToExport += "scaffold_1\t" + nextStartPos + "\t" + nextEndPos +
+                "\t" + i + "\tW\t" + nodeID + "\t1\t" + nodeLen + "\t" +
+                nodeOrient + "\n";
+            nextStartPos = nextEndPos + 1;
+        }
     }
     else {
         // export CSV
-        window.open(
-            "data:text/plain;charset=utf-8;base64," +
-            window.btoa(FINISHING_NODE_IDS),
-            "_blank"
-        );
+        textToExport = FINISHING_NODE_IDS;
     }
+    window.open(
+        "data:text/plain;charset=utf-8;base64," + window.btoa(textToExport),
+        "_blank"
+    );
 }
 
 function removeNodeColorization(node) {
