@@ -218,13 +218,20 @@ can be easily identified by their background color and general structure.
 #### Viewing Scaffolds
 
 You can use the `View Scaffolds` section of the control panel to visualize
-scaffolds described within an AGP file. Clicking on a scaffold in this panel
-will select the contigs contained within it in the tool.
+scaffolds described within an
+[AGP file](https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/).
+Clicking on a scaffold in this panel will select all the nodes contained within
+it.
 
 It's assumed that AGP files loaded for assemblies that were originally in the
-GML format (i.e. MetaCarvel output) use node labels as "keys."
+GML format (i.e. MetaCarvel output) use node labels for the `component_id`
+fields.
 It's also assumed that AGP files loaded for other types of assemblies use
-node IDs as "keys."
+node IDs for the `component_id` fields.
+
+In either case, the ID of a node group in standard mode can additionally be
+used as a `component_id` in AGP files to refer to that node group as a part of
+a scaffold.
 
 #### Manual Assembly Finishing
 
