@@ -2635,7 +2635,7 @@ function exportPath() {
         // export AGP
         var nextStartPos = 1;
         var nextEndPos;
-        var nodeLen, nodeOrient, nodeID;
+        var nodeLen, nodeOrient, nodeKey;
         for (var i = 0; i < FINISHING_NODE_OBJS.length; i++) {
             nodeLen = FINISHING_NODE_OBJS[i].data("length");
             // NOTE that we assume that nodes with the "rightdir" class must
@@ -2650,11 +2650,16 @@ function exportPath() {
             else {
                 nodeOrient = "-";
             }
-            nodeID = FINISHING_NODE_OBJS[i].id();
+            if (ASM_FILETYPE === "GML") {
+                nodeKey = FINISHING_NODE_OBJS[i].data("label");
+            }
+            else {
+                nodeKey = FINISHING_NODE_OBJS[i].id();
+            }
             // Add a line for this contig
             nextEndPos = (nextStartPos - 1) + nodeLen;
             textToExport += "scaffold_1\t" + nextStartPos + "\t" + nextEndPos +
-                "\t" + i + "\tW\t" + nodeID + "\t1\t" + nodeLen + "\t" +
+                "\t" + i + "\tW\t" + nodeKey + "\t1\t" + nodeLen + "\t" +
                 nodeOrient + "\n";
             nextStartPos = nextEndPos + 1;
         }
