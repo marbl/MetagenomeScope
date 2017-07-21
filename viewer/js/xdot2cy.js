@@ -435,14 +435,14 @@ function initGraph(viewType) {
                 selector: 'node.noncluster.tentative',
                 style: {
                     'border-width': 5,
-                    'border-color': '#000'
+                    'border-color': $("#tnbcp").colorpicker("getValue")
                 }
             },
             {
                 selector: 'node.cluster.tentative',
                 style: {
                     'border-width': 5,
-                    'border-color': '#000'
+                    'border-color': $("#tngbcp").colorpicker("getValue")
                 }
             },
             {
