@@ -1283,6 +1283,8 @@ function disableVolatileControls() {
     disableButton("startFinishingButton");
     disableButton("endFinishingButton");
     disableButton("exportPathButton");
+    disableButton("agpOption");
+    disableButton("csvOption");
     disableButton("floatingExportButton");
     $("#assembledNodes").empty();
     disableButton("searchButton");
@@ -1915,6 +1917,8 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("layoutButton");
         enableButton("scaffoldFileselectButton");
         enableButton("startFinishingButton");
+        enableButton("agpOption");
+        enableButton("csvOption");
         enableButton("searchButton");
         enableButton("fitButton");
         enableButton("exportImageButton");
@@ -2616,12 +2620,19 @@ function endFinishing() {
 }
 
 function exportPath() {
-    var node_ids = "";
-    window.open(
-        "data:text/plain;charset=utf-8;base64," +
-        window.btoa(FINISHING_NODE_IDS),
-        "_blank"
-    );
+    var exportFileType = $("#pathExportButtonGroup .btn.active").attr("value");
+    console.log(exportFileType);
+    if (exportFileType === "AGP") {
+        // export AGP (TODO)
+    }
+    else {
+        // export CSV
+        window.open(
+            "data:text/plain;charset=utf-8;base64," +
+            window.btoa(FINISHING_NODE_IDS),
+            "_blank"
+        );
+    }
 }
 
 function removeNodeColorization(node) {
