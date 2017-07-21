@@ -1259,7 +1259,7 @@ cursor = connection.cursor()
 # The number of question marks has to match the number of table columns
 NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
-CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?)"
+CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
 ASSEMBLY_INSERTION_STMT = \
     "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
@@ -1282,7 +1282,7 @@ cursor.execute("""CREATE TABLE edges
         is_outlier integer, orientation text, mean real, stdev real,
         component_rank integer, control_point_string text,
         control_point_count integer, parent_cluster_id text)""") 
-cursor.execute("""CREATE TABLE clusters (cluster_id text,
+cursor.execute("""CREATE TABLE clusters (cluster_id text, length integer,
         component_rank integer, left real, bottom real, right real,
         top real)""")
 cursor.execute("""CREATE TABLE components

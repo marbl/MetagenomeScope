@@ -590,8 +590,9 @@ class NodeGroup(Node):
            Should be called after parsing and assigning .xdot bounding box
            values accordingly.
         """
-        return (self.cy_id_string, self.component_size_rank, self.xdot_left,
-                self.xdot_bottom, self.xdot_right, self.xdot_top)
+        return (self.cy_id_string, self.bp, self.component_size_rank,
+                self.xdot_left, self.xdot_bottom, self.xdot_right,
+                self.xdot_top)
 
 class SPQRMetaNode(NodeGroup):
     """A group of nodes collapsed into a metanode in a SPQR tree.
