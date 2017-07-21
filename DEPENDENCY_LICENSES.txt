@@ -20,7 +20,7 @@ preprocessing script is linked with:
     -Source code is distributed with MetagenomeScope, and is also available at
      https://github.com/tanakh/cmdline
     -Copyright is contained with license in graph_collator/cmdline.h
-    -Licensed under the BSD 3-clause license
+    -Licensed under the BSD 3-clause License
      (included in graph_collator/cmdline.h)
 
 Furthermore, the visualization interface is distributed with:
@@ -28,13 +28,13 @@ Furthermore, the visualization interface is distributed with:
 -Cytoscape.js
     -http://js.cytoscape.org
     -Copyright is contained in viewer/js/cytoscape.min.js
-    -Licensed under the MIT license
+    -Licensed under the MIT License
      (included in viewer/js/cytoscape.min.js)
 
 -Bootstrap
     -http://getbootstrap.com
     -Copyright is contained in dependency_licenses/bootstrap.license
-    -Licensed under the MIT license
+    -Licensed under the MIT License
      (included in dependency_licenses/bootstrap.license)
 
 -bootstrap-colorpicker
@@ -47,12 +47,12 @@ Furthermore, the visualization interface is distributed with:
 -d3.js
     -https://d3js.org/
     -Copyright is contained in dependency_licenses/d3.js.license
-    -Licensed under the BSD 3-clause license
+    -Licensed under the BSD 3-clause License
      (included in dependency_licenses/d3.js.license)
 
 -sql.js
     -https://github.com/kripken/sql.js
-    -Licensed under the MIT license
+    -Licensed under the MIT License
 
 The visualization interface also makes use of jQuery via the Google Hosted
 Libraries CDN (https://developers.google.com/speed/libraries):
@@ -60,7 +60,7 @@ Libraries CDN (https://developers.google.com/speed/libraries):
 -jQuery
     -http://jquery.com
     -Copyright is contained in dependency_licenses/jquery.license
-    -Licensed under the MIT license
+    -Licensed under the MIT License
      (included in dependency_licenses/jquery.license)
 
 The Python component of the preprocessing script requires the use of the
@@ -73,7 +73,7 @@ MetagenomeScope:
 
 -Pygraphviz
     -http://pygraphviz.github.io
-    -Licensed under the BSD 3-clause license
+    -Licensed under the BSD 3-clause License
 
 -pysqlite (used as the built-in sqlite3 Python module)
     -https://github.com/ghaering/pysqlite
