@@ -3547,6 +3547,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     var classes = abbrev + ' cluster ' + getClusterCoordClass();
     if (!spqrRelated) {
         classes += ' structuralPattern';
+        clusterData["length"] = clusterObj["length"];
     }
     else if (spqrtype === "metanode") {
         // We use the "pseudoparent" class to represent compound nodes that
