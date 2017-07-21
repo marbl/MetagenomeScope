@@ -215,6 +215,31 @@ In standard mode, structural patterns contained within the graph were
 automatically highlighted and grouped together during layout. These patterns
 can be easily identified by their background color and general structure.
 
+#### Viewing Scaffolds
+
+You can use the `View Scaffolds` section of the control panel to visualize
+scaffolds described within an AGP file. Clicking on a scaffold in this panel
+will select the contigs contained within it in the tool.
+
+It's assumed that AGP files loaded for assemblies that were originally in the
+GML format (i.e. MetaCarvel output) use node labels as "keys."
+It's also assumed that AGP files loaded for other types of assemblies use
+node IDs as "keys."
+
+#### Manual Assembly Finishing
+
+The buttons in the `Assembly Finishing` section of the control panel can be
+used to select paths of contigs in the graph and export the resulting node
+labels (if exporting an AGP file and the current .db file originated from
+GML input) or IDs (if not exporting an AGP file, or if the current .db file
+originated from other input filetypes).
+
+Currently, paths can be exported as either a comma-separated
+([CSV](https://en.wikipedia.org/wiki/Comma-separated_values)) list of node IDs,
+or as a scaffold in the
+[AGP](https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/)
+file format.
+
 ### Decomposition mode
 
 In these modes, each biconnected component within the input graph is collapsed
