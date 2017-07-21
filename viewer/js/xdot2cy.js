@@ -2468,9 +2468,19 @@ function highlightScaffold(scaffoldID) {
     var contigKeys = SCAFFOLDID2NODEKEYS[scaffoldID];
     var nodesToHighlight = cy.collection();
     var nodeToAdd;
+    var prefix;
     for (var i = 0; i < contigKeys.length; i++) {
         if (ASM_FILETYPE === "GML") {
-            nodeToAdd = cy.filter("[label=\"" + contigKeys[i] + "\"]");
+            // Figure out if we need to use cy.getElementById (if this scaffold
+            // refers to a node group) instead of filtering by label
+            prefix = contigKeys[i][0];
+            if (prefix === 'B' || prefix === 'F' || prefix === 'C'
+                    || prefix === 'Y') {
+                nodeToAdd = cy.getElementById(contigKeys[i]);
+            }
+            else {
+                nodeToAdd = cy.filter("[label=\"" + contigKeys[i] + "\"]");
+            }
         }
         else {
             nodeToAdd = cy.getElementById(contigKeys[i]);
@@ -3555,6 +3565,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     var classes = abbrev + ' cluster ' + getClusterCoordClass();
     if (!spqrRelated) {
         classes += ' structuralPattern';
+        COMPONENT_NODE_KEYS.push(clusterID);
         clusterData["length"] = clusterObj["length"];
     }
     else if (spqrtype === "metanode") {
