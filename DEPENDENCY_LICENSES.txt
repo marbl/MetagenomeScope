@@ -54,9 +54,6 @@ Furthermore, the visualization interface is distributed with:
     -https://github.com/kripken/sql.js
     -Licensed under the MIT License
 
-The visualization interface also makes use of jQuery via the Google Hosted
-Libraries CDN (https://developers.google.com/speed/libraries):
-
 -jQuery
     -http://jquery.com
     -Copyright is contained in dependency_licenses/jquery.license
