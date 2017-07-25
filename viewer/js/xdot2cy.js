@@ -2461,6 +2461,15 @@ function updateScaffoldInfoHeader(agpFileJustLoaded) {
     }
 }
 
+// TODO next two functions --
+function cycleScaffoldsLeft() {
+
+}
+
+function cycleScaffoldsRight() {
+
+}
+
 // Highlights the contigs within a scaffold by selecting them
 function highlightScaffold(scaffoldID) {
     // TODO can make this more efficient -- see #115, etc.

@@ -419,7 +419,21 @@
                 
                 <p id="agpLoadedFileName" class="notviewable monospace"></p>
                 <p id="scaffoldInfoHeader" class="notviewable"></p>
-                
+                <!-- originally give scaffoldCycler the notviewable class.
+                    Then, when a scaffold's been loaded, remove notviewable.
+                    (remember to reset when a new db file is loaded?)
+                -->
+                <p id="scaffoldCycler">
+                    <span class="glyphicon glyphicon-triangle-left cyclerBtn"
+                          onclick="cycleScaffoldsLeft();">
+                    </span>
+                    <button class='btn btn-default btn-sm disabled'
+                        disabled="disabled">scaffold_1
+                    </button>
+                    <span class="glyphicon glyphicon-triangle-right cyclerBtn"
+                          onclick="cycleScaffoldsRight();">
+                    </span>
+                </p>
                 <ul class="list-group" id="scaffoldListGroup">
                 </ul>
 

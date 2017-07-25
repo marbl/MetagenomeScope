@@ -77,6 +77,14 @@ html, body {
     margin-right: 0.1em;
     float: right;
 }
+.cyclerBtn {
+    cursor: pointer;
+    font-size: 2em;
+}
+#scaffoldCycler * {
+    display: inline-block;
+    vertical-align: middle;
+}
 /* TODO in the future it might be nice to keep the graph view in place when
  * uncollapsing or collapsing the controls div -- however, for now, this
  * behavior is fine. */
