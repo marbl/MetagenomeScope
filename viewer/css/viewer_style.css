@@ -81,6 +81,9 @@ html, body {
     cursor: pointer;
     font-size: 2em;
 }
+.cyclerBtn:active {
+    color: #808080;
+}
 #scaffoldCycler * {
     display: inline-block;
     vertical-align: middle;
