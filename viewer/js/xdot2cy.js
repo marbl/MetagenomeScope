@@ -139,6 +139,12 @@ var PREV_EDGE_WEIGHT_THRESHOLD = null;
 // nodes contained within the scaffold, as an array.
 // Used when highlighting nodes contained within a scaffold.
 var SCAFFOLDID2NODEKEYS = {};
+// Array of scaffolds in the current connected component, in the order they
+// were listed in the input AGP file. Used when cycling through scaffolds.
+var COMPONENT_SCAFFOLDS = [];
+// Current index of the drawScaffoldButton in COMPONENT_SCAFFOLDS. Used when
+// cycling through scaffolds.
+var SCAFFOLD_CYCLER_CURR_INDEX = 0;
 // Used to indicate whether or not the current component has scaffolds added
 // from the AGP file -- this, in turn, is used to determine what text to
 // display to the user in the "View Scaffolds" area.
@@ -1169,7 +1175,7 @@ function parseDBcomponents() {
     BICOMPONENTID2VISIBLESINGLENODEIDS = {};
     $("#agpLoadedFileName").addClass("notviewable");
     $("#scaffoldInfoHeader").addClass("notviewable");
-    $("#scaffoldListGroup").empty();
+    $("#scaffoldCycler").addClass("notviewable");
     COMPONENT_NODE_KEYS = [];
     $("#assembledNodes").empty();
     FINISHING_MODE_ON = false;
@@ -1592,7 +1598,7 @@ function drawComponent(cmpRank) {
     SELECTED_NODES = cy.collection();
     SELECTED_EDGES = cy.collection();
     SELECTED_CLUSTERS = cy.collection();
-    $("#scaffoldListGroup").empty();
+    $("#scaffoldCycler").addClass("notviewable");
     // will be set to true if we find suitable scaffolds
     // the actual work of finding those scaffolds (if SCAFFOLDID2NODEKEYS is
     // not empty, of course) is done in finishDrawComponent().
@@ -2276,7 +2282,7 @@ function beginLoadAGPfile() {
         startIndeterminateProgressBar();
         SCAFFOLDID2NODEKEYS = {};
         $("#scaffoldInfoHeader").addClass("notviewable");
-        $("#scaffoldListGroup").empty();
+        $("#scaffoldCycler").addClass("notviewable");
         // Set some attributes of the FileReader object that we update while
         // reading the file.
         sfr.nextStartPosition = 0;
@@ -2377,12 +2383,14 @@ function integrateAGPline(lineText) {
  * (The ID should match up with a key in SCAFFOLDID2NODEKEYS.)
  */
 function addScaffoldListGroupItem(scaffoldID) {
-    COMPONENT_HAS_SCAFFOLDS = true;
-    // Add a list item for this scaffold
-    $("#scaffoldListGroup").append(
-        "<li class='list-group-item scaffold' " +
-        "onclick='highlightScaffold(\"" + scaffoldID + "\");'>" +
-        scaffoldID + "</li>");
+    if (!COMPONENT_HAS_SCAFFOLDS) {
+        COMPONENT_HAS_SCAFFOLDS = true;
+        COMPONENT_SCAFFOLDS = [];
+        $("#drawScaffoldButton").text(scaffoldID);
+        SCAFFOLD_CYCLER_CURR_INDEX = 0;
+        $("#scaffoldCycler").removeClass("notviewable");
+    }
+    COMPONENT_SCAFFOLDS.push(scaffoldID);
 }
 
 /* Identifies scaffolds located in the current connected component (using the
@@ -2391,9 +2399,10 @@ function addScaffoldListGroupItem(scaffoldID) {
  */
 function updateScaffoldsInComponentList() {
     for (var s in SCAFFOLDID2NODEKEYS) {
-        // All nodes within a scaffold are in the same connected component, so
-        // we can just use the first node in a scaffold as an indicator for
-        // whether or not that scaffold is in the current connected component.
+        // All nodes within a (valid) scaffold are in the same connected
+        // component, so we can just use the first node in a scaffold as an
+        // indicator for whether or not that scaffold is in the current
+        // connected component.
         // (This is pretty much the same way we do this when initially loading
         // scaffold data, as with integrateAGPline() above.)
         if (COMPONENT_NODE_KEYS.indexOf(SCAFFOLDID2NODEKEYS[s][0]) !== -1){
@@ -2461,19 +2470,35 @@ function updateScaffoldInfoHeader(agpFileJustLoaded) {
     }
 }
 
-// TODO next two functions --
 function cycleScaffoldsLeft() {
-
+    if (SCAFFOLD_CYCLER_CURR_INDEX === 0) {
+        SCAFFOLD_CYCLER_CURR_INDEX = COMPONENT_SCAFFOLDS.length - 1;
+    } else {
+        SCAFFOLD_CYCLER_CURR_INDEX--;
+    }
+    updateDrawScaffoldButtonText();
 }
 
 function cycleScaffoldsRight() {
+    if (SCAFFOLD_CYCLER_CURR_INDEX === COMPONENT_SCAFFOLDS.length - 1) {
+        SCAFFOLD_CYCLER_CURR_INDEX = 0;
+    } else {
+        SCAFFOLD_CYCLER_CURR_INDEX++;
+    }
+    updateDrawScaffoldButtonText();
+}
 
+function updateDrawScaffoldButtonText() {
+    $("#drawScaffoldButton").text(
+        COMPONENT_SCAFFOLDS[SCAFFOLD_CYCLER_CURR_INDEX]
+    );
 }
 
 // Highlights the contigs within a scaffold by selecting them
-function highlightScaffold(scaffoldID) {
+function highlightScaffold() {
     // TODO can make this more efficient -- see #115, etc.
     cy.filter(':selected').unselect();
+    var scaffoldID = $("#drawScaffoldButton").text();
     var contigKeys = SCAFFOLDID2NODEKEYS[scaffoldID];
     var nodesToHighlight = cy.collection();
     var nodeToAdd;
