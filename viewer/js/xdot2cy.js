@@ -1032,7 +1032,6 @@ function loadgraphfile() {
     var fr = new FileReader();
 	var inputfile = document.getElementById('fileselector').files[0];
     if (inputfile === undefined) {
-        alert("Please select a .db file to load.");
         return;
     }
     if (inputfile.name.toLowerCase().endsWith(".db")) {
@@ -2323,7 +2322,6 @@ function beginLoadAGPfile() {
     COMPONENT_HAS_SCAFFOLDS = false;
 	var inputfile = document.getElementById('scaffoldFileSelector').files[0];
     if (inputfile === undefined) {
-        alert("Please select an AGP file to load.");
         return;
     }
     if (inputfile.name.toLowerCase().endsWith(".agp")) {
