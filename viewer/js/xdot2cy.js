@@ -1449,7 +1449,7 @@ function drawSPQRComponent(cmpRank) {
     $("#collapseButtonControls").addClass("notviewable");
     $("#noNodeColorizationOption").addClass("active");
     $("#gcNodeColorizationOption").removeClass("active");
-    CURR_NODE_COLORIZATION = "none";
+    CURR_NODE_COLORIZATION = "noncolorized";
     PREV_ROTATION = 0;
     CURR_ROTATION = 90;
     cy.scratch("_collapsed", cy.collection());
@@ -1627,11 +1627,11 @@ function drawComponent(cmpRank) {
     $("#viewScaffoldsControls").removeClass("notviewable");
     $("#testLayoutsControls").removeClass("notviewable");
     $("#collapseButtonControls").removeClass("notviewable");
-    // Disable other node colorization settings and check the "none" node
-    // colorization option by default
+    // Disable other node colorization settings and check the "noncolorized"
+    // node colorization option by default
     $("#noNodeColorizationOption").addClass("active");
     $("#gcNodeColorizationOption").removeClass("active")
-    CURR_NODE_COLORIZATION = "none";
+    CURR_NODE_COLORIZATION = "noncolorized";
     PREV_ROTATION = 0;
     // NOTE -- DISABLED ROTATION -- to allow rotation uncomment below and
     // replace CURR_ROTATION = 90 line
@@ -2753,7 +2753,7 @@ function startChangeNodeColorization() {
 function changeNodeColorization(newColorization) {
     cy.startBatch();
     var nodeStyleFunction;
-    if (newColorization === "gc") {
+    if (newColorization === "gccolorized") {
         nodeStyleFunction = addGCNodeColorization;
     }
     else {
@@ -3519,8 +3519,8 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             cy.scratch("_ele2parent")[nodeLabel] = parentID;
     }
     cy.add({
-        classes: 'noncluster noncolorized ' + nodeShapeClass, data: nodeData,
-        position: {x: pos[0], y: pos[1]}
+        classes: 'noncluster ' + CURR_NODE_COLORIZATION + ' ' + nodeShapeClass,
+        data: nodeData, position: {x: pos[0], y: pos[1]}
     });
     return pos;
 }
