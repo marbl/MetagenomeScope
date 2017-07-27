@@ -2733,15 +2733,13 @@ function exportPath() {
                 nodeLen + "\t" + nodeOrient + "\n";
             nextStartPos = nextEndPos + 1;
         }
+        downloadText("path.agp", textToExport);
     }
     else {
         // export CSV
         textToExport = FINISHING_NODE_IDS;
+        downloadText("path.csv", textToExport);
     }
-    window.open(
-        "data:text/plain;charset=utf-8;base64," + window.btoa(textToExport),
-        "_blank"
-    );
 }
 
 function removeNodeColorization(node) {
