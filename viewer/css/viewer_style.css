@@ -161,3 +161,7 @@ html, body {
     -ms-user-select: none;
     user-select: none;
 }
+
+.gradient_preview span {
+    border: 1px solid #000000;
+}
