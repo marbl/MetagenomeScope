@@ -2078,16 +2078,28 @@ function exportColorSettings() {
     $(".colorpicker-component").each(function(i) {
         textToExport += this.id +"\t"+ $(this).colorpicker("getValue") + "\n";
     });
-    downloadText("metagenomescope_color_settings.tsv", textToExport);
+    downloadDataURI("metagenomescope_color_settings.tsv", textToExport, true);
 }
 
 /* Uses the downloadHelper <a> element to prompt the user to save a data URI
  * to their system.
+ *
+ * If the isPlainText argument is true, then this will treat contentToDownload
+ * as text/plain data (appending the necessary prefixes for constructing a data
+ * URI, and calling window.btoa() on contentToDownload).
+ * If isPlainText is false, however, then this won't append any prefixes to
+ * contentToDownload and won't call window.btoa() on it.
  */
-function downloadText(filename, textToDownload) {
+function downloadDataURI(filename, contentToDownload, isPlainText) {
     $("#downloadHelper").attr("download", filename);
-    $("#downloadHelper").attr("href", "data:text/plain;charset=utf-8;base64,"
-        + window.btoa(textToDownload));
+    if (isPlainText) {
+        var data = "data:text/plain;charset=utf-8;base64," +
+            window.btoa(contentToDownload);
+        $("#downloadHelper").attr("href", data);
+    }
+    else {
+        $("#downloadHelper").attr("href", contentToDownload);
+    }
     document.getElementById("downloadHelper").click();
 }
 
@@ -2208,10 +2220,10 @@ function fitGraph(toSelected) {
 function exportGraphView() {
     var imgType = $("#imgTypeButtonGroup .btn.active").attr("value");
     if (imgType === "PNG") {
-        window.open(cy.png({bg: BG_COLOR}), "_blank");
+        downloadDataURI("screenshot.png", cy.png({bg: BG_COLOR}), false);
     }
     else {
-        window.open(cy.jpg(), "_blank");
+        downloadDataURI("screenshot.jpg", cy.jpg({bg: BG_COLOR}), false);
     }
 }
 
@@ -2733,12 +2745,12 @@ function exportPath() {
                 nodeLen + "\t" + nodeOrient + "\n";
             nextStartPos = nextEndPos + 1;
         }
-        downloadText("path.agp", textToExport);
+        downloadDataURI("path.agp", textToExport, true);
     }
     else {
         // export CSV
         textToExport = FINISHING_NODE_IDS;
-        downloadText("path.csv", textToExport);
+        downloadDataURI("path.csv", textToExport, true);
     }
 }
 
