@@ -709,7 +709,35 @@
                                         bootstrap, making switching between
                                         tabs look smooth.
                                     -->
-                                    <p style="margin-top: 10px;">
+                                    <div class="container-fluid"
+                                        style="margin-top:10px;">
+                                    <div class="row">
+                                    <div class="col-lg-6">
+                                    <button class="btn btn-default btn-sm"
+                                        id="importColorSettingsButton"
+                                        onclick="$('#colorSettingsFS').click();">
+                                        <span class="glyphicon glyphicon-folder-open"
+                                          aria-hidden="true"></span> &nbsp;
+                                          Import color settings file
+                                    </button>
+                                    <span class="notviewable col-lg-offset-3">
+                                        Successfully imported.</span>
+                                    <input type='file' id='colorSettingsFS'
+                                          onchange="importColorSettings();"
+                                          style="display:none;"/>
+                                    </div>
+                                    <div class="col-lg-6">
+                                    <button class="btn btn-default btn-sm"
+                                        id="exportColorSettingsButton"
+                                        onclick="exportColorSettings();">
+                                        <span class="glyphicon glyphicon-download-alt"
+                                          aria-hidden="true"></span> &nbsp;
+                                          Export color settings file
+                                    </button>
+                                    </div>
+                                    </div>
+                                    </div>
+                                    <p>
                                         Color settings can be modified using
                                         the corresponding text boxes or their
                                         corresponding color pickers (accessible
@@ -759,6 +787,7 @@
                                         rgb(255, 34, 0);">
                                           &nbsp;&nbsp;&nbsp;&nbsp;</span>
                                     </div>
+                                    <div class="container-fluid">
                                     <div class="row">
                                     <!-- Left column -->
                                     <div class="col-lg-6">
@@ -1032,6 +1061,7 @@
                                         </div>
                                     </div>
                                     </div> <!-- end row div -->
+                                    </div>
                                 </div> <!-- end colortab -->
                             </div> <!-- end tab-content -->
                         </div> <!-- end tab div -->

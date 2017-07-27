@@ -2081,6 +2081,25 @@ function exportColorSettings() {
     downloadDataURI("metagenomescope_color_settings.tsv", textToExport, true);
 }
 
+function importColorSettings() {
+    var csfr = new FileReader();
+	var inputfile = document.getElementById('colorSettingsFS').files[0];
+    if (inputfile === undefined) {
+        return;
+    }
+    if (inputfile.name.toLowerCase().endsWith(".tsv")) {
+        startIndeterminateProgressBar();
+        sfr.onload = function(e) {
+            if (e.target.readyState === FileReader.DONE) {
+                var blobText = e.target.result;
+            }
+        }
+    }
+    else {
+        alert("Please select a valid .tsv color settings file to load.");
+    }
+}
+
 /* Uses the downloadHelper <a> element to prompt the user to save a data URI
  * to their system.
  *
