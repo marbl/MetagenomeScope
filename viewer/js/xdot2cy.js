@@ -2073,6 +2073,24 @@ function startIndeterminateProgressBar() {
     $(".progress-bar").addClass("progress-bar-striped");
 }
 
+function exportColorSettings() {
+    var textToExport = "";
+    $(".colorpicker-component").each(function(i) {
+        textToExport += this.id +"\t"+ $(this).colorpicker("getValue") + "\n";
+    });
+    downloadText("metagenomescope_color_settings.tsv", textToExport);
+}
+
+/* Uses the downloadHelper <a> element to prompt the user to save a data URI
+ * to their system.
+ */
+function downloadText(filename, textToDownload) {
+    $("#downloadHelper").attr("download", filename);
+    $("#downloadHelper").attr("href", "data:text/plain;charset=utf-8;base64,"
+        + window.btoa(textToDownload));
+    document.getElementById("downloadHelper").click();
+}
+
 /* Pops up the dialog for color preference selection. */
 function displaySettings() {
     $("#settingsDialog").modal();

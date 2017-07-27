@@ -68,6 +68,13 @@
         </script>
     </head>
     <body>
+        <!-- Invisible <a> used for downloading data URIs for various purposes
+            (e.g. path exporting, color settings export). By adjusting the
+            download parameter of this tag, we can provide the user with a
+            suggested filename for the file to be downloaded (instead of just
+            opening the data URI using window.open()).
+        -->
+        <a class="notviewable" id="downloadHelper"></a>
         <!-- Absolutely positioned tools -->
         <div id="controlsToggler" onclick="toggleControls();" class="btn">
            <span class="glyphicon glyphicon-menu-hamburger"></span>
