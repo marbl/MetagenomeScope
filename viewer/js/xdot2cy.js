@@ -2354,7 +2354,7 @@ function beginLoadAGPfile() {
                     // or blobLines[0] may be "").
                     c = integrateAGPline(sfr.partialLine + blobLines[0]);
                     if (c !== 0) {
-                        clearScaffoldFS();
+                        clearScaffoldFS(true);
                         return;
                     }
                     sfr.partialLine = "";
@@ -2362,7 +2362,7 @@ function beginLoadAGPfile() {
                     for (var i = 1; i < blobLines.length - 1; i++) {
                         c = integrateAGPline(blobLines[i]);
                         if (c !== 0) {
-                            clearScaffoldFS();
+                            clearScaffoldFS(true);
                             return;
                         }
                     }
@@ -2373,7 +2373,7 @@ function beginLoadAGPfile() {
                     if (sfr.readingFinalBlob) {
                         c = integrateAGPline(blobLines[blobLines.length - 1]);
                         if (c !== 0) {
-                            clearScaffoldFS();
+                            clearScaffoldFS(true);
                             return;
                         }
                     }
@@ -2386,7 +2386,7 @@ function beginLoadAGPfile() {
                     if (sfr.readingFinalBlob) {
                         c = integrateAGPline(sfr.partialLine + blobText);
                         if (c !== 0) {
-                            clearScaffoldFS();
+                            clearScaffoldFS(true);
                             return;
                         }
                     }
@@ -2544,14 +2544,25 @@ function updateScaffoldInfoHeader(agpFileJustLoaded) {
         $("#agpLoadedFileName").html(
             document.getElementById("scaffoldFileSelector").files[0].name);
         $("#agpLoadedFileName").removeClass("notviewable");
-        clearScaffoldFS();
+        clearScaffoldFS(false);
     }
 }
 
 /* Clears the scaffold file selector's value attribute and calls
  * finishProgressBar().
+ * If errorOnAGPload is true, then this:
+ *  -clears SCAFFOLDID2NODEKEYS,
+ *  -sets COMPONENT_HAS_SCAFFOLDS to false,
+ *  -clears COMPONENT_SCAFFOLDS,
+ *  -Adds the "notviewable" class to #scaffoldCycler
  */
-function clearScaffoldFS() {
+function clearScaffoldFS(errorOnAGPload) {
+    if (errorOnAGPload) {
+        SCAFFOLDID2NODEKEYS = {};
+        COMPONENT_HAS_SCAFFOLDS = false;
+        COMPONENT_SCAFFOLDS = [];
+        $("#scaffoldCycler").addClass("notviewable");
+    }
     document.getElementById('scaffoldFileSelector').value = "";
     finishProgressBar();
 }
