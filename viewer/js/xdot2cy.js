@@ -2088,9 +2088,10 @@ function importColorSettings() {
     }
     if (inputfile.name.toLowerCase().endsWith(".tsv")) {
         startIndeterminateProgressBar();
-        sfr.onload = function(e) {
+        csfr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
-                var blobText = e.target.result;
+                var fileText = e.target.result;
+                console.log(fileText);
             }
         }
     }
@@ -2379,7 +2380,11 @@ function beginLoadAGPfile() {
                 loadAGPfile(this, inputfile, this.nextStartPosition);
             }
         }
-        loadAGPfile(sfr, inputfile, 0);
+        // use a small timeout so the call to startIndeterminateProgressBar()
+        // can update the DOM
+        window.setTimeout(function() {
+            loadAGPfile(sfr, inputfile, 0);
+        }, 50);
     }
     else {
         alert("Please select a valid AGP file to load.");
