@@ -2347,22 +2347,35 @@ function beginLoadAGPfile() {
                 // integrating sfr.partialLine with this a lot easier.
                 // (As opposed to us having to manually check for newlines in
                 // those places.)
+                var c;
                 if (blobLines.length > 1) {
                     // Process first line, which may or may not include
                     // sfr.partialLine's contents (sfr.partialLine may be "",
                     // or blobLines[0] may be "").
-                    integrateAGPline(sfr.partialLine + blobLines[0]);
+                    c = integrateAGPline(sfr.partialLine + blobLines[0]);
+                    if (c !== 0) {
+                        clearScaffoldFS();
+                        return;
+                    }
                     sfr.partialLine = "";
                     // Process "intermediate" lines
                     for (var i = 1; i < blobLines.length - 1; i++) {
-                        integrateAGPline(blobLines[i]);
+                        c = integrateAGPline(blobLines[i]);
+                        if (c !== 0) {
+                            clearScaffoldFS();
+                            return;
+                        }
                     }
                     // Process last line in the blob: if we know this is the
                     // last Blob we can read then we treat this last line as a
                     // complete line. Otherwise, we just store it in
                     // sfr.partialLine.
                     if (sfr.readingFinalBlob) {
-                        integrateAGPline(blobLines[blobLines.length - 1]);
+                        c = integrateAGPline(blobLines[blobLines.length - 1]);
+                        if (c !== 0) {
+                            clearScaffoldFS();
+                            return;
+                        }
                     }
                     else {
                         sfr.partialLine = blobLines[blobLines.length - 1];
@@ -2371,7 +2384,11 @@ function beginLoadAGPfile() {
                 else if (blobLines.length === 1) {
                     // blobText doesn't contain any newlines
                     if (sfr.readingFinalBlob) {
-                        integrateAGPline(sfr.partialLine + blobText);
+                        c = integrateAGPline(sfr.partialLine + blobText);
+                        if (c !== 0) {
+                            clearScaffoldFS();
+                            return;
+                        }
                     }
                     else {
                         sfr.partialLine += blobText;
@@ -2382,6 +2399,7 @@ function beginLoadAGPfile() {
         }
         // use a small timeout so the call to startIndeterminateProgressBar()
         // can update the DOM
+        $("#agpLoadedFileName").addClass("notviewable");
         window.setTimeout(function() {
             loadAGPfile(sfr, inputfile, 0);
         }, 50);
@@ -2400,6 +2418,10 @@ function beginLoadAGPfile() {
  * Saves contig/scaffold info for the entire assembly graph, not just the
  * current connected component. This will allow us to reuse the same mapping
  * for multiple connected components' visualizations.
+ *
+ * If there's an error in reading the given line's text, returns a nonzero
+ * value. This should be used to halt processing of this AGP file in
+ * loadAGPfile(). Otherwise, returns 0.
  */
 function integrateAGPline(lineText) {
     // Avoid processing empty lines (e.g. due to trailing newlines in files)
@@ -2408,6 +2430,10 @@ function integrateAGPline(lineText) {
         var lineColumns = lineText.split("\t");
         var scaffoldID = lineColumns[0];
         var contigKey = lineColumns[5];
+        if (contigKey === undefined) {
+            alert("Invalid line in input AGP file: \n" + lineText);
+            return -1;
+        }
         // If the node ID has metadata, truncate it
         if (contigKey.startsWith("NODE")) {
             contigKey = "NODE_" + contigKey.split("_")[1];
@@ -2429,6 +2455,7 @@ function integrateAGPline(lineText) {
             SCAFFOLDID2NODEKEYS[scaffoldID].push(contigKey);
         }
     }
+    return 0;
 }
 
 /* Creates a list group item for a scaffold with the given ID.
@@ -2511,15 +2538,22 @@ function updateScaffoldInfoHeader(agpFileJustLoaded) {
     }
     $("#scaffoldInfoHeader").removeClass("notviewable");
     // Perform a few useful operations if the user just loaded this AGP file.
-    // These operations are not useful, however, if the AGP file as already
+    // These operations are not useful, however, if the AGP file has already
     // been loaded and we just ran updateScaffoldsInComponentList().
     if (agpFileJustLoaded) {
         $("#agpLoadedFileName").html(
             document.getElementById("scaffoldFileSelector").files[0].name);
         $("#agpLoadedFileName").removeClass("notviewable");
-        document.getElementById('scaffoldFileSelector').value = "";
-        finishProgressBar();
+        clearScaffoldFS();
     }
+}
+
+/* Clears the scaffold file selector's value attribute and calls
+ * finishProgressBar().
+ */
+function clearScaffoldFS() {
+    document.getElementById('scaffoldFileSelector').value = "";
+    finishProgressBar();
 }
 
 function cycleScaffoldsLeft() {
