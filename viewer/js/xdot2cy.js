@@ -1048,6 +1048,7 @@ function loadgraphfile() {
         fr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
                 loadDBfile(e.target.result);
+                document.getElementById('fileselector').value = "";
             }
         }
         // set progress bar to indeterminate state while we close
@@ -2120,6 +2121,9 @@ function importColorSettings() {
                     // correct).
                     $("#" + lineVals[0]).colorpicker("setValue", lineVals[1]);
                 }
+                // Clear .value attr to allow the same file (with changes made)
+                // to be uploaded twice in a row
+                document.getElementById('colorSettingsFS').value = "";
                 finishProgressBar();
             }
         }
