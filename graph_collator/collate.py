@@ -700,7 +700,7 @@ with open(asm_fn, 'r') as assembly_file:
                             break
                     if curr_node_bp == None:
                         errmsg = config.SEQ_NOUN+curr_node_id+config.NO_DNA_ERR
-                        raise ValueError, errmsg
+                        raise AttributeError, errmsg
                 curr_node_dnafwd = None
                 curr_node_dnarev = None
                 nPos = graph_objects.Node(curr_node_id, curr_node_bp, False,
@@ -748,7 +748,7 @@ with open(asm_fn, 'r') as assembly_file:
                 # Update stats
                 total_edge_count += 1
     else:
-        raise ValueError, config.FILETYPE_ERR
+        raise IOError, config.FILETYPE_ERR
 conclude_msg()
 
 # TODO just a temporary measure; output the entire single graph as a .gv file
