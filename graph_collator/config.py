@@ -149,6 +149,7 @@ DONE_MSG = "Done."
 # Error messages (and occasional "helper" messages for constructing error msgs)
 SEQ_NOUN = "Sequence "
 NO_DNA_ERR = " does not contain a DNA sequence or length property"
+DUPLICATE_ID_ERR = "Duplicate node ID: "
 FILETYPE_ERR = "Invalid input filetype; see README for accepted file types"
 EDGE_CTRL_PT_ERR = "Invalid GraphViz edge control points"
 NO_FN_ERR = "No filename provided for "

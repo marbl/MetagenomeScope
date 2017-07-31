@@ -373,6 +373,26 @@ def conclude_msg(message=config.DONE_MSG):
 # to get a list of every Node object that's been processed
 # (And, more importantly, to reconcile edge data with prev.-seen node data)
 nodeid2obj = {}
+
+def add_node_to_stdmode_mapping(n, rc=None):
+    """Adds a Node object n to nodeid2obj.
+    
+       If rc is defined, also adds rc to nodeid2obj.
+
+       This checks to make sure n and rc's IDs are not already in nodeid2obj.
+       If either of their IDs are already in nodeid2obj before adding them, an
+       AttributeError is raised.
+    """
+    # Check for duplicate IDs
+    if n.id_string in nodeid2obj:
+        raise AttributeError, config.DUPLICATE_ID_ERR + n.id_string
+    # Actually add to nodeid2obj
+    nodeid2obj[n.id_string] = n
+    if rc != None:
+        if rc.id_string in nodeid2obj:
+            raise AttributeError, config.DUPLICATE_ID_ERR + rc.id_string
+        nodeid2obj[rc.id_string] = rc
+
 # Like nodeid2obj, but for preserving references to clusters (NodeGroups)
 clusterid2obj = {}
 
@@ -498,8 +518,7 @@ with open(asm_fn, 'r') as assembly_file:
                     c = graph_objects.Node('-' + curr_node_id,
                             curr_node_bp, True, depth=curr_node_depth,
                             gc_content=curr_node_gcrev)
-                    nodeid2obj[curr_node_id] = n
-                    nodeid2obj['-' + curr_node_id] = c
+                    add_node_to_stdmode_mapping(n, c)
                     # Create single Node object, for the SPQR-integrated graph
                     sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
                             depth=curr_node_depth, gc_content=curr_node_gcfwd,
@@ -574,7 +593,7 @@ with open(asm_fn, 'r') as assembly_file:
                     n = graph_objects.Node(curr_node_id, curr_node_bp,
                             (curr_node_orientation == '"REV"'),
                             label=curr_node_label)
-                    nodeid2obj[curr_node_id] = n
+                    add_node_to_stdmode_mapping(n)
                     # Create single Node object, for the SPQR-integrated graph
                     sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
                             label=curr_node_label, is_single=True)
@@ -707,8 +726,7 @@ with open(asm_fn, 'r') as assembly_file:
                         gc_content=curr_node_gc)
                 nNeg = graph_objects.Node('-' + curr_node_id, curr_node_bp,
                         True,gc_content=curr_node_gc)
-                nodeid2obj[curr_node_id] = nPos
-                nodeid2obj['-' + curr_node_id] = nNeg
+                add_node_to_stdmode_mapping(nPos, nNeg)
                 # Create single Node object, for the SPQR-integrated graph
                 sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
                         gc_content=curr_node_gc, is_single=True)
