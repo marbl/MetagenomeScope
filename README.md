@@ -207,8 +207,8 @@ buttons (for example, during the process of drawing a graph), and the resulting
 changes of the buttons' styles, might seem slightly jarring to some users.
 
 A few settings are available that you can use to disable some of the
-visual updates provided by the viewer interface. *Please note, however, that
-these settings are by no means comprehensive.*
+visual updates provided by the viewer interface. **Please note, however, that
+these settings are by no means comprehensive.**
 
  * If you would like to turn off the stripe effect used to show an
    "indeterminate"
