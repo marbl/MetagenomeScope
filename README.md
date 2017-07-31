@@ -199,13 +199,16 @@ with information as certain events occur -- for example, the progress bar is
 updated as files are loaded, and text is displayed as certain types of elements
 in the graph are drawn.
 
-Some of the ways in which the viewer interface is updated are, or have the
+Some of these ways in which the viewer interface is updated are, or have the
 potential to be, relatively fast.
 For example, the process of drawing a small graph might cause the progress bar
-to rise from 0% to 100% very quickly.
+to rise from 0% to 100% very quickly. Or the enabling/disabling of certain
+buttons (for example, during the process of drawing a graph), and the resulting
+changes of the buttons' styles, might seem slightly jarring to some users.
 
-A few settings are available that you can turn off to disable some of these
-visual updates provided by the viewer interface:
+A few settings are available that you can use to disable some of the
+visual updates provided by the viewer interface. *Please note, however, that
+these settings are by no means comprehensive.*
 
  * If you would like to turn off the stripe effect used to show an
    "indeterminate"
