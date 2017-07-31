@@ -165,6 +165,6 @@ html, body {
 .gradient_preview span {
     border: 1px solid #000000;
 }
-#importColorSettingsButton, #exportColorSettingsButton {
+.csbtn {
     width: 100%;
 }

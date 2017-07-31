@@ -754,21 +754,21 @@
                                         style="margin-top:10px;">
                                     <div class="row">
                                     <div class="col-lg-6">
-                                    <button class="btn btn-default btn-sm"
+                                    <button
+                                        class="btn btn-default btn-sm csbtn"
                                         id="importColorSettingsButton"
                                         onclick="$('#colorSettingsFS').click();">
                                         <span class="glyphicon glyphicon-folder-open"
                                           aria-hidden="true"></span> &nbsp;
                                           Import color settings file
                                     </button>
-                                    <span class="notviewable col-lg-offset-3">
-                                        Successfully imported.</span>
                                     <input type='file' id='colorSettingsFS'
                                           onchange="importColorSettings();"
                                           style="display:none;"/>
                                     </div> <!-- end col-lg-6 div -->
                                     <div class="col-lg-6">
-                                    <button class="btn btn-default btn-sm"
+                                    <button
+                                        class="btn btn-default btn-sm csbtn"
                                         id="exportColorSettingsButton"
                                         onclick="exportColorSettings();">
                                         <span class="glyphicon glyphicon-download-alt"
@@ -777,6 +777,22 @@
                                     </button>
                                     </div> <!-- end col-lg-6 div -->
                                     </div> <!-- end row div -->
+                                    <div class="row">
+                                        <div class="col-lg-3">
+                                        </div>
+                                        <div class="col-lg-6">
+                                        <button
+                                            class="btn btn-default btn-sm csbtn"
+                                            id="resetColorSettingsButton"
+                                            onclick="resetColorSettings();">
+                                            <span class="glyphicon glyphicon-refresh"
+                                              aria-hidden="true"></span> &nbsp;
+                                              Reset color settings to defaults
+                                        </button>
+                                        </div>
+                                        <div class="col-lg-3">
+                                        </div>
+                                    </div>
                                     </div> <!-- end container-fluid div -->
                                     <p>
                                         Color settings can be modified using
