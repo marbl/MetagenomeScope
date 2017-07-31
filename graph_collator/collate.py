@@ -666,6 +666,8 @@ with open(asm_fn, 'r') as assembly_file:
                 curr_node_id = l[1]
                 if curr_node_id.startswith("NODE_"):
                     curr_node_id = curr_node_id.split("_")[1]
+                elif curr_node_id.startswith("tig"):
+                    curr_node_id = curr_node_id[3:]
                 # The sequence data can be optionally not given -- in this
                 # case, a single asterisk, *, will be located at l[2].
                 curr_node_dnafwd = l[2]
@@ -728,6 +730,8 @@ with open(asm_fn, 'r') as assembly_file:
                 id2 = a[3]
                 if id1.startswith("NODE_"): id1 = id1.split("_")[1]
                 if id2.startswith("NODE_"): id2 = id2.split("_")[1]
+                if id1.startswith("tig"): id1 = id1[3:]
+                if id2.startswith("tig"): id2 = id2[3:]
                 single_graph_edges.append((id1, id2))
                 singlenodeid2obj[id1].add_outgoing_edge(singlenodeid2obj[id2])
                 id1 = id1 if a[2] != '-' else '-' + id1
@@ -1801,6 +1805,9 @@ for component in connected_components[:config.MAX_COMPONENTS]:
 
     # lay out the graph in .xdot -- this step is the main bottleneck in the
     # python side of AsmViz
+    # NOTE if dot is taking a really long time to lay stuff out, then other
+    # Graphviz layout programs (e.g. sfdp) can be used instead -- however
+    # they'll generally produce less useful drawings for directed graphs
     h.layout(prog='dot')
     # save the .xdot file if the user requested .xdot preservation
     if preserve_xdot:
