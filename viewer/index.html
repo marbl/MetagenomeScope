@@ -133,8 +133,7 @@
                 <span class="glyphicon glyphicon-info-sign"
                     aria-hidden="true"></span> &nbsp; Assembly info
             </button>
-            <button class='btn btn-default btn-sm disabled'
-                disabled="disabled" id='settingsButton'
+            <button class='btn btn-default btn-sm' id='settingsButton'
                 onclick='displaySettings();'>
                 <span class="glyphicon glyphicon-cog"></span> &nbsp;
                 <span>Settings</span>
@@ -143,7 +142,7 @@
             <div class="progress">
                 <div class="progress-bar notransitions" role="progressbar"
                      aria-valuenow="0" aria-valuemin="0"
-                     aria-valuemax="100" style="width: 0%;">
+                     aria-valuemax="100" style="width: 100%;">
                     <span class="sr-only"></span>
                 </div>
             </div>
@@ -706,11 +705,17 @@
                         <h4 class="modal-title">Settings</h4>
                     </div> <!-- end modal-header div -->
                     <div class="modal-body">
-                        <p>Changes to these parameters will take effect upon
+                        <p>Changes to these parameters will take effect before
                         drawing a graph.</p>
                         <div>
                             <ul class="nav nav-tabs" role="tablist">
                                 <li role="presentation" class="active">
+                                    <a href="#animationtab"
+                                    aria-controls="animation"
+                                    role="tab" data-toggle="tab">
+                                    Animation</a>
+                                </li>
+                                <li role="presentation">
                                     <a href="#performancetab"
                                     aria-controls="performance"
                                     role="tab" data-toggle="tab">
@@ -724,8 +729,30 @@
                                 </li>
                             </ul>
                             <div class="tab-content">
-                                <div role="tabpanel" class="tab-pane
-                                    active" id="performancetab">
+                                <div role="tabpanel" class="tab-pane active"
+                                    id="animationtab">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" checked
+                                            id="useProgressBarStripesCheckbox">
+                                            Show moving stripes on
+                                            indeterminate progress bars
+                                        </label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" checked
+                                            id="useDrawingStatusTextCheckbox">
+                                            Update status text while drawing
+                                            connected components (for graphs
+                                            that take a short amount of time to
+                                            draw, this text might change
+                                            relatively quickly)
+                                        </label>
+                                    </div>
+                                </div> <!-- end animationtab -->
+                                <div role="tabpanel" class="tab-pane"
+                                    id="performancetab">
                                     <div class="checkbox">
                                         <label>
                                             <input type="checkbox"
@@ -844,6 +871,11 @@
                                         rgb(255, 34, 0);">
                                           &nbsp;&nbsp;&nbsp;&nbsp;</span>
                                     </div>
+                                    <!-- NOTE that changes to the defaults here
+                                        should be reflected in
+                                        DEFAULT_COLOR_SETTINGS in
+                                        viewer/index.html
+                                    -->
                                     <div class="container-fluid">
                                     <div class="row">
                                     <!-- Left column -->

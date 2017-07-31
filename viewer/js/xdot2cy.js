@@ -1150,9 +1150,12 @@ function parseDBcomponents() {
     }
     // Adjust UI elements
     document.title = DB_FILENAME + " (" + fnInfo + ")";
-    updateTextStatus("Loaded .db file for the assembly graph file " + fnInfo +
-                        ".<br />You can draw a connected component using" +
-                        " the \"Draw Connected Component\" button below.");
+    // TODO add back in eventually? once it plays nicely with the no drawing
+    // status text stuff?
+    //updateTextStatus("Loaded .db file for the assembly graph file " +fnInfo+
+    //                    ".<br />You can draw a connected component using" +
+    //                    " the \"Draw Connected Component\" buttons below.",
+    //                    true);
     $("#filenameEntry").text(fnInfo); 
     $("#filetypeEntry").text(ASM_FILETYPE);
     $("#nodeCtEntry").text(nodeInfo); 
@@ -1317,8 +1320,14 @@ function disableVolatileControls() {
     clearSelectedInfo();
 }
 
-function updateTextStatus(text) {
-    $("#textStatus").html(text);
+/* Displays a status message in the #textStatus <div>.
+ * If notDuringDrawing is false, then these messages will not be displayed if
+ * the #useDrawingStatusTextCheckbox is unchecked.
+ */
+function updateTextStatus(text, notDuringDrawing) {
+    if(notDuringDrawing || $("#useDrawingStatusTextCheckbox").prop("checked")){
+        $("#textStatus").html(text);
+    }
 }
 
 function toggleHEV() {
@@ -1416,7 +1425,7 @@ function startDrawComponent(mode) {
     }
     // if compRankValidity === 0, then currRank must represent just an
     // integer: so parseInt is fine to run on it
-    updateTextStatus("Drawing clusters...");
+    updateTextStatus("Drawing clusters...", false);
     window.setTimeout(drawFunc(parseInt(currRank)), 0);
 }
 
@@ -1563,7 +1572,7 @@ function drawSPQRComponent(cmpRank) {
     cy.endBatch();
     cy.fit();
     // Draw single nodes.
-    updateTextStatus("Drawing nodes...");
+    updateTextStatus("Drawing nodes...", false);
     window.setTimeout(function() {
         cy.startBatch();
         var spqrSpecs = "WHERE scc_rank = ? AND (parent_metanode_id IS NULL "
@@ -1685,7 +1694,7 @@ function drawComponent(cmpRank) {
     drawBoundingBoxEnforcingNodes(bb);
     cy.endBatch();
     cy.fit();
-    updateTextStatus("Drawing nodes...");
+    updateTextStatus("Drawing nodes...", false);
     window.setTimeout(function() {
         /* I originally didn't have this wrapped in a timeout, but for some
          * reason a few clusters in the test BAMBUS E. coli assembly weren't
@@ -1757,7 +1766,7 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         // Second part of "iterative" graph drawing: draw all edges
         cy.endBatch();
         cy.fit();
-        updateTextStatus("Drawing edges...");
+        updateTextStatus("Drawing edges...", false);
         cy.startBatch();
         // NOTE that we intentionally only consider edges within this component
         // Multiplicity is an inherently relative measure, so outliers in other
@@ -1894,7 +1903,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     // Set minZoom to whatever the zoom level when viewing the entire drawn
     // component at once (i.e. right now) is
     cy.minZoom(cy.zoom());
-    updateTextStatus("Preparing interface...");
+    updateTextStatus("Preparing interface...", false);
     window.setTimeout(function() {
         // If we have scaffold data still loaded for this assembly, use it
         // for the newly drawn connected component.
@@ -1965,7 +1974,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         else {
             disableButton("collapseButton");
         }
-        updateTextStatus("&nbsp;");
+        updateTextStatus("&nbsp;", false);
         finishProgressBar();
         endDrawDate = new Date();
         var drawTime = endDrawDate.getTime() - startDrawDate.getTime();
@@ -2068,12 +2077,15 @@ function finishProgressBar() {
     }
 }
 
-/* Assumes the progress bar is not already indeterminate. */
+/* Assumes the progress bar is not already indeterminate and that the
+ * progress bar is already at 100% width.
+ */
 function startIndeterminateProgressBar() {
-    $(".progress-bar").css("width", "100%");
-    $(".progress-bar").removeClass("notransitions");
-    $(".progress-bar").addClass("active");
-    $(".progress-bar").addClass("progress-bar-striped");
+    if ($("#useProgressBarStripesCheckbox").prop("checked")) {
+        $(".progress-bar").addClass("active");
+        $(".progress-bar").addClass("progress-bar-striped");
+        $(".progress-bar").removeClass("notransitions");
+    }
 }
 
 function exportColorSettings() {
@@ -2132,7 +2144,6 @@ function importColorSettings() {
         return;
     }
     if (inputfile.name.toLowerCase().endsWith(".tsv")) {
-        startIndeterminateProgressBar();
         csfr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
                 var fileText = e.target.result;
@@ -2141,12 +2152,9 @@ function importColorSettings() {
                 // Clear .value attr to allow the same file (with changes
                 // made) to be uploaded twice in a row
                 document.getElementById('colorSettingsFS').value = "";
-                finishProgressBar();
             }
         }
-        window.setTimeout(function() {
-            csfr.readAsText(inputfile);
-        }, 50);
+        csfr.readAsText(inputfile);
     }
     else {
         alert("Please select a valid .tsv color settings file to load.");
