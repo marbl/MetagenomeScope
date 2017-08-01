@@ -1197,8 +1197,6 @@ function parseDBcomponents() {
     enableButton("dir180");
     enableButton("dir270");
     enableButton("settingsButton");
-    $("#hideEdgesCheckbox").prop("disabled", false);
-    $("#useTexturesCheckbox").prop("disabled", false);
     // Adjust selected info tables based on what info is available
     var extraNodeCols = 0;
     if (DNA_AVAILABLE) {
@@ -1272,8 +1270,6 @@ function disableButton(buttonID) {
  * any sort of operation, I guess. */
 function disableVolatileControls() {
     disableButton("settingsButton");
-    $("#hideEdgesCheckbox").prop("disabled", true);
-    $("#useTexturesCheckbox").prop("disabled", true);
     $("#componentselector").prop("disabled", true);
     disableButton("decrCompRankButton");
     disableButton("incrCompRankButton");
@@ -1961,8 +1957,6 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
             enableButton("gcNodeColorizationOption");
         }
         enableButton("settingsButton");
-        $("#hideEdgesCheckbox").prop("disabled", false);
-        $("#useTexturesCheckbox").prop("disabled", false);
         cy.userPanningEnabled(true);
         cy.userZoomingEnabled(true);
         cy.boxSelectionEnabled(true);
