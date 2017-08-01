@@ -181,9 +181,9 @@ enabled).
       produce a file named `e_coli.db`) will cause an error/warning to be
       raised regardless of whether or not `-w` is set.
 
-## Running the viewer interface
+## Using the viewer interface
 
-You can load the interface in any modern browser. Chrome/Firefox are
+You can use the interface in any modern web browser. Chrome/Firefox are
 recommended, but most modern browsers should be fine.
 
 ### Settings
