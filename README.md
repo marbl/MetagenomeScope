@@ -194,7 +194,7 @@ panel, which should be viewable on the left side of the application's display.
 
 There are three categories of settings, each housed in its own tab:
 [animation](#animation-settings), [performance](#performance-settings), and
-[colors](#color-settings)
+[colors](#color-settings).
 
 #### Animation Settings
 
