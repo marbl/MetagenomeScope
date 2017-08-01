@@ -44,9 +44,6 @@
         <script>
             $(function() {
                 $(window).on("beforeunload", closeDB);
-                $("input[name=rotationRadio]").on("change", changeRotation);
-                $("#hideEdgesCheckbox").on("change", toggleHEV);
-                $("#useTexturesCheckbox").on("change", toggleUTV);
                 $("#settingsDialog").on("hide.bs.modal", function(e) {
                     $(".colorpicker-component").colorpicker("hide");
                 });
@@ -756,14 +753,16 @@
                                     <div class="checkbox">
                                         <label>
                                             <input type="checkbox"
-                                                id="hideEdgesCheckbox">
+                                                id="hideEdgesCheckbox"
+                                                onchange="toggleHEV();">
                                             Hide edges during movement
                                         </label>
                                     </div>
                                     <div class="checkbox">
                                         <label>
                                             <input type="checkbox"
-                                                id="useTexturesCheckbox">
+                                                id="useTexturesCheckbox"
+                                                onchange="toggleUTV();">
                                             Use a texture during movement
                                         </label>
                                     </div>
