@@ -2640,17 +2640,21 @@ function cycleScaffoldsRight() {
     updateDrawScaffoldButtonText();
 }
 
+// Also highlights the new scaffold.
 function updateDrawScaffoldButtonText() {
-    $("#drawScaffoldButton").text(
-        COMPONENT_SCAFFOLDS[SCAFFOLD_CYCLER_CURR_INDEX]
-    );
+    var newScaffoldID = COMPONENT_SCAFFOLDS[SCAFFOLD_CYCLER_CURR_INDEX];
+    $("#drawScaffoldButton").text(newScaffoldID);
+    highlightScaffold(newScaffoldID);
 }
 
-// Highlights the contigs within a scaffold by selecting them
-function highlightScaffold() {
+/* Highlights the contigs within a scaffold by selecting them.
+ * This assumes that the passed ID is valid. If it isn't valid (i.e. no
+ * scaffold with that ID exists in the currently loaded AGP file) then this
+ * will result in an error.
+ */
+function highlightScaffold(scaffoldID) {
     // TODO can make this more efficient -- see #115, etc.
     cy.filter(':selected').unselect();
-    var scaffoldID = $("#drawScaffoldButton").text();
     var contigKeys = SCAFFOLDID2NODEKEYS[scaffoldID];
     var nodesToHighlight = cy.collection();
     var nodeToAdd;
