@@ -47,13 +47,7 @@
                 $("#settingsDialog").on("hide.bs.modal", function(e) {
                     $(".colorpicker-component").colorpicker("hide");
                 });
-                // If we add any tooltips, use this line to initialize them
-                //$("[data-toggle='tooltip']").tooltip();
-            });
-        </script>
-        <!-- Initialize colorpickers -->
-        <script>
-            $(function() {
+                // Initialize colorpickers
                 $(".colorpicker-component").colorpicker({format: 'hex'});
                 $("#mincncp").on("changeColor", function(e) {
                     redrawGradientPreview(e.color.toHex(), -1);
@@ -61,6 +55,8 @@
                 $("#maxcncp").on("changeColor", function(e) {
                     redrawGradientPreview(e.color.toHex(), 1);
                 });
+                // If we add any tooltips, use this line to initialize them
+                //$("[data-toggle='tooltip']").tooltip();
             });
         </script>
     </head>
