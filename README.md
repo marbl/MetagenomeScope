@@ -192,6 +192,10 @@ A variety of settings are available in the viewer interface. These are
 accessible via the `Settings` button located near the top of the controls
 panel, which should be viewable on the left side of the application's display.
 
+There are three categories of settings, each housed in its own tab:
+[animation](#animation-settings), [performance](#performance-settings), and
+[colors](#color-settings)
+
 #### Animation Settings
 
 The viewer interface contains a few features designed to help provide the user
@@ -220,11 +224,18 @@ these settings are by no means comprehensive.**
 
 #### Performance Settings
 
-TODO
+The settings here can be used to obtain slight increases in performance of the
+application when visualizing large connected components. (As with the animation
+settings, these settings are definitely not comprehensive -- other settings may
+be added in the future to yield more performance benefits.)
 
 #### Color Settings
 
-TODO
+You can change the colors used in various parts of the graph drawings in this
+settings tab. Configurations of colors can also be exported to a
+[.tsv](https://en.wikipedia.org/wiki/Tab-separated_values) file; these files
+can later be imported into the viewer interface, to avoid having to manually
+set the color settings multiple times.
 
 ### Getting started
 
