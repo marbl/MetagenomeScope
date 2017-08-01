@@ -200,15 +200,15 @@ There are three categories of settings, each housed in its own tab:
 
 The viewer interface contains a few features designed to help provide the user
 with information as certain events occur -- for example, the progress bar is
-updated as files are loaded, and text is displayed as certain types of elements
-in the graph are drawn.
+updated as files are loaded, text is displayed as certain types of elements
+in the graph are drawn, and disabled buttons are displayed as semitransparent.
 
 Some of these ways in which the viewer interface is updated are, or have the
 potential to be, relatively fast.
 For example, the process of drawing a small graph might cause the progress bar
-to rise from 0% to 100% very quickly. Or the enabling/disabling of certain
+to rise from 0% to 100% quickly. Or the enabling/disabling of certain
 buttons (for example, during the process of drawing a graph), and the resulting
-changes of the buttons' styles, might seem slightly jarring to some users.
+changes of the buttons' styles, might seem jarring to some users.
 
 A few settings are available that you can use to disable some of the
 visual updates provided by the viewer interface. **Please note, however, that
