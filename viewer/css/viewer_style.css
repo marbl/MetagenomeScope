@@ -169,3 +169,9 @@ html, body {
 .csbtn {
     width: 100%;
 }
+.edge_chart_bar rect {
+    fill: maroon;
+}
+.edge_chart_bar text {
+    fill: #ffffff;
+}

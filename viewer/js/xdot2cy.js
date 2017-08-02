@@ -99,6 +99,9 @@ var BG_COLOR = undefined;
 // Booleans for whether or not to use certain performance options
 var HIDE_EDGES_ON_VIEWPORT = false;
 var TEXTURE_ON_VIEWPORT = false;
+// Array of edge weights in current connected component. Used when drawing a
+// histogram of edge weights.
+var COMPONENT_EDGE_WEIGHTS = [];
 // A reference to the current SQL.Database object from which we obtain the
 // graph's layout and biological data
 var CURR_DB = null;
@@ -1446,6 +1449,7 @@ function drawSPQRComponent(cmpRank) {
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
     SELECTED_CLUSTER_COUNT = 0;
+    COMPONENT_EDGE_WEIGHTS = [];
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
@@ -1606,6 +1610,7 @@ function drawComponent(cmpRank) {
     SELECTED_NODES = cy.collection();
     SELECTED_EDGES = cy.collection();
     SELECTED_CLUSTERS = cy.collection();
+    COMPONENT_EDGE_WEIGHTS = [];
     $("#scaffoldCycler").addClass("notviewable");
     // will be set to true if we find suitable scaffolds
     // the actual work of finding those scaffolds (if SCAFFOLDID2NODEKEYS is
@@ -2301,11 +2306,61 @@ function exportGraphView() {
     }
 }
 
-/* Opens the dialog for filtering edges. */
+/* Opens the dialog for filtering edges.
+ * This code was mostly taken from Mike Bostock's example of d3.js' histogram
+ * generation, available at https://gist.github.com/mbostock/3048450.
+ */
 function openEdgeFilteringDialog() {
     $("#edgeFilteringDialog").modal();
+    // NOTE there's a bug here -- need to clear the graph in between cc's, or
+    // something. TODO fix it.
+    // TODO fix gaps between bars
+    // TODO change x-axis, etc. to reflect actual edge weights instead of
+    // fraction of max edge weight
+    // TODO support user-suggested bin size?
+    var formatCount = d3.format(",.0f");
+    // note could probably find this inline to simplify computation time
+    var max = d3.max(COMPONENT_EDGE_WEIGHTS); 
+    console.log(COMPONENT_EDGE_WEIGHTS);
+    var data = COMPONENT_EDGE_WEIGHTS.map(function(x) { return x / max; });
+    var margin = {top: 10, right: 30, bottom: 30, left: 30};
+    //for (var i = 0; i < COMPONENT_EDGE_WEIGHTS.length; i++) {
+    //    console.log(COMPONENT_EDGE_WEIGHTS[i] + "->" + data[i]);
+    //}
     var chartSvg = d3.select("#edgeWeightChart");
-    chartSvg.style("background-color", "maroon");
+    var width = +chartSvg.attr("width") - margin.left - margin.right;
+    var height = +chartSvg.attr("height") - margin.top - margin.bottom;
+    var g = chartSvg.append("g")
+        .attr("transform","translate(" + margin.left + "," + margin.top + ")");
+    var x = d3.scaleLinear().rangeRound([0, width]);
+    var bins = d3.histogram().domain(x.domain()).thresholds(x.ticks(20))(data);
+    var y = d3.scaleLinear()
+        .domain([0, d3.max(bins, function(b) { return b.length; })])
+        .range([height, 0]);
+    var bar = g.selectAll(".edge_chart_bar")
+        .data(bins)
+        .enter().append("g")
+            .attr("class", "edge_chart_bar")
+            .attr("transform",
+                    function(b) {
+                        return "translate(" + x(b.x0) +","+ y(b.length) + ")";
+                    }
+            );
+    bar.append("rect")
+        .attr("x", 1)
+        .attr("width", x(bins[0].x1) - x(bins[0].x0) - 1)
+        .attr("height", function(d) { return height - y(d.length); });
+    bar.append("text")
+        .attr("dy", ".75em")
+        .attr("y", 6)
+        .attr("x", (x(bins[0].x1) - x(bins[0].x0)) / 2)
+        .attr("text-anchor", "middle")
+        .text(function(b) { return formatCount(b.length); });
+
+    g.append("g")
+        .attr("class", "axis axis--x")
+        .attr("transform", "translate(0," + height + ")")
+        .call(d3.axisBottom(x));
     // TODO generate "bins," then generate resulting chart
     // incl. axes, bars, etc.
 }
@@ -3910,6 +3965,9 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
         orientation = edgeObj['orientation'];
         mean = edgeObj['mean'];
         stdev = edgeObj['stdev'];
+        if (multiplicity !== undefined && multiplicity !== null) {
+            COMPONENT_EDGE_WEIGHTS.push(+multiplicity);
+        }
     }
     else {
         // Make edges between metanodes be handled properly
