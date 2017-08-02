@@ -599,7 +599,19 @@ with open(asm_fn, 'r') as assembly_file:
                     # fetch value from length attribute
                     l = line.split()
                     curr_node_bp = int(l[1].strip("\""))
+                elif line.strip().startswith("repeat"):
+                    l = line.split()
+                    curr_node_is_repeat = (l[1] == "1")
                 elif line.endswith("]\n"):
+                    # TODO pass the repeat value via optional arg to Node()
+                    # Then store the repeat thing in db_values, modifying the
+                    # corresponding database construction thing for nodes also
+                    # then in the viewer application in renderNodeObject()
+                    # if the node has repeat === 1 then we can assign its
+                    # repeatColor as the 100% color, and else we can assign its
+                    # repeatColor as the 0% color. Then adding colorization
+                    # stuff should just be a function of modifying the GC
+                    # content stuff
                     n = graph_objects.Node(curr_node_id, curr_node_bp,
                             (curr_node_orientation == '"REV"'),
                             label=curr_node_label)
@@ -1488,6 +1500,13 @@ for mode in ("implicit", "explicit"):
                                             (b1.id_string, b2.id_string)
                                     sc_compressed_edge_count += 1
         gv_input += "}"
+        #if len(sc.node_group_list) == 0 and sc_compressed_edge_count == 0 \
+        #    and len(sc.node_list) == 1:
+        #        # TODO verify this is actually correct
+        #        # TODO figure out sc bounding box dimensions
+        #        # TODO position the single node properly
+        #        # TODO then continue on?? actually idk
+        #        # (as a tmp measure we could totally just continue/break here)
         h = pygraphviz.AGraph(gv_input)
         # save the .gv file if the user requested .gv preservation
         # NOTE the error messages from if these cannot be saved might be very
