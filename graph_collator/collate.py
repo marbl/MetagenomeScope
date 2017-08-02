@@ -262,7 +262,7 @@ def assembly_gc(gc_ct, total_bp):
 def negate_node_id(id_string):
     """Negates a node ID.
     
-       e.g. "c18" -> "18", "18" -> "c18"
+       e.g. "-18" -> "18", "18" -> "-18"
     """
     if id_string[0] == '-':
         return id_string[1:]
