@@ -786,6 +786,18 @@ function addSelectedNodeInfo(ele) {
         var gcEntry = Math.round(ele.data("gc_content") * 10000) / 100 + "%";
         nodeRowHTML += TD_START + gcEntry + TD_CLOSE;
     }
+    if (REPEAT_INFO_AVAILABLE) {
+        var is_repeat = ele.data("is_repeat");
+        var repeatEntry;
+        if (is_repeat === 1) {
+            repeatEntry = "True";
+        } else if (is_repeat === 0) {
+            repeatEntry = "False";
+        } else {
+            repeatEntry = "Null";
+        }
+        nodeRowHTML += TD_START + repeatEntry + TD_CLOSE;
+    }
     nodeRowHTML += "</tr>";
     $("#nodeInfoTable").append(nodeRowHTML);
 }
@@ -1232,6 +1244,12 @@ function parseDBcomponents() {
         extraNodeCols++;
     } else {
         $("#gcContentCol").addClass("notviewable");
+    }
+    if (REPEAT_INFO_AVAILABLE) {
+        $("#repeatCol").removeClass("notviewable");
+        extraNodeCols++;
+    } else {
+        $("#repeatCol").addClass("notviewable");
     }
     if (ASM_FILETYPE === "GML") {
         // Node info adjustments
@@ -3755,7 +3773,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
                w: INCHES_TO_PIXELS * nodeObj['h'],
                h: INCHES_TO_PIXELS * nodeObj['w'], depth: nodeDepth,
                length: nodeLength, gc_content: nodeGC, gc_color: gcColor,
-               repeat_color: repeatColor};
+               repeat_color: repeatColor, is_repeat: nodeIsRepeat};
     if (parentID !== null) {
         var typeTag = parentID[0];
         // Don't assign explicit parents for metanodes/bicomponents in the SPQR
