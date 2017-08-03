@@ -1191,6 +1191,10 @@ function parseDBcomponents() {
     FINISHING_MODE_PREVIOUSLY_DONE = false;
     FINISHING_NODE_IDS = "";
     FINISHING_NODE_OBJS = [];
+    // This'll get changed to this anyway when drawing a component, but this
+    // way we prevent something else from being checked in the "in-between"
+    // state when no components have been drawn
+    $("#noneColorization").prop("checked", true);
     enableButton("xmlFileselectButton");
     enableButton("fileselectButton");
     enableButton("loadDBbutton");
@@ -1475,10 +1479,6 @@ function drawSPQRComponent(cmpRank) {
     $("#testLayoutsControls").addClass("notviewable");
     $("#collapseButtonControls").addClass("notviewable");
     $("#noneColorization").prop("checked", true);
-    $("#gcColorization").prop("checked", false);
-    $("#repeatColorization").prop("checked", false);
-    $("#geneColorization").prop("checked", false);
-    $("#depthColorization").prop("checked", false);
     CURR_NODE_COLORIZATION = "noncolorized";
     PREV_ROTATION = 0;
     CURR_ROTATION = 90;
@@ -1661,10 +1661,6 @@ function drawComponent(cmpRank) {
     // Disable other node colorization settings and check the "noncolorized"
     // node colorization option by default
     $("#noneColorization").prop("checked", true);
-    $("#gcColorization").prop("checked", false);
-    $("#repeatColorization").prop("checked", false);
-    $("#geneColorization").prop("checked", false);
-    $("#depthColorization").prop("checked", false);
     CURR_NODE_COLORIZATION = "noncolorized";
     PREV_ROTATION = 0;
     // NOTE -- DISABLED ROTATION -- to allow rotation uncomment below and
