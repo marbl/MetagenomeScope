@@ -890,7 +890,11 @@ function setPageBindings() {
     $("#maxcncp").on("changeColor", function(e) {
         redrawGradientPreview(e.color.toHex(), 1);
     });
-    // Assign DEFAULT_COLOR_SETTINGS
+    // Update the gradient preview to whatever the default colorization values
+    // are. Note that we have to manually set either the min or max color
+    // ourselves since redrawGradientPreview only handles one change at a time.
+    $("#100gp").css("background-color", $("#maxcncp").colorpicker("getValue"));
+    redrawGradientPreview($("#mincncp").colorpicker("getValue"), -1);
     DEFAULT_COLOR_SETTINGS = exportColorSettings(false);
     // If we add any tooltips, use this line to initialize them
     //$("[data-toggle='tooltip']").tooltip();
