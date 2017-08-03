@@ -213,13 +213,16 @@ function initGraph(viewType) {
     // default values here) in order to reduce redundancy, to thus make
     // changing the default values easier in the future (only have to change
     // the HTML, instead of both HTML and JS).
+    var tmpColor;
     if (MAX_RGB === undefined) {
-        MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
-        MAX_HEX = $("#maxcncp").colorpicker("getValue");
+        tmpColor = $("#maxcncp").data("colorpicker").color;
+        MAX_RGB = tmpColor.toRGB();
+        MAX_HEX = tmpColor.toHex();
     }
     if (MIN_RGB === undefined) {
-        MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
-        MIN_HEX = $("#mincncp").colorpicker("getValue");
+        tmpColor = $("#mincncp").data("colorpicker").color;
+        MIN_RGB = tmpColor.toRGB();
+        MIN_HEX = tmpColor.toHex();
     }
     BG_COLOR = $("#bgcp").colorpicker("getValue");
     DEFAULT_NODE_COLOR = $("#usncp").colorpicker("getValue");
@@ -3087,20 +3090,25 @@ function getNodeColorization(gc) {
  * Otherwise, we use hexColor as the new maximum color.
  */
 function redrawGradientPreview(hexColor, minOrMax) {
+    var tmpColor;
     if (minOrMax === -1) {
         $("#0gp").css("background-color", hexColor);
         MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
+        MIN_HEX = hexColor;
         if (MAX_RGB === undefined) {
-            MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
-            MAX_HEX = $("#maxcncp").colorpicker("getValue");
+            tmpColor = $("#maxcncp").data("colorpicker").color;
+            MAX_RGB = tmpColor.toRGB();
+            MAX_HEX = tmpColor.toHex();
         }
     }
     else {
         $("#100gp").css("background-color", hexColor);
         MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
+        MAX_HEX = hexColor;
         if (MIN_RGB === undefined) {
-            MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
-            MIN_HEX = $("#mincncp").colorpicker("getValue");
+            tmpColor = $("#mincncp").data("colorpicker").color;
+            MIN_RGB = tmpColor.toRGB();
+            MIN_HEX = tmpColor.toHex();
         }
     }
     // Change intermediate colors in the gradient
