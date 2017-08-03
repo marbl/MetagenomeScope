@@ -872,6 +872,30 @@ function removeSelectedEleInfo(ele) {
     $("#row" + ele.id().replace(">", "")).remove();
 }
 
+/* Sets bindings for certain DOM elements on the page.
+ * To be called when the DOM is ready to be manipulated.
+ */
+function setPageBindings() {
+    // Ensure that all colorpickers (the pop-up things where
+    // you can select a color with the mouse) get closed when
+    // the settings dialog is closed.
+    $("#settingsDialog").on("hide.bs.modal", function(e) {
+        $(".colorpicker-component").colorpicker("hide");
+    });
+    // Initialize colorpickers
+    $(".colorpicker-component").colorpicker({format: 'hex'});
+    $("#mincncp").on("changeColor", function(e) {
+        redrawGradientPreview(e.color.toHex(), -1);
+    });
+    $("#maxcncp").on("changeColor", function(e) {
+        redrawGradientPreview(e.color.toHex(), 1);
+    });
+    // Assign DEFAULT_COLOR_SETTINGS
+    DEFAULT_COLOR_SETTINGS = exportColorSettings(false);
+    // If we add any tooltips, use this line to initialize them
+    //$("[data-toggle='tooltip']").tooltip();
+}
+
 // Sets bindings for certain objects in the graph.
 function setGraphBindings() {
     // Enable right-clicking to collapse/uncollapse compound nodes
