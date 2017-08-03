@@ -157,7 +157,7 @@ class Node(object):
        and as the superclass for groups of nodes.
     """
     def __init__(self, id_string, bp, is_complement, depth=None,
-                 gc_content=None, label=None, is_single=False):
+                 gc_content=None, label=None, is_single=False, is_repeat=None):
         """Initializes the object. bp initially stood for "base pairs," but
            it really just means the length of this node. In single graphs
            that's measured in bp and in double graphs that's measured in nt.
@@ -169,6 +169,8 @@ class Node(object):
         self.depth = depth
         self.gc_content = gc_content
         self.label = label
+        # Either 1 (is a repeat), 0 (is not a repeat), or None (not given)
+        self.is_repeat = is_repeat
         # If True, we use the "flipped" node style
         self.is_complement = is_complement
         # If True, we draw nodes without direction
@@ -372,8 +374,8 @@ class Node(object):
             ix = parent_bicmp.xdot_ileft + irelpos[0]
             iy = parent_bicmp.xdot_ibottom + irelpos[1]
         return (self.id_string, self.label, self.bp, self.gc_content,
-                self.depth, self.component_size_rank, x, y, ix, iy,
-                self.xdot_width, self.xdot_height, parent_metanode_id,
+                self.depth, self.is_repeat, self.component_size_rank, x, y,
+                ix, iy, self.xdot_width, self.xdot_height, parent_metanode_id,
                 parent_bicmp_id)
 
     def db_values(self):
@@ -398,8 +400,8 @@ class Node(object):
             group_id = self.group.cy_id_string
         length = self.bp
         return (self.id_string, self.label, length, self.gc_content,
-                self.depth, self.component_size_rank, self.xdot_x,
-                self.xdot_y, self.xdot_width, self.xdot_height,
+                self.depth, self.is_repeat, self.component_size_rank,
+                self.xdot_x, self.xdot_y, self.xdot_width, self.xdot_height,
                 self.xdot_shape, group_id)
 
     def __repr__(self):

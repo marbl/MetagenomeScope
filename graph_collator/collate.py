@@ -425,6 +425,10 @@ distinct_single_graph = True
 # file along with GML/GFA files that don't have DNA explicitly given -- so
 # these constraints are subject to change.)
 dna_given = True
+# Whether or not repeat data for nodes is provided. Currently this is only
+# passed through certain GML files, so we assume it's false until we encounter
+# a node with repeat data provided.
+repeats_given = False
 total_node_count = 0
 total_edge_count = 0
 total_all_edge_count = 0
@@ -573,6 +577,7 @@ with open(asm_fn, 'r') as assembly_file:
         curr_node_id = None
         curr_node_bp = 0
         curr_node_orientation = None
+        curr_node_is_repeat = None
         parsing_edge = False
         curr_edge_src_id = None
         curr_edge_tgt_id = None
@@ -601,7 +606,7 @@ with open(asm_fn, 'r') as assembly_file:
                     curr_node_bp = int(l[1].strip("\""))
                 elif line.strip().startswith("repeat"):
                     l = line.split()
-                    curr_node_is_repeat = (l[1] == "1")
+                    curr_node_is_repeat = int(l[1])
                 elif line.endswith("]\n"):
                     # TODO pass the repeat value via optional arg to Node()
                     # Then store the repeat thing in db_values, modifying the
@@ -612,23 +617,33 @@ with open(asm_fn, 'r') as assembly_file:
                     # repeatColor as the 0% color. Then adding colorization
                     # stuff should just be a function of modifying the GC
                     # content stuff
+                    # Also the detection of a single node where
+                    # curr_node_is_repeat != None should result in a
+                    # REPEAT_INFO_AVAILABLE var or something getting set to
+                    # true, which should then be stored in the assembly table
+                    # in the database. we'll use that in the viewer JS.
                     n = graph_objects.Node(curr_node_id, curr_node_bp,
                             (curr_node_orientation == '"REV"'),
-                            label=curr_node_label)
+                            label=curr_node_label,
+                            is_repeat=curr_node_is_repeat)
                     add_node_to_stdmode_mapping(n)
                     # Create single Node object, for the SPQR-integrated graph
                     sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                            label=curr_node_label, is_single=True)
+                            label=curr_node_label, is_single=True,
+                            is_repeat=curr_node_is_repeat)
                     singlenodeid2obj[curr_node_id] = sn
                     # Record this node for graph statistics
                     total_node_count += 1
                     total_length += curr_node_bp
                     bp_length_list.append(curr_node_bp)
+                    if curr_node_is_repeat != None:
+                        repeats_given = True
                     # Clear tmp/marker variables
                     parsing_node = False
                     curr_node_id = None
                     curr_node_bp = 0
                     curr_node_orientation = None
+                    curr_node_is_repeat = None
             elif parsing_edge:
                 if line.strip().startswith("source"):
                     l = line.split()
@@ -1301,14 +1316,14 @@ connection = sqlite3.connect(db_fullfn)
 cursor = connection.cursor()
 # Define statements used for inserting a value into these tables
 # The number of question marks has to match the number of table columns
-NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
 EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
 ASSEMBLY_INSERTION_STMT = \
-    "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
+    "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
 SINGLENODE_INSERTION_STMT = \
-    "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+    "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
 SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?)"
 BICOMPONENT_INSERTION_STMT = \
     "INSERT INTO bicomponents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
@@ -1319,8 +1334,8 @@ SINGLECOMPONENT_INSERTION_STMT = \
     "INSERT INTO singlecomponents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 cursor.execute("""CREATE TABLE nodes
         (id text, label text, length integer, gc_content real, depth real,
-        component_rank integer, x real, y real, w real, h real,
-        shape text, parent_cluster_id text)""")
+        is_repeat integer, component_rank integer, x real, y real, w real,
+        h real, shape text, parent_cluster_id text)""")
 cursor.execute("""CREATE TABLE edges
         (source_id text, target_id text, multiplicity integer, thickness real,
         is_outlier integer, orientation text, mean real, stdev real,
@@ -1337,12 +1352,13 @@ cursor.execute("""CREATE TABLE assembly
         edge_count integer, all_edge_count integer, component_count integer,
         bicomponent_count integer, single_component_count integer,
         total_length integer, n50 integer, gc_content real,
-        dna_given integer)""")
+        dna_given integer, repeats_given integer)""")
 # SPQR view tables
 cursor.execute("""CREATE TABLE singlenodes
         (id text, label text, length integer, gc_content real, depth real,
-        scc_rank integer, x real, y real, i_x real, i_y real, w real, h real,
-        parent_metanode_id text, parent_bicomponent_id text)""")
+        is_repeat integer, scc_rank integer, x real, y real, i_x real,
+        i_y real, w real, h real, parent_metanode_id text,
+        parent_bicomponent_id text)""")
 cursor.execute("""CREATE TABLE singleedges
         (source_id text, target_id text, scc_rank integer,
         parent_metanode_id text, is_virtual integer)""")
@@ -1374,10 +1390,12 @@ dna_given_val = 0
 if dna_given:
     asm_gc = assembly_gc(total_gc_nt_count, total_length)
     dna_given_val = 1
+repeats_given_val = 1 if repeats_given else 0
 graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
             total_edge_count, total_all_edge_count, total_component_count,
             total_bicomponent_count, total_single_component_count,
-            total_length, n50(bp_length_list), asm_gc, dna_given_val)
+            total_length, n50(bp_length_list), asm_gc, dna_given_val,
+            repeats_given_val)
 cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
 
