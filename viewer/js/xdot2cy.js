@@ -1269,6 +1269,18 @@ function disableButton(buttonID) {
     $("#" + buttonID).prop("disabled", true);
 }
 
+/* Like disableButton(), but for the inline radio buttons used for node
+ * colorization options. Since these don't have "disabled" as a class, we use
+ * a different method for disabling them.
+ */
+function disableInlineRadio(inputID) {
+    $("#" + inputID).prop("disabled", true);
+}
+
+function enableInlineRadio(inputID) {
+    $("#" + inputID).prop("disabled", false);
+}
+
 /* Disables some "volatile" controls in the graph. Should be used when doing
  * any sort of operation, I guess. */
 function disableVolatileControls() {
@@ -1314,8 +1326,11 @@ function disableVolatileControls() {
     disableButton("pngOption");
     disableButton("jpgOption");
     disableButton("changeNodeColorizationButton");
-    disableButton("noNodeColorizationOption");
-    disableButton("gcNodeColorizationOption");
+    disableInlineRadio("noneColorization");
+    disableInlineRadio("gcColorization");
+    disableInlineRadio("repeatColorization");
+    disableInlineRadio("geneColorization");
+    disableInlineRadio("depthColorization");
     clearSelectedInfo();
 }
 
@@ -1459,8 +1474,11 @@ function drawSPQRComponent(cmpRank) {
     $("#viewScaffoldsControls").addClass("notviewable");
     $("#testLayoutsControls").addClass("notviewable");
     $("#collapseButtonControls").addClass("notviewable");
-    $("#noNodeColorizationOption").addClass("active");
-    $("#gcNodeColorizationOption").removeClass("active");
+    $("#noneColorization").prop("checked", true);
+    $("#gcColorization").prop("checked", false);
+    $("#repeatColorization").prop("checked", false);
+    $("#geneColorization").prop("checked", false);
+    $("#depthColorization").prop("checked", false);
     CURR_NODE_COLORIZATION = "noncolorized";
     PREV_ROTATION = 0;
     CURR_ROTATION = 90;
@@ -1642,8 +1660,11 @@ function drawComponent(cmpRank) {
     $("#collapseButtonControls").removeClass("notviewable");
     // Disable other node colorization settings and check the "noncolorized"
     // node colorization option by default
-    $("#noNodeColorizationOption").addClass("active");
-    $("#gcNodeColorizationOption").removeClass("active")
+    $("#noneColorization").prop("checked", true);
+    $("#gcColorization").prop("checked", false);
+    $("#repeatColorization").prop("checked", false);
+    $("#geneColorization").prop("checked", false);
+    $("#depthColorization").prop("checked", false);
     CURR_NODE_COLORIZATION = "noncolorized";
     PREV_ROTATION = 0;
     // NOTE -- DISABLED ROTATION -- to allow rotation uncomment below and
@@ -1953,13 +1974,18 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("dir270");
         enableButton("pngOption");
         enableButton("jpgOption");
-        if (DNA_AVAILABLE) {
-            // G/C content is available, so enable the corresponding buttons
-            // We'll have to change this protocol when we add more colorization
-            // options based on different data
+        // TODO get R_I_A from db, NOT relying on GML
+        var REPEAT_INFO_AVAILABLE = (ASM_FILETYPE === "GML");
+        if (DNA_AVAILABLE || REPEAT_INFO_AVAILABLE) {
             enableButton("changeNodeColorizationButton");
-            enableButton("noNodeColorizationOption");
-            enableButton("gcNodeColorizationOption");
+            enableInlineRadio("noneColorization");
+            if (DNA_AVAILABLE) {
+                // GC content is available
+                enableInlineRadio("gcColorization");
+            }
+            if (REPEAT_INFO_AVAILABLE) {
+                enableInlineRadio("repeatColorization");
+            }
         }
         enableButton("settingsButton");
         cy.userPanningEnabled(true);
@@ -2935,18 +2961,8 @@ function exportPath() {
     }
 }
 
-function removeNodeColorization(node) {
-    node.removeClass("gccolorized");
-    node.addClass("noncolorized");
-}
-
-function addGCNodeColorization(node) {
-    node.removeClass("noncolorized");
-    node.addClass("gccolorized");
-}
-
 function startChangeNodeColorization() {
-    var newColorization = $("#nodeColorizationButtonGroup .btn.active")
+    var newColorization = $("#nodeColorizationRadioButtonGroup input:checked")
         .attr("value");
     // We check to ensure the new colorization would be different from the
     // current one -- if not, we don't bother doing anything
@@ -2961,17 +2977,14 @@ function startChangeNodeColorization() {
 
 function changeNodeColorization(newColorization) {
     cy.startBatch();
-    var nodeStyleFunction;
-    if (newColorization === "gccolorized") {
-        nodeStyleFunction = addGCNodeColorization;
-    }
-    else {
-        nodeStyleFunction = removeNodeColorization;
-    }
-    cy.filter('node.noncluster').each(nodeStyleFunction);
+    cy.filter('node.noncluster')
+        .removeClass(CURR_NODE_COLORIZATION)
+        .addClass(newColorization);
     // Make sure to apply the colorization to collapsed nodes, also!
     cy.scratch("_collapsed").each(function(nodeGroup, i) {
-        nodeGroup.scratch("_interiorNodes").each(nodeStyleFunction);
+        nodeGroup.scratch("_interiorNodes")
+            .removeClass(CURR_NODE_COLORIZATION)
+            .addClass(newColorization);
     });
     CURR_NODE_COLORIZATION = newColorization;
     cy.endBatch();

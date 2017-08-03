@@ -377,31 +377,38 @@
             </div>
             <div id="nodeColorizationControls">
                 <h4>Node Colorization</h4>
-                <p>
-                <div class="btn-group" data-toggle="buttons"
-                    id="nodeColorizationButtonGroup"
-                    aria-label="Node colorization selector">
-                    <button class="btn btn-default active disabled btn-sm"
-                        value="noncolorized" id="noNodeColorizationOption"
-                        disabled="disabled">
-                        <input type="radio" name="nodeColorization"
-                            id="noNodeColorization" autocomplete="off">None
-                    </button>
-                    <button class="btn btn-default disabled btn-sm"
-                            value="gccolorized" id="gcNodeColorizationOption"
-                            disabled="disabled">
-                        <input type="radio" name="nodeColorization"
-                            id="gcNodeColorization"
-                            autocomplete="off">GC Content
-                    </button>
+                <div class="radio" id="nodeColorizationRadioButtonGroup">
+                    <label class="radio-inline">
+                        <input type="radio" name="nodeColorization" disabled
+                            id="noneColorization" value="noncolorized" checked>
+                        None
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="nodeColorization" disabled
+                            id="gcColorization" value="gccolorized">
+                        GC content
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="nodeColorization" disabled
+                            id="repeatColorization" value="repeatcolorized">
+                        Repeats
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="nodeColorization" disabled
+                            id="geneColorization" value="genecolorized">
+                        Gene content
+                    </label>
+                    <label class="radio-inline">
+                        <input type="radio" name="nodeColorization" disabled
+                            id="depthColorization" value="depthcolorized">
+                        Depth
+                    </label>
                 </div>
-
                 <button class='btn btn-default btn-sm disabled'
                     disabled="disabled" id='changeNodeColorizationButton'
                     onclick='startChangeNodeColorization();'><span
                         class="glyphicon glyphicon-check"></span> &nbsp; Apply
                 </button>
-                </p>
 
                 <hr />
             </div>
