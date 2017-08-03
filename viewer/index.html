@@ -55,6 +55,10 @@
                 $("#maxcncp").on("changeColor", function(e) {
                     redrawGradientPreview(e.color.toHex(), 1);
                 });
+                // Assign DEFAULT_COLOR_SETTINGS
+                $(function() {
+                    DEFAULT_COLOR_SETTINGS = exportColorSettings(false);
+                });
                 // If we add any tooltips, use this line to initialize them
                 //$("[data-toggle='tooltip']").tooltip();
             });
@@ -792,7 +796,7 @@
                                     <button
                                         class="btn btn-default btn-sm csbtn"
                                         id="exportColorSettingsButton"
-                                        onclick="exportColorSettings();">
+                                        onclick="exportColorSettings(true);">
                                         <span class="glyphicon glyphicon-download-alt"
                                           aria-hidden="true"></span> &nbsp;
                                           Export color settings file
@@ -867,11 +871,6 @@
                                         rgb(255, 34, 0);">
                                           &nbsp;&nbsp;&nbsp;&nbsp;</span>
                                     </div>
-                                    <!-- NOTE that changes to the defaults here
-                                        should be reflected in
-                                        DEFAULT_COLOR_SETTINGS in
-                                        viewer/index.html
-                                    -->
                                     <div class="container-fluid">
                                     <div class="row">
                                     <!-- Left column -->

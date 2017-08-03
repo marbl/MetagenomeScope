@@ -98,9 +98,10 @@ var MIN_HEX = undefined;
 // colorizing nodes that have no repeat data (but other nodes do have repeat
 // data).
 var DEFAULT_NODE_COLOR = undefined;
-// The default colorization settings, in string format.
+// The default colorization settings. This variable is written to when the
+// window is loaded.
 // Used for the "reset color settings to defaults" button.
-var DEFAULT_COLOR_SETTINGS = "mincncp\t#0022ff\nmaxcncp\t#ff2200\ncnlcp\t#ffffff\ncsnlcp\t#ffffff\nusncp\t#777777\nbubblecp\t#9abaf3\nfropecp\t#59f459\nchaincp\t#fcaca3\nychaincp\t#ffd163\nspqrscp\t#ffd644\nspqrpcp\t#eb8ef9\nspqrrcp\t#31bf6f\nbicmpcp\t#e9e9e9\ntnbcp\t#000000\ntngbcp\t#000000\nusnlcp\t#ffffff\nsnlcp\t#ffffff\nusecp\t#555555\nsecp\t#111111\nhoecp\t#ff0000\nhosecp\t#800000\nloecp\t#0000ff\nlosecp\t#000080\ncngcccp\t#000000\nsngbcp\t#000000\nbgcp\t#ffffff\n"
+var DEFAULT_COLOR_SETTINGS = undefined;
 // The background color of the graph. Set in initGraph().
 var BG_COLOR = undefined;
 // Booleans for whether or not to use certain performance options
@@ -2149,12 +2150,19 @@ function startIndeterminateProgressBar() {
     }
 }
 
-function exportColorSettings() {
+/* If toDownload is true, calls downloadDataURI(); otherwise, just returns the
+ * color settings string.
+ */
+function exportColorSettings(toDownload) {
     var textToExport = "";
     $(".colorpicker-component").each(function(i) {
         textToExport += this.id +"\t"+ $(this).colorpicker("getValue") + "\n";
     });
-    downloadDataURI("metagenomescope_color_settings.tsv", textToExport, true);
+    if (toDownload) {
+        downloadDataURI("color_settings.tsv", textToExport, true);
+    } else {
+        return textToExport;
+    }
 }
 
 /* Resets the color settings to DEFAULT_COLOR_SETTINGS, defined above. */
