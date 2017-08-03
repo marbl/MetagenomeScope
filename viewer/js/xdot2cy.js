@@ -797,7 +797,7 @@ function addSelectedNodeInfo(ele) {
         } else if (is_repeat === 0) {
             repeatEntry = "False";
         } else {
-            repeatEntry = "Null";
+            repeatEntry = "N/A";
         }
         nodeRowHTML += TD_START + repeatEntry + TD_CLOSE;
     }
