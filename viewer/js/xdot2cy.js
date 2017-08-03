@@ -91,6 +91,9 @@ var CURR_NODE_COLORIZATION = null;
 // calls would suffice.
 var MAX_RGB = undefined;
 var MIN_RGB = undefined;
+// The hex string colors for MAX_RGB and MIN_RGB.
+var MAX_HEX = undefined;
+var MIN_HEX = undefined;
 // The default node color in the current colorization settings. Used when
 // colorizing nodes that have no repeat data (but other nodes do have repeat
 // data).
@@ -212,9 +215,11 @@ function initGraph(viewType) {
     // the HTML, instead of both HTML and JS).
     if (MAX_RGB === undefined) {
         MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
+        MAX_HEX = $("#maxcncp").colorpicker("getValue");
     }
     if (MIN_RGB === undefined) {
         MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
+        MIN_HEX = $("#mincncp").colorpicker("getValue");
     }
     BG_COLOR = $("#bgcp").colorpicker("getValue");
     DEFAULT_NODE_COLOR = $("#usncp").colorpicker("getValue");
@@ -3069,6 +3074,7 @@ function redrawGradientPreview(hexColor, minOrMax) {
         MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
         if (MAX_RGB === undefined) {
             MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
+            MAX_HEX = $("#maxcncp").colorpicker("getValue");
         }
     }
     else {
@@ -3076,6 +3082,7 @@ function redrawGradientPreview(hexColor, minOrMax) {
         MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
         if (MIN_RGB === undefined) {
             MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
+            MIN_HEX = $("#mincncp").colorpicker("getValue");
         }
     }
     // Change intermediate colors in the gradient
@@ -3734,7 +3741,14 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             repeatColor = DEFAULT_NODE_COLOR;
         }
         else {
-            repeatColor = getNodeColorization(nodeIsRepeat);
+            // We could call getNodeColorization() with nodeIsRepeat, but
+            // since nodeIsRepeat can only be either 1 or 0 that'd be kind of
+            // inefficient, since we can just use MAX_HEX and MIN_HEX.
+            if (nodeIsRepeat === 1) {
+                repeatColor = MAX_HEX;
+            } else {
+                repeatColor = MIN_HEX;
+            }
         }
     }
     var nodeData = {id: cyNodeID, label: labelUsed,
