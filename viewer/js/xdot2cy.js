@@ -875,7 +875,7 @@ function removeSelectedEleInfo(ele) {
 /* Sets bindings for certain DOM elements on the page.
  * To be called when the DOM is ready to be manipulated.
  */
-function setPageBindings() {
+function doThingsWhenDOMReady() {
     // Ensure that all colorpickers (the pop-up things where
     // you can select a color with the mouse) get closed when
     // the settings dialog is closed.
@@ -898,6 +898,18 @@ function setPageBindings() {
     DEFAULT_COLOR_SETTINGS = exportColorSettings(false);
     // If we add any tooltips, use this line to initialize them
     //$("[data-toggle='tooltip']").tooltip();
+}
+
+// Things that are bound to the "beforeunload" event on the window.
+function doThingsBeforeUnload() {
+    closeDB();
+    // We call resetColorSettings() so that changes to the color scheme don't
+    // get preserved when the page is reloaded via, say, the back/forward
+    // browser button -- that'll have the effect of the DEFAULT_COLOR_SETTINGS
+    // being set (in doThingsWhenDOMReady()) to the modified state, essentially
+    // removing the functionality of resetColorSettings() for the modified
+    // values.
+    resetColorSettings();
 }
 
 // Sets bindings for certain objects in the graph.

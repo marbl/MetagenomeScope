@@ -43,9 +43,9 @@
         <!-- Initialize some event bindings for the application -->
         <script>
             $(function() {
-                $(window).on("beforeunload", closeDB);
+                $(window).on("beforeunload", doThingsBeforeUnload);
                 // $(f) is an alias for $().ready(f), where f is a function
-                $(setPageBindings);
+                $(doThingsWhenDOMReady);
             });
         </script>
     </head>
