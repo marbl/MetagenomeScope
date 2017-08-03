@@ -91,6 +91,10 @@ var CURR_NODE_COLORIZATION = null;
 // calls would suffice.
 var MAX_RGB = undefined;
 var MIN_RGB = undefined;
+// The default node color in the current colorization settings. Used when
+// colorizing nodes that have no repeat data (but other nodes do have repeat
+// data).
+var DEFAULT_NODE_COLOR = undefined;
 // The default colorization settings, in string format.
 // Used for the "reset color settings to defaults" button.
 var DEFAULT_COLOR_SETTINGS = "mincncp\t#0022ff\nmaxcncp\t#ff2200\ncnlcp\t#ffffff\ncsnlcp\t#ffffff\nusncp\t#999999\nbubblecp\t#9abaf3\nfropecp\t#59f459\nchaincp\t#fcaca3\nychaincp\t#ffd163\nspqrscp\t#ffd644\nspqrpcp\t#eb8ef9\nspqrrcp\t#31bf6f\nbicmpcp\t#e9e9e9\ntnbcp\t#000000\ntngbcp\t#000000\nusnlcp\t#000000\nsnlcp\t#ffffff\nusecp\t#777777\nsecp\t#222222\nhoecp\t#ff0000\nhosecp\t#800000\nloecp\t#0000ff\nlosecp\t#000080\ncngcccp\t#000000\nsngbcp\t#000000\nbgcp\t#ffffff\n"
@@ -110,6 +114,9 @@ var ASM_FILETYPE;
 // Whether or not actual DNA sequences were provided to the preprocessing
 // script (impacts the availability of GC content display and colorization)
 var DNA_AVAILABLE;
+// Whether or not repeat data was provided in the input to the preprocessing
+// script (impacts the availability of repeat colorization)
+var REPEAT_INFO_AVAILABLE;
 // FIlename of the currently loaded .db file
 var DB_FILENAME;
 // Total number of nodes and edges in the current asm graph
@@ -210,6 +217,7 @@ function initGraph(viewType) {
         MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
     }
     BG_COLOR = $("#bgcp").colorpicker("getValue");
+    DEFAULT_NODE_COLOR = $("#usncp").colorpicker("getValue");
     $("#cy").css("background", BG_COLOR);
     cy = cytoscape({
         container: document.getElementById("cy"),
@@ -404,7 +412,7 @@ function initGraph(viewType) {
             {
                 selector: 'node.noncluster.noncolorized',
                 style: {
-                    'background-color': $("#usncp").colorpicker("getValue"),
+                    'background-color': DEFAULT_NODE_COLOR,
                     'color': $("#usnlcp").colorpicker("getValue")
                 }
             },
@@ -412,6 +420,13 @@ function initGraph(viewType) {
                 selector: 'node.noncluster.gccolorized',
                 style: {
                     'background-color': 'data(gc_color)',
+                    'color': $("#cnlcp").colorpicker("getValue")
+                }
+            },
+            {
+                selector: 'node.noncluster.repeatcolorized',
+                style: {
+                    'background-color': 'data(repeat_color)',
                     'color': $("#cnlcp").colorpicker("getValue")
                 }
             },
@@ -1122,6 +1137,7 @@ function parseDBcomponents() {
     // Record Assembly G/C content (not available for GML files)
     var asmGC = graphInfo["gc_content"];
     DNA_AVAILABLE = (graphInfo["dna_given"] === 1) ? true : false;
+    REPEAT_INFO_AVAILABLE = (graphInfo["repeats_given"] === 1) ? true : false;
     if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA") {
         // Since the nodes in these graphs are unoriented (i.e. we draw both
         // strands of each sequence of DNA included in the assembly graph),
@@ -1970,8 +1986,6 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("dir270");
         enableButton("pngOption");
         enableButton("jpgOption");
-        // TODO get R_I_A from db, NOT relying on GML
-        var REPEAT_INFO_AVAILABLE = (ASM_FILETYPE === "GML");
         if (DNA_AVAILABLE || REPEAT_INFO_AVAILABLE) {
             enableButton("changeNodeColorizationButton");
             enableInlineRadio("noneColorization");
@@ -3685,6 +3699,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     var nodeDepth = null;
     var nodeLength = null;
     var nodeGC = null;
+    var nodeIsRepeat = null;
     if (mode === "SPQR") {
         parentID = nodeObj['parent_metanode_id'];
         if (CURR_SPQRMODE === "implicit") {
@@ -3706,14 +3721,27 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     nodeDepth = nodeObj['depth'];
     nodeLength = nodeObj['length'];
     nodeGC = nodeObj['gc_content'];
+    nodeIsRepeat = nodeObj['is_repeat'];
     var gcColor = null;
     if (nodeGC !== null) {
         gcColor = getNodeColorization(nodeGC); 
     }
+    var repeatColor = null;
+    if (nodeIsRepeat !== undefined) {
+        if (nodeIsRepeat === null) {
+            // Repeat data exists for other nodes, but this node doesn't have
+            // any given: color it the default node color
+            repeatColor = DEFAULT_NODE_COLOR;
+        }
+        else {
+            repeatColor = getNodeColorization(nodeIsRepeat);
+        }
+    }
     var nodeData = {id: cyNodeID, label: labelUsed,
                w: INCHES_TO_PIXELS * nodeObj['h'],
                h: INCHES_TO_PIXELS * nodeObj['w'], depth: nodeDepth,
-               length: nodeLength, gc_content: nodeGC, gc_color: gcColor};
+               length: nodeLength, gc_content: nodeGC, gc_color: gcColor,
+               repeat_color: repeatColor};
     if (parentID !== null) {
         var typeTag = parentID[0];
         // Don't assign explicit parents for metanodes/bicomponents in the SPQR
