@@ -814,9 +814,11 @@ function addSelectedEdgeInfo(ele) {
         displayTargetID = ele.data("disptgt");
     }
     else {
-        var canonicalSourceAndTargetNode = ele.id().split("->");
-        displaySourceID = canonicalSourceAndTargetNode[0];
-        displayTargetID = canonicalSourceAndTargetNode[1];
+        //var canonicalSourceAndTargetNode = ele.id().split("->");
+        //displaySourceID = canonicalSourceAndTargetNode[0];
+        //displayTargetID = canonicalSourceAndTargetNode[1];
+        displaySourceID = ele.source().id();
+        displayTargetID = ele.target().id();
     }
     var edgeRowHTML = "<tr class='nonheader' id='row" +
         ele.id().replace(">", "") + "'><td>" +
@@ -4137,7 +4139,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
         // info, just render it as a bezier edge and be done with it
         cy.add({
             classes: "basicbezier oriented" + isOutlierClass,
-            data: {id: edgeID, source: sourceID, target: targetID,
+            data: {source: sourceID, target: targetID,
                    thickness: edgeWidth, multiplicity: multiplicity,
                    orientation: orientation, mean: mean, stdev: stdev}
         });
@@ -4224,7 +4226,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
         // The control points should (hopefully) be valid
         cy.add({
             classes: "unbundledbezier" + extraClasses,
-          data: {id: edgeID, source: sourceID, target: targetID,
+          data: {source: sourceID, target: targetID,
                  cpd: ctrlPtDists, cpw: ctrlPtWeights,
                  thickness: edgeWidth, multiplicity: multiplicity,
                  orientation: orientation, mean: mean, stdev: stdev}
@@ -4235,7 +4237,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
         // we can just represent this as a straight bezier curve
       cy.add({
           classes: "basicbezier" + extraClasses,
-          data: {id: edgeID, source: sourceID, target: targetID,
+          data: {source: sourceID, target: targetID,
                  thickness: edgeWidth, multiplicity: multiplicity,
                  orientation: orientation, mean: mean, stdev: stdev}
       });
