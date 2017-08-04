@@ -2431,12 +2431,16 @@ function openEdgeFilteringDialog() {
     var formatCount = d3.format(",.0f");
     // note could probably find this inline to simplify computation time
     var max = d3.max(COMPONENT_EDGE_WEIGHTS); 
-    console.log(COMPONENT_EDGE_WEIGHTS);
+    //console.log(COMPONENT_EDGE_WEIGHTS);
     var data = COMPONENT_EDGE_WEIGHTS.map(function(x) { return x / max; });
     var margin = {top: 10, right: 30, bottom: 30, left: 30};
     //for (var i = 0; i < COMPONENT_EDGE_WEIGHTS.length; i++) {
     //    console.log(COMPONENT_EDGE_WEIGHTS[i] + "->" + data[i]);
     //}
+    // Remove old histogram so that it doesn't get drawn over
+    // Eventually we might want to consider only redrawing the histogram when
+    // we open up a new cc, but for now it's fine
+    d3.select("#edgeWeightChart *").remove();
     var chartSvg = d3.select("#edgeWeightChart");
     var width = +chartSvg.attr("width") - margin.left - margin.right;
     var height = +chartSvg.attr("height") - margin.top - margin.bottom;
