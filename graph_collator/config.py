@@ -38,33 +38,6 @@ POINTS_PER_INCH = 72.0
 # This should match up with the defaults on most systems.
 AUXMOD = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
 
-# NOTE that changing MAX_COMPONENTS or MIN_COMPONENT_SIZE will result in
-# strange behavior with those component ranks in the MetagenomeScope viewer
-# (see #35 on the GitHub page).
-# Really, with the .db approach you should just be laying out all components at
-# once. But as long as this config feature is still here, I figured a warning
-# would be useful.
-# How many connected components to display. Displays largest (by number of
-# nodes) components first -- so MAX_COMPONENTS = 1 displays only the largest
-# component, = 2 displays only the two largest components, etc.
-# Setting this to None will just display all components.
-# If MAX_COMPONENTS > the actual number of components in the graph, all
-# components (with size >= MIN_COMPONENT_SIZE)  will be displayed.
-MAX_COMPONENTS = None
-# Minimum number of contigs for a connected component to be laid out by
-# GraphViz. This is to avoid laying out a ton of small, unconnected groups
-# of nodes.
-# (If you want to lay out all connected components, even ones containing
-# single nodes, then you can set MIN_COMPONENT_SIZE to 1.)
-# As an example, if a graph contains 5 connected components:
-# -One with 20 nodes
-# -One with 10 nodes
-# -One with  5 nodes
-# -Two with  1 node each
-# And MIN_COMPONENT_SIZE is set to 10, then even if MAX_COMPONENTS == None
-# or MAX_COMPONENTS > 2, only the first two connected components will be
-# displayed.
-MIN_COMPONENT_SIZE = 1
 # These are used directly in GraphViz, so they're in "inches". Granted,
 # "inches" are really an intermediate unit from our perspective since they're
 # converted to pixels in the viewer interface's code.

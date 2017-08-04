@@ -1808,13 +1808,8 @@ no_print = False # used to reduce excess printing (see issue #133 on GitHub)
 # message below and 2) the first "small" component has aux file(s) that cannot
 # be saved.
 first_small_component = False 
-for component in connected_components[:config.MAX_COMPONENTS]:
-    # Since the component list is in descending order, if the current
-    # component has less than config.MIN_COMPONENT_SIZE nodes then we're
-    # done with displaying components
+for component in connected_components:
     component_node_ct = len(component.node_list)
-    if component_node_ct < config.MIN_COMPONENT_SIZE:
-        break
     first_small_component = False
     if not no_print:
         if component_node_ct < 5:
