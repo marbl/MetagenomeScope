@@ -1399,8 +1399,6 @@ graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
 cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
 
-operation_msg(config.SPQRVIEW_LAYOUT_MSG)
-
 # Layout both the implicit and explicit SPQR tree views
 # NOTE that the order matters, since things are written to the database after
 # laying out the explicit mode but not after laying out the implicit mode
@@ -1416,10 +1414,33 @@ implicit_spqr_edge_counts = []
 for mode in ("implicit", "explicit"):
     t1 = time.time()
     single_component_size_rank = 1
+    no_print = False
     for scc in single_connected_components:
         # Layout this "single" connected component of the SPQR view
-        # TODO send operation_msgs per connected component, instead of just
-        # using the single "SPQRVIEW_LAYOUT_MSG"
+
+        first_small_component = False
+        if not no_print:
+            # TODO VVV inaccurate; look @ how scc's are sorted above & rectify
+            component_node_ct = len(scc.node_list) 
+            if component_node_ct < 5:
+                # The current component is included in the small "single"
+                # component count
+                small_component_ct = total_single_component_count - \
+                    single_component_size_rank + 1
+                if small_component_ct > 1:
+                    no_print = True
+                    first_small_component = True
+                    operation_msg(config.LAYOUT_MSG + \
+                        "%d " % (small_component_ct) + \
+                        config.SMALL_COMPONENTS_MSG)
+                # If only one small component is left, just treat it as a
+                # normal component: there's no point pointing it out as a
+                # small component
+            if not no_print:
+                operation_msg(config.LAYOUT_MSG + mode +
+                    config.SPQR_COMPONENTS_MSG + "%d (%d nodes)..." % \
+                    (single_component_size_rank, component_node_ct))
+
         # Lay out each Bicomponent in this component
         # (this also lays out its child metanodes, if we're in explicit mode)
         for bicomp in scc.node_group_list:
@@ -1729,6 +1750,11 @@ for mode in ("implicit", "explicit"):
         # so just move on to the next single connected component.
         # We'll populate the .db file during the explicit layout process.
         if mode == "implicit":
+            # Call conclude_msg() after a non-small component is done, or
+            # when the last small component is done.
+            if not no_print or \
+                    total_single_component_count == single_component_size_rank:
+                conclude_msg()
             implicit_spqr_bounding_boxes.append((bounding_box_right,
                 bounding_box_top))
             # Account for edges not in any bicomponents
@@ -1781,6 +1807,11 @@ for mode in ("implicit", "explicit"):
                     None, 0)
             sc_edge_count += 1
             cursor.execute(SINGLEEDGE_INSERTION_STMT, db_values)
+
+        if not no_print or \
+                    total_single_component_count == single_component_size_rank:
+            conclude_msg()
+
         # Output component information to the database
         cursor.execute(SINGLECOMPONENT_INSERTION_STMT,
             (single_component_size_rank, sc_node_count, sc_edge_count,
@@ -1795,11 +1826,11 @@ for mode in ("implicit", "explicit"):
         h.close()
         single_component_size_rank += 1
     t2 = time.time()
-    if mode == "implicit": print "\n",
     print "SPQR %s view layout time:" % (mode),
     print "%g seconds" % (t2 - t1)
 
-conclude_msg()
+if not no_print:
+    conclude_msg()
 # Conclusion of script: Output (desired) components of nodes to the .gv file
 t3 = time.time()
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
