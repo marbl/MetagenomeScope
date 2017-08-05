@@ -1885,11 +1885,21 @@ for component in connected_components:
     gv_input += edge_info
     gv_input += "}"
     h = pygraphviz.AGraph(gv_input)
-    # save the .gv file if the user requested .gv preservation
+    # We've just printed a layout message (and haven't printed a \n yet) if:
+    # -we're laying out a "not small" component (i.e. no_print is False), or
+    # -we're laying out a "small" component, but we just printed the "laying
+    #  out small components" message (i.e. first_small_component is True)
+    # In either case, we need to prepend a \n to the start of whatever we print
+    # before the conclude_msg() following our prior layout message.
+    # (Failing to prepend a \n will result in something looking like
+    # "Laying out connected component [x] ([y] nodes)... Warning: uh oh",
+    # where "Warning: uh oh" should've been printed on the line following
+    # the "Laying out..." stuff.
     layout_msg_printed = (not no_print) or first_small_component
     # We use "r" to determine whether or not to print a newline before the
     # .xdot file error message, if we would print an error message there
     r = True
+    # save the .gv file if the user requested .gv preservation
     if preserve_gv:
         r=save_aux_file(component_prefix + ".gv", gv_input, layout_msg_printed)
 
