@@ -1835,12 +1835,11 @@ if not no_print:
 t3 = time.time()
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
 no_print = False # used to reduce excess printing (see issue #133 on GitHub)
-# used in a silly corner case in which we 1) trigger the small component
-# message below and 2) the first "small" component has aux file(s) that cannot
-# be saved.
-first_small_component = False 
 for component in connected_components:
     component_node_ct = len(component.node_list)
+    # used in a silly corner case in which we 1) trigger the small component
+    # message below and 2) the first "small" component has aux file(s) that
+    # cannot be saved.
     first_small_component = False
     if not no_print:
         if component_node_ct < 5:
