@@ -1399,10 +1399,12 @@ graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
 cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
 
-# Layout both the implicit and explicit SPQR tree views
-# NOTE that the order matters, since things are written to the database after
-# laying out the explicit mode but not after laying out the implicit mode
-# (that's done because many rows in the database are used for both layouts)
+# Lay out both the implicit and explicit SPQR tree views; store stuff for the
+# SPQR decomposition modes in the database
+# NOTE that the order of implicit then explicit layout matters, since things
+# are written to the database after laying out the explicit mode but not
+# after laying out the implicit mode (that's done because many rows in the
+# database are used for both layouts)
 
 # list of all the (right, top) coords of the bounding boxes of each implicit
 # single connected component
@@ -1849,7 +1851,8 @@ for mode in ("implicit", "explicit"):
 
 if not no_print:
     conclude_msg()
-# Conclusion of script: Output (desired) components of nodes to the .gv file
+# Lay out the "standard mode" view of the graph and store information about it
+# in the database.
 t3 = time.time()
 component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
 no_print = False # used to reduce excess printing (see issue #133 on GitHub)
