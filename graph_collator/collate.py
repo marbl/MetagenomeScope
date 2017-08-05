@@ -1877,6 +1877,16 @@ for component in connected_components:
             operation_msg(config.START_LAYOUT_MSG + "%d (%d nodes)..." % \
                 (component_size_rank, component_node_ct))
 
+    if component_node_ct == 1 and len(component.node_group_list) == 0:
+        # If the current connected component has no edges (this is possible in
+        # this case if the individual node has a self-implied edge), then we
+        # can "fake" the layout and avoid having to call pygraphviz, which
+        # should save us some time.
+        if len(component.node_list[0].outgoing_nodes) == 0:
+            # TODO fake layout based on component.node_list[0]'s dimensions,
+            # insert node info and cc info into the database, then continue
+            # (Also TODO: Do this for the SPQR modes above)
+            pass
     # Lay out all clusters individually, to be backfilled
     for ng in component.node_group_list:
         ng.layout_isolated()
