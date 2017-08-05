@@ -1448,7 +1448,7 @@ for mode in ("implicit", "explicit"):
                 bicomp.explicit_layout_isolated()
             else:
                 bicomp.implicit_layout_isolated()
-        scc_prefix = "%s_%s_spqrview_%d" % (output_fn, mode, \
+        scc_prefix = "%s_%s_spqr_%d" % (output_fn, mode[:2], \
                 single_component_size_rank)
         gv_input = ""
         gv_input += "graph single_ccomp {\n"
