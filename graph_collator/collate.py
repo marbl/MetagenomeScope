@@ -1547,21 +1547,21 @@ for mode in ("implicit", "explicit"):
         #        # TODO then continue on?? actually idk
         #        # (as a tmp measure we could totally just continue/break here)
         h = pygraphviz.AGraph(gv_input)
+
+        layout_msg_printed = (not no_print) or first_small_component
+        r = True
         # save the .gv file if the user requested .gv preservation
-        # NOTE the error messages from if these cannot be saved might be very
-        # slightly improperly formatted wonky (i.e. may contain an extra
-        # newline or so) because we don't handle that very in-depth here,
-        # unlike in the standard mode layout loop below. 
-        # Will fix that later. (see TODO above)
         if preserve_gv:
-            save_aux_file(scc_prefix + ".gv", gv_input, True)
+            r = save_aux_file(scc_prefix + ".gv", gv_input, layout_msg_printed)
         # lay out the graph (singlenodes and singleedges outside of
         # bicomponents, and bicomponent general structures)
         h.layout(prog='sfdp')
         #h.draw(scc_prefix + ".png")
         # save the .xdot file if the user requested .xdot preservation
         if preserve_xdot:
-            save_aux_file(scc_prefix + ".xdot", h, True)
+            if not r:
+                layout_msg_printed = False
+            save_aux_file(scc_prefix + ".xdot", h, layout_msg_printed)
     
         sc_node_count = 0
         sc_edge_count = 0
