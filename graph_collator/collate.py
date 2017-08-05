@@ -1420,9 +1420,27 @@ for mode in ("implicit", "explicit"):
 
         first_small_component = False
         if not no_print:
-            # TODO VVV inaccurate; look @ how scc's are sorted above & rectify
-            component_node_ct = len(scc.node_list) 
-            if component_node_ct < 5:
+            # We want to figure out the uncollapsed node count for this scc,
+            # to give the user a preview of how long layout will take for the
+            # current scc.
+            unc_component_node_ct = 0
+            # Add number of "unaffiliated" nodes (nodes with no parent bicmp.)
+            for n in scc.node_list:
+                if len(n.parent_bicomponents) == 0:
+                    unc_component_node_ct += 1
+            if mode == "implicit":
+                # Add number of nodes in each bicomponent (the same node
+                # might be present in multiple bicomponents, hence why
+                # we have to figure all this out)
+                for bicmp in scc.node_group_list:
+                    unc_component_node_ct += len(bicmp.snid2obj)
+            else:
+                # Add number of nodes in each metanode in each bicomponent (the
+                # same node could be present in both multiple metanodes and
+                # multiple bicomponents)
+                for bicmp in scc.node_group_list:
+                    unc_component_node_ct += bicmp.singlenode_count
+            if unc_component_node_ct < 5:
                 # The current component is included in the small "single"
                 # component count
                 small_component_ct = total_single_component_count - \
@@ -1438,8 +1456,8 @@ for mode in ("implicit", "explicit"):
                 # small component
             if not no_print:
                 operation_msg(config.LAYOUT_MSG + mode +
-                    config.SPQR_COMPONENTS_MSG + "%d (%d nodes)..." % \
-                    (single_component_size_rank, component_node_ct))
+                    config.SPQR_COMPONENTS_MSG + "%d (%d total nodes)..." % \
+                    (single_component_size_rank, unc_component_node_ct))
 
         # Lay out each Bicomponent in this component
         # (this also lays out its child metanodes, if we're in explicit mode)
