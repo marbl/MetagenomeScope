@@ -45,7 +45,9 @@
             $(function() {
                 $(window).on("beforeunload", doThingsBeforeUnload);
                 // $(f) is an alias for $().ready(f), where f is a function
-                $(doThingsWhenDOMReady);
+                // So the external function here should will only be called
+                // when the DOM is ready to be manipulated
+                doThingsWhenDOMReady();
             });
         </script>
     </head>

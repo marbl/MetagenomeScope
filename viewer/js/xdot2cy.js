@@ -101,7 +101,7 @@ var DEFAULT_NODE_COLOR = undefined;
 // The default colorization settings. This variable is written to when the
 // window is loaded.
 // Used for the "reset color settings to defaults" button.
-var DEFAULT_COLOR_SETTINGS = undefined;
+var DEFAULT_COLOR_SETTINGS = "mincncp\t#0022ff\nmaxcncp\t#ff2200\ncnlcp\t#ffffff\ncsnlcp\t#ffffff\nusncp\t#888888\nbubblecp\t#9abaf3\nfropecp\t#59f459\nchaincp\t#fcaca3\nychaincp\t#ffd163\nspqrscp\t#ffd644\nspqrpcp\t#eb8ef9\nspqrrcp\t#31bf6f\nbicmpcp\t#e9e9e9\ntnbcp\t#000000\ntngbcp\t#000000\nusnlcp\t#ffffff\nsnlcp\t#ffffff\nusecp\t#555555\nsecp\t#111111\nhoecp\t#ff0000\nhosecp\t#800000\nloecp\t#0000ff\nlosecp\t#000080\ncngcccp\t#000000\nsngbcp\t#000000\nbgcp\t#ffffff\n";
 // The background color of the graph. Set in initGraph().
 var BG_COLOR = undefined;
 // Booleans for whether or not to use certain performance options
@@ -897,7 +897,6 @@ function doThingsWhenDOMReady() {
     // ourselves since redrawGradientPreview only handles one change at a time.
     $("#100gp").css("background-color", $("#maxcncp").colorpicker("getValue"));
     redrawGradientPreview($("#mincncp").colorpicker("getValue"), -1);
-    DEFAULT_COLOR_SETTINGS = exportColorSettings(false);
     // If we add any tooltips, use this line to initialize them
     //$("[data-toggle='tooltip']").tooltip();
 }
@@ -905,13 +904,6 @@ function doThingsWhenDOMReady() {
 // Things that are bound to the "beforeunload" event on the window.
 function doThingsBeforeUnload() {
     closeDB();
-    // We call resetColorSettings() so that changes to the color scheme don't
-    // get preserved when the page is reloaded via, say, the back/forward
-    // browser button -- that'll have the effect of the DEFAULT_COLOR_SETTINGS
-    // being set (in doThingsWhenDOMReady()) to the modified state, essentially
-    // removing the functionality of resetColorSettings() for the modified
-    // values.
-    resetColorSettings();
 }
 
 // Sets bindings for certain objects in the graph.
@@ -2193,7 +2185,9 @@ function startIndeterminateProgressBar() {
 }
 
 /* If toDownload is true, calls downloadDataURI(); otherwise, just returns the
- * color settings string.
+ * color settings string. (NOTE -- at present, no other places in the code use
+ * this function with toDownload === false; I'm retaining this functionality
+ * in case that need comes up in the future, though.)
  */
 function exportColorSettings(toDownload) {
     var textToExport = "";
