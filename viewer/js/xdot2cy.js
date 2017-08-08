@@ -2432,7 +2432,6 @@ function openEdgeFilteringDialog() {
     // note could probably find this inline to simplify computation time
     var max = d3.max(COMPONENT_EDGE_WEIGHTS); 
     //console.log(COMPONENT_EDGE_WEIGHTS);
-    var data = COMPONENT_EDGE_WEIGHTS.map(function(x) { return x / max; });
     var margin = {top: 10, right: 30, bottom: 30, left: 30};
     //for (var i = 0; i < COMPONENT_EDGE_WEIGHTS.length; i++) {
     //    console.log(COMPONENT_EDGE_WEIGHTS[i] + "->" + data[i]);
@@ -2446,12 +2445,12 @@ function openEdgeFilteringDialog() {
     var height = +chartSvg.attr("height") - margin.top - margin.bottom;
     var g = chartSvg.append("g")
         .attr("transform","translate(" + margin.left + "," + margin.top + ")");
-    var x = d3.scaleLinear().rangeRound([0, width]);
+    var x = d3.scaleLinear().domain([0, max * 1.1]).rangeRound([0, width]);
     // TODO make this user-selectable
     var BIN_COUNT = 20;
     var bins = d3.histogram()
         .domain(x.domain())
-        .thresholds(x.ticks(BIN_COUNT))(data);
+        .thresholds(x.ticks(BIN_COUNT))(COMPONENT_EDGE_WEIGHTS);
     var y = d3.scaleLinear()
         .domain([0, d3.max(bins, function(b) { return b.length; })])
         .range([height, 0]);
@@ -2478,9 +2477,8 @@ function openEdgeFilteringDialog() {
     g.append("g")
         .attr("class", "axis axis--y")
         .call(yAxis);
-    // TODO: make BIN_COUNT configurable; fix x-axis scale to show actual
-    // multiplicities; ensure that there's space between every bar;
-    // add axis labels
+    // TODO: make BIN_COUNT configurable; ensure that there's space between
+    // every bar; add axis labels
 }
 
 /* Hides edges below a minimum edge weight (multiplicity or bundle size,
