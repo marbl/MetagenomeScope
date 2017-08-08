@@ -2424,8 +2424,6 @@ function exportGraphView() {
  */
 function openEdgeFilteringDialog() {
     $("#edgeFilteringDialog").modal();
-    // NOTE there's a bug here -- need to clear the graph in between cc's, or
-    // something. TODO fix it.
     // TODO fix gaps between bars
     // TODO change x-axis, etc. to reflect actual edge weights instead of
     // fraction of max edge weight
@@ -2449,7 +2447,11 @@ function openEdgeFilteringDialog() {
     var g = chartSvg.append("g")
         .attr("transform","translate(" + margin.left + "," + margin.top + ")");
     var x = d3.scaleLinear().rangeRound([0, width]);
-    var bins = d3.histogram().domain(x.domain()).thresholds(x.ticks(20))(data);
+    // TODO make this user-selectable
+    var BIN_COUNT = 20;
+    var bins = d3.histogram()
+        .domain(x.domain())
+        .thresholds(x.ticks(BIN_COUNT))(data);
     var y = d3.scaleLinear()
         .domain([0, d3.max(bins, function(b) { return b.length; })])
         .range([height, 0]);
@@ -2466,19 +2468,19 @@ function openEdgeFilteringDialog() {
         .attr("x", 1)
         .attr("width", x(bins[0].x1) - x(bins[0].x0) - 1)
         .attr("height", function(d) { return height - y(d.length); });
-    bar.append("text")
-        .attr("dy", ".75em")
-        .attr("y", 6)
-        .attr("x", (x(bins[0].x1) - x(bins[0].x0)) / 2)
-        .attr("text-anchor", "middle")
-        .text(function(b) { return formatCount(b.length); });
 
+    var xAxis = d3.axisBottom(x);
+    var yAxis = d3.axisLeft(y);
     g.append("g")
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + height + ")")
-        .call(d3.axisBottom(x));
-    // TODO generate "bins," then generate resulting chart
-    // incl. axes, bars, etc.
+        .call(xAxis);
+    g.append("g")
+        .attr("class", "axis axis--y")
+        .call(yAxis);
+    // TODO: make BIN_COUNT configurable; fix x-axis scale to show actual
+    // multiplicities; ensure that there's space between every bar;
+    // add axis labels
 }
 
 /* Hides edges below a minimum edge weight (multiplicity or bundle size,
