@@ -2478,7 +2478,8 @@ function openEdgeFilteringDialog() {
         .attr("class", "axis axis--y")
         .call(yAxis);
     // TODO: make BIN_COUNT configurable; ensure that there's space between
-    // every bar; add axis labels
+    // every bar; add axis labels; ensure that the y-axis only has ticks for
+    // integer values
 }
 
 /* Hides edges below a minimum edge weight (multiplicity or bundle size,
