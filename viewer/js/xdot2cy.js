@@ -98,9 +98,15 @@ var MIN_HEX = undefined;
 // colorizing nodes that have no repeat data (but other nodes do have repeat
 // data).
 var DEFAULT_NODE_COLOR = undefined;
-// The default colorization settings. This variable is written to when the
-// window is loaded.
+// The default colorization settings.
 // Used for the "reset color settings to defaults" button.
+// NOTE -- If the default color settings are updated, this can also be updated
+// relatively easily by just loading the viewer interface, exporting the
+// default settings manually, and then modifying the resulting file to replace
+// newlines and tabs with their repsective control character representations
+// (this can be done via the commands :%s/\n/\\n/g and :%s/\t/\\t/g in Vim).
+// Ideally this process would be automated, but there have been some issues
+// with that (see issue #263 on GitHub for a bit of a summary).
 var DEFAULT_COLOR_SETTINGS = "mincncp\t#0022ff\nmaxcncp\t#ff2200\ncnlcp\t#ffffff\ncsnlcp\t#ffffff\nusncp\t#888888\nbubblecp\t#9abaf3\nfropecp\t#59f459\nchaincp\t#fcaca3\nychaincp\t#ffd163\nspqrscp\t#ffd644\nspqrpcp\t#eb8ef9\nspqrrcp\t#31bf6f\nbicmpcp\t#e9e9e9\ntnbcp\t#000000\ntngbcp\t#000000\nusnlcp\t#ffffff\nsnlcp\t#ffffff\nusecp\t#555555\nsecp\t#111111\nhoecp\t#ff0000\nhosecp\t#800000\nloecp\t#0000ff\nlosecp\t#000080\ncngcccp\t#000000\nsngbcp\t#000000\nbgcp\t#ffffff\n";
 // The background color of the graph. Set in initGraph().
 var BG_COLOR = undefined;
