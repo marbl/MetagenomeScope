@@ -1,0 +1,30 @@
+body {
+    /* This has a top/bottom margin of 2em; the "auto" centers the body
+     * horizontally. */
+    margin: 0 auto;
+    max-width: 50em;
+    /* The top padding ensures that the navbar won't cover the title. */
+    padding: 40px 1em;
+    color: #333;
+}
+/* This workaround ensures that the navbar won't cover headers when it jumps
+ * to them. The negative margin gets rid of the resulting empty space created
+ * by the increased padding, preserving the original look of the page.
+ */
+h2 {
+    padding-top: 60px;
+    margin-top: -60px;
+}
+nav li:hover {
+    background-color: #ddddec;
+}
+.thumbnail img {
+    cursor: pointer;
+}
+.thumbnail hr {
+    margin-bottom: 0;
+}
+/* This border color matches the default Bootstrap CSS on .thumbnail eles. */
+.thumbnail:hover {
+    border: 1px solid #337ab7;
+}

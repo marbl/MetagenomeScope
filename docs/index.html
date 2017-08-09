@@ -1,1 +1,239 @@
-Test!
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="author" content="Marcus Fedarko" />
+        <title>MetagenomeScope</title>
+        <link rel="shortcut icon" href="res/icons/favicon.ico" />
+        <link rel="stylesheet" href="css/bootstrap.min.css" />
+        <link rel="stylesheet" href="css/vaguely_adequate.css" />
+    </head>
+    <body>
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container-fluid">
+                <!--
+                    The navbar-header <div> contains stuff that'll be shown
+                    when the navbar is collapsed (e.g. on small displays).
+                -->
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed"
+                        data-toggle="collapse" aria-expanded="false"
+                        data-target="#main-navbar-content">
+                        <span class="sr-only">Toggle navigation</span>
+                        <!-- Each of these .icon-bar <spans> corresponds to a
+                            line in the "hamburger" navigation element.
+                        -->
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="#">
+                        MetagenomeScope
+                    </a>
+                </div>
+                <!--
+                    The navbar-collapse <div> contains stuff that'll be shown
+                    when the navbar is uncollapsed.
+                -->
+                <div class="collapse navbar-collapse" id="main-navbar-content">
+                    <ul class="nav navbar-nav">
+                        <li><a href="#overview">Overview</a></li>
+                        <li><a href="#demo">Demo</a></li>
+                        <li><a href="#documentation">Documentation</a></li>
+                        <li><a href="#code">Code</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="page-header">
+            <h1>MetagenomeScope</h1>
+        </div>
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="thumbnail">
+                        <img onclick="openScreenshot(event);"
+                            src="res/screenshots/biofilm1_cc7.png"
+                            alt="Screenshot of 'standard mode' with bubbles,
+                            frayed ropes, and chains visible." />
+                        <hr />
+                    <div class="caption">
+                        <p>
+                            Screenshot of MetagenomeScope's "standard mode,"
+                            zoomed in on a region of a biofilm scaffold graph.
+                        </p>
+                    </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="thumbnail">
+                        <img onclick="openScreenshot(event);"
+                            src="res/screenshots/marygold_fig2.png"
+                            alt="Screenshot of 'explicit' SPQR tree
+                            decomposition mode of a SPQR tree with a root
+                            S-node." />
+                        <hr />
+                    <div class="caption">
+                        <p>
+                            Screenshot of MetagenomeScope's "explicit"
+                            SPQR tree decomposition mode, generated for the
+                            figure 2a graph in
+                            [<a
+                            href="https://www.ncbi.nlm.nih.gov/pubmed/24058058"
+                            >Nijkamp, Pop, Reinders, de Ridder 2013</a>].
+                        </p>
+                    </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 id="overview">Overview</h2>
+        <p>
+            MetagenomeScope is a web-based visualization tool for
+            metagenomic scaffold and assembly graphs. The tool aims to display
+            a semi-linearized, hierarchical overview of the input graph while
+            emphasizing the presence of certain structural patterns in the
+            graph.
+        <p>
+            The tool consists of a preprocessing script (written in Python and
+            C++) and a viewer interface (a client-side web application).
+            The preprocessing script takes as input a scaffold or assembly
+            graph file (currently LastGraph, GFA, and MetaCarvel GML
+            graphs are accepted) and outputs a SQLite database file containing
+            the layout information for the graph's connected components.
+            This database file can be visualized in the viewer interface.
+        </p>
+            <h3>Features</h3>
+            <ul>
+                <li>
+                    "Standard mode": Hierarchical graph layout performed using
+                    <a href="http://www.graphviz.org/Home.php">Graphviz</a>'
+                    <em>dot</em> layout engine
+                </li>
+                <li>
+                    Built-in pattern detection: identifies and supports
+                    interactive collapsing/uncollapsing of bubbles and frayed
+                    ropes [<a
+                    href="https://www.ncbi.nlm.nih.gov/pubmed/20211242">Miller,
+                    Koren, Sutton 2010</a>], along with linear and cyclic
+                    linear sequences of contigs
+                </li>
+                <li>
+                    Supports the visualization of
+                    <a href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/">AGP files</a>
+                    describing scaffolds constructed for the graph
+                </li>
+                <li>
+                    Includes controls for manually performing finishing on
+                    sequences of contigs in the graph
+                    <ul>
+                        <li>
+                            The resulting paths
+                    can be exported to
+                    <a href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/">AGP</a>
+                    or 
+                    <a href="https://en.wikipedia.org/wiki/Comma-separated_values">CSV</a>
+                    format
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Scales edges in the graph by their multiplicity/bundle size
+                    [<a
+                    href="https://www.ncbi.nlm.nih.gov/pubmed/20211242">Miller,
+                    Koren, Sutton 2010</a>]
+                    <ul>
+                        <li>
+                            Uses <a href="http://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_summarizingdata/bs704_summarizingdata7.html">Tukey fences</a>
+                            to identify "outlier" edge
+                            weights and omit them from the scaling process
+                        </li>
+                        <li>
+                            Outlier edges are specially colored in the graph to
+                            indicate their unusual high/low weight
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    "Decomposition mode":
+                    <a href="https://en.wikipedia.org/wiki/Biconnected_component">biconnected components</a>
+                    in the graph are replaced with the root of their respective
+                    <a href="https://en.wikipedia.org/wiki/SPQR_tree">SPQR
+                    tree</a> data structure, which can be iteratively
+                    uncollapsed to reveal structural details in these regions
+                    of the graph
+                </li>
+                <li>
+                    Colorblind-accessible: every color used in the graph
+                    display of the application is easily configurable
+                    <ul>
+                        <li>
+                            Color settings can be exported/imported as
+                            <a href="https://en.wikipedia.org/wiki/Tab-separated_values">TSV</a>
+                            files
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Supports node colorization by <a
+                    href="http://en.wikipedia.org/wiki/GC-content">GC content
+                    </a> and
+                    repeat annotations; more to come soon
+                </li>
+            </ul>
+        </p>
+        <h2 id="demo">Demo</h2>
+        <p>
+            A demo of MetagenomeScope's viewer interface (with about a dozen
+            sample database files available for use) is available
+            <a href="http://www.cbcb.umd.edu/~mfedarko/MetagenomeScope/">
+                here</a>. You can also upload your own database files generated
+            by the preprocessing script to visualize them in the tool.
+        </p>
+        <h2 id="documentation">Documentation</h2>
+        <p>
+            Documentation on downloading, running, and using MetagenomeScope
+            is available in its README, located <a href="https://github.com/fedarko/MetagenomeScope/blob/master/README.md">here</a>.
+            More detailed information/tutorials to come soon.
+        </p>
+        <h2 id="code">Code</h2>
+        <p>
+            The source code for MetagenomeScope is publicly available on
+            GitHub
+            <a href="http://www.github.com/marbl/MetagenomeScope">
+                here</a>.
+            MetagenomeScope is licensed under the
+            <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">
+                GNU General Public License, version 3</a>.
+            (If you're interested, the source code for this site is
+            <a href="https://www.github.com/fedarko/MetagenomeScopeSite">
+            also available on GitHub</a>.)
+        </p>
+        <p>
+            See the
+            <a href="https://github.com/fedarko/MetagenomeScope/blob/master/README.md#acknowledgements">acknowledgements</a>
+            section of the code's README for an up-to-date
+            list of the third-party libraries used in MetagenomeScope's code.
+        </p>
+        <h2 id="contact">Contact</h2>
+        <p>
+            MetagenomeScope was created by members of the
+            <a href="https://sites.google.com/a/cs.umd.edu/poplab/">Pop Lab</a>
+            in the <a href="https://cbcb.umd.edu">Center for Bioinformatics
+            and Computational Biology</a> at the
+            <a href="https://umd.edu">University of Maryland, College Park</a>.
+        </p>
+        <p>
+            Feel free to email <code>mfedarko (at) umd (dot) edu</code> with any
+            questions, suggestions, comments, etc.
+        </p>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script src="js/bootstrap.min.js"></script>
+        <script src="js/autocollapse_nav.js"></script>
+        <script src="js/open_screenshot.js"></script>
+    </body>
+</html>
