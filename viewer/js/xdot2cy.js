@@ -2427,7 +2427,7 @@ function drawEdgeWeightHistogram() {
     // note could probably find this inline to simplify computation time
     var max = d3.max(COMPONENT_EDGE_WEIGHTS); 
     //console.log(COMPONENT_EDGE_WEIGHTS);
-    var margin = {top: 10, right: 30, bottom: 50, left: 50};
+    var margin = {top: 10, right: 30, bottom: 50, left: 70};
     //for (var i = 0; i < COMPONENT_EDGE_WEIGHTS.length; i++) {
     //    console.log(COMPONENT_EDGE_WEIGHTS[i] + "->" + data[i]);
     //}
