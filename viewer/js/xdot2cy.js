@@ -2424,15 +2424,11 @@ function exportGraphView() {
  */
 function openEdgeFilteringDialog() {
     $("#edgeFilteringDialog").modal();
-    // TODO fix gaps between bars
-    // TODO change x-axis, etc. to reflect actual edge weights instead of
-    // fraction of max edge weight
-    // TODO support user-suggested bin size?
     var formatCount = d3.format(",.0f");
     // note could probably find this inline to simplify computation time
     var max = d3.max(COMPONENT_EDGE_WEIGHTS); 
     //console.log(COMPONENT_EDGE_WEIGHTS);
-    var margin = {top: 10, right: 30, bottom: 30, left: 30};
+    var margin = {top: 10, right: 30, bottom: 50, left: 50};
     //for (var i = 0; i < COMPONENT_EDGE_WEIGHTS.length; i++) {
     //    console.log(COMPONENT_EDGE_WEIGHTS[i] + "->" + data[i]);
     //}
@@ -2477,9 +2473,22 @@ function openEdgeFilteringDialog() {
     g.append("g")
         .attr("class", "axis axis--y")
         .call(yAxis);
+    // Add x-axis label
+    g.append("text")
+        .attr("transform", "translate(" + (width / 2) + "," +
+                (height + margin.top + 30) + ")")
+        .style("text-anchor", "middle")
+        .text("Edge multiplicity");
+    // Add y-axis label
+    g.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left)
+        .attr("x", 0 - (height / 2))
+        .attr("dy", "1em")
+        .style("text-anchor", "middle")
+        .text("Frequency");
     // TODO: make BIN_COUNT configurable; ensure that there's space between
-    // every bar; add axis labels; ensure that the y-axis only has ticks for
-    // integer values
+    // every bar; ensure that the y-axis only has ticks for integer values
 }
 
 /* Hides edges below a minimum edge weight (multiplicity or bundle size,
