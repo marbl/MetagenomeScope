@@ -1886,6 +1886,10 @@ for component in connected_components:
             # TODO fake layout based on component.node_list[0]'s dimensions,
             # insert node info and cc info into the database, then continue
             # (Also TODO: Do this for the SPQR modes above)
+            # Normally we'd generate a layout with this node's node_info(),
+            # which includes the height/width of the node from get_dimensions()
+            # and the shape of the node in get_dimensions().
+            #w, h = component.node_list[0].get_dimensions()
             pass
     # Lay out all clusters individually, to be backfilled
     for ng in component.node_group_list:
