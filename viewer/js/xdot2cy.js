@@ -1387,9 +1387,6 @@ function disableVolatileControls() {
     disableButton("xmlFileselectButton");
     $("#searchInput").prop("disabled", true);
     $("#layoutInput").prop("disabled", true);
-    $("#cullEdgesInput").prop("disabled", true);
-    $("#cullEdgesInput").val("0"); // reset to avoid confusion
-    disableButton("cullEdgesButton");
     disableButton("filterEdgesButton");
     disableButton("reduceEdgesButton");
     disableButton("layoutButton");
@@ -2029,10 +2026,8 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         $("#searchInput").prop("disabled", false);
         $("#layoutInput").prop("disabled", false);
         if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GML") {
-            // Only enable the edge culling features for graphs that have edge
-            // weights (multiplicity or bundle size)
-            $("#cullEdgesInput").prop("disabled", false);
-            enableButton("cullEdgesButton");
+            // Only enable the edge filtering features for graphs that have
+            // edge weights (multiplicity or bundle size)
             enableButton("filterEdgesButton");
         }
         if (componentEdgeCount > 0) {
@@ -2418,12 +2413,16 @@ function exportGraphView() {
     }
 }
 
-/* Opens the dialog for filtering edges.
- * This code was mostly taken from Mike Bostock's example of d3.js' histogram
- * generation, available at https://gist.github.com/mbostock/3048450.
- */
+/* Opens the dialog for filtering edges. */
 function openEdgeFilteringDialog() {
     $("#edgeFilteringDialog").modal();
+    drawEdgeWeightHistogram();
+}
+
+/* This code was mostly taken from Mike Bostock's example of d3.js' histogram
+ * generation, available at https://gist.github.com/mbostock/3048450.
+ */
+function drawEdgeWeightHistogram() {
     var formatCount = d3.format(",.0f");
     // note could probably find this inline to simplify computation time
     var max = d3.max(COMPONENT_EDGE_WEIGHTS); 
@@ -2442,11 +2441,10 @@ function openEdgeFilteringDialog() {
     var g = chartSvg.append("g")
         .attr("transform","translate(" + margin.left + "," + margin.top + ")");
     var x = d3.scaleLinear().domain([0, max * 1.1]).rangeRound([0, width]);
-    // TODO make this user-selectable
-    var BIN_COUNT = 20;
+    var bin_count = + $("#binCountInput").val();
     var bins = d3.histogram()
         .domain(x.domain())
-        .thresholds(x.ticks(BIN_COUNT))(COMPONENT_EDGE_WEIGHTS);
+        .thresholds(x.ticks(bin_count))(COMPONENT_EDGE_WEIGHTS);
     var y = d3.scaleLinear()
         .domain([0, d3.max(bins, function(b) { return b.length; })])
         .range([height, 0]);
@@ -2487,8 +2485,8 @@ function openEdgeFilteringDialog() {
         .attr("dy", "1em")
         .style("text-anchor", "middle")
         .text("Frequency");
-    // TODO: make BIN_COUNT configurable; ensure that there's space between
-    // every bar; ensure that the y-axis only has ticks for integer values
+    // TODO: ensure that there's space between every bar; ensure that the
+    // y-axis only has ticks for integer values
 }
 
 /* Hides edges below a minimum edge weight (multiplicity or bundle size,

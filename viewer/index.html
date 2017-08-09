@@ -1159,12 +1159,30 @@
                         <svg id="edgeWeightChart" width="550" height="200">
                         </svg>
 
+                        <div class="container-fluid">
+                        <div class="row">
+                        <div class="col-lg-6">
+                        <div class='input-group input-group-sm'>
+                            <span class='input-group-btn'>
+                                <button class='btn btn-default'
+                                    onclick='drawEdgeWeightHistogram();'
+                                    type="button" id="setBinCountButton">
+                                    <span class="glyphicon glyphicon-resize-horizontal"
+                                        aria-hidden="true"></span> &nbsp;
+                                    Change histogram bin count
+                                </button>
+                            </span>
+                            <input type='text' class='form-control'
+                                id="binCountInput" value="20">
+                        </div>
+                        </div> <!-- end col 1 -->
+                        <div class="col-lg-6">
                         <!-- NOTE this feature doesn't work very well with
                             collapsing yet -->
                         <div class='input-group input-group-sm'>
                             <span class='input-group-btn'>
-                                <button class='btn btn-default disabled'
-                                    disabled="disabled" onclick='cullEdges();'
+                                <button class='btn btn-default'
+                                    onclick='cullEdges();'
                                     type="button" id="cullEdgesButton">
                                     <span class="glyphicon glyphicon-remove"
                                         aria-hidden="true"></span> &nbsp;
@@ -1172,9 +1190,11 @@
                                 </button>
                             </span>
                             <input type='text' class='form-control'
-                                id="cullEdgesInput" value="0"
-                                disabled="disabled">
+                                id="cullEdgesInput" value="0">
                         </div>
+                        </div> <!-- end col 2 -->
+                        </div> <!-- end row -->
+                        </div> <!-- end container-fluid -->
                     </div> <!-- end modal-body div -->
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default"
