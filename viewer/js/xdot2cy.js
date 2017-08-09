@@ -2459,7 +2459,7 @@ function drawEdgeWeightHistogram() {
             );
     bar.append("rect")
         .attr("x", 1)
-        .attr("width", x(bins[0].x1) - x(bins[0].x0) - 1)
+        .attr("width", function(d) { return x(d.x1) - x(d.x0) - 1; })
         .attr("height", function(d) { return height - y(d.length); });
 
     var xAxis = d3.axisBottom(x);
@@ -2485,8 +2485,8 @@ function drawEdgeWeightHistogram() {
         .attr("dy", "1em")
         .style("text-anchor", "middle")
         .text("Frequency");
-    // TODO: ensure that there's space between every bar; ensure that the
-    // y-axis only has ticks for integer values
+    // TODO: ensure that the y-axis only has ticks for integer values;
+    // ensure that all bars have proper widths (?)
 }
 
 /* Hides edges below a minimum edge weight (multiplicity or bundle size,
