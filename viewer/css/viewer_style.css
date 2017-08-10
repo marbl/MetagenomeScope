@@ -104,6 +104,9 @@ html, body {
 .subsume {
     left: 0em;
 }
+.table-bordered * {
+    border: 2px solid #555 !important;
+}
 .asmInfoTable {
     /* Override Bootstrap's default CSS (which gives a margin-bottom of 20px on
      * elements with class .table) */
@@ -111,10 +114,10 @@ html, body {
 }
 .eleInfoTable {
     margin: 0 auto; /* Center the table */
-    border-color: #555;
 }
 .eleInfoTable * {
     text-align: center;
+    border: 1px solid #555 !important;
 }
 .modal-body {
     /* TODO: come up with a cleaner way of representing the table on small

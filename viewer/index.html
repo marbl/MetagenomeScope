@@ -137,105 +137,101 @@
             <div id="connectedComponentControls">
                 <h4>Standard Mode</h4>
     
-                <p>
-                    <div class='input-group input-group-sm'>
-                        <span class='input-group-btn'>
-                            <button class='btn btn-default disabled'
-                                disabled="disabled"
-                                onclick='decrCompRank("componentselector");'
-                                type="button" id="decrCompRankButton">
-                                <span class="glyphicon glyphicon-minus"
-                                    aria-hidden="true"
-                                    aria-label="Decrement component size rank by 1">
-                                </span>
-                            </button>
-                        </span>
-                        <input type='text' class='form-control'
-                            id="componentselector" value="1" min="1"
-                            disabled="disabled">
-                        <span class='input-group-btn'>
-                            <button class='btn btn-default disabled'
-                                disabled="disabled"
-                                onclick='incrCompRank("componentselector");'
-                                type="button" id="incrCompRankButton">
-                                <span class="glyphicon glyphicon-plus"
-                                    aria-hidden="true"
-                                    aria-label="Increment component size rank by 1">
-                                </span>
-                            </button>
-                        </span>
-                    </div>
-                    <button class='btn btn-default btn-sm disabled'
-                        disabled="disabled" onclick='startDrawComponent("double");'
-                        type="button" id="drawButton">
-                        <span class="glyphicon glyphicon-pencil"
-                            aria-hidden="true"></span> &nbsp;
-                            Draw connected component
-                    </button>
-                </p>
+                <div class='input-group input-group-sm'>
+                    <span class='input-group-btn'>
+                        <button class='btn btn-default disabled'
+                            disabled="disabled"
+                            onclick='decrCompRank("componentselector");'
+                            type="button" id="decrCompRankButton">
+                            <span class="glyphicon glyphicon-minus"
+                                aria-hidden="true"
+                                aria-label="Decrement component size rank by 1">
+                            </span>
+                        </button>
+                    </span>
+                    <input type='text' class='form-control'
+                        id="componentselector" value="1" min="1"
+                        disabled="disabled">
+                    <span class='input-group-btn'>
+                        <button class='btn btn-default disabled'
+                            disabled="disabled"
+                            onclick='incrCompRank("componentselector");'
+                            type="button" id="incrCompRankButton">
+                            <span class="glyphicon glyphicon-plus"
+                                aria-hidden="true"
+                                aria-label="Increment component size rank by 1">
+                            </span>
+                        </button>
+                    </span>
+                </div>
+                <button class='btn btn-default btn-sm disabled'
+                    disabled="disabled" onclick='startDrawComponent("double");'
+                    type="button" id="drawButton">
+                    <span class="glyphicon glyphicon-pencil"
+                        aria-hidden="true"></span> &nbsp;
+                        Draw connected component
+                </button>
                 <hr />
             </div>
             <div id="spqrConnectedComponentControls">
                 <h4>SPQR Decomposition Mode</h4>
     
-                <p>
-                    <div class='input-group input-group-sm'>
-                        <span class='input-group-btn'>
-                            <button class='btn btn-default disabled'
-                                disabled="disabled"
-                               onclick='decrCompRank("SPQRcomponentselector");'
-                                type="button" id="decrSPQRCompRankButton">
-                                <span class="glyphicon glyphicon-minus"
-                                    aria-hidden="true"
-                                    aria-label=
-                                        "Decrement component size rank by 1">
-                                </span>
-                            </button>
-                        </span>
-                        <input type='text' class='form-control'
-                            id="SPQRcomponentselector" value="1" min="1"
-                            disabled="disabled">
-                        <span class='input-group-btn'>
-                            <button class='btn btn-default disabled'
-                                disabled="disabled"
-                               onclick='incrCompRank("SPQRcomponentselector");'
-                                type="button" id="incrSPQRCompRankButton">
-                                <span class="glyphicon glyphicon-plus"
-                                    aria-hidden="true"
-                                    aria-label=
-                                        "Increment component size rank by 1">
-                                </span>
-                            </button>
-                        </span>
-                    </div>
-                    <button class='btn btn-default btn-sm disabled'
-                        disabled="disabled"
-                        onclick='startDrawComponent("SPQR");' type="button"
-                        id="drawSPQRButton">
-                        <span class="glyphicon glyphicon-pencil"
-                            aria-hidden="true"></span> &nbsp;
-                            Draw connected component
+                <div class='input-group input-group-sm'>
+                    <span class='input-group-btn'>
+                        <button class='btn btn-default disabled'
+                            disabled="disabled"
+                           onclick='decrCompRank("SPQRcomponentselector");'
+                            type="button" id="decrSPQRCompRankButton">
+                            <span class="glyphicon glyphicon-minus"
+                                aria-hidden="true"
+                                aria-label=
+                                    "Decrement component size rank by 1">
+                            </span>
+                        </button>
+                    </span>
+                    <input type='text' class='form-control'
+                        id="SPQRcomponentselector" value="1" min="1"
+                        disabled="disabled">
+                    <span class='input-group-btn'>
+                        <button class='btn btn-default disabled'
+                            disabled="disabled"
+                           onclick='incrCompRank("SPQRcomponentselector");'
+                            type="button" id="incrSPQRCompRankButton">
+                            <span class="glyphicon glyphicon-plus"
+                                aria-hidden="true"
+                                aria-label=
+                                    "Increment component size rank by 1">
+                            </span>
+                        </button>
+                    </span>
+                </div>
+                <button class='btn btn-default btn-sm disabled'
+                    disabled="disabled"
+                    onclick='startDrawComponent("SPQR");' type="button"
+                    id="drawSPQRButton">
+                    <span class="glyphicon glyphicon-pencil"
+                        aria-hidden="true"></span> &nbsp;
+                        Draw connected component
+                </button>
+                <div class="btn-group" data-toggle="buttons"
+                    id="decompositionOptionButtonGroup"
+                    aria-label="SPQR Decomposition Options">
+                    <button class="btn btn-default active disabled btn-sm"
+                        value="implicit" id="implicitSPQROption"
+                        disabled="disabled">
+                        <input type="radio" name="spqrDecomposition"
+                            id="implicitSPQRtrees"
+                            autocomplete="off">Implicit
                     </button>
-                    <div class="btn-group" data-toggle="buttons"
-                        id="decompositionOptionButtonGroup"
-                        aria-label="SPQR Decomposition Options">
-                        <button class="btn btn-default active disabled btn-sm"
-                            value="implicit" id="implicitSPQROption"
-                            disabled="disabled">
-                            <input type="radio" name="spqrDecomposition"
-                                id="implicitSPQRtrees"
-                                autocomplete="off">Implicit
-                        </button>
-                        <button class="btn btn-default disabled btn-sm"
-                            value="explicit" id="explicitSPQROption"
-                            disabled="disabled">
-                            <input type="radio" name="spqrDecomposition"
-                                id="explicitSPQRtrees"
-                                autocomplete="off">Explicit
-                        </button>
-                    </div>
-                </p>
-
+                    <button class="btn btn-default disabled btn-sm"
+                        value="explicit" id="explicitSPQROption"
+                        disabled="disabled">
+                        <input type="radio" name="spqrDecomposition"
+                            id="explicitSPQRtrees"
+                            autocomplete="off">Explicit
+                    </button>
+                </div>
+                
                 <hr /> 
             </div>
             <div id="selectedElementControls">
@@ -250,10 +246,9 @@
                         id="nodeOpener"></span>
                 </div>
                 <div id="nodeInfo" class="notviewable">
-                    <table border="2" id="nodeInfoTable"
-                            class="eleInfoTable">
+                    <table id="nodeInfoTable" class="eleInfoTable">
                         <tr>
-                            <th colspan='5' id="nodeTH">
+                            <th colspan='6' id="nodeTH">
                                 Selected Node Information</th>
                         </tr>
                         <tr>
@@ -281,8 +276,7 @@
                         id="edgeOpener"></span>
                 </div>
                 <div id="edgeInfo" class="notviewable">
-                    <table border="2" id="edgeInfoTable"
-                        class="eleInfoTable">
+                    <table id="edgeInfoTable" class="eleInfoTable">
                     <tr>
                         <th colspan='6' id="edgeTH">Selected Edge Information
                         </th>
@@ -306,8 +300,7 @@
                         id="clusterOpener"></span>
                 </div>
                 <div id="clusterInfo" class="notviewable">
-                    <table border="2" id="clusterInfoTable"
-                        class="eleInfoTable">
+                    <table id="clusterInfoTable" class="eleInfoTable">
                     <tr>
                         <th colspan='2'>Selected Cluster Information</th>
                     </tr>
@@ -699,19 +692,19 @@
                             <ul class="nav nav-tabs" role="tablist">
                                 <li role="presentation" class="active">
                                     <a href="#animationtab"
-                                    aria-controls="animation"
+                                    aria-controls="animationtab"
                                     role="tab" data-toggle="tab">
                                     Animation</a>
                                 </li>
                                 <li role="presentation">
                                     <a href="#performancetab"
-                                    aria-controls="performance"
+                                    aria-controls="performancetab"
                                     role="tab" data-toggle="tab">
                                     Performance</a>
                                 </li>
                                 <li role="presentation">
                                     <a href="#colortab"
-                                    aria-controls="colors"
+                                    aria-controls="colortab"
                                     role="tab" data-toggle="tab">
                                     Colors</a>
                                 </li>
@@ -1220,8 +1213,7 @@
                     </div> <!-- end modal-header div -->
                     <div class="modal-body">
                         <div class="table-responsive">
-                            <table border="2"
-                                    class="table table-condensed asmInfoTable">
+                            <table class="table table-condensed table-bordered asmInfoTable">
                                 <tr>
                                     <th>Input Filename</th>
                                     <th>Input Filetype</th>
@@ -1239,8 +1231,7 @@
                             </table>
                         </div>
                         <div class="table-responsive">
-                            <table border="2"
-                                    class="table table-condensed asmInfoTable">
+                            <table class="table table-condensed table-bordered asmInfoTable">
                                 <tr>
                                     <th>SPQR Decomposition Mode Connected Component Count</th>
                                     <th>Biconnected Component Count</th>
@@ -1254,8 +1245,7 @@
                             </table>
                         </div>
                         <div class="table-responsive">
-                            <table border="2"
-                                    class="table table-condensed asmInfoTable">
+                            <table class="table table-condensed table-bordered asmInfoTable">
                                 <tr>
                                     <th id="asmNodeLenTH">
                                         Total Positive Node Length</th>
