@@ -7,7 +7,7 @@
         <meta name="author" content="Marcus Fedarko" />
         <title>MetagenomeScope</title>
         <link rel="shortcut icon" href="res/icons/favicon.ico" />
-        <link rel="stylesheet" href="css/bootstrap.min.css" />
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
         <link rel="stylesheet" href="css/vaguely_adequate.css" />
     </head>
     <body>
@@ -98,6 +98,7 @@
             a semi-linearized, hierarchical overview of the input graph while
             emphasizing the presence of certain structural patterns in the
             graph.
+        </p>
         <p>
             The tool consists of a preprocessing script (written in Python and
             C++) and a viewer interface (a client-side web application).
@@ -107,85 +108,84 @@
             the layout information for the graph's connected components.
             This database file can be visualized in the viewer interface.
         </p>
-            <h3>Features</h3>
-            <ul>
-                <li>
-                    "Standard mode": Hierarchical graph layout performed using
-                    <a href="http://www.graphviz.org/Home.php">Graphviz</a>'
-                    <em>dot</em> layout engine
-                </li>
-                <li>
-                    Built-in pattern detection: identifies and supports
-                    interactive collapsing/uncollapsing of bubbles and frayed
-                    ropes [<a
-                    href="https://www.ncbi.nlm.nih.gov/pubmed/20211242">Miller,
-                    Koren, Sutton 2010</a>], along with linear and cyclic
-                    linear sequences of contigs
-                </li>
-                <li>
-                    Supports the visualization of
-                    <a href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/">AGP files</a>
-                    describing scaffolds constructed for the graph
-                </li>
-                <li>
-                    Includes controls for manually performing finishing on
-                    sequences of contigs in the graph
-                    <ul>
-                        <li>
-                            The resulting paths
-                    can be exported to
-                    <a href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/">AGP</a>
-                    or 
-                    <a href="https://en.wikipedia.org/wiki/Comma-separated_values">CSV</a>
-                    format
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    Scales edges in the graph by their multiplicity/bundle size
-                    [<a
-                    href="https://www.ncbi.nlm.nih.gov/pubmed/20211242">Miller,
-                    Koren, Sutton 2010</a>]
-                    <ul>
-                        <li>
-                            Uses <a href="http://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_summarizingdata/bs704_summarizingdata7.html">Tukey fences</a>
-                            to identify "outlier" edge
-                            weights and omit them from the scaling process
-                        </li>
-                        <li>
-                            Outlier edges are specially colored in the graph to
-                            indicate their unusual high/low weight
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    "Decomposition mode":
-                    <a href="https://en.wikipedia.org/wiki/Biconnected_component">biconnected components</a>
-                    in the graph are replaced with the root of their respective
-                    <a href="https://en.wikipedia.org/wiki/SPQR_tree">SPQR
-                    tree</a> data structure, which can be iteratively
-                    uncollapsed to reveal structural details in these regions
-                    of the graph
-                </li>
-                <li>
-                    Colorblind-accessible: every color used in the graph
-                    display of the application is easily configurable
-                    <ul>
-                        <li>
-                            Color settings can be exported/imported as
-                            <a href="https://en.wikipedia.org/wiki/Tab-separated_values">TSV</a>
-                            files
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    Supports node colorization by <a
-                    href="http://en.wikipedia.org/wiki/GC-content">GC content
-                    </a> and
-                    repeat annotations; more to come soon
-                </li>
-            </ul>
-        </p>
+        <h3>Features</h3>
+        <ul>
+            <li>
+                "Standard mode": Hierarchical graph layout performed using
+                <a href="http://www.graphviz.org/Home.php">Graphviz</a>'
+                <em>dot</em> layout engine
+            </li>
+            <li>
+                Built-in pattern detection: identifies and supports
+                interactive collapsing/uncollapsing of bubbles and frayed
+                ropes [<a
+                href="https://www.ncbi.nlm.nih.gov/pubmed/20211242">Miller,
+                Koren, Sutton 2010</a>], along with linear and cyclic
+                linear sequences of contigs
+            </li>
+            <li>
+                Supports the visualization of
+                <a href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/">AGP files</a>
+                describing scaffolds constructed for the graph
+            </li>
+            <li>
+                Includes controls for manually performing finishing on
+                sequences of contigs in the graph
+                <ul>
+                    <li>
+                        The resulting paths
+                can be exported to
+                <a href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/">AGP</a>
+                or 
+                <a href="https://en.wikipedia.org/wiki/Comma-separated_values">CSV</a>
+                format
+                    </li>
+                </ul>
+            </li>
+            <li>
+                Scales edges in the graph by their multiplicity/bundle size
+                [<a
+                href="https://www.ncbi.nlm.nih.gov/pubmed/20211242">Miller,
+                Koren, Sutton 2010</a>]
+                <ul>
+                    <li>
+                        Uses <a href="http://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_summarizingdata/bs704_summarizingdata7.html">Tukey fences</a>
+                        to identify "outlier" edge
+                        weights and omit them from the scaling process
+                    </li>
+                    <li>
+                        Outlier edges are specially colored in the graph to
+                        indicate their unusual high/low weight
+                    </li>
+                </ul>
+            </li>
+            <li>
+                "Decomposition mode":
+                <a href="https://en.wikipedia.org/wiki/Biconnected_component">biconnected components</a>
+                in the graph are replaced with the root of their respective
+                <a href="https://en.wikipedia.org/wiki/SPQR_tree">SPQR
+                tree</a> data structure, which can be iteratively
+                uncollapsed to reveal structural details in these regions
+                of the graph
+            </li>
+            <li>
+                Colorblind-accessible: every color used in the graph
+                display of the application is easily configurable
+                <ul>
+                    <li>
+                        Color settings can be exported/imported as
+                        <a href="https://en.wikipedia.org/wiki/Tab-separated_values">TSV</a>
+                        files
+                    </li>
+                </ul>
+            </li>
+            <li>
+                Supports node colorization by <a
+                href="http://en.wikipedia.org/wiki/GC-content">GC content
+                </a> and
+                repeat annotations; more to come soon
+            </li>
+        </ul>
         <h2 id="demo">Demo</h2>
         <p>
             A demo of MetagenomeScope's viewer interface (with about a dozen
@@ -210,12 +210,12 @@
             <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">
                 GNU General Public License, version 3</a>.
             (If you're interested, the source code for this site is
-            <a href="https://www.github.com/fedarko/MetagenomeScopeSite">
+            <a href="https://www.github.com/marbl/MetagenomeScope/tree/master/docs">
             also available on GitHub</a>.)
         </p>
         <p>
             See the
-            <a href="https://github.com/fedarko/MetagenomeScope/blob/master/README.md#acknowledgements">acknowledgements</a>
+            <a href="https://github.com/marbl/MetagenomeScope/blob/master/README.md#acknowledgements">acknowledgements</a>
             section of the code's README for an up-to-date
             list of the third-party libraries used in MetagenomeScope's code.
         </p>
@@ -232,7 +232,7 @@
             questions, suggestions, comments, etc.
         </p>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-        <script src="js/bootstrap.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
         <script src="js/autocollapse_nav.js"></script>
         <script src="js/open_screenshot.js"></script>
     </body>
