@@ -2,7 +2,7 @@
  * Authored by Marcus Fedarko
  *
  * This file is part of MetagenomeScope.
- *
+ * 
  * MetagenomeScope is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,34 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-body {
-    /* This has a top/bottom margin of 2em; the "auto" centers the body
-     * horizontally. */
-    margin: 0 auto;
-    max-width: 50em;
-    /* The top padding ensures that the navbar won't cover the title. */
-    padding: 40px 1em;
-    color: #333;
-}
-/* This workaround ensures that the navbar won't cover headers when it jumps
- * to them. The negative margin gets rid of the resulting empty space created
- * by the increased padding, preserving the original look of the page.
+/*
+ * Once the user clicks on a link within the nav (when the nav is in its
+ * "compressed" view, e.g. for small screens), the binding created in this
+ * script automatically collapses the nav. This makes the user experience of
+ * going somewhere on the page using the nav feel a lot more fluid, since they
+ * don't have to manually close the nav.
  */
-h2 {
-    padding-top: 60px;
-    margin-top: -60px;
-}
-nav li:hover {
-    background-color: #ddddec;
-}
-.thumbnail img {
-    cursor: pointer;
-}
-.thumbnail hr {
-    margin-bottom: 0;
-}
-/* This border color matches the default Bootstrap CSS on .thumbnail eles. */
-.thumbnail:hover {
-    border: 1px solid #337ab7;
+$(function() {
+    $("nav a").on("click", function() {
+        if ($("#main-navbar-content").hasClass("in")) {
+            $("#main-navbar-content").collapse("hide");
+        }
+    });
+});
+
+/* Opens a given image in a new tab/window (assumes that the event was
+ * propagated from an <img> tag).
+ */
+function openScreenshot(event) {
+    window.open(event.target.src, "_blank");
 }
