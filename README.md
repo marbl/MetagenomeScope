@@ -61,7 +61,7 @@ beneficial when analyzing large graphs:
 * 64-bit Linux system (in order to run the C++ binary contained in
   `graph_collator/spqr`) -- however, I'm working on getting a makefile set up
   to make this platform-independent eventually (see
-  [#218](https://github.com/fedarko/MetagenomeScope/issues/218))
+  [#55](https://github.com/marbl/MetagenomeScope/issues/55))
 * [Python 2.7](https://www.python.org/)
 * [NumPy](http://www.numpy.org/)
 * [PyGraphviz](https://pygraphviz.github.io/)
@@ -330,7 +330,7 @@ feedback about the tool.
 
 I can be reached via email at `mfedarko at umd dot edu`. 
 
-You can also open an [issue](https://github.com/fedarko/MetagenomeScope/issues)
+You can also open an [issue](https://github.com/marbl/MetagenomeScope/issues)
 in this repository, if you'd like.
 
 ## Acknowledgements
