@@ -236,7 +236,6 @@
             </div>
             <div id="selectedElementControls">
                 <h4>Selected Elements</h4>
-                <p>
     
                 <!-- Selected node info -->
                 <div class="selectedEleHeader"
@@ -311,7 +310,6 @@
                     </table>
                 </div>
 
-                </p>
                 <hr /> 
             </div>
             <div id="searchForElementsControls">
@@ -452,29 +450,27 @@
                     </button>
                 </p>
 
-                <p>
-                    <div class="btn-group" data-toggle="buttons"
-                        id="pathExportButtonGroup"
-                        aria-label="Path export type (AGP vs. CSV) selector">
-                        <button class="btn btn-info active disabled btn-sm"
-                            value="AGP" id="agpOption" disabled="disabled">
-                            <input type="radio" name="pathExportTypeRadio"
-                                checked="checked" autocomplete="off">AGP
-                        </button>
-                        <button class="btn btn-info disabled btn-sm"
-                            value="CSV" id="csvOption" disabled="disabled">
-                            <input type="radio" name="pathExportTypeRadio"
-                                autocomplete="off">CSV
-                        </button>
-                    </div>
-
-                    <button class='btn btn-info btn-sm disabled'
-                        id="exportPathButton" disabled="disabled"
-                        onclick="exportPath();">
-                        <span class="glyphicon glyphicon-download-alt"
-                            aria-hidden="true"></span> &nbsp; Export Path
+                <div class="btn-group" data-toggle="buttons"
+                    id="pathExportButtonGroup"
+                    aria-label="Path export type (AGP vs. CSV) selector">
+                    <button class="btn btn-info active disabled btn-sm"
+                        value="AGP" id="agpOption" disabled="disabled">
+                        <input type="radio" name="pathExportTypeRadio"
+                            checked="checked" autocomplete="off">AGP
                     </button>
-                </p>
+                    <button class="btn btn-info disabled btn-sm"
+                        value="CSV" id="csvOption" disabled="disabled">
+                        <input type="radio" name="pathExportTypeRadio"
+                            autocomplete="off">CSV
+                    </button>
+                </div>
+
+                <button class='btn btn-info btn-sm disabled'
+                    id="exportPathButton" disabled="disabled"
+                    onclick="exportPath();">
+                    <span class="glyphicon glyphicon-download-alt"
+                        aria-hidden="true"></span> &nbsp; Export Path
+                </button>
 
                 <p id="assembledNodes"></p>
 
@@ -482,7 +478,6 @@
             </div>
             <div id="exportGraphViewControls">
             <h4>Export Graph View</h4>
-                <p>
                 <div class="btn-group" data-toggle="buttons"
                     id="imgTypeButtonGroup"
                     aria-label="Image type (PNG vs. JPG) selector">
@@ -504,7 +499,6 @@
                     <span class="glyphicon glyphicon-camera"></span> &nbsp;
                     Export
                 </button>
-                </p>
             </div>
             <div id="testLayoutsControls">
                 <!-- We include the <hr /> here because the testLayoutsControls
@@ -514,10 +508,11 @@
                 <hr />
                 <h4>Test Layouts</h4>
                 <p>
-                See <a class="actuallyalink" target="_blank"
-                href="http://js.cytoscape.org/#layouts">here</a> for a
-                list of predefined layouts.
-                <div class='input-group input-group-sm'>
+                    See <a class="actuallyalink" target="_blank"
+                    href="http://js.cytoscape.org/#layouts">here</a> for a
+                    list of predefined layouts.
+                </p>
+                <div class='input-group input-group-sm bottom-page-div'>
                     <input type='text' class='form-control'
                         placeholder="Layout name" id="layoutInput"
                         disabled="disabled"
@@ -532,7 +527,6 @@
                         </button>
                     </span>
                 </div>
-                </p>
             </div>
         </div> <!-- end controls div -->
         <div id="cy" class="nosubsume"></div> <!--container for Cytoscape.js-->
@@ -854,24 +848,28 @@
                                     <div class="row">
                                     <!-- Left column -->
                                     <div class="col-lg-6">
-                                        <label class="cplabel" for="mincncp">
+                                        <label class="cplabel"
+                                            for="mincncp_id">
                                             Nodes (colorized: 0%)</label>
                                         <div id="mincncp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#0022ff"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="mincncp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
                                     </div>
                                     <!-- Right column -->
                                     <div class="col-lg-6">
-                                        <label class="cplabel" for="maxcncp">
+                                        <label class="cplabel"
+                                            for="maxcncp_id">
                                             Nodes (colorized: 100%)</label>
                                         <div id="maxcncp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#ff2200"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="maxcncp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
@@ -883,25 +881,29 @@
                                         colorpickers --> 
                                     <div class="row">
                                     <div class="col-lg-6">
-                                        <label class="cplabel" for="cnlcp">
+                                        <label class="cplabel"
+                                            for="cnlcp_id">
                                             Node labels (colorized)</label>
                                         <div id="cnlcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#ffffff"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="cnlcp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
                                     </div>
                                     <!-- Right column -->
                                     <div class="col-lg-6">
-                                        <label class="cplabel" for="csnlcp">
+                                        <label class="cplabel"
+                                            for="csnlcp_id">
                                             Node labels (colorized, selected)
                                         </label>
                                         <div id="csnlcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#ffffff"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="csnlcp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
@@ -912,213 +914,257 @@
                                     <div class="row">
                                     <!-- Left column of colorpickers -->
                                     <div class="col-lg-6">
-                                        <label class="cplabel" for="usncp">
+                                        <label class="cplabel"
+                                            for="usncp_id">
                                             Nodes (default)</label>
                                         <div id="usncp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#888888"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="usncp_id" />
                                             <!-- following <span> is needed to
                                                 display the color "preview" -->
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="bubblecp">
+                                        <label class="cplabel"
+                                            for="bubblecp_id">
                                             Bubbles</label>
                                         <div id="bubblecp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#9abaf3"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="bubblecp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="fropecp">
+                                        <label class="cplabel"
+                                            for="fropecp_id">
                                             Frayed Ropes</label>
                                         <div id="fropecp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#59f459"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="fropecp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="chaincp">
+                                        <label class="cplabel"
+                                            for="chaincp_id">
                                             Chains</label>
                                         <div id="chaincp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#fcaca3"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="chaincp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="ychaincp">
+                                        <label class="cplabel"
+                                            for="ychaincp_id">
                                             Cyclic Chains</label>
                                         <div id="ychaincp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#ffd163"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="ychaincp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="spqrscp">
+                                        <label class="cplabel"
+                                            for="spqrscp_id">
                                             Series Metanodes</label>
                                         <div id="spqrscp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#FFD644"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="spqrscp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="spqrpcp">
+                                        <label class="cplabel"
+                                            for="spqrpcp_id">
                                             Parallel Metanodes</label>
                                         <div id="spqrpcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#EB8EF9"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="spqrpcp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="spqrrcp">
+                                        <label class="cplabel"
+                                            for="spqrrcp_id">
                                             Rigid Metanodes</label>
                                         <div id="spqrrcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#31BF6F"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="spqrrcp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="bicmpcp">
+                                        <label class="cplabel"
+                                            for="bicmpcp_id">
                                             Bicomponent Nodes</label>
                                         <div id="bicmpcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#e9e9e9"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="bicmpcp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="tnbcp">
+                                        <label class="cplabel"
+                                            for="tnbcp_id">
                                             Finishing Candidate Node borders
                                         </label>
                                         <div id="tnbcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#000000"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="tnbcp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="tngbcp">
+                                        <label class="cplabel"
+                                            for="tngbcp_id">
                                             Finishing Candidate Node Group
                                             borders
                                         </label>
                                         <div id="tngbcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#000000"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="tngbcp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
                                     </div>
                                     <!-- Right column of colorpickers -->
                                     <div class="col-lg-6">
-                                        <label class="cplabel" for="usnlcp">
+                                        <label class="cplabel"
+                                            for="usnlcp_id">
                                             Node labels (default)</label>
                                         <div id="usnlcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#ffffff"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="usnlcp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="snlcp">
+                                        <label class="cplabel"
+                                            for="snlcp_id">
                                             Node labels (default, selected)
                                         </label>
                                         <div id="snlcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#ffffff"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="snlcp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="usecp">
+                                        <label class="cplabel"
+                                            for="usecp_id">
                                             Edges (default)</label>
                                         <div id="usecp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#555555"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="usecp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="secp">
+                                        <label class="cplabel"
+                                            for="secp_id">
                                             Edges (default, selected)</label>
                                         <div id="secp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#111111"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="secp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="hoecp">
+                                        <label class="cplabel"
+                                            for="hoecp_id">
                                             Edges (high outlier)</label>
                                         <div id="hoecp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#ff0000"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="hoecp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="hosecp">
+                                        <label class="cplabel"
+                                            for="hosecp_id">
                                             Edges (high outlier, selected)
                                         </label>
                                         <div id="hosecp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#800000"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="hosecp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="loecp">
+                                        <label class="cplabel"
+                                            for="loecp_id">
                                             Edges (low outlier)</label>
                                         <div id="loecp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#0000ff"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="loecp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="losecp">
+                                        <label class="cplabel"
+                                            for="losecp_id">
                                             Edges (low outlier, selected)
                                         </label>
                                         <div id="losecp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#000080"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="losecp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="cngcccp">
+                                        <label class="cplabel"
+                                            for="cngcccp_id">
                                             Node Group "child count" labels
                                         </label>
                                         <div id="cngcccp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#000000"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="cngcccp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="sngbcp">
+                                        <label class="cplabel"
+                                            for="sngbcp_id">
                                             Selected Node Group borders</label>
                                         <div id="sngbcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#000000"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="sngbcp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
-                                        <label class="cplabel" for="bgcp">
+                                        <label class="cplabel"
+                                            for="bgcp_id">
                                             Graph background</label>
                                         <div id="bgcp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#FFFFFF"
-                                                class="form-control" />
+                                                class="form-control"
+                                                id="bgcp_id" />
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>

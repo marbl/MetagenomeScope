@@ -69,6 +69,9 @@ html, body {
 #controls p { /* not the greatest solution. work on something better-looking */
     margin: 0.1em;
 }
+.bottom-page-div {
+    margin-bottom: 0.1em;
+}
 .selectedEleHeader {
     cursor: pointer;
     text-align: left;
