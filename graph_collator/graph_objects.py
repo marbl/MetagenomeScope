@@ -162,7 +162,7 @@ class Node(object):
            it really just means the length of this node. In single graphs
            that's measured in bp and in double graphs that's measured in nt.
            
-           (Size scaling based on length is done in self.get_dimensions().)
+           (Size scaling based on length is done in self.set_dimensions().)
         """
         self.id_string = id_string
         self.bp = bp
@@ -210,10 +210,13 @@ class Node(object):
         # Reference to the "size rank" (1 for largest, 2 for 2nd largest,
         # ...) of the connected component to which this node belongs.
         self.component_size_rank = -1
-        # Misc. layout data that we'll eventually record here if we decide
-        # to lay out the component in which this node is stored
-        self.xdot_width  = None
-        self.xdot_height = None
+        # Misc. layout data that we'll eventually record here
+        # The width/height attributes are technically slightly altered by
+        # Graphviz during its layout process -- they're scaled to the nearest
+        # integer point values. However, we preserve the original dimensions
+        # for rendering them in the viewer interface.
+        self.width  = None
+        self.height = None
         self.xdot_x      = None
         self.xdot_y      = None
         self.xdot_shape  = None
@@ -224,18 +227,13 @@ class Node(object):
         self.xdot_ix     = None
         self.xdot_iy     = None
         
-    def get_dimensions(self):
-        """Calculates the width and height of this node.
-
-           Returns a 2-tuple of (width, height).
+    def set_dimensions(self):
+        """Calculates the width and height of this node and assigns them to
+           this node's self.width and self.height attributes, respectively.
 
            NOTE that "height" and "width" are relative to the default vertical
            layout of the nodes (from top to bottom) -- so height refers to the
            long side of the node and width refers to the short side.
-        
-           ALSO NOTE that this shouldn't be confused with the .xdot_height
-           or .xdot_width properties, which represent the actual dimensions of
-           this node as determined by GraphViz.
         """
         h = log(self.bp, config.CONTIG_SCALING_LOG_BASE)
         if h > config.MAX_CONTIG_HEIGHT:
@@ -243,15 +241,16 @@ class Node(object):
         elif h < config.MIN_CONTIG_HEIGHT:
             h = config.MIN_CONTIG_HEIGHT
         w = sqrt(h)
-        return (w, h)
+        self.width = w
+        self.height = h
 
     def node_info(self):
         """Returns a string representing this node that can be used in a .dot
            file for input to GraphViz.
         """
-        w, h = self.get_dimensions()
+        self.set_dimensions()
         info = "\t%s [height=%g,width=%g,shape=" % \
-                (self.id_string, h, w)
+                (self.id_string, self.height, self.width)
         if self.is_complement:
             info += config.RCOMP_NODE_SHAPE
         elif self.is_single:
@@ -375,7 +374,7 @@ class Node(object):
             iy = parent_bicmp.xdot_ibottom + irelpos[1]
         return (self.id_string, self.label, self.bp, self.gc_content,
                 self.depth, self.is_repeat, self.component_size_rank, x, y,
-                ix, iy, self.xdot_width, self.xdot_height, parent_metanode_id,
+                ix, iy, self.width, self.height, parent_metanode_id,
                 parent_bicmp_id)
 
     def db_values(self):
@@ -401,7 +400,7 @@ class Node(object):
         length = self.bp
         return (self.id_string, self.label, length, self.gc_content,
                 self.depth, self.is_repeat, self.component_size_rank,
-                self.xdot_x, self.xdot_y, self.xdot_width, self.xdot_height,
+                self.xdot_x, self.xdot_y, self.width, self.height,
                 self.xdot_shape, group_id)
 
     def __repr__(self):
@@ -533,8 +532,6 @@ class NodeGroup(Node):
             ep = n.attr[u'pos'].split(',')
             curr_node.xdot_rel_x = float(ep[0]) - bounding_box_numeric[0]
             curr_node.xdot_rel_y = float(ep[1]) - bounding_box_numeric[1]
-            curr_node.xdot_width = float(n.attr[u'width'])
-            curr_node.xdot_height = float(n.attr[u'height'])
             curr_node.xdot_shape = str(n.attr[u'shape'])
         # Obtain edge layout info
         for e in cg.edges():
@@ -634,8 +631,8 @@ class SPQRMetaNode(NodeGroup):
            implicit SPQR decomposition mode layout.
         """
         for n in self.nodes:
-            hw_pts = config.POINTS_PER_INCH * (n.xdot_width / 2.0)
-            hh_pts = config.POINTS_PER_INCH * (n.xdot_height / 2.0)
+            hw_pts = config.POINTS_PER_INCH * (n.width / 2.0)
+            hh_pts = config.POINTS_PER_INCH * (n.height / 2.0)
             il = n.parent_spqrnode2relpos[self.parent_bicomponent][0] - hw_pts
             ib = n.parent_spqrnode2relpos[self.parent_bicomponent][1] - hh_pts
             ir = n.parent_spqrnode2relpos[self.parent_bicomponent][0] + hw_pts
@@ -708,8 +705,6 @@ class SPQRMetaNode(NodeGroup):
                         farthest_right_node.parent_spqrnode2relpos[self][0]):
                     farthest_right_node = curr_node
             rel_y = float(ep[1]) - bounding_box_numeric[1]
-            curr_node.xdot_width = float(n.attr[u'width'])
-            curr_node.xdot_height = float(n.attr[u'height'])
             curr_node.parent_spqrnode2relpos[self] = [rel_x, rel_y]
         if self.metanode_type == "P":
             farthest_right_node.parent_spqrnode2relpos[self][0] += 100
@@ -870,10 +865,6 @@ class Bicomponent(NodeGroup):
             ep = n.attr[u'pos'].split(',')
             rel_x = float(ep[0]) - bounding_box_numeric[0]
             rel_y = float(ep[1]) - bounding_box_numeric[1]
-            curr_node.xdot_width = float(n.attr[u'width'])
-            curr_node.xdot_height = float(n.attr[u'height'])
-            # we don't bother assigning xdot_width/xdot_height since that'll be
-            # done when these nodes are laid out in their respective metanodes
             curr_node.parent_spqrnode2relpos[self] = (rel_x, rel_y)
         # Don't even bother getting edge layout info, since we treat all
         # singleedges as straight lines and since we'll be getting edges to put
@@ -934,8 +925,6 @@ class Bicomponent(NodeGroup):
             ep = n.attr[u'pos'].split(',')
             curr_node.xdot_rel_x = float(ep[0]) - bounding_box_numeric[0]
             curr_node.xdot_rel_y = float(ep[1]) - bounding_box_numeric[1]
-            curr_node.xdot_width = float(n.attr[u'width'])
-            curr_node.xdot_height = float(n.attr[u'height'])
         # Obtain edge layout info
         for e in cg.edges():
             self.edge_count += 1

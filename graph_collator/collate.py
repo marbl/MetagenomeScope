@@ -1605,15 +1605,13 @@ for mode in ("implicit", "explicit"):
                     exy = curr_node.xdot_y
                 else:
                     curr_node.xdot_ix, curr_node.xdot_iy = posns
-                    curr_node.xdot_width = float(n.attr[u'width'])
-                    curr_node.xdot_height = float(n.attr[u'height'])
                     exx = curr_node.xdot_ix
                     exy = curr_node.xdot_iy
                 # Try to expand the component bounding box
                 right_side = exx + \
-                    (config.POINTS_PER_INCH * (curr_node.xdot_width/2.0))
+                    (config.POINTS_PER_INCH * (curr_node.width/2.0))
                 top_side = exy + \
-                    (config.POINTS_PER_INCH * (curr_node.xdot_height/2.0))
+                    (config.POINTS_PER_INCH * (curr_node.height/2.0))
                 if right_side > bounding_box_right: bounding_box_right = \
                         right_side
                 if top_side > bounding_box_top: bounding_box_top = top_side
@@ -1628,25 +1626,20 @@ for mode in ("implicit", "explicit"):
                 # bicomponent node here
                 curr_cluster = bicomponentid2obj[str(n)[9:]]
                 ep = n.attr[u'pos'].split(',')
-                # NOTE for anyone who's reading this: So, my code assigned the
-                # .xdot_width and .xdot_height property to all NodeGroups while
-                # it was parsing their layout. It's done this for a while. I
-                # just realized now, though, that this is really silly, since
-                # those properties (in the context of NodeGroups) are never
-                # used for anything except calculating half_width_pts and
-                # half_height_pts. I've modified the SPQR layout loop to not
-                # store this as a class attribute; modifying the std. mode
-                # layout loop below might be a good idea, also.
+                # We use half_width_pts for both the implicit and explicit
+                # SPQR modes, so can we avoid a bit of redundant code via just
+                # setting the xdot_width and xdot_height variables based on
+                # which mode we're in.
                 if mode == "explicit":
                     curr_cluster.xdot_x = float(ep[0])
                     curr_cluster.xdot_y = float(ep[1])
-                    xdot_width = float(n.attr[u'width'])
-                    xdot_height = float(n.attr[u'height'])
+                    xdot_width = curr_cluster.xdot_c_width
+                    xdot_height = curr_cluster.xdot_c_height
                 else:
                     curr_cluster.xdot_ix = float(ep[0])
                     curr_cluster.xdot_iy = float(ep[1])
-                    xdot_width = float(n.attr[u'width'])
-                    xdot_height = float(n.attr[u'height'])
+                    xdot_width = curr_cluster.xdot_ic_width
+                    xdot_height = curr_cluster.xdot_ic_height
                 half_width_pts = \
                     (config.POINTS_PER_INCH * (xdot_width/2.0))
                 half_height_pts = \
@@ -1693,8 +1686,8 @@ for mode in ("implicit", "explicit"):
                 for mn in curr_cluster.metanode_list:
                     mn.xdot_x = curr_cluster.xdot_left + mn.xdot_rel_x
                     mn.xdot_y = curr_cluster.xdot_bottom + mn.xdot_rel_y
-                    mn_hw_pts =(config.POINTS_PER_INCH * (mn.xdot_width / 2.0))
-                    mn_hh_pts=(config.POINTS_PER_INCH * (mn.xdot_height / 2.0))
+                    mn_hw_pts = (config.POINTS_PER_INCH*(mn.xdot_c_width/2.0))
+                    mn_hh_pts = (config.POINTS_PER_INCH*(mn.xdot_c_height/2.0))
                     mn.xdot_left = mn.xdot_x - mn_hw_pts
                     mn.xdot_right = mn.xdot_x + mn_hw_pts
                     mn.xdot_bottom = mn.xdot_y - mn_hh_pts
@@ -1887,9 +1880,7 @@ for component in connected_components:
             # insert node info and cc info into the database, then continue
             # (Also TODO: Do this for the SPQR modes above)
             # Normally we'd generate a layout with this node's node_info(),
-            # which includes the height/width of the node from get_dimensions()
-            # and the shape of the node in get_dimensions().
-            #w, h = component.node_list[0].get_dimensions()
+            # which includes the height/width of the node from set_dimensions()
             pass
     # Lay out all clusters individually, to be backfilled
     for ng in component.node_group_list:
@@ -1999,13 +1990,11 @@ for component in connected_components:
                 continue
             ep = n.attr[u'pos'].split(',')
             curr_node.xdot_x, curr_node.xdot_y = tuple(float(c) for c in ep)
-            curr_node.xdot_width = float(n.attr[u'width'])
-            curr_node.xdot_height = float(n.attr[u'height'])
             # Try to expand the component bounding box
             right_side = curr_node.xdot_x + \
-                (config.POINTS_PER_INCH * (curr_node.xdot_width/2.0))
+                (config.POINTS_PER_INCH * (curr_node.width / 2.0))
             top_side = curr_node.xdot_y + \
-                (config.POINTS_PER_INCH * (curr_node.xdot_height/2.0))
+                (config.POINTS_PER_INCH * (curr_node.height / 2.0))
             if right_side > bounding_box_right: bounding_box_right = right_side
             if top_side > bounding_box_top: bounding_box_top = top_side
             # Save this cluster in the .db
@@ -2022,12 +2011,10 @@ for component in connected_components:
             ep = n.attr[u'pos'].split(',')
             curr_cluster.xdot_x = float(ep[0])
             curr_cluster.xdot_y = float(ep[1])
-            curr_cluster.xdot_width = float(n.attr[u'width'])
-            curr_cluster.xdot_height = float(n.attr[u'height'])
             half_width_pts = \
-                (config.POINTS_PER_INCH * (curr_cluster.xdot_width/2.0))
+                (config.POINTS_PER_INCH * (curr_cluster.xdot_c_width/2.0))
             half_height_pts = \
-                (config.POINTS_PER_INCH * (curr_cluster.xdot_height/2.0))
+                (config.POINTS_PER_INCH * (curr_cluster.xdot_c_height/2.0))
             curr_cluster.xdot_left = curr_cluster.xdot_x - half_width_pts
             curr_cluster.xdot_right = curr_cluster.xdot_x + half_width_pts
             curr_cluster.xdot_bottom = curr_cluster.xdot_y - half_height_pts
@@ -2084,7 +2071,7 @@ for component in connected_components:
             graph_objects.Edge.get_control_points(e.attr[u'pos'])
         if source_id != e[0]:
             # Adjust edge to point from interior node "source"'s tailport
-            pts_height = source.xdot_height * config.POINTS_PER_INCH
+            pts_height = source.height * config.POINTS_PER_INCH
             tail_y = source.xdot_y - (pts_height / 2)
             new_points = "%g %g " % (source.xdot_x, tail_y)
             xcps = curr_edge.xdot_ctrl_pt_str
@@ -2096,7 +2083,7 @@ for component in connected_components:
         if target_id != e[1]:
             # Adjust edge to point to interior node "target"'s headport
             target = nodeid2obj[target_id]
-            pts_height = target.xdot_height * config.POINTS_PER_INCH
+            pts_height = target.height * config.POINTS_PER_INCH
             tail_y = target.xdot_y + (pts_height / 2)
             new_points = "%g %g" % (target.xdot_x, tail_y)
             xcps = curr_edge.xdot_ctrl_pt_str
