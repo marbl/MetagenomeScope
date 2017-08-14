@@ -1876,12 +1876,22 @@ for component in connected_components:
         # can "fake" the layout and avoid having to call pygraphviz, which
         # should save us some time.
         if len(component.node_list[0].outgoing_nodes) == 0:
-            # TODO fake layout based on component.node_list[0]'s dimensions,
+            # fake layout based on component.node_list[0]'s dimensions,
             # insert node info and cc info into the database, then continue
             # (Also TODO: Do this for the SPQR modes above)
-            # Normally we'd generate a layout with this node's node_info(),
-            # which includes the height/width of the node from set_dimensions()
-            pass
+            curr_node = component.node_list[0]
+            curr_node.set_dimensions()
+            wpts = curr_node.width * config.POINTS_PER_INCH
+            hpts = curr_node.height * config.POINTS_PER_INCH
+            curr_node.xdot_x = wpts / 2
+            curr_node.xdot_y = hpts / 2
+            curr_node.xdot_shape = curr_node.get_shape()
+            curr_node.set_component_rank(component_size_rank)
+            cursor.execute(NODE_INSERTION_STMT, curr_node.db_values())
+            cursor.execute(COMPONENT_INSERTION_STMT, (component_size_rank,
+                1, 0, curr_node.bp, wpts, hpts))
+            component_size_rank += 1
+            continue
     # Lay out all clusters individually, to be backfilled
     for ng in component.node_group_list:
         ng.layout_isolated()

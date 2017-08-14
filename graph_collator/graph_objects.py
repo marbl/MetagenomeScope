@@ -244,6 +244,16 @@ class Node(object):
         self.width = w
         self.height = h
 
+    def get_shape(self):
+        """Returns the shape "string" for this node."""
+        
+        if self.is_complement:
+            return config.RCOMP_NODE_SHAPE
+        elif self.is_single:
+            return config.SINGLE_NODE_SHAPE
+        else:
+            return config.BASIC_NODE_SHAPE
+
     def node_info(self):
         """Returns a string representing this node that can be used in a .dot
            file for input to GraphViz.
@@ -251,12 +261,7 @@ class Node(object):
         self.set_dimensions()
         info = "\t%s [height=%g,width=%g,shape=" % \
                 (self.id_string, self.height, self.width)
-        if self.is_complement:
-            info += config.RCOMP_NODE_SHAPE
-        elif self.is_single:
-            info += config.SINGLE_NODE_SHAPE
-        else:
-            info += config.BASIC_NODE_SHAPE
+        info += self.get_shape()
         info += "];\n"
         return info
 
@@ -389,6 +394,8 @@ class Node(object):
            
            Also, this shouldn't be called until after this Node's layout
            information has been parsed from an .xdot file and recorded.
+           (Unless we're "faking" the layout of this Node's component, in
+           which case everything here should be accounted for anyway.)
         """
         # See collate.py for the most up-to-date specifications of how this
         # table is laid out.
