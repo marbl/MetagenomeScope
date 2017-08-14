@@ -1559,13 +1559,38 @@ for mode in ("implicit", "explicit"):
                                             (b1.id_string, b2.id_string)
                                     sc_compressed_edge_count += 1
         gv_input += "}"
-        #if len(sc.node_group_list) == 0 and sc_compressed_edge_count == 0 \
-        #    and len(sc.node_list) == 1:
-        #        # TODO verify this is actually correct
-        #        # TODO figure out sc bounding box dimensions
-        #        # TODO position the single node properly
-        #        # TODO then continue on?? actually idk
-        #        # (as a tmp measure we could totally just continue/break here)
+        if len(scc.node_group_list) == 0 and sc_compressed_edge_count == 0 \
+                and len(scc.node_list) == 1:
+            # TODO verify this is actually correct
+            # (i.e. isn't breaking node/edge/cmp counts, looks right, etc)
+            curr_node = scc.node_list[0]
+            wpts = curr_node.width * config.POINTS_PER_INCH
+            hpts = curr_node.height * config.POINTS_PER_INCH
+            if mode == "implicit":
+                # first time looking at this node and component
+                curr_node.set_dimensions()
+                curr_node.xdot_ix = wpts / 2
+                curr_node.xdot_iy = hpts / 2
+                implicit_spqr_bounding_boxes.append((wpts, hpts))
+                implicit_spqr_node_counts.append(1)
+                implicit_spqr_edge_counts.append(0)
+            else:
+                curr_node.xdot_x = wpts / 2
+                curr_node.xdot_y = hpts / 2
+                curr_node.set_component_rank(single_component_size_rank)
+                curr_node.xdot_shape = curr_node.get_shape()
+                cursor.execute(SINGLENODE_INSERTION_STMT,
+                        curr_node.s_db_values())
+                # we don't bother getting values from
+                # implicit_spqr_bounding_boxes/_node_counts/_edge_counts
+                # because we already know those values
+                cursor.execute(SINGLECOMPONENT_INSERTION_STMT,
+                    (single_component_size_rank, 1, 0, 1, 0, 1, 0, 0,
+                        wpts, hpts, wpts, hpts))
+            if total_single_component_count == single_component_size_rank:
+                conclude_msg()
+            single_component_size_rank += 1
+            continue
         h = pygraphviz.AGraph(gv_input)
 
         layout_msg_printed = (not no_print) or first_small_component
@@ -1878,7 +1903,6 @@ for component in connected_components:
         if len(component.node_list[0].outgoing_nodes) == 0:
             # fake layout based on component.node_list[0]'s dimensions,
             # insert node info and cc info into the database, then continue
-            # (Also TODO: Do this for the SPQR modes above)
             curr_node = component.node_list[0]
             curr_node.set_dimensions()
             wpts = curr_node.width * config.POINTS_PER_INCH
