@@ -207,8 +207,8 @@ interface and Graphviz' drawings.
 To save time and space, we don't actually call Graphviz to lay out connected
 components containing one node and no edges or node groups. Instead, we
 position each node in the center of an appropriately-sized connected component,
-essentially "faking" the layout Graphviz would have produced in a
-fraction of the time taken to invoke it. (See
+essentially "mimicking" the layout PyGraphviz/Graphviz would have produced in a
+portion of the time taken to invoke them. (See
 [this issue](https://github.com/marbl/MetagenomeScope/issues/1) for
 details.) Therefore, .gv/.xdot files for these connected components will not be
 exported even if `-pg` or `-px` are passed.
