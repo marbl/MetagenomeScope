@@ -162,12 +162,16 @@ enabled).
   `prefix_2.gv` indicates the next largest connected component, and so on).
     * See the [note](#a-note-about-node-dimensions) below about node dimension
       scaling in the layouts and drawings Graphviz produces from .gv files.
+    * Also see the [note](#a-note-about-single-node-components) below about
+      components containing one node and no other elements.
 * `-px` This optional argument produces .xdot files in the output
   directory. These files are labelled in an identical fashion to `.gv` files,
   with the only difference in naming being the file suffix (.xdot instead of
   .gv).
     * See the [note](#a-note-about-node-dimensions) below about node dimension
       scaling that produces .xdot files.
+    * Also see the [note](#a-note-about-single-node-components) below about
+      components containing one node and no other elements.
 * `-b` This optional argument lets you pass in an existing file indicating the
   separation pairs in the graph (to be used in the detection of complex
   bubbles) to the script.
@@ -186,16 +190,28 @@ enabled).
       raised regardless of whether or not `-w` is set.
 
 #### A note about node dimensions
-* Graphviz seems to round input node dimensions to the nearest point value
-  (where an inch is
-  [defined as 72 points](http://www.graphviz.org/doc/info/attrs.html)).
-  See [this issue](https://github.com/marbl/MetagenomeScope/issues/78)
-  for details on the rounding process. We don't use these rounded dimensions
-  in the viewer interface, although the rounded dimensions will persist in
-  `.xdot` files and when Graphviz performs layout on/draws the `.gv` files
-  produced via `-pg`.
-  This results in a very slight discrepancy in node sizes between the viewer
-  interface and Graphviz' drawings.
+Graphviz seems to round input node dimensions to the nearest point value
+(where an inch is
+[defined as 72 points](http://www.graphviz.org/doc/info/attrs.html)).
+See [this issue](https://github.com/marbl/MetagenomeScope/issues/78)
+for details on the rounding process.
+
+We don't use these rounded dimensions
+in the viewer interface, although the rounded dimensions will persist in
+`.xdot` files and when Graphviz performs layout on/draws the `.gv` files
+produced via `-pg`.
+This results in a very slight discrepancy in node sizes between the viewer
+interface and Graphviz' drawings.
+
+#### A note about single node components
+To save time and space, we don't actually call Graphviz to lay out connected
+components containing one node and no edges or node groups. Instead, we
+position each node in the center of an appropriately-sized connected component,
+essentially "faking" the layout Graphviz would have produced in a
+fraction of the time taken to invoke it. (See
+[this issue](https://github.com/marbl/MetagenomeScope/issues/1) for
+details.) Therefore, .gv/.xdot files for these connected components will not be
+exported even if `-pg` or `-px` are passed.
 
 ## Using the viewer interface
 

@@ -1561,8 +1561,6 @@ for mode in ("implicit", "explicit"):
         gv_input += "}"
         if len(scc.node_group_list) == 0 and sc_compressed_edge_count == 0 \
                 and len(scc.node_list) == 1:
-            # TODO verify this is actually correct
-            # (i.e. isn't breaking node/edge/cmp counts, looks right, etc)
             curr_node = scc.node_list[0]
             wpts = curr_node.width * config.POINTS_PER_INCH
             hpts = curr_node.height * config.POINTS_PER_INCH
