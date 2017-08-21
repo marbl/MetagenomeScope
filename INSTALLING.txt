@@ -1,0 +1,64 @@
+Install Instructions -- MetagenomeScope
+=======================================
+
+Hi! These instructions are for installing the preprocessing script component
+of MetagenomeScope, which can be used to generate .db files that can be
+visualized in MetagenomeScope's viewer interface.
+
+(The viewer interface is just a normal web application -- you shouldn't need to
+install anything in order to use that, assuming you're using a modern web
+browser with Javascript enabled.)
+
+Hopefully these instructions should be sufficient for getting everything up
+and working, but if you run into any problems please feel free to contact me
+at the email address "mfedarko at umd dot edu" (with no quotes, and with the
+"at" and "dot" replaced with @ and . respectively).
+
+External Libraries Required
+---------------------------
+
+1. Python 2.7 (higher versions of Python 2.x should work, I think)
+2. NumPy
+3. Graphviz
+4. PyGraphviz
+
+1. Python 2.x is installed by default with many systems.
+   Installation instructions for Python (as well as instructions for checking
+   to see if you already have Python installed) are located here:
+   https://wiki.python.org/moin/BeginnersGuide/Download
+
+2. Installation instructions for NumPy are located here:
+   https://www.scipy.org/scipylib/download.html
+
+3. Installation instructions for Graphviz are located here:
+   http://www.graphviz.org/Download.php
+   NOTE that we recommend using a version of Graphviz dated on or after
+   2.41.20170712.0019, due to a bug in edge routing that was fixed before
+   that release. (Details regarding this issue are available at
+   https://github.com/fedarko/MetagenomeScope/issues/235, if you're curious.)
+
+4. Installation instructions for PyGraphviz are located here:
+   https://pypi.python.org/pypi/pygraphviz
+   It might be easiest to install PyGraphviz through "pip" or another Python
+   package manager.
+
+Compiling the SPQR Script
+-------------------------
+
+The bulk of MetagenomeScope's preprocessing script's functionality
+is contained within its Python code (which is generally easily portable across
+different platforms). However, the "SPQR script" in MetagenomeScope (written
+in C++) requires compilation, since it uses the Open Graph Drawing Framework
+(OGDF) to generate SPQR trees.
+
+I'm working on getting a proper Makefile set up for the SPQR script.
+I still need to implement a better system for linking OGDF's code
+(maybe it'd be best to include OGDF headers/code in a ogdf/ folder in the
+root directory of MetagenomeScope? That'd prevent users from having to
+separately download OGDF, I suppose).
+
+For the time being, though, you can replace the arguments in the OGDF_INCL and
+OGDF_LINK variables in the Makefile to point to your own installation of
+OGDF's corresponding include/ and _release/ directories.
+You can also modify the COMPILER and CFLAGS arguments if you're using a
+different C++ compiler.
