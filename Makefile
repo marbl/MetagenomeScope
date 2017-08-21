@@ -1,5 +1,5 @@
 # NOTE: this Makefile is a work in progress -- some of the variables should
-# be changed -- see INSTALLING.txt for more info.
+# be changed for different systems -- see INSTALLING.txt for more info.
 COMPILER = g++
 # Omitting optimization and warning flags for the time being; adding those
 # later would be a good idea.
