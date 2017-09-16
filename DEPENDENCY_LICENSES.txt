@@ -52,7 +52,9 @@ Furthermore, the visualization interface is distributed with:
 
 -sql.js
     -https://github.com/kripken/sql.js
+    -Copyright is contained in dependency_licenses/sql.js/LICENSE
     -Licensed under the MIT License
+     (included in dependency_licenses/sql.js/LICENSE)
 
 -jQuery
     -http://jquery.com
