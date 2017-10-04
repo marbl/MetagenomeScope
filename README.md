@@ -298,6 +298,27 @@ In standard mode, structural patterns contained within the graph were
 automatically highlighted and grouped together during layout. These patterns
 can be easily identified by their background color and general structure.
 
+#### Edge Scaling
+
+If the input assembly graph file has edge frequencies given (either as `bsize`
+in GML files or as a multiplicity attribute in LastGraph files), then edges
+in every connected component will be relatively scaled by their frequency.
+That is, edges with relatively
+higher frequency values than other edges in their connected component of the
+graph will be made thicker than other edges in the viewer interface, and
+edges with relatively low frequency values will be made thinner.
+
+To account for "outlier" edges (which might be far more frequent or far less
+frequent than other edges in a connected component, and therefore skew the
+relative scaling process), we use
+[Tukey fences](http://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_summarizingdata/bs704_summarizingdata7.html#headingtaglink_3)
+to detect high and low outlier edge frequencies for each connected component.
+High outlier edges are given the maximum edge thickness and colored red,
+and low outlier edges are given the minimum edge thickness and colored blue.
+(These color assignments can be modified in the color settings, though.)
+Remaining non-outlier edges are scaled relatively, without taking detected
+outlier edges into account.
+
 #### Viewing Scaffolds
 
 You can use the `View Scaffolds` section of the control panel to visualize
