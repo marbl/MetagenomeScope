@@ -316,8 +316,8 @@ to detect high and low outlier edge frequencies for each connected component.
 High outlier edges are given the maximum edge thickness and colored red,
 and low outlier edges are given the minimum edge thickness and colored blue.
 (These color assignments can be modified in the color settings, though.)
-Remaining non-outlier edges are scaled relatively, without taking detected
-outlier edges into account.
+The remaining non-outlier edges in a connected component are scaled relatively,
+without taking detected outlier edges' frequencies into account.
 
 #### Viewing Scaffolds
 
