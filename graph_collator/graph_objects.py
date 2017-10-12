@@ -426,6 +426,8 @@ class NodeGroup(Node):
        "subgraph.")
     """
     
+    plural_name = "other_structural_patterns"
+
     def __init__(self, group_prefix, group_style, nodes, spqr_related=False,
             unique_id=None):
         """Initializes the node group, given all the Node objects comprising
@@ -982,8 +984,12 @@ class Bubble(NodeGroup):
        (In any case, this Bubble class is agnostic as to the structure of its
        nodes; all that's needed to create a Bubble is a list of its nodes.)
     """
+
+    plural_name = "bubbles"
+
     def __init__(self, *nodes):
         """Initializes the Bubble, given a list of nodes comprising it."""
+
         super(Bubble, self).__init__('B', config.BUBBLE_STYLE, nodes)
 
     @staticmethod
@@ -1161,6 +1167,8 @@ class Bubble(NodeGroup):
 class Rope(NodeGroup):
     """A group of nodes collapsed into a Rope."""
 
+    plural_name = "frayed_ropes"
+
     def __init__(self, *nodes):
         """Initializes the Rope, given a list of nodes comprising it."""
         super(Rope, self).__init__('F', config.FRAYEDROPE_STYLE, nodes)
@@ -1254,6 +1262,9 @@ class Chain(NodeGroup):
     """A group of nodes collapsed into a Chain. This is defined as > 1
        nodes that occur one after the other, with no intermediate edges.
     """
+
+    plural_name = "chains"
+
     def __init__(self, *nodes):
         """Initializes the Chain, given all the nodes comprising the chain."""
         super(Chain, self).__init__('C', config.CHAIN_STYLE, nodes);
@@ -1379,6 +1390,9 @@ class Cycle(NodeGroup):
        (Less formally, this is essentially a Chain where the 'last' node has
        one outgoing edge to the 'first' node.)
     """
+
+    plural_name = "cyclic_chains"
+
     def __init__(self, *nodes):
         """Initializes the Cycle, given all the nodes comprising it."""
         super(Cycle, self).__init__('Y', config.CYCLE_STYLE, nodes)

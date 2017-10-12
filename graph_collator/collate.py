@@ -1134,6 +1134,24 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a chain
         clusterid2obj[new_chain.id_string] = new_chain
 
 conclude_msg()
+
+# Output files containing IDs of nodes in each type of cluster
+clustertype2instances = {}
+for clust in clusterid2obj.values():
+    t = type(clust)
+    if t not in clustertype2instances:
+        clustertype2instances[t] = [clust]
+    else:
+        clustertype2instances[t].append(clust)
+
+for ct in clustertype2instances:
+    input_text = ""
+    for clust in clustertype2instances[ct]:
+        for child in clust.nodes:
+            input_text += "%s\t%s" % (clust.cy_id_string, child.id_string)
+            input_text += "\n"
+    save_aux_file(ct.plural_name + ".txt", input_text, False, warnings=False)
+
 # Add individual (not used in collapsing) nodes to the nodes_to_draw list
 # We could build this list up at the start and then gradually remove nodes as
 # we use nodes in collapsing, but remove() is an O(n) operation so that'd make
