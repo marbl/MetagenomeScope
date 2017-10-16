@@ -2185,6 +2185,20 @@ function startIndeterminateProgressBar() {
     }
 }
 
+/* Inverts all colors in the color settings. Here we define "inversion" of
+ * a color with RGB channel values R, G, B where each value is an integer
+ * in the range [0, 255] as inv((R, G, B)) -> (255 - R, 255 - G, 255 - B).
+ */
+function invertColorSettings() {
+    $(".colorpicker-component").each(function(i) {
+        var oldRGB = $(this).data("colorpicker").color.toRGB();
+        var newRGB = "rgb(" + (255 - oldRGB["r"]) + "," +
+                              (255 - oldRGB["g"]) + "," +
+                              (255 - oldRGB["b"]) + ")";
+        $(this).colorpicker("setValue", newRGB);
+    });
+}
+
 /* If toDownload is true, calls downloadDataURI(); otherwise, just returns the
  * color settings string. (NOTE -- at present, no other places in the code use
  * this function with toDownload === false; I'm retaining this functionality
