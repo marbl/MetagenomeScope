@@ -23,8 +23,6 @@
 # number of nodes specified in the -n option. Complexities are thus added to
 # the graph.
 
-# TODO: initially, just have this work with bubbles.
-
 import argparse
 from random import randrange, random
 import networkx as nx
@@ -84,4 +82,13 @@ nx.set_edge_attributes(G, "orientation", orientation_dict)
 nx.set_edge_attributes(G, "mean", mean_dict)
 nx.set_edge_attributes(G, "stdev", stdev_dict)
 nx.set_edge_attributes(G, "bsize", bsize_dict)
+
+# TODO: pick a random existing node in the graph and add a structural pattern,
+# with that node as the "starting position" of a pattern (this might get a bit
+# complicated with things like frayed ropes that have multiple "starting
+# nodes," but it shouldn't be too difficult to work around those). Apply random
+# attributes to the resulting nodes/edges generated, I guess? Maybe generalize
+# above attribute-setting loops to functions. or just don't bother with random
+# attributes for now.
+
 nx.write_gml(G, args.output)
