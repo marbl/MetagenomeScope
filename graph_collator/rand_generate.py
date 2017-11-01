@@ -24,7 +24,7 @@
 # the graph.
 
 import argparse
-from random import randrange, random
+from random import randrange, random, choice
 import networkx as nx
 
 # Get argument information
@@ -50,45 +50,113 @@ rope_ct = int(args.ropes)
 chain_ct = int(args.chains)
 cyclic_chain_ct = int(args.cyclic_chains)
 
-G = nx.path_graph(node_ct)
-node_orientation_dict = {}
-length_dict = {}
-for n in G.nodes():
-    node_orientation_dict[n] = "FOW" if random() < 0.5 else "REV"
-    length_dict[n] = randrange(1, 1000000)
+cts = [bubble_ct, rope_ct, chain_ct, cyclic_chain_ct]
+for i in range(len(cts)):
+    if cts[i] == -1:
+        # just an approximation, we can tweak this in a pattern-specific manner
+        # if desired
+        cts[i] = randrange(0, node_ct / 2)
 
-nx.set_node_attributes(G, "orientation", node_orientation_dict)
-nx.set_node_attributes(G, "length", length_dict)
+G = nx.path_graph(node_ct, nx.DiGraph())
 
-orientation_dict = {}
-mean_dict = {}
-stdev_dict = {}
-bsize_dict = {}
-for e in G.edges():
-    if node_orientation_dict[e[0]] == "FOW":
-        if node_orientation_dict[e[1]] == "FOW":
-            orientation_dict[e] = "EB"
+def assign_rand_attrs(G):
+    """Assigns random attributes to the nodes/edges in a specified nx graph.
+
+       This should only be called after all nodes and edges have been
+       added to the graph.
+    """
+    node_orientation_dict = {}
+    length_dict = {}
+    for n in G.nodes():
+        node_orientation_dict[n] = "FOW" if random() < 0.5 else "REV"
+        length_dict[n] = randrange(1, 1000000)
+    
+    nx.set_node_attributes(G, "orientation", node_orientation_dict)
+    nx.set_node_attributes(G, "length", length_dict)
+
+    # Assign edge attrs
+    orientation_dict = {}
+    mean_dict = {}
+    stdev_dict = {}
+    bsize_dict = {}
+    for e in G.edges():
+        if node_orientation_dict[e[0]] == "FOW":
+            if node_orientation_dict[e[1]] == "FOW":
+                orientation_dict[e] = "EB"
+            else:
+                orientation_dict[e] = "EE"
         else:
-            orientation_dict[e] = "EE"
+            if node_orientation_dict[e[1]] == "FOW":
+                orientation_dict[e] = "BB"
+            else:
+                orientation_dict[e] = "BE"
+        mean_dict[e] = 0
+        stdev_dict[e] = 0
+        bsize_dict[e] = 1
+    nx.set_edge_attributes(G, "orientation", orientation_dict)
+    nx.set_edge_attributes(G, "mean", mean_dict)
+    nx.set_edge_attributes(G, "stdev", stdev_dict)
+    nx.set_edge_attributes(G, "bsize", bsize_dict)
+
+bubble_id = 0
+
+def create_bubble():
+    """Creates a bubble with a random number of nodes between 4 and 17.
+       These bubbles are "simple" in that they always consist of a source,
+       sink, and 2 or 3 branching middle paths which can contain anywhere from
+       1 to 5 nodes each.
+
+       Returns the interior paths in the bubble.
+    """
+    global bubble_id
+
+    if random() < 0.5:
+        num_middle_paths = 2
     else:
-        if node_orientation_dict[e[1]] == "FOW":
-            orientation_dict[e] = "BB"
-        else:
-            orientation_dict[e] = "BE"
-    mean_dict[e] = 0
-    stdev_dict[e] = 0
-    bsize_dict[e] = 1
-nx.set_edge_attributes(G, "orientation", orientation_dict)
-nx.set_edge_attributes(G, "mean", mean_dict)
-nx.set_edge_attributes(G, "stdev", stdev_dict)
-nx.set_edge_attributes(G, "bsize", bsize_dict)
+        num_middle_paths = 3
 
-# TODO: pick a random existing node in the graph and add a structural pattern,
-# with that node as the "starting position" of a pattern (this might get a bit
-# complicated with things like frayed ropes that have multiple "starting
-# nodes," but it shouldn't be too difficult to work around those). Apply random
-# attributes to the resulting nodes/edges generated, I guess? Maybe generalize
-# above attribute-setting loops to functions. or just don't bother with random
-# attributes for now.
+    # paths is a list of subgraphs indicating the paths in the bubble
+    paths = []
+    path_id = 0
+    for p in range(num_middle_paths):
+        num_nodes_on_path = randrange(1, 6)
+        prefix = "b%dp%d_" % (bubble_id, path_id)
+        P = nx.path_graph(num_nodes_on_path, nx.DiGraph())
+        P.graph["bpid"] = prefix
+        P.graph["terminus"] = prefix + str(num_nodes_on_path - 1)
+        mapping = {}
+        for n in P.nodes():
+            mapping[n] = prefix + "%d" % (n)
+        P = nx.relabel_nodes(P, mapping)
+        paths.append(P)
+        path_id += 1
+    bubble_id += 1
+    return paths
 
+for i in range(cts[0]):
+    paths = create_bubble()
+    src = choice(G.nodes())
+    # Since we start with a linear structure (a "path graph"), if we decide to
+    # create a bubble starting at the last node in this structure then we have
+    # to add an additional node to serve as the sink of the bubble starting at
+    # what was formerly the last node. This process could conceivably be
+    # repeated an arbitrary number of times if the current last node is
+    # repeatedly selected as the source of a new bubble.
+    if G.out_edges(src) == []:
+        new_sink_id = str(src) + "_snk"
+        G.add_node(new_sink_id)
+        G.add_edge(src, new_sink_id)
+        print "had to make a new sink"
+    snk = choice(G.out_edges(src))[1]
+    # Irregularity: every iteration through this loop, a single extraneous
+    # node is added on to each extant path. 
+    for P in paths:
+        G.add_nodes_from(P)
+        G.add_edges_from(P.edges())
+        G.add_edge(src, P.graph["bpid"] + "0")
+        G.add_edge(P.graph["terminus"], snk)
+    print "created bubble between", src, "and", snk
+    G.remove_edge(src, snk)
+
+assign_rand_attrs(G)
 nx.write_gml(G, args.output)
