@@ -34,28 +34,21 @@ parser.add_argument("-o", "--output", required=True,
     help="output file name")
 parser.add_argument("-n", "--nodes", required=True,
     help="lower bound on number of nodes in the graph")
-parser.add_argument("-b", "--bubbles", required=False, default=-1,
+parser.add_argument("-b", "--bubbles", required=False, default=0,
     help="requested number of simple bubbles in the graph")
-parser.add_argument("-f", "--ropes", required=False, default=-1,
-    help="requested number of frayed ropes in the graph")
-parser.add_argument("-c", "--chains", required=False, default=-1,
-    help="requested number of chains in the graph")
-parser.add_argument("-y", "--cyclic_chains", required=False, default=-1,
-    help="requested number of cyclic chains in the graph")
+#parser.add_argument("-f", "--ropes", required=False, default=-1,
+#    help="requested number of frayed ropes in the graph")
+#parser.add_argument("-c", "--chains", required=False, default=-1,
+#    help="requested number of chains in the graph")
+#parser.add_argument("-y", "--cyclic_chains", required=False, default=-1,
+#    help="requested number of cyclic chains in the graph")
 
 args = parser.parse_args()
 node_ct = int(args.nodes)
 bubble_ct = int(args.bubbles)
-rope_ct = int(args.ropes)
-chain_ct = int(args.chains)
-cyclic_chain_ct = int(args.cyclic_chains)
-
-cts = [bubble_ct, rope_ct, chain_ct, cyclic_chain_ct]
-for i in range(len(cts)):
-    if cts[i] == -1:
-        # just an approximation, we can tweak this in a pattern-specific manner
-        # if desired
-        cts[i] = randrange(0, node_ct / 2)
+#rope_ct = int(args.ropes)
+#chain_ct = int(args.chains)
+#cyclic_chain_ct = int(args.cyclic_chains)
 
 G = nx.path_graph(node_ct, nx.DiGraph())
 
@@ -133,7 +126,7 @@ def create_bubble():
     bubble_id += 1
     return paths
 
-for i in range(cts[0]):
+for i in range(bubble_ct):
     paths = create_bubble()
     src = choice(G.nodes())
     # Since we start with a linear structure (a "path graph"), if we decide to
