@@ -141,8 +141,6 @@ for i in range(bubble_ct):
         G.add_edge(src, new_sink_id)
         print "had to make a new sink"
     snk = choice(G.out_edges(src))[1]
-    # Irregularity: every iteration through this loop, a single extraneous
-    # node is added on to each extant path. 
     for P in paths:
         G.add_nodes_from(P)
         G.add_edges_from(P.edges())
