@@ -50,7 +50,14 @@ bubble_ct = int(args.bubbles)
 #chain_ct = int(args.chains)
 #cyclic_chain_ct = int(args.cyclic_chains)
 
+# Validate arguments a bit
+if node_ct <= 0:
+    raise ValueError, "graph must have a lower bound of 1 node"
+if bubble_ct < 0:
+    raise ValueError, "bubble count must be a nonnegative integer"
+
 G = nx.path_graph(node_ct, nx.DiGraph())
+bubble_id = 0
 
 def assign_rand_attrs(G):
     """Assigns random attributes to the nodes/edges in a specified nx graph.
@@ -90,8 +97,6 @@ def assign_rand_attrs(G):
     nx.set_edge_attributes(G, "mean", mean_dict)
     nx.set_edge_attributes(G, "stdev", stdev_dict)
     nx.set_edge_attributes(G, "bsize", bsize_dict)
-
-bubble_id = 0
 
 def create_bubble():
     """Creates a bubble with a random number of nodes between 4 and 17.
