@@ -68,18 +68,20 @@ parser.add_argument("-px", "--preservexdot", required=False, default=False,
         help="save all .xdot files generated for connected components")
 parser.add_argument("-w", "--overwrite", required=False, default=False,
         action="store_true", help="overwrite output (.db/.gv/.xdot) files")
-parser.add_argument("-b", "--bicomponentsfile", required=False,
+parser.add_argument("-b", "--bicomponentfile", required=False,
     help="file containing bicomponent information for the assembly graph" + \
         " (will be generated using the SPQR script in the output directory" + \
         " if not passed)")
-parser.add_argument("-au", "--assumeunoriented", required=False, default=False,
-        action="store_true", help="assume that input GML-file graphs are" + \
-            " unoriented (default for GML files is assuming they are" + \
-            " oriented); this option is unfinished")
-parser.add_argument("-ao", "--assumeoriented", required=False, default=False,
-        action="store_true", help="assume that input LastGraph-/GFA-file" + \
-            " graphs are oriented (default for LastGraph/GFA files is" + \
-            " assuming they are unoriented); this option is unfinished")
+parser.add_argument("-pf", "--patternfile", required=False,
+    help="file describing pre-identified structural patterns in the graph")
+#parser.add_argument("-au", "--assumeunoriented", required=False, default=False,
+#        action="store_true", help="assume that input GML-file graphs are" + \
+#            " unoriented (default for GML files is assuming they are" + \
+#            " oriented); this option is unfinished")
+#parser.add_argument("-ao", "--assumeoriented", required=False, default=False,
+#        action="store_true", help="assume that input LastGraph-/GFA-file" + \
+#            " graphs are oriented (default for LastGraph/GFA files is" + \
+#            " assuming they are unoriented); this option is unfinished")
 args = parser.parse_args()
 asm_fn = args.inputfile
 output_fn = args.outputprefix
@@ -88,9 +90,10 @@ dir_fn = args.outputdirectory
 preserve_gv = args.preservegv
 preserve_xdot = args.preservexdot
 overwrite = args.overwrite
-bicmps_fullfn = args.bicomponentsfile
-assume_unoriented = args.assumeunoriented
-assume_oriented = args.assumeoriented
+bicmps_fullfn = args.bicomponentfile
+patterns_fullfn = args.patternfile
+#assume_unoriented = args.assumeunoriented
+#assume_oriented = args.assumeoriented
 
 try:
     os.makedirs(dir_fn)

@@ -95,8 +95,9 @@ GLOBALCLUSTER_STYLE = "margin=0"
 
 # Various status messages/message prefixes that are displayed to the user.
 # Displayed during command-line argument parsing
-COLLATE_DESCRIPTION = "Prepare an assembly graph file for visualization, " + \
-"generating a database file that can be loaded in the MetagenomeScope viewer."
+COLLATE_DESCRIPTION = "Prepares an assembly graph file for visualization, " + \
+"generating a database file that can be loaded in the MetagenomeScope " + \
+"viewer interface."
 BUBBLE_SEARCH_MSG = "Looking for simple bubbles in the graph..."
 SPQR_MSG = \
     "Generating SPQR tree decompositions for the bicomponents of the graph..."
