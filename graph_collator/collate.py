@@ -72,8 +72,8 @@ parser.add_argument("-b", "--bicomponentfile", required=False,
     help="file containing bicomponent information for the assembly graph" + \
         " (will be generated using the SPQR script in the output directory" + \
         " if not passed)")
-parser.add_argument("-pf", "--patternfile", required=False,
-    help="file describing pre-identified structural patterns in the graph")
+parser.add_argument("-ub", "--ububblefile", required=False,
+    help="file describing pre-identified bubbles in the graph")
 #parser.add_argument("-au", "--assumeunoriented", required=False, default=False,
 #        action="store_true", help="assume that input GML-file graphs are" + \
 #            " unoriented (default for GML files is assuming they are" + \
@@ -91,7 +91,7 @@ preserve_gv = args.preservegv
 preserve_xdot = args.preservexdot
 overwrite = args.overwrite
 bicmps_fullfn = args.bicomponentfile
-patterns_fullfn = args.patternfile
+ububbles_fullfn = args.ububblefile
 #assume_unoriented = args.assumeunoriented
 #assume_oriented = args.assumeoriented
 
@@ -830,12 +830,59 @@ conclude_msg()
 # collapsed) or its collapsed "group" (if it could be collapsed) to a list
 # of nodes to draw, which will later be processed and output to the .gv file.
 
-# We apply "precedence" here: identify all bubbles, then frayed ropes, then
-# cycles, then chains. A TODO is making that precedence configurable; see #87
-# (and generalizing this code to get rid of redundant stuff, maybe?)
-operation_msg(config.BUBBLE_SEARCH_MSG)
+# We apply "precedence" here: identify all user-specified patterns, bubbles,
+# then frayed ropes, then cycles, then chains. A minor TODO is making that
+# precedence configurable; see #87 (and generalizing this code to get rid
+# of redundant stuff, maybe?)
+
 nodes_to_try_collapsing = nodeid2obj.values()
 nodes_to_draw = []
+
+# Identify user-supplied bubbles in the graph.
+# TODOs re: user-supplied patterns:
+#  --> eventually allow user to supply other types of patterns than bubbles?
+#  --> or just create a user-specified pattern class
+if ububbles_fullfn != None:
+    operation_msg(config.USERPATTERN_SEARCH_MSG)
+    with open(ububbles_fullfn, "r") as ub_file:
+        bubble_lines = ub_file.readlines()
+        for b in bubble_lines:
+            bubble_nodes = b.split()
+            # The first two nodes listed on a line are the source and sink
+            # node of the biconnected component; they're listed later on
+            # the line, so we ignore them when actually drawing the bubble.
+            bubble_line_node_ids = bubble_nodes[2:]
+        
+            # Ensure that the node IDs are valid.
+            # We don't perform any further checks on the node IDs, so if nodes
+            # in different components or something like that are included in
+            # the same bubble that'll probably break this.
+            # Also, if the same node is included 
+
+            curr_bubble_nodeobjs = []
+            exists_duplicate_node = False
+            for node_id in bubble_line_node_ids:
+                try:
+                    nobj = nodeid2obj[node_id]
+                    if nobj.used_in_collapsing:
+                        exists_duplicate_node = True
+                    curr_bubble_nodeobjs.append(nodeid2obj[node_id])
+                except KeyError, e:
+                    raise KeyError, (UBUBBLE_FILE_NAME + ububbles_fullfn + \
+                            UBUBBLE_NODE_ERROR + e)
+            if exists_duplicate_node:
+                # A given node can only belong to a max of 1 structural
+                # pattern, so for now we handle this by continuing.
+                # Might want to eventually throw an error/warning here--need to
+                # check if this is a common case in the input data.
+                continue
+            new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
+            nodes_to_draw.append(new_bubble)
+            clusterid2obj[new_bubble.id_string] = new_bubble
+    conclude_msg()
+
+# this line marks the start of simple bubble stuff
+operation_msg(config.BUBBLE_SEARCH_MSG)
 
 # Find "standard" bubbles. Our algorithm here classifies a bubble as a set of
 # nodes with a starting node, a set of middle nodes, and ending node, where the
@@ -1055,50 +1102,51 @@ for cfn_id in bicomponentid2fn:
         metanode_list, curr_metanode)
     total_bicomponent_count += 1
 
+conclude_msg()
 # Now that the potential bubbles have been detected by the spqr script, we
 # sort them in ascending order of size and then create Bubble objects
 # accordingly.
-conclude_msg()
-operation_msg(config.BICOMPONENT_BUBBLE_SEARCH_MSG)
-
-with open(bicmps_fullfn, "r") as potential_bubbles_file:
-    bubble_lines = potential_bubbles_file.readlines()
-# Sort the bubbles in ascending order of number of nodes contained.
-# This can be done by counting the number of tabs, since those are the
-# separators between nodes on each line: therefore, more tabs = more nodes
-bubble_lines.sort(key=lambda c: c.count("\t"))
-for b in bubble_lines:
-    bubble_nodes = b.split()
-    # The first two nodes listed on a line are the source and sink node of the
-    # biconnected component; they're listed later on the line, so we ignore
-    # them when actually drawing the bubble.
-    bubble_line_node_ids = bubble_nodes[2:]
-
-    # As a heuristic, we disallow complex bubbles of node size > 10. This is to
-    # prevent bubbles being detected that are so complex that they "aren't
-    # really bubbles."
-    if len(bubble_line_node_ids) > 10:
-        # We can just break here, since the bubble lines are sorted in
-        # ascending order of size
-        break
-
-    # Validate this "separation pair" as a source-sink pair (i.e. an actual
-    # bubble). If validation fails, move on.
-    bubble_node_objects = [nodeid2obj[k] for k in bubble_nodes]
-    if not graph_objects.Bubble.is_valid_source_sink_pair(bubble_node_objects):
-        continue
-    curr_bubble_nodeobjs = []
-    for node_id in bubble_line_node_ids:
-        try:
-            curr_bubble_nodeobjs.append(nodeid2obj[node_id])
-        except KeyError, e:
-            raise KeyError, "Bicomponents file %s contains invalid node %s" % \
-                (bicmps_fullfn, e)
-    new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
-    nodes_to_draw.append(new_bubble)
-    clusterid2obj[new_bubble.id_string] = new_bubble
-
-conclude_msg()
+# NOTE for now, not doing this since we take bubble input directly from
+# MetaCarvel
+#operation_msg(config.BICOMPONENT_BUBBLE_SEARCH_MSG)
+#with open(bicmps_fullfn, "r") as potential_bubbles_file:
+#    bubble_lines = potential_bubbles_file.readlines()
+## Sort the bubbles in ascending order of number of nodes contained.
+## This can be done by counting the number of tabs, since those are the
+## separators between nodes on each line: therefore, more tabs = more nodes
+#bubble_lines.sort(key=lambda c: c.count("\t"))
+#for b in bubble_lines:
+#    bubble_nodes = b.split()
+#    # The first two nodes listed on a line are the source and sink node of the
+#    # biconnected component; they're listed later on the line, so we ignore
+#    # them when actually drawing the bubble.
+#    bubble_line_node_ids = bubble_nodes[2:]
+#
+#    # As a heuristic, we disallow complex bubbles of node size > 10. This is
+#    # to prevent bubbles being detected that are so complex that they "aren't
+#    # really bubbles."
+#    if len(bubble_line_node_ids) > 10:
+#        # We can just break here, since the bubble lines are sorted in
+#        # ascending order of size
+#        break
+#
+#    # Validate this "separation pair" as a source-sink pair (i.e. an actual
+#    # bubble). If validation fails, move on.
+#    bubble_node_objects = [nodeid2obj[k] for k in bubble_nodes]
+#    if not graph_objects.Bubble.is_valid_source_sink_pair(bubble_node_objects):
+#        continue
+#    curr_bubble_nodeobjs = []
+#    for node_id in bubble_line_node_ids:
+#        try:
+#            curr_bubble_nodeobjs.append(nodeid2obj[node_id])
+#        except KeyError, e:
+#            raise KeyError, "Bicomponents file %s contains invalid node %s" % \
+#                (bicmps_fullfn, e)
+#    new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
+#    nodes_to_draw.append(new_bubble)
+#    clusterid2obj[new_bubble.id_string] = new_bubble
+#
+#conclude_msg()
 operation_msg(config.FRAYEDROPE_SEARCH_MSG)
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a rope
     if n.used_in_collapsing or len(n.outgoing_nodes) != 1:
