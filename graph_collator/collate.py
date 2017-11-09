@@ -72,8 +72,17 @@ parser.add_argument("-b", "--bicomponentfile", required=False,
     help="file containing bicomponent information for the assembly graph" + \
         " (will be generated using the SPQR script in the output directory" + \
         " if not passed)")
-parser.add_argument("-ub", "--ububblefile", required=False,
-    help="file describing pre-identified bubbles in the graph")
+parser.add_argument("-ub", "--userbubblefile", required=False,
+    help="file describing pre-identified bubbles in the graph," + \
+        " in the format of MetaCarvel's bubbles.txt output:" + \
+        " each line of the file is formatted as" + \
+        " (source ID) (tab) (sink ID) (tab) (all node IDs in the bubble," + \
+        " including source and sink IDs, all separated by tabs)")
+parser.add_argument("-up", "--userpatternfile", required=False,
+    help="file describing pre-identified miscellaneous structural patterns" + \
+        " in the graph: each line of the file is formatted as" + \
+        " (pattern type) (tab) (all node IDs in the pattern," + \
+        " all separated by tabs)")
 #parser.add_argument("-au", "--assumeunoriented", required=False, default=False,
 #        action="store_true", help="assume that input GML-file graphs are" + \
 #            " unoriented (default for GML files is assuming they are" + \
@@ -91,7 +100,8 @@ preserve_gv = args.preservegv
 preserve_xdot = args.preservexdot
 overwrite = args.overwrite
 bicmps_fullfn = args.bicomponentfile
-ububbles_fullfn = args.ububblefile
+ububbles_fullfn = args.userbubblefile
+upatterns_fullfn = args.userpatternfile
 #assume_unoriented = args.assumeunoriented
 #assume_oriented = args.assumeoriented
 
