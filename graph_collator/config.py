@@ -52,22 +52,9 @@ CONTIG_SCALING_LOG_BASE = 10
 
 ### Frequently-used GraphViz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html
-# To make things simple, these constants don't use "exterior" semicolons
-#
-# NOTE that some of these values aren't used in the current version of
-# collate.py, including the node group _SHAPE variables (originally used
-# when we collapsed node groups before sending them to GraphViz) and the
-# ROUNDED_..STYLE and CCOMPONENT_STYLE variables (ROUNDED_..STYLE vars.
-# actually are applied in Node.node_info(), but they purposefully don't do
-# anything to the graph as viewed in Cytoscape.js right now. We could maybe
-# add some functionality re: that later).
 BASIC_NODE_SHAPE = "invhouse"
 RCOMP_NODE_SHAPE = "house"
 SINGLE_NODE_SHAPE = "rectangle"
-BUBBLE_STYLE     = "\tstyle=filled;\n\tfillcolor=cornflowerblue;\n"
-FRAYEDROPE_STYLE = "\tstyle=filled;\n\tfillcolor=green;\n"
-CHAIN_STYLE      = "\tstyle=filled;\n\tfillcolor=salmon;\n"
-CYCLE_STYLE      = "\tstyle=filled;\n\tfillcolor=darkgoldenrod1;\n"
 
 ### Global graph settings (applied to every node/edge/etc. in the graph) ###
 # General graph style. Feel free to insert newlines for readability.

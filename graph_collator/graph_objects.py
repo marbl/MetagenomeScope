@@ -428,7 +428,7 @@ class NodeGroup(Node):
     
     plural_name = "other_structural_patterns"
 
-    def __init__(self, group_prefix, group_style, nodes, spqr_related=False,
+    def __init__(self, group_prefix, nodes, spqr_related=False,
             unique_id=None):
         """Initializes the node group, given all the Node objects comprising
            the node group, a prefix character for the group (i.e. 'F' for
@@ -452,7 +452,6 @@ class NodeGroup(Node):
         """
         self.node_count = 0
         self.edge_count = 0
-        self.group_style = group_style
         self.bp = 0
         self.gv_id_string = "%s" % (group_prefix)
         self.cy_id_string = "%s" % (group_prefix)
@@ -590,7 +589,7 @@ class NodeGroup(Node):
                 info += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
             for n in self.nodes:
                 info += n.node_info()
-            info += self.group_style + "}\n"
+            info += "}\n"
             return info
 
     def db_values(self):
@@ -631,7 +630,7 @@ class SPQRMetaNode(NodeGroup):
         # Edge objects yet (see layout_isolated() in this class)
         self.nonlaidout_edges = internal_edges[:]
         unique_id = str(uuid.uuid4()).replace("-", "_")
-        super(SPQRMetaNode, self).__init__(self.metanode_type, "", nodes,
+        super(SPQRMetaNode, self).__init__(self.metanode_type, nodes,
                 spqr_related=True, unique_id=unique_id)
 
     def assign_implicit_spqr_borders(self):
@@ -820,7 +819,7 @@ class Bicomponent(NodeGroup):
                 if e[0] == "r":
                     # This is a real edge
                     self.real_edges.append((e[1], e[2]))
-        super(Bicomponent, self).__init__("I", "", self.metanode_list,
+        super(Bicomponent, self).__init__("I", self.metanode_list,
             spqr_related=True, unique_id=self.bicomponent_id)
 
     def implicit_backfill_node_info(self):
@@ -990,7 +989,7 @@ class Bubble(NodeGroup):
     def __init__(self, *nodes):
         """Initializes the Bubble, given a list of nodes comprising it."""
 
-        super(Bubble, self).__init__('B', config.BUBBLE_STYLE, nodes)
+        super(Bubble, self).__init__('B', nodes)
 
     @staticmethod
     def is_valid_source_sink_pair(nodes):
@@ -1164,6 +1163,22 @@ class Bubble(NodeGroup):
             ch.is_subsumed = True
         return True, composite
 
+class MiscPattern(NodeGroup):
+    """A group of nodes identified by the user as a pattern.
+
+       Basically, this is handled the same as the other structural pattern
+       classes (Bubble, Rope, Chain, Cycle) with the slight exceptions that
+       1) no validation is imposed on the pattern structure (aside from
+       checking that node IDs are valid) and 2) the "type name" of this
+       class can be any string, and is defined in the input file alongside
+       the pattern structure."""
+
+    plural_name = "misc_patterns"
+
+    def __init__(self, *nodes):
+        """Initializes the Pattern, given a list of nodes comprising it."""
+        super(MiscPattern, self).__init__('M', nodes)
+
 class Rope(NodeGroup):
     """A group of nodes collapsed into a Rope."""
 
@@ -1171,7 +1186,7 @@ class Rope(NodeGroup):
 
     def __init__(self, *nodes):
         """Initializes the Rope, given a list of nodes comprising it."""
-        super(Rope, self).__init__('F', config.FRAYEDROPE_STYLE, nodes)
+        super(Rope, self).__init__('F', nodes)
      
     @staticmethod
     def is_valid_rope(s):
@@ -1267,7 +1282,7 @@ class Chain(NodeGroup):
 
     def __init__(self, *nodes):
         """Initializes the Chain, given all the nodes comprising the chain."""
-        super(Chain, self).__init__('C', config.CHAIN_STYLE, nodes);
+        super(Chain, self).__init__('C', nodes)
 
     @staticmethod
     def is_valid_chain(s):
@@ -1395,7 +1410,7 @@ class Cycle(NodeGroup):
 
     def __init__(self, *nodes):
         """Initializes the Cycle, given all the nodes comprising it."""
-        super(Cycle, self).__init__('Y', config.CYCLE_STYLE, nodes)
+        super(Cycle, self).__init__('Y', nodes)
 
     @staticmethod
     def is_valid_cycle(s):
