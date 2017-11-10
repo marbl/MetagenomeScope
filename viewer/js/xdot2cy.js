@@ -360,6 +360,13 @@ function initGraph(viewType) {
                 }
             },
             {
+                selector: 'node.M',
+                style: {
+                    'background-color':
+                        $("#miscpatterncp").colorpicker("getValue")
+                }
+            },
+            {
                 selector: 'node.cluster.pseudoparent',
                 style: {
                     'z-index-compare': 'manual',
@@ -864,6 +871,7 @@ function addSelectedClusterInfo(ele) {
         case 'Y': clustType = "Cyclic Chain"; break;
         case 'B': clustType = "Bubble"; break;
         case 'F': clustType = "Frayed Rope"; break;
+        case 'M': clustType = ele.data("cluster_type"); break;
         case 'I': clustType = "Bicomponent"; break;
         case 'S': clustType = "Series Metanode"; break;
         case 'P': clustType = "Parallel Metanode"; break;
@@ -3862,8 +3870,8 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         var typeTag = parentID[0];
         // Don't assign explicit parents for metanodes/bicomponents in the SPQR
         // view. See issue #209 on GitHub for details.
-        if (typeTag === 'B' || typeTag === 'F' || typeTag === 'C'
-                || typeTag === 'Y') {
+        if (typeTag !== 'S' && typeTag !== 'P' && typeTag !== 'R'
+                && typeTag !== 'I') {
             nodeData["parent"] = parentID;
         } else {
             // For SPQR metanode collapsing
@@ -3963,6 +3971,9 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         classes += ' structuralPattern';
         COMPONENT_NODE_KEYS.push(clusterID);
         clusterData["length"] = clusterObj["length"];
+        if (abbrev === 'M') {
+            clusterData["cluster_type"] = clusterObj["cluster_type"];
+        }
     }
     else if (spqrtype === "metanode") {
         // We use the "pseudoparent" class to represent compound nodes that
