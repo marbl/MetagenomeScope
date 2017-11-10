@@ -972,14 +972,13 @@ class Bicomponent(NodeGroup):
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.
     
-       Formerly, this consisted of one node which points to >= 2 "middle"
-       nodes, all of which in turn have linear paths that point to one "end"
-       node -- this is the relatively strict definition of a Bubble we used
-       until now.
+       Simple bubbles that MetagenomeScope automatically identifies (and
+       validates using the is_valid_bubble() method of this class) consist
+       of one node which points to >= 2 "middle" nodes, all of which in turn
+       have linear paths that point to one "end" node.
 
-       Now, though, we use OGDF (via the spqr script) to decompose the graph
-       into biconnected components within the graph. Many of these biconnected
-       components should be similar to what we want to identify as "bubbles."
+       More complex bubbles (for example, those identified by MetaCarvel)
+       can be specified by the user.
 
        (In any case, this Bubble class is agnostic as to the structure of its
        nodes; all that's needed to create a Bubble is a list of its nodes.)
@@ -993,72 +992,6 @@ class Bubble(NodeGroup):
 
         super(Bubble, self).__init__('B', nodes)
 
-    @staticmethod
-    def is_valid_source_sink_pair(nodes):
-        """Returns True if the separation pair defined by the given list of
-           Node objects is a valid "source-sink pair" (see Nijkamp et al. 2013
-           for a discussion of this process -- it's the paper on MaryGold).
-           Note that our algorithm here is a bit different from that described
-           in MaryGold.
-           
-           The input to this function should be a list of Nodes where the
-           first Node is the proposed source of the source-sink pair, 
-           the second node is the proposed sink, and the remaining Nodes are
-           the member nodes comprising the source-sink pair (including the
-           source and sink node again).
-        """
-
-        # Immediately reject complex bubbles containing nodes already present
-        # in other node groups
-        #members = set(nodes[2:])
-        #for n in members:
-        #    if n.used_in_collapsing:
-        #        return False
-        #source = nodes[0]
-        #sink = nodes[1]
-        ## Disallow edges from members to the source, or from the sink to
-        ## members. Either type is obviously not ok.
-        #for outn in sink.outgoing_nodes:
-        #    if outn in members:
-        #        return False
-        #for inn in source.incoming_nodes:
-        #    if inn in members:
-        #        return False
-        ## Ensure that all nodes in the bubble (aside from the source) have
-        ## incoming edges only present in the bubble
-        #for n in members.difference(set([source])):
-        #    if not set(n.incoming_nodes).issubset(members):
-        #        return False
-        ## Ensure that all nodes in the bubble (aside from the sink) have
-        ## outgoing edges only present in the bubble
-        #for n in members.difference(set([sink])):
-        #    if not set(n.outgoing_nodes).issubset(members):
-        #        return False
-        ## Now: ensure that all member nodes arise on path(s) originating from
-        ## the source node, and that all paths from the source node eventually
-        ## converge to the sink node. We do this using a modified BFS.
-        #to_check = set(source.outgoing_nodes)
-        #visited_nodes = {source: True}
-        #while len(to_check) > 0:
-        #    n = to_check.pop()
-        #    visited_nodes[n] = True
-        #    if n == sink:
-        #        # This is good -- a path from the source node made it to the
-        #        # sink node. We've popped (this instance of) the sink from
-        #        # to_check, so we don't need to worry about it any more.
-        #        continue
-        #    outs = n.outgoing_nodes
-        #    if len(outs) == 0:
-        #        # We reached a dead end in the bubble (and we know we aren't
-        #        # at the sink, so this definitely isn't valid).
-        #        return False
-        #    to_check = to_check.union(set(outs))
-        #if len(visited_nodes) == len(members):
-        #    return True
-        # If we didn't end up visiting all the nodes in the bubble, then there
-        # existed nodes that did not arise from paths from the source node.
-        return False
-        
     @staticmethod
     def is_valid_bubble(s):
         """Returns a 2-tuple of True and a list of the nodes comprising the

@@ -924,8 +924,9 @@ operation_msg(config.BUBBLE_SEARCH_MSG)
 # nodes with a starting node, a set of middle nodes, and ending node, where the
 # starting node has at least two outgoing paths: all of which linearly extend
 # to the ending node.
-# This ignores some types of bubbles that exhibit a more complex structure --
-# hence why we use the bicomponent bubble detection using the SPQR script.
+# This ignores some types of bubbles that exhibit a more complex structure,
+# hence the option for user-defined bubbles to be passed in (and/or for
+# MetaCarvel's bubbles.txt output to be used).
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
     if n.used_in_collapsing or len(n.outgoing_nodes) <= 1:
         # If n doesn't lead to multiple nodes, it couldn't be a bubble start
@@ -938,8 +939,7 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
         clusterid2obj[new_bubble.id_string] = new_bubble
 
 conclude_msg()
-# Run the SPQR script, use its output to create SPQR trees and detect complex
-# bubbles
+# Run the SPQR script, use its output to create SPQR trees
 operation_msg(config.SPQR_MSG)
 
 # Clear extraneous SPQR auxiliary files from the output directory, if present
@@ -1139,50 +1139,7 @@ for cfn_id in bicomponentid2fn:
     total_bicomponent_count += 1
 
 conclude_msg()
-# Now that the potential bubbles have been detected by the spqr script, we
-# sort them in ascending order of size and then create Bubble objects
-# accordingly.
-# NOTE for now, not doing this since we take bubble input directly from
-# MetaCarvel
-#operation_msg(config.BICOMPONENT_BUBBLE_SEARCH_MSG)
-#with open(bicmps_fullfn, "r") as potential_bubbles_file:
-#    bubble_lines = potential_bubbles_file.readlines()
-## Sort the bubbles in ascending order of number of nodes contained.
-## This can be done by counting the number of tabs, since those are the
-## separators between nodes on each line: therefore, more tabs = more nodes
-#bubble_lines.sort(key=lambda c: c.count("\t"))
-#for b in bubble_lines:
-#    bubble_nodes = b.split()
-#    # The first two nodes listed on a line are the source and sink node of the
-#    # biconnected component; they're listed later on the line, so we ignore
-#    # them when actually drawing the bubble.
-#    bubble_line_node_ids = bubble_nodes[2:]
-#
-#    # As a heuristic, we disallow complex bubbles of node size > 10. This is
-#    # to prevent bubbles being detected that are so complex that they "aren't
-#    # really bubbles."
-#    if len(bubble_line_node_ids) > 10:
-#        # We can just break here, since the bubble lines are sorted in
-#        # ascending order of size
-#        break
-#
-#    # Validate this "separation pair" as a source-sink pair (i.e. an actual
-#    # bubble). If validation fails, move on.
-#    bubble_node_objects = [nodeid2obj[k] for k in bubble_nodes]
-#    if not graph_objects.Bubble.is_valid_source_sink_pair(bubble_node_objects):
-#        continue
-#    curr_bubble_nodeobjs = []
-#    for node_id in bubble_line_node_ids:
-#        try:
-#            curr_bubble_nodeobjs.append(nodeid2obj[node_id])
-#        except KeyError, e:
-#            raise KeyError, "Bicomponents file %s contains invalid node %s" % \
-#                (bicmps_fullfn, e)
-#    new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
-#    nodes_to_draw.append(new_bubble)
-#    clusterid2obj[new_bubble.id_string] = new_bubble
-#
-#conclude_msg()
+
 operation_msg(config.FRAYEDROPE_SEARCH_MSG)
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a rope
     if n.used_in_collapsing or len(n.outgoing_nodes) != 1:
