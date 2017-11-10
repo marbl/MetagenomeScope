@@ -31,7 +31,7 @@ import networkx as nx
 parser = argparse.ArgumentParser(description="Generates a semi-random " + \
     "assembly graph in GML format.")
 parser.add_argument("-o", "--output", required=True,
-    help="output file name")
+    help="output file prefix")
 parser.add_argument("-n", "--nodes", required=True,
     help="lower bound on number of nodes in the graph")
 parser.add_argument("-b", "--bubbles", required=False, default=0,
@@ -155,4 +155,4 @@ for i in range(bubble_ct):
     G.remove_edge(src, snk)
 
 assign_rand_attrs(G)
-nx.write_gml(G, args.output)
+nx.write_gml(G, args.output + ".gml")
