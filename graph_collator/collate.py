@@ -854,7 +854,7 @@ if ububbles_fullfn != None:
     with open(ububbles_fullfn, "r") as ub_file:
         bubble_lines = ub_file.readlines()
         for b in bubble_lines:
-            bubble_nodes = b.split()
+            bubble_nodes = b.strip().split("\t")
             # The first two nodes listed on a line are the source and sink
             # node of the biconnected component; they're listed later on
             # the line, so we ignore them when actually drawing the bubble.
@@ -893,7 +893,7 @@ if upatterns_fullfn != None:
     with open(upatterns_fullfn, "r") as up_file:
         pattern_lines = up_file.readlines()
         for p in pattern_lines:
-            pattern_items = p.split()
+            pattern_items = p.strip().split("\t")
             pattern_line_node_ids = pattern_items[1:]
             # Ensure that the node IDs are valid.
             curr_pattern_nodeobjs = []
@@ -905,7 +905,7 @@ if upatterns_fullfn != None:
                         exists_duplicate_node = True
                     curr_pattern_nodeobjs.append(nodeid2obj[node_id])
                 except KeyError, e:
-                    raise KeyError, UPATTERN_NODE_ERROR + str(e)
+                    raise KeyError, config.UPATTERN_NODE_ERR + str(e)
             if exists_duplicate_node:
                 # A given node can only belong to a max of 1 structural
                 # pattern, so for now we handle this by continuing.
