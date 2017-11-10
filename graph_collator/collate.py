@@ -893,7 +893,8 @@ if upatterns_fullfn != None:
     with open(upatterns_fullfn, "r") as up_file:
         pattern_lines = up_file.readlines()
         for p in pattern_lines:
-            pattern_nodes = p.split()
+            pattern_items = p.split()
+            pattern_line_node_ids = pattern_items[1:]
             # Ensure that the node IDs are valid.
             curr_pattern_nodeobjs = []
             exists_duplicate_node = False
@@ -910,7 +911,8 @@ if upatterns_fullfn != None:
                 # pattern, so for now we handle this by continuing.
                 # Might want to eventually throw an error/warning here.
                 continue
-            new_pattern = graph_objects.MiscPattern(*curr_pattern_nodeobjs)
+            new_pattern = graph_objects.MiscPattern(pattern_items[0],
+                *curr_pattern_nodeobjs)
             nodes_to_draw.append(new_pattern)
             clusterid2obj[new_pattern.id_string] = new_pattern
     conclude_msg()
