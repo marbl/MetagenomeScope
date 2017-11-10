@@ -427,6 +427,7 @@ class NodeGroup(Node):
     """
     
     plural_name = "other_structural_patterns"
+    type_name = "Other"
 
     def __init__(self, group_prefix, nodes, spqr_related=False,
             unique_id=None):
@@ -599,7 +600,7 @@ class NodeGroup(Node):
         """
         return (self.cy_id_string, self.bp, self.component_size_rank,
                 self.xdot_left, self.xdot_bottom, self.xdot_right,
-                self.xdot_top)
+                self.xdot_top, self.type_name)
 
 class SPQRMetaNode(NodeGroup):
     """A group of nodes collapsed into a metanode in a SPQR tree.
@@ -985,6 +986,7 @@ class Bubble(NodeGroup):
     """
 
     plural_name = "bubbles"
+    type_name = "Bubble"
 
     def __init__(self, *nodes):
         """Initializes the Bubble, given a list of nodes comprising it."""
@@ -1175,14 +1177,16 @@ class MiscPattern(NodeGroup):
 
     plural_name = "misc_patterns"
 
-    def __init__(self, *nodes):
+    def __init__(self, type_name="Misc", *nodes):
         """Initializes the Pattern, given a list of nodes comprising it."""
+        self.type_name = type_name
         super(MiscPattern, self).__init__('M', nodes)
 
 class Rope(NodeGroup):
     """A group of nodes collapsed into a Rope."""
 
     plural_name = "frayed_ropes"
+    type_name = "Frayed Rope"
 
     def __init__(self, *nodes):
         """Initializes the Rope, given a list of nodes comprising it."""
@@ -1279,6 +1283,7 @@ class Chain(NodeGroup):
     """
 
     plural_name = "chains"
+    type_name = "Chain"
 
     def __init__(self, *nodes):
         """Initializes the Chain, given all the nodes comprising the chain."""
@@ -1407,6 +1412,7 @@ class Cycle(NodeGroup):
     """
 
     plural_name = "cyclic_chains"
+    type_name = "Cyclic Chain"
 
     def __init__(self, *nodes):
         """Initializes the Cycle, given all the nodes comprising it."""

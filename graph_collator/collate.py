@@ -849,11 +849,8 @@ nodes_to_try_collapsing = nodeid2obj.values()
 nodes_to_draw = []
 
 # Identify user-supplied bubbles in the graph.
-# TODOs re: user-supplied patterns:
-#  --> eventually allow user to supply other types of patterns than bubbles?
-#  --> or just create a user-specified pattern class
 if ububbles_fullfn != None:
-    operation_msg(config.USERPATTERN_SEARCH_MSG)
+    operation_msg(config.USERBUBBLES_SEARCH_MSG)
     with open(ububbles_fullfn, "r") as ub_file:
         bubble_lines = ub_file.readlines()
         for b in bubble_lines:
@@ -878,17 +875,44 @@ if ububbles_fullfn != None:
                         exists_duplicate_node = True
                     curr_bubble_nodeobjs.append(nodeid2obj[node_id])
                 except KeyError, e:
-                    raise KeyError, (UBUBBLE_FILE_NAME + ububbles_fullfn + \
-                            UBUBBLE_NODE_ERROR + e)
+                    raise KeyError, config.UBUBBLE_NODE_ERR + str(e)
             if exists_duplicate_node:
                 # A given node can only belong to a max of 1 structural
                 # pattern, so for now we handle this by continuing.
-                # Might want to eventually throw an error/warning here--need to
-                # check if this is a common case in the input data.
+                # Might want to eventually throw an error/warning here--need
+                # to check if this is a common case in the input data.
                 continue
             new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
             nodes_to_draw.append(new_bubble)
             clusterid2obj[new_bubble.id_string] = new_bubble
+    conclude_msg()
+
+# Identify miscellaneous user-supplied patterns in the graph.
+if upatterns_fullfn != None:
+    operation_msg(config.USERPATTERNS_SEARCH_MSG)
+    with open(upatterns_fullfn, "r") as up_file:
+        pattern_lines = up_file.readlines()
+        for p in pattern_lines:
+            pattern_nodes = p.split()
+            # Ensure that the node IDs are valid.
+            curr_pattern_nodeobjs = []
+            exists_duplicate_node = False
+            for node_id in pattern_line_node_ids:
+                try:
+                    nobj = nodeid2obj[node_id]
+                    if nobj.used_in_collapsing:
+                        exists_duplicate_node = True
+                    curr_pattern_nodeobjs.append(nodeid2obj[node_id])
+                except KeyError, e:
+                    raise KeyError, UPATTERN_NODE_ERROR + str(e)
+            if exists_duplicate_node:
+                # A given node can only belong to a max of 1 structural
+                # pattern, so for now we handle this by continuing.
+                # Might want to eventually throw an error/warning here.
+                continue
+            new_pattern = graph_objects.MiscPattern(*curr_pattern_nodeobjs)
+            nodes_to_draw.append(new_pattern)
+            clusterid2obj[new_pattern.id_string] = new_pattern
     conclude_msg()
 
 # this line marks the start of simple bubble stuff
@@ -1422,7 +1446,7 @@ cursor.execute("""CREATE TABLE edges
         control_point_count integer, parent_cluster_id text)""") 
 cursor.execute("""CREATE TABLE clusters (cluster_id text, length integer,
         component_rank integer, left real, bottom real, right real,
-        top real)""")
+        top real, cluster_type text)""")
 cursor.execute("""CREATE TABLE components
         (size_rank integer, node_count integer, edge_count integer,
         total_length integer, boundingbox_x real, boundingbox_y real)""")

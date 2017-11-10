@@ -83,9 +83,11 @@ GLOBALCLUSTER_STYLE = "margin=0"
 # Various status messages/message prefixes that are displayed to the user.
 # Displayed during command-line argument parsing
 COLLATE_DESCRIPTION = "Prepares an assembly graph file for visualization, " + \
-"generating a database file that can be loaded in the MetagenomeScope " + \
-"viewer interface."
-USERPATTERN_SEARCH_MSG = "Identifying user-specified patterns in the graph..."
+    "generating a database file that can be loaded in the MetagenomeScope " + \
+    "viewer interface."
+USERBUBBLES_SEARCH_MSG = "Identifying user-specified bubbles in the graph..."
+USERPATTERNS_SEARCH_MSG = "Identifying user-specified misc. patterns in " + \
+    "the graph..."
 BUBBLE_SEARCH_MSG = "Looking for simple bubbles in the graph..."
 SPQR_MSG = \
     "Generating SPQR tree decompositions for the bicomponents of the graph..."
@@ -121,8 +123,8 @@ IS_DIR_ERR = " is a directory"
 EXISTS_ERR = " already exists and -w is not set"
 EMPTY_LIST_N50_ERR = "N50 of an empty list does not exist"
 N50_CALC_ERR = "N50 calculation error"
-UBUBBLE_FILE_NAME = "Bubble file "
-UBUBBLE_NODE_ERROR = " contains invalid node"
+UBUBBLE_NODE_ERR = "User-specified bubble file contains invalid node "
+UPATTERN_NODE_ERR = "User-specified pattern file contains invalid node "
 
 # The filename suffixes indicating a file is of a certain type.
 # Ideally, we should be able to detect what filetype an assembly file is by
