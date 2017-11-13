@@ -125,6 +125,8 @@ EMPTY_LIST_N50_ERR = "N50 of an empty list does not exist"
 N50_CALC_ERR = "N50 calculation error"
 UBUBBLE_NODE_ERR = "User-specified bubble file contains invalid node "
 UPATTERN_NODE_ERR = "User-specified pattern file contains invalid node "
+LABEL_EXISTENCE_ERR = \
+    "Can't use -ubl or -upl options for a graph type with no node labels"
 
 # The filename suffixes indicating a file is of a certain type.
 # Ideally, we should be able to detect what filetype an assembly file is by

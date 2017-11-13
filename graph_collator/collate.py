@@ -61,13 +61,13 @@ parser.add_argument("-d", "--outputdirectory", required=False,
     help="directory in which all output files will be stored;" + \
         " defaults to current working directory")
 parser.add_argument("-pg", "--preservegv", required=False, action="store_true",
-        default=False,
-        help="save all .gv (DOT) files generated for connected components")
+    default=False,
+    help="save all .gv (DOT) files generated for connected components")
 parser.add_argument("-px", "--preservexdot", required=False, default=False,
-        action="store_true",
-        help="save all .xdot files generated for connected components")
+    action="store_true",
+    help="save all .xdot files generated for connected components")
 parser.add_argument("-w", "--overwrite", required=False, default=False,
-        action="store_true", help="overwrite output (.db/.gv/.xdot) files")
+    action="store_true", help="overwrite output (.db/.gv/.xdot) files")
 parser.add_argument("-b", "--bicomponentfile", required=False,
     help="file containing bicomponent information for the assembly graph" + \
         " (will be generated using the SPQR script in the output directory" + \
@@ -78,11 +78,18 @@ parser.add_argument("-ub", "--userbubblefile", required=False,
         " each line of the file is formatted as" + \
         " (source ID) (tab) (sink ID) (tab) (all node IDs in the bubble," + \
         " including source and sink IDs, all separated by tabs)")
+parser.add_argument("-ubl", "--userbubblelabelsused", required=False,
+    action="store_true", default=False,
+    help="use node labels instead of IDs in the pre-identified bubbles file")
 parser.add_argument("-up", "--userpatternfile", required=False,
     help="file describing pre-identified miscellaneous structural patterns" + \
         " in the graph: each line of the file is formatted as" + \
         " (pattern type) (tab) (all node IDs in the pattern," + \
         " all separated by tabs)")
+parser.add_argument("-upl", "--userpatternlabelsused", required=False,
+    action="store_true", default=False,
+    help="use node labels instead of IDs in the pre-identified misc." + \
+        " patterns file")
 #parser.add_argument("-au", "--assumeunoriented", required=False, default=False,
 #        action="store_true", help="assume that input GML-file graphs are" + \
 #            " unoriented (default for GML files is assuming they are" + \
@@ -101,7 +108,9 @@ preserve_xdot = args.preservexdot
 overwrite = args.overwrite
 bicmps_fullfn = args.bicomponentfile
 ububbles_fullfn = args.userbubblefile
+ububbles_labels = args.userbubblelabelsused
 upatterns_fullfn = args.userpatternfile
+upatterns_labels = args.userpatternlabelsused
 #assume_unoriented = args.assumeunoriented
 #assume_oriented = args.assumeoriented
 
@@ -428,6 +437,13 @@ singlenodeid2obj = {}
 # in the graph, due to no edges being "implied"
 single_graph_edges = []
 
+# Like nodeid2obj but using labels as the key instead; used when processing
+# user-specified bubble/misc. pattern files if the user specifies the -ubl or
+# -upl options above
+nodelabel2obj = {}
+# Will be True if we need to populate nodelabel2obj
+need_label_mapping = False
+
 # Pertinent Assembly-wide information we use 
 graph_filetype = ""
 distinct_single_graph = True
@@ -471,6 +487,13 @@ with open(asm_fn, 'r') as assembly_file:
     parsing_LastGraph = lowercase_asm_fn.endswith(config.LASTGRAPH_SUFFIX)
     parsing_GML       = lowercase_asm_fn.endswith(config.GRAPHML_SUFFIX)
     parsing_GFA       = lowercase_asm_fn.endswith(config.GFA_SUFFIX)
+
+    # Ensure that the -ubl/-upl options are only used when the input assembly
+    # graph is of a type that accepts labels.
+    if ububbles_labels or upatterns_labels:
+        if not parsing_GML:
+            raise ValueError, config.LABEL_EXISTENCE_ERR
+        need_label_mapping = True
     if parsing_LastGraph:
         graph_filetype = "LastGraph"
         dna_given = True
@@ -640,6 +663,8 @@ with open(asm_fn, 'r') as assembly_file:
                             label=curr_node_label,
                             is_repeat=curr_node_is_repeat)
                     add_node_to_stdmode_mapping(n)
+                    if need_label_mapping:
+                        nodelabel2obj[curr_node_label] = n
                     # Create single Node object, for the SPQR-integrated graph
                     sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
                             label=curr_node_label, is_single=True,
@@ -854,26 +879,29 @@ if ububbles_fullfn != None:
     with open(ububbles_fullfn, "r") as ub_file:
         bubble_lines = ub_file.readlines()
         for b in bubble_lines:
-            bubble_nodes = b.strip().split("\t")
-            # The first two nodes listed on a line are the source and sink
-            # node of the biconnected component; they're listed later on
-            # the line, so we ignore them when actually drawing the bubble.
-            bubble_line_node_ids = bubble_nodes[2:]
+            bubble_line_node_ids = b.strip().split("\t")
         
-            # Ensure that the node IDs are valid.
-            # We don't perform any further checks on the node IDs, so if nodes
-            # in different components or something like that are included in
-            # the same bubble that'll probably break this.
-            # Also, if the same node is included 
+            # Ensure that the node identifiers are valid. (Depending on if -ubl
+            # was passed or not, we can treat them as either node IDs or node
+            # labels.)
+            # We don't perform any further checks on the node identifiers, so
+            # if nodes in different components or something like that are
+            # included in the same bubble that'll probably break this.
+            # Need to fix that. (TODO)
 
             curr_bubble_nodeobjs = []
             exists_duplicate_node = False
             for node_id in bubble_line_node_ids:
                 try:
-                    nobj = nodeid2obj[node_id]
+                    if ububbles_labels:
+                        # nodelabel2obj must exist if ububbles_labels is True,
+                        # per the code above
+                        nobj = nodelabel2obj[node_id]
+                    else:
+                        nobj = nodeid2obj[node_id]
                     if nobj.used_in_collapsing:
                         exists_duplicate_node = True
-                    curr_bubble_nodeobjs.append(nodeid2obj[node_id])
+                    curr_bubble_nodeobjs.append(nobj)
                 except KeyError, e:
                     raise KeyError, config.UBUBBLE_NODE_ERR + str(e)
             if exists_duplicate_node:
@@ -895,15 +923,18 @@ if upatterns_fullfn != None:
         for p in pattern_lines:
             pattern_items = p.strip().split("\t")
             pattern_line_node_ids = pattern_items[1:]
-            # Ensure that the node IDs are valid.
+            # Ensure that the node identifiers are valid.
             curr_pattern_nodeobjs = []
             exists_duplicate_node = False
             for node_id in pattern_line_node_ids:
                 try:
-                    nobj = nodeid2obj[node_id]
+                    if upatterns_labels:
+                        nobj = nodelabel2obj[node_id]
+                    else:
+                        nobj = nodeid2obj[node_id]
                     if nobj.used_in_collapsing:
                         exists_duplicate_node = True
-                    curr_pattern_nodeobjs.append(nodeid2obj[node_id])
+                    curr_pattern_nodeobjs.append(nobj)
                 except KeyError, e:
                     raise KeyError, config.UPATTERN_NODE_ERR + str(e)
             if exists_duplicate_node:
