@@ -1492,6 +1492,9 @@ graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
 cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
 
+# Total time taken for the layout in all "modes"
+total_layout_time = 0
+
 # Lay out both the implicit and explicit SPQR tree views; store stuff for the
 # SPQR decomposition modes in the database
 # NOTE that the order of implicit then explicit layout matters, since things
@@ -1955,8 +1958,10 @@ for mode in ("implicit", "explicit"):
         h.close()
         single_component_size_rank += 1
     t2 = time.time()
+    difference = t2 - t1
     print "SPQR %s view layout time:" % (mode),
-    print "%g seconds" % (t2 - t1)
+    print "%g seconds" % (difference)
+    total_layout_time += difference
 
 if not no_print:
     conclude_msg()
@@ -2240,9 +2245,12 @@ for component in connected_components:
     component_size_rank += 1
 
 t4 = time.time()
+difference = t4 - t3
+total_layout_time += difference
 if no_print:
     conclude_msg()
-print "Standard view layout time: %g seconds" % (t4 - t3)
+print "Standard view layout time: %g seconds" % (difference)
+print "Total layout time: %g seconds" % (total_layout_time)
 
 operation_msg(config.DB_SAVE_MSG + "%s..." % (db_fn))
 connection.commit()
