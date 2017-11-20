@@ -3575,7 +3575,7 @@ function rotateCoordinate(xCoord, yCoord) {
  * For reference -- GraphViz uses the standard Cartesian system in which
  * the bottom-left corner of the screen is the origin, (0, 0). Cytoscape.js
  * inverts the y-axis, with the origin (0, 0) being situated at the
- * top-right corner of the screen. So to transform a point (x, y) from
+ * top-left corner of the screen. So to transform a point (x, y) from
  * GraphViz to Cytoscape.js, you just return (x, y'), where
  * y' = the vertical length of the bounding box, minus y.
  * (The x-coordinate remains the same.)
