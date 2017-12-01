@@ -3068,8 +3068,8 @@ function exportPath() {
             // Add a line for this node
             nextEndPos = (nextStartPos - 1) + nodeLen;
             textToExport += "scaffold_1\t" + nextStartPos + "\t" + nextEndPos +
-                "\t" + i + "\t" + componentType + "\t" + nodeKey + "\t1\t" +
-                nodeLen + "\t" + nodeOrient + "\n";
+                "\t" + (i + 1) + "\t" + componentType + "\t" + nodeKey +
+                "\t1\t" + nodeLen + "\t" + nodeOrient + "\n";
             nextStartPos = nextEndPos + 1;
         }
         downloadDataURI("path.agp", textToExport, true);
