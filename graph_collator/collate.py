@@ -879,7 +879,7 @@ if ububbles_fullfn != None:
     with open(ububbles_fullfn, "r") as ub_file:
         bubble_lines = ub_file.readlines()
         for b in bubble_lines:
-            bubble_line_node_ids = b.strip().split("\t")
+            bubble_line_node_ids = b.strip().split("\t")[2:]
         
             # Ensure that the node identifiers are valid. (Depending on if -ubl
             # was passed or not, we can treat them as either node IDs or node
