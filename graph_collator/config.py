@@ -38,6 +38,9 @@ POINTS_PER_INCH = 72.0
 # This should match up with the defaults on most systems.
 AUXMOD = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
 
+# The base we use when logarithmically scaling contig dimensions from length
+CONTIG_SCALING_LOG_BASE = 10
+# The minimum/maximum lengths of either side of a node.
 # These are used directly in GraphViz, so they're in "inches". Granted,
 # "inches" are really an intermediate unit from our perspective since they're
 # converted to pixels in the viewer interface's code.
@@ -45,10 +48,8 @@ AUXMOD = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
 # float("inf") or 0, respectively. However, I'd prefer to at least keep a lower
 # bound of 1.0 on node height; that should help people who have trouble seeing
 # things tell what's going in an assembly graph.
-MAX_CONTIG_HEIGHT = 10
-MIN_CONTIG_HEIGHT = 1
-# The base we use when logarithmically scaling contig dimensions from length
-CONTIG_SCALING_LOG_BASE = 10
+MAX_CONTIG_DIM = 10
+MIN_CONTIG_DIM = 1
 
 ### Frequently-used GraphViz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html

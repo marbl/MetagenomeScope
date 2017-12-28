@@ -234,15 +234,41 @@ class Node(object):
            NOTE that "height" and "width" are relative to the default vertical
            layout of the nodes (from top to bottom) -- so height refers to the
            long side of the node and width refers to the short side.
+
+           Some things to keep in mind:
+           -self.bp has a minimum possible value of 1
+           -self.bp has no maximum possible value, although in practice it'll
+            probably be somewhere in the billions (at the time of writing this,
+            the longest known genome seems to be Paris japonica's, at
+            ~150 billion bp -- source:
+            https://en.wikipedia.org/wiki/Paris_japonica)
+           -It's desirable to have actual node area proportional to
+            node length -- that is, height * width = (x)area for some x
         """
-        h = log(self.bp, config.CONTIG_SCALING_LOG_BASE)
-        if h > config.MAX_CONTIG_HEIGHT:
-            h = config.MAX_CONTIG_HEIGHT
-        elif h < config.MIN_CONTIG_HEIGHT:
-            h = config.MIN_CONTIG_HEIGHT
-        w = sqrt(h)
-        self.width = w
-        self.height = h
+        def adjust_dim(dim):
+            """Given a dimension of a node, returns either:
+                -the dimension (if the dimension falls within the limits)
+                -the max dimension (if the dimension is greater than the max)
+                -the min dimension (if the dimension is less than the min)
+            """
+            if dim > config.MAX_CONTIG_DIM:
+                return config.MAX_CONTIG_DIM
+            elif dim < config.MIN_CONTIG_DIM:
+                return config.MIN_CONTIG_DIM
+            return dim
+
+        #area = adjust_dim(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
+        # Old scaling method (what we're trying to change via issue #73).
+        # Included here for reference.
+        self.height = adjust_dim(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
+        self.width = sqrt(self.height)
+        # Equilibrium scaling (equal width and height: produces "square"-like
+        # node shapes).
+        # self.height = sqrt(area)
+        # self.width = sqrt(area)
+        # Elongated scaling
+        # self.height = area ** 0.75
+        # self.width = area / self.height
 
     def get_shape(self):
         """Returns the shape "string" for this node."""
