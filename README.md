@@ -61,16 +61,6 @@ located [here](https://github.com/marbl/MetagenomeScope/wiki).
 MetagenomeScope is licensed under the
 [GNU GPL, version 3](https://www.gnu.org/copyleft/gpl.html).
 
-## Contact
-
-Feel free to let me know if you have any suggestions, comments, or other
-feedback about the tool.
-
-I can be reached via email at `mfedarko at umd dot edu`. 
-
-You can also open an [issue](https://github.com/marbl/MetagenomeScope/issues)
-in this repository, if you'd like.
-
 ## Acknowledgements
 
 ### Preprocessing Script
@@ -99,3 +89,9 @@ in this repository, if you'd like.
       included with Bootstrap.
     * The color selection functionality in the viewer interface uses the
       [Bootstrap Colorpicker](https://farbelous.github.io/bootstrap-colorpicker/) plugin.
+
+## Contact
+
+MetagenomeScope was created by members of the [Pop Lab](https://sites.google.com/a/cs.umd.edu/poplab/) in the [Center for Bioinformatics and Computational Biology](https://cbcb.umd.edu/) at the [University of Maryland, College Park](https://umd.edu/).
+
+Feel free to email `mfedarko (at) umd (dot) edu` with any questions, suggestions, comments, concerns, etc. regarding the tool. You can also open an [issue](https://github.com/marbl/MetagenomeScope/issues) in this repository, if you'd like.
