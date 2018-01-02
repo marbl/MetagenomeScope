@@ -1,9 +1,9 @@
 # MetagenomeScope
 
-![Screenshot of MetagenomeScope's standard mode, zoomed in on a region of a biofilm scaffold graph](https://user-images.githubusercontent.com/4177727/27416728-4c6297d8-56dd-11e7-9d89-472686c7a29e.png "Screenshot of MetagenomeScope's standard mode, zoomed in on a region of a biofilm scaffold graph.")
+![Screenshot of MetagenomeScope's standard mode, zoomed in on a region of a biofilm assembly graph](https://user-images.githubusercontent.com/4177727/27416728-4c6297d8-56dd-11e7-9d89-472686c7a29e.png "Screenshot of MetagenomeScope's standard mode, zoomed in on a region of a biofilm assembly graph.")
 
 An interactive visualization tool designed for metagenomic sequence assembly
-and scaffold graphs. The tool aims to display a semi-linearized,
+graphs. The tool aims to display a semi-linearized,
 hierarchical overview of the input graph while emphasizing the
 presence of certain structural patterns in the graph.
 
@@ -23,7 +23,7 @@ MetagenomeScope is composed of two main components:
 
 1. The preprocessing script (contained in the `graph_collator/` directory of
    this repository), a Python and C++ script
-   that takes as input an assembly or scaffold
+   that takes as input an assembly
    graph file and produces a SQLite .db file that can be visualized in the
    viewer interface. `collate.py` is the main script that needs to be run
    here; it uses `spqr.cpp` to interface with OGDF to generate SPQR tree
@@ -86,7 +86,7 @@ run from the command line;
 see the [system requirements](#system-requirements) section above
 for information on what software needs to be installed.
 
-Running `collate.py` will process an assembly/scaffold graph file so that
+Running `collate.py` will process an assembly graph file so that
 it can be visualized. The syntax for this is
 
 `./collate.py [-h] -i INPUTFILE -o OUTPUTPREFIX [-d OUTPUTDIRECTORY] [-pg]
@@ -279,7 +279,7 @@ of MetagenomeScope, a number of sample database files are available for you to
 try out using the "Demo .db" button.
 
 Once you've loaded a file, the "Draw connected component" buttons can be used
-to render a given connected component in the assembly/scaffold graph
+to render a given connected component in the assembly graph
 represented by the database file in question. Note that connected components
 are automatically sorted in descending order of number of nodes -- so connected
 component 1 will be the largest, followed by 2, etc. In assembly
@@ -291,8 +291,9 @@ information on the number of connected components in each mode.
 ### Standard mode
 
 This mode draws a normal view of the input graph, rendering each contig as
-either one (if the input was a scaffold graph) or two (if the input was an
-assembly graph) nodes. Edges between contigs are drawn accordingly.
+either one (if contigs are assigned explicit orientations, as in a scaffold
+graph) or two (if contigs are not assigned explicit orientations) nodes.
+Edges between contigs are drawn accordingly.
 
 In standard mode, structural patterns contained within the graph were
 automatically highlighted and grouped together during layout. These patterns
