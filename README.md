@@ -90,7 +90,8 @@ Running `collate.py` will process an assembly graph file so that
 it can be visualized. The syntax for this is
 
 `./collate.py [-h] -i INPUTFILE -o OUTPUTPREFIX [-d OUTPUTDIRECTORY] [-pg]
-    [-px] [-w] [-b BICOMPONENTSFILE]`
+    [-px] [-w] [-b BICOMPONENTSFILE] [-ub USERBUBBLEFILE] [-ubl]
+    [-up USERPATTERNFILE] [-upl]`
 
 ### Script output
 
