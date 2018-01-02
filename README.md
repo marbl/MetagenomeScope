@@ -53,7 +53,7 @@ beneficial when analyzing large graphs:
 
 ## Wiki
 
-More detailed information on MetagenomeScope is available at its GitHub Wiki,
+Documentation on MetagenomeScope is available at its GitHub wiki,
 located [here](https://github.com/marbl/MetagenomeScope/wiki).
 
 ## License
