@@ -880,15 +880,19 @@ if ububbles_fullfn != None:
         bubble_lines = ub_file.readlines()
         for b in bubble_lines:
             bubble_line_node_ids = b.strip().split("\t")[2:]
-        
-            # Ensure that the node identifiers are valid. (Depending on if -ubl
-            # was passed or not, we can treat them as either node IDs or node
-            # labels.)
-            # We don't perform any further checks on the node identifiers, so
-            # if nodes in different components or something like that are
-            # included in the same bubble that'll probably break this.
-            # Need to fix that. (TODO)
-
+            # Ensure that the node identifiers (either labels or IDs)
+            # for this user-supplied bubble are valid.
+            # 1. Do all of the identifiers correspond to actual nodes in the
+            #    graph? If not, raise a KeyError.
+            # 2. Have we used any of these nodes in collapsing before? Since
+            #    user-supplied bubbles are the highest-priority node groups,
+            #    this will only be the case at this stage if any of the nodes
+            #    have previously been incorporated into another user-supplied
+            #    bubble. If this is the case, ignore this user-supplied bubble.
+            # 3. Is the "vertex-induced subgraph" of nodes in the user-supplied
+            #    bubble somehow contiguous? If so, create a Bubble. If not,
+            #    raise a KeyError. (TODO: this, for here and for the
+            #    user-supplied pattern stuff. #85)
             curr_bubble_nodeobjs = []
             exists_duplicate_node = False
             for node_id in bubble_line_node_ids:
@@ -909,6 +913,14 @@ if ububbles_fullfn != None:
                 # pattern, so for now we handle this by continuing.
                 # Might want to eventually throw an error/warning here--need
                 # to check if this is a common case in the input data.
+                #
+                # We abstain from breaking when we first set
+                # exists_duplicate_node = True above in order to ensure that
+                # all nodes in the user-defined bubbles file are validated as
+                # extant in the graph. Otherwise, weird behavior would manifest
+                # where KeyErrors are sometimes raised for user-defined bubbles
+                # but sometimes not. I'd prefer to make the behavior
+                # consistent wherever possible.
                 continue
             new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
             nodes_to_draw.append(new_bubble)
@@ -916,6 +928,9 @@ if ububbles_fullfn != None:
     conclude_msg()
 
 # Identify miscellaneous user-supplied patterns in the graph.
+# This code is pretty similar to the above code for identifying user-supplied
+# bubbles, but it's not identical. Might be a good idea to merge this with that
+# code somehow in the future (although that's fairly low-priority).
 if upatterns_fullfn != None:
     operation_msg(config.USERPATTERNS_SEARCH_MSG)
     with open(upatterns_fullfn, "r") as up_file:
