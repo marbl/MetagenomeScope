@@ -29,8 +29,6 @@
 import argparse
 # For flushing the output
 from sys import stdout
-# For running the C++ spqr script binary
-from subprocess import check_output, STDOUT
 # For laying out graphs using Graphviz (in particular, via the dot and sfdp
 # layout tools)
 import pygraphviz
@@ -39,7 +37,7 @@ import os
 # For parsing certain filenames easily
 import re
 # For calculating quartiles, etc. for edge weight outlier detection
-import numpy
+from numpy import percentile
 # For checking I/O errors
 import errno
 # For interfacing with SQLite
@@ -428,15 +426,6 @@ def add_node_to_stdmode_mapping(n, rc=None):
 # Like nodeid2obj, but for preserving references to clusters (NodeGroups)
 clusterid2obj = {}
 
-# Like nodeid2obj but for "single" Nodes, to be used in the SPQR-integrated
-# graph
-singlenodeid2obj = {}
-# List of 2-tuples, where each 2-tuple contains two node IDs
-# For GML files this will just contain all the normal connections in the graph
-# For LastGraph/GFA files, though, this will contain half of the connections
-# in the graph, due to no edges being "implied"
-single_graph_edges = []
-
 # Like nodeid2obj but using labels as the key instead; used when processing
 # user-specified bubble/misc. pattern files if the user specifies the -ubl or
 # -upl options above
@@ -446,7 +435,6 @@ need_label_mapping = False
 
 # Pertinent Assembly-wide information we use 
 graph_filetype = ""
-distinct_single_graph = True
 # If DNA is given for each contig, then we can calculate GC content
 # (In LastGraph files, DNA is always given; in GML files, DNA is never given;
 # in GFA files, DNA is sometimes given.)
@@ -532,8 +520,6 @@ with open(asm_fn, 'r') as assembly_file:
                         multiplicity=mult)
                 pid1 = id1[1:] if id1[0] == '-' else id1
                 pid2 = id2[1:] if id2[0] == '-' else id2
-                single_graph_edges.append((pid1, pid2))
-                singlenodeid2obj[pid1].add_outgoing_edge(singlenodeid2obj[pid2])
                 # Only add implied edge if the edge does not imply itself
                 # (see issue #105 on GitHub for context)
                 if not (id1 == nid2 and id2 == nid1):
@@ -569,11 +555,6 @@ with open(asm_fn, 'r') as assembly_file:
                             curr_node_bp, True, depth=curr_node_depth,
                             gc_content=curr_node_gcrev)
                     add_node_to_stdmode_mapping(n, c)
-                    # Create single Node object, for the SPQR-integrated graph
-                    sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                            depth=curr_node_depth, gc_content=curr_node_gcfwd,
-                            is_single=True)
-                    singlenodeid2obj[curr_node_id] = sn
                     # Record this node for graph statistics
                     # Note that recording these statistics here ensures that
                     # only "fully complete" node definitions are recorded.
@@ -602,7 +583,6 @@ with open(asm_fn, 'r') as assembly_file:
     elif parsing_GML:
         graph_filetype = "GML"
         dna_given = False
-        distinct_single_graph = False
         # Since GML files don't contain DNA
         total_gc_nt_count = None
         # Record state -- parsing node or parsing edge?
@@ -665,11 +645,6 @@ with open(asm_fn, 'r') as assembly_file:
                     add_node_to_stdmode_mapping(n)
                     if need_label_mapping:
                         nodelabel2obj[curr_node_label] = n
-                    # Create single Node object, for the SPQR-integrated graph
-                    sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                            label=curr_node_label, is_single=True,
-                            is_repeat=curr_node_is_repeat)
-                    singlenodeid2obj[curr_node_id] = sn
                     # Record this node for graph statistics
                     total_node_count += 1
                     total_length += curr_node_bp
@@ -708,10 +683,6 @@ with open(asm_fn, 'r') as assembly_file:
                             orientation=curr_edge_orientation,
                             mean=curr_edge_mean,
                             stdev=curr_edge_stdev)
-                    #single_graph_edges.append((curr_edge_src_id, \
-                    #    curr_edge_tgt_id))
-                    singlenodeid2obj[curr_edge_src_id].add_outgoing_edge(
-                            singlenodeid2obj[curr_edge_tgt_id])
                     total_edge_count += 1
                     total_all_edge_count += 1
                     if curr_edge_bundlesize == None:
@@ -802,10 +773,6 @@ with open(asm_fn, 'r') as assembly_file:
                 nNeg = graph_objects.Node('-' + curr_node_id, curr_node_bp,
                         True,gc_content=curr_node_gc)
                 add_node_to_stdmode_mapping(nPos, nNeg)
-                # Create single Node object, for the SPQR-integrated graph
-                sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                        gc_content=curr_node_gc, is_single=True)
-                singlenodeid2obj[curr_node_id] = sn
                 # Update stats
                 total_node_count += 1
                 total_length += curr_node_bp
@@ -825,8 +792,6 @@ with open(asm_fn, 'r') as assembly_file:
                 if id2.startswith("NODE_"): id2 = id2.split("_")[1]
                 if id1.startswith("tig"): id1 = id1[3:]
                 if id2.startswith("tig"): id2 = id2[3:]
-                single_graph_edges.append((id1, id2))
-                singlenodeid2obj[id1].add_outgoing_edge(singlenodeid2obj[id2])
                 id1 = id1 if a[2] != '-' else '-' + id1
                 id2 = id2 if a[4] != '-' else '-' + id2
                 nid2 = negate_node_id(id2)
@@ -843,18 +808,6 @@ with open(asm_fn, 'r') as assembly_file:
     else:
         raise IOError, config.FILETYPE_ERR
 conclude_msg()
-
-# TODO just a temporary measure; output the entire single graph as a .gv file
-# I guess eventually we'd lay this out using pygraphviz and store the nodes'
-# position data? But for debugging, etc. this is a nice feature to keep around
-#with open("single.gv", "w") as sgraphfile:
-#    sgraphfile.write("graph {\n")
-#    for n in nodeid2obj.values():
-#        if n.id_string[0] != '-':
-#            sgraphfile.write("\t%s;\n" % (n.id_string))
-#    for e in single_graph_edges:
-#        sgraphfile.write("\t%s -- %s;\n" % (e[0], e[1]))
-#    sgraphfile.write("}")
 
 # NOTE -- at this stage, the entire assembly graph file has been parsed.
 # This means that graph_filetype, total_node_count, total_edge_count,
@@ -970,206 +923,6 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
         clusterid2obj[new_bubble.id_string] = new_bubble
 
 conclude_msg()
-# Run the SPQR script, use its output to create SPQR trees
-operation_msg(config.SPQR_MSG)
-
-# Clear extraneous SPQR auxiliary files from the output directory, if present
-# (see issue #191 on the GitHub page)
-cfn_regex = re.compile("component_(\d+)\.info")
-sfn_regex = re.compile("spqr\d+\.gml")
-for fn in os.listdir(dir_fn):
-    match = cfn_regex.match(fn)
-    if match is not None:
-        c_fullfn = os.path.join(dir_fn, fn)
-        if check_file_existence(c_fullfn):
-            safe_file_remove(c_fullfn)
-    else:
-        s_match = sfn_regex.match(fn)
-        if s_match is not None:
-            s_fullfn = os.path.join(dir_fn, fn)
-            if check_file_existence(s_fullfn):
-                safe_file_remove(s_fullfn)
-
-# Construct links file for the single graph
-# (this is unnecessary for Bambus 3 GML files, but for LastGraph/GFA files it's
-# needed in order to generate the SPQR tree)
-s_edges_fullfn = None
-if distinct_single_graph:
-    s_edges_fn = output_fn + "_single_links"
-    s_edges_fn_text = ""
-    for e in single_graph_edges:
-        # (the other values we add are just dummy values -- they don't impact
-        # the biconnected components/SPQR trees that we obtain from the script)
-        line = e[0] + "\tB\t" + e[1] + "\tB\t0\t0\t0\n"
-        s_edges_fn_text += line
-    save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
-    s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
-
-# Prepare non-single-graph _links file
-# (unnecessary for the case where -b is passed and the input graph has a
-# distinct single graph)
-edges_fullfn = None
-if bicmps_fullfn == None or not distinct_single_graph:
-    edges_fn = output_fn + "_links"
-    edges_fn_text = ""
-    for n in nodes_to_try_collapsing:
-        for e in n.outgoing_nodes:
-            line = n.id_string + "\tB\t" + e.id_string + "\tB\t0\t0\t0\n"
-            edges_fn_text += line
-    save_aux_file(edges_fn, edges_fn_text, False, warnings=False)
-    edges_fullfn = os.path.join(dir_fn, edges_fn)
-
-# Get the location of the spqr script -- it should be in the same dir as
-# collate.py, i.e. the currently running python script
-#
-# NOTE: Some of the spqr script's output is sent to stderr, so when we run the
-# script we merge that with the output. Note that we don't really check the
-# output of this, although we could if the need arises -- the main purpose
-# of using check_output() here is to catch all the printed output of the
-# spqr script.
-#
-# TODO: will need to change some script miscellany to work in non-Unix envs.
-spqr_fullfn = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    "spqr")
-spqr_invocation = []
-if bicmps_fullfn != None:
-    # -b has been passed: we already have the file indicating separation pairs
-    # This means we only need to call the script once, to output the SPQR tree
-    if not distinct_single_graph:
-        # Input file has oriented contigs (e.g. Bambus 3 GML output)
-        # Call script once with -t and the normal links file
-        spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-t",
-            "-d", dir_fn]
-    else:
-        # Input file has unoriented contigs (e.g. Velvet LastGraph output)
-        # Call script once with -t and the single links file
-        spqr_invocation = [spqr_fullfn, "-l", s_edges_fullfn, "-t",
-            "-d", dir_fn]
-else:
-    # -b has not been passed: we need to call the SPQR script to generate the
-    # separation pairs file
-    # Detect (and remove) a file with a conflicting name, if present
-    bicmps_fn = output_fn + "_bicmps"
-    bicmps_fullfn = os.path.join(dir_fn, bicmps_fn)
-    if check_file_existence(bicmps_fullfn):
-        safe_file_remove(bicmps_fullfn)
-
-    if not distinct_single_graph:
-        # Input file has oriented contigs
-        # Call script once with -s and -t, and the normal links file
-        spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-t",
-            "-s", "-o", bicmps_fn, "-d", dir_fn]
-    else:
-        # Input files has unoriented contigs
-        # Call script twice: once with -s and the normal links file, and once
-        # with -t and the single links file
-        spqr_invocation = [spqr_fullfn, "-l", edges_fullfn,
-            "-s", "-o", bicmps_fn, "-d", dir_fn]
-        spqr_invocation_2 = [spqr_fullfn, "-l", s_edges_fullfn, "-t",
-            "-d", dir_fn]
-        check_output(spqr_invocation_2, stderr=STDOUT)
-check_output(spqr_invocation, stderr=STDOUT)
-
-# NOTE we make the assumption that the generated component and spqr files
-# aren't deleted after running the SPQR script but before they're read here.
-# If they are for whatever reason, then this script will fail to recognize
-# the corresponding biconnected component information (thus failing to draw
-# a SPQR tree, and likely causing an error of some sort when creating the
-# .db file).
-#
-# (As with the potential case where the separation pairs file is deleted after
-# being generated but before being read, this falls under the scope of
-# "silly race conditions that probably won't ever happen but are still
-# ostensibly possible".)
-
-conclude_msg()
-operation_msg(config.SPQR_LAYOUT_MSG)
-# Identify the component_*.info files representing the SPQR tree's composition
-bicomponentid2fn = {}
-for fn in os.listdir(dir_fn):
-    match = cfn_regex.match(fn)
-    if match is not None:
-        c_fullfn = os.path.join(dir_fn, fn)
-        if os.path.isfile(c_fullfn):
-            bicomponentid2fn[match.group(1)] = c_fullfn
-
-# Get info from the SPQR tree auxiliary files (component_*.info and spqr*.gml)
-bicomponentid2obj = {}
-metanode_id_regex = re.compile("^\d+$")
-metanode_type_regex = re.compile("^[SPR]$")
-edge_line_regex = re.compile("^v|r")
-for cfn_id in bicomponentid2fn:
-    with open(bicomponentid2fn[cfn_id], "r") as component_info_file:
-        metanodeid2obj = {}
-        curr_id = ""
-        curr_type = ""
-        curr_nodes = []
-        curr_edges = []
-        for line in component_info_file:
-            if edge_line_regex.match(line):
-                curr_edges.append(line.split())
-            elif metanode_id_regex.match(line):
-                if curr_id != "":
-                    # save previous metanode info
-                    new_metanode = graph_objects.SPQRMetaNode(cfn_id, curr_id,
-                        curr_type, curr_nodes, curr_edges)
-                    metanodeid2obj[curr_id] = new_metanode
-                curr_id = line.strip()
-                curr_type = ""
-                curr_nodes = []
-                curr_edges = []
-            elif metanode_type_regex.match(line):
-                curr_type = line.strip()
-            else:
-                # This line must describe a node within the metanode
-                curr_nodes.append(singlenodeid2obj[line.split()[1]])
-        # Save the last metanode in the file (won't be "covered" in loop above)
-        new_metanode = graph_objects.SPQRMetaNode(cfn_id, curr_id, curr_type,
-            curr_nodes, curr_edges)
-        metanodeid2obj[curr_id] = new_metanode
-    # At this point, we have all nodes in the entire SPQR tree for a
-    # given biconnected component saved in metanodeid2obj.
-    # For now, let's just parse the structure of this tree and lay it out using
-    # GraphViz -- will implement in the web visualization tool soon.
-    tree_structure_fn = os.path.join(dir_fn, "spqr%s.gml" % (cfn_id))
-    # List of 2-tuples of SPQRMetaNode objects.
-    with open(tree_structure_fn, "r") as spqr_structure_file:
-        parsing_edge = False
-        source_metanode = None
-        target_metanode = None
-        for line in spqr_structure_file:
-            if line.strip().startswith("edge ["):
-                parsing_edge = True
-            elif parsing_edge:
-                if line.strip().startswith("]"):
-                    parsing_edge = False
-                    # save edge data
-                    source_metanode.add_outgoing_edge(target_metanode)
-                    source_metanode = None
-                    target_metanode = None
-                else:
-                    id_line_parts = line.strip().split()
-                    if id_line_parts[0] == "source":
-                        source_metanode = metanodeid2obj[id_line_parts[1]]
-                    elif id_line_parts[0] == "target":
-                        target_metanode = metanodeid2obj[id_line_parts[1]]
-    # Determine root of the bicomponent and store it as part of the bicomponent
-    curr_metanode = metanodeid2obj.values()[0] 
-    while len(curr_metanode.incoming_nodes) > 0:
-        # A metanode in the tree can have at most 1 parent (because that is how
-        # trees work), so it's ok to just move up in the tree like so (because
-        # the .incoming_node lists of SPQRMetaNode objects will always
-        # have length 1)
-        curr_metanode = curr_metanode.incoming_nodes[0]
-    # At this point, we've obtained the full contents of the tree: both the
-    # skeletons of its metanodes, and the edges between metanodes. (This data
-    # is stored as attributes of the SPQRMetaNode objects in question.)
-    metanode_list = metanodeid2obj.values()
-    bicomponentid2obj[cfn_id] = graph_objects.Bicomponent(cfn_id, \
-        metanode_list, curr_metanode)
-    total_bicomponent_count += 1
-
-conclude_msg()
 
 operation_msg(config.FRAYEDROPE_SEARCH_MSG)
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a rope
@@ -1236,29 +989,8 @@ for n in nodes_to_try_collapsing:
     if not n.used_in_collapsing:
         nodes_to_draw.append(n)
 
-# Identify connected components in the "single" graph
-# We'll need to actually run DFS if distinct_single_graph is True.
-# However, if it's False, then we can just run DFS on the "double" graph to
-# identify its connected components -- and then use those connected components'
-# nodes' IDs to construct the single graph's connected components.
 operation_msg(config.COMPONENT_MSG)
-single_connected_components = []
-if distinct_single_graph:
-    for n in singlenodeid2obj.values():
-        if not n.seen_in_ccomponent:
-            # We've identified a node within an unseen connected component.
-            # Run DFS to identify all nodes in its connected component.
-            # (Also identify all bicomponents in the connected component)
-            node_list = dfs(n)
-            bicomponent_set = set()
-            for m in node_list:
-                m.seen_in_ccomponent = True
-                bicomponent_set = bicomponent_set.union(m.parent_bicomponents)
-            single_connected_components.append(
-                graph_objects.Component(node_list, bicomponent_set))
-            total_single_component_count += 1
-
-# Identify connected components in the normal (non-"single") graph
+# Identify connected components in the graph
 # NOTE that nodes_to_draw only contains node groups and nodes that aren't in
 # node groups. This allows us to run DFS on the nodes "inside" the node
 # groups, preserving the groups' existence while not counting them in DFS.
@@ -1305,24 +1037,6 @@ connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 #       Scale the edge's thickness relative to min/max mult (see xdot2cy.js)
 # ... later we'll do IQR stuff (using numpy.percentile(), maybe?)
 
-if not distinct_single_graph:
-    # Get single_connected_components from connected_components
-    for c in connected_components:
-        single_node_list = []
-        bicomponent_set = set()
-        for n in c.node_list:
-            s = singlenodeid2obj[n.id_string]
-            single_node_list.append(s)
-            bicomponent_set = bicomponent_set.union(s.parent_bicomponents)
-        single_connected_components.append(
-            graph_objects.Component(single_node_list, bicomponent_set))
-        total_single_component_count += 1
-
-# At this point, we have single_connected_components ready. We're now able to
-# iterate through it and lay out each connected component, with biconnected
-# components replaced with solid rectangles.
-single_connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
-
 conclude_msg()
 # Scale "non-outlier" edges relatively. We use "Tukey fences" to identify
 # outlier edge weights (see issue #184 on GitHub for context on this).
@@ -1344,7 +1058,7 @@ if edge_weights_available:
             # Now, calculate lower and upper Tukey fences.
             # First, calculate lower and upper quartiles (aka the
             # 25th and 75th percentiles)
-            lq, uq = numpy.percentile(edge_weights, [25, 75])
+            lq, uq = percentile(edge_weights, [25, 75])
             # Then, determine 1.5 * the interquartile range
             # (we can use other values than 1.5 if desired -- not set in stone)
             d = 1.5 * (uq - lq)
@@ -1415,16 +1129,6 @@ CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
 ASSEMBLY_INSERTION_STMT = \
     "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
-SINGLENODE_INSERTION_STMT = \
-    "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?)"
-BICOMPONENT_INSERTION_STMT = \
-    "INSERT INTO bicomponents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
-METANODE_INSERTION_STMT = \
-    "INSERT INTO metanodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
-METANODEEDGE_INSERTION_STMT = "INSERT INTO metanodeedges VALUES (?,?,?,?,?,?)"
-SINGLECOMPONENT_INSERTION_STMT = \
-    "INSERT INTO singlecomponents VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
 cursor.execute("""CREATE TABLE nodes
         (id text, label text, length integer, gc_content real, depth real,
         is_repeat integer, component_rank integer, x real, y real, w real,
@@ -1446,35 +1150,6 @@ cursor.execute("""CREATE TABLE assembly
         bicomponent_count integer, single_component_count integer,
         total_length integer, n50 integer, gc_content real,
         dna_given integer, repeats_given integer)""")
-# SPQR view tables
-cursor.execute("""CREATE TABLE singlenodes
-        (id text, label text, length integer, gc_content real, depth real,
-        is_repeat integer, scc_rank integer, x real, y real, i_x real,
-        i_y real, w real, h real, parent_metanode_id text,
-        parent_bicomponent_id text)""")
-cursor.execute("""CREATE TABLE singleedges
-        (source_id text, target_id text, scc_rank integer,
-        parent_metanode_id text, is_virtual integer)""")
-cursor.execute("""CREATE TABLE bicomponents
-        (id_num integer, root_metanode_id string, scc_rank integer,
-        node_count integer, left real, bottom real, right real, top real,
-        i_left real, i_bottom real, i_right real, i_top real)""")
-cursor.execute("""CREATE TABLE metanodes
-        (metanode_id text, scc_rank integer, parent_bicomponent_id_num integer,
-        descendant_metanode_count integer, node_count integer,
-        total_length integer, left real, bottom real, right real,
-        top real, i_left real, i_bottom real, i_right real, i_top real)""")
-cursor.execute("""CREATE TABLE metanodeedges
-        (source_metanode_id text, target_metanode_id text, scc_rank integer,
-        control_point_string text, control_point_count integer,
-        parent_bicomponent_id_num integer)""")
-cursor.execute("""CREATE TABLE singlecomponents
-        (size_rank integer, ex_uncompressed_node_count integer,
-        ex_uncompressed_edge_count integer, im_uncompressed_node_count integer,
-        im_uncompressed_edge_count integer, compressed_node_count integer,
-        compressed_edge_count integer, bicomponent_count integer,
-        boundingbox_x real, boundingbox_y real, i_boundingbox_x real,
-        i_boundingbox_y real)""")
 connection.commit()
 
 # Insert general assembly information into the database
@@ -1492,479 +1167,6 @@ graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
 cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
 conclude_msg()
 
-# Total time taken for the layout in all "modes"
-total_layout_time = 0
-
-# Lay out both the implicit and explicit SPQR tree views; store stuff for the
-# SPQR decomposition modes in the database
-# NOTE that the order of implicit then explicit layout matters, since things
-# are written to the database after laying out the explicit mode but not
-# after laying out the implicit mode (that's done because many rows in the
-# database are used for both layouts)
-
-# list of all the (right, top) coords of the bounding boxes of each implicit
-# single connected component
-implicit_spqr_bounding_boxes = []
-# lists of uncompressed node counts and of uncompressed edge counts for each
-# implicit single connected component (see #223 on GitHub)
-implicit_spqr_node_counts = []
-implicit_spqr_edge_counts = []
-for mode in ("implicit", "explicit"):
-    t1 = time.time()
-    single_component_size_rank = 1
-    no_print = False
-    for scc in single_connected_components:
-        # Layout this "single" connected component of the SPQR view
-
-        first_small_component = False
-        if not no_print:
-            # We want to figure out the uncollapsed node count for this scc,
-            # to give the user a preview of how long layout will take for the
-            # current scc.
-            unc_component_node_ct = 0
-            # Add number of "unaffiliated" nodes (nodes with no parent bicmp.)
-            for n in scc.node_list:
-                if len(n.parent_bicomponents) == 0:
-                    unc_component_node_ct += 1
-            if mode == "implicit":
-                # Add number of nodes in each bicomponent (the same node
-                # might be present in multiple bicomponents, hence why
-                # we have to figure all this out)
-                for bicmp in scc.node_group_list:
-                    unc_component_node_ct += len(bicmp.snid2obj)
-            else:
-                # Add number of nodes in each metanode in each bicomponent (the
-                # same node could be present in both multiple metanodes and
-                # multiple bicomponents)
-                for bicmp in scc.node_group_list:
-                    unc_component_node_ct += bicmp.singlenode_count
-            if unc_component_node_ct < 5:
-                # The current component is included in the small "single"
-                # component count
-                small_component_ct = total_single_component_count - \
-                    single_component_size_rank + 1
-                if small_component_ct > 1:
-                    no_print = True
-                    first_small_component = True
-                    operation_msg(config.LAYOUT_MSG + \
-                        "%d " % (small_component_ct) + \
-                        config.SMALL_COMPONENTS_MSG)
-                # If only one small component is left, just treat it as a
-                # normal component: there's no point pointing it out as a
-                # small component
-            if not no_print:
-                operation_msg(config.LAYOUT_MSG + mode +
-                    config.SPQR_COMPONENTS_MSG + "%d (%d total nodes)..." % \
-                    (single_component_size_rank, unc_component_node_ct))
-
-        # Lay out each Bicomponent in this component
-        # (this also lays out its child metanodes, if we're in explicit mode)
-        for bicomp in scc.node_group_list:
-            if mode == "explicit":
-                bicomp.explicit_layout_isolated()
-            else:
-                bicomp.implicit_layout_isolated()
-        scc_prefix = "%s_%s_spqr_%d" % (output_fn, mode[:2], \
-                single_component_size_rank)
-        gv_input = ""
-        gv_input += "graph single_ccomp {\n"
-        if config.GRAPH_STYLE != "":
-            gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
-        gv_input += "\tsmoothing=\"triangle\";\n"
-        if config.GLOBALNODE_STYLE != "":
-            gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
-        # In the layout of this single connected component, include:
-        # -rectangle nodes representing each bicomponent (will be backfilled)
-        # -nodes that aren't present in any biconnected components
-        # -edges that are not "in" any biconnected components (includes edges
-        # incident on biconnected components)
-    
-        # Keep track of counts of singlenodes and singleedges that are
-        # specifically contained within either the root metanodes of the graph,
-        # or outside of any bicomponents. Since these nodes and edges are
-        # going to be drawn when the SPQR view is initially rendered, we need
-        # to know these counts so we can update the progress bar accordingly.
-        sc_compressed_node_count = 0
-        sc_compressed_edge_count = 0
-        sc_bicomponent_count = len(scc.node_group_list)
-        for bicomp in scc.node_group_list:
-            if mode == "implicit":
-                gv_input += bicomp.implicit_backfill_node_info()
-            else:
-                gv_input += bicomp.node_info()
-            sc_compressed_node_count +=len(bicomp.root_metanode.nodes)
-            sc_compressed_edge_count +=len(bicomp.root_metanode.internal_edges)
-        for m in scc.node_list:
-            # Get node info for nodes not present in any bicomponents
-            # Also get edge info for edges "external" to bicomponents
-            if len(m.parent_bicomponents) == 0:
-                gv_input += m.node_info()
-                sc_compressed_node_count += 1
-                # We know m is not in a bicomponent. Get its "outgoing" edge
-                # info.
-                for n in m.outgoing_nodes:
-                    if len(n.parent_bicomponents) == 0:
-                        # This edge is between two nodes, neither of which
-                        # is in a bicomponent. We can lay this edge out.
-                        gv_input += "\t%s -- %s;\n" % \
-                                (m.id_string, n.id_string)
-                        sc_compressed_edge_count += 1
-                    else:
-                        # m is not in a bicomponent, but n is. Lay out edges
-                        # between m and all of the parent bicomponents of n.
-                        for b in n.parent_bicomponents:
-                            gv_input += "\t%s -- cluster_%s;\n" % \
-                                    (m.id_string, b.id_string)
-                            sc_compressed_edge_count += 1
-            else:
-                # We know m is in at least one bicomponent.
-                # Get its "outgoing" edge info (in case there are edges
-                # incident on m from outside one of its parent bicomponents)
-                for n in m.outgoing_nodes:
-                    if len(n.parent_bicomponents) == 0:
-                        # m is in a bicomponent, but n is not. Lay out edges
-                        # between n and all of the parent bicomponents of m.
-                        for b in m.parent_bicomponents:
-                            gv_input += "\tcluster_%s -- %s;\n" % \
-                                    (b.id_string, n.id_string)
-                            sc_compressed_edge_count += 1
-                    else:
-                        # Both nodes are in at least one bicomponent.
-                        if len(m.parent_bicomponents.intersection( \
-                                n.parent_bicomponents)) > 0:
-                            # Since these two nodes share at least one
-                            # bicomponent, the edge between them must be
-                            # present within a bicomponent. Therefore
-                            # rendering that edge would be redundant.
-                            continue
-                        else:
-                            # Although both nodes are in >= 1 bicmps,
-                            # they're in different bicomponents
-                            # (this is entirely possible; consider the case
-                            # where two 4-node "bubbles" in an undirected
-                            # graph are joined by a single edge between
-                            # two of their nodes).
-                            # Thus, this edge info is not present in either
-                            # set of bicomponents. So we should lay out
-                            # edge(s) between the parent bicomponents of m
-                            # and n.
-                            for b1 in m.parent_bicomponents:
-                                for b2 in n.parent_bicomponents:
-                                    gv_input += \
-                                            "\tcluster_%s -- cluster_%s;\n" % \
-                                            (b1.id_string, b2.id_string)
-                                    sc_compressed_edge_count += 1
-        gv_input += "}"
-        if len(scc.node_group_list) == 0 and sc_compressed_edge_count == 0 \
-                and len(scc.node_list) == 1:
-            curr_node = scc.node_list[0]
-            wpts = curr_node.width * config.POINTS_PER_INCH
-            hpts = curr_node.height * config.POINTS_PER_INCH
-            if mode == "implicit":
-                # first time looking at this node and component
-                curr_node.set_dimensions()
-                curr_node.xdot_ix = wpts / 2
-                curr_node.xdot_iy = hpts / 2
-                implicit_spqr_bounding_boxes.append((wpts, hpts))
-                implicit_spqr_node_counts.append(1)
-                implicit_spqr_edge_counts.append(0)
-            else:
-                curr_node.xdot_x = wpts / 2
-                curr_node.xdot_y = hpts / 2
-                curr_node.set_component_rank(single_component_size_rank)
-                curr_node.xdot_shape = curr_node.get_shape()
-                cursor.execute(SINGLENODE_INSERTION_STMT,
-                        curr_node.s_db_values())
-                # we don't bother getting values from
-                # implicit_spqr_bounding_boxes/_node_counts/_edge_counts
-                # because we already know those values
-                cursor.execute(SINGLECOMPONENT_INSERTION_STMT,
-                    (single_component_size_rank, 1, 0, 1, 0, 1, 0, 0,
-                        wpts, hpts, wpts, hpts))
-            if total_single_component_count == single_component_size_rank:
-                conclude_msg()
-            single_component_size_rank += 1
-            continue
-        h = pygraphviz.AGraph(gv_input)
-
-        layout_msg_printed = (not no_print) or first_small_component
-        r = True
-        # save the .gv file if the user requested .gv preservation
-        if preserve_gv:
-            r = save_aux_file(scc_prefix + ".gv", gv_input, layout_msg_printed)
-        # lay out the graph (singlenodes and singleedges outside of
-        # bicomponents, and bicomponent general structures)
-        h.layout(prog='sfdp')
-        #h.draw(scc_prefix + ".png")
-        # save the .xdot file if the user requested .xdot preservation
-        if preserve_xdot:
-            if not r:
-                layout_msg_printed = False
-            save_aux_file(scc_prefix + ".xdot", h, layout_msg_printed)
-    
-        sc_node_count = 0
-        sc_edge_count = 0
-        # Retrieve layout information and use it to populate the .db file with
-        # the necessary information to render the SPQR-integrated graph view
-        # will be the bounding box of this single connected component's graph
-        bounding_box_right = 0
-        bounding_box_top = 0
-        # Record layout info of nodes (incl. temporarily-"empty" Bicomponents)
-        for n in h.nodes():
-            try:
-                curr_node = singlenodeid2obj[str(n)]
-                # Since we didn't just get a KeyError, curr_node must be a
-                # single node that was just laid out (and not a Bicomponent).
-                # So we can process its position, width, etc. info accordingly.
-                posns = tuple(float(c) for c in n.attr[u'pos'].split(','))
-                exx = exy = None
-                if mode == "explicit":
-                    curr_node.xdot_x, curr_node.xdot_y = posns
-                    exx = curr_node.xdot_x
-                    exy = curr_node.xdot_y
-                else:
-                    curr_node.xdot_ix, curr_node.xdot_iy = posns
-                    exx = curr_node.xdot_ix
-                    exy = curr_node.xdot_iy
-                # Try to expand the component bounding box
-                right_side = exx + \
-                    (config.POINTS_PER_INCH * (curr_node.width/2.0))
-                top_side = exy + \
-                    (config.POINTS_PER_INCH * (curr_node.height/2.0))
-                if right_side > bounding_box_right: bounding_box_right = \
-                        right_side
-                if top_side > bounding_box_top: bounding_box_top = top_side
-                # Save this single node in the .db
-                sc_node_count += 1
-                if mode == "explicit":
-                    curr_node.set_component_rank(single_component_size_rank)
-                    cursor.execute(SINGLENODE_INSERTION_STMT,
-                            curr_node.s_db_values())
-            except KeyError: # arising from singlenodeid2obj[a bicomponent id]
-                # We use [9:] to slice off the "cluster_I" prefix on every
-                # bicomponent node here
-                curr_cluster = bicomponentid2obj[str(n)[9:]]
-                ep = n.attr[u'pos'].split(',')
-                # We use half_width_pts for both the implicit and explicit
-                # SPQR modes, so can we avoid a bit of redundant code via just
-                # setting the xdot_width and xdot_height variables based on
-                # which mode we're in.
-                if mode == "explicit":
-                    curr_cluster.xdot_x = float(ep[0])
-                    curr_cluster.xdot_y = float(ep[1])
-                    xdot_width = curr_cluster.xdot_c_width
-                    xdot_height = curr_cluster.xdot_c_height
-                else:
-                    curr_cluster.xdot_ix = float(ep[0])
-                    curr_cluster.xdot_iy = float(ep[1])
-                    xdot_width = curr_cluster.xdot_ic_width
-                    xdot_height = curr_cluster.xdot_ic_height
-                half_width_pts = \
-                    (config.POINTS_PER_INCH * (xdot_width/2.0))
-                half_height_pts = \
-                    (config.POINTS_PER_INCH * (xdot_height/2.0))
-                exr = ext = None
-                if mode == "explicit":
-                    curr_cluster.xdot_left = \
-                            curr_cluster.xdot_x - half_width_pts
-                    curr_cluster.xdot_right = \
-                            curr_cluster.xdot_x + half_width_pts
-                    curr_cluster.xdot_bottom =  \
-                            curr_cluster.xdot_y - half_height_pts
-                    curr_cluster.xdot_top = \
-                            curr_cluster.xdot_y + half_height_pts
-                    exr = curr_cluster.xdot_right
-                    ext = curr_cluster.xdot_top
-                else:
-                    curr_cluster.xdot_ileft = \
-                            curr_cluster.xdot_ix - half_width_pts
-                    curr_cluster.xdot_iright = \
-                            curr_cluster.xdot_ix + half_width_pts
-                    curr_cluster.xdot_ibottom =  \
-                            curr_cluster.xdot_iy - half_height_pts
-                    curr_cluster.xdot_itop = \
-                            curr_cluster.xdot_iy + half_height_pts
-                    exr = curr_cluster.xdot_iright
-                    ext = curr_cluster.xdot_itop
-                # Try to expand the component bounding box
-                if exr > bounding_box_right:
-                    bounding_box_right = exr
-                if ext > bounding_box_top:
-                    bounding_box_top = ext
-                # Reconcile metanodes in this bicomponent
-                # No need to attempt to expand the component bounding box here,
-                # since we know that all children of the bicomponent must fit
-                # inside the bicomponent's area
-                if mode == "implicit":
-                    sc_node_count += len(curr_cluster.snid2obj)
-                    sc_edge_count += len(curr_cluster.real_edges)
-                    # compute positions of metanodes relative to child nodes
-                    for mn in curr_cluster.metanode_list:
-                        mn.assign_implicit_spqr_borders()
-                    continue
-                for mn in curr_cluster.metanode_list:
-                    mn.xdot_x = curr_cluster.xdot_left + mn.xdot_rel_x
-                    mn.xdot_y = curr_cluster.xdot_bottom + mn.xdot_rel_y
-                    mn_hw_pts = (config.POINTS_PER_INCH*(mn.xdot_c_width/2.0))
-                    mn_hh_pts = (config.POINTS_PER_INCH*(mn.xdot_c_height/2.0))
-                    mn.xdot_left = mn.xdot_x - mn_hw_pts
-                    mn.xdot_right = mn.xdot_x + mn_hw_pts
-                    mn.xdot_bottom = mn.xdot_y - mn_hh_pts
-                    mn.xdot_top = mn.xdot_y + mn_hh_pts
-                    mn.xdot_ileft += curr_cluster.xdot_ileft
-                    mn.xdot_iright += curr_cluster.xdot_ileft
-                    mn.xdot_itop += curr_cluster.xdot_ibottom
-                    mn.xdot_ibottom += curr_cluster.xdot_ibottom
-                    mn.set_component_rank(single_component_size_rank)
-                    cursor.execute(METANODE_INSERTION_STMT, mn.db_values())
-                    # Add nodes in this metanode (...in this bicomponent) to
-                    # the .db file. I'm a bit miffed that "double backfilling"
-                    # is the fanciest name I can come up with for this process
-                    # now.
-                    for sn in mn.nodes:
-                        # Node.s_db_values() uses the parent metanode
-                        # information to set the position of the node in
-                        # question.
-                        # This is done this way because the "same" node can
-                        # be in
-                        # multiple metanodes in a SPQR tree, and -- even
-                        # crazier, I know -- the same node can be in multiple
-                        # bicomponents.
-                        sc_node_count += 1
-                        sn.set_component_rank(single_component_size_rank)
-                        cursor.execute(SINGLENODE_INSERTION_STMT,
-                                sn.s_db_values(mn))
-                    # Add edges between nodes within this metanode's skeleton
-                    # to the .db file. We just treat these edges as straight
-                    # lines in
-                    # the viewer, so we don't bother saving their layout info.
-                    for se in mn.edges:
-                        se.xdot_ctrl_pt_str = se.xdot_ctrl_pt_count = None
-                        # Save this edge in the .db
-                        sc_edge_count += 1
-                        se.component_size_rank = single_component_size_rank
-                        cursor.execute(SINGLEEDGE_INSERTION_STMT, \
-                                se.s_db_values())
-                # Reconcile edges between metanodes in this bicomponent
-                for e in curr_cluster.edges:
-                    # Adjust the control points to be relative to the entire
-                    # component. Also, try to expand to the component
-                    # bounding box.
-                    p = 0
-                    coord_list = \
-                            [float(c) for c in e.xdot_rel_ctrl_pt_str.split()]
-                    e.xdot_ctrl_pt_str = ""
-                    while p <= len(coord_list) - 2:
-                        if p > 0:
-                            e.xdot_ctrl_pt_str += " "
-                        xp = coord_list[p]
-                        yp = coord_list[p + 1]
-                        e.xdot_ctrl_pt_str +=str(curr_cluster.xdot_left + xp)
-                        e.xdot_ctrl_pt_str +=" "
-                        e.xdot_ctrl_pt_str +=str(curr_cluster.xdot_bottom + yp)
-                        # Try to expand the component bounding box -- interior
-                        # edges should normally be entirely within the
-                        # bounding box of their node group, but some might have
-                        # interior edges that go outside of the node group's
-                        # bounding box
-                        if xp > bounding_box_right: bounding_box_right = xp
-                        if yp > bounding_box_top: bounding_box_top = yp
-                        p += 2
-                    # Save this edge in the .db
-                    sc_edge_count += 1
-                    cursor.execute(METANODEEDGE_INSERTION_STMT,
-                            e.metanode_edge_db_values())
-                # Save this bicomponent's information in the .db
-                curr_cluster.component_size_rank = single_component_size_rank
-                cursor.execute(BICOMPONENT_INSERTION_STMT, \
-                        curr_cluster.db_values())
-        # We don't need to get edge info or store anything in the .db just yet,
-        # so just move on to the next single connected component.
-        # We'll populate the .db file during the explicit layout process.
-        if mode == "implicit":
-            # Call conclude_msg() after a non-small component is done, or
-            # when the last small component is done.
-            if not no_print or \
-                    total_single_component_count == single_component_size_rank:
-                conclude_msg()
-            implicit_spqr_bounding_boxes.append((bounding_box_right,
-                bounding_box_top))
-            # Account for edges not in any bicomponents
-            sc_edge_count += len(h.edges())
-            implicit_spqr_node_counts.append(sc_node_count)
-            implicit_spqr_edge_counts.append(sc_edge_count)
-            single_component_size_rank += 1
-            continue
-        # Record layout info of edges that aren't inside any bicomponents.
-        # Due to the possible construction of duplicates of these edges,
-        # we don't actually create Edge objects for these particular edges.
-        # So we have to fill in the single edge insertion statement ourselves
-        # (I guess we could just declare Edge objects right here, but that'd
-        # be kind of silly)
-        for e in h.edges():
-            source_id = e[0]
-            target_id = e[1]
-            # slice off the "cluster_" prefix if this edge is incident on one
-            # or more biconnected components
-            # (this'll save space in the database, and it'll make
-            # interpreting this edge in the viewer application easier)
-            if source_id.startswith("cluster_"):
-                source_id = source_id[8:]
-            if target_id.startswith("cluster_"):
-                target_id = target_id[8:]
-            xdot_ctrl_pt_str, coord_list, xdot_ctrl_pt_count = \
-                graph_objects.Edge.get_control_points(e.attr[u'pos'])
-            # Try to expand the component bounding box (just to be safe)
-            p = 0
-            while p <= len(coord_list) - 2:
-                x_coord = coord_list[p]
-                y_coord = coord_list[p + 1]
-                if x_coord > bounding_box_right: bounding_box_right = x_coord
-                if y_coord > bounding_box_top: bounding_box_top = y_coord
-                p += 2
-            # Save this edge in the .db
-            # NOTE -- as of now we don't bother rendering this edge's
-            # sfdp-determined control points in the viewer interface, since
-            # most of these edges end up being normal straight lines/bezier
-            # curves
-            # anyway. If we decide to change this behavior to display these
-            # edges with control point info, then we can modify
-            # SINGLEEDGE_INSERTION_STMT above (as well as the database schema
-            # for the singleedges table) to store this data accordingly.
-            # (At this point, we've already computed xdot_ctrl_pt_str and
-            # xdot_ctrl_pt_count, so all that would really remain is storing
-            # that info in the database and handling it properly in the
-            # viewer interface.)
-            db_values = (source_id, target_id, single_component_size_rank,
-                    None, 0)
-            sc_edge_count += 1
-            cursor.execute(SINGLEEDGE_INSERTION_STMT, db_values)
-
-        if not no_print or \
-                    total_single_component_count == single_component_size_rank:
-            conclude_msg()
-
-        # Output component information to the database
-        cursor.execute(SINGLECOMPONENT_INSERTION_STMT,
-            (single_component_size_rank, sc_node_count, sc_edge_count,
-                implicit_spqr_node_counts[single_component_size_rank - 1],
-                implicit_spqr_edge_counts[single_component_size_rank - 1],
-                sc_compressed_node_count, sc_compressed_edge_count,
-                sc_bicomponent_count, bounding_box_right, bounding_box_top,
-                implicit_spqr_bounding_boxes[single_component_size_rank-1][0],
-                implicit_spqr_bounding_boxes[single_component_size_rank-1][1]))
-    
-        h.clear()
-        h.close()
-        single_component_size_rank += 1
-    t2 = time.time()
-    difference = t2 - t1
-    print "SPQR %s view layout time:" % (mode),
-    print "%g seconds" % (difference)
-    total_layout_time += difference
-
-if not no_print:
-    conclude_msg()
 # Lay out the "standard mode" view of the graph and store information about it
 # in the database.
 t3 = time.time()
@@ -2246,11 +1448,9 @@ for component in connected_components:
 
 t4 = time.time()
 difference = t4 - t3
-total_layout_time += difference
 if no_print:
     conclude_msg()
-print "Standard view layout time: %g seconds" % (difference)
-print "Total layout time: %g seconds" % (total_layout_time)
+print "Layout time: %g seconds" % (difference)
 
 operation_msg(config.DB_SAVE_MSG + "%s..." % (db_fn))
 connection.commit()
