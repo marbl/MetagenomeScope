@@ -7,7 +7,8 @@ visualized in MetagenomeScope's viewer interface.
 
 (The viewer interface is just a normal web application -- you shouldn't need to
 install anything in order to use that, assuming you're using a modern web
-browser with Javascript enabled.)
+browser with Javascript enabled. You can just open your browser to your local
+copy of the viewer interface's HTML file, located in viewer/index.html.)
 
 Hopefully these instructions should be sufficient for getting everything up
 and working, but if you run into any problems please feel free to contact me
@@ -51,14 +52,29 @@ different platforms). However, the "SPQR script" in MetagenomeScope (written
 in C++) requires compilation, since it uses the Open Graph Drawing Framework
 (OGDF) to generate SPQR trees.
 
-I'm working on getting a proper Makefile set up for the SPQR script.
-I still need to implement a better system for linking OGDF's code
-(maybe it'd be best to include OGDF headers/code in a ogdf/ folder in the
-root directory of MetagenomeScope? That'd prevent users from having to
-separately download OGDF, I suppose).
+The version of the SPQR script binary provided with MetagenomeScope (located
+in graph_collator/spqr) was compiled for 64-bit Linux systems. It should work
+for those, but for other operating systems you will need to compile the script
+to run on your particular system.
 
-For the time being, though, you can replace the arguments in the OGDF_INCL and
-OGDF_LINK variables in the Makefile to point to your own installation of
-OGDF's corresponding include/ and _release/ directories.
-You can also modify the COMPILER and CFLAGS arguments if you're using a
-different C++ compiler.
+Compiling the script has four primary steps:
+
+1. Download and install OGDF on your system.
+    -Instructions for doing this are located here:
+        https://github.com/ogdf/ogdf/blob/master/doc/build.md
+
+2. Modify the OGDF_INCL variable in Makefile to point to your include/ 
+   directory of OGDF.
+
+3. Modify the OGDF_LINK variable in Makefile to point to your _release/
+   directory of OGDF.
+
+4. Run "make" to compile the SPQR script.
+    -On Linux and Mac systems, this should be doable by just running
+     "make" in the root directory of MetagenomeScope, assuming the
+     aforementioned changes have been made.
+    -On Windows systems, something like CMake or Cygwin may be needed
+     to run make. (I don't have enough experience with Windows to say,
+     sorry; I'll try to test this out on a Windows system eventually.)
+    -You may also need to modify the COMPILER and CFLAGS variables in the
+     Makefile if you're using a different C++ compiler than g++.
