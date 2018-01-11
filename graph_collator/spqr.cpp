@@ -498,16 +498,20 @@ int main(int argc, char* argv[])
     // number of connected components will be off for some graphs because
     // (since this script only takes in a list of edges as input) the connected
     // components in the graph that are just single edges can't be represented
-    // here. This shouldn't pose a problem, although perhaps it does have an
-    // impact on the current bug we're having here of certain c.comps'
-    // bicomponents not being detected.
+    // here. This shouldn't pose a problem.
     nrCC = connectedComponents(G, node2cc);
     cerr<<"Number of connected components = "<<nrCC<<endl;
 
     // initialize all eles in startNodes to NULL at first
     // then iterate through all nodes in the graph, ensuring that each c.comp
     // has a corresponding startNode indicated
-    node startNodes[nrCC] = {NULL};
+    node startNodes[nrCC];
+    // Initialize each element in startNodes to NULL.
+    // (Apparently "node startNodes[nrCC] = {NULL};" doesn't work in some
+    // environments)
+    for(int y = 0; y < nrCC; y++) {
+        startNodes[y] = NULL;
+    }
     int index;
     node n;
     forall_nodes(n, G)
