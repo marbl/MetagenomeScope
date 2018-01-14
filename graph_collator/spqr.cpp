@@ -502,15 +502,15 @@ int main(int argc, char* argv[])
     nrCC = connectedComponents(G, node2cc);
     cerr<<"Number of connected components = "<<nrCC<<endl;
 
-    // initialize all eles in startNodes to NULL at first
+    // initialize all eles in startNodes to NULL (0) at first
     // then iterate through all nodes in the graph, ensuring that each c.comp
     // has a corresponding startNode indicated
     node startNodes[nrCC];
-    // Initialize each element in startNodes to NULL.
+    // Initialize each element in startNodes to NULL (0).
     // (Apparently "node startNodes[nrCC] = {NULL};" doesn't work in some
     // environments)
     for(int y = 0; y < nrCC; y++) {
-        startNodes[y] = NULL;
+        startNodes[y] = 0;
     }
     int index;
     node n;
@@ -519,7 +519,7 @@ int main(int argc, char* argv[])
         index = node2cc[n];
         cout << "Node " << intid2contig[n -> index()] << " in cc "
             << index << endl;
-        if (startNodes[index] == NULL) {
+        if (startNodes[index] == 0) {
             startNodes[index] = n;
         }
     }
