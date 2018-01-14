@@ -126,6 +126,9 @@ EMPTY_LIST_N50_ERR = "N50 of an empty list does not exist"
 N50_CALC_ERR = "N50 calculation error"
 UBUBBLE_NODE_ERR = "User-specified bubble file contains invalid node "
 UPATTERN_NODE_ERR = "User-specified pattern file contains invalid node "
+UBUBBLE_ERR_PREFIX = "User-specified bubble \""
+UPATTERN_ERR_PREFIX = "User-specified pattern "
+CONTIGUOUS_ERR = "\" is not contiguous"
 LABEL_EXISTENCE_ERR = \
     "Can't use -ubl or -upl options for a graph type with no node labels"
 

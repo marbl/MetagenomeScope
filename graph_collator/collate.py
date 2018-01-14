@@ -884,15 +884,15 @@ if ububbles_fullfn != None:
             # for this user-supplied bubble are valid.
             # 1. Do all of the identifiers correspond to actual nodes in the
             #    graph? If not, raise a KeyError.
-            # 2. Have we used any of these nodes in collapsing before? Since
+            # 2. Is the "vertex-induced subgraph" of nodes in the user-supplied
+            #    bubble somehow contiguous? If so, create a Bubble. If not,
+            #    raise a KeyError. (TODO: this, for here and for the
+            #    user-supplied pattern stuff. #85)
+            # 3. Have we used any of these nodes in collapsing before? Since
             #    user-supplied bubbles are the highest-priority node groups,
             #    this will only be the case at this stage if any of the nodes
             #    have previously been incorporated into another user-supplied
             #    bubble. If this is the case, ignore this user-supplied bubble.
-            # 3. Is the "vertex-induced subgraph" of nodes in the user-supplied
-            #    bubble somehow contiguous? If so, create a Bubble. If not,
-            #    raise a KeyError. (TODO: this, for here and for the
-            #    user-supplied pattern stuff. #85)
             curr_bubble_nodeobjs = []
             exists_duplicate_node = False
             for node_id in bubble_line_node_ids:
@@ -908,19 +908,40 @@ if ububbles_fullfn != None:
                     curr_bubble_nodeobjs.append(nobj)
                 except KeyError, e:
                     raise KeyError, config.UBUBBLE_NODE_ERR + str(e)
+
+            # Test that the nodes' "induced subgraph" is contiguous.
+            # For each node in the user-supplied bubble, construct a set of all
+            # incident nodes (not including the node itself, in the case that
+            # the node has an edge to itself). If this set has some
+            # intersection with the nodes in the user-supplied bubble, the
+            # node is ok; move on to the next. Otherwise, this node is
+            # disconnected from the other nodes in the user-supplied bubble, so
+            # reject this bubble by raising a KeyError.
+            for nobj in curr_bubble_nodeobjs:
+                incidents = set(nobj.outgoing_nodes + nobj.incoming_nodes)
+                # disqualify nodes with self-loops as being automatically
+                # considered valid by clearing this node from its set of
+                # incident nodes
+                incidents.discard(nobj)
+                if incidents.isdisjoint(curr_bubble_nodeobjs):
+                    raise ValueError, config.UBUBBLE_ERR_PREFIX + b.strip() + \
+                        config.CONTIGUOUS_ERR
+
             if exists_duplicate_node:
                 # A given node can only belong to a max of 1 structural
                 # pattern, so for now we handle this by continuing.
                 # Might want to eventually throw an error/warning here--need
-                # to check if this is a common case in the input data.
+                # to see if this is a common case in the input data.
                 #
                 # We abstain from breaking when we first set
-                # exists_duplicate_node = True above in order to ensure that
-                # all nodes in the user-defined bubbles file are validated as
-                # extant in the graph. Otherwise, weird behavior would manifest
-                # where KeyErrors are sometimes raised for user-defined bubbles
+                # exists_duplicate_node = True above, or before we test the
+                # induced subgraph's contiguity afterwards, in order to
+                # ensure that this bubble is validated before skipping it.
+                # Otherwise, weird behavior would manifest
+                # where Errors are sometimes raised for user-defined bubbles
                 # but sometimes not. I'd prefer to make the behavior
-                # consistent wherever possible.
+                # consistent wherever possible (although I'd be open to
+                # changing this in the future if people ask for it).
                 continue
             new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
             nodes_to_draw.append(new_bubble)
