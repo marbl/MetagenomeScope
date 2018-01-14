@@ -909,23 +909,25 @@ if ububbles_fullfn != None:
                 except KeyError, e:
                     raise KeyError, config.UBUBBLE_NODE_ERR + str(e)
 
-            # Test that the nodes' "induced subgraph" is contiguous.
-            # For each node in the user-supplied bubble, construct a set of all
-            # incident nodes (not including the node itself, in the case that
-            # the node has an edge to itself). If this set has some
-            # intersection with the nodes in the user-supplied bubble, the
-            # node is ok; move on to the next. Otherwise, this node is
-            # disconnected from the other nodes in the user-supplied bubble, so
-            # reject this bubble by raising a KeyError.
-            for nobj in curr_bubble_nodeobjs:
-                incidents = set(nobj.outgoing_nodes + nobj.incoming_nodes)
-                # disqualify nodes with self-loops as being automatically
-                # considered valid by clearing this node from its set of
-                # incident nodes
-                incidents.discard(nobj)
-                if incidents.isdisjoint(curr_bubble_nodeobjs):
-                    raise ValueError, config.UBUBBLE_ERR_PREFIX + b.strip() + \
-                        config.CONTIGUOUS_ERR
+            if len(curr_bubble_nodeobjs) > 1:
+                # Test that the nodes' "induced subgraph" is contiguous.
+                # For each node in the user-supplied bubble, construct a
+                # set of all incident nodes (not including the node itself,
+                # in the case that the node has an edge to itself). If this
+                # set has some intersection with the nodes in the
+                # user-supplied bubble, the node is ok; move on to the next.
+                # Otherwise, this node is disconnected from the other nodes
+                # in the user-supplied bubble, so reject this bubble by
+                # raising a ValueError.
+                for nobj in curr_bubble_nodeobjs:
+                    incidents = set(nobj.outgoing_nodes + nobj.incoming_nodes)
+                    # disqualify nodes with self-loops as being automatically
+                    # considered valid by clearing this node from its set of
+                    # incident nodes
+                    incidents.discard(nobj)
+                    if incidents.isdisjoint(curr_bubble_nodeobjs):
+                        raise ValueError, config.UBUBBLE_ERR_PREFIX + \
+                            b.strip() + config.CONTIGUOUS_ERR
 
             if exists_duplicate_node:
                 # A given node can only belong to a max of 1 structural
