@@ -975,6 +975,18 @@ if upatterns_fullfn != None:
                     curr_pattern_nodeobjs.append(nobj)
                 except KeyError, e:
                     raise KeyError, config.UPATTERN_NODE_ERR + str(e)
+
+            if len(curr_pattern_nodeobjs) > 1:
+                # Test that the nodes' "induced subgraph" is contiguous.
+                for nobj in curr_pattern_nodeobjs:
+                    incidents = set(nobj.outgoing_nodes + nobj.incoming_nodes)
+                    # disqualify nodes with self-loops as being automatically
+                    # considered valid
+                    incidents.discard(nobj)
+                    if incidents.isdisjoint(curr_pattern_nodeobjs):
+                        raise ValueError, config.UPATTERN_ERR_PREFIX + \
+                            p.strip() + config.CONTIGUOUS_ERR
+
             if exists_duplicate_node:
                 # A given node can only belong to a max of 1 structural
                 # pattern, so for now we handle this by continuing.
