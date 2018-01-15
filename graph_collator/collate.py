@@ -17,12 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 ####
-# Converts an assembly graph (LastGraph, GFA, MetaCarvel GML) to a DOT file,
-# lays out the DOT file using Graphviz, and then reconciles the layout data
-# with biological data in a SQLite .db file that can be read by the
-# MetagenomeScope viewer interface.
+# Converts an assembly graph to a DOT file, lays out the DOT file using
+# Graphviz, and then reconciles the layout data with biological data in a
+# SQLite .db file that can be visualized in the MetagenomeScope viewer
+# interface.
 #
-# For usage information, please see README.md in the root directory of
+# For further information, please consult README.md in the root directory of
 # MetagenomeScope.
 
 # For parsing command-line arguments

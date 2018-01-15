@@ -16,11 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 ####
-# Settings that can be used to alter the output received by the script and
-# by GraphViz.
-# Generally, each variable or group of variables contains a explanatory
-# comment above its declaration below. Default values are placed to the
-# right of each variable.
+# Various settings that can be used to alter the behavior of the
+# preprocessing script.
 
 from math import sqrt
 import stat
