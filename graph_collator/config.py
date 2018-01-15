@@ -135,3 +135,4 @@ LABEL_EXISTENCE_ERR = \
 LASTGRAPH_SUFFIX = "lastgraph"
 GRAPHML_SUFFIX   = "gml"
 GFA_SUFFIX       = "gfa"
+FASTG_SUFFIX     = "fastg"

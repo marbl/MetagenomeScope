@@ -487,6 +487,7 @@ with open(asm_fn, 'r') as assembly_file:
     parsing_LastGraph = lowercase_asm_fn.endswith(config.LASTGRAPH_SUFFIX)
     parsing_GML       = lowercase_asm_fn.endswith(config.GRAPHML_SUFFIX)
     parsing_GFA       = lowercase_asm_fn.endswith(config.GFA_SUFFIX)
+    parsing_FASTG     = lowercase_asm_fn.endswith(config.FASTG_SUFFIX)
 
     # Ensure that the -ubl/-upl options are only used when the input assembly
     # graph is of a type that accepts labels.
@@ -840,6 +841,8 @@ with open(asm_fn, 'r') as assembly_file:
                 total_all_edge_count += 1
                 # Update stats
                 total_edge_count += 1
+    elif parsing_FASTG:
+        raise NotImplementedError, "FASTG support isn't finished yet, sorry"
     else:
         raise IOError, config.FILETYPE_ERR
 conclude_msg()
