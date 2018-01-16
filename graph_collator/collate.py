@@ -844,34 +844,40 @@ with open(asm_fn, 'r') as assembly_file:
     elif parsing_FASTG:
         graph_filetype = "FASTG"
         dna_given = True
+        edge_weights_available = False
         nodeid2outgoingnodeids = {}
         curr_node_id = ""
         curr_node_is_rc = False
         curr_node_bp = 1
         curr_node_depth = 1
         curr_node_dna = ""
-        #curr_node_dnarev = ""
         curr_node_gc = None
-        #curr_node_gcrev = None
-        parsing_node = False
-        parsed_fwdseq = False
         for line in assembly_file:
             if line[0] == ">":
                 if curr_node_id != "":
-                    # TODO handle info from previous node info, if extant
+                    curr_node_gc, gc_ct = gc_content(curr_node_dna)
+                    total_gc_nt_count += gc_ct
                     n = graph_objects.Node(curr_node_id, curr_node_bp,
                             curr_node_is_rc, depth=curr_node_depth,
                             gc_content=curr_node_gc)
                     add_node_to_stdmode_mapping(n)
-                    # Update single_graph_edges
-                    # Update singlenodeid2obj
-                    # Update total_gc_nt_count
-                    # Update total_node_count
-                    # Update total_edge_count
-                    # Update total_all_edge_count
-                    # Update total_length
-                    # Update bp_length_list
-                    # Prooobably update other stuff
+                    total_node_count += 1
+                    # TODO maybe adjust somehow to account for - nodes
+                    # TODO also look into orientation stuff, not sure if
+                    # components are "disjoint" or not -- are the contigs
+                    # explicitly relatively oriented?
+                    total_length += curr_node_bp
+                    bp_length_list.append(curr_node_bp)
+                    sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
+                            gc_content=curr_node_gc, is_single=True)
+                    singlenodeid2obj[curr_node_id] = sn
+
+                    curr_node_id = ""
+                    curr_node_is_rc = False
+                    curr_node_bp = 1
+                    curr_node_depth = 1
+                    curr_node_dna = ""
+                    curr_node_gc = None
 
                 # This line is a contig declaration
                 parsing_node = True
@@ -929,12 +935,40 @@ with open(asm_fn, 'r') as assembly_file:
             else:
                 # Parse DNA info for the current node
                 curr_node_dna += line.strip()
-        # TODO
+        # Account for last contig in the file
+        # Probably should collapse this into a function or something to avoid
+        # code reuse. (TODO)
+        curr_node_gc, gc_ct = gc_content(curr_node_dna)
+        total_gc_nt_count += gc_ct
+        n = graph_objects.Node(curr_node_id, curr_node_bp, curr_node_is_rc,
+            depth=curr_node_depth, gc_content=curr_node_gc)
+        add_node_to_stdmode_mapping(n)
+        total_node_count += 1
+        total_length += curr_node_bp
+        bp_length_list.append(curr_node_bp)
+        sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
+            gc_content=curr_node_gc, is_single=True)
+        singlenodeid2obj[curr_node_id] = sn
+
         # Iterate through nodeid2outgoingnodeids and actually create the edges
         # between Node objects, since all Nodes have been initialized by this
         # point.
-        # (Also, update the necessary edge-related assembly-wide variables.)
-        raise NotImplementedError, "FASTG support isn't finished yet, sorry"
+        for src_id in nodeid2obj:
+            for snk_id in nodeid2outgoingnodeids[src_id]:
+                nodeid2obj[src_id].add_outgoing_edge(nodeid2obj[snk_id])
+                # TODO figure out how to *actually* only update these once
+                # for each single-edge pair. Maybe a dict? Problem is that
+                # checking if (snk_id, src_id) is already in single_graph_edges
+                # results in an O(n^2) additional cost, right? I'm not 100%
+                # sure of the best way to go about this at present.
+                # Also make sure this works with self-loops, e.g.:
+                # A -> A, B -> -B, -C -> C, -D -> -D
+                if int(src_id) <= int(snk_id):
+                    single_graph_edges.append((src_id, snk_id))
+                    singlenodeid2obj[src_id].add_outgoing_edge(singlenodeid2obj[snk_id])
+                total_all_edge_count += 1
+                # Update stats
+                total_edge_count += 1
     else:
         raise IOError, config.FILETYPE_ERR
 conclude_msg()
