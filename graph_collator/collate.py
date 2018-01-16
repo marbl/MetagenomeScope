@@ -842,6 +842,98 @@ with open(asm_fn, 'r') as assembly_file:
                 # Update stats
                 total_edge_count += 1
     elif parsing_FASTG:
+        graph_filetype = "FASTG"
+        dna_given = True
+        nodeid2outgoingnodeids = {}
+        curr_node_id = ""
+        curr_node_is_rc = False
+        curr_node_bp = 1
+        curr_node_depth = 1
+        curr_node_dna = ""
+        #curr_node_dnarev = ""
+        curr_node_gc = None
+        #curr_node_gcrev = None
+        parsing_node = False
+        parsed_fwdseq = False
+        for line in assembly_file:
+            if line[0] == ">":
+                if curr_node_id != "":
+                    # TODO handle info from previous node info, if extant
+                    n = graph_objects.Node(curr_node_id, curr_node_bp,
+                            curr_node_is_rc, depth=curr_node_depth,
+                            gc_content=curr_node_gc)
+                    add_node_to_stdmode_mapping(n)
+                    # Update single_graph_edges
+                    # Update singlenodeid2obj
+                    # Update total_gc_nt_count
+                    # Update total_node_count
+                    # Update total_edge_count
+                    # Update total_all_edge_count
+                    # Update total_length
+                    # Update bp_length_list
+                    # Prooobably update other stuff
+
+                # This line is a contig declaration
+                parsing_node = True
+                l = line[1:].strip().split(":")
+                decl = l[0]
+                curr_node_info = decl.split("_")
+                if len(l) > 1:
+                    if decl[-1] == "'":
+                        curr_node_is_rc = True
+                    else:
+                        curr_node_is_rc = False
+                else:
+                    if decl[-2] == "'":
+                        curr_node_is_rc = True
+                    else:
+                        curr_node_is_rc = False
+                curr_node_id = curr_node_info[1]
+                if curr_node_is_rc:
+                    curr_node_id = "-" + curr_node_id
+                curr_node_bp = int(curr_node_info[3])
+                depth_str = curr_node_info[5]
+                # Some FASTG files have depth as the last item in an edge
+                # definition and some don't, so we just remove the edge line
+                # ending characters if they're there.
+                depth_str = curr_node_info[5].replace(";", "").replace("'", "")
+                curr_node_depth = float(depth_str)
+                curr_node_dna = ""
+                # Keep track of outgoing nodes from this node (if present)
+                nodeid2outgoingnodeids[curr_node_id] = []
+                if len(l) > 1:
+                    outgoing_node_info = l[1].split(",")
+                    # We use outgoing_index to determine what character
+                    # position we need to check for the ', in order to see
+                    # which of the outgoing nodes are reverse complements (-)
+                    outgoing_index = 1
+                    outgoing_ct = len(outgoing_node_info)
+                    for outn in outgoing_node_info:
+                        out_id = outn.split("_")[1]
+                        if outgoing_index == outgoing_ct:
+                            if outn[-2] == "'":
+                                out_id = "-" + out_id
+                        else:
+                            if outn[-1] == "'":
+                                out_id = "-" + out_id
+                        nodeid2outgoingnodeids[curr_node_id].append(out_id)
+                        outgoing_index += 1
+                # At this point, we've recorded the ID, length, depth,
+                # RC status, and outgoing edges from this node. All that's left
+                # is to collect its DNA, compute the GC content, and then
+                # create/update various objects in the graph in a similar
+                # manner to the other file parsers.
+                # ...which we'll do at the next declaration of a node. We
+                # should also do this when we reach the end of the file,
+                # to account for the last node listed.
+            else:
+                # Parse DNA info for the current node
+                curr_node_dna += line.strip()
+        # TODO
+        # Iterate through nodeid2outgoingnodeids and actually create the edges
+        # between Node objects, since all Nodes have been initialized by this
+        # point.
+        # (Also, update the necessary edge-related assembly-wide variables.)
         raise NotImplementedError, "FASTG support isn't finished yet, sorry"
     else:
         raise IOError, config.FILETYPE_ERR
