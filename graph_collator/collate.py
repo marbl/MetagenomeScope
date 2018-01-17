@@ -861,16 +861,13 @@ with open(asm_fn, 'r') as assembly_file:
                             curr_node_is_rc, depth=curr_node_depth,
                             gc_content=curr_node_gc)
                     add_node_to_stdmode_mapping(n)
-                    total_node_count += 1
-                    # TODO maybe adjust somehow to account for - nodes
-                    # TODO also look into orientation stuff, not sure if
-                    # components are "disjoint" or not -- are the contigs
-                    # explicitly relatively oriented?
-                    total_length += curr_node_bp
-                    bp_length_list.append(curr_node_bp)
-                    sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
-                            gc_content=curr_node_gc, is_single=True)
-                    singlenodeid2obj[curr_node_id] = sn
+                    if not curr_node_is_rc:
+                        total_node_count += 1
+                        total_length += curr_node_bp
+                        bp_length_list.append(curr_node_bp)
+                        sn = graph_objects.Node(curr_node_id, curr_node_bp,
+                            False, gc_content=curr_node_gc, is_single=True)
+                        singlenodeid2obj[curr_node_id] = sn
 
                     curr_node_id = ""
                     curr_node_is_rc = False
@@ -943,13 +940,13 @@ with open(asm_fn, 'r') as assembly_file:
         n = graph_objects.Node(curr_node_id, curr_node_bp, curr_node_is_rc,
             depth=curr_node_depth, gc_content=curr_node_gc)
         add_node_to_stdmode_mapping(n)
-        total_node_count += 1
-        total_length += curr_node_bp
-        bp_length_list.append(curr_node_bp)
-        sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
-            gc_content=curr_node_gc, is_single=True)
-        singlenodeid2obj[curr_node_id] = sn
-
+        if not curr_node_is_rc:
+            total_node_count += 1
+            total_length += curr_node_bp
+            bp_length_list.append(curr_node_bp)
+            sn = graph_objects.Node(curr_node_id, curr_node_bp,
+                False, gc_content=curr_node_gc, is_single=True)
+            singlenodeid2obj[curr_node_id] = sn
         # Iterate through nodeid2outgoingnodeids and actually create the edges
         # between Node objects, since all Nodes have been initialized by this
         # point.
@@ -963,9 +960,13 @@ with open(asm_fn, 'r') as assembly_file:
                 # sure of the best way to go about this at present.
                 # Also make sure this works with self-loops, e.g.:
                 # A -> A, B -> -B, -C -> C, -D -> -D
-                if int(src_id) <= int(snk_id):
-                    single_graph_edges.append((src_id, snk_id))
-                    singlenodeid2obj[src_id].add_outgoing_edge(singlenodeid2obj[snk_id])
+                a_src_id = abs(int(src_id))
+                a_snk_id = abs(int(snk_id))
+                if a_src_id <= a_snk_id:
+                    s_src_id = str(a_snk_id)
+                    s_snk_id = str(a_snk_id)
+                    single_graph_edges.append((s_src_id, s_snk_id))
+                    singlenodeid2obj[s_src_id].add_outgoing_edge(singlenodeid2obj[s_snk_id])
                 total_all_edge_count += 1
                 # Update stats
                 total_edge_count += 1
