@@ -790,7 +790,7 @@ function addSelectedNodeInfo(ele) {
         nodeRowHTML += TD_START + ele.data("label") + TD_CLOSE;
     }
     nodeRowHTML += TD_START + lengthEntry + TD_CLOSE;
-    if (ASM_FILETYPE === "LastGraph") {
+    if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "FASTG") {
         // Round to two decimal places
         var depthEntry = Math.round(ele.data("depth") * 100) / 100 + "x";
         nodeRowHTML += TD_START + depthEntry + TD_CLOSE;
@@ -1207,7 +1207,8 @@ function parseDBcomponents() {
     var asmGC = graphInfo["gc_content"];
     DNA_AVAILABLE = (graphInfo["dna_given"] === 1) ? true : false;
     REPEAT_INFO_AVAILABLE = (graphInfo["repeats_given"] === 1) ? true : false;
-    if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA") {
+    if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA"
+            || ASM_FILETYPE === "FASTG") {
         // Since the nodes in these graphs are unoriented (i.e. we draw both
         // strands of each sequence of DNA included in the assembly graph),
         // the individual nodes' units are in nucleotides (nt).
@@ -1341,6 +1342,21 @@ function parseDBcomponents() {
         $("#depthCol").addClass("notviewable");
         $("#labelCol").addClass("notviewable");
         // Edge info adjustments
+        $("#edgeTH").prop("colspan", 2);
+        $("#multiplicityCol").addClass("notviewable");
+        $("#orientationCol").addClass("notviewable");
+        $("#meanCol").addClass("notviewable");
+        $("#stdevCol").addClass("notviewable");
+    }
+    else if (ASM_FILETYPE === "FASTG") {
+        // Node info adjustments
+        // All contigs in FASTG files have ID, length, depth, GC content given
+        $("#nodeTH").prop("colspan", 3 + extraNodeCols);
+        $("#depthCol").removeClass("notviewable");
+        $("#labelCol").addClass("notviewable");
+        // Edge info adjustments
+        // Edges in SPAdes FASTG files are like those in GFA files -- no
+        // apparent metadata (multiplicity, etc) aside from source/sink IDs
         $("#edgeTH").prop("colspan", 2);
         $("#multiplicityCol").addClass("notviewable");
         $("#orientationCol").addClass("notviewable");
