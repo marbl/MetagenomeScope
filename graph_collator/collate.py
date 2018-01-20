@@ -752,6 +752,7 @@ with open(asm_fn, 'r') as assembly_file:
         curr_node_gc = None
         curr_node_dnafwd = None
         curr_node_dnarev = None
+        nodeid2outgoingnodeids = {}
         for line in assembly_file:
             # Parsing a segment (node) line
             if line.startswith("S"):
@@ -803,6 +804,10 @@ with open(asm_fn, 'r') as assembly_file:
                 nNeg = graph_objects.Node('-' + curr_node_id, curr_node_bp,
                         True,gc_content=curr_node_gc)
                 add_node_to_stdmode_mapping(nPos, nNeg)
+                if curr_node_id not in nodeid2outgoingnodeids:
+                    nodeid2outgoingnodeids[curr_node_id] = []
+                if '-' + curr_node_id not in nodeid2outgoingnodeids:
+                    nodeid2outgoingnodeids['-' + curr_node_id] = []
                 # Create single Node object, for the SPQR-integrated graph
                 sn = graph_objects.Node(curr_node_id, curr_node_bp, False,
                         gc_content=curr_node_gc, is_single=True)
@@ -826,13 +831,21 @@ with open(asm_fn, 'r') as assembly_file:
                 if id2.startswith("NODE_"): id2 = id2.split("_")[1]
                 if id1.startswith("tig"): id1 = id1[3:]
                 if id2.startswith("tig"): id2 = id2[3:]
-                single_graph_edges.append((id1, id2))
-                singlenodeid2obj[id1].add_outgoing_edge(singlenodeid2obj[id2])
                 id1 = id1 if a[2] != '-' else '-' + id1
                 id2 = id2 if a[4] != '-' else '-' + id2
+                if id1 not in nodeid2outgoingnodeids:
+                    nodeid2outgoingnodeids[id1] = [id2]
+                else:
+                    nodeid2outgoingnodeids[id1].append(id2)
+        for id1 in nodeid2obj:
+            for id2 in nodeid2outgoingnodeids[id1]:
                 nid2 = negate_node_id(id2)
                 nid1 = negate_node_id(id1)
                 nodeid2obj[id1].add_outgoing_edge(nodeid2obj[id2])
+                pid1 = id1 if id1[0] != '-' else nid1
+                pid2 = id2 if id2[0] != '-' else nid2
+                single_graph_edges.append((pid1, pid2))
+                singlenodeid2obj[pid1].add_outgoing_edge(singlenodeid2obj[pid2])
                 # Only add implied edge if the edge does not imply itself
                 # (see issue #105 on GitHub for context)
                 if not (id1 == nid2 and id2 == nid1):
