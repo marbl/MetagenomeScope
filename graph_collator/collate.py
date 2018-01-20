@@ -842,6 +842,10 @@ with open(asm_fn, 'r') as assembly_file:
                     nodeid2outgoingnodeids[id1] = [id2]
                 else:
                     nodeid2outgoingnodeids[id1].append(id2)
+                # TODO to account for duplicate edges (#75) -- need to move
+                # edge implication stuff (checking if the edge implies itself,
+                # negating node ids, [NEW] adding the implied edge if desired
+                # to nodeid2outgoingnodeids) up to here.
         for id1 in nodeid2obj:
             for id2 in nodeid2outgoingnodeids[id1]:
                 nid2 = negate_node_id(id2)
