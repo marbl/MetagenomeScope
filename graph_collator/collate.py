@@ -66,6 +66,10 @@ parser.add_argument("-pg", "--preservegv", required=False, action="store_true",
 parser.add_argument("-px", "--preservexdot", required=False, default=False,
     action="store_true",
     help="save all .xdot files generated for connected components")
+parser.add_argument("-sp", "--structuralpatterns", required=False,
+        default=False, action="store_true",
+        help="create .txt files in the output directory containing" + \
+        "information on all structural patterns identified in the graph")
 parser.add_argument("-w", "--overwrite", required=False, default=False,
     action="store_true", help="overwrite output (.db/.gv/.xdot) files")
 parser.add_argument("-b", "--bicomponentfile", required=False,
@@ -105,6 +109,7 @@ db_fn = output_fn + ".db"
 dir_fn = args.outputdirectory
 preserve_gv = args.preservegv
 preserve_xdot = args.preservexdot
+output_spatts = args.structuralpatterns
 overwrite = args.overwrite
 bicmps_fullfn = args.bicomponentfile
 ububbles_fullfn = args.userbubblefile
@@ -1404,21 +1409,22 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a chain
 conclude_msg()
 
 # Output files containing IDs of nodes in each type of cluster
-clustertype2instances = {}
-for clust in clusterid2obj.values():
-    t = type(clust)
-    if t not in clustertype2instances:
-        clustertype2instances[t] = [clust]
-    else:
-        clustertype2instances[t].append(clust)
-
-for ct in clustertype2instances:
-    input_text = ""
-    for clust in clustertype2instances[ct]:
-        for child in clust.nodes:
-            input_text += "%s\t%s" % (clust.cy_id_string, child.id_string)
-            input_text += "\n"
-    save_aux_file(ct.plural_name + ".txt", input_text, False, warnings=False)
+if output_spatts:
+    clustertype2instances = {}
+    for clust in clusterid2obj.values():
+        t = type(clust)
+        if t not in clustertype2instances:
+            clustertype2instances[t] = [clust]
+        else:
+            clustertype2instances[t].append(clust)
+    
+    for ct in clustertype2instances:
+        input_text = ""
+        for clust in clustertype2instances[ct]:
+            for child in clust.nodes:
+                input_text += "%s\t%s" % (clust.cy_id_string, child.id_string)
+                input_text += "\n"
+        save_aux_file(ct.plural_name + ".txt", input_text, False, warnings=False)
 
 # Add individual (not used in collapsing) nodes to the nodes_to_draw list
 # We could build this list up at the start and then gradually remove nodes as
