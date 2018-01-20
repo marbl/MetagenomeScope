@@ -71,7 +71,7 @@ parser.add_argument("-sp", "--structuralpatterns", required=False,
         help="create .txt files in the output directory containing" + \
         "information on all structural patterns identified in the graph")
 parser.add_argument("-w", "--overwrite", required=False, default=False,
-    action="store_true", help="overwrite output (.db/.gv/.xdot) files")
+    action="store_true", help="overwrite output files")
 parser.add_argument("-b", "--bicomponentfile", required=False,
     help="file containing bicomponent information for the assembly graph" + \
         " (will be generated using the SPQR script in the output directory" + \
