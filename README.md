@@ -32,7 +32,7 @@ MetagenomeScope is composed of two main components:
    graph layout, pattern detection, and SPQR tree generation.
    Currently, this supports LastGraph (Velvet), GML
    ([MetaCarvel](https://github.com/marbl/MetaCarvel)), and GFA input
-   files. Support for GFA2 and FASTG (SPAdes) files is planned.
+   files. Support for SPAdes FASTG files should be ready very soon, as well.
 
 2. The viewer interface (contained in the `viewer/` directory of this
    repository), a client-side web application that reads a .db file
