@@ -68,8 +68,8 @@ parser.add_argument("-px", "--preservexdot", required=False, default=False,
     help="save all .xdot files generated for connected components")
 parser.add_argument("-sp", "--structuralpatterns", required=False,
         default=False, action="store_true",
-        help="create .txt files in the output directory containing" + \
-        "information on all structural patterns identified in the graph")
+        help="create .txt files in the output directory containing node" + \
+        " information for all structural patterns identified in the graph")
 parser.add_argument("-w", "--overwrite", required=False, default=False,
     action="store_true", help="overwrite output files")
 parser.add_argument("-b", "--bicomponentfile", required=False,
