@@ -2928,6 +2928,15 @@ function addNodeFromEventToPath(e) {
     // TODO: make autofinishing work when first node clicked in finishing has
     // unambiguous outgoing edge
     // TODO: make autofinishing stop when it gets to linear cycles
+    // I think a reasonable way to do this would be to, upon "autofinishing"
+    // starting, begin recording a list of all nodes/node IDs seen. Upon a
+    // redundant node being reached (the first time we get to a node that we've
+    // already seen in this autofinishing iteration), we should stop, to avoid
+    // infinite looping.
+    // I don't think it's safe to rely on cyclic chain detection, since cyclic
+    // chain identification can be stopped by things like user-defined misc.
+    // patterns. We're not 100% guaranteed cyclic chains always exist where
+    // they "should."
     // Options:
     //  -Traverse entire linear cycle once and then provide option to users to
     //   traverse it again
