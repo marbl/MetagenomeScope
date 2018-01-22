@@ -913,6 +913,20 @@ function doThingsWhenDOMReady() {
     redrawGradientPreview($("#mincncp").colorpicker("getValue"), -1);
     // If we add any tooltips, use this line to initialize them
     //$("[data-toggle='tooltip']").tooltip();
+
+    // Initialize key bindings for moving throughout the graph
+    // Fortunately, jQuery normalizes key codes, so this should work across
+    // browsers
+    $(document).on("keydown", function(eve) {
+        if (eve.which === 37) {
+            // TODO move to the next left node group
+            console.log("Left arrow key");
+        }
+        else if (eve.which === 39) {
+            // TODO move to the next right node group
+            console.log("Right arrow key");
+        }
+    });
 }
 
 // Things that are bound to the "beforeunload" event on the window.
