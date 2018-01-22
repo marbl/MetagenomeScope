@@ -718,6 +718,12 @@
                                     role="tab" data-toggle="tab">
                                     Colors</a>
                                 </li>
+                                <li role="presentation">
+                                    <a href="#keyboardtab"
+                                    aria-controls="keyboardtab"
+                                    role="tab" data-toggle="tab">
+                                    Keyboard Navigation</a>
+                                </li>
                             </ul>
                             <div class="tab-content">
                                 <div role="tabpanel" class="tab-pane active"
@@ -1207,6 +1213,20 @@
                                     </div> <!-- end row div -->
                                     </div> <!-- end container-fluid div -->
                                 </div> <!-- end colortab -->
+                                <div role="tabpanel" class="tab-pane"
+                                    id="keyboardtab">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" checked
+                                                id="enableClusterNavCheckbox"
+                                                onchange="toggleClusterNav();">
+                                            Enable navigation through standard
+                                            mode node groups with left/right
+                                            arrow keys and A/D keys (supported
+                                            in desktop browsers only)
+                                        </label>
+                                    </div>
+                                </div> <!-- end keyboardtab -->
                             </div> <!-- end tab-content -->
                         </div> <!-- end tab div -->
                     </div>

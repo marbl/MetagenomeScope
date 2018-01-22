@@ -201,6 +201,8 @@ var CLUSTERID2TOP = [];
 // clusters in the graph with the arrow keys, this value is
 // incremented/decremented accordingly.
 var CLUSTER_X = -1;
+// Whether or not to allow keyboard navigation through clusters in std. mode
+var USE_CLUSTER_KBD_NAV = true;
 
 // HTML snippets used while auto-creating info tables about selected elements
 var TD_CLOSE = "</td>";
@@ -1499,6 +1501,10 @@ function toggleUTV() {
     TEXTURE_ON_VIEWPORT = !TEXTURE_ON_VIEWPORT;
 }
 
+function toggleClusterNav() {
+    USE_CLUSTER_KBD_NAV = !USE_CLUSTER_KBD_NAV;
+}
+
 /* Returns null if the value indicated by the string is not an integer (we
  * consider a string to be an integer if it matches the INTEGER_RE regex).
  * Returns -1 if it is an integer but is less than the min component rank.
@@ -2137,7 +2143,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         cy.autoungrabify(false);
         if (clustersInComponent) {
             enableButton("collapseButton");
-            if (mode !== "SPQR") {
+            if (mode !== "SPQR" && USE_CLUSTER_KBD_NAV) {
                 $(document).on("keydown", moveThroughClusters);
             }
         }
