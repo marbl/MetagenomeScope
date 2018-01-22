@@ -910,21 +910,30 @@ function removeSelectedEleInfo(ele) {
  * To be called when the DOM is ready to be manipulated.
  */
 function doThingsWhenDOMReady() {
-    // Ensure that all colorpickers (the pop-up things where
-    // you can select a color with the mouse) get closed when
-    // the settings dialog is closed.
-    $("#settingsDialog").on("hide.bs.modal", function(e) {
-        $(".colorpicker-component").colorpicker("hide");
-        MODAL_ACTIVE = false;
-    });
-    // Also update MODAL_ACTIVE when the other dialogs are closed.
-    var dialogIDs = ["fsDialog", "infoDialog", "edgeFilteringDialog"];
+    // Update MODAL_ACTIVE when dialogs are opened/closed.
+    var dialogIDs = ["settingsDialog", "fsDialog", "infoDialog",
+                     "edgeFilteringDialog"];
     for (var d = 0; d < dialogIDs.length; d++) {
-        $("#" + dialogIDs[d]).on("hide.bs.modal", function(e) {
-            MODAL_ACTIVE = false;
+        $("#" + dialogIDs[d]).on("show.bs.modal", function(e) {
+            MODAL_ACTIVE = true;
         });
+        if (dialogIDs[d] === "settingsDialog") {
+            // Ensure that all colorpickers (the pop-up things where
+            // you can select a color with the mouse) get closed when
+            // the settings dialog is closed.
+            $("#settingsDialog").on("hide.bs.modal", function(e) {
+                $(".colorpicker-component").colorpicker("hide");
+                MODAL_ACTIVE = false;
+            });
+        }
+        else {
+            $("#" + dialogIDs[d]).on("hide.bs.modal", function(e) {
+                MODAL_ACTIVE = false;
+            });
+        }
     }
-    // Also update INPUT_ACTIVE when non-dialog input fields are focused/not.
+    // Also update INPUT_ACTIVE when non-dialog input fields are
+    // focused/unfocused.
     var inputIDs = ["componentselector", "SPQRcomponentselector",
                     "searchInput", "layoutInput"];
     for (var i = 0; i < inputIDs.length; i++) {
@@ -2224,7 +2233,6 @@ function toggleControls() {
 
 function openFileSelectDialog() {
     $("#fsDialog").modal(); 
-    MODAL_ACTIVE = true;
 }
 
 /* Loads a .db file using an XML HTTP Request. */
@@ -2415,13 +2423,11 @@ function downloadDataURI(filename, contentToDownload, isPlainText) {
 /* Pops up the dialog for color preference selection. */
 function displaySettings() {
     $("#settingsDialog").modal();
-    MODAL_ACTIVE = true;
 }
 
 /* Pops up a dialog displaying assembly information. */
 function displayInfo() {
     $("#infoDialog").modal();
-    MODAL_ACTIVE = true;
 }
 
 /* eleType can be one of {"node", "edge", "cluster"} */
@@ -2541,7 +2547,6 @@ function exportGraphView() {
 /* Opens the dialog for filtering edges. */
 function openEdgeFilteringDialog() {
     $("#edgeFilteringDialog").modal();
-    MODAL_ACTIVE = true;
     drawEdgeWeightHistogram();
 }
 
