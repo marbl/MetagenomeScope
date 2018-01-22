@@ -921,15 +921,18 @@ function doThingsWhenDOMReady() {
     redrawGradientPreview($("#mincncp").colorpicker("getValue"), -1);
     // If we add any tooltips, use this line to initialize them
     //$("[data-toggle='tooltip']").tooltip();
-
-    // Initialize key bindings for moving throughout the graph
-    // Fortunately, jQuery normalizes key codes, so this should work across
-    // browsers
-    $(document).on("keydown", moveThroughClusters);
 }
 
+/* Function that is bound to the jQuery "keydown" event when a standard-mode
+ * graph containing at least one cluster is drawn.
+ * When the left/right arrow keys are pressed, the viewport is zoomed to the
+ * next left/right cluster in the graph (starting at the leftmost cluster
+ * in the graph).
+ *
+ * jQuery normalizes key code values (which can vary across different
+ * browsers), so this function should be portable for most desktop browsers.
+ */
 function moveThroughClusters(e) {
-    console.log(e.which);
     if (e.which === 37) {
         // Left arrow key
         // Move to the next left node group
@@ -1600,6 +1603,7 @@ function drawSPQRComponent(cmpRank) {
     CURR_SPQRMODE = $("#decompositionOptionButtonGroup .btn.active")
             .attr("value");
     setGraphBindings();
+    $(document).off("keydown");
     var componentNodeCount = 0;
     var componentEdgeCount = 0;
     // Clear selected element information
@@ -1766,6 +1770,7 @@ function drawComponent(cmpRank) {
     }
     initGraph("double");
     setGraphBindings();
+    $(document).off("keydown");
     var componentNodeCount = 0;
     var componentEdgeCount = 0;
     SELECTED_NODES = cy.collection();
@@ -2132,6 +2137,9 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         cy.autoungrabify(false);
         if (clustersInComponent) {
             enableButton("collapseButton");
+            if (mode !== "SPQR") {
+                $(document).on("keydown", moveThroughClusters);
+            }
         }
         else {
             disableButton("collapseButton");
