@@ -204,9 +204,13 @@ var CLUSTER_X = -1;
 // Whether or not to allow keyboard navigation through clusters in std. mode
 var USE_CLUSTER_KBD_NAV = true;
 // Indicates if any Bootstrap modal dialogs are active. If so, we ignore
-// keyboard inputs for cluster navigation until the dialog(s) in question are
+// keyboard inputs for cluster navigation until the dialog in question is
 // closed.
 var MODAL_ACTIVE = false;
+// Indicates if any input fields outside of modal dialogs (i.e. usable
+// alongside the graph functionality of the viewer interface) are focused on.
+// If so, we ignore keyboard inputs until the input in question is un-focused.
+var INPUT_ACTIVE = false;
 
 // HTML snippets used while auto-creating info tables about selected elements
 var TD_CLOSE = "</td>";
@@ -914,10 +918,21 @@ function doThingsWhenDOMReady() {
         MODAL_ACTIVE = false;
     });
     // Also update MODAL_ACTIVE when the other dialogs are closed.
-    var dialogIDs = ["#fsDialog", "#infoDialog", "#edgeFilteringDialog"];
+    var dialogIDs = ["fsDialog", "infoDialog", "edgeFilteringDialog"];
     for (var d = 0; d < dialogIDs.length; d++) {
-        $(dialogIDs[d]).on("hide.bs.modal", function(e) {
+        $("#" + dialogIDs[d]).on("hide.bs.modal", function(e) {
             MODAL_ACTIVE = false;
+        });
+    }
+    // Also update INPUT_ACTIVE when non-dialog input fields are focused/not.
+    var inputIDs = ["componentselector", "SPQRcomponentselector",
+                    "searchInput", "layoutInput"];
+    for (var i = 0; i < inputIDs.length; i++) {
+        $("#" + inputIDs[i]).on("focusin", function(e) {
+            INPUT_ACTIVE = true;
+        });
+        $("#" + inputIDs[i]).on("focusout", function(e) {
+            INPUT_ACTIVE = false;
         });
     }
     // Initialize colorpickers
@@ -947,7 +962,7 @@ function doThingsWhenDOMReady() {
  * browsers), so this function should be portable for most desktop browsers.
  */
 function moveThroughClusters(e) {
-    if (!MODAL_ACTIVE) {
+    if (!MODAL_ACTIVE && !INPUT_ACTIVE) {
         if (e.which === 37 || e.which === 65) {
             // Left arrow key or "A"
             // Move to the next left node group
