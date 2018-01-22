@@ -925,28 +925,31 @@ function doThingsWhenDOMReady() {
     // Initialize key bindings for moving throughout the graph
     // Fortunately, jQuery normalizes key codes, so this should work across
     // browsers
-    $(document).on("keydown", function(eve) {
-        if (eve.which === 37) {
-            // Left arrow key
-            // Move to the next left node group
-            if (CLUSTER_X <= 0) {
-                CLUSTER_X = CLUSTERID2TOP.length - 1;
-            } else {
-                CLUSTER_X--;
-            }
-            cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
+    $(document).on("keydown", moveThroughClusters);
+}
+
+function moveThroughClusters(e) {
+    console.log(e.which);
+    if (e.which === 37) {
+        // Left arrow key
+        // Move to the next left node group
+        if (CLUSTER_X <= 0) {
+            CLUSTER_X = CLUSTERID2TOP.length - 1;
+        } else {
+            CLUSTER_X--;
         }
-        else if (eve.which === 39) {
-            // Right arrow key
-            // Move to the next right node group
-            if (CLUSTER_X === CLUSTERID2TOP.length - 1) {
-                CLUSTER_X = 0;
-            } else {
-                CLUSTER_X++;
-            }
-            cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
+        cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
+    }
+    else if (e.which === 39) {
+        // Right arrow key
+        // Move to the next right node group
+        if (CLUSTER_X === CLUSTERID2TOP.length - 1) {
+            CLUSTER_X = 0;
+        } else {
+            CLUSTER_X++;
         }
-    });
+        cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
+    }
 }
 
 // Things that are bound to the "beforeunload" event on the window.
