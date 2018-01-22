@@ -927,12 +927,24 @@ function doThingsWhenDOMReady() {
     // browsers
     $(document).on("keydown", function(eve) {
         if (eve.which === 37) {
-            // TODO move to the next left node group
-            console.log("Left arrow key");
+            // Left arrow key
+            // Move to the next left node group
+            if (CLUSTER_X === 0) {
+                CLUSTER_X = CLUSTERID2TOP.length - 1;
+            } else {
+                CLUSTER_X--;
+            }
+            cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
         }
         else if (eve.which === 39) {
-            // TODO move to the next right node group
-            console.log("Right arrow key");
+            // Right arrow key
+            // Move to the next right node group
+            if (CLUSTER_X === CLUSTERID2TOP.length - 1) {
+                CLUSTER_X = 0;
+            } else {
+                CLUSTER_X++;
+            }
+            cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
         }
     });
 }
@@ -1596,6 +1608,7 @@ function drawSPQRComponent(cmpRank) {
     SELECTED_CLUSTER_COUNT = 0;
     COMPONENT_EDGE_WEIGHTS = [];
     CLUSTERID2TOP = [];
+    CLUSTER_X = 0;
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
@@ -1757,6 +1770,7 @@ function drawComponent(cmpRank) {
     SELECTED_CLUSTERS = cy.collection();
     COMPONENT_EDGE_WEIGHTS = [];
     CLUSTERID2TOP = [];
+    CLUSTER_X = 0;
     $("#scaffoldCycler").addClass("notviewable");
     // will be set to true if we find suitable scaffolds
     // the actual work of finding those scaffolds (if SCAFFOLDID2NODEKEYS is
