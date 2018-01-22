@@ -193,6 +193,14 @@ var FINISHING_NODE_OBJS = [];
 var NEXT_NODES;
 // Boolean used to indicate when finishing a linear cycle is happening.
 var FINISHING_LINEAR_CYCLE;
+// Mapping of cluster ID to "top" attribute (corresponds to left position in
+// graph)
+var CLUSTERID2TOP = {};
+// Current "position" of cluster in the graph (so 0 is the leftmost cluster, 1
+// is the second-from-the-leftmost cluster, and so on). As the user moves along
+// clusters in the graph with the arrow keys, this value is
+// incremented/decremented accordingly.
+var CLUSTER_X = 0;
 
 // HTML snippets used while auto-creating info tables about selected elements
 var TD_CLOSE = "</td>";
