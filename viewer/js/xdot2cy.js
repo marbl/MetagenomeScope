@@ -200,7 +200,7 @@ var CLUSTERID2TOP = [];
 // is the second-from-the-leftmost cluster, and so on). As the user moves along
 // clusters in the graph with the arrow keys, this value is
 // incremented/decremented accordingly.
-var CLUSTER_X = 0;
+var CLUSTER_X = -1;
 
 // HTML snippets used while auto-creating info tables about selected elements
 var TD_CLOSE = "</td>";
@@ -929,7 +929,7 @@ function doThingsWhenDOMReady() {
         if (eve.which === 37) {
             // Left arrow key
             // Move to the next left node group
-            if (CLUSTER_X === 0) {
+            if (CLUSTER_X <= 0) {
                 CLUSTER_X = CLUSTERID2TOP.length - 1;
             } else {
                 CLUSTER_X--;
@@ -1608,7 +1608,7 @@ function drawSPQRComponent(cmpRank) {
     SELECTED_CLUSTER_COUNT = 0;
     COMPONENT_EDGE_WEIGHTS = [];
     CLUSTERID2TOP = [];
-    CLUSTER_X = 0;
+    CLUSTER_X = -1;
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
@@ -1770,7 +1770,7 @@ function drawComponent(cmpRank) {
     SELECTED_CLUSTERS = cy.collection();
     COMPONENT_EDGE_WEIGHTS = [];
     CLUSTERID2TOP = [];
-    CLUSTER_X = 0;
+    CLUSTER_X = -1;
     $("#scaffoldCycler").addClass("notviewable");
     // will be set to true if we find suitable scaffolds
     // the actual work of finding those scaffolds (if SCAFFOLDID2NODEKEYS is
