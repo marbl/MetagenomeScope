@@ -203,6 +203,10 @@ var CLUSTERID2TOP = [];
 var CLUSTER_X = -1;
 // Whether or not to allow keyboard navigation through clusters in std. mode
 var USE_CLUSTER_KBD_NAV = true;
+// Indicates if any Bootstrap modal dialogs are active. If so, we ignore
+// keyboard inputs for cluster navigation until the dialog(s) in question are
+// closed.
+var MODAL_ACTIVE = false;
 
 // HTML snippets used while auto-creating info tables about selected elements
 var TD_CLOSE = "</td>";
@@ -907,7 +911,15 @@ function doThingsWhenDOMReady() {
     // the settings dialog is closed.
     $("#settingsDialog").on("hide.bs.modal", function(e) {
         $(".colorpicker-component").colorpicker("hide");
+        MODAL_ACTIVE = false;
     });
+    // Also update MODAL_ACTIVE when the other dialogs are closed.
+    var dialogIDs = ["#fsDialog", "#infoDialog", "#edgeFilteringDialog"];
+    for (var d = 0; d < dialogIDs.length; d++) {
+        $(dialogIDs[d]).on("hide.bs.modal", function(e) {
+            MODAL_ACTIVE = false;
+        });
+    }
     // Initialize colorpickers
     $(".colorpicker-component").colorpicker({format: 'hex'});
     $("#mincncp").on("changeColor", function(e) {
@@ -935,25 +947,27 @@ function doThingsWhenDOMReady() {
  * browsers), so this function should be portable for most desktop browsers.
  */
 function moveThroughClusters(e) {
-    if (e.which === 37 || e.which === 65) {
-        // Left arrow key or "A"
-        // Move to the next left node group
-        if (CLUSTER_X <= 0) {
-            CLUSTER_X = CLUSTERID2TOP.length - 1;
-        } else {
-            CLUSTER_X--;
+    if (!MODAL_ACTIVE) {
+        if (e.which === 37 || e.which === 65) {
+            // Left arrow key or "A"
+            // Move to the next left node group
+            if (CLUSTER_X <= 0) {
+                CLUSTER_X = CLUSTERID2TOP.length - 1;
+            } else {
+                CLUSTER_X--;
+            }
+            cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
         }
-        cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
-    }
-    else if (e.which === 39 || e.which === 68) {
-        // Right arrow key or "D"
-        // Move to the next right node group
-        if (CLUSTER_X === CLUSTERID2TOP.length - 1) {
-            CLUSTER_X = 0;
-        } else {
-            CLUSTER_X++;
+        else if (e.which === 39 || e.which === 68) {
+            // Right arrow key or "D"
+            // Move to the next right node group
+            if (CLUSTER_X === CLUSTERID2TOP.length - 1) {
+                CLUSTER_X = 0;
+            } else {
+                CLUSTER_X++;
+            }
+            cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
         }
-        cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
     }
 }
 
@@ -2195,6 +2209,7 @@ function toggleControls() {
 
 function openFileSelectDialog() {
     $("#fsDialog").modal(); 
+    MODAL_ACTIVE = true;
 }
 
 /* Loads a .db file using an XML HTTP Request. */
@@ -2385,11 +2400,13 @@ function downloadDataURI(filename, contentToDownload, isPlainText) {
 /* Pops up the dialog for color preference selection. */
 function displaySettings() {
     $("#settingsDialog").modal();
+    MODAL_ACTIVE = true;
 }
 
 /* Pops up a dialog displaying assembly information. */
 function displayInfo() {
     $("#infoDialog").modal();
+    MODAL_ACTIVE = true;
 }
 
 /* eleType can be one of {"node", "edge", "cluster"} */
@@ -2509,6 +2526,7 @@ function exportGraphView() {
 /* Opens the dialog for filtering edges. */
 function openEdgeFilteringDialog() {
     $("#edgeFilteringDialog").modal();
+    MODAL_ACTIVE = true;
     drawEdgeWeightHistogram();
 }
 
