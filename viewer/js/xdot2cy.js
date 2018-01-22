@@ -933,8 +933,8 @@ function doThingsWhenDOMReady() {
  * browsers), so this function should be portable for most desktop browsers.
  */
 function moveThroughClusters(e) {
-    if (e.which === 37) {
-        // Left arrow key
+    if (e.which === 37 || e.which === 65) {
+        // Left arrow key or "A"
         // Move to the next left node group
         if (CLUSTER_X <= 0) {
             CLUSTER_X = CLUSTERID2TOP.length - 1;
@@ -943,8 +943,8 @@ function moveThroughClusters(e) {
         }
         cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
     }
-    else if (e.which === 39) {
-        // Right arrow key
+    else if (e.which === 39 || e.which === 68) {
+        // Right arrow key or "D"
         // Move to the next right node group
         if (CLUSTER_X === CLUSTERID2TOP.length - 1) {
             CLUSTER_X = 0;
