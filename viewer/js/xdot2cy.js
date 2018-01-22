@@ -193,9 +193,9 @@ var FINISHING_NODE_OBJS = [];
 var NEXT_NODES;
 // Boolean used to indicate when finishing a linear cycle is happening.
 var FINISHING_LINEAR_CYCLE;
-// Mapping of cluster ID to "top" attribute (corresponds to left position in
-// graph)
-var CLUSTERID2TOP = {};
+// List of mappings of cluster ID to "top" attribute
+// (corresponds to left position in graph)
+var CLUSTERID2TOP = [];
 // Current "position" of cluster in the graph (so 0 is the leftmost cluster, 1
 // is the second-from-the-leftmost cluster, and so on). As the user moves along
 // clusters in the graph with the arrow keys, this value is
@@ -1595,6 +1595,7 @@ function drawSPQRComponent(cmpRank) {
     SELECTED_EDGE_COUNT = 0;
     SELECTED_CLUSTER_COUNT = 0;
     COMPONENT_EDGE_WEIGHTS = [];
+    CLUSTERID2TOP = [];
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
@@ -1755,6 +1756,7 @@ function drawComponent(cmpRank) {
     SELECTED_EDGES = cy.collection();
     SELECTED_CLUSTERS = cy.collection();
     COMPONENT_EDGE_WEIGHTS = [];
+    CLUSTERID2TOP = [];
     $("#scaffoldCycler").addClass("notviewable");
     // will be set to true if we find suitable scaffolds
     // the actual work of finding those scaffolds (if SCAFFOLDID2NODEKEYS is
@@ -3784,6 +3786,11 @@ function initClusters() {
             });
         }
     );
+    // Also set up the list of clusters sorted from left to right in the
+    // component
+    CLUSTERID2TOP.sort(function(c1, c2) {
+        return c2.t - c1.t;
+    });
 }
 
 // returns the coordinate class for a cluster node in the graph (only
@@ -3985,6 +3992,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     }
     else {
         clusterID = clusterObj["cluster_id"];
+        CLUSTERID2TOP.push({id: clusterID, t: clusterObj["top"]});
     }
     var l = "left";
     var b = "bottom";
