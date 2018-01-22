@@ -29,7 +29,7 @@ Furthermore, the visualization interface is distributed with:
     -http://js.cytoscape.org
     -Copyright is contained in viewer/js/cytoscape.min.js
     -Licensed under the MIT License
-     (included in viewer/js/cytoscape.min.js)
+     (included in dependency_licenses/cytoscape.js.license)
 
 -Bootstrap
     -http://getbootstrap.com
