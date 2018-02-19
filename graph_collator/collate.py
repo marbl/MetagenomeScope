@@ -72,6 +72,8 @@ parser.add_argument("-sp", "--structuralpatterns", required=False,
         " information for all structural patterns identified in the graph")
 parser.add_argument("-w", "--overwrite", required=False, default=False,
     action="store_true", help="overwrite output files")
+parser.add_argument("-nt", "--notriangulation", required=False, default=False,
+    action="store_true", help="disable triangle smoothing in the SPQR mode")
 parser.add_argument("-b", "--bicomponentfile", required=False,
     help="file containing bicomponent information for the assembly graph" + \
         " (will be generated using the SPQR script in the output directory" + \
@@ -111,6 +113,7 @@ preserve_gv = args.preservegv
 preserve_xdot = args.preservexdot
 output_spatts = args.structuralpatterns
 overwrite = args.overwrite
+notriangulation = args.notriangulation
 bicmps_fullfn = args.bicomponentfile
 ububbles_fullfn = args.userbubblefile
 ububbles_labels = args.userbubblelabelsused
@@ -1773,7 +1776,8 @@ for mode in ("implicit", "explicit"):
         gv_input += "graph single_ccomp {\n"
         if config.GRAPH_STYLE != "":
             gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
-        gv_input += "\tsmoothing=\"triangle\";\n"
+        if not notriangulation:
+            gv_input += "\tsmoothing=\"triangle\";\n"
         if config.GLOBALNODE_STYLE != "":
             gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
         # In the layout of this single connected component, include:
