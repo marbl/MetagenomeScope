@@ -37,14 +37,14 @@ Furthermore, the visualization interface is distributed with:
     -Licensed under the MIT License
      (included in dependency_licenses/bootstrap.license)
 
--bootstrap-colorpicker
+-Bootstrap Colorpicker
     -https://farbelous.github.io/bootstrap-colorpicker
     -Copyright is contained in
      dependency_licenses/bootstrap-colorpicker/license
     -Licensed under the Apache License, version 2.0
      (included in dependency_licenses/bootstrap-colorpicker/apache-license-2.0)
 
--d3.js
+-D3.js
     -https://d3js.org/
     -Copyright is contained in dependency_licenses/d3.js.license
     -Licensed under the BSD 3-clause License
