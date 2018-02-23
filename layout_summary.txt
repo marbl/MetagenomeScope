@@ -1,0 +1,34 @@
+STANDARD MODE
+For each connected component:
+1) Lay out each cluster (bubble, frayed rope, etc) by itself.
+    -The loop that does this is in line 2223 in collate.py, although
+     the actual layout operations happen on line 550 in graph_objects.py.
+2) Lay out each connected component, using the size information obtained
+   from step 1 to generate "dummy nodes" for all clusters.
+    -This happens on line 2274 in collate.py.
+
+SPQR IMPLICIT MODE
+For each connected component:
+1) Lay out contigs within each bicomponent.
+    -This happens on line 885 in graph_objects.py in
+     Bicomponent.implicit_layout_isolated(), which is invoked (for all Bicomponents
+     in the connected component) on line 1772 in collate.py.
+2) Lay out the entire graph for the connected component, with "dummy nodes"
+   used to represent bicomponents.
+    -This happens on line 1904 in collate.py.
+
+SPQR EXPLICIT MODE
+For each connected component:
+    I. For each bicomponent:
+        1) Lay out contigs within the metanodes in the bicomponent.
+            -This happens on line 717 in graph_objects.py, which is invoked for
+             all metanodes in a given bicomponent on line 925 in graph_objects.py
+             (in Bicomponent.explicit_layout_isolated()).
+        2) Lay out metanodes within the bicomponent (the hierarchy between S, P, R
+           nodes).
+            -This happens on line 942 in graph_objects.py, again in
+             Bicomponent.explicit_layout_isolated(). This is the one invocation of
+             dot (instead of sfdp) in the SPQR layout code.
+    II. Lay out the entire graph for the connected component, with "dummy nodes"
+        used to represent bicomponents.
+        -This happens on line 1904 in collate.py. 
