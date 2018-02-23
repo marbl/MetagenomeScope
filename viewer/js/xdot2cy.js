@@ -2430,6 +2430,11 @@ function displayInfo() {
     $("#infoDialog").modal();
 }
 
+/* Opens a link to the MetagenomeScope wiki in another tab/window. */
+function openHelp() {
+    window.open("https://github.com/marbl/MetagenomeScope/wiki", "_blank");
+}
+
 /* eleType can be one of {"node", "edge", "cluster"} */
 function toggleEleInfo(eleType) {
     var openerID = "#" + eleType + "Opener";
