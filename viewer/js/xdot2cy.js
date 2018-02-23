@@ -18,8 +18,9 @@
  * You should have received a copy of the GNU General Public License
  * along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
  ****
- * This script uses Cytoscape.js and sql.js to provide functionality to the
- * viewer interface web application.
+ * The functions in this script provide the various features/etc. in
+ * MetagenomeScope's viewer interface web application.
+ * This is the primary JavaScript code file for MetagenomeScope.
  */
 
 // How many bytes to read at once from a .agp file
