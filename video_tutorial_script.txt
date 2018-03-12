@@ -1,0 +1,21 @@
+PART 2 (using the web interface)
+Given: .db file for SRS049950 graph (make available for download from GitHub
+pages site and from the wiki)
+==========
+-Load file
+    -Discuss distinctions between demo .db and choose .db file
+-Assembly info
+-Component selectors
+-Draw a component
+-Zoom using mouse scrolling
+-Pan using click+drag
+-Click to select contig
+-Click to select edge
+-Click to select cluster
+-Ctrl+click or ctrl+click+drag to select multiple elements
+-Collapsing and uncollapsing clusters
+-Search for elements
+
+One small video or multiple small videos?
+e.g. settings dialog (incl. node colorization),
+scaffold stuff (incl. finishing + AGP stuff), ...
