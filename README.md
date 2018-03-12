@@ -51,6 +51,11 @@ beneficial when analyzing large graphs:
   a server, allowing many users to view graphs with the only costs incurred
   being those of rendering the graphs in question
 
+## Demo
+
+A demo of MetagenomeScope's viewer interface is available at
+[mgsc.umiacs.io](http://mgsc.umiacs.io/).
+
 ## Wiki
 
 Documentation on MetagenomeScope is available at its GitHub wiki,
