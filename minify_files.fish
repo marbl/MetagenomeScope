@@ -3,6 +3,10 @@
 #
 # Assumes that both csso-cli and uglify-js have been installed through NPM
 # with the -g option enabled.
+#
+# When updating the demo: make sure to set index.html to refer to
+# xdot2cy.min.js and viewer_style.min.css instead of their non-minified
+# counterparts.
 set -l attribution "/* Copyright (C) 2017-2018 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
  * Authored by Marcus Fedarko
  *
