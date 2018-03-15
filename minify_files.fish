@@ -3,10 +3,6 @@
 #
 # Assumes that both csso-cli and uglify-js have been installed through NPM
 # with the -g option enabled.
-#
-# When updating the demo: make sure to set index.html to refer to
-# xdot2cy.min.js and viewer_style.min.css instead of their non-minified
-# counterparts.
 set -l attribution "/* Copyright (C) 2017-2018 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
  * Authored by Marcus Fedarko
  *
@@ -29,3 +25,5 @@ echo $attribution > viewer/js/xdot2cy.min.js
 echo $attribution > viewer/css/viewer_style.min.css
 csso viewer/css/viewer_style.css >> viewer/css/viewer_style.min.css
 uglifyjs viewer/js/xdot2cy.js >> viewer/js/xdot2cy.min.js
+echo "File minification complete."
+echo "Make sure that the version of index.html you're uploading somewhere refers to xdot2cy.min.js and viewer_style.min.css instead of their non-minified counterparts."
