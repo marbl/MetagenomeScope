@@ -192,8 +192,6 @@ var FINISHING_NODE_IDS = "";
 var FINISHING_NODE_OBJS = [];
 // Nodes that are outgoing from the last-added node to the reconstructed path.
 var NEXT_NODES;
-// Boolean used to indicate when finishing a linear cycle is happening.
-var FINISHING_LINEAR_CYCLE;
 // List of mappings of cluster ID to "top" attribute
 // (corresponds to left position in graph)
 var CLUSTERID2TOP = [];
@@ -1837,7 +1835,6 @@ function drawComponent(cmpRank) {
     FINISHING_NODE_IDS = "";
     FINISHING_NODE_OBJS = [];
     NEXT_NODES = cy.collection();
-    FINISHING_LINEAR_CYCLE = false;
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
     SELECTED_CLUSTER_COUNT = 0;
@@ -3018,105 +3015,120 @@ function highlightScaffold(scaffoldID) {
     nodesToHighlight.select();
 }
 
+/* Called when the user clicks on a node (including clusters) when finishing
+ * is ongoing. We want to add a node to the current path if and only if the
+ * node to be added in question is:
+ *  -directly linked to the previous node on the path via a single incoming edge
+ *   extending from the previous node
+ *  -either a normal non-cluster node, or (if a cluster) collapsed
+ *
+ * We also support "autofinishing," wherein unambiguous outgoing connections
+ * are automatically travelled along -- thus reducing user effort in finishing
+ * paths.
+ */
 function addNodeFromEventToPath(e) {
     var node = e.target;
-    // TODO: add a status update <div> or something in the ctrl panel
-    // TODO don't select the last node on the path automatically, as seems to
-    // happen now (?) -- look at the code, see if anything looks weird/is
-    // causing that
-    // TODO: make autofinishing work when first node clicked in finishing has
-    // unambiguous outgoing edge
-    // TODO: make autofinishing stop when it gets to linear cycles
-    // I think a reasonable way to do this would be to, upon "autofinishing"
-    // starting, begin recording a list of all nodes/node IDs seen. Upon a
-    // redundant node being reached (the first time we get to a node that we've
-    // already seen in this autofinishing iteration), we should stop, to avoid
-    // infinite looping.
-    // I don't think it's safe to rely on cyclic chain detection, since cyclic
-    // chain identification can be stopped by things like user-defined misc.
+    // When "autofinishing" starts, we record a list of all nodes/node IDs
+    // seen. Upon a redundant node being reached (the first time we get to a
+    // node that we've already seen in this autofinishing iteration), we should
+    // stop, to avoid infinite looping.
+    //
+    // This approach should be a consistent solution. It's not always safe to
+    // rely on cyclic chain detection, for example, since cyclic chain
+    // identification can be stopped by things like user-defined misc.
     // patterns. We're not 100% guaranteed cyclic chains always exist where
-    // they "should."
-    // Options:
-    //  -Traverse entire linear cycle once and then provide option to users to
-    //   traverse it again
-    //  -Just stop autofinishing as soon as a node is identified in a linear
-    //   cycle
-    var justStartedLinearCycleFinishing = false;
-    var justAddedCollapsedCyclicChain = false;
+    // they "should" -- hence our need to do some extra exploratory work here.
     if (!(node.hasClass("cluster") && !node.data("isCollapsed"))) {
         // Don't add uncollapsed clusters, but allow collapsed clusters to be
         // added
         var nodeID = node.id();
-        justAddedCollapsedCyclicChain = node.hasClass("Y");
+        // Have we already selected another node in this finishing process?
         if (FINISHING_NODE_IDS.length > 0) {
+            // Is the node the user just clicked on valid, in terms of the path
+            // so far?
             if (NEXT_NODES.is("#" + nodeID)) {
                 cy.startBatch();
                 NEXT_NODES.removeClass("tentative");
                 cy.endBatch();
-                NEXT_NODES = node.outgoers("node");
-                if (justAddedCollapsedCyclicChain) {
-                    NEXT_NODES = NEXT_NODES.union(node);
-                }
-                var size = NEXT_NODES.size();
-                //if (!FINISHING_LINEAR_CYCLE && size === 1) {
-                //    var autofinishingSeenNodeIDs = [];
-                //    while (size === 1) {
-                //        if (autofinishingSeenNodeIDs.indexOf(nodeID) !== -1){
-                //            FINISHING_LINEAR_CYCLE = true;
-                //            justStartedLinearCycleFinishing = true;
-                //            break;
-                //        }
-                //        $("#assembledNodes").append(", " + nodeID);
-                //        FINISHING_NODE_IDS += "," + nodeID;
-                //        autofinishingSeenNodeIDs.push(nodeID);
-                //        node = NEXT_NODES[0];
-                //        nodeID = node.id();
-                //        NEXT_NODES = node.outgoers("node");
-                //        size = NEXT_NODES.size();
-                //    }
-                //}
-                // TODO add something that keeps track of previous node and
-                // removes this class from it
-                // don't use cy.js to do a filter, just cache the ID or
-                // something to be more efficient
-                //node.addClass("tentativedock");
-                if (size === 0) {
-                    endFinishing();
-                }
-                else { // includes case where FINISHING_LINEAR_CYCLE is true
-                    cy.startBatch();
-                    NEXT_NODES.addClass("tentative");
-                    cy.endBatch();
-                }
-                $("#assembledNodes").append(", " + nodeID);
-                FINISHING_NODE_IDS += "," + nodeID;
-                FINISHING_NODE_OBJS.push(node);
-            }
-            else {
+            } else {
                 return;
             }
         }
-        else {
-            // TODO abstract repeated code to a function
-            NEXT_NODES = node.outgoers("node");
-            if (justAddedCollapsedCyclicChain) {
-                NEXT_NODES = NEXT_NODES.union(node);
-            }
-            var size = NEXT_NODES.size();
-            if (size === 0) {
-                $("#assembledNodes").append(nodeID);
-                FINISHING_NODE_IDS += nodeID;
+        // In any case, if we've gotten here then we know that we're ok to go
+        // ahead with adding node(s) to the path.
+        NEXT_NODES = node.outgoers("node");
+        // Although they don't technically have an edge to themselves when
+        // they're collapsed, we consider collapsed cyclic chains as
+        // effectively having such an edge. This enables the user to manually
+        // expand things like tandem repeats as much as they want to.
+        if (node.hasClass("Y")) {
+            NEXT_NODES = NEXT_NODES.union(node);
+        }
+        var size = NEXT_NODES.size();
+        // Start autofinishing, if the node we're adding to the path only has
+        // one outgoing connection (and it isn't to itself)
+        var reachedCycleInAutofinishing = false;
+        if (size === 1 && NEXT_NODES[0].id() !== nodeID) {
+            var autofinishingSeenNodeIDs = [];
+            while (size === 1) {
+                if (FINISHING_NODE_OBJS.length > 0) {
+                    $("#assembledNodes").append(", " + nodeID);
+                    FINISHING_NODE_IDS += "," + nodeID;
+                }
+                else {
+                    $("#assembledNodes").append(nodeID);
+                    FINISHING_NODE_IDS += nodeID;
+                }
                 FINISHING_NODE_OBJS.push(node);
-                endFinishing();
-                return;
+                autofinishingSeenNodeIDs.push(nodeID);
+                node = NEXT_NODES[0];
+                nodeID = node.id();
+                // Have we reached a node that we've previously visited in this
+                // autofinishing iteration? If so, stop autofinishing -- we're
+                // currently stuck in a cycle.
+                if (autofinishingSeenNodeIDs.indexOf(nodeID) !== -1) {
+                    reachedCycleInAutofinishing = true;
+                    break;
+                }
+                // Otherwise, we can carry on with the finishing for now.
+                NEXT_NODES = node.outgoers("node");
+                // Allow for cyclic chains to be considered, as above
+                if (node.hasClass("Y")) {
+                    NEXT_NODES = NEXT_NODES.union(node);
+                }
+                size = NEXT_NODES.size();
             }
+        }
+        // TODO add something that keeps track of previous node and
+        // removes this class from it
+        // don't use cy.js to do a filter, just cache the ID or
+        // something to be more efficient
+        //node.addClass("tentativedock");
+        if (size === 0) {
+            endFinishing();
+        }
+        else {
             cy.startBatch();
             NEXT_NODES.addClass("tentative");
             cy.endBatch();
+        }
+        if (reachedCycleInAutofinishing) {
+            // Don't bother adding any more nodes to the path; we stopped
+            // autofinishing because we reached an unambiguous cycle.
+            return;
+        }
+        // Either add the single node the user chose (if autofinishing didn't
+        // happen), or add the final node in the autofinished path (if
+        // autofinishing did happen, and it ended due to the path branching).
+        if (FINISHING_NODE_OBJS.length > 0) {
+            $("#assembledNodes").append(", " + nodeID);
+            FINISHING_NODE_IDS += "," + nodeID;
+        }
+        else {
             $("#assembledNodes").append(nodeID);
             FINISHING_NODE_IDS += nodeID;
-            FINISHING_NODE_OBJS.push(node);
         }
+        FINISHING_NODE_OBJS.push(node);
     }
 }
 
@@ -3141,7 +3153,6 @@ function startFinishing() {
 function endFinishing() {
     FINISHING_MODE_ON = false;
     FINISHING_MODE_PREVIOUSLY_DONE = true;
-    FINISHING_LINEAR_CYCLE = false;
     cy.startBatch();
     NEXT_NODES.removeClass("tentative");
     cy.endBatch();
