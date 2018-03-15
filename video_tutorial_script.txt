@@ -1,3 +1,8 @@
+Think about what resources in the video editing lab are available.
+Camtasia might be a useful piece of software for recording things on my
+computer; it's free through UMD (Windows/Mac only tho; OBS seems like a
+reasonable alternative for Linux).
+
 PART 2 (using the web interface)
 Given: .db file for SRS049950 graph (make available for download from GitHub
 pages site and from the wiki)
@@ -16,6 +21,6 @@ pages site and from the wiki)
 -Collapsing and uncollapsing clusters
 -Search for elements
 
-One small video or multiple small videos?
+One small video or multiple small videos? ==> Multiple small videos, probs.
 e.g. settings dialog (incl. node colorization),
 scaffold stuff (incl. finishing + AGP stuff), ...
