@@ -512,7 +512,7 @@ function initGraph(viewType) {
                 }
             },
             {
-                selector: 'node.noncluster.tentativedock',
+                selector: 'node.currpath',
                 style: {
                     'background-color': '#994700',
                 }
@@ -3079,6 +3079,7 @@ function addNodeFromEventToPath(e) {
                     $("#assembledNodes").append(nodeID);
                     FINISHING_NODE_IDS += nodeID;
                 }
+                node.addClass("currpath");
                 FINISHING_NODE_OBJS.push(node);
                 autofinishingSeenNodeIDs.push(nodeID);
                 node = NEXT_NODES[0];
@@ -3099,19 +3100,6 @@ function addNodeFromEventToPath(e) {
                 size = NEXT_NODES.size();
             }
         }
-        // TODO add something that keeps track of previous node and
-        // removes this class from it
-        // don't use cy.js to do a filter, just cache the ID or
-        // something to be more efficient
-        //node.addClass("tentativedock");
-        if (size === 0) {
-            endFinishing();
-        }
-        else {
-            cy.startBatch();
-            NEXT_NODES.addClass("tentative");
-            cy.endBatch();
-        }
         if (reachedCycleInAutofinishing) {
             // Don't bother adding any more nodes to the path; we stopped
             // autofinishing because we reached an unambiguous cycle.
@@ -3128,7 +3116,16 @@ function addNodeFromEventToPath(e) {
             $("#assembledNodes").append(nodeID);
             FINISHING_NODE_IDS += nodeID;
         }
+        node.addClass("currpath");
         FINISHING_NODE_OBJS.push(node);
+        if (size === 0) {
+            endFinishing();
+        }
+        else {
+            cy.startBatch();
+            NEXT_NODES.addClass("tentative");
+            cy.endBatch();
+        }
     }
 }
 
@@ -3155,6 +3152,11 @@ function endFinishing() {
     FINISHING_MODE_PREVIOUSLY_DONE = true;
     cy.startBatch();
     NEXT_NODES.removeClass("tentative");
+    // Remove "currpath" class from all nodes that have it (i.e. look at
+    // FINISHING_NODE_OBJS)
+    for (var n = 0; n < FINISHING_NODE_OBJS.length; n++) {
+        FINISHING_NODE_OBJS[n].removeClass("currpath");
+    }
     cy.endBatch();
     NEXT_NODES = cy.collection();
     cy.autounselectify(false);
