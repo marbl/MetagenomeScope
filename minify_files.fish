@@ -52,5 +52,9 @@ echo $hattribution > viewer/index.min.html
 csso viewer/css/viewer_style.css >> viewer/css/viewer_style.min.css
 uglifyjs viewer/js/xdot2cy.js >> viewer/js/xdot2cy.min.js
 html-minifier --html5 --minify-css --minify-js --remove-comments --collapse-whitespace viewer/index.html | tail -c +16 >> viewer/index.min.html
+# Add references to minified xdot2cy.js and viewer_style.css files in the
+# minified HTML file.
+sed -i -e 's/xdot2cy\.js/xdot2cy\.min\.js/g' viewer/index.min.html
+sed -i -e 's/viewer_style\.css/viewer_style\.min\.css/g' viewer/index.min.html
 echo "File minification complete."
-echo "Make sure that the version of index.min.html you're uploading somewhere 1) refers to xdot2cy.min.js and viewer_style.min.css instead of their non-minified counterparts, and 2) is renamed to index.html."
+echo "Make sure that the version of index.min.html you're uploading somewhere is renamed to index.html in its new location."
