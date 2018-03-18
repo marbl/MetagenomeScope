@@ -96,6 +96,7 @@ License information for MetagenomeScope's dependencies is included in the root d
       included with Bootstrap.
     * The color selection functionality in the viewer interface uses the
       [Bootstrap Colorpicker](https://farbelous.github.io/bootstrap-colorpicker/) plugin.
+* [csso](https://github.com/css/csso)/[csso-cli](https://github.com/css/csso-cli), [UglifyJS](https://github.com/mishoo/UglifyJS2), and [html-minifier](https://github.com/kangax/html-minifier) are used to minify CSS, JS, and HTML code for the viewer interface, respectively.
 
 ## Contact
 
