@@ -3104,6 +3104,7 @@ function addNodeFromEventToPath(e) {
         if (reachedCycleInAutofinishing) {
             // Don't bother adding any more nodes to the path; we stopped
             // autofinishing because we reached an unambiguous cycle.
+            markTentativeNodes();
             return;
         }
         // Either add the single node the user chose (if autofinishing didn't
@@ -3123,11 +3124,15 @@ function addNodeFromEventToPath(e) {
             endFinishing();
         }
         else {
-            cy.startBatch();
-            NEXT_NODES.addClass("tentative");
-            cy.endBatch();
+            markTentativeNodes();
         }
     }
+}
+
+function markTentativeNodes() {
+    cy.startBatch();
+    NEXT_NODES.addClass("tentative");
+    cy.endBatch();
 }
 
 function startFinishing() {
