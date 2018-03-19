@@ -702,8 +702,13 @@
                         <h4 class="modal-title">Settings</h4>
                     </div> <!-- end modal-header div -->
                     <div class="modal-body">
-                        <p>Changes to these parameters will take effect before
-                        drawing a graph.</p>
+                        <p>
+                            Changes to animation settings will take effect
+                            without having to redraw the graph, if one has
+                            already been drawn.
+                            Changes to other parameters will only take effect
+                            after redrawing the graph.
+                        </p>
                         <div>
                             <ul class="nav nav-tabs" role="tablist">
                                 <li role="presentation" class="active">
@@ -734,6 +739,14 @@
                             <div class="tab-content">
                                 <div role="tabpanel" class="tab-pane active"
                                     id="animationtab">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input type="checkbox" checked
+                                            id="animateFinishingCheckbox">
+                                            Automatically pan the viewport
+                                            during finishing
+                                        </label>
+                                    </div>
                                     <div class="checkbox">
                                         <label>
                                             <input type="checkbox" checked
