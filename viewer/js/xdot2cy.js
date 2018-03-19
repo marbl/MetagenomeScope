@@ -3133,6 +3133,7 @@ function markTentativeNodes() {
     cy.startBatch();
     NEXT_NODES.addClass("tentative");
     cy.endBatch();
+    cy.animate({fit: {eles: NEXT_NODES, padding: 200}});
 }
 
 function startFinishing() {
