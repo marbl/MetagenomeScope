@@ -3134,7 +3134,7 @@ function markTentativeNodes() {
     NEXT_NODES.addClass("tentative");
     cy.endBatch();
     if ($("#animateFinishingCheckbox").prop("checked")) {
-        cy.animate({fit: {eles: NEXT_NODES, padding: 200}});
+        cy.animate({fit: {eles: NEXT_NODES}});
     }
 }
 
