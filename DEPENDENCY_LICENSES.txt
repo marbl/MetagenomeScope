@@ -62,6 +62,27 @@ Furthermore, the visualization interface is distributed with:
     -Licensed under the MIT License
      (included in dependency_licenses/jquery.license)
 
+Additionally, some JavaScript code in the visualization interface was based on
+the following public code examples (as detailed in MetagenomeScope's
+acknowledgements section):
+
+-https://github.com/cytoscape/cytoscape.js/tree/master/documentation/demos/colajs-graph
+    -Accessed: circa January 2017
+    -Distributed with Cytoscape.js' code: see above for license/copyright
+     information for Cytoscape.js
+
+-http://www.henryalgus.com/reading-binary-files-using-jquery-ajax/
+    -Author: Henry Algus
+    -Accessed: circa August 2016 
+    -No license/copyright provided with the code.
+
+-https://gist.github.com/mbostock/3048450
+    -Author: Mike Bostock
+    -Accessed: August 1, 2017
+    -Licensed under the GNU GPL, version 3.
+    -No license/copyright was provided with the code, though. (For a copy of
+     the GNU GPL v3, see COPYING.txt in MetagenomeScope's root directory.)
+
 The Python component of the preprocessing script requires the use of the
 following tools during execution, although they are not distributed with
 MetagenomeScope:
