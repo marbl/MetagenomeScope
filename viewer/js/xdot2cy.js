@@ -2138,13 +2138,13 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("xmlFileselectButton");
         $("#searchInput").prop("disabled", false);
         $("#layoutInput").prop("disabled", false);
-        if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GML") {
-            // Only enable the edge filtering features for graphs that have
-            // edge weights (multiplicity or bundle size)
-            enableButton("filterEdgesButton");
-        }
         if (componentEdgeCount > 0) {
             enableButton("reduceEdgesButton");
+            if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GML") {
+                // Only enable the edge filtering features for graphs that have
+                // edge weights (multiplicity or bundle size)
+                enableButton("filterEdgesButton");
+            }
         }
         enableButton("layoutButton");
         enableButton("scaffoldFileselectButton");
