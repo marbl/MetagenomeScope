@@ -97,9 +97,9 @@ License information for MetagenomeScope's dependencies is included in the root d
     * The color selection functionality in the viewer interface uses the
       [Bootstrap Colorpicker](https://farbelous.github.io/bootstrap-colorpicker/) plugin.
 * [csso](https://github.com/css/csso)/[csso-cli](https://github.com/css/csso-cli), [UglifyJS](https://github.com/mishoo/UglifyJS2), and [html-minifier](https://github.com/kangax/html-minifier) are used to minify CSS, JS, and HTML code for the viewer interface, respectively.
-* The JavaScript code in `loadajaxDB()` in the viewer interface that performs an
+* The JS code in `loadajaxDB()` in the viewer interface that performs an
   XMLHttpRequest was based on [this article](http://www.henryalgus.com/reading-binary-files-using-jquery-ajax/) by Henry Algus.
-* `drawEdgeWeightHistogram()` in the viewer interface's JavaScriptCode was
+* `drawEdgeWeightHistogram()` in the viewer interface's JS code was
   based on [this example of using D3.js histograms](https://bl.ocks.org/mbostock/3048450) by Mike Bostock.
 
 ## Contact
