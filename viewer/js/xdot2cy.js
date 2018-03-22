@@ -1517,8 +1517,8 @@ function disableVolatileControls() {
     disableInlineRadio("noneColorization");
     disableInlineRadio("gcColorization");
     disableInlineRadio("repeatColorization");
-    disableInlineRadio("geneColorization");
-    disableInlineRadio("depthColorization");
+    //disableInlineRadio("geneColorization");
+    //disableInlineRadio("depthColorization");
     clearSelectedInfo();
 }
 
