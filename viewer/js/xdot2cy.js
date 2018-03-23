@@ -925,6 +925,16 @@ function setEnterBinding(inputID, f) {
 function doThingsWhenDOMReady() {
     setEnterBinding("searchInput", searchForEles);
     setEnterBinding("layoutInput", testLayout);
+    setEnterBinding("componentselector",
+        function() {
+            startDrawComponent("double");
+        }
+    );
+    setEnterBinding("SPQRcomponentselector",
+        function() {
+            startDrawComponent("SPQR");
+        }
+    );
     // Update MODAL_ACTIVE when dialogs are opened/closed.
     var dialogIDs = ["settingsDialog", "fsDialog", "infoDialog",
                      "edgeFilteringDialog"];
