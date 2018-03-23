@@ -3,6 +3,16 @@ Camtasia might be a useful piece of software for recording things on my
 computer; it's free through UMD (Windows/Mac only tho; OBS seems like a
 reasonable alternative for Linux).
 
+RESOURCES TO USE?
+-Desktop computers for screencasting (they have software available)
+
+-The tablets with handwriting/screen capture might be good for recording MgSc
+stuff -- could "draw" on the graph, etc. Similar to football commentators? if
+that makes sense
+
+-Greenscreen: could be used for chroma keying me talking in front of the
+assembly graph?
+
 PART 2 (using the web interface)
 Given: .db file for SRS049950 graph (make available for download from GitHub
 pages site and from the wiki)
