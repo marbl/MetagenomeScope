@@ -935,6 +935,8 @@ function doThingsWhenDOMReady() {
             startDrawComponent("SPQR");
         }
     );
+    setEnterBinding("binCountInput", drawEdgeWeightHistogram);
+    setEnterBinding("cullEdgesInput", cullEdges);
     // Update MODAL_ACTIVE when dialogs are opened/closed.
     var dialogIDs = ["settingsDialog", "fsDialog", "infoDialog",
                      "edgeFilteringDialog"];
