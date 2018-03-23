@@ -910,6 +910,8 @@ function removeSelectedEleInfo(ele) {
  * To be called when the DOM is ready to be manipulated.
  */
 function doThingsWhenDOMReady() {
+    $("#searchInput").on("keypress", searchWithEnter);
+    $("#layoutInput").on("keypress", layoutWithEnter);
     // Update MODAL_ACTIVE when dialogs are opened/closed.
     var dialogIDs = ["settingsDialog", "fsDialog", "infoDialog",
                      "edgeFilteringDialog"];
@@ -3349,7 +3351,7 @@ function redrawGradientPreview(hexColor, minOrMax) {
 
 // Like searchWithEnter() but for testLayout()
 function layoutWithEnter(e) {
-    if (e.charCode === 13) {
+    if (e.which === 13) {
         testLayout();
     }
 }
@@ -3416,7 +3418,7 @@ function doReduceEdges() {
 
 // Simple shortcut used to enable searching by pressing Enter (charCode 13)
 function searchWithEnter(e) {
-    if (e.charCode === 13) {
+    if (e.which === 13) {
         searchForEles();
     }
 }
