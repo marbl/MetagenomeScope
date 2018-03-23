@@ -1045,6 +1045,17 @@ function setGraphBindings() {
             }
         }
     );
+    // Autozoom on clusters that the user taps on.
+    // We do the check here within the callback function (and not before
+    // setting the listener) to enable the user to alter this behavior without
+    // redrawing the graph, as is the case for the other animation settings.
+    cy.on('tap', 'node.cluster.structuralPattern',
+        function(e) {
+            if ($("#autozoomClusterCheckbox").prop("checked")) {
+                cy.animate({fit: {eles: e.target}});
+            }
+        }
+    );
 
     // Enable SPQR tree expansion/compression
     // User can click on an uncollapsed metanode to reveal its immediate
