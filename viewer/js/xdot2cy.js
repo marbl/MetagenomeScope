@@ -906,12 +906,25 @@ function removeSelectedEleInfo(ele) {
     $("#row" + ele.id().replace(">", "")).remove();
 }
 
+/* Binds a function to be called when the input field denoted by a given ID
+ * receives a keypress event from the "Enter" key.
+ */
+function setEnterBinding(inputID, f) {
+    $("#" + inputID).on("keypress",
+        function(e) {
+            if (e.which === 13) {
+                f();
+            }
+        }
+    );
+}
+
 /* Sets bindings for certain DOM elements on the page.
  * To be called when the DOM is ready to be manipulated.
  */
 function doThingsWhenDOMReady() {
-    $("#searchInput").on("keypress", searchWithEnter);
-    $("#layoutInput").on("keypress", layoutWithEnter);
+    setEnterBinding("searchInput", searchForEles);
+    setEnterBinding("layoutInput", testLayout);
     // Update MODAL_ACTIVE when dialogs are opened/closed.
     var dialogIDs = ["settingsDialog", "fsDialog", "infoDialog",
                      "edgeFilteringDialog"];
@@ -3349,13 +3362,6 @@ function redrawGradientPreview(hexColor, minOrMax) {
     $("#75gp").css("background-color", getNodeColorization(0.75));
 }
 
-// Like searchWithEnter() but for testLayout()
-function layoutWithEnter(e) {
-    if (e.which === 13) {
-        testLayout();
-    }
-}
-
 // Allows user to test one of Cytoscape.js' predefined layouts
 function testLayout() {
     if ($("#layoutInput").val() !== "") {
@@ -3414,13 +3420,6 @@ function doReduceEdges() {
         }
     );
     cy.endBatch();
-}
-
-// Simple shortcut used to enable searching by pressing Enter (charCode 13)
-function searchWithEnter(e) {
-    if (e.which === 13) {
-        searchForEles();
-    }
 }
 
 // Centers the graph on a given list of elements separated by commas, with
