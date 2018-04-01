@@ -22,6 +22,9 @@
 # The current generation algorithm constructs a linear arrangement of the
 # number of nodes specified in the -n option. Complexities are thus added to
 # the graph.
+#
+# Requires NetworkX. Only "1.X" versions of NetworkX are supported; version 2
+# seems to break some functionality here.
 
 import argparse
 from random import randrange, random, choice
