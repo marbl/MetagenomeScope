@@ -2083,7 +2083,12 @@ function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
     var nodePercentage, edgePercentage;
     if (mode !== "SPQR") {
         var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
-        var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
+        if (ASM_EDGE_COUNT !== 0) {
+            var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
+        }
+        else {
+            var edgePercentage = "None";
+        }
     }
     var all_nodes_edges_modifier = "the";
     if (mode !== "SPQR" && $("#filetypeEntry").text() !== "GML") {
@@ -2120,9 +2125,15 @@ function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
             + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
             + "</strong>. This connected component contains <strong>"
             + nodePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
-            + " nodes</strong> in the assembly and <strong>"
+            + " nodes</strong> in the assembly";
+        if (edgePercentage !== "None") {
+            bodyText += " and <strong>"
             + edgePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
             + " edges</strong> in the assembly.";
+        }
+        else {
+            bodyText += ". There are no edges in the assembly.";
+        }
     }
     $("#currComponentInfo").html(bodyText);
 }
