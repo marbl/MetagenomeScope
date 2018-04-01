@@ -1489,6 +1489,22 @@ class Component(object):
 
         return node_info, edge_info
 
+    def produce_non_backfilled_dot_file(self, output_prefix):
+        """Returns a string defining the graph (in DOT format) for the current
+           component, but without cluster backfilling (i.e. all clusters are
+           included as actual dot clusters, and are thus susceptible for edges
+           going through them).
+        """
+        fcontent = "digraph " + output_prefix + " {\n"
+        for n in self.node_list:
+            if not n.used_in_collapsing:
+                fcontent += n.node_info()
+            fcontent += n.edge_info()
+        for g in self.node_group_list:
+            fcontent += g.node_info(backfill=False)
+        fcontent += "}"
+        return fcontent
+
     def __repr__(self):
         """Returns a (somewhat verbose) string representation of this
            component.

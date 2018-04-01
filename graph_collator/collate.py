@@ -62,10 +62,12 @@ parser.add_argument("-d", "--outputdirectory", required=False,
         " defaults to current working directory")
 parser.add_argument("-pg", "--preservegv", required=False, action="store_true",
     default=False,
-    help="save all .gv (DOT) files generated for connected components")
+    help="save all .gv (DOT) files generated for nontrivial" + \
+         " (i.e. containing more than one node, or at least one edge)" + \
+         " connected components")
 parser.add_argument("-px", "--preservexdot", required=False, default=False,
     action="store_true",
-    help="save all .xdot files generated for connected components")
+    help="save all .xdot files generated for nontrivial connected components")
 parser.add_argument("-sp", "--structuralpatterns", required=False,
         default=False, action="store_true",
         help="create .txt files in the output directory containing node" + \
@@ -96,6 +98,14 @@ parser.add_argument("-upl", "--userpatternlabelsused", required=False,
     action="store_true", default=False,
     help="use node labels instead of IDs in the pre-identified misc." + \
         " patterns file")
+parser.add_argument("-nbdf", "--nobackfilldotfiles", required=False,
+    action="store_true", default=False,
+    help="produces .gv (DOT) files without cluster \"backfilling\" for" + \
+        " each nontrivial connected component in the graph;" + \
+        " use of this argument" + \
+        " doesn't impact the .db files produced by this script -- it just" + \
+        " demonstrates the functionality in layout linearization provided" + \
+        " by cluster \"backfilling\"")
 #parser.add_argument("-au", "--assumeunoriented", required=False, default=False,
 #        action="store_true", help="assume that input GML-file graphs are" + \
 #            " unoriented (default for GML files is assuming they are" + \
@@ -119,6 +129,7 @@ ububbles_fullfn = args.userbubblefile
 ububbles_labels = args.userbubblelabelsused
 upatterns_fullfn = args.userpatternfile
 upatterns_labels = args.userpatternlabelsused
+make_no_backfilled_dot_files = args.nobackfilldotfiles
 #assume_unoriented = args.assumeunoriented
 #assume_oriented = args.assumeoriented
 
@@ -2231,6 +2242,24 @@ for component in connected_components:
     # with the previously-stored biological data.
     node_info, edge_info = component.node_and_edge_info()
     component_prefix = "%s_%d" % (output_fn, component_size_rank)
+    # We've just printed a layout message (and haven't printed a \n yet) if:
+    # -we're laying out a "not small" component (i.e. no_print is False), or
+    # -we're laying out a "small" component, but we just printed the "laying
+    #  out small components" message (i.e. first_small_component is True)
+    # In either case, we need to prepend a \n to the start of whatever we print
+    # before the conclude_msg() following our prior layout message.
+    # (Failing to prepend a \n will result in something looking like
+    # "Laying out connected component [x] ([y] nodes)... Warning: uh oh",
+    # where "Warning: uh oh" should've been printed on the line following
+    # the "Laying out..." stuff.
+    layout_msg_printed = (not no_print) or first_small_component
+    # We use "r" to determine whether or not to print a newline before the
+    # normal .gv file error message, if we would print an error message there
+    r = True
+    if make_no_backfilled_dot_files:
+        r=save_aux_file(component_prefix + "_nobackfill.gv",
+                component.produce_non_backfilled_dot_file(component_prefix),
+                layout_msg_printed)
     # NOTE: Currently, we reduce each component of the asm. graph to a DOT
     # string that we send to pygraphviz. However, we could also send
     # nodes/edges procedurally, using add_edge(), add_node(), etc.
@@ -2248,22 +2277,10 @@ for component in connected_components:
     gv_input += edge_info
     gv_input += "}"
     h = pygraphviz.AGraph(gv_input)
-    # We've just printed a layout message (and haven't printed a \n yet) if:
-    # -we're laying out a "not small" component (i.e. no_print is False), or
-    # -we're laying out a "small" component, but we just printed the "laying
-    #  out small components" message (i.e. first_small_component is True)
-    # In either case, we need to prepend a \n to the start of whatever we print
-    # before the conclude_msg() following our prior layout message.
-    # (Failing to prepend a \n will result in something looking like
-    # "Laying out connected component [x] ([y] nodes)... Warning: uh oh",
-    # where "Warning: uh oh" should've been printed on the line following
-    # the "Laying out..." stuff.
-    layout_msg_printed = (not no_print) or first_small_component
-    # We use "r" to determine whether or not to print a newline before the
-    # .xdot file error message, if we would print an error message there
-    r = True
     # save the .gv file if the user requested .gv preservation
     if preserve_gv:
+        if not r:
+            layout_msg_printed=False
         r=save_aux_file(component_prefix + ".gv", gv_input, layout_msg_printed)
 
     # lay out the graph in .xdot -- this step is the main bottleneck in the
