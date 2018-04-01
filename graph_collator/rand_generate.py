@@ -71,8 +71,8 @@ def assign_rand_attrs(G):
         node_orientation_dict[n] = "FOW" if random() < 0.5 else "REV"
         length_dict[n] = randrange(1, 1000000)
     
-    nx.set_node_attributes(G, "orientation", node_orientation_dict)
-    nx.set_node_attributes(G, "length", length_dict)
+    nx.set_node_attributes(G, name="orientation", values=node_orientation_dict)
+    nx.set_node_attributes(G, name="length", values=length_dict)
 
     # Assign edge attrs
     orientation_dict = {}
@@ -93,10 +93,10 @@ def assign_rand_attrs(G):
         mean_dict[e] = 0
         stdev_dict[e] = 0
         bsize_dict[e] = 1
-    nx.set_edge_attributes(G, "orientation", orientation_dict)
-    nx.set_edge_attributes(G, "mean", mean_dict)
-    nx.set_edge_attributes(G, "stdev", stdev_dict)
-    nx.set_edge_attributes(G, "bsize", bsize_dict)
+    nx.set_edge_attributes(G, name="orientation", values=orientation_dict)
+    nx.set_edge_attributes(G, name="mean", values=mean_dict)
+    nx.set_edge_attributes(G, name="stdev", values=stdev_dict)
+    nx.set_edge_attributes(G, name="bsize", values=bsize_dict)
 
 def create_bubble():
     """Creates a bubble with a random number of nodes between 4 and 17.
