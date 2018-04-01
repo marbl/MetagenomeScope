@@ -1495,7 +1495,15 @@ class Component(object):
            included as actual dot clusters, and are thus susceptible for edges
            going through them).
         """
+
         fcontent = "digraph " + output_prefix + " {\n"
+        if config.GRAPH_STYLE != "":
+            fcontent += "\t%s;\n" % (config.GRAPH_STYLE)
+        if config.GLOBALNODE_STYLE != "":
+            fcontent += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
+        if config.GLOBALEDGE_STYLE != "":
+            fcontent += "\tedge [%s];\n" % (config.GLOBALEDGE_STYLE)
+
         for n in self.node_list:
             if not n.used_in_collapsing:
                 fcontent += n.node_info()
