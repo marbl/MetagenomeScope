@@ -63,8 +63,8 @@ parser.add_argument("-d", "--outputdirectory", required=False,
 parser.add_argument("-pg", "--preservegv", required=False, action="store_true",
     default=False,
     help="save all .gv (DOT) files generated for nontrivial" + \
-         " (i.e. containing more than one node, or at least one edge)" + \
-         " connected components")
+         " (i.e. containing more than one node, or at least one edge or" + \
+         " node group) connected components")
 parser.add_argument("-px", "--preservexdot", required=False, default=False,
     action="store_true",
     help="save all .xdot files generated for nontrivial connected components")
