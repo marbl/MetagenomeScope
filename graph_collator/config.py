@@ -47,6 +47,13 @@ CONTIG_SCALING_LOG_BASE = 10
 # things tell what's going in an assembly graph.
 MAX_CONTIG_DIM = 10
 MIN_CONTIG_DIM = 1
+# Proportion of area taken up by a node's horizontal side (referred to in the
+# preprocessing script code as "height," but it really refers to width since we
+# automatically rotate the graph to go from Left->Right instead of Up->Down).
+# We calculate node dimensions using this variable as follows:
+# height = area ** (CONTIG_HORIZONTAL_PROPORTION)
+# width = area / height (equal to area ** (1 - CONTIG_HORIZONTAL_PROPORTION))
+CONTIG_HORIZONTAL_PROPORTION = 5.0/6.0
 
 ### Frequently-used GraphViz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html

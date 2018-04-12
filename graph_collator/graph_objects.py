@@ -257,18 +257,18 @@ class Node(object):
                 return config.MIN_CONTIG_DIM
             return dim
 
-        #area = adjust_dim(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
+        area = adjust_dim(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
         # Old scaling method (what we're trying to change via issue #73).
         # Included here for reference.
-        self.height = adjust_dim(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
-        self.width = sqrt(self.height)
+        #self.height = adjust_dim(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
+        #self.width = sqrt(self.height)
         # Equilibrium scaling (equal width and height: produces "square"-like
         # node shapes).
         # self.height = sqrt(area)
         # self.width = sqrt(area)
         # Elongated scaling
-        # self.height = area ** 0.75
-        # self.width = area / self.height
+        self.height = area ** config.CONTIG_HORIZONTAL_PROPORTION
+        self.width = area / self.height
 
     def get_shape(self):
         """Returns the shape "string" for this node."""
