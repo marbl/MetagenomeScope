@@ -37,16 +37,15 @@ AUXMOD = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
 
 # The base we use when logarithmically scaling contig dimensions from length
 CONTIG_SCALING_LOG_BASE = 10
-# The minimum/maximum lengths of either side of a node.
-# These are used directly in GraphViz, so they're in "inches". Granted,
+# The minimum/maximum area of a node.
+# These variables are used directly in GraphViz, so they're in "inches". Granted,
 # "inches" are really an intermediate unit from our perspective since they're
 # converted to pixels in the viewer interface's code.
 # If we opt not to use one or both of the bounds here, we can set these to
 # float("inf") or 0, respectively. However, I'd prefer to at least keep a lower
-# bound of 1.0 on node height; that should help people who have trouble seeing
-# things tell what's going in an assembly graph.
-MAX_CONTIG_DIM = 10
-MIN_CONTIG_DIM = 1
+# bound of 1.0 so that you can see small contigs.
+MAX_CONTIG_AREA = 10
+MIN_CONTIG_AREA = 1
 # Proportion of area taken up by a node's horizontal side (referred to in the
 # preprocessing script code as "height," but it really refers to width since we
 # automatically rotate the graph to go from Left->Right instead of Up->Down).

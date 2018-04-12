@@ -245,22 +245,22 @@ class Node(object):
            -It's desirable to have actual node area proportional to
             node length -- that is, height * width = (x)area for some x
         """
-        def adjust_dim(dim):
-            """Given a dimension of a node, returns either:
-                -the dimension (if the dimension falls within the limits)
-                -the max dimension (if the dimension is greater than the max)
-                -the min dimension (if the dimension is less than the min)
+        def adjust_area(a):
+            """Given the area of a node, returns:
+                -the passed value (if the area falls within the limits)
+                -the max area (if the area is greater than the max)
+                -the min area (if the area is less than the min)
             """
-            if dim > config.MAX_CONTIG_DIM:
-                return config.MAX_CONTIG_DIM
-            elif dim < config.MIN_CONTIG_DIM:
-                return config.MIN_CONTIG_DIM
-            return dim
+            if a > config.MAX_CONTIG_AREA:
+                return config.MAX_CONTIG_AREA
+            elif a < config.MIN_CONTIG_AREA:
+                return config.MIN_CONTIG_AREA
+            return a
 
-        area = adjust_dim(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
+        area = adjust_area(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
         # Old scaling method (what we're trying to change via issue #73).
         # Included here for reference.
-        #self.height = adjust_dim(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
+        #self.height = adjust_area(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
         #self.width = sqrt(self.height)
         # Equilibrium scaling (equal width and height: produces "square"-like
         # node shapes).
