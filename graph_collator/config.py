@@ -49,6 +49,10 @@ MIN_CONTIG_AREA = 1
 # Proportion of area taken up by a node's horizontal side (referred to in the
 # preprocessing script code as "height," but it really refers to width since we
 # automatically rotate the graph to go from Left->Right instead of Up->Down).
+#
+# (This value is specified in the MetagenomeScope paper, so changing it isn't
+# advised.)
+#
 # We calculate node dimensions using this variable as follows:
 # height = area ** (CONTIG_HORIZONTAL_PROPORTION)
 # width = area / height (equal to area ** (1 - CONTIG_HORIZONTAL_PROPORTION))
