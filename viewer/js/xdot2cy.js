@@ -521,13 +521,7 @@ function initGraph(viewType) {
             {
                 selector: 'node.noncluster:selected',
                 style: {
-                    // NOTE I liked using a border for indicating selected
-                    // nodes, but it interfered with unbundled-bezier edges
-                    // occasionally. So we just darken selected nodes instead.
-                    //'border-color': '#000',
-                    //'border-opacity': 1,
-                    //'border-width': 5
-                    'background-blacken': 0.5
+                    'background-color': $("#sncp").colorpicker("getValue")
                 }
             },
             {
