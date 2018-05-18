@@ -1541,6 +1541,53 @@ if not distinct_single_graph:
 single_connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 
 conclude_msg()
+# Scale contigs' log sizes relatively.
+# Due to the initial logarithmic scaling, we don't bother using outlier
+# detection (e.g. using Tukey fences, as is done with edge thicknesses).
+# TODO Add an operation_msg() and conclude_msg()
+operation_msg(config.CONTIG_SCALING_MSG)
+for c in connected_components:
+    # bp_length_list does exist, but it's across all components. Probably
+    # easiest to just go through each component here, then -- shouldn't take
+    # a significant amount of time.
+    contig_lengths = []
+    for n in c.node_list:
+        contig_lengths.append(n.logbp)
+    # Perform relative scaling for the log lengths of contigs in the component
+    # to determine 1) the area of the contig and 2) the long-side proportion
+    # for the contig.
+    # (This only happens if not all contigs in the component are of the same
+    # length; this precondition also excludes components containing just one
+    # contig.)
+    # If this condition isn't met, then the contig "relative length" for area
+    # scaling will remain at the default value of 0.5, and its long-side
+    # proportion will remain at the default value of
+    # config.MID_LONGSIDE_PROPORTION.
+    # (We can avoid having to compute the min_bp and max_bp figures if the
+    # component only contains one contig by just checking up front if the
+    # component has >= 2 contigs. Granted, len(), min(), and max() are all
+    # super quick for 1-length lists, so performance tweaks here are
+    # probably negligible except for extremely large assembly graphs.)
+    if len(c.node_list) >= 2:
+        min_bp = min(contig_lengths)
+        max_bp = max(contig_lengths)
+        if min_bp == max_bp:
+            # All the contigs have the same length: we don't need to bother
+            # with scaling them relatively, and attempting to do so would just
+            # result in a division-by-zero error
+            continue
+        bp_range = float(max_bp - min_bp)
+        q25, q75 = numpy.percentile(contig_lengths, [25, 75])
+        for n in c.node_list:
+            n.relative_length = (n.logbp - min_bp) / bp_range
+            if n.logbp < q25:
+                n.longside_proportion = config.LOW_LONGSIDE_PROPORTION
+            elif n.logbp < q75:
+                n.longside_proportion = config.MID_LONGSIDE_PROPORTION
+            else:
+                n.longside_proportion = config.HIGH_LONGSIDE_PROPORTION
+conclude_msg()
+
 # Scale "non-outlier" edges relatively. We use "Tukey fences" to identify
 # outlier edge weights (see issue #184 on GitHub for context on this).
 if edge_weights_available:

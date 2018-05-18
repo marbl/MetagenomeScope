@@ -41,22 +41,17 @@ CONTIG_SCALING_LOG_BASE = 10
 # These variables are used directly in GraphViz, so they're in "inches". Granted,
 # "inches" are really an intermediate unit from our perspective since they're
 # converted to pixels in the viewer interface's code.
-# If we opt not to use one or both of the bounds here, we can set these to
-# float("inf") or 0, respectively. However, I'd prefer to at least keep a lower
-# bound of 1.0 so that you can see small contigs.
 MAX_CONTIG_AREA = 10
 MIN_CONTIG_AREA = 1
-# Proportion of area taken up by a node's horizontal side (referred to in the
-# preprocessing script code as "height," but it really refers to width since we
-# automatically rotate the graph to go from Left->Right instead of Up->Down).
-#
-# (This value is specified in the MetagenomeScope paper, so changing it isn't
-# advised.)
-#
-# We calculate node dimensions using this variable as follows:
-# height = area ** (CONTIG_HORIZONTAL_PROPORTION)
-# width = area / height (equal to area ** (1 - CONTIG_HORIZONTAL_PROPORTION))
-CONTIG_HORIZONTAL_PROPORTION = 5.0/6.0
+CONTIG_AREA_RANGE = MAX_CONTIG_AREA - MIN_CONTIG_AREA
+# Proportions of the "long side" of a contig, for various levels of contigs in
+# the graph.
+# Used for the lower 25% (from 0% to 25%) of contigs in a component
+LOW_LONGSIDE_PROPORTION = 0.5
+# Used for the middle 50% (from 25% to 75%) of contigs in a component
+MID_LONGSIDE_PROPORTION = 2.0 / 3.0
+# Used for the upper 25% (from 75% to 100%) of contigs in a component
+HIGH_LONGSIDE_PROPORTION = 5.0 / 6.0
 
 ### Frequently-used GraphViz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html
@@ -108,6 +103,8 @@ CYCLE_SEARCH_MSG = "Looking for cyclic chains in the graph..."
 CHAIN_SEARCH_MSG = "Looking for chains in the graph..."
 COMPONENT_MSG = "Identifying connected components within the graph..."
 EDGE_SCALING_MSG = "Scaling edge thicknesses in each connected component..."
+CONTIG_SCALING_MSG = \
+    "Scaling contig areas/dimensions in each connected component..."
 READ_FILE_MSG = "Reading and parsing input file "
 DB_INIT_MSG = "Initializing output file "
 SAVE_AUX_FAIL_MSG = "Not saving "

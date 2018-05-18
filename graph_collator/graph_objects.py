@@ -166,6 +166,7 @@ class Node(object):
         """
         self.id_string = id_string
         self.bp = bp
+        self.logbp = log(self.bp, config.CONTIG_SCALING_LOG_BASE)
         self.depth = depth
         self.gc_content = gc_content
         self.label = label
@@ -210,6 +211,14 @@ class Node(object):
         # Reference to the "size rank" (1 for largest, 2 for 2nd largest,
         # ...) of the connected component to which this node belongs.
         self.component_size_rank = -1
+        # Default relative proportion (in the range 0.0 to 1.0) used for
+        # determining the contig's area relative to other contigs in its
+        # connected component.
+        self.relative_length = 0.5
+        # Used when determining how much of the contig's area its long side
+        # should take up. Adjusted based on percentiles, relative to other
+        # contigs in the connected component.
+        self.longside_proportion = config.MID_LONGSIDE_PROPORTION
         # Misc. layout data that we'll eventually record here
         # The width/height attributes are technically slightly altered by
         # Graphviz during its layout process -- they're scaled to the nearest
@@ -245,29 +254,14 @@ class Node(object):
            -It's desirable to have actual node area proportional to
             node length -- that is, height * width = (x)area for some x
         """
-        def adjust_area(a):
-            """Given the area of a node, returns:
-                -the passed value (if the area falls within the limits)
-                -the max area (if the area is greater than the max)
-                -the min area (if the area is less than the min)
-            """
-            if a > config.MAX_CONTIG_AREA:
-                return config.MAX_CONTIG_AREA
-            elif a < config.MIN_CONTIG_AREA:
-                return config.MIN_CONTIG_AREA
-            return a
 
-        area = adjust_area(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
-        # Old scaling method (what we're trying to change via issue #73).
-        # Included here for reference.
-        #self.height = adjust_area(log(self.bp, config.CONTIG_SCALING_LOG_BASE))
-        #self.width = sqrt(self.height)
-        # Equilibrium scaling (equal width and height: produces "square"-like
-        # node shapes).
-        # self.height = sqrt(area)
-        # self.width = sqrt(area)
-        # Elongated scaling
-        self.height = area ** config.CONTIG_HORIZONTAL_PROPORTION
+        # Area is based on the relatively-scaled logarithm of contig length
+        area = config.MIN_CONTIG_AREA + \
+                (self.relative_length * config.CONTIG_AREA_RANGE)
+        # Longside proportion (i.e. the proportion of the contig's area
+        # accounted for by its long side) is based on percentiles of
+        # contigs in the component
+        self.height = area ** self.longside_proportion
         self.width = area / self.height
 
     def get_shape(self):
