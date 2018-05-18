@@ -1544,9 +1544,8 @@ conclude_msg()
 # Scale contigs' log sizes relatively.
 # Due to the initial logarithmic scaling, we don't bother using outlier
 # detection (e.g. using Tukey fences, as is done with edge thicknesses).
-# TODO Add an operation_msg() and conclude_msg()
 operation_msg(config.CONTIG_SCALING_MSG)
-for c in connected_components:
+for c in connected_components + single_connected_components:
     # bp_length_list does exist, but it's across all components. Probably
     # easiest to just go through each component here, then -- shouldn't take
     # a significant amount of time.
