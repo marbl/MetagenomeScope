@@ -2,6 +2,10 @@
 # The testgraphs/ and testdbs/ directories are ignored in the git repository to
 # save space. This is just a useful script I wanted to save that auto-updates a
 # number of assembly graphs' corresponding .db files.
+# TODO: remove a few things from here (unsimplified SRS049950?, 20170220, etc)
+# that aren't needed any more.
+# Also, either remove the P_ graphs from the demo or add them + the requisite
+# input files to build them to this script.
 ./graph_collator/collate.py -i testgraphs/ecoli/E_coli_LastGraph -o ecoli -d testdbs/ -w
 ./graph_collator/collate.py -i testgraphs/sjackman/sample.gfa -o sample_gfa -d testdbs/ -w
 ./graph_collator/collate.py -i testgraphs/sjackman/loop.gfa -o loop_gfa -d testdbs/ -w
