@@ -109,7 +109,7 @@ var DEFAULT_NODE_COLOR = undefined;
 // Ideally this process would be automated, but there have been some issues
 // with that (see issue #263 on the old GitHub page, fedarko/MetagenomeScope,
 // for a bit of a summary).
-var DEFAULT_COLOR_SETTINGS = "mincncp\t#0022ff\nmaxcncp\t#ff2200\ncnlcp\t#aaaaaa\ncsnlcp\t#aaaaaa\nusncp\t#888888\nsncp\t#444444\nbubblecp\t#9abaf3\nfropecp\t#59f459\nchaincp\t#fcaca3\nychaincp\t#ffd163\nspqrscp\t#ffd644\nspqrpcp\t#eb8ef9\nspqrrcp\t#31bf6f\nbicmpcp\t#e9e9e9\ntnbcp\t#000000\ntngbcp\t#000000\nmiscpatterncp\t#c398eb\nusnlcp\t#000000\nsnlcp\t#aaaaaa\nusecp\t#555555\nsecp\t#111111\nhoecp\t#ff0000\nhosecp\t#800000\nloecp\t#0000ff\nlosecp\t#000080\ncngcccp\t#000000\nsngbcp\t#000000\ncpcp\t#994700\nbgcp\t#ffffff\n";
+var DEFAULT_COLOR_SETTINGS = "mincncp\t#0022ff\nmaxcncp\t#ff2200\ncnlcp\t#aaaaaa\ncsnlcp\t#aaaaaa\nusncp\t#888888\nsncp\t#444444\nbubblecp\t#9abaf3\nfropecp\t#59f459\nchaincp\t#fcaca3\nychaincp\t#ffd163\nspqrscp\t#ffd644\nspqrpcp\t#eb8ef9\nspqrrcp\t#31bf6f\nbicmpcp\t#e9e9e9\ntnbcp\t#994700\ntngbcp\t#994700\nmiscpatterncp\t#c398eb\nusnlcp\t#000000\nsnlcp\t#aaaaaa\nusecp\t#555555\nsecp\t#111111\nhoecp\t#ff0000\nhosecp\t#800000\nloecp\t#0000ff\nlosecp\t#000080\ncngcccp\t#000000\nsngbcp\t#000000\ncpcp\t#994700\nbgcp\t#ffffff\n";
 // The background color of the graph. Set in initGraph().
 var BG_COLOR = undefined;
 // Booleans for whether or not to use certain performance options
