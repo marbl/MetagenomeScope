@@ -102,6 +102,10 @@ License information for MetagenomeScope's dependencies is included in the root d
 * `drawEdgeWeightHistogram()` in the viewer interface's JS code was
   based on [this example of using a D3.js histogram](https://gist.github.com/mbostock/3048450) by Mike Bostock.
 
+### [Info Site](https://marbl.github.io/MetagenomeScope)
+
+See [the README](https://github.com/marbl/MetagenomeScope/blob/master/docs/README.md) in the `docs/` folder of this repository, where the code for the info site is stored.
+
 ## Contact
 
 MetagenomeScope was created by members of the [Pop Lab](https://sites.google.com/a/cs.umd.edu/poplab/) in the [Center for Bioinformatics and Computational Biology](https://cbcb.umd.edu/) at the [University of Maryland, College Park](https://umd.edu/).
