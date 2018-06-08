@@ -1545,46 +1545,75 @@ conclude_msg()
 # Due to the initial logarithmic scaling, we don't bother using outlier
 # detection (e.g. using Tukey fences, as is done with edge thicknesses).
 operation_msg(config.CONTIG_SCALING_MSG)
-for c in connected_components + single_connected_components:
-    # bp_length_list does exist, but it's across all components. Probably
-    # easiest to just go through each component here, then -- shouldn't take
-    # a significant amount of time.
-    contig_lengths = []
-    for n in c.node_list:
-        contig_lengths.append(n.logbp)
-    # Perform relative scaling for the log lengths of contigs in the component
-    # to determine 1) the area of the contig and 2) the long-side proportion
-    # for the contig.
-    # (This only happens if not all contigs in the component are of the same
-    # length; this precondition also excludes components containing just one
-    # contig.)
-    # If this condition isn't met, then the contig "relative length" for area
-    # scaling will remain at the default value of 0.5, and its long-side
-    # proportion will remain at the default value of
-    # config.MID_LONGSIDE_PROPORTION.
-    # (We can avoid having to compute the min_bp and max_bp figures if the
-    # component only contains one contig by just checking up front if the
-    # component has >= 2 contigs. Granted, len(), min(), and max() are all
-    # super quick for 1-length lists, so performance tweaks here are
-    # probably negligible except for extremely large assembly graphs.)
-    if len(c.node_list) >= 2:
-        min_bp = min(contig_lengths)
-        max_bp = max(contig_lengths)
-        if min_bp == max_bp:
-            # All the contigs have the same length: we don't need to bother
-            # with scaling them relatively, and attempting to do so would just
-            # result in a division-by-zero error
-            continue
-        bp_range = float(max_bp - min_bp)
-        q25, q75 = numpy.percentile(contig_lengths, [25, 75])
+scaling_single_ccs = False
+for c_collection in (connected_components, single_connected_components):
+    for c in c_collection:
+        # bp_length_list does exist, but it's across all components. Probably
+        # easiest to just go through each component here, then -- shouldn't
+        # take a significant amount of time.
+        contig_lengths = []
         for n in c.node_list:
-            n.relative_length = (n.logbp - min_bp) / bp_range
-            if n.logbp < q25:
-                n.longside_proportion = config.LOW_LONGSIDE_PROPORTION
-            elif n.logbp < q75:
-                n.longside_proportion = config.MID_LONGSIDE_PROPORTION
+            contig_lengths.append(n.logbp)
+        # Perform relative scaling for the log lengths of contigs in the
+        # component to determine 1) the area of the contig and 2) the
+        # long-side proportion for the contig.
+        # (This only happens if not all contigs in the component are of the
+        # same length; this precondition also excludes components containing
+        # just one contig.)
+        # If this condition isn't met, then the contig "relative length" for
+        # area scaling will remain at the default value of 0.5, and its
+        # long-side proportion will remain at the default value of
+        # config.MID_LONGSIDE_PROPORTION.
+        # (We can avoid having to compute the min_bp and max_bp figures if the
+        # component only contains one contig by just checking up front if the
+        # component has >= 2 contigs. Granted, len(), min(), and max() are all
+        # super quick for 1-length lists, so performance tweaks here are
+        # probably negligible except for extremely large assembly graphs.)
+        if len(c.node_list) >= 2:
+            min_bp = min(contig_lengths)
+            max_bp = max(contig_lengths)
+            if min_bp == max_bp:
+                # All the contigs have the same length: we don't need to bother
+                # with scaling them relatively, and attempting to do so would
+                # just result in a division-by-zero error
+                continue
+            bp_range = float(max_bp - min_bp)
+            q25, q75 = numpy.percentile(contig_lengths, [25, 75])
+            scaling_node_groups = False
+            if scaling_single_ccs:
+                node_collection_tuple = (c.node_list,)
             else:
-                n.longside_proportion = config.HIGH_LONGSIDE_PROPORTION
+                node_collection_tuple = (c.node_list, c.node_group_list)
+            for node_collection in node_collection_tuple:
+                for n in node_collection:
+                    if scaling_node_groups:
+                        length_var = n.average_bp
+                    else:
+                        length_var = n.logbp
+                    n.relative_length = (length_var - min_bp) / bp_range
+                    if length_var < q25:
+                        n.longside_proportion = config.LOW_LONGSIDE_PROPORTION
+                    elif length_var < q75:
+                        n.longside_proportion = config.MID_LONGSIDE_PROPORTION
+                    else:
+                        n.longside_proportion = config.HIGH_LONGSIDE_PROPORTION
+                # After finishing going through all nodes in the first
+                # node_collection (c.node_list), the only "Nodes" left to
+                # scale are NodeGroups.
+                # So at this point we can just set a flag variable to let us
+                # know to use n.average_bp for every other "Node" left in this
+                # component.
+                # (NodeGroups are technically a subclass of Nodes, so this
+                # sort of polymorphic practice is reasonable.)
+                scaling_node_groups = True
+    # Same sort of logic as with the scaling_node_groups thing: after going
+    # through all components in the first component collection, the only
+    # components left to perform scaling for are single components (used for
+    # the SPQR modes).
+    # Since "node groups" (effectively, Bicomponents) in these components don't
+    # need to have collapsed dimensions, we can set a flag variable to let us
+    # know to not bother doing that for those node groups.
+    scaling_single_ccs = True
 conclude_msg()
 
 # Scale "non-outlier" edges relatively. We use "Tukey fences" to identify
