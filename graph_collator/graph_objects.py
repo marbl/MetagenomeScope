@@ -251,8 +251,7 @@ class Node(object):
             the longest known genome seems to be Paris japonica's, at
             ~150 billion bp -- source:
             https://en.wikipedia.org/wiki/Paris_japonica)
-           -It's desirable to have actual node area proportional to
-            node length -- that is, height * width = (x)area for some x
+           -It's desirable to have node area proportional to node length
         """
 
         # Area is based on the relatively-scaled logarithm of contig length
@@ -474,6 +473,7 @@ class NodeGroup(Node):
         self.node_count = 0
         self.edge_count = 0
         self.bp = 0
+        self.logbp = 0
         self.gv_id_string = "%s" % (group_prefix)
         self.cy_id_string = "%s" % (group_prefix)
         self.nodes = []
@@ -483,6 +483,7 @@ class NodeGroup(Node):
         for n in nodes:
             self.node_count += 1
             self.bp += n.bp
+            self.logbp += n.logbp
             if unique_id == None:
                 self.gv_id_string += "%s_" % (n.id_string.replace('-', 'c'))
                 self.cy_id_string += "%s_" % (n.id_string)
@@ -494,6 +495,12 @@ class NodeGroup(Node):
                 n.used_in_collapsing = True
                 n.group = self
             self.childid2obj[n.id_string] = n
+        self.average_bp = -1
+        if not spqr_related:
+            # We shouldn't need to use float() to ensure that average_bp ends
+            # up being a float, since each Node's logbp value is produced using
+            # math.log() (which should always return a float).
+            self.average_bp = self.logbp / self.node_count
         if unique_id == None:
             self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
             self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
