@@ -3881,8 +3881,12 @@ function initClusters() {
             node.data({
                 "incomingEdgeMap"   : incomingEdgeMap,
                 "outgoingEdgeMap"   : outgoingEdgeMap,
-                "interiorNodeCount" : children.size()
+                "interiorNodeCount" : children.size(),
+                "w"                 : node.scratch("_w"),
+                "h"                 : node.scratch("_h")
             });
+            node.removeScratch("_w");
+            node.removeScratch("_h");
             // We store collections of elements in the cluster's scratch data.
             // Storing it in the main "data" section will mess up the JSON
             // exporting, since it isn't serializable.
@@ -4137,15 +4141,6 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         if (abbrev === 'M') {
             clusterData["cluster_type"] = clusterObj["cluster_type"];
         }
-        if (clusterData['w'] === null || clusterData['w'] === undefined) {
-            // temporary stopgap for old DB files. TODO remove.
-            clusterData['w'] = 2;
-            clusterData['h'] = 2;
-        }
-        else {
-            clusterData['w'] = INCHES_TO_PIXELS * clusterObj['h'];
-            clusterData['h'] = INCHES_TO_PIXELS * clusterObj['w'];
-        }
     }
     else if (spqrtype === "metanode") {
         // We use the "pseudoparent" class to represent compound nodes that
@@ -4197,6 +4192,20 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     else {
         // For variant collapsing/uncollapsing
         cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(newObj));
+    }
+    // we set the collapsed dimensions as scratch instead of as data so as to
+    // not interfere with the iterative drawing process (where the dimensions
+    // used are the uncollapsed dimensions). Later, in initClusters() after the
+    // iterative drawing process is taken care of, we move these values to the
+    // cluster's data fields and remove them from its scratch.
+    if (clusterObj['w'] === null || clusterObj['w'] === undefined) {
+        // temporary stopgap for old DB files. TODO remove.
+        newObj.scratch('_w', 2 * INCHES_TO_PIXELS);
+        newObj.scratch('_h', 2 * INCHES_TO_PIXELS);
+    }
+    else {
+        newObj.scratch('_w', INCHES_TO_PIXELS * clusterObj['h']);
+        newObj.scratch('_h', INCHES_TO_PIXELS * clusterObj['w']);
     }
     return [clusterID, pos];
 }
