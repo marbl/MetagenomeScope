@@ -14,7 +14,7 @@ Most of the markup defining the navigation bar ("navbar") is adapted from
 Bootstrap's documentation on navbars, located
 [here](https://getbootstrap.com/docs/3.3/components/#navbar).
 
-### CSS (`css/vaguely_adequate.css`)
+### CSS (`css/mgsc_docs_style.css`)
 
 The basic body styling of the site was inspired by
 [this website](http://bettermotherfuckingwebsite.com/)
