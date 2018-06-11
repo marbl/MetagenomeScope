@@ -305,7 +305,9 @@ function initGraph(viewType) {
                     'padding-top': 0,
                     'padding-right': 0,
                     'padding-left': 0,
-                    'padding-bottom': 0
+                    'padding-bottom': 0,
+                    width: 'data(w)',
+                    height: 'data(h)'
                 }
             },
             {
@@ -3871,22 +3873,6 @@ function initClusters() {
             //  to any elements outside the cycle.
             var interiorEdges = children.connectedEdges().difference(
                 incomingEdges).difference(outgoingEdges);
-            var wid = 0;
-            var hgt = 0;
-            // Basically, a cluster's width and height should be
-            // reflective of the widths and heights of its children.
-            // In the children.each block here we basically add the
-            // approximate DNA lengths of each child (as reflected
-            // in the width/height of the child node in question) to
-            // an accumulator, and after the block we treat these
-            // values like we treat normal node blocks and scale them
-            // the same way (logarithmically).
-            children.each(function(e, i) {
-                wid += Math.pow(10, e.data("w") / INCHES_TO_PIXELS);
-                hgt += Math.pow(10, e.data("h") / INCHES_TO_PIXELS);
-            });
-            wid = INCHES_TO_PIXELS * (Math.log(wid) / Math.log(10));
-            hgt = INCHES_TO_PIXELS * (Math.log(hgt) / Math.log(10));
             // Record incoming/outgoing edges in this
             // cluster's data. Will be useful during collapsing.
             // We also record "interiorNodes" -- having a reference to just
@@ -3895,8 +3881,6 @@ function initClusters() {
             node.data({
                 "incomingEdgeMap"   : incomingEdgeMap,
                 "outgoingEdgeMap"   : outgoingEdgeMap,
-                "w"                 : wid,
-                "h"                 : hgt,
                 "interiorNodeCount" : children.size()
             });
             // We store collections of elements in the cluster's scratch data.
@@ -4152,6 +4136,15 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         clusterData["length"] = clusterObj["length"];
         if (abbrev === 'M') {
             clusterData["cluster_type"] = clusterObj["cluster_type"];
+        }
+        if (clusterData['w'] === null || clusterData['w'] === undefined) {
+            // temporary stopgap for old DB files. TODO remove.
+            clusterData['w'] = 2;
+            clusterData['h'] = 2;
+        }
+        else {
+            clusterData['w'] = INCHES_TO_PIXELS * clusterObj['h'];
+            clusterData['h'] = INCHES_TO_PIXELS * clusterObj['w'];
         }
     }
     else if (spqrtype === "metanode") {
