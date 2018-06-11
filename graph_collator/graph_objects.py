@@ -497,12 +497,14 @@ class NodeGroup(Node):
                 n.used_in_collapsing = True
                 n.group = self
             self.childid2obj[n.id_string] = n
-        self.average_bp = -1
+        self.average_logbp = -1
         if not spqr_related:
             # We shouldn't need to use float() to ensure that average_bp ends
             # up being a float, since each Node's logbp value is produced using
             # math.log() (which should always return a float).
-            self.average_bp = self.logbp / self.node_count
+            self.average_logbp = self.logbp / self.node_count
+        # Also assign average_bp, for display in viewer interface?
+        self.average_bp = float(self.bp) / self.node_count
         if unique_id == None:
             self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
             self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
@@ -630,9 +632,12 @@ class NodeGroup(Node):
            Should be called after parsing and assigning .xdot bounding box
            values accordingly.
         """
-        return (self.cy_id_string, self.bp, self.component_size_rank,
-                self.xdot_left, self.xdot_bottom, self.xdot_right,
-                self.xdot_top, self.type_name)
+        # Assign uncollapsed dimensions
+        self.set_dimensions()
+        return (self.cy_id_string, self.bp, self.average_bp,
+                self.component_size_rank, self.xdot_left, self.xdot_bottom,
+                self.xdot_right, self.xdot_top, self.width, self.height,
+                self.type_name)
 
 class SPQRMetaNode(NodeGroup):
     """A group of nodes collapsed into a metanode in a SPQR tree.

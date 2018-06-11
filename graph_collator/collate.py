@@ -1587,7 +1587,7 @@ for c_collection in (connected_components, single_connected_components):
             for node_collection in node_collection_tuple:
                 for n in node_collection:
                     if scaling_node_groups:
-                        length_var = n.average_bp
+                        length_var = n.average_logbp
                     else:
                         length_var = n.logbp
                     n.relative_length = (length_var - min_bp) / bp_range
@@ -1601,8 +1601,8 @@ for c_collection in (connected_components, single_connected_components):
                 # node_collection (c.node_list), the only "Nodes" left to
                 # scale are NodeGroups.
                 # So at this point we can just set a flag variable to let us
-                # know to use n.average_bp for every other "Node" left in this
-                # component.
+                # know to use n.average_logbp for every other "Node" left in
+                # this component.
                 # (NodeGroups are technically a subclass of Nodes, so this
                 # sort of polymorphic practice is reasonable.)
                 scaling_node_groups = True
@@ -1703,7 +1703,7 @@ cursor = connection.cursor()
 # The number of question marks has to match the number of table columns
 NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
 EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
-CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?,?,?)"
+CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?,?,?,?,?,?)"
 COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
 ASSEMBLY_INSERTION_STMT = \
     "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
@@ -1727,8 +1727,8 @@ cursor.execute("""CREATE TABLE edges
         component_rank integer, control_point_string text,
         control_point_count integer, parent_cluster_id text)""") 
 cursor.execute("""CREATE TABLE clusters (cluster_id text, length integer,
-        component_rank integer, left real, bottom real, right real,
-        top real, cluster_type text)""")
+        average_length real, component_rank integer, left real, bottom real,
+        right real, top real, w real, h real, cluster_type text)""")
 cursor.execute("""CREATE TABLE components
         (size_rank integer, node_count integer, edge_count integer,
         total_length integer, boundingbox_x real, boundingbox_y real)""")
