@@ -75,6 +75,14 @@ MID_LONGSIDE_PROPORTION = 2.0 / 3.0
 # Used for the upper 25% (from 75% to 100%) of contigs in a component
 HIGH_LONGSIDE_PROPORTION = 5.0 / 6.0
 
+# Factor by which collapsed node groups' dimensions are scaled
+# As with the dimensions of Node objects in the preprocessing script, these
+# will be switched in the viewer interface (due to the graph being rotated)
+# -- so _W_ refers to the vertical dimension of the node group, and _H_
+# refers to the horizontal dimension.
+COLL_CL_W_FAC = 1.0 / 2.0
+COLL_CL_H_FAC = 1.0 / 2.0
+
 ### Frequently-used GraphViz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html
 BASIC_NODE_SHAPE = "invhouse"

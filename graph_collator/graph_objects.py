@@ -497,13 +497,7 @@ class NodeGroup(Node):
                 n.used_in_collapsing = True
                 n.group = self
             self.childid2obj[n.id_string] = n
-        self.average_logbp = -1
-        if not spqr_related:
-            # We shouldn't need to use float() to ensure that average_bp ends
-            # up being a float, since each Node's logbp value is produced using
-            # math.log() (which should always return a float).
-            self.average_logbp = self.logbp / self.node_count
-        # Also assign average_bp, for display in viewer interface?
+        # Assign average_bp, for display in viewer interface
         self.average_bp = float(self.bp) / self.node_count
         if unique_id == None:
             self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
@@ -632,12 +626,29 @@ class NodeGroup(Node):
            Should be called after parsing and assigning .xdot bounding box
            values accordingly.
         """
-        # Assign uncollapsed dimensions
-        self.set_dimensions()
+        # Assign "collapsed dimensions"; these are used when the NodeGroup is
+        # collapsed in the viewer interface.
+        #
+        # All that really needs to be done to change this is modifying unc_w
+        # and unc_h. Right now the collapsed dimensions are just proportional
+        # to the uncollapsed dimensions, but lots of variation is possible.
+        #
+        # I implemented actual logarithmic+relative scaling for NodeGroups
+        # earlier, where they were scaled alongside contigs based on their
+        # average-length child contig. Issue #107 on GitHub describes the
+        # process of this in detail, if you're interested.
+        #
+        # (For now, though, I think the current method is generally fine.)
+        #
+        # NOTE: If we've assigned a relative_length and longside_proportion
+        # to this NodeGroup, we can just call self.set_dimensions() here to
+        # set its width and height.
+        unc_w = (self.xdot_right - self.xdot_left) / config.POINTS_PER_INCH
+        unc_h = (self.xdot_top - self.xdot_bottom) / config.POINTS_PER_INCH
         return (self.cy_id_string, self.bp, self.average_bp,
                 self.component_size_rank, self.xdot_left, self.xdot_bottom,
-                self.xdot_right, self.xdot_top, self.width, self.height,
-                self.type_name)
+                self.xdot_right, self.xdot_top, unc_w * config.COLL_CL_W_FAC,
+                unc_h * config.COLL_CL_H_FAC, self.type_name)
 
 class SPQRMetaNode(NodeGroup):
     """A group of nodes collapsed into a metanode in a SPQR tree.

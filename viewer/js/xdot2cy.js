@@ -4198,14 +4198,14 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     // used are the uncollapsed dimensions). Later, in initClusters() after the
     // iterative drawing process is taken care of, we move these values to the
     // cluster's data fields and remove them from its scratch.
-    if (clusterObj['w'] === null || clusterObj['w'] === undefined) {
+    if (clusterObj["w"] === null || clusterObj["w"] === undefined) {
         // temporary stopgap for old DB files. TODO remove.
-        newObj.scratch('_w', 2 * INCHES_TO_PIXELS);
-        newObj.scratch('_h', 2 * INCHES_TO_PIXELS);
+        newObj.scratch("_w", 2 * INCHES_TO_PIXELS);
+        newObj.scratch("_h", 2 * INCHES_TO_PIXELS);
     }
     else {
-        newObj.scratch('_w', INCHES_TO_PIXELS * clusterObj['h']);
-        newObj.scratch('_h', INCHES_TO_PIXELS * clusterObj['w']);
+        newObj.scratch("_w", INCHES_TO_PIXELS * clusterObj["h"]);
+        newObj.scratch("_h", INCHES_TO_PIXELS * clusterObj["w"]);
     }
     return [clusterID, pos];
 }

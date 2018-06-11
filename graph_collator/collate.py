@@ -1580,36 +1580,17 @@ for c_collection in (connected_components, single_connected_components):
             bp_range = float(max_bp - min_bp)
             q25, q75 = numpy.percentile(contig_lengths, [25, 75])
             scaling_node_groups = False
-            if scaling_single_ccs:
-                node_collection_tuple = (c.node_list,)
-            else:
-                node_collection_tuple = (c.node_list, c.node_group_list)
-            for node_collection in node_collection_tuple:
-                for n in node_collection:
-                    if scaling_node_groups:
-                        length_var = n.average_logbp
-                    else:
-                        length_var = n.logbp
-                    n.relative_length = (length_var - min_bp) / bp_range
-                    if length_var < q25:
-                        n.longside_proportion = config.LOW_LONGSIDE_PROPORTION
-                    elif length_var < q75:
-                        n.longside_proportion = config.MID_LONGSIDE_PROPORTION
-                    else:
-                        n.longside_proportion = config.HIGH_LONGSIDE_PROPORTION
-                # After finishing going through all nodes in the first
-                # node_collection (c.node_list), the only "Nodes" left to
-                # scale are NodeGroups.
-                # So at this point we can just set a flag variable to let us
-                # know to use n.average_logbp for every other "Node" left in
-                # this component.
-                # (NodeGroups are technically a subclass of Nodes, so this
-                # sort of polymorphic practice is reasonable.)
-                scaling_node_groups = True
-    # Same sort of logic as with the scaling_node_groups thing: after going
-    # through all components in the first component collection, the only
-    # components left to perform scaling for are single components (used for
-    # the SPQR modes).
+            for n in c.node_list:
+                n.relative_length = (n.logbp - min_bp) / bp_range
+                if n.logbp < q25:
+                    n.longside_proportion = config.LOW_LONGSIDE_PROPORTION
+                elif n.logbp < q75:
+                    n.longside_proportion = config.MID_LONGSIDE_PROPORTION
+                else:
+                    n.longside_proportion = config.HIGH_LONGSIDE_PROPORTION
+    # After going through all components in the first component collection,
+    # the only components left to perform scaling for are single components
+    # (used for the SPQR modes).
     # Since "node groups" (effectively, Bicomponents) in these components don't
     # need to have collapsed dimensions, we can set a flag variable to let us
     # know to not bother doing that for those node groups.
