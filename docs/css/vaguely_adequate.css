@@ -18,17 +18,26 @@
  */
 
 body {
+    /* ATTR: General body styling (with the exception of the vertical padding)
+     * adapted from http://bettermotherfuckingwebsite.com/, c/o
+     * Drew McConville and Gabe Hammersmith. */
     /* This has a top/bottom margin of 2em; the "auto" centers the body
      * horizontally. */
     margin: 0 auto;
     max-width: 50em;
-    /* The top padding ensures that the navbar won't cover the title. */
+    /* The top padding ensures that the navbar won't cover the title.
+     * (This is advised by the Bootstrap navbar docs.)
+     */
     padding: 40px 1em;
     color: #333;
 }
-/* This workaround ensures that the navbar won't cover headers when it jumps
- * to them. The negative margin gets rid of the resulting empty space created
- * by the increased padding, preserving the original look of the page.
+/* ATTR: This workaround ensures that the navbar won't cover headers when it
+ * jumps to them. The negative margin gets rid of the resulting empty space
+ * created by the increased padding, preserving the original look of the page.
+ * This general solution is described in a lot of places online, but I'm pretty
+ * sure my implementation here was inspired by Method C in Nicolas Gallagher's
+ * tutorial here:
+ * http://nicolasgallagher.com/jump-links-and-viewport-positioning/demo/#method-C
  */
 h2 {
     padding-top: 60px;

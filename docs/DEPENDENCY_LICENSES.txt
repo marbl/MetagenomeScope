@@ -1,0 +1,41 @@
+PURPOSE
+
+MetagenomeScope is a visualization tool intended to aid in the analysis of
+metagenomic assembly and scaffold graphs. This subfolder ("docs/") of the
+MetagenomeScope repository contains the source code for an informative website
+describing MetagenomeScope.
+
+This code makes use of the following libraries:
+
+-Bootstrap
+    -http://getbootstrap.com
+    -Copyright is contained in ../dependency_licenses/bootstrap.license
+    -Licensed under the MIT License
+     (included in ../dependency_licenses/bootstrap.license)
+
+-jQuery
+    -http://jquery.com
+    -Copyright is contained in ../dependency_licenses/jquery.license
+    -Licensed under the MIT License
+     (included in ../dependency_licenses/jquery.license)
+
+Additionally, some HTML code in the website is adapted from
+the following public code example (as detailed in this subfolder's README's
+acknowledgements section):
+
+-https://getbootstrap.com/docs/3.3/components/#navbar
+    -Author: Bootstrap team
+    -Licensed under the Creative Commons BY 3.0 License.
+    -A link to the license is located here:
+     https://creativecommons.org/licenses/by/3.0/legalcode
+
+Lastly, some CSS code in the website is adapted from the following online
+articles on website styling (as detailed in this subfolder's README):
+
+-http://nicolasgallagher.com/jump-links-and-viewport-positioning/demo/#method-C
+    -Author: Nicolas Gallagher
+    -No apparent license/copyright provided with the code.
+
+-http://bettermotherfuckingwebsite.com/
+    -Authors: Drew McConville and Gabe Hammersmith
+    -No apparent license/copyright included with the code.
