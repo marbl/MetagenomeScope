@@ -314,6 +314,8 @@ class Node(object):
         # Since we only care about the target ID and not about any other
         # edge data it's most efficient to just traverse self.outgoing_nodes
         for m in self.outgoing_nodes:
+            # Due to short-circuiting, (m in constrained_nodes) is only
+            # evaluated when constrained_nodes is not None.
             if (constrained_nodes is None) or (m in constrained_nodes):
                 o += "\t%s -> %s\n" % (self.id_string, m.id_string)
         return o
@@ -573,6 +575,9 @@ class NodeGroup(Node):
         for e in cg.edges():
             self.edge_count += 1
             source_node = self.childid2obj[str(e[0])]
+            # NOTE the following line assumes that the standard-mode graph
+            # contains no duplicate edges (which should really be the case,
+            # but isn't a given right now; see issue #75 for context)
             curr_edge = source_node.outgoing_edge_objects[str(e[1])]
             self.edges.append(curr_edge)
             # Get control points, then find them relative to cluster dimensions
@@ -721,6 +726,9 @@ class SPQRMetaNode(NodeGroup):
         # Obtain cluster width and height from the layout
         bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
         bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
+        # Expand P metanodes' size; we'll later space out their child nodes
+        # accordingly (see issue #228 on the old fedarko/MetagenomeScope
+        # GitHub repository).
         if self.metanode_type == "P":
             bounding_box_numeric[2] += 100
         self.xdot_c_width = bounding_box_numeric[2] - bounding_box_numeric[0]
@@ -742,6 +750,8 @@ class SPQRMetaNode(NodeGroup):
                     farthest_right_node = curr_node
             rel_y = float(ep[1]) - bounding_box_numeric[1]
             curr_node.parent_spqrnode2relpos[self] = [rel_x, rel_y]
+        # Space out child nodes in P metanodes, in order to take up the space
+        # we added in the metanodes a couple lines earlier in this function
         if self.metanode_type == "P":
             farthest_right_node.parent_spqrnode2relpos[self][0] += 100
         # Obtain edge layout info
@@ -753,6 +763,11 @@ class SPQRMetaNode(NodeGroup):
             source_id = str(e[0])
             target_id = str(e[1])
             curr_edge = None
+            # (self.nonlaidout_edges consists of edge declarations obtained
+            # from component_*.info files that have been split(), so when we
+            # say en[1:] we're really just obtaining a list of the source ID
+            # and target ID for that edge. en[0] defines the type of the edge,
+            # either 'v' or 'r'.)
             for en in self.nonlaidout_edges:
                 if set(en[1:]) == set([source_id, target_id]):
                     # This edge matches a non-laid-out edge.
