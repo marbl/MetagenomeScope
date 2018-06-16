@@ -497,8 +497,6 @@ class NodeGroup(Node):
                 n.used_in_collapsing = True
                 n.group = self
             self.childid2obj[n.id_string] = n
-        # Assign average_bp, for display in viewer interface
-        self.average_bp = float(self.bp) / self.node_count
         if unique_id == None:
             self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
             self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
@@ -645,9 +643,9 @@ class NodeGroup(Node):
         # set its width and height.
         unc_w = (self.xdot_right - self.xdot_left) / config.POINTS_PER_INCH
         unc_h = (self.xdot_top - self.xdot_bottom) / config.POINTS_PER_INCH
-        return (self.cy_id_string, self.bp, self.average_bp,
-                self.component_size_rank, self.xdot_left, self.xdot_bottom,
-                self.xdot_right, self.xdot_top, unc_w * config.COLL_CL_W_FAC,
+        return (self.cy_id_string, self.bp, self.component_size_rank,
+                self.xdot_left, self.xdot_bottom, self.xdot_right,
+                self.xdot_top, unc_w * config.COLL_CL_W_FAC,
                 unc_h * config.COLL_CL_H_FAC, self.type_name)
 
 class SPQRMetaNode(NodeGroup):
