@@ -607,13 +607,20 @@ class NodeGroup(Node):
             output = "\t"
             if incl_cluster_prefix:
                 output += "cluster_"
-            output += "%s [height=%g,width=%g,shape=rectangle];\n" % \
-                (self.gv_id_string, self.xdot_c_height, self.xdot_c_width)
+            cs = ""
+            if config.COLOR_PATTERNS:
+                cs = ",style=filled,fillcolor=\"%s\"" % \
+                    (config.PATTERN2COLOR[self.plural_name])
+            output += "%s [height=%g,width=%g,shape=rectangle%s];\n" % \
+                (self.gv_id_string, self.xdot_c_height, self.xdot_c_width, cs)
             return output
         else:
             info = "subgraph cluster_%s {\n" % (self.gv_id_string)
             if config.GLOBALCLUSTER_STYLE != "":
                 info += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
+            if config.COLOR_PATTERNS:
+                info += "\tbgcolor=\"%s\";\n" % \
+                    (config.PATTERN2COLOR[self.plural_name])
             for n in self.nodes:
                 info += n.node_info()
             info += "}\n"
