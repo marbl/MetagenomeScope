@@ -107,7 +107,7 @@
                 <span class="glyphicon glyphicon-folder-open"
                     aria-hidden="true"></span> &nbsp; Choose .db file
             </button>
-            <!-- For some reason, styling this with a "hiddenElement" CSS class
+            <!-- For some reason, styling this with the "notviewable" CSS class
                 doesn't work; I suspect it's due to the way browsers handle
                 styling of file inputs. Anyway, this should work fine. -->
     	    <input type='file' id='fileselector'
@@ -148,10 +148,10 @@
                         <button class='btn btn-default disabled'
                             disabled="disabled"
                             onclick='decrCompRank("componentselector");'
-                            type="button" id="decrCompRankButton">
+                            type="button" id="decrCompRankButton"
+                            aria-label="Decrement component size rank by 1">
                             <span class="glyphicon glyphicon-minus"
-                                aria-hidden="true"
-                                aria-label="Decrement component size rank by 1">
+                                aria-hidden="true">
                             </span>
                         </button>
                     </span>
@@ -162,10 +162,10 @@
                         <button class='btn btn-default disabled'
                             disabled="disabled"
                             onclick='incrCompRank("componentselector");'
-                            type="button" id="incrCompRankButton">
+                            type="button" id="incrCompRankButton"
+                            aria-label="Increment component size rank by 1">
                             <span class="glyphicon glyphicon-plus"
-                                aria-hidden="true"
-                                aria-label="Increment component size rank by 1">
+                                aria-hidden="true">
                             </span>
                         </button>
                     </span>
@@ -186,12 +186,11 @@
                     <span class='input-group-btn'>
                         <button class='btn btn-default disabled'
                             disabled="disabled"
-                           onclick='decrCompRank("SPQRcomponentselector");'
-                            type="button" id="decrSPQRCompRankButton">
+                            onclick='decrCompRank("SPQRcomponentselector");'
+                            type="button" id="decrSPQRCompRankButton"
+                            aria-label="Decrement component size rank by 1">
                             <span class="glyphicon glyphicon-minus"
-                                aria-hidden="true"
-                                aria-label=
-                                    "Decrement component size rank by 1">
+                                aria-hidden="true">
                             </span>
                         </button>
                     </span>
@@ -201,12 +200,11 @@
                     <span class='input-group-btn'>
                         <button class='btn btn-default disabled'
                             disabled="disabled"
-                           onclick='incrCompRank("SPQRcomponentselector");'
-                            type="button" id="incrSPQRCompRankButton">
+                            onclick='incrCompRank("SPQRcomponentselector");'
+                            type="button" id="incrSPQRCompRankButton"
+                            aria-label="Increment component size rank by 1">
                             <span class="glyphicon glyphicon-plus"
-                                aria-hidden="true"
-                                aria-label=
-                                    "Increment component size rank by 1">
+                                aria-hidden="true">
                             </span>
                         </button>
                     </span>
@@ -529,7 +527,7 @@
                         <button class='btn btn-default disabled'
                             disabled="disabled" onclick='testLayout();'
                             type="button" id="layoutButton"
-                            aria-label="Layout">
+                            aria-label="Test layout algorithm">
                             <span class="glyphicon glyphicon-arrow-right"
                                 aria-hidden="true"></span>
                         </button>
@@ -538,6 +536,10 @@
             </div>
         </div> <!-- end controls div -->
         <div id="cy" class="nosubsume"></div> <!--container for Cytoscape.js-->
+        <!-- ATTR: The markup defining the base of these modal dialogs is
+             adapted from Bootstrap's tutorial on modal dialogs, located at
+             https://getbootstrap.com/docs/3.3/javascript/#modals
+        -->
         <!-- XHR .db loader dialog -->
         <div class="modal fade" role="dialog" id='fsDialog'>
             <div class="modal-dialog" role="document">
