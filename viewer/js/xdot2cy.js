@@ -211,7 +211,7 @@ var CLUSTERID2TOP = [];
 // incremented/decremented accordingly.
 var CLUSTER_X = -1;
 // Whether or not to allow keyboard navigation through clusters in std. mode
-var USE_CLUSTER_KBD_NAV = true;
+var USE_CLUSTER_KBD_NAV = false;
 // Indicates if any Bootstrap modal dialogs are active. If so, we ignore
 // keyboard inputs for cluster navigation until the dialog in question is
 // closed.
