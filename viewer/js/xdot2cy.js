@@ -3177,44 +3177,32 @@ function markTentativeNodes() {
     NEXT_NODES.addClass("tentative");
     cy.endBatch();
     if ($("#animateFinishingCheckbox").prop("checked")) {
-        // NOTE: by specifying a zoom level here we want to reduce the current
-        // zoom level to this, if needed. We *don't* want to zoom in to match
-        // this zoom level, because that can result in some NEXT_NODES being
-        // excluded from the viewport.
-        // One option?: Use window.screen.availHeight/availWidth et al to
-        // adjust padding based on device size?
+        // We enforce a maximum zoom level before the fitting animation here so
+        // that we don't zoom in *too* far to a region in the graph. If the
+        // collection of NEXT_NODES is small and densely focused in one region
+        // of the drawing, then fitting to just that region won't help the user
+        // get much context for the surrounding parts of the graph (which will
+        // often make the user zoom out, to get some context on where these
+        // paths lead before making their next choice).
         //
-        // So: we can achieve the desired behavior by using one call to
-        // animate(), with a complete callback to another function that
-        // conditionally animate()s another thing zooming out while centered on
-        // the same NEXT_NODES.
-        // Operative question: can we avoid this second step? Like, fit on the
-        // NEXT_NODES, and only zoom out if the zoom level is larger than a
-        // given threshold?
+        // And just adding padding to the viewport after finishing isn't an
+        // acceptable solution for the general case: if the collection of
+        // NEXT_NODES covers a broad enough region of the graph, we don't
+        // want to zoom out even farther since the user wouldn't gain much
+        // from that. (And it might make it harder for the user to see which
+        // nodes are marked as NEXT_NODES.)
         //
-        // An alternate solution here might be adjusting the zoom level and
-        // *then* fitting, but that gives us the problem of if we zoom in too
-        // far (to the point where all NEXT_NODES ain't visible anymore).
-        //
-        // We can call NEXT_NODES.boundingBox() or .renderedBoundingBox(), but
-        // that'll just give us the coordinates. We'd need some way to map
-        // those coordinates to the resulting fitting operation's zoom level,
-        // and then we could use that zoom level value to determine whether or
-        // not to include the zoom level in the fitting operation. (i.e. if
-        // NODE_ZOOM > 2.2, then specify that the zoom level should be 2.2;
-        // else, we're zoomed out far enough, so just keep it at what it is.)
-        // This should be possible?
-        cy.animate({fit: {eles: NEXT_NODES}, complete: zoomOutFinish});
+        // The solution (ATTR: idea c/o Max Franz' first answer here:
+        // https://github.com/cytoscape/cytoscape.js/issues/941) is to impose a
+        // maxZoom limit before the fitting operation, and then reset that
+        // limit to its prior value after the fitting operation.
+        cy.maxZoom(2.2);
+        cy.animate({fit: {eles: NEXT_NODES}, complete: resetMaxZoom});
     }
 }
 
-function zoomOutFinish() {
-    if (cy.zoom() > 2.2) {
-        // Not including the center parameter here messes this up a ton -- the
-        // zooming animation flies off into empty space, even though no panning
-        // is specified here. IDK why this happens.
-        cy.animate({zoom: 2.2, center: {eles: NEXT_NODES}});
-    }
+function resetMaxZoom() {
+    cy.maxZoom(9);
 }
 
 function startFinishing() {
