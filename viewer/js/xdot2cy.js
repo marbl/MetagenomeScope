@@ -1012,7 +1012,7 @@ function moveThroughClusters(e) {
             } else {
                 CLUSTER_X--;
             }
-            cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
+            moveToCurrentCluster();
         }
         else if (e.which === 39 || e.which === 68) {
             // Right arrow key or "D"
@@ -1022,9 +1022,16 @@ function moveThroughClusters(e) {
             } else {
                 CLUSTER_X++;
             }
-            cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
+            moveToCurrentCluster();
         }
     }
+}
+
+/* Move to the cluster indicated by CLUSTER_X as part of the keyboard
+ * navigation feature.
+ */
+function moveToCurrentCluster() {
+    cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
 }
 
 // Things that are bound to the "beforeunload" event on the window.
