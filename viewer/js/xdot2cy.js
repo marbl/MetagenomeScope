@@ -193,6 +193,15 @@ var FINISHING_NODE_IDS = "";
 var FINISHING_NODE_OBJS = [];
 // Nodes that are outgoing from the last-added node to the reconstructed path.
 var NEXT_NODES;
+// Maximum zoom levels used in the graph display. The _ORDINARY one is to
+// prevent the user from "getting lost" (i.e. zooming too far in), and the
+// _DURING_FINISHING_ANIMATION one is to try to ensure that the user has some
+// context around tentative nodes during the finishing process (see issue #110
+// on GitHub for details).
+// (In case you're curious, we set the minimum ordinary zoom level
+// automatically in finishDrawComponent().)
+var MAX_ZOOM_DURING_FINISHING_ANIMATION = 2.2;
+var MAX_ZOOM_ORDINARY = 9;
 // List of mappings of cluster ID to "top" attribute
 // (corresponds to left position in graph)
 var CLUSTERID2TOP = [];
@@ -264,7 +273,7 @@ function initGraph(viewType) {
         // maxZoom, however, is defined based on the zoom level of zooming to
         // fit around a single node -- which usually has an upper bound of 9 or
         // so, based on some tests. (Hence why we just set maxZoom here.)
-        maxZoom: 9,
+        maxZoom: MAX_ZOOM_ORDINARY,
         // (sometimes slight) performance improvements
         pixelRatio: 1.0,
         hideEdgesOnViewport: HIDE_EDGES_ON_VIEWPORT,
@@ -3196,13 +3205,13 @@ function markTentativeNodes() {
         // https://github.com/cytoscape/cytoscape.js/issues/941) is to impose a
         // maxZoom limit before the fitting operation, and then reset that
         // limit to its prior value after the fitting operation.
-        cy.maxZoom(2.2);
+        cy.maxZoom(MAX_ZOOM_DURING_FINISHING_ANIMATION);
         cy.animate({fit: {eles: NEXT_NODES}, complete: resetMaxZoom});
     }
 }
 
 function resetMaxZoom() {
-    cy.maxZoom(9);
+    cy.maxZoom(MAX_ZOOM_ORDINARY);
 }
 
 function startFinishing() {
