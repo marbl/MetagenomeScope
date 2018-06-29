@@ -928,6 +928,42 @@ function setEnterBinding(inputID, f) {
  * To be called when the DOM is ready to be manipulated.
  */
 function doThingsWhenDOMReady() {
+    /* Enable demo button and remove its explanatory titletext if the viewer
+     * interface is being accessed with a protocol scheme that supports
+     * cross-origin requests (i.e. XMLHttpRequests, which are how the .db files
+     * are loaded to demo them).
+     * Loading the viewer interface locally means that the file: protocol will
+     * be used, and browsers don't support cross-origin requests originating
+     * from local protocols like that. So to avoid the user getting frustrated
+     * with trying to demo a file and repeatedly getting an error, we just
+     * automatically disable the demo button and only enable it if we know
+     * cross-origin requests are supported with the current protocol.
+     */
+    var CORS_PROTOCOL_SCHEMES = ["http:", "https:"];
+    /* Apparently checking if something is "in" an array in Javascript doesn't
+     * actually work; "in" works on the array's indices instead of its actual
+     * contents.
+     */
+    var demosSupported = false;
+    for (var i = 0; i < CORS_PROTOCOL_SCHEMES.length; i++) {
+        if (window.location["protocol"] === CORS_PROTOCOL_SCHEMES[i]) {
+            $("#xmlFileselectButton").prop("title", "");
+            enableButton("xmlFileselectButton");
+            demosSupported = true;
+            break;
+        }
+    }
+    // Trigger a transition: avoids "flickering"
+    if (demosSupported) {
+        $("#xmlFileselectButton").css("opacity", "1");
+    }
+    else {
+        // Based on Bootstrap 3.3's default behavior. Should match the opacity
+        // of disabled buttons throughout the rest of the viewer interface.
+        $("#xmlFileselectButton").css("opacity", "0.65");
+    }
+    // Set various bindings so that pressing the Enter key on some text fields
+    // does something (makes certain actions quicker and easier for the user)
     setEnterBinding("searchInput", searchForEles);
     setEnterBinding("layoutInput", testLayout);
     setEnterBinding("componentselector",

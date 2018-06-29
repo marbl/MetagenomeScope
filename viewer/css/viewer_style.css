@@ -55,6 +55,12 @@ html, body {
     opacity: 0;
     display: none;
 }
+
+#xmlFileselectButton {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out 0s;
+}
+
 #controls {
     position: absolute;
     width: 20em;
