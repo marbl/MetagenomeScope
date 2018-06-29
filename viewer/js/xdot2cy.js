@@ -938,6 +938,15 @@ function doThingsWhenDOMReady() {
      * with trying to demo a file and repeatedly getting an error, we just
      * automatically disable the demo button and only enable it if we know
      * cross-origin requests are supported with the current protocol.
+     *
+     * NOTE we use a transition to avoid the flashing from disabled->enabled or
+     * vice versa on page load.
+     *
+     * TODO: Might be better to default to enabled then transition to disabled
+     * for local? But that leaves the button technically "vulnerable" to being
+     * pressed before it's disabled. hm. maybe keep the enabled styling but
+     * have its functionality be disabled until this function is reached? Worth
+     * taking another look into button enabling/disabling with Bootstrap.
      */
     var CORS_PROTOCOL_SCHEMES = ["http:", "https:"];
     /* Apparently checking if something is "in" an array in Javascript doesn't
@@ -952,15 +961,6 @@ function doThingsWhenDOMReady() {
             demosSupported = true;
             break;
         }
-    }
-    // Trigger a transition: avoids "flickering"
-    // TODO: Might be better to default to enabled then transition to disabled
-    // for local? But that leaves the button technically "vulnerable" to being
-    // pressed before it's disabled. hm. maybe keep the enabled styling but
-    // have its functionality be disabled until this function is reached? Worth
-    // taking another look into button enabling/disabling with Bootstrap.
-    if (demosSupported) {
-        $("#xmlFileselectButton").css("opacity", "1");
     }
     // Set various bindings so that pressing the Enter key on some text fields
     // does something (makes certain actions quicker and easier for the user)
