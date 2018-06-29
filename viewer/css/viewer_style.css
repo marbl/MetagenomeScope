@@ -56,10 +56,11 @@ html, body {
     display: none;
 }
 
-/* NOTE: could set this to .btn to affect every button, and make EVERY
- * disabling/enabling event look super smooth. A tempting option? Look into it!
+/* NOTE: could set this to affect all elements with the class .btn to affect
+ * every button, and make EVERY disabling/enabling event look super smooth.
+ * A tempting option? Look into it!
  */
-#xmlFileselectButton {
+#xmlFileselectButton.pagejustloaded {
     transition: opacity 0.5s ease-in-out 0s;
 }
 

@@ -957,10 +957,22 @@ function doThingsWhenDOMReady() {
     for (var i = 0; i < CORS_PROTOCOL_SCHEMES.length; i++) {
         if (window.location["protocol"] === CORS_PROTOCOL_SCHEMES[i]) {
             $("#xmlFileselectButton").prop("title", "");
+            $("#xmlFileselectButton").on("transitionend",
+                function(e) {
+                    $("#xmlFileselectButton").removeClass("pagejustloaded");
+                }
+            );
             enableButton("xmlFileselectButton");
             demosSupported = true;
             break;
         }
+    }
+    if (!demosSupported) {
+        // Remove the class anyway. We keep this in a conditional to avoid a
+        // race condition where the transition happens, but we remove the
+        // pagejustloaded class (which would mess up the transition) before the
+        // transition is finished.
+        $("#xmlFileselectButton").removeClass("pagejustloaded");
     }
     // Set various bindings so that pressing the Enter key on some text fields
     // does something (makes certain actions quicker and easier for the user)
