@@ -954,13 +954,13 @@ function doThingsWhenDOMReady() {
         }
     }
     // Trigger a transition: avoids "flickering"
+    // TODO: Might be better to default to enabled then transition to disabled
+    // for local? But that leaves the button technically "vulnerable" to being
+    // pressed before it's disabled. hm. maybe keep the enabled styling but
+    // have its functionality be disabled until this function is reached? Worth
+    // taking another look into button enabling/disabling with Bootstrap.
     if (demosSupported) {
         $("#xmlFileselectButton").css("opacity", "1");
-    }
-    else {
-        // Based on Bootstrap 3.3's default behavior. Should match the opacity
-        // of disabled buttons throughout the rest of the viewer interface.
-        $("#xmlFileselectButton").css("opacity", "0.65");
     }
     // Set various bindings so that pressing the Enter key on some text fields
     // does something (makes certain actions quicker and easier for the user)
