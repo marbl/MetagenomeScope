@@ -138,7 +138,14 @@ html, body {
 .progress {
     margin-bottom: 0px;
 }
-/* Applied to the progress bar during "manual" animation. */
+/* Applied to the progress bar during "manual" animation. Unlike the
+ * user-select CSS3 property, the prefixes aren't needed for most modern
+ * browsers. That being said, I guess I'm gonna keep these around for the time
+ * being; these are needed to make manually animating the progress bar work, so
+ * I'd rather include a few extra lines of code than risk users on some old
+ * browsers getting really confused at the progress bar not working correctly.
+ * (NOTE: In the future, it might be worth reevaluating this sort of practice.)
+ */
 .notransitions {
     transition: none;
     -webkit-transition: none;
@@ -168,7 +175,7 @@ html, body {
  * selectable by the user, even though they could technically be interpreted as
  * text. This isn't standardized among all browsers yet, hence the multiple
  * prefix versions of *-user-select here. (Ideally we'd just be able to say
- * "user-select: none;", but for now we've gotta do this.)
+ * "user-select: none;", but for now we've gotta do this for certain browsers.)
  */
 .nonselectable {
     -moz-user-select: none;
