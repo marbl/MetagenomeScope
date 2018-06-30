@@ -55,12 +55,14 @@ html, body {
     opacity: 0;
     display: none;
 }
-/* NOTE: could set this to affect all elements with the class .btn to affect
- * every button, and make EVERY disabling/enabling event look super smooth.
- * A tempting option? Look into it!
+/* Add smooth transitions on enabling/disabling for buttons.
+ * Note that the main CSS property changed on enabling/disabling a button in
+ * Bootstrap 3.3 is opacity (it's 0.65 for disabled and 1 for enabled). I guess
+ * box-shadow changes a bit also (hence the "all" for the transition property),
+ * but opacity seems like it's the main thing here.
  */
-#xmlFileselectButton.pagejustloaded {
-    transition: opacity 0.5s ease-in-out 0s;
+button {
+    transition: all 0.5s ease-in-out 0s;
 }
 #controls {
     position: absolute;
