@@ -55,7 +55,6 @@ html, body {
     opacity: 0;
     display: none;
 }
-
 /* NOTE: could set this to affect all elements with the class .btn to affect
  * every button, and make EVERY disabling/enabling event look super smooth.
  * A tempting option? Look into it!
@@ -63,7 +62,6 @@ html, body {
 #xmlFileselectButton.pagejustloaded {
     transition: opacity 0.5s ease-in-out 0s;
 }
-
 #controls {
     position: absolute;
     width: 20em;
@@ -166,6 +164,12 @@ html, body {
 .cplabel {
     margin-top: 10px;
 }
+/* Used to make the gradient preview (and scaffold cycler buttons) not
+ * selectable by the user, even though they could technically be interpreted as
+ * text. This isn't standardized among all browsers yet, hence the multiple
+ * prefix versions of *-user-select here. (Ideally we'd just be able to say
+ * "user-select: none;", but for now we've gotta do this.)
+ */
 .nonselectable {
     -moz-user-select: none;
     -khtml-user-select: none;
