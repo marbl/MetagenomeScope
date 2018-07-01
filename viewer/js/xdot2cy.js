@@ -146,7 +146,13 @@ var PROGRESSBAR_FREQ;
 // PROGRESSBAR_FREQ = Math.floor(PROGRESSBAR_FREQ_PERCENT * SIZE), where
 // SIZE = (number of nodes to be drawn) + 0.5*(number of edges to be drawn)
 var PROGRESSBAR_FREQ_PERCENT = 0.05;
-
+// Valid protocol schemes under which we can use cross-origin requests (and
+// thereby load demo .db files).
+var CORS_PROTOCOL_SCHEMES = ["http:", "https:"];
+// Set to either true or false during doThingsWhenDOMReady().
+// If true, we can load demo .db files and the demoing button should be
+// enabled; if not, we can't (and the demoing button should remain disabled).
+var DEMOS_SUPPORTED = false;
 // Cytoscape.js graph instance
 var cy = null;
 // Numbers of selected elements, and collections of those selected elements.
@@ -932,33 +938,29 @@ function doThingsWhenDOMReady() {
      * interface is being accessed with a protocol scheme that supports
      * cross-origin requests (i.e. XMLHttpRequests, which are how the .db files
      * are loaded to demo them).
-     * Loading the viewer interface locally means that the file: protocol will
-     * be used, and browsers don't support cross-origin requests originating
-     * from local protocols like that. So to avoid the user getting frustrated
-     * with trying to demo a file and repeatedly getting an error, we just
-     * automatically disable the demo button and only enable it if we know
-     * cross-origin requests are supported with the current protocol.
      *
-     * NOTE we use a transition to avoid the flashing from disabled->enabled or
-     * vice versa on page load.
+     * Loading the viewer interface locally means that the "file:" protocol
+     * will be used, and browsers don't support cross-origin requests
+     * originating from local protocols like that. So to avoid the user
+     * getting frustrated with trying to demo a file and repeatedly getting
+     * an error, we just automatically disable the demo button and only
+     * enable it if we know cross-origin requests are supported with the
+     * current protocol.
      *
-     * TODO: Might be better to default to enabled then transition to disabled
-     * for local? But that leaves the button technically "vulnerable" to being
-     * pressed before it's disabled. hm. maybe keep the enabled styling but
-     * have its functionality be disabled until this function is reached? Worth
-     * taking another look into button enabling/disabling with Bootstrap.
-     */
-    var CORS_PROTOCOL_SCHEMES = ["http:", "https:"];
-    /* Apparently checking if something is "in" an array in Javascript doesn't
+     * NOTE we use button transitions (particularly on opacity) to avoid
+     * flashing from, e.g., enabled -> disabled -> enabled when reloading
+     * the viewer interface using a protocol in CORS_PROTOCOL_SCHEMES.
+     *
+     * Apparently checking if something is "in" an array in Javascript doesn't
      * actually work; "in" works on the array's indices instead of its actual
-     * contents.
+     * contents. Hence why we iterate based on CORS_PROTOCOL_SCHEMES instead of
+     * just saying something like "if (windowProtocol in CORS_..._SCHEMES)".
      */
-    var demosSupported = false;
     for (var i = 0; i < CORS_PROTOCOL_SCHEMES.length; i++) {
         if (window.location["protocol"] === CORS_PROTOCOL_SCHEMES[i]) {
             $("#xmlFileselectButton").prop("title", "");
             enableButton("xmlFileselectButton");
-            demosSupported = true;
+            DEMOS_SUPPORTED = true;
             break;
         }
     }
@@ -1445,7 +1447,9 @@ function parseDBcomponents() {
     // way we prevent something else from being checked in the "in-between"
     // state when no components have been drawn
     $("#noneColorization").prop("checked", true);
-    enableButton("xmlFileselectButton");
+    if (DEMOS_SUPPORTED) {
+        enableButton("xmlFileselectButton");
+    }
     enableButton("fileselectButton");
     enableButton("loadDBbutton");
     enableButton("infoButton");
@@ -2230,7 +2234,9 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("explicitSPQROption");
         enableButton("fileselectButton");
         enableButton("loadDBbutton");
-        enableButton("xmlFileselectButton");
+        if (DEMOS_SUPPORTED) {
+            enableButton("xmlFileselectButton");
+        }
         $("#searchInput").prop("disabled", false);
         $("#layoutInput").prop("disabled", false);
         if (componentEdgeCount > 0) {
