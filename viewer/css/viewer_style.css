@@ -62,8 +62,9 @@ html, body {
  * it's still impacted by button enabling/disabling.)
  */
 button {
-    transition: opacity 0.5s ease-in-out 0s;
-    transition: box-shadow 0.5s ease-in-out 0s;
+    transition-duration: 0.5s;
+    transition-timing-function: ease-in-out;
+    transition-property: opacity, box-shadow;
 }
 #controls {
     position: absolute;
