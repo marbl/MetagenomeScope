@@ -56,15 +56,14 @@ html, body {
     display: none;
 }
 /* Add smooth transitions on enabling/disabling for buttons.
- * Note that the main CSS property changed on enabling/disabling a button in
- * Bootstrap 3.3 is opacity (it's 0.65 for disabled and 1 for enabled). I guess
- * box-shadow changes a bit also (hence the "all" for the transition property),
- * but opacity seems like it's the main thing here.
- * TODO: consider somehow making hover transitions immediate? i.e. making this
- * only apply to non-hovered buttons...?
+ * Note that the (animatable) CSS properties changed on enabling/disabling
+ * a button in Bootstrap 3.3 are opacity (it's 0.65 for disabled and 1 for
+ * enabled) and box-shadow. (The change in opacity is more apparent, but
+ * it's still impacted by button enabling/disabling.)
  */
 button {
-    transition: all 0.5s ease-in-out 0s;
+    transition: opacity 0.5s ease-in-out 0s;
+    transition: box-shadow 0.5s ease-in-out 0s;
 }
 #controls {
     position: absolute;
