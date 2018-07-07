@@ -2217,7 +2217,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     window.setTimeout(function() {
         // If we have scaffold data still loaded for this assembly, use it
         // for the newly drawn connected component.
-        if (isObjectNonempty(SCAFFOLDID2NODEKEYS)) {
+        if (!($.isEmptyObject(SCAFFOLDID2NODEKEYS))) {
             updateScaffoldsInComponentList();
         }
         // At this point, all of the hard work has been done. All that's left
@@ -2294,18 +2294,6 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         var drawTime = endDrawDate.getTime() - startDrawDate.getTime();
         console.log("Drawing took " + drawTime + "ms");
     }, 0);
-}
-
-/* Returns true if the specified object is not empty, false otherwise.
- * (We assume that the object is just a normal "mapping." This is only really
- * intended to work for SCAFFOLDID2NODEKEYS at present -- I can't guarantee
- * it'll work for other JavaScript objects.)
- */
-function isObjectNonempty(object) {
-    for (var k in object) {
-        return true;
-    }
-    return false;
 }
 
 // TODO verify that this doesn't mess stuff up when you back out of and then
