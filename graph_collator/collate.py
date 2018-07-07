@@ -317,10 +317,9 @@ def n50(node_lengths):
        https://en.wikipedia.org/wiki/N50,_L50,_and_related_statistics for
        more information).
        
-       Here, we use the calculation method described by Yandell and Ence,
-       2012 (Nature) -- see
-       http://www.nature.com/nrg/journal/v13/n5/box/nrg3174_BX1.html for a
-       high-level overview.
+       ATTR: Here, we use the calculation method described by Yandell and Ence
+       (2012), Nature Reviews Genetics 13(5). Box 1 in the paper describes the
+       method for calculating the N50 statistic that is used in this function.
     """
 
     if len(node_lengths) == 0:
