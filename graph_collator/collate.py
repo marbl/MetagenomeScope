@@ -183,6 +183,10 @@ def check_file_existence(filepath):
 def safe_file_remove(filepath):
     """Safely (preventing race conditions of the file already being removed)
        removes a file located at the given file path.
+
+       ATTR: this function is based on User "Matt"'s answer to this Stack
+       Overflow question: https://stackoverflow.com/questions/10840533/
+       Link to Matt's SO profile: https://stackoverflow.com/users/810671/matt
     """
     try:
         os.remove(filepath)
@@ -348,25 +352,36 @@ def save_aux_file(aux_filename, source, layout_msg_printed, warnings=True):
        Otherwise, we assume that source is just a string of text to write
        to the file.
 
+       For info on how we use os.open() (and the effects of that), see this
+       page on the MetagenomeScope wiki:
+       https://github.com/marbl/MetagenomeScope/wiki/Note-on-File-Race-Conditions
+
+       ATTR: The use of os.open() in conjunction with the os.O_EXCL
+       flag in order to prevent the race condition, as well as the background
+       information for the linked wiki writeup on this solution, is based on
+       Adam Dinwoodie (username "me_and")'s answer to this Stack
+       Overflow question: https://stackoverflow.com/questions/10978869
+       Link to Adam's SO profile: https://stackoverflow.com/users/220155/me-and
+
        If check_file_existence() gives us an error (or if os.open() gives
        us an error due to the flags we've used), we don't save the
        aux file in particular. The default behavior (if warnings=True) in this
-       case is to print an error message accordingly (its
-       formatting depends partly on whether or not a layout message for
-       the current component was printed [given here as layout_msg_printed,
-       a boolean variable] -- if so [i.e. layout_msg_printed is True], the
-       error message here is printed on a explicit newline and followed
-       by a trailing newline. Otherwise, the error message here is just printed
-       with a trailing newline).
-       
-       However, if warnings=False and we get an error from either possible
-       source (check_file_existence() or os.open()) then this will
+       case is to print an error message accordingly [1]. However, if
+       warnings=False and we get an error from either possible "error source"
+       (check_file_existence() or os.open()) then this will
        throw an error. Setting warnings=False should only be done for
        operations that are required to generate a .db file -- care should be
        taken to ensure that .db files aren't partially created before trying
        save_aux_file with warnings=False, since that could result in an
        incomplete .db file being generated (which might confuse users).
        If warnings=False, then the value of layout_msg_printed is not used.
+
+       [1] The error message's formatting depends partly on whether or not
+       a layout message for the current component was printed (given here as
+       layout_msg_printed, a boolean variable) -- if so (i.e.
+       layout_msg_printed is True), the error message here is printed on a
+       explicit newline and followed by a trailing newline. Otherwise, the
+       error message here is just printed with a trailing newline.
 
        Returns True if the file was written successfully; else, returns False.
     """
