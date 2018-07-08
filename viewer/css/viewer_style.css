@@ -21,6 +21,12 @@ html, body {
     height: 100%;
     width: 100%;
 }
+/* ATTR: The toggling mechanism for the control panel was inspired by a similar
+ * mechanism in the following Cytoscape.js demo:
+ * http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/
+ * Link to the demo's code:
+ * https://github.com/cytoscape/cytoscape.js/tree/master/documentation/demos/colajs-graph
+ */
 #controlsToggler {
     position: absolute;
     left: 0em;
@@ -148,7 +154,7 @@ button {
  * being; these are needed to make manually animating the progress bar work, so
  * I'd rather include a few extra lines of code than risk users on some old
  * browsers getting really confused at the progress bar not working correctly.
- * (NOTE: In the future, it might be worth reevaluating this sort of practice.)
+ * (NOTE: In the future, it might be worth reevaluating this.)
  */
 .notransitions {
     transition: none;
@@ -165,12 +171,6 @@ button {
 }
 .monospace {
     font-family: monospace;
-}
-.scaffold {
-    cursor: pointer;
-    background-color: #333;
-    height: 100%;
-    line-height: 100%;
 }
 .cplabel {
     margin-top: 10px;
