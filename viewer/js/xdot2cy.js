@@ -2653,6 +2653,8 @@ function openEdgeFilteringDialog() {
 
 /* ATTR: This code was mostly taken from Mike Bostock's example of d3.js'
  * histogram generation, available at https://gist.github.com/mbostock/3048450.
+ * (Update: this example has since been moved to Observable at
+ * https://beta.observablehq.com/@mbostock/d3-histogram.)
  */
 function drawEdgeWeightHistogram() {
     var formatCount = d3.format(",.0f");
