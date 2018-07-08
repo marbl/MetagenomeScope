@@ -191,13 +191,15 @@ def safe_file_remove(filepath):
     try:
         os.remove(filepath)
     except OSError as error:
-        if error.errno == errno.ENOENT:
-            # Something removed the file before we could. That's alright.
-            pass
-        else:
-            # Something strange happened -- maybe someone changed the file
-            # to a directory, or something similarly odd. Raise the original
-            # error to inform the user.
+        # If the error matches errno.ENOENT ("No such file or directory"),
+        # then something removed the file before we could. That's alright, and
+        # we don't need to throw an exception.
+        if error.errno != errno.ENOENT:
+            # However, if the error doesn't match errno.ENOENT, then we know
+            # that something strange happened -- maybe someone changed the file
+            # to a directory before we tried to remove it, or something
+            # similarly odd. We don't attempt to handle this case, and instead
+            # we just raise the original error to inform the user.
             raise
 
 # Right off the bat, check if the .db file name causes an error somehow.
