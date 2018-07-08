@@ -2292,9 +2292,18 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         }
         updateTextStatus("&nbsp;", false);
         finishProgressBar();
+        // Log the time it took to draw this component; useful for benchmarking
         endDrawDate = new Date();
         var drawTime = endDrawDate.getTime() - startDrawDate.getTime();
-        console.log("Drawing took " + drawTime + "ms");
+        var consoleMsg = "Drawing ";
+        if (mode !== "SPQR") {
+            consoleMsg += "standard";
+        }
+        else {
+            consoleMsg += CURR_SPQRMODE + " SPQR";
+        }
+        consoleMsg += " component #" + cmpRank + " took " + drawTime + "ms";
+        console.log(consoleMsg);
     }, 0);
 }
 
