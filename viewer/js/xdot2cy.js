@@ -235,6 +235,8 @@ var INTEGER_RE = /^\d+$/;
 
 var startDrawDate, endDrawDate;
 
+// ATTR: This method for checking that the File API is supported adapted from
+// https://www.html5rocks.com/en/tutorials/file/dndfiles/, by Eric Bidelman.
 if (!(window.File && window.FileReader)) {
 	alert("Your browser does not support the HTML5 File APIs. " +
           "You will not be able to upload any .db files, although " +
@@ -2309,7 +2311,13 @@ function changeDropdownVal(arrowHTML) {
     $("#rotationDropdown").html(arrowHTML + " <span class='caret'></span>"); 
 }
 
-// Toggle visibility of the controls div.
+/* Toggles visibility of the controls div.
+ *
+ * ATTR: This toggling mechanism was inspired by a similar mechanism in this
+ * Cytoscape.js demo: http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/
+ * The code repository for this demo is located at:
+ * https://github.com/cytoscape/cytoscape.js/tree/master/documentation/demos/colajs-graph
+ */
 function toggleControls() {
     $("#controls").toggleClass("notviewable");
     $("#cy").toggleClass("nosubsume");
@@ -2341,7 +2349,7 @@ function loadajaxDB() {
     DB_FILENAME = filename;
     // jQuery doesn't support arraybuffer responses so we have to manually
     // use an XMLHttpRequest(), strange capitalization and all
-    // Credit to this approach goes here, btw:
+    // ATTR: Credit to this approach goes here, btw:
     // http://www.henryalgus.com/reading-binary-files-using-jquery-ajax/
     var xhr = new XMLHttpRequest();
     xhr.open("GET", filename, true);
@@ -2643,8 +2651,8 @@ function openEdgeFilteringDialog() {
     drawEdgeWeightHistogram();
 }
 
-/* This code was mostly taken from Mike Bostock's example of d3.js' histogram
- * generation, available at https://gist.github.com/mbostock/3048450.
+/* ATTR: This code was mostly taken from Mike Bostock's example of d3.js'
+ * histogram generation, available at https://gist.github.com/mbostock/3048450.
  */
 function drawEdgeWeightHistogram() {
     var formatCount = d3.format(",.0f");
