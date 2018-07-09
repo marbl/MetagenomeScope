@@ -50,7 +50,7 @@ parser = argparse.ArgumentParser(description="Generates a copy of the " + \
 parser.add_argument("-i", "--inputfile", required=True,
         help="demo .db list file")
 parser.add_argument("-v", "--indexfile", required=True,
-        help="viewer interface index.html file to use as a template (this file will not be modified)")
+        help="viewer interface index.html file to use as a template (this file will not be modified) -- must be non-minified")
 parser.add_argument("-o", "--outputfile", required=True,
         help="output index.html file name (cannot be the same filename as the template file)")
 args = parser.parse_args()
