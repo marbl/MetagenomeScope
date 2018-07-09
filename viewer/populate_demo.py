@@ -24,6 +24,8 @@
 # filename (tab) description".
 #
 # (Descriptions can include HTML, e.g. for hyperlinks to the data source.)
+#
+# By default, makes the first .db file's radio button checked.
 
 import argparse
 
@@ -35,8 +37,7 @@ DB_HTML_TEMPLATE = """
                                 <input type="radio" name="fs" id="{ID}"{CHECKED}>
                                 {DESC}
                             </label>
-                        </div>
-                        """
+                        </div>\n"""
 # Shift the checked="checked" property declaration up two indent levels to make
 # it flush with the <input type="radio"> tag
 CHECKED = "\n" + DB_HTML_MARGIN + (" " * 8) + "checked=\"checked\""
@@ -49,9 +50,9 @@ parser = argparse.ArgumentParser(description="Generates a copy of the " + \
 parser.add_argument("-i", "--inputfile", required=True,
         help="demo .db list file")
 parser.add_argument("-v", "--indexfile", required=True,
-        help="viewer interface index.html file to use as a base (this file will not be modified)")
+        help="viewer interface index.html file to use as a template (this file will not be modified)")
 parser.add_argument("-o", "--outputfile", required=True,
-        help="output index.html file name")
+        help="output index.html file name (cannot be the same filename as the template file)")
 args = parser.parse_args()
 
 db_ct = 0
@@ -88,7 +89,8 @@ with open(args.outputfile, "w") as output_index_file:
                     output_index_file.write(line)
             else:
                 if DB_LIST_END_TAG in line:
-                    output_index_file.write(DB_LIST_END_TAG + "\n")
+                    output_index_file.write(DB_HTML_MARGIN + DB_LIST_END_TAG +
+                            "\n")
                     going_through_template_demo_list = False
 print "Demo .db list containing %d files inserted into output file %s." % \
         (db_ct, args.outputfile)
