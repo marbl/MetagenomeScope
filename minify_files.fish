@@ -1,7 +1,8 @@
 #! /usr/bin/fish
 # Minifies the custom JavaScript and CSS code in MetagenomeScope.
 #
-# Assumes that csso-cli, uglify-js, and html-minifier have been installed
+# Assumes the CWD is the root of the MetagenomeScope/ repository.
+# Also assumes that csso-cli, uglify-js, and html-minifier have been installed
 # through NPM with the -g option enabled.
 # Also assumes that the doctype in index.html is exactly 15 characters long.
 # (The doctype has to be the first element in the minified HTML file, but we

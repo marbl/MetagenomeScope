@@ -2,6 +2,9 @@
 # The testgraphs/ and testdbs/ directories are ignored in the git repository to
 # save space. This is just a useful script I wanted to save that auto-updates a
 # number of assembly graphs' corresponding .db files.
+#
+# Assumes the CWD is the root of the MetagenomeScope/ repository.
+#
 # TODO: remove a few things from here (unsimplified SRS049950?, 20170220, etc)
 # that aren't needed any more.
 # Also, either remove the P_ graphs from the demo or add them + the requisite
