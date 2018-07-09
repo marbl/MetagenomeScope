@@ -1,0 +1,5 @@
+js/sql.js linguist-vendored=true
+fonts/* linguist-vendored=true
+*.min.js linguist-generated=true
+*.min.css linguist-generated=true
+*.min.html linguist-generated=true
