@@ -27,7 +27,7 @@
 #
 # By default, makes the first .db file's radio button checked.
 
-import argparse
+import argparse, os, sqlite3
 
 # Based on indent level for <div class="radio"> elements in the HTML file
 DB_HTML_TEMPLATE = """                        <div class="radio">
@@ -44,25 +44,77 @@ DB_LIST_END_TAG = "<!-- END DEMO .DB LIST -->"
 
 parser = argparse.ArgumentParser(description="Generates a copy of the " + \
         "MetagenomeScope index.html page with a specified demo .db list.")
-parser.add_argument("-l", "--listfile", required=True,
-        help="demo .db list file")
+parser.add_argument("-l", "--listfile", required=False,
+        help="tab-separated file listing all .db files to be included")
+parser.add_argument("-d", "--dbdirectory", required=True,
+        help="directory containing .db files")
 parser.add_argument("-f", "--htmlfile", required=True,
         help="(non-minified) index.html file to insert the HTML demo list into")
 args = parser.parse_args()
 
-db_ct = 0
+dbfn2desc = {}
+# We use this list (instead of just using dbfn2desc.keys()) in order to
+# preserve the order in the list file.
+filename_list = []
 list_html_output = ""
-with open(args.listfile, "r") as db_list_file:
-    for line in db_list_file:
-        if "\t" in line:
-            db_fn, db_desc = line.split("\t")
-            # Fill in appropriate information in DB_HTML_TEMPLATE
-            db_html_output = DB_HTML_TEMPLATE.replace("{ID}", db_fn)
-            db_html_output = db_html_output.replace("{DESC}", db_desc.strip())
-            if db_ct == 0:
-                db_html_output = db_html_output.replace("{CHECKED}", CHECKED)
+if args.listfile is not None:
+    with open(args.listfile, "r") as db_list_file:
+        for line in db_list_file:
+            if "\t" in line:
+                db_fn, db_desc = line.split("\t")
+                dbfn2desc[db_fn] = db_desc.strip()
+                filename_list.append(db_fn)
             else:
-                db_html_output = db_html_output.replace("{CHECKED}", "")
+                # It's possible for the user to avoid specifying a file
+                # description. In this case, we check that this line isn't just
+                # a blank line; if so, then we just read the entire line as the
+                # file name. (We also set the "description" as the file name,
+                # matching the output of this script when no list file is
+                # provided.)
+                db_fn = line.strip()
+                if len(db_fn) > 0:
+                    dbfn2desc[db_fn] = db_fn
+                    filename_list.append(db_fn)
+
+db_ct = 0
+if args.listfile is None:
+    filename_list = os.listdir(args.dbdirectory)
+for fn in filename_list:
+    # This check is mainly for the case where no list file is given and we just
+    # iterate over all the .db files in the given directory. However, it's also
+    # used when looking at the list file, so if the user specifies a non-.db
+    # file in the list file then this check also ensures it'll ignored.
+    if fn.endswith(".db"):
+        # If the user didn't specify a list file (-l), then just use all .db
+        # files in the given directory (in this case, args.listfile will be
+        # None). However, if the user did specify a list file, then we only
+        # use those .db files that were specified in the list file (and their
+        # filenames are therefore now keys in dbfn2desc).
+        if args.listfile is None or fn in dbfn2desc:
+            # We're going to include this .db file in the demo list!
+            # Get data from this .db file
+            connection = sqlite3.connect(os.path.join(args.dbdirectory, fn))
+            cursor = connection.cursor()
+            print fn
+            cursor.execute("SELECT filetype, node_count, edge_count from assembly;")
+            data = cursor.fetchone()
+            if data is None:
+                raise ValueError, "%s doesn't have assembly data" % (fn)
+            # Use this data to populate the parenthetical descriptions
+            # Uses the str.format() python builtin to ensure that node and edge
+            # counts use commas as the thousands separator
+            contig_noun = "contigs"
+            edge_noun = "edges"
+            if data[0] in ("LastGraph", "GFA", "FASTG"):
+                contig_noun = "positive contigs"
+                edge_noun = "positive edges"
+            main_desc = fn if args.listfile is None else dbfn2desc[fn]
+            db_desc = "{} ({}, {:,} {}, {:,} {})".format(main_desc, data[0],
+                    data[1], contig_noun, data[2], edge_noun)
+            # Fill in appropriate information in DB_HTML_TEMPLATE
+            checked_str = CHECKED if db_ct == 0 else ""
+            db_html_output = DB_HTML_TEMPLATE.format(ID=fn, DESC=db_desc,
+                    CHECKED=checked_str)
             list_html_output += db_html_output
             db_ct += 1
 
