@@ -95,7 +95,7 @@ for fn in filename_list:
             # Get data from this .db file
             connection = sqlite3.connect(os.path.join(args.dbdirectory, fn))
             cursor = connection.cursor()
-            print fn
+            #print fn
             cursor.execute("SELECT filetype, node_count, edge_count from assembly;")
             data = cursor.fetchone()
             if data is None:
