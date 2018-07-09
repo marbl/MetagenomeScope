@@ -30,9 +30,7 @@
 import argparse
 
 # Based on indent level for <div class="radio"> elements in the HTML file
-DB_HTML_MARGIN = "                        "
-DB_HTML_TEMPLATE = """
-                        <div class="radio">
+DB_HTML_TEMPLATE = """                        <div class="radio">
                             <label>
                                 <input type="radio" name="fs" id="{ID}"{CHECKED}>
                                 {DESC}
@@ -40,24 +38,21 @@ DB_HTML_TEMPLATE = """
                         </div>\n"""
 # Shift the checked="checked" property declaration up two indent levels to make
 # it flush with the <input type="radio"> tag
-CHECKED = "\n" + DB_HTML_MARGIN + (" " * 8) + "checked=\"checked\""
+CHECKED = "\n" + (" " * 32) + "checked=\"checked\""
 DB_LIST_START_TAG = "<!-- BEGIN DEMO .DB LIST -->"
 DB_LIST_END_TAG = "<!-- END DEMO .DB LIST -->"
 
-
 parser = argparse.ArgumentParser(description="Generates a copy of the " + \
         "MetagenomeScope index.html page with a specified demo .db list.")
-parser.add_argument("-i", "--inputfile", required=True,
+parser.add_argument("-l", "--listfile", required=True,
         help="demo .db list file")
-parser.add_argument("-v", "--indexfile", required=True,
-        help="viewer interface index.html file to use as a template (this file will not be modified) -- must be non-minified")
-parser.add_argument("-o", "--outputfile", required=True,
-        help="output index.html file name (cannot be the same filename as the template file)")
+parser.add_argument("-f", "--htmlfile", required=True,
+        help="(non-minified) index.html file to insert the HTML demo list into")
 args = parser.parse_args()
 
 db_ct = 0
-html_output = ""
-with open(args.inputfile, "r") as db_list_file:
+list_html_output = ""
+with open(args.listfile, "r") as db_list_file:
     for line in db_list_file:
         if "\t" in line:
             db_fn, db_desc = line.split("\t")
@@ -68,29 +63,25 @@ with open(args.inputfile, "r") as db_list_file:
                 db_html_output = db_html_output.replace("{CHECKED}", CHECKED)
             else:
                 db_html_output = db_html_output.replace("{CHECKED}", "")
-            html_output += db_html_output
+            list_html_output += db_html_output
             db_ct += 1
 
-# We've got the HTML corresponding to the demo .db list (html_output) ready.
-# Now we just need to insert it into index.html in the right place.
-# NOTE there's almost certainly a more efficient way to write this without
-# checking every line in the file for the BEGIN DEMO .DB LIST comment, but
-# considering the size of the index.html file this shouldn't be that slow
-with open(args.outputfile, "w") as output_index_file:
-    with open(args.indexfile, "r") as template_index_file:
-        going_through_template_demo_list = False
-        for line in template_index_file:
-            if not going_through_template_demo_list:
-                if DB_LIST_START_TAG in line:
-                    output_index_file.write(DB_HTML_MARGIN + DB_LIST_START_TAG)
-                    output_index_file.write(html_output)
-                    going_through_template_demo_list = True
-                else:
-                    output_index_file.write(line)
-            else:
-                if DB_LIST_END_TAG in line:
-                    output_index_file.write(DB_HTML_MARGIN + DB_LIST_END_TAG +
-                            "\n")
-                    going_through_template_demo_list = False
-print "Demo .db list containing %d files inserted into output file %s." % \
-        (db_ct, args.outputfile)
+# We've got the HTML corresponding to the demo .db list (list_html_output)
+# ready. Now we just need to insert it into index.html in the right place.
+with open(args.htmlfile, "r") as htmlfile:
+    html_file_text = htmlfile.readlines()
+with open(args.htmlfile, "w") as htmlfile:
+    going_through_template_demo_list = False
+    for line in html_file_text:
+        if not going_through_template_demo_list:
+            htmlfile.write(line)
+            if DB_LIST_START_TAG in line:
+                htmlfile.write(list_html_output)
+                going_through_template_demo_list = True
+        else:
+            # Don't write anything extra until we reach the end tag
+            if DB_LIST_END_TAG in line:
+                htmlfile.write(line)
+                going_through_template_demo_list = False
+print "HTML Demo .db list specifying %d .db files inserted into file %s." % \
+        (db_ct, args.htmlfile)
