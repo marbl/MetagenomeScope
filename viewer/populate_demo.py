@@ -20,13 +20,10 @@
 # Generates a copy of the viewer interface index.html page where the demo files
 # available to select in the "Demo .db" dialog match those in a specified list.
 # Right now the input list is a tab-separated values (TSV) file, where each
-# line is "filename\tdescription".
+# line (corresponding to a single .db file) is formatted as
+# filename (tab) description".
 #
 # (Descriptions can include HTML, e.g. for hyperlinks to the data source.)
-# Possible TODO: Add description parameter to db's? Would allow this sort of
-# thing to work without extra input/etc. -- the user could just pass a
-# directory, and this script could iterate through all db's in that directory
-# and autogenerate an index.html file.
 
 import argparse
 
