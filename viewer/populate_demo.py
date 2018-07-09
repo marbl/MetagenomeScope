@@ -30,7 +30,8 @@
 
 import argparse
 
-DB_HTML_MARGIN = "                       " 
+# Based on indent level for <div class="radio"> elements in the HTML file
+DB_HTML_MARGIN = "                        "
 DB_HTML_TEMPLATE = """
                         <div class="radio">
                             <label>
@@ -39,7 +40,9 @@ DB_HTML_TEMPLATE = """
                             </label>
                         </div>
                         """
-CHECKED = "\n" + DB_HTML_MARGIN + "checked=\"checked\""
+# Shift the checked="checked" property declaration up two indent levels to make
+# it flush with the <input type="radio"> tag
+CHECKED = "\n" + DB_HTML_MARGIN + (" " * 8) + "checked=\"checked\""
 DB_LIST_START_TAG = "<!-- BEGIN DEMO .DB LIST -->"
 DB_LIST_END_TAG = "<!-- END DEMO .DB LIST -->"
 
