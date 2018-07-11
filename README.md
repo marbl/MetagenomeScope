@@ -57,6 +57,12 @@ beneficial when analyzing large graphs:
 A demo of MetagenomeScope's viewer interface is available at
 [mgsc.umiacs.io](http://mgsc.umiacs.io/).
 
+Since MetagenomeScope's viewer interface is a client-side web application, you
+can access it from **any modern web browser** (mobile browsers also work,
+although using a desktop browser is generally recommended), either locally
+(if the viewer interface code is downloaded on your computer) or over
+HTTP/HTTPS (if the viewer interface code is hosted on a server).
+
 ## Wiki
 
 Documentation on MetagenomeScope is available at its GitHub wiki,
