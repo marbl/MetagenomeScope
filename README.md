@@ -16,9 +16,9 @@ and uses [Graphviz](http://www.graphviz.org/)'
 lay out each connected component of the graph.
 
 MetagenomeScope also contains a bunch of other features intended to simplify
-exploratory analysis of assembly graphs, including tools for **scaffold
-visualization**, **path finishing**, and
-**[SPQR tree](https://en.wikipedia.org/wiki/SPQR_tree) decomposition**.
+exploratory analysis of assembly graphs, including tools for scaffold
+visualization, path finishing, and
+[SPQR tree](https://en.wikipedia.org/wiki/SPQR_tree) decomposition.
 
 MetagenomeScope is composed of two main components:
 
