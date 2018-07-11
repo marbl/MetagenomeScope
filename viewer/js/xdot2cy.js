@@ -237,7 +237,7 @@ var startDrawDate, endDrawDate;
 
 // ATTR: This method for checking that the File API is supported adapted from
 // https://www.html5rocks.com/en/tutorials/file/dndfiles/, by Eric Bidelman.
-if (!(window.File && window.FileReader)) {
+if (!(window.File && window.FileReader && window.Blob)) {
 	alert("Your browser does not support the HTML5 File APIs. " +
           "You will not be able to upload any .db files, although " +
           "you can still try out any available demo .db files.");
