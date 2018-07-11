@@ -21,7 +21,7 @@
 # available to select in the "Demo .db" dialog match those in a specified list.
 # Right now the input list is a tab-separated values (TSV) file, where each
 # line (corresponding to a single .db file) is formatted as
-# filename (tab) description".
+# filename[(tab)description]".
 #
 # (Descriptions can include HTML, e.g. for hyperlinks to the data source.)
 #
@@ -49,9 +49,15 @@ parser.add_argument("-d", "--dbdirectory", required=True,
         help="""directory containing all .db files that will be referenced in
         the generated demo.""")
 parser.add_argument("-l", "--listfile", required=False,
-        help="""tab-separated file listing all .db files to be included in
-        the generated demo. If this is not specified, then all .db files in
-        the directory specified by -d will be included.""")
+        help="""optional file where each line defines a .db file to be included
+        in the generated demo. Each line is of the format
+        filename(tab)description
+        where "filename" is the name of a .db file located within the directory
+        specified by -d, "description" is an optional description of the .db
+        file specified on that line, and "(tab)" is a tab character (only
+        required if a description is given). If this is not specified, then all
+        .db files in the directory specified by -d will be included in the
+        demo.""")
 parser.add_argument("-i", "--indexfile", required=True,
         help="""(non-minified) index.html file to use as a base for the new
         index.html file. If no output index file is specified via -o, then the
