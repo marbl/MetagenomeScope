@@ -89,6 +89,10 @@ MetagenomeScope is licensed under the
 
 License information for MetagenomeScope's dependencies is included in the root directory of this repository, in `DEPENDENCY_LICENSES.txt`. License copies for dependencies distributed/linked with MetagenomeScope -- when not included with their corresponding source code -- are available in the `dependency_licenses/` directory.
 
+### A note about copyright years
+
+The copyright years at the top of each of MetagenomeScope's code files are given as a hyphenated range (e.g. `20xx-20yy`) with the understanding that each year included in this range represents a "copyrightable year" in which a version of MetagenomeScope's code was publicly released on GitHub. (This note is included per the GPL guidelines [here](https://www.gnu.org/licenses/gpl-howto.en.html).)
+
 ## Acknowledgements
 
 See the [acknowledgements page](https://github.com/marbl/MetagenomeScope/wiki/Acknowledgements) on the wiki for a full list of acknowledgements
