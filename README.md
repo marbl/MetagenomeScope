@@ -31,7 +31,8 @@ MetagenomeScope is composed of two main components:
    decompositions.
    This preprocessing step takes care of
    graph layout, pattern detection, and SPQR tree generation.
-   Currently, this supports LastGraph (Velvet), GML
+   Currently, this supports LastGraph
+   ([Velvet](https://www.ebi.ac.uk/~zerbino/velvet/)), GML
    ([MetaCarvel](https://github.com/marbl/MetaCarvel)), and GFA input
    files. Support for SPAdes FASTG files should be ready very soon, as well.
 
