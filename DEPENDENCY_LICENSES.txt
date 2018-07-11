@@ -62,9 +62,9 @@ Furthermore, the visualization interface is distributed with:
     -Licensed under the MIT License
      (included in dependency_licenses/jquery.license)
 
-Additionally, some nontrivial portions of JavaScript code in the visualization
-interface were based on the following public code examples (as detailed in
-MetagenomeScope's acknowledgements section):
+Additionally, some nontrivial portions of JavaScript/HTML code in the
+visualization interface were based on the following public code examples
+(as detailed in MetagenomeScope's acknowledgements section):
 
 -https://github.com/cytoscape/cytoscape.js/tree/master/documentation/demos/colajs-graph
     -Accessed: circa January 2017
@@ -83,6 +83,13 @@ MetagenomeScope's acknowledgements section):
     -Licensed under the GNU GPL, version 3.
     -No license/copyright was provided with the code. (For a copy of
      the GNU GPL v3, see COPYING.txt in MetagenomeScope's root directory.)
+
+-https://getbootstrap.com/docs/3.3/javascript/#modals
+    -Author: Bootstrap team
+    -Accessed: circa January 2017
+    -Licensed under Creative Commons BY 3.0.
+    -A link to the license is located here:
+     https://creativecommons.org/licenses/by/3.0/legalcode
 
 The Python component of the preprocessing script requires the use of the
 following tools during execution, although they are not distributed with
