@@ -90,6 +90,7 @@ visualization interface were based on the following public code examples
     -Licensed under Creative Commons BY 3.0.
     -A link to the license is located here:
      https://creativecommons.org/licenses/by/3.0/legalcode
+    -See above for copyright information for Bootstrap.
 
 The Python component of the preprocessing script requires the use of the
 following tools during execution, although they are not distributed with
