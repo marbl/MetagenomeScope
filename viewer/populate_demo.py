@@ -42,14 +42,28 @@ CHECKED = "\n" + (" " * 32) + "checked=\"checked\""
 DB_LIST_START_TAG = "<!-- BEGIN DEMO .DB LIST -->"
 DB_LIST_END_TAG = "<!-- END DEMO .DB LIST -->"
 
-parser = argparse.ArgumentParser(description="Generates a copy of the " + \
-        "MetagenomeScope index.html page with a specified demo .db list.")
-parser.add_argument("-l", "--listfile", required=False,
-        help="tab-separated file listing all .db files to be included")
+parser = argparse.ArgumentParser(description="""Generates a copy of a provided
+        MetagenomeScope index.html page with a demo listing certain .db
+        files.""")
 parser.add_argument("-d", "--dbdirectory", required=True,
-        help="directory containing .db files")
-parser.add_argument("-f", "--htmlfile", required=True,
-        help="(non-minified) index.html file to insert the HTML demo list into")
+        help="""directory containing all .db files that will be referenced in
+        the generated demo.""")
+parser.add_argument("-l", "--listfile", required=False,
+        help="""tab-separated file listing all .db files to be included in
+        the generated demo. If this is not specified, then all .db files in
+        the directory specified by -d will be included.""")
+parser.add_argument("-i", "--indexfile", required=True,
+        help="""(non-minified) index.html file to use as a base for the new
+        index.html file. If no output index file is specified via -o, then the
+        demo information will be inserted into this index file; if an output
+        index file is specified, though, then this file will not be changed
+        (unless you give the same file as the argument to both -i and -o).""")
+parser.add_argument("-o", "--outputindexfile", required=False,
+        help="""output index.html file containing the new demo information;
+        if this is not specified, then the new index.html page containing the
+        demo information will be written to the index.html file specified by
+        -i.""")
+
 args = parser.parse_args()
 
 dbfn2desc = {}
@@ -96,7 +110,15 @@ for fn in filename_list:
             connection = sqlite3.connect(os.path.join(args.dbdirectory, fn))
             cursor = connection.cursor()
             #print fn
-            cursor.execute("SELECT filetype, node_count, edge_count from assembly;")
+            try:
+                cursor.execute("SELECT filetype, node_count, edge_count from assembly;")
+            except sqlite3.OperationalError as e:
+                # Accounts for when the specified database file doesn't have
+                # an "assembly" table. Also happens when the database file
+                # didn't exist (because trying to access it using sqlite3 will
+                # create it, and then the same problem of no assembly data
+                # happens).
+                raise sqlite3.OperationalError, "%s: %s" % (fn, e)
             data = cursor.fetchone()
             if data is None:
                 raise ValueError, "%s doesn't have assembly data" % (fn)
@@ -120,20 +142,40 @@ for fn in filename_list:
 
 # We've got the HTML corresponding to the demo .db list (list_html_output)
 # ready. Now we just need to insert it into index.html in the right place.
-with open(args.htmlfile, "r") as htmlfile:
-    html_file_text = htmlfile.readlines()
-with open(args.htmlfile, "w") as htmlfile:
+
+# Read the input file's contents into memory. It shouldn't be that large, so
+# this shouldn't pose a problem.
+with open(args.indexfile, "r") as indexfile:
+    html_file_text = indexfile.readlines()
+
+# Figure out where we're going to be outputting the finished HTML to. Depending
+# on what the user specified, it could be on top of the input index file or in
+# an entirely new file.
+if args.outputindexfile is None:
+    output_file_path = args.indexfile
+else:
+    output_file_path = args.outputindexfile
+
+# In any case, we've got the output path figured out now; all that's left to do
+# is write the input file to it (with the new demo HTML included).
+with open(output_file_path, "w") as outputindexfile:
     going_through_template_demo_list = False
+    done_with_template_demo_list = False
     for line in html_file_text:
         if not going_through_template_demo_list:
-            htmlfile.write(line)
-            if DB_LIST_START_TAG in line:
-                htmlfile.write(list_html_output)
+            outputindexfile.write(line)
+            if not done_with_template_demo_list and DB_LIST_START_TAG in line:
+                outputindexfile.write(list_html_output)
                 going_through_template_demo_list = True
         else:
             # Don't write anything extra until we reach the end tag
             if DB_LIST_END_TAG in line:
-                htmlfile.write(line)
+                outputindexfile.write(line)
                 going_through_template_demo_list = False
-print "HTML Demo .db list specifying %d .db files inserted into file %s." % \
-        (db_ct, args.htmlfile)
+                done_with_template_demo_list = True
+if args.outputindexfile is None:
+    print "Demo .db list of %d .db files inserted into %s." % \
+            (db_ct, args.indexfile)
+else:
+    print "Copy of %s with demo .db list of %d .db files written to %s." % \
+            (args.indexfile, db_ct, args.outputindexfile)
