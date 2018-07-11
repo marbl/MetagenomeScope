@@ -67,6 +67,9 @@ beneficial when analyzing large graphs:
 
 A demo of MetagenomeScope's viewer interface is available at
 [mgsc.umiacs.io](http://mgsc.umiacs.io/).
+You can use the "Demo .db" button to load sample assembly graph files that are already hosted with the demo.
+
+See [this page](https://github.com/marbl/MetagenomeScope/wiki/Customizing-Your-Own-Demo) on the wiki for instructions on customizing your own demo of MetagenomeScope.
 
 ### Customizing your own version of the viewer interface
 
