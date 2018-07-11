@@ -184,7 +184,7 @@ def safe_file_remove(filepath):
     """Safely (preventing race conditions of the file already being removed)
        removes a file located at the given file path.
 
-       ATTR: this function is based on User "Matt"'s answer to this Stack
+       CODELINK: this function is based on User "Matt"'s answer to this Stack
        Overflow question: https://stackoverflow.com/questions/10840533/
        Link to Matt's SO profile: https://stackoverflow.com/users/810671/matt
     """
@@ -323,9 +323,10 @@ def n50(node_lengths):
        https://en.wikipedia.org/wiki/N50,_L50,_and_related_statistics for
        more information).
        
-       ATTR: Here, we use the calculation method described by Yandell and Ence
-       (2012), Nature Reviews Genetics 13(5). Box 1 in the paper describes the
-       method for calculating the N50 statistic that is used in this function.
+       CODELINK: Here, we use the calculation method described by Yandell and
+       Ence (2012), Nature Reviews Genetics 13(5). Box 1 in the paper describes
+       the method for calculating the N50 statistic that is used in this
+       function.
     """
 
     if len(node_lengths) == 0:
@@ -358,7 +359,7 @@ def save_aux_file(aux_filename, source, layout_msg_printed, warnings=True):
        page on the MetagenomeScope wiki:
        https://github.com/marbl/MetagenomeScope/wiki/Note-on-File-Race-Conditions
 
-       ATTR: The use of os.open() in conjunction with the os.O_EXCL
+       CODELINK: The use of os.open() in conjunction with the os.O_EXCL
        flag in order to prevent the race condition, as well as the background
        information for the linked wiki writeup on this solution, is based on
        Adam Dinwoodie (username "me_and")'s answer to this Stack

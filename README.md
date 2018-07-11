@@ -108,6 +108,14 @@ License information for MetagenomeScope's dependencies is included in the root d
 
 See [the README](https://github.com/marbl/MetagenomeScope/blob/master/docs/README.md) in the `docs/` folder of this repository, where the code for the info site is stored.
 
+### Code Links
+
+There are a couple of locations throughout MetagenomeScope's source code
+(in addition to the places mentioned above) where the solution was based on an
+article or example. These places are marked in the source code with a comment
+including the string `CODELINK:`, and should all contain a URL to their
+original source.
+
 ## Contact
 
 MetagenomeScope was created by members of the [Pop Lab](https://sites.google.com/a/cs.umd.edu/poplab/) in the [Center for Bioinformatics and Computational Biology](https://cbcb.umd.edu/) at the [University of Maryland, College Park](https://umd.edu/).

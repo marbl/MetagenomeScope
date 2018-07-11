@@ -21,8 +21,8 @@ html, body {
     height: 100%;
     width: 100%;
 }
-/* ATTR: The toggling mechanism for the control panel was inspired by a similar
- * mechanism in the following Cytoscape.js demo:
+/* CODELINK: The toggling mechanism for the control panel was inspired by a
+ * similar mechanism in the following Cytoscape.js demo:
  * http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/
  * Link to the demo's code:
  * https://github.com/cytoscape/cytoscape.js/tree/master/documentation/demos/colajs-graph

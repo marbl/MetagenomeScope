@@ -235,8 +235,9 @@ var INTEGER_RE = /^\d+$/;
 
 var startDrawDate, endDrawDate;
 
-// ATTR: This method for checking that the File API is supported adapted from
-// https://www.html5rocks.com/en/tutorials/file/dndfiles/, by Eric Bidelman.
+// CODELINK: This method for checking that the File API is supported adapted
+// from https://www.html5rocks.com/en/tutorials/file/dndfiles/, by
+// Eric Bidelman.
 if (!(window.File && window.FileReader && window.Blob)) {
 	alert("Your browser does not support the HTML5 File APIs. " +
           "You will not be able to upload any .db files, although " +
@@ -2322,8 +2323,8 @@ function changeDropdownVal(arrowHTML) {
 
 /* Toggles visibility of the controls div.
  *
- * ATTR: This toggling mechanism was inspired by a similar mechanism in this
- * Cytoscape.js demo: http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/
+ * CODELINK: This toggling mechanism was inspired by a similar mechanism in
+ * this Cytoscape.js demo: http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/
  * The code repository for this demo is located at:
  * https://github.com/cytoscape/cytoscape.js/tree/master/documentation/demos/colajs-graph
  */
@@ -2358,7 +2359,7 @@ function loadajaxDB() {
     DB_FILENAME = filename;
     // jQuery doesn't support arraybuffer responses so we have to manually
     // use an XMLHttpRequest(), strange capitalization and all
-    // ATTR: Credit to this approach goes here, btw:
+    // CODELINK: Credit to this approach goes here, btw:
     // http://www.henryalgus.com/reading-binary-files-using-jquery-ajax/
     var xhr = new XMLHttpRequest();
     xhr.open("GET", filename, true);
@@ -2660,7 +2661,7 @@ function openEdgeFilteringDialog() {
     drawEdgeWeightHistogram();
 }
 
-/* ATTR: This code was mostly taken from Mike Bostock's example of d3.js'
+/* CODELINK: This code was mostly taken from Mike Bostock's example of d3.js'
  * histogram generation, available at https://gist.github.com/mbostock/3048450.
  * (Update: this example has since been moved to Observable at
  * https://beta.observablehq.com/@mbostock/d3-histogram.)
@@ -3257,7 +3258,7 @@ function markTentativeNodes() {
         // from that. (And it might make it harder for the user to see which
         // nodes are marked as NEXT_NODES.)
         //
-        // The solution (ATTR: idea c/o Max Franz' first answer here:
+        // The solution (CODELINK: idea c/o Max Franz' first answer here:
         // https://github.com/cytoscape/cytoscape.js/issues/941) is to impose a
         // maxZoom limit before the fitting operation, and then reset that
         // limit to its prior value after the fitting operation.
