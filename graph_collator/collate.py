@@ -779,10 +779,10 @@ with open(asm_fn, 'r') as assembly_file:
         # GFA spec).
         # TODO--
         # We can look into parsing S+L optional fields, as well as
-        # (C)ontainment and (P)ath lines (and, more
-        # importantly, making use of this data in the AsmViz viewer) in the
-        # future, but for now having Segment + Link data should match what we
-        # have for the other two supported input assembly graph filetypes.
+        # (C)ontainment and (P)ath lines (and, more importantly, making use of
+        # this data in the MetagenomeScope viewer) in the future, but for now
+        # having Segment + Link data should match what we have for the other
+        # two supported input assembly graph filetypes.
         curr_node_id = None
         curr_node_bp = None
         curr_node_gc = None
@@ -2357,7 +2357,7 @@ for component in connected_components:
         r=save_aux_file(component_prefix + ".gv", gv_input, layout_msg_printed)
 
     # lay out the graph in .xdot -- this step is the main bottleneck in the
-    # python side of AsmViz
+    # python side of MetagenomeScope
     # NOTE if dot is taking a really long time to lay stuff out, then other
     # Graphviz layout programs (e.g. sfdp) can be used instead -- however
     # they'll generally produce less useful drawings for directed graphs
