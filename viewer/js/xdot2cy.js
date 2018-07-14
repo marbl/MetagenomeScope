@@ -1999,9 +1999,9 @@ function drawComponent(cmpRank) {
     updateTextStatus("Drawing nodes...", false);
     window.setTimeout(function() {
         /* I originally didn't have this wrapped in a timeout, but for some
-         * reason a few clusters in the test BAMBUS E. coli assembly weren't
-         * being rendered at the waiting point. It seemed some sort of race
-         * condition was happening, and wrapping this block of code in a
+         * reason a few clusters in the test MetaCarvel E. coli assembly
+         * weren't being rendered at the waiting point. It seemed some sort of
+         * race condition was happening, and wrapping this block of code in a
          * timeout seems to solve the problem for iterative cluster drawing
          * (iterative node/edge drawing is fine, since those already use
          * timeouts to update the progress bar).
