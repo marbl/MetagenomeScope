@@ -37,18 +37,18 @@ class Edge(object):
         self.source_id = source_id
         self.target_id = target_id
         # Refers to either multiplicity (in LastGraph files) or bundle size (in
-        # Bambus 3's GML files)
+        # MetaCarvel's GML files)
         self.multiplicity = multiplicity
-        # Used to characterize edges in Bambus 3's GML files. Can be one of
+        # Used to characterize edges in MetaCarvel's GML files. Can be one of
         # four possible options: "BB", "BE", "EB", or "EE".
         self.orientation = orientation
         # Per Jay: "estimated distance between two contigs if they are part of
         # the same scaffold. If this number is negative, it means that these
         # contigs overlap by that many bases. If it is positive then there
         # exists a gap of that particular size between two contigs."
-        # (For Bambus 3's GML files)
+        # (For MetaCarvel's GML files)
         self.mean = mean
-        # For Bambus 3's GML files. I don't really know what this means
+        # For MetaCarvel's GML files. I don't really know what this means
         self.stdev = stdev
         # We'll eventually assign this edge a "thickness" percentage somewhere
         # in the range [0, 1] (the actual process for doing that is in

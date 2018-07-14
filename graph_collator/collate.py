@@ -53,7 +53,7 @@ import config
 # Get argument information
 parser = argparse.ArgumentParser(description=config.COLLATE_DESCRIPTION)
 parser.add_argument("-i", "--inputfile", required=True,
-    help="input assembly graph filename (LastGraph, GFA, or Bambus 3 GML)")
+    help="input assembly graph filename (LastGraph, GFA, or MetaCarvel GML)")
 parser.add_argument("-o", "--outputprefix", required=True,
     help="output file prefix for .db and .xdot/.gv files")
 parser.add_argument("-d", "--outputdirectory", required=False,
@@ -1224,8 +1224,8 @@ for fn in os.listdir(dir_fn):
                 safe_file_remove(s_fullfn)
 
 # Construct links file for the single graph
-# (this is unnecessary for Bambus 3 GML files, but for LastGraph/GFA files it's
-# needed in order to generate the SPQR tree)
+# (this is unnecessary for MetaCarvel GML files, but for LastGraph/GFA files
+# it's needed in order to generate the SPQR tree)
 s_edges_fullfn = None
 if distinct_single_graph:
     s_edges_fn = output_fn + "_single_links"
@@ -1269,7 +1269,7 @@ if bicmps_fullfn != None:
     # -b has been passed: we already have the file indicating separation pairs
     # This means we only need to call the script once, to output the SPQR tree
     if not distinct_single_graph:
-        # Input file has oriented contigs (e.g. Bambus 3 GML output)
+        # Input file has oriented contigs (e.g. MetaCarvel GML output)
         # Call script once with -t and the normal links file
         spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-t",
             "-d", dir_fn]

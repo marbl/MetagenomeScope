@@ -2736,7 +2736,7 @@ function drawEdgeWeightHistogram() {
 /* Hides edges below a minimum edge weight (multiplicity or bundle size,
  * depending on the assembly graph that has been loaded).
  * This should only be called if the assembly graph that has been loaded has
- * edge weights as a property (e.g. LastGraph or Bambus 3 GML graphs).
+ * edge weights as a property (e.g. LastGraph or MetaCarvel GML graphs).
  */
 function cullEdges() {
     var strVal = $("#cullEdgesInput").val();
