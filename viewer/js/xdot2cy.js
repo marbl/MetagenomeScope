@@ -129,7 +129,10 @@ var DNA_AVAILABLE;
 // Whether or not repeat data was provided in the input to the preprocessing
 // script (impacts the availability of repeat colorization)
 var REPEAT_INFO_AVAILABLE;
-// FIlename of the currently loaded .db file
+// Whether or not SPQR mode data exists in the .db file (should only be true if
+// the -spqr option was passed to the preprocessing script)
+var SPQR_INFO_AVAILABLE;
+// Filename of the currently loaded .db file
 var DB_FILENAME;
 // Total number of nodes and edges in the current asm graph
 var ASM_NODE_COUNT = 0;
@@ -1374,8 +1377,36 @@ function parseDBcomponents() {
     var n50Info = n50.toLocaleString();
     // Record Assembly G/C content (not available for GML files)
     var asmGC = graphInfo["gc_content"];
-    DNA_AVAILABLE = (graphInfo["dna_given"] === 1) ? true : false;
-    REPEAT_INFO_AVAILABLE = (graphInfo["repeats_given"] === 1) ? true : false;
+    DNA_AVAILABLE = Boolean(graphInfo["dna_given"]);
+    REPEAT_INFO_AVAILABLE = Boolean(graphInfo["repeats_given"]);
+    var spqrDataFlag = Boolean(graphInfo["spqr_given"]);
+    /* CODELINK: This method for checking if a table exists in a SQLite
+     * database c/o user "PoorLuzer"'s answer to this Stack Overflow question:
+     * https://stackoverflow.com/questions/1601151/how-do-i-check-in-sqlite-whether-a-table-exists
+     * Link to the user's SO profile:
+     * https://stackoverflow.com/users/53884/poorluzer
+     */
+    // TODO remove the check involving spqrInfoStmt eventually.
+    // For now it's helpful because there exist .db files floating around
+    // without the spqr_given column in "assembly", but eventually I'll stop
+    // using those and we can just rely on spqr_given without incurring extra
+    // computational costs
+    // When that happens, instead of using spqrDataFlag just set
+    // SPQR_INFO_AVAILABLE to that
+    var spqrInfoStmt = CURR_DB.prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name=" +
+        "'singlecomponents';"
+    );
+    spqrInfoStmt.step();
+    var spqrTableExistence = spqrInfoStmt.getAsObject();
+    spqrInfoStmt.free();
+    SPQR_INFO_AVAILABLE = spqrDataFlag || !($.isEmptyObject(spqrTableExistence));
+    if (SPQR_INFO_AVAILABLE) {
+        $("#spqrConnectedComponentControls").removeClass("notviewable");
+    }
+    else {
+        $("#spqrConnectedComponentControls").addClass("notviewable");
+    }
     if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA"
             || ASM_FILETYPE === "FASTG") {
         // Since the nodes in these graphs are unoriented (i.e. we draw both
