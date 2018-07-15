@@ -1207,206 +1207,215 @@ for n in nodes_to_try_collapsing: # Test n as the "starting" node for a bubble
         clusterid2obj[new_bubble.id_string] = new_bubble
 
 conclude_msg()
-# Run the SPQR script, use its output to create SPQR trees
-operation_msg(config.SPQR_MSG)
+if args.computespqrdata:
+    # Run the SPQR script, use its output to create SPQR trees
+    operation_msg(config.SPQR_MSG)
 
-# Clear extraneous SPQR auxiliary files from the output directory, if present
-# (see issue #191 on the GitHub page)
-cfn_regex = re.compile("component_(\d+)\.info")
-sfn_regex = re.compile("spqr\d+\.gml")
-for fn in os.listdir(dir_fn):
-    match = cfn_regex.match(fn)
-    if match is not None:
-        c_fullfn = os.path.join(dir_fn, fn)
-        if check_file_existence(c_fullfn):
-            safe_file_remove(c_fullfn)
+    # Clear extraneous SPQR auxiliary files from the output directory, if
+    # present (see issue #191 on the GitHub page)
+    cfn_regex = re.compile("component_(\d+)\.info")
+    sfn_regex = re.compile("spqr\d+\.gml")
+    for fn in os.listdir(dir_fn):
+        match = cfn_regex.match(fn)
+        if match is not None:
+            c_fullfn = os.path.join(dir_fn, fn)
+            if check_file_existence(c_fullfn):
+                safe_file_remove(c_fullfn)
+        else:
+            s_match = sfn_regex.match(fn)
+            if s_match is not None:
+                s_fullfn = os.path.join(dir_fn, fn)
+                if check_file_existence(s_fullfn):
+                    safe_file_remove(s_fullfn)
+
+    # Construct links file for the single graph
+    # (this is unnecessary for MetaCarvel GML files, but for LastGraph/GFA
+    # files it's needed in order to generate the SPQR tree)
+    s_edges_fullfn = None
+    if distinct_single_graph:
+        s_edges_fn = output_fn + "_single_links"
+        s_edges_fn_text = ""
+        for e in single_graph_edges:
+            # (the other values we add are just dummy values -- they don't
+            # impact the biconnected components/SPQR trees that we obtain from
+            # the script)
+            line = e[0] + "\tB\t" + e[1] + "\tB\t0\t0\t0\n"
+            s_edges_fn_text += line
+        save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
+        s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
+
+    # Prepare non-single-graph _links file
+    # (unnecessary for the case where -b is passed and the input graph has a
+    # distinct single graph)
+    edges_fullfn = None
+    if bicmps_fullfn == None or not distinct_single_graph:
+        edges_fn = output_fn + "_links"
+        edges_fn_text = ""
+        for n in nodes_to_try_collapsing:
+            for e in n.outgoing_nodes:
+                line = n.id_string + "\tB\t" + e.id_string + "\tB\t0\t0\t0\n"
+                edges_fn_text += line
+        save_aux_file(edges_fn, edges_fn_text, False, warnings=False)
+        edges_fullfn = os.path.join(dir_fn, edges_fn)
+
+    # Get the location of the spqr script -- it should be in the same dir as
+    # collate.py, i.e. the currently running python script
+    #
+    # NOTE: Some of the spqr script's output is sent to stderr, so when we run
+    # the script we merge that with the output. Note that we don't really check
+    # the output of this, although we could if the need arises -- the main
+    # purpose of using check_output() here is to catch all the printed output
+    # of the spqr script.
+    #
+    # TODO: will need to change some script miscellany to work in non-Unix
+    # envs.
+    spqr_fullfn = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+        "spqr")
+    spqr_invocation = []
+    if bicmps_fullfn != None:
+        # -b has been passed: we already have the file indicating separation
+        # pairs. This means we only need to call the script once, to output the
+        # SPQR tree
+        if not distinct_single_graph:
+            # Input file has oriented contigs (e.g. MetaCarvel GML output)
+            # Call script once with -t and the normal links file
+            spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-t",
+                "-d", dir_fn]
+        else:
+            # Input file has unoriented contigs (e.g. Velvet LastGraph output)
+            # Call script once with -t and the single links file
+            spqr_invocation = [spqr_fullfn, "-l", s_edges_fullfn, "-t",
+                "-d", dir_fn]
     else:
-        s_match = sfn_regex.match(fn)
-        if s_match is not None:
-            s_fullfn = os.path.join(dir_fn, fn)
-            if check_file_existence(s_fullfn):
-                safe_file_remove(s_fullfn)
+        # -b has not been passed: we need to call the SPQR script to generate
+        # the separation pairs file
+        # Detect (and remove) a file with a conflicting name, if present
+        bicmps_fn = output_fn + "_bicmps"
+        bicmps_fullfn = os.path.join(dir_fn, bicmps_fn)
+        if check_file_existence(bicmps_fullfn):
+            safe_file_remove(bicmps_fullfn)
 
-# Construct links file for the single graph
-# (this is unnecessary for MetaCarvel GML files, but for LastGraph/GFA files
-# it's needed in order to generate the SPQR tree)
-s_edges_fullfn = None
-if distinct_single_graph:
-    s_edges_fn = output_fn + "_single_links"
-    s_edges_fn_text = ""
-    for e in single_graph_edges:
-        # (the other values we add are just dummy values -- they don't impact
-        # the biconnected components/SPQR trees that we obtain from the script)
-        line = e[0] + "\tB\t" + e[1] + "\tB\t0\t0\t0\n"
-        s_edges_fn_text += line
-    save_aux_file(s_edges_fn, s_edges_fn_text, False, warnings=False)
-    s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
+        if not distinct_single_graph:
+            # Input file has oriented contigs
+            # Call script once with -s and -t, and the normal links file
+            spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-t",
+                "-s", "-o", bicmps_fn, "-d", dir_fn]
+        else:
+            # Input files has unoriented contigs
+            # Call script twice: once with -s and the normal links file, and
+            # once with -t and the single links file
+            spqr_invocation = [spqr_fullfn, "-l", edges_fullfn,
+                "-s", "-o", bicmps_fn, "-d", dir_fn]
+            spqr_invocation_2 = [spqr_fullfn, "-l", s_edges_fullfn, "-t",
+                "-d", dir_fn]
+            check_output(spqr_invocation_2, stderr=STDOUT)
+    check_output(spqr_invocation, stderr=STDOUT)
 
-# Prepare non-single-graph _links file
-# (unnecessary for the case where -b is passed and the input graph has a
-# distinct single graph)
-edges_fullfn = None
-if bicmps_fullfn == None or not distinct_single_graph:
-    edges_fn = output_fn + "_links"
-    edges_fn_text = ""
-    for n in nodes_to_try_collapsing:
-        for e in n.outgoing_nodes:
-            line = n.id_string + "\tB\t" + e.id_string + "\tB\t0\t0\t0\n"
-            edges_fn_text += line
-    save_aux_file(edges_fn, edges_fn_text, False, warnings=False)
-    edges_fullfn = os.path.join(dir_fn, edges_fn)
+    # NOTE we make the assumption that the generated component and spqr files
+    # aren't deleted after running the SPQR script but before they're read
+    # here.
+    # If they are for whatever reason, then this script will fail to recognize
+    # the corresponding biconnected component information (thus failing to draw
+    # a SPQR tree, and likely causing an error of some sort when creating the
+    # .db file).
+    #
+    # (As with the potential case where the separation pairs file is deleted
+    # after being generated but before being read, this falls under the scope
+    # of "silly race conditions that probably won't ever happen but are still
+    # ostensibly possible".)
 
-# Get the location of the spqr script -- it should be in the same dir as
-# collate.py, i.e. the currently running python script
-#
-# NOTE: Some of the spqr script's output is sent to stderr, so when we run the
-# script we merge that with the output. Note that we don't really check the
-# output of this, although we could if the need arises -- the main purpose
-# of using check_output() here is to catch all the printed output of the
-# spqr script.
-#
-# TODO: will need to change some script miscellany to work in non-Unix envs.
-spqr_fullfn = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-    "spqr")
-spqr_invocation = []
-if bicmps_fullfn != None:
-    # -b has been passed: we already have the file indicating separation pairs
-    # This means we only need to call the script once, to output the SPQR tree
-    if not distinct_single_graph:
-        # Input file has oriented contigs (e.g. MetaCarvel GML output)
-        # Call script once with -t and the normal links file
-        spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-t",
-            "-d", dir_fn]
-    else:
-        # Input file has unoriented contigs (e.g. Velvet LastGraph output)
-        # Call script once with -t and the single links file
-        spqr_invocation = [spqr_fullfn, "-l", s_edges_fullfn, "-t",
-            "-d", dir_fn]
-else:
-    # -b has not been passed: we need to call the SPQR script to generate the
-    # separation pairs file
-    # Detect (and remove) a file with a conflicting name, if present
-    bicmps_fn = output_fn + "_bicmps"
-    bicmps_fullfn = os.path.join(dir_fn, bicmps_fn)
-    if check_file_existence(bicmps_fullfn):
-        safe_file_remove(bicmps_fullfn)
+    conclude_msg()
+    operation_msg(config.SPQR_LAYOUT_MSG)
+    # Identify the component_*.info files representing the SPQR tree's
+    # composition
+    bicomponentid2fn = {}
+    for fn in os.listdir(dir_fn):
+        match = cfn_regex.match(fn)
+        if match is not None:
+            c_fullfn = os.path.join(dir_fn, fn)
+            if os.path.isfile(c_fullfn):
+                bicomponentid2fn[match.group(1)] = c_fullfn
 
-    if not distinct_single_graph:
-        # Input file has oriented contigs
-        # Call script once with -s and -t, and the normal links file
-        spqr_invocation = [spqr_fullfn, "-l", edges_fullfn, "-t",
-            "-s", "-o", bicmps_fn, "-d", dir_fn]
-    else:
-        # Input files has unoriented contigs
-        # Call script twice: once with -s and the normal links file, and once
-        # with -t and the single links file
-        spqr_invocation = [spqr_fullfn, "-l", edges_fullfn,
-            "-s", "-o", bicmps_fn, "-d", dir_fn]
-        spqr_invocation_2 = [spqr_fullfn, "-l", s_edges_fullfn, "-t",
-            "-d", dir_fn]
-        check_output(spqr_invocation_2, stderr=STDOUT)
-check_output(spqr_invocation, stderr=STDOUT)
-
-# NOTE we make the assumption that the generated component and spqr files
-# aren't deleted after running the SPQR script but before they're read here.
-# If they are for whatever reason, then this script will fail to recognize
-# the corresponding biconnected component information (thus failing to draw
-# a SPQR tree, and likely causing an error of some sort when creating the
-# .db file).
-#
-# (As with the potential case where the separation pairs file is deleted after
-# being generated but before being read, this falls under the scope of
-# "silly race conditions that probably won't ever happen but are still
-# ostensibly possible".)
-
-conclude_msg()
-operation_msg(config.SPQR_LAYOUT_MSG)
-# Identify the component_*.info files representing the SPQR tree's composition
-bicomponentid2fn = {}
-for fn in os.listdir(dir_fn):
-    match = cfn_regex.match(fn)
-    if match is not None:
-        c_fullfn = os.path.join(dir_fn, fn)
-        if os.path.isfile(c_fullfn):
-            bicomponentid2fn[match.group(1)] = c_fullfn
-
-# Get info from the SPQR tree auxiliary files (component_*.info and spqr*.gml)
-bicomponentid2obj = {}
-metanode_id_regex = re.compile("^\d+$")
-metanode_type_regex = re.compile("^[SPR]$")
-edge_line_regex = re.compile("^v|r")
-for cfn_id in bicomponentid2fn:
-    with open(bicomponentid2fn[cfn_id], "r") as component_info_file:
-        metanodeid2obj = {}
-        curr_id = ""
-        curr_type = ""
-        curr_nodes = []
-        curr_edges = []
-        for line in component_info_file:
-            if edge_line_regex.match(line):
-                curr_edges.append(line.split())
-            elif metanode_id_regex.match(line):
-                if curr_id != "":
-                    # save previous metanode info
-                    new_metanode = graph_objects.SPQRMetaNode(cfn_id, curr_id,
-                        curr_type, curr_nodes, curr_edges)
-                    metanodeid2obj[curr_id] = new_metanode
-                curr_id = line.strip()
-                curr_type = ""
-                curr_nodes = []
-                curr_edges = []
-            elif metanode_type_regex.match(line):
-                curr_type = line.strip()
-            else:
-                # This line must describe a node within the metanode
-                curr_nodes.append(singlenodeid2obj[line.split()[1]])
-        # Save the last metanode in the file (won't be "covered" in loop above)
-        new_metanode = graph_objects.SPQRMetaNode(cfn_id, curr_id, curr_type,
-            curr_nodes, curr_edges)
-        metanodeid2obj[curr_id] = new_metanode
-    # At this point, we have all nodes in the entire SPQR tree for a
-    # given biconnected component saved in metanodeid2obj.
-    # For now, let's just parse the structure of this tree and lay it out using
-    # GraphViz -- will implement in the web visualization tool soon.
-    tree_structure_fn = os.path.join(dir_fn, "spqr%s.gml" % (cfn_id))
-    # List of 2-tuples of SPQRMetaNode objects.
-    with open(tree_structure_fn, "r") as spqr_structure_file:
-        parsing_edge = False
-        source_metanode = None
-        target_metanode = None
-        for line in spqr_structure_file:
-            if line.strip().startswith("edge ["):
-                parsing_edge = True
-            elif parsing_edge:
-                if line.strip().startswith("]"):
-                    parsing_edge = False
-                    # save edge data
-                    source_metanode.add_outgoing_edge(target_metanode)
-                    source_metanode = None
-                    target_metanode = None
+    # Get info from the SPQR tree auxiliary files (component_*.info and
+    # spqr*.gml)
+    bicomponentid2obj = {}
+    metanode_id_regex = re.compile("^\d+$")
+    metanode_type_regex = re.compile("^[SPR]$")
+    edge_line_regex = re.compile("^v|r")
+    for cfn_id in bicomponentid2fn:
+        with open(bicomponentid2fn[cfn_id], "r") as component_info_file:
+            metanodeid2obj = {}
+            curr_id = ""
+            curr_type = ""
+            curr_nodes = []
+            curr_edges = []
+            for line in component_info_file:
+                if edge_line_regex.match(line):
+                    curr_edges.append(line.split())
+                elif metanode_id_regex.match(line):
+                    if curr_id != "":
+                        # save previous metanode info
+                        new_metanode = graph_objects.SPQRMetaNode(cfn_id,
+                            curr_id, curr_type, curr_nodes, curr_edges)
+                        metanodeid2obj[curr_id] = new_metanode
+                    curr_id = line.strip()
+                    curr_type = ""
+                    curr_nodes = []
+                    curr_edges = []
+                elif metanode_type_regex.match(line):
+                    curr_type = line.strip()
                 else:
-                    id_line_parts = line.strip().split()
-                    if id_line_parts[0] == "source":
-                        source_metanode = metanodeid2obj[id_line_parts[1]]
-                    elif id_line_parts[0] == "target":
-                        target_metanode = metanodeid2obj[id_line_parts[1]]
-    # Determine root of the bicomponent and store it as part of the bicomponent
-    curr_metanode = metanodeid2obj.values()[0] 
-    while len(curr_metanode.incoming_nodes) > 0:
-        # A metanode in the tree can have at most 1 parent (because that is how
-        # trees work), so it's ok to just move up in the tree like so (because
-        # the .incoming_node lists of SPQRMetaNode objects will always
-        # have length 1)
-        curr_metanode = curr_metanode.incoming_nodes[0]
-    # At this point, we've obtained the full contents of the tree: both the
-    # skeletons of its metanodes, and the edges between metanodes. (This data
-    # is stored as attributes of the SPQRMetaNode objects in question.)
-    metanode_list = metanodeid2obj.values()
-    bicomponentid2obj[cfn_id] = graph_objects.Bicomponent(cfn_id, \
-        metanode_list, curr_metanode)
-    total_bicomponent_count += 1
-
-conclude_msg()
+                    # This line must describe a node within the metanode
+                    curr_nodes.append(singlenodeid2obj[line.split()[1]])
+            # Save the last metanode in the file (won't be "covered" in loop
+            # above)
+            new_metanode = graph_objects.SPQRMetaNode(cfn_id, curr_id,
+                curr_type, curr_nodes, curr_edges)
+            metanodeid2obj[curr_id] = new_metanode
+        # At this point, we have all nodes in the entire SPQR tree for a
+        # given biconnected component saved in metanodeid2obj.
+        # For now, let's just parse the structure of this tree and lay it out
+        # using GraphViz -- will implement in the web visualization tool soon.
+        tree_structure_fn = os.path.join(dir_fn, "spqr%s.gml" % (cfn_id))
+        # List of 2-tuples of SPQRMetaNode objects.
+        with open(tree_structure_fn, "r") as spqr_structure_file:
+            parsing_edge = False
+            source_metanode = None
+            target_metanode = None
+            for line in spqr_structure_file:
+                if line.strip().startswith("edge ["):
+                    parsing_edge = True
+                elif parsing_edge:
+                    if line.strip().startswith("]"):
+                        parsing_edge = False
+                        # save edge data
+                        source_metanode.add_outgoing_edge(target_metanode)
+                        source_metanode = None
+                        target_metanode = None
+                    else:
+                        id_line_parts = line.strip().split()
+                        if id_line_parts[0] == "source":
+                            source_metanode = metanodeid2obj[id_line_parts[1]]
+                        elif id_line_parts[0] == "target":
+                            target_metanode = metanodeid2obj[id_line_parts[1]]
+        # Determine root of the bicomponent and store it as part of the
+        # bicomponent
+        curr_metanode = metanodeid2obj.values()[0]
+        while len(curr_metanode.incoming_nodes) > 0:
+            # A metanode in the tree can have at most 1 parent (because that is
+            # how trees work), so it's ok to just move up in the tree like so
+            # (because the .incoming_node lists of SPQRMetaNode objects will
+            # always have length 1)
+            curr_metanode = curr_metanode.incoming_nodes[0]
+        # At this point, we've obtained the full contents of the tree: both the
+        # skeletons of its metanodes, and the edges between metanodes. (This
+        # data is stored as attributes of the SPQRMetaNode objects in
+        # question.)
+        metanode_list = metanodeid2obj.values()
+        bicomponentid2obj[cfn_id] = graph_objects.Bicomponent(cfn_id, \
+            metanode_list, curr_metanode)
+        total_bicomponent_count += 1
+    conclude_msg()
 
 operation_msg(config.FRAYEDROPE_SEARCH_MSG)
 for n in nodes_to_try_collapsing: # Test n as the "starting" node for a rope
@@ -1480,21 +1489,23 @@ for n in nodes_to_try_collapsing:
 # identify its connected components -- and then use those connected components'
 # nodes' IDs to construct the single graph's connected components.
 operation_msg(config.COMPONENT_MSG)
-single_connected_components = []
-if distinct_single_graph:
-    for n in singlenodeid2obj.values():
-        if not n.seen_in_ccomponent:
-            # We've identified a node within an unseen connected component.
-            # Run DFS to identify all nodes in its connected component.
-            # (Also identify all bicomponents in the connected component)
-            node_list = dfs(n)
-            bicomponent_set = set()
-            for m in node_list:
-                m.seen_in_ccomponent = True
-                bicomponent_set = bicomponent_set.union(m.parent_bicomponents)
-            single_connected_components.append(
-                graph_objects.Component(node_list, bicomponent_set))
-            total_single_component_count += 1
+if args.computespqrdata:
+    single_connected_components = []
+    if distinct_single_graph:
+        for n in singlenodeid2obj.values():
+            if not n.seen_in_ccomponent:
+                # We've identified a node within an unseen connected component.
+                # Run DFS to identify all nodes in its connected component.
+                # (Also identify all bicomponents in the connected component)
+                node_list = dfs(n)
+                bicomponent_set = set()
+                for m in node_list:
+                    m.seen_in_ccomponent = True
+                    bicomponent_set = \
+                        bicomponent_set.union(m.parent_bicomponents)
+                single_connected_components.append(
+                    graph_objects.Component(node_list, bicomponent_set))
+                total_single_component_count += 1
 
 # Identify connected components in the normal (non-"single") graph
 # NOTE that nodes_to_draw only contains node groups and nodes that aren't in
@@ -1543,23 +1554,25 @@ connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
 #       Scale the edge's thickness relative to min/max mult (see xdot2cy.js)
 # ... later we'll do IQR stuff (using numpy.percentile(), maybe?)
 
-if not distinct_single_graph:
-    # Get single_connected_components from connected_components
-    for c in connected_components:
-        single_node_list = []
-        bicomponent_set = set()
-        for n in c.node_list:
-            s = singlenodeid2obj[n.id_string]
-            single_node_list.append(s)
-            bicomponent_set = bicomponent_set.union(s.parent_bicomponents)
-        single_connected_components.append(
-            graph_objects.Component(single_node_list, bicomponent_set))
-        total_single_component_count += 1
-
-# At this point, we have single_connected_components ready. We're now able to
-# iterate through it and lay out each connected component, with biconnected
-# components replaced with solid rectangles.
-single_connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
+if args.computespqrdata:
+    if not distinct_single_graph:
+        # Get single_connected_components from connected_components
+        for c in connected_components:
+            single_node_list = []
+            bicomponent_set = set()
+            for n in c.node_list:
+                s = singlenodeid2obj[n.id_string]
+                single_node_list.append(s)
+                bicomponent_set = bicomponent_set.union(s.parent_bicomponents)
+            single_connected_components.append(
+                graph_objects.Component(single_node_list, bicomponent_set))
+            total_single_component_count += 1
+    
+    # At this point, we have single_connected_components ready. We're now able
+    # to iterate through it and lay out each connected component, with
+    # biconnected components replaced with solid rectangles.
+    single_connected_components.sort(reverse=True,
+        key=lambda c: len(c.node_list))
 
 conclude_msg()
 # Scale contigs' log sizes relatively.
@@ -1567,7 +1580,11 @@ conclude_msg()
 # detection (e.g. using Tukey fences, as is done with edge thicknesses).
 operation_msg(config.CONTIG_SCALING_MSG)
 scaling_single_ccs = False
-for c_collection in (connected_components, single_connected_components):
+if args.computespqrdata:
+    component_collections = (connected_components, single_connected_components)
+else:
+    component_collections = (connected_components,)
+for c_collection in component_collections:
     for c in c_collection:
         # bp_length_list does exist, but it's across all components. Probably
         # easiest to just go through each component here, then -- shouldn't
@@ -2282,7 +2299,7 @@ if args.computespqrdata:
         print "SPQR %s view layout time:" % (mode),
         print "%g seconds" % (difference)
         total_layout_time += difference
-    
+
     if not no_print:
         conclude_msg()
 # Lay out the "standard mode" view of the graph and store information about it
@@ -2575,7 +2592,8 @@ difference = t4 - t3
 total_layout_time += difference
 if no_print:
     conclude_msg()
-print "Standard view layout time: %g seconds" % (difference)
+if args.computespqrdata:
+    print "Standard view layout time: %g seconds" % (difference)
 print "Total layout time: %g seconds" % (total_layout_time)
 
 operation_msg(config.DB_SAVE_MSG + "%s..." % (db_fn))
