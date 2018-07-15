@@ -1757,35 +1757,38 @@ cursor.execute("""CREATE TABLE assembly
         bicomponent_count integer, single_component_count integer,
         total_length integer, n50 integer, gc_content real,
         dna_given integer, repeats_given integer, spqr_given integer)""")
-# SPQR view tables
-cursor.execute("""CREATE TABLE singlenodes
-        (id text, label text, length integer, gc_content real, depth real,
-        is_repeat integer, scc_rank integer, x real, y real, i_x real,
-        i_y real, w real, h real, parent_metanode_id text,
-        parent_bicomponent_id text)""")
-cursor.execute("""CREATE TABLE singleedges
-        (source_id text, target_id text, scc_rank integer,
-        parent_metanode_id text, is_virtual integer)""")
-cursor.execute("""CREATE TABLE bicomponents
-        (id_num integer, root_metanode_id string, scc_rank integer,
-        node_count integer, left real, bottom real, right real, top real,
-        i_left real, i_bottom real, i_right real, i_top real)""")
-cursor.execute("""CREATE TABLE metanodes
-        (metanode_id text, scc_rank integer, parent_bicomponent_id_num integer,
-        descendant_metanode_count integer, node_count integer,
-        total_length integer, left real, bottom real, right real,
-        top real, i_left real, i_bottom real, i_right real, i_top real)""")
-cursor.execute("""CREATE TABLE metanodeedges
-        (source_metanode_id text, target_metanode_id text, scc_rank integer,
-        control_point_string text, control_point_count integer,
-        parent_bicomponent_id_num integer)""")
-cursor.execute("""CREATE TABLE singlecomponents
-        (size_rank integer, ex_uncompressed_node_count integer,
-        ex_uncompressed_edge_count integer, im_uncompressed_node_count integer,
-        im_uncompressed_edge_count integer, compressed_node_count integer,
-        compressed_edge_count integer, bicomponent_count integer,
-        boundingbox_x real, boundingbox_y real, i_boundingbox_x real,
-        i_boundingbox_y real)""")
+if args.computespqrdata:
+    # SPQR view tables
+    cursor.execute("""CREATE TABLE singlenodes
+            (id text, label text, length integer, gc_content real, depth real,
+            is_repeat integer, scc_rank integer, x real, y real, i_x real,
+            i_y real, w real, h real, parent_metanode_id text,
+            parent_bicomponent_id text)""")
+    cursor.execute("""CREATE TABLE singleedges
+            (source_id text, target_id text, scc_rank integer,
+            parent_metanode_id text, is_virtual integer)""")
+    cursor.execute("""CREATE TABLE bicomponents
+            (id_num integer, root_metanode_id string, scc_rank integer,
+            node_count integer, left real, bottom real, right real, top real,
+            i_left real, i_bottom real, i_right real, i_top real)""")
+    cursor.execute("""CREATE TABLE metanodes
+            (metanode_id text, scc_rank integer,
+            parent_bicomponent_id_num integer,
+            descendant_metanode_count integer, node_count integer,
+            total_length integer, left real, bottom real, right real,
+            top real, i_left real, i_bottom real, i_right real, i_top real)""")
+    cursor.execute("""CREATE TABLE metanodeedges
+            (source_metanode_id text, target_metanode_id text,
+            scc_rank integer, control_point_string text,
+            control_point_count integer, parent_bicomponent_id_num integer)""")
+    cursor.execute("""CREATE TABLE singlecomponents
+            (size_rank integer, ex_uncompressed_node_count integer,
+            ex_uncompressed_edge_count integer,
+            im_uncompressed_node_count integer,
+            im_uncompressed_edge_count integer, compressed_node_count integer,
+            compressed_edge_count integer, bicomponent_count integer,
+            boundingbox_x real, boundingbox_y real, i_boundingbox_x real,
+            i_boundingbox_y real)""")
 connection.commit()
 
 # Insert general assembly information into the database
