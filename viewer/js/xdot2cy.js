@@ -130,7 +130,8 @@ var DNA_AVAILABLE;
 // script (impacts the availability of repeat colorization)
 var REPEAT_INFO_AVAILABLE;
 // Whether or not SPQR mode data exists in the .db file (should only be true if
-// the -spqr option was passed to the preprocessing script)
+// the -spqr option was passed to the preprocessing script, or if the .db file
+// predates the -spqr option)
 var SPQR_INFO_AVAILABLE;
 // Filename of the currently loaded .db file
 var DB_FILENAME;
