@@ -68,13 +68,7 @@ A demo of MetagenomeScope's viewer interface is available at
 [mgsc.umiacs.io](http://mgsc.umiacs.io/).
 You can use the "Demo .db" button to load sample assembly graph files that are already hosted with the demo.
 
-See [this page](https://github.com/marbl/MetagenomeScope/wiki/Customizing-Your-Own-Demo) on the wiki for instructions on customizing your own demo of MetagenomeScope.
-
-### Customizing your own version of the viewer interface
-
-MetagenomeScope's respository includes a script that will generate a custom
-version of the viewer interface (featuring .db files specified by you in its
-demo dialog). See [this page](https://github.com/marbl/MetagenomeScope/wiki/Customizing-Your-Own-Demo) on the wiki for more information.
+See [this page](https://github.com/marbl/MetagenomeScope/wiki/Customizing-Your-Own-Demo) on the wiki for instructions on customizing your own hosted version of MetagenomeScope's viewer interface.
 
 ## Wiki
 
