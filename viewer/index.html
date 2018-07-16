@@ -560,19 +560,16 @@
                         </h4>
                     </div> <!-- end modal-header div -->
                     <div class="modal-body">
-                        <!-- NOTE: If you the .db files in your deployment of
-                             the viewer interface will be located in a
-                             directory with a different name than "dbs/", you
-                             can change the data-mgscdbdirectory attribute of
-                             the span below to fit that.
+                        <!-- NOTE: the data-mgscdbdirectory attribute of the
+                             below span is prepended to every demo .db file's
+                             URL when we try to load it in loadajaxDB().
 
-                             If the .db files won't be located in their own
-                             directory (and will just be located in the same
-                             directory as this index.html file), then you can
-                             just set the data-mgscdbdirectory attribute to "".
+                             You can modify it directly here, or you can also
+                             change it via the populate_demo script (using the
+                             -hd argument).
                         -->
                         <span class="notviewable" id="demoDir"
-                            data-mgscdbdirectory="dbs/"></span>
+                            data-mgscdbdirectory="db" data-mgschdtag></span>
                         <!-- BEGIN DEMO .DB LIST -->
                         <div class="radio">
                             <label>

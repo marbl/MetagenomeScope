@@ -29,6 +29,11 @@
 
 import argparse, os, sqlite3
 
+# This is used to modify the #demoDir span in the index.html file based on the
+# path specified by -hd.
+HOST_DB_DIR_TEMPLATE = \
+        "                            data-mgscdbdirectory=\"{}\" {}></span>\n"
+HOST_DB_DIR_TAG = "data-mgschdtag"
 # Based on indent level for <div class="radio"> elements in the HTML file
 DB_HTML_TEMPLATE = """                        <div class="radio">
                             <label>
@@ -69,6 +74,11 @@ parser.add_argument("-o", "--outputindexfile", required=False,
         if this is not specified, then the new index.html page containing the
         demo information will be written to the index.html file specified by
         -i.""")
+parser.add_argument("-hd", "--hostdbdirectory", required=False, default="db",
+        help="""directory containing the hosted .db files (relative to the
+        location of the index.html file). Defaults to "db", but you can
+        change that depending on where you want to store the .db files on your
+        hosted version of the viewer interface.""")
 
 args = parser.parse_args()
 
@@ -170,9 +180,17 @@ else:
 with open(output_file_path, "w") as outputindexfile:
     going_through_template_demo_list = False
     done_with_template_demo_list = False
+    done_with_hd_modification = False
     for line in html_file_text:
         if not going_through_template_demo_list:
-            outputindexfile.write(line)
+            if not done_with_hd_modification and HOST_DB_DIR_TAG in line:
+                outputindexfile.write(
+                    HOST_DB_DIR_TEMPLATE.format(args.hostdbdirectory,
+                    HOST_DB_DIR_TAG)
+                )
+                done_with_hd_modification = True
+            else:
+                outputindexfile.write(line)
             if not done_with_template_demo_list and DB_LIST_START_TAG in line:
                 outputindexfile.write(list_html_output)
                 going_through_template_demo_list = True
