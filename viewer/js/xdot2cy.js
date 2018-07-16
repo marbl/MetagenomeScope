@@ -2397,7 +2397,8 @@ function loadajaxDB() {
     disableButton("infoButton");
     $("#currComponentInfo").html(
         "No connected component has been drawn yet.");
-    var filename = $("input[name=fs]:checked").attr('id');
+    var filename = $("#demoDir").attr("data-mgscdbdirectory") +
+                   $("input[name=fs]:checked").attr("id");
     DB_FILENAME = filename;
     // jQuery doesn't support arraybuffer responses so we have to manually
     // use an XMLHttpRequest(), strange capitalization and all

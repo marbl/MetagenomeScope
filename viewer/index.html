@@ -560,6 +560,19 @@
                         </h4>
                     </div> <!-- end modal-header div -->
                     <div class="modal-body">
+                        <!-- NOTE: If you the .db files in your deployment of
+                             the viewer interface will be located in a
+                             directory with a different name than "dbs/", you
+                             can change the data-mgscdbdirectory attribute of
+                             the span below to fit that.
+
+                             If the .db files won't be located in their own
+                             directory (and will just be located in the same
+                             directory as this index.html file), then you can
+                             just set the data-mgscdbdirectory attribute to "".
+                        -->
+                        <span class="notviewable" id="demoDir"
+                            data-mgscdbdirectory="dbs/"></span>
                         <!-- BEGIN DEMO .DB LIST -->
                         <div class="radio">
                             <label>
