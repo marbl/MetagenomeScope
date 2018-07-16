@@ -22,6 +22,17 @@
  * script automatically collapses the nav. This makes the user experience of
  * going somewhere on the page using the nav feel a lot more fluid, since they
  * don't have to manually close the nav.
+ *
+ * NOTE that this approach will probably cause problems if the nav contains
+ * things like dropdowns, due to its indiscriminate identification of <a>s in
+ * the nav [1]. This should be refined a bit if we add more "features" to the
+ * nav. That being said, this approach works nicely in that it also closes the
+ * nav when the navbar-brand <a> is clicked, which matches with the behavior of
+ * the navbar-brand as a link to the top of the page.
+ *
+ * [1] See Kevin Nelson's answer to this Stack Overflow question for details on
+ * this sort of solution and its corner cases:
+ * https://stackoverflow.com/questions/21203111/bootstrap-3-collapsed-menu-doesnt-close-on-click
  */
 $(function() {
     $("nav a").on("click", function() {
