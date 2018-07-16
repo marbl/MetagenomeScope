@@ -146,6 +146,9 @@ for fn in filename_list:
             list_html_output += db_html_output
             db_ct += 1
 
+if db_ct == 0:
+    raise ValueError, "Directory \"%s\" has no .db files" % (args.dbdirectory)
+
 # We've got the HTML corresponding to the demo .db list (list_html_output)
 # ready. Now we just need to insert it into index.html in the right place.
 
