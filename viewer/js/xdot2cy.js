@@ -1404,9 +1404,19 @@ function parseDBcomponents() {
     SPQR_INFO_AVAILABLE = spqrDataFlag || !($.isEmptyObject(spqrTableExistence));
     if (SPQR_INFO_AVAILABLE) {
         $("#spqrConnectedComponentControls").removeClass("notviewable");
+        $("#sccCountTH").removeClass("notviewable");
+        $("#sccCountEntry").removeClass("notviewable");
+        $("#bicmpCountTH").removeClass("notviewable");
+        $("#bicmpCountEntry").removeClass("notviewable");
+        $("#connCmpCtTH").text("Standard Mode Connected Component Count");
     }
     else {
         $("#spqrConnectedComponentControls").addClass("notviewable");
+        $("#sccCountTH").addClass("notviewable");
+        $("#sccCountEntry").addClass("notviewable");
+        $("#bicmpCountTH").addClass("notviewable");
+        $("#bicmpCountEntry").addClass("notviewable");
+        $("#connCmpCtTH").text("Connected Component Count");
     }
     if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA"
             || ASM_FILETYPE === "FASTG") {
