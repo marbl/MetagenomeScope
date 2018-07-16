@@ -1,11 +1,18 @@
+# SPQR Script Makefile
+#
+# This Makefile is used to compile the "SPQR script" (spqr.cpp) contained in
+# the graph_collator/ directory of MetagenomeScope.
+# Compiling the SPQR script is only necessary if you want to use the -spqr
+# option of the preprocessing script (graph_collator/collate.py).
+#
+# See https://github.com/marbl/MetagenomeScope/wiki/System-Requirements and
+# https://github.com/marbl/MetagenomeScope/wiki/Building-SPQR-Functionality-for-the-Preprocessing-Script
+# for details on using this Makefile.
+
 COMPILER = g++
 # Omitting optimization and warning flags for the time being; adding those
 # later would be a good idea.
 CFLAGS = -std=gnu++11
-
-#
-# See http://www.ogdf.net/doku.php for more information on downloading and
-# installing OGDF.
 
 # NOTE modify this to point to the include directory of OGDF on your system
 OGDF_INCL = -I ~/Software/OGDF/OGDF/include/
