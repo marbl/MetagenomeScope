@@ -30,8 +30,8 @@
  * nav when the navbar-brand <a> is clicked, which matches with the behavior of
  * the navbar-brand as a link to the top of the page.
  *
- * [1] See Kevin Nelson's answer to this Stack Overflow question for details on
- * this sort of solution and its corner cases:
+ * [1] See Kevin Nelson's answer to this Stack Overflow question for more
+ * information on this sort of solution and its corner cases:
  * https://stackoverflow.com/questions/21203111/bootstrap-3-collapsed-menu-doesnt-close-on-click
  */
 $(function() {
