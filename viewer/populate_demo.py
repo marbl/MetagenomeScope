@@ -32,8 +32,8 @@ import argparse, os, sqlite3
 # This is used to modify the #demoDir span in the index.html file based on the
 # path specified by -hd.
 HOST_DB_DIR_TEMPLATE = \
-        "                            data-mgscdbdirectory=\"{}\" {}></span>\n"
-HOST_DB_DIR_TAG = "data-mgschdtag"
+    "                        <span id=\"demoDir\" data-mgscdbdirectory=\"{}\"\n"
+HOST_DB_DIR_TAG = "<span id=\"demoDir\""
 # Based on indent level for <div class="radio"> elements in the HTML file
 DB_HTML_TEMPLATE = """                        <div class="radio">
                             <label>
@@ -185,10 +185,10 @@ with open(output_file_path, "w") as outputindexfile:
         if not going_through_template_demo_list:
             if not done_with_hd_modification and HOST_DB_DIR_TAG in line:
                 outputindexfile.write(
-                    HOST_DB_DIR_TEMPLATE.format(args.hostdbdirectory,
-                    HOST_DB_DIR_TAG)
+                    HOST_DB_DIR_TEMPLATE.format(args.hostdbdirectory)
                 )
                 done_with_hd_modification = True
+                continue
             else:
                 outputindexfile.write(line)
             if not done_with_template_demo_list and DB_LIST_START_TAG in line:

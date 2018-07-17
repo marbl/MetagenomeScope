@@ -564,12 +564,17 @@
                              below span is prepended to every demo .db file's
                              URL when we try to load it in loadajaxDB().
 
-                             You can modify it directly here, or you can also
-                             change it via the populate_demo script (using the
-                             -hd argument).
+                             A "/" character is added on the end of the
+                             data-mgscdbdirectory attribute if the attribute:
+                                1. isn't an empty string and
+                                2. doesn't already end with a "/" character.
+
+                             You can modify the attribute directly here, or you
+                             can also change it via the populate_demo script
+                             (using the -hd argument).
                         -->
-                        <span class="notviewable" id="demoDir"
-                            data-mgscdbdirectory="db" data-mgschdtag></span>
+                        <span id="demoDir" data-mgscdbdirectory="db"
+                            class="notviewable"></span>
                         <!-- BEGIN DEMO .DB LIST -->
                         <div class="radio">
                             <label>
