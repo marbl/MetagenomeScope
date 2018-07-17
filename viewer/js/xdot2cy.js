@@ -2398,19 +2398,17 @@ function loadajaxDB() {
     $("#currComponentInfo").html(
         "No connected component has been drawn yet.");
     // Figure out where the hosted .db files are
-    var hostdbdir = $("#demoDir").attr("data-mgscdbdirectory");
-    var db_filename_prefix = "";
-    if (hostdbdir.length > 0) {
-        db_filename_prefix = hostdbdir + "/";
+    var db_filename_prefix = $("#demoDir").attr("data-mgscdbdirectory");
+    if (db_filename_prefix.length > 0 && !(db_filename_prefix.endsWith("/"))) {
+        db_filename_prefix += "/";
     }
-    var filename = db_filename_prefix + $("input[name=fs]:checked").attr("id");
-    DB_FILENAME = filename;
+    DB_FILENAME = db_filename_prefix + $("input[name=fs]:checked").attr("id");
     // jQuery doesn't support arraybuffer responses so we have to manually
     // use an XMLHttpRequest(), strange capitalization and all
     // CODELINK: Credit to this approach goes here, btw:
     // http://www.henryalgus.com/reading-binary-files-using-jquery-ajax/
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", filename, true);
+    xhr.open("GET", DB_FILENAME, true);
     xhr.responseType = 'arraybuffer';
     xhr.onload = function(eve) {
         if (this.status === 200) {
