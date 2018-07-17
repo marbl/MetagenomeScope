@@ -184,6 +184,13 @@ with open(output_file_path, "w") as outputindexfile:
     for line in html_file_text:
         if not going_through_template_demo_list:
             if not done_with_hd_modification and HOST_DB_DIR_TAG in line:
+                # TODO make -hd default just be keeping the value the same as in
+                # the passed index.html file?
+                # In that case, we'd remove the default option on -hd. that
+                # should make it None IIRC but check.
+                # And if -hd is None, then just skip this conditional and write
+                # the line like normal; I guess we could do this via
+                # making the first conditional of this "if" be hd is not None.
                 outputindexfile.write(
                     HOST_DB_DIR_TEMPLATE.format(args.hostdbdirectory)
                 )
