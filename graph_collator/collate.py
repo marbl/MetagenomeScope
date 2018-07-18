@@ -1487,7 +1487,8 @@ if output_spatts:
             for child in clust.nodes:
                 input_text += "%s\t%s" % (clust.cy_id_string, child.id_string)
                 input_text += "\n"
-        save_aux_file(ct.plural_name + ".txt", input_text, False, warnings=False)
+        save_aux_file("sp_" + ct.plural_name + ".txt", input_text, False,
+                warnings=False)
 
 # Add individual (not used in collapsing) nodes to the nodes_to_draw list
 # We could build this list up at the start and then gradually remove nodes as
