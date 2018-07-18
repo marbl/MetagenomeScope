@@ -52,66 +52,61 @@ import config
 
 # Get argument information
 parser = argparse.ArgumentParser(description=config.COLLATE_DESCRIPTION)
-parser.add_argument("-i", "--inputfile", required=True,
-    help="input assembly graph filename (LastGraph, GFA, or MetaCarvel GML)")
+parser.add_argument("-i", "--inputfile", required=True, help="""input assembly
+    graph filename (LastGraph, GFA, or MetaCarvel GML)""")
 parser.add_argument("-o", "--outputprefix", required=True,
-    help="output file prefix for .db and .xdot/.gv files")
+    help="""output file prefix for .db files; also used for .gv and .xdot files
+    (if -pg and -px are passed, respectively), and for _bicmps and _links files
+    (if -spqr is passed)""")
 parser.add_argument("-d", "--outputdirectory", required=False,
-    default=os.getcwd(),
-    help="directory in which all output files will be stored;" + \
-        " defaults to current working directory")
+    default=os.getcwd(), help="""directory in which all output files will be
+    stored; defaults to current working directory""")
 parser.add_argument("-spqr", "--computespqrdata", required=False,
     action="store_true", default=False, help="""compute data for the SPQR
     "decomposition modes" in MetagenomeScope; necessitates a few additional
     system requirements (see wiki for details)""")
 parser.add_argument("-pg", "--preservegv", required=False, action="store_true",
-    default=False,
-    help="save all .gv (DOT) files generated for nontrivial" + \
-         " (i.e. containing more than one node, or at least one edge or" + \
-         " node group) connected components")
+    default=False, help="""save all .gv (DOT) files generated for nontrivial
+    (i.e. containing more than one node, or at least one edge or node group)
+    connected components""")
 parser.add_argument("-px", "--preservexdot", required=False, default=False,
-    action="store_true",
-    help="save all .xdot files generated for nontrivial connected components")
+    action="store_true", help="""save all .xdot files generated for nontrivial
+    connected components""")
 parser.add_argument("-sp", "--structuralpatterns", required=False,
-        default=False, action="store_true",
-        help="create .txt files in the output directory containing node" + \
-        " information for all structural patterns identified in the graph")
+    default=False, action="store_true", help="""save .txt files
+    containing node information for all structural patterns identified in
+    the graph""")
 parser.add_argument("-w", "--overwrite", required=False, default=False,
-    action="store_true", help="overwrite output files")
+    action="store_true", help="""overwrite output files""")
 parser.add_argument("-nt", "--notriangulation", required=False, default=False,
     action="store_true", help="""disable triangle smoothing in the SPQR mode
     (this argument is only used if -spqr is pased)""")
 parser.add_argument("-b", "--bicomponentfile", required=False,
     help="""file containing bicomponent information for the assembly graph
-        (this argument is only used if -spqr is passed; a file containing
-        bicomponent information will be generated if -spqr is passed and this
-        option is not passed)""")
+    (this argument is only used if -spqr is passed; a file containing
+    bicomponent information will be generated if -spqr is passed and this
+    option is not passed)""")
 parser.add_argument("-ub", "--userbubblefile", required=False,
-    help="file describing pre-identified bubbles in the graph," + \
-        " in the format of MetaCarvel's bubbles.txt output:" + \
-        " each line of the file is formatted as" + \
-        " (source ID) (tab) (sink ID) (tab) (all node IDs in the bubble," + \
-        " including source and sink IDs, all separated by tabs)")
+    help="""file describing pre-identified bubbles in the graph, in the format
+    of MetaCarvel's bubbles.txt output: each line of the file is formatted
+    as (source ID) (tab) (sink ID) (tab) (all node IDs in the bubble,
+    including source and sink IDs, all separated by tabs)""")
 parser.add_argument("-ubl", "--userbubblelabelsused", required=False,
-    action="store_true", default=False,
-    help="use node labels instead of IDs in the pre-identified bubbles file")
-parser.add_argument("-up", "--userpatternfile", required=False,
-    help="file describing pre-identified miscellaneous structural patterns" + \
-        " in the graph: each line of the file is formatted as" + \
-        " (pattern type) (tab) (all node IDs in the pattern," + \
-        " all separated by tabs)")
+    action="store_true", default=False, help="""use node labels instead of IDs
+    in the pre-identified bubbles file""")
+parser.add_argument("-up", "--userpatternfile", required=False, help="""file
+    describing pre-identified miscellaneous structural patterns in the graph:
+    each line of the file is formatted as (pattern type) (tab) (all node IDs
+    in the pattern, all separated by tabs)""")
 parser.add_argument("-upl", "--userpatternlabelsused", required=False,
-    action="store_true", default=False,
-    help="use node labels instead of IDs in the pre-identified misc." + \
-        " patterns file")
+    action="store_true", default=False, help="""use node labels instead of IDs
+    in the pre-identified misc. patterns file""")
 parser.add_argument("-nbdf", "--nobackfilldotfiles", required=False,
-    action="store_true", default=False,
-    help="produces .gv (DOT) files without cluster \"backfilling\" for" + \
-        " each nontrivial connected component in the graph;" + \
-        " use of this argument" + \
-        " doesn't impact the .db files produced by this script -- it just" + \
-        " demonstrates the functionality in layout linearization provided" + \
-        " by cluster \"backfilling\"")
+    action="store_true", default=False, help="""produces .gv (DOT) files without
+    cluster \"backfilling\" for each nontrivial connected component in the
+    graph; use of this argument doesn't impact the .db files produced by this
+    script -- it just demonstrates the functionality in layout linearization
+    provided by cluster \"backfilling\" """)
 #parser.add_argument("-au", "--assumeunoriented", required=False, default=False,
 #        action="store_true", help="assume that input GML-file graphs are" + \
 #            " unoriented (default for GML files is assuming they are" + \
