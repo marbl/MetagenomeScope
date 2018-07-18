@@ -210,7 +210,7 @@ var NEXT_NODES;
 // on GitHub for details).
 // (In case you're curious, we set the minimum ordinary zoom level
 // automatically in finishDrawComponent().)
-var MAX_ZOOM_DURING_FINISHING_ANIMATION = 2.2;
+var MAX_ZOOM_DURING_FINISHING_ANIMATION = 1.2;
 var MAX_ZOOM_ORDINARY = 9;
 // List of mappings of cluster ID to "top" attribute
 // (corresponds to left position in graph)
