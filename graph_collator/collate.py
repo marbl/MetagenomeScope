@@ -56,11 +56,13 @@ parser.add_argument("-i", "--inputfile", required=True, help="""input assembly
     graph filename (LastGraph, GFA, or MetaCarvel GML)""")
 parser.add_argument("-o", "--outputprefix", required=True,
     help="""output file prefix for .db files; also used for .gv and .xdot files
-    (if -pg and -px are passed, respectively), and for _bicmps and _links files
-    (if -spqr is passed)""")
+    (if -pg and -px are passed, respectively), and for _bicmps files (if -b is
+    not passed but -spqr is passed) and _links files (if -spqr is passed)""")
 parser.add_argument("-d", "--outputdirectory", required=False,
     default=os.getcwd(), help="""directory in which all output files will be
-    stored; defaults to current working directory""")
+    stored; defaults to current working directory (this directory will be
+    created if it does not exist, but if the directory cannot be created then
+    an error will be raised)""")
 parser.add_argument("-spqr", "--computespqrdata", required=False,
     action="store_true", default=False, help="""compute data for the SPQR
     "decomposition modes" in MetagenomeScope; necessitates a few additional
@@ -134,11 +136,27 @@ make_no_backfilled_dot_files = args.nobackfilldotfiles
 #assume_unoriented = args.assumeunoriented
 #assume_oriented = args.assumeoriented
 
+# NOTE this is ostensibly vulnerable to a race condition in which this
+# directory is removed after it's either created or shown to already exist as a
+# directory. In this case, though, the user would just get an error when the
+# script tries to write the first output file (either a _links file, if -spqr
+# is passed, or the .db file otherwise) -- shouldn't cause any side effects.
 try:
     os.makedirs(dir_fn)
-except:
-    if not os.path.isdir(dir_fn):
-        raise IOError, dir_fn + config.EXISTS_AS_NON_DIR_ERR
+except OSError as e:
+    if e.errno == errno.EEXIST:
+        # If the directory already exists as a directory, there isn't a problem
+        if not os.path.isdir(dir_fn):
+            raise IOError, dir_fn + config.EXISTS_AS_NON_DIR_ERR
+    else:
+        # If the error we got was some other type of error (e.g. a permission
+        # error), then just raise that error to let the user know what went
+        # wrong
+        raise
+
+# NOTE Used to test the "race condition" mentioned above in which the directory
+# is removed. Only uncomment this if you're ok with dir_fn being removed!
+#os.rmdir(dir_fn)
 
 # Assign flags for auxiliary file creation
 if overwrite:
