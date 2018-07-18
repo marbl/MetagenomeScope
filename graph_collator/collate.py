@@ -75,9 +75,8 @@ parser.add_argument("-px", "--preservexdot", required=False, default=False,
     action="store_true", help="""save all .xdot files generated for nontrivial
     connected components""")
 parser.add_argument("-sp", "--structuralpatterns", required=False,
-    default=False, action="store_true", help="""save .txt files
-    containing node information for all structural patterns identified in
-    the graph""")
+    default=False, action="store_true", help="""save .txt files containing node
+    information for all structural patterns identified in the graph""")
 parser.add_argument("-w", "--overwrite", required=False, default=False,
     action="store_true", help="""overwrite output files""")
 parser.add_argument("-nt", "--notriangulation", required=False, default=False,
