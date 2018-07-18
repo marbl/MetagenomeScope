@@ -79,11 +79,13 @@ parser.add_argument("-sp", "--structuralpatterns", required=False,
 parser.add_argument("-w", "--overwrite", required=False, default=False,
     action="store_true", help="overwrite output files")
 parser.add_argument("-nt", "--notriangulation", required=False, default=False,
-    action="store_true", help="disable triangle smoothing in the SPQR mode")
+    action="store_true", help="""disable triangle smoothing in the SPQR mode
+    (this argument is only used if -spqr is pased)""")
 parser.add_argument("-b", "--bicomponentfile", required=False,
-    help="file containing bicomponent information for the assembly graph" + \
-        " (will be generated using the SPQR script in the output directory" + \
-        " if not passed)")
+    help="""file containing bicomponent information for the assembly graph
+        (this argument is only used if -spqr is passed; a file containing
+        bicomponent information will be generated if -spqr is passed and this
+        option is not passed)""")
 parser.add_argument("-ub", "--userbubblefile", required=False,
     help="file describing pre-identified bubbles in the graph," + \
         " in the format of MetaCarvel's bubbles.txt output:" + \
