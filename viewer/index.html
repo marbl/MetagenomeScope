@@ -730,10 +730,30 @@
                                     <div class="checkbox">
                                         <label>
                                             <input type="checkbox" checked
-                                            id="animateFinishingCheckbox">
+                                            id="animateFinishingCheckbox"
+                                            onchange="toggleFinishingAnimationSettings();">
                                             Automatically pan the viewport
                                             during finishing
                                         </label>
+                                    </div>
+                                    <!-- NOTE: there's a weird issue where this
+                                        div, even when it's set with the
+                                        notviewable class, seems to take up a
+                                        little bit of vertical space in between
+                                        the checkboxes. A small TODO is fixing
+                                        this, although it's so minor an issue
+                                        that it barely really matters.
+                                    -->
+                                    <div class='input-group input-group-sm'
+                                        id="maxFinishingZoomDiv">
+                                        <span class="input-group-addon"
+                                              id="maxFinishingZoomDesc">
+                                            Maximum zoom level during finishing
+                                            animation
+                                        </span>
+                                        <input type='text' class='form-control'
+                                            id="maxFinishingZoomLvl" value="1.2"
+                                            aria-describedby="maxFinishingZoomDesc">
                                     </div>
                                     <div class="checkbox">
                                         <label>

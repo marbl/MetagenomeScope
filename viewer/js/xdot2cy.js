@@ -203,14 +203,11 @@ var FINISHING_NODE_IDS = "";
 var FINISHING_NODE_OBJS = [];
 // Nodes that are outgoing from the last-added node to the reconstructed path.
 var NEXT_NODES;
-// Maximum zoom levels used in the graph display. The _ORDINARY one is to
-// prevent the user from "getting lost" (i.e. zooming too far in), and the
-// _DURING_FINISHING_ANIMATION one is to try to ensure that the user has some
-// context around tentative nodes during the finishing process (see issue #110
-// on GitHub for details).
-// (In case you're curious, we set the minimum ordinary zoom level
-// automatically in finishDrawComponent().)
-var MAX_ZOOM_DURING_FINISHING_ANIMATION = 1.2;
+// Maximum zoom level used in the graph display. Used in order to prevent the
+// user from "getting lost" (i.e. zooming too far in). Another max zoom level
+// is configurable for the user in the animation settings; that zoom level
+// tries to ensure that the user has some context around tentative nodes during
+// the finishing process (see issue #110 on GitHub for details).
 var MAX_ZOOM_ORDINARY = 9;
 // List of mappings of cluster ID to "top" attribute
 // (corresponds to left position in graph)
@@ -2454,6 +2451,10 @@ function startIndeterminateProgressBar() {
     }
 }
 
+function toggleFinishingAnimationSettings() {
+    $("#maxFinishingZoomDiv").toggleClass("notviewable");
+}
+
 /* Inverts all colors in the color settings. Here we define "inversion" of
  * a color with RGB channel values R, G, B where each value is an integer
  * in the range [0, 255] as inv((R, G, B)) -> (255 - R, 255 - G, 255 - B).
@@ -3308,7 +3309,10 @@ function markTentativeNodes() {
         // https://github.com/cytoscape/cytoscape.js/issues/941) is to impose a
         // maxZoom limit before the fitting operation, and then reset that
         // limit to its prior value after the fitting operation.
-        cy.maxZoom(MAX_ZOOM_DURING_FINISHING_ANIMATION);
+        //
+        // NOTE we use parseFloat() because cy.maxZoom() seems to require
+        // numeric inputs
+        cy.maxZoom(parseFloat($("#maxFinishingZoomLvl").val()));
         cy.animate({fit: {eles: NEXT_NODES}, complete: resetMaxZoom});
     }
 }
