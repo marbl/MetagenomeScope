@@ -3604,6 +3604,10 @@ function toggleSearchType(searchType) {
         $("#searchTypeButton").html(
             $("#searchTypeButton").html().replace(CURR_SEARCH_TYPE, searchType)
         );
+        $("#searchInput").attr("placeholder",
+            $("#searchInput").attr("placeholder")
+                .replace(CURR_SEARCH_TYPE, searchType)
+        );
     }
     CURR_SEARCH_TYPE = searchType;
 }
