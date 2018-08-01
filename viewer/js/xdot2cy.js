@@ -228,6 +228,13 @@ var MODAL_ACTIVE = false;
 // If so, we ignore keyboard inputs until the input in question is un-focused.
 var INPUT_ACTIVE = false;
 
+// Current search type (configurable in the dropdown menu in the "Search for
+// Nodes" section)
+var CURR_SEARCH_TYPE = "ID";
+// Mapping of the search type to something in the middle of a sentence (allows
+// us to frivolously adjust capitalization so we can be picky about it)
+var SEARCH_TYPE_HREADABLE = {"ID": "ID", "Label": "label"}
+
 // HTML snippets used while auto-creating info tables about selected elements
 var TD_CLOSE = "</td>";
 var TD_START = "<td>";
@@ -1633,6 +1640,7 @@ function disableVolatileControls() {
     disableButton("floatingExportButton");
     $("#assembledNodes").empty();
     disableButton("searchButton");
+    disableButton("searchTypeButton");
     disableButton("collapseButton");
     disableButton("fitSelectedButton");
     disableButton("fitButton");
@@ -2295,6 +2303,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("agpOption");
         enableButton("csvOption");
         enableButton("searchButton");
+        enableButton("searchTypeButton");
         enableButton("fitButton");
         enableButton("exportImageButton");
         enableButton("floatingExportButton");
@@ -3590,6 +3599,15 @@ function doReduceEdges() {
     cy.endBatch();
 }
 
+function toggleSearchType(searchType) {
+    if (searchType !== CURR_SEARCH_TYPE) {
+        $("#searchTypeButton").html(
+            $("#searchTypeButton").html().replace(CURR_SEARCH_TYPE, searchType)
+        );
+    }
+    CURR_SEARCH_TYPE = searchType;
+}
+
 // Centers the graph on a given list of elements separated by commas, with
 // spaces optional.
 // If any terms entered start with "contig" or "NODE", then this searches on
@@ -3607,7 +3625,7 @@ function searchForEles() {
     var queriedName;
     for (var c = 0; c < names.length; c++) {
         queriedName = names[c].trim();
-        if (queriedName.startsWith("contig") || queriedName.startsWith("NODE"))
+        if (CURR_SEARCH_TYPE === "Label")
             newEle = cy.filter("[label=\"" + queriedName + "\"]");
         else
             newEle = cy.getElementById(queriedName);
@@ -3623,8 +3641,9 @@ function searchForEles() {
             }
             else {
                 // It's a bogus element
-                alert("Error -- element ID/label " + queriedName +
-                      " is not in this component.");
+                alert("Error -- element with " +
+                      SEARCH_TYPE_HREADABLE[CURR_SEARCH_TYPE] + " " +
+                      queriedName + " is not in this component.");
                 return;
             }
         }

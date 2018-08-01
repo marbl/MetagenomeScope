@@ -202,3 +202,7 @@ button {
 .edge_chart_bar rect {
     fill: maroon;
 }
+
+.dropdown-menu a {
+    cursor: pointer;
+}

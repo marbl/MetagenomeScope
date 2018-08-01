@@ -323,11 +323,25 @@
                 <hr /> 
             </div>
             <div id="searchForElementsControls">
-                <h4>Search for Elements</h4>
+                <h4>Search for Nodes</h4>
                 <div class='input-group input-group-sm'>
-                    <input type='text' class='form-control'
-                        placeholder="Element ID/Node Label(s)" id="searchInput"
-                        disabled="disabled">
+                    <!-- CODELINK:
+                         https://getbootstrap.com/docs/3.3/components/#input-groups-buttons-dropdowns
+                    -->
+                    <div class="input-group-btn">
+                        <button type="button" data-toggle="dropdown"
+                            id="searchTypeButton" disabled="disabled"
+                            class="btn btn-default dropdown-toggle disabled"
+                            aria-haspopup="true" aria-expanded="false">
+                            ID <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a onclick="toggleSearchType('ID');">ID</a></li>
+                            <li><a onclick="toggleSearchType('Label');">Label</a></li>
+                        </ul>
+                    </div>
+                    <input type='text' class='form-control' id="searchInput"
+                        placeholder="Node identifier(s)" disabled="disabled">
                     <span class='input-group-btn'>
                         <button class='btn btn-default disabled'
                             disabled="disabled"
