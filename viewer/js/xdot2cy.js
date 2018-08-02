@@ -229,7 +229,9 @@ var MODAL_ACTIVE = false;
 var INPUT_ACTIVE = false;
 
 // Current search type (configurable in the dropdown menu in the "Search for
-// Nodes" section)
+// Nodes" section). The value of this corresponds to what's shown in the
+// contents of the #searchTypeButton <button> -- hence the capitalization
+// (e.g. "Label"), as opposed to that in SEARCH_TYPE_HREADABLE (e.g. "label").
 var CURR_SEARCH_TYPE = "ID";
 // Mapping of the search type to something in the middle of a sentence (allows
 // us to frivolously adjust capitalization so we can be picky about it)
@@ -1527,6 +1529,8 @@ function parseDBcomponents() {
         $("#nodeTH").prop("colspan", 3 + extraNodeCols);
         $("#depthCol").addClass("notviewable");
         $("#labelCol").removeClass("notviewable");
+        // Adjust search options to indicate that both labels and IDs available
+        enableSearchOption("Label");
         // Edge info adjustments
         $("#edgeTH").prop("colspan", 6);
         $("#multiplicityCol").text("B. size");
@@ -1539,11 +1543,15 @@ function parseDBcomponents() {
         // Node info adjustments
         // All contigs in LastGraph files have at min. ID, length, depth given
         // (they also always have GC content given, since LastGraph files seem
-        // to always have sequences given, but we use extraNodeCols anyway to make
-        // this more flexible)
+        // to always have sequences given, but we use extraNodeCols anyway to
+        // make this more flexible)
         $("#nodeTH").prop("colspan", 3 + extraNodeCols);
         $("#depthCol").removeClass("notviewable");
         $("#labelCol").addClass("notviewable");
+        // Adjust search option to indicate that labels aren't available, and
+        // switch back to the default search type if it isn't already set to ID
+        disableSearchOption("Label");
+        toggleSearchType("ID");
         // Edge info adjustments
         $("#edgeTH").prop("colspan", 3);
         $("#multiplicityCol").text("Multiplicity");
@@ -1558,6 +1566,8 @@ function parseDBcomponents() {
         $("#nodeTH").prop("colspan", 2 + extraNodeCols);
         $("#depthCol").addClass("notviewable");
         $("#labelCol").addClass("notviewable");
+        disableSearchOption("Label");
+        toggleSearchType("ID");
         // Edge info adjustments
         $("#edgeTH").prop("colspan", 2);
         $("#multiplicityCol").addClass("notviewable");
@@ -1571,6 +1581,8 @@ function parseDBcomponents() {
         $("#nodeTH").prop("colspan", 3 + extraNodeCols);
         $("#depthCol").removeClass("notviewable");
         $("#labelCol").addClass("notviewable");
+        disableSearchOption("Label");
+        toggleSearchType("ID");
         // Edge info adjustments
         // Edges in SPAdes FASTG files are like those in GFA files -- no
         // apparent metadata (multiplicity, etc) aside from source/sink IDs
@@ -3597,6 +3609,17 @@ function doReduceEdges() {
         }
     );
     cy.endBatch();
+}
+
+// requires that searchType be formatted analogously to how CURR_SEARCH_TYPE
+// is formatted, in order to fit with the <li> id values in the index.html file
+function enableSearchOption(searchType) {
+    $("#" + searchType + "SearchTypeOption").removeClass("notviewable");
+}
+
+// Same specifications as enableSearchOption()
+function disableSearchOption(searchType) {
+    $("#" + searchType + "SearchTypeOption").addClass("notviewable");
 }
 
 function toggleSearchType(searchType) {

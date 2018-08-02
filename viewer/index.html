@@ -336,8 +336,12 @@
                             ID <span class="caret"></span>
                         </button>
                         <ul class="dropdown-menu">
-                            <li><a onclick="toggleSearchType('ID');">ID</a></li>
-                            <li><a onclick="toggleSearchType('Label');">Label</a></li>
+                            <li id="IDSearchTypeOption">
+                                <a onclick="toggleSearchType('ID');">ID</a>
+                            </li>
+                            <li id="LabelSearchTypeOption">
+                                <a onclick="toggleSearchType('Label');">Label</a>
+                            </li>
                         </ul>
                     </div>
                     <input type='text' class='form-control' id="searchInput"
