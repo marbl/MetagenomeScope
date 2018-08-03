@@ -3361,18 +3361,27 @@ function startFinishing() {
     enableButton("endFinishingButton");
 }
 
-function togglePauseFinishing() {
-    $("#pauseFinishingButtonIconSpan").toggleClass("glyphicon-pause");
-    $("#pauseFinishingButtonIconSpan").toggleClass("glyphicon-play");
-    if ($("#pauseFinishingButtonIconSpan").hasClass("glyphicon-play")) {
-        $("#pauseFinishingButton").html(
-            $("#pauseFinishingButton").html().replace("Pause", "Resume")
-        );
-    }
-    else {
+function togglePauseFinishing(startPause) {
+    if (startPause) {
+        $("#pauseFinishingButtonIconSpan").addClass("glyphicon-pause");
+        $("#pauseFinishingButtonIconSpan").removeClass("glyphicon-play");
         $("#pauseFinishingButton").html(
             $("#pauseFinishingButton").html().replace("Resume", "Pause")
         );
+    }
+    else {
+        $("#pauseFinishingButtonIconSpan").toggleClass("glyphicon-pause");
+        $("#pauseFinishingButtonIconSpan").toggleClass("glyphicon-play");
+        if ($("#pauseFinishingButtonIconSpan").hasClass("glyphicon-play")) {
+            $("#pauseFinishingButton").html(
+                $("#pauseFinishingButton").html().replace("Pause", "Resume")
+            );
+        }
+        else {
+            $("#pauseFinishingButton").html(
+                $("#pauseFinishingButton").html().replace("Resume", "Pause")
+            );
+        }
     }
 }
 
@@ -3394,6 +3403,7 @@ function endFinishing() {
         enableButton("exportPathButton");
     }
     enableButton("startFinishingButton");
+    togglePauseFinishing(true);
     disableButton("pauseFinishingButton");
     disableButton("endFinishingButton");
 }
