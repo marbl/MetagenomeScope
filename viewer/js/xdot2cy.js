@@ -3360,6 +3360,21 @@ function startFinishing() {
     enableButton("endFinishingButton");
 }
 
+function togglePauseFinishing() {
+    $("#pauseFinishingButtonIconSpan").toggleClass("glyphicon-pause");
+    $("#pauseFinishingButtonIconSpan").toggleClass("glyphicon-play");
+    if ($("#pauseFinishingButtonIconSpan").hasClass("glyphicon-play")) {
+        $("#pauseFinishingButton").html(
+            $("#pauseFinishingButton").html().replace("Pause", "Resume")
+        );
+    }
+    else {
+        $("#pauseFinishingButton").html(
+            $("#pauseFinishingButton").html().replace("Resume", "Pause")
+        );
+    }
+}
+
 function endFinishing() {
     FINISHING_MODE_ON = false;
     FINISHING_MODE_PREVIOUSLY_DONE = true;
