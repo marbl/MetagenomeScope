@@ -3357,6 +3357,7 @@ function startFinishing() {
         cy.autounselectify(true);
         cy.on("tap", "node", addNodeFromEventToPath);
     }
+    enableButton("pauseFinishingButton");
     enableButton("endFinishingButton");
 }
 
@@ -3389,8 +3390,11 @@ function endFinishing() {
     NEXT_NODES = cy.collection();
     cy.autounselectify(false);
     cy.off("tap");
-    enableButton("exportPathButton");
+    if (FINISHING_NODE_OBJS.length > 0) {
+        enableButton("exportPathButton");
+    }
     enableButton("startFinishingButton");
+    disableButton("pauseFinishingButton");
     disableButton("endFinishingButton");
 }
 
