@@ -1,6 +1,6 @@
-9x9.db	STAMPS Sample Graph 1 ("all-to-all")
-unique.db	STAMPS Sample Graph 2 ("unique")
-3rd_adj_list.db	STAMPS Sample Graph 3 ("3rd adjacency list")
+9x9.db	<strong>STAMPS Sample Graph 1</strong> ("all-to-all")
+unique.db	<strong>STAMPS Sample Graph 2</strong> ("unique")
+3rd_adj_list.db	<strong>STAMPS Sample Graph 3</strong> ("3rd adjacency list")
 august1.db	SRS049950: post-clean
 shakya.db	64-genome bacterial/archaeal metagenome from <a target="_blank" href="http://www.ncbi.nlm.nih.gov/pubmed/23387867"><em>Shakya et al.</em> 2013</a>
 shakya_new.db	 <a target="_blank" href="http://www.ncbi.nlm.nih.gov/pubmed/23387867"><em>Shakya et al.</em></a> metagenome, simplified
