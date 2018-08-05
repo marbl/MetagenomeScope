@@ -1471,15 +1471,15 @@ function parseDBcomponents() {
     $("#bicmpCountEntry").text(bicmpInfo);
     $("#connCmpCtEntry").text(compInfo);
     $("#n50Entry").text(n50Info);
+    // Reset connected component in the selector to 1
+    $("#componentselector").prop("value", 1);
     $("#componentselector").prop("max", compCt);
     $("#componentselector").prop("disabled", false);
-    enableButton("decrCompRankButton");
-    enableButton("incrCompRankButton");
-    enableButton("drawButton");
+    $("#SPQRcomponentselector").prop("value", 1);
     $("#SPQRcomponentselector").prop("max", sccCt);
     $("#SPQRcomponentselector").prop("disabled", false);
-    enableButton("decrSPQRCompRankButton");
-    enableButton("incrSPQRCompRankButton");
+    enableCompRankControlsIfNecessary();
+    enableButton("drawButton");
     enableButton("drawSPQRButton");
     enableButton("implicitSPQROption");
     enableButton("explicitSPQROption");
@@ -1691,6 +1691,21 @@ function toggleUTV() {
 
 function toggleClusterNav() {
     USE_CLUSTER_KBD_NAV = !USE_CLUSTER_KBD_NAV;
+}
+
+/* Only enable component +/- buttons if the graph has more than 1 cc.
+ * This provides a visual indication to the user of when the graph contains
+ * (or doesn't contain) multiple components.
+ */
+function enableCompRankControlsIfNecessary() {
+    if ($("#componentselector").prop("max") > 1) {
+        enableButton("decrCompRankButton");
+        enableButton("incrCompRankButton");
+    }
+    if ($("#SPQRcomponentselector").prop("max") > 1) {
+        enableButton("decrSPQRCompRankButton");
+        enableButton("incrSPQRCompRankButton");
+    }
 }
 
 /* Returns null if the value indicated by the string is not an integer (we
@@ -2285,12 +2300,9 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         // At this point, all of the hard work has been done. All that's left
         // to do now is re-enable controls, enable graph interaction, etc.
         $("#componentselector").prop("disabled", false);
-        enableButton("decrCompRankButton");
-        enableButton("incrCompRankButton");
-        enableButton("drawButton");
         $("#SPQRcomponentselector").prop("disabled", false);
-        enableButton("decrSPQRCompRankButton");
-        enableButton("incrSPQRCompRankButton");
+        enableCompRankControlsIfNecessary();
+        enableButton("drawButton");
         enableButton("drawSPQRButton");
         enableButton("implicitSPQROption");
         enableButton("explicitSPQROption");
