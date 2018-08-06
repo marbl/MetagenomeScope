@@ -28,7 +28,7 @@ Once you've logged in to the cluster, you'll need to get Graphviz (the program w
 module load graphviz
 ```
 
-Next up, you'll need to load the module for Python 2 so that we can use `pip2`.
+Next up, you'll need to load the module for Python 2.
 Note that the version here apparently needs to be 2.7.9 -- for some reason,
 just saying `module load python2` gave me a weird error. Technology is weird
 sometimes!
@@ -37,31 +37,12 @@ sometimes!
 module load python/2.7.9
 ```
 
-Now everything's ready for us to install PyGraphviz, which is a Python library
-that lets Python programs like MetagenomeScope communicate with Graphviz.
-Run the following command to install PyGraphviz in your home directory:
-
-```bash
-pip2 install --user --install-option="--include-path=/bioware/graphviz/include/graphviz" --install-option="--library-path=/bioware/graphviz/lib/graphviz" pygraphviz
-```
-
-There's one last step before we can get this ready. You'll need to modify an
-environment variable to point to the Graphviz library files, so that
-PyGraphviz is able to find this information. (This solution c/o page 17 of the
-[PyGraphviz manual](http://pygraphviz.github.io/documentation/latest/pygraphviz.pdf).)
-The following command should work for this:
-
-```bash
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/bioware/graphviz/lib"
-```
-
-Ok! Now we can finally generate a visualization!
+Ok! Now we can get around to generating a visualization!
 
 ## Generating an assembly graph visualization
 
-MetagenomeScope supports a variety of input graph filetypes, including
-output from Velvet, MetaCarvel, and SPAdes/MEGAHIT. Feel free to use any
-assembly graph file you have available!
+MetagenomeScope supports a variety of input assembly graph filetypes, including
+output from Velvet, MetaCarvel, and SPAdes/MEGAHIT. If you have an output assembly graph from one of these tools on hand, feel free to use it here!
 
 If you don't have one on hand, though,
 we've provided a sample assembly graph file (`shakya_oriented.gml`) on the MBL
