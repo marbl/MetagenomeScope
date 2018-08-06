@@ -172,3 +172,8 @@ After loading a graph file into MetagenomeScope's viewer interface, a few contro
     of all the connected components in the graph. 
 
 Anyway, select "Draw connected component" to draw a component of the graph!
+
+Most of the controls in MetagenomeScope's viewer interface are hopefully
+self-explanatory. Let me know if you have any questions; after the class moves
+on from the command-line portion of this tutorial, we'll walk through the
+individual controls in the viewer interface together.
