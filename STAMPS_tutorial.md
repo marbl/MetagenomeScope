@@ -14,19 +14,25 @@ always. See [here](https://github.com/mblstamps/stamps2018/wiki/Installation#con
 
 Once you've logged in to the cluster, you'll need to get Graphviz (the program we use to lay out graphs) ready. You can load it using
 
-```module load graphviz```
+```
+module load graphviz
+```
 
 Next up, you'll need to load the module for Python 2 so that we can use `pip2`.
 Note that the version here apparently needs to be 2.7.9 -- for some reason,
 just saying `module load python2` gave me a weird error.
 
-```module load python/2.7.9```
+```
+module load python/2.7.9
+```
 
 Now everything's ready for us to install PyGraphviz, which is a Python library
 that lets programs like MetagenomeScope communicate with Graphviz.
 Run the following command to install PyGraphviz in your home directory:
 
-```pip2 install --user --install-option="--include-path=/bioware/graphviz/include/graphviz" --install-option="--library-path=/bioware/graphviz/lib/graphviz" pygraphviz```
+```
+pip2 install --user --install-option="--include-path=/bioware/graphviz/include/graphviz" --install-option="--library-path=/bioware/graphviz/lib/graphviz" pygraphviz
+```
 
 There's one last step before we can get this ready. You'll need to modify an
 environment variable to point to the Graphviz library files, so that
@@ -34,7 +40,9 @@ PyGraphviz is able to find this information. (This solution c/o page 17 of the
 [PyGraphviz manual](http://pygraphviz.github.io/documentation/latest/pygraphviz.pdf).)
 The following command should work for this:
 
-```export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/bioware/graphviz/lib"```
+```
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/bioware/graphviz/lib"
+```
 
 Ok! Now we can finally generate a visualization!
 
@@ -51,7 +59,9 @@ can use. The sequencing data from which this assembly graph was created comes fr
 The demo assembly graph file is hosted on MetagenomeScope's site. You can
 download it to your directory on the cluster using the following command:
 
-```wget http://mgsc.umiacs.io/sample/shakya_oriented.gml```
+```
+wget http://mgsc.umiacs.io/sample/shakya_oriented.gml
+```
 
 (Note that I'm probably going to remove this file after the course has ended,
 so if you're doing this tutorial after August 8, 2018 or so then that `wget`
@@ -59,7 +69,9 @@ command probably won't work.)
 
 Anyway, now you can finally generate a visualization of this file!
 
-```python2 MetagenomeScope/graph_collator/collate.py -i shakya_oriented.gml -o shakya```
+```
+python2 MetagenomeScope/graph_collator/collate.py -i shakya_oriented.gml -o shakya
+```
 
 This command will generate a file named `shakya.db` in your current working
 directory. This file is actually a SQLite3 database file; you can visualize it
@@ -74,7 +86,9 @@ If you'd like, we can leverage this to mess around with this database file a bit
 
 You can load the graph using:
 
-```sqlite3 shakya.db```
+```
+sqlite3 shakya.db
+```
 
 This will open up an interactive prompt. You can run SQLite3 commands here to
 learn more information about the database file for the assembly graph
@@ -84,7 +98,8 @@ First off, let's find out some basic structural information about the graph.
 This is stored in the `assembly` table, which contains general information
 about the entire assembly graph.
 
-```.headers on
+```
+.headers on
 select node_count, edge_count, component_count from assembly;
 ```
 
@@ -93,7 +108,9 @@ comprises 156 [connected components](https://en.wikipedia.org/wiki/Connected_com
 
 Next, let's dig some more into the length statistics of the graph's nodes.
 
-```select total_length, n50 from assembly;```
+```
+select total_length, n50 from assembly;
+```
 
 So the sum of the lengths of every node in the graph comes out to around 13
 million base pairs (bp). And the graph has an [N50 statistic](https://en.wikipedia.org/wiki/N50,_L50,_and_related_statistics#N50) of 139,691 bp.
@@ -104,7 +121,9 @@ largest, component 2 is the second-largest, and so on).
 Let's try figuring out how many of the 379 total nodes in the assembly graph are in
 its first (and therefore largest) component.
 
-```SELECT node_count FROM components WHERE size_rank = 1;```
+```
+SELECT node_count FROM components WHERE size_rank = 1;
+```
 
 It turns out that only 37 nodes are in this component. Since we know that this
 is the largest component -- and since we also know that the graph contains 156
@@ -124,7 +143,9 @@ MetagenomeScope website, if you don't want to mess around with `scp` right now.
 You can just download the pre-made `shakya.db` file by clicking on the above
 link or using the following command in your computer's command prompt:
 
-```wget http://mgsc.umiacs.io/sample/shakya.db```
+```
+wget http://mgsc.umiacs.io/sample/shakya.db
+```
 
 Either way, you can load MetagenomeScope's viewer interface at [mgsc.umiacs.io](https://mgsc.umiacs.io/).
 
