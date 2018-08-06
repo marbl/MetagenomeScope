@@ -600,6 +600,12 @@ function initGraph(viewType) {
                 }
             },
             {
+                selector: 'edge:loop',
+                style: {
+                    'z-index': 5
+                }
+            },
+            {
                 selector: 'edge.unoriented_loop',
                 style: {
                     'target-endpoint': '-50% 0%',
