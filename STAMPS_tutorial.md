@@ -3,10 +3,19 @@
 (Inspired by [this SEPP/TIPP tutorial](https://github.com/MGNute/stamps-tutorial/blob/master/tutorial.md).)
 
 ## Introduction
-Note that you don't really have to follow this tutorial. There's plenty of
-sample graphs available on MetagenomeScope's demo, so don't worry if you run
-into lots of problems with these instructions! If you can't run the
-commands to generate a visualization file, you can just skip down to [the bottom
+
+This tutorial covers the process of using MetagenomeScope's "preprocessing
+script" to generate a visualization file that can be loaded in
+MetagenomeScope's viewer interface. These directions assume you have access to
+the MBL cluster.
+
+Note that you don't really have to follow this tutorial all the way through.
+There's plenty of
+sample graphs available on MetagenomeScope's demo for you to try out, so don't
+worry if you run into lots of problems with these instructions!
+
+If you can't run the commands to
+generate a visualization file, you can just skip down to [the bottom
 section of this tutorial](#actually-visualizing-the-assembly-graph) and download the pre-made `shakya.db` file.
 
 ## Getting ready to generate a MetagenomeScope visualization
