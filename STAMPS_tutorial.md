@@ -21,7 +21,8 @@ module load graphviz
 
 Next up, you'll need to load the module for Python 2 so that we can use `pip2`.
 Note that the version here apparently needs to be 2.7.9 -- for some reason,
-just saying `module load python2` gave me a weird error.
+just saying `module load python2` gave me a weird error. Technology is weird
+sometimes!
 
 ```bash
 module load python/2.7.9
@@ -64,7 +65,7 @@ The resulting assembly was scaffolded using
 The demo assembly graph file is located at
 `/class/stamps-shared/MgSc/shakya_oriented.gml`.
 
-Now we can finally generate a visualization of this file:
+We can generate a visualization of this file using the following command:
 
 ```bash
 python2 /class/stamps-shared/MgSc/graph_collator/collate.py -i /class/stamps-shared/MgSc/shakya_oriented.gml -o shakya
