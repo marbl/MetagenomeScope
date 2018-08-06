@@ -5,8 +5,9 @@
 ## Introduction
 Note that you don't really have to follow this tutorial. There's plenty of
 sample graphs available on MetagenomeScope's demo, so don't worry if you run
-into lots of problems with these instructions! There's always another way
-around these sorts of things. Usually.
+into lots of problems with these instructions! If you can't run the
+commands to generate a visualization file, you can just skip down to [the bottom
+section of this tutorial](#actually-visualizing-the-assembly-graph) and download the pre-made `shakya.db` file.
 
 ## Getting ready to generate a MetagenomeScope visualization
 First things first, you'll need to log on to the MBL clusters, same way as
