@@ -107,7 +107,7 @@ about the entire assembly graph.
 
 ```sql
 .headers on
-select node_count, edge_count, component_count from assembly;
+SELECT node_count, edge_count, component_count FROM assembly;
 ```
 
 From here, we can see that the graph contains 379 nodes, 229 edges, and
@@ -116,7 +116,7 @@ comprises 156 [connected components](https://en.wikipedia.org/wiki/Connected_com
 Next, let's dig some more into the length statistics of the graph's nodes.
 
 ```sql
-select total_length, n50 from assembly;
+SELECT total_length, n50 FROM assembly;
 ```
 
 So the sum of the lengths of every node in the graph comes out to around 13
@@ -136,6 +136,13 @@ It turns out that only 37 nodes are in this component. Since we know that this
 is the largest component -- and since we also know that the graph contains 156
 connected components -- we can infer that the graph probably consists of a lot of
 relatively small connected components.
+
+You can run some more commands if you'd like -- see
+[here](http://www.sqlitetutorial.net/sqlite-select/) for a tutorial regarding the
+"SELECT" statement, which all of the above SQLite3 commands used.
+
+When you're done looking around using SQLite3, you can exit the interface
+by pressing Ctrl-D.
 
 ## Actually visualizing the assembly graph
 
