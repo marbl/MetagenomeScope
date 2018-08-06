@@ -3354,6 +3354,22 @@ function resetMaxZoom() {
     cy.maxZoom(MAX_ZOOM_ORDINARY);
 }
 
+/* If onOrOff >= 0, removes graph properties (pauses/stops finishing).
+ * If pauseOrFinish < 0, adds graph properties (resumes/starts finishing).
+ */
+function toggleFinishingGraphProperties(onOrOff) {
+    if (onOrOff >= 0) {
+        cy.autounselectify(false);
+        cy.off("tap");
+    }
+    else {
+        // TODO can make this more efficient -- see #115, etc.
+        cy.filter(':selected').unselect();
+        cy.autounselectify(true);
+        cy.on("tap", "node", addNodeFromEventToPath);
+    }
+}
+
 function startFinishing() {
     if (!FINISHING_MODE_ON) {
         disableButton("startFinishingButton");
@@ -3364,17 +3380,21 @@ function startFinishing() {
             disableButton("exportPathButton");
         }
         FINISHING_MODE_ON = true;
-        // TODO can make this more efficient -- see #115, etc.
-        cy.filter(':selected').unselect();
-        cy.autounselectify(true);
-        cy.on("tap", "node", addNodeFromEventToPath);
+        toggleFinishingGraphProperties(-1);
     }
     enableButton("pauseFinishingButton");
     enableButton("endFinishingButton");
 }
 
-function togglePauseFinishing(startPause) {
-    if (startPause) {
+/* Changes the style of the "pause finishing" button. Doesn't actually
+ * modify any of the finishing mode's behavior -- just alters the button style.
+ * If pauseOrFinish < 0, sets everything to say "Pause" (i.e. the user just
+ * selected the "resume" option).
+ * If pauseOrFinish >= 0, sets everything to say "Resume" (i.e. the user just
+ * selected the "pause" option).
+ */
+function togglePauseFinishingButtonStyle(pauseOrFinish) {
+    if (pauseOrFinish < 0) {
         $("#pauseFinishingButtonIconSpan").addClass("glyphicon-pause");
         $("#pauseFinishingButtonIconSpan").removeClass("glyphicon-play");
         $("#pauseFinishingButton").html(
@@ -3382,18 +3402,26 @@ function togglePauseFinishing(startPause) {
         );
     }
     else {
-        $("#pauseFinishingButtonIconSpan").toggleClass("glyphicon-pause");
-        $("#pauseFinishingButtonIconSpan").toggleClass("glyphicon-play");
-        if ($("#pauseFinishingButtonIconSpan").hasClass("glyphicon-play")) {
-            $("#pauseFinishingButton").html(
-                $("#pauseFinishingButton").html().replace("Pause", "Resume")
-            );
-        }
-        else {
-            $("#pauseFinishingButton").html(
-                $("#pauseFinishingButton").html().replace("Resume", "Pause")
-            );
-        }
+        $("#pauseFinishingButtonIconSpan").removeClass("glyphicon-pause");
+        $("#pauseFinishingButtonIconSpan").addClass("glyphicon-play");
+        $("#pauseFinishingButton").html(
+            $("#pauseFinishingButton").html().replace("Pause", "Resume")
+        );
+    }
+}
+
+/* Detects if the finishing mode is paused or unpaused, and switches its state
+ * (and the pause button style, via calling togglePauseFinishingButtonStyle())
+ * accordingly.
+ */
+function togglePauseFinishing() {
+    if ($("#pauseFinishingButtonIconSpan").hasClass("glyphicon-pause")) {
+        togglePauseFinishingButtonStyle(1);
+        toggleFinishingGraphProperties(1);
+    }
+    else {
+        togglePauseFinishingButtonStyle(-1);
+        toggleFinishingGraphProperties(-1);
     }
 }
 
@@ -3409,13 +3437,12 @@ function endFinishing() {
     }
     cy.endBatch();
     NEXT_NODES = cy.collection();
-    cy.autounselectify(false);
-    cy.off("tap");
+    toggleFinishingGraphProperties(1);
     if (FINISHING_NODE_OBJS.length > 0) {
         enableButton("exportPathButton");
     }
     enableButton("startFinishingButton");
-    togglePauseFinishing(true);
+    togglePauseFinishingButtonStyle(-1);
     disableButton("pauseFinishingButton");
     disableButton("endFinishingButton");
 }
@@ -3533,7 +3560,7 @@ function getNodeColorization(gc) {
     //else {
     //    // t is the lower value of the "range" into which the specified
     //    // GC-content is placed. For example, if percentageBin = 10% then the
-    //    // t-value of 3.1% would be 0 and the t-value of 25% would be 3. 
+    //    // t-value of 3.1% would be 0 and the t-value of 25% would be 3.
     //    t = Math.floor((gc * 100) / percentageBin);
     //}
     //percentageUsedInColorization = ((t * percentageBin) / 100);
@@ -3920,7 +3947,7 @@ function startCollapseAll() {
  * An argument of 'U' uncollapses all nodes, and an argument of 'C' (or
  * anything that isn't 'U') collapses all nodes.
  */
-function collapseAll(operationCharacter) { 
+function collapseAll(operationCharacter) {
     cy.startBatch();
     if (operationCharacter === 'U') {
         cy.scratch("_collapsed").each(
@@ -4064,7 +4091,7 @@ function initClusters() {
     // For each compound node...
     cy.scratch("_uncollapsed").each(
         function(node, i) {
-            var children = node.children();        
+            var children = node.children();
             // Unfiltered incoming/outgoing edges
             var uIncomingEdges = children.incomers('edge');
             var uOutgoingEdges = children.outgoers('edge');
