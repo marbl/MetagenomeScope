@@ -156,13 +156,13 @@ MetagenomeScope's viewer interface.
 
 After loading a graph file into MetagenomeScope's viewer interface, a few controls become enabled:
 
--The "Assembly info" button
-    -This button opens a dialog showing some of the information about this
+- The "Assembly info" button
+    - This button opens a dialog showing some of the information about this
     graph we got from SQLite3 earlier.
--The "Standard Mode" controls
-    -These controls can be used to select and draw a connected component of the
+- The "Standard Mode" controls
+    - These controls can be used to select and draw a connected component of the
     assembly graph.
-    -Remember that MetagenomeScope sorts connected components of the graph in
+    - Remember that MetagenomeScope sorts connected components of the graph in
     descending order by node count: so component 1 will contain the most nodes out
     of all the connected components in the graph. 
 
