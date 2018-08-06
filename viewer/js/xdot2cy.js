@@ -1839,6 +1839,7 @@ function drawSPQRComponent(cmpRank) {
     $("#assemblyFinishingControls").addClass("notviewable");
     $("#viewScaffoldsControls").addClass("notviewable");
     $("#testLayoutsControls").addClass("notviewable");
+    $("#displayOptionsControls").addClass("notviewable");
     $("#collapseButtonControls").addClass("notviewable");
     $("#noneColorization").prop("checked", true);
     CURR_NODE_COLORIZATION = "noncolorized";
@@ -2021,6 +2022,7 @@ function drawComponent(cmpRank) {
     $("#assemblyFinishingControls").removeClass("notviewable");
     $("#viewScaffoldsControls").removeClass("notviewable");
     $("#testLayoutsControls").removeClass("notviewable");
+    $("#displayOptionsControls").removeClass("notviewable");
     $("#collapseButtonControls").removeClass("notviewable");
     // Disable other node colorization settings and check the "noncolorized"
     // node colorization option by default
@@ -2319,7 +2321,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         }
         $("#searchInput").prop("disabled", false);
         $("#layoutInput").prop("disabled", false);
-        if (componentEdgeCount > 0) {
+        if (mode !== "SPQR" && componentEdgeCount > 0) {
             enableButton("reduceEdgesButton");
             if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GML") {
                 // Only enable the edge filtering features for graphs that have
