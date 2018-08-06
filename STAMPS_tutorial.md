@@ -44,6 +44,13 @@ The following command should work for this:
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/bioware/graphviz/lib"
 ```
 
+Oh, also, if I haven't gotten write access to the cluster's `stamps-shared`
+directory yet, then you can download the source code for MetagenomeScope using:
+
+```
+git clone https://github.com/marbl/MetagenomeScope.git
+```
+
 Ok! Now we can finally generate a visualization!
 
 ## Generating an assembly graph visualization
