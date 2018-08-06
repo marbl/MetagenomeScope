@@ -127,7 +127,7 @@ SELECT node_count FROM components WHERE size_rank = 1;
 
 It turns out that only 37 nodes are in this component. Since we know that this
 is the largest component -- and since we also know that the graph contains 156
-connected components -- we can infer that the graph contains a lot of
+connected components -- we can infer that the graph probably consists of a lot of
 relatively small connected components.
 
 ## Actually visualizing the assembly graph
