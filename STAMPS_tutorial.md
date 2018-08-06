@@ -28,7 +28,7 @@ module load python/2.7.9
 ```
 
 Now everything's ready for us to install PyGraphviz, which is a Python library
-that lets programs like MetagenomeScope communicate with Graphviz.
+that lets Python programs like MetagenomeScope communicate with Graphviz.
 Run the following command to install PyGraphviz in your home directory:
 
 ```bash
@@ -45,13 +45,6 @@ The following command should work for this:
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/bioware/graphviz/lib"
 ```
 
-Oh, also, if I haven't gotten write access to the cluster's `stamps-shared`
-directory yet, then you can download the source code for MetagenomeScope using:
-
-```bash
-git clone https://github.com/marbl/MetagenomeScope.git
-```
-
 Ok! Now we can finally generate a visualization!
 
 ## Generating an assembly graph visualization
@@ -61,24 +54,20 @@ output from Velvet, MetaCarvel, and SPAdes/MEGAHIT. Feel free to use any
 assembly graph file you have available!
 
 If you don't have one on hand, though,
-we've provided a sample assembly graph file (`shakya_oriented.gml`) that you
-can use. The sequencing data from which this assembly graph was created comes from a 64-genome bacterial/archaeal metagenome, discussed in [Shakya et al. 2013](https://www.ncbi.nlm.nih.gov/pubmed/23387867). The resulting assembly was scaffolded using [MetaCarvel](https://github.com/marbl/MetaCarvel).
+we've provided a sample assembly graph file (`shakya_oriented.gml`) on the MBL
+cluster that you can use. The sequencing data from which this assembly graph
+was created comes from a 64-genome bacterial/archaeal metagenome, discussed in
+[Shakya et al. 2013](https://www.ncbi.nlm.nih.gov/pubmed/23387867).
+The resulting assembly was scaffolded using
+[MetaCarvel](https://github.com/marbl/MetaCarvel).
 
-The demo assembly graph file is hosted on MetagenomeScope's site. You can
-download it to your directory on the cluster using the following command:
+The demo assembly graph file is located at
+`/class/stamps-shared/MgSc/shakya_oriented.gml`.
 
-```bash
-wget http://mgsc.umiacs.io/sample/shakya_oriented.gml
-```
-
-(Note that I'm probably going to remove this file after the course has ended,
-so if you're doing this tutorial after August 8, 2018 or so then that `wget`
-command probably won't work.)
-
-Anyway, now you can finally generate a visualization of this file!
+Now we can finally generate a visualization of this file:
 
 ```bash
-python2 MetagenomeScope/graph_collator/collate.py -i shakya_oriented.gml -o shakya
+python2 /class/stamps-shared/MgSc/graph_collator/collate.py -i /class/stamps-shared/MgSc/shakya_oriented.gml -o shakya
 ```
 
 This command will generate a file named `shakya.db` in your current working
