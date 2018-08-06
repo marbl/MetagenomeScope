@@ -14,7 +14,7 @@ always. See [here](https://github.com/mblstamps/stamps2018/wiki/Installation#con
 
 Once you've logged in to the cluster, you'll need to get Graphviz (the program we use to lay out graphs) ready. You can load it using
 
-```
+```bash
 module load graphviz
 ```
 
@@ -22,7 +22,7 @@ Next up, you'll need to load the module for Python 2 so that we can use `pip2`.
 Note that the version here apparently needs to be 2.7.9 -- for some reason,
 just saying `module load python2` gave me a weird error.
 
-```
+```bash
 module load python/2.7.9
 ```
 
@@ -30,7 +30,7 @@ Now everything's ready for us to install PyGraphviz, which is a Python library
 that lets programs like MetagenomeScope communicate with Graphviz.
 Run the following command to install PyGraphviz in your home directory:
 
-```
+```bash
 pip2 install --user --install-option="--include-path=/bioware/graphviz/include/graphviz" --install-option="--library-path=/bioware/graphviz/lib/graphviz" pygraphviz
 ```
 
@@ -40,14 +40,14 @@ PyGraphviz is able to find this information. (This solution c/o page 17 of the
 [PyGraphviz manual](http://pygraphviz.github.io/documentation/latest/pygraphviz.pdf).)
 The following command should work for this:
 
-```
+```bash
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/bioware/graphviz/lib"
 ```
 
 Oh, also, if I haven't gotten write access to the cluster's `stamps-shared`
 directory yet, then you can download the source code for MetagenomeScope using:
 
-```
+```bash
 git clone https://github.com/marbl/MetagenomeScope.git
 ```
 
@@ -66,7 +66,7 @@ can use. The sequencing data from which this assembly graph was created comes fr
 The demo assembly graph file is hosted on MetagenomeScope's site. You can
 download it to your directory on the cluster using the following command:
 
-```
+```bash
 wget http://mgsc.umiacs.io/sample/shakya_oriented.gml
 ```
 
@@ -76,7 +76,7 @@ command probably won't work.)
 
 Anyway, now you can finally generate a visualization of this file!
 
-```
+```bash
 python2 MetagenomeScope/graph_collator/collate.py -i shakya_oriented.gml -o shakya
 ```
 
@@ -93,7 +93,7 @@ If you'd like, we can leverage this to mess around with this database file a bit
 
 You can load the graph using:
 
-```
+```bash
 sqlite3 shakya.db
 ```
 
@@ -105,7 +105,7 @@ First off, let's find out some basic structural information about the graph.
 This is stored in the `assembly` table, which contains general information
 about the entire assembly graph.
 
-```
+```sql
 .headers on
 select node_count, edge_count, component_count from assembly;
 ```
@@ -115,7 +115,7 @@ comprises 156 [connected components](https://en.wikipedia.org/wiki/Connected_com
 
 Next, let's dig some more into the length statistics of the graph's nodes.
 
-```
+```sql
 select total_length, n50 from assembly;
 ```
 
@@ -128,7 +128,7 @@ largest, component 2 is the second-largest, and so on).
 Let's try figuring out how many of the 379 total nodes in the assembly graph are in
 its first (and therefore largest) component.
 
-```
+```sql
 SELECT node_count FROM components WHERE size_rank = 1;
 ```
 
@@ -150,7 +150,7 @@ MetagenomeScope website, if you don't want to mess around with `scp` right now.
 You can just download the pre-made `shakya.db` file by clicking on the above
 link or using the following command in your computer's command prompt:
 
-```
+```bash
 wget http://mgsc.umiacs.io/sample/shakya.db
 ```
 
