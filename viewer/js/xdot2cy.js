@@ -1500,6 +1500,7 @@ function parseDBcomponents() {
     FINISHING_MODE_PREVIOUSLY_DONE = false;
     FINISHING_NODE_IDS = "";
     FINISHING_NODE_OBJS = [];
+    togglePauseFinishingButtonStyle(-1);
     // This'll get changed to this anyway when drawing a component, but this
     // way we prevent something else from being checked in the "in-between"
     // state when no components have been drawn
@@ -1651,6 +1652,7 @@ function disableVolatileControls() {
     disableButton("layoutButton");
     disableButton("scaffoldFileselectButton");
     disableButton("startFinishingButton");
+    disableButton("pauseFinishingButton");
     disableButton("endFinishingButton");
     disableButton("exportPathButton");
     disableButton("agpOption");
@@ -2008,6 +2010,7 @@ function drawComponent(cmpRank) {
     FINISHING_NODE_IDS = "";
     FINISHING_NODE_OBJS = [];
     NEXT_NODES = cy.collection();
+    togglePauseFinishingButtonStyle(-1);
     SELECTED_NODE_COUNT = 0;
     SELECTED_EDGE_COUNT = 0;
     SELECTED_CLUSTER_COUNT = 0;
