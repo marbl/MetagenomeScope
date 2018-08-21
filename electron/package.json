@@ -1,0 +1,14 @@
+{
+  "name": "desktop_mgsc",
+  "version": "0.0.1",
+  "description": "Rudimentary Electron implementation of MetagenomeScope's viewer interface",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Marcus Fedarko",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "electron": "^2.0.7"
+  }
+}
