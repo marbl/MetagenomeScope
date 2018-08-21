@@ -87,6 +87,10 @@ sed -i'' "s/<script src=[\"\']js\/jquery-\([0-9\.]*\).min\.js[\"\']><\/script>/$
 # directory's name: either "js" or "css".
 sed -i'' 's/\(src\|href\)=\([\"\']\)\(js\|css\)\//\1=\2\.\.\/viewer\/\3\//g' electron/index.min.html
 
+# Step 3: just remove the shortcut icon thing, since it isn't used by Electron
+# and we don't have bubble.ico in the electron/ folder anyway
+sed -i'' 's/<link rel=\"shortcut icon\" href=\"bubble\.ico\">//' electron/index.min.html
+
 # Finally, print ending messages
 echo "File minification complete."
 echo "Make sure that the version of index.min.html you're uploading somewhere is renamed to index.html in its new location."
