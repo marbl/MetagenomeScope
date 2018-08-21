@@ -41,6 +41,12 @@
              change around the jQuery file name's version number/etc. so long
              as it conforms to the regex ["']js\/jquery-[0-9\.]*\.min\.js["']
              and the script should be able to handle it.)
+
+             Also, for what it's worth, minify_files expects each <script> or
+             <link> that uses a local file in the css or js directories to have
+             its src attribute start with either "css" or "js". So if you have
+             something like ./js/... then that'll trip minify_files up, which
+             will mess up the Electron version HTML generation.
         -->
         <script src='js/jquery-3.2.1.min.js'></script>
         <script src='js/cytoscape.min.js'></script>
