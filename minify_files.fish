@@ -91,6 +91,12 @@ sed -i'' 's/\(src\|href\)=\([\"\']\)\(js\|css\)\//\1=\2\.\.\/viewer\/\3\//g' ele
 # and we don't have bubble.ico in the electron/ folder anyway
 sed -i'' 's/<link rel=\"shortcut icon\" href=\"bubble\.ico\">//' electron/index.min.html
 
+# Step 4: Set a global flag variable that lets my JavaScript code in xdot2cy.js
+# know that Electron is being used (so that it can do certain things).
+# The question marks allow for some variability in how the <script> is
+# minified.
+sed -i'' 's/window\.METAGENOMESCOPE_ELECTRON_BEING_USED \?= \?0;\?/window\.METAGENOMESCOPE_ELECTRON_BEING_USED = 1;/' electron/index.min.html
+
 # Finally, print ending messages
 echo "File minification complete."
 echo "Make sure that the version of index.min.html you're uploading somewhere is renamed to index.html in its new location."
