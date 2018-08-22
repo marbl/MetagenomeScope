@@ -4,7 +4,7 @@
  * Authored by Marcus Fedarko
  *
  * This file is part of MetagenomeScope.
- * 
+ *
  * MetagenomeScope is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,7 +18,7 @@
  * You should have received a copy of the GNU General Public License
  * along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
  ****
- * The functions in this script provide the various features/etc. in
+ * The functions in this code file provide the various features/etc. in
  * MetagenomeScope's viewer interface web application.
  * This is the primary JavaScript code file for MetagenomeScope.
  */

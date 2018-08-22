@@ -16,6 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
  ****
+ * This code is run when the Electron app starts. It sets a callback that
+ * starts a browser window of the MetagenomeScope viewer interface when the
+ * app's ready.
+ *
  * CODELINK: The bulk of this file's code is based on the tutorial located at
  * https://electronjs.org/docs/tutorial/first-app.
  */

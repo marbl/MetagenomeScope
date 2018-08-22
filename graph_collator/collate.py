@@ -18,7 +18,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 ####
 # Converts an assembly graph to a DOT file, lays out the DOT file using
-# Graphviz, and then reconciles the layout data with biological data in a
+# PyGraphviz, and then reconciles the layout data with biological data in a
 # SQLite .db file that can be visualized in the MetagenomeScope viewer
 # interface.
 #

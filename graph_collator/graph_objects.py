@@ -16,9 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 ####
-# This file contains various objects defining nodes, node groups, edges, etc.
+# This file defines various objects defining nodes, node groups, edges, etc.
 # in the graph. We use these objects to simplify the process of storing
-# information about the graph.
+# information about the graph, detecting structural patterns in the graph, and
+# performing layout.
 
 import config
 from math import log, sqrt

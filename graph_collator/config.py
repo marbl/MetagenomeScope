@@ -16,8 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 ####
-# Various settings that can be used to alter the behavior of the
-# preprocessing script.
+# This file defines various variables that can be used to alter the behavior
+# of the preprocessing script. See the comments associated with each
+# variable/group of variables for more information.
 
 from math import sqrt
 import stat
