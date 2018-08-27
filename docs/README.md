@@ -8,7 +8,7 @@ This site uses [Bootstrap](http://getbootstrap.com/) and
 Copies of their licenses can be found in the `dependency_licenses/` folder,
 which is located in the root of the MetagenomeScope repository.
 
-### HTML (`index.html`)
+### HTML (`index.html` and `404.html`)
 
 Most of the markup defining the navigation bar ("navbar") is adapted from
 Bootstrap's documentation on navbars, located
