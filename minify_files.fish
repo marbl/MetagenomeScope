@@ -95,7 +95,7 @@ sed -i'' 's/<link rel=\"shortcut icon\" href=\"bubble\.ico\">//' electron/index.
 # know that Electron is being used (so that it can do certain things).
 # The question marks allow for some variability in how the <script> is
 # minified.
-sed -i'' 's/window\.METAGENOMESCOPE_ELECTRON_BEING_USED \?= \?0;\?/window\.METAGENOMESCOPE_ELECTRON_BEING_USED = 1;/' electron/index.min.html
+sed -i'' 's/mgsc\.METAGENOMESCOPE_ELECTRON_BEING_USED \?= \?0;\?/mgsc\.METAGENOMESCOPE_ELECTRON_BEING_USED = 1;/' electron/index.min.html
 
 # Finally, print ending messages
 echo "File minification complete."

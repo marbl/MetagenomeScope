@@ -23,6 +23,14 @@
  * This is the primary JavaScript code file for MetagenomeScope.
  */
 
+// We use the mgsc variable as a namespace to hold global variables in
+// MetagenomeScope's JavaScript code.
+// CODELINK: This practice for JS adapted from Matt Kruse's "Javascript Toolbox"
+// at http://www.javascripttoolbox.com/bestpractices/#namespace
+var mgsc = {};
+// Cytoscape.js graph instance
+var cy = null;
+
 // How many bytes to read at once from a .agp file
 // For now, we set this to 1 MiB. The maximum Blob size in most browsers is
 // around 500 - 600 MiB, so this should be well within that range.
@@ -30,7 +38,7 @@
 // of reading operations to be done, which takes a lot of time -- and a huge
 // Blob size, which can potentially run out of memory, causing the read
 // operation to fail.)
-var BLOB_SIZE = 1048576;
+mgsc.BLOB_SIZE = 1048576;
 
 // Various coordinates that are used to define polygon node shapes in
 // Cytoscape.js (see their documentation for the format specs of these
@@ -39,66 +47,65 @@ var BLOB_SIZE = 1048576;
 // used. LEFTRIGHT means that the polygon should be used for either the default
 // direction (LEFT, ->) or its opposite (RIGHT, <-); UPDOWN has similar
 // meaning.
-var FRAYED_ROPE_LEFTRIGHTDIR = "-1 -1 0 -0.5 1 -1 1 1 0 0.5 -1 1";
-var FRAYED_ROPE_UPDOWNDIR =    "1 -1 0.5 0 1 1 -1 1 -0.5 0 -1 -1";
-var BUBBLE_LEFTRIGHTDIR =      "-1 0 -0.5 -1 0.5 -1 1 0 0.5 1 -0.5 1";
-var BUBBLE_UPDOWNDIR =         "-1 -0.5 0 -1 1 -0.5 1 0.5 0 1 -1 0.5";
-var NODE_LEFTDIR =             "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1";
-var NODE_RIGHTDIR =            "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1";
-var NODE_UPDIR =               "-1 1 -1 -0.23587 0 -1 1 -0.23587 1 1";
-var NODE_DOWNDIR =             "-1 -1 -1 0.23587 0 1 1 0.23587 1 -1";
-var SQUARE_COORDS =            "-1 -1 -1 1 1 1 1 -1";
+mgsc.FRAYED_ROPE_LEFTRIGHTDIR = "-1 -1 0 -0.5 1 -1 1 1 0 0.5 -1 1";
+mgsc.FRAYED_ROPE_UPDOWNDIR =    "1 -1 0.5 0 1 1 -1 1 -0.5 0 -1 -1";
+mgsc.BUBBLE_LEFTRIGHTDIR =      "-1 0 -0.5 -1 0.5 -1 1 0 0.5 1 -0.5 1";
+mgsc.BUBBLE_UPDOWNDIR =         "-1 -0.5 0 -1 1 -0.5 1 0.5 0 1 -1 0.5";
+mgsc.NODE_LEFTDIR =             "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1";
+mgsc.NODE_RIGHTDIR =            "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1";
+mgsc.NODE_UPDIR =               "-1 1 -1 -0.23587 0 -1 1 -0.23587 1 1";
+mgsc.NODE_DOWNDIR =             "-1 -1 -1 0.23587 0 1 1 0.23587 1 -1";
 
 // Approximate conversion factor from inches (the unit used by GraphViz for
 // node width/height measurements) to pixels. TODO, we might want to
 // consider node size more closely to see how accurate we can get it?
 // Also -- maybe multiply coordinates by this, to get things worked out?
 // 72 ppi?
-var INCHES_TO_PIXELS = 54;
+mgsc.INCHES_TO_PIXELS = 54;
 
 // Anything less than this constant will be considered a "straight" control
 // point distance. This way we can approximate simple B-splines with straight
 // bezier curves (which are cheaper and easier to draw).
-var CTRL_PT_DIST_EPSILON = 1.00;
+mgsc.CTRL_PT_DIST_EPSILON = 1.00;
 // Edge thickness stuff, as will be rendered by Cytoscape.js
 // Used in tandem with the "thickness" percentage associated with each edge in
 // the input .db file to scale edges' displayed "weight" accordingly
-var MAX_EDGE_THICKNESS = 10;
-var MIN_EDGE_THICKNESS = 3;
+mgsc.MAX_EDGE_THICKNESS = 10;
+mgsc.MIN_EDGE_THICKNESS = 3;
 // We just calculate this here to save on the costs of calculating it |edges|
 // times during drawing:
-var EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
+mgsc.EDGE_THICKNESS_RANGE = mgsc.MAX_EDGE_THICKNESS - mgsc.MIN_EDGE_THICKNESS;
 
 // Misc. global variables we use to get certain functionality
 // The current "view type" -- will always be one of {"SPQR", "double"}
-var CURR_VIEWTYPE;
+mgsc.CURR_VIEWTYPE;
 // The current "SPQR mode" -- will always be one of {"implicit", explicit"}
-var CURR_SPQRMODE;
+mgsc.CURR_SPQRMODE;
 // mapping of {bicomponent ID => an array of the IDs of the visible singlenodes
 // in that bicomponent}
-var BICOMPONENTID2VISIBLESINGLENODEIDS = {};
+mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS = {};
 // The bounding box of the graph
-var CURR_BOUNDINGBOX;
+mgsc.CURR_BOUNDINGBOX;
 // In degrees CCW from the default up->down direction
-var PREV_ROTATION;
-var CURR_ROTATION;
+mgsc.PREV_ROTATION;
+mgsc.CURR_ROTATION;
 // The current colorization "value" -- used to prevent redundant applications
 // of changing colorization.
-var CURR_NODE_COLORIZATION = null;
+mgsc.CURR_NODE_COLORIZATION = null;
 // Objects containing the RGB data for the maximum/minimum color in
 // colorization schemes, respectively. We precompute these values and store
 // them in these variables in initGraph(). This avoids making 2|V| calls to
 // .toRGB() (i.e. getting these values in getNodeColorization()) when just 2
 // calls would suffice.
-var MAX_RGB = undefined;
-var MIN_RGB = undefined;
-// The hex string colors for MAX_RGB and MIN_RGB.
-var MAX_HEX = undefined;
-var MIN_HEX = undefined;
+mgsc.MAX_RGB = undefined;
+mgsc.MIN_RGB = undefined;
+// The hex string colors for mgsc.MAX_RGB and mgsc.MIN_RGB.
+mgsc.MAX_HEX = undefined;
+mgsc.MIN_HEX = undefined;
 // The default node color in the current colorization settings. Used when
 // colorizing nodes that have no repeat data (but other nodes do have repeat
 // data).
-var DEFAULT_NODE_COLOR = undefined;
+mgsc.DEFAULT_NODE_COLOR = undefined;
 // The default colorization settings.
 // Used for the "reset color settings to defaults" button.
 // NOTE -- If the default color settings are updated, this can also be updated
@@ -109,141 +116,137 @@ var DEFAULT_NODE_COLOR = undefined;
 // Ideally this process would be automated, but there have been some issues
 // with that (see issue #263 on the old GitHub page, fedarko/MetagenomeScope,
 // for a bit of a summary).
-var DEFAULT_COLOR_SETTINGS = "mincncp\t#0022ff\nmaxcncp\t#ff2200\ncnlcp\t#aaaaaa\ncsnlcp\t#aaaaaa\nusncp\t#888888\nsncp\t#444444\nbubblecp\t#9abaf3\nfropecp\t#59f459\nchaincp\t#fcaca3\nychaincp\t#ffd163\nspqrscp\t#ffd644\nspqrpcp\t#eb8ef9\nspqrrcp\t#31bf6f\nbicmpcp\t#e9e9e9\ntnbcp\t#ff6600\ntngbcp\t#ff6600\nmiscpatterncp\t#c398eb\nusnlcp\t#000000\nsnlcp\t#aaaaaa\nusecp\t#555555\nsecp\t#111111\nhoecp\t#ff0000\nhosecp\t#800000\nloecp\t#0000ff\nlosecp\t#000080\ncngcccp\t#000000\nsngbcp\t#000000\ncpcp\t#994700\nbgcp\t#ffffff\n";
+mgsc.DEFAULT_COLOR_SETTINGS = "mincncp\t#0022ff\nmaxcncp\t#ff2200\ncnlcp\t#aaaaaa\ncsnlcp\t#aaaaaa\nusncp\t#888888\nsncp\t#444444\nbubblecp\t#9abaf3\nfropecp\t#59f459\nchaincp\t#fcaca3\nychaincp\t#ffd163\nspqrscp\t#ffd644\nspqrpcp\t#eb8ef9\nspqrrcp\t#31bf6f\nbicmpcp\t#e9e9e9\ntnbcp\t#ff6600\ntngbcp\t#ff6600\nmiscpatterncp\t#c398eb\nusnlcp\t#000000\nsnlcp\t#aaaaaa\nusecp\t#555555\nsecp\t#111111\nhoecp\t#ff0000\nhosecp\t#800000\nloecp\t#0000ff\nlosecp\t#000080\ncngcccp\t#000000\nsngbcp\t#000000\ncpcp\t#994700\nbgcp\t#ffffff\n";
 // The background color of the graph. Set in initGraph().
-var BG_COLOR = undefined;
+mgsc.BG_COLOR = undefined;
 // Booleans for whether or not to use certain performance options
-var HIDE_EDGES_ON_VIEWPORT = false;
-var TEXTURE_ON_VIEWPORT = false;
+mgsc.HIDE_EDGES_ON_VIEWPORT = false;
+mgsc.TEXTURE_ON_VIEWPORT = false;
 // Array of edge weights in current connected component. Used when drawing a
 // histogram of edge weights.
-var COMPONENT_EDGE_WEIGHTS = [];
+mgsc.COMPONENT_EDGE_WEIGHTS = [];
 // A reference to the current SQL.Database object from which we obtain the
 // graph's layout and biological data
-var CURR_DB = null;
+mgsc.CURR_DB = null;
 // Filetype of the assembly; used for determining bp vs. nt for nodes
-var ASM_FILETYPE;
+mgsc.ASM_FILETYPE;
 // Whether or not actual DNA sequences were provided to the preprocessing
 // script (impacts the availability of GC content display and colorization)
-var DNA_AVAILABLE;
+mgsc.DNA_AVAILABLE;
 // Whether or not repeat data was provided in the input to the preprocessing
 // script (impacts the availability of repeat colorization)
-var REPEAT_INFO_AVAILABLE;
+mgsc.REPEAT_INFO_AVAILABLE;
 // Whether or not SPQR mode data exists in the .db file (should only be true if
 // the -spqr option was passed to the preprocessing script, or if the .db file
 // predates the -spqr option)
-var SPQR_INFO_AVAILABLE;
+mgsc.SPQR_INFO_AVAILABLE;
 // Filename of the currently loaded .db file
-var DB_FILENAME;
+mgsc.DB_FILENAME;
 // Total number of nodes and edges in the current asm graph
-var ASM_NODE_COUNT = 0;
-var ASM_EDGE_COUNT = 0;
-var CURR_NE = 0;
+mgsc.ASM_NODE_COUNT = 0;
+mgsc.ASM_EDGE_COUNT = 0;
+mgsc.CURR_NE = 0;
 // How often (e.g. after how many nodes/half-edges) we update the progress
 // bar with its new value. Will be set in drawComponent() for the current
-// component being drawn, taking into account PROGRESSBAR_FREQ_PERCENT.
+// component being drawn, taking into account mgsc.PROGRESSBAR_FREQ_PERCENT.
 // Higher values of this mean less timeouts are used to update the
 // progress bar, which means the graph is loaded somewhat faster,
 // while smaller values of this mean more timeouts are used (i.e.
 // slower graph loading) but choppier progress bar progress occurs.
-var PROGRESSBAR_FREQ;
-// PROGRESSBAR_FREQ = Math.floor(PROGRESSBAR_FREQ_PERCENT * SIZE), where
+mgsc.PROGRESSBAR_FREQ;
+// mgsc.PROGRESSBAR_FREQ = Math.floor(mgsc.PROGRESSBAR_FREQ_PERCENT * SIZE), where
 // SIZE = (number of nodes to be drawn) + 0.5*(number of edges to be drawn)
-var PROGRESSBAR_FREQ_PERCENT = 0.05;
+mgsc.PROGRESSBAR_FREQ_PERCENT = 0.05;
 // Valid protocol schemes under which we can use cross-origin requests (and
 // thereby load demo .db files).
-var CORS_PROTOCOL_SCHEMES = ["http:", "https:"];
+mgsc.CORS_PROTOCOL_SCHEMES = ["http:", "https:"];
 // Set to either true or false during doThingsWhenDOMReady().
 // If true, we can load demo .db files and the demoing button should be
 // enabled; if not, we can't (and the demoing button should remain disabled).
-var DEMOS_SUPPORTED = false;
-// Cytoscape.js graph instance
-var cy = null;
+mgsc.DEMOS_SUPPORTED = false;
 // Numbers of selected elements, and collections of those selected elements.
-var SELECTED_NODE_COUNT = 0;
-var SELECTED_EDGE_COUNT = 0;
-var SELECTED_CLUSTER_COUNT = 0;
-var SELECTED_NODES = null;
-var SELECTED_EDGES = null;
-var SELECTED_CLUSTERS = null;
+mgsc.SELECTED_NODE_COUNT = 0;
+mgsc.SELECTED_EDGE_COUNT = 0;
+mgsc.SELECTED_CLUSTER_COUNT = 0;
+mgsc.SELECTED_NODES = null;
+mgsc.SELECTED_EDGES = null;
+mgsc.SELECTED_CLUSTERS = null;
 // Collection of removed edges (due to a minimum bundle size threshold).
-var REMOVED_EDGES = null;
-var PREV_EDGE_WEIGHT_THRESHOLD = null;
+mgsc.REMOVED_EDGES = null;
+mgsc.PREV_EDGE_WEIGHT_THRESHOLD = null;
 // Mapping of scaffold ID to labels or IDs (should depend on the assembly
-// filetype, but really can refer to anything in COMPONENT_NODE_KEYS) of the
+// filetype, but really can refer to anything in mgsc.COMPONENT_NODE_KEYS) of the
 // nodes contained within the scaffold, as an array.
 // Used when highlighting nodes contained within a scaffold.
-var SCAFFOLDID2NODEKEYS = {};
+mgsc.SCAFFOLDID2NODEKEYS = {};
 // Array of scaffolds in the current connected component, in the order they
 // were listed in the input AGP file. Used when cycling through scaffolds.
-var COMPONENT_SCAFFOLDS = [];
-// Current index of the drawScaffoldButton in COMPONENT_SCAFFOLDS. Used when
+mgsc.COMPONENT_SCAFFOLDS = [];
+// Current index of the drawScaffoldButton in mgsc.COMPONENT_SCAFFOLDS. Used when
 // cycling through scaffolds.
-var SCAFFOLD_CYCLER_CURR_INDEX = 0;
+mgsc.SCAFFOLD_CYCLER_CURR_INDEX = 0;
 // Used to indicate whether or not the current component has scaffolds added
 // from the AGP file -- this, in turn, is used to determine what text to
 // display to the user in the "View Scaffolds" area.
-var COMPONENT_HAS_SCAFFOLDS = false;
+mgsc.COMPONENT_HAS_SCAFFOLDS = false;
 // "Keys" referring to nodes in the currently-drawn connected component.
 // Used in determining which scaffolds are in the current connected component.
-var COMPONENT_NODE_KEYS = [];
+mgsc.COMPONENT_NODE_KEYS = [];
 // Flag indicating whether or not the application is in "finishing mode," in
 // which the user can select nodes to manually construct a path through the
 // assembly.
-var FINISHING_MODE_ON = false;
+mgsc.FINISHING_MODE_ON = false;
 // Flag indicating whether or not a previous finishing process was performed.
-var FINISHING_MODE_PREVIOUSLY_DONE = false;
+mgsc.FINISHING_MODE_PREVIOUSLY_DONE = false;
 // String of the node IDs (in order -- the first node ID is the first ID in the
 // reconstructed sequence, and so on) that are part of the constructed path.
 // In the format "N1,N2,N3,N4" where N1 is the first node ID, N2 is the second
 // node ID, and so on (allowing repeat duplicate IDs).
-var FINISHING_NODE_IDS = "";
-// Like FINISHING_NODE_IDS, but each element in this list is the actual
+mgsc.FINISHING_NODE_IDS = "";
+// Like mgsc.FINISHING_NODE_IDS, but each element in this list is the actual
 // Cytoscape.js object for the corresponding node in the path
-var FINISHING_NODE_OBJS = [];
+mgsc.FINISHING_NODE_OBJS = [];
 // Nodes that are outgoing from the last-added node to the reconstructed path.
-var NEXT_NODES;
+mgsc.NEXT_NODES;
 // Maximum zoom level used in the graph display. Used in order to prevent the
 // user from "getting lost" (i.e. zooming too far in). Another max zoom level
 // is configurable for the user in the animation settings; that zoom level
 // tries to ensure that the user has some context around tentative nodes during
 // the finishing process (see issue #110 on GitHub for details).
-var MAX_ZOOM_ORDINARY = 9;
+mgsc.MAX_ZOOM_ORDINARY = 9;
 // List of mappings of cluster ID to "top" attribute
 // (corresponds to left position in graph)
-var CLUSTERID2TOP = [];
+mgsc.CLUSTERID2TOP = [];
 // Current "position" of cluster in the graph (so 0 is the leftmost cluster, 1
 // is the second-from-the-leftmost cluster, and so on). As the user moves along
 // clusters in the graph with the arrow keys, this value is
 // incremented/decremented accordingly.
-var CLUSTER_X = -1;
+mgsc.CLUSTER_X = -1;
 // Whether or not to allow keyboard navigation through clusters in std. mode
-var USE_CLUSTER_KBD_NAV = false;
+mgsc.USE_CLUSTER_KBD_NAV = false;
 // Indicates if any Bootstrap modal dialogs are active. If so, we ignore
 // keyboard inputs for cluster navigation until the dialog in question is
 // closed.
-var MODAL_ACTIVE = false;
+mgsc.MODAL_ACTIVE = false;
 // Indicates if any input fields outside of modal dialogs (i.e. usable
 // alongside the graph functionality of the viewer interface) are focused on.
 // If so, we ignore keyboard inputs until the input in question is un-focused.
-var INPUT_ACTIVE = false;
+mgsc.INPUT_ACTIVE = false;
 
 // Current search type (configurable in the dropdown menu in the "Search for
 // Nodes" section). The value of this corresponds to what's shown in the
 // contents of the #searchTypeButton <button> -- hence the capitalization
-// (e.g. "Label"), as opposed to that in SEARCH_TYPE_HREADABLE (e.g. "label").
-var CURR_SEARCH_TYPE = "ID";
+// (e.g. "Label"), as opposed to that in mgsc.SEARCH_TYPE_HREADABLE (e.g. "label").
+mgsc.CURR_SEARCH_TYPE = "ID";
 // Mapping of the search type to something in the middle of a sentence (allows
 // us to frivolously adjust capitalization so we can be picky about it)
-var SEARCH_TYPE_HREADABLE = {"ID": "ID", "Label": "label"}
+mgsc.SEARCH_TYPE_HREADABLE = {"ID": "ID", "Label": "label"}
 
 // HTML snippets used while auto-creating info tables about selected elements
-var TD_CLOSE = "</td>";
-var TD_START = "<td>";
+mgsc.TD_CLOSE = "</td>";
+mgsc.TD_START = "<td>";
 // Regular expression we use when matching integers.
-var INTEGER_RE = /^\d+$/;
-
-var startDrawDate, endDrawDate;
+mgsc.INTEGER_RE = /^\d+$/;
 
 // CODELINK: This method for checking that the File API is supported adapted
 // from https://www.html5rocks.com/en/tutorials/file/dndfiles/, by
@@ -256,30 +259,30 @@ if (!(window.File && window.FileReader && window.Blob)) {
 
 // Initializes the Cytoscape.js graph instance.
 // Takes as argument the "view type" of the graph to be drawn (see top of file
-// defn. of CURR_VIEWTYPE for details).
+// defn. of mgsc.CURR_VIEWTYPE for details).
 function initGraph(viewType) {
-    CURR_VIEWTYPE = viewType;
-    // MAX_RGB and MIN_RGB will only be computed if they haven't been set
+    mgsc.CURR_VIEWTYPE = viewType;
+    // mgsc.MAX_RGB and mgsc.MIN_RGB will only be computed if they haven't been set
     // already (i.e. if the user hasn't changed the default colors and hasn't
     // drawn any connected components yet).
-    // We take this approach (instead of just giving MAX_RGB and MIN_RGB their
+    // We take this approach (instead of just giving mgsc.MAX_RGB and mgsc.MIN_RGB their
     // default values here) in order to reduce redundancy, to thus make
     // changing the default values easier in the future (only have to change
     // the HTML, instead of both HTML and JS).
     var tmpColor;
-    if (MAX_RGB === undefined) {
+    if (mgsc.MAX_RGB === undefined) {
         tmpColor = $("#maxcncp").data("colorpicker").color;
-        MAX_RGB = tmpColor.toRGB();
-        MAX_HEX = tmpColor.toHex();
+        mgsc.MAX_RGB = tmpColor.toRGB();
+        mgsc.MAX_HEX = tmpColor.toHex();
     }
-    if (MIN_RGB === undefined) {
+    if (mgsc.MIN_RGB === undefined) {
         tmpColor = $("#mincncp").data("colorpicker").color;
-        MIN_RGB = tmpColor.toRGB();
-        MIN_HEX = tmpColor.toHex();
+        mgsc.MIN_RGB = tmpColor.toRGB();
+        mgsc.MIN_HEX = tmpColor.toHex();
     }
-    BG_COLOR = $("#bgcp").colorpicker("getValue");
-    DEFAULT_NODE_COLOR = $("#usncp").colorpicker("getValue");
-    $("#cy").css("background", BG_COLOR);
+    mgsc.BG_COLOR = $("#bgcp").colorpicker("getValue");
+    mgsc.DEFAULT_NODE_COLOR = $("#usncp").colorpicker("getValue");
+    $("#cy").css("background", mgsc.BG_COLOR);
     cy = cytoscape({
         container: document.getElementById("cy"),
         layout: {
@@ -292,11 +295,11 @@ function initGraph(viewType) {
         // maxZoom, however, is defined based on the zoom level of zooming to
         // fit around a single node -- which usually has an upper bound of 9 or
         // so, based on some tests. (Hence why we just set maxZoom here.)
-        maxZoom: MAX_ZOOM_ORDINARY,
+        maxZoom: mgsc.MAX_ZOOM_ORDINARY,
         // (sometimes slight) performance improvements
         pixelRatio: 1.0,
-        hideEdgesOnViewport: HIDE_EDGES_ON_VIEWPORT,
-        textureOnViewport: TEXTURE_ON_VIEWPORT,
+        hideEdgesOnViewport: mgsc.HIDE_EDGES_ON_VIEWPORT,
+        textureOnViewport: mgsc.TEXTURE_ON_VIEWPORT,
         // options we use to prevent user from messing with the graph before
         // it's been fully drawn
         userPanningEnabled: false,
@@ -371,25 +374,25 @@ function initGraph(viewType) {
             {
                 selector: 'node.B.leftrightdir',
                 style: {
-                    'shape-polygon-points': BUBBLE_LEFTRIGHTDIR
+                    'shape-polygon-points': mgsc.BUBBLE_LEFTRIGHTDIR
                 }
             },
             {
                 selector: 'node.B.updowndir',
                 style: {
-                    'shape-polygon-points': BUBBLE_UPDOWNDIR
+                    'shape-polygon-points': mgsc.BUBBLE_UPDOWNDIR
                 }
             },
             {
                 selector: 'node.F.leftrightdir',
                 style: {
-                    'shape-polygon-points': FRAYED_ROPE_LEFTRIGHTDIR
+                    'shape-polygon-points': mgsc.FRAYED_ROPE_LEFTRIGHTDIR
                 }
             },
             {
                 selector: 'node.F.updowndir',
                 style: {
-                    'shape-polygon-points': FRAYED_ROPE_UPDOWNDIR
+                    'shape-polygon-points': mgsc.FRAYED_ROPE_UPDOWNDIR
                 }
             },
             {
@@ -482,7 +485,7 @@ function initGraph(viewType) {
             {
                 selector: 'node.noncluster.noncolorized',
                 style: {
-                    'background-color': DEFAULT_NODE_COLOR,
+                    'background-color': mgsc.DEFAULT_NODE_COLOR,
                     'color': $("#usnlcp").colorpicker("getValue")
                 }
             },
@@ -503,28 +506,28 @@ function initGraph(viewType) {
             {
                 selector: 'node.noncluster.updir',
                 style: {
-                    'shape-polygon-points': NODE_UPDIR,
+                    'shape-polygon-points': mgsc.NODE_UPDIR,
                     shape: 'polygon'
                 }
             },
             {
                 selector: 'node.noncluster.downdir',
                 style: {
-                    'shape-polygon-points': NODE_DOWNDIR,
+                    'shape-polygon-points': mgsc.NODE_DOWNDIR,
                     shape: 'polygon'
                 }
             },
             {
                 selector: 'node.noncluster.leftdir',
                 style: {
-                    'shape-polygon-points': NODE_LEFTDIR,
+                    'shape-polygon-points': mgsc.NODE_LEFTDIR,
                     shape: 'polygon'
                 }
             },
             {
                 selector: 'node.noncluster.rightdir',
                 style: {
-                    'shape-polygon-points': NODE_RIGHTDIR,
+                    'shape-polygon-points': mgsc.NODE_RIGHTDIR,
                     shape: 'polygon'
                 }
             },
@@ -711,7 +714,7 @@ function collapseCluster(cluster, moveMap) {
     var children = cluster.children();
     // Prevent this cluster from being collapsed if any of its children are
     // tentative nodes in finishing mode
-    if (FINISHING_MODE_ON) {
+    if (mgsc.FINISHING_MODE_ON) {
         for (var ci = 0; ci < children.length; ci++) {
             if (children[ci].hasClass("tentative")) {
                 return;
@@ -754,7 +757,7 @@ function collapseCluster(cluster, moveMap) {
 function uncollapseCluster(cluster) {
     // Prevent this cluster from being uncollapsed if it's a "tentative" node
     // in finishing mode
-    if (FINISHING_MODE_ON) {
+    if (mgsc.FINISHING_MODE_ON) {
         if (cluster.hasClass("tentative")) {
             return;
         }
@@ -763,7 +766,7 @@ function uncollapseCluster(cluster) {
     cluster.scratch("_interiorEles").restore();
     // "Reset" edges to their original target/source within the cluster
     for (var incomingEdgeID in cluster.data("incomingEdgeMap")) {
-        if (REMOVED_EDGES.is("[id=\"" + incomingEdgeID + "\"]")) {
+        if (mgsc.REMOVED_EDGES.is("[id=\"" + incomingEdgeID + "\"]")) {
             // The edge has probably been removed from the graph due to 
             // the edge weight thing -- ignore it
             continue;
@@ -782,7 +785,7 @@ function uncollapseCluster(cluster) {
         oldEdge.move({target: newTgt});
     }
     for (var outgoingEdgeID in cluster.data("outgoingEdgeMap")) {
-        if (REMOVED_EDGES.is("[id=\"" + outgoingEdgeID + "\"]")) {
+        if (mgsc.REMOVED_EDGES.is("[id=\"" + outgoingEdgeID + "\"]")) {
             continue;
         }
         var newSrc = cluster.data("outgoingEdgeMap")[outgoingEdgeID][0];
@@ -809,7 +812,7 @@ function uncollapseCluster(cluster) {
 
 function addSelectedNodeInfo(ele) {
     var lengthEntry = ele.data("length").toLocaleString();
-    if (ASM_FILETYPE === "GML" || CURR_VIEWTYPE === "SPQR") {
+    if (mgsc.ASM_FILETYPE === "GML" || mgsc.CURR_VIEWTYPE === "SPQR") {
         // These are oriented contigs (in a GML file), or they're directionless
         // contigs (in the undirected SPQR view).
         lengthEntry += " bp";
@@ -827,31 +830,31 @@ function addSelectedNodeInfo(ele) {
     // their parent metanode, if present). However, there's not really a need
     // to show the user this information, so we truncate the displayed IDs
     // accordingly. (Otherwise, we just show the user the entire node ID.)
-    if (CURR_VIEWTYPE === "SPQR") {
+    if (mgsc.CURR_VIEWTYPE === "SPQR") {
         nodeRowHTML += eleID.split("_")[0];
     }
     else {
         nodeRowHTML += eleID;
     }
-    nodeRowHTML += TD_CLOSE;
-    if (ASM_FILETYPE === "GML") {
-        nodeRowHTML += TD_START + ele.data("label") + TD_CLOSE;
+    nodeRowHTML += mgsc.TD_CLOSE;
+    if (mgsc.ASM_FILETYPE === "GML") {
+        nodeRowHTML += mgsc.TD_START + ele.data("label") + mgsc.TD_CLOSE;
     }
-    nodeRowHTML += TD_START + lengthEntry + TD_CLOSE;
-    if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "FASTG") {
+    nodeRowHTML += mgsc.TD_START + lengthEntry + mgsc.TD_CLOSE;
+    if (mgsc.ASM_FILETYPE === "LastGraph" || mgsc.ASM_FILETYPE === "FASTG") {
         // Round to two decimal places
         var depthEntry = Math.round(ele.data("depth") * 100) / 100 + "x";
-        nodeRowHTML += TD_START + depthEntry + TD_CLOSE;
+        nodeRowHTML += mgsc.TD_START + depthEntry + mgsc.TD_CLOSE;
     }
-    if (DNA_AVAILABLE) {
+    if (mgsc.DNA_AVAILABLE) {
         // Round to two decimal places
         // we multiply by 10000 because we're really multiplying by 100
         // twice: first to convert to a percentage, then to start the
         // rounding process
         var gcEntry = Math.round(ele.data("gc_content") * 10000) / 100 + "%";
-        nodeRowHTML += TD_START + gcEntry + TD_CLOSE;
+        nodeRowHTML += mgsc.TD_START + gcEntry + mgsc.TD_CLOSE;
     }
-    if (REPEAT_INFO_AVAILABLE) {
+    if (mgsc.REPEAT_INFO_AVAILABLE) {
         var is_repeat = ele.data("is_repeat");
         var repeatEntry;
         if (is_repeat === 1) {
@@ -861,7 +864,7 @@ function addSelectedNodeInfo(ele) {
         } else {
             repeatEntry = "N/A";
         }
-        nodeRowHTML += TD_START + repeatEntry + TD_CLOSE;
+        nodeRowHTML += mgsc.TD_START + repeatEntry + mgsc.TD_CLOSE;
     }
     nodeRowHTML += "</tr>";
     $("#nodeInfoTable").append(nodeRowHTML);
@@ -870,7 +873,7 @@ function addSelectedNodeInfo(ele) {
 function addSelectedEdgeInfo(ele) {
     // returns an array of two elements: [source node id, target node id]
     var displaySourceID, displayTargetID;
-    if (CURR_VIEWTYPE === "SPQR" && ele.data("dispsrc") !== undefined) {
+    if (mgsc.CURR_VIEWTYPE === "SPQR" && ele.data("dispsrc") !== undefined) {
         displaySourceID = ele.data("dispsrc");
         displayTargetID = ele.data("disptgt");
     }
@@ -883,18 +886,18 @@ function addSelectedEdgeInfo(ele) {
     }
     var edgeRowHTML = "<tr class='nonheader' id='row" +
         ele.id().replace(">", "") + "'><td>" +
-        displaySourceID + "</td><td>" + displayTargetID + TD_CLOSE;
-    if (ASM_FILETYPE === "GML" || ASM_FILETYPE === "LastGraph")
-        edgeRowHTML += TD_START;
-        if (CURR_VIEWTYPE !== "SPQR") {
+        displaySourceID + "</td><td>" + displayTargetID + mgsc.TD_CLOSE;
+    if (mgsc.ASM_FILETYPE === "GML" || mgsc.ASM_FILETYPE === "LastGraph")
+        edgeRowHTML += mgsc.TD_START;
+        if (mgsc.CURR_VIEWTYPE !== "SPQR") {
             edgeRowHTML += ele.data("multiplicity");
         }
         else {
             edgeRowHTML += "N/A";
         }
-        edgeRowHTML += TD_CLOSE;
-    if (ASM_FILETYPE === "GML") {
-        if (CURR_VIEWTYPE === "SPQR") {
+        edgeRowHTML += mgsc.TD_CLOSE;
+    if (mgsc.ASM_FILETYPE === "GML") {
+        if (mgsc.CURR_VIEWTYPE === "SPQR") {
             edgeRowHTML += "<td>N/A</td>N/A<td>N/A</td>N/A<td>N/A</td>";
         }
         else {
@@ -902,9 +905,9 @@ function addSelectedEdgeInfo(ele) {
             // These values are just estimates so this rounding is okay
             var meanEntry = Math.round(ele.data("mean") * 100) / 100;
             var stdevEntry = Math.round(ele.data("stdev") * 100) / 100;
-            edgeRowHTML += TD_START + ele.data("orientation") + TD_CLOSE;
-            edgeRowHTML += TD_START + meanEntry + TD_CLOSE;
-            edgeRowHTML += TD_START + stdevEntry + TD_CLOSE;
+            edgeRowHTML += mgsc.TD_START + ele.data("orientation") + mgsc.TD_CLOSE;
+            edgeRowHTML += mgsc.TD_START + meanEntry + mgsc.TD_CLOSE;
+            edgeRowHTML += mgsc.TD_START + stdevEntry + mgsc.TD_CLOSE;
         }
     }
     edgeRowHTML += "</tr>";
@@ -968,18 +971,18 @@ function doThingsWhenDOMReady() {
      *
      * NOTE we use button transitions (particularly on opacity) to avoid
      * flashing from, e.g., enabled -> disabled -> enabled when reloading
-     * the viewer interface using a protocol in CORS_PROTOCOL_SCHEMES.
+     * the viewer interface using a protocol in mgsc.CORS_PROTOCOL_SCHEMES.
      *
      * Apparently checking if something is "in" an array in Javascript doesn't
      * actually work; "in" works on the array's indices instead of its actual
-     * contents. Hence why we iterate based on CORS_PROTOCOL_SCHEMES instead of
+     * contents. Hence why we iterate based on mgsc.CORS_PROTOCOL_SCHEMES instead of
      * just saying something like "if (windowProtocol in CORS_..._SCHEMES)".
      */
-    for (var i = 0; i < CORS_PROTOCOL_SCHEMES.length; i++) {
-        if (window.location["protocol"] === CORS_PROTOCOL_SCHEMES[i]) {
+    for (var i = 0; i < mgsc.CORS_PROTOCOL_SCHEMES.length; i++) {
+        if (window.location["protocol"] === mgsc.CORS_PROTOCOL_SCHEMES[i]) {
             $("#xmlFileselectButton").prop("title", "");
             enableButton("xmlFileselectButton");
-            DEMOS_SUPPORTED = true;
+            mgsc.DEMOS_SUPPORTED = true;
             break;
         }
     }
@@ -999,12 +1002,12 @@ function doThingsWhenDOMReady() {
     );
     setEnterBinding("binCountInput", drawEdgeWeightHistogram);
     setEnterBinding("cullEdgesInput", cullEdges);
-    // Update MODAL_ACTIVE when dialogs are opened/closed.
+    // Update mgsc.MODAL_ACTIVE when dialogs are opened/closed.
     var dialogIDs = ["settingsDialog", "fsDialog", "infoDialog",
                      "edgeFilteringDialog"];
     for (var d = 0; d < dialogIDs.length; d++) {
         $("#" + dialogIDs[d]).on("show.bs.modal", function(e) {
-            MODAL_ACTIVE = true;
+            mgsc.MODAL_ACTIVE = true;
         });
         if (dialogIDs[d] === "settingsDialog") {
             // Ensure that all colorpickers (the pop-up things where
@@ -1012,25 +1015,25 @@ function doThingsWhenDOMReady() {
             // the settings dialog is closed.
             $("#settingsDialog").on("hide.bs.modal", function(e) {
                 $(".colorpicker-component").colorpicker("hide");
-                MODAL_ACTIVE = false;
+                mgsc.MODAL_ACTIVE = false;
             });
         }
         else {
             $("#" + dialogIDs[d]).on("hide.bs.modal", function(e) {
-                MODAL_ACTIVE = false;
+                mgsc.MODAL_ACTIVE = false;
             });
         }
     }
-    // Also update INPUT_ACTIVE when non-dialog input fields are
+    // Also update mgsc.INPUT_ACTIVE when non-dialog input fields are
     // focused/unfocused.
     var inputIDs = ["componentselector", "SPQRcomponentselector",
                     "searchInput", "layoutInput"];
     for (var i = 0; i < inputIDs.length; i++) {
         $("#" + inputIDs[i]).on("focusin", function(e) {
-            INPUT_ACTIVE = true;
+            mgsc.INPUT_ACTIVE = true;
         });
         $("#" + inputIDs[i]).on("focusout", function(e) {
-            INPUT_ACTIVE = false;
+            mgsc.INPUT_ACTIVE = false;
         });
     }
     // Initialize colorpickers
@@ -1060,35 +1063,35 @@ function doThingsWhenDOMReady() {
  * browsers), so this function should be portable for most desktop browsers.
  */
 function moveThroughClusters(e) {
-    if (!MODAL_ACTIVE && !INPUT_ACTIVE) {
+    if (!mgsc.MODAL_ACTIVE && !mgsc.INPUT_ACTIVE) {
         if (e.which === 37 || e.which === 65) {
             // Left arrow key or "A"
             // Move to the next left node group
-            if (CLUSTER_X <= 0) {
-                CLUSTER_X = CLUSTERID2TOP.length - 1;
+            if (mgsc.CLUSTER_X <= 0) {
+                mgsc.CLUSTER_X = mgsc.CLUSTERID2TOP.length - 1;
             } else {
-                CLUSTER_X--;
+                mgsc.CLUSTER_X--;
             }
             moveToCurrentCluster();
         }
         else if (e.which === 39 || e.which === 68) {
             // Right arrow key or "D"
             // Move to the next right node group
-            if (CLUSTER_X === CLUSTERID2TOP.length - 1) {
-                CLUSTER_X = 0;
+            if (mgsc.CLUSTER_X === mgsc.CLUSTERID2TOP.length - 1) {
+                mgsc.CLUSTER_X = 0;
             } else {
-                CLUSTER_X++;
+                mgsc.CLUSTER_X++;
             }
             moveToCurrentCluster();
         }
     }
 }
 
-/* Move to the cluster indicated by CLUSTER_X as part of the keyboard
+/* Move to the cluster indicated by mgsc.CLUSTER_X as part of the keyboard
  * navigation feature.
  */
 function moveToCurrentCluster() {
-    cy.fit(cy.getElementById(CLUSTERID2TOP[CLUSTER_X].id));
+    cy.fit(cy.getElementById(mgsc.CLUSTERID2TOP[mgsc.CLUSTER_X].id));
 }
 
 // Things that are bound to the "beforeunload" event on the window.
@@ -1148,26 +1151,26 @@ function setGraphBindings() {
         function(e) {
             var x = e.target;
             if (x.hasClass("noncluster")) {
-                SELECTED_NODE_COUNT += 1;
-                SELECTED_NODES = SELECTED_NODES.union(x);
-                $("#selectedNodeBadge").text(SELECTED_NODE_COUNT);
+                mgsc.SELECTED_NODE_COUNT += 1;
+                mgsc.SELECTED_NODES = mgsc.SELECTED_NODES.union(x);
+                $("#selectedNodeBadge").text(mgsc.SELECTED_NODE_COUNT);
                 addSelectedNodeInfo(x);
             } else if (x.isEdge()) {
-                SELECTED_EDGE_COUNT += 1;
-                SELECTED_EDGES = SELECTED_EDGES.union(x);
-                $("#selectedEdgeBadge").text(SELECTED_EDGE_COUNT);
+                mgsc.SELECTED_EDGE_COUNT += 1;
+                mgsc.SELECTED_EDGES = mgsc.SELECTED_EDGES.union(x);
+                $("#selectedEdgeBadge").text(mgsc.SELECTED_EDGE_COUNT);
                 addSelectedEdgeInfo(x);
             } else {
-                SELECTED_CLUSTER_COUNT += 1;
-                SELECTED_CLUSTERS = SELECTED_CLUSTERS.union(x);
-                $("#selectedClusterBadge").text(SELECTED_CLUSTER_COUNT);
+                mgsc.SELECTED_CLUSTER_COUNT += 1;
+                mgsc.SELECTED_CLUSTERS = mgsc.SELECTED_CLUSTERS.union(x);
+                $("#selectedClusterBadge").text(mgsc.SELECTED_CLUSTER_COUNT);
                 addSelectedClusterInfo(x);
             }
 
             // If this is the first selected element, enable the
             // fitSelected button
-            if (SELECTED_NODE_COUNT + SELECTED_EDGE_COUNT +
-                    SELECTED_CLUSTER_COUNT === 1) {
+            if (mgsc.SELECTED_NODE_COUNT + mgsc.SELECTED_EDGE_COUNT +
+                    mgsc.SELECTED_CLUSTER_COUNT === 1) {
                 enableButton("fitSelectedButton");
             }
         }
@@ -1176,27 +1179,27 @@ function setGraphBindings() {
         function(e) {
             var x = e.target;
             if (x.hasClass("noncluster")) {
-                SELECTED_NODE_COUNT -= 1;
-                SELECTED_NODES = SELECTED_NODES.difference(x);
-                $("#selectedNodeBadge").text(SELECTED_NODE_COUNT);
+                mgsc.SELECTED_NODE_COUNT -= 1;
+                mgsc.SELECTED_NODES = mgsc.SELECTED_NODES.difference(x);
+                $("#selectedNodeBadge").text(mgsc.SELECTED_NODE_COUNT);
                 removeSelectedEleInfo(x);
             } else if (x.isEdge()) {
-                SELECTED_EDGE_COUNT -= 1;
-                SELECTED_EDGES = SELECTED_EDGES.difference(x);
-                $("#selectedEdgeBadge").text(SELECTED_EDGE_COUNT);
+                mgsc.SELECTED_EDGE_COUNT -= 1;
+                mgsc.SELECTED_EDGES = mgsc.SELECTED_EDGES.difference(x);
+                $("#selectedEdgeBadge").text(mgsc.SELECTED_EDGE_COUNT);
                 removeSelectedEleInfo(x);
             } else {
-                SELECTED_CLUSTER_COUNT -= 1;
-                SELECTED_CLUSTERS = SELECTED_CLUSTERS.difference(x);
-                $("#selectedClusterBadge").text(SELECTED_CLUSTER_COUNT);
+                mgsc.SELECTED_CLUSTER_COUNT -= 1;
+                mgsc.SELECTED_CLUSTERS = mgsc.SELECTED_CLUSTERS.difference(x);
+                $("#selectedClusterBadge").text(mgsc.SELECTED_CLUSTER_COUNT);
                 removeSelectedEleInfo(x);
             }
 
             // Not sure how we'd have a negative amount of selected
             // elements, but I figure we might as well cover our bases with
             // the <= 0 here :P
-            if (SELECTED_NODE_COUNT + SELECTED_EDGE_COUNT +
-                    SELECTED_CLUSTER_COUNT <= 0) {
+            if (mgsc.SELECTED_NODE_COUNT + mgsc.SELECTED_EDGE_COUNT +
+                    mgsc.SELECTED_CLUSTER_COUNT <= 0) {
                 disableButton("fitSelectedButton");
             }
         }
@@ -1256,8 +1259,8 @@ function rotateNode(n, i) {
  * NOTE -- DISABLED ROTATION -- this function is unused at present
  */
 function changeRotation() {
-    PREV_ROTATION = CURR_ROTATION;
-    CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active")
+    mgsc.PREV_ROTATION = mgsc.CURR_ROTATION;
+    mgsc.CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active")
         .attr("value"));
     // We use the fit button's disabled status as a way to gauge whether
     // or not a graph is currently rendered; sorta hack-ish, but it works
@@ -1310,7 +1313,7 @@ function loadLocalDB() {
         return;
     }
     if (inputfile.name.toLowerCase().endsWith(".db")) {
-        DB_FILENAME = inputfile.name;
+        mgsc.DB_FILENAME = inputfile.name;
         // Important -- remove old DB from memory if it exists
         closeDB();
         disableVolatileControls();
@@ -1366,7 +1369,7 @@ function loadLocalDB() {
 function initDB(fileData) {
     // Temporarily store .db file as array of 8-bit unsigned ints
     var uIntArr = new Uint8Array(fileData);
-    CURR_DB = new SQL.Database(uIntArr);
+    mgsc.CURR_DB = new SQL.Database(uIntArr);
     parseDBcomponents();
     // Set progress bar to "finished" state
     finishProgressBar();
@@ -1380,17 +1383,17 @@ function parseDBcomponents() {
     if (cy !== null) {
         destroyGraph();
     }
-    var stmt = CURR_DB.prepare("SELECT * FROM assembly;");
+    var stmt = mgsc.CURR_DB.prepare("SELECT * FROM assembly;");
     stmt.step();
     var graphInfo = stmt.getAsObject();
     stmt.free();
     var fnInfo = graphInfo["filename"];
-    ASM_FILETYPE = graphInfo["filetype"];
-    ASM_NODE_COUNT = graphInfo["node_count"];
-    var nodeInfo = ASM_NODE_COUNT.toLocaleString();
+    mgsc.ASM_FILETYPE = graphInfo["filetype"];
+    mgsc.ASM_NODE_COUNT = graphInfo["node_count"];
+    var nodeInfo = mgsc.ASM_NODE_COUNT.toLocaleString();
     var bpCt = graphInfo["total_length"];
     var bpInfo = bpCt.toLocaleString();
-    ASM_EDGE_COUNT = graphInfo["all_edge_count"];
+    mgsc.ASM_EDGE_COUNT = graphInfo["all_edge_count"];
     var edgeCount = graphInfo["edge_count"];
     var edgeInfo = edgeCount.toLocaleString();
     var compCt = graphInfo["component_count"];
@@ -1404,8 +1407,8 @@ function parseDBcomponents() {
     var n50Info = n50.toLocaleString();
     // Record Assembly G/C content (not available for GML files)
     var asmGC = graphInfo["gc_content"];
-    DNA_AVAILABLE = Boolean(graphInfo["dna_given"]);
-    REPEAT_INFO_AVAILABLE = Boolean(graphInfo["repeats_given"]);
+    mgsc.DNA_AVAILABLE = Boolean(graphInfo["dna_given"]);
+    mgsc.REPEAT_INFO_AVAILABLE = Boolean(graphInfo["repeats_given"]);
     var spqrDataFlag = Boolean(graphInfo["spqr_given"]);
     /* CODELINK: This method for checking if a table exists in a SQLite
      * database c/o user "PoorLuzer"'s answer to this Stack Overflow question:
@@ -1419,16 +1422,16 @@ function parseDBcomponents() {
     // using those and we can just rely on spqr_given without incurring extra
     // computational costs
     // When that happens, instead of using spqrDataFlag just set
-    // SPQR_INFO_AVAILABLE to that
-    var spqrInfoStmt = CURR_DB.prepare(
+    // mgsc.SPQR_INFO_AVAILABLE to that
+    var spqrInfoStmt = mgsc.CURR_DB.prepare(
         "SELECT name FROM sqlite_master WHERE type='table' AND name=" +
         "'singlecomponents';"
     );
     spqrInfoStmt.step();
     var spqrTableExistence = spqrInfoStmt.getAsObject();
     spqrInfoStmt.free();
-    SPQR_INFO_AVAILABLE = spqrDataFlag || !($.isEmptyObject(spqrTableExistence));
-    if (SPQR_INFO_AVAILABLE) {
+    mgsc.SPQR_INFO_AVAILABLE = spqrDataFlag || !($.isEmptyObject(spqrTableExistence));
+    if (mgsc.SPQR_INFO_AVAILABLE) {
         $("#spqrConnectedComponentControls").removeClass("notviewable");
         $("#sccCountTH").removeClass("notviewable");
         $("#sccCountEntry").removeClass("notviewable");
@@ -1444,8 +1447,8 @@ function parseDBcomponents() {
         $("#bicmpCountEntry").addClass("notviewable");
         $("#connCmpCtTH").text("Connected Component Count");
     }
-    if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GFA"
-            || ASM_FILETYPE === "FASTG") {
+    if (mgsc.ASM_FILETYPE === "LastGraph" || mgsc.ASM_FILETYPE === "GFA"
+            || mgsc.ASM_FILETYPE === "FASTG") {
         // Since the nodes in these graphs are unoriented (i.e. we draw both
         // strands of each sequence of DNA included in the assembly graph),
         // the individual nodes' units are in nucleotides (nt).
@@ -1464,7 +1467,7 @@ function parseDBcomponents() {
         n50Info += " bp";
         bpInfo += " bp";
     }
-    if (DNA_AVAILABLE) {
+    if (mgsc.DNA_AVAILABLE) {
         // Round to two decimal places
         var asmGCInfo = Math.round((asmGC * 100) * 100) / 100 + "%";
         $("#asmGCEntry").text(asmGCInfo);
@@ -1475,7 +1478,7 @@ function parseDBcomponents() {
         $("#asmGCEntry").addClass("notviewable");
     }
     // Adjust UI elements
-    document.title = DB_FILENAME + " (" + fnInfo + ")";
+    document.title = mgsc.DB_FILENAME + " (" + fnInfo + ")";
     // TODO add back in eventually? once it plays nicely with the no drawing
     // status text stuff?
     //updateTextStatus("Loaded .db file for the assembly graph file " +fnInfo+
@@ -1483,7 +1486,7 @@ function parseDBcomponents() {
     //                    " the \"Draw Connected Component\" buttons below.",
     //                    true);
     $("#filenameEntry").text(fnInfo); 
-    $("#filetypeEntry").text(ASM_FILETYPE);
+    $("#filetypeEntry").text(mgsc.ASM_FILETYPE);
     $("#nodeCtEntry").text(nodeInfo); 
     $("#totalBPLengthEntry").text(bpInfo); 
     $("#edgeCountEntry").text(edgeInfo);
@@ -1503,23 +1506,23 @@ function parseDBcomponents() {
     enableButton("drawSPQRButton");
     enableButton("implicitSPQROption");
     enableButton("explicitSPQROption");
-    SCAFFOLDID2NODEKEYS = {};
-    BICOMPONENTID2VISIBLESINGLENODEIDS = {};
+    mgsc.SCAFFOLDID2NODEKEYS = {};
+    mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS = {};
     $("#agpLoadedFileName").addClass("notviewable");
     $("#scaffoldInfoHeader").addClass("notviewable");
     $("#scaffoldCycler").addClass("notviewable");
-    COMPONENT_NODE_KEYS = [];
+    mgsc.COMPONENT_NODE_KEYS = [];
     $("#assembledNodes").empty();
-    FINISHING_MODE_ON = false;
-    FINISHING_MODE_PREVIOUSLY_DONE = false;
-    FINISHING_NODE_IDS = "";
-    FINISHING_NODE_OBJS = [];
+    mgsc.FINISHING_MODE_ON = false;
+    mgsc.FINISHING_MODE_PREVIOUSLY_DONE = false;
+    mgsc.FINISHING_NODE_IDS = "";
+    mgsc.FINISHING_NODE_OBJS = [];
     togglePauseFinishingButtonStyle(-1);
     // This'll get changed to this anyway when drawing a component, but this
     // way we prevent something else from being checked in the "in-between"
     // state when no components have been drawn
     $("#noneColorization").prop("checked", true);
-    if (DEMOS_SUPPORTED) {
+    if (mgsc.DEMOS_SUPPORTED) {
         enableButton("xmlFileselectButton");
     }
     enableButton("fileselectButton");
@@ -1532,19 +1535,19 @@ function parseDBcomponents() {
     enableButton("settingsButton");
     // Adjust selected info tables based on what info is available
     var extraNodeCols = 0;
-    if (DNA_AVAILABLE) {
+    if (mgsc.DNA_AVAILABLE) {
         $("#gcContentCol").removeClass("notviewable");
         extraNodeCols++;
     } else {
         $("#gcContentCol").addClass("notviewable");
     }
-    if (REPEAT_INFO_AVAILABLE) {
+    if (mgsc.REPEAT_INFO_AVAILABLE) {
         $("#repeatCol").removeClass("notviewable");
         extraNodeCols++;
     } else {
         $("#repeatCol").addClass("notviewable");
     }
-    if (ASM_FILETYPE === "GML") {
+    if (mgsc.ASM_FILETYPE === "GML") {
         // Node info adjustments
         // All contigs in GML files have at minimum ID, label, length given
         $("#nodeTH").prop("colspan", 3 + extraNodeCols);
@@ -1560,7 +1563,7 @@ function parseDBcomponents() {
         $("#meanCol").removeClass("notviewable");
         $("#stdevCol").removeClass("notviewable");
     }
-    else if (ASM_FILETYPE === "LastGraph") {
+    else if (mgsc.ASM_FILETYPE === "LastGraph") {
         // Node info adjustments
         // All contigs in LastGraph files have at min. ID, length, depth given
         // (they also always have GC content given, since LastGraph files seem
@@ -1581,7 +1584,7 @@ function parseDBcomponents() {
         $("#meanCol").addClass("notviewable");
         $("#stdevCol").addClass("notviewable");
     }
-    else if (ASM_FILETYPE === "GFA") {
+    else if (mgsc.ASM_FILETYPE === "GFA") {
         // Node info adjustments
         // All contigs in GFA files have at minimum ID, length given
         $("#nodeTH").prop("colspan", 2 + extraNodeCols);
@@ -1596,7 +1599,7 @@ function parseDBcomponents() {
         $("#meanCol").addClass("notviewable");
         $("#stdevCol").addClass("notviewable");
     }
-    else if (ASM_FILETYPE === "FASTG") {
+    else if (mgsc.ASM_FILETYPE === "FASTG") {
         // Node info adjustments
         // All contigs in FASTG files have ID, length, depth, GC content given
         $("#nodeTH").prop("colspan", 3 + extraNodeCols);
@@ -1705,14 +1708,14 @@ function updateTextStatus(text, notDuringDrawing) {
 }
 
 function toggleHEV() {
-    HIDE_EDGES_ON_VIEWPORT = !HIDE_EDGES_ON_VIEWPORT;
+    mgsc.HIDE_EDGES_ON_VIEWPORT = !mgsc.HIDE_EDGES_ON_VIEWPORT;
 }
 function toggleUTV() {
-    TEXTURE_ON_VIEWPORT = !TEXTURE_ON_VIEWPORT;
+    mgsc.TEXTURE_ON_VIEWPORT = !mgsc.TEXTURE_ON_VIEWPORT;
 }
 
 function toggleClusterNav() {
-    USE_CLUSTER_KBD_NAV = !USE_CLUSTER_KBD_NAV;
+    mgsc.USE_CLUSTER_KBD_NAV = !mgsc.USE_CLUSTER_KBD_NAV;
 }
 
 /* Only enable component +/- buttons if the graph has more than 1 cc.
@@ -1731,7 +1734,7 @@ function enableCompRankControlsIfNecessary() {
 }
 
 /* Returns null if the value indicated by the string is not an integer (we
- * consider a string to be an integer if it matches the INTEGER_RE regex).
+ * consider a string to be an integer if it matches the mgsc.INTEGER_RE regex).
  * Returns -1 if it is an integer but is less than the min component rank.
  * Returns 1 if it is an integer but is greater than the max component rank.
  * Returns 0 if it is an integer and is within the range [min rank, max rank].
@@ -1747,7 +1750,7 @@ function enableCompRankControlsIfNecessary() {
  * connected component size rank).
  */
 function compRankValidity(strVal, csIDstr) {
-    if (strVal.match(INTEGER_RE) === null) return null;
+    if (strVal.match(mgsc.INTEGER_RE) === null) return null;
     var intVal = parseInt(strVal);
     if (intVal < parseInt($(csIDstr).prop("min"))) return -1;
     if (intVal > parseInt($(csIDstr).prop("max"))) return 1;
@@ -1804,7 +1807,7 @@ function incrCompRank(componentSelectorID) {
  * (double) graph.
  */
 function startDrawComponent(mode) {
-    startDrawDate = new Date();
+    mgsc.START_DRAW_DATE = new Date();
     var selector = "#componentselector";
     var drawFunc = drawComponent;
     if (mode == "SPQR") {
@@ -1831,26 +1834,26 @@ function drawSPQRComponent(cmpRank) {
         destroyGraph();
     }
     initGraph("SPQR");
-    CURR_SPQRMODE = $("#decompositionOptionButtonGroup .btn.active")
+    mgsc.CURR_SPQRMODE = $("#decompositionOptionButtonGroup .btn.active")
             .attr("value");
     setGraphBindings();
     $(document).off("keydown");
     var componentNodeCount = 0;
     var componentEdgeCount = 0;
     // Clear selected element information
-    SELECTED_NODES = cy.collection();
-    SELECTED_EDGES = cy.collection();
-    SELECTED_CLUSTERS = cy.collection();
-    SELECTED_NODE_COUNT = 0;
-    SELECTED_EDGE_COUNT = 0;
-    SELECTED_CLUSTER_COUNT = 0;
-    COMPONENT_EDGE_WEIGHTS = [];
-    CLUSTERID2TOP = [];
-    CLUSTER_X = -1;
+    mgsc.SELECTED_NODES = cy.collection();
+    mgsc.SELECTED_EDGES = cy.collection();
+    mgsc.SELECTED_CLUSTERS = cy.collection();
+    mgsc.SELECTED_NODE_COUNT = 0;
+    mgsc.SELECTED_EDGE_COUNT = 0;
+    mgsc.SELECTED_CLUSTER_COUNT = 0;
+    mgsc.COMPONENT_EDGE_WEIGHTS = [];
+    mgsc.CLUSTERID2TOP = [];
+    mgsc.CLUSTER_X = -1;
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
-    BICOMPONENTID2VISIBLESINGLENODEIDS = {};
+    mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS = {};
     $("#searchForElementsControls").addClass("notviewable");
     $("#assemblyFinishingControls").addClass("notviewable");
     $("#viewScaffoldsControls").addClass("notviewable");
@@ -1858,9 +1861,9 @@ function drawSPQRComponent(cmpRank) {
     $("#displayOptionsControls").addClass("notviewable");
     $("#collapseButtonControls").addClass("notviewable");
     $("#noneColorization").prop("checked", true);
-    CURR_NODE_COLORIZATION = "noncolorized";
-    PREV_ROTATION = 0;
-    CURR_ROTATION = 90;
+    mgsc.CURR_NODE_COLORIZATION = "noncolorized";
+    mgsc.PREV_ROTATION = 0;
+    mgsc.CURR_ROTATION = 90;
     cy.scratch("_collapsed", cy.collection());
     cy.scratch("_uncollapsed", cy.collection());
     cy.scratch("_ele2parent", {});
@@ -1868,7 +1871,7 @@ function drawSPQRComponent(cmpRank) {
     // But first we need to get the bounding box of this component.
     // Along with the component's total node count.
     var query;
-    if (CURR_SPQRMODE === "explicit") {
+    if (mgsc.CURR_SPQRMODE === "explicit") {
         query = "SELECT boundingbox_x, boundingbox_y,"
             + " ex_uncompressed_node_count, ex_uncompressed_edge_count,"
             + " compressed_node_count, compressed_edge_count,"
@@ -1882,12 +1885,12 @@ function drawSPQRComponent(cmpRank) {
             + " bicomponent_count FROM singlecomponents"
             + " WHERE size_rank = ? LIMIT 1";
     }
-    var bbStmt = CURR_DB.prepare(query, [cmpRank]);
+    var bbStmt = mgsc.CURR_DB.prepare(query, [cmpRank]);
     bbStmt.step();
     var fullObj = bbStmt.getAsObject();
     bbStmt.free();
     var bb;
-    if (CURR_SPQRMODE === "explicit") {
+    if (mgsc.CURR_SPQRMODE === "explicit") {
         bb = {'boundingbox_x': fullObj['boundingbox_x'],
               'boundingbox_y': fullObj['boundingbox_y']};
     }
@@ -1912,7 +1915,7 @@ function drawSPQRComponent(cmpRank) {
     var totalElementCount = (0.5 * cEdgeCount) + (cNodeCount);
     var ucNodeCount = null;
     var ucEdgeCount = null;
-    if (CURR_SPQRMODE === "explicit") {
+    if (mgsc.CURR_SPQRMODE === "explicit") {
         ucNodeCount = fullObj['ex_uncompressed_node_count'];
         ucEdgeCount = fullObj['ex_uncompressed_edge_count'];
     }
@@ -1922,7 +1925,7 @@ function drawSPQRComponent(cmpRank) {
     }
     // Scale PROGRESS_BAR_FREQ relative to component size of nodes/edges
     // This does ignore metanodes/bicomponents, but it's a decent approximation
-    PROGRESSBAR_FREQ= Math.floor(PROGRESSBAR_FREQ_PERCENT * totalElementCount);
+    mgsc.PROGRESSBAR_FREQ= Math.floor(mgsc.PROGRESSBAR_FREQ_PERCENT * totalElementCount);
     // for calculating edge control point weight/distance
     var node2pos = {};
     // We check to see if the component contains >= 1 bicomponent. If so, we
@@ -1934,7 +1937,7 @@ function drawSPQRComponent(cmpRank) {
     var bicmpsInComponent = false;
     // Draw biconnected components.
     cy.startBatch();
-    var bicmpsStmt = CURR_DB.prepare(
+    var bicmpsStmt = mgsc.CURR_DB.prepare(
         "SELECT * FROM bicomponents WHERE scc_rank = ?", [cmpRank]);
     var bicmpObj;
     var metanodeParams = [cmpRank];
@@ -1952,7 +1955,7 @@ function drawSPQRComponent(cmpRank) {
     // Draw metanodes.
     var da;
     // select only the root metanodes from this connected component
-    var metanodesStmt = CURR_DB.prepare(
+    var metanodesStmt = mgsc.CURR_DB.prepare(
         "SELECT * FROM metanodes WHERE scc_rank = ? AND metanode_id IN"
         + rootmnQuestionMarks, metanodeParams);
     while (metanodesStmt.step()) {
@@ -1974,9 +1977,9 @@ function drawSPQRComponent(cmpRank) {
         cy.startBatch();
         var spqrSpecs = "WHERE scc_rank = ? AND (parent_metanode_id IS NULL "
             + "OR parent_metanode_id IN" + rootmnQuestionMarks + ")";
-        var nodesStmt = CURR_DB.prepare(
+        var nodesStmt = mgsc.CURR_DB.prepare(
             "SELECT * FROM singlenodes " + spqrSpecs, metanodeParams);
-        CURR_NE = 0;
+        mgsc.CURR_NE = 0;
         // Draw all single nodes. After that's done, we'll draw all metanode
         // edges, and then all single edges.
         drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
@@ -2005,34 +2008,34 @@ function drawComponent(cmpRank) {
     $(document).off("keydown");
     var componentNodeCount = 0;
     var componentEdgeCount = 0;
-    SELECTED_NODES = cy.collection();
-    SELECTED_EDGES = cy.collection();
-    SELECTED_CLUSTERS = cy.collection();
-    COMPONENT_EDGE_WEIGHTS = [];
-    CLUSTERID2TOP = [];
-    CLUSTER_X = -1;
+    mgsc.SELECTED_NODES = cy.collection();
+    mgsc.SELECTED_EDGES = cy.collection();
+    mgsc.SELECTED_CLUSTERS = cy.collection();
+    mgsc.COMPONENT_EDGE_WEIGHTS = [];
+    mgsc.CLUSTERID2TOP = [];
+    mgsc.CLUSTER_X = -1;
     $("#scaffoldCycler").addClass("notviewable");
     // will be set to true if we find suitable scaffolds
-    // the actual work of finding those scaffolds (if SCAFFOLDID2NODEKEYS is
+    // the actual work of finding those scaffolds (if mgsc.SCAFFOLDID2NODEKEYS is
     // not empty, of course) is done in finishDrawComponent().
-    COMPONENT_HAS_SCAFFOLDS = false;
+    mgsc.COMPONENT_HAS_SCAFFOLDS = false;
     $("#scaffoldInfoHeader").addClass("notviewable");
-    COMPONENT_NODE_KEYS = [];
+    mgsc.COMPONENT_NODE_KEYS = [];
     $("#assembledNodes").empty();
-    FINISHING_MODE_ON = false;
-    FINISHING_MODE_PREVIOUSLY_DONE = false;
-    FINISHING_NODE_IDS = "";
-    FINISHING_NODE_OBJS = [];
-    NEXT_NODES = cy.collection();
+    mgsc.FINISHING_MODE_ON = false;
+    mgsc.FINISHING_MODE_PREVIOUSLY_DONE = false;
+    mgsc.FINISHING_NODE_IDS = "";
+    mgsc.FINISHING_NODE_OBJS = [];
+    mgsc.NEXT_NODES = cy.collection();
     togglePauseFinishingButtonStyle(-1);
-    SELECTED_NODE_COUNT = 0;
-    SELECTED_EDGE_COUNT = 0;
-    SELECTED_CLUSTER_COUNT = 0;
-    REMOVED_EDGES = cy.collection();
+    mgsc.SELECTED_NODE_COUNT = 0;
+    mgsc.SELECTED_EDGE_COUNT = 0;
+    mgsc.SELECTED_CLUSTER_COUNT = 0;
+    mgsc.REMOVED_EDGES = cy.collection();
     $("#selectedNodeBadge").text(0);
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
-    BICOMPONENTID2VISIBLESINGLENODEIDS = {};
+    mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS = {};
     // Set the controls that aren't viewable in the SPQR view to be viewable,
     // since we're not drawing the SPQR view
     $("#searchForElementsControls").removeClass("notviewable");
@@ -2044,20 +2047,20 @@ function drawComponent(cmpRank) {
     // Disable other node colorization settings and check the "noncolorized"
     // node colorization option by default
     $("#noneColorization").prop("checked", true);
-    CURR_NODE_COLORIZATION = "noncolorized";
-    PREV_ROTATION = 0;
+    mgsc.CURR_NODE_COLORIZATION = "noncolorized";
+    mgsc.PREV_ROTATION = 0;
     // NOTE -- DISABLED ROTATION -- to allow rotation uncomment below and
-    // replace CURR_ROTATION = 90 line
-    //CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active")
+    // replace mgsc.CURR_ROTATION = 90 line
+    //mgsc.CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active")
     //    .attr("value"));
-    CURR_ROTATION = 90;
+    mgsc.CURR_ROTATION = 90;
     cy.scratch("_collapsed", cy.collection());
     cy.scratch("_uncollapsed", cy.collection());
     cy.scratch("_ele2parent", {});
     // Now we render the nodes, edges, and clusters of this component.
     // But first we need to get the bounding box of this component.
     // Along with the component's total node count.
-    var bbStmt = CURR_DB.prepare(
+    var bbStmt = mgsc.CURR_DB.prepare(
         "SELECT boundingbox_x, boundingbox_y, node_count, edge_count FROM components WHERE " +
         "size_rank = ? LIMIT 1", [cmpRank]);
     bbStmt.step();
@@ -2067,11 +2070,11 @@ function drawComponent(cmpRank) {
               'boundingbox_y': fullObj['boundingbox_y']};
     var totalElementCount = fullObj['node_count'] +
         (0.5 * fullObj['edge_count']); 
-    // here we scale PROGRESSBAR_FREQ to totalElementCount for the
+    // here we scale mgsc.PROGRESSBAR_FREQ to totalElementCount for the
     // component to be drawn (see top of file for reference)
     // As we draw other components later within the same session of the viewer
-    // application, PROGRESSBAR_FREQ will be updated accordingly
-    PROGRESSBAR_FREQ= Math.floor(PROGRESSBAR_FREQ_PERCENT * totalElementCount);
+    // application, mgsc.PROGRESSBAR_FREQ will be updated accordingly
+    mgsc.PROGRESSBAR_FREQ= Math.floor(mgsc.PROGRESSBAR_FREQ_PERCENT * totalElementCount);
     // We need a fast way to associate node IDs with their x/y positions.
     // This is for calculating edge control point weight/distance.
     // And doing 2 DB queries (src + tgt) for each edge will take a lot of
@@ -2084,7 +2087,7 @@ function drawComponent(cmpRank) {
     // enabling the button and keep it disabled because it'd be useless
     var clustersInComponent = false;
     cy.startBatch();
-    var clustersStmt = CURR_DB.prepare(
+    var clustersStmt = mgsc.CURR_DB.prepare(
         "SELECT * FROM clusters WHERE component_rank = ?", [cmpRank]);
     while (clustersStmt.step()) {
         clustersInComponent = true;
@@ -2106,9 +2109,9 @@ function drawComponent(cmpRank) {
          * timeouts to update the progress bar).
          */
         cy.startBatch();
-        var nodesStmt = CURR_DB.prepare(
+        var nodesStmt = mgsc.CURR_DB.prepare(
             "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
-        CURR_NE = 0;
+        mgsc.CURR_NE = 0;
         drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             clustersInComponent, componentNodeCount, componentEdgeCount,
             totalElementCount, "double", "", [], []);
@@ -2146,9 +2149,9 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         }
         node2pos[currNodeID]= renderNodeObject(currNode, currNodeID, bb, mode);
         componentNodeCount += 1;
-        CURR_NE += 1;
-        if (CURR_NE % PROGRESSBAR_FREQ === 0) {
-            updateProgressBar((CURR_NE / totalElementCount) * 100);
+        mgsc.CURR_NE += 1;
+        if (mgsc.CURR_NE % mgsc.PROGRESSBAR_FREQ === 0) {
+            updateProgressBar((mgsc.CURR_NE / totalElementCount) * 100);
             window.setTimeout(function() {
                 drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
                     clustersInComponent, componentNodeCount,
@@ -2175,7 +2178,7 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         var edgesStmt;
         var edgeType = "doubleedge";
         if (mode !== "SPQR") {
-            edgesStmt = CURR_DB.prepare(
+            edgesStmt = mgsc.CURR_DB.prepare(
                 "SELECT * FROM edges WHERE component_rank = ?", [cmpRank]);
         }
         else {
@@ -2185,7 +2188,7 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             // query on singlenodes. Now that we have edgesStmt ready, we don't
             // need to bother saving spqrSpecs and metanodeParams.
             edgeType = "singleedge";
-            edgesStmt = CURR_DB.prepare(
+            edgesStmt = mgsc.CURR_DB.prepare(
                 "SELECT * FROM singleedges " + spqrSpecs, metanodeParams);
             // NOTE don't draw metanodeedges by default due to autocollapsing
         }
@@ -2205,9 +2208,9 @@ function drawComponentEdges(edgesStmt, bb, node2pos, cmpRank,
         renderEdgeObject(edgesStmt.getAsObject(), node2pos, bb, edgeType,
                 mode, {});
         componentEdgeCount += 1;
-        CURR_NE += 0.5;
-        if (CURR_NE % PROGRESSBAR_FREQ === 0) {
-            updateProgressBar((CURR_NE / totalElementCount) * 100);
+        mgsc.CURR_NE += 0.5;
+        if (mgsc.CURR_NE % mgsc.PROGRESSBAR_FREQ === 0) {
+            updateProgressBar((mgsc.CURR_NE / totalElementCount) * 100);
             window.setTimeout(function() {
                 drawComponentEdges(edgesStmt, bb, node2pos,
                     cmpRank, clustersInComponent, componentNodeCount,
@@ -2223,7 +2226,7 @@ function drawComponentEdges(edgesStmt, bb, node2pos, cmpRank,
     }
     else {
         edgesStmt.free();
-        CURR_BOUNDINGBOX = bb;
+        mgsc.CURR_BOUNDINGBOX = bb;
         finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
             clustersInComponent, mode, counts);
     }
@@ -2236,9 +2239,9 @@ function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
     var intro = "The ";
     var nodePercentage, edgePercentage;
     if (mode !== "SPQR") {
-        var nodePercentage = (componentNodeCount / ASM_NODE_COUNT) * 100;
-        if (ASM_EDGE_COUNT !== 0) {
-            var edgePercentage = (componentEdgeCount / ASM_EDGE_COUNT) * 100;
+        var nodePercentage = (componentNodeCount / mgsc.ASM_NODE_COUNT) * 100;
+        if (mgsc.ASM_EDGE_COUNT !== 0) {
+            var edgePercentage = (componentEdgeCount / mgsc.ASM_EDGE_COUNT) * 100;
         }
         else {
             var edgePercentage = "None";
@@ -2259,14 +2262,14 @@ function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
         bodyText += "in the SPQR view, when fully collapsed, has <strong>"
             + counts[0] + " " + getSuffix(counts[0], "node") + "</strong> and "
             + "<strong>" + counts[1] + " " + getSuffix(counts[1], "edge")
-            + "</strong>. When fully " + CURR_SPQRMODE + "ly uncollapsed, "
+            + "</strong>. When fully " + mgsc.CURR_SPQRMODE + "ly uncollapsed, "
             + "the connected component has <strong>"
             + counts[2] + " " + getSuffix(counts[2], "node") + "</strong> and "
             + "<strong>" + counts[3] + " " + getSuffix(counts[3], "edge")
             + "</strong>. The connected component has <strong>" + counts[4]
             + " " + getSuffix(counts[4], "biconnected component")
             + "</strong>. ";
-        if (CURR_SPQRMODE === "explicit") {
+        if (mgsc.CURR_SPQRMODE === "explicit") {
             bodyText+= "(These figures do not include SPQR tree metanodes, "
                 + "although they do include the edges between them when "
                 + "uncollapsed.)";
@@ -2319,7 +2322,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     window.setTimeout(function() {
         // If we have scaffold data still loaded for this assembly, use it
         // for the newly drawn connected component.
-        if (!($.isEmptyObject(SCAFFOLDID2NODEKEYS))) {
+        if (!($.isEmptyObject(mgsc.SCAFFOLDID2NODEKEYS))) {
             updateScaffoldsInComponentList();
         }
         // At this point, all of the hard work has been done. All that's left
@@ -2333,14 +2336,14 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("explicitSPQROption");
         enableButton("fileselectButton");
         enableButton("loadDBbutton");
-        if (DEMOS_SUPPORTED) {
+        if (mgsc.DEMOS_SUPPORTED) {
             enableButton("xmlFileselectButton");
         }
         $("#searchInput").prop("disabled", false);
         $("#layoutInput").prop("disabled", false);
         if (mode !== "SPQR" && componentEdgeCount > 0) {
             enableButton("reduceEdgesButton");
-            if (ASM_FILETYPE === "LastGraph" || ASM_FILETYPE === "GML") {
+            if (mgsc.ASM_FILETYPE === "LastGraph" || mgsc.ASM_FILETYPE === "GML") {
                 // Only enable the edge filtering features for graphs that have
                 // edge weights (multiplicity or bundle size)
                 enableButton("filterEdgesButton");
@@ -2362,14 +2365,14 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         enableButton("dir270");
         enableButton("pngOption");
         enableButton("jpgOption");
-        if (DNA_AVAILABLE || REPEAT_INFO_AVAILABLE) {
+        if (mgsc.DNA_AVAILABLE || mgsc.REPEAT_INFO_AVAILABLE) {
             enableButton("changeNodeColorizationButton");
             enableInlineRadio("noneColorization");
-            if (DNA_AVAILABLE) {
+            if (mgsc.DNA_AVAILABLE) {
                 // GC content is available
                 enableInlineRadio("gcColorization");
             }
-            if (REPEAT_INFO_AVAILABLE) {
+            if (mgsc.REPEAT_INFO_AVAILABLE) {
                 enableInlineRadio("repeatColorization");
             }
         }
@@ -2381,7 +2384,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         cy.autoungrabify(false);
         if (clustersInComponent) {
             enableButton("collapseButton");
-            if (mode !== "SPQR" && USE_CLUSTER_KBD_NAV) {
+            if (mode !== "SPQR" && mgsc.USE_CLUSTER_KBD_NAV) {
                 $(document).on("keydown", moveThroughClusters);
             }
         }
@@ -2391,14 +2394,14 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         updateTextStatus("&nbsp;", false);
         finishProgressBar();
         // Log the time it took to draw this component; useful for benchmarking
-        endDrawDate = new Date();
-        var drawTime = endDrawDate.getTime() - startDrawDate.getTime();
+        mgsc.END_DRAW_DATE = new Date();
+        var drawTime = mgsc.END_DRAW_DATE.getTime() - mgsc.START_DRAW_DATE.getTime();
         var consoleMsg = "Drawing ";
         if (mode !== "SPQR") {
             consoleMsg += "standard";
         }
         else {
-            consoleMsg += CURR_SPQRMODE + " SPQR";
+            consoleMsg += mgsc.CURR_SPQRMODE + " SPQR";
         }
         consoleMsg += " component #" + cmpRank + " took " + drawTime + "ms";
         console.log(consoleMsg);
@@ -2409,8 +2412,8 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
 // return to the page. Also are memory leaks even a thing that we have
 // to worry about in Javascript?????????
 function closeDB() {
-    if (CURR_DB !== null) {
-        CURR_DB.close();
+    if (mgsc.CURR_DB !== null) {
+        mgsc.CURR_DB.close();
     }
 }
 
@@ -2457,13 +2460,13 @@ function loadHostedDB() {
     if (db_filename_prefix.length > 0 && !(db_filename_prefix.endsWith("/"))) {
         db_filename_prefix += "/";
     }
-    DB_FILENAME = db_filename_prefix + $("input[name=fs]:checked").attr("id");
+    mgsc.DB_FILENAME = db_filename_prefix + $("input[name=fs]:checked").attr("id");
     // jQuery doesn't support arraybuffer responses so we have to manually
     // use an XMLHttpRequest(), strange capitalization and all
     // CODELINK: Credit to this approach goes here, btw:
     // http://www.henryalgus.com/reading-binary-files-using-jquery-ajax/
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", DB_FILENAME, true);
+    xhr.open("GET", mgsc.DB_FILENAME, true);
     xhr.responseType = 'arraybuffer';
     xhr.onload = function(eve) {
         if (this.status === 200) {
@@ -2544,9 +2547,9 @@ function exportColorSettings(toDownload) {
     }
 }
 
-/* Resets the color settings to DEFAULT_COLOR_SETTINGS, defined above. */
+/* Resets the color settings to mgsc.DEFAULT_COLOR_SETTINGS, defined above. */
 function resetColorSettings() {
-    integrateColorSettings(DEFAULT_COLOR_SETTINGS);
+    integrateColorSettings(mgsc.DEFAULT_COLOR_SETTINGS);
 }
 
 /* Given a string containing the entire text of a color settings .tsv file,
@@ -2691,10 +2694,10 @@ function getSelectedNodeDNA() {
     var currDnaSeq;
     var seqIndex;
     var afterFirstSeqLine;
-    SELECTED_NODES.each(function(e, i) {
+    mgsc.SELECTED_NODES.each(function(e, i) {
         // Is there any way to make this more efficient? Like, via
         // selecting multiple dnafwd values at once...?
-        dnaStmt = CURR_DB.prepare("SELECT dnafwd FROM nodes WHERE id = ?",
+        dnaStmt = mgsc.CURR_DB.prepare("SELECT dnafwd FROM nodes WHERE id = ?",
             [e.id()]);
         dnaStmt.step();
         if (i > 0) {
@@ -2738,8 +2741,8 @@ function fitGraph(toSelected) {
                 // no elements are selected. This is because the fit-selected
                 // button is only enabled when >= 1 elements are selected.
                 cy.fit(
-                    SELECTED_NODES.union(SELECTED_EDGES).union(
-                        SELECTED_CLUSTERS)
+                    mgsc.SELECTED_NODES.union(mgsc.SELECTED_EDGES).union(
+                        mgsc.SELECTED_CLUSTERS)
                 );
             } else {
                 cy.fit();
@@ -2753,10 +2756,10 @@ function fitGraph(toSelected) {
 function exportGraphView() {
     var imgType = $("#imgTypeButtonGroup .btn.active").attr("value");
     if (imgType === "PNG") {
-        downloadDataURI("screenshot.png", cy.png({bg: BG_COLOR}), false);
+        downloadDataURI("screenshot.png", cy.png({bg: mgsc.BG_COLOR}), false);
     }
     else {
-        downloadDataURI("screenshot.jpg", cy.jpg({bg: BG_COLOR}), false);
+        downloadDataURI("screenshot.jpg", cy.jpg({bg: mgsc.BG_COLOR}), false);
     }
 }
 
@@ -2774,11 +2777,11 @@ function openEdgeFilteringDialog() {
 function drawEdgeWeightHistogram() {
     var formatCount = d3.format(",.0f");
     // note could probably find this inline to simplify computation time
-    var max = d3.max(COMPONENT_EDGE_WEIGHTS); 
-    //console.log(COMPONENT_EDGE_WEIGHTS);
+    var max = d3.max(mgsc.COMPONENT_EDGE_WEIGHTS); 
+    //console.log(mgsc.COMPONENT_EDGE_WEIGHTS);
     var margin = {top: 10, right: 30, bottom: 50, left: 70};
-    //for (var i = 0; i < COMPONENT_EDGE_WEIGHTS.length; i++) {
-    //    console.log(COMPONENT_EDGE_WEIGHTS[i] + "->" + data[i]);
+    //for (var i = 0; i < mgsc.COMPONENT_EDGE_WEIGHTS.length; i++) {
+    //    console.log(mgsc.COMPONENT_EDGE_WEIGHTS[i] + "->" + data[i]);
     //}
     // Remove old histogram so that it doesn't get drawn over
     // Eventually we might want to consider only redrawing the histogram when
@@ -2793,7 +2796,7 @@ function drawEdgeWeightHistogram() {
     var bin_count = + $("#binCountInput").val();
     var bins = d3.histogram()
         .domain(x.domain())
-        .thresholds(x.ticks(bin_count))(COMPONENT_EDGE_WEIGHTS);
+        .thresholds(x.ticks(bin_count))(mgsc.COMPONENT_EDGE_WEIGHTS);
     var y = d3.scaleLinear()
         .domain([0, d3.max(bins, function(b) { return b.length; })])
         .range([height, 0]);
@@ -2847,20 +2850,20 @@ function cullEdges() {
     var strVal = $("#cullEdgesInput").val();
     // Check that the input is a nonnegative integer
     // (parseInt() is pretty lax)
-    if (strVal.match(INTEGER_RE) === null) {
+    if (strVal.match(mgsc.INTEGER_RE) === null) {
         alert("Please enter a valid minimum edge weight (a nonnegative " +
               "integer) using the input field.");
         return;
     }
     var threshold = parseInt(strVal);
-    // Use PREV_EDGE_WEIGHT_THRESHOLD to prevent redundant operations being
+    // Use mgsc.PREV_EDGE_WEIGHT_THRESHOLD to prevent redundant operations being
     // done when the user double-clicks this button
-    if (PREV_EDGE_WEIGHT_THRESHOLD !== threshold) {
+    if (mgsc.PREV_EDGE_WEIGHT_THRESHOLD !== threshold) {
         cy.startBatch();
         // Restore removed edges that would fit within a lowered threshold
-        // Also, remove these edges from REMOVED_EDGES
+        // Also, remove these edges from mgsc.REMOVED_EDGES
         var restoredEdges = cy.collection();
-        REMOVED_EDGES.each(
+        mgsc.REMOVED_EDGES.each(
             function(e, i) {
                 if (e.data("multiplicity") >= threshold) {
                     // If the edge points to/from a node within a collapsed
@@ -2882,7 +2885,7 @@ function cullEdges() {
                 }
             }
         );
-        REMOVED_EDGES = REMOVED_EDGES.difference(restoredEdges);
+        mgsc.REMOVED_EDGES = mgsc.REMOVED_EDGES.difference(restoredEdges);
         // Remove edges that have multiplicity less than the specified
         // threshold
         cy.$("edge").each(
@@ -2891,19 +2894,19 @@ function cullEdges() {
                 if (mult !== null && mult < threshold) {
                     if (e.selected())
                         e.unselect();
-                    REMOVED_EDGES = REMOVED_EDGES.union(e.remove());
+                    mgsc.REMOVED_EDGES = mgsc.REMOVED_EDGES.union(e.remove());
                 }
             }
         );
         cy.endBatch();
-        PREV_EDGE_WEIGHT_THRESHOLD = threshold;
+        mgsc.PREV_EDGE_WEIGHT_THRESHOLD = threshold;
     }
 }
 
 function beginLoadAGPfile() {
     var sfr = new FileReader();
     // will be set to true if we find suitable scaffolds
-    COMPONENT_HAS_SCAFFOLDS = false;
+    mgsc.COMPONENT_HAS_SCAFFOLDS = false;
 	var inputfile = document.getElementById('scaffoldFileSelector').files[0];
     if (inputfile === undefined) {
         return;
@@ -2911,7 +2914,7 @@ function beginLoadAGPfile() {
     if (inputfile.name.toLowerCase().endsWith(".agp")) {
         // The file is valid. We can load it.
         startIndeterminateProgressBar();
-        SCAFFOLDID2NODEKEYS = {};
+        mgsc.SCAFFOLDID2NODEKEYS = {};
         $("#scaffoldInfoHeader").addClass("notviewable");
         $("#scaffoldCycler").addClass("notviewable");
         // Set some attributes of the FileReader object that we update while
@@ -2993,7 +2996,7 @@ function beginLoadAGPfile() {
 }
 
 /* Given a line of text (i.e. no newline characters are in the line), adds the
- * contig referenced in that line to the SCAFFOLDID2NODEKEYS mapping. Also
+ * contig referenced in that line to the mgsc.SCAFFOLDID2NODEKEYS mapping. Also
  * adds the scaffold referenced in that line, if not already defined (i.e. this
  * is the first line we've called this function on that references that
  * scaffold).
@@ -3023,51 +3026,51 @@ function integrateAGPline(lineText) {
         }
         // Save scaffold node composition data for all scaffolds, not just
         // scaffolds pertinent to the current connected component
-        if (SCAFFOLDID2NODEKEYS[scaffoldID] === undefined) {
-            SCAFFOLDID2NODEKEYS[scaffoldID] = [contigKey];
+        if (mgsc.SCAFFOLDID2NODEKEYS[scaffoldID] === undefined) {
+            mgsc.SCAFFOLDID2NODEKEYS[scaffoldID] = [contigKey];
             // Check if this contig is in the current connected component and,
             // if so, add a list group item for its scaffold (since this is the
             // first time we're seeing this scaffold).
-            // (We use COMPONENT_NODE_KEYS for this because running
+            // (We use mgsc.COMPONENT_NODE_KEYS for this because running
             // cy.filter() repeatedly can get really slow.)
-            if (COMPONENT_NODE_KEYS.indexOf(contigKey) !== -1) {
+            if (mgsc.COMPONENT_NODE_KEYS.indexOf(contigKey) !== -1) {
                 addScaffoldListGroupItem(scaffoldID);
             }
         }
         else {
-            SCAFFOLDID2NODEKEYS[scaffoldID].push(contigKey);
+            mgsc.SCAFFOLDID2NODEKEYS[scaffoldID].push(contigKey);
         }
     }
     return 0;
 }
 
 /* Creates a list group item for a scaffold with the given ID.
- * (The ID should match up with a key in SCAFFOLDID2NODEKEYS.)
+ * (The ID should match up with a key in mgsc.SCAFFOLDID2NODEKEYS.)
  */
 function addScaffoldListGroupItem(scaffoldID) {
-    if (!COMPONENT_HAS_SCAFFOLDS) {
-        COMPONENT_HAS_SCAFFOLDS = true;
-        COMPONENT_SCAFFOLDS = [];
+    if (!mgsc.COMPONENT_HAS_SCAFFOLDS) {
+        mgsc.COMPONENT_HAS_SCAFFOLDS = true;
+        mgsc.COMPONENT_SCAFFOLDS = [];
         $("#drawScaffoldButton").text(scaffoldID);
-        SCAFFOLD_CYCLER_CURR_INDEX = 0;
+        mgsc.SCAFFOLD_CYCLER_CURR_INDEX = 0;
         $("#scaffoldCycler").removeClass("notviewable");
     }
-    COMPONENT_SCAFFOLDS.push(scaffoldID);
+    mgsc.COMPONENT_SCAFFOLDS.push(scaffoldID);
 }
 
 /* Identifies scaffolds located in the current connected component (using the
- * keys to SCAFFOLDID2NODEKEYS as a list of scaffolds to try) and, for those
+ * keys to mgsc.SCAFFOLDID2NODEKEYS as a list of scaffolds to try) and, for those
  * scaffolds, calls addScaffoldListGroupItem().
  */
 function updateScaffoldsInComponentList() {
-    for (var s in SCAFFOLDID2NODEKEYS) {
+    for (var s in mgsc.SCAFFOLDID2NODEKEYS) {
         // All nodes within a (valid) scaffold are in the same connected
         // component, so we can just use the first node in a scaffold as an
         // indicator for whether or not that scaffold is in the current
         // connected component.
         // (This is pretty much the same way we do this when initially loading
         // scaffold data, as with integrateAGPline() above.)
-        if (COMPONENT_NODE_KEYS.indexOf(SCAFFOLDID2NODEKEYS[s][0]) !== -1){
+        if (mgsc.COMPONENT_NODE_KEYS.indexOf(mgsc.SCAFFOLDID2NODEKEYS[s][0]) !== -1){
             addScaffoldListGroupItem(s);
         }
     }
@@ -3088,7 +3091,7 @@ function loadAGPfile(fileReader, file, filePosition) {
         // In interval notation, the slice includes bytes in the range
         // [filePosition, endPosition). That is, the endPosition byte is not
         // included in currentBlob.
-        var endPosition = filePosition + BLOB_SIZE;
+        var endPosition = filePosition + mgsc.BLOB_SIZE;
         var currentBlob = file.slice(filePosition, endPosition);
         if (endPosition > file.size) {
             fileReader.readingFinalBlob = true;
@@ -3111,7 +3114,7 @@ function loadAGPfile(fileReader, file, filePosition) {
  * function is being called after an AGP file has just been loaded.
  */
 function updateScaffoldInfoHeader(agpFileJustLoaded) {
-    if (COMPONENT_HAS_SCAFFOLDS) {
+    if (mgsc.COMPONENT_HAS_SCAFFOLDS) {
         $("#scaffoldInfoHeader").html("Scaffolds in Connected Component<br/>" +
             "(Click to highlight in graph)");
     }
@@ -3134,16 +3137,16 @@ function updateScaffoldInfoHeader(agpFileJustLoaded) {
 /* Clears the scaffold file selector's value attribute and calls
  * finishProgressBar().
  * If errorOnAGPload is true, then this:
- *  -clears SCAFFOLDID2NODEKEYS,
- *  -sets COMPONENT_HAS_SCAFFOLDS to false,
- *  -clears COMPONENT_SCAFFOLDS,
+ *  -clears mgsc.SCAFFOLDID2NODEKEYS,
+ *  -sets mgsc.COMPONENT_HAS_SCAFFOLDS to false,
+ *  -clears mgsc.COMPONENT_SCAFFOLDS,
  *  -Adds the "notviewable" class to #scaffoldCycler
  */
 function clearScaffoldFS(errorOnAGPload) {
     if (errorOnAGPload) {
-        SCAFFOLDID2NODEKEYS = {};
-        COMPONENT_HAS_SCAFFOLDS = false;
-        COMPONENT_SCAFFOLDS = [];
+        mgsc.SCAFFOLDID2NODEKEYS = {};
+        mgsc.COMPONENT_HAS_SCAFFOLDS = false;
+        mgsc.COMPONENT_SCAFFOLDS = [];
         $("#scaffoldCycler").addClass("notviewable");
     }
     document.getElementById('scaffoldFileSelector').value = "";
@@ -3151,26 +3154,26 @@ function clearScaffoldFS(errorOnAGPload) {
 }
 
 function cycleScaffoldsLeft() {
-    if (SCAFFOLD_CYCLER_CURR_INDEX === 0) {
-        SCAFFOLD_CYCLER_CURR_INDEX = COMPONENT_SCAFFOLDS.length - 1;
+    if (mgsc.SCAFFOLD_CYCLER_CURR_INDEX === 0) {
+        mgsc.SCAFFOLD_CYCLER_CURR_INDEX = mgsc.COMPONENT_SCAFFOLDS.length - 1;
     } else {
-        SCAFFOLD_CYCLER_CURR_INDEX--;
+        mgsc.SCAFFOLD_CYCLER_CURR_INDEX--;
     }
     updateDrawScaffoldButtonText();
 }
 
 function cycleScaffoldsRight() {
-    if (SCAFFOLD_CYCLER_CURR_INDEX === COMPONENT_SCAFFOLDS.length - 1) {
-        SCAFFOLD_CYCLER_CURR_INDEX = 0;
+    if (mgsc.SCAFFOLD_CYCLER_CURR_INDEX === mgsc.COMPONENT_SCAFFOLDS.length - 1) {
+        mgsc.SCAFFOLD_CYCLER_CURR_INDEX = 0;
     } else {
-        SCAFFOLD_CYCLER_CURR_INDEX++;
+        mgsc.SCAFFOLD_CYCLER_CURR_INDEX++;
     }
     updateDrawScaffoldButtonText();
 }
 
 // Also highlights the new scaffold.
 function updateDrawScaffoldButtonText() {
-    var newScaffoldID = COMPONENT_SCAFFOLDS[SCAFFOLD_CYCLER_CURR_INDEX];
+    var newScaffoldID = mgsc.COMPONENT_SCAFFOLDS[mgsc.SCAFFOLD_CYCLER_CURR_INDEX];
     $("#drawScaffoldButton").text(newScaffoldID);
     highlightScaffold(newScaffoldID);
 }
@@ -3183,12 +3186,12 @@ function updateDrawScaffoldButtonText() {
 function highlightScaffold(scaffoldID) {
     // TODO can make this more efficient -- see #115, etc.
     cy.filter(':selected').unselect();
-    var contigKeys = SCAFFOLDID2NODEKEYS[scaffoldID];
+    var contigKeys = mgsc.SCAFFOLDID2NODEKEYS[scaffoldID];
     var nodesToHighlight = cy.collection();
     var nodeToAdd;
     var prefix;
     for (var i = 0; i < contigKeys.length; i++) {
-        if (ASM_FILETYPE === "GML") {
+        if (mgsc.ASM_FILETYPE === "GML") {
             // Figure out if we need to use cy.getElementById (if this scaffold
             // refers to a node group) instead of filtering by label
             prefix = contigKeys[i][0];
@@ -3215,7 +3218,7 @@ function highlightScaffold(scaffoldID) {
                 // Throw an error (since this scaffold was supposed to only
                 // describe nodes in the current connected component).
                 var keyType = "ID ";
-                if (ASM_FILETYPE === "GML") {
+                if (mgsc.ASM_FILETYPE === "GML") {
                     keyType = "label ";
                 }
                 alert("Node with " + keyType + contigKeys[i] +
@@ -3258,12 +3261,12 @@ function addNodeFromEventToPath(e) {
         // added
         var nodeID = node.id();
         // Have we already selected another node in this finishing process?
-        if (FINISHING_NODE_IDS.length > 0) {
+        if (mgsc.FINISHING_NODE_IDS.length > 0) {
             // Is the node the user just clicked on valid, in terms of the path
             // so far?
-            if (NEXT_NODES.is("#" + nodeID)) {
+            if (mgsc.NEXT_NODES.is("#" + nodeID)) {
                 cy.startBatch();
-                NEXT_NODES.removeClass("tentative");
+                mgsc.NEXT_NODES.removeClass("tentative");
                 cy.endBatch();
             } else {
                 return;
@@ -3271,33 +3274,33 @@ function addNodeFromEventToPath(e) {
         }
         // In any case, if we've gotten here then we know that we're ok to go
         // ahead with adding node(s) to the path.
-        NEXT_NODES = node.outgoers("node");
+        mgsc.NEXT_NODES = node.outgoers("node");
         // Although they don't technically have an edge to themselves when
         // they're collapsed, we consider collapsed cyclic chains as
         // effectively having such an edge. This enables the user to manually
         // expand things like tandem repeats as much as they want to.
         if (node.hasClass("Y")) {
-            NEXT_NODES = NEXT_NODES.union(node);
+            mgsc.NEXT_NODES = mgsc.NEXT_NODES.union(node);
         }
-        var size = NEXT_NODES.size();
+        var size = mgsc.NEXT_NODES.size();
         // Start autofinishing, if the node we're adding to the path only has
         // one outgoing connection (and it isn't to itself)
         var reachedCycleInAutofinishing = false;
-        if (size === 1 && NEXT_NODES[0].id() !== nodeID) {
+        if (size === 1 && mgsc.NEXT_NODES[0].id() !== nodeID) {
             var autofinishingSeenNodeIDs = [];
             while (size === 1) {
-                if (FINISHING_NODE_OBJS.length > 0) {
+                if (mgsc.FINISHING_NODE_OBJS.length > 0) {
                     $("#assembledNodes").append(", " + nodeID);
-                    FINISHING_NODE_IDS += "," + nodeID;
+                    mgsc.FINISHING_NODE_IDS += "," + nodeID;
                 }
                 else {
                     $("#assembledNodes").append(nodeID);
-                    FINISHING_NODE_IDS += nodeID;
+                    mgsc.FINISHING_NODE_IDS += nodeID;
                 }
                 node.addClass("currpath");
-                FINISHING_NODE_OBJS.push(node);
+                mgsc.FINISHING_NODE_OBJS.push(node);
                 autofinishingSeenNodeIDs.push(nodeID);
-                node = NEXT_NODES[0];
+                node = mgsc.NEXT_NODES[0];
                 nodeID = node.id();
                 // Have we reached a node that we've previously visited in this
                 // autofinishing iteration? If so, stop autofinishing -- we're
@@ -3307,12 +3310,12 @@ function addNodeFromEventToPath(e) {
                     break;
                 }
                 // Otherwise, we can carry on with the finishing for now.
-                NEXT_NODES = node.outgoers("node");
+                mgsc.NEXT_NODES = node.outgoers("node");
                 // Allow for cyclic chains to be considered, as above
                 if (node.hasClass("Y")) {
-                    NEXT_NODES = NEXT_NODES.union(node);
+                    mgsc.NEXT_NODES = mgsc.NEXT_NODES.union(node);
                 }
-                size = NEXT_NODES.size();
+                size = mgsc.NEXT_NODES.size();
             }
         }
         if (reachedCycleInAutofinishing) {
@@ -3324,16 +3327,16 @@ function addNodeFromEventToPath(e) {
         // Either add the single node the user chose (if autofinishing didn't
         // happen), or add the final node in the autofinished path (if
         // autofinishing did happen, and it ended due to the path branching).
-        if (FINISHING_NODE_OBJS.length > 0) {
+        if (mgsc.FINISHING_NODE_OBJS.length > 0) {
             $("#assembledNodes").append(", " + nodeID);
-            FINISHING_NODE_IDS += "," + nodeID;
+            mgsc.FINISHING_NODE_IDS += "," + nodeID;
         }
         else {
             $("#assembledNodes").append(nodeID);
-            FINISHING_NODE_IDS += nodeID;
+            mgsc.FINISHING_NODE_IDS += nodeID;
         }
         node.addClass("currpath");
-        FINISHING_NODE_OBJS.push(node);
+        mgsc.FINISHING_NODE_OBJS.push(node);
         if (size === 0) {
             endFinishing();
         }
@@ -3345,12 +3348,12 @@ function addNodeFromEventToPath(e) {
 
 function markTentativeNodes() {
     cy.startBatch();
-    NEXT_NODES.addClass("tentative");
+    mgsc.NEXT_NODES.addClass("tentative");
     cy.endBatch();
     if ($("#animateFinishingCheckbox").prop("checked")) {
         // We enforce a maximum zoom level before the fitting animation here so
         // that we don't zoom in *too* far to a region in the graph. If the
-        // collection of NEXT_NODES is small and densely focused in one region
+        // collection of mgsc.NEXT_NODES is small and densely focused in one region
         // of the drawing, then fitting to just that region won't help the user
         // get much context for the surrounding parts of the graph (which will
         // often make the user zoom out, to get some context on where these
@@ -3358,10 +3361,10 @@ function markTentativeNodes() {
         //
         // And just adding padding to the viewport after finishing isn't an
         // acceptable solution for the general case: if the collection of
-        // NEXT_NODES covers a broad enough region of the graph, we don't
+        // mgsc.NEXT_NODES covers a broad enough region of the graph, we don't
         // want to zoom out even farther since the user wouldn't gain much
         // from that. (And it might make it harder for the user to see which
-        // nodes are marked as NEXT_NODES.)
+        // nodes are marked as mgsc.NEXT_NODES.)
         //
         // The solution (CODELINK: idea c/o Max Franz' first answer here:
         // https://github.com/cytoscape/cytoscape.js/issues/941) is to impose a
@@ -3371,12 +3374,12 @@ function markTentativeNodes() {
         // NOTE we use parseFloat() because cy.maxZoom() seems to require
         // numeric inputs
         cy.maxZoom(parseFloat($("#maxFinishingZoomLvl").val()));
-        cy.animate({fit: {eles: NEXT_NODES}, complete: resetMaxZoom});
+        cy.animate({fit: {eles: mgsc.NEXT_NODES}, complete: resetMaxZoom});
     }
 }
 
 function resetMaxZoom() {
-    cy.maxZoom(MAX_ZOOM_ORDINARY);
+    cy.maxZoom(mgsc.MAX_ZOOM_ORDINARY);
 }
 
 /* If onOrOff >= 0, removes graph properties (pauses/stops finishing).
@@ -3396,15 +3399,15 @@ function toggleFinishingGraphProperties(onOrOff) {
 }
 
 function startFinishing() {
-    if (!FINISHING_MODE_ON) {
+    if (!mgsc.FINISHING_MODE_ON) {
         disableButton("startFinishingButton");
-        if (FINISHING_MODE_PREVIOUSLY_DONE) {
-            FINISHING_NODE_IDS = "";
-            FINISHING_NODE_OBJS = [];
+        if (mgsc.FINISHING_MODE_PREVIOUSLY_DONE) {
+            mgsc.FINISHING_NODE_IDS = "";
+            mgsc.FINISHING_NODE_OBJS = [];
             $("#assembledNodes").empty();
             disableButton("exportPathButton");
         }
-        FINISHING_MODE_ON = true;
+        mgsc.FINISHING_MODE_ON = true;
         toggleFinishingGraphProperties(-1);
     }
     enableButton("pauseFinishingButton");
@@ -3451,19 +3454,19 @@ function togglePauseFinishing() {
 }
 
 function endFinishing() {
-    FINISHING_MODE_ON = false;
-    FINISHING_MODE_PREVIOUSLY_DONE = true;
+    mgsc.FINISHING_MODE_ON = false;
+    mgsc.FINISHING_MODE_PREVIOUSLY_DONE = true;
     cy.startBatch();
-    NEXT_NODES.removeClass("tentative");
+    mgsc.NEXT_NODES.removeClass("tentative");
     // Remove "currpath" class from all nodes that have it (i.e. look at
-    // FINISHING_NODE_OBJS)
-    for (var n = 0; n < FINISHING_NODE_OBJS.length; n++) {
-        FINISHING_NODE_OBJS[n].removeClass("currpath");
+    // mgsc.FINISHING_NODE_OBJS)
+    for (var n = 0; n < mgsc.FINISHING_NODE_OBJS.length; n++) {
+        mgsc.FINISHING_NODE_OBJS[n].removeClass("currpath");
     }
     cy.endBatch();
-    NEXT_NODES = cy.collection();
+    mgsc.NEXT_NODES = cy.collection();
     toggleFinishingGraphProperties(1);
-    if (FINISHING_NODE_OBJS.length > 0) {
+    if (mgsc.FINISHING_NODE_OBJS.length > 0) {
         enableButton("exportPathButton");
     }
     enableButton("startFinishingButton");
@@ -3481,8 +3484,8 @@ function exportPath() {
         var nextEndPos;
         var nodeLen, nodeOrient, nodeKey;
         var componentType;
-        for (var i = 0; i < FINISHING_NODE_OBJS.length; i++) {
-            nodeLen = FINISHING_NODE_OBJS[i].data("length");
+        for (var i = 0; i < mgsc.FINISHING_NODE_OBJS.length; i++) {
+            nodeLen = mgsc.FINISHING_NODE_OBJS[i].data("length");
             // NOTE that we assume that nodes with the "rightdir" class must
             // all have a forward orientation. If dynamic graph rotation
             // gets added back in, that will break this.
@@ -3490,11 +3493,11 @@ function exportPath() {
             // forward-oriented nodes a "is_fwd" data() attribute or
             // something.)
             componentType = "W"; // for "WGS contig"
-            if (FINISHING_NODE_OBJS[i].hasClass("cluster")) {
+            if (mgsc.FINISHING_NODE_OBJS[i].hasClass("cluster")) {
                 nodeOrient = "na";
                 componentType = "O"; // for "Other sequence"
             }
-            else if (FINISHING_NODE_OBJS[i].hasClass("rightdir")) {
+            else if (mgsc.FINISHING_NODE_OBJS[i].hasClass("rightdir")) {
                 nodeOrient = "+";
             }
             else {
@@ -3502,11 +3505,11 @@ function exportPath() {
             }
             // Since node groups and nodes from non-GML inputs don't have
             // label data, use these objects' IDs instead.
-            if (componentType === "W" && ASM_FILETYPE === "GML") {
-                nodeKey = FINISHING_NODE_OBJS[i].data("label");
+            if (componentType === "W" && mgsc.ASM_FILETYPE === "GML") {
+                nodeKey = mgsc.FINISHING_NODE_OBJS[i].data("label");
             }
             else {
-                nodeKey = FINISHING_NODE_OBJS[i].id();
+                nodeKey = mgsc.FINISHING_NODE_OBJS[i].id();
             }
             // Add a line for this node
             nextEndPos = (nextStartPos - 1) + nodeLen;
@@ -3519,7 +3522,7 @@ function exportPath() {
     }
     else {
         // export CSV
-        textToExport = FINISHING_NODE_IDS;
+        textToExport = mgsc.FINISHING_NODE_IDS;
         downloadDataURI("path.csv", textToExport, true);
     }
 }
@@ -3529,7 +3532,7 @@ function startChangeNodeColorization() {
         .attr("value");
     // We check to ensure the new colorization would be different from the
     // current one -- if not, we don't bother doing anything
-    if (newColorization !== CURR_NODE_COLORIZATION) {
+    if (newColorization !== mgsc.CURR_NODE_COLORIZATION) {
         startIndeterminateProgressBar();
         window.setTimeout(function() {
             changeNodeColorization(newColorization);
@@ -3541,15 +3544,15 @@ function startChangeNodeColorization() {
 function changeNodeColorization(newColorization) {
     cy.startBatch();
     cy.filter('node.noncluster')
-        .removeClass(CURR_NODE_COLORIZATION)
+        .removeClass(mgsc.CURR_NODE_COLORIZATION)
         .addClass(newColorization);
     // Make sure to apply the colorization to collapsed nodes, also!
     cy.scratch("_collapsed").each(function(nodeGroup, i) {
         nodeGroup.scratch("_interiorNodes")
-            .removeClass(CURR_NODE_COLORIZATION)
+            .removeClass(mgsc.CURR_NODE_COLORIZATION)
             .addClass(newColorization);
     });
-    CURR_NODE_COLORIZATION = newColorization;
+    mgsc.CURR_NODE_COLORIZATION = newColorization;
     cy.endBatch();
 }
 
@@ -3593,9 +3596,9 @@ function getNodeColorization(gc) {
     // Everything from here on down is normal continuous colorization.
     // Linearly scale each RGB value between the extreme colors'
     // corresponding RGB values
-    var red_i = (gc * (MAX_RGB['r'] - MIN_RGB['r'])) + MIN_RGB['r'];
-    var green_i = (gc * (MAX_RGB['g'] - MIN_RGB['g'])) + MIN_RGB['g'];
-    var blue_i = (gc * (MAX_RGB['b'] - MIN_RGB['b'])) + MIN_RGB['b'];
+    var red_i = (gc * (mgsc.MAX_RGB['r'] - mgsc.MIN_RGB['r'])) + mgsc.MIN_RGB['r'];
+    var green_i = (gc * (mgsc.MAX_RGB['g'] - mgsc.MIN_RGB['g'])) + mgsc.MIN_RGB['g'];
+    var blue_i = (gc * (mgsc.MAX_RGB['b'] - mgsc.MIN_RGB['b'])) + mgsc.MIN_RGB['b'];
     // Convert resulting RGB decimal values (should be in the range [0, 255])
     // to hexadecimal and use them to construct a color string
     var red = Math.round(red_i).toString(16);
@@ -3620,22 +3623,22 @@ function redrawGradientPreview(hexColor, minOrMax) {
     var tmpColor;
     if (minOrMax === -1) {
         $("#0gp").css("background-color", hexColor);
-        MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
-        MIN_HEX = hexColor;
-        if (MAX_RGB === undefined) {
+        mgsc.MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
+        mgsc.MIN_HEX = hexColor;
+        if (mgsc.MAX_RGB === undefined) {
             tmpColor = $("#maxcncp").data("colorpicker").color;
-            MAX_RGB = tmpColor.toRGB();
-            MAX_HEX = tmpColor.toHex();
+            mgsc.MAX_RGB = tmpColor.toRGB();
+            mgsc.MAX_HEX = tmpColor.toHex();
         }
     }
     else {
         $("#100gp").css("background-color", hexColor);
-        MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
-        MAX_HEX = hexColor;
-        if (MIN_RGB === undefined) {
+        mgsc.MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
+        mgsc.MAX_HEX = hexColor;
+        if (mgsc.MIN_RGB === undefined) {
             tmpColor = $("#mincncp").data("colorpicker").color;
-            MIN_RGB = tmpColor.toRGB();
-            MIN_HEX = tmpColor.toHex();
+            mgsc.MIN_RGB = tmpColor.toRGB();
+            mgsc.MIN_HEX = tmpColor.toHex();
         }
     }
     // Change intermediate colors in the gradient
@@ -3704,7 +3707,7 @@ function doReduceEdges() {
     cy.endBatch();
 }
 
-// requires that searchType be formatted analogously to how CURR_SEARCH_TYPE
+// requires that searchType be formatted analogously to how mgsc.CURR_SEARCH_TYPE
 // is formatted, in order to fit with the <li> id values in the index.html file
 function enableSearchOption(searchType) {
     $("#" + searchType + "SearchTypeOption").removeClass("notviewable");
@@ -3716,16 +3719,16 @@ function disableSearchOption(searchType) {
 }
 
 function toggleSearchType(searchType) {
-    if (searchType !== CURR_SEARCH_TYPE) {
+    if (searchType !== mgsc.CURR_SEARCH_TYPE) {
         $("#searchTypeButton").html(
-            $("#searchTypeButton").html().replace(CURR_SEARCH_TYPE, searchType)
+            $("#searchTypeButton").html().replace(mgsc.CURR_SEARCH_TYPE, searchType)
         );
         $("#searchInput").attr("placeholder",
             $("#searchInput").attr("placeholder")
-                .replace(CURR_SEARCH_TYPE, searchType)
+                .replace(mgsc.CURR_SEARCH_TYPE, searchType)
         );
     }
-    CURR_SEARCH_TYPE = searchType;
+    mgsc.CURR_SEARCH_TYPE = searchType;
 }
 
 // Centers the graph on a given list of elements separated by commas, with
@@ -3745,7 +3748,7 @@ function searchForEles() {
     var queriedName;
     for (var c = 0; c < names.length; c++) {
         queriedName = names[c].trim();
-        if (CURR_SEARCH_TYPE === "Label")
+        if (mgsc.CURR_SEARCH_TYPE === "Label")
             newEle = cy.filter("[label=\"" + queriedName + "\"]");
         else
             newEle = cy.getElementById(queriedName);
@@ -3762,7 +3765,7 @@ function searchForEles() {
             else {
                 // It's a bogus element
                 alert("Error -- element with " +
-                      SEARCH_TYPE_HREADABLE[CURR_SEARCH_TYPE] + " " +
+                      mgsc.SEARCH_TYPE_HREADABLE[mgsc.CURR_SEARCH_TYPE] + " " +
                       queriedName + " is not in this component.");
                 return;
             }
@@ -3796,7 +3799,7 @@ function searchForEles() {
 function uncollapseSPQRMetanode(mn) {
     var mnID = mn.id();
     // 1. Get outgoing edges from this metanode
-    var outgoingEdgesStmt = CURR_DB.prepare(
+    var outgoingEdgesStmt = mgsc.CURR_DB.prepare(
         "SELECT * FROM metanodeedges WHERE source_metanode_id = ?", [mnID]);
     var outgoingEdgeObjects = [];
     var descendantMetanodeIDs = [];
@@ -3814,7 +3817,7 @@ function uncollapseSPQRMetanode(mn) {
     // 2. Get immediate descendant metanodes
     descendantMetanodeQMs = descendantMetanodeQMs.slice(0,
         descendantMetanodeQMs.length - 1) + ")";
-    var descendantMetanodesStmt = CURR_DB.prepare(
+    var descendantMetanodesStmt = mgsc.CURR_DB.prepare(
         "SELECT * FROM metanodes WHERE metanode_id IN "
       + descendantMetanodeQMs, descendantMetanodeIDs);
     var descendantMetanodeObjects = [];
@@ -3823,7 +3826,7 @@ function uncollapseSPQRMetanode(mn) {
     }
     descendantMetanodesStmt.free();
     // 3. Get singlenodes contained within the skeletons of the descendants
-    var singlenodesStmt = CURR_DB.prepare(
+    var singlenodesStmt = mgsc.CURR_DB.prepare(
         "SELECT * FROM singlenodes WHERE parent_metanode_id IN"
       + descendantMetanodeQMs, descendantMetanodeIDs);
     var singlenodeObjects = [];
@@ -3832,7 +3835,7 @@ function uncollapseSPQRMetanode(mn) {
     }
     singlenodesStmt.free();
     // 4. Get singleedges contained within the skeletons of the descendants
-    var singleedgesStmt = CURR_DB.prepare(
+    var singleedgesStmt = mgsc.CURR_DB.prepare(
         "SELECT * FROM singleedges WHERE parent_metanode_id IN"
       + descendantMetanodeQMs, descendantMetanodeIDs);
     var singleedgeObjects = [];
@@ -3851,17 +3854,17 @@ function uncollapseSPQRMetanode(mn) {
     descendantID2pos[mnID] = [sourcePos['x'], sourcePos['y']];
     var clusterIDandPos = [];
     for (a = 0; a < descendantMetanodeObjects.length; a++) {
-        if (CURR_SPQRMODE === "explicit" ||
+        if (mgsc.CURR_SPQRMODE === "explicit" ||
                 descendantMetanodeObjects[a]['descendant_metanode_count'] > 0){
             clusterIDandPos = renderClusterObject(descendantMetanodeObjects[a],
-                CURR_BOUNDINGBOX, "metanode");
+                mgsc.CURR_BOUNDINGBOX, "metanode");
             descendantID2pos[clusterIDandPos[0]] = clusterIDandPos[1];
         }
     }
-    if (CURR_SPQRMODE === "explicit") {
+    if (mgsc.CURR_SPQRMODE === "explicit") {
         for (a = 0; a < outgoingEdgeObjects.length; a++) {
             renderEdgeObject(outgoingEdgeObjects[a], descendantID2pos,
-                    CURR_BOUNDINGBOX, "metanodeedge", "SPQR", {});
+                    mgsc.CURR_BOUNDINGBOX, "metanodeedge", "SPQR", {});
         }
     }
     var cyNodeID, normalID, parentBicmpID;
@@ -3872,9 +3875,9 @@ function uncollapseSPQRMetanode(mn) {
         normalID = singlenodeObjects[a]['id'];
         // In implicit mode, only render a new singlenode if it isn't already
         // visible in the parent bicomponent
-        if (CURR_SPQRMODE === "implicit") {
+        if (mgsc.CURR_SPQRMODE === "implicit") {
             parentBicmpID = singlenodeObjects[a]['parent_bicomponent_id'];
-            currIDs = BICOMPONENTID2VISIBLESINGLENODEIDS[parentBicmpID];
+            currIDs = mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS[parentBicmpID];
             alreadyVisible = false;
             for (b = 0; b < currIDs.length; b++) {
                 if (normalID === currIDs[b].split("_")[0]) {
@@ -3889,14 +3892,14 @@ function uncollapseSPQRMetanode(mn) {
         }
         cyNodeID = normalID + "_"
                 + singlenodeObjects[a]['parent_metanode_id'];
-        renderNodeObject(singlenodeObjects[a], cyNodeID, CURR_BOUNDINGBOX,
+        renderNodeObject(singlenodeObjects[a], cyNodeID, mgsc.CURR_BOUNDINGBOX,
                 "SPQR");
     }
     for (a = 0; a < singleedgeObjects.length; a++) {
         renderEdgeObject(singleedgeObjects[a], {},
-            CURR_BOUNDINGBOX, "singleedge", "SPQR", singlenodeMapping);
+            mgsc.CURR_BOUNDINGBOX, "singleedge", "SPQR", singlenodeMapping);
     }
-    if (CURR_SPQRMODE === "explicit") {
+    if (mgsc.CURR_SPQRMODE === "explicit") {
         mn.data("isCollapsed", false);
     }
     else {
@@ -3960,7 +3963,7 @@ function collapseSPQRMetanode(mn) {
  * process.
  */
 function startCollapseAll() {
-    if (CURR_VIEWTYPE !== "SPQR") {
+    if (mgsc.CURR_VIEWTYPE !== "SPQR") {
         var currVal = $("#collapseButtonText").text();
         startIndeterminateProgressBar();
         window.setTimeout(function() { collapseAll(currVal[0]) }, 50);
@@ -4006,7 +4009,7 @@ function rotateCoordinate(xCoord, yCoord) {
     // to see if the rotation is a factor of 360 (i.e. the rotated
     // point would be the same as the initial point), and if so we just
     // return the original coordinates.
-    var rotation = PREV_ROTATION - CURR_ROTATION;
+    var rotation = mgsc.PREV_ROTATION - mgsc.CURR_ROTATION;
     if (rotation % 360 === 0) {
         return [xCoord, yCoord];
     }
@@ -4179,7 +4182,7 @@ function initClusters() {
     );
     // Also set up the list of clusters sorted from left to right in the
     // component
-    CLUSTERID2TOP.sort(function(c1, c2) {
+    mgsc.CLUSTERID2TOP.sort(function(c1, c2) {
         return c2.t - c1.t;
     });
 }
@@ -4187,7 +4190,7 @@ function initClusters() {
 // returns the coordinate class for a cluster node in the graph (only
 // respective to left/right vs. up/down direction)
 function getClusterCoordClass() {
-    if (CURR_ROTATION === 0 || CURR_ROTATION === 180) {
+    if (mgsc.CURR_ROTATION === 0 || mgsc.CURR_ROTATION === 180) {
         return "updowndir";
     }
     else {
@@ -4197,7 +4200,7 @@ function getClusterCoordClass() {
 
 // returns the coordinate class for a noncluster node in the graph
 function getNodeCoordClass(isHouse) {
-    switch (CURR_ROTATION) {
+    switch (mgsc.CURR_ROTATION) {
         case 0:
             return isHouse ? "updir" : "downdir";
         case 90:
@@ -4210,14 +4213,14 @@ function getNodeCoordClass(isHouse) {
 }
 
 /* Renders a given node object, obtained by getAsObject() from running a
- * query on CURR_DB for selecting rows from table nodes.
+ * query on mgsc.CURR_DB for selecting rows from table nodes.
  * Returns the new (in Cytoscape.js coordinates) position of the node.
  * cyNodeID is used as the node in Cytoscape.js for this node.
  * If mode is "SPQR", then this handles that accordingly w/r/t node shape, etc.
  */
 function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     var nx, ny;
-    if (mode === "SPQR" && CURR_SPQRMODE === "implicit") {
+    if (mode === "SPQR" && mgsc.CURR_SPQRMODE === "implicit") {
         nx = nodeObj['i_x'];
         ny = nodeObj['i_y'];
     }
@@ -4236,9 +4239,9 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     var labelUsed;
     // Determine 1) accession keys for nodes in scaffold detection, and 2) the
     // label to be shown when the node is drawn.
-    if (ASM_FILETYPE === "GML") {
+    if (mgsc.ASM_FILETYPE === "GML") {
         if (nodeLabel !== null && nodeLabel !== undefined) {
-            COMPONENT_NODE_KEYS.push(nodeLabel);
+            mgsc.COMPONENT_NODE_KEYS.push(nodeLabel);
             labelUsed = nodeLabel;
         }
         else {
@@ -4253,7 +4256,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         }
     }
     else {
-        COMPONENT_NODE_KEYS.push(nodeObj['id']);
+        mgsc.COMPONENT_NODE_KEYS.push(nodeObj['id']);
         labelUsed = nodeObj['id'];
     }
     var parentID;
@@ -4264,7 +4267,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     var nodeIsRepeat = null;
     if (mode === "SPQR") {
         parentID = nodeObj['parent_metanode_id'];
-        if (CURR_SPQRMODE === "implicit") {
+        if (mgsc.CURR_SPQRMODE === "implicit") {
             // ensure this data is present for each bicomponent
             // there's probably a more efficient way to do this, but it's 2am
             // and I'm really tired so let's revisit this later (TODO #115)
@@ -4272,7 +4275,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             if (parentBicmpID !== null && parentBicmpID !== undefined) {
                 // Since a bicomponent can contain only one node with a given
                 // ID, we store normal node IDs and not unambiguous IDs here
-                BICOMPONENTID2VISIBLESINGLENODEIDS[parentBicmpID]
+                mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS[parentBicmpID]
                     .push(cyNodeID);
             }
         }
@@ -4293,22 +4296,22 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         if (nodeIsRepeat === null) {
             // Repeat data exists for other nodes, but this node doesn't have
             // any given: color it the default node color
-            repeatColor = DEFAULT_NODE_COLOR;
+            repeatColor = mgsc.DEFAULT_NODE_COLOR;
         }
         else {
             // We could call getNodeColorization() with nodeIsRepeat, but
             // since nodeIsRepeat can only be either 1 or 0 that'd be kind of
-            // inefficient, since we can just use MAX_HEX and MIN_HEX.
+            // inefficient, since we can just use mgsc.MAX_HEX and mgsc.MIN_HEX.
             if (nodeIsRepeat === 1) {
-                repeatColor = MAX_HEX;
+                repeatColor = mgsc.MAX_HEX;
             } else {
-                repeatColor = MIN_HEX;
+                repeatColor = mgsc.MIN_HEX;
             }
         }
     }
     var nodeData = {id: cyNodeID, label: labelUsed,
-               w: INCHES_TO_PIXELS * nodeObj['h'],
-               h: INCHES_TO_PIXELS * nodeObj['w'], depth: nodeDepth,
+               w: mgsc.INCHES_TO_PIXELS * nodeObj['h'],
+               h: mgsc.INCHES_TO_PIXELS * nodeObj['w'], depth: nodeDepth,
                length: nodeLength, gc_content: nodeGC, gc_color: gcColor,
                repeat_color: repeatColor, is_repeat: nodeIsRepeat};
     if (parentID !== null) {
@@ -4320,7 +4323,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             nodeData["parent"] = parentID;
         } else {
             // For SPQR metanode collapsing
-            if (CURR_SPQRMODE === "explicit") {
+            if (mgsc.CURR_SPQRMODE === "explicit") {
                 cy.getElementById(parentID).scratch(
                     "_singlenodeIDs").push(cyNodeID);
             }
@@ -4334,7 +4337,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             cy.scratch("_ele2parent")[nodeLabel] = parentID;
     }
     cy.add({
-        classes: 'noncluster ' + CURR_NODE_COLORIZATION + ' ' + nodeShapeClass,
+        classes: 'noncluster ' + mgsc.CURR_NODE_COLORIZATION + ' ' + nodeShapeClass,
         data: nodeData, position: {x: pos[0], y: pos[1]}
     });
     return pos;
@@ -4383,13 +4386,13 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     }
     else {
         clusterID = clusterObj["cluster_id"];
-        CLUSTERID2TOP.push({id: clusterID, t: clusterObj["top"]});
+        mgsc.CLUSTERID2TOP.push({id: clusterID, t: clusterObj["top"]});
     }
     var l = "left";
     var b = "bottom";
     var r = "right";
     var t = "top";
-    if (spqrRelated && CURR_SPQRMODE === "implicit") {
+    if (spqrRelated && mgsc.CURR_SPQRMODE === "implicit") {
         l = "i_" + l;
         b = "i_" + b;
         r = "i_" + r;
@@ -4406,7 +4409,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
         isCollapsed: false};
     // Only assign the metanode a bicomponent parent when in explicit mode
-    if (parent_bicmp_id !== null && CURR_SPQRMODE === "explicit") {
+    if (parent_bicmp_id !== null && mgsc.CURR_SPQRMODE === "explicit") {
         clusterData["parent"] = parent_bicmp_id;
     }
     var pos = [(bottomLeftPos[0] + topRightPos[0]) / 2,
@@ -4415,7 +4418,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     var classes = abbrev + ' cluster ' + getClusterCoordClass();
     if (!spqrRelated) {
         classes += ' structuralPattern';
-        COMPONENT_NODE_KEYS.push(clusterID);
+        mgsc.COMPONENT_NODE_KEYS.push(clusterID);
         clusterData["length"] = clusterObj["length"];
         if (abbrev === 'M') {
             clusterData["cluster_type"] = clusterObj["cluster_type"];
@@ -4439,7 +4442,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         classes += ' pseudoparent';
         // Since this node won't actually be assigned child nodes (but still
         // has "children" in some abstract way), we manually set its node count
-        if (CURR_SPQRMODE === "implicit" && spqrtype === "bicomponent") {
+        if (mgsc.CURR_SPQRMODE === "implicit" && spqrtype === "bicomponent") {
             clusterData["interiorNodeCount"] = "N/A";
         }
         else {
@@ -4452,7 +4455,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         locked: spqrRelated
     });
     if (spqrtype === "metanode") {
-        if (CURR_SPQRMODE === "explicit") {
+        if (mgsc.CURR_SPQRMODE === "explicit") {
             // For SPQR metanode collapsing/uncollapsing
             newObj.scratch("_singlenodeIDs", []);
         }
@@ -4461,12 +4464,12 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
             newObj.scratch("_virtualedgeIDs", []);
         }
     }
-    else if (spqrtype === "bicomponent" && CURR_SPQRMODE === "implicit") {
+    else if (spqrtype === "bicomponent" && mgsc.CURR_SPQRMODE === "implicit") {
         // for implicit mode uncollapsing
         // mapping of bicomponent IDs to visible singlenode IDs -- updated as
         // we expand the SPQR tree represented by the given bicomponent
         // this is done to prevent adding duplicates within a given tree
-        BICOMPONENTID2VISIBLESINGLENODEIDS[clusterID] = [];
+        mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS[clusterID] = [];
     }
     else {
         // For variant collapsing/uncollapsing
@@ -4479,12 +4482,12 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     // cluster's data fields and remove them from its scratch.
     if (clusterObj["w"] === null || clusterObj["w"] === undefined) {
         // temporary stopgap for old DB files. TODO remove.
-        newObj.scratch("_w", 2 * INCHES_TO_PIXELS);
-        newObj.scratch("_h", 2 * INCHES_TO_PIXELS);
+        newObj.scratch("_w", 2 * mgsc.INCHES_TO_PIXELS);
+        newObj.scratch("_h", 2 * mgsc.INCHES_TO_PIXELS);
     }
     else {
-        newObj.scratch("_w", INCHES_TO_PIXELS * clusterObj["h"]);
-        newObj.scratch("_h", INCHES_TO_PIXELS * clusterObj["w"]);
+        newObj.scratch("_w", mgsc.INCHES_TO_PIXELS * clusterObj["h"]);
+        newObj.scratch("_h", mgsc.INCHES_TO_PIXELS * clusterObj["w"]);
     }
     return [clusterID, pos];
 }
@@ -4515,7 +4518,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
     // srcID + "->" + tgtID.
     // If this is in SPQR mode, give the edge displaySourceID and
     // displayTargetID properties and then we'll use those in
-    // addSelectedEdgeInfo() based on CURR_VIEWTYPE.
+    // addSelectedEdgeInfo() based on mgsc.CURR_VIEWTYPE.
     if (edgeType === "metanodeedge") {
         sourceID = edgeObj['source_metanode_id'];
         targetID = edgeObj['target_metanode_id'];
@@ -4560,7 +4563,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
                 }
             }
             var addNote = false;
-            if (CURR_SPQRMODE === "implicit" && isVirtual) {
+            if (mgsc.CURR_SPQRMODE === "implicit" && isVirtual) {
                 if (cy.getElementById(parent_mn_id).empty()) {
                     return;
                 }
@@ -4572,7 +4575,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
                 classes: edgeClasses,
                 data: {source: sourceID, target: targetID,
                        dispsrc: displaySourceID, disptgt: displayTargetID,
-                       thickness: MAX_EDGE_THICKNESS}
+                       thickness: mgsc.MAX_EDGE_THICKNESS}
             });
             if (addNote) {
                 cy.getElementById(parent_mn_id).scratch(
@@ -4590,7 +4593,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
         mean = edgeObj['mean'];
         stdev = edgeObj['stdev'];
         if (multiplicity !== undefined && multiplicity !== null) {
-            COMPONENT_EDGE_WEIGHTS.push(+multiplicity);
+            mgsc.COMPONENT_EDGE_WEIGHTS.push(+multiplicity);
         }
     }
     else {
@@ -4619,7 +4622,8 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
 
     // NOTE -- commented out for now in lieu of global edge thickness scaling
     // Scale edge thickness using the "thickness" .db file attribute
-    var edgeWidth = MIN_EDGE_THICKNESS + (thickness * EDGE_THICKNESS_RANGE);
+    var edgeWidth = mgsc.MIN_EDGE_THICKNESS +
+                    (thickness * mgsc.EDGE_THICKNESS_RANGE);
     var isOutlierClass = "";
     if (is_outlier === 1)
         isOutlierClass = " high_outlier";
@@ -4687,7 +4691,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
         // If we detect all of the control points of an edge are less
         // than some epsilon value, we just render the edge as a normal
         // bezier (which defaults to a straight line).
-        if (Math.abs(d) > CTRL_PT_DIST_EPSILON) {
+        if (Math.abs(d) > mgsc.CTRL_PT_DIST_EPSILON) {
             nonzero = true;
         }
         // Control points with a weight of 0 (as the first ctrl pt)
@@ -4707,7 +4711,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
     ctrlPtDists = ctrlPtDists.trim();
     ctrlPtWeights = ctrlPtWeights.trim();
     var extraClasses = " oriented" + isOutlierClass;
-    if (ASM_FILETYPE === "GML") {
+    if (mgsc.ASM_FILETYPE === "GML") {
         // Mark edges where nodes don't overlap
         // TODO: Make this work with GFA edges also.
         // (See #190 on GitHub.)
