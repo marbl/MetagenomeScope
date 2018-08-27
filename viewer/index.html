@@ -125,12 +125,12 @@
                 id="xmlFileselectButton" onclick="openFileSelectDialog();"
                 title="For security purposes, demoing .db files is only supported when accessing the viewer interface non-locally (i.e. using a http or https protocol).">
                 <span class="glyphicon glyphicon-repeat"
-                    aria-hidden="true"></span> &nbsp; Demo .db
+                    aria-hidden="true"></span> &nbsp; Demo .db file
             </button>
             <button class='btn btn-default btn-sm' id="fileselectButton"
                 onclick="$('#fileselector').click();">
                 <span class="glyphicon glyphicon-folder-open"
-                    aria-hidden="true"></span> &nbsp; Choose .db file
+                    aria-hidden="true"></span> &nbsp; Upload .db file
             </button>
             <!-- For some reason, styling this with the "notviewable" CSS class
                 doesn't work; I suspect it's due to the way browsers handle
@@ -460,7 +460,7 @@
                     id="scaffoldFileselectButton" disabled="disabled"
                     onclick="$('#scaffoldFileSelector').click();">
                     <span class="glyphicon glyphicon-folder-open"
-                        aria-hidden="true"></span> &nbsp; Choose AGP file
+                        aria-hidden="true"></span> &nbsp; Upload AGP file
                 </button>
     	        <input type='file' id='scaffoldFileSelector'
                     onchange='beginLoadAGPfile();' style="display: none"/>
