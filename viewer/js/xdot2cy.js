@@ -248,13 +248,21 @@ mgsc.TD_START = "<td>";
 // Regular expression we use when matching integers.
 mgsc.INTEGER_RE = /^\d+$/;
 
-// CODELINK: This method for checking that the File API is supported adapted
-// from https://www.html5rocks.com/en/tutorials/file/dndfiles/, by
-// Eric Bidelman.
-if (!(window.File && window.FileReader && window.Blob)) {
-	alert("Your browser does not support the HTML5 File APIs. " +
-          "You will not be able to upload any .db files, although " +
-          "you can still try out any available demo .db files.");
+/* Checks if the HTML5 File API is available. If not, creates an alert.
+ * Potential TODO: make this more subtle by just disabling the "Upload .db
+ * file" button. Although I'm sure this won't be a problem for most browsers
+ * that access the viewer interface.
+ *
+ * CODELINK: This method for checking that the File API is supported is adapted
+ * from https://www.html5rocks.com/en/tutorials/file/dndfiles/, by
+ * Eric Bidelman.
+ */
+function checkFileAPIAvailability() {
+    if (!(window.File && window.FileReader && window.Blob)) {
+        alert("Your browser does not support the HTML5 File APIs. " +
+              "You will not be able to upload any .db files, although " +
+              "you can still try out any available demo .db files.");
+    }
 }
 
 // Initializes the Cytoscape.js graph instance.
