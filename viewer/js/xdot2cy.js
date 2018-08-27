@@ -1348,6 +1348,20 @@ function loadgraphfile() {
 
 /* Runs prep. tasks for loading the database file and parsing its assembly +
  * component information
+ *
+ * CODELINK: Here, we use sql.js to parse the database file (which is stored in
+ * memory as an arraybuffer -- either we've obtained the file from the server
+ * using an XMLHttpRequest (from loadajaxDB()), or we've obtained the file from
+ * the user's system using the HTML FileReader API (from loadgraphfile()). In
+ * either case, at this point the data is stored the same way, and we can
+ * convert it to a SQL.Database object and read it later.
+ *
+ * See the README for sql.js (at https://github.com/kripken/sql.js/) for
+ * information on using the library, as well as examples for integrating the
+ * library into these and other use cases. Our use of sql.js in MetagenomeScope
+ * is generally based on these examples -- in particular, the "Creating a
+ * database from a file choosen by the user" and "Loading a database from a
+ * server" examples.
  */
 function loadDBfile(fileData) {
     // Temporarily store .db file as array of 8-bit unsigned ints
