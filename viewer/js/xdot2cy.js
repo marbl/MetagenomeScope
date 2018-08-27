@@ -1303,7 +1303,7 @@ function destroyGraph() {
 }
 
 /* Loads a .db file from the user's local system. */
-function loadgraphfile() {
+function loadLocalDB() {
     var fr = new FileReader();
 	var inputfile = document.getElementById('fileselector').files[0];
     if (inputfile === undefined) {
@@ -1322,7 +1322,7 @@ function loadgraphfile() {
             "No connected component has been drawn yet.");
         fr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
-                loadDBfile(e.target.result);
+                initDB(e.target.result);
                 document.getElementById('fileselector').value = "";
             }
         }
@@ -1351,9 +1351,9 @@ function loadgraphfile() {
  *
  * CODELINK: Here, we use sql.js to parse the database file (which is stored in
  * memory as an arraybuffer -- either we've obtained the file from the server
- * using an XMLHttpRequest (from loadajaxDB()), or we've obtained the file from
- * the user's system using the HTML FileReader API (from loadgraphfile()). In
- * either case, at this point the data is stored the same way, and we can
+ * using an XMLHttpRequest (from loadHostedDB()), or we've obtained the file from
+ * the user's system using the HTML FileReader API (from loadLocalDB()). In
+ * either case, at this point the data is stored the the same way, and we can
  * convert it to a SQL.Database object and read it later.
  *
  * See the README for sql.js (at https://github.com/kripken/sql.js/) for
@@ -1363,7 +1363,7 @@ function loadgraphfile() {
  * database from a file choosen by the user" and "Loading a database from a
  * server" examples.
  */
-function loadDBfile(fileData) {
+function initDB(fileData) {
     // Temporarily store .db file as array of 8-bit unsigned ints
     var uIntArr = new Uint8Array(fileData);
     CURR_DB = new SQL.Database(uIntArr);
@@ -2439,7 +2439,7 @@ function openFileSelectDialog() {
 }
 
 /* Loads a .db file using an XML HTTP Request. */
-function loadajaxDB() {
+function loadHostedDB() {
     // Important -- remove old DB from memory if it exists
     closeDB();
     // usually we won't have the luxury of ID === filename, but this is a
@@ -2467,7 +2467,7 @@ function loadajaxDB() {
     xhr.responseType = 'arraybuffer';
     xhr.onload = function(eve) {
         if (this.status === 200) {
-            loadDBfile(this.response);
+            initDB(this.response);
         }
     };
     startIndeterminateProgressBar();

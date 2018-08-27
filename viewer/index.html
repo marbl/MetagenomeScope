@@ -136,7 +136,7 @@
                 doesn't work; I suspect it's due to the way browsers handle
                 styling of file inputs. Anyway, this should work fine. -->
     	    <input type='file' id='fileselector'
-                onchange='loadgraphfile();' style="display: none"/>
+                onchange='loadLocalDB();' style="display: none"/>
 
             <button class='btn btn-default btn-sm disabled'
                 disabled="disabled"
@@ -607,7 +607,7 @@
                     <div class="modal-body">
                         <!-- NOTE: the data-mgscdbdirectory attribute of the
                              below span is prepended to every demo .db file's
-                             URL when we try to load it in loadajaxDB().
+                             URL when we try to load it in loadHostedDB().
 
                              A "/" character is added on the end of the
                              data-mgscdbdirectory attribute if the attribute:
@@ -730,7 +730,7 @@
                             data-dismiss="modal">Close
                         </button>
                         <button type="button" class="btn btn-primary"
-                            id="loadDBbutton" onclick="loadajaxDB();">
+                            id="loadDBbutton" onclick="loadHostedDB();">
                             Load selected file
                         </button>
                     </div>
