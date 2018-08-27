@@ -1360,7 +1360,7 @@ function loadLocalDB() {
  * information on using the library, as well as examples for integrating the
  * library into these and other use cases. Our use of sql.js in MetagenomeScope
  * is generally based on these examples -- in particular, the "Creating a
- * database from a file choosen by the user" and "Loading a database from a
+ * database from a file chosen by the user" and "Loading a database from a
  * server" examples.
  */
 function initDB(fileData) {
