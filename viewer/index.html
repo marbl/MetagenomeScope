@@ -980,6 +980,20 @@
                                         <label class="cplabel"
                                             for="mincncp_id">
                                             Nodes (colorized: 0%)</label>
+                                        <!-- CODELINK: for bootstrap-colorpicker
+                                            colorpickers, an otherwise empty
+                                            <span> containing an (empty) <i> is
+                                            needed to display a properly
+                                            formatted color "preview." (I've
+                                            tested this, and it looks like
+                                            similar tags like <b> or <u> won't
+                                            work properly; it has to be an <i>.)
+
+                                            See the "As a component" example in
+                                            https://farbelous.io/bootstrap-colorpicker/v2/
+                                            for details on this. The
+                                            colorpickers' code in this file was
+                                            adapted from this example. -->
                                         <div id="mincncp" class="input-group
                                             colorpicker-component">
                                             <input type="text" value="#0022ff"
@@ -1051,8 +1065,6 @@
                                             <input type="text" value="#888888"
                                                 class="form-control"
                                                 id="usncp_id" />
-                                            <!-- following <span> is needed to
-                                                display the color "preview" -->
                                             <span class="input-group-addon">
                                                 <i></i></span>
                                         </div>
