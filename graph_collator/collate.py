@@ -1079,16 +1079,19 @@ if ububbles_fullfn != None:
     operation_msg(config.USERBUBBLES_SEARCH_MSG)
     with open(ububbles_fullfn, "r") as ub_file:
         bubble_lines = ub_file.readlines()
+        bubble_line_ct = 1
         for b in bubble_lines:
             bubble_line_node_ids = b.strip().split("\t")[2:]
+            if len(bubble_line_node_ids) < 1:
+                raise ValueError, config.LINE_NOUN + str(bubble_line_ct) + \
+                        config.UBUBBLE_NOTENOUGH_ERR
             # Ensure that the node identifiers (either labels or IDs)
             # for this user-supplied bubble are valid.
             # 1. Do all of the identifiers correspond to actual nodes in the
             #    graph? If not, raise a KeyError.
             # 2. Is the "vertex-induced subgraph" of nodes in the user-supplied
             #    bubble somehow contiguous? If so, create a Bubble. If not,
-            #    raise a KeyError. (TODO: this, for here and for the
-            #    user-supplied pattern stuff. #85)
+            #    raise a KeyError.
             # 3. Have we used any of these nodes in collapsing before? Since
             #    user-supplied bubbles are the highest-priority node groups,
             #    this will only be the case at this stage if any of the nodes
@@ -1149,6 +1152,7 @@ if ububbles_fullfn != None:
             new_bubble = graph_objects.Bubble(*curr_bubble_nodeobjs)
             nodes_to_draw.append(new_bubble)
             clusterid2obj[new_bubble.id_string] = new_bubble
+            bubble_line_ct += 1
     conclude_msg()
 
 # Identify miscellaneous user-supplied patterns in the graph.
@@ -1159,9 +1163,13 @@ if upatterns_fullfn != None:
     operation_msg(config.USERPATTERNS_SEARCH_MSG)
     with open(upatterns_fullfn, "r") as up_file:
         pattern_lines = up_file.readlines()
+        pattern_line_ct = 1
         for p in pattern_lines:
             pattern_items = p.strip().split("\t")
             pattern_line_node_ids = pattern_items[1:]
+            if len(pattern_line_node_ids) < 1:
+                raise ValueError, config.LINE_NOUN + str(pattern_line_ct) + \
+                        config.UPATTERN_NOTENOUGH_ERR
             # Ensure that the node identifiers are valid.
             curr_pattern_nodeobjs = []
             exists_duplicate_node = False
@@ -1197,6 +1205,7 @@ if upatterns_fullfn != None:
                 *curr_pattern_nodeobjs)
             nodes_to_draw.append(new_pattern)
             clusterid2obj[new_pattern.id_string] = new_pattern
+            pattern_line_ct += 1
     conclude_msg()
 
 # this line marks the start of simple bubble stuff
