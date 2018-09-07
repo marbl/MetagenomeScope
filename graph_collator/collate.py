@@ -949,9 +949,24 @@ with open(asm_fn, 'r') as assembly_file:
 
                 # This line is a contig declaration
                 parsing_node = True
+                # l is a list containing the contig being declared on this line
+                # (on the left hand side of any ":" character that might exist
+                # on the line) and any contigs to which that contig has an
+                # outgoing edge (on the right hand side of the ":"). The
+                # declared contig's ID will be stored in l[0], and the outgoing
+                # contigs' IDs will be stored in one string in l[1].
                 l = line[1:].strip().split(":")
                 decl = l[0]
                 curr_node_info = decl.split("_")
+                # We look at the end character of the declared contig's name to
+                # determine if it's a "reverse complement" node (if it ends
+                # with a ' then it is). However, what character we analyze will
+                # depend on whether or not there are outgoing edges from this
+                # node defined on this line (if so, then we can just look at
+                # the last character before the ":", which is decl[-1];
+                # if not, then the last character in decl will be a ";", so we
+                # have to look at the last character before that, which is
+                # decl[-2]).
                 if len(l) > 1:
                     if decl[-1] == "'":
                         curr_node_is_rc = True
