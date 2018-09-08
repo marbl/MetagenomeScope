@@ -334,6 +334,32 @@ def negate_node_id(id_string):
     else:
         return '-' + id_string
 
+def fastg_long_id_to_id(fastg_id_string):
+    """Converts a FASTG-style ID (e.g. "NODE_123_length_100_cov_3.0123") to a
+       more normal ID that MetagenomeScope uses (e.g. "3"). Adds a "-" to the
+       prefix of the ID if the ID ends with a single quote ("'").
+
+       This only produces output differing from input if the input ID starts
+       with "NODE_" or "EDGE_". Otherwise, this just returns the input.
+
+       NOTE that this is a temporary workaround until #66 is implemented, and
+       NODE_...-style IDs are doable. In the interim, though, it should be
+       fine to selectively remove the prefixes.
+    """
+    output_id = fastg_id_string
+    if fastg_id_string[:5] in ("NODE_", "EDGE_"):
+        output_id = fastg_id_string.split("_")[1]
+        if fastg_id_string[-1] == "'":
+            output_id = "-" + output_id
+            # Remove ' if it remains next to the extracted ID
+            # e.g. if we have "NODE_123'", then we'd get to here with output_id
+            # being "-123'". So we remove the trailing "'", on the assumption
+            # that the numerical ID contained in a FASTG node ID won't include
+            # a "'".
+            if output_id[-1] == "'":
+                output_id = output_id[:-1]
+    return output_id
+
 def n50(node_lengths):
     """Determines the N50 statistic of an assembly, given its node lengths.
 
@@ -1121,6 +1147,7 @@ if ububbles_fullfn != None:
                         # per the code above
                         nobj = nodelabel2obj[node_id]
                     else:
+                        node_id = fastg_long_id_to_id(node_id)
                         nobj = nodeid2obj[node_id]
                     if nobj.used_in_collapsing:
                         exists_duplicate_node = True
@@ -1193,6 +1220,7 @@ if upatterns_fullfn != None:
                     if upatterns_labels:
                         nobj = nodelabel2obj[node_id]
                     else:
+                        node_id = fastg_long_id_to_id(node_id)
                         nobj = nodeid2obj[node_id]
                     if nobj.used_in_collapsing:
                         exists_duplicate_node = True
