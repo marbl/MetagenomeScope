@@ -1,10 +1,17 @@
 #! /usr/bin/fish
 # Minifies the custom JavaScript and CSS code in MetagenomeScope.
 #
-# Assumes the CWD is the root of the MetagenomeScope/ repository.
-# Also assumes that csso-cli, uglify-js, and html-minifier have been installed
+# PREREQUISITES:
+# -Assumes the CWD is the root of the MetagenomeScope/ repository.
+#
+# -Also assumes that csso-cli, uglify-js, and html-minifier have been installed
 # through NPM with the -g option enabled.
-# Also assumes that the doctype in index.html is exactly 15 characters long.
+#
+# -Also assumes that, if you're running this on a macOS computer, gnu-sed has
+# been installed as gsed. See the comment labelled "SEDTHING" (you can Ctrl-F
+# for that in this file) for more details on why this is necessary.
+#
+# -Also assumes that the doctype in index.html is exactly 15 characters long.
 # (The doctype has to be the first element in the minified HTML file, but we
 # want to also include the attribution; our solution here is to manually insert
 # the doctype and attribution, and then remove the now-redundant copy of the
@@ -55,11 +62,34 @@ csso viewer/css/viewer_style.css >> viewer/css/viewer_style.min.css
 uglifyjs viewer/js/xdot2cy.js >> viewer/js/xdot2cy.min.js
 html-minifier --html5 --minify-css --minify-js --remove-comments --collapse-whitespace viewer/index.html | tail -c +16 >> viewer/index.min.html
 
+# SEDTHING: To make a long story short: the macOS version of "sed" differs a
+# bit from the GNU version of "sed". This impacts this script in the way
+# that the -i option is used: -i '' works on the macOS computer I'm testing
+# this on, and fails on the Linux computer I'm testing this on, while -i''
+# works on Linux but fails on macOS (at least for my N=2 computer sample size).
+#
+# A way to circumvent this problem is using the GNU sed version on macOS, aka
+# "gsed" (which is available through Homebrew as gnu-sed, as of writing this).
+# So we detect if gsed exists on this computer and, if so, alias sed to just
+# use gsed instead.
+# CODELINK: Idea to alias sed to gsed c/o Sruthi Poddutur's answer to this
+# Stack Overflow question: https://stackoverflow.com/questions/4247068/
+# Link to Sruthi's SO profile:
+# https://stackoverflow.com/users/7362778/sruthi-poddutur
+#
+# Note that we redirect which's output to /dev/null so that it doesn't print
+# the location of gsed (if it has one) to stdout. (I'm hoping that I don't come
+# back to this function a few months from now and go "wait why does this code
+# check if 'which gsed' is greater than /dev/null"...)
+if which gsed > /dev/null
+    alias sed="gsed"
+end
+
 # Add references to minified xdot2cy.js and viewer_style.css files in the
 # minified HTML file.
 #
-# We provide an empty extension for the -i argument since some platforms'
-# versions of sed explicitly require a suffix argument for -i.
+# We provide an empty extension argument for the -i argument so that sed
+# doesn't create backup files.
 # CODELINK: See http://www.grymoire.com/Unix/Sed.html#uh-62h (c/o Bruce
 # Barnett) for more info on -i and which platforms require this argument.
 sed -i'' 's/xdot2cy\.js/xdot2cy\.min\.js/g' viewer/index.min.html
