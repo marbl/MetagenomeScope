@@ -304,8 +304,19 @@ function initGraph(viewType) {
         // fit around a single node -- which usually has an upper bound of 9 or
         // so, based on some tests. (Hence why we just set maxZoom here.)
         maxZoom: mgsc.MAX_ZOOM_ORDINARY,
-        // (sometimes slight) performance improvements
-        pixelRatio: 1.0,
+        // Setting the pixelRatio to 1.0 can yield (slight) performance
+        // improvements, according to the Cytoscape.js docs
+        // (http://js.cytoscape.org/#core/initialisation).
+        //
+        // UPDATE: I'm commenting this out for the time being since, at least
+        // from my experience testing the viewer interface out on a "high
+        // density display," the performance improvements aren't very
+        // noticeable and the visualization looks notably blurrier than on
+        // other devices (the latter of which is to be expected). The docs
+        // mention that use of this option is "much less necessary on recent
+        // browser releases," so it should be ok to do this.
+        //
+        //pixelRatio: 1.0,
         hideEdgesOnViewport: mgsc.HIDE_EDGES_ON_VIEWPORT,
         textureOnViewport: mgsc.TEXTURE_ON_VIEWPORT,
         // options we use to prevent user from messing with the graph before
