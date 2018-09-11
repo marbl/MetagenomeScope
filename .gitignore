@@ -1,5 +1,6 @@
 *.pyc
-spqrtests/*
-testgraphs/*
-testdbs/*
+spqrtests/
+testgraphs/
+testdbs/
 viewer/demotests/
+electron/node_modules/
