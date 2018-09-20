@@ -1535,6 +1535,7 @@ class Component(object):
         """
 
         fcontent = "digraph " + output_prefix + " {\n"
+        # TODO abstract graph header generation code to separate function
         if config.GRAPH_STYLE != "":
             fcontent += "\t%s;\n" % (config.GRAPH_STYLE)
         if config.GLOBALNODE_STYLE != "":
@@ -1548,6 +1549,26 @@ class Component(object):
             fcontent += n.edge_info()
         for g in self.node_group_list:
             fcontent += g.node_info(backfill=False)
+        fcontent += "}"
+        return fcontent
+
+    def produce_non_patterned_dot_file(self, output_prefix):
+        """Returns a string defining the graph (in DOT format) for the current
+           component, but without any clusters (so all nodes and edges are
+           still in the graph, but they aren't encapsulated by any clusters).
+        """
+
+        fcontent = "digraph " + output_prefix + " {\n"
+        if config.GRAPH_STYLE != "":
+            fcontent += "\t%s;\n" % (config.GRAPH_STYLE)
+        if config.GLOBALNODE_STYLE != "":
+            fcontent += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
+        if config.GLOBALEDGE_STYLE != "":
+            fcontent += "\tedge [%s];\n" % (config.GLOBALEDGE_STYLE)
+
+        for n in self.node_list:
+            fcontent += n.node_info()
+            fcontent += n.edge_info()
         fcontent += "}"
         return fcontent
 

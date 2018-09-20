@@ -105,9 +105,14 @@ parser.add_argument("-upl", "--userpatternlabelsused", required=False,
 parser.add_argument("-nbdf", "--nobackfilldotfiles", required=False,
     action="store_true", default=False, help="""produces .gv (DOT) files without
     cluster \"backfilling\" for each nontrivial connected component in the
-    graph; use of this argument doesn't impact the .db files produced by this
+    graph; use of this argument doesn't impact the .db file produced by this
     script -- it just demonstrates the functionality in layout linearization
     provided by cluster \"backfilling\" """)
+parser.add_argument("-npdf", "--nopatterndotfiles", required=False,
+    action="store_true", default=False, help="""produces .gv (DOT) files
+    without any structural pattern information embedded; as with -nbdf, this
+    doesn't actually impact the .db file -- it just provides a frame of
+    reference for the impact clustering can have on dot's layouts""")
 #parser.add_argument("-au", "--assumeunoriented", required=False, default=False,
 #        action="store_true", help="assume that input GML-file graphs are" + \
 #            " unoriented (default for GML files is assuming they are" + \
@@ -132,6 +137,7 @@ ububbles_labels = args.userbubblelabelsused
 upatterns_fullfn = args.userpatternfile
 upatterns_labels = args.userpatternlabelsused
 make_no_backfilled_dot_files = args.nobackfilldotfiles
+make_no_patterned_dot_files = args.nopatterndotfiles
 #assume_unoriented = args.assumeunoriented
 #assume_oriented = args.assumeoriented
 
@@ -2448,6 +2454,13 @@ for component in connected_components:
     if make_no_backfilled_dot_files:
         r=save_aux_file(component_prefix + "_nobackfill.gv",
                 component.produce_non_backfilled_dot_file(component_prefix),
+                layout_msg_printed)
+    if make_no_patterned_dot_files:
+        # TODO figure out how to take into account the previous r value here,
+        # then use this r value for the next instance. right now -npdf is not
+        # guaranteed to not slightly mess up the output newlines
+        r=save_aux_file(component_prefix + "_nopatterns.gv",
+                component.produce_non_patterned_dot_file(component_prefix),
                 layout_msg_printed)
     # NOTE: Currently, we reduce each component of the asm. graph to a DOT
     # string that we send to pygraphviz. However, we could also send
