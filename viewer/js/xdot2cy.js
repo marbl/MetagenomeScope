@@ -3711,18 +3711,19 @@ function reduceEdgesToStraightLines(useProgressBar) {
 /* Actually does the work of reducing edges. */
 function doReduceEdges() {
     cy.startBatch();
-    cy.filter("edge").each(
-        function(e, i) {
-            // We can safely use this even for non-unbundledbezier edges.
-            // The reason we don't restrict this loop to unbundledbezier
-            // edges is that we want to apply this even to unbundledbezier
-            // edges that have been temporarily reduced to basicbezier
-            // edges due to node group collapsing.
-            e.removeClass("unbundledbezier");
-            e.addClass("reducededge");
-            e.addClass("basicbezier");
-        }
-    );
+    var reducingFunction = function(e, i) {
+        e.removeClass("unbundledbezier");
+        e.addClass("reducededge");
+        e.addClass("basicbezier");
+    }
+
+    // We can safely use the reducingFunction even on non-unbundledbezier
+    // edges. The reason we don't restrict the first cy.filter() to
+    // unbundledbezier edges is that we want to apply this even to
+    // unbundledbezier edges that have been temporarily reduced to basicbezier
+    // edges due to node group collapsing.
+    cy.filter("edge").each(reducingFunction);
+    mgsc.REMOVED_EDGES.each(reducingFunction);
     cy.endBatch();
 }
 
