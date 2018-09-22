@@ -1710,6 +1710,8 @@ conclude_msg()
 
 # Scale "non-outlier" edges relatively. We use "Tukey fences" to identify
 # outlier edge weights (see issue #184 on GitHub for context on this).
+# Note that the "fences" we use are the "inner" fences that Tukey describes in
+# Exploratory Data Analysis (1977).
 if edge_weights_available:
     operation_msg(config.EDGE_SCALING_MSG)
     for c in connected_components:
