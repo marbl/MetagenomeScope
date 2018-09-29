@@ -1662,6 +1662,8 @@ for c_collection in component_collections:
         # bp_length_list does exist, but it's across all components. Probably
         # easiest to just go through each component here, then -- shouldn't
         # take a significant amount of time.
+        # TODO hold off on computing logs until we get past checking if
+        # len(c.node_list) >= 2? Not really a huge optimization, though.
         contig_lengths = []
         for n in c.node_list:
             contig_lengths.append(n.logbp)
