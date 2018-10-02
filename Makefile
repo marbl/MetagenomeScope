@@ -3,6 +3,7 @@
 #
 # test: Runs tests for the preprocessing script using pytest. All of these
 #  tests should be located in the tests/ directory of MetagenomeScope.
+#  (In the future, this should also be used to run JS tests.)
 #
 # spqr: this is used to compile the "SPQR script" (spqr.cpp)
 #  contained in the graph_collator/ directory of MetagenomeScope.
