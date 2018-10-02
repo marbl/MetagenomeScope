@@ -1,13 +1,18 @@
-# SPQR Script Makefile
+# Since the bulk of MetagenomeScope's code isn't compiled, this Makefile only
+# performs a few actions using the following (phony) targets:
 #
-# This Makefile is used to compile the "SPQR script" (spqr.cpp) contained in
-# the graph_collator/ directory of MetagenomeScope.
-# Compiling the SPQR script is only necessary if you want to use the -spqr
-# option of the preprocessing script (graph_collator/collate.py).
+# test: Runs tests for the preprocessing script using pytest. All of these
+#  tests should be located in the tests/ directory of MetagenomeScope.
 #
-# See https://github.com/marbl/MetagenomeScope/wiki/System-Requirements and
-# https://github.com/marbl/MetagenomeScope/wiki/Building-SPQR-Functionality-for-the-Preprocessing-Script
-# for details on using this Makefile.
+# spqr: this is used to compile the "SPQR script" (spqr.cpp)
+#  contained in the graph_collator/ directory of MetagenomeScope.
+#  NOTE that compiling the SPQR script is only necessary if you want to use
+#  the -spqr option of the preprocessing script (graph_collator/collate.py).
+#  See the System Requirements and "Building SPQR Functionality" pages on
+#  MetagenomeScope's wiki (https://github.com/marbl/MetagenomeScope/wiki)
+#  for details on this option.
+
+.PHONY: test spqr
 
 COMPILER = g++
 # Omitting optimization and warning flags for the time being; adding those
@@ -26,6 +31,8 @@ SCRIPT_DIR = graph_collator/
 SPQR_CODE = $(addprefix $(SCRIPT_DIR), spqr.cpp)
 SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 
-# Actually compile the SPQR script
-all:
+test:
+	python2.7 -m pytest
+
+spqr:
 	$(COMPILER) $(SPQR_CODE) $(CFLAGS) $(OGDF_FLAGS) -o $(SPQR_BINARY)
