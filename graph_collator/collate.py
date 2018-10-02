@@ -571,7 +571,7 @@ with open(asm_fn, 'r') as assembly_file:
     # We don't really care about case in file extensions
     lowercase_asm_fn = asm_fn.lower()
     parsing_LastGraph = lowercase_asm_fn.endswith(config.LASTGRAPH_SUFFIX)
-    parsing_GML       = lowercase_asm_fn.endswith(config.GRAPHML_SUFFIX)
+    parsing_GML       = lowercase_asm_fn.endswith(config.GML_SUFFIX)
     parsing_GFA       = lowercase_asm_fn.endswith(config.GFA_SUFFIX)
     parsing_FASTG     = lowercase_asm_fn.endswith(config.FASTG_SUFFIX)
 

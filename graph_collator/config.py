@@ -223,6 +223,6 @@ LABEL_EXISTENCE_ERR = \
 # Ideally, we should be able to detect what filetype an assembly file is by
 # just examining the file's contents, but for now this is an okay workaround.
 LASTGRAPH_SUFFIX = "lastgraph"
-GRAPHML_SUFFIX   = "gml"
+GML_SUFFIX       = "gml"
 GFA_SUFFIX       = "gfa"
 FASTG_SUFFIX     = "fastg"
