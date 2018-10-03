@@ -1,4 +1,5 @@
 # MetagenomeScope
+[![Build Status](https://travis-ci.org/marbl/MetagenomeScope.svg?branch=master)](https://travis-ci.org/marbl/MetagenomeScope)
 
 ![Screenshot of MetagenomeScope's standard mode, zoomed in on a region of a biofilm assembly graph](https://user-images.githubusercontent.com/4177727/27416728-4c6297d8-56dd-11e7-9d89-472686c7a29e.png "Screenshot of MetagenomeScope's standard mode, zoomed in on a region of a biofilm assembly graph.")
 
