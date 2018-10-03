@@ -25,8 +25,7 @@ biconnected components in the graph.
 MetagenomeScope is composed of two main components:
 
 1. The **preprocessing script** (contained in the `graph_collator/` directory of
-   this repository), a Python and C++ script
-   that takes as input an assembly
+   this repository), a mostly Python script that takes as input an assembly
    graph file and produces a SQLite .db file that can be visualized in the
    viewer interface. `collate.py` is the main script that needs to be run here.
    This preprocessing step takes care of structural pattern detection,
@@ -35,8 +34,16 @@ MetagenomeScope is composed of two main components:
      GML ([MetaCarvel](https://github.com/marbl/MetaCarvel)), and
      [GFA](http://gfa-spec.github.io/GFA-spec/) input files.
      Support for SPAdes FASTG files should be ready very soon, as well.
-   - If the `-spqr` option is passed to `collate.py`, it uses `spqr.cpp` to interface
+   - If the `-spqr` option is passed to `collate.py`, it uses the C++ code in
+     `spqr.cpp` to interface
      with [OGDF](http://www.ogdf.net/doku.php) to generate SPQR tree decompositions of
+     biconnected components in the graph for MetagenomeScope's "decomposition
+     mode." Since this requires some C++ code to be compiled, the use of `-spqr` in
+     MetagenomeScope
+     necessitates a few extra system requirements. See
+     [this page](https://github.com/marbl/MetagenomeScope/wiki/Building-SPQR-Functionality-for-the-Preprocessing-Script)
+     on MetagenomeScope's wiki for more information on building SPQR
+     functionality for the preprocessing script.
    - See [this page](https://github.com/marbl/MetagenomeScope/wiki/System-Requirements)
      on MetagenomeScope's wiki for information on the system requirements for
      the preprocessing script.
