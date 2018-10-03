@@ -1,8 +1,14 @@
 language: python
 python:
     - "2.7"
+# Note that the version of Graphviz installed may not be newer than
+# 2.41.20170712.0019, so the edge routings in the layouts might be a little bit
+# off. If any tests take issue with this, then we can address that (maybe by
+# using wget to download and build another version of Graphviz), but for the
+# time being this shouldn't be a problem.
 before_install:
-    - sudo apt-get install -y graphviz
+    - sudo apt-get install --yes graphviz
+    - dot -V
 install:
     - pip install pygraphviz numpy
 script: make test
