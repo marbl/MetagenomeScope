@@ -34,6 +34,9 @@ MetagenomeScope is composed of two main components:
      GML ([MetaCarvel](https://github.com/marbl/MetaCarvel)), and
      [GFA](http://gfa-spec.github.io/GFA-spec/) input files.
      Support for SPAdes FASTG files should be ready very soon, as well.
+   - See [this page](https://github.com/marbl/MetagenomeScope/wiki/System-Requirements)
+     on MetagenomeScope's wiki for information on the system requirements for
+     the preprocessing script.
    - If the `-spqr` option is passed to `collate.py`, it uses the C++ code in
      `spqr.cpp` to interface
      with [OGDF](http://www.ogdf.net/doku.php) to generate SPQR tree decompositions of
@@ -44,9 +47,6 @@ MetagenomeScope is composed of two main components:
      [this page](https://github.com/marbl/MetagenomeScope/wiki/Building-SPQR-Functionality-for-the-Preprocessing-Script)
      on MetagenomeScope's wiki for more information on building SPQR
      functionality for the preprocessing script.
-   - See [this page](https://github.com/marbl/MetagenomeScope/wiki/System-Requirements)
-     on MetagenomeScope's wiki for information on the system requirements for
-     the preprocessing script.
 
 2. The **viewer interface** (contained in the `viewer/` directory of this
    repository), a client-side web application that reads a .db file
