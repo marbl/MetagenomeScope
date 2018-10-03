@@ -1,0 +1,8 @@
+language: python
+python:
+    - "2.7"
+before_install:
+    - sudo apt-get install -y graphviz
+install:
+    - pip install pygraphviz numpy
+script: make test
