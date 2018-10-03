@@ -1,14 +1,20 @@
 language: python
 python:
     - "2.7"
-# Note that the version of Graphviz installed may not be newer than
-# 2.41.20170712.0019, so the edge routings in the layouts might be a little bit
-# off. If any tests take issue with this, then we can address that (maybe by
-# using wget to download and build another version of Graphviz), but for the
-# time being this shouldn't be a problem.
+# As of October 2, 2018, the dot version installed on the Ubuntu "Trusty Tahr"
+# system Travis CI uses by default is 2.36.0. This is a bit old, but it should
+# work fine -- the layouts will probably differ slightly from those produced by
+# newer versions of Graphviz/dot, but I don't think this should interfere with
+# any tests (at least not at present).
+#
+# For reference, the edge routing bug I encountered in MetagenomeScope was
+# introduced on September 1, 2014 according to
+# https://github.com/ellson/MOTHBALLED-graphviz/issues/1255, and version 2.36
+# of dot appears to date back to January 11, 2014 (according to dot -V).
+# So that bug shouldn't be a problem here.
 before_install:
     - sudo apt-get install --yes graphviz
-    - dot -V
 install:
     - pip install pygraphviz numpy
-script: make test
+script:
+    - make test
