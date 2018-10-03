@@ -18,8 +18,9 @@ lay out each connected component of the graph.
 
 MetagenomeScope also contains a bunch of other features intended to simplify
 exploratory analysis of assembly graphs, including tools for scaffold
-visualization, path finishing, and
-[SPQR tree](https://en.wikipedia.org/wiki/SPQR_tree) decomposition.
+visualization, path finishing, and (optionally)
+[SPQR tree](https://en.wikipedia.org/wiki/SPQR_tree) decomposition of
+biconnected components in the graph.
 
 MetagenomeScope is composed of two main components:
 
@@ -27,16 +28,15 @@ MetagenomeScope is composed of two main components:
    this repository), a Python and C++ script
    that takes as input an assembly
    graph file and produces a SQLite .db file that can be visualized in the
-   viewer interface. `collate.py` is the main script that needs to be run
-   here; it uses `spqr.cpp` to interface with OGDF to generate SPQR tree
-   decompositions.
-   This preprocessing step takes care of
-   graph layout, pattern detection, and SPQR tree generation.
-   Currently, this supports LastGraph
-   ([Velvet](https://www.ebi.ac.uk/~zerbino/velvet/)), GML
-   ([MetaCarvel](https://github.com/marbl/MetaCarvel)), and
-   [GFA](http://gfa-spec.github.io/GFA-spec/) input
-   files. Support for SPAdes FASTG files should be ready very soon, as well.
+   viewer interface. `collate.py` is the main script that needs to be run here.
+   This preprocessing step takes care of structural pattern detection,
+   graph layout, and (optionally) SPQR tree generation.
+   - Currently, this supports LastGraph ([Velvet](https://www.ebi.ac.uk/~zerbino/velvet/)),
+     GML ([MetaCarvel](https://github.com/marbl/MetaCarvel)), and
+     [GFA](http://gfa-spec.github.io/GFA-spec/) input files.
+     Support for SPAdes FASTG files should be ready very soon, as well.
+   - If the `-spqr` option is passed to `collate.py`, it uses `spqr.cpp` to interface
+     with [OGDF](http://www.ogdf.net/doku.php) to generate SPQR tree decompositions of
    - See [this page](https://github.com/marbl/MetagenomeScope/wiki/System-Requirements)
      on MetagenomeScope's wiki for information on the system requirements for
      the preprocessing script.
@@ -48,10 +48,11 @@ MetagenomeScope is composed of two main components:
    The viewer interface includes a "control panel" supporting various
    features for interacting with the graph.
    - Since MetagenomeScope's viewer interface is a client-side web application,
-     you can access it from **any modern web browser** (mobile browsers also
-     work, although using a desktop browser is generally recommended), either
-     locally (if the viewer interface code is downloaded on your computer) or
-     over HTTP/HTTPS (if the viewer interface code is hosted on a server).
+     you should be able to access it from most modern web browsers
+     (mobile browsers also work, although using a desktop browser is generally
+     recommended), either locally (if the viewer interface code is downloaded
+     on your computer) or over HTTP/HTTPS (if the viewer interface code is
+     hosted on a server).
 
 The bifurcated nature of the tool lends it a few advantages that have proved
 beneficial when analyzing large graphs:
