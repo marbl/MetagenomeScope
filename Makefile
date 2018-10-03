@@ -32,8 +32,9 @@ SCRIPT_DIR = graph_collator/
 SPQR_CODE = $(addprefix $(SCRIPT_DIR), spqr.cpp)
 SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 
+# -B: don't create a __pycache__/ directory in tests/
 test:
-	python2.7 -m pytest
+	python2.7 -B -m pytest
 
 spqr:
 	$(COMPILER) $(SPQR_CODE) $(CFLAGS) $(OGDF_FLAGS) -o $(SPQR_BINARY)
