@@ -21,11 +21,12 @@
 # information about the graph, detecting structural patterns in the graph, and
 # performing layout.
 
-import config
 from math import log, sqrt
 from collections import deque
 import pygraphviz
 import uuid
+
+import config
 
 class Edge(object):
     """A generic edge, used for storing layout data (e.g. control points)
