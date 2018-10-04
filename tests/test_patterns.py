@@ -39,12 +39,10 @@ def test_cyclic_chain():
 
     # Check that the .db file contains exactly 2 clusters, each of which is a
     # cyclic chain
-    cursor.execute("SELECT * FROM clusters")
-    cluster_ct = 0
-    for n in cursor:
-        assert n[len(n) - 1] == "Cyclic Chain"
-        cluster_ct += 1
-    assert cluster_ct == 2
+    clusters = utils.get_clusters(cursor)
+    assert len(clusters) == 2
+    for c in clusters:
+        assert utils.get_cluster_type(c) == "Cyclic Chain"
 
     connection.close()
 
@@ -59,12 +57,17 @@ def test_bubble():
     assert "4" in edge_map["2"] and "4" in edge_map["3"]
 
     # Check that the .db file contains exactly 1 cluster, which is a bubble
-    cursor.execute("SELECT * FROM clusters")
-    cluster_ct = 0
-    for n in cursor:
-        if cluster_ct == 0:
-            assert n[len(n) - 1] == "Bubble"
-        cluster_ct += 1
-    assert cluster_ct == 1
+    clusters = utils.get_clusters(cursor)
+    assert len(clusters) == 1
+    assert utils.get_cluster_type(clusters[0]) == "Bubble"
+
+    connection.close()
+
+def test_longpatterns():
+    connection, cursor = utils.create_and_open_db("longtest_LastGraph")
+
+    cluster_type_2_freq = utils.get_cluster_frequencies(cursor)
+    assert cluster_type_2_freq["Bubble"] == 4
+    assert cluster_type_2_freq["Frayed Rope"] == 4
 
     connection.close()
