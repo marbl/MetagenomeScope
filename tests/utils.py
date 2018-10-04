@@ -84,3 +84,28 @@ def get_edge_map(cursor):
         else:
             edge_map[n[0]].append(n[1])
     return edge_map
+
+def get_clusters(cursor):
+    """Returns a list of clusters in the graph."""
+    cursor.execute("SELECT * FROM clusters")
+    return cursor.fetchall()
+
+def get_cluster_type(cluster_row):
+    """Returns the cluster type of a row retrieved from the "clusters" table.
+
+    This is assumed to be the last column in the row, so if that changes then
+    this test will break.
+    """
+    return cluster_row[len(cluster_row) - 1]
+
+def get_cluster_frequencies(cursor):
+    """Returns a dict mapping cluster types to their total frequencies."""
+    clusters = get_clusters(cursor)
+    cluster_type_2_freq = {}
+    for c in clusters:
+        ctype = get_cluster_type(c)
+        if ctype not in cluster_type_2_freq:
+            cluster_type_2_freq[ctype] = 1
+        else:
+            cluster_type_2_freq[ctype] += 1
+    return cluster_type_2_freq
