@@ -74,6 +74,34 @@ def create_and_open_db(graph_filename):
     cursor = connection.cursor()
     return connection, cursor
 
+def validate_edge_count(cursor, num_edges):
+    """Validates the number of edges in the graph.
+
+    Parameters
+    ----------
+    cursor : sqlite3.Cursor
+        A cursor for a .db file produced by the preprocessing script. You can
+        obtain a cursor by calling create_and_open_db().
+    num_edges : int
+        The expected number of edges in the graph. This will be compared with
+        both 1) the "assembly" table's all_edge_count column and
+             2) the observed number of rows in the "edges" table.
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    AssertionError
+        If either of the two conditions mentioned in the parameter description
+        for num_edges are not satisifed.
+    """
+    cursor.execute("SELECT all_edge_count FROM assembly")
+    assert cursor.fetchone()[0] == num_edges
+    cursor.execute("SELECT COUNT(source_id) FROM edges")
+    assert cursor.fetchone()[0] == num_edges
+
 def get_edge_map(cursor):
     """Returns a dict mapping source node IDs to a list of sink node IDs."""
     cursor.execute("SELECT * FROM edges")

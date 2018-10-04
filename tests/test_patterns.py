@@ -33,6 +33,7 @@ def test_cyclic_chain():
     connection, cursor = utils.create_and_open_db("cycletest_LastGraph")
 
     # Check that edges are correct
+    utils.validate_edge_count(cursor, 4)
     edge_map = utils.get_edge_map(cursor)
     assert edge_map["1"] == ["2"] and edge_map["2"] == ["1"]
     assert edge_map["-2"] == ["-1"] and edge_map["-1"] == ["-2"]
@@ -52,6 +53,7 @@ def test_bubble():
     connection, cursor = utils.create_and_open_db("bubble_test.gml")
 
     # Check edge validity
+    utils.validate_edge_count(cursor, 4)
     edge_map = utils.get_edge_map(cursor)
     assert "2" in edge_map["1"] and "3" in edge_map["1"]
     assert "4" in edge_map["2"] and "4" in edge_map["3"]
