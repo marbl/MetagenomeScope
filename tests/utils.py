@@ -74,18 +74,63 @@ def create_and_open_db(graph_filename):
     cursor = connection.cursor()
     return connection, cursor
 
-def validate_edge_count(cursor, num_edges):
-    """Validates the number of edges in the graph.
+def is_oriented_graph(cursor):
+    """Determines if the graph is oriented or unoriented.
 
     Parameters
     ----------
     cursor : sqlite3.Cursor
         A cursor for a .db file produced by the preprocessing script. You can
         obtain a cursor by calling create_and_open_db().
-    num_edges : int
-        The expected number of edges in the graph. This will be compared with
-        both 1) the "assembly" table's all_edge_count column and
-             2) the observed number of rows in the "edges" table.
+
+    Returns
+    -------
+    bool
+        True if the graph is oriented (i.e. the contigs already have an
+        assigned orientation, as with MetaCarvel output), False if the graph is
+        unoriented (the contigs have no assigned orientation).
+
+        Currently this is determined based on the filetype of the input graph,
+        but eventually that should be independent of the filetype (so the user
+        can do things like specify a GFA graph is oriented).
+        See #67 and #71 on GitHub for details regarding work on that.
+    """
+    cursor.execute("SELECT filetype FROM assembly;")
+    filetype = cursor.fetchone()[0]
+    if filetype == "GML":
+        return True
+    return False
+
+def validate_std_counts(cursor, node_ct, all_edge_ct, cc_ct):
+    """Validates the number of standard-mode elements in the graph.
+
+    Parameters
+    ----------
+    cursor : sqlite3.Cursor
+        A cursor for a .db file produced by the preprocessing script. You can
+        obtain a cursor by calling create_and_open_db().
+    node_ct : int
+        The expected number of nodes (contigs) in the graph. If the input
+        assembly graph is unoriented, this will be interpreted as just the
+        number of positive nodes; if the assembly graph is oriented, this will
+        be interpreted as the total number of nodes.
+        This will be compared with both
+            1) the "assembly" table's node_count column and either
+            2.1) the observed number of rows in the "nodes" table, or
+            2.2) 0.5 * (the observed number of rows in the "nodes" table)
+                (if the assembly graph is unoriented).
+    all_edge_ct : int
+        The expected number of edges in the graph, INCLUDING negative edges (in
+        unoriented assembly graphs). This will be compared with both
+            1) the "assembly" table's all_edge_count column and
+            2) the observed number of rows in the "edges" table.
+        For unoriented assembly graphs, note that this count should only
+        contain self-implying edges once. See the comments below for details.
+    cc_ct : int
+        The expected number of weakly connected components in the graph. This
+        will be compared with
+            1) the "assembly" table's component_count column and
+            2) the observed number of rows in the "components" table.
 
     Returns
     -------
@@ -94,13 +139,64 @@ def validate_edge_count(cursor, num_edges):
     Raises
     ------
     AssertionError
-        If either of the two conditions mentioned in the parameter description
-        for num_edges are not satisifed.
+        If any of the above comparisons mentioned are not satisfied.
+        Makes an additional check that edge_count == all_edge_count in oriented
+        graphs, the failure of which will also cause an AssertionError.
+
+        ALSO NOTE that, for graphs containing duplicate edges, the behavior of
+        this test is undefined. Ideally duplicate edges should be ignored by
+        the preprocessing script (see #75 on GitHub), but we aren't there yet.
+        (Although once #75 is resolved, adding in a test case that features a
+        graph with duplicate edges would be a good idea.)
     """
+    is_oriented = is_oriented_graph(cursor)
+
+    cursor.execute("SELECT node_count FROM assembly")
+    assert cursor.fetchone()[0] == node_ct
+    cursor.execute("SELECT COUNT(*) FROM nodes")
+    if is_oriented:
+        assert cursor.fetchone()[0] == node_ct
+    else:
+        assert (0.5 * cursor.fetchone()[0]) == node_ct
+
+    # Explanation of what edge_count and all_edge_count mean:
+    #
+    # edge_count describes the number of "positive" edges in the graph. This is
+    # equivalent to the total number of edges in the graph for oriented graphs,
+    # and equivalent to half of the number of edges in the graph for unoriented
+    # graphs (e.g. those contained in LastGraph files).
+    #
+    # all_edge_count describes the total number of edges in the graph. For
+    # oriented graphs this should be equal to edge_count, and for unoriented
+    # graphs this *should* be equal to 2 * edge_count. However, the latter case
+    # can differ for unoriented graphs if the graph contains "self-implying
+    # edges" -- that is, an edge from a given contig to its reverse complement
+    # contig.
+    #
+    # This phenomenon is exhibited in loop.gfa (included as test input). We
+    # only count each self-implying edge once in all_edge_count: this allows
+    # us to obtain an accurate figure for the total number of edges in an
+    # unoriented graph (because 2 * edge_count would be an overestimate for
+    # graphs containing self-implying edges). Rendering the same edge twice
+    # wouldn't really be helpful, and doesn't seem to be standard practice (see
+    # https://github.com/fedarko/MetagenomeScope/issues/105 for discussion of
+    # this.)
     cursor.execute("SELECT all_edge_count FROM assembly")
-    assert cursor.fetchone()[0] == num_edges
-    cursor.execute("SELECT COUNT(source_id) FROM edges")
-    assert cursor.fetchone()[0] == num_edges
+    assert cursor.fetchone()[0] == all_edge_ct
+    cursor.execute("SELECT COUNT(*) FROM edges")
+    assert cursor.fetchone()[0] == all_edge_ct
+
+    # In oriented graphs, all_edge_count should equal edge_count.
+    # In unoriented graphs, the two counts aren't necessarily relatable due to
+    # the possibility of self-implying edges, as discussed above.
+    if is_oriented:
+        cursor.execute("SELECT edge_count FROM assembly")
+        assert cursor.fetchone()[0] == all_edge_ct
+
+    cursor.execute("SELECT component_count FROM assembly")
+    assert cursor.fetchone()[0] == cc_ct
+    cursor.execute("SELECT COUNT(*) FROM components")
+    assert cursor.fetchone()[0] == cc_ct
 
 def get_edge_map(cursor):
     """Returns a dict mapping source node IDs to a list of sink node IDs."""

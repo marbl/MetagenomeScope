@@ -38,8 +38,7 @@ def test_cyclic_chain():
     # block, we use contextlib.closing().
     # For more information, see https://stackoverflow.com/a/19524679.
     with contextlib.closing(connection):
-        # Check that edges are correct
-        utils.validate_edge_count(cursor, 4)
+        utils.validate_std_counts(cursor, 2, 4, 2)
         edge_map = utils.get_edge_map(cursor)
         assert edge_map["1"] == ["2"] and edge_map["2"] == ["1"]
         assert edge_map["-2"] == ["-1"] and edge_map["-1"] == ["-2"]
@@ -57,8 +56,7 @@ def test_bubble():
     connection, cursor = utils.create_and_open_db("bubble_test.gml")
 
     with contextlib.closing(connection):
-        # Check edge validity
-        utils.validate_edge_count(cursor, 4)
+        utils.validate_std_counts(cursor, 4, 4, 1)
         edge_map = utils.get_edge_map(cursor)
         assert "2" in edge_map["1"] and "3" in edge_map["1"]
         assert "4" in edge_map["2"] and "4" in edge_map["3"]
@@ -72,6 +70,12 @@ def test_longpatterns():
     connection, cursor = utils.create_and_open_db("longtest_LastGraph")
 
     with contextlib.closing(connection):
+        utils.validate_std_counts(cursor, 36, 72, 8)
         cluster_type_2_freq = utils.get_cluster_frequencies(cursor)
         assert cluster_type_2_freq["Bubble"] == 4
         assert cluster_type_2_freq["Frayed Rope"] == 4
+
+def test_self_implying_edges():
+    connection, cursor = utils.create_and_open_db("loop.gfa")
+    with contextlib.closing(connection):
+        utils.validate_std_counts(cursor, 4, 6, 6)
