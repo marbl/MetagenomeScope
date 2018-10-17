@@ -97,8 +97,8 @@ The copyright years at the top of each of MetagenomeScope's code files are given
 
 ## Acknowledgements
 
-See the [acknowledgements page](https://github.com/marbl/MetagenomeScope/wiki/Acknowledgements) on the wiki for a full list of acknowledgements
-in MetagenomeScope.
+See the [acknowledgements page](https://github.com/marbl/MetagenomeScope/wiki/Acknowledgements) on the wiki for a list of acknowledgements
+for MetagenomeScope's codebase.
 
 ## Contact
 
