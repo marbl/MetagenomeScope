@@ -16,13 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 ####
-# Tests some of the basic structual pattern identification functionality in
-# MetagenomeScope. Assumes the CWD is the root of the MetagenomeScope
-# repository.
-#
-# Maybe I'll later make this run tests for the viewer interface.
-#
-# These are nowhere near comprehensive yet; a TODO is to write more (#76).
+# Tests some basic structual pattern identification functionality.
+# TODO test chains, complex bubbles, user-specified bubbles/patterns (esp.
+# when we resolve #100)
 
 import contextlib
 import utils
@@ -74,8 +70,3 @@ def test_longpatterns():
         cluster_type_2_freq = utils.get_cluster_frequencies(cursor)
         assert cluster_type_2_freq["Bubble"] == 4
         assert cluster_type_2_freq["Frayed Rope"] == 4
-
-def test_self_implying_edges():
-    connection, cursor = utils.create_and_open_db("loop.gfa")
-    with contextlib.closing(connection):
-        utils.validate_std_counts(cursor, 4, 6, 6)
