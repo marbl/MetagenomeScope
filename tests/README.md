@@ -14,7 +14,7 @@ These tests assume that pytest is being run from the root of the
 MetagenomeScope repository -- running pytest from elsewhere on these tests
 will probably cause them to fail.
 
-## Test Data Acknowledgements
+## Test Data Acknowledgements (`input/`)
 
 `loop.gfa` was created by Shaun Jackman.
 [Here](https://github.com/sjackman/assembly-graph/blob/fef9fada23ddfb3da04db8221fac1ca8c99bfc66/loop.gfa)
