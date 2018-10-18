@@ -158,10 +158,11 @@ mgsc.PROGRESSBAR_FREQ;
 // SIZE = (number of nodes to be drawn) + 0.5*(number of edges to be drawn)
 mgsc.PROGRESSBAR_FREQ_PERCENT = 0.05;
 // Valid protocol schemes under which we can use cross-origin requests (and
-// thereby load demo .db files).
+// thereby load demo .db files), albeit with an exception for webstrates (see
+// comments of doThingsWhenDOMReady() for details).
 mgsc.CORS_PROTOCOL_SCHEMES = ["http:", "https:"];
-// Set to either true or false during doThingsWhenDOMReady().
-// If true, we can load demo .db files and the demoing button should be
+// Potentially set to true during doThingsWhenDOMReady().
+// If this is true, we can load demo .db files and the demoing button should be
 // enabled; if not, we can't (and the demoing button should remain disabled).
 mgsc.DEMOS_SUPPORTED = false;
 // Numbers of selected elements, and collections of those selected elements.
@@ -973,8 +974,15 @@ function setEnterBinding(inputID, f) {
 
 /* Sets bindings for certain DOM elements on the page.
  * To be called when the DOM is ready to be manipulated.
+ *
+ * If loadedFromWebstrate is a true value, then this won't even try enabling
+ * the demo .db file button (#xmlFileselectButton), since although localhost
+ * apparently counts as an http protocol I don't think it's really feasible
+ * to load local resources in that context (at least for this demonstration).
+ * (That being said, we might modify this behavior in the future if it's
+ * doable.)
  */
-function doThingsWhenDOMReady() {
+function doThingsWhenDOMReady(loadedFromWebstrate) {
     /* Enable demo button and remove its explanatory titletext if the viewer
      * interface is being accessed with a protocol scheme that supports
      * cross-origin requests (i.e. XMLHttpRequests, which are how the .db files
@@ -994,15 +1002,18 @@ function doThingsWhenDOMReady() {
      *
      * Apparently checking if something is "in" an array in Javascript doesn't
      * actually work; "in" works on the array's indices instead of its actual
-     * contents. Hence why we iterate based on mgsc.CORS_PROTOCOL_SCHEMES instead of
-     * just saying something like "if (windowProtocol in CORS_..._SCHEMES)".
+     * contents. Hence why we iterate based on mgsc.CORS_PROTOCOL_SCHEMES
+     * instead of just saying something like
+     * "if (windowProtocol in CORS_..._SCHEMES)".
      */
-    for (var i = 0; i < mgsc.CORS_PROTOCOL_SCHEMES.length; i++) {
-        if (window.location["protocol"] === mgsc.CORS_PROTOCOL_SCHEMES[i]) {
-            $("#xmlFileselectButton").prop("title", "");
-            enableButton("xmlFileselectButton");
-            mgsc.DEMOS_SUPPORTED = true;
-            break;
+    if (!loadedFromWebstrate) {
+        for (var i = 0; i < mgsc.CORS_PROTOCOL_SCHEMES.length; i++) {
+            if (window.location["protocol"] === mgsc.CORS_PROTOCOL_SCHEMES[i]){
+                $("#xmlFileselectButton").prop("title", "");
+                enableButton("xmlFileselectButton");
+                mgsc.DEMOS_SUPPORTED = true;
+                break;
+            }
         }
     }
     // Set various bindings so that pressing the Enter key on some text fields
