@@ -335,7 +335,7 @@ def n50(node_lengths):
     # Return length of shortest node that was used in the running sum
     return sorted_lengths[i - 1]
 
-def save_aux_file(aux_filename, source, layout_msg_printed, overwrite,
+def save_aux_file(aux_filename, source, dir_fn, layout_msg_printed, overwrite,
     warnings=True):
     """Given a filename and a source of "input" for the file, writes to that
        file (using check_file_existence() accordingly).
@@ -382,6 +382,12 @@ def save_aux_file(aux_filename, source, layout_msg_printed, overwrite,
     """
     fullfn = os.path.join(dir_fn, aux_filename)
     ex = None
+
+    if overwrite:
+        flags = os.O_CREAT | os.O_TRUNC | os.O_WRONLY
+    else:
+        flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
+
     try:
         ex = check_file_existence(fullfn, overwrite)
         # We use the defined flags (based on whether or not -w was passed)
@@ -496,12 +502,6 @@ def collate_graph(args):
     # Only uncomment this if you're ok with dir_fn being removed!
     #os.rmdir(dir_fn)
     
-    # Assign flags for auxiliary file creation
-    if overwrite:
-        flags = os.O_CREAT | os.O_TRUNC | os.O_WRONLY
-    else:
-        flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY
-
     # Right off the bat, check if the .db file name causes an error somehow.
     # (See check_file_existence() for possible causes.)
     # This prevents us from doing a lot of work and then realizing that due to
@@ -1335,7 +1335,7 @@ def collate_graph(args):
                 # the script)
                 line = e[0] + "\tB\t" + e[1] + "\tB\t0\t0\t0\n"
                 s_edges_fn_text += line
-            save_aux_file(s_edges_fn, s_edges_fn_text, False, overwrite, warnings=False)
+            save_aux_file(s_edges_fn, s_edges_fn_text, dir_fn, False, overwrite, warnings=False)
             s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
     
         # Prepare non-single-graph _links file
@@ -1349,7 +1349,7 @@ def collate_graph(args):
                 for e in n.outgoing_nodes:
                     line = n.id_string + "\tB\t" + e.id_string + "\tB\t0\t0\t0\n"
                     edges_fn_text += line
-            save_aux_file(edges_fn, edges_fn_text, False, overwrite, warnings=False)
+            save_aux_file(edges_fn, edges_fn_text, dir_fn, False, overwrite, warnings=False)
             edges_fullfn = os.path.join(dir_fn, edges_fn)
     
         # Get the location of the spqr script -- it should be in the same dir as
@@ -1566,8 +1566,8 @@ def collate_graph(args):
                 for child in clust.nodes:
                     input_text += "%s\t%s" % (clust.cy_id_string, child.id_string)
                     input_text += "\n"
-            save_aux_file("sp_" + ct.plural_name + ".txt", input_text, False,
-                    overwrite, warnings=False)
+            save_aux_file("sp_" + ct.plural_name + ".txt", input_text, dir_fn,
+                    False, overwrite, warnings=False)
     
     # Add individual (not used in collapsing) nodes to the nodes_to_draw list
     # We could build this list up at the start and then gradually remove nodes as
@@ -2115,7 +2115,7 @@ def collate_graph(args):
                 r = True
                 # save the .gv file if the user requested .gv preservation
                 if preserve_gv:
-                    r = save_aux_file(scc_prefix + ".gv", gv_input,
+                    r = save_aux_file(scc_prefix + ".gv", gv_input, dir_fn,
                         layout_msg_printed, overwrite)
                 # lay out the graph (singlenodes and singleedges outside of
                 # bicomponents, and bicomponent general structures)
@@ -2125,8 +2125,8 @@ def collate_graph(args):
                 if preserve_xdot:
                     if not r:
                         layout_msg_printed = False
-                    save_aux_file(scc_prefix + ".xdot", h, layout_msg_printed,
-                            overwrite)
+                    save_aux_file(scc_prefix + ".xdot", h, dir_fn,
+                            layout_msg_printed, overwrite)
             
                 sc_node_count = 0
                 sc_edge_count = 0
@@ -2481,14 +2481,14 @@ def collate_graph(args):
         if make_no_backfilled_dot_files:
             r=save_aux_file(component_prefix + "_nobackfill.gv",
                     component.produce_non_backfilled_dot_file(component_prefix),
-                    layout_msg_printed, overwrite)
+                    dir_fn, layout_msg_printed, overwrite)
         if make_no_patterned_dot_files:
             # TODO figure out how to take into account the previous r value here,
             # then use this r value for the next instance. right now -npdf is not
             # guaranteed to not slightly mess up the output newlines
             r=save_aux_file(component_prefix + "_nopatterns.gv",
                     component.produce_non_patterned_dot_file(component_prefix),
-                    layout_msg_printed, overwrite)
+                    dir_fn, layout_msg_printed, overwrite)
         # NOTE: Currently, we reduce each component of the asm. graph to a DOT
         # string that we send to pygraphviz. However, we could also send
         # nodes/edges procedurally, using add_edge(), add_node(), etc.
@@ -2510,7 +2510,7 @@ def collate_graph(args):
         if preserve_gv:
             if not r:
                 layout_msg_printed=False
-            r=save_aux_file(component_prefix + ".gv", gv_input,
+            r=save_aux_file(component_prefix + ".gv", gv_input, dir_fn,
                     layout_msg_printed, overwrite)
     
         # lay out the graph in .xdot -- this step is the main bottleneck in the
@@ -2526,8 +2526,8 @@ def collate_graph(args):
             # specified -- so this should be relatively fast
             if not r:
                 layout_msg_printed = False
-            save_aux_file(component_prefix + ".xdot", h, layout_msg_printed,
-                    overwrite)
+            save_aux_file(component_prefix + ".xdot", h, dir_fn,
+                    layout_msg_printed, overwrite)
     
         # Record the layout information of the graph's nodes, edges, and clusters
     
