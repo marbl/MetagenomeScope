@@ -1261,10 +1261,21 @@ def collate_graph(args):
                     # pattern, so for now we handle this by continuing.
                     # Might want to eventually throw an error/warning here.
                     continue
-                new_pattern = graph_objects.MiscPattern(pattern_items[0],
-                    *curr_pattern_nodeobjs)
+                # At this point, we've validated this pattern sufficiently.
+                # We're ready to create an actual object for it.
+                new_pattern = None
+                for poss_type in (graph_objects.Bubble, graph_objects.Rope):
+                    if pattern_items[0] == poss_type.type_name:
+                        new_pattern = poss_type(*curr_pattern_nodeobjs)
+                        break
+                if new_pattern == None:
+                    new_pattern = graph_objects.MiscPattern(pattern_items[0],
+                        *curr_pattern_nodeobjs)
                 nodes_to_draw.append(new_pattern)
                 clusterid2obj[new_pattern.id_string] = new_pattern
+                # TODO this will break when we use "continue." Add a test case
+                # to demonstrate the broken-ness of this, then fix this -- both
+                # here and in the user bubble code.
                 pattern_line_ct += 1
         conclude_msg()
     
