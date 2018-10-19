@@ -54,14 +54,22 @@ def gen_args(graph_filename):
     return ["-i", os.path.join(INDIR, graph_filename), "-o",
             graph_filename, "-d", OUTDIR, "-w"]
 
-def create_and_open_db(graph_filename):
+def create_and_open_db(graph_filename, extra_args=[]):
     """Runs collate; returns a connection and cursor for the produced .db file.
+
+    TODO: add option to specify name for .db file? would be nice to have a
+    one-to-one relationship of output .db files to tests (even if the same
+    input graph is used in multiple tests), in order to ensure that any test's
+    output (if fully generated, at least) can be visualized.
 
     Parameters
     ----------
     graph_filename : str
         filename of a graph in INDIR to use as input to the preprocessing
         script.
+    extra_args : list
+        list of extra arguments to be added to the input for
+        collate.run_script(). The elements of this list should be strings.
 
     Returns
     -------
@@ -69,7 +77,7 @@ def create_and_open_db(graph_filename):
         A 2-tuple of a connection and cursor for the .db file produced by the
         preprocessing script.
     """
-    collate.run_script(gen_args(graph_filename))
+    collate.run_script(gen_args(graph_filename) + extra_args)
     connection = sqlite3.connect(os.path.join(OUTDIR, graph_filename + ".db"))
     cursor = connection.cursor()
     return connection, cursor
