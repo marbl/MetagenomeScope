@@ -56,19 +56,52 @@ import config
 parser = argparse.ArgumentParser(description=config.COLLATE_DESCRIPTION)
 parser.add_argument("-i", "--inputfile", required=True, help="""input assembly
     graph filename (LastGraph, GFA, or MetaCarvel GML)""")
-parser.add_argument("-o", "--outputprefix", required=True,
-    help="""output file prefix for .db files; also used for .gv and .xdot files
-    (if -pg and -px are passed, respectively), and for _bicmps files (if -b is
-    not passed but -spqr is passed) and _links files (if -spqr is passed)""")
+parser.add_argument("-o", "--outputprefix", required=True, help="""output file
+    prefix for .db files; also used for most auxiliary files""")
 parser.add_argument("-d", "--outputdirectory", required=False,
     default=os.getcwd(), help="""directory in which all output files will be
     stored; defaults to current working directory (this directory will be
     created if it does not exist, but if the directory cannot be created then
     an error will be raised)""")
+parser.add_argument("-w", "--overwrite", required=False, default=False,
+    action="store_true", help="""overwrite output files (if this isn't passed,
+    and a non-auxiliary file would need to be overwritten, an error will be
+    raised)""")
+parser.add_argument("-ub", "--userbubblefile", required=False,
+    help="""file describing pre-identified bubbles in the graph, in the format
+    of MetaCarvel's bubbles.txt output: each line of the file is formatted
+    as (source ID) (tab) (sink ID) (tab) (all node IDs in the bubble,
+    including source and sink IDs, all separated by tabs). See the MetaCarvel
+    documentation for more details on this format.""")
+parser.add_argument("-ubl", "--userbubblelabelsused", required=False,
+    action="store_true", default=False, help="""use node labels instead of IDs
+    in the pre-identified bubbles file specified by -ub""")
+parser.add_argument("-up", "--userpatternfile", required=False, help="""file
+    describing any pre-identified structural patterns in the graph:
+    each line of the file is formatted as (pattern type) (tab) (all node IDs
+    in the pattern, all separated by tabs). If (pattern type) is "Bubble" or
+    "Frayed Rope", then the pattern will be represented in the visualization
+    as a Bubble or Frayed Rope, respectively; otherwise, the pattern will
+    be represented as a generic "misc. user-specified pattern," and colorized
+    accordingly in the visualization.""")
+parser.add_argument("-upl", "--userpatternlabelsused", required=False,
+    action="store_true", default=False, help="""use node labels instead of IDs
+    in the pre-identified misc. patterns file specified by -up""")
 parser.add_argument("-spqr", "--computespqrdata", required=False,
     action="store_true", default=False, help="""compute data for the SPQR
     "decomposition modes" in MetagenomeScope; necessitates a few additional
     system requirements (see wiki for details)""")
+parser.add_argument("-nt", "--notriangulation", required=False, default=False,
+    action="store_true", help="""disable triangle smoothing in the SPQR mode
+    (this argument is only used if -spqr is pased)""")
+parser.add_argument("-b", "--bicomponentfile", required=False,
+    help="""file containing bicomponent information for the assembly graph
+    (this argument is only used if -spqr is passed, and is not required even in
+    that case; the needed files will be generated if -spqr is passed and this
+    option is not passed)""")
+parser.add_argument("-sp", "--structuralpatterns", required=False,
+    default=False, action="store_true", help="""save .txt files containing node
+    information for all structural patterns identified in the graph""")
 parser.add_argument("-pg", "--preservegv", required=False, action="store_true",
     default=False, help="""save all .gv (DOT) files generated for nontrivial
     (i.e. containing more than one node, or at least one edge or node group)
@@ -76,34 +109,6 @@ parser.add_argument("-pg", "--preservegv", required=False, action="store_true",
 parser.add_argument("-px", "--preservexdot", required=False, default=False,
     action="store_true", help="""save all .xdot files generated for nontrivial
     connected components""")
-parser.add_argument("-sp", "--structuralpatterns", required=False,
-    default=False, action="store_true", help="""save .txt files containing node
-    information for all structural patterns identified in the graph""")
-parser.add_argument("-w", "--overwrite", required=False, default=False,
-    action="store_true", help="""overwrite output files""")
-parser.add_argument("-nt", "--notriangulation", required=False, default=False,
-    action="store_true", help="""disable triangle smoothing in the SPQR mode
-    (this argument is only used if -spqr is pased)""")
-parser.add_argument("-b", "--bicomponentfile", required=False,
-    help="""file containing bicomponent information for the assembly graph
-    (this argument is only used if -spqr is passed; a file containing
-    bicomponent information will be generated if -spqr is passed and this
-    option is not passed)""")
-parser.add_argument("-ub", "--userbubblefile", required=False,
-    help="""file describing pre-identified bubbles in the graph, in the format
-    of MetaCarvel's bubbles.txt output: each line of the file is formatted
-    as (source ID) (tab) (sink ID) (tab) (all node IDs in the bubble,
-    including source and sink IDs, all separated by tabs)""")
-parser.add_argument("-ubl", "--userbubblelabelsused", required=False,
-    action="store_true", default=False, help="""use node labels instead of IDs
-    in the pre-identified bubbles file""")
-parser.add_argument("-up", "--userpatternfile", required=False, help="""file
-    describing pre-identified miscellaneous structural patterns in the graph:
-    each line of the file is formatted as (pattern type) (tab) (all node IDs
-    in the pattern, all separated by tabs)""")
-parser.add_argument("-upl", "--userpatternlabelsused", required=False,
-    action="store_true", default=False, help="""use node labels instead of IDs
-    in the pre-identified misc. patterns file""")
 parser.add_argument("-nbdf", "--nobackfilldotfiles", required=False,
     action="store_true", default=False, help="""produces .gv (DOT) files without
     cluster \"backfilling\" for each nontrivial connected component in the
@@ -135,11 +140,9 @@ def check_file_existence(filepath, overwrite):
         -The given filepath exists as a directory
 
        Note that this has some race conditions associated with it -- the
-       user or some other process could circumvent these error-checks by,
-       respectively:
-        -Creating a file at the filepath after this check but before opening
-        -Creating a directory at the filepath after this check but before
-         opening
+       user or some other party could circumvent these error-checks by either
+       creating a file or creating a directory at the filepath after this check
+       but before MetagenomeScope attempts to create a file there.
 
        We get around this by using os.fdopen() wrapped to os.open() with
        certain flags (based on whether or not the user passed -w) set,
@@ -406,7 +409,7 @@ def save_aux_file(aux_filename, source, dir_fn, layout_msg_printed, overwrite,
         msg = config.SAVE_AUX_FAIL_MSG + "%s: %s" % (aux_filename, e)
         if not warnings:
             raise type(e), msg
-        # If we're here, then warnings = True.
+        # If we're here, then warnings == True.
         # Don't save this file, but continue the script's execution.
         if layout_msg_printed:
             operation_msg("\n" + msg, newline=True)
