@@ -248,7 +248,8 @@ def gc_content(dna_string):
        actual number of Gs and Cs in the dna_string.
        
        Assumes that the string of DNA only contains nucleotides (e.g., it
-       doesn't contain any spaces).
+       doesn't contain any spaces). Passing in an empty string ("") will cause
+       this to return (0, 0).
 
        For reference, the GC content of a DNA sequence is the percentage of
        nucleotides within the sequence that are either G (guanine) or C
@@ -258,6 +259,8 @@ def gc_content(dna_string):
     """
     # len() of a str is a constant-time operation in Python
     seq_len = len(dna_string)
+    if seq_len == 0:
+        return (0, 0)
     gc_ct = 0
     for nt in dna_string:
         if nt == 'G' or nt == 'C':
