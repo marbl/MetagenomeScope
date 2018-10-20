@@ -62,3 +62,17 @@ def test_gc_content():
         gc_ct = seq_counter["C"] + seq_counter["G"]
         assert float(gc_ct) / len(seq) == gc_content_output[0]
         assert gc_ct == gc_content_output[1]
+
+def test_negate_node_id():
+    assert collate.negate_node_id("1") == "-1"
+    assert collate.negate_node_id("-3") == "3"
+    assert collate.negate_node_id("20") == "-20"
+    assert collate.negate_node_id("-100") == "100"
+    # IDs should be stored as strings -- so we should be able to negate them
+    # regardless of if it makes sense mathematically
+    assert collate.negate_node_id("0") == "-0"
+    assert collate.negate_node_id("-0") == "0"
+    assert collate.negate_node_id("contig_id_123") == "-contig_id_123"
+    assert collate.negate_node_id("-contig_id_123") == "contig_id_123"
+    assert collate.negate_node_id("abcdef") == "-abcdef"
+    assert collate.negate_node_id("-abcdef") == "abcdef"
