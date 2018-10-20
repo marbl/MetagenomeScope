@@ -1570,7 +1570,7 @@ def collate_graph(args):
                     input_text += "%s\t%s" % (clust.cy_id_string, child.id_string)
                     input_text += "\n"
             save_aux_file("sp_" + ct.plural_name + ".txt", input_text, dir_fn,
-                    False, overwrite, warnings=False)
+                    False, overwrite)
     
     # Add individual (not used in collapsing) nodes to the nodes_to_draw list
     # We could build this list up at the start and then gradually remove nodes as
