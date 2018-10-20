@@ -22,6 +22,7 @@
 import os
 import sys
 import sqlite3
+import random
 
 sys.path.append("graph_collator")
 import collate
@@ -241,3 +242,15 @@ def get_cluster_frequencies(cursor):
         else:
             cluster_type_2_freq[ctype] += 1
     return cluster_type_2_freq
+
+def gen_random_sequence(possible_lengths):
+    """Generates a random DNA sequence with a length in the provided list."""
+
+    seq_len = random.choice(possible_lengths)
+    alphabet = "ACGT"
+    seq = ""
+    i = 0
+    while i < seq_len:
+        seq += random.choice(alphabet)
+        i += 1
+    return seq
