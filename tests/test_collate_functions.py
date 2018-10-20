@@ -19,6 +19,7 @@
 # Tests the various functions in collate.py.
 
 import sys
+from collections import Counter
 
 sys.path.append("graph_collator")
 import collate
@@ -43,3 +44,21 @@ def test_reverse_complement():
         seq_rc = collate.reverse_complement(seq)
         for b in range(len(seq)):
             assert config.COMPLEMENT[seq[b]] == seq_rc[len(seq_rc) - b - 1]
+
+def test_gc_content():
+    assert collate.gc_content("") == (0, 0)
+    assert collate.gc_content("A") == (0, 0)
+    assert collate.gc_content("C") == (1, 1)
+    assert collate.gc_content("G") == (1, 1)
+    assert collate.gc_content("T") == (0, 0)
+    assert collate.gc_content("ACGT") == (0.5, 2)
+    assert collate.gc_content("GCATTCAC") == (0.5, 4)
+    assert collate.gc_content("CCTAC") == (0.6, 3)
+    for i in range(500):
+        seq = utils.gen_random_sequence(range(1, 501))
+        gc_content_output = collate.gc_content(seq)
+        # Validate output using Python's lovely Counter builtin
+        seq_counter = Counter(seq)
+        gc_ct = seq_counter["C"] + seq_counter["G"]
+        assert float(gc_ct) / len(seq) == gc_content_output[0]
+        assert gc_ct == gc_content_output[1]
