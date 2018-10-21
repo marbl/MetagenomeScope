@@ -17,8 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 ####
 # Tests some basic structual pattern identification functionality.
-# TODO test chains, complex bubbles, user-specified bubbles/patterns (esp.
-# when we resolve #100)
+# TODO test chains, 1-node cyclic chains, complex bubbles?
 
 import os
 import contextlib
