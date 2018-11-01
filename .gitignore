@@ -6,3 +6,4 @@ testgraphs/
 testdbs/
 viewer/demotests/
 electron/node_modules/
+.DS_STORE
