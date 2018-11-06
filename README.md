@@ -4,12 +4,13 @@
 ![Screenshot of MetagenomeScope's standard mode, showing a region of a biofilm assembly graph](https://user-images.githubusercontent.com/4177727/46389776-f1d63780-c688-11e8-82ae-13d58d6f4738.png "Screenshot of MetagenomeScope's standard mode, showing a region of a biofilm assembly graph.")
 
 MetagenomeScope is an interactive visualization tool designed for metagenomic
-sequence assembly graphs. The tool aims to display a semi-linearized,
-hierarchical overview of the input graph while emphasizing the
-presence of certain structural patterns in the graph.
+sequence assembly graphs. The tool aims to display a [hierarchical
+layout](https://en.wikipedia.org/wiki/Layered_graph_drawing) of the input graph
+while emphasizing the presence of small-scale details that can correspond to
+interesting biological features in the data.
 
 To this end, MetagenomeScope
-highlights certain structural patterns of contigs in the graph,
+highlights certain "structural patterns" of contigs in the graph,
 splits the graph into its connected components (only displaying one connected
 component at a time),
 and uses [Graphviz](http://www.graphviz.org/)'
