@@ -81,7 +81,8 @@ See [this page](https://github.com/marbl/MetagenomeScope/wiki/Customizing-Your-O
 
 ## Wiki
 
-Documentation on MetagenomeScope is available at its GitHub wiki,
+Documentation on MetagenomeScope -- including up-to-date installation
+instructions for the preprocessing script -- is available at its GitHub wiki,
 located [here](https://github.com/marbl/MetagenomeScope/wiki).
 
 ## License
