@@ -463,6 +463,30 @@ def add_node_to_stdmode_mapping(nodeid2obj, n, rc=None):
         nodeid2obj[rc.id_string] = rc
     return nodeid2obj
 
+def run_spqr_script(invocation):
+    """Runs the SPQR script using check_output().
+
+       Catches Exceptions caused by running the SPQR script, and then re-raises
+       them with some added context.
+
+       (I know that catching any Exception without alerting the user is
+       generally bad practice, but here we stop execution *and* preserve the
+       error that occurred. The main goal here is to let the user know that the
+       probable cause of this error was running the SPQR script -- I figure
+       errors will usually be thrown here due to the user using -spqr without
+       first building the script for their system.)
+    """
+    try:
+        check_output(invocation, stderr=STDOUT)
+    except:
+        # We assume that the thing printed before this was config.SPQR_MSG,
+        # with no trailing newline (hence why we prepend a newline to the first
+        # config.MESSAGE_BORDER).
+        print "\n" + config.MESSAGE_BORDER
+        print config.SPQR_MISC_ERR
+        print config.MESSAGE_BORDER
+        raise
+
 def collate_graph(args):
     asm_fn = args.inputfile
     output_fn = args.outputprefix
@@ -1408,8 +1432,8 @@ def collate_graph(args):
                     "-s", "-o", bicmps_fn, "-d", dir_fn]
                 spqr_invocation_2 = [spqr_fullfn, "-l", s_edges_fullfn, "-t",
                     "-d", dir_fn]
-                check_output(spqr_invocation_2, stderr=STDOUT)
-        check_output(spqr_invocation, stderr=STDOUT)
+                run_spqr_script(spqr_invocation_2)
+        run_spqr_script(spqr_invocation)
     
         # NOTE we make the assumption that the generated component and spqr files
         # aren't deleted after running the SPQR script but before they're read

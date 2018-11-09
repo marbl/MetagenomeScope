@@ -45,7 +45,7 @@ MetagenomeScope is composed of two main components:
      mode." Since this requires some C++ code to be compiled, the use of `-spqr` in
      MetagenomeScope
      necessitates a few extra system requirements. See
-     [this page](https://github.com/marbl/MetagenomeScope/wiki/Building-SPQR-Functionality-for-the-Preprocessing-Script)
+     [this page](https://github.com/marbl/MetagenomeScope/wiki/Building-SPQR-Functionality)
      on MetagenomeScope's wiki for more information on building SPQR
      functionality for the preprocessing script.
 

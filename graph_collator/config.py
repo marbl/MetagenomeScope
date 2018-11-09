@@ -218,6 +218,13 @@ UPATTERN_ERR_PREFIX = "User-specified pattern \""
 CONTIGUOUS_ERR = "\" is not contiguous"
 LABEL_EXISTENCE_ERR = \
     "Can't use -ubl or -upl options for a graph type with no node labels"
+MESSAGE_BORDER = "=========="
+SPQR_MISC_ERR = """An error occurred while trying to run the SPQR script.
+Please check to make sure you've built the SPQR script for your system.
+See MetagenomeScope's wiki for instructions for building the SPQR script:
+https://github.com/marbl/MetagenomeScope/wiki/Building-SPQR-Functionality
+
+Please see below for more information about the error."""
 
 # The filename suffixes indicating a file is of a certain type.
 # Ideally, we should be able to detect what filetype an assembly file is by
