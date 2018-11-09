@@ -150,6 +150,7 @@
                 <span class="glyphicon glyphicon-cog"></span> &nbsp;
                 <span>Settings</span>
             </button>
+
             <button class='btn btn-default btn-sm' id='helpButton'
                 onclick='openHelp();'>
                 <span class="glyphicon glyphicon-question-sign"></span> &nbsp;
@@ -629,38 +630,8 @@
                         <!-- BEGIN DEMO .DB LIST -->
                         <div class="radio">
                             <label>
-                                <input type="radio" name="fs" id="9x9.db"
+                                <input type="radio" name="fs" id="august1.db"
                                 checked="checked">
-                                <strong>STAMPS Sample Graph 1</strong> ("all-to-all") (GML, 9 contigs, 72 edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input type="radio" name="fs" id="unique.db">
-                                <strong>STAMPS Sample Graph 2</strong> ("unique") (GML, 9 contigs, 8 edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input type="radio" name="fs" id="3rd_adj_list.db">
-                                <strong>STAMPS Sample Graph 3</strong> ("3rd adjacency list") (GML, 9 contigs, 8 edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input type="radio" name="fs" id="flu.db">
-                                STAMPS: Flu assembly graph (FASTG, 37 positive contigs, 22 positive edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input type="radio" name="fs" id="carsonella.db">
-                                STAMPS: Carsonella assembly graph (FASTG, 4 positive contigs, 8 positive edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input type="radio" name="fs" id="august1.db">
                                 SRS049959: post-clean (GML, 28,064 contigs, 21,769 edges)
                             </label>
                         </div>
@@ -690,14 +661,26 @@
                         </div>
                         <div class="radio">
                             <label>
+                                <input type="radio" name="fs" id="marygoldtest.db">
+                                <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/24058058"> MaryGold paper</a> Figure 2 graph (GML, 12 contigs, 16 edges)
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
                                 <input type="radio" name="fs" id="small_ecoli.db">
                                 E. coli (GML, 168 contigs, 470 edges)
                             </label>
                         </div>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="fs" id="marygoldtest.db">
-                                <a target="_blank" href="https://www.ncbi.nlm.nih.gov/pubmed/24058058"> MaryGold paper</a> Figure 2 graph (GML, 12 contigs, 16 edges)
+                                <input type="radio" name="fs" id="flu.db">
+                                STAMPS 2018: Flu assembly graph (FASTG, 37 positive contigs, 22 positive edges)
+                            </label>
+                        </div>
+                        <div class="radio">
+                            <label>
+                                <input type="radio" name="fs" id="carsonella.db">
+                                STAMPS 2018: Carsonella assembly graph (FASTG, 4 positive contigs, 8 positive edges)
                             </label>
                         </div>
                         <div class="radio">
