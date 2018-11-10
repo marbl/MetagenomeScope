@@ -254,3 +254,27 @@ def gen_random_sequence(possible_lengths):
         seq += random.choice(alphabet)
         i += 1
     return seq
+
+def get_bicomponents(cursor):
+    """Returns a list of bicomponents (-> SPQR trees) in the graph."""
+    cursor.execute("SELECT * FROM bicomponents")
+    return cursor.fetchall()
+
+def get_metanodes(cursor):
+    """Returns a list of SPQR tree metanodes in the graph."""
+    cursor.execute("SELECT * FROM metanodes")
+    return cursor.fetchall()
+
+def get_children_of_metanode(cursor, metanode_id):
+    """Given a metanode ID, returns a list of its child nodes."""
+    cursor.execute("SELECT * FROM singlenodes WHERE parent_metanode_id = ?",
+            (metanode_id,))
+    return cursor.fetchall()
+
+def get_root_metanode(cursor, bicomponent_id):
+    """Given a bicomponent ID, returns its root metanode."""
+    cursor.execute("SELECT root_metanode_id FROM bicomponents " + \
+            "WHERE id_num = ?", (bicomponent_id,))
+    root_id = cursor.fetchone()[0]
+    cursor.execute("SELECT * FROM metanodes WHERE metanode_id = ?", (root_id,))
+    return cursor.fetchone()

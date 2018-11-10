@@ -15,16 +15,25 @@
 
 .PHONY: test spqr
 
+# This might have to be changed depending on your system. When I tried
+# compiling this on a Mac computer, the g++ binary seemed to just redirect to
+# clang, and that in turn seemed to fail to link with the C++ libraries.
+# Explicitly installing "gcc49" via homebrew -- and calling it via g++-4.9 --
+# solved this problem for me.
 COMPILER = g++
 # Omitting optimization and warning flags for the time being; adding those
 # later would be a good idea.
 CFLAGS = -std=gnu++11
 
 # NOTE modify this to point to the include directory of OGDF on your system
-OGDF_INCL = -I ~/Software/OGDF/OGDF/include/
+IDIR = ~/OGDF/include
 # NOTE modify this to point to the _release directory of OGDF on your system
-OGDF_LINK = -L ~/Software/OGDF/OGDF/_release/ 
+RDIR = ~/OGDF/_release
 
+OGDF_INCL = -I $(IDIR)
+OGDF_LINK = -L $(RDIR)
+
+# Set per http://amber-v7.cs.tu-dortmund.de/doku.php/tech:installgcc
 OGDF_FLAGS = $(OGDF_INCL) $(OGDF_LINK) -l OGDF -pthread
 # Apparently forward-slashes should work on Windows systems as well as
 # Linux/OS X systems.

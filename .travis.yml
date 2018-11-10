@@ -1,6 +1,12 @@
 language: python
 python:
     - "2.7"
+# Get stuff ready for testing SPQR functionality.
+# NOTE I ran into troubles with building the most recent snapshot of OGDF, so
+# I'm just using the stable release at present.
+before_install:
+    - rm graph_collator/spqr
+    - wget -O ogdf.zip http://amber-v7.cs.tu-dortmund.de/lib/exe/fetch.php/tech:ogdf.v2015.05.zip
 # As of October 2, 2018, the dot version installed on the Ubuntu "Trusty Tahr"
 # system Travis CI uses by default is 2.36.0. This is a bit old, but it should
 # work fine -- the layouts will probably differ slightly from those produced by
@@ -12,9 +18,19 @@ python:
 # https://github.com/ellson/MOTHBALLED-graphviz/issues/1255, and version 2.36
 # of dot appears to date back to January 11, 2014 (according to dot -V).
 # So that bug shouldn't be a problem here.
-before_install:
-    - sudo apt-get install --yes graphviz
 install:
+    # TODO use brew instead for mac systems
+    - sudo apt-get install --yes graphviz
     - pip install pygraphviz numpy
+    - unzip ogdf.zip
+    - cd OGDF
+    # Install OGDF
+    # (As of writing, the Travis CI virtual environments all have two cores.
+    # So we parallelize the make operation to at most two jobs at once.)
+    - sh makeMakefile.sh
+    - make -j 2
+    # At this point, OGDF has been installed. Now we can build the SPQR script.
+    - cd ..
+    - make spqr IDIR=OGDF/include/ RDIR=OGDF/_release/
 script:
     - make test
