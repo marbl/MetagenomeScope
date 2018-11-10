@@ -13,7 +13,7 @@
 #  MetagenomeScope's wiki (https://github.com/marbl/MetagenomeScope/wiki)
 #  for details on this option.
 
-.PHONY: test spqr
+.PHONY: generaltest spqrtest test spqr
 
 # This might have to be changed depending on your system. When I tried
 # compiling this on a Mac computer, the g++ binary seemed to just redirect to
@@ -42,8 +42,13 @@ SPQR_CODE = $(addprefix $(SCRIPT_DIR), spqr.cpp)
 SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 
 # -B: don't create a __pycache__/ directory in tests/
-test:
-	python2.7 -B -m pytest
+generaltest:
+	python2.7 -B -m pytest -m "not spqrtest"
+
+spqrtest:
+	python2.7 -B -m pytest -m "spqrtest"
+
+test: generaltest spqrtest
 
 spqr:
 	$(COMPILER) $(SPQR_CODE) $(CFLAGS) $(OGDF_FLAGS) -o $(SPQR_BINARY)

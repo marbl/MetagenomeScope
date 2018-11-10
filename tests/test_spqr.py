@@ -18,9 +18,11 @@
 ####
 # Tests the SPQR tree decomposition functionality in MetagenomeScope.
 
+import pytest
 import contextlib
 import utils
 
+@pytest.mark.spqrtest
 def test_spqr_tree_structure():
     connection, cursor = utils.create_and_open_db("marygold_fig2a.gml",
             ["-spqr"])
