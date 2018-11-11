@@ -44,9 +44,11 @@ SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 # -B: don't create a __pycache__/ directory in tests/
 generaltest:
 	python2.7 -B -m pytest -m "not spqrtest"
+	rm tests/output/*
 
 spqrtest:
 	python2.7 -B -m pytest -m "spqrtest"
+	rm tests/output/*
 
 test: generaltest spqrtest
 

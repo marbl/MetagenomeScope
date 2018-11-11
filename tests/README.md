@@ -7,12 +7,24 @@ for the viewer interface as well.
 
 ## Running Tests
 
-From the root of the MetagenomeScope repository, run `make test`. This requires
-that pytest is installed.
+From the root of the MetagenomeScope repository, run `make generaltest` to test
+everything but the `-spqr` tests and `make spqrtest` to test things specific to
+the `-spqr` option (which has some extra installation requirements). You can
+also just run `make test` to run both types of tests.
 
-These tests assume that pytest is being run from the root of the
-MetagenomeScope repository -- running pytest from elsewhere on these tests
-will probably cause them to fail.
+### Notes About Running Tests
+
+* All of these commands require [pytest](https://pytest.org/) to be
+  installed.
+
+* These commands all assume they're being run from the root of the
+  MetagenomeScope repository -- running them from elsewhere will probably cause
+  them to fail.
+
+* After running `make generaltest` or `make spqrtest`, the `tests/output`
+  directory will be emptied (to avoid buildup of test files on your system).
+  You can disable this behavior by removing the "rm tests/output/\*" lines from the
+  corresponding targets in the Makefile.
 
 ## Test Data Acknowledgements (`input/`)
 
