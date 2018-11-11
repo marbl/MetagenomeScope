@@ -19,18 +19,25 @@ before_install:
 # of dot appears to date back to January 11, 2014 (according to dot -V).
 # So that bug shouldn't be a problem here.
 install:
-    # TODO use brew instead for mac systems
-    - sudo apt-get install --yes graphviz
-    - pip install pygraphviz numpy
+    # CODELINK: conda installation instructions per https://conda.io/docs/user-guide/tasks/use-conda-with-travis-ci.html
+    - wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+    - bash miniconda.sh -b -p $HOME/miniconda
+    - export PATH="$HOME/miniconda/bin:$PATH"
+    - hash -r
+    - conda config --set always_yes yes --set changeps1 no
+    - conda update -q conda
+    - conda create -q -n mgsc python=2.7 numpy graphviz=2.38.0 pygraphviz
+    # End conda installation
     - unzip ogdf.zip
     - cd OGDF
     # Install OGDF
     # (As of writing, the Travis CI virtual environments all have two cores.
     # So we parallelize the make operation to at most two jobs at once.)
-    - sh makeMakefile.sh
+    - bash makeMakefile.sh
     - make -j 2
     # At this point, OGDF has been installed. Now we can build the SPQR script.
     - cd ..
     - make spqr IDIR=OGDF/include/ RDIR=OGDF/_release/
 script:
+    - conda activate mgsc
     - make test
