@@ -39,5 +39,5 @@ install:
     - cd ..
     - make spqr IDIR=OGDF/include/ RDIR=OGDF/_release/
 script:
-    - conda activate mgsc
+    - source activate mgsc
     - make test
