@@ -1,7 +1,8 @@
 /* Copyright (C) 2017-2018 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
  * Authored by Jay Ghurye, edited by Marcus Fedarko
  *
- * This file is part of MetagenomeScope.
+ * This file is part of MetagenomeScope (but derived from spqr.cpp, by Jay
+ * Ghurye, in MetaCarvel: https://github.com/marbl/MetaCarvel).
  *
  * MetagenomeScope is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
