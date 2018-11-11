@@ -4,7 +4,16 @@ MetagenomeScope is a visualization tool intended to aid in the analysis of
 metagenomic assembly and scaffold graphs. It consists of a preprocessing
 script (implemented in Python and C++) and a web-based visualization interface
 (implemented in JavaScript, HTML, and CSS). The C++ component of the
-preprocessing script is linked with:
+preprocessing script is derived from spqr.cpp in MetaCarvel:
+
+-MetaCarvel
+    -https://github.com/marbl/MetaCarvel
+    -Source code is available at https://github.com/marbl/MetaCarvel
+    -Copyright is contained in dependency_licenses/MetaCarvel.license
+    -Licensed under the MIT License
+     (included in dependency_licenses/MetaCarvel.license)
+
+This C++ component is linked with:
 
 -OGDF
     -http://www.ogdf.net
