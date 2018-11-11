@@ -9,7 +9,7 @@
 #  contained in the graph_collator/ directory of MetagenomeScope.
 #  NOTE that compiling the SPQR script is only necessary if you want to use
 #  the -spqr option of the preprocessing script (graph_collator/collate.py).
-#  See the System Requirements and "Building SPQR Functionality" pages on
+#  See the System Requirements and Installation Instruction pages on
 #  MetagenomeScope's wiki (https://github.com/marbl/MetagenomeScope/wiki)
 #  for details on this option.
 

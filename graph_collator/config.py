@@ -221,8 +221,9 @@ LABEL_EXISTENCE_ERR = \
 MESSAGE_BORDER = "=========="
 SPQR_MISC_ERR = """An error occurred while trying to run the SPQR script.
 Please check to make sure you've built the SPQR script for your system.
-See MetagenomeScope's wiki for instructions for building the SPQR script:
-https://github.com/marbl/MetagenomeScope/wiki/Building-SPQR-Functionality
+See MetagenomeScope's wiki for instructions for installing the -spqr
+Requirements and building the SPQR script:
+https://github.com/marbl/MetagenomeScope/wiki/Installation-Instructions
 
 Please see below for more information about the error."""
 
