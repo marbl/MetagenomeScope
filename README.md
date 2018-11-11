@@ -35,7 +35,7 @@ MetagenomeScope is composed of two main components:
      GML ([MetaCarvel](https://github.com/marbl/MetaCarvel)), and
      [GFA](http://gfa-spec.github.io/GFA-spec/) input files.
      Support for SPAdes FASTG files should be ready very soon, as well.
-   - See [this page](https://github.com/marbl/MetagenomeScope/wiki/Installation-Instructions)
+   - See [the installation instructions page](https://github.com/marbl/MetagenomeScope/wiki/Installation-Instructions)
      on MetagenomeScope's wiki for information on installing the system requirements and
      setting up the the preprocessing script on your system.
    - If the `-spqr` option is passed to `collate.py`, it uses the C++ code in
@@ -44,9 +44,9 @@ MetagenomeScope is composed of two main components:
      biconnected components in the graph for MetagenomeScope's "decomposition
      mode." Since this requires some C++ code to be compiled, the use of `-spqr` in
      MetagenomeScope
-     necessitates a few extra system requirements. See the installation
-     instructions wiki page for more information on installing these and
-     building the SPQR script.
+     necessitates a few extra system requirements.
+     See [the installation instructions wiki page](https://github.com/marbl/MetagenomeScope/wiki/Installation-Instructions)
+     for more information on installing these and building the SPQR script.
 
 2. The **viewer interface** (contained in the `viewer/` directory of this
    repository), a client-side web application that reads a .db file
