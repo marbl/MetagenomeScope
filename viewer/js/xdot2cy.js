@@ -1016,11 +1016,11 @@ function doThingsWhenDOMReady(loadedFromWebstrate) {
             }
         }
     }
-    else {
+    /*else {
         // Set up event signaling in #cy?
         // Use Webstrates signaling API. Propagate all events on #cy to other
         // instances.
-    }
+    }*/
     // Set various bindings so that pressing the Enter key on some text fields
     // does something (makes certain actions quicker and easier for the user)
     setEnterBinding("searchInput", searchForEles);
