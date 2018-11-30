@@ -163,6 +163,12 @@ button {
     -o-transition: none;
     -ms-transition: none;
 }
+/* Overriding the text-decoration: none set by Bootstrap makes this link easier
+ * to see for colorblind individuals
+ */
+.actuallyalink {
+    text-decoration: underline;
+}
 .actuallyalink:link {
     color: #d22; 
 }
