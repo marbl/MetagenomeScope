@@ -56,3 +56,13 @@ nav li:hover {
 .thumbnail:hover {
     border: 1px solid #337ab7;
 }
+
+/* Override Bootstrap's default styling for links below the nav (instead of
+ * applying the underline only on :hover, always apply it). This helps
+ * colorblind users identify links: see
+ * https://www.smashingmagazine.com/2016/06/improving-color-accessibility-for-color-blind-users/#5-link-recognition
+ * for details (that article was the impetus for this change).
+ */
+#stuffbelowthenav a {
+    text-decoration: underline;
+}
