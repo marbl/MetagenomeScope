@@ -102,7 +102,7 @@ SINGLE_NODE_SHAPE = "rectangle"
 # in order to facilitate rotation in the .xdot viewer. (So I'd recommend not
 # changing that unless you have a good reason.)
 # Any text here must end without a semicolon.
-GRAPH_STYLE      = "xdotversion=1.7;\n\toverlap=false"
+GRAPH_STYLE      = "xdotversion=1.7"
 # Useful for visualizing .gv files. Shouldn't impact the viewer interface's
 # visualization -- only impacts dot's drawings.
 #GRAPH_STYLE      = "xdotversion=1.7;\n\toverlap=false;\n\tdpi=30;\n\trotate=90"

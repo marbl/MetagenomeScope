@@ -2022,6 +2022,7 @@ def collate_graph(args):
                     gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
                 if not notriangulation:
                     gv_input += "\tsmoothing=\"triangle\";\n"
+                    gv_input += "\toverlap=\"false\";\n"
                 if config.GLOBALNODE_STYLE != "":
                     gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
                 # In the layout of this single connected component, include:
