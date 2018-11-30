@@ -1954,6 +1954,9 @@ def collate_graph(args):
         # each implicit single connected component (see #223 on GitHub)
         implicit_spqr_node_counts = []
         implicit_spqr_edge_counts = []
+        # Some of the explicit mode calculations rely on the implicit layout
+        # already having been performed, so please don't switch the ordering
+        # around to ("explicit", "implicit") or something
         for mode in ("implicit", "explicit"):
             t1 = time.time()
             single_component_size_rank = 1
