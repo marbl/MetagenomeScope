@@ -25,7 +25,7 @@ import utils
 @pytest.mark.spqrtest
 def test_spqr_tree_structure():
     connection, cursor = utils.create_and_open_db("marygold_fig2a.gml",
-            ["-spqr"])
+            ["-spqr", "-nt"])
     # We only identify 1 simple bubble in the MaryGold graph. However,
     # using SPQR tree decompositions, we can see that there's actually a sort
     # of nested bubble structure inherent to the graph.
