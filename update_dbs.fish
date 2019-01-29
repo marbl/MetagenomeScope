@@ -14,13 +14,15 @@
 ./graph_collator/collate.py -i testgraphs/sjackman/loop.gfa -o loop_gfa -d testdbs/ -w
 ./graph_collator/collate.py -i testgraphs/marygold_fig2a.gml -o marygoldtest -d testdbs/ -w -spqr
 ./graph_collator/collate.py -i testgraphs/sample_LastGraph -o sample_LastGraph -d testdbs/ -w
+# NOTE longtest is currently not used on the demo but still nice to keep around
+# for basic tests
 ./graph_collator/collate.py -i testgraphs/longtest_LastGraph -o longtest -d testdbs/ -w
 ./graph_collator/collate.py -i testgraphs/small_ecoli/oriented_lengthinfo.gml -o small_ecoli -d testdbs/ -w
 ./graph_collator/collate.py -i testgraphs/UpdatedBAMBUSfiles/shakya_oriented.gml -o shakya_new -d testdbs/ -w
 ./graph_collator/collate.py -i testgraphs/august1.gml -o august1 -d testdbs/ -w
 ./graph_collator/collate.py -i testgraphs/ship_hull_biofilm/oriented_judson.gml -o biofilm_judson -d testdbs/ -w
 ./graph_collator/collate.py -i testgraphs/ship_hull_biofilm/oriented_judson_2.gml -o biofilm_judson2 -d testdbs/ -w
-./graph_collator/collate.py -i testgraphs/UpdatedBAMBUSfiles/oriented.gml -o 20170220 -d testdbs/ -w
+#./graph_collator/collate.py -i testgraphs/UpdatedBAMBUSfiles/oriented.gml -o 20170220 -d testdbs/ -w
 echo "Creating the (unsimplified) Shakya graph. This might take a while."
 ./graph_collator/collate.py -i testgraphs/RF_oriented_lengthinfo.gml -o shakya -d testdbs/ -w
 #echo "Creating the (unsimplified) SRS049950 graph. This might take a while."
