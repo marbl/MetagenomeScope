@@ -1862,7 +1862,7 @@ def collate_graph(args):
     CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?,?,?,?,?)"
     COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?,?)"
     ASSEMBLY_INSERTION_STMT = \
-        "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
+        "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
     SINGLENODE_INSERTION_STMT = \
         "INSERT INTO singlenodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
     SINGLEEDGE_INSERTION_STMT = "INSERT INTO singleedges VALUES (?,?,?,?,?)"
@@ -1894,7 +1894,8 @@ def collate_graph(args):
             edge_count integer, all_edge_count integer, component_count integer,
             bicomponent_count integer, single_component_count integer,
             total_length integer, n50 integer, gc_content real,
-            dna_given integer, repeats_given integer, spqr_given integer)""")
+            dna_given integer, repeats_given integer, spqr_given integer,
+            smallest_viewable_component_rank integer)""")
     if args.computespqrdata:
         # SPQR view tables
         cursor.execute("""CREATE TABLE singlenodes
@@ -1928,21 +1929,7 @@ def collate_graph(args):
                 boundingbox_x real, boundingbox_y real, i_boundingbox_x real,
                 i_boundingbox_y real)""")
     connection.commit()
-    
-    # Insert general assembly information into the database
-    asm_gc = None
-    dna_given_val = 0
-    if dna_given:
-        asm_gc = assembly_gc(total_gc_nt_count, total_length)
-        dna_given_val = 1
-    repeats_given_val = 1 if repeats_given else 0
-    spqr_given_val = 1 if args.computespqrdata else 0
-    graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
-                total_edge_count, total_all_edge_count, total_component_count,
-                total_bicomponent_count, total_single_component_count,
-                total_length, n50(bp_length_list), asm_gc, dna_given_val,
-                repeats_given_val, spqr_given_val)
-    cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)    
+
     conclude_msg()
     
     # Total time taken for the layout in all "modes"
@@ -2455,7 +2442,7 @@ def collate_graph(args):
     no_print = False # used to reduce excess printing (see issue #133 on GitHub)
     # Should be the default value in the (standard mode) component selector in
     # the viewer interface. TODO: put this in the assembly table of the db file
-    smallest_viewable_component = -1
+    smallest_viewable_comp_rank = -1
     for component in connected_components:
         if component.node_ct > max_node_ct or component.edge_ct > max_edge_ct:
             # Save the component in the db file, but with bounding box
@@ -2472,8 +2459,8 @@ def collate_graph(args):
                 nc=component.node_ct, ec=component.edge_ct), True)
             component_size_rank += 1
             continue
-        if smallest_viewable_component == -1:
-            smallest_viewable_component = component_size_rank
+        if smallest_viewable_comp_rank == -1:
+            smallest_viewable_comp_rank = component_size_rank
         component_node_ct = len(component.node_list)
         # used in a silly corner case in which we 1) trigger the small component
         # message below and 2) the first "small" component has aux file(s) that
@@ -2762,6 +2749,21 @@ def collate_graph(args):
         h.close()
         component_size_rank += 1
     
+    # Insert general assembly information into the database
+    asm_gc = None
+    dna_given_val = 0
+    if dna_given:
+        asm_gc = assembly_gc(total_gc_nt_count, total_length)
+        dna_given_val = 1
+    repeats_given_val = 1 if repeats_given else 0
+    spqr_given_val = 1 if args.computespqrdata else 0
+    graphVals = (os.path.basename(asm_fn), graph_filetype, total_node_count,
+                total_edge_count, total_all_edge_count, total_component_count,
+                total_bicomponent_count, total_single_component_count,
+                total_length, n50(bp_length_list), asm_gc, dna_given_val,
+                repeats_given_val, spqr_given_val, smallest_viewable_comp_rank)
+    cursor.execute(ASSEMBLY_INSERTION_STMT, graphVals)
+    # ...Ok, now we're finally done!
     t4 = time.time()
     difference = t4 - t3
     total_layout_time += difference
