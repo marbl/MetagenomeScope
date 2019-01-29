@@ -67,12 +67,16 @@ parser.add_argument("-w", "--overwrite", required=False, default=False,
     action="store_true", help="""overwrite output files (if this isn't passed,
     and a non-auxiliary file would need to be overwritten, an error will be
     raised)""")
-parser.add_argument("-maxn", "--maxnodecount", required=False, default=7999,
-    type=int, help="""connected components with more nodes than this value will
-    not be laid out or available for display in the viewer interface""")
-parser.add_argument("-maxe", "--maxedgecount", required=False, default=7999,
-    type=int, help="""connected components with more nodes than this value will
-    not be laid out or available for display in the viewer interface""")
+parser.add_argument("-maxn", "--maxnodecount", required=False,
+    default=config.MAXN_DEFAULT, type=int, help="""connected components with more
+    nodes than this value will not be laid out or available for display in the
+    viewer interface (default {}, must be at least
+    1)""".format(config.MAXN_DEFAULT))
+parser.add_argument("-maxe", "--maxedgecount", required=False,
+    default=config.MAXE_DEFAULT, type=int, help="""connected components with more
+    edges than this value will not be laid out or available for display in the
+    viewer interface (default {}, must be at least
+    1)""".format(config.MAXE_DEFAULT))
 parser.add_argument("-ub", "--userbubblefile", required=False,
     help="""file describing pre-identified bubbles in the graph, in the format
     of MetaCarvel's bubbles.txt output: each line of the file is formatted
@@ -514,7 +518,7 @@ def collate_graph(args):
     make_no_patterned_dot_files = args.nopatterndotfiles
     #assume_unoriented = args.assumeunoriented
     #assume_oriented = args.assumeoriented
-    
+
     # NOTE this is ostensibly vulnerable to a race condition in which this
     # directory is removed after it's either created or shown to already exist
     # as a directory. In this case, though, the user would just get an error
@@ -534,6 +538,12 @@ def collate_graph(args):
             # permission error), then just raise that error to let the user
             # know what went wrong
             raise
+
+    # Check the validity of -maxn and -maxe
+    if max_node_ct < 1:
+        raise ValueError, "maximum node count must be at least 1"
+    if max_edge_ct < 1:
+        raise ValueError, "maximum edge count must be at least 1"
     
     # NOTE Used to test the "race condition" mentioned above in which the
     # directory is removed.

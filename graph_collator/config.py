@@ -151,6 +151,7 @@ GLOBALEDGE_STYLE = "headport=n,tailport=s"
 # a zero margin).
 GLOBALCLUSTER_STYLE = "margin=0"
 
+### Other misc. config variables ###
 # Whether or not to specify colors for node groups in .gv/.xdot files. If this
 # is True, then PATTERN2COLOR is used to set the colors.
 COLOR_PATTERNS = True
@@ -162,6 +163,10 @@ COLOR_PATTERNS = True
 PATTERN2COLOR = {"bubbles": "#9abaf3", "frayed_ropes": "#59f459", "chains":
         "#fcaca3", "cyclic_chains": "#ffd163", "misc_patterns": "#c398eb",
         "other_structural_patterns": "#000000"}
+
+# The default values for -maxn and -maxe in the collate script.
+MAXN_DEFAULT = 7999
+MAXE_DEFAULT = 7999
 
 # Various status messages/message prefixes that are displayed to the user.
 # Displayed during command-line argument parsing
