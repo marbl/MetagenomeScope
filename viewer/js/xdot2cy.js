@@ -1433,6 +1433,7 @@ function parseDBcomponents() {
     var edgeInfo = edgeCount.toLocaleString();
     var compCt = graphInfo["component_count"];
     var compInfo = compCt.toLocaleString();
+    var smallestViewableComp = graphInfo["smallest_viewable_component_rank"];
     var sccCt = graphInfo["single_component_count"];
     var sccInfo = sccCt.toLocaleString();
     var bicmpCt = graphInfo["bicomponent_count"];
@@ -1529,8 +1530,10 @@ function parseDBcomponents() {
     $("#bicmpCountEntry").text(bicmpInfo);
     $("#connCmpCtEntry").text(compInfo);
     $("#n50Entry").text(n50Info);
-    // Reset connected component in the selector to 1
-    $("#componentselector").prop("value", 1);
+    // Reset connected component in the selector to smallest viewable component
+    // (or just 1, for the SPQR case, since we don't support skipping
+    // components there yet)
+    $("#componentselector").prop("value", smallestViewableComp);
     $("#componentselector").prop("max", compCt);
     $("#componentselector").prop("disabled", false);
     $("#SPQRcomponentselector").prop("value", 1);
@@ -1854,6 +1857,24 @@ function startDrawComponent(mode) {
         alert("Please enter a valid component rank using the input field.");
         return;
     }
+    // Check if this component was laid out. This check should be done after
+    // the compRankValidity check, since this assumes that currRank at least
+    // refers to a valid component rank (so if it is invalid, the sql.js query
+    // will fail).
+    if (mode !== "SPQR") {
+        var drawableResult = isComponentDrawable(currRank);
+        if (!drawableResult[0]) {
+            alert(
+                "Due to its size (" + drawableResult[1] + " nodes and " +
+                drawableResult[2] + " edges), layout was not performed " +
+                "on this component (size rank " + currRank + "). It is not " +
+                "drawable using the current .db file. You can control this " +
+                "behavior through the -maxn and -maxe MetagenomeScope " +
+                "preprocessing script command-line arguments, if desired."
+            );
+            return;
+        }
+    }
     // if compRankValidity === 0, then currRank must represent just an
     // integer: so parseInt is fine to run on it
     updateTextStatus("Drawing clusters...", false);
@@ -2022,6 +2043,27 @@ function drawSPQRComponent(cmpRank) {
             totalElementCount, "SPQR", spqrSpecs, metanodeParams,
             [cNodeCount, cEdgeCount, ucNodeCount, ucEdgeCount, bicmpCount]);
     }, 0);
+}
+
+/* Checks if the standard-mode component with the given size rank is drawable.
+ * Returns an array of [false, component node count, component edge count] if it
+ * is not drawable; returns [true, 0, 0] if it is drawable.
+ * (TODO: use the node/edge counts in the drawable case? see #142 on github.)
+ */
+function isComponentDrawable(cmpRank) {
+    var isTooLargeStmt = mgsc.CURR_DB.prepare(
+        "SELECT node_count, edge_count, too_large FROM components WHERE " +
+        "size_rank = ? LIMIT 1", [cmpRank]
+    );
+    isTooLargeStmt.step();
+    var isTooLargeObj = isTooLargeStmt.getAsObject();
+    isTooLargeStmt.free();
+    if (isTooLargeObj["too_large"] !== 0) {
+        var largeCompNodeCount = isTooLargeObj["node_count"].toLocaleString();
+        var largeCompEdgeCount = isTooLargeObj["edge_count"].toLocaleString();
+        return [false, largeCompNodeCount, largeCompEdgeCount];
+    }
+    return [true, 0, 0];
 }
 
 /* Draws the selected connected component in the .db file -- its nodes, its
