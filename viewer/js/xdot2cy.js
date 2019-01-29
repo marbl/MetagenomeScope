@@ -2051,10 +2051,20 @@ function drawSPQRComponent(cmpRank) {
  * (TODO: use the node/edge counts in the drawable case? see #142 on github.)
  */
 function isComponentDrawable(cmpRank) {
-    var isTooLargeStmt = mgsc.CURR_DB.prepare(
-        "SELECT node_count, edge_count, too_large FROM components WHERE " +
-        "size_rank = ? LIMIT 1", [cmpRank]
-    );
+    try {
+        var isTooLargeStmt = mgsc.CURR_DB.prepare(
+            "SELECT node_count, edge_count, too_large FROM components WHERE " +
+            "size_rank = ? LIMIT 1", [cmpRank]
+        );
+    }
+    catch (error) {
+        // The error here is almost certainly due to an old .db file that
+        // doesn't have a too_large column for this component (since we already
+        // checked the validity of this component rank). So we just go ahead
+        // with rendering it. As new .db files are created, this branch should
+        // be visited less and less.
+        return [true, 0, 0];
+    }
     isTooLargeStmt.step();
     var isTooLargeObj = isTooLargeStmt.getAsObject();
     isTooLargeStmt.free();
