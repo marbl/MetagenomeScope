@@ -68,11 +68,11 @@ parser.add_argument("-w", "--overwrite", required=False, default=False,
     and a non-auxiliary file would need to be overwritten, an error will be
     raised)""")
 parser.add_argument("-maxn", "--maxnodecount", required=False, default=7999,
-    help="""connected components with more nodes than this value will not
-    be laid out or available for display in the viewer interface""")
+    type=int, help="""connected components with more nodes than this value will
+    not be laid out or available for display in the viewer interface""")
 parser.add_argument("-maxe", "--maxedgecount", required=False, default=7999,
-    help="""connected components with more nodes than this value will not
-    be laid out or available for display in the viewer interface""")
+    type=int, help="""connected components with more nodes than this value will
+    not be laid out or available for display in the viewer interface""")
 parser.add_argument("-ub", "--userbubblefile", required=False,
     help="""file describing pre-identified bubbles in the graph, in the format
     of MetaCarvel's bubbles.txt output: each line of the file is formatted
@@ -498,8 +498,8 @@ def collate_graph(args):
     output_fn = args.outputprefix
     db_fn = output_fn + ".db"
     dir_fn = args.outputdirectory
-    max_node_count = args.maxnodecount
-    max_edge_count = args.maxedgecount
+    max_node_ct = args.maxnodecount
+    max_edge_ct = args.maxedgecount
     preserve_gv = args.preservegv
     preserve_xdot = args.preservexdot
     output_spatts = args.structuralpatterns
@@ -1637,8 +1637,7 @@ def collate_graph(args):
                         bicomponent_set = \
                             bicomponent_set.union(m.parent_bicomponents)
                     single_connected_components.append(
-                        graph_objects.Component(node_list, bicomponent_set,
-                            max_node_count, max_edge_count))
+                        graph_objects.Component(node_list, bicomponent_set))
                     total_single_component_count += 1
     
     # Identify connected components in the normal (non-"single") graph
@@ -1673,8 +1672,7 @@ def collate_graph(args):
                 if m.used_in_collapsing and m.group not in node_group_list:
                     node_group_list.append(m.group)
             connected_components.append(
-                graph_objects.Component(node_list, node_group_list,
-                        max_node_count, max_edge_count))
+                graph_objects.Component(node_list, node_group_list))
             total_component_count += 1
     connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
     
@@ -1700,8 +1698,7 @@ def collate_graph(args):
                     single_node_list.append(s)
                     bicomponent_set = bicomponent_set.union(s.parent_bicomponents)
                 single_connected_components.append(
-                    graph_objects.Component(single_node_list, bicomponent_set,
-                        max_node_count, max_edge_count))
+                    graph_objects.Component(single_node_list, bicomponent_set))
                 total_single_component_count += 1
         
         # At this point, we have single_connected_components ready. We're now able
@@ -1863,7 +1860,7 @@ def collate_graph(args):
     NODE_INSERTION_STMT = "INSERT INTO nodes VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)"
     EDGE_INSERTION_STMT = "INSERT INTO edges VALUES (?,?,?,?,?,?,?,?,?,?,?,?)"
     CLUSTER_INSERTION_STMT = "INSERT INTO clusters VALUES (?,?,?,?,?,?,?,?,?,?)"
-    COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?)"
+    COMPONENT_INSERTION_STMT = "INSERT INTO components VALUES (?,?,?,?,?,?,?)"
     ASSEMBLY_INSERTION_STMT = \
         "INSERT INTO assembly VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)"
     SINGLENODE_INSERTION_STMT = \
@@ -1890,7 +1887,8 @@ def collate_graph(args):
             w real, h real, cluster_type text)""")
     cursor.execute("""CREATE TABLE components
             (size_rank integer, node_count integer, edge_count integer,
-            total_length integer, boundingbox_x real, boundingbox_y real)""")
+            total_length integer, boundingbox_x real, boundingbox_y real,
+            too_large integer)""")
     cursor.execute("""CREATE TABLE assembly
             (filename text, filetype text, node_count integer,
             edge_count integer, all_edge_count integer, component_count integer,
@@ -2455,7 +2453,27 @@ def collate_graph(args):
     t3 = time.time()
     component_size_rank = 1 # largest component is 1, the 2nd largest is 2, etc
     no_print = False # used to reduce excess printing (see issue #133 on GitHub)
+    # Should be the default value in the (standard mode) component selector in
+    # the viewer interface. TODO: put this in the assembly table of the db file
+    smallest_viewable_component = -1
     for component in connected_components:
+        if component.node_ct > max_node_ct or component.edge_ct > max_edge_ct:
+            # Save the component in the db file, but with bounding box
+            # dimensions of 0 and too_large set to 1 (for True).
+            cursor.execute(COMPONENT_INSERTION_STMT, (component_size_rank,
+                component.node_ct, component.edge_ct, component.total_length,
+                0, 0, 1))
+            # TODO: insert all elements (nodes/edges/clusters) in this component
+            # with dummy coords, to enable global searching (#140 on the marbl
+            # github page)? Or not -- space issues will probably manifest
+            # inevitably. But I think that's a good idea eventually. Maybe make
+            # it configurable?
+            operation_msg(config.LARGE_COMPONENT_MSG.format(cr=component_size_rank,
+                nc=component.node_ct, ec=component.edge_ct), True)
+            component_size_rank += 1
+            continue
+        if smallest_viewable_component == -1:
+            smallest_viewable_component = component_size_rank
         component_node_ct = len(component.node_list)
         # used in a silly corner case in which we 1) trigger the small component
         # message below and 2) the first "small" component has aux file(s) that
@@ -2494,7 +2512,7 @@ def collate_graph(args):
                 curr_node.set_component_rank(component_size_rank)
                 cursor.execute(NODE_INSERTION_STMT, curr_node.db_values())
                 cursor.execute(COMPONENT_INSERTION_STMT, (component_size_rank,
-                    1, 0, curr_node.bp, wpts, hpts))
+                    1, 0, curr_node.bp, wpts, hpts, 0))
                 component_size_rank += 1
                 continue
         # Lay out all clusters individually, to be backfilled
@@ -2738,7 +2756,7 @@ def collate_graph(args):
         # Output component information to the database
         cursor.execute(COMPONENT_INSERTION_STMT,
             (component_size_rank, component_node_count, component_edge_count,
-            component_total_length, bounding_box_right, bounding_box_top))
+            component_total_length, bounding_box_right, bounding_box_top, 0))
     
         h.clear()
         h.close()

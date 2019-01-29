@@ -192,6 +192,8 @@ LAYOUT_MSG = "Laying out "
 SMALL_COMPONENTS_MSG = "small (containing < 5 nodes) remaining components..."
 SPQR_COMPONENTS_MSG = " SPQR-integrated component "
 START_LAYOUT_MSG = "Laying out connected component "
+LARGE_COMPONENT_MSG = "Not laying out component {cr} ({nc} nodes, {ec} " + \
+    "edges): exceeds -maxn or -maxe."
 DB_SAVE_MSG = "Saving information to "
 DONE_MSG = "Done."
 # Error messages (and occasional "helper" messages for constructing error msgs)
