@@ -67,6 +67,12 @@ parser.add_argument("-w", "--overwrite", required=False, default=False,
     action="store_true", help="""overwrite output files (if this isn't passed,
     and a non-auxiliary file would need to be overwritten, an error will be
     raised)""")
+parser.add_argument("-maxn", "--maxnodecount", required=False, default=7999,
+    help="""connected components with more nodes than this value will not
+    be laid out or available for display in the viewer interface""")
+parser.add_argument("-maxe", "--maxedgecount", required=False, default=7999,
+    help="""connected components with more nodes than this value will not
+    be laid out or available for display in the viewer interface""")
 parser.add_argument("-ub", "--userbubblefile", required=False,
     help="""file describing pre-identified bubbles in the graph, in the format
     of MetaCarvel's bubbles.txt output: each line of the file is formatted
@@ -492,6 +498,8 @@ def collate_graph(args):
     output_fn = args.outputprefix
     db_fn = output_fn + ".db"
     dir_fn = args.outputdirectory
+    max_node_count = args.maxnodecount
+    max_edge_count = args.maxedgecount
     preserve_gv = args.preservegv
     preserve_xdot = args.preservexdot
     output_spatts = args.structuralpatterns
@@ -1629,7 +1637,8 @@ def collate_graph(args):
                         bicomponent_set = \
                             bicomponent_set.union(m.parent_bicomponents)
                     single_connected_components.append(
-                        graph_objects.Component(node_list, bicomponent_set))
+                        graph_objects.Component(node_list, bicomponent_set,
+                            max_node_count, max_edge_count))
                     total_single_component_count += 1
     
     # Identify connected components in the normal (non-"single") graph
@@ -1664,7 +1673,8 @@ def collate_graph(args):
                 if m.used_in_collapsing and m.group not in node_group_list:
                     node_group_list.append(m.group)
             connected_components.append(
-                graph_objects.Component(node_list, node_group_list))
+                graph_objects.Component(node_list, node_group_list,
+                        max_node_count, max_edge_count))
             total_component_count += 1
     connected_components.sort(reverse=True, key=lambda c: len(c.node_list))
     
@@ -1690,7 +1700,8 @@ def collate_graph(args):
                     single_node_list.append(s)
                     bicomponent_set = bicomponent_set.union(s.parent_bicomponents)
                 single_connected_components.append(
-                    graph_objects.Component(single_node_list, bicomponent_set))
+                    graph_objects.Component(single_node_list, bicomponent_set,
+                        max_node_count, max_edge_count))
                 total_single_component_count += 1
         
         # At this point, we have single_connected_components ready. We're now able

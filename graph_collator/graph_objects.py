@@ -1496,13 +1496,33 @@ class Component(object):
        maintain meta-information, such as node groups, for each connected
        component we're interested in.
     """
-    def __init__(self, node_list, node_group_list):
+    def __init__(self, node_list, node_group_list, maxn, maxe):
         """Given a list of all nodes (i.e. not node groups) and a list of
            all node groups in the connected component, intializes the
            connected component.
+
+           If the number of nodes in this component exceeds maxn, and/or
+           if the number of edges in this component exceeds maxe, this
+           component will be marked as "too_large" -- so it won't be laid out
+           in collate.collate_graph(), and it (or at least all of it, at once)
+           won't be viewable in the viewer interface.
         """
         self.node_list = node_list
-        self.node_group_list = node_group_list 
+        self.node_group_list = node_group_list
+        self.too_large = False
+        if len(self.node_list) > maxn:
+            self.too_large = True
+        else:
+            # Only check if we have too many edges if we don't already know we
+            # have too many nodes. This way, we avoid making a tally of all the
+            # edges if we don't have to (which is good, because if we have a
+            # ton of nodes then we probably also have a ton of edges -- which
+            # will mean that looping through them will be more expensive).
+            edge_ct = 0
+            for n in self.node_list:
+                edge_ct += len(n.outgoing_edge_objects)
+            if edge_ct > maxe:
+                self.too_large = True
 
     def node_and_edge_info(self):
         """Returns the node and edge info for this connected component
