@@ -24,6 +24,6 @@
 ./graph_collator/collate.py -i testgraphs/ship_hull_biofilm/oriented_judson_2.gml -o biofilm_judson2 -d testdbs/ -w
 #./graph_collator/collate.py -i testgraphs/UpdatedBAMBUSfiles/oriented.gml -o 20170220 -d testdbs/ -w
 echo "Creating the (unsimplified) Shakya graph. This might take a while."
-./graph_collator/collate.py -i testgraphs/RF_oriented_lengthinfo.gml -o shakya -d testdbs/ -w
+./graph_collator/collate.py -i testgraphs/RF_oriented_lengthinfo.gml -o shakya -d testdbs/ -w -maxe 10000
 #echo "Creating the (unsimplified) SRS049950 graph. This might take a while."
 #./graph_collator/collate.py -i testgraphs/august1_before_withlengthandfwdorients.gml -o august1_before -d testdbs/ -w
