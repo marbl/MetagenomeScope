@@ -9,6 +9,6 @@
   "author": "Marcus Fedarko",
   "license": "GPL-3.0",
   "devDependencies": {
-    "electron": "^2.0.7"
+    "electron": "^4.0.3"
   }
 }
