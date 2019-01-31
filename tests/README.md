@@ -17,14 +17,14 @@ also just run `make test` to run both types of tests.
 * All of these commands require [pytest](https://pytest.org/) to be
   installed.
 
-* These commands all assume they're being run from the root of the
-  MetagenomeScope repository -- running them from elsewhere will probably cause
+* These various `make test` commands all assume they're being run from the root of
+  the MetagenomeScope repository -- running them from elsewhere will probably cause
   them to fail.
 
-* After running `make generaltest` or `make spqrtest`, the `tests/output`
-  directory will be emptied (to avoid buildup of test files on your system).
-  You can disable this behavior by removing the "rm tests/output/\*" lines from the
-  corresponding targets in the Makefile.
+* After running `make generaltest` or `make spqrtest`, the
+  `tests/graph_collator/output` directory will be emptied (to avoid buildup of
+  test files on your system). You can disable this behavior by removing the
+  "rm tests/output/\*" lines from the corresponding targets in the Makefile.
 
 ## Test Data Acknowledgements (`input/`)
 

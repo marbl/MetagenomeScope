@@ -41,14 +41,14 @@ SCRIPT_DIR = graph_collator/
 SPQR_CODE = $(addprefix $(SCRIPT_DIR), spqr.cpp)
 SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 
-# -B: don't create a __pycache__/ directory in tests/
+# -B: don't create __pycache__/ directories
 generaltest:
 	python2.7 -B -m pytest -m "not spqrtest"
-	rm tests/output/*
+	rm tests/graph_collator/output/*
 
 spqrtest:
 	python2.7 -B -m pytest -m "spqrtest"
-	rm tests/output/*
+	rm tests/graph_collator/output/*
 
 test: generaltest spqrtest
 

@@ -27,8 +27,8 @@ import random
 sys.path.append("graph_collator")
 import collate
 
-INDIR = os.path.join("tests", "input")
-OUTDIR = os.path.join("tests", "output")
+INDIR = os.path.join("tests", "graph_collator", "input")
+OUTDIR = os.path.join("tests", "graph_collator", "output")
 
 def gen_args(graph_filename):
     """Generates a list of arguments for collate.run_script().
