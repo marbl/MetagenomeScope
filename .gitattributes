@@ -3,3 +3,5 @@ fonts/* linguist-vendored=true
 *.min.js linguist-generated=true
 *.min.css linguist-generated=true
 *.min.html linguist-generated=true
+tests/viewer/vendor/* linguist-vendored=true
+tests/viewer/index.html linguist-generated=true
