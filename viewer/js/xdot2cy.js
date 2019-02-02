@@ -3600,7 +3600,10 @@ function exportPath() {
             }
             // Add a line for this node
             nextEndPos = (nextStartPos - 1) + nodeLen;
-            textToExport += "scaffold_1\t" + nextStartPos + "\t" + nextEndPos +
+            // TODO: keep track of how many scaffolds the user has created
+            // from this graph (not component) as a global-ish number variable,
+            // then use that when populating an AGP file with many scaffolds.
+            textToExport += "scaffold\t" + nextStartPos + "\t" + nextEndPos +
                 "\t" + (i + 1) + "\t" + componentType + "\t" + nodeKey +
                 "\t1\t" + nodeLen + "\t" + nodeOrient + "\n";
             nextStartPos = nextEndPos + 1;
