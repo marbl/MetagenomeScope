@@ -1,8 +1,10 @@
 @charset "utf-8";
-
+/* Commented out because we just want these styles to impact the test dialog
+ * and nothing else in MetagenomeScope.
 body {
   margin:0;
 }
+*/
 
 #mocha {
   font: 20px/1.5 "Helvetica Neue", Helvetica, Arial, sans-serif;

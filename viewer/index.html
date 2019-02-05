@@ -592,6 +592,39 @@
              adapted from Bootstrap's tutorial on modal dialogs, located at
              https://getbootstrap.com/docs/3.3/javascript/#modals
         -->
+        <div class="modal fade" tabindex="-1" role="dialog" id='testDialog'>
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <!--
+                        <button type="button" class="close"
+                            data-dismiss="modal" aria-label="Close dialog">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        -->
+                        <h4 class="modal-title">
+                            Viewer Interface Tests
+                        </h4>
+                    </div> <!-- end modal-header -->
+                    <div class="modal-body">
+                        <link rel="stylesheet" href="tests/vendor/mocha.css" />
+                        <script src="tests/vendor/mocha.js"></script>
+                        <script src="tests/vendor/chai.js"></script>
+                        <script>mocha.setup('bdd');</script>
+                        <script src="tests/test_distances.js"></script>
+                        <div id="mocha"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default"
+                            data-dismiss="modal">Close
+                        </button>
+                        <button type="button" class="btn btn-primary"
+                            onclick="mocha.run();">Run tests
+                        </button>
+                    </div>
+                </div> <!-- end modal-content -->
+            </div> <!-- end modal-dialog -->
+        </div> <!-- end modal -->
         <!-- XHR .db loader dialog -->
         <div class="modal fade" tabindex="-1" role="dialog" id='fsDialog'>
             <div class="modal-dialog" role="document">
