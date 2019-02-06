@@ -212,3 +212,6 @@ button {
 .dropdown-menu a {
     cursor: pointer;
 }
+#mochaTestSampleButton {
+    opacity: 0;
+}

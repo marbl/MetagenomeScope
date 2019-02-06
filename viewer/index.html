@@ -593,7 +593,7 @@
              https://getbootstrap.com/docs/3.3/javascript/#modals
         -->
         <div class="modal fade" tabindex="-1" role="dialog" id='testDialog'>
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <!--
@@ -612,7 +612,20 @@
                         <script src="tests/vendor/chai.js"></script>
                         <script>mocha.setup('bdd');</script>
                         <script src="tests/test_distances.js"></script>
+                        <script src="tests/test_button_disabling_enabling.js"></script>
                         <div id="mocha"></div>
+                        <!--
+                            Some sample elements for unit-testing interactions.
+                            Their IDs should all start with "mochaTest" in
+                            order to avoid conflicts.
+                        -->
+                        <button class='btn btn-sm disabled'
+                            id="mochaTestSampleButton" disabled="disabled"
+                            onclick="mgsc.mochaTestEmitSampleButtonClicked();">
+                            <span class="glyphicon glyphicon-exclamation-sign"
+                                aria-hidden="true"></span> &nbsp; Test Button
+                        </button>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default"
