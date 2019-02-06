@@ -38,11 +38,10 @@ install:
     # At this point, OGDF has been installed. Now we can build the SPQR script.
     - cd ..
     - make spqr IDIR=OGDF/include/ RDIR=OGDF/_release/
+    # We also install mocha-headless-chrome so that we can run the viewer
+    # interface tests.
+    - npm install -g mocha-headless-chrome
 script:
     - source activate mgsc
+    # This runs both the preprocessing script and viewer interface tests
     - make test
-    # Run viewer interface tests
-    # Ideally we'd test this in Firefox as well, but this is a simple solution
-    # that at least works.
-    - npm install -g mocha-headless-chrome
-    - mocha-headless-chrome -f viewer/headless_tests_index.min.html

@@ -1,9 +1,15 @@
 # Since the bulk of MetagenomeScope's code isn't compiled, this Makefile only
 # performs a few actions using the following (phony) targets:
 #
-# test: Runs tests for the preprocessing script using pytest. All of these
-#  tests should be located in the tests/ directory of MetagenomeScope.
-#  (In the future, this should also be used to run JS tests.)
+# test: Runs the general, spqr, and viewer tests.
+#
+# generaltest: Runs the non-SPQR preprocessing script tests using pytest.
+#
+# spqrtest: Runs the SPQR-specific preprocessing script tests using pytest.
+#
+# viewertest: Runs the viewer interface tests using mocha-headless-chrome.
+#  (If you don't have mocha-headless-chrome installed, you can install it via
+#  "npm install -g mocha-headless-chrome".)
 #
 # spqr: this is used to compile the "SPQR script" (spqr.cpp)
 #  contained in the graph_collator/ directory of MetagenomeScope.
@@ -13,7 +19,7 @@
 #  MetagenomeScope's wiki (https://github.com/marbl/MetagenomeScope/wiki)
 #  for details on this option.
 
-.PHONY: generaltest spqrtest test spqr
+.PHONY: generaltest spqrtest viewertest test spqr
 
 # This might have to be changed depending on your system. When I tried
 # compiling this on a Mac computer, the g++ binary seemed to just redirect to
@@ -50,7 +56,11 @@ spqrtest:
 	python2.7 -B -m pytest -m "spqrtest"
 	rm graph_collator/tests/output/*
 
-test: generaltest spqrtest
+viewertest:
+	fish minify_files.fish
+	mocha-headless-chrome -f viewer/headless_tests_index.min.html
+
+test: generaltest spqrtest viewertest
 
 spqr:
 	$(COMPILER) $(SPQR_CODE) $(CFLAGS) $(OGDF_FLAGS) -o $(SPQR_BINARY)
