@@ -54,7 +54,7 @@ Furthermore, the visualization interface is distributed with:
      (included in dependency_licenses/bootstrap-colorpicker/apache-license-2.0)
 
 -D3.js
-    -https://d3js.org/
+    -https://d3js.org
     -Copyright is contained in dependency_licenses/d3.js.license
     -Licensed under the BSD 3-clause License
      (included in dependency_licenses/d3.js.license)
@@ -70,6 +70,23 @@ Furthermore, the visualization interface is distributed with:
     -Copyright is contained in dependency_licenses/jquery.license
     -Licensed under the MIT License
      (included in dependency_licenses/jquery.license)
+
+-Mocha
+    -https://mochajs.org
+    -Copyright is contained in dependency_licenses/mocha.license
+    -Licensed under the MIT License
+     (included in dependency_license/mocha.license)
+
+-Chai
+    -https://www.chaijs.com
+    -Copyright is contained in dependency_licenses/chai.license
+    -Licensed under the MIT License
+     (included in dependency_license/chai.license)
+
+Automated testing of the visualization interface is done on Travis-CI using
+mocha-headless-chrome (licensed under the MIT License; project is hosted at
+https://www.npmjs.com/package/mocha-headless-chrome). mocha-headless-chrome
+is not distributed with MetagenomeScope.
 
 Additionally, some nontrivial portions of JavaScript/HTML code in the
 visualization interface were based on the following public code examples
