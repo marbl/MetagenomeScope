@@ -127,6 +127,12 @@ sed -i'' 's/<link rel=\"shortcut icon\" href=\"bubble\.ico\">//' electron/index.
 # minified.
 sed -i'' 's/mgsc\.METAGENOMESCOPE_ELECTRON_BEING_USED \?= \?0;\?/mgsc\.METAGENOMESCOPE_ELECTRON_BEING_USED = 1;/' electron/index.min.html
 
+# Set up version of index.min.html for running tests headlessly
+cp viewer/index.min.html viewer/headless_tests_index.min.html
+# Literally the only difference (right now) is that the headless version
+# automatically invokes mgsc.runTests(), while the normal version doesn't.
+sed -i'' 's/<script id=\"runTestsHere\">/<script id=\"runTestsHere\">mgsc.runTests();/' viewer/headless_tests_index.min.html
+
 # Finally, print ending messages
 echo "File minification complete."
 echo "Make sure that the version of index.min.html you're uploading somewhere is renamed to index.html in its new location."

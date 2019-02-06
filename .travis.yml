@@ -41,3 +41,8 @@ install:
 script:
     - source activate mgsc
     - make test
+    # Run viewer interface tests
+    # Ideally we'd test this in Firefox as well, but this is a simple solution
+    # that at least works.
+    - npm install -g mocha-headless-chrome
+    - mocha-headless-chrome -f viewer/headless_tests_index.min.html

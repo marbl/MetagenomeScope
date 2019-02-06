@@ -635,6 +635,18 @@
                         <script src="tests/test_distances.js"></script>
                         <script src="tests/test_button_disabling_enabling.js"></script>
                         <div id="mocha"></div>
+                        <!-- In the headless index HTML file, the following
+                             script will be used to automatically call
+                             mgsc.runTests() (since there isn't a user to click
+                             "run tests"). The reason we don't automatically run
+                             tests in the normal version of the viewer interface
+                             is so we don't delay the user.
+
+                             ANYWAY: please don't change the following script's
+                             ID from what it currently is! Otherwise, the
+                             minify_files.fish script will fail.
+                        -->
+                        <script id="runTestsHere"></script>
                         <!--
                             Some sample elements for unit-testing interactions.
                             Their IDs should all start with "mochaTest" in
