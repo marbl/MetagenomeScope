@@ -1,4 +1,4 @@
-#! /usr/bin/fish
+#! /usr/bin/env fish
 # Minifies the custom JavaScript and CSS code in MetagenomeScope.
 #
 # PREREQUISITES:
@@ -76,6 +76,10 @@ html-minifier --html5 --minify-css --minify-js --remove-comments --collapse-whit
 # Stack Overflow question: https://stackoverflow.com/questions/4247068/
 # Link to Sruthi's SO profile:
 # https://stackoverflow.com/users/7362778/sruthi-poddutur
+#
+# It doesn't seem like fish aliases persist outside of scripts (with the
+# exception of those in config.fish), so this shouldn't mess with the user's
+# environment after they run the minification script.
 #
 # Note that we redirect which's output to /dev/null so that it doesn't print
 # the location of gsed (if it has one) to stdout. (I'm hoping that I don't come
