@@ -155,6 +155,11 @@
                 <span class="glyphicon glyphicon-question-sign"></span> &nbsp;
                 <span>Help</span>
             </button>
+            <button class='btn btn-default btn-sm' id='openTestDialogButton'
+                onclick='displayTests();'>
+                <span class="glyphicon glyphicon-dashboard"></span> &nbsp;
+                <span>Open Test Dialog</span>
+            </button>
             </p>
             <div class="progress">
                 <div class="progress-bar notransitions" role="progressbar"
@@ -607,10 +612,26 @@
                         </h4>
                     </div> <!-- end modal-header -->
                     <div class="modal-body">
+                        <!-- Mocha/Chai vendor stuff. The CSS should only
+                             impact Mocha elements, so this shouldn't mess with
+                             the rest of the application.
+
+                             CODELINK: some of this basic HTML/JS (e.g. the
+                             tags that load mocha.js and mocha.css, the "mocha"
+                             div, the use of mocha.setup() in
+                             tests/setup_tests.js) were derived from the
+                             environment output by "mocha init", which I
+                             refactored to squeeze into this dialog :)
+                        -->
                         <link rel="stylesheet" href="tests/vendor/mocha.css" />
                         <script src="tests/vendor/mocha.js"></script>
                         <script src="tests/vendor/chai.js"></script>
-                        <script>mocha.setup('bdd');</script>
+                        <!-- Simple code that sets up the Mocha testing
+                             environment in relation to the rest of
+                             MetagenomeScope.
+                        -->
+                        <script src="tests/setup_tests.js"></script>
+                        <!-- External JS files that define various tests. -->
                         <script src="tests/test_distances.js"></script>
                         <script src="tests/test_button_disabling_enabling.js"></script>
                         <div id="mocha"></div>
@@ -632,7 +653,8 @@
                             data-dismiss="modal">Close
                         </button>
                         <button type="button" class="btn btn-primary"
-                            onclick="mocha.run();">Run tests
+                            id="runTestsButton"
+                            onclick="mgsc.runTests();">Run tests
                         </button>
                     </div>
                 </div> <!-- end modal-content -->

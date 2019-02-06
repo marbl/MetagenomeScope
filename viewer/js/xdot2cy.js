@@ -2731,6 +2731,11 @@ function displayInfo() {
     $("#infoDialog").modal();
 }
 
+/* Pops up a dialog that can run Mocha/Chai tests for the viewer interface. */
+function displayTests() {
+    $("#testDialog").modal();
+}
+
 /* Opens a link to the MetagenomeScope wiki in another tab/window. */
 function openHelp() {
     window.open("https://github.com/marbl/MetagenomeScope/wiki", "_blank");
