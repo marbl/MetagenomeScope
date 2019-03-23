@@ -234,10 +234,9 @@ https://github.com/marbl/MetagenomeScope/wiki/Installation-Instructions
 
 Please see below for more information about the error."""
 
-# The filename suffixes indicating a file is of a certain type.
+# Keys are the filename suffixes (in lowercase) indicating a file is of a
+# certain type, and values are the user-displayed file type
 # Ideally, we should be able to detect what filetype an assembly file is by
 # just examining the file's contents, but for now this is an okay workaround.
-LASTGRAPH_SUFFIX = "lastgraph"
-GML_SUFFIX       = "gml"
-GFA_SUFFIX       = "gfa"
-FASTG_SUFFIX     = "fastg"
+FILESUFFIX2TYPE = {"lastgraph": "LastGraph", "gml": "GML", "gfa": "GFA",
+                   "fastg": "FASTG"}

@@ -626,6 +626,7 @@ def collate_graph(args):
     # Please consult the README for the most accurate list of assembly graph
     # filetypes supported.
     operation_msg(config.READ_FILE_MSG + "%s..." % (os.path.basename(asm_fn)))
+    graph = _assembly_graph_parser.AssemblyGraphParser(asm_fn)
     with open(asm_fn, 'r') as assembly_file:
         # We don't really care about case in file extensions
         lowercase_asm_fn = asm_fn.lower()
@@ -640,6 +641,7 @@ def collate_graph(args):
             if not parsing_GML:
                 raise ValueError, config.LABEL_EXISTENCE_ERR
             need_label_mapping = True
+        # NOTE I'm at here in converting this to assembly graph parser
         if parsing_LastGraph:
             graph_filetype = "LastGraph"
             dna_given = True
