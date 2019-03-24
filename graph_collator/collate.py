@@ -49,6 +49,7 @@ import time
 
 import graph_objects
 import config
+import _assembly_graph_parser
 
 # Define supported command-line arguments. (We don't actually run
 # parser.parse_args() until later on, in order to support use of this file
