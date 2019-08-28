@@ -62,6 +62,8 @@ setup(
     author_email="mfedarko@ucsd.edu",
     maintainer="Marcus Fedarko",
     maintainer_email="mfedarko@ucsd.edu",
+    url="https://github.com/marbl/MetagenomeScope",
+    include_package_data=True,
     packages=find_packages(),
     install_requires=["pygraphviz", "numpy"],
     extras_require={"dev": ["pytest"]},

@@ -1,0 +1,4 @@
+include metagenomescope/spqr
+include README.md
+include COPYING.txt
+include dependency_licenses/*
