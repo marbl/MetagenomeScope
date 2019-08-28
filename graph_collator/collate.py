@@ -623,11 +623,10 @@ def collate_graph(args):
     # List of all the node lengths in the assembly. Used when calculating n50.
     bp_length_list = []
     
-    # Below "with" block parses the assembly file.
-    # Please consult the README for the most accurate list of assembly graph
-    # filetypes supported.
+    # "Parse" the assembly graph file.
     operation_msg(config.READ_FILE_MSG + "%s..." % (os.path.basename(asm_fn)))
-    graph = _assembly_graph_parser.AssemblyGraphParser(asm_fn)
+    graph_parser = _assembly_graph_parser.AssemblyGraphParser(asm_fn)
+    graph_parser.parse()
     with open(asm_fn, 'r') as assembly_file:
         # We don't really care about case in file extensions
         lowercase_asm_fn = asm_fn.lower()
