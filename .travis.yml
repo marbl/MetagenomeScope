@@ -5,8 +5,8 @@ python:
 # NOTE I ran into troubles with building the most recent snapshot of OGDF, so
 # I'm just using the stable release at present.
 before_install:
-    - rm graph_collator/spqr
-    - wget -O ogdf.zip http://amber-v7.cs.tu-dortmund.de/lib/exe/fetch.php/tech:ogdf.v2015.05.zip
+    - rm metagenomescope/spqr
+    - wget -O ogdf.zip https://ogdf.uos.de/wp-content/uploads/2019/04/ogdf.v2015.05.zip
 # As of October 2, 2018, the dot version installed on the Ubuntu "Trusty Tahr"
 # system Travis CI uses by default is 2.36.0. This is a bit old, but it should
 # work fine -- the layouts will probably differ slightly from those produced by
@@ -26,8 +26,8 @@ install:
     - hash -r
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
-    - conda create -q -n mgsc python=2.7 numpy graphviz=2.38.0 pygraphviz pytest
-    # End conda installation
+    - conda create -q -n mgsc python=2.7 numpy graphviz=2.38.0 pygraphviz
+    - pip install -e .[dev]
     - unzip ogdf.zip
     - cd OGDF
     # Install OGDF
