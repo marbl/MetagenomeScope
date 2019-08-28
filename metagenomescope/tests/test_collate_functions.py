@@ -21,10 +21,8 @@
 import sys
 from collections import Counter
 
-sys.path.append("graph_collator")
-import collate
-import config
-import utils
+from metagenomescope import collate, config
+from metagenomescope.tests import utils
 
 def test_reverse_complement():
     assert collate.reverse_complement("") == ""

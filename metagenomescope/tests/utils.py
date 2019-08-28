@@ -24,11 +24,10 @@ import sys
 import sqlite3
 import random
 
-sys.path.append("graph_collator")
-import collate
+from metagenomescope import collate
 
-INDIR = os.path.join("graph_collator", "tests", "input")
-OUTDIR = os.path.join("graph_collator", "tests", "output")
+INDIR = os.path.join("metagenomescope", "tests", "input")
+OUTDIR = os.path.join("metagenomescope", "tests", "output")
 
 def gen_args(graph_filename):
     """Generates a list of arguments for collate.run_script().
