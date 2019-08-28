@@ -2789,13 +2789,13 @@ def collate_graph(args):
     # Close the database connection
     connection.close()
 
-def run_script(cmdline_args):
+def run_script(cmdline_args=sys.argv[1:]):
     """Parses command-line arguments, then runs the main script.
     
-       Accepts as input a list of command-line arguments, analogous to
-       sys.argv[1:]. It's possible to just specify your own list of arguments
-       instead of relying on sys.argv; this is how the tests of the
-       preprocessing script work.
+       Optionally accepts as input a list of command-line arguments,
+       analogous to sys.argv[1:]. It's possible to just specify your own
+       list of arguments instead of relying on sys.argv; this is how the
+       tests of the preprocessing script work.
     
        The argument parsing is abstracted to this function in order to avoid
        ArgParse raising errors when this file (collate.py) is imported into
@@ -2810,6 +2810,4 @@ def run_script(cmdline_args):
     collate_graph(args)
 
 if __name__ == "__main__":
-    # (The first element in sys.argv is just the program name, which is why we
-    # remove it.)
-    run_script(sys.argv[1:])
+    run_script()

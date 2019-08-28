@@ -25,7 +25,7 @@ biconnected components in the graph.
 
 MetagenomeScope is composed of two main components:
 
-1. The **preprocessing script** (contained in the `graph_collator/` directory of
+1. The **preprocessing script** (contained in the `metagenomescope/` directory of
    this repository), a mostly Python script that takes as input an assembly
    graph file and produces a SQLite .db file that can be visualized in the
    viewer interface. `collate.py` is the main script that needs to be run here.

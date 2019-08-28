@@ -20,7 +20,7 @@
 # TODO: add test case for duplicate edges once #75 (see GitHub) is resolved.
 
 import contextlib
-import utils
+from metagenomescope.tests import utils
 
 def test_self_implying_edges():
     connection, cursor = utils.create_and_open_db("loop.gfa")

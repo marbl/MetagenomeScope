@@ -21,7 +21,7 @@
 
 import os
 import contextlib
-import utils
+from metagenomescope.tests import utils
 
 EXTRAS = os.path.join(utils.INDIR, "extras")
 

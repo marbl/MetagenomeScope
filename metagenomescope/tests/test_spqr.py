@@ -20,7 +20,7 @@
 
 import pytest
 import contextlib
-import utils
+from metagenomescope.tests import utils
 
 @pytest.mark.spqrtest
 def test_spqr_tree_structure():

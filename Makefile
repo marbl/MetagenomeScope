@@ -54,18 +54,18 @@ OGDF_LINK = -L $(RDIR)
 OGDF_FLAGS = $(OGDF_INCL) $(OGDF_LINK) -l OGDF -pthread
 # Apparently forward-slashes should work on Windows systems as well as
 # Linux/OS X systems.
-SCRIPT_DIR = graph_collator/
+SCRIPT_DIR = metagenomescope/
 SPQR_CODE = $(addprefix $(SCRIPT_DIR), spqr.cpp)
 SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 
 # -B: don't create __pycache__/ directories
 generaltest:
-	python2.7 -B -m pytest -m "not spqrtest"
-	rm graph_collator/tests/output/*
+	python2.7 -B -m pytest metagenomescope/tests/ -m "not spqrtest"
+	rm metagenomescope/tests/output/*
 
 spqrtest:
-	python2.7 -B -m pytest -m "spqrtest"
-	rm graph_collator/tests/output/*
+	python2.7 -B -m pytest metagenomescope/tests/ -m "spqrtest"
+	rm metagenomescope/tests/output/*
 
 viewertest:
 	@echo "Make sure you ran the minification script before doing this!"
