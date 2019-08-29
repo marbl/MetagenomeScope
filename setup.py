@@ -19,8 +19,6 @@
 ####
 # NOTE: This file is derived from Qurro's setup.py file.
 
-import re
-import ast
 from setuptools import find_packages, setup
 
 classes = """
@@ -45,10 +43,6 @@ long_description = ("MetagenomeScope is a web-based visualization tool for "
                     "a hierarchical layout of the graph that emphasizes "
                     "a semilinear display alongside highlighting various "
                     "structural patterns within the graph.")
-
-# version parsing from __init__ pulled from Flask's setup.py
-# https://github.com/mitsuhiko/flask/blob/master/setup.py
-_version_re = re.compile(r'__version__\s+=\s+(.*)')
 
 version = "0.0.0"
 
