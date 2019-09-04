@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (C) 2017-2018 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
 # Authored by Marcus Fedarko
 #
@@ -134,10 +134,10 @@ for fn in filename_list:
                 # didn't exist (because trying to access it using sqlite3 will
                 # create it, and then the same problem of no assembly data
                 # happens).
-                raise sqlite3.OperationalError, "%s: %s" % (fn, e)
+                raise sqlite3.OperationalError("%s: %s" % (fn, e))
             data = cursor.fetchone()
             if data is None:
-                raise ValueError, "%s doesn't have assembly data" % (fn)
+                raise ValueError("%s doesn't have assembly data" % (fn))
             # Use this data to populate the parenthetical descriptions
             # Uses the str.format() python builtin to ensure that node and edge
             # counts use commas as the thousands separator
@@ -157,7 +157,7 @@ for fn in filename_list:
             db_ct += 1
 
 if db_ct == 0:
-    raise ValueError, "Directory \"%s\" has no .db files" % (args.dbdirectory)
+    raise ValueError("Directory \"%s\" has no .db files" % (args.dbdirectory))
 
 # We've got the HTML corresponding to the demo .db list (list_html_output)
 # ready. Now we just need to insert it into index.html in the right place.
@@ -208,8 +208,8 @@ with open(output_file_path, "w") as outputindexfile:
                 going_through_template_demo_list = False
                 done_with_template_demo_list = True
 if args.outputindexfile is None:
-    print "Demo .db list of %d .db files inserted into %s." % \
-            (db_ct, args.indexfile)
+    print("Demo .db list of %d .db files inserted into %s." % \
+            (db_ct, args.indexfile))
 else:
-    print "Copy of %s with demo .db list of %d .db files written to %s." % \
-            (args.indexfile, db_ct, args.outputindexfile)
+    print("Copy of %s with demo .db list of %d .db files written to %s." % \
+            (args.indexfile, db_ct, args.outputindexfile))
