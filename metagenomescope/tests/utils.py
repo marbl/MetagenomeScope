@@ -20,7 +20,6 @@
 # process of creating tests for MetagenomeScope's preprocessing script.
 
 import os
-import sys
 import sqlite3
 import random
 
@@ -28,6 +27,7 @@ from metagenomescope import collate
 
 INDIR = os.path.join("metagenomescope", "tests", "input")
 OUTDIR = os.path.join("metagenomescope", "tests", "output")
+
 
 def gen_args(graph_filename):
     """Generates a list of arguments for collate.run_script().
@@ -51,8 +51,16 @@ def gen_args(graph_filename):
     It may be desirable to modify this function later to accept arbitrary
     arguments when testing those options.
     """
-    return ["-i", os.path.join(INDIR, graph_filename), "-o",
-            graph_filename, "-d", OUTDIR, "-w"]
+    return [
+        "-i",
+        os.path.join(INDIR, graph_filename),
+        "-o",
+        graph_filename,
+        "-d",
+        OUTDIR,
+        "-w",
+    ]
+
 
 def create_and_open_db(graph_filename, extra_args=[]):
     """Runs collate; returns a connection and cursor for the produced .db file.
@@ -82,6 +90,7 @@ def create_and_open_db(graph_filename, extra_args=[]):
     cursor = connection.cursor()
     return connection, cursor
 
+
 def is_oriented_graph(cursor):
     """Determines if the graph is oriented or unoriented.
 
@@ -108,6 +117,7 @@ def is_oriented_graph(cursor):
     if filetype == "GML":
         return True
     return False
+
 
 def validate_std_counts(cursor, node_ct, all_edge_ct, cc_ct):
     """Validates the number of standard-mode elements in the graph.
@@ -206,6 +216,7 @@ def validate_std_counts(cursor, node_ct, all_edge_ct, cc_ct):
     cursor.execute("SELECT COUNT(*) FROM components")
     assert cursor.fetchone()[0] == cc_ct
 
+
 def get_edge_map(cursor):
     """Returns a dict mapping source node IDs to a list of sink node IDs."""
     cursor.execute("SELECT * FROM edges")
@@ -217,10 +228,12 @@ def get_edge_map(cursor):
             edge_map[n[0]].append(n[1])
     return edge_map
 
+
 def get_clusters(cursor):
     """Returns a list of clusters in the graph."""
     cursor.execute("SELECT * FROM clusters")
     return cursor.fetchall()
+
 
 def get_cluster_type(cluster_row):
     """Returns the cluster type of a row retrieved from the "clusters" table.
@@ -229,6 +242,7 @@ def get_cluster_type(cluster_row):
     this test will break.
     """
     return cluster_row[len(cluster_row) - 1]
+
 
 def get_cluster_frequencies(cursor):
     """Returns a dict mapping cluster types to their total frequencies."""
@@ -242,6 +256,7 @@ def get_cluster_frequencies(cursor):
             cluster_type_2_freq[ctype] += 1
     return cluster_type_2_freq
 
+
 def gen_random_sequence(possible_lengths):
     """Generates a random DNA sequence with a length in the provided list."""
 
@@ -254,26 +269,34 @@ def gen_random_sequence(possible_lengths):
         i += 1
     return seq
 
+
 def get_bicomponents(cursor):
     """Returns a list of bicomponents (-> SPQR trees) in the graph."""
     cursor.execute("SELECT * FROM bicomponents")
     return cursor.fetchall()
+
 
 def get_metanodes(cursor):
     """Returns a list of SPQR tree metanodes in the graph."""
     cursor.execute("SELECT * FROM metanodes")
     return cursor.fetchall()
 
+
 def get_children_of_metanode(cursor, metanode_id):
     """Given a metanode ID, returns a list of its child nodes."""
-    cursor.execute("SELECT * FROM singlenodes WHERE parent_metanode_id = ?",
-            (metanode_id,))
+    cursor.execute(
+        "SELECT * FROM singlenodes WHERE parent_metanode_id = ?",
+        (metanode_id,),
+    )
     return cursor.fetchall()
+
 
 def get_root_metanode(cursor, bicomponent_id):
     """Given a bicomponent ID, returns its root metanode."""
-    cursor.execute("SELECT root_metanode_id FROM bicomponents " + \
-            "WHERE id_num = ?", (bicomponent_id,))
+    cursor.execute(
+        "SELECT root_metanode_id FROM bicomponents " + "WHERE id_num = ?",
+        (bicomponent_id,),
+    )
     root_id = cursor.fetchone()[0]
     cursor.execute("SELECT * FROM metanodes WHERE metanode_id = ?", (root_id,))
     return cursor.fetchone()

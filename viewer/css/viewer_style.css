@@ -17,7 +17,8 @@
  * along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-html, body {
+html,
+body {
     height: 100%;
     width: 100%;
 }
@@ -37,13 +38,13 @@ html, body {
 }
 #floatingExportButton {
     position: absolute;
-    right: 0em; 
+    right: 0em;
     top: 0em;
     z-index: 2;
 }
 #fitButton {
     position: absolute;
-    right: 0em; 
+    right: 0em;
     bottom: 0em;
     z-index: 2;
 }
@@ -51,7 +52,7 @@ html, body {
     position: absolute;
     right: 0em;
     /* Should work as long as fitButton has the btn-sm class. TODO, test tho */
-    bottom: 35px; 
+    bottom: 35px;
     z-index: 2;
 }
 /* Might want to consider adding some sort of transition on going to
@@ -83,7 +84,8 @@ button {
     z-index: 1;
     color: #ccc;
 }
-#controls p { /* not the greatest solution. work on something better-looking */
+#controls p {
+    /* not the greatest solution. work on something better-looking */
     margin: 0.1em;
 }
 .bottom-page-div {
@@ -170,10 +172,10 @@ button {
     text-decoration: underline;
 }
 .actuallyalink:link {
-    color: #d22; 
+    color: #d22;
 }
 .actuallyalink:visited {
-    color: #d22; 
+    color: #d22;
 }
 .monospace {
     font-family: monospace;

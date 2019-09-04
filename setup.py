@@ -34,22 +34,24 @@ classes = """
     Operating System :: POSIX
     Operating System :: MacOS :: MacOS X
 """
-classifiers = [s.strip() for s in classes.split('\n') if s]
+classifiers = [s.strip() for s in classes.split("\n") if s]
 
 description = "Visualization tool for metagenomic assembly graphs"
 
-long_description = ("MetagenomeScope is a web-based visualization tool for "
-                    "metagenomic assembly graphs. It focuses on presenting "
-                    "a hierarchical layout of the graph that emphasizes "
-                    "a semilinear display alongside highlighting various "
-                    "structural patterns within the graph.")
+long_description = (
+    "MetagenomeScope is a web-based visualization tool for "
+    "metagenomic assembly graphs. It focuses on presenting "
+    "a hierarchical layout of the graph that emphasizes "
+    "a semilinear display alongside highlighting various "
+    "structural patterns within the graph."
+)
 
 version = "0.0.0"
 
 setup(
     name="metagenomescope",
     version=version,
-    license='GPL3',
+    license="GPL3",
     description=description,
     long_description=long_description,
     author="Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop",
@@ -60,10 +62,10 @@ setup(
     include_package_data=True,
     packages=find_packages(),
     install_requires=["pygraphviz", "numpy"],
-    extras_require={"dev": ["pytest"]},
+    extras_require={"dev": ["pytest", "flake8", "black"]},
     classifiers=classifiers,
     entry_points={
-        'console_scripts': ['mgsc=metagenomescope.collate:run_script']
+        "console_scripts": ["mgsc=metagenomescope.collate:run_script"]
     },
-    zip_safe=False
+    zip_safe=False,
 )

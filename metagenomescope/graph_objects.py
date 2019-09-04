@@ -2,7 +2,7 @@
 # Authored by Marcus Fedarko
 #
 # This file is part of MetagenomeScope.
-# 
+#
 # MetagenomeScope is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -21,20 +21,29 @@
 # information about the graph, detecting structural patterns in the graph, and
 # performing layout.
 
-from math import log, sqrt
-from collections import deque
+from math import log
 import pygraphviz
 import uuid
 
 from . import config
+
 
 class Edge(object):
     """A generic edge, used for storing layout data (e.g. control points)
        and, if applicable for this type of assembly file, biological
        metadata (e.g. multiplicity).
     """
-    def __init__(self, source_id, target_id, multiplicity=None,
-            orientation=None, mean=None, stdev=None, is_virtual=False):
+
+    def __init__(
+        self,
+        source_id,
+        target_id,
+        multiplicity=None,
+        orientation=None,
+        mean=None,
+        stdev=None,
+        is_virtual=False,
+    ):
         """Initializes the edge and all of its attributes."""
         self.source_id = source_id
         self.target_id = target_id
@@ -72,7 +81,7 @@ class Edge(object):
         # Misc. layout data that we'll eventually record here if we decide
         # to lay out the component in which this edge is stored
         self.xdot_ctrl_pt_str = None
-        self.xdot_ctrl_pt_count  = None
+        self.xdot_ctrl_pt_count = None
         # used for interior edges in node groups
         self.xdot_rel_ctrl_pt_str = None
         # used for edges inside metanodes in an SPQR tree
@@ -101,10 +110,10 @@ class Edge(object):
         """
         # Remove startp data
         if position.startswith("s,"):
-            position = position[position.index(" ") + 1:]
+            position = position[position.index(" ") + 1 :]
         # remove endp data
         if position.startswith("e,"):
-            position = position[position.index(" ") + 1:]
+            position = position[position.index(" ") + 1 :]
         points_str = position.replace(",", " ")
         coord_list = [float(c) for c in points_str.split()]
         if len(coord_list) % 2 != 0:
@@ -123,12 +132,22 @@ class Edge(object):
            edge.
         """
         group_id = None
-        if self.group != None:
+        if self.group is not None:
             group_id = self.group.cy_id_string
-        return (self.source_id, self.target_id, self.multiplicity,
-                self.thickness, self.is_outlier, self.orientation,
-                self.mean, self.stdev, self.component_size_rank,
-                self.xdot_ctrl_pt_str, self.xdot_ctrl_pt_count, group_id)
+        return (
+            self.source_id,
+            self.target_id,
+            self.multiplicity,
+            self.thickness,
+            self.is_outlier,
+            self.orientation,
+            self.mean,
+            self.stdev,
+            self.component_size_rank,
+            self.xdot_ctrl_pt_str,
+            self.xdot_ctrl_pt_count,
+            group_id,
+        )
 
     def s_db_values(self):
         """Returns a tuple of the "values" of this Edge, for insertion
@@ -139,8 +158,13 @@ class Edge(object):
            component_size_rank.
         """
         is_virtual_num = 1 if self.is_virtual else 0
-        return (self.source_id, self.target_id, self.component_size_rank,
-                self.group.id_string, is_virtual_num)
+        return (
+            self.source_id,
+            self.target_id,
+            self.component_size_rank,
+            self.group.id_string,
+            is_virtual_num,
+        )
 
     def metanode_edge_db_values(self):
         """Returns a tuple containing the values of this edge,
@@ -149,23 +173,39 @@ class Edge(object):
 
            Should be called after parsing .xdot layout info for this edge.
         """
-        return (self.source_id, self.target_id, self.component_size_rank,
-                self.xdot_ctrl_pt_str, self.xdot_ctrl_pt_count,
-                self.group.id_string)
+        return (
+            self.source_id,
+            self.target_id,
+            self.component_size_rank,
+            self.xdot_ctrl_pt_str,
+            self.xdot_ctrl_pt_count,
+            self.group.id_string,
+        )
 
     def __repr__(self):
         return "Edge from %s to %s" % (self.source_id, self.target_id)
+
 
 class Node(object):
     """A generic node. Used for representing individual contigs/scaffolds,
        and as the superclass for groups of nodes.
     """
-    def __init__(self, id_string, bp, is_complement, depth=None,
-                 gc_content=None, label=None, is_single=False, is_repeat=None):
+
+    def __init__(
+        self,
+        id_string,
+        bp,
+        is_complement,
+        depth=None,
+        gc_content=None,
+        label=None,
+        is_single=False,
+        is_repeat=None,
+    ):
         """Initializes the object. bp initially stood for "base pairs," but
            it really just means the length of this node. In single graphs
            that's measured in bp and in double graphs that's measured in nt.
-           
+
            (Size scaling based on length is done in self.set_dimensions().)
         """
         self.id_string = id_string
@@ -228,18 +268,18 @@ class Node(object):
         # Graphviz during its layout process -- they're scaled to the nearest
         # integer point values. However, we preserve the original dimensions
         # for rendering them in the viewer interface.
-        self.width  = None
+        self.width = None
         self.height = None
-        self.xdot_x      = None
-        self.xdot_y      = None
-        self.xdot_shape  = None
+        self.xdot_x = None
+        self.xdot_y = None
+        self.xdot_shape = None
         # Optional layout data (used for nodes within subgraphs)
-        self.xdot_rel_x  = None
-        self.xdot_rel_y  = None
+        self.xdot_rel_x = None
+        self.xdot_rel_y = None
         # Used for nodes in the "implicit" SPQR decomposition mode:
-        self.xdot_ix     = None
-        self.xdot_iy     = None
-        
+        self.xdot_ix = None
+        self.xdot_iy = None
+
     def set_dimensions(self):
         """Calculates the width and height of this node and assigns them to
            this node's self.width and self.height attributes, respectively.
@@ -259,8 +299,9 @@ class Node(object):
         """
 
         # Area is based on the relatively-scaled logarithm of contig length
-        area = config.MIN_CONTIG_AREA + \
-                (self.relative_length * config.CONTIG_AREA_RANGE)
+        area = config.MIN_CONTIG_AREA + (
+            self.relative_length * config.CONTIG_AREA_RANGE
+        )
         # Longside proportion (i.e. the proportion of the contig's area
         # accounted for by its long side) is based on percentiles of
         # contigs in the component
@@ -269,7 +310,7 @@ class Node(object):
 
     def get_shape(self):
         """Returns the shape "string" for this node."""
-        
+
         if self.is_complement:
             return config.RCOMP_NODE_SHAPE
         elif self.is_single:
@@ -282,14 +323,18 @@ class Node(object):
            file for input to GraphViz.
         """
         self.set_dimensions()
-        info = "\t%s [height=%g,width=%g,shape=" % \
-                (self.id_string, self.height, self.width)
+        info = "\t%s [height=%g,width=%g,shape=" % (
+            self.id_string,
+            self.height,
+            self.width,
+        )
         info += self.get_shape()
         info += "];\n"
         return info
 
-    def add_outgoing_edge(self, node2, multiplicity=None, orientation=None,
-            mean=None, stdev=None):
+    def add_outgoing_edge(
+        self, node2, multiplicity=None, orientation=None, mean=None, stdev=None
+    ):
         """Adds an outgoing edge from this node to another node, and adds an
            incoming edge from the other node referencing this node.
 
@@ -298,9 +343,14 @@ class Node(object):
         """
         self.outgoing_nodes.append(node2)
         node2.incoming_nodes.append(self)
-        self.outgoing_edge_objects[node2.id_string] = \
-            Edge(self.id_string, node2.id_string, multiplicity=multiplicity,
-                    orientation=orientation, mean=mean, stdev=stdev)
+        self.outgoing_edge_objects[node2.id_string] = Edge(
+            self.id_string,
+            node2.id_string,
+            multiplicity=multiplicity,
+            orientation=orientation,
+            mean=mean,
+            stdev=stdev,
+        )
 
     def edge_info(self, constrained_nodes=None):
         """Returns a GraphViz-compatible string containing all information
@@ -326,36 +376,38 @@ class Node(object):
 
     def collapsed_edge_info(self):
         """Returns a GraphViz-compatible string (like in edge_info()) but:
-        
+
            -Edges that have a .group attribute of None that point to/from
-            nodes that have a .group attribute that != None will be
+            nodes that have a .group attribute that is not None will be
             reassigned (in the string) to point to/from those node groups.
 
-           -Edges that have a .group attribute that != None will not be
+           -Edges that have a .group attribute that is not None will not be
             included in the string.
-           
+
            -All edges will have a comment attribute of the format "a,b" where
             a is the id_string of the original source node of the edge (so,
             not a node group) and b is the id_string of the original target
             node of the edge.
         """
         o = ""
-        if self.group != None:
+        if self.group is not None:
             source_id = "cluster_" + self.group.gv_id_string
         else:
             source_id = self.id_string
         for m in self.outgoing_nodes:
             # Used to record the actual edge source/target
-            comment = "[comment=\"%s,%s\"]" % (self.id_string, m.id_string)
+            comment = '[comment="%s,%s"]' % (self.id_string, m.id_string)
             # Only record edges that are not in a group (however, this
             # includes edges potentially between groups)
-            if self.outgoing_edge_objects[m.id_string].group == None:
-                if m.group == None:
-                    o += "\t%s -> %s %s\n" % (source_id, m.id_string, \
-                        comment)
+            if self.outgoing_edge_objects[m.id_string].group is None:
+                if m.group is None:
+                    o += "\t%s -> %s %s\n" % (source_id, m.id_string, comment)
                 else:
-                    o += "\t%s -> %s %s\n" % (source_id, \
-                        "cluster_" + m.group.gv_id_string, comment)
+                    o += "\t%s -> %s %s\n" % (
+                        source_id,
+                        "cluster_" + m.group.gv_id_string,
+                        comment,
+                    )
         return o
 
     def set_component_rank(self, component_size_rank):
@@ -370,7 +422,7 @@ class Node(object):
         """Returns a tuple of the "values" of this Node, for insertion
            as a single node (i.e. a node in the SPQR-integrated graph view).
 
-           If parent_metanode == None, then this just returns these values
+           If parent_metanode is None, then this just returns these values
            with the parent_metanode_id entry set as None. (It's assumed in
            this case that this node is not in any metanodes, and has
            been assigned .xdot_x and .xdot_y values accordingly.)
@@ -380,7 +432,7 @@ class Node(object):
         """
         ix = iy = x = y = 0
         parent_metanode_id = parent_bicmp_id = None
-        if parent_metanode == None:
+        if parent_metanode is None:
             x = self.xdot_x
             y = self.xdot_y
             ix = self.xdot_ix
@@ -402,21 +454,34 @@ class Node(object):
             irelpos = self.parent_spqrnode2relpos[parent_bicmp]
             ix = parent_bicmp.xdot_ileft + irelpos[0]
             iy = parent_bicmp.xdot_ibottom + irelpos[1]
-        return (self.id_string, self.label, self.bp, self.gc_content,
-                self.depth, self.is_repeat, self.component_size_rank, x, y,
-                ix, iy, self.width, self.height, parent_metanode_id,
-                parent_bicmp_id)
+        return (
+            self.id_string,
+            self.label,
+            self.bp,
+            self.gc_content,
+            self.depth,
+            self.is_repeat,
+            self.component_size_rank,
+            x,
+            y,
+            ix,
+            iy,
+            self.width,
+            self.height,
+            parent_metanode_id,
+            parent_bicmp_id,
+        )
 
     def db_values(self):
         """Returns a tuple of the "values" of this Node.
-        
+
            This value will be used to populate the database's "contigs"
            table with information about this node.
-           
+
            Note that this doesn't really apply to NodeGroups, since they
            don't have most of these attributes defined. I'll define a more
            specific NodeGroup.db_values() function later.
-           
+
            Also, this shouldn't be called until after this Node's layout
            information has been parsed from an .xdot file and recorded.
            (Unless we're "faking" the layout of this Node's component, in
@@ -427,17 +492,29 @@ class Node(object):
         # The "parent cluster id" field can be either an ID or NULL
         # (where NULL denotes no parent cluster), so we decide that here.
         group_id = None
-        if self.group != None:
+        if self.group is not None:
             group_id = self.group.cy_id_string
         length = self.bp
-        return (self.id_string, self.label, length, self.gc_content,
-                self.depth, self.is_repeat, self.component_size_rank,
-                self.xdot_x, self.xdot_y, self.width, self.height,
-                self.xdot_shape, group_id)
+        return (
+            self.id_string,
+            self.label,
+            length,
+            self.gc_content,
+            self.depth,
+            self.is_repeat,
+            self.component_size_rank,
+            self.xdot_x,
+            self.xdot_y,
+            self.width,
+            self.height,
+            self.xdot_shape,
+            group_id,
+        )
 
     def __repr__(self):
         """For debugging -- returns a str representation of this node."""
         return "Node %s" % (self.id_string)
+
 
 class NodeGroup(Node):
     """A group of nodes, accessible via the .nodes attribute.
@@ -450,12 +527,13 @@ class NodeGroup(Node):
        node is an actual "node," while in GraphViz a cluster is merely a
        "subgraph.")
     """
-    
+
     plural_name = "other_structural_patterns"
     type_name = "Other"
 
-    def __init__(self, group_prefix, nodes, spqr_related=False,
-            unique_id=None):
+    def __init__(
+        self, group_prefix, nodes, spqr_related=False, unique_id=None
+    ):
         """Initializes the node group, given all the Node objects comprising
            the node group, a prefix character for the group (i.e. 'F' for
            frayed ropes, 'B' for bubbles, 'C' for chains, 'Y' for cycles),
@@ -490,8 +568,8 @@ class NodeGroup(Node):
             self.node_count += 1
             self.bp += n.bp
             self.logbp += n.logbp
-            if unique_id == None:
-                self.gv_id_string += "%s_" % (n.id_string.replace('-', 'c'))
+            if unique_id is None:
+                self.gv_id_string += "%s_" % (n.id_string.replace("-", "c"))
                 self.cy_id_string += "%s_" % (n.id_string)
             self.nodes.append(n)
             # We don't do this stuff if the node group in question is a SPQR
@@ -501,9 +579,13 @@ class NodeGroup(Node):
                 n.used_in_collapsing = True
                 n.group = self
             self.childid2obj[n.id_string] = n
-        if unique_id == None:
-            self.gv_id_string = self.gv_id_string[:-1] # remove last underscore
-            self.cy_id_string = self.cy_id_string[:-1] # remove last underscore
+        if unique_id is None:
+            self.gv_id_string = self.gv_id_string[
+                :-1
+            ]  # remove last underscore
+            self.cy_id_string = self.cy_id_string[
+                :-1
+            ]  # remove last underscore
         self.xdot_c_width = 0
         self.xdot_c_height = 0
         self.xdot_left = None
@@ -518,7 +600,7 @@ class NodeGroup(Node):
         self.xdot_ibottom = None
         self.xdot_iright = None
         self.xdot_itop = None
-        if unique_id != None:
+        if unique_id is not None:
             self.gv_id_string += unique_id
             self.cy_id_string = self.gv_id_string
         super(NodeGroup, self).__init__(self.gv_id_string, self.bp, False)
@@ -548,10 +630,10 @@ class NodeGroup(Node):
             gv_input += n.edge_info(constrained_nodes=self.nodes)
         gv_input += "}"
         cg = pygraphviz.AGraph(gv_input)
-        cg.layout(prog='dot')
+        cg.layout(prog="dot")
         # Obtain cluster width and height from the layout
-        bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
-        bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
+        bounding_box_text = cg.subgraphs()[0].graph_attr[u"bb"]
+        bounding_box_numeric = [float(y) for y in bounding_box_text.split(",")]
         self.xdot_c_width = bounding_box_numeric[2] - bounding_box_numeric[0]
         self.xdot_c_height = bounding_box_numeric[3] - bounding_box_numeric[1]
         # convert width and height from points to inches
@@ -565,10 +647,10 @@ class NodeGroup(Node):
             curr_node = self.childid2obj[str(n)]
             # Record the relative position (within the node group's bounding
             # box) of this child node.
-            ep = n.attr[u'pos'].split(',')
+            ep = n.attr[u"pos"].split(",")
             curr_node.xdot_rel_x = float(ep[0]) - bounding_box_numeric[0]
             curr_node.xdot_rel_y = float(ep[1]) - bounding_box_numeric[1]
-            curr_node.xdot_shape = str(n.attr[u'shape'])
+            curr_node.xdot_shape = str(n.attr[u"shape"])
         # Obtain edge layout info
         for e in cg.edges():
             self.edge_count += 1
@@ -579,8 +661,9 @@ class NodeGroup(Node):
             curr_edge = source_node.outgoing_edge_objects[str(e[1])]
             self.edges.append(curr_edge)
             # Get control points, then find them relative to cluster dimensions
-            ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = \
-                Edge.get_control_points(e.attr[u'pos'])
+            ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = Edge.get_control_points(
+                e.attr[u"pos"]
+            )
             curr_edge.xdot_rel_ctrl_pt_str = ""
             p = 0
             while p <= len(coord_list) - 2:
@@ -596,11 +679,11 @@ class NodeGroup(Node):
 
     def node_info(self, backfill=True, incl_cluster_prefix=True):
         """Returns a string of the node_info() of this NodeGroup.
-        
+
            If backfill is False, this works as normal: this node group is
            treated as a subgraph cluster, and all its child information is
            returned.
-           
+
            If backfill is True, however, this node group is just treated
            as a rectangular normal node. Furthermore, the resulting node
            "definition" line will be prefixed with "cluster_" if
@@ -613,18 +696,24 @@ class NodeGroup(Node):
                 output += "cluster_"
             cs = ""
             if config.COLOR_PATTERNS:
-                cs = ",style=filled,fillcolor=\"%s\"" % \
-                    (config.PATTERN2COLOR[self.plural_name])
-            output += "%s [height=%g,width=%g,shape=rectangle%s];\n" % \
-                (self.gv_id_string, self.xdot_c_height, self.xdot_c_width, cs)
+                cs = ',style=filled,fillcolor="%s"' % (
+                    config.PATTERN2COLOR[self.plural_name]
+                )
+            output += "%s [height=%g,width=%g,shape=rectangle%s];\n" % (
+                self.gv_id_string,
+                self.xdot_c_height,
+                self.xdot_c_width,
+                cs,
+            )
             return output
         else:
             info = "subgraph cluster_%s {\n" % (self.gv_id_string)
             if config.GLOBALCLUSTER_STYLE != "":
                 info += "\t%s;\n" % (config.GLOBALCLUSTER_STYLE)
             if config.COLOR_PATTERNS:
-                info += "\tbgcolor=\"%s\";\n" % \
-                    (config.PATTERN2COLOR[self.plural_name])
+                info += '\tbgcolor="%s";\n' % (
+                    config.PATTERN2COLOR[self.plural_name]
+                )
             for n in self.nodes:
                 info += n.node_info()
             info += "}\n"
@@ -654,10 +743,19 @@ class NodeGroup(Node):
         # set its width and height.
         unc_w = (self.xdot_right - self.xdot_left) / config.POINTS_PER_INCH
         unc_h = (self.xdot_top - self.xdot_bottom) / config.POINTS_PER_INCH
-        return (self.cy_id_string, self.bp, self.component_size_rank,
-                self.xdot_left, self.xdot_bottom, self.xdot_right,
-                self.xdot_top, unc_w * config.COLL_CL_W_FAC,
-                unc_h * config.COLL_CL_H_FAC, self.type_name)
+        return (
+            self.cy_id_string,
+            self.bp,
+            self.component_size_rank,
+            self.xdot_left,
+            self.xdot_bottom,
+            self.xdot_right,
+            self.xdot_top,
+            unc_w * config.COLL_CL_W_FAC,
+            unc_h * config.COLL_CL_H_FAC,
+            self.type_name,
+        )
+
 
 class SPQRMetaNode(NodeGroup):
     """A group of nodes collapsed into a metanode in a SPQR tree.
@@ -673,8 +771,9 @@ class SPQRMetaNode(NodeGroup):
        http://www.ogdf.net/doc-ogdf/classogdf_1_1_s_p_q_r_tree.html#details.
     """
 
-    def __init__(self, bicomponent_id, spqr_id, metanode_type, nodes,
-            internal_edges):
+    def __init__(
+        self, bicomponent_id, spqr_id, metanode_type, nodes, internal_edges
+    ):
         # Matches a number in the filenames of component_*.info and spqr*gml
         self.bicomponent_id = int(bicomponent_id)
         # Will be updated after the parent Bicomponent of this object has been
@@ -688,8 +787,9 @@ class SPQRMetaNode(NodeGroup):
         # Edge objects yet (see layout_isolated() in this class)
         self.nonlaidout_edges = internal_edges[:]
         unique_id = str(uuid.uuid4()).replace("-", "_")
-        super(SPQRMetaNode, self).__init__(self.metanode_type, nodes,
-                spqr_related=True, unique_id=unique_id)
+        super(SPQRMetaNode, self).__init__(
+            self.metanode_type, nodes, spqr_related=True, unique_id=unique_id
+        )
 
     def assign_implicit_spqr_borders(self):
         """Uses this metanode's child nodes' positions to determine
@@ -703,13 +803,13 @@ class SPQRMetaNode(NodeGroup):
             ib = n.parent_spqrnode2relpos[self.parent_bicomponent][1] - hh_pts
             ir = n.parent_spqrnode2relpos[self.parent_bicomponent][0] + hw_pts
             it = n.parent_spqrnode2relpos[self.parent_bicomponent][1] + hh_pts
-            if self.xdot_ileft == None or il < self.xdot_ileft:
+            if self.xdot_ileft is None or il < self.xdot_ileft:
                 self.xdot_ileft = il
-            if self.xdot_iright == None or ir > self.xdot_iright:
+            if self.xdot_iright is None or ir > self.xdot_iright:
                 self.xdot_iright = ir
-            if self.xdot_ibottom == None or ib < self.xdot_ibottom:
+            if self.xdot_ibottom is None or ib < self.xdot_ibottom:
                 self.xdot_ibottom = ib
-            if self.xdot_itop == None or it > self.xdot_itop:
+            if self.xdot_itop is None or it > self.xdot_itop:
                 self.xdot_itop = it
 
     def layout_isolated(self):
@@ -733,8 +833,6 @@ class SPQRMetaNode(NodeGroup):
         # undirected
         gv_input += self.node_info(backfill=False)
         for e in self.internal_edges:
-            n1 = self.childid2obj[e[1]]
-            n2 = self.childid2obj[e[2]]
             if e[0] == "v":
                 # Virtual edge
                 gv_input += "\t%s -- %s [style=dotted];\n" % (e[1], e[2])
@@ -745,12 +843,12 @@ class SPQRMetaNode(NodeGroup):
         cg = pygraphviz.AGraph(gv_input)
         # sfdp works really well for some of these structures. (we can play
         # around with different layout options in the future, of course)
-        cg.layout(prog='sfdp')
+        cg.layout(prog="sfdp")
         # below invocation of cg.draw() is for debugging (also it looks cool)
-        #cg.draw("%s.png" % (self.gv_id_string))
+        # cg.draw("%s.png" % (self.gv_id_string))
         # Obtain cluster width and height from the layout
-        bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
-        bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
+        bounding_box_text = cg.subgraphs()[0].graph_attr[u"bb"]
+        bounding_box_numeric = [float(y) for y in bounding_box_text.split(",")]
         # Expand P metanodes' size; we'll later space out their child nodes
         # accordingly (see issue #228 on the old fedarko/MetagenomeScope
         # GitHub repository).
@@ -767,11 +865,12 @@ class SPQRMetaNode(NodeGroup):
             curr_node = self.childid2obj[str(n)]
             # Record the relative position (within the node group's bounding
             # box) of this child node.
-            ep = n.attr[u'pos'].split(',')
+            ep = n.attr[u"pos"].split(",")
             rel_x = float(ep[0]) - bounding_box_numeric[0]
             if self.metanode_type == "P":
-                if farthest_right_node == None or (rel_x > \
-                        farthest_right_node.parent_spqrnode2relpos[self][0]):
+                if farthest_right_node is None or (
+                    rel_x > farthest_right_node.parent_spqrnode2relpos[self][0]
+                ):
                     farthest_right_node = curr_node
             rel_y = float(ep[1]) - bounding_box_numeric[1]
             curr_node.parent_spqrnode2relpos[self] = [rel_x, rel_y]
@@ -796,16 +895,17 @@ class SPQRMetaNode(NodeGroup):
             for en in self.nonlaidout_edges:
                 if set(en[1:]) == set([source_id, target_id]):
                     # This edge matches a non-laid-out edge.
-                    is_virt = (en[0] == "v")
+                    is_virt = en[0] == "v"
                     curr_edge = Edge(source_id, target_id, is_virtual=is_virt)
                     self.nonlaidout_edges.remove(en)
                     break
-            if curr_edge == None:
+            if curr_edge is None:
                 raise ValueError("unknown edge obtained from layout")
             self.edges.append(curr_edge)
             # Get control points, then find them relative to cluster dimensions
-            ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = \
-                Edge.get_control_points(e.attr[u'pos'])
+            ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = Edge.get_control_points(
+                e.attr[u"pos"]
+            )
             curr_edge.xdot_rel_ctrl_pt_str = ""
             p = 0
             while p <= len(coord_list) - 2:
@@ -819,8 +919,10 @@ class SPQRMetaNode(NodeGroup):
                 p += 2
             curr_edge.group = self
         if len(self.nonlaidout_edges) > 0:
-            raise ValueError("All edges in metanode %s were not laid out" % \
-                (self.gv_id_string))
+            raise ValueError(
+                "All edges in metanode %s were not laid out"
+                % (self.gv_id_string)
+            )
 
     def db_values(self):
         """Returns a tuple containing the values of this metanode, for
@@ -829,17 +931,29 @@ class SPQRMetaNode(NodeGroup):
            Should be called after parsing .xdot layout information for this
            metanode.
         """
-        return (self.id_string, self.component_size_rank, self.bicomponent_id,
-                len(self.outgoing_nodes), self.node_count, self.bp,
-                self.xdot_left, self.xdot_bottom, self.xdot_right,
-                self.xdot_top, self.xdot_ileft, self.xdot_ibottom,
-                self.xdot_iright, self.xdot_itop)
+        return (
+            self.id_string,
+            self.component_size_rank,
+            self.bicomponent_id,
+            len(self.outgoing_nodes),
+            self.node_count,
+            self.bp,
+            self.xdot_left,
+            self.xdot_bottom,
+            self.xdot_right,
+            self.xdot_top,
+            self.xdot_ileft,
+            self.xdot_ibottom,
+            self.xdot_iright,
+            self.xdot_itop,
+        )
+
 
 class Bicomponent(NodeGroup):
     """A biconnected component in the graph. We use this to store
        information about the metanodes contained within the SPQR tree
        decomposition corresponding to this biconnected component.
-       
+
        The process of constructing the "SPQR-integrated" view of the graph is
        relatively involved. Briefly speaking, it involves
        1) Identifying all biconnected components in the assembly graph
@@ -863,7 +977,8 @@ class Bicomponent(NodeGroup):
         # each metanode.
         self.singlenode_count = 0
         for mn in self.metanode_list:
-            self.singlenode_count += len(mn.nodes) # len() is O(1) so this's ok
+            # len() is O(1) so this's ok
+            self.singlenode_count += len(mn.nodes)
             for n in mn.nodes:
                 n.parent_bicomponents.add(self)
             mn.parent_bicomponent = self
@@ -882,20 +997,25 @@ class Bicomponent(NodeGroup):
         self.real_edges = []
         for mn in self.metanode_list:
             for e in mn.internal_edges:
-                n1 = mn.childid2obj[e[1]]
-                n2 = mn.childid2obj[e[2]]
                 if e[0] == "r":
                     # This is a real edge
                     self.real_edges.append((e[1], e[2]))
-        super(Bicomponent, self).__init__("I", self.metanode_list,
-            spqr_related=True, unique_id=self.bicomponent_id)
+        super(Bicomponent, self).__init__(
+            "I",
+            self.metanode_list,
+            spqr_related=True,
+            unique_id=self.bicomponent_id,
+        )
 
     def implicit_backfill_node_info(self):
         """Like calling Bicomponent.node_info(), but using the "implicit"
            decomposition mode dimensions instead of the explicit dimensions.
         """
-        return "\tcluster_%s [height=%g,width=%g,shape=rectangle];\n" % \
-            (self.gv_id_string, self.xdot_ic_height, self.xdot_ic_width)
+        return "\tcluster_%s [height=%g,width=%g,shape=rectangle];\n" % (
+            self.gv_id_string,
+            self.xdot_ic_height,
+            self.xdot_ic_width,
+        )
 
     def implicit_layout_isolated(self):
         """Lays out all the singlenodes within this bicomponent, ignoring the
@@ -923,11 +1043,11 @@ class Bicomponent(NodeGroup):
             gv_input += "\t%s -- %s;\n" % (e[0], e[1])
         gv_input += "}\n}"
         cg = pygraphviz.AGraph(gv_input)
-        cg.layout(prog='sfdp')
-        #cg.draw("%s.png" % (self.gv_id_string))
+        cg.layout(prog="sfdp")
+        # cg.draw("%s.png" % (self.gv_id_string))
         # Obtain cluster width and height from the layout
-        bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
-        bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
+        bounding_box_text = cg.subgraphs()[0].graph_attr[u"bb"]
+        bounding_box_numeric = [float(y) for y in bounding_box_text.split(",")]
         self.xdot_ic_width = bounding_box_numeric[2] - bounding_box_numeric[0]
         self.xdot_ic_height = bounding_box_numeric[3] - bounding_box_numeric[1]
         # convert width and height from points to inches
@@ -938,7 +1058,7 @@ class Bicomponent(NodeGroup):
             curr_node = self.snid2obj[str(n)]
             # Record the relative position (within the node group's bounding
             # box) of this child node.
-            ep = n.attr[u'pos'].split(',')
+            ep = n.attr[u"pos"].split(",")
             rel_x = float(ep[0]) - bounding_box_numeric[0]
             rel_y = float(ep[1]) - bounding_box_numeric[1]
             curr_node.parent_spqrnode2relpos[self] = (rel_x, rel_y)
@@ -980,11 +1100,11 @@ class Bicomponent(NodeGroup):
             gv_input += n.edge_info(constrained_nodes=self.nodes)
         gv_input += "}"
         cg = pygraphviz.AGraph(gv_input)
-        cg.layout(prog='dot')
-        #cg.draw(self.gv_id_string + ".png")
+        cg.layout(prog="dot")
+        # cg.draw(self.gv_id_string + ".png")
         # Obtain cluster width and height from the layout
-        bounding_box_text = cg.subgraphs()[0].graph_attr[u'bb']
-        bounding_box_numeric = [float(y) for y in bounding_box_text.split(',')]
+        bounding_box_text = cg.subgraphs()[0].graph_attr[u"bb"]
+        bounding_box_numeric = [float(y) for y in bounding_box_text.split(",")]
         self.xdot_c_width = bounding_box_numeric[2] - bounding_box_numeric[0]
         self.xdot_c_height = bounding_box_numeric[3] - bounding_box_numeric[1]
         # convert width and height from points to inches
@@ -998,7 +1118,7 @@ class Bicomponent(NodeGroup):
             curr_node = self.childid2obj[str(n)]
             # Record the relative position (within the node group's bounding
             # box) of this child node.
-            ep = n.attr[u'pos'].split(',')
+            ep = n.attr[u"pos"].split(",")
             curr_node.xdot_rel_x = float(ep[0]) - bounding_box_numeric[0]
             curr_node.xdot_rel_y = float(ep[1]) - bounding_box_numeric[1]
         # Obtain edge layout info
@@ -1008,8 +1128,9 @@ class Bicomponent(NodeGroup):
             curr_edge = source_node.outgoing_edge_objects[str(e[1])]
             self.edges.append(curr_edge)
             # Get control points, then find them relative to cluster dimensions
-            ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = \
-                Edge.get_control_points(e.attr[u'pos'])
+            ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = Edge.get_control_points(
+                e.attr[u"pos"]
+            )
             curr_edge.xdot_rel_ctrl_pt_str = ""
             p = 0
             while p <= len(coord_list) - 2:
@@ -1026,19 +1147,29 @@ class Bicomponent(NodeGroup):
     def db_values(self):
         """Returns the "values" of this Bicomponent, suitable for inserting
            into the .db file.
-           
+
            Note that this should only be called after this Bicomponent has
            been laid out in the context of a single connected component.
         """
-        return (int(self.bicomponent_id), self.root_metanode.id_string,
-                self.component_size_rank, self.singlenode_count,
-                self.xdot_left, self.xdot_bottom, self.xdot_right,
-                self.xdot_top, self.xdot_ileft, self.xdot_ibottom,
-                self.xdot_iright, self.xdot_itop)
+        return (
+            int(self.bicomponent_id),
+            self.root_metanode.id_string,
+            self.component_size_rank,
+            self.singlenode_count,
+            self.xdot_left,
+            self.xdot_bottom,
+            self.xdot_right,
+            self.xdot_top,
+            self.xdot_ileft,
+            self.xdot_ibottom,
+            self.xdot_iright,
+            self.xdot_itop,
+        )
+
 
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.
-    
+
        Simple bubbles that MetagenomeScope automatically identifies (and
        validates using the is_valid_bubble() method of this class) consist
        of one node which points to >= 2 "middle" nodes, all of which in turn
@@ -1057,7 +1188,7 @@ class Bubble(NodeGroup):
     def __init__(self, *nodes):
         """Initializes the Bubble, given a list of nodes comprising it."""
 
-        super(Bubble, self).__init__('B', nodes)
+        super(Bubble, self).__init__("B", nodes)
 
     @staticmethod
     def is_valid_bubble(s):
@@ -1065,10 +1196,11 @@ class Bubble(NodeGroup):
            Bubble if a Bubble defined with the given start node is valid.
            Returns a 2-tuple of (False, None) if such a Bubble would be
            invalid.
-           
+
            NOTE that this assumes that s has > 1 outgoing edges.
         """
-        if s.used_in_collapsing: return False, None
+        if s.used_in_collapsing:
+            return False, None
         # Get a list of the first node on each divergent path through this
         # (potential) bubble
         m1_nodes = s.outgoing_nodes
@@ -1098,11 +1230,13 @@ class Bubble(NodeGroup):
                 if n.used_in_collapsing:
                     if type(n.group) == Chain:
                         path_nodes = n.group.nodes
-                        path_end = path_nodes[len(path_nodes)-1].outgoing_nodes
+                        path_end = path_nodes[
+                            len(path_nodes) - 1
+                        ].outgoing_nodes
                         # The divergent paths of a bubble must converge
                         if len(path_end) != 1:
                             return False, None
-                        if e_node == None:
+                        if e_node is None:
                             e_node = path_end[0]
                         # If the divergent paths of a bubble don't converge to
                         # the same ending node, then it isn't a bubble
@@ -1112,14 +1246,14 @@ class Bubble(NodeGroup):
                         mn_nodes.append(path_nodes[len(path_nodes) - 1])
                         chains_to_subsume.append(n.group)
                     else:
-                        # if this path has been grouped into a pattern that 
+                        # if this path has been grouped into a pattern that
                         # isn't a chain, don't identify this as a bubble
                         return False, None
                 # Or we just have a single middle node (assumed if no middle
                 # chain exists/could exist)
                 else:
                     # Like above, record or check ending node
-                    if e_node == None:
+                    if e_node is None:
                         e_node = n.outgoing_nodes[0]
                     elif e_node != n.outgoing_nodes[0]:
                         return False, None
@@ -1132,7 +1266,7 @@ class Bubble(NodeGroup):
                 path_end = path_nodes[len(path_nodes) - 1].outgoing_nodes
                 if len(path_end) != 1:
                     return False, None
-                if e_node == None:
+                if e_node is None:
                     e_node = path_end[0]
                 elif e_node != path_end[0]:
                     return False, None
@@ -1154,7 +1288,7 @@ class Bubble(NodeGroup):
         # point
         elif s in e_node.outgoing_nodes:
             return False, None
-        
+
         # Check entire bubble structure, to ensure all nodes are distinct
         composite = [s] + m_nodes + [e_node]
         if len(set(composite)) != len(composite):
@@ -1164,6 +1298,7 @@ class Bubble(NodeGroup):
         for ch in chains_to_subsume:
             ch.is_subsumed = True
         return True, composite
+
 
 class MiscPattern(NodeGroup):
     """A group of nodes identified by the user as a pattern.
@@ -1180,7 +1315,8 @@ class MiscPattern(NodeGroup):
     def __init__(self, type_name="Misc", *nodes):
         """Initializes the Pattern, given a list of nodes comprising it."""
         self.type_name = type_name
-        super(MiscPattern, self).__init__('M', nodes)
+        super(MiscPattern, self).__init__("M", nodes)
+
 
 class Rope(NodeGroup):
     """A group of nodes collapsed into a Rope."""
@@ -1190,15 +1326,15 @@ class Rope(NodeGroup):
 
     def __init__(self, *nodes):
         """Initializes the Rope, given a list of nodes comprising it."""
-        super(Rope, self).__init__('F', nodes)
-     
+        super(Rope, self).__init__("F", nodes)
+
     @staticmethod
     def is_valid_rope(s):
         """Returns a 2-tuple of (True, a list of all the nodes in the Rope)
            if a Rope defined with the given start node would be a valid
            Rope. Returns a 2-tuple of (False, None) if such a Rope would be
            invalid.
-           
+
            Assumes s has only 1 outgoing node.
         """
         # Detect the first middle node in the rope
@@ -1207,7 +1343,8 @@ class Rope(NodeGroup):
         s_nodes = m1.incoming_nodes
         # A frayed rope must have multiple paths from which to converge to
         # the "middle node" section
-        if len(s_nodes) < 2: return False, None
+        if len(s_nodes) < 2:
+            return False, None
         # Ensure none of the start nodes have extraneous outgoing nodes
         # (or have been used_in_collapsing)
         for n in s_nodes:
@@ -1252,7 +1389,8 @@ class Rope(NodeGroup):
         # Check ending nodes
         # The frayed rope's converged middle path has to diverge to
         # something for it to be a frayed rope
-        if len(e_nodes) < 2: return False, None
+        if len(e_nodes) < 2:
+            return False, None
         for n in e_nodes:
             # Check for extraneous incoming edges, and that the ending nodes
             # haven't been used_in_collapsing.
@@ -1273,9 +1411,10 @@ class Rope(NodeGroup):
             return False, None
 
         # If we've made it here, this frayed rope is valid!
-        if chain_to_subsume != None:
+        if chain_to_subsume is not None:
             chain_to_subsume.is_subsumed = True
         return True, composite
+
 
 class Chain(NodeGroup):
     """A group of nodes collapsed into a Chain. This is defined as > 1
@@ -1287,7 +1426,7 @@ class Chain(NodeGroup):
 
     def __init__(self, *nodes):
         """Initializes the Chain, given all the nodes comprising the chain."""
-        super(Chain, self).__init__('C', nodes)
+        super(Chain, self).__init__("C", nodes)
 
     @staticmethod
     def is_valid_chain(s):
@@ -1295,7 +1434,7 @@ class Chain(NodeGroup):
            in order from start to end) if a Chain defined at the given start
            node would be valid. Returns a 2-tuple of (False, None) if such a
            Chain would be considered invalid.
-           
+
            Note that this finds the longest possible Chain that includes s,
            if a Chain exists starting at s. If we decide that no Chain
            exists starting at s then we just return (False, None), but if we
@@ -1316,13 +1455,16 @@ class Chain(NodeGroup):
         chain_ends_cyclically = False
         # We iterate "down" through the chain.
         while True:
-            if (len(curr.incoming_nodes) != 1 or type(curr) != Node
-                                            or curr.used_in_collapsing):
+            if (
+                len(curr.incoming_nodes) != 1
+                or type(curr) != Node
+                or curr.used_in_collapsing
+            ):
                 # The chain has ended, and this can't be the last node in it
                 # (The node before this node, if applicable, is the chain's
                 # actual end.)
                 break
-            
+
             if len(curr.outgoing_nodes) != 1:
                 # Like above, this means the end of the chain...
                 # NOTE that at this point, if curr has an outgoing edge to a
@@ -1372,8 +1514,11 @@ class Chain(NodeGroup):
         backwards_chain_list = []
         curr = s.incoming_nodes[0]
         while True:
-            if (len(curr.outgoing_nodes) != 1 or type(curr) != Node
-                                            or curr.used_in_collapsing):
+            if (
+                len(curr.outgoing_nodes) != 1
+                or type(curr) != Node
+                or curr.used_in_collapsing
+            ):
                 # The node "before" this node is the optimal starting node.
                 # This node can't be a part of the chain.
                 break
@@ -1402,11 +1547,12 @@ class Chain(NodeGroup):
         backwards_chain_list.reverse()
         return True, backwards_chain_list + chain_list
 
+
 class Cycle(NodeGroup):
     """A group of nodes collapsed into a Cycle. This is defined as > 1
        nodes that occur one after another with no intermediate edges, where
        the sequence of nodes repeats.
-       
+
        (Less formally, this is essentially a Chain where the 'last' node has
        one outgoing edge to the 'first' node.)
     """
@@ -1416,7 +1562,7 @@ class Cycle(NodeGroup):
 
     def __init__(self, *nodes):
         """Initializes the Cycle, given all the nodes comprising it."""
-        super(Cycle, self).__init__('Y', nodes)
+        super(Cycle, self).__init__("Y", nodes)
 
     @staticmethod
     def is_valid_cycle(s):
@@ -1424,12 +1570,12 @@ class Cycle(NodeGroup):
            node, if such a cycle exists. Returns (True, [nodes]) if
            such a cycle exists (where [nodes] is a list of all the nodes in
            the cycle), and (False, None) otherwise.
-           
+
            NOTE that this only identifies cycles without any intermediate
            incoming/outgoing edges not in the simple cycle -- that is, this
            basically just looks for chains that end cyclically. (This also
            identifies single-node loops as cycles.)
-           
+
            The ideal way to implement cycle detection in a graph is to use
            Depth-First Search (so, in our case, it would be to modify the
            code in collate.py that already runs DFS to identify cycles), but
@@ -1458,13 +1604,16 @@ class Cycle(NodeGroup):
         cycle_list = [s]
         curr = s.outgoing_nodes[0]
         while True:
-            if (len(curr.incoming_nodes) != 1 or type(curr) != Node
-                                            or curr.used_in_collapsing):
+            if (
+                len(curr.incoming_nodes) != 1
+                or type(curr) != Node
+                or curr.used_in_collapsing
+            ):
                 # The cycle has ended, and this can't be the last node in it
                 # (The node before this node, if applicable, is the cycle's
                 # actual end.)
                 return False, None
-            
+
             if len(curr.outgoing_nodes) != 1:
                 # Like above, this means the end of the cycle, but it can
                 # mean the cycle is valid.
@@ -1493,11 +1642,13 @@ class Cycle(NodeGroup):
 
         # If we're here then something went terribly wrong
 
+
 class Component(object):
     """A connected component in the graph. We use this in order to
        maintain meta-information, such as node groups, for each connected
        component we're interested in.
     """
+
     def __init__(self, node_list, node_group_list):
         """Given a list of all nodes (i.e. not node groups) and a list of
            all node groups in the connected component, intializes the
@@ -1589,5 +1740,9 @@ class Component(object):
         """Returns a (somewhat verbose) string representation of this
            component.
         """
-        return "Component of " + str(self.node_list) + \
-                "; " + str(self.node_group_list)
+        return (
+            "Component of "
+            + str(self.node_list)
+            + "; "
+            + str(self.node_group_list)
+        )

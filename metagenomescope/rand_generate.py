@@ -3,7 +3,7 @@
 # Authored by Marcus Fedarko
 #
 # This file is part of MetagenomeScope.
-# 
+#
 # MetagenomeScope is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -31,27 +31,36 @@ from random import randrange, random, choice
 import networkx as nx
 
 # Get argument information
-parser = argparse.ArgumentParser(description="Generates a semi-random " + \
-    "assembly graph in GML format.")
-parser.add_argument("-o", "--output", required=True,
-    help="output file prefix")
-parser.add_argument("-n", "--nodes", required=True,
-    help="lower bound on number of nodes in the graph")
-parser.add_argument("-b", "--bubbles", required=False, default=0,
-    help="requested number of simple bubbles in the graph")
-#parser.add_argument("-f", "--ropes", required=False, default=-1,
+parser = argparse.ArgumentParser(
+    description="Generates a semi-random " + "assembly graph in GML format."
+)
+parser.add_argument("-o", "--output", required=True, help="output file prefix")
+parser.add_argument(
+    "-n",
+    "--nodes",
+    required=True,
+    help="lower bound on number of nodes in the graph",
+)
+parser.add_argument(
+    "-b",
+    "--bubbles",
+    required=False,
+    default=0,
+    help="requested number of simple bubbles in the graph",
+)
+# parser.add_argument("-f", "--ropes", required=False, default=-1,
 #    help="requested number of frayed ropes in the graph")
-#parser.add_argument("-c", "--chains", required=False, default=-1,
+# parser.add_argument("-c", "--chains", required=False, default=-1,
 #    help="requested number of chains in the graph")
-#parser.add_argument("-y", "--cyclic_chains", required=False, default=-1,
+# parser.add_argument("-y", "--cyclic_chains", required=False, default=-1,
 #    help="requested number of cyclic chains in the graph")
 
 args = parser.parse_args()
 node_ct = int(args.nodes)
 bubble_ct = int(args.bubbles)
-#rope_ct = int(args.ropes)
-#chain_ct = int(args.chains)
-#cyclic_chain_ct = int(args.cyclic_chains)
+# rope_ct = int(args.ropes)
+# chain_ct = int(args.chains)
+# cyclic_chain_ct = int(args.cyclic_chains)
 
 # Validate arguments a bit
 if node_ct <= 0:
@@ -61,6 +70,7 @@ if bubble_ct < 0:
 
 G = nx.path_graph(node_ct, nx.DiGraph())
 bubble_id = 0
+
 
 def assign_rand_attrs(G):
     """Assigns random attributes to the nodes/edges in a specified nx graph.
@@ -73,7 +83,7 @@ def assign_rand_attrs(G):
     for n in G.nodes():
         node_orientation_dict[n] = "FOW" if random() < 0.5 else "REV"
         length_dict[n] = randrange(1, 1000000)
-    
+
     nx.set_node_attributes(G, name="orientation", values=node_orientation_dict)
     nx.set_node_attributes(G, name="length", values=length_dict)
 
@@ -100,6 +110,7 @@ def assign_rand_attrs(G):
     nx.set_edge_attributes(G, name="mean", values=mean_dict)
     nx.set_edge_attributes(G, name="stdev", values=stdev_dict)
     nx.set_edge_attributes(G, name="bsize", values=bsize_dict)
+
 
 def create_bubble():
     """Creates a bubble with a random number of nodes between 4 and 17.
@@ -133,6 +144,7 @@ def create_bubble():
         path_id += 1
     bubble_id += 1
     return paths
+
 
 for i in range(bubble_ct):
     paths = create_bubble()

@@ -29,6 +29,14 @@
 #  See the System Requirements and Installation Instruction pages on
 #  MetagenomeScope's wiki (https://github.com/marbl/MetagenomeScope/wiki)
 #  for details on this option.
+#
+# stylecheck: Checks to make sure that the Python and JavaScript codebases are
+#  properly formatted. Requires that a few extra packages are installed.
+#  This directive was taken from Qurro's Makefile.
+#
+# style: Auto-formats code to make it (mostly) compliant with stylecheck.
+#  Requires that a few extra packages are installed. This directive was taken
+#  from Qurro's Makefile.
 
 .PHONY: generaltest spqrtest viewertest test spqr
 
@@ -58,6 +66,10 @@ SCRIPT_DIR = metagenomescope/
 SPQR_CODE = $(addprefix $(SCRIPT_DIR), spqr.cpp)
 SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 
+PYLOCS = metagenomescope/ setup.py viewer/populate_demo.py
+JSLOCS = viewer/js/xdot2cy.js viewer/tests/*.js docs/js/extra_functionality.js
+HTMLCSSLOCS = viewer/index.html viewer/404.html viewer/css/viewer_style.css docs/404.html docs/index.html docs/css/mgsc_docs_style.css
+
 # -B: don't create __pycache__/ directories
 generaltest:
 	python3 -B -m pytest metagenomescope/tests/ -m "not spqrtest"
@@ -80,3 +92,17 @@ test: generaltest spqrtest viewertest
 
 spqr:
 	$(COMPILER) $(SPQR_CODE) $(CFLAGS) $(OGDF_FLAGS) -o $(SPQR_BINARY)
+
+stylecheck:
+	flake8 --ignore=E203,W503,E266,E501 $(PYLOCS)
+	black --check -l 79 $(PYLOCS)
+	jshint $(JSLOCS)
+	prettier --check --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
+
+style:
+	black -l 79 $(PYLOCS)
+	@# To be extra safe, do a dry run of prettier and check that it hasn't
+	@# changed the code's abstract syntax tree (AST). (Black does this sort of
+	@# thing by default.)
+	prettier --debug-check --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
+	prettier --write --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)

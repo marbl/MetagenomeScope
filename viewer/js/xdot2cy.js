@@ -48,13 +48,13 @@ mgsc.BLOB_SIZE = 1048576;
 // direction (LEFT, ->) or its opposite (RIGHT, <-); UPDOWN has similar
 // meaning.
 mgsc.FRAYED_ROPE_LEFTRIGHTDIR = "-1 -1 0 -0.5 1 -1 1 1 0 0.5 -1 1";
-mgsc.FRAYED_ROPE_UPDOWNDIR =    "1 -1 0.5 0 1 1 -1 1 -0.5 0 -1 -1";
-mgsc.BUBBLE_LEFTRIGHTDIR =      "-1 0 -0.5 -1 0.5 -1 1 0 0.5 1 -0.5 1";
-mgsc.BUBBLE_UPDOWNDIR =         "-1 -0.5 0 -1 1 -0.5 1 0.5 0 1 -1 0.5";
-mgsc.NODE_LEFTDIR =             "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1";
-mgsc.NODE_RIGHTDIR =            "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1";
-mgsc.NODE_UPDIR =               "-1 1 -1 -0.23587 0 -1 1 -0.23587 1 1";
-mgsc.NODE_DOWNDIR =             "-1 -1 -1 0.23587 0 1 1 0.23587 1 -1";
+mgsc.FRAYED_ROPE_UPDOWNDIR = "1 -1 0.5 0 1 1 -1 1 -0.5 0 -1 -1";
+mgsc.BUBBLE_LEFTRIGHTDIR = "-1 0 -0.5 -1 0.5 -1 1 0 0.5 1 -0.5 1";
+mgsc.BUBBLE_UPDOWNDIR = "-1 -0.5 0 -1 1 -0.5 1 0.5 0 1 -1 0.5";
+mgsc.NODE_LEFTDIR = "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1";
+mgsc.NODE_RIGHTDIR = "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1";
+mgsc.NODE_UPDIR = "-1 1 -1 -0.23587 0 -1 1 -0.23587 1 1";
+mgsc.NODE_DOWNDIR = "-1 -1 -1 0.23587 0 1 1 0.23587 1 -1";
 
 // Approximate conversion factor from inches (the unit used by GraphViz for
 // node width/height measurements) to pixels. TODO, we might want to
@@ -66,7 +66,7 @@ mgsc.INCHES_TO_PIXELS = 54;
 // Anything less than this constant will be considered a "straight" control
 // point distance. This way we can approximate simple B-splines with straight
 // bezier curves (which are cheaper and easier to draw).
-mgsc.CTRL_PT_DIST_EPSILON = 1.00;
+mgsc.CTRL_PT_DIST_EPSILON = 1.0;
 // Edge thickness stuff, as will be rendered by Cytoscape.js
 // Used in tandem with the "thickness" percentage associated with each edge in
 // the input .db file to scale edges' displayed "weight" accordingly
@@ -116,7 +116,8 @@ mgsc.DEFAULT_NODE_COLOR = undefined;
 // Ideally this process would be automated, but there have been some issues
 // with that (see issue #263 on the old GitHub page, fedarko/MetagenomeScope,
 // for a bit of a summary).
-mgsc.DEFAULT_COLOR_SETTINGS = "mincncp\t#0022ff\nmaxcncp\t#ff2200\ncnlcp\t#aaaaaa\ncsnlcp\t#aaaaaa\nusncp\t#888888\nsncp\t#444444\nbubblecp\t#9abaf3\nfropecp\t#59f459\nchaincp\t#fcaca3\nychaincp\t#ffd163\nspqrscp\t#ffd644\nspqrpcp\t#eb8ef9\nspqrrcp\t#31bf6f\nbicmpcp\t#e9e9e9\ntnbcp\t#ff6600\ntngbcp\t#ff6600\nmiscpatterncp\t#c398eb\nusnlcp\t#000000\nsnlcp\t#aaaaaa\nusecp\t#555555\nsecp\t#111111\nhoecp\t#ff0000\nhosecp\t#800000\nloecp\t#0000ff\nlosecp\t#000080\ncngcccp\t#000000\nsngbcp\t#000000\ncpcp\t#994700\nbgcp\t#ffffff\n";
+mgsc.DEFAULT_COLOR_SETTINGS =
+    "mincncp\t#0022ff\nmaxcncp\t#ff2200\ncnlcp\t#aaaaaa\ncsnlcp\t#aaaaaa\nusncp\t#888888\nsncp\t#444444\nbubblecp\t#9abaf3\nfropecp\t#59f459\nchaincp\t#fcaca3\nychaincp\t#ffd163\nspqrscp\t#ffd644\nspqrpcp\t#eb8ef9\nspqrrcp\t#31bf6f\nbicmpcp\t#e9e9e9\ntnbcp\t#ff6600\ntngbcp\t#ff6600\nmiscpatterncp\t#c398eb\nusnlcp\t#000000\nsnlcp\t#aaaaaa\nusecp\t#555555\nsecp\t#111111\nhoecp\t#ff0000\nhosecp\t#800000\nloecp\t#0000ff\nlosecp\t#000080\ncngcccp\t#000000\nsngbcp\t#000000\ncpcp\t#994700\nbgcp\t#ffffff\n";
 // The background color of the graph. Set in initGraph().
 mgsc.BG_COLOR = undefined;
 // Booleans for whether or not to use certain performance options
@@ -240,7 +241,7 @@ mgsc.INPUT_ACTIVE = false;
 mgsc.CURR_SEARCH_TYPE = "ID";
 // Mapping of the search type to something in the middle of a sentence (allows
 // us to frivolously adjust capitalization so we can be picky about it)
-mgsc.SEARCH_TYPE_HREADABLE = {"ID": "ID", "Label": "label"}
+mgsc.SEARCH_TYPE_HREADABLE = { ID: "ID", Label: "label" };
 
 // HTML snippets used while auto-creating info tables about selected elements
 mgsc.TD_CLOSE = "</td>";
@@ -259,9 +260,11 @@ mgsc.INTEGER_RE = /^\d+$/;
  */
 function checkFileAPIAvailability() {
     if (!(window.File && window.FileReader && window.Blob)) {
-        alert("Your browser does not support the HTML5 File APIs. " +
-              "You will not be able to upload any .db files, although " +
-              "you can still try out any available demo .db files.");
+        alert(
+            "Your browser does not support the HTML5 File APIs. " +
+                "You will not be able to upload any .db files, although " +
+                "you can still try out any available demo .db files."
+        );
     }
 }
 
@@ -297,7 +300,7 @@ function initGraph(viewType) {
             // We parse GraphViz' generated xdot files to copy the layout
             // provided by GraphViz. To manually specify node positions, we
             // use the "preset" Cytoscape.js layout.
-            name: 'preset'
+            name: "preset"
         },
         // We set minZoom based on the zoom level obtained by cy.fit().
         // maxZoom, however, is defined based on the zoom level of zooming to
@@ -328,150 +331,151 @@ function initGraph(viewType) {
         autoungrabify: true,
         style: [
             {
-                selector: 'node',
+                selector: "node",
                 style: {
-                    width: 'data(w)',
-                    height: 'data(h)'
+                    width: "data(w)",
+                    height: "data(h)"
                 }
             },
             // The following few classes are used to set properties of
-            // compound nodes (analogous to clusters in GraphViz) 
+            // compound nodes (analogous to clusters in GraphViz)
             {
-                selector: 'node.cluster',
+                selector: "node.cluster",
                 style: {
-                    'shape': 'rectangle',
-                    'border-width': 0
+                    shape: "rectangle",
+                    "border-width": 0
                 }
             },
             {
-                selector: 'node.cluster.spqrMetanode',
+                selector: "node.cluster.spqrMetanode",
                 style: {
-                    'background-opacity': 0.65
+                    "background-opacity": 0.65
                 }
             },
             {
-                selector: 'node.cluster.structuralPattern',
+                selector: "node.cluster.structuralPattern",
                 style: {
-                    'padding-top': 0,
-                    'padding-right': 0,
-                    'padding-left': 0,
-                    'padding-bottom': 0,
-                    width: 'data(w)',
-                    height: 'data(h)'
+                    "padding-top": 0,
+                    "padding-right": 0,
+                    "padding-left": 0,
+                    "padding-bottom": 0,
+                    width: "data(w)",
+                    height: "data(h)"
                 }
             },
             {
                 // Give collapsed variants a number indicating child count
-                selector: 'node.cluster.structuralPattern[?isCollapsed]',
+                selector: "node.cluster.structuralPattern[?isCollapsed]",
                 style: {
-                    'min-zoomed-font-size': 12,
-                    'font-size': 48,
-                    'label': 'data(interiorNodeCount)',
-                    'text-valign': 'center',
-                    'font-weight': 'bold',
-                    'color': $("#cngcccp").colorpicker("getValue")
+                    "min-zoomed-font-size": 12,
+                    "font-size": 48,
+                    label: "data(interiorNodeCount)",
+                    "text-valign": "center",
+                    "font-weight": "bold",
+                    color: $("#cngcccp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.F',
+                selector: "node.F",
                 style: {
                     // default color matches 'green2' in graphviz
                     // (but honestly I just picked what I considered to be
                     // the least visually offensive shade of green)
-                    'background-color': $("#fropecp").colorpicker("getValue"),
-                    shape: 'polygon'
+                    "background-color": $("#fropecp").colorpicker("getValue"),
+                    shape: "polygon"
                 }
             },
             {
-                selector: 'node.B',
+                selector: "node.B",
                 style: {
                     // default color matches 'cornflowerblue' in graphviz
-                    'background-color': $("#bubblecp").colorpicker("getValue"),
-                    shape: 'polygon'
+                    "background-color": $("#bubblecp").colorpicker("getValue"),
+                    shape: "polygon"
                 }
             },
             {
-                selector: 'node.B.leftrightdir',
+                selector: "node.B.leftrightdir",
                 style: {
-                    'shape-polygon-points': mgsc.BUBBLE_LEFTRIGHTDIR
+                    "shape-polygon-points": mgsc.BUBBLE_LEFTRIGHTDIR
                 }
             },
             {
-                selector: 'node.B.updowndir',
+                selector: "node.B.updowndir",
                 style: {
-                    'shape-polygon-points': mgsc.BUBBLE_UPDOWNDIR
+                    "shape-polygon-points": mgsc.BUBBLE_UPDOWNDIR
                 }
             },
             {
-                selector: 'node.F.leftrightdir',
+                selector: "node.F.leftrightdir",
                 style: {
-                    'shape-polygon-points': mgsc.FRAYED_ROPE_LEFTRIGHTDIR
+                    "shape-polygon-points": mgsc.FRAYED_ROPE_LEFTRIGHTDIR
                 }
             },
             {
-                selector: 'node.F.updowndir',
+                selector: "node.F.updowndir",
                 style: {
-                    'shape-polygon-points': mgsc.FRAYED_ROPE_UPDOWNDIR
+                    "shape-polygon-points": mgsc.FRAYED_ROPE_UPDOWNDIR
                 }
             },
             {
-                selector: 'node.C',
+                selector: "node.C",
                 style: {
                     // default color matches 'salmon' in graphviz
-                    'background-color': $("#chaincp").colorpicker("getValue")
+                    "background-color": $("#chaincp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.Y',
+                selector: "node.Y",
                 style: {
                     // default color matches 'darkgoldenrod1' in graphviz
-                    'background-color': $("#ychaincp").colorpicker("getValue"),
-                    'shape': 'ellipse'
+                    "background-color": $("#ychaincp").colorpicker("getValue"),
+                    shape: "ellipse"
                 }
             },
             {
-                selector: 'node.M',
+                selector: "node.M",
                 style: {
-                    'background-color':
-                        $("#miscpatterncp").colorpicker("getValue")
+                    "background-color": $("#miscpatterncp").colorpicker(
+                        "getValue"
+                    )
                 }
             },
             {
-                selector: 'node.cluster.pseudoparent',
+                selector: "node.cluster.pseudoparent",
                 style: {
-                    'z-index-compare': 'manual',
-                    'z-index': 0
+                    "z-index-compare": "manual",
+                    "z-index": 0
                 }
             },
             {
-                selector: 'node.I',
+                selector: "node.I",
                 style: {
-                    'background-color': $("#bicmpcp").colorpicker("getValue")
+                    "background-color": $("#bicmpcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.S',
+                selector: "node.S",
                 style: {
-                    'background-color': $("#spqrscp").colorpicker("getValue")
+                    "background-color": $("#spqrscp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.P',
+                selector: "node.P",
                 style: {
-                    'background-color': $("#spqrpcp").colorpicker("getValue")
+                    "background-color": $("#spqrpcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.R',
+                selector: "node.R",
                 style: {
-                    'background-color': $("#spqrrcp").colorpicker("getValue")
+                    "background-color": $("#spqrrcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.bb_enforcing',
+                selector: "node.bb_enforcing",
                 style: {
                     // Make these nodes invisible
-                    'background-opacity': 0,
+                    "background-opacity": 0,
                     // A width/height of zero just results in Cytoscape.js not
                     // drawing these nodes -- hence a width/height of one
                     width: 1,
@@ -479,171 +483,171 @@ function initGraph(viewType) {
                 }
             },
             {
-                selector: 'node.noncluster',
+                selector: "node.noncluster",
                 style: {
-                    label: 'data(label)',
-                    'text-valign': 'center',
+                    label: "data(label)",
+                    "text-valign": "center",
                     // rendering text is computationally expensive, so if
                     // we're zoomed out so much that the text would be
                     // illegible (or hard-to-read, at least) then don't
                     // render the text.
-                    'min-zoomed-font-size': 12,
-                    'z-index': 2,
-                    'z-index-compare': 'manual'
+                    "min-zoomed-font-size": 12,
+                    "z-index": 2,
+                    "z-index-compare": "manual"
                 }
             },
             {
                 // Used for individual nodes in a SPQR-integrated view
                 // (these nodes lack orientation, so they're drawn as just
                 // rectangles)
-                selector: 'node.noncluster.singlenode',
+                selector: "node.noncluster.singlenode",
                 style: {
-                    shape: 'rectangle'
+                    shape: "rectangle"
                 }
             },
             {
-                selector: 'node.noncluster.noncolorized',
+                selector: "node.noncluster.noncolorized",
                 style: {
-                    'background-color': mgsc.DEFAULT_NODE_COLOR,
-                    'color': $("#usnlcp").colorpicker("getValue")
+                    "background-color": mgsc.DEFAULT_NODE_COLOR,
+                    color: $("#usnlcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.noncluster.gccolorized',
+                selector: "node.noncluster.gccolorized",
                 style: {
-                    'background-color': 'data(gc_color)',
-                    'color': $("#cnlcp").colorpicker("getValue")
+                    "background-color": "data(gc_color)",
+                    color: $("#cnlcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.noncluster.repeatcolorized',
+                selector: "node.noncluster.repeatcolorized",
                 style: {
-                    'background-color': 'data(repeat_color)',
-                    'color': $("#cnlcp").colorpicker("getValue")
+                    "background-color": "data(repeat_color)",
+                    color: $("#cnlcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.noncluster.updir',
+                selector: "node.noncluster.updir",
                 style: {
-                    'shape-polygon-points': mgsc.NODE_UPDIR,
-                    shape: 'polygon'
+                    "shape-polygon-points": mgsc.NODE_UPDIR,
+                    shape: "polygon"
                 }
             },
             {
-                selector: 'node.noncluster.downdir',
+                selector: "node.noncluster.downdir",
                 style: {
-                    'shape-polygon-points': mgsc.NODE_DOWNDIR,
-                    shape: 'polygon'
+                    "shape-polygon-points": mgsc.NODE_DOWNDIR,
+                    shape: "polygon"
                 }
             },
             {
-                selector: 'node.noncluster.leftdir',
+                selector: "node.noncluster.leftdir",
                 style: {
-                    'shape-polygon-points': mgsc.NODE_LEFTDIR,
-                    shape: 'polygon'
+                    "shape-polygon-points": mgsc.NODE_LEFTDIR,
+                    shape: "polygon"
                 }
             },
             {
-                selector: 'node.noncluster.rightdir',
+                selector: "node.noncluster.rightdir",
                 style: {
-                    'shape-polygon-points': mgsc.NODE_RIGHTDIR,
-                    shape: 'polygon'
+                    "shape-polygon-points": mgsc.NODE_RIGHTDIR,
+                    shape: "polygon"
                 }
             },
             {
-                selector: 'node.noncluster.tentative',
+                selector: "node.noncluster.tentative",
                 style: {
-                    'border-width': 5,
-                    'border-color': $("#tnbcp").colorpicker("getValue")
+                    "border-width": 5,
+                    "border-color": $("#tnbcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.cluster.tentative',
+                selector: "node.cluster.tentative",
                 style: {
-                    'border-width': 5,
-                    'border-color': $("#tngbcp").colorpicker("getValue")
+                    "border-width": 5,
+                    "border-color": $("#tngbcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.currpath',
+                selector: "node.currpath",
                 style: {
-                    'background-color': $("#cpcp").colorpicker("getValue"),
+                    "background-color": $("#cpcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.noncluster:selected',
+                selector: "node.noncluster:selected",
                 style: {
-                    'background-color': $("#sncp").colorpicker("getValue")
+                    "background-color": $("#sncp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.noncluster.noncolorized:selected',
+                selector: "node.noncluster.noncolorized:selected",
                 style: {
-                    'color': $("#snlcp").colorpicker("getValue")
+                    color: $("#snlcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.noncluster.gccolorized:selected',
+                selector: "node.noncluster.gccolorized:selected",
                 style: {
-                    'color': $("#csnlcp").colorpicker("getValue")
+                    color: $("#csnlcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'node.cluster:selected',
+                selector: "node.cluster:selected",
                 style: {
-                    'border-width': 5,
-                    'border-color': $("#sngbcp").colorpicker("getValue")
+                    "border-width": 5,
+                    "border-color": $("#sngbcp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'edge',
+                selector: "edge",
                 style: {
-                    'width': 'data(thickness)',
-                    'line-color': $("#usecp").colorpicker("getValue"),
-                    'target-arrow-color': $("#usecp").colorpicker("getValue"),
-                    'loop-direction': '30deg',
-                    'z-index': 1,
-                    'z-index-compare': 'manual'
+                    width: "data(thickness)",
+                    "line-color": $("#usecp").colorpicker("getValue"),
+                    "target-arrow-color": $("#usecp").colorpicker("getValue"),
+                    "loop-direction": "30deg",
+                    "z-index": 1,
+                    "z-index-compare": "manual"
                 }
             },
             {
-                selector: 'edge:selected',
+                selector: "edge:selected",
                 style: {
-                    'line-color': $("#secp").colorpicker("getValue"),
-                    'target-arrow-color': $("#secp").colorpicker("getValue")
+                    "line-color": $("#secp").colorpicker("getValue"),
+                    "target-arrow-color": $("#secp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'edge.oriented',
+                selector: "edge.oriented",
                 style: {
-                    'target-arrow-shape': 'triangle',
-                    'target-endpoint': '-50% 0%',
-                    'source-endpoint': '50% 0'
+                    "target-arrow-shape": "triangle",
+                    "target-endpoint": "-50% 0%",
+                    "source-endpoint": "50% 0"
                 }
             },
             {
-                selector: 'edge:loop',
+                selector: "edge:loop",
                 style: {
-                    'z-index': 5
+                    "z-index": 5
                 }
             },
             {
-                selector: 'edge.unoriented_loop',
+                selector: "edge.unoriented_loop",
                 style: {
-                    'target-endpoint': '-50% 0%',
-                    'source-endpoint': '50% 0'
+                    "target-endpoint": "-50% 0%",
+                    "source-endpoint": "50% 0"
                 }
             },
             {
                 // Used for edges that were assigned valid (i.e. not
                 // just a straight line or self-directed edge)
                 // cpd/cpw properties from the xdot file.
-                selector: 'edge.unbundledbezier',
+                selector: "edge.unbundledbezier",
                 style: {
-                    'curve-style': 'unbundled-bezier',
-                    'control-point-distances': 'data(cpd)',
-                    'control-point-weights': 'data(cpw)',
-                    'edge-distances': 'node-position'
+                    "curve-style": "unbundled-bezier",
+                    "control-point-distances": "data(cpd)",
+                    "control-point-weights": "data(cpw)",
+                    "edge-distances": "node-position"
                 }
             },
             {
@@ -654,43 +658,43 @@ function initGraph(viewType) {
                 //  -Temporary edges, for which we have no control point
                 //   data (i.e. any edges directly from/to compound nodes
                 //   during the collapsing process)
-                selector: 'edge.basicbezier',
+                selector: "edge.basicbezier",
                 style: {
-                    'curve-style': 'bezier'
+                    "curve-style": "bezier"
                 }
             },
             {
-                selector: 'edge.virtual',
+                selector: "edge.virtual",
                 style: {
-                    'line-style': 'dashed'
+                    "line-style": "dashed"
                 }
             },
             {
-                selector: 'edge.high_outlier',
+                selector: "edge.high_outlier",
                 style: {
-                    'line-color': $("#hoecp").colorpicker("getValue"),
-                    'target-arrow-color': $("#hoecp").colorpicker("getValue")
+                    "line-color": $("#hoecp").colorpicker("getValue"),
+                    "target-arrow-color": $("#hoecp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'edge.high_outlier:selected',
+                selector: "edge.high_outlier:selected",
                 style: {
-                    'line-color': $("#hosecp").colorpicker("getValue"),
-                    'target-arrow-color': $("#hosecp").colorpicker("getValue")
+                    "line-color": $("#hosecp").colorpicker("getValue"),
+                    "target-arrow-color": $("#hosecp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'edge.low_outlier',
+                selector: "edge.low_outlier",
                 style: {
-                    'line-color': $("#loecp").colorpicker("getValue"),
-                    'target-arrow-color': $("#loecp").colorpicker("getValue")
+                    "line-color": $("#loecp").colorpicker("getValue"),
+                    "target-arrow-color": $("#loecp").colorpicker("getValue")
                 }
             },
             {
-                selector: 'edge.low_outlier:selected',
+                selector: "edge.low_outlier:selected",
                 style: {
-                    'line-color': $("#losecp").colorpicker("getValue"),
-                    'target-arrow-color': $("#losecp").colorpicker("getValue")
+                    "line-color": $("#losecp").colorpicker("getValue"),
+                    "target-arrow-color": $("#losecp").colorpicker("getValue")
                 }
             },
             {
@@ -699,9 +703,9 @@ function initGraph(viewType) {
                 // this conflicts with virtual edges' style, so we may want to
                 // change this in the future
                 // (using "dotted" lines was really slow)
-                selector: 'edge.nooverlap',
+                selector: "edge.nooverlap",
                 style: {
-                    'line-style': 'dashed'
+                    "line-style": "dashed"
                 }
             }
         ]
@@ -715,8 +719,7 @@ function toggleCluster(cluster) {
     cy.startBatch();
     if (cluster.data("isCollapsed")) {
         uncollapseCluster(cluster);
-    }
-    else {
+    } else {
         collapseCluster(cluster);
     }
     cy.endBatch();
@@ -724,7 +727,7 @@ function toggleCluster(cluster) {
 
 /* Collapses a given single cluster, making use of the
  * cluster's actual and canonical exterior edge data.
- * 
+ *
  * NOTE that this can result in the presence of codirected edges, if a
  * single node connects to multiple edges within the cluster (e.g. a
  * node has two outgoing edges, to both starting nodes of a frayed rope).
@@ -745,21 +748,21 @@ function collapseCluster(cluster, moveMap) {
         var oldEdge = cy.getElementById(incomingEdgeID);
         oldEdge.removeClass("unbundledbezier");
         oldEdge.addClass("basicbezier");
-        oldEdge.move({target: cluster.id()});
+        oldEdge.move({ target: cluster.id() });
     }
     // For each edge with a source in the compound node...
     for (var outgoingEdgeID in cluster.data("outgoingEdgeMap")) {
         var oldEdge = cy.getElementById(outgoingEdgeID);
         oldEdge.removeClass("unbundledbezier");
         oldEdge.addClass("basicbezier");
-        oldEdge.move({source: cluster.id()});
+        oldEdge.move({ source: cluster.id() });
     }
     cluster.data("isCollapsed", true);
     // Update list of locally collapsed nodes (useful for global toggling)
     cy.scratch("_collapsed", cy.scratch("_collapsed").union(cluster));
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").difference(cluster));
     if (cy.scratch("_uncollapsed").empty()) {
-        if ($("#collapseButtonText").text()[0] === 'C') {
+        if ($("#collapseButtonText").text()[0] === "C") {
             changeCollapseButton(true);
         }
     }
@@ -785,8 +788,8 @@ function uncollapseCluster(cluster) {
     cluster.scratch("_interiorEles").restore();
     // "Reset" edges to their original target/source within the cluster
     for (var incomingEdgeID in cluster.data("incomingEdgeMap")) {
-        if (mgsc.REMOVED_EDGES.is("[id=\"" + incomingEdgeID + "\"]")) {
-            // The edge has probably been removed from the graph due to 
+        if (mgsc.REMOVED_EDGES.is('[id="' + incomingEdgeID + '"]')) {
+            // The edge has probably been removed from the graph due to
             // the edge weight thing -- ignore it
             continue;
         }
@@ -801,10 +804,10 @@ function uncollapseCluster(cluster) {
                 oldEdge.addClass("unbundledbezier");
             }
         }
-        oldEdge.move({target: newTgt});
+        oldEdge.move({ target: newTgt });
     }
     for (var outgoingEdgeID in cluster.data("outgoingEdgeMap")) {
-        if (mgsc.REMOVED_EDGES.is("[id=\"" + outgoingEdgeID + "\"]")) {
+        if (mgsc.REMOVED_EDGES.is('[id="' + outgoingEdgeID + '"]')) {
             continue;
         }
         var newSrc = cluster.data("outgoingEdgeMap")[outgoingEdgeID][0];
@@ -815,7 +818,7 @@ function uncollapseCluster(cluster) {
                 oldEdge.addClass("unbundledbezier");
             }
         }
-        oldEdge.move({source: newSrc});
+        oldEdge.move({ source: newSrc });
     }
     // Update local flag for collapsed status (useful for local toggling)
     cluster.data("isCollapsed", false);
@@ -823,7 +826,7 @@ function uncollapseCluster(cluster) {
     cy.scratch("_collapsed", cy.scratch("_collapsed").difference(cluster));
     cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(cluster));
     if (cy.scratch("_collapsed").empty()) {
-        if ($("#collapseButtonText").text()[0] === 'U') {
+        if ($("#collapseButtonText").text()[0] === "U") {
             changeCollapseButton(false);
         }
     }
@@ -851,8 +854,7 @@ function addSelectedNodeInfo(ele) {
     // accordingly. (Otherwise, we just show the user the entire node ID.)
     if (mgsc.CURR_VIEWTYPE === "SPQR") {
         nodeRowHTML += eleID.split("_")[0];
-    }
-    else {
+    } else {
         nodeRowHTML += eleID;
     }
     nodeRowHTML += mgsc.TD_CLOSE;
@@ -895,36 +897,39 @@ function addSelectedEdgeInfo(ele) {
     if (mgsc.CURR_VIEWTYPE === "SPQR" && ele.data("dispsrc") !== undefined) {
         displaySourceID = ele.data("dispsrc");
         displayTargetID = ele.data("disptgt");
-    }
-    else {
+    } else {
         //var canonicalSourceAndTargetNode = ele.id().split("->");
         //displaySourceID = canonicalSourceAndTargetNode[0];
         //displayTargetID = canonicalSourceAndTargetNode[1];
         displaySourceID = ele.source().id();
         displayTargetID = ele.target().id();
     }
-    var edgeRowHTML = "<tr class='nonheader' id='row" +
-        ele.id().replace(">", "") + "'><td>" +
-        displaySourceID + "</td><td>" + displayTargetID + mgsc.TD_CLOSE;
+    var edgeRowHTML =
+        "<tr class='nonheader' id='row" +
+        ele.id().replace(">", "") +
+        "'><td>" +
+        displaySourceID +
+        "</td><td>" +
+        displayTargetID +
+        mgsc.TD_CLOSE;
     if (mgsc.ASM_FILETYPE === "GML" || mgsc.ASM_FILETYPE === "LastGraph")
         edgeRowHTML += mgsc.TD_START;
-        if (mgsc.CURR_VIEWTYPE !== "SPQR") {
-            edgeRowHTML += ele.data("multiplicity");
-        }
-        else {
-            edgeRowHTML += "N/A";
-        }
-        edgeRowHTML += mgsc.TD_CLOSE;
+    if (mgsc.CURR_VIEWTYPE !== "SPQR") {
+        edgeRowHTML += ele.data("multiplicity");
+    } else {
+        edgeRowHTML += "N/A";
+    }
+    edgeRowHTML += mgsc.TD_CLOSE;
     if (mgsc.ASM_FILETYPE === "GML") {
         if (mgsc.CURR_VIEWTYPE === "SPQR") {
             edgeRowHTML += "<td>N/A</td>N/A<td>N/A</td>N/A<td>N/A</td>";
-        }
-        else {
+        } else {
             // Round mean and stdev entries both to two decimal places
             // These values are just estimates so this rounding is okay
             var meanEntry = Math.round(ele.data("mean") * 100) / 100;
             var stdevEntry = Math.round(ele.data("stdev") * 100) / 100;
-            edgeRowHTML += mgsc.TD_START + ele.data("orientation") + mgsc.TD_CLOSE;
+            edgeRowHTML +=
+                mgsc.TD_START + ele.data("orientation") + mgsc.TD_CLOSE;
             edgeRowHTML += mgsc.TD_START + meanEntry + mgsc.TD_CLOSE;
             edgeRowHTML += mgsc.TD_START + stdevEntry + mgsc.TD_CLOSE;
         }
@@ -936,21 +941,47 @@ function addSelectedEdgeInfo(ele) {
 function addSelectedClusterInfo(ele) {
     var clustID = ele.data("id");
     var clustType;
-    switch(clustID[0]) {
-        case 'C': clustType = "Chain"; break;
-        case 'Y': clustType = "Cyclic Chain"; break;
-        case 'B': clustType = "Bubble"; break;
-        case 'F': clustType = "Frayed Rope"; break;
-        case 'M': clustType = ele.data("cluster_type"); break;
-        case 'I': clustType = "Bicomponent"; break;
-        case 'S': clustType = "Series Metanode"; break;
-        case 'P': clustType = "Parallel Metanode"; break;
-        case 'R': clustType = "Rigid Metanode"; break;
-        default: clustType = "Invalid (error)";
+    switch (clustID[0]) {
+        case "C":
+            clustType = "Chain";
+            break;
+        case "Y":
+            clustType = "Cyclic Chain";
+            break;
+        case "B":
+            clustType = "Bubble";
+            break;
+        case "F":
+            clustType = "Frayed Rope";
+            break;
+        case "M":
+            clustType = ele.data("cluster_type");
+            break;
+        case "I":
+            clustType = "Bicomponent";
+            break;
+        case "S":
+            clustType = "Series Metanode";
+            break;
+        case "P":
+            clustType = "Parallel Metanode";
+            break;
+        case "R":
+            clustType = "Rigid Metanode";
+            break;
+        default:
+            clustType = "Invalid (error)";
     }
     var clustSize = ele.data("interiorNodeCount");
-    $("#clusterInfoTable").append("<tr class='nonheader' id='row" + ele.id() +
-        "'><td>" + clustType + "</td><td>" + clustSize + "</td></tr>");
+    $("#clusterInfoTable").append(
+        "<tr class='nonheader' id='row" +
+            ele.id() +
+            "'><td>" +
+            clustType +
+            "</td><td>" +
+            clustSize +
+            "</td></tr>"
+    );
 }
 
 function removeSelectedEleInfo(ele) {
@@ -962,13 +993,11 @@ function removeSelectedEleInfo(ele) {
  * receives a keypress event from the "Enter" key.
  */
 function setEnterBinding(inputID, f) {
-    $("#" + inputID).on("keypress",
-        function(e) {
-            if (e.which === 13) {
-                f();
-            }
+    $("#" + inputID).on("keypress", function(e) {
+        if (e.which === 13) {
+            f();
         }
-    );
+    });
 }
 
 /* Sets bindings for certain DOM elements on the page.
@@ -999,7 +1028,7 @@ function doThingsWhenDOMReady() {
      * "if (windowProtocol in CORS_..._SCHEMES)".
      */
     for (var i = 0; i < mgsc.CORS_PROTOCOL_SCHEMES.length; i++) {
-        if (window.location["protocol"] === mgsc.CORS_PROTOCOL_SCHEMES[i]){
+        if (window.location["protocol"] === mgsc.CORS_PROTOCOL_SCHEMES[i]) {
             $("#xmlFileselectButton").prop("title", "");
             enableButton("xmlFileselectButton");
             mgsc.DEMOS_SUPPORTED = true;
@@ -1010,21 +1039,21 @@ function doThingsWhenDOMReady() {
     // does something (makes certain actions quicker and easier for the user)
     setEnterBinding("searchInput", searchForEles);
     setEnterBinding("layoutInput", testLayout);
-    setEnterBinding("componentselector",
-        function() {
-            startDrawComponent("double");
-        }
-    );
-    setEnterBinding("SPQRcomponentselector",
-        function() {
-            startDrawComponent("SPQR");
-        }
-    );
+    setEnterBinding("componentselector", function() {
+        startDrawComponent("double");
+    });
+    setEnterBinding("SPQRcomponentselector", function() {
+        startDrawComponent("SPQR");
+    });
     setEnterBinding("binCountInput", drawEdgeWeightHistogram);
     setEnterBinding("cullEdgesInput", cullEdges);
     // Update mgsc.MODAL_ACTIVE when dialogs are opened/closed.
-    var dialogIDs = ["settingsDialog", "fsDialog", "infoDialog",
-                     "edgeFilteringDialog"];
+    var dialogIDs = [
+        "settingsDialog",
+        "fsDialog",
+        "infoDialog",
+        "edgeFilteringDialog"
+    ];
     for (var d = 0; d < dialogIDs.length; d++) {
         $("#" + dialogIDs[d]).on("show.bs.modal", function(e) {
             mgsc.MODAL_ACTIVE = true;
@@ -1037,8 +1066,7 @@ function doThingsWhenDOMReady() {
                 $(".colorpicker-component").colorpicker("hide");
                 mgsc.MODAL_ACTIVE = false;
             });
-        }
-        else {
+        } else {
             $("#" + dialogIDs[d]).on("hide.bs.modal", function(e) {
                 mgsc.MODAL_ACTIVE = false;
             });
@@ -1046,8 +1074,12 @@ function doThingsWhenDOMReady() {
     }
     // Also update mgsc.INPUT_ACTIVE when non-dialog input fields are
     // focused/unfocused.
-    var inputIDs = ["componentselector", "SPQRcomponentselector",
-                    "searchInput", "layoutInput"];
+    var inputIDs = [
+        "componentselector",
+        "SPQRcomponentselector",
+        "searchInput",
+        "layoutInput"
+    ];
     for (var i = 0; i < inputIDs.length; i++) {
         $("#" + inputIDs[i]).on("focusin", function(e) {
             mgsc.INPUT_ACTIVE = true;
@@ -1057,7 +1089,7 @@ function doThingsWhenDOMReady() {
         });
     }
     // Initialize colorpickers
-    $(".colorpicker-component").colorpicker({format: 'hex'});
+    $(".colorpicker-component").colorpicker({ format: "hex" });
     $("#mincncp").on("changeColor", function(e) {
         redrawGradientPreview(e.color.toHex(), -1);
     });
@@ -1093,8 +1125,7 @@ function moveThroughClusters(e) {
                 mgsc.CLUSTER_X--;
             }
             moveToCurrentCluster();
-        }
-        else if (e.which === 39 || e.which === 68) {
+        } else if (e.which === 39 || e.which === 68) {
             // Right arrow key or "D"
             // Move to the next right node group
             if (mgsc.CLUSTER_X === mgsc.CLUSTERID2TOP.length - 1) {
@@ -1125,105 +1156,106 @@ function setGraphBindings() {
     // We store added edges + removed nodes/edges in element-level
     // data, to facilitate only doing the work of determining which
     // elements to remove/etc. once (the first time around)
-    cy.on('cxttap', 'node.cluster.structuralPattern',
-        function(e) {
-            // Prevent collapsing being done during iterative drawing
-            // NOTE: In retrospect, I think that thanks to the use of
-            // autoungrabify/autounselectify while drawing the graph that
-            // this is arguably not needed, but there isn't really any harm
-            // in keeping it around for the time being
-            if (!$("#fitButton").hasClass("disabled")) {
-                toggleCluster(e.target);
-            }
+    cy.on("cxttap", "node.cluster.structuralPattern", function(e) {
+        // Prevent collapsing being done during iterative drawing
+        // NOTE: In retrospect, I think that thanks to the use of
+        // autoungrabify/autounselectify while drawing the graph that
+        // this is arguably not needed, but there isn't really any harm
+        // in keeping it around for the time being
+        if (!$("#fitButton").hasClass("disabled")) {
+            toggleCluster(e.target);
         }
-    );
+    });
     // Autozoom on clusters that the user taps on, if the user explicitly
     // requested it (i.e. checked the settings box).
     if ($("#autozoomClusterCheckbox").prop("checked")) {
-        cy.on('tap', 'node.cluster.structuralPattern',
-            function(e) {
-                cy.animate({fit: {eles: e.target}});
-            }
-        );
+        cy.on("tap", "node.cluster.structuralPattern", function(e) {
+            cy.animate({ fit: { eles: e.target } });
+        });
     }
 
     // Enable SPQR tree expansion/compression
     // User can click on an uncollapsed metanode to reveal its immediate
     // children
     // User can click on a collapsed metanode to remove its immediate children
-    cy.on('cxttap', 'node.cluster.spqrMetanode',
-        function(e) {
-            if (!$("#fitButton").hasClass("disabled")) {
-                var mn = e.target;
-                if (mn.data("descendantCount") > 0) {
-                    if (mn.data("isCollapsed")) {
-                        cy.batch(function() { uncollapseSPQRMetanode(mn); });
-                    }
-                    else {
-                        cy.batch(function() { collapseSPQRMetanode(mn); });
-                    }
+    cy.on("cxttap", "node.cluster.spqrMetanode", function(e) {
+        if (!$("#fitButton").hasClass("disabled")) {
+            var mn = e.target;
+            if (mn.data("descendantCount") > 0) {
+                if (mn.data("isCollapsed")) {
+                    cy.batch(function() {
+                        uncollapseSPQRMetanode(mn);
+                    });
+                } else {
+                    cy.batch(function() {
+                        collapseSPQRMetanode(mn);
+                    });
                 }
             }
         }
-    );
+    });
 
-    cy.on('select', 'node.noncluster, edge, node.cluster',
-        function(e) {
-            var x = e.target;
-            if (x.hasClass("noncluster")) {
-                mgsc.SELECTED_NODE_COUNT += 1;
-                mgsc.SELECTED_NODES = mgsc.SELECTED_NODES.union(x);
-                $("#selectedNodeBadge").text(mgsc.SELECTED_NODE_COUNT);
-                addSelectedNodeInfo(x);
-            } else if (x.isEdge()) {
-                mgsc.SELECTED_EDGE_COUNT += 1;
-                mgsc.SELECTED_EDGES = mgsc.SELECTED_EDGES.union(x);
-                $("#selectedEdgeBadge").text(mgsc.SELECTED_EDGE_COUNT);
-                addSelectedEdgeInfo(x);
-            } else {
-                mgsc.SELECTED_CLUSTER_COUNT += 1;
-                mgsc.SELECTED_CLUSTERS = mgsc.SELECTED_CLUSTERS.union(x);
-                $("#selectedClusterBadge").text(mgsc.SELECTED_CLUSTER_COUNT);
-                addSelectedClusterInfo(x);
-            }
-
-            // If this is the first selected element, enable the
-            // fitSelected button
-            if (mgsc.SELECTED_NODE_COUNT + mgsc.SELECTED_EDGE_COUNT +
-                    mgsc.SELECTED_CLUSTER_COUNT === 1) {
-                enableButton("fitSelectedButton");
-            }
+    cy.on("select", "node.noncluster, edge, node.cluster", function(e) {
+        var x = e.target;
+        if (x.hasClass("noncluster")) {
+            mgsc.SELECTED_NODE_COUNT += 1;
+            mgsc.SELECTED_NODES = mgsc.SELECTED_NODES.union(x);
+            $("#selectedNodeBadge").text(mgsc.SELECTED_NODE_COUNT);
+            addSelectedNodeInfo(x);
+        } else if (x.isEdge()) {
+            mgsc.SELECTED_EDGE_COUNT += 1;
+            mgsc.SELECTED_EDGES = mgsc.SELECTED_EDGES.union(x);
+            $("#selectedEdgeBadge").text(mgsc.SELECTED_EDGE_COUNT);
+            addSelectedEdgeInfo(x);
+        } else {
+            mgsc.SELECTED_CLUSTER_COUNT += 1;
+            mgsc.SELECTED_CLUSTERS = mgsc.SELECTED_CLUSTERS.union(x);
+            $("#selectedClusterBadge").text(mgsc.SELECTED_CLUSTER_COUNT);
+            addSelectedClusterInfo(x);
         }
-    );
-    cy.on('unselect', 'node.noncluster, edge, node.cluster',
-        function(e) {
-            var x = e.target;
-            if (x.hasClass("noncluster")) {
-                mgsc.SELECTED_NODE_COUNT -= 1;
-                mgsc.SELECTED_NODES = mgsc.SELECTED_NODES.difference(x);
-                $("#selectedNodeBadge").text(mgsc.SELECTED_NODE_COUNT);
-                removeSelectedEleInfo(x);
-            } else if (x.isEdge()) {
-                mgsc.SELECTED_EDGE_COUNT -= 1;
-                mgsc.SELECTED_EDGES = mgsc.SELECTED_EDGES.difference(x);
-                $("#selectedEdgeBadge").text(mgsc.SELECTED_EDGE_COUNT);
-                removeSelectedEleInfo(x);
-            } else {
-                mgsc.SELECTED_CLUSTER_COUNT -= 1;
-                mgsc.SELECTED_CLUSTERS = mgsc.SELECTED_CLUSTERS.difference(x);
-                $("#selectedClusterBadge").text(mgsc.SELECTED_CLUSTER_COUNT);
-                removeSelectedEleInfo(x);
-            }
 
-            // Not sure how we'd have a negative amount of selected
-            // elements, but I figure we might as well cover our bases with
-            // the <= 0 here :P
-            if (mgsc.SELECTED_NODE_COUNT + mgsc.SELECTED_EDGE_COUNT +
-                    mgsc.SELECTED_CLUSTER_COUNT <= 0) {
-                disableButton("fitSelectedButton");
-            }
+        // If this is the first selected element, enable the
+        // fitSelected button
+        if (
+            mgsc.SELECTED_NODE_COUNT +
+                mgsc.SELECTED_EDGE_COUNT +
+                mgsc.SELECTED_CLUSTER_COUNT ===
+            1
+        ) {
+            enableButton("fitSelectedButton");
         }
-    );
+    });
+    cy.on("unselect", "node.noncluster, edge, node.cluster", function(e) {
+        var x = e.target;
+        if (x.hasClass("noncluster")) {
+            mgsc.SELECTED_NODE_COUNT -= 1;
+            mgsc.SELECTED_NODES = mgsc.SELECTED_NODES.difference(x);
+            $("#selectedNodeBadge").text(mgsc.SELECTED_NODE_COUNT);
+            removeSelectedEleInfo(x);
+        } else if (x.isEdge()) {
+            mgsc.SELECTED_EDGE_COUNT -= 1;
+            mgsc.SELECTED_EDGES = mgsc.SELECTED_EDGES.difference(x);
+            $("#selectedEdgeBadge").text(mgsc.SELECTED_EDGE_COUNT);
+            removeSelectedEleInfo(x);
+        } else {
+            mgsc.SELECTED_CLUSTER_COUNT -= 1;
+            mgsc.SELECTED_CLUSTERS = mgsc.SELECTED_CLUSTERS.difference(x);
+            $("#selectedClusterBadge").text(mgsc.SELECTED_CLUSTER_COUNT);
+            removeSelectedEleInfo(x);
+        }
+
+        // Not sure how we'd have a negative amount of selected
+        // elements, but I figure we might as well cover our bases with
+        // the <= 0 here :P
+        if (
+            mgsc.SELECTED_NODE_COUNT +
+                mgsc.SELECTED_EDGE_COUNT +
+                mgsc.SELECTED_CLUSTER_COUNT <=
+            0
+        ) {
+            disableButton("fitSelectedButton");
+        }
+    });
     // TODO look into getting this more efficient in the future, if possible
     // (Renders labels only on tapping elements; doesn't really save that
     // much time, and might actually be less efficient due to the time taken
@@ -1247,13 +1279,13 @@ function setGraphBindings() {
 function rotateNode(n, i) {
     // Rotate node position
     var oldPt = n.position();
-    var newPt = rotateCoordinate(oldPt['x'], oldPt['y']);
-    n.position({x: newPt[0], y: newPt[1]});
+    var newPt = rotateCoordinate(oldPt["x"], oldPt["y"]);
+    n.position({ x: newPt[0], y: newPt[1] });
     // Rotate node polygon definition
     // Doing this via classes is probably more efficient than giving each
     // node its own polygon points and rotating every node's polygon points
     // every time we rotate the graph
-    if (n.hasClass("noncluster")) { 
+    if (n.hasClass("noncluster")) {
         if (n.hasClass("updir")) n.removeClass("updir");
         else if (n.hasClass("downdir")) n.removeClass("downdir");
         else if (n.hasClass("leftdir")) n.removeClass("leftdir");
@@ -1280,8 +1312,9 @@ function rotateNode(n, i) {
  */
 function changeRotation() {
     mgsc.PREV_ROTATION = mgsc.CURR_ROTATION;
-    mgsc.CURR_ROTATION = parseInt($("#rotationButtonGroup .btn.active")
-        .attr("value"));
+    mgsc.CURR_ROTATION = parseInt(
+        $("#rotationButtonGroup .btn.active").attr("value")
+    );
     // We use the fit button's disabled status as a way to gauge whether
     // or not a graph is currently rendered; sorta hack-ish, but it works
     if (!$("#fitButton").hasClass("disabled")) {
@@ -1289,7 +1322,7 @@ function changeRotation() {
         window.setTimeout(function() {
             cy.startBatch();
             // This only rotates nodes that are not collapsed
-            cy.filter('node').each(rotateNode);
+            cy.filter("node").each(rotateNode);
             // Rotate nodes within currently collapsed node groups
             cy.scratch("_collapsed").each(function(n, i) {
                 n.scratch("_interiorNodes").each(rotateNode);
@@ -1308,13 +1341,14 @@ function changeRotation() {
 function changeCollapseButton(toUncollapseReady) {
     if (toUncollapseReady) {
         $("#collapseButtonText").text("Uncollapse all node groups");
-        $("#collapseButtonIcon").removeClass("glyphicon-minus-sign").addClass(
-            "glyphicon-plus-sign");
-    }
-    else {
+        $("#collapseButtonIcon")
+            .removeClass("glyphicon-minus-sign")
+            .addClass("glyphicon-plus-sign");
+    } else {
         $("#collapseButtonText").text("Collapse all node groups");
-        $("#collapseButtonIcon").removeClass("glyphicon-plus-sign").addClass(
-            "glyphicon-minus-sign");
+        $("#collapseButtonIcon")
+            .removeClass("glyphicon-plus-sign")
+            .addClass("glyphicon-minus-sign");
     }
 }
 
@@ -1328,7 +1362,7 @@ function destroyGraph() {
 /* Loads a .db file from the user's local system. */
 function loadLocalDB() {
     var fr = new FileReader();
-	var inputfile = document.getElementById('fileselector').files[0];
+    var inputfile = document.getElementById("fileselector").files[0];
     if (inputfile === undefined) {
         return;
     }
@@ -1342,13 +1376,14 @@ function loadLocalDB() {
         $("#selectedClusterBadge").text(0);
         disableButton("infoButton");
         $("#currComponentInfo").html(
-            "No connected component has been drawn yet.");
+            "No connected component has been drawn yet."
+        );
         fr.onload = function(e) {
             if (e.target.readyState === FileReader.DONE) {
                 initDB(e.target.result);
-                document.getElementById('fileselector').value = "";
+                document.getElementById("fileselector").value = "";
             }
-        }
+        };
         // set progress bar to indeterminate state while we close
         // the old DB (if needed) and load the new DB file.
         // This isn't really that helpful on computers/fast-ish
@@ -1363,8 +1398,7 @@ function loadLocalDB() {
         window.setTimeout(function() {
             fr.readAsArrayBuffer(inputfile);
         }, 50);
-    }
-    else {
+    } else {
         alert("Please select a valid .db file to load.");
     }
 }
@@ -1446,12 +1480,13 @@ function parseDBcomponents() {
     // mgsc.SPQR_INFO_AVAILABLE to that
     var spqrInfoStmt = mgsc.CURR_DB.prepare(
         "SELECT name FROM sqlite_master WHERE type='table' AND name=" +
-        "'singlecomponents';"
+            "'singlecomponents';"
     );
     spqrInfoStmt.step();
     var spqrTableExistence = spqrInfoStmt.getAsObject();
     spqrInfoStmt.free();
-    mgsc.SPQR_INFO_AVAILABLE = spqrDataFlag || !($.isEmptyObject(spqrTableExistence));
+    mgsc.SPQR_INFO_AVAILABLE =
+        spqrDataFlag || !$.isEmptyObject(spqrTableExistence);
     if (mgsc.SPQR_INFO_AVAILABLE) {
         $("#spqrConnectedComponentControls").removeClass("notviewable");
         $("#sccCountTH").removeClass("notviewable");
@@ -1459,8 +1494,7 @@ function parseDBcomponents() {
         $("#bicmpCountTH").removeClass("notviewable");
         $("#bicmpCountEntry").removeClass("notviewable");
         $("#connCmpCtTH").text("Standard Mode Connected Component Count");
-    }
-    else {
+    } else {
         $("#spqrConnectedComponentControls").addClass("notviewable");
         $("#sccCountTH").addClass("notviewable");
         $("#sccCountEntry").addClass("notviewable");
@@ -1468,8 +1502,11 @@ function parseDBcomponents() {
         $("#bicmpCountEntry").addClass("notviewable");
         $("#connCmpCtTH").text("Connected Component Count");
     }
-    if (mgsc.ASM_FILETYPE === "LastGraph" || mgsc.ASM_FILETYPE === "GFA"
-            || mgsc.ASM_FILETYPE === "FASTG") {
+    if (
+        mgsc.ASM_FILETYPE === "LastGraph" ||
+        mgsc.ASM_FILETYPE === "GFA" ||
+        mgsc.ASM_FILETYPE === "FASTG"
+    ) {
         // Since the nodes in these graphs are unoriented (i.e. we draw both
         // strands of each sequence of DNA included in the assembly graph),
         // the individual nodes' units are in nucleotides (nt).
@@ -1490,7 +1527,7 @@ function parseDBcomponents() {
     }
     if (mgsc.DNA_AVAILABLE) {
         // Round to two decimal places
-        var asmGCInfo = Math.round((asmGC * 100) * 100) / 100 + "%";
+        var asmGCInfo = Math.round(asmGC * 100 * 100) / 100 + "%";
         $("#asmGCEntry").text(asmGCInfo);
         $("#asmGCTH").removeClass("notviewable");
         $("#asmGCEntry").removeClass("notviewable");
@@ -1506,10 +1543,10 @@ function parseDBcomponents() {
     //                    ".<br />You can draw a connected component using" +
     //                    " the \"Draw Connected Component\" buttons below.",
     //                    true);
-    $("#filenameEntry").text(fnInfo); 
+    $("#filenameEntry").text(fnInfo);
     $("#filetypeEntry").text(mgsc.ASM_FILETYPE);
-    $("#nodeCtEntry").text(nodeInfo); 
-    $("#totalBPLengthEntry").text(bpInfo); 
+    $("#nodeCtEntry").text(nodeInfo);
+    $("#totalBPLengthEntry").text(bpInfo);
     $("#edgeCountEntry").text(edgeInfo);
     $("#sccCountEntry").text(sccInfo);
     $("#bicmpCountEntry").text(bicmpInfo);
@@ -1585,8 +1622,7 @@ function parseDBcomponents() {
         $("#orientationCol").removeClass("notviewable");
         $("#meanCol").removeClass("notviewable");
         $("#stdevCol").removeClass("notviewable");
-    }
-    else if (mgsc.ASM_FILETYPE === "LastGraph") {
+    } else if (mgsc.ASM_FILETYPE === "LastGraph") {
         // Node info adjustments
         // All contigs in LastGraph files have at min. ID, length, depth given
         // (they also always have GC content given, since LastGraph files seem
@@ -1606,8 +1642,7 @@ function parseDBcomponents() {
         $("#orientationCol").addClass("notviewable");
         $("#meanCol").addClass("notviewable");
         $("#stdevCol").addClass("notviewable");
-    }
-    else if (mgsc.ASM_FILETYPE === "GFA") {
+    } else if (mgsc.ASM_FILETYPE === "GFA") {
         // Node info adjustments
         // All contigs in GFA files have at minimum ID, length given
         $("#nodeTH").prop("colspan", 2 + extraNodeCols);
@@ -1621,8 +1656,7 @@ function parseDBcomponents() {
         $("#orientationCol").addClass("notviewable");
         $("#meanCol").addClass("notviewable");
         $("#stdevCol").addClass("notviewable");
-    }
-    else if (mgsc.ASM_FILETYPE === "FASTG") {
+    } else if (mgsc.ASM_FILETYPE === "FASTG") {
         // Node info adjustments
         // All contigs in FASTG files have ID, length, depth, GC content given
         $("#nodeTH").prop("colspan", 3 + extraNodeCols);
@@ -1725,7 +1759,10 @@ function disableVolatileControls() {
  * the #useDrawingStatusTextCheckbox is unchecked.
  */
 function updateTextStatus(text, notDuringDrawing) {
-    if(notDuringDrawing || $("#useDrawingStatusTextCheckbox").prop("checked")){
+    if (
+        notDuringDrawing ||
+        $("#useDrawingStatusTextCheckbox").prop("checked")
+    ) {
         $("#textStatus").html(text);
     }
 }
@@ -1793,13 +1830,11 @@ function decrCompRank(componentSelectorID) {
     var currRank = $(csIDstr).val();
     var minRank = parseInt($(csIDstr).prop("min"));
     var validity = compRankValidity(currRank, csIDstr);
-    if (validity === null || parseInt(currRank) < (minRank + 1)) {
+    if (validity === null || parseInt(currRank) < minRank + 1) {
         $(csIDstr).val(minRank);
-    }
-    else if (validity === 1) {
+    } else if (validity === 1) {
         $(csIDstr).val($(csIDstr).prop("max"));
-    }
-    else {
+    } else {
         $(csIDstr).val(parseInt(currRank) - 1);
     }
 }
@@ -1816,11 +1851,9 @@ function incrCompRank(componentSelectorID) {
     var validity = compRankValidity(currRank, csIDstr);
     if (validity === null || validity === -1) {
         $(csIDstr).val($(csIDstr).prop("min"));
-    }
-    else if (currRank > (maxRank - 1)) {
+    } else if (currRank > maxRank - 1) {
         $(csIDstr).val(maxRank);
-    }
-    else {
+    } else {
         $(csIDstr).val(parseInt(currRank) + 1);
     }
 }
@@ -1850,12 +1883,17 @@ function startDrawComponent(mode) {
         var drawableResult = isComponentDrawable(currRank);
         if (!drawableResult[0]) {
             alert(
-                "Due to its size (" + drawableResult[1] + " nodes and " +
-                drawableResult[2] + " edges), layout was not performed " +
-                "on this component (size rank " + currRank + "). It is not " +
-                "drawable using the current .db file. You can control this " +
-                "behavior through the -maxn and -maxe MetagenomeScope " +
-                "preprocessing script command-line arguments, if desired."
+                "Due to its size (" +
+                    drawableResult[1] +
+                    " nodes and " +
+                    drawableResult[2] +
+                    " edges), layout was not performed " +
+                    "on this component (size rank " +
+                    currRank +
+                    "). It is not " +
+                    "drawable using the current .db file. You can control this " +
+                    "behavior through the -maxn and -maxe MetagenomeScope " +
+                    "preprocessing script command-line arguments, if desired."
             );
             return;
         }
@@ -1875,8 +1913,9 @@ function drawSPQRComponent(cmpRank) {
         destroyGraph();
     }
     initGraph("SPQR");
-    mgsc.CURR_SPQRMODE = $("#decompositionOptionButtonGroup .btn.active")
-            .attr("value");
+    mgsc.CURR_SPQRMODE = $("#decompositionOptionButtonGroup .btn.active").attr(
+        "value"
+    );
     setGraphBindings();
     $(document).off("keydown");
     var componentNodeCount = 0;
@@ -1913,18 +1952,19 @@ function drawSPQRComponent(cmpRank) {
     // Along with the component's total node count.
     var query;
     if (mgsc.CURR_SPQRMODE === "explicit") {
-        query = "SELECT boundingbox_x, boundingbox_y,"
-            + " ex_uncompressed_node_count, ex_uncompressed_edge_count,"
-            + " compressed_node_count, compressed_edge_count,"
-            + " bicomponent_count FROM singlecomponents WHERE size_rank = ?"
-            + " LIMIT 1";
-    }
-    else {
-        query = "SELECT i_boundingbox_x, i_boundingbox_y,"
-            + " im_uncompressed_node_count, im_uncompressed_edge_count,"
-            + " compressed_node_count, compressed_edge_count,"
-            + " bicomponent_count FROM singlecomponents"
-            + " WHERE size_rank = ? LIMIT 1";
+        query =
+            "SELECT boundingbox_x, boundingbox_y," +
+            " ex_uncompressed_node_count, ex_uncompressed_edge_count," +
+            " compressed_node_count, compressed_edge_count," +
+            " bicomponent_count FROM singlecomponents WHERE size_rank = ?" +
+            " LIMIT 1";
+    } else {
+        query =
+            "SELECT i_boundingbox_x, i_boundingbox_y," +
+            " im_uncompressed_node_count, im_uncompressed_edge_count," +
+            " compressed_node_count, compressed_edge_count," +
+            " bicomponent_count FROM singlecomponents" +
+            " WHERE size_rank = ? LIMIT 1";
     }
     var bbStmt = mgsc.CURR_DB.prepare(query, [cmpRank]);
     bbStmt.step();
@@ -1932,14 +1972,17 @@ function drawSPQRComponent(cmpRank) {
     bbStmt.free();
     var bb;
     if (mgsc.CURR_SPQRMODE === "explicit") {
-        bb = {'boundingbox_x': fullObj['boundingbox_x'],
-              'boundingbox_y': fullObj['boundingbox_y']};
+        bb = {
+            boundingbox_x: fullObj["boundingbox_x"],
+            boundingbox_y: fullObj["boundingbox_y"]
+        };
+    } else {
+        bb = {
+            boundingbox_x: fullObj["i_boundingbox_x"],
+            boundingbox_y: fullObj["i_boundingbox_y"]
+        };
     }
-    else {
-        bb = {'boundingbox_x': fullObj['i_boundingbox_x'],
-              'boundingbox_y': fullObj['i_boundingbox_y']};
-    }
-    var bicmpCount = fullObj['bicomponent_count'];
+    var bicmpCount = fullObj["bicomponent_count"];
     // the compressed counts are the amounts of nodes and edges that'll be
     // drawn when the graph is first drawn (and all the SPQR trees are
     // collapsed to their root).
@@ -1949,24 +1992,25 @@ function drawSPQRComponent(cmpRank) {
     // Note that "nodes" here only refers to normal contigs, not metanodes.
     // However, "edges" here do include edges between metanodes.
     // (if that distinction turns out to be troublesome, we can change it)
-    var cNodeCount = fullObj['compressed_node_count'];
-    var cEdgeCount = fullObj['compressed_edge_count'];
+    var cNodeCount = fullObj["compressed_node_count"];
+    var cEdgeCount = fullObj["compressed_edge_count"];
     // "totalElementCount" is the max value on the progress bar while first
     // drawing this component
-    var totalElementCount = (0.5 * cEdgeCount) + (cNodeCount);
+    var totalElementCount = 0.5 * cEdgeCount + cNodeCount;
     var ucNodeCount = null;
     var ucEdgeCount = null;
     if (mgsc.CURR_SPQRMODE === "explicit") {
-        ucNodeCount = fullObj['ex_uncompressed_node_count'];
-        ucEdgeCount = fullObj['ex_uncompressed_edge_count'];
-    }
-    else {
-        ucNodeCount = fullObj['im_uncompressed_node_count'];
-        ucEdgeCount = fullObj['im_uncompressed_edge_count'];
+        ucNodeCount = fullObj["ex_uncompressed_node_count"];
+        ucEdgeCount = fullObj["ex_uncompressed_edge_count"];
+    } else {
+        ucNodeCount = fullObj["im_uncompressed_node_count"];
+        ucEdgeCount = fullObj["im_uncompressed_edge_count"];
     }
     // Scale PROGRESS_BAR_FREQ relative to component size of nodes/edges
     // This does ignore metanodes/bicomponents, but it's a decent approximation
-    mgsc.PROGRESSBAR_FREQ= Math.floor(mgsc.PROGRESSBAR_FREQ_PERCENT * totalElementCount);
+    mgsc.PROGRESSBAR_FREQ = Math.floor(
+        mgsc.PROGRESSBAR_FREQ_PERCENT * totalElementCount
+    );
     // for calculating edge control point weight/distance
     var node2pos = {};
     // We check to see if the component contains >= 1 bicomponent. If so, we
@@ -1979,7 +2023,9 @@ function drawSPQRComponent(cmpRank) {
     // Draw biconnected components.
     cy.startBatch();
     var bicmpsStmt = mgsc.CURR_DB.prepare(
-        "SELECT * FROM bicomponents WHERE scc_rank = ?", [cmpRank]);
+        "SELECT * FROM bicomponents WHERE scc_rank = ?",
+        [cmpRank]
+    );
     var bicmpObj;
     var metanodeParams = [cmpRank];
     var rootmnQuestionMarks = "(?,";
@@ -1987,18 +2033,21 @@ function drawSPQRComponent(cmpRank) {
         bicmpsInComponent = true;
         bicmpObj = bicmpsStmt.getAsObject();
         renderClusterObject(bicmpObj, bb, "bicomponent");
-        metanodeParams.push(bicmpObj['root_metanode_id']);
+        metanodeParams.push(bicmpObj["root_metanode_id"]);
         rootmnQuestionMarks += "?,";
     }
     bicmpsStmt.free();
-    rootmnQuestionMarks = rootmnQuestionMarks.substr(
-            0, rootmnQuestionMarks.lastIndexOf(",")) + ")";
+    rootmnQuestionMarks =
+        rootmnQuestionMarks.substr(0, rootmnQuestionMarks.lastIndexOf(",")) +
+        ")";
     // Draw metanodes.
     var da;
     // select only the root metanodes from this connected component
     var metanodesStmt = mgsc.CURR_DB.prepare(
-        "SELECT * FROM metanodes WHERE scc_rank = ? AND metanode_id IN"
-        + rootmnQuestionMarks, metanodeParams);
+        "SELECT * FROM metanodes WHERE scc_rank = ? AND metanode_id IN" +
+            rootmnQuestionMarks,
+        metanodeParams
+    );
     while (metanodesStmt.step()) {
         da = renderClusterObject(metanodesStmt.getAsObject(), bb, "metanode");
         // Use the return value of renderClusterObject() to update node2pos
@@ -2016,17 +2065,32 @@ function drawSPQRComponent(cmpRank) {
     updateTextStatus("Drawing nodes...", false);
     window.setTimeout(function() {
         cy.startBatch();
-        var spqrSpecs = "WHERE scc_rank = ? AND (parent_metanode_id IS NULL "
-            + "OR parent_metanode_id IN" + rootmnQuestionMarks + ")";
+        var spqrSpecs =
+            "WHERE scc_rank = ? AND (parent_metanode_id IS NULL " +
+            "OR parent_metanode_id IN" +
+            rootmnQuestionMarks +
+            ")";
         var nodesStmt = mgsc.CURR_DB.prepare(
-            "SELECT * FROM singlenodes " + spqrSpecs, metanodeParams);
+            "SELECT * FROM singlenodes " + spqrSpecs,
+            metanodeParams
+        );
         mgsc.CURR_NE = 0;
         // Draw all single nodes. After that's done, we'll draw all metanode
         // edges, and then all single edges.
-        drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
-            bicmpsInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount, "SPQR", spqrSpecs, metanodeParams,
-            [cNodeCount, cEdgeCount, ucNodeCount, ucEdgeCount, bicmpCount]);
+        drawComponentNodes(
+            nodesStmt,
+            bb,
+            cmpRank,
+            node2pos,
+            bicmpsInComponent,
+            componentNodeCount,
+            componentEdgeCount,
+            totalElementCount,
+            "SPQR",
+            spqrSpecs,
+            metanodeParams,
+            [cNodeCount, cEdgeCount, ucNodeCount, ucEdgeCount, bicmpCount]
+        );
     }, 0);
 }
 
@@ -2039,10 +2103,10 @@ function isComponentDrawable(cmpRank) {
     try {
         var isTooLargeStmt = mgsc.CURR_DB.prepare(
             "SELECT node_count, edge_count, too_large FROM components WHERE " +
-            "size_rank = ? LIMIT 1", [cmpRank]
+                "size_rank = ? LIMIT 1",
+            [cmpRank]
         );
-    }
-    catch (error) {
+    } catch (error) {
         // The error here is almost certainly due to an old .db file that
         // doesn't have a too_large column for this component (since we already
         // checked the validity of this component rank). So we just go ahead
@@ -2134,19 +2198,24 @@ function drawComponent(cmpRank) {
     // Along with the component's total node count.
     var bbStmt = mgsc.CURR_DB.prepare(
         "SELECT boundingbox_x, boundingbox_y, node_count, edge_count FROM components WHERE " +
-        "size_rank = ? LIMIT 1", [cmpRank]);
+            "size_rank = ? LIMIT 1",
+        [cmpRank]
+    );
     bbStmt.step();
     var fullObj = bbStmt.getAsObject();
     bbStmt.free();
-    var bb = {'boundingbox_x': fullObj['boundingbox_x'],
-              'boundingbox_y': fullObj['boundingbox_y']};
-    var totalElementCount = fullObj['node_count'] +
-        (0.5 * fullObj['edge_count']); 
+    var bb = {
+        boundingbox_x: fullObj["boundingbox_x"],
+        boundingbox_y: fullObj["boundingbox_y"]
+    };
+    var totalElementCount = fullObj["node_count"] + 0.5 * fullObj["edge_count"];
     // here we scale mgsc.PROGRESSBAR_FREQ to totalElementCount for the
     // component to be drawn (see top of file for reference)
     // As we draw other components later within the same session of the viewer
     // application, mgsc.PROGRESSBAR_FREQ will be updated accordingly
-    mgsc.PROGRESSBAR_FREQ= Math.floor(mgsc.PROGRESSBAR_FREQ_PERCENT * totalElementCount);
+    mgsc.PROGRESSBAR_FREQ = Math.floor(
+        mgsc.PROGRESSBAR_FREQ_PERCENT * totalElementCount
+    );
     // We need a fast way to associate node IDs with their x/y positions.
     // This is for calculating edge control point weight/distance.
     // And doing 2 DB queries (src + tgt) for each edge will take a lot of
@@ -2160,7 +2229,9 @@ function drawComponent(cmpRank) {
     var clustersInComponent = false;
     cy.startBatch();
     var clustersStmt = mgsc.CURR_DB.prepare(
-        "SELECT * FROM clusters WHERE component_rank = ?", [cmpRank]);
+        "SELECT * FROM clusters WHERE component_rank = ?",
+        [cmpRank]
+    );
     while (clustersStmt.step()) {
         clustersInComponent = true;
         renderClusterObject(clustersStmt.getAsObject(), bb, "cluster");
@@ -2182,11 +2253,24 @@ function drawComponent(cmpRank) {
          */
         cy.startBatch();
         var nodesStmt = mgsc.CURR_DB.prepare(
-            "SELECT * FROM nodes WHERE component_rank = ?", [cmpRank]);
+            "SELECT * FROM nodes WHERE component_rank = ?",
+            [cmpRank]
+        );
         mgsc.CURR_NE = 0;
-        drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
-            clustersInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount, "double", "", [], []);
+        drawComponentNodes(
+            nodesStmt,
+            bb,
+            cmpRank,
+            node2pos,
+            clustersInComponent,
+            componentNodeCount,
+            componentEdgeCount,
+            totalElementCount,
+            "double",
+            "",
+            [],
+            []
+        );
     }, 0);
 }
 
@@ -2204,40 +2288,70 @@ function drawComponent(cmpRank) {
  *
  * (sorry this code wound up being ugly)
  */
-function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
-        clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalElementCount, mode, spqrSpecs, metanodeParams, counts) {
+function drawComponentNodes(
+    nodesStmt,
+    bb,
+    cmpRank,
+    node2pos,
+    clustersInComponent,
+    componentNodeCount,
+    componentEdgeCount,
+    totalElementCount,
+    mode,
+    spqrSpecs,
+    metanodeParams,
+    counts
+) {
     if (nodesStmt.step()) {
         var currNode = nodesStmt.getAsObject();
-        var currNodeID = currNode['id'];
-        var parentMetaNodeID = currNode['parent_metanode_id'];
+        var currNodeID = currNode["id"];
+        var parentMetaNodeID = currNode["parent_metanode_id"];
         // Render the node object and save its position
         if (mode === "SPQR" && parentMetaNodeID !== null) {
             // It's possible for us to have duplicates of this node, in this
             // case. We construct this node's ID in Cytoscape.js as its actual
             // ID suffixed by its parent metanode ID in order to disambiguate
             // it from other nodes with the same ID in different metanodes.
-            currNodeID += ("_" + parentMetaNodeID);
+            currNodeID += "_" + parentMetaNodeID;
         }
-        node2pos[currNodeID]= renderNodeObject(currNode, currNodeID, bb, mode);
+        node2pos[currNodeID] = renderNodeObject(currNode, currNodeID, bb, mode);
         componentNodeCount += 1;
         mgsc.CURR_NE += 1;
         if (mgsc.CURR_NE % mgsc.PROGRESSBAR_FREQ === 0) {
             updateProgressBar((mgsc.CURR_NE / totalElementCount) * 100);
             window.setTimeout(function() {
-                drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
-                    clustersInComponent, componentNodeCount,
-                    componentEdgeCount, totalElementCount, mode, spqrSpecs,
-                    metanodeParams, counts);
+                drawComponentNodes(
+                    nodesStmt,
+                    bb,
+                    cmpRank,
+                    node2pos,
+                    clustersInComponent,
+                    componentNodeCount,
+                    componentEdgeCount,
+                    totalElementCount,
+                    mode,
+                    spqrSpecs,
+                    metanodeParams,
+                    counts
+                );
             }, 0);
+        } else {
+            drawComponentNodes(
+                nodesStmt,
+                bb,
+                cmpRank,
+                node2pos,
+                clustersInComponent,
+                componentNodeCount,
+                componentEdgeCount,
+                totalElementCount,
+                mode,
+                spqrSpecs,
+                metanodeParams,
+                counts
+            );
         }
-        else {
-            drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
-                clustersInComponent, componentNodeCount, componentEdgeCount,
-                totalElementCount, mode, spqrSpecs, metanodeParams, counts);
-        }
-    }
-    else {
+    } else {
         nodesStmt.free();
         // Second part of "iterative" graph drawing: draw all edges
         cy.endBatch();
@@ -2251,9 +2365,10 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
         var edgeType = "doubleedge";
         if (mode !== "SPQR") {
             edgesStmt = mgsc.CURR_DB.prepare(
-                "SELECT * FROM edges WHERE component_rank = ?", [cmpRank]);
-        }
-        else {
+                "SELECT * FROM edges WHERE component_rank = ?",
+                [cmpRank]
+            );
+        } else {
             // Our use of spqrSpecs and metanodeParams in constructing this
             // query is the only reason we bother passing them to
             // drawComponentNodes() after we used them earlier to construct the
@@ -2261,106 +2376,194 @@ function drawComponentNodes(nodesStmt, bb, cmpRank, node2pos,
             // need to bother saving spqrSpecs and metanodeParams.
             edgeType = "singleedge";
             edgesStmt = mgsc.CURR_DB.prepare(
-                "SELECT * FROM singleedges " + spqrSpecs, metanodeParams);
+                "SELECT * FROM singleedges " + spqrSpecs,
+                metanodeParams
+            );
             // NOTE don't draw metanodeedges by default due to autocollapsing
         }
-        drawComponentEdges(edgesStmt, bb, node2pos, cmpRank,
-            clustersInComponent, componentNodeCount, componentEdgeCount,
-            totalElementCount, edgeType, mode, counts);
+        drawComponentEdges(
+            edgesStmt,
+            bb,
+            node2pos,
+            cmpRank,
+            clustersInComponent,
+            componentNodeCount,
+            componentEdgeCount,
+            totalElementCount,
+            edgeType,
+            mode,
+            counts
+        );
     }
 }
 
 // If edgeType !== "double" then draws edges accordingly
 // related: if mode === "SPQR" then draws edges accordingly
 // also if mode === "SPQR" then passes counts on to finishDrawComponent()
-function drawComponentEdges(edgesStmt, bb, node2pos, cmpRank,
-        clustersInComponent, componentNodeCount, componentEdgeCount,
-        totalElementCount, edgeType, mode, counts) {
+function drawComponentEdges(
+    edgesStmt,
+    bb,
+    node2pos,
+    cmpRank,
+    clustersInComponent,
+    componentNodeCount,
+    componentEdgeCount,
+    totalElementCount,
+    edgeType,
+    mode,
+    counts
+) {
     if (edgesStmt.step()) {
-        renderEdgeObject(edgesStmt.getAsObject(), node2pos, bb, edgeType,
-                mode, {});
+        renderEdgeObject(
+            edgesStmt.getAsObject(),
+            node2pos,
+            bb,
+            edgeType,
+            mode,
+            {}
+        );
         componentEdgeCount += 1;
         mgsc.CURR_NE += 0.5;
         if (mgsc.CURR_NE % mgsc.PROGRESSBAR_FREQ === 0) {
             updateProgressBar((mgsc.CURR_NE / totalElementCount) * 100);
             window.setTimeout(function() {
-                drawComponentEdges(edgesStmt, bb, node2pos,
-                    cmpRank, clustersInComponent, componentNodeCount,
-                    componentEdgeCount, totalElementCount, edgeType, mode,
-                    counts);
+                drawComponentEdges(
+                    edgesStmt,
+                    bb,
+                    node2pos,
+                    cmpRank,
+                    clustersInComponent,
+                    componentNodeCount,
+                    componentEdgeCount,
+                    totalElementCount,
+                    edgeType,
+                    mode,
+                    counts
+                );
             }, 0);
+        } else {
+            drawComponentEdges(
+                edgesStmt,
+                bb,
+                node2pos,
+                cmpRank,
+                clustersInComponent,
+                componentNodeCount,
+                componentEdgeCount,
+                totalElementCount,
+                edgeType,
+                mode,
+                counts
+            );
         }
-        else {
-            drawComponentEdges(edgesStmt, bb, node2pos,
-                cmpRank, clustersInComponent, componentNodeCount,
-                componentEdgeCount, totalElementCount, edgeType, mode, counts);
-        }
-    }
-    else {
+    } else {
         edgesStmt.free();
         mgsc.CURR_BOUNDINGBOX = bb;
-        finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
-            clustersInComponent, mode, counts);
+        finishDrawComponent(
+            cmpRank,
+            componentNodeCount,
+            componentEdgeCount,
+            clustersInComponent,
+            mode,
+            counts
+        );
     }
 }
 
 // Updates a paragraph contained in the assembly info dialog with some general
 // information about the current connected component.
-function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
-        mode, counts) {
+function updateCurrCompInfo(
+    cmpRank,
+    componentNodeCount,
+    componentEdgeCount,
+    mode,
+    counts
+) {
     var intro = "The ";
     var nodePercentage, edgePercentage;
     if (mode !== "SPQR") {
         var nodePercentage = (componentNodeCount / mgsc.ASM_NODE_COUNT) * 100;
         if (mgsc.ASM_EDGE_COUNT !== 0) {
-            var edgePercentage = (componentEdgeCount / mgsc.ASM_EDGE_COUNT) * 100;
-        }
-        else {
+            var edgePercentage =
+                (componentEdgeCount / mgsc.ASM_EDGE_COUNT) * 100;
+        } else {
             var edgePercentage = "None";
         }
     }
     var all_nodes_edges_modifier = "the";
     if (mode !== "SPQR" && $("#filetypeEntry").text() !== "GML") {
-        intro = "Including <strong>both positive and negative</strong>" +
+        intro =
+            "Including <strong>both positive and negative</strong>" +
             " nodes and edges, the ";
         nodePercentage /= 2;
         all_nodes_edges_modifier = "all positive and negative";
     }
     // This is incredibly minor, but I always get annoyed at software that
     // doesn't use correct grammar for stuff like this nowadays :P
-    var bodyText = intro + "current connected component (size rank <strong>"
-        + cmpRank + "</strong>) ";
+    var bodyText =
+        intro +
+        "current connected component (size rank <strong>" +
+        cmpRank +
+        "</strong>) ";
     if (mode === "SPQR") {
-        bodyText += "in the SPQR view, when fully collapsed, has <strong>"
-            + counts[0] + " " + getSuffix(counts[0], "node") + "</strong> and "
-            + "<strong>" + counts[1] + " " + getSuffix(counts[1], "edge")
-            + "</strong>. When fully " + mgsc.CURR_SPQRMODE + "ly uncollapsed, "
-            + "the connected component has <strong>"
-            + counts[2] + " " + getSuffix(counts[2], "node") + "</strong> and "
-            + "<strong>" + counts[3] + " " + getSuffix(counts[3], "edge")
-            + "</strong>. The connected component has <strong>" + counts[4]
-            + " " + getSuffix(counts[4], "biconnected component")
-            + "</strong>. ";
+        bodyText +=
+            "in the SPQR view, when fully collapsed, has <strong>" +
+            counts[0] +
+            " " +
+            getSuffix(counts[0], "node") +
+            "</strong> and " +
+            "<strong>" +
+            counts[1] +
+            " " +
+            getSuffix(counts[1], "edge") +
+            "</strong>. When fully " +
+            mgsc.CURR_SPQRMODE +
+            "ly uncollapsed, " +
+            "the connected component has <strong>" +
+            counts[2] +
+            " " +
+            getSuffix(counts[2], "node") +
+            "</strong> and " +
+            "<strong>" +
+            counts[3] +
+            " " +
+            getSuffix(counts[3], "edge") +
+            "</strong>. The connected component has <strong>" +
+            counts[4] +
+            " " +
+            getSuffix(counts[4], "biconnected component") +
+            "</strong>. ";
         if (mgsc.CURR_SPQRMODE === "explicit") {
-            bodyText+= "(These figures do not include SPQR tree metanodes, "
-                + "although they do include the edges between them when "
-                + "uncollapsed.)";
+            bodyText +=
+                "(These figures do not include SPQR tree metanodes, " +
+                "although they do include the edges between them when " +
+                "uncollapsed.)";
         }
-    }
-    else {
+    } else {
         var nodeNoun = getSuffix(componentNodeCount, "node");
         var edgeNoun = getSuffix(componentEdgeCount, "edge");
-        bodyText += "has <strong>" + componentNodeCount + " " + nodeNoun
-            + "</strong> and <strong>" + componentEdgeCount + " " + edgeNoun
-            + "</strong>. This connected component contains <strong>"
-            + nodePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
-            + " nodes</strong> in the assembly";
+        bodyText +=
+            "has <strong>" +
+            componentNodeCount +
+            " " +
+            nodeNoun +
+            "</strong> and <strong>" +
+            componentEdgeCount +
+            " " +
+            edgeNoun +
+            "</strong>. This connected component contains <strong>" +
+            nodePercentage.toFixed(2) +
+            "% of " +
+            all_nodes_edges_modifier +
+            " nodes</strong> in the assembly";
         if (edgePercentage !== "None") {
-            bodyText += " and <strong>"
-            + edgePercentage.toFixed(2) + "% of " + all_nodes_edges_modifier
-            + " edges</strong> in the assembly.";
-        }
-        else {
+            bodyText +=
+                " and <strong>" +
+                edgePercentage.toFixed(2) +
+                "% of " +
+                all_nodes_edges_modifier +
+                " edges</strong> in the assembly.";
+        } else {
             bodyText += ". There are no edges in the assembly.";
         }
     }
@@ -2368,13 +2571,24 @@ function updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount,
 }
 
 function getSuffix(countOfSomething, noun) {
-    return (countOfSomething === 1) ? noun : noun + "s";
+    return countOfSomething === 1 ? noun : noun + "s";
 }
 
-function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
-        clustersInComponent, mode, counts) {
-    updateCurrCompInfo(cmpRank, componentNodeCount, componentEdgeCount, mode,
-        counts);
+function finishDrawComponent(
+    cmpRank,
+    componentNodeCount,
+    componentEdgeCount,
+    clustersInComponent,
+    mode,
+    counts
+) {
+    updateCurrCompInfo(
+        cmpRank,
+        componentNodeCount,
+        componentEdgeCount,
+        mode,
+        counts
+    );
     // NOTE modified initClusters() to do cluster height after the fact.
     // This represents an inefficiency when parsing xdot files, although it
     // shouldn't really affect anything major.
@@ -2386,7 +2600,9 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     // we do this after fitting to ensure the best precision possible
     // (also, this helps when drawing collapsed SPQR trees. See the MaryGold
     // test graph as a good example of why this is needed)
-    cy.batch(function() { removeBoundingBoxEnforcingNodes(); });
+    cy.batch(function() {
+        removeBoundingBoxEnforcingNodes();
+    });
     // Set minZoom to whatever the zoom level when viewing the entire drawn
     // component at once (i.e. right now) is
     cy.minZoom(cy.zoom());
@@ -2394,7 +2610,7 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
     window.setTimeout(function() {
         // If we have scaffold data still loaded for this assembly, use it
         // for the newly drawn connected component.
-        if (!($.isEmptyObject(mgsc.SCAFFOLDID2NODEKEYS))) {
+        if (!$.isEmptyObject(mgsc.SCAFFOLDID2NODEKEYS)) {
             updateScaffoldsInComponentList();
         }
         // At this point, all of the hard work has been done. All that's left
@@ -2415,7 +2631,10 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
         $("#layoutInput").prop("disabled", false);
         if (mode !== "SPQR" && componentEdgeCount > 0) {
             enableButton("reduceEdgesButton");
-            if (mgsc.ASM_FILETYPE === "LastGraph" || mgsc.ASM_FILETYPE === "GML") {
+            if (
+                mgsc.ASM_FILETYPE === "LastGraph" ||
+                mgsc.ASM_FILETYPE === "GML"
+            ) {
                 // Only enable the edge filtering features for graphs that have
                 // edge weights (multiplicity or bundle size)
                 enableButton("filterEdgesButton");
@@ -2459,20 +2678,19 @@ function finishDrawComponent(cmpRank, componentNodeCount, componentEdgeCount,
             if (mode !== "SPQR" && mgsc.USE_CLUSTER_KBD_NAV) {
                 $(document).on("keydown", moveThroughClusters);
             }
-        }
-        else {
+        } else {
             disableButton("collapseButton");
         }
         updateTextStatus("&nbsp;", false);
         finishProgressBar();
         // Log the time it took to draw this component; useful for benchmarking
         mgsc.END_DRAW_DATE = new Date();
-        var drawTime = mgsc.END_DRAW_DATE.getTime() - mgsc.START_DRAW_DATE.getTime();
+        var drawTime =
+            mgsc.END_DRAW_DATE.getTime() - mgsc.START_DRAW_DATE.getTime();
         var consoleMsg = "Drawing ";
         if (mode !== "SPQR") {
             consoleMsg += "standard";
-        }
-        else {
+        } else {
             consoleMsg += mgsc.CURR_SPQRMODE + " SPQR";
         }
         consoleMsg += " component #" + cmpRank + " took " + drawTime + "ms";
@@ -2490,7 +2708,7 @@ function closeDB() {
 }
 
 function changeDropdownVal(arrowHTML) {
-    $("#rotationDropdown").html(arrowHTML + " <span class='caret'></span>"); 
+    $("#rotationDropdown").html(arrowHTML + " <span class='caret'></span>");
 }
 
 /* Toggles visibility of the controls div.
@@ -2510,7 +2728,7 @@ function toggleControls() {
 }
 
 function openFileSelectDialog() {
-    $("#fsDialog").modal(); 
+    $("#fsDialog").modal();
 }
 
 /* Loads a .db file using an XML HTTP Request. */
@@ -2525,21 +2743,21 @@ function loadHostedDB() {
     $("#selectedEdgeBadge").text(0);
     $("#selectedClusterBadge").text(0);
     disableButton("infoButton");
-    $("#currComponentInfo").html(
-        "No connected component has been drawn yet.");
+    $("#currComponentInfo").html("No connected component has been drawn yet.");
     // Figure out where the hosted .db files are
     var db_filename_prefix = $("#demoDir").attr("data-mgscdbdirectory");
-    if (db_filename_prefix.length > 0 && !(db_filename_prefix.endsWith("/"))) {
+    if (db_filename_prefix.length > 0 && !db_filename_prefix.endsWith("/")) {
         db_filename_prefix += "/";
     }
-    mgsc.DB_FILENAME = db_filename_prefix + $("input[name=fs]:checked").attr("id");
+    mgsc.DB_FILENAME =
+        db_filename_prefix + $("input[name=fs]:checked").attr("id");
     // jQuery doesn't support arraybuffer responses so we have to manually
     // use an XMLHttpRequest(), strange capitalization and all
     // CODELINK: Credit to this approach goes here, btw:
     // http://www.henryalgus.com/reading-binary-files-using-jquery-ajax/
     var xhr = new XMLHttpRequest();
     xhr.open("GET", mgsc.DB_FILENAME, true);
-    xhr.responseType = 'arraybuffer';
+    xhr.responseType = "arraybuffer";
     xhr.onload = function(eve) {
         if (this.status === 200) {
             initDB(this.response);
@@ -2563,7 +2781,7 @@ function finishProgressBar() {
     // always ends up at 100%, regardless of the update frequency.
     updateProgressBar(100);
     if (!$(".progress-bar").hasClass("notransitions")) {
-        $(".progress-bar").addClass("notransitions")
+        $(".progress-bar").addClass("notransitions");
     }
     if ($(".progress-bar").hasClass("progress-bar-striped")) {
         $(".progress-bar").removeClass("progress-bar-striped");
@@ -2594,10 +2812,17 @@ function toggleFinishingAnimationSettings() {
  */
 function invertColorSettings() {
     $(".colorpicker-component").each(function(i) {
-        var oldRGB = $(this).data("colorpicker").color.toRGB();
-        var newRGB = "rgb(" + (255 - oldRGB["r"]) + "," +
-                              (255 - oldRGB["g"]) + "," +
-                              (255 - oldRGB["b"]) + ")";
+        var oldRGB = $(this)
+            .data("colorpicker")
+            .color.toRGB();
+        var newRGB =
+            "rgb(" +
+            (255 - oldRGB["r"]) +
+            "," +
+            (255 - oldRGB["g"]) +
+            "," +
+            (255 - oldRGB["b"]) +
+            ")";
         $(this).colorpicker("setValue", newRGB);
     });
 }
@@ -2610,7 +2835,7 @@ function invertColorSettings() {
 function exportColorSettings(toDownload) {
     var textToExport = "";
     $(".colorpicker-component").each(function(i) {
-        textToExport += this.id +"\t"+ $(this).colorpicker("getValue") + "\n";
+        textToExport += this.id + "\t" + $(this).colorpicker("getValue") + "\n";
     });
     if (toDownload) {
         downloadDataURI("color_settings.tsv", textToExport, true);
@@ -2662,7 +2887,7 @@ function integrateColorSettings(fileText) {
  */
 function importColorSettings() {
     var csfr = new FileReader();
-	var inputfile = document.getElementById('colorSettingsFS').files[0];
+    var inputfile = document.getElementById("colorSettingsFS").files[0];
     if (inputfile === undefined) {
         return;
     }
@@ -2674,12 +2899,11 @@ function importColorSettings() {
                 integrateColorSettings(fileText);
                 // Clear .value attr to allow the same file (with changes
                 // made) to be uploaded twice in a row
-                document.getElementById('colorSettingsFS').value = "";
+                document.getElementById("colorSettingsFS").value = "";
             }
-        }
+        };
         csfr.readAsText(inputfile);
-    }
-    else {
+    } else {
         alert("Please select a valid .tsv color settings file to load.");
     }
 }
@@ -2696,11 +2920,11 @@ function importColorSettings() {
 function downloadDataURI(filename, contentToDownload, isPlainText) {
     $("#downloadHelper").attr("download", filename);
     if (isPlainText) {
-        var data = "data:text/plain;charset=utf-8;base64," +
+        var data =
+            "data:text/plain;charset=utf-8;base64," +
             window.btoa(contentToDownload);
         $("#downloadHelper").attr("href", data);
-    }
-    else {
+    } else {
         $("#downloadHelper").attr("href", contentToDownload);
     }
     document.getElementById("downloadHelper").click();
@@ -2731,12 +2955,11 @@ function toggleEleInfo(eleType) {
     var openerID = "#" + eleType + "Opener";
     var infoDivID = "#" + eleType + "Info";
     if ($(openerID).hasClass("glyphicon-triangle-right")) {
-        $(openerID).removeClass("glyphicon-triangle-right"); 
-        $(openerID).addClass("glyphicon-triangle-bottom"); 
-    }
-    else { 
-        $(openerID).removeClass("glyphicon-triangle-bottom"); 
-        $(openerID).addClass("glyphicon-triangle-right"); 
+        $(openerID).removeClass("glyphicon-triangle-right");
+        $(openerID).addClass("glyphicon-triangle-bottom");
+    } else {
+        $(openerID).removeClass("glyphicon-triangle-bottom");
+        $(openerID).addClass("glyphicon-triangle-right");
     }
     $(infoDivID).toggleClass("notviewable");
 }
@@ -2746,13 +2969,13 @@ function clearSelectedInfo() {
     $("#edgeInfoTable tr.nonheader").remove();
     $("#clusterInfoTable tr.nonheader").remove();
     if ($("#nodeOpener").hasClass("glyphicon-triangle-bottom")) {
-        toggleEleInfo('node');
+        toggleEleInfo("node");
     }
     if ($("#edgeOpener").hasClass("glyphicon-triangle-bottom")) {
-        toggleEleInfo('edge');
+        toggleEleInfo("edge");
     }
     if ($("#clusterOpener").hasClass("glyphicon-triangle-bottom")) {
-        toggleEleInfo('cluster');
+        toggleEleInfo("cluster");
     }
 }
 
@@ -2774,20 +2997,21 @@ function getSelectedNodeDNA() {
     mgsc.SELECTED_NODES.each(function(e, i) {
         // Is there any way to make this more efficient? Like, via
         // selecting multiple dnafwd values at once...?
-        dnaStmt = mgsc.CURR_DB.prepare("SELECT dnafwd FROM nodes WHERE id = ?",
-            [e.id()]);
+        dnaStmt = mgsc.CURR_DB.prepare(
+            "SELECT dnafwd FROM nodes WHERE id = ?",
+            [e.id()]
+        );
         dnaStmt.step();
         if (i > 0) {
             dnaSeqs += "\n";
         }
         dnaSeqs += ">NODE_" + e.id() + "\n";
         afterFirstSeqLine = false;
-        currDnaSeq = dnaStmt.getAsObject()['dnafwd'];
+        currDnaSeq = dnaStmt.getAsObject()["dnafwd"];
         for (seqIndex = 0; seqIndex < currDnaSeq.length; seqIndex += 70) {
             if (afterFirstSeqLine) {
                 dnaSeqs += "\n";
-            }
-            else {
+            } else {
                 afterFirstSeqLine = true;
             }
             dnaSeqs += currDnaSeq.substring(seqIndex, seqIndex + 70);
@@ -2796,12 +3020,12 @@ function getSelectedNodeDNA() {
     });
     return dnaSeqs;
 }
- 
+
 /* Exports selected node DNA to a FASTA file via a data URI. */
 function exportSelectedNodeDNA() {
     window.open(
         "data:text/FASTA;charset=utf-8;base64," +
-        window.btoa(getSelectedNodeDNA()),
+            window.btoa(getSelectedNodeDNA()),
         "_blank"
     );
 }
@@ -2811,32 +3035,30 @@ function exportSelectedNodeDNA() {
  */
 function fitGraph(toSelected) {
     startIndeterminateProgressBar();
-    window.setTimeout(
-        function() {
-            if (toSelected) {
-                // Right now, we don't throw any sort of error here if
-                // no elements are selected. This is because the fit-selected
-                // button is only enabled when >= 1 elements are selected.
-                cy.fit(
-                    mgsc.SELECTED_NODES.union(mgsc.SELECTED_EDGES).union(
-                        mgsc.SELECTED_CLUSTERS)
-                );
-            } else {
-                cy.fit();
-            }
-            finishProgressBar();
-        }, 20
-    );
+    window.setTimeout(function() {
+        if (toSelected) {
+            // Right now, we don't throw any sort of error here if
+            // no elements are selected. This is because the fit-selected
+            // button is only enabled when >= 1 elements are selected.
+            cy.fit(
+                mgsc.SELECTED_NODES.union(mgsc.SELECTED_EDGES).union(
+                    mgsc.SELECTED_CLUSTERS
+                )
+            );
+        } else {
+            cy.fit();
+        }
+        finishProgressBar();
+    }, 20);
 }
 
 /* Exports image of graph. */
 function exportGraphView() {
     var imgType = $("#imgTypeButtonGroup .btn.active").attr("value");
     if (imgType === "PNG") {
-        downloadDataURI("screenshot.png", cy.png({bg: mgsc.BG_COLOR}), false);
-    }
-    else {
-        downloadDataURI("screenshot.jpg", cy.jpg({bg: mgsc.BG_COLOR}), false);
+        downloadDataURI("screenshot.png", cy.png({ bg: mgsc.BG_COLOR }), false);
+    } else {
+        downloadDataURI("screenshot.jpg", cy.jpg({ bg: mgsc.BG_COLOR }), false);
     }
 }
 
@@ -2854,9 +3076,9 @@ function openEdgeFilteringDialog() {
 function drawEdgeWeightHistogram() {
     var formatCount = d3.format(",.0f");
     // note could probably find this inline to simplify computation time
-    var max = d3.max(mgsc.COMPONENT_EDGE_WEIGHTS); 
+    var max = d3.max(mgsc.COMPONENT_EDGE_WEIGHTS);
     //console.log(mgsc.COMPONENT_EDGE_WEIGHTS);
-    var margin = {top: 10, right: 30, bottom: 50, left: 70};
+    var margin = { top: 10, right: 30, bottom: 50, left: 70 };
     //for (var i = 0; i < mgsc.COMPONENT_EDGE_WEIGHTS.length; i++) {
     //    console.log(mgsc.COMPONENT_EDGE_WEIGHTS[i] + "->" + data[i]);
     //}
@@ -2867,29 +3089,44 @@ function drawEdgeWeightHistogram() {
     var chartSvg = d3.select("#edgeWeightChart");
     var width = +chartSvg.attr("width") - margin.left - margin.right;
     var height = +chartSvg.attr("height") - margin.top - margin.bottom;
-    var g = chartSvg.append("g")
-        .attr("transform","translate(" + margin.left + "," + margin.top + ")");
-    var x = d3.scaleLinear().domain([0, max * 1.1]).rangeRound([0, width]);
-    var bin_count = + $("#binCountInput").val();
-    var bins = d3.histogram()
+    var g = chartSvg
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var x = d3
+        .scaleLinear()
+        .domain([0, max * 1.1])
+        .rangeRound([0, width]);
+    var bin_count = +$("#binCountInput").val();
+    var bins = d3
+        .histogram()
         .domain(x.domain())
         .thresholds(x.ticks(bin_count))(mgsc.COMPONENT_EDGE_WEIGHTS);
-    var y = d3.scaleLinear()
-        .domain([0, d3.max(bins, function(b) { return b.length; })])
+    var y = d3
+        .scaleLinear()
+        .domain([
+            0,
+            d3.max(bins, function(b) {
+                return b.length;
+            })
+        ])
         .range([height, 0]);
-    var bar = g.selectAll(".edge_chart_bar")
+    var bar = g
+        .selectAll(".edge_chart_bar")
         .data(bins)
-        .enter().append("g")
-            .attr("class", "edge_chart_bar")
-            .attr("transform",
-                    function(b) {
-                        return "translate(" + x(b.x0) +","+ y(b.length) + ")";
-                    }
-            );
+        .enter()
+        .append("g")
+        .attr("class", "edge_chart_bar")
+        .attr("transform", function(b) {
+            return "translate(" + x(b.x0) + "," + y(b.length) + ")";
+        });
     bar.append("rect")
         .attr("x", 1)
-        .attr("width", function(d) { return x(d.x1) - x(d.x0) - 1; })
-        .attr("height", function(d) { return height - y(d.length); });
+        .attr("width", function(d) {
+            return x(d.x1) - x(d.x0) - 1;
+        })
+        .attr("height", function(d) {
+            return height - y(d.length);
+        });
 
     var xAxis = d3.axisBottom(x);
     var yAxis = d3.axisLeft(y);
@@ -2902,15 +3139,17 @@ function drawEdgeWeightHistogram() {
         .call(yAxis);
     // Add x-axis label
     g.append("text")
-        .attr("transform", "translate(" + (width / 2) + "," +
-                (height + margin.top + 30) + ")")
+        .attr(
+            "transform",
+            "translate(" + width / 2 + "," + (height + margin.top + 30) + ")"
+        )
         .style("text-anchor", "middle")
         .text("Edge multiplicity");
     // Add y-axis label
     g.append("text")
         .attr("transform", "rotate(-90)")
         .attr("y", 0 - margin.left)
-        .attr("x", 0 - (height / 2))
+        .attr("x", 0 - height / 2)
         .attr("dy", "1em")
         .style("text-anchor", "middle")
         .text("Frequency");
@@ -2928,8 +3167,10 @@ function cullEdges() {
     // Check that the input is a nonnegative integer
     // (parseInt() is pretty lax)
     if (strVal.match(mgsc.INTEGER_RE) === null) {
-        alert("Please enter a valid minimum edge weight (a nonnegative " +
-              "integer) using the input field.");
+        alert(
+            "Please enter a valid minimum edge weight (a nonnegative " +
+                "integer) using the input field."
+        );
         return;
     }
     var threshold = parseInt(strVal);
@@ -2940,41 +3181,36 @@ function cullEdges() {
         // Restore removed edges that would fit within a lowered threshold
         // Also, remove these edges from mgsc.REMOVED_EDGES
         var restoredEdges = cy.collection();
-        mgsc.REMOVED_EDGES.each(
-            function(e, i) {
-                if (e.data("multiplicity") >= threshold) {
-                    // If the edge points to/from a node within a collapsed
-                    // cluster, then make the edge a basicbezier and move the
-                    // edge to point to the cluster accordingly.
-                    // TODO, consult point 2 on issue #161
-                    if (e.source().removed()) {
-                        e.removeClass("unbundledbezier");
-                        e.addClass("basicbezier");
-                        e.move({source: e.source().data("parent")});
-                    }
-                    if (e.target().removed()) {
-                        e.removeClass("unbundledbezier");
-                        e.addClass("basicbezier");
-                        e.move({target: e.target().data("parent")});
-                    }
-                    e.restore();
-                    restoredEdges = restoredEdges.union(e);
+        mgsc.REMOVED_EDGES.each(function(e, i) {
+            if (e.data("multiplicity") >= threshold) {
+                // If the edge points to/from a node within a collapsed
+                // cluster, then make the edge a basicbezier and move the
+                // edge to point to the cluster accordingly.
+                // TODO, consult point 2 on issue #161
+                if (e.source().removed()) {
+                    e.removeClass("unbundledbezier");
+                    e.addClass("basicbezier");
+                    e.move({ source: e.source().data("parent") });
                 }
+                if (e.target().removed()) {
+                    e.removeClass("unbundledbezier");
+                    e.addClass("basicbezier");
+                    e.move({ target: e.target().data("parent") });
+                }
+                e.restore();
+                restoredEdges = restoredEdges.union(e);
             }
-        );
+        });
         mgsc.REMOVED_EDGES = mgsc.REMOVED_EDGES.difference(restoredEdges);
         // Remove edges that have multiplicity less than the specified
         // threshold
-        cy.$("edge").each(
-            function(e, i) {
-                var mult = e.data("multiplicity");
-                if (mult !== null && mult < threshold) {
-                    if (e.selected())
-                        e.unselect();
-                    mgsc.REMOVED_EDGES = mgsc.REMOVED_EDGES.union(e.remove());
-                }
+        cy.$("edge").each(function(e, i) {
+            var mult = e.data("multiplicity");
+            if (mult !== null && mult < threshold) {
+                if (e.selected()) e.unselect();
+                mgsc.REMOVED_EDGES = mgsc.REMOVED_EDGES.union(e.remove());
             }
-        );
+        });
         cy.endBatch();
         mgsc.PREV_EDGE_WEIGHT_THRESHOLD = threshold;
     }
@@ -2984,7 +3220,7 @@ function beginLoadAGPfile() {
     var sfr = new FileReader();
     // will be set to true if we find suitable scaffolds
     mgsc.COMPONENT_HAS_SCAFFOLDS = false;
-	var inputfile = document.getElementById('scaffoldFileSelector').files[0];
+    var inputfile = document.getElementById("scaffoldFileSelector").files[0];
     if (inputfile === undefined) {
         return;
     }
@@ -3039,12 +3275,10 @@ function beginLoadAGPfile() {
                             clearScaffoldFS(true);
                             return;
                         }
-                    }
-                    else {
+                    } else {
                         sfr.partialLine = blobLines[blobLines.length - 1];
                     }
-                }
-                else if (blobLines.length === 1) {
+                } else if (blobLines.length === 1) {
                     // blobText doesn't contain any newlines
                     if (sfr.readingFinalBlob) {
                         c = integrateAGPline(sfr.partialLine + blobText);
@@ -3052,22 +3286,20 @@ function beginLoadAGPfile() {
                             clearScaffoldFS(true);
                             return;
                         }
-                    }
-                    else {
+                    } else {
                         sfr.partialLine += blobText;
                     }
                 }
                 loadAGPfile(this, inputfile, this.nextStartPosition);
             }
-        }
+        };
         // use a small timeout so the call to startIndeterminateProgressBar()
         // can update the DOM
         $("#agpLoadedFileName").addClass("notviewable");
         window.setTimeout(function() {
             loadAGPfile(sfr, inputfile, 0);
         }, 50);
-    }
-    else {
+    } else {
         alert("Please select a valid AGP file to load.");
     }
 }
@@ -3113,8 +3345,7 @@ function integrateAGPline(lineText) {
             if (mgsc.COMPONENT_NODE_KEYS.indexOf(contigKey) !== -1) {
                 addScaffoldListGroupItem(scaffoldID);
             }
-        }
-        else {
+        } else {
             mgsc.SCAFFOLDID2NODEKEYS[scaffoldID].push(contigKey);
         }
     }
@@ -3147,7 +3378,10 @@ function updateScaffoldsInComponentList() {
         // connected component.
         // (This is pretty much the same way we do this when initially loading
         // scaffold data, as with integrateAGPline() above.)
-        if (mgsc.COMPONENT_NODE_KEYS.indexOf(mgsc.SCAFFOLDID2NODEKEYS[s][0]) !== -1){
+        if (
+            mgsc.COMPONENT_NODE_KEYS.indexOf(mgsc.SCAFFOLDID2NODEKEYS[s][0]) !==
+            -1
+        ) {
             addScaffoldListGroupItem(s);
         }
     }
@@ -3175,8 +3409,7 @@ function loadAGPfile(fileReader, file, filePosition) {
         }
         fileReader.nextStartPosition = endPosition;
         fileReader.readAsText(currentBlob);
-    }
-    else {
+    } else {
         updateScaffoldInfoHeader(true);
     }
 }
@@ -3192,12 +3425,15 @@ function loadAGPfile(fileReader, file, filePosition) {
  */
 function updateScaffoldInfoHeader(agpFileJustLoaded) {
     if (mgsc.COMPONENT_HAS_SCAFFOLDS) {
-        $("#scaffoldInfoHeader").html("Scaffolds in Connected Component<br/>" +
-            "(Click to highlight in graph)");
-    }
-    else {
-        $("#scaffoldInfoHeader").html("No scaffolds apply to the contigs " +
-            "in this connected component.");
+        $("#scaffoldInfoHeader").html(
+            "Scaffolds in Connected Component<br/>" +
+                "(Click to highlight in graph)"
+        );
+    } else {
+        $("#scaffoldInfoHeader").html(
+            "No scaffolds apply to the contigs " +
+                "in this connected component."
+        );
     }
     $("#scaffoldInfoHeader").removeClass("notviewable");
     // Perform a few useful operations if the user just loaded this AGP file.
@@ -3205,7 +3441,8 @@ function updateScaffoldInfoHeader(agpFileJustLoaded) {
     // been loaded and we just ran updateScaffoldsInComponentList().
     if (agpFileJustLoaded) {
         $("#agpLoadedFileName").html(
-            document.getElementById("scaffoldFileSelector").files[0].name);
+            document.getElementById("scaffoldFileSelector").files[0].name
+        );
         $("#agpLoadedFileName").removeClass("notviewable");
         clearScaffoldFS(false);
     }
@@ -3226,7 +3463,7 @@ function clearScaffoldFS(errorOnAGPload) {
         mgsc.COMPONENT_SCAFFOLDS = [];
         $("#scaffoldCycler").addClass("notviewable");
     }
-    document.getElementById('scaffoldFileSelector').value = "";
+    document.getElementById("scaffoldFileSelector").value = "";
     finishProgressBar();
 }
 
@@ -3240,7 +3477,10 @@ function cycleScaffoldsLeft() {
 }
 
 function cycleScaffoldsRight() {
-    if (mgsc.SCAFFOLD_CYCLER_CURR_INDEX === mgsc.COMPONENT_SCAFFOLDS.length - 1) {
+    if (
+        mgsc.SCAFFOLD_CYCLER_CURR_INDEX ===
+        mgsc.COMPONENT_SCAFFOLDS.length - 1
+    ) {
         mgsc.SCAFFOLD_CYCLER_CURR_INDEX = 0;
     } else {
         mgsc.SCAFFOLD_CYCLER_CURR_INDEX++;
@@ -3250,7 +3490,8 @@ function cycleScaffoldsRight() {
 
 // Also highlights the new scaffold.
 function updateDrawScaffoldButtonText() {
-    var newScaffoldID = mgsc.COMPONENT_SCAFFOLDS[mgsc.SCAFFOLD_CYCLER_CURR_INDEX];
+    var newScaffoldID =
+        mgsc.COMPONENT_SCAFFOLDS[mgsc.SCAFFOLD_CYCLER_CURR_INDEX];
     $("#drawScaffoldButton").text(newScaffoldID);
     highlightScaffold(newScaffoldID);
 }
@@ -3262,7 +3503,7 @@ function updateDrawScaffoldButtonText() {
  */
 function highlightScaffold(scaffoldID) {
     // TODO can make this more efficient -- see #115, etc.
-    cy.filter(':selected').unselect();
+    cy.filter(":selected").unselect();
     var contigKeys = mgsc.SCAFFOLDID2NODEKEYS[scaffoldID];
     var nodesToHighlight = cy.collection();
     var nodeToAdd;
@@ -3272,15 +3513,17 @@ function highlightScaffold(scaffoldID) {
             // Figure out if we need to use cy.getElementById (if this scaffold
             // refers to a node group) instead of filtering by label
             prefix = contigKeys[i][0];
-            if (prefix === 'B' || prefix === 'F' || prefix === 'C'
-                    || prefix === 'Y') {
+            if (
+                prefix === "B" ||
+                prefix === "F" ||
+                prefix === "C" ||
+                prefix === "Y"
+            ) {
                 nodeToAdd = cy.getElementById(contigKeys[i]);
+            } else {
+                nodeToAdd = cy.filter('[label="' + contigKeys[i] + '"]');
             }
-            else {
-                nodeToAdd = cy.filter("[label=\"" + contigKeys[i] + "\"]");
-            }
-        }
-        else {
+        } else {
             nodeToAdd = cy.getElementById(contigKeys[i]);
         }
         if (nodeToAdd.empty()) {
@@ -3298,10 +3541,16 @@ function highlightScaffold(scaffoldID) {
                 if (mgsc.ASM_FILETYPE === "GML") {
                     keyType = "label ";
                 }
-                alert("Node with " + keyType + contigKeys[i] +
-                      " in scaffold \"" + scaffoldID + "\"" +
-                      " is not present in the currently drawn connected" +
-                      " component. This scaffold is invalid.");
+                alert(
+                    "Node with " +
+                        keyType +
+                        contigKeys[i] +
+                        ' in scaffold "' +
+                        scaffoldID +
+                        '"' +
+                        " is not present in the currently drawn connected" +
+                        " component. This scaffold is invalid."
+                );
                 return;
             }
         }
@@ -3369,8 +3618,7 @@ function addNodeFromEventToPath(e) {
                 if (mgsc.FINISHING_NODE_OBJS.length > 0) {
                     $("#assembledNodes").append(", " + nodeID);
                     mgsc.FINISHING_NODE_IDS += "," + nodeID;
-                }
-                else {
+                } else {
                     $("#assembledNodes").append(nodeID);
                     mgsc.FINISHING_NODE_IDS += nodeID;
                 }
@@ -3407,8 +3655,7 @@ function addNodeFromEventToPath(e) {
         if (mgsc.FINISHING_NODE_OBJS.length > 0) {
             $("#assembledNodes").append(", " + nodeID);
             mgsc.FINISHING_NODE_IDS += "," + nodeID;
-        }
-        else {
+        } else {
             $("#assembledNodes").append(nodeID);
             mgsc.FINISHING_NODE_IDS += nodeID;
         }
@@ -3416,8 +3663,7 @@ function addNodeFromEventToPath(e) {
         mgsc.FINISHING_NODE_OBJS.push(node);
         if (size === 0) {
             endFinishing();
-        }
-        else {
+        } else {
             markTentativeNodes();
         }
     }
@@ -3451,7 +3697,7 @@ function markTentativeNodes() {
         // NOTE we use parseFloat() because cy.maxZoom() seems to require
         // numeric inputs
         cy.maxZoom(parseFloat($("#maxFinishingZoomLvl").val()));
-        cy.animate({fit: {eles: mgsc.NEXT_NODES}, complete: resetMaxZoom});
+        cy.animate({ fit: { eles: mgsc.NEXT_NODES }, complete: resetMaxZoom });
     }
 }
 
@@ -3466,10 +3712,9 @@ function toggleFinishingGraphProperties(onOrOff) {
     if (onOrOff >= 0) {
         cy.autounselectify(false);
         cy.off("tap");
-    }
-    else {
+    } else {
         // TODO can make this more efficient -- see #115, etc.
-        cy.filter(':selected').unselect();
+        cy.filter(":selected").unselect();
         cy.autounselectify(true);
         cy.on("tap", "node", addNodeFromEventToPath);
     }
@@ -3503,14 +3748,17 @@ function togglePauseFinishingButtonStyle(pauseOrFinish) {
         $("#pauseFinishingButtonIconSpan").addClass("glyphicon-pause");
         $("#pauseFinishingButtonIconSpan").removeClass("glyphicon-play");
         $("#pauseFinishingButton").html(
-            $("#pauseFinishingButton").html().replace("Resume", "Pause")
+            $("#pauseFinishingButton")
+                .html()
+                .replace("Resume", "Pause")
         );
-    }
-    else {
+    } else {
         $("#pauseFinishingButtonIconSpan").removeClass("glyphicon-pause");
         $("#pauseFinishingButtonIconSpan").addClass("glyphicon-play");
         $("#pauseFinishingButton").html(
-            $("#pauseFinishingButton").html().replace("Pause", "Resume")
+            $("#pauseFinishingButton")
+                .html()
+                .replace("Pause", "Resume")
         );
     }
 }
@@ -3523,8 +3771,7 @@ function togglePauseFinishing() {
     if ($("#pauseFinishingButtonIconSpan").hasClass("glyphicon-pause")) {
         togglePauseFinishingButtonStyle(1);
         toggleFinishingGraphProperties(1);
-    }
-    else {
+    } else {
         togglePauseFinishingButtonStyle(-1);
         toggleFinishingGraphProperties(-1);
     }
@@ -3573,34 +3820,43 @@ function exportPath() {
             if (mgsc.FINISHING_NODE_OBJS[i].hasClass("cluster")) {
                 nodeOrient = "na";
                 componentType = "O"; // for "Other sequence"
-            }
-            else if (mgsc.FINISHING_NODE_OBJS[i].hasClass("rightdir")) {
+            } else if (mgsc.FINISHING_NODE_OBJS[i].hasClass("rightdir")) {
                 nodeOrient = "+";
-            }
-            else {
+            } else {
                 nodeOrient = "-";
             }
             // Since node groups and nodes from non-GML inputs don't have
             // label data, use these objects' IDs instead.
             if (componentType === "W" && mgsc.ASM_FILETYPE === "GML") {
                 nodeKey = mgsc.FINISHING_NODE_OBJS[i].data("label");
-            }
-            else {
+            } else {
                 nodeKey = mgsc.FINISHING_NODE_OBJS[i].id();
             }
             // Add a line for this node
-            nextEndPos = (nextStartPos - 1) + nodeLen;
+            nextEndPos = nextStartPos - 1 + nodeLen;
             // TODO: keep track of how many scaffolds the user has created
             // from this graph (not component) as a global-ish number variable,
             // then use that when populating an AGP file with many scaffolds.
-            textToExport += "scaffold\t" + nextStartPos + "\t" + nextEndPos +
-                "\t" + (i + 1) + "\t" + componentType + "\t" + nodeKey +
-                "\t1\t" + nodeLen + "\t" + nodeOrient + "\n";
+            textToExport +=
+                "scaffold\t" +
+                nextStartPos +
+                "\t" +
+                nextEndPos +
+                "\t" +
+                (i + 1) +
+                "\t" +
+                componentType +
+                "\t" +
+                nodeKey +
+                "\t1\t" +
+                nodeLen +
+                "\t" +
+                nodeOrient +
+                "\n";
             nextStartPos = nextEndPos + 1;
         }
         downloadDataURI("path.agp", textToExport, true);
-    }
-    else {
+    } else {
         // export CSV
         textToExport = mgsc.FINISHING_NODE_IDS;
         downloadDataURI("path.csv", textToExport, true);
@@ -3608,8 +3864,9 @@ function exportPath() {
 }
 
 function startChangeNodeColorization() {
-    var newColorization = $("#nodeColorizationRadioButtonGroup input:checked")
-        .attr("value");
+    var newColorization = $(
+        "#nodeColorizationRadioButtonGroup input:checked"
+    ).attr("value");
     // We check to ensure the new colorization would be different from the
     // current one -- if not, we don't bother doing anything
     if (newColorization !== mgsc.CURR_NODE_COLORIZATION) {
@@ -3623,12 +3880,13 @@ function startChangeNodeColorization() {
 
 function changeNodeColorization(newColorization) {
     cy.startBatch();
-    cy.filter('node.noncluster')
+    cy.filter("node.noncluster")
         .removeClass(mgsc.CURR_NODE_COLORIZATION)
         .addClass(newColorization);
     // Make sure to apply the colorization to collapsed nodes, also!
     cy.scratch("_collapsed").each(function(nodeGroup, i) {
-        nodeGroup.scratch("_interiorNodes")
+        nodeGroup
+            .scratch("_interiorNodes")
             .removeClass(mgsc.CURR_NODE_COLORIZATION)
             .addClass(newColorization);
     });
@@ -3676,9 +3934,12 @@ function getNodeColorization(gc) {
     // Everything from here on down is normal continuous colorization.
     // Linearly scale each RGB value between the extreme colors'
     // corresponding RGB values
-    var red_i = (gc * (mgsc.MAX_RGB['r'] - mgsc.MIN_RGB['r'])) + mgsc.MIN_RGB['r'];
-    var green_i = (gc * (mgsc.MAX_RGB['g'] - mgsc.MIN_RGB['g'])) + mgsc.MIN_RGB['g'];
-    var blue_i = (gc * (mgsc.MAX_RGB['b'] - mgsc.MIN_RGB['b'])) + mgsc.MIN_RGB['b'];
+    var red_i =
+        gc * (mgsc.MAX_RGB["r"] - mgsc.MIN_RGB["r"]) + mgsc.MIN_RGB["r"];
+    var green_i =
+        gc * (mgsc.MAX_RGB["g"] - mgsc.MIN_RGB["g"]) + mgsc.MIN_RGB["g"];
+    var blue_i =
+        gc * (mgsc.MAX_RGB["b"] - mgsc.MIN_RGB["b"]) + mgsc.MIN_RGB["b"];
     // Convert resulting RGB decimal values (should be in the range [0, 255])
     // to hexadecimal and use them to construct a color string
     var red = Math.round(red_i).toString(16);
@@ -3703,17 +3964,20 @@ function redrawGradientPreview(hexColor, minOrMax) {
     var tmpColor;
     if (minOrMax === -1) {
         $("#0gp").css("background-color", hexColor);
-        mgsc.MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
+        mgsc.MIN_RGB = $("#mincncp")
+            .data("colorpicker")
+            .color.toRGB();
         mgsc.MIN_HEX = hexColor;
         if (mgsc.MAX_RGB === undefined) {
             tmpColor = $("#maxcncp").data("colorpicker").color;
             mgsc.MAX_RGB = tmpColor.toRGB();
             mgsc.MAX_HEX = tmpColor.toHex();
         }
-    }
-    else {
+    } else {
         $("#100gp").css("background-color", hexColor);
-        mgsc.MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
+        mgsc.MAX_RGB = $("#maxcncp")
+            .data("colorpicker")
+            .color.toRGB();
         mgsc.MAX_HEX = hexColor;
         if (mgsc.MIN_RGB === undefined) {
             tmpColor = $("#mincncp").data("colorpicker").color;
@@ -3723,7 +3987,7 @@ function redrawGradientPreview(hexColor, minOrMax) {
     }
     // Change intermediate colors in the gradient
     $("#25gp").css("background-color", getNodeColorization(0.25));
-    $("#50gp").css("background-color", getNodeColorization(0.50));
+    $("#50gp").css("background-color", getNodeColorization(0.5));
     $("#75gp").css("background-color", getNodeColorization(0.75));
 }
 
@@ -3737,7 +4001,10 @@ function testLayout() {
             // will be changed
             // Adjust min zoom to scope of new layout
             reduceEdgesToStraightLines(false);
-            cy.layout({name: $("#layoutInput").val(), fit: true, padding: 0,
+            cy.layout({
+                name: $("#layoutInput").val(),
+                fit: true,
+                padding: 0,
                 stop: function() {
                     finishProgressBar();
                 }
@@ -3763,8 +4030,7 @@ function reduceEdgesToStraightLines(useProgressBar) {
             doReduceEdges();
             finishProgressBar();
         }, 50);
-    }
-    else {
+    } else {
         doReduceEdges();
     }
 }
@@ -3776,7 +4042,7 @@ function doReduceEdges() {
         e.removeClass("unbundledbezier");
         e.addClass("reducededge");
         e.addClass("basicbezier");
-    }
+    };
 
     // We can safely use the reducingFunction even on non-unbundledbezier
     // edges. The reason we don't restrict the first cy.filter() to
@@ -3802,10 +4068,14 @@ function disableSearchOption(searchType) {
 function toggleSearchType(searchType) {
     if (searchType !== mgsc.CURR_SEARCH_TYPE) {
         $("#searchTypeButton").html(
-            $("#searchTypeButton").html().replace(mgsc.CURR_SEARCH_TYPE, searchType)
+            $("#searchTypeButton")
+                .html()
+                .replace(mgsc.CURR_SEARCH_TYPE, searchType)
         );
-        $("#searchInput").attr("placeholder",
-            $("#searchInput").attr("placeholder")
+        $("#searchInput").attr(
+            "placeholder",
+            $("#searchInput")
+                .attr("placeholder")
                 .replace(mgsc.CURR_SEARCH_TYPE, searchType)
         );
     }
@@ -3822,7 +4092,7 @@ function searchForEles() {
         alert("Error -- please enter element name(s) to search for.");
         return;
     }
-    var names = nameText.split(",")
+    var names = nameText.split(",");
     var eles = cy.collection(); // empty collection (for now)
     var newEle;
     var parentID;
@@ -3830,9 +4100,8 @@ function searchForEles() {
     for (var c = 0; c < names.length; c++) {
         queriedName = names[c].trim();
         if (mgsc.CURR_SEARCH_TYPE === "Label")
-            newEle = cy.filter("[label=\"" + queriedName + "\"]");
-        else
-            newEle = cy.getElementById(queriedName);
+            newEle = cy.filter('[label="' + queriedName + '"]');
+        else newEle = cy.getElementById(queriedName);
         if (newEle.empty()) {
             // Check if this element is in the graph (but currently
             // collapsed, and therefore inaccessible) or if it just
@@ -3842,16 +4111,18 @@ function searchForEles() {
                 // We've collapsed the parent of this element, so identify
                 // its parent instead
                 eles = eles.union(cy.getElementById(parentID));
-            }
-            else {
+            } else {
                 // It's a bogus element
-                alert("Error -- element with " +
-                      mgsc.SEARCH_TYPE_HREADABLE[mgsc.CURR_SEARCH_TYPE] + " " +
-                      queriedName + " is not in this component.");
+                alert(
+                    "Error -- element with " +
+                        mgsc.SEARCH_TYPE_HREADABLE[mgsc.CURR_SEARCH_TYPE] +
+                        " " +
+                        queriedName +
+                        " is not in this component."
+                );
                 return;
             }
-        }
-        else {
+        } else {
             // Identify the node in question
             eles = eles.union(newEle);
         }
@@ -3862,7 +4133,7 @@ function searchForEles() {
     // (TODO: is this O(n)? because if so, it's not worth it, probably)
     // (Look into this)
     // TODO can make this more efficient -- see #115, etc.
-    cy.filter(':selected').unselect();
+    cy.filter(":selected").unselect();
     // Select all identified names, so they can be dragged if desired
     // (and also to highlight them).
     eles.select();
@@ -3881,7 +4152,9 @@ function uncollapseSPQRMetanode(mn) {
     var mnID = mn.id();
     // 1. Get outgoing edges from this metanode
     var outgoingEdgesStmt = mgsc.CURR_DB.prepare(
-        "SELECT * FROM metanodeedges WHERE source_metanode_id = ?", [mnID]);
+        "SELECT * FROM metanodeedges WHERE source_metanode_id = ?",
+        [mnID]
+    );
     var outgoingEdgeObjects = [];
     var descendantMetanodeIDs = [];
     var descendantMetanodeQMs = "("; // this is a bit silly
@@ -3890,17 +4163,18 @@ function uncollapseSPQRMetanode(mn) {
         edgeObj = outgoingEdgesStmt.getAsObject();
         outgoingEdgeObjects.push(edgeObj);
         descendantMetanodeIDs.push(edgeObj["target_metanode_id"]);
-        descendantMetanodeQMs += "?,"
+        descendantMetanodeQMs += "?,";
     }
     outgoingEdgesStmt.free();
     // For future use, when re-collapsing this metanode
     mn.scratch("_descendantMetanodeIDs", descendantMetanodeIDs);
     // 2. Get immediate descendant metanodes
-    descendantMetanodeQMs = descendantMetanodeQMs.slice(0,
-        descendantMetanodeQMs.length - 1) + ")";
+    descendantMetanodeQMs =
+        descendantMetanodeQMs.slice(0, descendantMetanodeQMs.length - 1) + ")";
     var descendantMetanodesStmt = mgsc.CURR_DB.prepare(
-        "SELECT * FROM metanodes WHERE metanode_id IN "
-      + descendantMetanodeQMs, descendantMetanodeIDs);
+        "SELECT * FROM metanodes WHERE metanode_id IN " + descendantMetanodeQMs,
+        descendantMetanodeIDs
+    );
     var descendantMetanodeObjects = [];
     while (descendantMetanodesStmt.step()) {
         descendantMetanodeObjects.push(descendantMetanodesStmt.getAsObject());
@@ -3908,8 +4182,10 @@ function uncollapseSPQRMetanode(mn) {
     descendantMetanodesStmt.free();
     // 3. Get singlenodes contained within the skeletons of the descendants
     var singlenodesStmt = mgsc.CURR_DB.prepare(
-        "SELECT * FROM singlenodes WHERE parent_metanode_id IN"
-      + descendantMetanodeQMs, descendantMetanodeIDs);
+        "SELECT * FROM singlenodes WHERE parent_metanode_id IN" +
+            descendantMetanodeQMs,
+        descendantMetanodeIDs
+    );
     var singlenodeObjects = [];
     while (singlenodesStmt.step()) {
         singlenodeObjects.push(singlenodesStmt.getAsObject());
@@ -3917,8 +4193,10 @@ function uncollapseSPQRMetanode(mn) {
     singlenodesStmt.free();
     // 4. Get singleedges contained within the skeletons of the descendants
     var singleedgesStmt = mgsc.CURR_DB.prepare(
-        "SELECT * FROM singleedges WHERE parent_metanode_id IN"
-      + descendantMetanodeQMs, descendantMetanodeIDs);
+        "SELECT * FROM singleedges WHERE parent_metanode_id IN" +
+            descendantMetanodeQMs,
+        descendantMetanodeIDs
+    );
     var singleedgeObjects = [];
     while (singleedgesStmt.step()) {
         singleedgeObjects.push(singleedgesStmt.getAsObject());
@@ -3932,20 +4210,31 @@ function uncollapseSPQRMetanode(mn) {
     // which metanodeedges are currently rendered as.
     var sourcePos = mn.position();
     var descendantID2pos = {};
-    descendantID2pos[mnID] = [sourcePos['x'], sourcePos['y']];
+    descendantID2pos[mnID] = [sourcePos["x"], sourcePos["y"]];
     var clusterIDandPos = [];
     for (a = 0; a < descendantMetanodeObjects.length; a++) {
-        if (mgsc.CURR_SPQRMODE === "explicit" ||
-                descendantMetanodeObjects[a]['descendant_metanode_count'] > 0){
-            clusterIDandPos = renderClusterObject(descendantMetanodeObjects[a],
-                mgsc.CURR_BOUNDINGBOX, "metanode");
+        if (
+            mgsc.CURR_SPQRMODE === "explicit" ||
+            descendantMetanodeObjects[a]["descendant_metanode_count"] > 0
+        ) {
+            clusterIDandPos = renderClusterObject(
+                descendantMetanodeObjects[a],
+                mgsc.CURR_BOUNDINGBOX,
+                "metanode"
+            );
             descendantID2pos[clusterIDandPos[0]] = clusterIDandPos[1];
         }
     }
     if (mgsc.CURR_SPQRMODE === "explicit") {
         for (a = 0; a < outgoingEdgeObjects.length; a++) {
-            renderEdgeObject(outgoingEdgeObjects[a], descendantID2pos,
-                    mgsc.CURR_BOUNDINGBOX, "metanodeedge", "SPQR", {});
+            renderEdgeObject(
+                outgoingEdgeObjects[a],
+                descendantID2pos,
+                mgsc.CURR_BOUNDINGBOX,
+                "metanodeedge",
+                "SPQR",
+                {}
+            );
         }
     }
     var cyNodeID, normalID, parentBicmpID;
@@ -3953,11 +4242,11 @@ function uncollapseSPQRMetanode(mn) {
     var alreadyVisible;
     var singlenodeMapping = {};
     for (a = 0; a < singlenodeObjects.length; a++) {
-        normalID = singlenodeObjects[a]['id'];
+        normalID = singlenodeObjects[a]["id"];
         // In implicit mode, only render a new singlenode if it isn't already
         // visible in the parent bicomponent
         if (mgsc.CURR_SPQRMODE === "implicit") {
-            parentBicmpID = singlenodeObjects[a]['parent_bicomponent_id'];
+            parentBicmpID = singlenodeObjects[a]["parent_bicomponent_id"];
             currIDs = mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS[parentBicmpID];
             alreadyVisible = false;
             for (b = 0; b < currIDs.length; b++) {
@@ -3971,19 +4260,27 @@ function uncollapseSPQRMetanode(mn) {
                 continue;
             }
         }
-        cyNodeID = normalID + "_"
-                + singlenodeObjects[a]['parent_metanode_id'];
-        renderNodeObject(singlenodeObjects[a], cyNodeID, mgsc.CURR_BOUNDINGBOX,
-                "SPQR");
+        cyNodeID = normalID + "_" + singlenodeObjects[a]["parent_metanode_id"];
+        renderNodeObject(
+            singlenodeObjects[a],
+            cyNodeID,
+            mgsc.CURR_BOUNDINGBOX,
+            "SPQR"
+        );
     }
     for (a = 0; a < singleedgeObjects.length; a++) {
-        renderEdgeObject(singleedgeObjects[a], {},
-            mgsc.CURR_BOUNDINGBOX, "singleedge", "SPQR", singlenodeMapping);
+        renderEdgeObject(
+            singleedgeObjects[a],
+            {},
+            mgsc.CURR_BOUNDINGBOX,
+            "singleedge",
+            "SPQR",
+            singlenodeMapping
+        );
     }
     if (mgsc.CURR_SPQRMODE === "explicit") {
         mn.data("isCollapsed", false);
-    }
-    else {
+    } else {
         var edgesToRemove = mn.scratch("_virtualedgeIDs");
         var edgeToRemove;
         for (var c = 0; c < edgesToRemove.length; c++) {
@@ -4008,7 +4305,7 @@ function collapseSPQRMetanode(mn) {
     var singlenodeIDs;
     for (a = 0; a < descendantMetanodeIDs.length; a++) {
         mn2 = cy.getElementById(descendantMetanodeIDs[a]);
-        if (mn2.data("descendantCount") > 0 && !(mn2.data("isCollapsed"))) {
+        if (mn2.data("descendantCount") > 0 && !mn2.data("isCollapsed")) {
             // We have to recursively collapse mn2
             collapseSPQRMetanode(mn2);
         }
@@ -4047,7 +4344,9 @@ function startCollapseAll() {
     if (mgsc.CURR_VIEWTYPE !== "SPQR") {
         var currVal = $("#collapseButtonText").text();
         startIndeterminateProgressBar();
-        window.setTimeout(function() { collapseAll(currVal[0]) }, 50);
+        window.setTimeout(function() {
+            collapseAll(currVal[0]);
+        }, 50);
     }
 }
 
@@ -4058,19 +4357,14 @@ function startCollapseAll() {
  */
 function collapseAll(operationCharacter) {
     cy.startBatch();
-    if (operationCharacter === 'U') {
-        cy.scratch("_collapsed").each(
-            function(cluster, i) {
-                uncollapseCluster(cluster);
-            }
-        );
-    }
-    else {
-        cy.scratch("_uncollapsed").each(
-            function(cluster, i) {
-                collapseCluster(cluster);
-            }
-        );
+    if (operationCharacter === "U") {
+        cy.scratch("_collapsed").each(function(cluster, i) {
+            uncollapseCluster(cluster);
+        });
+    } else {
+        cy.scratch("_uncollapsed").each(function(cluster, i) {
+            collapseCluster(cluster);
+        });
     }
     finishProgressBar();
     cy.endBatch();
@@ -4093,12 +4387,13 @@ function rotateCoordinate(xCoord, yCoord) {
     var rotation = mgsc.PREV_ROTATION - mgsc.CURR_ROTATION;
     if (rotation % 360 === 0) {
         return [xCoord, yCoord];
-    }
-    else {
-        var newX = (xCoord * Math.cos(degreesToRadians(rotation)))
-                    - (yCoord * Math.sin(degreesToRadians(rotation)));
-        var newY = (yCoord * Math.cos(degreesToRadians(rotation)))
-                    + (xCoord * Math.sin(degreesToRadians(rotation)));
+    } else {
+        var newX =
+            xCoord * Math.cos(degreesToRadians(rotation)) -
+            yCoord * Math.sin(degreesToRadians(rotation));
+        var newY =
+            yCoord * Math.cos(degreesToRadians(rotation)) +
+            xCoord * Math.sin(degreesToRadians(rotation));
         newX = parseFloat(newX.toFixed(2));
         newY = parseFloat(newY.toFixed(2));
         return [newX, newY];
@@ -4151,17 +4446,16 @@ function ctrlPtStrToList(ctrlPointStr, boundingbox) {
     var clLen = coordList.length;
     if (clLen % 2 !== 0) {
         return null;
-    }
-    else {
+    } else {
         var pointList = [];
         var currPoint = [];
         for (var i = 0; i < clLen; i++) {
             if (i % 2 === 0) {
                 // i/2 is always an integer, since i is even
                 pointList[i / 2] = gv2cyPoint(
-                        parseFloat(coordList[i]),
-                        parseFloat(coordList[i + 1]),
-                        boundingbox
+                    parseFloat(coordList[i]),
+                    parseFloat(coordList[i + 1]),
+                    boundingbox
                 );
             }
         }
@@ -4179,13 +4473,12 @@ function ctrlPtStrToList(ctrlPointStr, boundingbox) {
  * still being too slow.
  */
 function initNodeAdjacents() {
-    cy.filter('node.noncluster').each(
-        function(node, i) {
-            node.data("adjacentEdges",
-                node.incomers('edge').union(node.outgoers('edge'))
-            );
-        }
-    );
+    cy.filter("node.noncluster").each(function(node, i) {
+        node.data(
+            "adjacentEdges",
+            node.incomers("edge").union(node.outgoers("edge"))
+        );
+    });
 }
 
 // Records actual and canonical incoming/outgoing edges of clusters in the
@@ -4198,69 +4491,69 @@ function initNodeAdjacents() {
 // already been rendered.
 function initClusters() {
     // For each compound node...
-    cy.scratch("_uncollapsed").each(
-        function(node, i) {
-            var children = node.children();
-            // Unfiltered incoming/outgoing edges
-            var uIncomingEdges = children.incomers('edge');
-            var uOutgoingEdges = children.outgoers('edge');
-            // Actual incoming/outgoing edges -- will be move()'d as
-            // this cluster/adjacent cluster(s) are collapsed/uncollapsed
-            var incomingEdges  = uIncomingEdges.difference(uOutgoingEdges);
-            var outgoingEdges  = uOutgoingEdges.difference(uIncomingEdges);
-            // Mapping of edge ID to [cSource, cTarget]
-            // Used since move() removes references to edges, so storing IDs
-            // is more permanent
-            var incomingEdgeMap = {};
-            var outgoingEdgeMap = {};
-            // "Canonical" incoming/outgoing edge properties -- these
-            // are used to represent the ideal connections
-            // between nodes regardless of collapsing
-            incomingEdges.each(
-                function(edge, j) {
-                    incomingEdgeMap[edge.id()] =
-                        [edge.source().id(), edge.target().id()];
-                }
-            );
-            outgoingEdges.each(
-                function(edge, j) {
-                    outgoingEdgeMap[edge.id()] =
-                        [edge.source().id(), edge.target().id()];
-                }
-            );
-            // Get the "interior elements" of the cluster: all child nodes,
-            // plus the edges connecting child nodes within the cluster
-            // This considers cyclic edges (e.g. the edge connecting a
-            // cycle's "end" and "start" nodes) as "interior elements,"
-            // which makes sense as they don't connect the cycle's children
-            //  to any elements outside the cycle.
-            var interiorEdges = children.connectedEdges().difference(
-                incomingEdges).difference(outgoingEdges);
-            // Record incoming/outgoing edges in this
-            // cluster's data. Will be useful during collapsing.
-            // We also record "interiorNodes" -- having a reference to just
-            // these nodes saves us the time of filtering nodes out of
-            // interiorEles when rotating collapsed node groups.
-            node.data({
-                "incomingEdgeMap"   : incomingEdgeMap,
-                "outgoingEdgeMap"   : outgoingEdgeMap,
-                "interiorNodeCount" : children.size(),
-                "w"                 : node.scratch("_w"),
-                "h"                 : node.scratch("_h")
-            });
-            node.removeScratch("_w");
-            node.removeScratch("_h");
-            // We store collections of elements in the cluster's scratch data.
-            // Storing it in the main "data" section will mess up the JSON
-            // exporting, since it isn't serializable.
-            // TODO reduce redundancy here -- only store interiorEles, and in
-            // rotateNodes just select nodes from interiorEles
-            node.scratch({
-                "_interiorEles": interiorEdges.union(children),
-                "_interiorNodes": children
-            });
-        }
-    );
+    cy.scratch("_uncollapsed").each(function(node, i) {
+        var children = node.children();
+        // Unfiltered incoming/outgoing edges
+        var uIncomingEdges = children.incomers("edge");
+        var uOutgoingEdges = children.outgoers("edge");
+        // Actual incoming/outgoing edges -- will be move()'d as
+        // this cluster/adjacent cluster(s) are collapsed/uncollapsed
+        var incomingEdges = uIncomingEdges.difference(uOutgoingEdges);
+        var outgoingEdges = uOutgoingEdges.difference(uIncomingEdges);
+        // Mapping of edge ID to [cSource, cTarget]
+        // Used since move() removes references to edges, so storing IDs
+        // is more permanent
+        var incomingEdgeMap = {};
+        var outgoingEdgeMap = {};
+        // "Canonical" incoming/outgoing edge properties -- these
+        // are used to represent the ideal connections
+        // between nodes regardless of collapsing
+        incomingEdges.each(function(edge, j) {
+            incomingEdgeMap[edge.id()] = [
+                edge.source().id(),
+                edge.target().id()
+            ];
+        });
+        outgoingEdges.each(function(edge, j) {
+            outgoingEdgeMap[edge.id()] = [
+                edge.source().id(),
+                edge.target().id()
+            ];
+        });
+        // Get the "interior elements" of the cluster: all child nodes,
+        // plus the edges connecting child nodes within the cluster
+        // This considers cyclic edges (e.g. the edge connecting a
+        // cycle's "end" and "start" nodes) as "interior elements,"
+        // which makes sense as they don't connect the cycle's children
+        //  to any elements outside the cycle.
+        var interiorEdges = children
+            .connectedEdges()
+            .difference(incomingEdges)
+            .difference(outgoingEdges);
+        // Record incoming/outgoing edges in this
+        // cluster's data. Will be useful during collapsing.
+        // We also record "interiorNodes" -- having a reference to just
+        // these nodes saves us the time of filtering nodes out of
+        // interiorEles when rotating collapsed node groups.
+        node.data({
+            incomingEdgeMap: incomingEdgeMap,
+            outgoingEdgeMap: outgoingEdgeMap,
+            interiorNodeCount: children.size(),
+            w: node.scratch("_w"),
+            h: node.scratch("_h")
+        });
+        node.removeScratch("_w");
+        node.removeScratch("_h");
+        // We store collections of elements in the cluster's scratch data.
+        // Storing it in the main "data" section will mess up the JSON
+        // exporting, since it isn't serializable.
+        // TODO reduce redundancy here -- only store interiorEles, and in
+        // rotateNodes just select nodes from interiorEles
+        node.scratch({
+            _interiorEles: interiorEdges.union(children),
+            _interiorNodes: children
+        });
+    });
     // Also set up the list of clusters sorted from left to right in the
     // component
     mgsc.CLUSTERID2TOP.sort(function(c1, c2) {
@@ -4273,8 +4566,7 @@ function initClusters() {
 function getClusterCoordClass() {
     if (mgsc.CURR_ROTATION === 0 || mgsc.CURR_ROTATION === 180) {
         return "updowndir";
-    }
-    else {
+    } else {
         return "leftrightdir";
     }
 }
@@ -4302,21 +4594,22 @@ function getNodeCoordClass(isHouse) {
 function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     var nx, ny;
     if (mode === "SPQR" && mgsc.CURR_SPQRMODE === "implicit") {
-        nx = nodeObj['i_x'];
-        ny = nodeObj['i_y'];
+        nx = nodeObj["i_x"];
+        ny = nodeObj["i_y"];
+    } else {
+        nx = nodeObj["x"];
+        ny = nodeObj["y"];
     }
-    else {
-        nx = nodeObj['x'];
-        ny = nodeObj['y'];
-    }
-    var pos = gv2cyPoint(nx, ny, [boundingboxObject['boundingbox_x'],
-         boundingboxObject['boundingbox_y']]);
-    
+    var pos = gv2cyPoint(nx, ny, [
+        boundingboxObject["boundingbox_x"],
+        boundingboxObject["boundingbox_y"]
+    ]);
+
     var nodeShapeClass = "singlenode";
     if (mode !== "SPQR") {
-        nodeShapeClass = getNodeCoordClass(nodeObj['shape'] === 'house');
+        nodeShapeClass = getNodeCoordClass(nodeObj["shape"] === "house");
     }
-    var nodeLabel = nodeObj['label'];
+    var nodeLabel = nodeObj["label"];
     var labelUsed;
     // Determine 1) accession keys for nodes in scaffold detection, and 2) the
     // label to be shown when the node is drawn.
@@ -4324,8 +4617,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         if (nodeLabel !== null && nodeLabel !== undefined) {
             mgsc.COMPONENT_NODE_KEYS.push(nodeLabel);
             labelUsed = nodeLabel;
-        }
-        else {
+        } else {
             // Fail silently (for now), allowing nodes without labels.
             // This will mean that this node will not be detected as being a
             // part of any scaffolds, since the scaffold detection process is
@@ -4333,12 +4625,11 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             // (That is, scaffolds used for GML files are assumed to refer to
             // the labels of nodes, while scaffolds used for other filetypes
             // are assumed to refer to the IDs of nodes.)
-            labelUsed = nodeObj['id'];
+            labelUsed = nodeObj["id"];
         }
-    }
-    else {
-        mgsc.COMPONENT_NODE_KEYS.push(nodeObj['id']);
-        labelUsed = nodeObj['id'];
+    } else {
+        mgsc.COMPONENT_NODE_KEYS.push(nodeObj["id"]);
+        labelUsed = nodeObj["id"];
     }
     var parentID;
     var parentBicmpID = null;
@@ -4347,30 +4638,30 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     var nodeGC = null;
     var nodeIsRepeat = null;
     if (mode === "SPQR") {
-        parentID = nodeObj['parent_metanode_id'];
+        parentID = nodeObj["parent_metanode_id"];
         if (mgsc.CURR_SPQRMODE === "implicit") {
             // ensure this data is present for each bicomponent
             // there's probably a more efficient way to do this, but it's 2am
             // and I'm really tired so let's revisit this later (TODO #115)
-            parentBicmpID = nodeObj['parent_bicomponent_id'];
+            parentBicmpID = nodeObj["parent_bicomponent_id"];
             if (parentBicmpID !== null && parentBicmpID !== undefined) {
                 // Since a bicomponent can contain only one node with a given
                 // ID, we store normal node IDs and not unambiguous IDs here
-                mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS[parentBicmpID]
-                    .push(cyNodeID);
+                mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS[parentBicmpID].push(
+                    cyNodeID
+                );
             }
         }
+    } else {
+        parentID = nodeObj["parent_cluster_id"];
     }
-    else {
-        parentID = nodeObj['parent_cluster_id'];
-    }
-    nodeDepth = nodeObj['depth'];
-    nodeLength = nodeObj['length'];
-    nodeGC = nodeObj['gc_content'];
-    nodeIsRepeat = nodeObj['is_repeat'];
+    nodeDepth = nodeObj["depth"];
+    nodeLength = nodeObj["length"];
+    nodeGC = nodeObj["gc_content"];
+    nodeIsRepeat = nodeObj["is_repeat"];
     var gcColor = null;
     if (nodeGC !== null) {
-        gcColor = getNodeColorization(nodeGC); 
+        gcColor = getNodeColorization(nodeGC);
     }
     var repeatColor = null;
     if (nodeIsRepeat !== undefined) {
@@ -4378,8 +4669,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             // Repeat data exists for other nodes, but this node doesn't have
             // any given: color it the default node color
             repeatColor = mgsc.DEFAULT_NODE_COLOR;
-        }
-        else {
+        } else {
             // We could call getNodeColorization() with nodeIsRepeat, but
             // since nodeIsRepeat can only be either 1 or 0 that'd be kind of
             // inefficient, since we can just use mgsc.MAX_HEX and mgsc.MIN_HEX.
@@ -4390,23 +4680,35 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             }
         }
     }
-    var nodeData = {id: cyNodeID, label: labelUsed,
-               w: mgsc.INCHES_TO_PIXELS * nodeObj['h'],
-               h: mgsc.INCHES_TO_PIXELS * nodeObj['w'], depth: nodeDepth,
-               length: nodeLength, gc_content: nodeGC, gc_color: gcColor,
-               repeat_color: repeatColor, is_repeat: nodeIsRepeat};
+    var nodeData = {
+        id: cyNodeID,
+        label: labelUsed,
+        w: mgsc.INCHES_TO_PIXELS * nodeObj["h"],
+        h: mgsc.INCHES_TO_PIXELS * nodeObj["w"],
+        depth: nodeDepth,
+        length: nodeLength,
+        gc_content: nodeGC,
+        gc_color: gcColor,
+        repeat_color: repeatColor,
+        is_repeat: nodeIsRepeat
+    };
     if (parentID !== null) {
         var typeTag = parentID[0];
         // Don't assign explicit parents for metanodes/bicomponents in the SPQR
         // view. See issue #209 on GitHub for details.
-        if (typeTag !== 'S' && typeTag !== 'P' && typeTag !== 'R'
-                && typeTag !== 'I') {
+        if (
+            typeTag !== "S" &&
+            typeTag !== "P" &&
+            typeTag !== "R" &&
+            typeTag !== "I"
+        ) {
             nodeData["parent"] = parentID;
         } else {
             // For SPQR metanode collapsing
             if (mgsc.CURR_SPQRMODE === "explicit") {
-                cy.getElementById(parentID).scratch(
-                    "_singlenodeIDs").push(cyNodeID);
+                cy.getElementById(parentID)
+                    .scratch("_singlenodeIDs")
+                    .push(cyNodeID);
             }
         }
         cy.scratch("_ele2parent")[cyNodeID] = parentID;
@@ -4414,29 +4716,34 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         // of entries in _ele2parent by |Nodes| (assuming every node in the
         // graph has a label given) -- so if that is too expensive for some
         // reason, I suppose this could be disallowed.
-        if (nodeLabel !== null)
-            cy.scratch("_ele2parent")[nodeLabel] = parentID;
+        if (nodeLabel !== null) cy.scratch("_ele2parent")[nodeLabel] = parentID;
     }
     cy.add({
-        classes: 'noncluster ' + mgsc.CURR_NODE_COLORIZATION + ' ' + nodeShapeClass,
-        data: nodeData, position: {x: pos[0], y: pos[1]}
+        classes:
+            "noncluster " + mgsc.CURR_NODE_COLORIZATION + " " + nodeShapeClass,
+        data: nodeData,
+        position: { x: pos[0], y: pos[1] }
     });
     return pos;
 }
 
 // Draws two nodes that "enforce" the given bounding box.
 function drawBoundingBoxEnforcingNodes(boundingboxObject) {
-    var bb = [boundingboxObject['boundingbox_x'],
-              boundingboxObject['boundingbox_y']];
+    var bb = [
+        boundingboxObject["boundingbox_x"],
+        boundingboxObject["boundingbox_y"]
+    ];
     var bottomLeftPt = gv2cyPoint(0, 0, bb);
     var topRightPt = gv2cyPoint(bb[0], bb[1], bb);
     cy.add({
-        classes: "bb_enforcing", data: {id: "bottom_left"},
-        position: {x: bottomLeftPt[0], y: bottomLeftPt[1]}
+        classes: "bb_enforcing",
+        data: { id: "bottom_left" },
+        position: { x: bottomLeftPt[0], y: bottomLeftPt[1] }
     });
     cy.add({
-        classes: "bb_enforcing", data: {id: "top_right"},
-        position: {x: topRightPt[0], y: topRightPt[1]}
+        classes: "bb_enforcing",
+        data: { id: "top_right" },
+        position: { x: topRightPt[0], y: topRightPt[1] }
     });
 }
 
@@ -4459,15 +4766,13 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     if (spqrtype === "bicomponent") {
         clusterID = "I" + clusterObj["id_num"];
         spqrRelated = true;
-    }
-    else if (spqrtype === "metanode") {
-        clusterID = clusterObj["metanode_id"]; 
+    } else if (spqrtype === "metanode") {
+        clusterID = clusterObj["metanode_id"];
         parent_bicmp_id = "I" + clusterObj["parent_bicomponent_id_num"];
         spqrRelated = true;
-    }
-    else {
+    } else {
         clusterID = clusterObj["cluster_id"];
-        mgsc.CLUSTERID2TOP.push({id: clusterID, t: clusterObj["top"]});
+        mgsc.CLUSTERID2TOP.push({ id: clusterID, t: clusterObj["top"] });
     }
     var l = "left";
     var b = "bottom";
@@ -4479,80 +4784,86 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         r = "i_" + r;
         t = "i_" + t;
     }
-    var bottomLeftPos = gv2cyPoint(clusterObj[l], clusterObj[b],
-        [boundingboxObject['boundingbox_x'],
-         boundingboxObject['boundingbox_y']]);
-    var topRightPos = gv2cyPoint(clusterObj[r], clusterObj[t],
-        [boundingboxObject['boundingbox_x'],
-         boundingboxObject['boundingbox_y']]);
-    var clusterData = {id: clusterID,
+    var bottomLeftPos = gv2cyPoint(clusterObj[l], clusterObj[b], [
+        boundingboxObject["boundingbox_x"],
+        boundingboxObject["boundingbox_y"]
+    ]);
+    var topRightPos = gv2cyPoint(clusterObj[r], clusterObj[t], [
+        boundingboxObject["boundingbox_x"],
+        boundingboxObject["boundingbox_y"]
+    ]);
+    var clusterData = {
+        id: clusterID,
         w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
         h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
-        isCollapsed: false};
+        isCollapsed: false
+    };
     // Only assign the metanode a bicomponent parent when in explicit mode
     if (parent_bicmp_id !== null && mgsc.CURR_SPQRMODE === "explicit") {
         clusterData["parent"] = parent_bicmp_id;
     }
-    var pos = [(bottomLeftPos[0] + topRightPos[0]) / 2,
-               (bottomLeftPos[1] + topRightPos[1]) / 2];
+    var pos = [
+        (bottomLeftPos[0] + topRightPos[0]) / 2,
+        (bottomLeftPos[1] + topRightPos[1]) / 2
+    ];
     var abbrev = clusterID[0];
-    var classes = abbrev + ' cluster ' + getClusterCoordClass();
+    var classes = abbrev + " cluster " + getClusterCoordClass();
     if (!spqrRelated) {
-        classes += ' structuralPattern';
+        classes += " structuralPattern";
         mgsc.COMPONENT_NODE_KEYS.push(clusterID);
         clusterData["length"] = clusterObj["length"];
-        if (abbrev === 'M') {
+        if (abbrev === "M") {
             clusterData["cluster_type"] = clusterObj["cluster_type"];
         }
-    }
-    else if (spqrtype === "metanode") {
+    } else if (spqrtype === "metanode") {
         // We use the "pseudoparent" class to represent compound nodes that
         // have the potential to contain an arbitrarily large amount of child
         // nodes. Initial rendering performance drops noticeably when many
         // child nodes are in the same parent. To compensate for this, we just
         // make these nodes "pseudoparents" -- they're styled similarly to
         // normal compound nodes, but they don't actually contain any nodes.
-        classes += ' spqrMetanode';
-        clusterData["descendantCount"]=clusterObj["descendant_metanode_count"];
+        classes += " spqrMetanode";
+        clusterData["descendantCount"] =
+            clusterObj["descendant_metanode_count"];
         // since we "collapse" all metanodes by default (collapsing takes on a
         // different meaning w/r/t SPQR metanodes, as opposed to normal
         // structural variants)
         clusterData["isCollapsed"] = true;
     }
     if (spqrRelated) {
-        classes += ' pseudoparent';
+        classes += " pseudoparent";
         // Since this node won't actually be assigned child nodes (but still
         // has "children" in some abstract way), we manually set its node count
         if (mgsc.CURR_SPQRMODE === "implicit" && spqrtype === "bicomponent") {
             clusterData["interiorNodeCount"] = "N/A";
-        }
-        else {
+        } else {
             clusterData["interiorNodeCount"] = clusterObj["node_count"];
         }
     }
     var newObj = cy.add({
-        classes: classes, data: clusterData,
-        position: {x: pos[0], y: pos[1]},
+        classes: classes,
+        data: clusterData,
+        position: { x: pos[0], y: pos[1] },
         locked: spqrRelated
     });
     if (spqrtype === "metanode") {
         if (mgsc.CURR_SPQRMODE === "explicit") {
             // For SPQR metanode collapsing/uncollapsing
             newObj.scratch("_singlenodeIDs", []);
-        }
-        else {
+        } else {
             // For implicit SPQR collapsing
             newObj.scratch("_virtualedgeIDs", []);
         }
-    }
-    else if (spqrtype === "bicomponent" && mgsc.CURR_SPQRMODE === "implicit") {
+    } else if (
+        spqrtype === "bicomponent" &&
+        mgsc.CURR_SPQRMODE === "implicit"
+    ) {
         // for implicit mode uncollapsing
         // mapping of bicomponent IDs to visible singlenode IDs -- updated as
         // we expand the SPQR tree represented by the given bicomponent
         // this is done to prevent adding duplicates within a given tree
         mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS[clusterID] = [];
-    }
-    else {
+    } else {
         // For variant collapsing/uncollapsing
         cy.scratch("_uncollapsed", cy.scratch("_uncollapsed").union(newObj));
     }
@@ -4565,8 +4876,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         // temporary stopgap for old DB files. TODO remove.
         newObj.scratch("_w", 2 * mgsc.INCHES_TO_PIXELS);
         newObj.scratch("_h", 2 * mgsc.INCHES_TO_PIXELS);
-    }
-    else {
+    } else {
         newObj.scratch("_w", mgsc.INCHES_TO_PIXELS * clusterObj["h"]);
         newObj.scratch("_h", mgsc.INCHES_TO_PIXELS * clusterObj["w"]);
     }
@@ -4592,8 +4902,14 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
  * adjust the node IDs to use the "def" suffix instead. This feature is used
  * when adding edges in the implicit SPQR mode uncollapsing feature.
  */
-function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
-        mode, actualIDmapping) {
+function renderEdgeObject(
+    edgeObj,
+    node2pos,
+    boundingboxObject,
+    edgeType,
+    mode,
+    actualIDmapping
+) {
     var sourceID, targetID;
     // If the edge is in "regular mode", make its ID what it was before:
     // srcID + "->" + tgtID.
@@ -4601,12 +4917,11 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
     // displayTargetID properties and then we'll use those in
     // addSelectedEdgeInfo() based on mgsc.CURR_VIEWTYPE.
     if (edgeType === "metanodeedge") {
-        sourceID = edgeObj['source_metanode_id'];
-        targetID = edgeObj['target_metanode_id'];
-    }
-    else {
-        var displaySourceID = edgeObj['source_id'];
-        var displayTargetID = edgeObj['target_id'];
+        sourceID = edgeObj["source_metanode_id"];
+        targetID = edgeObj["target_metanode_id"];
+    } else {
+        var displaySourceID = edgeObj["source_id"];
+        var displayTargetID = edgeObj["target_id"];
         sourceID = displaySourceID;
         targetID = displayTargetID;
         if (mode === "SPQR") {
@@ -4620,23 +4935,21 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
             if (sourceID === targetID) {
                 edgeClasses += " unoriented_loop";
             }
-            var parent_mn_id = edgeObj['parent_metanode_id'];
+            var parent_mn_id = edgeObj["parent_metanode_id"];
             var isVirtual = false;
             if (parent_mn_id !== null) {
                 // This singleedge is in a metanode's skeleton.
                 if (actualIDmapping[sourceID] !== undefined) {
                     sourceID = actualIDmapping[sourceID];
-                }
-                else {
+                } else {
                     sourceID += "_" + parent_mn_id;
                 }
                 if (actualIDmapping[targetID] !== undefined) {
                     targetID = actualIDmapping[targetID];
-                }
-                else {
+                } else {
                     targetID += "_" + parent_mn_id;
                 }
-                if (edgeObj['is_virtual'] !== 0) {
+                if (edgeObj["is_virtual"] !== 0) {
                     // We do this check here because virtual edges can only
                     // exist in metanode skeletons
                     edgeClasses += " virtual";
@@ -4647,37 +4960,41 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
             if (mgsc.CURR_SPQRMODE === "implicit" && isVirtual) {
                 if (cy.getElementById(parent_mn_id).empty()) {
                     return;
-                }
-                else {
+                } else {
                     addNote = true;
                 }
             }
             var e = cy.add({
                 classes: edgeClasses,
-                data: {source: sourceID, target: targetID,
-                       dispsrc: displaySourceID, disptgt: displayTargetID,
-                       thickness: mgsc.MAX_EDGE_THICKNESS}
+                data: {
+                    source: sourceID,
+                    target: targetID,
+                    dispsrc: displaySourceID,
+                    disptgt: displayTargetID,
+                    thickness: mgsc.MAX_EDGE_THICKNESS
+                }
             });
             if (addNote) {
-                cy.getElementById(parent_mn_id).scratch(
-                    "_virtualedgeIDs").push(e.id());
+                cy.getElementById(parent_mn_id)
+                    .scratch("_virtualedgeIDs")
+                    .push(e.id());
             }
             return;
         }
     }
     var multiplicity, thickness, is_outlier, orientation, mean, stdev;
-    if (mode !== "SPQR") { // (edges between metanodes don't have metadata)
-        multiplicity = edgeObj['multiplicity'];
-        thickness = edgeObj['thickness'];
-        is_outlier = edgeObj['is_outlier'];
-        orientation = edgeObj['orientation'];
-        mean = edgeObj['mean'];
-        stdev = edgeObj['stdev'];
+    if (mode !== "SPQR") {
+        // (edges between metanodes don't have metadata)
+        multiplicity = edgeObj["multiplicity"];
+        thickness = edgeObj["thickness"];
+        is_outlier = edgeObj["is_outlier"];
+        orientation = edgeObj["orientation"];
+        mean = edgeObj["mean"];
+        stdev = edgeObj["stdev"];
         if (multiplicity !== undefined && multiplicity !== null) {
             mgsc.COMPONENT_EDGE_WEIGHTS.push(+multiplicity);
         }
-    }
-    else {
+    } else {
         // Make edges between metanodes be handled properly
         thickness = 0.5;
         is_outlier = 0;
@@ -4687,8 +5004,8 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
     // know that this edge is not a multi-edge (i.e. it has a unique source and
     // target). Therefore we can set the edge's ID as follows.
     var edgeID = sourceID + "->" + targetID;
-    if (edgeObj['parent_cluster_id'] !== null) {
-        cy.scratch("_ele2parent")[edgeID] = edgeObj['parent_cluster_id'];
+    if (edgeObj["parent_cluster_id"] !== null) {
+        cy.scratch("_ele2parent")[edgeID] = edgeObj["parent_cluster_id"];
     }
     // If bundle sizes are available, then don't show edges with a bundle size
     // below a certain threshold. NOTE that this feature is disabled for the
@@ -4703,13 +5020,11 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
 
     // NOTE -- commented out for now in lieu of global edge thickness scaling
     // Scale edge thickness using the "thickness" .db file attribute
-    var edgeWidth = mgsc.MIN_EDGE_THICKNESS +
-                    (thickness * mgsc.EDGE_THICKNESS_RANGE);
+    var edgeWidth =
+        mgsc.MIN_EDGE_THICKNESS + thickness * mgsc.EDGE_THICKNESS_RANGE;
     var isOutlierClass = "";
-    if (is_outlier === 1)
-        isOutlierClass = " high_outlier";
-    else if (is_outlier === -1)
-        isOutlierClass = " low_outlier";
+    if (is_outlier === 1) isOutlierClass = " high_outlier";
+    else if (is_outlier === -1) isOutlierClass = " low_outlier";
     // Scale edge thickness relative to all other edges in the current
     // connected component
     if (sourceID === targetID) {
@@ -4717,9 +5032,15 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
         // info, just render it as a bezier edge and be done with it
         cy.add({
             classes: "basicbezier oriented" + isOutlierClass,
-            data: {source: sourceID, target: targetID,
-                   thickness: edgeWidth, multiplicity: multiplicity,
-                   orientation: orientation, mean: mean, stdev: stdev}
+            data: {
+                source: sourceID,
+                target: targetID,
+                thickness: edgeWidth,
+                multiplicity: multiplicity,
+                orientation: orientation,
+                mean: mean,
+                stdev: stdev
+            }
         });
         return;
     }
@@ -4728,10 +5049,11 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
     //console.log("src: " + sourceID);
     //console.log("tgt: " + targetID);
     var srcSinkDist = distance(srcPos, tgtPos);
-    var ctrlPts = ctrlPtStrToList(edgeObj['control_point_string'],
-            [boundingboxObject['boundingbox_x'],
-             boundingboxObject['boundingbox_y']]);
-    var ctrlPtLen = edgeObj['control_point_count'];
+    var ctrlPts = ctrlPtStrToList(edgeObj["control_point_string"], [
+        boundingboxObject["boundingbox_x"],
+        boundingboxObject["boundingbox_y"]
+    ]);
+    var ctrlPtLen = edgeObj["control_point_count"];
     var nonzero = false;
     var ctrlPtDists = "";
     var ctrlPtWeights = "";
@@ -4739,8 +5061,11 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
     for (var p = 0; p < ctrlPtLen; p++) {
         currPt = ctrlPts[p];
         // TODO inefficiency here -- rework pointToLineDistance.
-        var d = -pointToLineDistance(currPt,
-            {x: srcPos[0], y: srcPos[1]}, {x: tgtPos[0], y: tgtPos[1]});
+        var d = -pointToLineDistance(
+            currPt,
+            { x: srcPos[0], y: srcPos[1] },
+            { x: tgtPos[0], y: tgtPos[1] }
+        );
         dsp = distance(currPt, srcPos);
         dtp = distance(currPt, tgtPos);
         // By the pythagorean thm., the interior of the square root
@@ -4764,8 +5089,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
         if (wt > srcSinkDist && wt > ws) {
             // The ctrl. pt. is "behind" the source node
             w = -ws / srcSinkDist;
-        }
-        else {
+        } else {
             // The ctrl. pt. is anywhere past the source node
             w = ws / srcSinkDist;
         }
@@ -4782,8 +5106,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
         // This preemptively rectifies such control points.
         if (p === 0 && w === 0.0) {
             w = 0.01;
-        }
-        else if (p === (ctrlPtLen - 1) && w === 1.0) {
+        } else if (p === ctrlPtLen - 1 && w === 1.0) {
             w = 0.99;
         }
         ctrlPtDists += d.toFixed(2) + " ";
@@ -4804,21 +5127,33 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
         // The control points should (hopefully) be valid
         cy.add({
             classes: "unbundledbezier" + extraClasses,
-          data: {source: sourceID, target: targetID,
-                 cpd: ctrlPtDists, cpw: ctrlPtWeights,
-                 thickness: edgeWidth, multiplicity: multiplicity,
-                 orientation: orientation, mean: mean, stdev: stdev}
+            data: {
+                source: sourceID,
+                target: targetID,
+                cpd: ctrlPtDists,
+                cpw: ctrlPtWeights,
+                thickness: edgeWidth,
+                multiplicity: multiplicity,
+                orientation: orientation,
+                mean: mean,
+                stdev: stdev
+            }
         });
-    }
-    else {
+    } else {
         // The control point distances are small enough that
         // we can just represent this as a straight bezier curve
-      cy.add({
-          classes: "basicbezier" + extraClasses,
-          data: {source: sourceID, target: targetID,
-                 thickness: edgeWidth, multiplicity: multiplicity,
-                 orientation: orientation, mean: mean, stdev: stdev}
-      });
+        cy.add({
+            classes: "basicbezier" + extraClasses,
+            data: {
+                source: sourceID,
+                target: targetID,
+                thickness: edgeWidth,
+                multiplicity: multiplicity,
+                orientation: orientation,
+                mean: mean,
+                stdev: stdev
+            }
+        });
     }
 }
 
@@ -4828,8 +5163,7 @@ function renderEdgeObject(edgeObj, node2pos, boundingboxObject, edgeType,
  */
 function distance(point1, point2) {
     return Math.sqrt(
-              Math.pow(point2[0] - point1[0], 2)
-            + Math.pow(point2[1] - point1[1], 2)
+        Math.pow(point2[0] - point1[0], 2) + Math.pow(point2[1] - point1[1], 2)
     );
 }
 
@@ -4844,7 +5178,7 @@ function pointToLineDistance(point, lNode1, lNode2) {
     }
     var ydelta = lNode2.y - lNode1.y;
     var xdelta = lNode2.x - lNode1.x;
-    var consts = (lNode2.x * lNode1.y) - (lNode2.y * lNode1.x);
-    var numer = (ydelta * point[0]) - (xdelta * point[1]) + consts;
+    var consts = lNode2.x * lNode1.y - lNode2.y * lNode1.x;
+    var numer = ydelta * point[0] - xdelta * point[1] + consts;
     return numer / lDist;
 }

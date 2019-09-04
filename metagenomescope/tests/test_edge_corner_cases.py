@@ -22,6 +22,7 @@
 import contextlib
 from metagenomescope.tests import utils
 
+
 def test_self_implying_edges():
     connection, cursor = utils.create_and_open_db("loop.gfa")
     with contextlib.closing(connection):
