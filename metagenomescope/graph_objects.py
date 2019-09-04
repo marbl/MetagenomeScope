@@ -26,7 +26,7 @@ from collections import deque
 import pygraphviz
 import uuid
 
-import config
+from . import config
 
 class Edge(object):
     """A generic edge, used for storing layout data (e.g. control points)
@@ -108,8 +108,10 @@ class Edge(object):
         points_str = position.replace(",", " ")
         coord_list = [float(c) for c in points_str.split()]
         if len(coord_list) % 2 != 0:
-            raise ValueError, config.EDGE_CTRL_PT_ERR
-        return points_str, coord_list, len(coord_list) / 2
+            raise ValueError(config.EDGE_CTRL_PT_ERR)
+        # Since len(coord_list) is divisible by 2, we know we can take
+        # int(len(coord_list) / 2) without losing precision.
+        return points_str, coord_list, int(len(coord_list) / 2)
 
     def db_values(self):
         """Returns a tuple containing the values of this edge.
@@ -799,7 +801,7 @@ class SPQRMetaNode(NodeGroup):
                     self.nonlaidout_edges.remove(en)
                     break
             if curr_edge == None:
-                raise ValueError, "unknown edge obtained from layout"
+                raise ValueError("unknown edge obtained from layout")
             self.edges.append(curr_edge)
             # Get control points, then find them relative to cluster dimensions
             ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = \
@@ -817,8 +819,8 @@ class SPQRMetaNode(NodeGroup):
                 p += 2
             curr_edge.group = self
         if len(self.nonlaidout_edges) > 0:
-            raise ValueError, "All edges in metanode %s were not laid out" % \
-                (self.gv_id_string)
+            raise ValueError("All edges in metanode %s were not laid out" % \
+                (self.gv_id_string))
 
     def db_values(self):
         """Returns a tuple containing the values of this metanode, for

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # Copyright (C) 2017-2018 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
 # Authored by Marcus Fedarko
 #
@@ -55,9 +55,9 @@ bubble_ct = int(args.bubbles)
 
 # Validate arguments a bit
 if node_ct <= 0:
-    raise ValueError, "graph must have a lower bound of 1 node"
+    raise ValueError("graph must have a lower bound of 1 node")
 if bubble_ct < 0:
-    raise ValueError, "bubble count must be a nonnegative integer"
+    raise ValueError("bubble count must be a nonnegative integer")
 
 G = nx.path_graph(node_ct, nx.DiGraph())
 bubble_id = 0
@@ -147,14 +147,14 @@ for i in range(bubble_ct):
         new_sink_id = str(src) + "_snk"
         G.add_node(new_sink_id)
         G.add_edge(src, new_sink_id)
-        print "had to make a new sink"
+        print("had to make a new sink")
     snk = choice(G.out_edges(src))[1]
     for P in paths:
         G.add_nodes_from(P)
         G.add_edges_from(P.edges())
         G.add_edge(src, P.graph["bpid"] + "0")
         G.add_edge(P.graph["terminus"], snk)
-    print "created bubble between", src, "and", snk
+    print("created bubble between", src, "and", snk)
     G.remove_edge(src, snk)
 
 assign_rand_attrs(G)

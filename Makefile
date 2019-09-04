@@ -60,11 +60,11 @@ SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 
 # -B: don't create __pycache__/ directories
 generaltest:
-	python2.7 -B -m pytest metagenomescope/tests/ -m "not spqrtest"
+	python3 -B -m pytest metagenomescope/tests/ -m "not spqrtest"
 	rm metagenomescope/tests/output/*
 
 spqrtest:
-	python2.7 -B -m pytest metagenomescope/tests/ -m "spqrtest"
+	python3 -B -m pytest metagenomescope/tests/ -m "spqrtest"
 	rm metagenomescope/tests/output/*
 
 viewertest:

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3.6
 # Copyright (C) 2017-2018 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
 # Authored by Marcus Fedarko
 #
@@ -47,8 +47,8 @@ import sqlite3
 # For benchmarking
 import time
 
-import graph_objects
-import config
+from . import graph_objects
+from . import config
 
 # Define supported command-line arguments. (We don't actually run
 # parser.parse_args() until later on, in order to support use of this file
@@ -166,9 +166,9 @@ def check_file_existence(filepath, overwrite):
     if os.path.exists(filepath):
         basename = os.path.basename(filepath)
         if os.path.isdir(filepath):
-            raise IOError, filepath + config.IS_DIR_ERR
+            raise IOError(filepath + config.IS_DIR_ERR)
         if not overwrite:
-            raise IOError, filepath + config.EXISTS_ERR
+            raise IOError(filepath + config.EXISTS_ERR)
         return True
     return False
 
@@ -337,7 +337,7 @@ def n50(node_lengths):
     """
 
     if len(node_lengths) == 0:
-        raise ValueError, config.EMPTY_LIST_N50_ERR
+        raise ValueError(config.EMPTY_LIST_N50_ERR)
     sorted_lengths = sorted(node_lengths, reverse=True)
     i = 0
     running_sum = 0
@@ -345,7 +345,7 @@ def n50(node_lengths):
     while running_sum < half_total_length:
         if i >= len(sorted_lengths):
             # This should never happen, but just in case
-            raise IndexError, config.N50_CALC_ERR
+            raise IndexError(config.N50_CALC_ERR)
         running_sum += sorted_lengths[i]
         i += 1
     # Return length of shortest node that was used in the running sum
@@ -421,7 +421,7 @@ def save_aux_file(aux_filename, source, dir_fn, layout_msg_printed, overwrite,
         # os.open failed
         msg = config.SAVE_AUX_FAIL_MSG + "%s: %s" % (aux_filename, e)
         if not warnings:
-            raise type(e), msg
+            raise type(e)(msg)
         # If we're here, then warnings == True.
         # Don't save this file, but continue the script's execution.
         if layout_msg_printed:
@@ -438,8 +438,8 @@ def operation_msg(message, newline=False):
        if it is followed by a long operation in this program). The trailing
        newline is intended for use with conclude_msg(), defined below.
     """
-    if newline: print message
-    else: print message,
+    if newline: print(message)
+    else: print(message, end=' ')
     sys.stdout.flush()
 
 def conclude_msg(message=config.DONE_MSG):
@@ -449,7 +449,7 @@ def conclude_msg(message=config.DONE_MSG):
        printed text (due to use of operation_msg), to save vertical terminal
        space (and look a bit fancy).
     """       
-    print message
+    print(message)
 
 def add_node_to_stdmode_mapping(nodeid2obj, n, rc=None):
     """Adds a Node object n to nodeid2obj.
@@ -464,12 +464,12 @@ def add_node_to_stdmode_mapping(nodeid2obj, n, rc=None):
     """
     # Check for duplicate IDs
     if n.id_string in nodeid2obj:
-        raise AttributeError, config.DUPLICATE_ID_ERR + n.id_string
+        raise AttributeError(config.DUPLICATE_ID_ERR + n.id_string)
     # Actually add to nodeid2obj
     nodeid2obj[n.id_string] = n
     if rc != None:
         if rc.id_string in nodeid2obj:
-            raise AttributeError, config.DUPLICATE_ID_ERR + rc.id_string
+            raise AttributeError(config.DUPLICATE_ID_ERR + rc.id_string)
         nodeid2obj[rc.id_string] = rc
     return nodeid2obj
 
@@ -492,9 +492,9 @@ def run_spqr_script(invocation):
         # We assume that the thing printed before this was config.SPQR_MSG,
         # with no trailing newline (hence why we prepend a newline to the first
         # config.MESSAGE_BORDER).
-        print "\n" + config.MESSAGE_BORDER
-        print config.SPQR_MISC_ERR
-        print config.MESSAGE_BORDER
+        print("\n" + config.MESSAGE_BORDER)
+        print(config.SPQR_MISC_ERR)
+        print(config.MESSAGE_BORDER)
         raise
 
 def collate_graph(args):
@@ -532,7 +532,7 @@ def collate_graph(args):
             # If the directory already exists as a directory, there isn't a
             # problem
             if not os.path.isdir(dir_fn):
-                raise IOError, dir_fn + config.EXISTS_AS_NON_DIR_ERR
+                raise IOError(dir_fn + config.EXISTS_AS_NON_DIR_ERR)
         else:
             # If the error we got was some other type of error (e.g. a
             # permission error), then just raise that error to let the user
@@ -541,9 +541,9 @@ def collate_graph(args):
 
     # Check the validity of -maxn and -maxe
     if max_node_ct < 1:
-        raise ValueError, "maximum node count must be at least 1"
+        raise ValueError("maximum node count must be at least 1")
     if max_edge_ct < 1:
-        raise ValueError, "maximum edge count must be at least 1"
+        raise ValueError("maximum edge count must be at least 1")
     
     # NOTE Used to test the "race condition" mentioned above in which the
     # directory is removed.
@@ -565,8 +565,9 @@ def collate_graph(args):
         safe_file_remove(db_fullfn)
 
     # Maps Node ID (as int) to the Node object in question
-    # This is nice, since it allows us to do things like nodeid2obj.values()
-    # to get a list of every Node object that's been processed
+    # This is nice, since it allows us to do things like
+    # list(nodeid2obj.values()) to get a list of every Node object that's been
+    # processed
     # (And, more importantly, to reconcile edge data with prev.-seen node data)
     nodeid2obj = {}
     
@@ -638,7 +639,7 @@ def collate_graph(args):
         # graph is of a type that accepts labels.
         if ububbles_labels or upatterns_labels:
             if not parsing_GML:
-                raise ValueError, config.LABEL_EXISTENCE_ERR
+                raise ValueError(config.LABEL_EXISTENCE_ERR)
             need_label_mapping = True
         if parsing_LastGraph:
             graph_filetype = "LastGraph"
@@ -941,7 +942,7 @@ def collate_graph(args):
                                 break
                         if curr_node_bp == None:
                             errmsg = config.SEQ_NOUN+curr_node_id+config.NO_DNA_ERR
-                            raise AttributeError, errmsg
+                            raise AttributeError(errmsg)
                     curr_node_dnafwd = None
                     curr_node_dnarev = None
                     nPos = graph_objects.Node(curr_node_id, curr_node_bp, False,
@@ -1148,7 +1149,7 @@ def collate_graph(args):
                     # Update stats
                     total_edge_count += 1
         else:
-            raise IOError, config.FILETYPE_ERR
+            raise IOError(config.FILETYPE_ERR)
     conclude_msg()
     
     # TODO just a temporary measure; output the entire single graph as a .gv file
@@ -1177,7 +1178,7 @@ def collate_graph(args):
     # precedence configurable; see #87 (and generalizing this code to get rid
     # of redundant stuff, maybe?)
     
-    nodes_to_try_collapsing = nodeid2obj.values()
+    nodes_to_try_collapsing = list(nodeid2obj.values())
     nodes_to_draw = []
     
     # Identify user-supplied bubbles in the graph.
@@ -1189,8 +1190,8 @@ def collate_graph(args):
             for b in bubble_lines:
                 bubble_line_node_ids = b.strip().split("\t")[2:]
                 if len(bubble_line_node_ids) < 1:
-                    raise ValueError, config.LINE_NOUN + str(bubble_line_ct) + \
-                            config.UBUBBLE_NOTENOUGH_ERR
+                    raise ValueError(config.LINE_NOUN + str(bubble_line_ct) + \
+                            config.UBUBBLE_NOTENOUGH_ERR)
                 # Ensure that the node identifiers (either labels or IDs)
                 # for this user-supplied bubble are valid.
                 # 1. Do all of the identifiers correspond to actual nodes in the
@@ -1217,8 +1218,8 @@ def collate_graph(args):
                         if nobj.used_in_collapsing:
                             exists_duplicate_node = True
                         curr_bubble_nodeobjs.append(nobj)
-                    except KeyError, e:
-                        raise KeyError, config.UBUBBLE_NODE_ERR + str(e)
+                    except KeyError as e:
+                        raise KeyError(config.UBUBBLE_NODE_ERR + str(e))
     
                 if len(curr_bubble_nodeobjs) > 1:
                     # Test that the nodes' "induced subgraph" is contiguous.
@@ -1237,8 +1238,8 @@ def collate_graph(args):
                         # incident nodes
                         incidents.discard(nobj)
                         if incidents.isdisjoint(curr_bubble_nodeobjs):
-                            raise ValueError, config.UBUBBLE_ERR_PREFIX + \
-                                b.strip() + config.CONTIGUOUS_ERR
+                            raise ValueError(config.UBUBBLE_ERR_PREFIX + \
+                                b.strip() + config.CONTIGUOUS_ERR)
     
                 if exists_duplicate_node:
                     # A given node can only belong to a max of 1 structural
@@ -1275,8 +1276,8 @@ def collate_graph(args):
                 pattern_items = p.strip().split("\t")
                 pattern_line_node_ids = pattern_items[1:]
                 if len(pattern_line_node_ids) < 1:
-                    raise ValueError, config.LINE_NOUN + str(pattern_line_ct) + \
-                            config.UPATTERN_NOTENOUGH_ERR
+                    raise ValueError(config.LINE_NOUN + str(pattern_line_ct) + \
+                            config.UPATTERN_NOTENOUGH_ERR)
                 # Ensure that the node identifiers are valid.
                 curr_pattern_nodeobjs = []
                 exists_duplicate_node = False
@@ -1290,8 +1291,8 @@ def collate_graph(args):
                         if nobj.used_in_collapsing:
                             exists_duplicate_node = True
                         curr_pattern_nodeobjs.append(nobj)
-                    except KeyError, e:
-                        raise KeyError, config.UPATTERN_NODE_ERR + str(e)
+                    except KeyError as e:
+                        raise KeyError(config.UPATTERN_NODE_ERR + str(e))
     
                 if len(curr_pattern_nodeobjs) > 1:
                     # Test that the nodes' "induced subgraph" is contiguous.
@@ -1301,8 +1302,8 @@ def collate_graph(args):
                         # considered valid
                         incidents.discard(nobj)
                         if incidents.isdisjoint(curr_pattern_nodeobjs):
-                            raise ValueError, config.UPATTERN_ERR_PREFIX + \
-                                p.strip() + config.CONTIGUOUS_ERR
+                            raise ValueError(config.UPATTERN_ERR_PREFIX + \
+                                p.strip() + config.CONTIGUOUS_ERR)
     
                 if exists_duplicate_node:
                     # A given node can only belong to a max of 1 structural
@@ -1355,8 +1356,8 @@ def collate_graph(args):
     
         # Clear extraneous SPQR auxiliary files from the output directory, if
         # present (see issue #191 on the GitHub page)
-        cfn_regex = re.compile("component_(\d+)\.info")
-        sfn_regex = re.compile("spqr\d+\.gml")
+        cfn_regex = re.compile(r"component_(\d+)\.info")
+        sfn_regex = re.compile(r"spqr\d+\.gml")
         for fn in os.listdir(dir_fn):
             match = cfn_regex.match(fn)
             if match is not None:
@@ -1481,9 +1482,9 @@ def collate_graph(args):
         # Get info from the SPQR tree auxiliary files (component_*.info and
         # spqr*.gml)
         bicomponentid2obj = {}
-        metanode_id_regex = re.compile("^\d+$")
-        metanode_type_regex = re.compile("^[SPR]$")
-        edge_line_regex = re.compile("^v|r")
+        metanode_id_regex = re.compile(r"^\d+$")
+        metanode_type_regex = re.compile(r"^[SPR]$")
+        edge_line_regex = re.compile(r"^v|r")
         for cfn_id in bicomponentid2fn:
             with open(bicomponentid2fn[cfn_id], "r") as component_info_file:
                 metanodeid2obj = {}
@@ -1542,7 +1543,7 @@ def collate_graph(args):
                                 target_metanode = metanodeid2obj[id_line_parts[1]]
             # Determine root of the bicomponent and store it as part of the
             # bicomponent
-            curr_metanode = metanodeid2obj.values()[0]
+            curr_metanode = list(metanodeid2obj.values())[0]
             while len(curr_metanode.incoming_nodes) > 0:
                 # A metanode in the tree can have at most 1 parent (because that is
                 # how trees work), so it's ok to just move up in the tree like so
@@ -1553,7 +1554,7 @@ def collate_graph(args):
             # skeletons of its metanodes, and the edges between metanodes. (This
             # data is stored as attributes of the SPQRMetaNode objects in
             # question.)
-            metanode_list = metanodeid2obj.values()
+            metanode_list = list(metanodeid2obj.values())
             bicomponentid2obj[cfn_id] = graph_objects.Bicomponent(cfn_id, \
                 metanode_list, curr_metanode)
             total_bicomponent_count += 1
@@ -2197,9 +2198,9 @@ def collate_graph(args):
                             exy = curr_node.xdot_iy
                         # Try to expand the component bounding box
                         right_side = exx + \
-                            (config.POINTS_PER_INCH * (curr_node.width/2.0))
+                            (config.POINTS_PER_INCH * (curr_node.width / 2.0))
                         top_side = exy + \
-                            (config.POINTS_PER_INCH * (curr_node.height/2.0))
+                            (config.POINTS_PER_INCH * (curr_node.height / 2.0))
                         if right_side > bounding_box_right: bounding_box_right = \
                                 right_side
                         if top_side > bounding_box_top: bounding_box_top = top_side
@@ -2231,9 +2232,9 @@ def collate_graph(args):
                             xdot_width = curr_cluster.xdot_ic_width
                             xdot_height = curr_cluster.xdot_ic_height
                         half_width_pts = \
-                            (config.POINTS_PER_INCH * (xdot_width/2.0))
+                            (config.POINTS_PER_INCH * (xdot_width / 2.0))
                         half_height_pts = \
-                            (config.POINTS_PER_INCH * (xdot_height/2.0))
+                            (config.POINTS_PER_INCH * (xdot_height / 2.0))
                         exr = ext = None
                         if mode == "explicit":
                             curr_cluster.xdot_left = \
@@ -2439,8 +2440,8 @@ def collate_graph(args):
                 single_component_size_rank += 1
             t2 = time.time()
             difference = t2 - t1
-            print "SPQR %s view layout time:" % (mode),
-            print "%g seconds" % (difference)
+            print("SPQR %s view layout time:" % (mode), end=' ')
+            print("%g seconds" % (difference))
             total_layout_time += difference
     
         if not no_print:
@@ -2503,8 +2504,8 @@ def collate_graph(args):
                 curr_node.set_dimensions()
                 wpts = curr_node.width * config.POINTS_PER_INCH
                 hpts = curr_node.height * config.POINTS_PER_INCH
-                curr_node.xdot_x = wpts / 2
-                curr_node.xdot_y = hpts / 2
+                curr_node.xdot_x = wpts / 2.0
+                curr_node.xdot_y = hpts / 2.0
                 curr_node.xdot_shape = curr_node.get_shape()
                 curr_node.set_component_rank(component_size_rank)
                 cursor.execute(NODE_INSERTION_STMT, curr_node.db_values())
@@ -2657,9 +2658,9 @@ def collate_graph(args):
                 curr_cluster.xdot_x = float(ep[0])
                 curr_cluster.xdot_y = float(ep[1])
                 half_width_pts = \
-                    (config.POINTS_PER_INCH * (curr_cluster.xdot_c_width/2.0))
+                    (config.POINTS_PER_INCH * (curr_cluster.xdot_c_width / 2.0))
                 half_height_pts = \
-                    (config.POINTS_PER_INCH * (curr_cluster.xdot_c_height/2.0))
+                    (config.POINTS_PER_INCH * (curr_cluster.xdot_c_height / 2.0))
                 curr_cluster.xdot_left = curr_cluster.xdot_x - half_width_pts
                 curr_cluster.xdot_right = curr_cluster.xdot_x + half_width_pts
                 curr_cluster.xdot_bottom = curr_cluster.xdot_y - half_height_pts
@@ -2717,7 +2718,7 @@ def collate_graph(args):
             if source_id != e[0]:
                 # Adjust edge to point from interior node "source"'s tailport
                 pts_height = source.height * config.POINTS_PER_INCH
-                tail_y = source.xdot_y - (pts_height / 2)
+                tail_y = source.xdot_y - (pts_height / 2.0)
                 new_points = "%g %g " % (source.xdot_x, tail_y)
                 xcps = curr_edge.xdot_ctrl_pt_str
                 # Remove first control point (at tailport of the bounding box
@@ -2729,7 +2730,7 @@ def collate_graph(args):
                 # Adjust edge to point to interior node "target"'s headport
                 target = nodeid2obj[target_id]
                 pts_height = target.height * config.POINTS_PER_INCH
-                tail_y = target.xdot_y + (pts_height / 2)
+                tail_y = target.xdot_y + (pts_height / 2.0)
                 new_points = "%g %g" % (target.xdot_x, tail_y)
                 xcps = curr_edge.xdot_ctrl_pt_str
                 # Remove last control point (at headport of the bounding box
@@ -2780,8 +2781,8 @@ def collate_graph(args):
     if no_print:
         conclude_msg()
     if args.computespqrdata:
-        print "Standard view layout time: %g seconds" % (difference)
-    print "Total layout time: %g seconds" % (total_layout_time)
+        print("Standard view layout time: %g seconds" % (difference))
+    print("Total layout time: %g seconds" % (total_layout_time))
     
     operation_msg(config.DB_SAVE_MSG + "%s..." % (db_fn))
     connection.commit()
