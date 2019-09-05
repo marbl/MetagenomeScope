@@ -1,6 +1,6 @@
 *.pyc
 __pycache__/
-tests/output/
+metagenomescope/tests/output/
 spqrtests/
 testgraphs/
 testdbs/
