@@ -26,7 +26,7 @@ install:
     - hash -r
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
-    - conda create -q -n mgsc python=3.6 graphviz=2.38.0 pygraphviz numpy
+    - conda create -q -c anaconda -n mgsc python=3.6 graphviz=2.38.0 pygraphviz numpy
     - pip install -e .[dev]
     - unzip ogdf.zip
     - cd OGDF
