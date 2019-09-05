@@ -616,7 +616,7 @@ def run_spqr_script(invocation):
     """
     try:
         check_output(invocation, stderr=STDOUT)
-    except:
+    except: # noqa
         # We assume that the thing printed before this was config.SPQR_MSG,
         # with no trailing newline (hence why we prepend a newline to the first
         # config.MESSAGE_BORDER).
