@@ -26,10 +26,7 @@ install:
     - hash -r
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
-    # NOTE: right now we install pytest via conda, because as far as I can
-    # tell this is needed to make it work with python 2? Shouldn't need to do
-    # this when we eventually port MetagenomeScope to python 3
-    - conda create -q -n mgsc -c anaconda python=2.7 numpy graphviz=2.38.0 pygraphviz pytest
+    - conda create -q -n mgsc python=3.6 graphviz=2.38.0 pygraphviz numpy
     - pip install -e .[dev]
     - unzip ogdf.zip
     - cd OGDF
