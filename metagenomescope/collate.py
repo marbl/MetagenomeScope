@@ -616,7 +616,7 @@ def run_spqr_script(invocation):
     """
     try:
         check_output(invocation, stderr=STDOUT)
-    except: # noqa
+    except:  # noqa
         # We assume that the thing printed before this was config.SPQR_MSG,
         # with no trailing newline (hence why we prepend a newline to the first
         # config.MESSAGE_BORDER).
@@ -786,11 +786,11 @@ def collate_graph(args):
             for line in assembly_file:
                 if line[:4] == "NODE":
                     parsing_node = True
-                    l = line.split()
-                    curr_node_id = l[1]
-                    curr_node_bp = int(l[2])
+                    line_contents = line.split()
+                    curr_node_id = line_contents[1]
+                    curr_node_bp = int(line_contents[2])
                     # depth = $O_COV_SHORT1 / $COV_SHORT1 (bp)
-                    curr_node_depth = float(l[3]) / curr_node_bp
+                    curr_node_depth = float(line_contents[3]) / curr_node_bp
                 elif line[:3] == "ARC":
                     # ARC information is only stored on one line -- makes things
                     # simple for us
@@ -919,24 +919,26 @@ def collate_graph(args):
                 # Record node attributes/detect end of node declaration
                 if parsing_node:
                     if line.strip().startswith("id"):
-                        l = line.split()
-                        curr_node_id = l[1]
+                        line_contents = line.split()
+                        curr_node_id = line_contents[1]
                     if line.strip().startswith("label"):
-                        l = line.split()
-                        curr_node_label = l[1].strip('"')
+                        line_contents = line.split()
+                        curr_node_label = line_contents[1].strip('"')
                         if curr_node_label.startswith("NODE_"):
                             label_parts = curr_node_label.split("_")
                             curr_node_label = "NODE_" + label_parts[1]
                     elif line.strip().startswith("orientation"):
-                        l = line.split()
-                        curr_node_orientation = l[1]  # either "FOW" or "REV"
+                        line_contents = line.split()
+                        curr_node_orientation = line_contents[
+                            1
+                        ]  # either "FOW" or "REV"
                     elif line.strip().startswith("length"):
                         # fetch value from length attribute
-                        l = line.split()
-                        curr_node_bp = int(l[1].strip('"'))
+                        line_contents = line.split()
+                        curr_node_bp = int(line_contents[1].strip('"'))
                     elif line.strip().startswith("repeat"):
-                        l = line.split()
-                        curr_node_is_repeat = int(l[1])
+                        line_contents = line.split()
+                        curr_node_is_repeat = int(line_contents[1])
                     elif line.endswith("]\n"):
                         # TODO pass the repeat value via optional arg to Node()
                         # Then store the repeat thing in db_values, modifying the
@@ -986,23 +988,23 @@ def collate_graph(args):
                         curr_node_is_repeat = None
                 elif parsing_edge:
                     if line.strip().startswith("source"):
-                        l = line.split()
-                        curr_edge_src_id = l[1]
+                        line_contents = line.split()
+                        curr_edge_src_id = line_contents[1]
                     elif line.strip().startswith("target"):
-                        l = line.split()
-                        curr_edge_tgt_id = l[1]
+                        line_contents = line.split()
+                        curr_edge_tgt_id = line_contents[1]
                     elif line.strip().startswith("orientation"):
-                        l = line.split()
-                        curr_edge_orientation = l[1].strip('"')
+                        line_contents = line.split()
+                        curr_edge_orientation = line_contents[1].strip('"')
                     elif line.strip().startswith("bsize"):
-                        l = line.split()
-                        curr_edge_bundlesize = int(l[1].strip('"'))
+                        line_contents = line.split()
+                        curr_edge_bundlesize = int(line_contents[1].strip('"'))
                     elif line.strip().startswith("mean"):
-                        l = line.split()
-                        curr_edge_mean = float(l[1].strip('"'))
+                        line_contents = line.split()
+                        curr_edge_mean = float(line_contents[1].strip('"'))
                     elif line.strip().startswith("stdev"):
-                        l = line.split()
-                        curr_edge_stdev = float(l[1].strip('"'))
+                        line_contents = line.split()
+                        curr_edge_stdev = float(line_contents[1].strip('"'))
                     elif line.endswith("]\n"):
                         nodeid2obj[curr_edge_src_id].add_outgoing_edge(
                             nodeid2obj[curr_edge_tgt_id],
@@ -1061,15 +1063,16 @@ def collate_graph(args):
                 if line.startswith("S"):
                     # For GFA files: given a + DNA seq, its - DNA seq is the
                     # reverse complement of that DNA seq.
-                    l = line.split()
-                    curr_node_id = l[1]
+                    line_contents = line.split()
+                    curr_node_id = line_contents[1]
                     if curr_node_id.startswith("NODE_"):
                         curr_node_id = curr_node_id.split("_")[1]
                     elif curr_node_id.startswith("tig"):
                         curr_node_id = curr_node_id[3:]
                     # The sequence data can be optionally not given -- in this
-                    # case, a single asterisk, *, will be located at l[2].
-                    curr_node_dnafwd = l[2]
+                    # case, a single asterisk, *, will be located at
+                    # line_contents[2].
+                    curr_node_dnafwd = line_contents[2]
                     if curr_node_dnafwd != "*":
                         curr_node_bp = len(curr_node_dnafwd)
                         curr_node_dnarev = reverse_complement(curr_node_dnafwd)
@@ -1093,7 +1096,7 @@ def collate_graph(args):
                         # the LN property
                         dna_given = False
                         curr_node_bp = None
-                        for seq_attr in l[3:]:
+                        for seq_attr in line_contents[3:]:
                             if seq_attr.startswith("LN:i:"):
                                 curr_node_bp = int(seq_attr[5:])
                                 break
@@ -1234,10 +1237,11 @@ def collate_graph(args):
                     # (on the left hand side of any ":" character that might exist
                     # on the line) and any contigs to which that contig has an
                     # outgoing edge (on the right hand side of the ":"). The
-                    # declared contig's ID will be stored in l[0], and the outgoing
-                    # contigs' IDs will be stored in one string in l[1].
-                    l = line[1:].strip().split(":")
-                    decl = l[0]
+                    # declared contig's ID will be stored in line_contents[0],
+                    # and the outgoing contigs' IDs will be stored in one
+                    # string in line_contents[1].
+                    line_contents = line[1:].strip().split(":")
+                    decl = line_contents[0]
                     curr_node_info = decl.split("_")
                     # We look at the end character of the declared contig's name to
                     # determine if it's a "reverse complement" node (if it ends
@@ -1248,7 +1252,7 @@ def collate_graph(args):
                     # if not, then the last character in decl will be a ";", so we
                     # have to look at the last character before that, which is
                     # decl[-2]).
-                    if len(l) > 1:
+                    if len(line_contents) > 1:
                         if decl[-1] == "'":
                             curr_node_is_rc = True
                         else:
@@ -1273,8 +1277,8 @@ def collate_graph(args):
                     curr_node_dna = ""
                     # Keep track of outgoing nodes from this node (if present)
                     nodeid2outgoingnodeids[curr_node_id] = []
-                    if len(l) > 1:
-                        outgoing_node_info = l[1].split(",")
+                    if len(line_contents) > 1:
+                        outgoing_node_info = line_contents[1].split(",")
                         # We use outgoing_index to determine what character
                         # position we need to check for the ', in order to see
                         # which of the outgoing nodes are reverse complements (-)
