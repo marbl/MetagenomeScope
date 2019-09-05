@@ -20,13 +20,13 @@ before_install:
 # So that bug shouldn't be a problem here.
 install:
     # CODELINK: conda installation instructions per https://conda.io/docs/user-guide/tasks/use-conda-with-travis-ci.html
-    - wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+    - wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"
     - hash -r
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
-    - conda create -q -c anaconda -n mgsc python=3.6 graphviz=2.38.0 pygraphviz numpy
+    - conda create -q -n mgsc python=3.6 graphviz=2.38.0 pygraphviz numpy
     - pip install -e .[dev]
     - unzip ogdf.zip
     - cd OGDF
