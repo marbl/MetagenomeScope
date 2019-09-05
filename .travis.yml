@@ -1,6 +1,6 @@
 language: python
 python:
-    - "2.7"
+    - "3.6"
 # Get stuff ready for testing SPQR functionality.
 # NOTE I ran into troubles with building the most recent snapshot of OGDF, so
 # I'm just using the stable release at present.
@@ -48,3 +48,8 @@ script:
     - source activate mgsc
     # This runs both the preprocessing script and viewer interface tests
     - make test
+    # TODO: run make stylecheck here
+after_success:
+    # This section based on Qurro's Makefile. Upload coverage info to Codecov.
+    - wget -O codecov.sh https://codecov.io/bash
+    - bash codecov.sh -c

@@ -62,7 +62,7 @@ setup(
     include_package_data=True,
     packages=find_packages(),
     install_requires=["pygraphviz", "numpy"],
-    extras_require={"dev": ["pytest", "flake8", "black"]},
+    extras_require={"dev": ["pytest", "pytest-cov", "flake8", "black"]},
     classifiers=classifiers,
     entry_points={
         "console_scripts": ["mgsc=metagenomescope.collate:run_script"]
