@@ -2,8 +2,8 @@ language: python
 python:
     - "3.6"
 # Get stuff ready for testing SPQR functionality.
-# NOTE I ran into troubles with building the most recent snapshot of OGDF, so
-# I'm just using the stable release at present.
+# NOTE: Building the most recent snapshot of OGDF with the SPQR script
+# currently fails, so we're just using the "Baobab" release at present.
 before_install:
     - rm metagenomescope/spqr
     - wget -O ogdf.zip https://ogdf.uos.de/wp-content/uploads/2019/04/ogdf.v2015.05.zip
@@ -16,7 +16,15 @@ install:
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
     - travis_retry conda create -q -c anaconda -n mgsc python=3.6 graphviz=2.38.0 pygraphviz numpy
+    - source activate mgsc
     - pip install -e .[dev]
+    - source deactivate
+    # Install OGDF. Note that the "Baobab" stable release fails when running
+    # makeMakefile.sh in a python 3.6 environment, so we create a new
+    # environment just for the purposes of installing OGDF. (This is a hack,
+    # but it's the easiest solution right now.)
+    - travis_retry conda create -q -n py2env python=2.7
+    - source activate py2env
     - unzip ogdf.zip
     - cd OGDF
     # Install OGDF
@@ -27,6 +35,7 @@ install:
     # At this point, OGDF has been installed. Now we can build the SPQR script.
     - cd ..
     - make spqr IDIR=OGDF/include/ RDIR=OGDF/_release/
+    - source deactivate
     # We also install mocha-headless-chrome so that we can run the viewer
     # interface tests.
     - npm install -g mocha-headless-chrome
