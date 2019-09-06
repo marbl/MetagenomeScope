@@ -131,11 +131,9 @@ sed -i'' 's/<link rel=\"shortcut icon\" href=\"bubble\.ico\">//' electron/index.
 # minified.
 sed -i'' 's/mgsc\.METAGENOMESCOPE_ELECTRON_BEING_USED \?= \?0;\?/mgsc\.METAGENOMESCOPE_ELECTRON_BEING_USED = 1;/' electron/index.min.html
 
-# Instrument JS code. For some reason, instrumenting a single JS file causes
-# the entire directory structure to be replicated inside the output directory
-# -- so the output instrumented JS path is
-# viewer/instrumented_js/viewer/js/xdot2cy.js. Yeah, I know. I know.
-nyc instrument viewer/js/xdot2cy.js viewer/instrumented_js/
+# Instrument JS code. This is inefficient because it also instruments the
+# minified JS files, which is unnecessary -- a TODO is fixing that.
+nyc instrument viewer/js/ viewer/instrumented_js/
 
 # Set up version of index.html for running tests headlessly
 cp viewer/index.html viewer/headless_tests_index.html
@@ -144,7 +142,7 @@ cp viewer/index.html viewer/headless_tests_index.html
 sed -i'' 's/<script id=\"runTestsHere\">/<script id=\"runTestsHere\">mgsc.runTests();/' viewer/headless_tests_index.html
 # second difference: the headless version uses an instrumented version of the
 # JS code
-sed -i'' 's/js\/xdot2cy\.js/instrumented_js\/viewer\/js\/xdot2cy\.js/g' viewer/headless_tests_index.html
+sed -i'' 's/js\/xdot2cy\.js/instrumented_js\/xdot2cy\.js/g' viewer/headless_tests_index.html
 
 # Finally, print ending messages
 echo "File minification complete."

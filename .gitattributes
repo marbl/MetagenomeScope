@@ -1,7 +1,6 @@
-js/sql.js linguist-vendored=true
-fonts/* linguist-vendored=true
+viewer/vendor/* linguist-vendored=true
+viewer/headless_tests_index.html linguist-generated=true
 *.min.js linguist-generated=true
 *.min.css linguist-generated=true
 *.min.html linguist-generated=true
 viewer/tests/vendor/* linguist-vendored=true
-viewer/webstrates_index.html linguist-generated=true
