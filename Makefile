@@ -70,7 +70,7 @@ spqrtest:
 	rm metagenomescope/tests/output/*
 
 viewertest:
-	fish minify_files.fish
+	bash minify_files.sh
 	mocha-headless-chrome -f viewer/headless_tests_index.html -c js_coverage.json
 
 test: pytest viewertest
