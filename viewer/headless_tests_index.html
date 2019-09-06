@@ -36,33 +36,12 @@
         <link rel="stylesheet" href="vendor/css/bootstrap.min.css" />
         <link rel="stylesheet" href="css/viewer_style.css" />
         <link rel="stylesheet" href="vendor/css/bootstrap-colorpicker.min.css" />
-        <!-- NOTE: Please don't add any additional attributes to the jQuery
-             <script> invocation, since the minify_files script in this
-             repository relies on the tag being formatted a certain way in
-             order to replace it when generating the Electron version of the
-             viewer interface's index.min.html file. (That being said, you can
-             change around the jQuery file name's version number/etc. so long
-             as it conforms to the regex ["']js\/jquery-[0-9\.]*\.min\.js["']
-             and the script should be able to handle it.)
-
-             Also, for what it's worth, minify_files expects each <script> or
-             <link> that uses a local file in the css or js directories to have
-             its src attribute start with either "css" or "js". So if you have
-             something like ./js/... then that'll trip minify_files up, which
-             will mess up the Electron version HTML generation.
-        -->
         <script src="vendor/js/jquery-3.2.1.min.js"></script>
         <script src="vendor/js/cytoscape.min.js"></script>
         <!-- NOTE if including Cytoscape.js layout plugins for testing, those
              can go here -->
         <script src="vendor/js/sql.js"></script>
         <script src="instrumented_js/xdot2cy.js"></script>
-        <!-- The following variable declaration will be modified by
-             minify_files for the Electron version HTML.
-        -->
-        <script>
-            mgsc.METAGENOMESCOPE_ELECTRON_BEING_USED = 0;
-        </script>
         <script src="vendor/js/bootstrap.min.js"></script>
         <script src="vendor/js/bootstrap-colorpicker.min.js"></script>
         <script src="vendor/js/d3.v4.min.js"></script>
