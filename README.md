@@ -1,5 +1,5 @@
 # MetagenomeScope
-[![Build Status](https://travis-ci.org/marbl/MetagenomeScope.svg?branch=master)](https://travis-ci.org/marbl/MetagenomeScope)
+[![Build Status](https://travis-ci.org/marbl/MetagenomeScope.svg?branch=master)](https://travis-ci.org/marbl/MetagenomeScope) [![Code Coverage](https://codecov.io/gh/marbl/MetagenomeScope/branch/master/graph/badge.svg)](https://codecov.io/gh/marbl/MetagenomeScope)
 
 ![Screenshot of MetagenomeScope's standard mode, showing a region of a biofilm assembly graph](https://user-images.githubusercontent.com/4177727/46389776-f1d63780-c688-11e8-82ae-13d58d6f4738.png "Screenshot of MetagenomeScope's standard mode, showing a region of a biofilm assembly graph.")
 
