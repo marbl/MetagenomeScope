@@ -38,6 +38,8 @@ install:
     - conda deactivate
     # Install npm packages needed for JS testing
     - npm install -g mocha-headless-chrome nyc
+    # Install npm packages needed for JS/HTML/CSS minification
+    - npm install -g csso-cli uglify-js html-minifier
 script:
     - source activate mgsc
     # This runs both the preprocessing script and viewer interface tests
