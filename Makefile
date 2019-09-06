@@ -7,20 +7,9 @@
 #
 # spqrtest: Runs the SPQR-specific preprocessing script tests using pytest.
 #
-# viewertest: Runs the viewer interface tests using mocha-headless-chrome.
-#  If you don't have mocha-headless-chrome installed, you can install it via
-#  "npm install -g mocha-headless-chrome".
-#
-#  NOTE that the version of the viewer interface code used is the
-#  viewer/headless_tests_index.min.html file, which in turn references all the
-#  minified code versions. If you just made a change in your code and want to
-#  test it, you'll need to run "make viewer" which runs the minification
-#  script before the viewer test.
-#
-# minify: Calls minify_files.fish, which is a fish shell script that minifies
-#  the code for the viewer interface.
-#
-# viewer: Runs "minify" then "viewertest".
+# viewertest: Minifies web code (and instruments JS code) and creates/updates
+#  viewer/headless_tests_index.html, then runs the viewer interface tests
+#  using mocha-headless-chrome.
 #
 # spqr: this is used to compile the "SPQR script" (spqr.cpp)
 #  contained in the graph_collator/ directory of MetagenomeScope.
@@ -81,13 +70,8 @@ spqrtest:
 	rm metagenomescope/tests/output/*
 
 viewertest:
-	@echo "Make sure you ran the minification script before doing this!"
-	mocha-headless-chrome -f viewer/headless_tests_index.min.html
-
-minify:
 	fish minify_files.fish
-
-viewer: minify viewertest
+	mocha-headless-chrome -f viewer/headless_tests_index.html -c js_coverage.json
 
 test: pytest viewertest
 

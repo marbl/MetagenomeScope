@@ -36,9 +36,8 @@ install:
     - cd ..
     - make spqr IDIR=OGDF/include/ RDIR=OGDF/_release/
     - conda deactivate
-    # We also install mocha-headless-chrome so that we can run the viewer
-    # interface tests.
-    - npm install -g mocha-headless-chrome
+    # Install npm packages needed for JS testing
+    - npm install -g mocha-headless-chrome nyc
 script:
     - source activate mgsc
     # This runs both the preprocessing script and viewer interface tests
