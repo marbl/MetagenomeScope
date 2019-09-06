@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (C) 2017-2018 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
+# Copyright (C) 2016-- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
 # Authored by Marcus Fedarko
 #
 # This file is part of MetagenomeScope.

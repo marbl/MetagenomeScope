@@ -24,7 +24,7 @@ shopt -s expand_aliases
 # Use of heredoc + read to assign multiline strings to a variable based on
 # https://stackoverflow.com/a/23930212/10730311.
 read -r -d '' attribution << ATTRIBUTION_END
-/* Copyright (C) 2017-2019 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
+/* Copyright (C) 2016-- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
  * Authored by Marcus Fedarko
  *
  * This file is part of MetagenomeScope.
@@ -47,7 +47,7 @@ ATTRIBUTION_END
 read -r -d '' htmlattribution << ATTRIBUTION_END
 <!doctype html>
 <!--
-    Copyright (C) 2017-2019 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
+    Copyright (C) 2016- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
     Authored by Marcus Fedarko
  
     This file is part of MetagenomeScope.
