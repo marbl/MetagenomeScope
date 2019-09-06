@@ -18,7 +18,7 @@ install:
     - travis_retry conda create -q -c anaconda -n mgsc python=3.6 graphviz=2.38.0 pygraphviz numpy
     - source activate mgsc
     - pip install -e .[dev]
-    - source deactivate
+    - conda deactivate
     # Install OGDF. Note that the "Baobab" stable release fails when running
     # makeMakefile.sh in a python 3.6 environment, so we create a new
     # environment just for the purposes of installing OGDF. (This is a hack,
@@ -35,7 +35,7 @@ install:
     # At this point, OGDF has been installed. Now we can build the SPQR script.
     - cd ..
     - make spqr IDIR=OGDF/include/ RDIR=OGDF/_release/
-    - source deactivate
+    - conda deactivate
     # We also install mocha-headless-chrome so that we can run the viewer
     # interface tests.
     - npm install -g mocha-headless-chrome

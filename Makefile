@@ -1,9 +1,9 @@
 # Since the bulk of MetagenomeScope's code isn't compiled, this Makefile just
 # performs a few actions using the following (phony) targets:
 #
-# test: Runs the general, spqr, and viewer tests.
+# test: Runs the python and viewer tests.
 #
-# generaltest: Runs the non-SPQR preprocessing script tests using pytest.
+# pytest: Runs all preprocessing script tests using pytest.
 #
 # spqrtest: Runs the SPQR-specific preprocessing script tests using pytest.
 #
@@ -38,7 +38,7 @@
 #  Requires that a few extra packages are installed. This directive was taken
 #  from Qurro's Makefile.
 
-.PHONY: generaltest spqrtest viewertest test spqr
+.PHONY: pytest spqrtest viewertest test spqr
 
 # This might have to be changed depending on your system. When I tried
 # compiling this on a Mac computer, the g++ binary seemed to just redirect to
@@ -72,8 +72,8 @@ JSLOCS = viewer/js/xdot2cy.js viewer/tests/*.js docs/js/extra_functionality.js
 HTMLCSSLOCS = viewer/index.html viewer/404.html viewer/css/viewer_style.css docs/404.html docs/index.html docs/css/mgsc_docs_style.css
 
 # -B: don't create __pycache__/ directories
-generaltest:
-	$(PYTEST_COMMAND) -m "not spqrtest"
+pytest:
+	$(PYTEST_COMMAND)
 	rm metagenomescope/tests/output/*
 
 spqrtest:
@@ -89,7 +89,7 @@ minify:
 
 viewer: minify viewertest
 
-test: generaltest spqrtest viewertest
+test: pytest viewertest
 
 spqr:
 	$(COMPILER) $(SPQR_CODE) $(CFLAGS) $(OGDF_FLAGS) -o $(SPQR_BINARY)
