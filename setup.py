@@ -59,11 +59,12 @@ setup(
     maintainer="Marcus Fedarko",
     maintainer_email="mfedarko@ucsd.edu",
     url="https://github.com/marbl/MetagenomeScope",
-    include_package_data=True,
+    classifiers=classifiers,
     packages=find_packages(),
+    package_data={"metagenomescope": ["spqr"]},
+    include_package_data=True,
     install_requires=["pygraphviz", "numpy"],
     extras_require={"dev": ["pytest", "pytest-cov", "flake8", "black"]},
-    classifiers=classifiers,
     entry_points={
         "console_scripts": ["mgsc=metagenomescope.collate:run_script"]
     },
