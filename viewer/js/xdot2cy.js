@@ -744,18 +744,20 @@ function collapseCluster(cluster, moveMap) {
         }
     }
     // For each edge with a target in the compound node...
+    var oldIncomingEdge;
     for (var incomingEdgeID in cluster.data("incomingEdgeMap")) {
-        var oldEdge = cy.getElementById(incomingEdgeID);
-        oldEdge.removeClass("unbundledbezier");
-        oldEdge.addClass("basicbezier");
-        oldEdge.move({ target: cluster.id() });
+        oldIncomingEdge = cy.getElementById(incomingEdgeID);
+        oldIncomingEdge.removeClass("unbundledbezier");
+        oldIncomingEdge.addClass("basicbezier");
+        oldIncomingEdge.move({ target: cluster.id() });
     }
     // For each edge with a source in the compound node...
+    var oldOutgoingEdge;
     for (var outgoingEdgeID in cluster.data("outgoingEdgeMap")) {
-        var oldEdge = cy.getElementById(outgoingEdgeID);
-        oldEdge.removeClass("unbundledbezier");
-        oldEdge.addClass("basicbezier");
-        oldEdge.move({ source: cluster.id() });
+        oldOutgoingEdge = cy.getElementById(outgoingEdgeID);
+        oldOutgoingEdge.removeClass("unbundledbezier");
+        oldOutgoingEdge.addClass("basicbezier");
+        oldOutgoingEdge.move({ source: cluster.id() });
     }
     cluster.data("isCollapsed", true);
     // Update list of locally collapsed nodes (useful for global toggling)
@@ -787,38 +789,46 @@ function uncollapseCluster(cluster) {
     // Restore child nodes + interior edges
     cluster.scratch("_interiorEles").restore();
     // "Reset" edges to their original target/source within the cluster
+    var oldIncomingEdge, newTgt;
     for (var incomingEdgeID in cluster.data("incomingEdgeMap")) {
         if (mgsc.REMOVED_EDGES.is('[id="' + incomingEdgeID + '"]')) {
             // The edge has probably been removed from the graph due to
             // the edge weight thing -- ignore it
             continue;
         }
-        var newTgt = cluster.data("incomingEdgeMap")[incomingEdgeID][1];
-        var oldEdge = cy.getElementById(incomingEdgeID);
+        newTgt = cluster.data("incomingEdgeMap")[incomingEdgeID][1];
+        oldIncomingEdge = cy.getElementById(incomingEdgeID);
         // If the edge isn't connected to another cluster, and the edge
         // wasn't a basicbezier to start off with (i.e. it has control point
         // data), then change its classes to update its style.
-        if (!oldEdge.source().hasClass("cluster") && oldEdge.data("cpd")) {
-            if (!oldEdge.hasClass("reducededge")) {
-                oldEdge.removeClass("basicbezier");
-                oldEdge.addClass("unbundledbezier");
+        if (
+            !oldIncomingEdge.source().hasClass("cluster") &&
+            oldIncomingEdge.data("cpd")
+        ) {
+            if (!oldIncomingEdge.hasClass("reducededge")) {
+                oldIncomingEdge.removeClass("basicbezier");
+                oldIncomingEdge.addClass("unbundledbezier");
             }
         }
-        oldEdge.move({ target: newTgt });
+        oldIncomingEdge.move({ target: newTgt });
     }
+    var oldOutgoingEdge, newSrc;
     for (var outgoingEdgeID in cluster.data("outgoingEdgeMap")) {
         if (mgsc.REMOVED_EDGES.is('[id="' + outgoingEdgeID + '"]')) {
             continue;
         }
-        var newSrc = cluster.data("outgoingEdgeMap")[outgoingEdgeID][0];
-        var oldEdge = cy.getElementById(outgoingEdgeID);
-        if (!oldEdge.target().hasClass("cluster") && oldEdge.data("cpd")) {
-            if (!oldEdge.hasClass("reducededge")) {
-                oldEdge.removeClass("basicbezier");
-                oldEdge.addClass("unbundledbezier");
+        newSrc = cluster.data("outgoingEdgeMap")[outgoingEdgeID][0];
+        oldOutgoingEdge = cy.getElementById(outgoingEdgeID);
+        if (
+            !oldOutgoingEdge.target().hasClass("cluster") &&
+            oldOutgoingEdge.data("cpd")
+        ) {
+            if (!oldOutgoingEdge.hasClass("reducededge")) {
+                oldOutgoingEdge.removeClass("basicbezier");
+                oldOutgoingEdge.addClass("unbundledbezier");
             }
         }
-        oldEdge.move({ source: newSrc });
+        oldOutgoingEdge.move({ source: newSrc });
     }
     // Update local flag for collapsed status (useful for local toggling)
     cluster.data("isCollapsed", false);
