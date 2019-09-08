@@ -78,17 +78,17 @@ mgsc.EDGE_THICKNESS_RANGE = mgsc.MAX_EDGE_THICKNESS - mgsc.MIN_EDGE_THICKNESS;
 
 // Misc. global variables we use to get certain functionality
 // The current "view type" -- will always be one of {"SPQR", "double"}
-mgsc.CURR_VIEWTYPE;
+mgsc.CURR_VIEWTYPE = undefined;
 // The current "SPQR mode" -- will always be one of {"implicit", explicit"}
-mgsc.CURR_SPQRMODE;
+mgsc.CURR_SPQRMODE = undefined;
 // mapping of {bicomponent ID => an array of the IDs of the visible singlenodes
 // in that bicomponent}
 mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS = {};
 // The bounding box of the graph
-mgsc.CURR_BOUNDINGBOX;
+mgsc.CURR_BOUNDINGBOX = undefined;
 // In degrees CCW from the default up->down direction
-mgsc.PREV_ROTATION;
-mgsc.CURR_ROTATION;
+mgsc.PREV_ROTATION = undefined;
+mgsc.CURR_ROTATION = undefined;
 // The current colorization "value" -- used to prevent redundant applications
 // of changing colorization.
 mgsc.CURR_NODE_COLORIZATION = null;
@@ -130,19 +130,19 @@ mgsc.COMPONENT_EDGE_WEIGHTS = [];
 // graph's layout and biological data
 mgsc.CURR_DB = null;
 // Filetype of the assembly; used for determining bp vs. nt for nodes
-mgsc.ASM_FILETYPE;
+mgsc.ASM_FILETYPE = undefined;
 // Whether or not actual DNA sequences were provided to the preprocessing
 // script (impacts the availability of GC content display and colorization)
-mgsc.DNA_AVAILABLE;
+mgsc.DNA_AVAILABLE = undefined;
 // Whether or not repeat data was provided in the input to the preprocessing
 // script (impacts the availability of repeat colorization)
-mgsc.REPEAT_INFO_AVAILABLE;
+mgsc.REPEAT_INFO_AVAILABLE = undefined;
 // Whether or not SPQR mode data exists in the .db file (should only be true if
 // the -spqr option was passed to the preprocessing script, or if the .db file
 // predates the -spqr option)
-mgsc.SPQR_INFO_AVAILABLE;
+mgsc.SPQR_INFO_AVAILABLE = undefined;
 // Filename of the currently loaded .db file
-mgsc.DB_FILENAME;
+mgsc.DB_FILENAME = undefined;
 // Total number of nodes and edges in the current asm graph
 mgsc.ASM_NODE_COUNT = 0;
 mgsc.ASM_EDGE_COUNT = 0;
@@ -154,7 +154,7 @@ mgsc.CURR_NE = 0;
 // progress bar, which means the graph is loaded somewhat faster,
 // while smaller values of this mean more timeouts are used (i.e.
 // slower graph loading) but choppier progress bar progress occurs.
-mgsc.PROGRESSBAR_FREQ;
+mgsc.PROGRESSBAR_FREQ = undefined;
 // mgsc.PROGRESSBAR_FREQ = Math.floor(mgsc.PROGRESSBAR_FREQ_PERCENT * SIZE), where
 // SIZE = (number of nodes to be drawn) + 0.5*(number of edges to be drawn)
 mgsc.PROGRESSBAR_FREQ_PERCENT = 0.05;
