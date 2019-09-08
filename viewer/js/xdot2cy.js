@@ -1,5 +1,3 @@
-"use strict";
-
 /* Copyright (C) 2016-- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
  * Authored by Marcus Fedarko
  *
@@ -259,6 +257,7 @@ mgsc.INTEGER_RE = /^\d+$/;
  * Eric Bidelman.
  */
 function checkFileAPIAvailability() {
+    "use strict";
     if (!(window.File && window.FileReader && window.Blob)) {
         alert(
             "Your browser does not support the HTML5 File APIs. " +
@@ -272,6 +271,7 @@ function checkFileAPIAvailability() {
 // Takes as argument the "view type" of the graph to be drawn (see top of file
 // defn. of mgsc.CURR_VIEWTYPE for details).
 function initGraph(viewType) {
+    "use strict";
     mgsc.CURR_VIEWTYPE = viewType;
     // mgsc.MAX_RGB and mgsc.MIN_RGB will only be computed if they haven't been set
     // already (i.e. if the user hasn't changed the default colors and hasn't
@@ -716,6 +716,7 @@ function initGraph(viewType) {
  * uncollapses it (if already collapsed).
  */
 function toggleCluster(cluster) {
+    "use strict";
     cy.startBatch();
     if (cluster.data("isCollapsed")) {
         uncollapseCluster(cluster);
@@ -733,6 +734,7 @@ function toggleCluster(cluster) {
  * node has two outgoing edges, to both starting nodes of a frayed rope).
  */
 function collapseCluster(cluster, moveMap) {
+    "use strict";
     var children = cluster.children();
     // Prevent this cluster from being collapsed if any of its children are
     // tentative nodes in finishing mode
@@ -779,6 +781,7 @@ function collapseCluster(cluster, moveMap) {
  * and canonical exterior edge data.
  */
 function uncollapseCluster(cluster) {
+    "use strict";
     // Prevent this cluster from being uncollapsed if it's a "tentative" node
     // in finishing mode
     if (mgsc.FINISHING_MODE_ON) {
@@ -843,6 +846,7 @@ function uncollapseCluster(cluster) {
 }
 
 function addSelectedNodeInfo(ele) {
+    "use strict";
     var lengthEntry = ele.data("length").toLocaleString();
     if (mgsc.ASM_FILETYPE === "GML" || mgsc.CURR_VIEWTYPE === "SPQR") {
         // These are oriented contigs (in a GML file), or they're directionless
@@ -902,6 +906,7 @@ function addSelectedNodeInfo(ele) {
 }
 
 function addSelectedEdgeInfo(ele) {
+    "use strict";
     // returns an array of two elements: [source node id, target node id]
     var displaySourceID, displayTargetID;
     if (mgsc.CURR_VIEWTYPE === "SPQR" && ele.data("dispsrc") !== undefined) {
@@ -949,6 +954,7 @@ function addSelectedEdgeInfo(ele) {
 }
 
 function addSelectedClusterInfo(ele) {
+    "use strict";
     var clustID = ele.data("id");
     var clustType;
     switch (clustID[0]) {
@@ -995,6 +1001,7 @@ function addSelectedClusterInfo(ele) {
 }
 
 function removeSelectedEleInfo(ele) {
+    "use strict";
     // supports edges in old HTML versions, where > isn't allowed but - is
     $("#row" + ele.id().replace(">", "")).remove();
 }
@@ -1003,6 +1010,7 @@ function removeSelectedEleInfo(ele) {
  * receives a keypress event from the "Enter" key.
  */
 function setEnterBinding(inputID, f) {
+    "use strict";
     $("#" + inputID).on("keypress", function(e) {
         if (e.which === 13) {
             f();
@@ -1014,6 +1022,7 @@ function setEnterBinding(inputID, f) {
  * To be called when the DOM is ready to be manipulated.
  */
 function doThingsWhenDOMReady() {
+    "use strict";
     /* Enable demo button and remove its explanatory titletext if the viewer
      * interface is being accessed with a protocol scheme that supports
      * cross-origin requests (i.e. XMLHttpRequests, which are how the .db files
@@ -1130,6 +1139,7 @@ function doThingsWhenDOMReady() {
  * browsers), so this function should be portable for most desktop browsers.
  */
 function moveThroughClusters(e) {
+    "use strict";
     if (!mgsc.MODAL_ACTIVE && !mgsc.INPUT_ACTIVE) {
         if (e.which === 37 || e.which === 65) {
             // Left arrow key or "A"
@@ -1157,16 +1167,19 @@ function moveThroughClusters(e) {
  * navigation feature.
  */
 function moveToCurrentCluster() {
+    "use strict";
     cy.fit(cy.getElementById(mgsc.CLUSTERID2TOP[mgsc.CLUSTER_X].id));
 }
 
 // Things that are bound to the "beforeunload" event on the window.
 function doThingsBeforeUnload() {
+    "use strict";
     closeDB();
 }
 
 // Sets bindings for certain objects in the graph.
 function setGraphBindings() {
+    "use strict";
     // Enable right-clicking to collapse/uncollapse compound nodes
     // We store added edges + removed nodes/edges in element-level
     // data, to facilitate only doing the work of determining which
@@ -1292,6 +1305,7 @@ function setGraphBindings() {
  * one or more of its children, its position is neglected again.
  */
 function rotateNode(n, i) {
+    "use strict";
     // Rotate node position
     var oldPt = n.position();
     var newPt = rotateCoordinate(oldPt.x, oldPt.y);
@@ -1326,6 +1340,7 @@ function rotateNode(n, i) {
  * NOTE -- DISABLED ROTATION -- this function is unused at present
  */
 function changeRotation() {
+    "use strict";
     mgsc.PREV_ROTATION = mgsc.CURR_ROTATION;
     mgsc.CURR_ROTATION = parseInt(
         $("#rotationButtonGroup .btn.active").attr("value")
@@ -1354,6 +1369,7 @@ function changeRotation() {
 // If toUncollapseReady is true, changes the collapse button to say
 // "Uncollapse all node groups" with a plus icon.
 function changeCollapseButton(toUncollapseReady) {
+    "use strict";
     if (toUncollapseReady) {
         $("#collapseButtonText").text("Uncollapse all node groups");
         $("#collapseButtonIcon")
@@ -1370,12 +1386,14 @@ function changeCollapseButton(toUncollapseReady) {
 // Clears the graph, to facilitate drawing another one.
 // Assumes a graph has already been drawn (i.e. cy !== null)
 function destroyGraph() {
+    "use strict";
     cy.destroy();
     changeCollapseButton(false);
 }
 
 /* Loads a .db file from the user's local system. */
 function loadLocalDB() {
+    "use strict";
     var fr = new FileReader();
     var inputfile = document.getElementById("fileselector").files[0];
     if (inputfile === undefined) {
@@ -1436,6 +1454,7 @@ function loadLocalDB() {
  * server" examples.
  */
 function initDB(fileData) {
+    "use strict";
     // Temporarily store .db file as array of 8-bit unsigned ints
     var uIntArr = new Uint8Array(fileData);
     mgsc.CURR_DB = new SQL.Database(uIntArr);
@@ -1448,6 +1467,7 @@ function initDB(fileData) {
  * adjusting UI elements to prepare for component drawing accordingly.
  */
 function parseDBcomponents() {
+    "use strict";
     // Get assembly-wide info from the graph
     if (cy !== null) {
         destroyGraph();
@@ -1695,12 +1715,14 @@ function parseDBcomponents() {
  * disabled="disabled" property.
  */
 function enableButton(buttonID) {
+    "use strict";
     $("#" + buttonID).removeClass("disabled");
     $("#" + buttonID).prop("disabled", false);
 }
 
 /* Disables an enabled <button> element. */
 function disableButton(buttonID) {
+    "use strict";
     $("#" + buttonID).addClass("disabled");
     $("#" + buttonID).prop("disabled", true);
 }
@@ -1710,16 +1732,19 @@ function disableButton(buttonID) {
  * a different method for disabling them.
  */
 function disableInlineRadio(inputID) {
+    "use strict";
     $("#" + inputID).prop("disabled", true);
 }
 
 function enableInlineRadio(inputID) {
+    "use strict";
     $("#" + inputID).prop("disabled", false);
 }
 
 /* Disables some "volatile" controls in the graph. Should be used when doing
  * any sort of operation, I guess. */
 function disableVolatileControls() {
+    "use strict";
     disableButton("settingsButton");
     $("#componentselector").prop("disabled", true);
     disableButton("decrCompRankButton");
@@ -1774,6 +1799,7 @@ function disableVolatileControls() {
  * the #useDrawingStatusTextCheckbox is unchecked.
  */
 function updateTextStatus(text, notDuringDrawing) {
+    "use strict";
     if (
         notDuringDrawing ||
         $("#useDrawingStatusTextCheckbox").prop("checked")
@@ -1783,13 +1809,16 @@ function updateTextStatus(text, notDuringDrawing) {
 }
 
 function toggleHEV() {
+    "use strict";
     mgsc.HIDE_EDGES_ON_VIEWPORT = !mgsc.HIDE_EDGES_ON_VIEWPORT;
 }
 function toggleUTV() {
+    "use strict";
     mgsc.TEXTURE_ON_VIEWPORT = !mgsc.TEXTURE_ON_VIEWPORT;
 }
 
 function toggleClusterNav() {
+    "use strict";
     mgsc.USE_CLUSTER_KBD_NAV = !mgsc.USE_CLUSTER_KBD_NAV;
 }
 
@@ -1798,6 +1827,7 @@ function toggleClusterNav() {
  * (or doesn't contain) multiple components.
  */
 function enableCompRankControlsIfNecessary() {
+    "use strict";
     if ($("#componentselector").prop("max") > 1) {
         enableButton("decrCompRankButton");
         enableButton("incrCompRankButton");
@@ -1825,6 +1855,7 @@ function enableCompRankControlsIfNecessary() {
  * connected component size rank).
  */
 function compRankValidity(strVal, csIDstr) {
+    "use strict";
     if (strVal.match(mgsc.INTEGER_RE) === null) return null;
     var intVal = parseInt(strVal);
     if (intVal < parseInt($(csIDstr).prop("min"))) return -1;
@@ -1841,6 +1872,7 @@ function compRankValidity(strVal, csIDstr) {
  * Also, if the size rank is equal to the minimum size rank, nothing happens.
  */
 function decrCompRank(componentSelectorID) {
+    "use strict";
     var csIDstr = "#" + componentSelectorID;
     var currRank = $(csIDstr).val();
     var minRank = parseInt($(csIDstr).prop("min"));
@@ -1860,6 +1892,7 @@ function decrCompRank(componentSelectorID) {
  * Also, if the size rank is equal to the maximum size rank, nothing happens.
  */
 function incrCompRank(componentSelectorID) {
+    "use strict";
     var csIDstr = "#" + componentSelectorID;
     var currRank = $(csIDstr).val();
     var maxRank = parseInt($(csIDstr).prop("max"));
@@ -1878,6 +1911,7 @@ function incrCompRank(componentSelectorID) {
  * (double) graph.
  */
 function startDrawComponent(mode) {
+    "use strict";
     mgsc.START_DRAW_DATE = new Date();
     var selector = "#componentselector";
     var drawFunc = drawComponent;
@@ -1921,6 +1955,7 @@ function startDrawComponent(mode) {
 
 /* Draws the selected connected component of the SPQR view. */
 function drawSPQRComponent(cmpRank) {
+    "use strict";
     // I copied most of this function from drawComponent() and pared it down to
     // what we need for this use-case; sorry it's a bit gross
     disableVolatileControls();
@@ -2115,6 +2150,7 @@ function drawSPQRComponent(cmpRank) {
  * (TODO: use the node/edge counts in the drawable case? see #142 on github.)
  */
 function isComponentDrawable(cmpRank) {
+    "use strict";
     var isTooLargeStmt;
     try {
         isTooLargeStmt = mgsc.CURR_DB.prepare(
@@ -2145,6 +2181,7 @@ function isComponentDrawable(cmpRank) {
  * edges, its clusters -- to the screen.
  */
 function drawComponent(cmpRank) {
+    "use strict";
     disableVolatileControls();
     // Okay, we can draw this component!
     if (cy !== null) {
@@ -2318,6 +2355,7 @@ function drawComponentNodes(
     metanodeParams,
     counts
 ) {
+    "use strict";
     if (nodesStmt.step()) {
         var currNode = nodesStmt.getAsObject();
         var currNodeID = currNode.id;
@@ -2429,6 +2467,7 @@ function drawComponentEdges(
     mode,
     counts
 ) {
+    "use strict";
     if (edgesStmt.step()) {
         renderEdgeObject(
             edgesStmt.getAsObject(),
@@ -2495,6 +2534,7 @@ function updateCurrCompInfo(
     mode,
     counts
 ) {
+    "use strict";
     var intro = "The ";
     var nodePercentage, edgePercentage;
     if (mode !== "SPQR") {
@@ -2586,6 +2626,7 @@ function updateCurrCompInfo(
 }
 
 function getSuffix(countOfSomething, noun) {
+    "use strict";
     return countOfSomething === 1 ? noun : noun + "s";
 }
 
@@ -2597,6 +2638,7 @@ function finishDrawComponent(
     mode,
     counts
 ) {
+    "use strict";
     updateCurrCompInfo(
         cmpRank,
         componentNodeCount,
@@ -2717,12 +2759,14 @@ function finishDrawComponent(
 // return to the page. Also are memory leaks even a thing that we have
 // to worry about in Javascript?????????
 function closeDB() {
+    "use strict";
     if (mgsc.CURR_DB !== null) {
         mgsc.CURR_DB.close();
     }
 }
 
 function changeDropdownVal(arrowHTML) {
+    "use strict";
     $("#rotationDropdown").html(arrowHTML + " <span class='caret'></span>");
 }
 
@@ -2734,6 +2778,7 @@ function changeDropdownVal(arrowHTML) {
  * https://github.com/cytoscape/cytoscape.js/tree/master/documentation/demos/colajs-graph
  */
 function toggleControls() {
+    "use strict";
     $("#controls").toggleClass("notviewable");
     $("#cy").toggleClass("nosubsume");
     $("#cy").toggleClass("subsume");
@@ -2743,11 +2788,13 @@ function toggleControls() {
 }
 
 function openFileSelectDialog() {
+    "use strict";
     $("#fsDialog").modal();
 }
 
 /* Loads a .db file using an XML HTTP Request. */
 function loadHostedDB() {
+    "use strict";
     // Important -- remove old DB from memory if it exists
     closeDB();
     // usually we won't have the luxury of ID === filename, but this is a
@@ -2784,11 +2831,13 @@ function loadHostedDB() {
 
 // Given percentage lies within [0, 100]
 function updateProgressBar(percentage) {
+    "use strict";
     $(".progress-bar").css("width", percentage + "%");
     $(".progress-bar").attr("aria-valuenow", percentage);
 }
 
 function finishProgressBar() {
+    "use strict";
     // We call updateProgressBar since, depending on the progress bar update
     // frequency in the process that was ongoing before finishProgressBar() is
     // called, the progress bar could be at a value less than 100%. So we call
@@ -2810,6 +2859,7 @@ function finishProgressBar() {
  * progress bar is already at 100% width.
  */
 function startIndeterminateProgressBar() {
+    "use strict";
     if ($("#useProgressBarStripesCheckbox").prop("checked")) {
         $(".progress-bar").addClass("active");
         $(".progress-bar").addClass("progress-bar-striped");
@@ -2818,6 +2868,7 @@ function startIndeterminateProgressBar() {
 }
 
 function toggleFinishingAnimationSettings() {
+    "use strict";
     $("#maxFinishingZoomDiv").toggleClass("notviewable");
 }
 
@@ -2826,6 +2877,7 @@ function toggleFinishingAnimationSettings() {
  * in the range [0, 255] as inv((R, G, B)) -> (255 - R, 255 - G, 255 - B).
  */
 function invertColorSettings() {
+    "use strict";
     $(".colorpicker-component").each(function(i) {
         var oldRGB = $(this)
             .data("colorpicker")
@@ -2848,6 +2900,7 @@ function invertColorSettings() {
  * in case that need comes up in the future, though.)
  */
 function exportColorSettings(toDownload) {
+    "use strict";
     var textToExport = "";
     $(".colorpicker-component").each(function(i) {
         textToExport += this.id + "\t" + $(this).colorpicker("getValue") + "\n";
@@ -2861,6 +2914,7 @@ function exportColorSettings(toDownload) {
 
 /* Resets the color settings to mgsc.DEFAULT_COLOR_SETTINGS, defined above. */
 function resetColorSettings() {
+    "use strict";
     integrateColorSettings(mgsc.DEFAULT_COLOR_SETTINGS);
 }
 
@@ -2870,6 +2924,7 @@ function resetColorSettings() {
  * ID "usncp" being set to the color #ff0000).
  */
 function integrateColorSettings(fileText) {
+    "use strict";
     var fileLines = fileText.split("\n");
     for (var n = 0; n < fileLines.length; n++) {
         var lineVals = fileLines[n].split("\t");
@@ -2901,6 +2956,7 @@ function integrateColorSettings(fileText) {
  * run out of memory, which is an inherently isolated problem.)
  */
 function importColorSettings() {
+    "use strict";
     var csfr = new FileReader();
     var inputfile = document.getElementById("colorSettingsFS").files[0];
     if (inputfile === undefined) {
@@ -2933,6 +2989,7 @@ function importColorSettings() {
  * contentToDownload and won't call window.btoa() on it.
  */
 function downloadDataURI(filename, contentToDownload, isPlainText) {
+    "use strict";
     $("#downloadHelper").attr("download", filename);
     if (isPlainText) {
         var data =
@@ -2947,26 +3004,31 @@ function downloadDataURI(filename, contentToDownload, isPlainText) {
 
 /* Pops up the dialog for color preference selection. */
 function displaySettings() {
+    "use strict";
     $("#settingsDialog").modal();
 }
 
 /* Pops up a dialog displaying assembly information. */
 function displayInfo() {
+    "use strict";
     $("#infoDialog").modal();
 }
 
 /* Pops up a dialog that can run Mocha/Chai tests for the viewer interface. */
 function displayTests() {
+    "use strict";
     $("#testDialog").modal();
 }
 
 /* Opens a link to the MetagenomeScope wiki in another tab/window. */
 function openHelp() {
+    "use strict";
     window.open("https://github.com/marbl/MetagenomeScope/wiki", "_blank");
 }
 
 /* eleType can be one of {"node", "edge", "cluster"} */
 function toggleEleInfo(eleType) {
+    "use strict";
     var openerID = "#" + eleType + "Opener";
     var infoDivID = "#" + eleType + "Info";
     if ($(openerID).hasClass("glyphicon-triangle-right")) {
@@ -2980,6 +3042,7 @@ function toggleEleInfo(eleType) {
 }
 
 function clearSelectedInfo() {
+    "use strict";
     $("#nodeInfoTable tr.nonheader").remove();
     $("#edgeInfoTable tr.nonheader").remove();
     $("#clusterInfoTable tr.nonheader").remove();
@@ -3003,6 +3066,7 @@ function clearSelectedInfo() {
  * disabled at present.)
  */
 function getSelectedNodeDNA() {
+    "use strict";
     // Get DNA sequences from database file, and append them to a string
     var dnaStmt;
     var dnaSeqs = "";
@@ -3038,6 +3102,7 @@ function getSelectedNodeDNA() {
 
 /* Exports selected node DNA to a FASTA file via a data URI. */
 function exportSelectedNodeDNA() {
+    "use strict";
     window.open(
         "data:text/FASTA;charset=utf-8;base64," +
             window.btoa(getSelectedNodeDNA()),
@@ -3049,6 +3114,7 @@ function exportSelectedNodeDNA() {
  * selected elements if toSelected is true.
  */
 function fitGraph(toSelected) {
+    "use strict";
     startIndeterminateProgressBar();
     window.setTimeout(function() {
         if (toSelected) {
@@ -3069,6 +3135,7 @@ function fitGraph(toSelected) {
 
 /* Exports image of graph. */
 function exportGraphView() {
+    "use strict";
     var imgType = $("#imgTypeButtonGroup .btn.active").attr("value");
     if (imgType === "PNG") {
         downloadDataURI("screenshot.png", cy.png({ bg: mgsc.BG_COLOR }), false);
@@ -3079,6 +3146,7 @@ function exportGraphView() {
 
 /* Opens the dialog for filtering edges. */
 function openEdgeFilteringDialog() {
+    "use strict";
     $("#edgeFilteringDialog").modal();
     drawEdgeWeightHistogram();
 }
@@ -3089,6 +3157,7 @@ function openEdgeFilteringDialog() {
  * https://beta.observablehq.com/@mbostock/d3-histogram.)
  */
 function drawEdgeWeightHistogram() {
+    "use strict";
     var formatCount = d3.format(",.0f");
     // note could probably find this inline to simplify computation time
     var max = d3.max(mgsc.COMPONENT_EDGE_WEIGHTS);
@@ -3178,6 +3247,7 @@ function drawEdgeWeightHistogram() {
  * edge weights as a property (e.g. LastGraph or MetaCarvel GML graphs).
  */
 function cullEdges() {
+    "use strict";
     var strVal = $("#cullEdgesInput").val();
     // Check that the input is a nonnegative integer
     // (parseInt() is pretty lax)
@@ -3232,6 +3302,7 @@ function cullEdges() {
 }
 
 function beginLoadAGPfile() {
+    "use strict";
     var sfr = new FileReader();
     // will be set to true if we find suitable scaffolds
     mgsc.COMPONENT_HAS_SCAFFOLDS = false;
@@ -3334,6 +3405,7 @@ function beginLoadAGPfile() {
  * loadAGPfile(). Otherwise, returns 0.
  */
 function integrateAGPline(lineText) {
+    "use strict";
     // Avoid processing empty lines (e.g. due to trailing newlines in files)
     // Also avoid processing comment lines (lines that start with #)
     if (lineText != "" && lineText[0] !== "#") {
@@ -3371,6 +3443,7 @@ function integrateAGPline(lineText) {
  * (The ID should match up with a key in mgsc.SCAFFOLDID2NODEKEYS.)
  */
 function addScaffoldListGroupItem(scaffoldID) {
+    "use strict";
     if (!mgsc.COMPONENT_HAS_SCAFFOLDS) {
         mgsc.COMPONENT_HAS_SCAFFOLDS = true;
         mgsc.COMPONENT_SCAFFOLDS = [];
@@ -3386,6 +3459,7 @@ function addScaffoldListGroupItem(scaffoldID) {
  * scaffolds, calls addScaffoldListGroupItem().
  */
 function updateScaffoldsInComponentList() {
+    "use strict";
     for (var s in mgsc.SCAFFOLDID2NODEKEYS) {
         // All nodes within a (valid) scaffold are in the same connected
         // component, so we can just use the first node in a scaffold as an
@@ -3412,6 +3486,7 @@ function updateScaffoldsInComponentList() {
  * start reading the file from its 0th byte, i.e. its beginning).
  */
 function loadAGPfile(fileReader, file, filePosition) {
+    "use strict";
     // Only get a Blob if it'd have some data in it
     if (filePosition <= file.size) {
         // In interval notation, the slice includes bytes in the range
@@ -3439,6 +3514,7 @@ function loadAGPfile(fileReader, file, filePosition) {
  * function is being called after an AGP file has just been loaded.
  */
 function updateScaffoldInfoHeader(agpFileJustLoaded) {
+    "use strict";
     if (mgsc.COMPONENT_HAS_SCAFFOLDS) {
         $("#scaffoldInfoHeader").html(
             "Scaffolds in Connected Component<br/>" +
@@ -3472,6 +3548,7 @@ function updateScaffoldInfoHeader(agpFileJustLoaded) {
  *  -Adds the "notviewable" class to #scaffoldCycler
  */
 function clearScaffoldFS(errorOnAGPload) {
+    "use strict";
     if (errorOnAGPload) {
         mgsc.SCAFFOLDID2NODEKEYS = {};
         mgsc.COMPONENT_HAS_SCAFFOLDS = false;
@@ -3483,6 +3560,7 @@ function clearScaffoldFS(errorOnAGPload) {
 }
 
 function cycleScaffoldsLeft() {
+    "use strict";
     if (mgsc.SCAFFOLD_CYCLER_CURR_INDEX === 0) {
         mgsc.SCAFFOLD_CYCLER_CURR_INDEX = mgsc.COMPONENT_SCAFFOLDS.length - 1;
     } else {
@@ -3492,6 +3570,7 @@ function cycleScaffoldsLeft() {
 }
 
 function cycleScaffoldsRight() {
+    "use strict";
     if (
         mgsc.SCAFFOLD_CYCLER_CURR_INDEX ===
         mgsc.COMPONENT_SCAFFOLDS.length - 1
@@ -3505,6 +3584,7 @@ function cycleScaffoldsRight() {
 
 // Also highlights the new scaffold.
 function updateDrawScaffoldButtonText() {
+    "use strict";
     var newScaffoldID =
         mgsc.COMPONENT_SCAFFOLDS[mgsc.SCAFFOLD_CYCLER_CURR_INDEX];
     $("#drawScaffoldButton").text(newScaffoldID);
@@ -3517,6 +3597,7 @@ function updateDrawScaffoldButtonText() {
  * will result in an error.
  */
 function highlightScaffold(scaffoldID) {
+    "use strict";
     // TODO can make this more efficient -- see #115, etc.
     cy.filter(":selected").unselect();
     var contigKeys = mgsc.SCAFFOLDID2NODEKEYS[scaffoldID];
@@ -3586,6 +3667,7 @@ function highlightScaffold(scaffoldID) {
  * paths.
  */
 function addNodeFromEventToPath(e) {
+    "use strict";
     var node = e.target;
     // When "autofinishing" starts, we record a list of all nodes/node IDs
     // seen. Upon a redundant node being reached (the first time we get to a
@@ -3685,6 +3767,7 @@ function addNodeFromEventToPath(e) {
 }
 
 function markTentativeNodes() {
+    "use strict";
     cy.startBatch();
     mgsc.NEXT_NODES.addClass("tentative");
     cy.endBatch();
@@ -3717,6 +3800,7 @@ function markTentativeNodes() {
 }
 
 function resetMaxZoom() {
+    "use strict";
     cy.maxZoom(mgsc.MAX_ZOOM_ORDINARY);
 }
 
@@ -3724,6 +3808,7 @@ function resetMaxZoom() {
  * If pauseOrFinish < 0, adds graph properties (resumes/starts finishing).
  */
 function toggleFinishingGraphProperties(onOrOff) {
+    "use strict";
     if (onOrOff >= 0) {
         cy.autounselectify(false);
         cy.off("tap");
@@ -3736,6 +3821,7 @@ function toggleFinishingGraphProperties(onOrOff) {
 }
 
 function startFinishing() {
+    "use strict";
     if (!mgsc.FINISHING_MODE_ON) {
         disableButton("startFinishingButton");
         if (mgsc.FINISHING_MODE_PREVIOUSLY_DONE) {
@@ -3759,6 +3845,7 @@ function startFinishing() {
  * selected the "pause" option).
  */
 function togglePauseFinishingButtonStyle(pauseOrFinish) {
+    "use strict";
     if (pauseOrFinish < 0) {
         $("#pauseFinishingButtonIconSpan").addClass("glyphicon-pause");
         $("#pauseFinishingButtonIconSpan").removeClass("glyphicon-play");
@@ -3783,6 +3870,7 @@ function togglePauseFinishingButtonStyle(pauseOrFinish) {
  * accordingly.
  */
 function togglePauseFinishing() {
+    "use strict";
     if ($("#pauseFinishingButtonIconSpan").hasClass("glyphicon-pause")) {
         togglePauseFinishingButtonStyle(1);
         toggleFinishingGraphProperties(1);
@@ -3793,6 +3881,7 @@ function togglePauseFinishing() {
 }
 
 function endFinishing() {
+    "use strict";
     mgsc.FINISHING_MODE_ON = false;
     mgsc.FINISHING_MODE_PREVIOUSLY_DONE = true;
     cy.startBatch();
@@ -3815,6 +3904,7 @@ function endFinishing() {
 }
 
 function exportPath() {
+    "use strict";
     var exportFileType = $("#pathExportButtonGroup .btn.active").attr("value");
     var textToExport = "";
     if (exportFileType === "AGP") {
@@ -3879,6 +3969,7 @@ function exportPath() {
 }
 
 function startChangeNodeColorization() {
+    "use strict";
     var newColorization = $(
         "#nodeColorizationRadioButtonGroup input:checked"
     ).attr("value");
@@ -3894,6 +3985,7 @@ function startChangeNodeColorization() {
 }
 
 function changeNodeColorization(newColorization) {
+    "use strict";
     cy.startBatch();
     cy.filter("node.noncluster")
         .removeClass(mgsc.CURR_NODE_COLORIZATION)
@@ -3913,6 +4005,7 @@ function changeNodeColorization(newColorization) {
  * percentage (some value in the range [0, 1]).
  */
 function getNodeColorization(gc) {
+    "use strict";
     var percentageUsedInColorization = gc;
     //// Discrete colorization, where ranges of size percentageBin are colorized
     //// equally. So if p = 100 / percentageBin, then percentage ranges of
@@ -3976,6 +4069,7 @@ function getNodeColorization(gc) {
  * Otherwise, we use hexColor as the new maximum color.
  */
 function redrawGradientPreview(hexColor, minOrMax) {
+    "use strict";
     var tmpColor;
     if (minOrMax === -1) {
         $("#0gp").css("background-color", hexColor);
@@ -4008,6 +4102,7 @@ function redrawGradientPreview(hexColor, minOrMax) {
 
 // Allows user to test one of Cytoscape.js' predefined layouts
 function testLayout() {
+    "use strict";
     if ($("#layoutInput").val() !== "") {
         startIndeterminateProgressBar();
         cy.minZoom(0);
@@ -4039,6 +4134,7 @@ function testLayout() {
  * false, then the progress bar will not be triggered.
  */
 function reduceEdgesToStraightLines(useProgressBar) {
+    "use strict";
     if (useProgressBar) {
         startIndeterminateProgressBar();
         window.setTimeout(function() {
@@ -4052,6 +4148,7 @@ function reduceEdgesToStraightLines(useProgressBar) {
 
 /* Actually does the work of reducing edges. */
 function doReduceEdges() {
+    "use strict";
     cy.startBatch();
     var reducingFunction = function(e, i) {
         e.removeClass("unbundledbezier");
@@ -4072,15 +4169,18 @@ function doReduceEdges() {
 // requires that searchType be formatted analogously to how mgsc.CURR_SEARCH_TYPE
 // is formatted, in order to fit with the <li> id values in the index.html file
 function enableSearchOption(searchType) {
+    "use strict";
     $("#" + searchType + "SearchTypeOption").removeClass("notviewable");
 }
 
 // Same specifications as enableSearchOption()
 function disableSearchOption(searchType) {
+    "use strict";
     $("#" + searchType + "SearchTypeOption").addClass("notviewable");
 }
 
 function toggleSearchType(searchType) {
+    "use strict";
     if (searchType !== mgsc.CURR_SEARCH_TYPE) {
         $("#searchTypeButton").html(
             $("#searchTypeButton")
@@ -4102,6 +4202,7 @@ function toggleSearchType(searchType) {
 // If any terms entered start with "contig" or "NODE", then this searches on
 // node labels for those terms.
 function searchForEles() {
+    "use strict";
     var nameText = $("#searchInput").val();
     if (nameText.trim() === "") {
         alert("Error -- please enter element name(s) to search for.");
@@ -4164,6 +4265,7 @@ function searchForEles() {
  * immediate descendants and is currently collapsed.)
  */
 function uncollapseSPQRMetanode(mn) {
+    "use strict";
     var mnID = mn.id();
     // 1. Get outgoing edges from this metanode
     var outgoingEdgesStmt = mgsc.CURR_DB.prepare(
@@ -4314,6 +4416,7 @@ function uncollapseSPQRMetanode(mn) {
  * immediate descendants and is currently uncollapsed.)
  */
 function collapseSPQRMetanode(mn) {
+    "use strict";
     var a, b;
     var descendantMetanodeIDs = mn.scratch("_descendantMetanodeIDs");
     var mn2;
@@ -4356,6 +4459,7 @@ function collapseSPQRMetanode(mn) {
  * process.
  */
 function startCollapseAll() {
+    "use strict";
     if (mgsc.CURR_VIEWTYPE !== "SPQR") {
         var currVal = $("#collapseButtonText").text();
         startIndeterminateProgressBar();
@@ -4371,6 +4475,7 @@ function startCollapseAll() {
  * anything that isn't 'U') collapses all nodes.
  */
 function collapseAll(operationCharacter) {
+    "use strict";
     cy.startBatch();
     if (operationCharacter === "U") {
         cy.scratch("_collapsed").each(function(cluster, i) {
@@ -4388,12 +4493,14 @@ function collapseAll(operationCharacter) {
 // Converts an angle in degrees to radians (for use with Javascript's trig
 // functions)
 function degreesToRadians(angle) {
+    "use strict";
     return angle * (Math.PI / 180);
 }
 
 // Rotates a coordinate by a given clockwise angle (in degrees).
 // Returns an array of [x', y'] representing the new point.
 function rotateCoordinate(xCoord, yCoord) {
+    "use strict";
     // NOTE The formula for a coordinate transformation here works for all
     // degree inputs of rotation. However, to save time, we just check
     // to see if the rotation is a factor of 360 (i.e. the rotated
@@ -4433,6 +4540,7 @@ function rotateCoordinate(xCoord, yCoord) {
  * just modify this function accordingly.
  */
 function gv2cyPoint(xCoord, yCoord, boundingbox) {
+    "use strict";
     // Convert from GraphViz to Cytoscape.js
     var cyY = boundingbox[1] - yCoord;
     var cyX = xCoord;
@@ -4450,6 +4558,7 @@ function gv2cyPoint(xCoord, yCoord, boundingbox) {
  * (Hence why the graph's bounding box and rotation are parameters here.)
  */
 function ctrlPtStrToList(ctrlPointStr, boundingbox) {
+    "use strict";
     // Create coordList, where every coordinate is an element (e.g.
     // [x1, y1, x2, y2, ...]
     var coordList = ctrlPointStr.trim().split(" ");
@@ -4488,6 +4597,7 @@ function ctrlPtStrToList(ctrlPointStr, boundingbox) {
  * still being too slow.
  */
 function initNodeAdjacents() {
+    "use strict";
     cy.filter("node.noncluster").each(function(node, i) {
         node.data(
             "adjacentEdges",
@@ -4505,6 +4615,7 @@ function initNodeAdjacents() {
 // rendered in order to ensure that all edges/nodes necessary for this have
 // already been rendered.
 function initClusters() {
+    "use strict";
     // For each compound node...
     cy.scratch("_uncollapsed").each(function(node, i) {
         var children = node.children();
@@ -4579,6 +4690,7 @@ function initClusters() {
 // returns the coordinate class for a cluster node in the graph (only
 // respective to left/right vs. up/down direction)
 function getClusterCoordClass() {
+    "use strict";
     if (mgsc.CURR_ROTATION === 0 || mgsc.CURR_ROTATION === 180) {
         return "updowndir";
     } else {
@@ -4588,6 +4700,7 @@ function getClusterCoordClass() {
 
 // returns the coordinate class for a noncluster node in the graph
 function getNodeCoordClass(isHouse) {
+    "use strict";
     switch (mgsc.CURR_ROTATION) {
         case 0:
             return isHouse ? "updir" : "downdir";
@@ -4607,6 +4720,7 @@ function getNodeCoordClass(isHouse) {
  * If mode is "SPQR", then this handles that accordingly w/r/t node shape, etc.
  */
 function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
+    "use strict";
     var nx, ny;
     if (mode === "SPQR" && mgsc.CURR_SPQRMODE === "implicit") {
         nx = nodeObj.i_x;
@@ -4744,6 +4858,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
 
 // Draws two nodes that "enforce" the given bounding box.
 function drawBoundingBoxEnforcingNodes(boundingboxObject) {
+    "use strict";
     var bb = [
         boundingboxObject.boundingbox_x,
         boundingboxObject.boundingbox_y
@@ -4763,6 +4878,7 @@ function drawBoundingBoxEnforcingNodes(boundingboxObject) {
 }
 
 function removeBoundingBoxEnforcingNodes() {
+    "use strict";
     cy.$("node.bb_enforcing").remove();
 }
 
@@ -4775,6 +4891,7 @@ function removeBoundingBoxEnforcingNodes() {
 // Returns an array of [clusterID, drawn position of this cluster], where the
 // position is itself an array of [x pos, y pos].
 function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
+    "use strict";
     var clusterID;
     var parent_bicmp_id = null;
     var spqrRelated = false;
@@ -4925,6 +5042,7 @@ function renderEdgeObject(
     mode,
     actualIDmapping
 ) {
+    "use strict";
     var sourceID, targetID;
     // If the edge is in "regular mode", make its ID what it was before:
     // srcID + "->" + tgtID.
@@ -5177,6 +5295,7 @@ function renderEdgeObject(
  * e.g. distance([1, 2], [3, 4]) = sqrt((3 - 1)^2 + (4 - 2)^2) = sqrt(8)
  */
 function distance(point1, point2) {
+    "use strict";
     return Math.sqrt(
         Math.pow(point2[0] - point1[0], 2) + Math.pow(point2[1] - point1[1], 2)
     );
@@ -5187,6 +5306,7 @@ function distance(point1, point2) {
  * line.
  */
 function pointToLineDistance(point, lNode1, lNode2) {
+    "use strict";
     var lDist = distance([lNode1.x, lNode1.y], [lNode2.x, lNode2.y]);
     if (lDist === 0) {
         return 0;
