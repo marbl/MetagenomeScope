@@ -2827,11 +2827,11 @@ function invertColorSettings() {
             .color.toRGB();
         var newRGB =
             "rgb(" +
-            (255 - oldRGB["r"]) +
+            (255 - oldRGB.r) +
             "," +
-            (255 - oldRGB["g"]) +
+            (255 - oldRGB.g) +
             "," +
-            (255 - oldRGB["b"]) +
+            (255 - oldRGB.b) +
             ")";
         $(this).colorpicker("setValue", newRGB);
     });
@@ -3017,7 +3017,7 @@ function getSelectedNodeDNA() {
         }
         dnaSeqs += ">NODE_" + e.id() + "\n";
         afterFirstSeqLine = false;
-        currDnaSeq = dnaStmt.getAsObject()["dnafwd"];
+        currDnaSeq = dnaStmt.getAsObject().dnafwd;
         for (seqIndex = 0; seqIndex < currDnaSeq.length; seqIndex += 70) {
             if (afterFirstSeqLine) {
                 dnaSeqs += "\n";
@@ -3945,11 +3945,11 @@ function getNodeColorization(gc) {
     // Linearly scale each RGB value between the extreme colors'
     // corresponding RGB values
     var red_i =
-        gc * (mgsc.MAX_RGB["r"] - mgsc.MIN_RGB["r"]) + mgsc.MIN_RGB["r"];
+        gc * (mgsc.MAX_RGB.r - mgsc.MIN_RGB.r) + mgsc.MIN_RGB.r;
     var green_i =
-        gc * (mgsc.MAX_RGB["g"] - mgsc.MIN_RGB["g"]) + mgsc.MIN_RGB["g"];
+        gc * (mgsc.MAX_RGB.g - mgsc.MIN_RGB.g) + mgsc.MIN_RGB.g;
     var blue_i =
-        gc * (mgsc.MAX_RGB["b"] - mgsc.MIN_RGB["b"]) + mgsc.MIN_RGB["b"];
+        gc * (mgsc.MAX_RGB.b - mgsc.MIN_RGB.b) + mgsc.MIN_RGB.b;
     // Convert resulting RGB decimal values (should be in the range [0, 255])
     // to hexadecimal and use them to construct a color string
     var red = Math.round(red_i).toString(16);
@@ -4172,7 +4172,7 @@ function uncollapseSPQRMetanode(mn) {
     while (outgoingEdgesStmt.step()) {
         edgeObj = outgoingEdgesStmt.getAsObject();
         outgoingEdgeObjects.push(edgeObj);
-        descendantMetanodeIDs.push(edgeObj["target_metanode_id"]);
+        descendantMetanodeIDs.push(edgeObj.target_metanode_id);
         descendantMetanodeQMs += "?,";
     }
     outgoingEdgesStmt.free();
@@ -4220,12 +4220,12 @@ function uncollapseSPQRMetanode(mn) {
     // which metanodeedges are currently rendered as.
     var sourcePos = mn.position();
     var descendantID2pos = {};
-    descendantID2pos[mnID] = [sourcePos["x"], sourcePos["y"]];
+    descendantID2pos[mnID] = [sourcePos.x, sourcePos.y];
     var clusterIDandPos = [];
     for (a = 0; a < descendantMetanodeObjects.length; a++) {
         if (
             mgsc.CURR_SPQRMODE === "explicit" ||
-            descendantMetanodeObjects[a]["descendant_metanode_count"] > 0
+            descendantMetanodeObjects[a].descendant_metanode_count > 0
         ) {
             clusterIDandPos = renderClusterObject(
                 descendantMetanodeObjects[a],
@@ -4252,11 +4252,11 @@ function uncollapseSPQRMetanode(mn) {
     var alreadyVisible;
     var singlenodeMapping = {};
     for (a = 0; a < singlenodeObjects.length; a++) {
-        normalID = singlenodeObjects[a]["id"];
+        normalID = singlenodeObjects[a].id;
         // In implicit mode, only render a new singlenode if it isn't already
         // visible in the parent bicomponent
         if (mgsc.CURR_SPQRMODE === "implicit") {
-            parentBicmpID = singlenodeObjects[a]["parent_bicomponent_id"];
+            parentBicmpID = singlenodeObjects[a].parent_bicomponent_id;
             currIDs = mgsc.BICOMPONENTID2VISIBLESINGLENODEIDS[parentBicmpID];
             alreadyVisible = false;
             for (b = 0; b < currIDs.length; b++) {
@@ -4270,7 +4270,7 @@ function uncollapseSPQRMetanode(mn) {
                 continue;
             }
         }
-        cyNodeID = normalID + "_" + singlenodeObjects[a]["parent_metanode_id"];
+        cyNodeID = normalID + "_" + singlenodeObjects[a].parent_metanode_id;
         renderNodeObject(
             singlenodeObjects[a],
             cyNodeID,
@@ -4604,22 +4604,22 @@ function getNodeCoordClass(isHouse) {
 function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     var nx, ny;
     if (mode === "SPQR" && mgsc.CURR_SPQRMODE === "implicit") {
-        nx = nodeObj["i_x"];
-        ny = nodeObj["i_y"];
+        nx = nodeObj.i_x;
+        ny = nodeObj.i_y;
     } else {
-        nx = nodeObj["x"];
-        ny = nodeObj["y"];
+        nx = nodeObj.x;
+        ny = nodeObj.y;
     }
     var pos = gv2cyPoint(nx, ny, [
-        boundingboxObject["boundingbox_x"],
-        boundingboxObject["boundingbox_y"]
+        boundingboxObject.boundingbox_x,
+        boundingboxObject.boundingbox_y
     ]);
 
     var nodeShapeClass = "singlenode";
     if (mode !== "SPQR") {
-        nodeShapeClass = getNodeCoordClass(nodeObj["shape"] === "house");
+        nodeShapeClass = getNodeCoordClass(nodeObj.shape === "house");
     }
-    var nodeLabel = nodeObj["label"];
+    var nodeLabel = nodeObj.label;
     var labelUsed;
     // Determine 1) accession keys for nodes in scaffold detection, and 2) the
     // label to be shown when the node is drawn.
@@ -4635,11 +4635,11 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             // (That is, scaffolds used for GML files are assumed to refer to
             // the labels of nodes, while scaffolds used for other filetypes
             // are assumed to refer to the IDs of nodes.)
-            labelUsed = nodeObj["id"];
+            labelUsed = nodeObj.id;
         }
     } else {
-        mgsc.COMPONENT_NODE_KEYS.push(nodeObj["id"]);
-        labelUsed = nodeObj["id"];
+        mgsc.COMPONENT_NODE_KEYS.push(nodeObj.id);
+        labelUsed = nodeObj.id;
     }
     var parentID;
     var parentBicmpID = null;
@@ -4648,12 +4648,12 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     var nodeGC = null;
     var nodeIsRepeat = null;
     if (mode === "SPQR") {
-        parentID = nodeObj["parent_metanode_id"];
+        parentID = nodeObj.parent_metanode_id;
         if (mgsc.CURR_SPQRMODE === "implicit") {
             // ensure this data is present for each bicomponent
             // there's probably a more efficient way to do this, but it's 2am
             // and I'm really tired so let's revisit this later (TODO #115)
-            parentBicmpID = nodeObj["parent_bicomponent_id"];
+            parentBicmpID = nodeObj.parent_bicomponent_id;
             if (parentBicmpID !== null && parentBicmpID !== undefined) {
                 // Since a bicomponent can contain only one node with a given
                 // ID, we store normal node IDs and not unambiguous IDs here
@@ -4663,12 +4663,12 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             }
         }
     } else {
-        parentID = nodeObj["parent_cluster_id"];
+        parentID = nodeObj.parent_cluster_id;
     }
-    nodeDepth = nodeObj["depth"];
-    nodeLength = nodeObj["length"];
-    nodeGC = nodeObj["gc_content"];
-    nodeIsRepeat = nodeObj["is_repeat"];
+    nodeDepth = nodeObj.depth;
+    nodeLength = nodeObj.length;
+    nodeGC = nodeObj.gc_content;
+    nodeIsRepeat = nodeObj.is_repeat;
     var gcColor = null;
     if (nodeGC !== null) {
         gcColor = getNodeColorization(nodeGC);
@@ -4693,8 +4693,8 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     var nodeData = {
         id: cyNodeID,
         label: labelUsed,
-        w: mgsc.INCHES_TO_PIXELS * nodeObj["h"],
-        h: mgsc.INCHES_TO_PIXELS * nodeObj["w"],
+        w: mgsc.INCHES_TO_PIXELS * nodeObj.h,
+        h: mgsc.INCHES_TO_PIXELS * nodeObj.w,
         depth: nodeDepth,
         length: nodeLength,
         gc_content: nodeGC,
@@ -4712,7 +4712,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
             typeTag !== "R" &&
             typeTag !== "I"
         ) {
-            nodeData["parent"] = parentID;
+            nodeData.parent = parentID;
         } else {
             // For SPQR metanode collapsing
             if (mgsc.CURR_SPQRMODE === "explicit") {
@@ -4740,8 +4740,8 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
 // Draws two nodes that "enforce" the given bounding box.
 function drawBoundingBoxEnforcingNodes(boundingboxObject) {
     var bb = [
-        boundingboxObject["boundingbox_x"],
-        boundingboxObject["boundingbox_y"]
+        boundingboxObject.boundingbox_x,
+        boundingboxObject.boundingbox_y
     ];
     var bottomLeftPt = gv2cyPoint(0, 0, bb);
     var topRightPt = gv2cyPoint(bb[0], bb[1], bb);
@@ -4774,15 +4774,15 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     var parent_bicmp_id = null;
     var spqrRelated = false;
     if (spqrtype === "bicomponent") {
-        clusterID = "I" + clusterObj["id_num"];
+        clusterID = "I" + clusterObj.id_num;
         spqrRelated = true;
     } else if (spqrtype === "metanode") {
-        clusterID = clusterObj["metanode_id"];
-        parent_bicmp_id = "I" + clusterObj["parent_bicomponent_id_num"];
+        clusterID = clusterObj.metanode_id;
+        parent_bicmp_id = "I" + clusterObj.parent_bicomponent_id_num;
         spqrRelated = true;
     } else {
-        clusterID = clusterObj["cluster_id"];
-        mgsc.CLUSTERID2TOP.push({ id: clusterID, t: clusterObj["top"] });
+        clusterID = clusterObj.cluster_id;
+        mgsc.CLUSTERID2TOP.push({ id: clusterID, t: clusterObj.top });
     }
     var l = "left";
     var b = "bottom";
@@ -4795,12 +4795,12 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         t = "i_" + t;
     }
     var bottomLeftPos = gv2cyPoint(clusterObj[l], clusterObj[b], [
-        boundingboxObject["boundingbox_x"],
-        boundingboxObject["boundingbox_y"]
+        boundingboxObject.boundingbox_x,
+        boundingboxObject.boundingbox_y
     ]);
     var topRightPos = gv2cyPoint(clusterObj[r], clusterObj[t], [
-        boundingboxObject["boundingbox_x"],
-        boundingboxObject["boundingbox_y"]
+        boundingboxObject.boundingbox_x,
+        boundingboxObject.boundingbox_y
     ]);
     var clusterData = {
         id: clusterID,
@@ -4810,7 +4810,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     };
     // Only assign the metanode a bicomponent parent when in explicit mode
     if (parent_bicmp_id !== null && mgsc.CURR_SPQRMODE === "explicit") {
-        clusterData["parent"] = parent_bicmp_id;
+        clusterData.parent = parent_bicmp_id;
     }
     var pos = [
         (bottomLeftPos[0] + topRightPos[0]) / 2,
@@ -4821,9 +4821,9 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     if (!spqrRelated) {
         classes += " structuralPattern";
         mgsc.COMPONENT_NODE_KEYS.push(clusterID);
-        clusterData["length"] = clusterObj["length"];
+        clusterData.length = clusterObj.length;
         if (abbrev === "M") {
-            clusterData["cluster_type"] = clusterObj["cluster_type"];
+            clusterData.cluster_type = clusterObj.cluster_type;
         }
     } else if (spqrtype === "metanode") {
         // We use the "pseudoparent" class to represent compound nodes that
@@ -4833,21 +4833,21 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         // make these nodes "pseudoparents" -- they're styled similarly to
         // normal compound nodes, but they don't actually contain any nodes.
         classes += " spqrMetanode";
-        clusterData["descendantCount"] =
-            clusterObj["descendant_metanode_count"];
+        clusterData.descendantCount =
+            clusterObj.descendant_metanode_count;
         // since we "collapse" all metanodes by default (collapsing takes on a
         // different meaning w/r/t SPQR metanodes, as opposed to normal
         // structural variants)
-        clusterData["isCollapsed"] = true;
+        clusterData.isCollapsed = true;
     }
     if (spqrRelated) {
         classes += " pseudoparent";
         // Since this node won't actually be assigned child nodes (but still
         // has "children" in some abstract way), we manually set its node count
         if (mgsc.CURR_SPQRMODE === "implicit" && spqrtype === "bicomponent") {
-            clusterData["interiorNodeCount"] = "N/A";
+            clusterData.interiorNodeCount = "N/A";
         } else {
-            clusterData["interiorNodeCount"] = clusterObj["node_count"];
+            clusterData.interiorNodeCount = clusterObj.node_count;
         }
     }
     var newObj = cy.add({
@@ -4882,13 +4882,13 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     // used are the uncollapsed dimensions). Later, in initClusters() after the
     // iterative drawing process is taken care of, we move these values to the
     // cluster's data fields and remove them from its scratch.
-    if (clusterObj["w"] === null || clusterObj["w"] === undefined) {
+    if (clusterObj.w === null || clusterObj.w === undefined) {
         // temporary stopgap for old DB files. TODO remove.
         newObj.scratch("_w", 2 * mgsc.INCHES_TO_PIXELS);
         newObj.scratch("_h", 2 * mgsc.INCHES_TO_PIXELS);
     } else {
-        newObj.scratch("_w", mgsc.INCHES_TO_PIXELS * clusterObj["h"]);
-        newObj.scratch("_h", mgsc.INCHES_TO_PIXELS * clusterObj["w"]);
+        newObj.scratch("_w", mgsc.INCHES_TO_PIXELS * clusterObj.h);
+        newObj.scratch("_h", mgsc.INCHES_TO_PIXELS * clusterObj.w);
     }
     return [clusterID, pos];
 }
@@ -4927,11 +4927,11 @@ function renderEdgeObject(
     // displayTargetID properties and then we'll use those in
     // addSelectedEdgeInfo() based on mgsc.CURR_VIEWTYPE.
     if (edgeType === "metanodeedge") {
-        sourceID = edgeObj["source_metanode_id"];
-        targetID = edgeObj["target_metanode_id"];
+        sourceID = edgeObj.source_metanode_id;
+        targetID = edgeObj.target_metanode_id;
     } else {
-        var displaySourceID = edgeObj["source_id"];
-        var displayTargetID = edgeObj["target_id"];
+        var displaySourceID = edgeObj.source_id;
+        var displayTargetID = edgeObj.target_id;
         sourceID = displaySourceID;
         targetID = displayTargetID;
         if (mode === "SPQR") {
@@ -4945,7 +4945,7 @@ function renderEdgeObject(
             if (sourceID === targetID) {
                 edgeClasses += " unoriented_loop";
             }
-            var parent_mn_id = edgeObj["parent_metanode_id"];
+            var parent_mn_id = edgeObj.parent_metanode_id;
             var isVirtual = false;
             if (parent_mn_id !== null) {
                 // This singleedge is in a metanode's skeleton.
@@ -4959,7 +4959,7 @@ function renderEdgeObject(
                 } else {
                     targetID += "_" + parent_mn_id;
                 }
-                if (edgeObj["is_virtual"] !== 0) {
+                if (edgeObj.is_virtual !== 0) {
                     // We do this check here because virtual edges can only
                     // exist in metanode skeletons
                     edgeClasses += " virtual";
@@ -4995,12 +4995,12 @@ function renderEdgeObject(
     var multiplicity, thickness, is_outlier, orientation, mean, stdev;
     if (mode !== "SPQR") {
         // (edges between metanodes don't have metadata)
-        multiplicity = edgeObj["multiplicity"];
-        thickness = edgeObj["thickness"];
-        is_outlier = edgeObj["is_outlier"];
-        orientation = edgeObj["orientation"];
-        mean = edgeObj["mean"];
-        stdev = edgeObj["stdev"];
+        multiplicity = edgeObj.multiplicity;
+        thickness = edgeObj.thickness;
+        is_outlier = edgeObj.is_outlier;
+        orientation = edgeObj.orientation;
+        mean = edgeObj.mean;
+        stdev = edgeObj.stdev;
         if (multiplicity !== undefined && multiplicity !== null) {
             mgsc.COMPONENT_EDGE_WEIGHTS.push(+multiplicity);
         }
@@ -5014,8 +5014,8 @@ function renderEdgeObject(
     // know that this edge is not a multi-edge (i.e. it has a unique source and
     // target). Therefore we can set the edge's ID as follows.
     var edgeID = sourceID + "->" + targetID;
-    if (edgeObj["parent_cluster_id"] !== null) {
-        cy.scratch("_ele2parent")[edgeID] = edgeObj["parent_cluster_id"];
+    if (edgeObj.parent_cluster_id !== null) {
+        cy.scratch("_ele2parent")[edgeID] = edgeObj.parent_cluster_id;
     }
     // If bundle sizes are available, then don't show edges with a bundle size
     // below a certain threshold. NOTE that this feature is disabled for the
@@ -5059,15 +5059,15 @@ function renderEdgeObject(
     //console.log("src: " + sourceID);
     //console.log("tgt: " + targetID);
     var srcSinkDist = distance(srcPos, tgtPos);
-    var ctrlPts = ctrlPtStrToList(edgeObj["control_point_string"], [
-        boundingboxObject["boundingbox_x"],
-        boundingboxObject["boundingbox_y"]
+    var ctrlPts = ctrlPtStrToList(edgeObj.control_point_string, [
+        boundingboxObject.boundingbox_x,
+        boundingboxObject.boundingbox_y
     ]);
-    var ctrlPtLen = edgeObj["control_point_count"];
+    var ctrlPtLen = edgeObj.control_point_count;
     var nonzero = false;
     var ctrlPtDists = "";
     var ctrlPtWeights = "";
-    var currPt, dsp, dtp, w, ws, wt, nonzero;
+    var currPt, dsp, dtp, w, ws, wt;
     for (var p = 0; p < ctrlPtLen; p++) {
         currPt = ctrlPts[p];
         // TODO inefficiency here -- rework pointToLineDistance.
