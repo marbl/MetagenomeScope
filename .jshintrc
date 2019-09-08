@@ -2,5 +2,5 @@
     "browser": true,
     "jquery": true,
     "devel": true,
-    "globals": {"cytoscape": true, "d3": true, "SQL": true}
+    "globals": { "cytoscape": true, "d3": true, "SQL": true }
 }
