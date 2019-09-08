@@ -1064,22 +1064,25 @@ function doThingsWhenDOMReady() {
         "infoDialog",
         "edgeFilteringDialog"
     ];
+    function onModalShow() {
+        mgsc.MODAL_ACTIVE = true;
+    }
+    function onModalHide() {
+        mgsc.MODAL_ACTIVE = false;
+    }
+    function onSettingsModalHide() {
+        // Ensure that all colorpickers (the pop-up things where
+        // you can select a color with the mouse) get closed when
+        // the settings dialog is closed.
+        $(".colorpicker-component").colorpicker("hide");
+        onModalHide();
+    }
     for (var d = 0; d < dialogIDs.length; d++) {
-        $("#" + dialogIDs[d]).on("show.bs.modal", function(e) {
-            mgsc.MODAL_ACTIVE = true;
-        });
+        $("#" + dialogIDs[d]).on("show.bs.modal", onModalShow);
         if (dialogIDs[d] === "settingsDialog") {
-            // Ensure that all colorpickers (the pop-up things where
-            // you can select a color with the mouse) get closed when
-            // the settings dialog is closed.
-            $("#settingsDialog").on("hide.bs.modal", function(e) {
-                $(".colorpicker-component").colorpicker("hide");
-                mgsc.MODAL_ACTIVE = false;
-            });
+            $("#settingsDialog").on("hide.bs.modal", onSettingsModalHide);
         } else {
-            $("#" + dialogIDs[d]).on("hide.bs.modal", function(e) {
-                mgsc.MODAL_ACTIVE = false;
-            });
+            $("#" + dialogIDs[d]).on("hide.bs.modal", onModalHide);
         }
     }
     // Also update mgsc.INPUT_ACTIVE when non-dialog input fields are
@@ -1090,13 +1093,15 @@ function doThingsWhenDOMReady() {
         "searchInput",
         "layoutInput"
     ];
+    function onInputFocusIn() {
+        mgsc.INPUT_ACTIVE = true;
+    }
+    function onInputFocusOut() {
+        mgsc.INPUT_ACTIVE = false;
+    }
     for (var ii = 0; ii < inputIDs.length; ii++) {
-        $("#" + inputIDs[ii]).on("focusin", function(e) {
-            mgsc.INPUT_ACTIVE = true;
-        });
-        $("#" + inputIDs[ii]).on("focusout", function(e) {
-            mgsc.INPUT_ACTIVE = false;
-        });
+        $("#" + inputIDs[ii]).on("focusin", onInputFocusIn);
+        $("#" + inputIDs[ii]).on("focusout", onInputFocusOut);
     }
     // Initialize colorpickers
     $(".colorpicker-component").colorpicker({ format: "hex" });
