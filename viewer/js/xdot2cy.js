@@ -4042,12 +4042,9 @@ function getNodeColorization(gc) {
     // Everything from here on down is normal continuous colorization.
     // Linearly scale each RGB value between the extreme colors'
     // corresponding RGB values
-    var red_i =
-        gc * (mgsc.MAX_RGB.r - mgsc.MIN_RGB.r) + mgsc.MIN_RGB.r;
-    var green_i =
-        gc * (mgsc.MAX_RGB.g - mgsc.MIN_RGB.g) + mgsc.MIN_RGB.g;
-    var blue_i =
-        gc * (mgsc.MAX_RGB.b - mgsc.MIN_RGB.b) + mgsc.MIN_RGB.b;
+    var red_i = gc * (mgsc.MAX_RGB.r - mgsc.MIN_RGB.r) + mgsc.MIN_RGB.r;
+    var green_i = gc * (mgsc.MAX_RGB.g - mgsc.MIN_RGB.g) + mgsc.MIN_RGB.g;
+    var blue_i = gc * (mgsc.MAX_RGB.b - mgsc.MIN_RGB.b) + mgsc.MIN_RGB.b;
     // Convert resulting RGB decimal values (should be in the range [0, 255])
     // to hexadecimal and use them to construct a color string
     var red = Math.round(red_i).toString(16);
@@ -4859,10 +4856,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
 // Draws two nodes that "enforce" the given bounding box.
 function drawBoundingBoxEnforcingNodes(boundingboxObject) {
     "use strict";
-    var bb = [
-        boundingboxObject.boundingbox_x,
-        boundingboxObject.boundingbox_y
-    ];
+    var bb = [boundingboxObject.boundingbox_x, boundingboxObject.boundingbox_y];
     var bottomLeftPt = gv2cyPoint(0, 0, bb);
     var topRightPt = gv2cyPoint(bb[0], bb[1], bb);
     cy.add({
@@ -4955,8 +4949,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         // make these nodes "pseudoparents" -- they're styled similarly to
         // normal compound nodes, but they don't actually contain any nodes.
         classes += " spqrMetanode";
-        clusterData.descendantCount =
-            clusterObj.descendant_metanode_count;
+        clusterData.descendantCount = clusterObj.descendant_metanode_count;
         // since we "collapse" all metanodes by default (collapsing takes on a
         // different meaning w/r/t SPQR metanodes, as opposed to normal
         // structural variants)
