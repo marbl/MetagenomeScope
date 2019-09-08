@@ -1,4 +1,4 @@
+graft viewer
 include README.md
 include COPYING.txt
-recursive-include dependency_licenses
-recursive-include viewer
+graft dependency_licenses
