@@ -1038,7 +1038,7 @@ function doThingsWhenDOMReady() {
      * "if (windowProtocol in CORS_..._SCHEMES)".
      */
     for (var i = 0; i < mgsc.CORS_PROTOCOL_SCHEMES.length; i++) {
-        if (window.location["protocol"] === mgsc.CORS_PROTOCOL_SCHEMES[i]) {
+        if (window.location.protocol === mgsc.CORS_PROTOCOL_SCHEMES[i]) {
             $("#xmlFileselectButton").prop("title", "");
             enableButton("xmlFileselectButton");
             mgsc.DEMOS_SUPPORTED = true;
@@ -1090,11 +1090,11 @@ function doThingsWhenDOMReady() {
         "searchInput",
         "layoutInput"
     ];
-    for (var i = 0; i < inputIDs.length; i++) {
-        $("#" + inputIDs[i]).on("focusin", function(e) {
+    for (var ii = 0; ii < inputIDs.length; ii++) {
+        $("#" + inputIDs[ii]).on("focusin", function(e) {
             mgsc.INPUT_ACTIVE = true;
         });
-        $("#" + inputIDs[i]).on("focusout", function(e) {
+        $("#" + inputIDs[ii]).on("focusout", function(e) {
             mgsc.INPUT_ACTIVE = false;
         });
     }
@@ -1289,7 +1289,7 @@ function setGraphBindings() {
 function rotateNode(n, i) {
     // Rotate node position
     var oldPt = n.position();
-    var newPt = rotateCoordinate(oldPt["x"], oldPt["y"]);
+    var newPt = rotateCoordinate(oldPt.x, oldPt.y);
     n.position({ x: newPt[0], y: newPt[1] });
     // Rotate node polygon definition
     // Doing this via classes is probably more efficient than giving each
