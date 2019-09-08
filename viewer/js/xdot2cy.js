@@ -208,7 +208,7 @@ mgsc.FINISHING_NODE_IDS = "";
 // Cytoscape.js object for the corresponding node in the path
 mgsc.FINISHING_NODE_OBJS = [];
 // Nodes that are outgoing from the last-added node to the reconstructed path.
-mgsc.NEXT_NODES;
+mgsc.NEXT_NODES = undefined;
 // Maximum zoom level used in the graph display. Used in order to prevent the
 // user from "getting lost" (i.e. zooming too far in). Another max zoom level
 // is configurable for the user in the animation settings; that zoom level
