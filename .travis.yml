@@ -44,7 +44,7 @@ script:
     - source activate mgsc
     # This runs both the preprocessing script and viewer interface tests
     - make test
-    # TODO: run make stylecheck here
+    - make stylecheck
 after_success:
     # This section based on Qurro's Makefile. Upload coverage info to Codecov.
     - wget -O codecov.sh https://codecov.io/bash
