@@ -2216,10 +2216,10 @@ function drawComponent(cmpRank) {
     var fullObj = bbStmt.getAsObject();
     bbStmt.free();
     var bb = {
-        boundingbox_x: fullObj["boundingbox_x"],
-        boundingbox_y: fullObj["boundingbox_y"]
+        boundingbox_x: fullObj.boundingbox_x,
+        boundingbox_y: fullObj.boundingbox_y
     };
-    var totalElementCount = fullObj["node_count"] + 0.5 * fullObj["edge_count"];
+    var totalElementCount = fullObj.node_count + 0.5 * fullObj.edge_count;
     // here we scale mgsc.PROGRESSBAR_FREQ to totalElementCount for the
     // component to be drawn (see top of file for reference)
     // As we draw other components later within the same session of the viewer
@@ -2315,8 +2315,8 @@ function drawComponentNodes(
 ) {
     if (nodesStmt.step()) {
         var currNode = nodesStmt.getAsObject();
-        var currNodeID = currNode["id"];
-        var parentMetaNodeID = currNode["parent_metanode_id"];
+        var currNodeID = currNode.id;
+        var parentMetaNodeID = currNode.parent_metanode_id;
         // Render the node object and save its position
         if (mode === "SPQR" && parentMetaNodeID !== null) {
             // It's possible for us to have duplicates of this node, in this
@@ -2493,12 +2493,11 @@ function updateCurrCompInfo(
     var intro = "The ";
     var nodePercentage, edgePercentage;
     if (mode !== "SPQR") {
-        var nodePercentage = (componentNodeCount / mgsc.ASM_NODE_COUNT) * 100;
+        nodePercentage = (componentNodeCount / mgsc.ASM_NODE_COUNT) * 100;
         if (mgsc.ASM_EDGE_COUNT !== 0) {
-            var edgePercentage =
-                (componentEdgeCount / mgsc.ASM_EDGE_COUNT) * 100;
+            edgePercentage = (componentEdgeCount / mgsc.ASM_EDGE_COUNT) * 100;
         } else {
-            var edgePercentage = "None";
+            edgePercentage = "None";
         }
     }
     var all_nodes_edges_modifier = "the";
