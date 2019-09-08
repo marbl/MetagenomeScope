@@ -1,4 +1,5 @@
 graft viewer
 include README.md
 include COPYING.txt
+include DEPENDENCY_LICENSES.txt
 graft dependency_licenses
