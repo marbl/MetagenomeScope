@@ -13,3 +13,4 @@ node_modules/
 .coverage
 js_coverage.json
 viewer/instrumented_js/
+dist/
