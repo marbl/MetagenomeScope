@@ -1983,16 +1983,16 @@ function drawSPQRComponent(cmpRank) {
     var bb;
     if (mgsc.CURR_SPQRMODE === "explicit") {
         bb = {
-            boundingbox_x: fullObj["boundingbox_x"],
-            boundingbox_y: fullObj["boundingbox_y"]
+            boundingbox_x: fullObj.boundingbox_x,
+            boundingbox_y: fullObj.boundingbox_y
         };
     } else {
         bb = {
-            boundingbox_x: fullObj["i_boundingbox_x"],
-            boundingbox_y: fullObj["i_boundingbox_y"]
+            boundingbox_x: fullObj.i_boundingbox_x,
+            boundingbox_y: fullObj.i_boundingbox_y
         };
     }
-    var bicmpCount = fullObj["bicomponent_count"];
+    var bicmpCount = fullObj.bicomponent_count;
     // the compressed counts are the amounts of nodes and edges that'll be
     // drawn when the graph is first drawn (and all the SPQR trees are
     // collapsed to their root).
@@ -2002,19 +2002,19 @@ function drawSPQRComponent(cmpRank) {
     // Note that "nodes" here only refers to normal contigs, not metanodes.
     // However, "edges" here do include edges between metanodes.
     // (if that distinction turns out to be troublesome, we can change it)
-    var cNodeCount = fullObj["compressed_node_count"];
-    var cEdgeCount = fullObj["compressed_edge_count"];
+    var cNodeCount = fullObj.compressed_node_count;
+    var cEdgeCount = fullObj.compressed_edge_count;
     // "totalElementCount" is the max value on the progress bar while first
     // drawing this component
     var totalElementCount = 0.5 * cEdgeCount + cNodeCount;
     var ucNodeCount = null;
     var ucEdgeCount = null;
     if (mgsc.CURR_SPQRMODE === "explicit") {
-        ucNodeCount = fullObj["ex_uncompressed_node_count"];
-        ucEdgeCount = fullObj["ex_uncompressed_edge_count"];
+        ucNodeCount = fullObj.ex_uncompressed_node_count;
+        ucEdgeCount = fullObj.ex_uncompressed_edge_count;
     } else {
-        ucNodeCount = fullObj["im_uncompressed_node_count"];
-        ucEdgeCount = fullObj["im_uncompressed_edge_count"];
+        ucNodeCount = fullObj.im_uncompressed_node_count;
+        ucEdgeCount = fullObj.im_uncompressed_edge_count;
     }
     // Scale PROGRESS_BAR_FREQ relative to component size of nodes/edges
     // This does ignore metanodes/bicomponents, but it's a decent approximation
@@ -2043,7 +2043,7 @@ function drawSPQRComponent(cmpRank) {
         bicmpsInComponent = true;
         bicmpObj = bicmpsStmt.getAsObject();
         renderClusterObject(bicmpObj, bb, "bicomponent");
-        metanodeParams.push(bicmpObj["root_metanode_id"]);
+        metanodeParams.push(bicmpObj.root_metanode_id);
         rootmnQuestionMarks += "?,";
     }
     bicmpsStmt.free();
@@ -2110,8 +2110,9 @@ function drawSPQRComponent(cmpRank) {
  * (TODO: use the node/edge counts in the drawable case? see #142 on github.)
  */
 function isComponentDrawable(cmpRank) {
+    var isTooLargeStmt;
     try {
-        var isTooLargeStmt = mgsc.CURR_DB.prepare(
+        isTooLargeStmt = mgsc.CURR_DB.prepare(
             "SELECT node_count, edge_count, too_large FROM components WHERE " +
                 "size_rank = ? LIMIT 1",
             [cmpRank]
@@ -2127,9 +2128,9 @@ function isComponentDrawable(cmpRank) {
     isTooLargeStmt.step();
     var isTooLargeObj = isTooLargeStmt.getAsObject();
     isTooLargeStmt.free();
-    if (isTooLargeObj["too_large"] !== 0) {
-        var largeCompNodeCount = isTooLargeObj["node_count"].toLocaleString();
-        var largeCompEdgeCount = isTooLargeObj["edge_count"].toLocaleString();
+    if (isTooLargeObj.too_large !== 0) {
+        var largeCompNodeCount = isTooLargeObj.node_count.toLocaleString();
+        var largeCompEdgeCount = isTooLargeObj.edge_count.toLocaleString();
         return [false, largeCompNodeCount, largeCompEdgeCount];
     }
     return [true, 0, 0];
