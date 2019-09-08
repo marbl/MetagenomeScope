@@ -108,6 +108,7 @@ fi
 mgsc_sed -i'' 's/xdot2cy\.js/xdot2cy\.min\.js/g' viewer/index.min.html
 mgsc_sed -i'' 's/viewer_style\.css/viewer_style\.min\.css/g' viewer/index.min.html
 
+# TODO: break up this into its own script, to be run individually on travis?
 # Instrument JS code. This is inefficient because it also instruments the
 # minified JS files, which is unnecessary -- a TODO is fixing that.
 nyc instrument viewer/js/ viewer/instrumented_js/

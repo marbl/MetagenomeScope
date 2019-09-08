@@ -38,7 +38,11 @@ install:
     - conda deactivate
     # Install npm packages needed for JS testing
     - npm install -g mocha-headless-chrome nyc
+    # Install npm packages needed for JS style-checking
+    - npm install -g prettier jshint
     # Install npm packages needed for JS/HTML/CSS minification
+    # (TODO: avoid needing to do this on Travis, since we test the
+    # *un-minified* files?)
     - npm install -g csso-cli uglify-js html-minifier
 script:
     - source activate mgsc
