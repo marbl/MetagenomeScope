@@ -26,11 +26,10 @@ This C++ component is linked with:
 
 -cmdline.h
     -https://github.com/tanakh/cmdline
-    -Source code is distributed with MetagenomeScope, and is also available at
-     https://github.com/tanakh/cmdline
-    -Copyright is contained with license in graph_collator/cmdline.h
+    -Source code is available at https://github.com/tanakh/cmdline
+    -Copyright is contained in dependency_licenses/cmdline.h.license
     -Licensed under the BSD 3-clause License
-     (included in graph_collator/cmdline.h)
+     (included in dependency_licenses/cmdline.h.license)
 
 Furthermore, the visualization interface is distributed with:
 
@@ -138,7 +137,7 @@ MetagenomeScope:
     -http://www.numpy.org
     -Licensed under the BSD 3-clause License
 
--Python 2.7
+-Python 3
     -https://www.python.org
     -Licensed under the Python Software Foundation License
 
