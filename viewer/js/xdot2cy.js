@@ -1451,30 +1451,30 @@ function parseDBcomponents() {
     stmt.step();
     var graphInfo = stmt.getAsObject();
     stmt.free();
-    var fnInfo = graphInfo["filename"];
-    mgsc.ASM_FILETYPE = graphInfo["filetype"];
-    mgsc.ASM_NODE_COUNT = graphInfo["node_count"];
+    var fnInfo = graphInfo.filename;
+    mgsc.ASM_FILETYPE = graphInfo.filetype;
+    mgsc.ASM_NODE_COUNT = graphInfo.node_count;
     var nodeInfo = mgsc.ASM_NODE_COUNT.toLocaleString();
-    var bpCt = graphInfo["total_length"];
+    var bpCt = graphInfo.total_length;
     var bpInfo = bpCt.toLocaleString();
-    mgsc.ASM_EDGE_COUNT = graphInfo["all_edge_count"];
-    var edgeCount = graphInfo["edge_count"];
+    mgsc.ASM_EDGE_COUNT = graphInfo.all_edge_count;
+    var edgeCount = graphInfo.edge_count;
     var edgeInfo = edgeCount.toLocaleString();
-    var compCt = graphInfo["component_count"];
+    var compCt = graphInfo.component_count;
     var compInfo = compCt.toLocaleString();
-    var smallestViewableComp = graphInfo["smallest_viewable_component_rank"];
-    var sccCt = graphInfo["single_component_count"];
+    var smallestViewableComp = graphInfo.smallest_viewable_component_rank;
+    var sccCt = graphInfo.single_component_count;
     var sccInfo = sccCt.toLocaleString();
-    var bicmpCt = graphInfo["bicomponent_count"];
+    var bicmpCt = graphInfo.bicomponent_count;
     var bicmpInfo = bicmpCt.toLocaleString();
     // Record N50
-    var n50 = graphInfo["n50"];
+    var n50 = graphInfo.n50;
     var n50Info = n50.toLocaleString();
     // Record Assembly G/C content (not available for GML files)
-    var asmGC = graphInfo["gc_content"];
-    mgsc.DNA_AVAILABLE = Boolean(graphInfo["dna_given"]);
-    mgsc.REPEAT_INFO_AVAILABLE = Boolean(graphInfo["repeats_given"]);
-    var spqrDataFlag = Boolean(graphInfo["spqr_given"]);
+    var asmGC = graphInfo.gc_content;
+    mgsc.DNA_AVAILABLE = Boolean(graphInfo.dna_given);
+    mgsc.REPEAT_INFO_AVAILABLE = Boolean(graphInfo.repeats_given);
+    var spqrDataFlag = Boolean(graphInfo.spqr_given);
     /* CODELINK: This method for checking if a table exists in a SQLite
      * database c/o user "PoorLuzer"'s answer to this Stack Overflow question:
      * https://stackoverflow.com/questions/1601151/how-do-i-check-in-sqlite-whether-a-table-exists
