@@ -11,12 +11,10 @@
 #  viewer/headless_tests_index.html, then runs the viewer interface tests
 #  using mocha-headless-chrome.
 #
-# spqr: this is used to compile the "SPQR script" (spqr.cpp)
-#  contained in the graph_collator/ directory of MetagenomeScope.
+# spqr: this is used to compile the "SPQR script" (metagenomescope/spqr.cpp).
 #  NOTE that compiling the SPQR script is only necessary if you want to use
-#  the -spqr option of the preprocessing script (graph_collator/collate.py).
-#  See the System Requirements and Installation Instruction pages on
-#  MetagenomeScope's wiki (https://github.com/marbl/MetagenomeScope/wiki)
+#  the -spqr option of the preprocessing script (mgsc).
+#  See https://github.com/marbl/MetagenomeScope/wiki/Installation-Instructions
 #  for details on this option.
 #
 # stylecheck: Checks to make sure that the Python and JavaScript codebases are
@@ -50,7 +48,8 @@ OGDF_LINK = -L $(RDIR)
 # Set per http://amber-v7.cs.tu-dortmund.de/doku.php/tech:installgcc
 OGDF_FLAGS = $(OGDF_INCL) $(OGDF_LINK) -l OGDF -pthread
 # Apparently forward-slashes should work on Windows systems as well as
-# Linux/OS X systems.
+# Linux/OS X systems. We don't officially support Windows, so it shouldn't make
+# a difference.
 SCRIPT_DIR = metagenomescope/
 SPQR_CODE = $(addprefix $(SCRIPT_DIR), spqr.cpp)
 SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)

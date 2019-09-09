@@ -1,5 +1,7 @@
 # MetagenomeScope STAMPS Tutorial: August 6, 2018
 
+**NOTE: This tutorial is out-of-date.**
+
 (Inspired by [this SEPP/TIPP tutorial](https://github.com/MGNute/stamps-tutorial/blob/master/tutorial.md).)
 
 ## Introduction
