@@ -1,3 +1,6 @@
+NOTE: this is an old document. The line numbers and other information in here
+may be out-of-date.
+
 STANDARD MODE
 For each connected component:
 1) Lay out each cluster (bubble, frayed rope, etc) by itself.
