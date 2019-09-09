@@ -31,7 +31,12 @@
         <meta name="author" content="Marcus Fedarko" />
         <title>MetagenomeScope</title>
         <link rel="shortcut icon" href="res/icons/favicon.ico" />
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+        <link
+            rel="stylesheet"
+            href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+            integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+            crossorigin="anonymous"
+        />
         <link rel="stylesheet" href="css/mgsc_docs_style.css" />
     </head>
     <body>
@@ -46,9 +51,13 @@
                     when the navbar is collapsed (e.g. on small displays).
                 -->
                 <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed"
-                        data-toggle="collapse" aria-expanded="false"
-                        data-target="#main-navbar-content">
+                    <button
+                        type="button"
+                        class="navbar-toggle collapsed"
+                        data-toggle="collapse"
+                        aria-expanded="false"
+                        data-target="#main-navbar-content"
+                    >
                         <span class="sr-only">Toggle navigation</span>
                         <!-- Each of these .icon-bar <spans> corresponds to a
                              line in the "hamburger" navigation element.
@@ -84,256 +93,328 @@
             for details).
         -->
         <div id="stuffbelowthenav">
-        <div class="page-header">
-            <h1>MetagenomeScope</h1>
-        </div>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-lg-6">
-                    <div class="thumbnail">
-                        <img onclick="openScreenshot(event);"
-                            src="res/screenshots/biofilm1_cc7.png"
-                            alt="Screenshot of MetagenomeScope's 'standard mode' with bubbles, frayed ropes, and chains visible." />
-                        <hr />
-                    <div class="caption">
-                        <p>
-                            Screenshot of MetagenomeScope's "standard mode,"
-                            zoomed in on a region of a biofilm assembly graph.
-                        </p>
+            <div class="page-header">
+                <h1>MetagenomeScope</h1>
+            </div>
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="thumbnail">
+                            <img
+                                onclick="openScreenshot(event);"
+                                src="res/screenshots/biofilm1_cc7.png"
+                                alt="Screenshot of MetagenomeScope's 'standard mode' with bubbles, frayed ropes, and chains visible."
+                            />
+                            <hr />
+                            <div class="caption">
+                                <p>
+                                    Screenshot of MetagenomeScope's "standard
+                                    mode," zoomed in on a region of a biofilm
+                                    assembly graph.
+                                </p>
+                            </div>
+                        </div>
                     </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="thumbnail">
-                        <img onclick="openScreenshot(event);"
-                            src="res/screenshots/marygold_fig2.png"
-                            alt="Screenshot of MetagenomeScope's 'explicit' SPQR tree decomposition mode, showing the full structure of a SPQR tree." />
-                        <hr />
-                    <div class="caption">
-                        <p>
-                            Screenshot of MetagenomeScope's "explicit"
-                            SPQR tree decomposition mode, generated for the
-                            figure 2a graph in
-                            [<a
-                            href="https://www.ncbi.nlm.nih.gov/pubmed/24058058"
-                            >Nijkamp, Pop, Reinders, de Ridder 2013</a>].
-                        </p>
-                    </div>
+                    <div class="col-lg-6">
+                        <div class="thumbnail">
+                            <img
+                                onclick="openScreenshot(event);"
+                                src="res/screenshots/marygold_fig2.png"
+                                alt="Screenshot of MetagenomeScope's 'explicit' SPQR tree decomposition mode, showing the full structure of a SPQR tree."
+                            />
+                            <hr />
+                            <div class="caption">
+                                <p>
+                                    Screenshot of MetagenomeScope's "explicit"
+                                    SPQR tree decomposition mode, generated for
+                                    the figure 2a graph in [<a
+                                        href="https://www.ncbi.nlm.nih.gov/pubmed/24058058"
+                                        >Nijkamp, Pop, Reinders, de Ridder
+                                        2013</a
+                                    >].
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <h2 id="news">News</h2>
-            <p><strong>August 2018:</strong>
-                Gave a presentation and tutorial on MetagenomeScope during
-                the <a href="https://stamps.mbl.edu/index.php/Main_Page">2018
-                    Strategies and Techniques for Analyzing Microbial
-                    Population Structures (STAMPS) course</a> at the Marine
-                Biological Laboratory! Check out the slides <a
-                href="https://drive.google.com/file/d/1Cyxi1AE_5n5EeYUHaeejp1BpyOAVAr_V/view">here</a>, and check out the command-line
-            MetagenomeScope tutorial <a href="https://github.com/marbl/MetagenomeScope/blob/master/STAMPS_tutorial.md">here</a>.
+            <h2 id="news">News</h2>
+            <p>
+                <strong>August 2018:</strong> Gave a presentation and tutorial
+                on MetagenomeScope during the
+                <a href="https://stamps.mbl.edu/index.php/Main_Page"
+                    >2018 Strategies and Techniques for Analyzing Microbial
+                    Population Structures (STAMPS) course</a
+                >
+                at the Marine Biological Laboratory! Check out the slides
+                <a
+                    href="https://drive.google.com/file/d/1Cyxi1AE_5n5EeYUHaeejp1BpyOAVAr_V/view"
+                    >here</a
+                >, and check out the command-line MetagenomeScope tutorial
+                <a
+                    href="https://github.com/marbl/MetagenomeScope/blob/master/STAMPS_tutorial.md"
+                    >here</a
+                >.
             </p>
-            <p><strong>January 2018:</strong>
+            <p>
+                <strong>January 2018:</strong>
                 Presented a poster on MetagenomeScope at the
                 <a
-                    href="https://blog.umd.edu/m3/upcoming-events/2018-winter-mid-atlantic-microbiome-meet-up/">2018
-                    Winter Mid-Atlantic Microbiome Meetup (M<sup>3</sup>)</a>!
+                    href="https://blog.umd.edu/m3/upcoming-events/2018-winter-mid-atlantic-microbiome-meet-up/"
+                    >2018 Winter Mid-Atlantic Microbiome Meetup
+                    (M<sup>3</sup>)</a
+                >!
             </p>
-            <p><strong>September 2017:</strong>
+            <p>
+                <strong>September 2017:</strong>
                 Presented a poster on MetagenomeScope at
                 <a href="https://gd2017.ccis.northeastern.edu/">GD 2017</a>!
                 Check out the most recent version of the poster
                 <a href="res/gd2017_mgsc_poster_updated.pdf">here</a>.
             </p>
 
-        <h2 id="overview">Overview</h2>
-        <p>
-            MetagenomeScope is a web-based visualization tool designed for
-            metagenomic assembly graphs. MetagenomeScope aims to display
-            a semi-linearized, hierarchical overview of the input graph while
-            emphasizing the presence of certain structural patterns in the
-            graph.
-        </p>
-        <p>
-            The tool consists of a preprocessing script (written in Python and
-            C++) and a viewer interface (a client-side web application).
-            The preprocessing script takes as input an assembly
-            graph file (currently LastGraph, GFA, and
-            <a href="https://github.com/marbl/MetaCarvel">MetaCarvel</a> GML
-            files are accepted) and outputs a SQLite database file containing
-            the layout information for the graph's connected components.
-            This database file can be visualized in the viewer interface.
-        </p>
-        <p>
-            MetagenomeScope is still under active development, so please
-            <a href="#contact">get in touch with us</a> if you have any
-            questions or other feedback about the tool.
-        </p>
-        <h3>Features</h3>
-        <ul>
-            <li>
-                "Standard mode": <strong>Hierarchical graph layout</strong> performed using
-                <a href="https://www.graphviz.org">Graphviz</a>'
-                <em>dot</em> layout engine
-            </li>
-            <li>
-                <strong>Built-in pattern detection:</strong> identifies and supports
-                interactive collapsing/uncollapsing of bubbles and frayed
-                ropes [<a
-                href="https://www.ncbi.nlm.nih.gov/pubmed/20211242">Miller,
-                Koren, Sutton 2010</a>], along with linear and cyclic
-                linear sequences of contigs
-                <ul>
-                    <li>
-                        Contains options that allow users to select
-                        bubbles and other miscellaneous structural patterns in
-                        the graph to be automatically highlighted and grouped
-                        together in the display
-                    </li>
-                </ul>
-            </li>
-            <li>
-                Supports the <strong>visualization of
-                <a href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/">AGP
-                    files</a></strong>
-                describing scaffolds constructed for the graph
-            </li>
-            <li>
-                Includes controls for <strong>manually performing
-                    finishing</strong> on
-                sequences of contigs in the graph
-                <ul>
-                    <li>Supports "autofinishing," in which unambiguous paths
-                        are automatically followed during this process
-                    </li>
-                    <li>
-                        The resulting paths
-                can be exported to
-                <a href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/">AGP</a>
-                or 
-                <a href="https://en.wikipedia.org/wiki/Comma-separated_values">CSV</a>
-                format
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <strong>Scales edges</strong> in the graph by their multiplicity/bundle size
-                [<a
-                href="https://www.ncbi.nlm.nih.gov/pubmed/20211242">Miller,
-                Koren, Sutton 2010</a>]
-                <ul>
-                    <li>
-                        Uses <a href="http://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_summarizingdata/bs704_summarizingdata7.html">Tukey fences</a>
-                        to identify "outlier" edge
-                        weights and omit them from the scaling process
-                    </li>
-                    <li>
-                        Outlier edges are specially colored in the graph to
-                        indicate their unusual high/low weight
-                    </li>
-                </ul>
-            </li>
-            <li>
-                "Decomposition mode":
-                <a href="https://en.wikipedia.org/wiki/Biconnected_component">biconnected components</a>
-                in the graph are replaced with the root of their respective
-                <a href="https://en.wikipedia.org/wiki/SPQR_tree">SPQR
-                tree</a> data structure, which can be iteratively
-                uncollapsed to reveal structural details in these regions
-                of the graph
-            </li>
-            <li>
-                <strong>Colorblind support:</strong> every color used in the graph
-                display of the application is easily configurable
-                <ul>
-                    <li>
-                        Color settings can be exported/imported as
-                        <a href="https://en.wikipedia.org/wiki/Tab-separated_values">TSV</a>
-                        files
-                    </li>
-                </ul>
-            </li>
-            <li>
-                Supports node colorization by <a
-                href="https://en.wikipedia.org/wiki/GC-content">GC content</a> and
-                repeat annotations; more to come soon
-            </li>
-        </ul>
-        <h2 id="demo">Demo</h2>
-        <p>
-            A demo of MetagenomeScope's viewer interface (with about a dozen
-            sample database files available for use) is available online at
-            <a href="https://mgsc.umiacs.io">mgsc.umiacs.io</a>.
-            You can also upload your own database files generated
-            by the preprocessing script to visualize them in the tool.
-        </p>
-        <h2 id="documentation">Documentation</h2>
-        <p>
-            Documentation about using MetagenomeScope is available in its
-            GitHub wiki, located
-            <a href="https://github.com/marbl/MetagenomeScope/wiki">here</a>.
-            The wiki is a work in progress, so if you have any further
-            questions please feel free to <a href="#contact">contact us</a>.
-        </p>
-        <h2 id="installing">Installing</h2>
-        <p>
-            Instructions for installing MetagenomeScope's preprocessing script
-            are available on the wiki
-            <a href="https://github.com/marbl/MetagenomeScope/wiki/Installation-Instructions">here</a>.
-        </p>
-        <p>
-            You can visualize the database files generated by the
-            preprocessing script in MetagenomeScope's viewer interface, either
-            on the <a href="https://mgsc.umiacs.io">demo</a> or in a local copy
-            of the viewer interface file (see
-            <a href="https://github.com/marbl/MetagenomeScope/wiki/Viewer-Interface-Overview">this page</a>
-            of the wiki for more information).
-        </p>
-        <p>
-            If you want, you can also create and host
-            your own demos of MetagenomeScope's viewer interface to share
-            database files with the public: see
-            <a href="https://github.com/marbl/MetagenomeScope/wiki/Customizing-Your-Own-Demo">this page</a>
-            of MetagenomeScope's wiki for details.
-        </p>
-        <h2 id="code">Code</h2>
-        <p>
-            The source code for MetagenomeScope is publicly available on
-            GitHub
-            <a href="https://www.github.com/marbl/MetagenomeScope">
-                here</a>.
-            MetagenomeScope is licensed under the
-            <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">
-                GNU General Public License, version 3</a>.
-            (If you're interested, the source code for this site is
-            <a href="https://www.github.com/marbl/MetagenomeScope/tree/master/docs">
-            also available on GitHub</a>.)
-        </p>
-        <p>
-            See the
-            <a href="https://github.com/marbl/MetagenomeScope/wiki/Acknowledgements">acknowledgements</a>
-            section of MetagenomeScope's wiki for an up-to-date
-            list of the third-party libraries used by MetagenomeScope.
-        </p>
-        <h2 id="contact">Contact</h2>
-        <p>
-            MetagenomeScope was created by members of the
-            <a href="https://sites.google.com/a/cs.umd.edu/poplab/">Pop Lab</a>
-            in the <a href="https://cbcb.umd.edu">Center for Bioinformatics
-            and Computational Biology</a> at the
-            <a href="https://umd.edu">University of Maryland, College Park</a>.
-        </p>
-        <p>
-            Feel free to email <code>mfedarko (at) umd (dot) edu</code> with
-            any questions, suggestions, comments, concerns, etc. regarding the
-            tool. If you'd like, you can also
-            <a href="https://github.com/marbl/MetagenomeScope/issues/">open an issue</a>
-            on MetagenomeScope's GitHub page.
-        </p>
+            <h2 id="overview">Overview</h2>
+            <p>
+                MetagenomeScope is a web-based visualization tool designed for
+                metagenomic assembly graphs. MetagenomeScope aims to display a
+                semi-linearized, hierarchical overview of the input graph while
+                emphasizing the presence of certain structural patterns in the
+                graph.
+            </p>
+            <p>
+                The tool consists of a preprocessing script (written in Python
+                and C++) and a viewer interface (a client-side web application).
+                The preprocessing script takes as input an assembly graph file
+                (currently LastGraph, GFA, and
+                <a href="https://github.com/marbl/MetaCarvel">MetaCarvel</a> GML
+                files are accepted) and outputs a SQLite database file
+                containing the layout information for the graph's connected
+                components. This database file can be visualized in the viewer
+                interface.
+            </p>
+            <p>
+                MetagenomeScope is still under active development, so please
+                <a href="#contact">get in touch with us</a> if you have any
+                questions or other feedback about the tool.
+            </p>
+            <h3>Features</h3>
+            <ul>
+                <li>
+                    "Standard mode":
+                    <strong>Hierarchical graph layout</strong> performed using
+                    <a href="https://www.graphviz.org">Graphviz</a>'
+                    <em>dot</em> layout engine
+                </li>
+                <li>
+                    <strong>Built-in pattern detection:</strong> identifies and
+                    supports interactive collapsing/uncollapsing of bubbles and
+                    frayed ropes [<a
+                        href="https://www.ncbi.nlm.nih.gov/pubmed/20211242"
+                        >Miller, Koren, Sutton 2010</a
+                    >], along with linear and cyclic linear sequences of contigs
+                    <ul>
+                        <li>
+                            Contains options that allow users to select bubbles
+                            and other miscellaneous structural patterns in the
+                            graph to be automatically highlighted and grouped
+                            together in the display
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Supports the
+                    <strong
+                        >visualization of
+                        <a
+                            href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/"
+                            >AGP files</a
+                        ></strong
+                    >
+                    describing scaffolds constructed for the graph
+                </li>
+                <li>
+                    Includes controls for
+                    <strong>manually performing finishing</strong> on sequences
+                    of contigs in the graph
+                    <ul>
+                        <li>
+                            Supports "autofinishing," in which unambiguous paths
+                            are automatically followed during this process
+                        </li>
+                        <li>
+                            The resulting paths can be exported to
+                            <a
+                                href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/"
+                                >AGP</a
+                            >
+                            or
+                            <a
+                                href="https://en.wikipedia.org/wiki/Comma-separated_values"
+                                >CSV</a
+                            >
+                            format
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <strong>Scales edges</strong> in the graph by their
+                    multiplicity/bundle size [<a
+                        href="https://www.ncbi.nlm.nih.gov/pubmed/20211242"
+                        >Miller, Koren, Sutton 2010</a
+                    >]
+                    <ul>
+                        <li>
+                            Uses
+                            <a
+                                href="http://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_summarizingdata/bs704_summarizingdata7.html"
+                                >Tukey fences</a
+                            >
+                            to identify "outlier" edge weights and omit them
+                            from the scaling process
+                        </li>
+                        <li>
+                            Outlier edges are specially colored in the graph to
+                            indicate their unusual high/low weight
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    "Decomposition mode":
+                    <a
+                        href="https://en.wikipedia.org/wiki/Biconnected_component"
+                        >biconnected components</a
+                    >
+                    in the graph are replaced with the root of their respective
+                    <a href="https://en.wikipedia.org/wiki/SPQR_tree"
+                        >SPQR tree</a
+                    >
+                    data structure, which can be iteratively uncollapsed to
+                    reveal structural details in these regions of the graph
+                </li>
+                <li>
+                    <strong>Colorblind support:</strong> every color used in the
+                    graph display of the application is easily configurable
+                    <ul>
+                        <li>
+                            Color settings can be exported/imported as
+                            <a
+                                href="https://en.wikipedia.org/wiki/Tab-separated_values"
+                                >TSV</a
+                            >
+                            files
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    Supports node colorization by
+                    <a href="https://en.wikipedia.org/wiki/GC-content"
+                        >GC content</a
+                    >
+                    and repeat annotations; more to come soon
+                </li>
+            </ul>
+            <h2 id="demo">Demo</h2>
+            <p>
+                A demo of MetagenomeScope's viewer interface (with about a dozen
+                sample database files available for use) is available online at
+                <a href="https://mgsc.umiacs.io">mgsc.umiacs.io</a>. You can
+                also upload your own database files generated by the
+                preprocessing script to visualize them in the tool.
+            </p>
+            <h2 id="documentation">Documentation</h2>
+            <p>
+                Documentation about using MetagenomeScope is available in its
+                GitHub wiki, located
+                <a href="https://github.com/marbl/MetagenomeScope/wiki">here</a
+                >. The wiki is a work in progress, so if you have any further
+                questions please feel free to <a href="#contact">contact us</a>.
+            </p>
+            <h2 id="installing">Installing</h2>
+            <p>
+                Instructions for installing MetagenomeScope's preprocessing
+                script are available on the wiki
+                <a
+                    href="https://github.com/marbl/MetagenomeScope/wiki/Installation-Instructions"
+                    >here</a
+                >.
+            </p>
+            <p>
+                You can visualize the database files generated by the
+                preprocessing script in MetagenomeScope's viewer interface,
+                either on the <a href="https://mgsc.umiacs.io">demo</a> or in a
+                local copy of the viewer interface file (see
+                <a
+                    href="https://github.com/marbl/MetagenomeScope/wiki/Viewer-Interface-Overview"
+                    >this page</a
+                >
+                of the wiki for more information).
+            </p>
+            <p>
+                If you want, you can also create and host your own demos of
+                MetagenomeScope's viewer interface to share database files with
+                the public: see
+                <a
+                    href="https://github.com/marbl/MetagenomeScope/wiki/Customizing-Your-Own-Demo"
+                    >this page</a
+                >
+                of MetagenomeScope's wiki for details.
+            </p>
+            <h2 id="code">Code</h2>
+            <p>
+                The source code for MetagenomeScope is publicly available on
+                GitHub
+                <a href="https://www.github.com/marbl/MetagenomeScope"> here</a
+                >. MetagenomeScope is licensed under the
+                <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">
+                    GNU General Public License, version 3</a
+                >. (If you're interested, the source code for this site is
+                <a
+                    href="https://www.github.com/marbl/MetagenomeScope/tree/master/docs"
+                >
+                    also available on GitHub</a
+                >.)
+            </p>
+            <p>
+                See the
+                <a
+                    href="https://github.com/marbl/MetagenomeScope/wiki/Acknowledgements"
+                    >acknowledgements</a
+                >
+                section of MetagenomeScope's wiki for an up-to-date list of the
+                third-party libraries used by MetagenomeScope.
+            </p>
+            <h2 id="contact">Contact</h2>
+            <p>
+                MetagenomeScope was created by members of the
+                <a href="https://sites.google.com/a/cs.umd.edu/poplab/"
+                    >Pop Lab</a
+                >
+                in the
+                <a href="https://cbcb.umd.edu"
+                    >Center for Bioinformatics and Computational Biology</a
+                >
+                at the
+                <a href="https://umd.edu"
+                    >University of Maryland, College Park</a
+                >.
+            </p>
+            <p>
+                Feel free to email <code>mfedarko (at) umd (dot) edu</code> with
+                any questions, suggestions, comments, concerns, etc. regarding
+                the tool. If you'd like, you can also
+                <a href="https://github.com/marbl/MetagenomeScope/issues/"
+                    >open an issue</a
+                >
+                on MetagenomeScope's GitHub page.
+            </p>
         </div>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+        <script
+            src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+            integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+            crossorigin="anonymous"
+        ></script>
         <script src="js/extra_functionality.js"></script>
     </body>
 </html>

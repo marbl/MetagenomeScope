@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2018 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
+# Copyright (C) 2016-- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
 # Authored by Marcus Fedarko
 #
 # This file is part of MetagenomeScope.
@@ -25,6 +25,7 @@ from metagenomescope.tests import utils
 
 EXTRAS = os.path.join(utils.INDIR, "extras")
 
+
 def test_cyclic_chain():
     # 1 -> 2
     # 2 -> 1
@@ -41,12 +42,13 @@ def test_cyclic_chain():
         assert edge_map["1"] == ["2"] and edge_map["2"] == ["1"]
         assert edge_map["-2"] == ["-1"] and edge_map["-1"] == ["-2"]
 
-        # Check that the .db file contains exactly 2 clusters, each of which is a
-        # cyclic chain
+        # Check that the .db file contains exactly 2 clusters, each of which is
+        # a cyclic chain
         clusters = utils.get_clusters(cursor)
         assert len(clusters) == 2
         for c in clusters:
             assert utils.get_cluster_type(c) == "Cyclic Chain"
+
 
 def test_bubble():
     # 1 -> 2, 2 -> 4
@@ -64,6 +66,7 @@ def test_bubble():
         assert len(clusters) == 1
         assert utils.get_cluster_type(clusters[0]) == "Bubble"
 
+
 def test_longpatterns():
     connection, cursor = utils.create_and_open_db("longtest_LastGraph")
 
@@ -73,17 +76,19 @@ def test_longpatterns():
         assert cluster_type_2_freq["Bubble"] == 4
         assert cluster_type_2_freq["Frayed Rope"] == 4
 
+
 def test_intersecting_paths_bubble():
     # Since the two paths in this bubble intersect, this is not a valid bubble.
     # Therefore, we should expect to see no structural patterns identified by
     # default.
-    connection, cursor = \
-            utils.create_and_open_db("intersecting_paths_bubble.gfa")
+    connection, cursor = utils.create_and_open_db(
+        "intersecting_paths_bubble.gfa"
+    )
 
     with contextlib.closing(connection):
         utils.validate_std_counts(cursor, 6, 16, 2)
-        cluster_type_2_freq = utils.get_cluster_frequencies(cursor)
         assert len(utils.get_clusters(cursor)) == 0
+
 
 def test_user_defined_bubbles_and_frayed_ropes():
     # Let's say that we don't care about the intersecting paths thing from
@@ -121,21 +126,21 @@ def test_user_defined_bubbles_and_frayed_ropes():
             cursor.execute("SELECT id, parent_cluster_id FROM nodes")
             for obj in cursor.fetchall():
                 if obj[0] in [str(x) for x in range(1, 7)]:
-                    assert obj[1] != None
+                    assert obj[1] is not None
                     assert obj[1].startswith("B")
                 elif not has_other_frayed_rope:
                     # NULL in sqlite3 is converted to None in Python: see
                     # https://docs.python.org/2/library/sqlite3.html#introduction
-                    assert obj[1] == None
+                    assert obj[1] is None
                 else:
                     # If we've gotten here, obj[0] isn't in the identified
                     # bubble pattern and has_other_frayed_rope is True.
                     if obj[0] in [str(x) for x in range(-6, -1)]:
-                        assert obj[1] != None
+                        assert obj[1] is not None
                         assert obj[1].startswith("F")
                     else:
                         # Still outside of any patterns.
-                        assert obj[1] == None
+                        assert obj[1] is None
 
     # First, let's try creating the bubble by using the user-specified bubbles
     # option (-ub). Although this option necessitates using a separate file
@@ -145,9 +150,9 @@ def test_user_defined_bubbles_and_frayed_ropes():
     # description of what the bubbles.txt file format looks like) to augment
     # MetagenomeScope's simple bubble detection capabilities.
     ub_path = os.path.join(EXTRAS, "ipb_ub.txt")
-    connection, cursor = \
-            utils.create_and_open_db("intersecting_paths_bubble.gfa",
-                    ["-ub", ub_path])
+    connection, cursor = utils.create_and_open_db(
+        "intersecting_paths_bubble.gfa", ["-ub", ub_path]
+    )
     test_db_file(connection, cursor)
 
     # Next, let's try this by defining a bubble as a user-specified pattern
@@ -159,7 +164,7 @@ def test_user_defined_bubbles_and_frayed_ropes():
     # This also should create a frayed rope in the other component of the
     # graph, as discussed above.
     up_path = os.path.join(EXTRAS, "ipb_up.txt")
-    connection, cursor = \
-            utils.create_and_open_db("intersecting_paths_bubble.gfa",
-                    ["-up", up_path])
+    connection, cursor = utils.create_and_open_db(
+        "intersecting_paths_bubble.gfa", ["-up", up_path]
+    )
     test_db_file(connection, cursor, has_other_frayed_rope=True)

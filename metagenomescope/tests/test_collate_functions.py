@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2018 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
+# Copyright (C) 2016-- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
 # Authored by Marcus Fedarko
 #
 # This file is part of MetagenomeScope.
@@ -18,11 +18,11 @@
 ####
 # Tests the various functions in collate.py.
 
-import sys
 from collections import Counter
 
 from metagenomescope import collate, config
 from metagenomescope.tests import utils
+
 
 def test_reverse_complement():
     assert collate.reverse_complement("") == ""
@@ -43,6 +43,7 @@ def test_reverse_complement():
         for b in range(len(seq)):
             assert config.COMPLEMENT[seq[b]] == seq_rc[len(seq_rc) - b - 1]
 
+
 def test_gc_content():
     assert collate.gc_content("") == (0, 0)
     assert collate.gc_content("A") == (0, 0)
@@ -60,6 +61,7 @@ def test_gc_content():
         gc_ct = seq_counter["C"] + seq_counter["G"]
         assert float(gc_ct) / len(seq) == gc_content_output[0]
         assert gc_ct == gc_content_output[1]
+
 
 def test_negate_node_id():
     assert collate.negate_node_id("1") == "-1"

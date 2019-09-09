@@ -1,4 +1,4 @@
-# Copyright (C) 2017-2018 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
+# Copyright (C) 2016-- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
 # Authored by Marcus Fedarko
 #
 # This file is part of MetagenomeScope.
@@ -21,6 +21,7 @@
 
 import contextlib
 from metagenomescope.tests import utils
+
 
 def test_self_implying_edges():
     connection, cursor = utils.create_and_open_db("loop.gfa")

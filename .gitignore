@@ -1,6 +1,6 @@
 *.pyc
 __pycache__/
-tests/output/
+metagenomescope/tests/output/
 spqrtests/
 testgraphs/
 testdbs/
@@ -9,3 +9,8 @@ node_modules/
 .DS_STORE
 .DS_Store
 *.egg-info/
+*.bak
+.coverage
+js_coverage.json
+viewer/instrumented_js/
+dist/

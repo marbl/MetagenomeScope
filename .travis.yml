@@ -1,36 +1,26 @@
 language: python
 python:
-    - "2.7"
+    - "3.6"
 # Get stuff ready for testing SPQR functionality.
-# NOTE I ran into troubles with building the most recent snapshot of OGDF, so
-# I'm just using the stable release at present.
+# NOTE: Building the most recent snapshot of OGDF with the SPQR script
+# currently fails, so we're just using the "Baobab" release at present.
 before_install:
     - rm metagenomescope/spqr
     - wget -O ogdf.zip https://ogdf.uos.de/wp-content/uploads/2019/04/ogdf.v2015.05.zip
-# As of October 2, 2018, the dot version installed on the Ubuntu "Trusty Tahr"
-# system Travis CI uses by default is 2.36.0. This is a bit old, but it should
-# work fine -- the layouts will probably differ slightly from those produced by
-# newer versions of Graphviz/dot, but I don't think this should interfere with
-# any tests (at least not at present).
-#
-# For reference, the edge routing bug I encountered in MetagenomeScope was
-# introduced on September 1, 2014 according to
-# https://github.com/ellson/MOTHBALLED-graphviz/issues/1255, and version 2.36
-# of dot appears to date back to January 11, 2014 (according to dot -V).
-# So that bug shouldn't be a problem here.
 install:
     # CODELINK: conda installation instructions per https://conda.io/docs/user-guide/tasks/use-conda-with-travis-ci.html
-    - wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh
+    - wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
     - bash miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"
     - hash -r
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
-    # NOTE: right now we install pytest via conda, because as far as I can
-    # tell this is needed to make it work with python 2? Shouldn't need to do
-    # this when we eventually port MetagenomeScope to python 3
-    - conda create -q -n mgsc -c anaconda python=2.7 numpy graphviz=2.38.0 pygraphviz pytest
-    - pip install -e .[dev]
+    # Install OGDF. Note that the "Baobab" stable release fails when running
+    # makeMakefile.sh in a python 3.6 environment, so we create a new
+    # environment just for the purposes of installing OGDF. (This is a hack,
+    # but it's the easiest solution right now.)
+    - travis_retry conda create -q -n py2env python=2.7
+    - source activate py2env
     - unzip ogdf.zip
     - cd OGDF
     # Install OGDF
@@ -41,10 +31,26 @@ install:
     # At this point, OGDF has been installed. Now we can build the SPQR script.
     - cd ..
     - make spqr IDIR=OGDF/include/ RDIR=OGDF/_release/
-    # We also install mocha-headless-chrome so that we can run the viewer
-    # interface tests.
-    - npm install -g mocha-headless-chrome
+    - conda deactivate
+    # Now, install MetagenomeScope from source (using the new SPQR script).
+    - travis_retry conda create -q -c anaconda -n mgsc python=3.6 graphviz=2.38.0 pygraphviz numpy
+    - source activate mgsc
+    - pip install -e .[dev]
+    - conda deactivate
+    # Install npm packages needed for JS testing
+    - npm install -g mocha-headless-chrome nyc
+    # Install npm packages needed for JS style-checking
+    - npm install -g prettier jshint
+    # Install npm packages needed for JS/HTML/CSS minification
+    # (TODO: avoid needing to do this on Travis, since we test the
+    # *un-minified* files?)
+    - npm install -g csso-cli uglify-js html-minifier
 script:
     - source activate mgsc
     # This runs both the preprocessing script and viewer interface tests
     - make test
+    - make stylecheck
+after_success:
+    # This section based on Qurro's Makefile. Upload coverage info to Codecov.
+    - wget -O codecov.sh https://codecov.io/bash
+    - bash codecov.sh -c

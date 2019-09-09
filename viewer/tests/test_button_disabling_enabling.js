@@ -1,11 +1,11 @@
 mgsc.mochaTestSampleButtonClicked = false;
 mgsc.mochaTestEmitSampleButtonClicked = function() {
     mgsc.mochaTestSampleButtonClicked = true;
-}
+};
 mgsc.resetMochaTestSampleButton = function() {
     disableButton("mochaTestSampleButton");
     mgsc.mochaTestSampleButtonClicked = false;
-}
+};
 
 describe("disableButton()", function() {
     mgsc.mochaTestSampleButtonClicked = false;

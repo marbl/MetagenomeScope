@@ -1,9 +1,9 @@
-#!/usr/bin/env python
-# Copyright (C) 2017-2018 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
+#!/usr/bin/env python3
+# Copyright (C) 2016-- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
 # Authored by Marcus Fedarko
 #
 # This file is part of MetagenomeScope.
-# 
+#
 # MetagenomeScope is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -31,36 +31,46 @@ from random import randrange, random, choice
 import networkx as nx
 
 # Get argument information
-parser = argparse.ArgumentParser(description="Generates a semi-random " + \
-    "assembly graph in GML format.")
-parser.add_argument("-o", "--output", required=True,
-    help="output file prefix")
-parser.add_argument("-n", "--nodes", required=True,
-    help="lower bound on number of nodes in the graph")
-parser.add_argument("-b", "--bubbles", required=False, default=0,
-    help="requested number of simple bubbles in the graph")
-#parser.add_argument("-f", "--ropes", required=False, default=-1,
+parser = argparse.ArgumentParser(
+    description="Generates a semi-random " + "assembly graph in GML format."
+)
+parser.add_argument("-o", "--output", required=True, help="output file prefix")
+parser.add_argument(
+    "-n",
+    "--nodes",
+    required=True,
+    help="lower bound on number of nodes in the graph",
+)
+parser.add_argument(
+    "-b",
+    "--bubbles",
+    required=False,
+    default=0,
+    help="requested number of simple bubbles in the graph",
+)
+# parser.add_argument("-f", "--ropes", required=False, default=-1,
 #    help="requested number of frayed ropes in the graph")
-#parser.add_argument("-c", "--chains", required=False, default=-1,
+# parser.add_argument("-c", "--chains", required=False, default=-1,
 #    help="requested number of chains in the graph")
-#parser.add_argument("-y", "--cyclic_chains", required=False, default=-1,
+# parser.add_argument("-y", "--cyclic_chains", required=False, default=-1,
 #    help="requested number of cyclic chains in the graph")
 
 args = parser.parse_args()
 node_ct = int(args.nodes)
 bubble_ct = int(args.bubbles)
-#rope_ct = int(args.ropes)
-#chain_ct = int(args.chains)
-#cyclic_chain_ct = int(args.cyclic_chains)
+# rope_ct = int(args.ropes)
+# chain_ct = int(args.chains)
+# cyclic_chain_ct = int(args.cyclic_chains)
 
 # Validate arguments a bit
 if node_ct <= 0:
-    raise ValueError, "graph must have a lower bound of 1 node"
+    raise ValueError("graph must have a lower bound of 1 node")
 if bubble_ct < 0:
-    raise ValueError, "bubble count must be a nonnegative integer"
+    raise ValueError("bubble count must be a nonnegative integer")
 
 G = nx.path_graph(node_ct, nx.DiGraph())
 bubble_id = 0
+
 
 def assign_rand_attrs(G):
     """Assigns random attributes to the nodes/edges in a specified nx graph.
@@ -73,7 +83,7 @@ def assign_rand_attrs(G):
     for n in G.nodes():
         node_orientation_dict[n] = "FOW" if random() < 0.5 else "REV"
         length_dict[n] = randrange(1, 1000000)
-    
+
     nx.set_node_attributes(G, name="orientation", values=node_orientation_dict)
     nx.set_node_attributes(G, name="length", values=length_dict)
 
@@ -100,6 +110,7 @@ def assign_rand_attrs(G):
     nx.set_edge_attributes(G, name="mean", values=mean_dict)
     nx.set_edge_attributes(G, name="stdev", values=stdev_dict)
     nx.set_edge_attributes(G, name="bsize", values=bsize_dict)
+
 
 def create_bubble():
     """Creates a bubble with a random number of nodes between 4 and 17.
@@ -134,6 +145,7 @@ def create_bubble():
     bubble_id += 1
     return paths
 
+
 for i in range(bubble_ct):
     paths = create_bubble()
     src = choice(G.nodes())
@@ -147,14 +159,14 @@ for i in range(bubble_ct):
         new_sink_id = str(src) + "_snk"
         G.add_node(new_sink_id)
         G.add_edge(src, new_sink_id)
-        print "had to make a new sink"
+        print("had to make a new sink")
     snk = choice(G.out_edges(src))[1]
     for P in paths:
         G.add_nodes_from(P)
         G.add_edges_from(P.edges())
         G.add_edge(src, P.graph["bpid"] + "0")
         G.add_edge(P.graph["terminus"], snk)
-    print "created bubble between", src, "and", snk
+    print("created bubble between", src, "and", snk)
     G.remove_edge(src, snk)
 
 assign_rand_attrs(G)

@@ -1,26 +1,15 @@
 # Since the bulk of MetagenomeScope's code isn't compiled, this Makefile just
 # performs a few actions using the following (phony) targets:
 #
-# test: Runs the general, spqr, and viewer tests.
+# test: Runs the python and viewer tests.
 #
-# generaltest: Runs the non-SPQR preprocessing script tests using pytest.
+# pytest: Runs all preprocessing script tests using pytest.
 #
 # spqrtest: Runs the SPQR-specific preprocessing script tests using pytest.
 #
-# viewertest: Runs the viewer interface tests using mocha-headless-chrome.
-#  If you don't have mocha-headless-chrome installed, you can install it via
-#  "npm install -g mocha-headless-chrome".
-#
-#  NOTE that the version of the viewer interface code used is the
-#  viewer/headless_tests_index.min.html file, which in turn references all the
-#  minified code versions. If you just made a change in your code and want to
-#  test it, you'll need to run "make viewer" which runs the minification
-#  script before the viewer test.
-#
-# minify: Calls minify_files.fish, which is a fish shell script that minifies
-#  the code for the viewer interface.
-#
-# viewer: Runs "minify" then "viewertest".
+# viewertest: Minifies web code (and instruments JS code) and creates/updates
+#  viewer/headless_tests_index.html, then runs the viewer interface tests
+#  using mocha-headless-chrome.
 #
 # spqr: this is used to compile the "SPQR script" (spqr.cpp)
 #  contained in the graph_collator/ directory of MetagenomeScope.
@@ -29,8 +18,16 @@
 #  See the System Requirements and Installation Instruction pages on
 #  MetagenomeScope's wiki (https://github.com/marbl/MetagenomeScope/wiki)
 #  for details on this option.
+#
+# stylecheck: Checks to make sure that the Python and JavaScript codebases are
+#  properly formatted. Requires that a few extra packages are installed.
+#  This directive was taken from Qurro's Makefile.
+#
+# style: Auto-formats code to make it (mostly) compliant with stylecheck.
+#  Requires that a few extra packages are installed. This directive was taken
+#  from Qurro's Makefile.
 
-.PHONY: generaltest spqrtest viewertest test spqr
+.PHONY: pytest spqrtest viewertest test spqr
 
 # This might have to be changed depending on your system. When I tried
 # compiling this on a Mac computer, the g++ binary seemed to just redirect to
@@ -58,25 +55,39 @@ SCRIPT_DIR = metagenomescope/
 SPQR_CODE = $(addprefix $(SCRIPT_DIR), spqr.cpp)
 SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 
+PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov
+PYLOCS = metagenomescope/ setup.py viewer/populate_demo.py
+JSLOCS = viewer/js/xdot2cy.js viewer/tests/*.js docs/js/extra_functionality.js .jshintrc
+HTMLCSSLOCS = viewer/index.html viewer/404.html viewer/css/viewer_style.css docs/404.html docs/index.html docs/css/mgsc_docs_style.css
+
 # -B: don't create __pycache__/ directories
-generaltest:
-	python2.7 -B -m pytest metagenomescope/tests/ -m "not spqrtest"
+pytest:
+	$(PYTEST_COMMAND)
 	rm metagenomescope/tests/output/*
 
 spqrtest:
-	python2.7 -B -m pytest metagenomescope/tests/ -m "spqrtest"
+	$(PYTEST_COMMAND) -m "spqrtest"
 	rm metagenomescope/tests/output/*
 
 viewertest:
-	@echo "Make sure you ran the minification script before doing this!"
-	mocha-headless-chrome -f viewer/headless_tests_index.min.html
+	bash minify_files.sh
+	mocha-headless-chrome -f viewer/headless_tests_index.html -c js_coverage.json
 
-minify:
-	fish minify_files.fish
-
-viewer: minify viewertest
-
-test: generaltest spqrtest viewertest
+test: pytest viewertest
 
 spqr:
 	$(COMPILER) $(SPQR_CODE) $(CFLAGS) $(OGDF_FLAGS) -o $(SPQR_BINARY)
+
+stylecheck:
+	flake8 --ignore=E203,W503,E266,E501 $(PYLOCS)
+	black --check -l 79 $(PYLOCS)
+	jshint $(JSLOCS)
+	prettier --check --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
+
+style:
+	black -l 79 $(PYLOCS)
+	@# To be extra safe, do a dry run of prettier and check that it hasn't
+	@# changed the code's abstract syntax tree (AST). (Black does this sort of
+	@# thing by default.)
+	prettier --debug-check --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
+	prettier --write --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)

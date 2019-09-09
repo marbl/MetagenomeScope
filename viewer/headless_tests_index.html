@@ -44,7 +44,7 @@
         <!-- NOTE if including Cytoscape.js layout plugins for testing, those
              can go here -->
         <script src="vendor/js/sql.js"></script>
-        <script src="js/xdot2cy.js"></script>
+        <script src="instrumented_js/xdot2cy.js"></script>
         <script src="vendor/js/bootstrap.min.js"></script>
         <script src="vendor/js/bootstrap-colorpicker.min.js"></script>
         <script src="vendor/js/d3.v4.min.js"></script>
@@ -892,7 +892,7 @@
                              ID from what it currently is! Otherwise, the
                              minify_files.fish script will fail.
                         -->
-                        <script id="runTestsHere"></script>
+                        <script id="runTestsHere">mgsc.runTests();</script>
                         <!--
                             Some sample elements for unit-testing interactions.
                             Their IDs should all start with "mochaTest" in

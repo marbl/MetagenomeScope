@@ -1,5 +1,5 @@
-#!/usr/bin/env python2.7
-# Copyright (C) 2017-2019 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
+#!/usr/bin/env python3
+# Copyright (C) 2016-- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
 # Authored by Marcus Fedarko
 #
 # This file is part of MetagenomeScope.
@@ -28,28 +28,30 @@ classes = """
     Topic :: Scientific/Engineering
     Topic :: Scientific/Engineering :: Bio-Informatics
     Topic :: Scientific/Engineering :: Visualization
-    Programming Language :: Python :: 2
-    Programming Language :: Python :: 2 :: Only
+    Programming Language :: Python :: 3
+    Programming Language :: Python :: 3 :: Only
     Operating System :: Unix
     Operating System :: POSIX
     Operating System :: MacOS :: MacOS X
 """
-classifiers = [s.strip() for s in classes.split('\n') if s]
+classifiers = [s.strip() for s in classes.split("\n") if s]
 
 description = "Visualization tool for metagenomic assembly graphs"
 
-long_description = ("MetagenomeScope is a web-based visualization tool for "
-                    "metagenomic assembly graphs. It focuses on presenting "
-                    "a hierarchical layout of the graph that emphasizes "
-                    "a semilinear display alongside highlighting various "
-                    "structural patterns within the graph.")
+long_description = (
+    "MetagenomeScope is a web-based visualization tool for "
+    "metagenomic assembly graphs. It focuses on presenting "
+    "a hierarchical layout of the graph that emphasizes "
+    "a semilinear display alongside highlighting various "
+    "structural patterns within the graph."
+)
 
 version = "0.0.0"
 
 setup(
     name="metagenomescope",
     version=version,
-    license='GPL3',
+    license="GPL3",
     description=description,
     long_description=long_description,
     author="Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop",
@@ -57,13 +59,14 @@ setup(
     maintainer="Marcus Fedarko",
     maintainer_email="mfedarko@ucsd.edu",
     url="https://github.com/marbl/MetagenomeScope",
-    include_package_data=True,
-    packages=find_packages(),
-    install_requires=["pygraphviz", "numpy"],
-    extras_require={"dev": ["pytest"]},
     classifiers=classifiers,
+    packages=find_packages(),
+    package_data={"metagenomescope": ["spqr"]},
+    include_package_data=True,
+    install_requires=["pygraphviz", "numpy"],
+    extras_require={"dev": ["pytest", "pytest-cov", "flake8", "black"]},
     entry_points={
-        'console_scripts': ['mgsc=metagenomescope.collate:run_script']
+        "console_scripts": ["mgsc=metagenomescope.collate:run_script"]
     },
-    zip_safe=False
+    zip_safe=False,
 )
