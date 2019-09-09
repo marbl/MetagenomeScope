@@ -821,12 +821,7 @@ class SPQRMetaNode(NodeGroup):
         gv_input += "graph metanode {\n"
         if config.GRAPH_STYLE != "":
             gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
-        # NOTE even though we lay these interiors out using sfdp, we don't use
-        # the triangle smoothing parameter like we do for laying out entire
-        # single-connected components
-        # (...The reason for this is that I tried that, and I thought the
-        # metanode interiors looked better without the triangle smoothing
-        # applied)
+        gv_input += '\toverlap="scalexy";\n'
         if config.GLOBALNODE_STYLE != "":
             gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
         # We don't pass in edge style info (re: ports) because these edges are
@@ -1028,6 +1023,7 @@ class Bicomponent(NodeGroup):
         gv_input += "graph bicomponent {\n"
         if config.GRAPH_STYLE != "":
             gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
+        gv_input += '\toverlap="scalexy";\n'
         # enclosing these singlenodes/singleedges in a cluster is mostly taken
         # from the NodeGroup.node_info() function, seen above
         gv_input += "subgraph cluster_%s {\n" % (self.gv_id_string)

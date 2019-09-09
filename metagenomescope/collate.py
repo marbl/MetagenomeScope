@@ -34,8 +34,7 @@ import sys
 # For running the C++ spqr script binary
 from subprocess import check_output, STDOUT
 
-# For laying out graphs using Graphviz (in particular, via the dot and sfdp
-# layout tools)
+# For laying out graphs using Graphviz
 import pygraphviz
 
 # For creating the output directory, and for file I/O
@@ -174,15 +173,6 @@ parser.add_argument(
     "decomposition modes" in MetagenomeScope; necessitates a few additional
     system requirements (see MetagenomeScope's installation instructions
     wiki page for details)""",
-)
-parser.add_argument(
-    "-nt",
-    "--notriangulation",
-    required=False,
-    default=False,
-    action="store_true",
-    help="""disable triangle smoothing in the SPQR mode
-    (this argument is only used if -spqr is pased)""",
 )
 parser.add_argument(
     "-b",
@@ -638,7 +628,6 @@ def collate_graph(args):
     preserve_xdot = args.preservexdot
     output_spatts = args.structuralpatterns
     overwrite = args.overwrite
-    notriangulation = args.notriangulation
     bicmps_fullfn = args.bicomponentfile
     ububbles_fullfn = args.userbubblefile
     ububbles_labels = args.userbubblelabelsused
@@ -2391,9 +2380,7 @@ def collate_graph(args):
                 gv_input += "graph single_ccomp {\n"
                 if config.GRAPH_STYLE != "":
                     gv_input += "\t%s;\n" % (config.GRAPH_STYLE)
-                if not notriangulation:
-                    gv_input += '\tsmoothing="triangle";\n'
-                    gv_input += '\toverlap="false";\n'
+                gv_input += '\toverlap="false";\n'
                 if config.GLOBALNODE_STYLE != "":
                     gv_input += "\tnode [%s];\n" % (config.GLOBALNODE_STYLE)
                 # In the layout of this single connected component, include:
@@ -2864,18 +2851,18 @@ def collate_graph(args):
                         p += 2
                     # Save this edge in the .db
                     # NOTE -- as of now we don't bother rendering this edge's
-                    # sfdp-determined control points in the viewer interface, since
-                    # most of these edges end up being normal straight lines/bezier
-                    # curves
-                    # anyway. If we decide to change this behavior to display these
+                    # control points in the viewer interface, since
+                    # most of these edges end up being normal straight
+                    # lines/bezier curves anyway (at least the ones from sfdp).
+                    # If we decide to change this behavior to display these
                     # edges with control point info, then we can modify
                     # SINGLEEDGE_INSERTION_STMT above (as well as the database
                     # schema for the singleedges table) to store this data
                     # accordingly.
-                    # (At this point, we've already computed xdot_ctrl_pt_str and
-                    # xdot_ctrl_pt_count, so all that would really remain is
-                    # storing that info in the database and handling it properly in
-                    # the viewer interface.)
+                    # (At this point, we've already computed xdot_ctrl_pt_str
+                    # and xdot_ctrl_pt_count, so all that would really remain
+                    # is storing that info in the database and handling it
+                    # properly in the viewer interface.)
                     db_values = (
                         source_id,
                         target_id,
