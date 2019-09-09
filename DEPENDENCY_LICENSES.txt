@@ -3,8 +3,11 @@ PURPOSE
 MetagenomeScope is a visualization tool intended to aid in the analysis of
 metagenomic assembly and scaffold graphs. It consists of a preprocessing
 script (implemented in Python and C++) and a web-based visualization interface
-(implemented in JavaScript, HTML, and CSS). The C++ component of the
-preprocessing script is derived from spqr.cpp in MetaCarvel:
+(implemented in JavaScript, HTML, and CSS; also referred to as the "viewer
+interface").
+
+The C++ component of the preprocessing script is derived from spqr.cpp in
+MetaCarvel:
 
 -MetaCarvel
     -https://github.com/marbl/MetaCarvel
@@ -16,9 +19,9 @@ preprocessing script is derived from spqr.cpp in MetaCarvel:
 This C++ component is linked with:
 
 -OGDF
-    -http://www.ogdf.net
-    -Source code available at http://www.ogdf.net/doku.php/tech:download
-    -Copyright (C) 2005-2017
+    -https://ogdf.uos.de/
+    -Source code available at https://github.com/ogdf/ogdf
+    -Copyright (C) 1999-2018
     -Licensed under the GNU GPL, version 2 or version 3
      (GPL version 3 is included in dependency_licenses/ogdf/LICENSE_GPL_v3.txt,
      and the accompanying terms from OGDF are included in
@@ -82,44 +85,13 @@ Furthermore, the visualization interface is distributed with:
     -Licensed under the MIT License
      (included in dependency_license/chai.license)
 
-Automated testing of the visualization interface is done on Travis-CI using
-mocha-headless-chrome (licensed under the MIT License; project is hosted at
-https://www.npmjs.com/package/mocha-headless-chrome). mocha-headless-chrome
-is not distributed with MetagenomeScope.
-
-Additionally, some nontrivial portions of JavaScript/HTML code in the
-visualization interface were based on the following public code examples
-(as detailed in MetagenomeScope's acknowledgements section):
-
--https://github.com/cytoscape/cytoscape.js/tree/master/documentation/demos/colajs-graph
-    -Accessed: circa January 2017
-    -Distributed with Cytoscape.js' code: see above for license/copyright
-     information for Cytoscape.js
-
--http://www.henryalgus.com/reading-binary-files-using-jquery-ajax/
-    -Author: Henry Algus
-    -Accessed: circa August 2016 
-    -No license/copyright provided with the code.
-
--https://gist.github.com/mbostock/3048450
- New URL as of July 8, 2018: https://beta.observablehq.com/@mbostock/d3-histogram
-    -Author: Mike Bostock
-    -Accessed: August 1, 2017
-    -Licensed under the GNU GPL, version 3.
-    -No license/copyright was provided with the code. (For a copy of
-     the GNU GPL v3, see COPYING.txt in MetagenomeScope's root directory.)
-
--https://getbootstrap.com/docs/3.3/javascript/#modals
-    -Author: Bootstrap team
-    -Accessed: circa January 2017
-    -Licensed under Creative Commons BY 3.0.
-    -A link to the license is located here:
-     https://creativecommons.org/licenses/by/3.0/legalcode
-    -See above for copyright information for Bootstrap.
-
 The Python component of the preprocessing script requires the use of the
 following tools during execution, although they are not distributed with
 MetagenomeScope:
+
+-Python 3
+    -https://www.python.org
+    -Licensed under the Python Software Foundation License
 
 -Graphviz
     -http://www.graphviz.org
@@ -129,18 +101,80 @@ MetagenomeScope:
     -http://pygraphviz.github.io
     -Licensed under the BSD 3-clause License
 
--pysqlite (used as the built-in sqlite3 Python module)
+-pysqlite (used via the built-in sqlite3 Python module)
     -https://github.com/ghaering/pysqlite
-    -License is here: https://github.com/ghaering/pysqlite/blob/master/LICENSE
+    -Licensed under the zlib License
 
 -NumPy
     -http://www.numpy.org
     -Licensed under the BSD 3-clause License
 
--Python 3
-    -https://www.python.org
-    -Licensed under the Python Software Foundation License
-
 -SQLite is used indirectly through pysqlite and sql.js.
     -https://sqlite.org
     -Public domain
+
+The preprocessing script code was converted from Python 2 to Python 3 using
+futurize as a starting point:
+
+-futurize
+    -https://python-future.org/futurize.html
+    -Licensed under the MIT License
+
+Minification of the visualization interface code is done using the following
+tools:
+
+-csso-cli
+    -https://github.com/css/csso-cli
+
+-UglifyJS
+    -https://github.com/mishoo/UglifyJS2
+
+-html-minifier
+    -https://github.com/kangax/html-minifier
+
+Automatic testing, style-checking, and linting is done using the following
+tools that have not been mentioned yet (none of these tools are distributed
+with MetagenomeScope):
+
+-Travis-CI
+    -https://travis-ci.org/
+    -Copyright (C) TRAVIS CI, GMBH
+
+-Codecov
+    -https://codecov.io/
+    -Copyright (C) Codecov 2019
+    -codecov-bash, the script used to upload coverage reports to Codecov
+     during automatic testing, is licensed under the Apache License 2.0.
+     (Code for this is available at https://github.com/codecov/codecov-bash.)
+
+-pytest
+    -https://docs.pytest.org/en/latest/
+    -Licensed under the MIT License
+
+-pytest-cov
+    -https://pytest-cov.readthedocs.io/en/latest/
+    -Licensed under the MIT License
+
+-Flake8
+    -http://flake8.pycqa.org/en/latest/
+    -Licensed under the MIT License
+
+-Black
+    -https://black.readthedocs.io/en/stable/
+    -Licensed under the MIT License
+
+-mocha-headless-chrome
+    -https://github.com/direct-adv-interfaces/mocha-headless-chrome
+    -Licensed under the MIT License
+
+-nyc
+    -https://istanbul.js.org/
+    -Licensed under the ISC License
+
+-Prettier
+    -https://prettier.io/
+    -Licensed under the MIT License
+
+-jshint
+    -https://jshint.com/
+    -Licensed under the MIT License (one file licensed under the JSON License)
