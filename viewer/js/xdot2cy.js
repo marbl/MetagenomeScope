@@ -3057,59 +3057,6 @@ function clearSelectedInfo() {
     }
 }
 
-/* Return a single string containing the DNA sequences of the selected
- * nodes, in FASTA format. NOTE that this only works if nodes in the database
- * have a dnafwd column, which (as of June 7, 2017) they don't. Hence why the
- * button for calling this function is disabled at present.
- * (There's some limits on data URI sizes that, given sufficiently large
- * contigs, is relatively easy to hit -- that's why this feature is
- * disabled at present.)
- */
-function getSelectedNodeDNA() {
-    "use strict";
-    // Get DNA sequences from database file, and append them to a string
-    var dnaStmt;
-    var dnaSeqs = "";
-    var currDnaSeq;
-    var seqIndex;
-    var afterFirstSeqLine;
-    mgsc.SELECTED_NODES.each(function(e, i) {
-        // Is there any way to make this more efficient? Like, via
-        // selecting multiple dnafwd values at once...?
-        dnaStmt = mgsc.CURR_DB.prepare(
-            "SELECT dnafwd FROM nodes WHERE id = ?",
-            [e.id()]
-        );
-        dnaStmt.step();
-        if (i > 0) {
-            dnaSeqs += "\n";
-        }
-        dnaSeqs += ">NODE_" + e.id() + "\n";
-        afterFirstSeqLine = false;
-        currDnaSeq = dnaStmt.getAsObject().dnafwd;
-        for (seqIndex = 0; seqIndex < currDnaSeq.length; seqIndex += 70) {
-            if (afterFirstSeqLine) {
-                dnaSeqs += "\n";
-            } else {
-                afterFirstSeqLine = true;
-            }
-            dnaSeqs += currDnaSeq.substring(seqIndex, seqIndex + 70);
-        }
-        dnaStmt.free();
-    });
-    return dnaSeqs;
-}
-
-/* Exports selected node DNA to a FASTA file via a data URI. */
-function exportSelectedNodeDNA() {
-    "use strict";
-    window.open(
-        "data:text/FASTA;charset=utf-8;base64," +
-            window.btoa(getSelectedNodeDNA()),
-        "_blank"
-    );
-}
-
 /* Fits the graph to all its elements if toSelected is false, and to only
  * selected elements if toSelected is true.
  */
