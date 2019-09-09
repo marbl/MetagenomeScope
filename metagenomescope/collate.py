@@ -172,7 +172,8 @@ parser.add_argument(
     default=False,
     help="""compute data for the SPQR
     "decomposition modes" in MetagenomeScope; necessitates a few additional
-    system requirements (see wiki for details)""",
+    system requirements (see MetagenomeScope's installation instructions
+    wiki page for details)""",
 )
 parser.add_argument(
     "-nt",
