@@ -5130,15 +5130,11 @@ function renderEdgeObject(
     var nonzero = false;
     var ctrlPtDists = "";
     var ctrlPtWeights = "";
-    var currPt, dsp, dtp, w, ws, wt;
+    var currPt, pld, pldsquared, dsp, dtp, w, ws, wt;
     for (var p = 0; p < ctrlPtLen; p++) {
         currPt = ctrlPts[p];
-        // TODO inefficiency here -- rework pointToLineDistance.
-        var d = -pointToLineDistance(
-            currPt,
-            { x: srcPos[0], y: srcPos[1] },
-            { x: tgtPos[0], y: tgtPos[1] }
-        );
+        pld = pointToLineDistance(currPt, srcPos, tgtPos);
+        pldsquared = Math.pow(pld, 2);
         dsp = distance(currPt, srcPos);
         dtp = distance(currPt, tgtPos);
         // By the pythagorean thm., the interior of the square root
@@ -5152,8 +5148,8 @@ function renderEdgeObject(
         // these cases, we just take the abs. value of the sqrt body.
         // NOTE that ws = distance on line to source;
         //           wt = distance on line to target
-        ws = Math.sqrt(Math.abs(Math.pow(dsp, 2) - Math.pow(d, 2)));
-        wt = Math.sqrt(Math.abs(Math.pow(dtp, 2) - Math.pow(d, 2)));
+        ws = Math.sqrt(Math.abs(Math.pow(dsp, 2) - pldsquared));
+        wt = Math.sqrt(Math.abs(Math.pow(dtp, 2) - pldsquared));
         // Get the weight of the control point on the line between
         // source and sink oriented properly -- if the control point is
         // "behind" the source node, we make it negative, and if the
@@ -5169,7 +5165,7 @@ function renderEdgeObject(
         // If we detect all of the control points of an edge are less
         // than some epsilon value, we just render the edge as a normal
         // bezier (which defaults to a straight line).
-        if (Math.abs(d) > mgsc.CTRL_PT_DIST_EPSILON) {
+        if (Math.abs(pld) > mgsc.CTRL_PT_DIST_EPSILON) {
             nonzero = true;
         }
         // Control points with a weight of 0 (as the first ctrl pt)
@@ -5182,7 +5178,7 @@ function renderEdgeObject(
         } else if (p === ctrlPtLen - 1 && w === 1.0) {
             w = 0.99;
         }
-        ctrlPtDists += d.toFixed(2) + " ";
+        ctrlPtDists += pld.toFixed(2) + " ";
         ctrlPtWeights += w.toFixed(2) + " ";
     }
     ctrlPtDists = ctrlPtDists.trim();
@@ -5241,19 +5237,56 @@ function distance(point1, point2) {
     );
 }
 
-/* Given a line that passes through two Nodes -- lNode1 and lNode2
- * -- this function returns the perpendicular distance from a point to the
- * line.
+/* Given a line that passes through two points (linePoint1 and linePoint2),
+ * this function returns the perpendicular distance from a point to the
+ * line. This assumes all points are given as lists in the form [x, y].
+ *
+ * Note that, unlike most formulations of point-to-line-distance, the value
+ * returned here isn't necessarily nonnegative. This is because Cytoscape.js
+ * expects the control-point-distances used for unbundled-bezier edges to have
+ * a sign based on which "side" of the line from source node to sink node
+ * they're on:
+ *
+ *       negative
+ * SOURCE ------> TARGET
+ *       positive
+ *
+ * So here, if this edge has a bend "upwards," we'd give the corresponding
+ * control point a negative distance from the line, and if the bend was
+ * "downwards" it'd have a positive distance from the line. You can see this
+ * for yourself here (http://js.cytoscape.org/demos/edge-types/) -- notice how
+ * the control-point-distances for the unbundled-bezier (multiple) edge are
+ * [40, -40] (a downward bend, then an upwards bend).
+ *
+ * What that means here is that we don't take the absolute value of the
+ * numerator in this formula; instead, we negate it. This makes these distances
+ * match up with what Cytoscape.js expects. (I'll be honest: I don't know why
+ * this works. This is just what I found back in 2016. As a big heaping TODO,
+ * I should really make this more consistent, or at least figure out *why* this
+ * works -- it's worth noting that if you swap around linePoint1 and
+ * linePoint2, this'll negate the distance you get, and I have no idea why this
+ * is working right now.)
+ *
+ * Also note that, if distance(linePoint1, linePoint2) is equal to 0, this
+ * will throw an Error (since this would make the point-to-line-distance
+ * formula undefined, due to having 0 in the denominator). So don't define a
+ * line by the same point twice!
+ *
+ * CODELINK: The formula used here is based on
+ * https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points.
  */
-function pointToLineDistance(point, lNode1, lNode2) {
+function pointToLineDistance(point, linePoint1, linePoint2) {
     "use strict";
-    var lDist = distance([lNode1.x, lNode1.y], [lNode2.x, lNode2.y]);
-    if (lDist === 0) {
-        return 0;
+    var lineDistance = distance(linePoint1, linePoint2);
+    if (lineDistance === 0) {
+        throw new Error(
+            "pointToLineDistance() given a line of the same point twice"
+        );
     }
-    var ydelta = lNode2.y - lNode1.y;
-    var xdelta = lNode2.x - lNode1.x;
-    var consts = lNode2.x * lNode1.y - lNode2.y * lNode1.x;
-    var numer = ydelta * point[0] - xdelta * point[1] + consts;
-    return numer / lDist;
+    var ydelta = linePoint2[1] - linePoint1[1];
+    var xdelta = linePoint2[0] - linePoint1[0];
+    var x2y1 = linePoint2[0] * linePoint1[1];
+    var y2x1 = linePoint2[1] * linePoint1[0];
+    var numerator = ydelta * point[0] - xdelta * point[1] + x2y1 - y2x1;
+    return -numerator / lineDistance;
 }
