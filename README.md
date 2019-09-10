@@ -85,8 +85,9 @@ Also, this is just how things came together during development :)
 
 ## Documentation
 
-Documentation on MetagenomeScope -- **including installation
-instructions for the preprocessing script** -- is available at its GitHub wiki,
+Documentation for MetagenomeScope --
+**including [installation instructions for the preprocessing script](https://github.com/marbl/MetagenomeScope/wiki/Installation-Instructions)**
+-- is available on its GitHub wiki,
 located [here](https://github.com/marbl/MetagenomeScope/wiki).
 
 ## Demo
