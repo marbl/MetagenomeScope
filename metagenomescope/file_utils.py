@@ -1,4 +1,5 @@
 import os
+import errno
 from . import config
 from .msg_utils import operation_msg
 
