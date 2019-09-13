@@ -1,7 +1,7 @@
 import networkx as nx
-from .basic_objects import Node
 from ..input_node_utils import gc_content, negate_node_id
 
+# from .basic_objects import Node
 # import gfapy
 
 
