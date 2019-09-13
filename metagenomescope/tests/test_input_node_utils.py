@@ -67,6 +67,9 @@ def test_gc_content():
 
 
 def test_negate_node_id():
+    with pytest.raises(ValueError) as ei:
+        input_node_utils.negate_node_id("")
+    assert "Can't negate an empty node ID" in str(ei.value)
     assert input_node_utils.negate_node_id("1") == "-1"
     assert input_node_utils.negate_node_id("-3") == "3"
     assert input_node_utils.negate_node_id("20") == "-20"
