@@ -1,14 +1,14 @@
 # MetagenomeScope Preprocessing Script Tests
 
-This directory contains test code for MetagenomeScope. As you can see, there
-aren't a lot of these yet; I'm planning on adding a lot more.
+This directory contains test code for MetagenomeScope's preprocessing script.
+As you can see, there aren't a lot of these yet; I'm planning on adding a lot
+more.
 
 ## Running Tests
 
-From the root of the MetagenomeScope repository, run `make generaltest` to test
-everything but the `-spqr` tests and `make spqrtest` to test things specific to
-the `-spqr` option (which has some extra installation requirements). You can
-also just run `make test` to run both types of tests.
+From the root of the MetagenomeScope repository, run `make pytest` to test
+all preprocessing script tests and run `make spqrtest` to test things specific
+to the `-spqr` option (which has some extra installation requirements).
 
 ### Notes About Running Tests
 
@@ -18,11 +18,6 @@ also just run `make test` to run both types of tests.
 * These various `make test` commands all assume they're being run from the root of
   the MetagenomeScope repository -- running them from elsewhere will probably cause
   them to fail.
-
-* After running `make generaltest` or `make spqrtest`, the
-  `tests/graph_collator/output` directory will be emptied (to avoid buildup of
-  test files on your system). You can disable this behavior by removing the
-  "rm tests/output/\*" lines from the corresponding targets in the Makefile.
 
 ## Test Data Acknowledgements (`input/`)
 
