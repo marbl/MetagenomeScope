@@ -22,9 +22,9 @@
 # https://docs.pytest.org/en/latest/capture.html (section "Accessing captured
 # output from a test function").
 
-import pytest
 from metagenomescope import msg_utils
 from metagenomescope.config import DONE_MSG
+
 
 def test_operation_msg(capsys):
     msg_utils.operation_msg("message test")
