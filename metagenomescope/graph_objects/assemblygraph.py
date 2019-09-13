@@ -16,7 +16,7 @@ class AssemblyGraph(object):
        rather than subclassing nx.DiGraph, this class just contains an instance
        of nx.DiGraph (self.digraph) that we occasionally delegate to.
 
-       CODELINK: This paradigm was implemented based on this post:
+       CODELINK: This "composition" paradigm was based on this post:
        https://www.thedigitalcatonline.com/blog/2014/08/20/python-3-oop-part-3-delegation-composition-and-inheritance/
     """
 
