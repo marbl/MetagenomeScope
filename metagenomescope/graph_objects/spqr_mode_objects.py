@@ -1,5 +1,5 @@
 from .. import config
-from .basic_objects import NodeGroup, Node
+from .basic_objects import Edge, NodeGroup
 import uuid
 import pygraphviz
 
@@ -408,4 +408,3 @@ class Bicomponent(NodeGroup):
             self.xdot_iright,
             self.xdot_itop,
         )
-

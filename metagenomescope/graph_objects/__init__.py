@@ -5,6 +5,16 @@ from .spqr_mode_objects import SPQRMetaNode, Bicomponent
 from .basic_objects import Edge, Node, NodeGroup
 
 __all__ = [
-    "AssemblyGraph", "Component", "Bubble", "Rope", "Chain", "Cycle",
-    "MiscPattern", "SPQRMetaNode", "Bicomponent", "Edge", "Node", "NodeGroup"
+    "AssemblyGraph",
+    "Component",
+    "Bubble",
+    "Rope",
+    "Chain",
+    "Cycle",
+    "MiscPattern",
+    "SPQRMetaNode",
+    "Bicomponent",
+    "Edge",
+    "Node",
+    "NodeGroup",
 ]

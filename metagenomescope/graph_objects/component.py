@@ -1,5 +1,6 @@
 from .. import config
 
+
 class Component(object):
     """A connected component in the graph. We use this in order to
        maintain meta-information, such as node groups, for each connected

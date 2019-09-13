@@ -1,5 +1,7 @@
 import networkx as nx
-import gfapy
+
+# import gfapy
+
 
 class AssemblyGraph(object):
     """Representation of an input assembly graph.
@@ -29,7 +31,6 @@ class AssemblyGraph(object):
         self.edges = []
         self.components = []
 
-
     def _sniff_filetype(self):
         """Attempts to determine the filetype of the file specified by
            self.filename.
@@ -54,13 +55,14 @@ class AssemblyGraph(object):
 
     @staticmethod
     def parse_gml(filename):
-        digraph = nx.gml.read_gml(filename)
-        nodes = digraph.nodes()
-
+        pass
+        # digraph = nx.gml.read_gml(filename)
+        # nodes = digraph.nodes()
 
     @staticmethod
     def parse_gfa(filename):
-        gfa_graph = gfapy.Gfa.from_file(filename)
+        pass
+        # gfa_graph = gfapy.Gfa.from_file(filename)
         # get nodes, convert to nx digraph, ...
 
     @staticmethod

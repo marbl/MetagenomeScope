@@ -1,5 +1,6 @@
 from .basic_objects import NodeGroup, Node
 
+
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.
 
