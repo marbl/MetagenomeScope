@@ -1,4 +1,5 @@
 [run]
+source = metagenomescope/
 branch = True
 omit =
     metagenomescope/tests/*
