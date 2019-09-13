@@ -1,4 +1,6 @@
 import networkx as nx
+from .basic_objects import Node
+from ..input_node_utils import gc_content, negate_node_id
 
 # import gfapy
 
@@ -26,7 +28,7 @@ class AssemblyGraph(object):
            nodes and edges.
         """
         self.filename = filename
-        self.digraph = nx.DiGraph()
+        self.digraph = None
         self.nodes = []
         self.edges = []
         self.components = []
@@ -73,9 +75,106 @@ class AssemblyGraph(object):
 
     @staticmethod
     def parse_lastgraph(filename):
-        # gotta do this line by line, i guess
-        # .. build up nx digraph, etc
-        pass
+        """Returns a nx.DiGraph representation of a LastGraph (Velvet) file.
+
+        As far as I'm aware, there isn't a standard LastGraph parser available
+        for Python. This function, then, just uses a simple line-by-line
+        parser. It's not a very smart parser, so if your LastGraph file isn't
+        "standard" (e.g. has empty lines between nodes), this will get messed
+        up.
+
+        Fun fact: this parser was the first part of MetagenomeScope I ever
+        wrote! (I've updated the code since to be a bit less sloppy.)
+
+        References
+        ----------
+        https://www.ebi.ac.uk/~zerbino/velvet/Manual.pdf
+            Includes documentation of the LastGraph file format in section
+            4.2.4.
+
+        https://github.com/rrwick/Bandage
+            The behavior of the LastGraph parser here (i.e. calculating depth
+            as $O_COV_SHORT_1 / $COV_SHORT_1) was primarily based on chucking
+            LastGraph files into Bandage and seeing how it handled them.
+        """
+        digraph = nx.DiGraph()
+        with open(filename, "r") as graph_file:
+            parsing_node = False
+            parsed_fwdseq = False
+            curr_node_attrs = {
+                "id": "",
+                "length": -1,
+                "depth": -1,
+                "fwdseq": None,
+                "revseq": None,
+            }
+            for line in graph_file:
+                if line.startswith("NODE"):
+                    parsing_node = True
+                    line_contents = line.split()
+                    curr_node_attrs["id"] = line_contents[1]
+                    if curr_node_attrs["id"][0] == "-":
+                        raise ValueError(
+                            "Node IDs in the input assembly graph cannot "
+                            'start with the "-" character.'
+                        )
+                    curr_node_attrs["length"] = int(line_contents[2])
+                    # NOTE: we define "depth" as just the node's O_COV_SHORT_1
+                    # value divided by the node's length (its COV_SHORT_1
+                    # value). This decision mirrors Bandage's behavior with
+                    # LastGraph files.
+                    curr_node_attrs["depth"] = (
+                        float(line_contents[3]) / curr_node_attrs["length"]
+                    )
+                elif line.startswith("ARC"):
+                    line_contents = line.split()
+                    id1, id2 = line_contents[1], line_contents[2]
+                    nid1 = negate_node_id(line_contents[1])
+                    nid2 = negate_node_id(line_contents[2])
+                    multiplicity = int(line_contents[3])
+                    digraph.add_edge(id1, id2, multiplicity=multiplicity)
+                    # Only add implied edge if the edge does not imply itself
+                    # (e.g. "ABC" -> "-ABC" or "-ABC" -> "ABC")
+                    if not (id1 == nid2 and id2 == nid1):
+                        digraph.add_edge(nid2, nid1, multiplicity=multiplicity)
+                elif parsing_node:
+                    if not parsed_fwdseq:
+                        curr_node_attrs["fwdseq"] = line.strip()
+                        # OK, now we've read in two lines: the first line of
+                        # this node (describing general information), and the
+                        # second line of this node (containing the forward
+                        # sequence, a.k.a. $ENDS_OF_KMERS_OF_NODE). We can
+                        # add a node for the "positive" node to the digraph.
+                        digraph.add_node(
+                            curr_node_attrs["id"],
+                            length=curr_node_attrs["length"],
+                            depth=curr_node_attrs["depth"],
+                            gc_content=gc_content(curr_node_attrs["fwdseq"]),
+                        )
+                        parsed_fwdseq = True
+                    else:
+                        curr_node_attrs["revseq"] = line.strip()
+                        # Now we can add a node for the "negative" node.
+                        digraph.add_node
+                        digraph.add_node(
+                            negate_node_id(curr_node_attrs["id"]),
+                            length=curr_node_attrs["length"],
+                            depth=curr_node_attrs["depth"],
+                            gc_content=gc_content(curr_node_attrs["revseq"]),
+                        )
+                        # At this point, we're done with parsing this node.
+                        # Clear our temporary variables for later use if
+                        # parsing other nodes.
+                        parsing_node = False
+                        parsed_fwdseq = False
+                        curr_node_attrs = {
+                            "id": "",
+                            "length": -1,
+                            "depth": -1,
+                            "fwdseq": None,
+                            "revseq": None,
+                        }
+        return digraph
 
     def parse(self):
         putative_filetype = self._sniff_filetype()
@@ -97,3 +196,8 @@ class AssemblyGraph(object):
                 "Unknown filetype ({}) identified for assembly "
                 "graph parsing.".format(putative_filetype)
             )
+
+        # TODO convert the digraph into a collection of Node/Edge objects (i.e.
+        # populate the current class).
+        # Then we can just continue with the preprocessing script as normal
+        # (pattern detection, layout, ...)

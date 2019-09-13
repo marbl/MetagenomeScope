@@ -57,6 +57,7 @@ import time
 
 from . import graph_objects
 from . import config
+from .input_node_utils import gc_content, reverse_complement, negate_node_id
 
 # Define supported command-line arguments. (We don't actually run
 # parser.parse_args() until later on, in order to support use of this file
@@ -341,51 +342,6 @@ def dfs(n):
     return nodes_in_ccomponent
 
 
-def reverse_complement(dna_string):
-    """Returns the reverse complement of a string of DNA.
-
-       e.g. reverse_complement("GCATATA") == "TATATGC"
-
-       This is used when getting data from GFA files (which only include
-       positive DNA sequence information).
-
-       Note that this will break on invalid DNA input (so inputs like RNA
-       or protein sequences, or sequences that contain spaces, will cause
-       this to fail).
-    """
-    rc = ""
-    dna_last_char_index = len(dna_string) - 1
-    for nt in range(dna_last_char_index, -1, -1):
-        rc += config.COMPLEMENT[dna_string[nt]]
-    return rc
-
-
-def gc_content(dna_string):
-    """Returns the GC content (as a float in the range [0, 1]) of a string of
-       DNA, in a 2-tuple with the second element of the tuple being the
-       actual number of Gs and Cs in the dna_string.
-
-       Assumes that the string of DNA only contains nucleotides (e.g., it
-       doesn't contain any spaces). Passing in an empty string ("") will cause
-       this to return (0, 0).
-
-       For reference, the GC content of a DNA sequence is the percentage of
-       nucleotides within the sequence that are either G (guanine) or C
-       (cytosine).
-
-       e.g. gc_content("GCATTCAC") == (0.5, 4)
-    """
-    # len() of a str is a constant-time operation in Python
-    seq_len = len(dna_string)
-    if seq_len == 0:
-        return (0, 0)
-    gc_ct = 0
-    for nt in dna_string:
-        if nt == "G" or nt == "C":
-            gc_ct += 1
-    return (float(gc_ct) / seq_len), gc_ct
-
-
 def assembly_gc(gc_ct, total_bp):
     """Returns the G/C content of an assembly, where total_bp is the number of
        base pairs (2 * the number of nucleotides) and gc_ct is the number of
@@ -395,17 +351,6 @@ def assembly_gc(gc_ct, total_bp):
         return None
     else:
         return float(gc_ct) / (2 * total_bp)
-
-
-def negate_node_id(id_string):
-    """Negates a node ID.
-
-       e.g. "-18" -> "18", "18" -> "-18"
-    """
-    if id_string[0] == "-":
-        return id_string[1:]
-    else:
-        return "-" + id_string
 
 
 def fastg_long_id_to_id(fastg_id_string):
@@ -742,10 +687,12 @@ def collate_graph(args):
     # List of all the node lengths in the assembly. Used when calculating n50.
     bp_length_list = []
 
-    # Below "with" block parses the assembly file.
-    # Please consult the README for the most accurate list of assembly graph
-    # filetypes supported.
+    # Parse assembly graph
     operation_msg(config.READ_FILE_MSG + "%s..." % (os.path.basename(asm_fn)))
+    # NOTE: in the future, this will be as simple as --
+    # asm_graph = graph_objects.AssemblyGraph(asm_fn)
+    # asm_graph.parse()
+
     with open(asm_fn, "r") as assembly_file:
         # We don't really care about case in file extensions
         lowercase_asm_fn = asm_fn.lower()
