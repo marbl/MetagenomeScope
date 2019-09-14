@@ -57,6 +57,10 @@ import time
 
 from . import graph_objects
 from . import config
+
+# NOTE: We really shouldn't need to use reverse_complement() at all, I think,
+# but in the future we can just use gfapy's rc() function (which is much more
+# robust).
 from .input_node_utils import gc_content, reverse_complement, negate_node_id
 from .file_utils import check_file_existence, safe_file_remove, save_aux_file
 from .msg_utils import operation_msg, conclude_msg
