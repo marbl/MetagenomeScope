@@ -532,7 +532,6 @@ def collate_graph(args):
     operation_msg(config.READ_FILE_MSG + "%s..." % (os.path.basename(asm_fn)))
     # NOTE: in the future, this will be as simple as --
     # asm_graph = graph_objects.AssemblyGraph(asm_fn)
-    # asm_graph.parse()
 
     with open(asm_fn, "r") as assembly_file:
         # We don't really care about case in file extensions
