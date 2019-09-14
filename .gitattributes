@@ -4,3 +4,4 @@ viewer/headless_tests_index.html linguist-generated=true
 *.min.css linguist-generated=true
 *.min.html linguist-generated=true
 viewer/tests/vendor/* linguist-vendored=true
+metagenomescope/cmdline.h linguist-vendored=true
