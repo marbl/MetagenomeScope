@@ -7,6 +7,33 @@ from metagenomescope.assembly_graph_parser import (
 )
 
 
+def get_validate_error(glines):
+    # What this is doing: create a string consisting of all the lines in
+    # glines, separated by newlines, then shove that into a StringIO.
+    bad_lg = StringIO("\n".join(glines))
+    # Assume that the LastGraph file represented by bad_lg will fail
+    # validation, and return the accompanying error message.
+    # (If a ValueError *isn't* raised, this'll throw an error saying DID NOT
+    # RAISE or something.)
+    with pytest.raises(ValueError) as ei:
+        attempt_to_validate_lastgraph_file(bad_lg)
+    return str(ei.value)
+
+
+def reset_glines():
+    return [
+        "2\t10\t1\t1",
+        "NODE\t1\t1\t5\t5\t0\t0",
+        "G",
+        "C",
+        "NODE\t2\t6\t20\t5\t0\t0",
+        "GGAAGG",
+        "TTTTAC",
+        "ARC\t1\t2\t5",
+        "ARC\t2\t1\t9",
+    ]
+
+
 def test_validate_lastgraph():
     # Try out some known-to-be-correct examples
     with open("metagenomescope/tests/input/cycletest_LastGraph", "r") as ctlg:
@@ -14,37 +41,49 @@ def test_validate_lastgraph():
     with open("metagenomescope/tests/input/longtest_LastGraph", "r") as ltlg:
         attempt_to_validate_lastgraph_file(ltlg)
 
-    # Okay, now let's try to break things. We'll use graph_lines as a base for
+    # Okay, now let's try to break things. We'll use glines as a base for
     # the forthcoming cases.
-    graph_lines = [
-        "2\t10\t1\t1",
-        "NODE\t1\t1\t5\t5\t0\t0",
-        "G",
-        "NODE\t2\t6\t20\t5\t0\t0",
-        "GGAAGG",
-        "TTTTAC",
-        "ARC\t1\t2\t5",
-        "ARC\t2\t1\t9",
-    ]
-    # What this is doing: create a string consisting of all the lines in
-    # graph_lines, separated by newlines, then shove that into a StringIO. This
-    # lets us easily simulate a file stream, which lets us test a bunch of
-    # stuff without creating a billion input files.
-    bad_lg = StringIO("\n".join(graph_lines))
+    glines = reset_glines()
 
     # Here, we test the error where a NODE block is interrupted by the
     # declaration of another NODE.
-    with pytest.raises(ValueError) as ei:
-        attempt_to_validate_lastgraph_file(bad_lg)
-    assert "Line 4: Node block ends too early." in str(ei.value)
+    # Remove the fourth line of the file (it's 0-indexed, hence 3).
+    glines.pop(3)
+    assert "Line 4: Node block ends too early." in get_validate_error(glines)
+
     # Now, test the same thing but with an ARC line being the "interruptor."
     # We'll also do this one line earlier, to switch things up.
-    graph_lines[2] = "ARC\t1\t1\t5"
-    graph_lines[3] = "G"
-    bad_lg = StringIO("\n".join(graph_lines))
-    with pytest.raises(ValueError) as ei:
-        attempt_to_validate_lastgraph_file(bad_lg)
-    assert "Line 3: Node block ends too early." in str(ei.value)
+    glines = reset_glines()
+    glines[2] = "ARC\t1\t1\t5"
+    assert "Line 3: Node block ends too early." in get_validate_error(glines)
+
+    # Test cases where the specified number of nodes isn't an int value
+    glines = reset_glines()
+    glines[0] = "3.5\t10\t1\t1"
+    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_error(
+        glines
+    )
+    glines[0] = "ABC\t10\t1\t1"
+    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_error(
+        glines
+    )
+    glines[0] = "0x123\t10\t1\t1"
+    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_error(
+        glines
+    )
+
+    # Test insufficient node declarations
+    glines = reset_glines()
+    glines[4] = "NODE\t2"
+    assert (
+        "Line 5: Node declaration doesn't include enough fields"
+        in get_validate_error(glines)
+    )
+    glines[4] = "NODE\t2\t6"
+    assert (
+        "Line 5: Node declaration doesn't include enough fields"
+        in get_validate_error(glines)
+    )
 
 
 def test_parse_lastgraph():
