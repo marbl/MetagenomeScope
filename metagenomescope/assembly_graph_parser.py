@@ -109,7 +109,7 @@ def attempt_to_validate_lastgraph_file(graph_file):
                 )
             header_num_nodes = int(header_num_nodes_str)
 
-        if line.startswith("NODE"):
+        if line.startswith("NODE\t"):
             if in_node_block:
                 raise ValueError(
                     "Line {}: Node block ends too early.".format(line_num)
@@ -142,7 +142,7 @@ def attempt_to_validate_lastgraph_file(graph_file):
             in_node_block = True
             num_nodes += 1
 
-        elif line.startswith("ARC"):
+        elif line.startswith("ARC\t"):
             if in_node_block:
                 raise ValueError(
                     "Line {}: Node block ends too early.".format(line_num)
