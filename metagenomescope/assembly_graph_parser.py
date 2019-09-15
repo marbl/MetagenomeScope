@@ -123,7 +123,7 @@ def attempt_to_validate_lastgraph_file(graph_file):
             if not split_line[2].isdigit() or not split_line[3].isdigit():
                 raise ValueError(
                     "Line {}: The $COV_SHORT1 and $O_COV_SHORT1 values "
-                    "must be integer values.".format(line_num)
+                    "must be integers.".format(line_num)
                 )
             if split_line[1][0] == "-":
                 raise ValueError(
@@ -156,7 +156,7 @@ def attempt_to_validate_lastgraph_file(graph_file):
             if not split_line[2].isdigit():
                 raise ValueError(
                     "Line {}: The $MULTIPLICITY value of an arc must be "
-                    "an integer value.".format(line_num)
+                    "an integer.".format(line_num)
                 )
             for node_id in split_line[1:3]:
                 if node_id not in seen_nodes:

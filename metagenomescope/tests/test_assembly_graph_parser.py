@@ -7,7 +7,7 @@ from metagenomescope.assembly_graph_parser import (
 )
 
 
-def get_validate_error(glines):
+def get_validate_err(glines):
     # What this is doing: create a string consisting of all the lines in
     # glines, separated by newlines, then shove that into a StringIO.
     bad_lg = StringIO("\n".join(glines))
@@ -49,26 +49,26 @@ def test_validate_lastgraph():
     # declaration of another NODE.
     # Remove the fourth line of the file (it's 0-indexed, hence 3).
     glines.pop(3)
-    assert "Line 4: Node block ends too early." in get_validate_error(glines)
+    assert "Line 4: Node block ends too early." in get_validate_err(glines)
 
     # Now, test the same thing but with an ARC line being the "interruptor."
     # We'll also do this one line earlier, to switch things up.
     glines = reset_glines()
     glines[2] = "ARC\t1\t1\t5"
-    assert "Line 3: Node block ends too early." in get_validate_error(glines)
+    assert "Line 3: Node block ends too early." in get_validate_err(glines)
 
     # Test cases where the specified number of nodes isn't an int value
     glines = reset_glines()
     glines[0] = "3.5\t10\t1\t1"
-    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_error(
+    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_err(
         glines
     )
     glines[0] = "ABC\t10\t1\t1"
-    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_error(
+    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_err(
         glines
     )
     glines[0] = "0x123\t10\t1\t1"
-    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_error(
+    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_err(
         glines
     )
 
@@ -77,12 +77,54 @@ def test_validate_lastgraph():
     glines[4] = "NODE\t2"
     assert (
         "Line 5: Node declaration doesn't include enough fields"
-        in get_validate_error(glines)
+        in get_validate_err(glines)
     )
     glines[4] = "NODE\t2\t6"
     assert (
         "Line 5: Node declaration doesn't include enough fields"
-        in get_validate_error(glines)
+        in get_validate_err(glines)
+    )
+    # Test node declarations where $COV_SHORT1 or $O_COV_SHORT1 are not ints
+    glines = reset_glines()
+    exp_msg = (
+        "Line 5: The $COV_SHORT1 and $O_COV_SHORT1 values must be integers."
+    )
+    glines[4] = "NODE\t2\t6.0\t20\t5\t0\t0"
+    assert exp_msg in get_validate_err(glines)
+    glines[4] = "NODE\t2\t6\t20.0\t5\t0\t0"
+    assert exp_msg in get_validate_err(glines)
+    glines[4] = "NODE\t2\tABC\t20\t5\t0\t0"
+    assert exp_msg in get_validate_err(glines)
+    glines[4] = "NODE\t2\t6\tABC\t5\t0\t0"
+    assert exp_msg in get_validate_err(glines)
+    glines[4] = "NODE\t2\tABC\tABC\t5\t0\t0"
+    assert exp_msg in get_validate_err(glines)
+
+    # Test node declarations where the ID starts with a minus sign (-)
+    glines = reset_glines()
+    glines[1] = "NODE\t-1\t1\t5\t5\t0\t0"
+    assert "Line 2: Node IDs can't start with '-'." in get_validate_err(glines)
+    glines[1] = "NODE\t-ABC\t1\t5\t5\t0\t0"
+    assert "Line 2: Node IDs can't start with '-'." in get_validate_err(glines)
+    glines[1] = "NODE\t1\t1\t5\t5\t0\t0"
+    glines[4] = "NODE\t-2\t6\t20\t5\t0\t0"
+    assert "Line 5: Node IDs can't start with '-'." in get_validate_err(glines)
+
+    # Test repeat node declarations
+    glines = reset_glines()
+    glines[1] = "NODE\t2\t1\t5\t5\t0\t0"
+    assert "Line 5: Node ID 2 declared multiple times." in get_validate_err(
+        glines
+    )
+    glines[1] = "NODE\t1\t1\t5\t5\t0\t0"
+    glines[4] = "NODE\t1\t6\t20\t5\t0\t0"
+    assert "Line 5: Node ID 1 declared multiple times." in get_validate_err(
+        glines
+    )
+    glines[1] = "NODE\tABC\t1\t5\t5\t0\t0"
+    glines[4] = "NODE\tABC\t6\t20\t5\t0\t0"
+    assert "Line 5: Node ID ABC declared multiple times." in get_validate_err(
+        glines
     )
 
 
