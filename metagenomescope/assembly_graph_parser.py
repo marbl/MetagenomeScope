@@ -55,7 +55,7 @@ def is_not_pos_int(number_string):
     return not number_string.isdigit() or int(number_string) <= 0
 
 
-def attempt_to_validate_lastgraph_file(graph_file):
+def validate_lastgraph_file(graph_file):
     """Attempts to verify that this LastGraph file seems "valid."
 
     Parameters
@@ -308,9 +308,9 @@ def parse_lastgraph(filename):
         LastGraph files into Bandage and seeing how it handled them.
     """
     with open(filename, "r") as graph_file:
-        attempt_to_validate_lastgraph_file(graph_file)
-        # If attempt_to_validate_lastgraph_file() succeeded, we shouldn't have
-        # any problems parsing this assembly graph.
+        validate_lastgraph_file(graph_file)
+        # If validate_lastgraph_file() succeeded, we shouldn't have any
+        # problems parsing this assembly graph.
 
         # Now, go back to the start of the file so we can actually *parse* it
         # this time, instead of just checking it for correctness.

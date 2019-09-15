@@ -1,7 +1,7 @@
 import pytest
 from io import StringIO
 from metagenomescope.assembly_graph_parser import (
-    attempt_to_validate_lastgraph_file,
+    validate_lastgraph_file,
     is_not_pos_int,
 )
 
@@ -15,14 +15,14 @@ def get_validate_err(glines):
     # (If a ValueError *isn't* raised, this'll throw an error saying DID NOT
     # RAISE or something.)
     with pytest.raises(ValueError) as ei:
-        attempt_to_validate_lastgraph_file(bad_lg)
+        validate_lastgraph_file(bad_lg)
     return str(ei.value)
 
 
 def run_validate(glines):
     # Like get_validate_err(), but this assumes that validation will work.
     good_lg = StringIO("\n".join(glines))
-    attempt_to_validate_lastgraph_file(good_lg)
+    validate_lastgraph_file(good_lg)
 
 
 def reset_glines():
@@ -42,9 +42,9 @@ def reset_glines():
 def test_validate_lastgraph_good():
     # Try out some known-to-be-correct examples
     with open("metagenomescope/tests/input/cycletest_LastGraph", "r") as ctlg:
-        attempt_to_validate_lastgraph_file(ctlg)
+        validate_lastgraph_file(ctlg)
     with open("metagenomescope/tests/input/longtest_LastGraph", "r") as ltlg:
-        attempt_to_validate_lastgraph_file(ltlg)
+        validate_lastgraph_file(ltlg)
     # Okay, now we'll try to break things.
 
 
