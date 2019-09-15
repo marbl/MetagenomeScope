@@ -113,6 +113,7 @@ def validate_lastgraph_file(graph_file):
     curr_node_length = 0
     line_num = 1
     seen_nodes = []
+    seen_edges = []
     for line in graph_file:
         if line_num == 1:
             header_num_nodes_str = line.split()[0]
@@ -182,6 +183,20 @@ def validate_lastgraph_file(graph_file):
                         "Line {}: Unseen node {} referred to in an "
                         "arc.".format(line_num, node_id)
                     )
+            fwd_ids = (split_line[1], split_line[2])
+            rev_ids = (
+                negate_node_id(split_line[2]),
+                negate_node_id(split_line[1]),
+            )
+            # If rev_ids is in seen_edges, then so is fwd_ids. No need to check
+            # both here.
+            if fwd_ids in seen_edges:
+                raise ValueError(
+                    "Line {}: Edge from {} to {} somehow declared multiple "
+                    "times.".format(line_num, split_line[1], split_line[2])
+                )
+            seen_edges.append(fwd_ids)
+            seen_edges.append(rev_ids)
         elif in_node_block:
             if curr_node_fwdseq is None:
                 curr_node_fwdseq = line.strip()

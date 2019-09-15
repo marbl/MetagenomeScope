@@ -149,6 +149,30 @@ def test_validate_lastgraph_repeat_node_declaration():
     )
 
 
+def test_validate_lastgraph_repeat_edge_declaration():
+    glines = reset_glines()
+    glines[7] = "ARC\t2\t1\t5"
+    assert (
+        "Line 9: Edge from 2 to 1 somehow declared multiple times."
+        in get_validate_err(glines)
+    )
+
+    glines = reset_glines()
+    # -1 -> -2 implies 2 -> 1, which declared after this
+    glines[7] = "ARC\t-1\t-2\t5"
+    assert (
+        "Line 9: Edge from 2 to 1 somehow declared multiple times."
+        in get_validate_err(glines)
+    )
+
+    glines = reset_glines()
+    glines[8] = "ARC\t1\t2\t9"
+    assert (
+        "Line 9: Edge from 1 to 2 somehow declared multiple times."
+        in get_validate_err(glines)
+    )
+
+
 def test_validate_lastgraph_insufficent_edge_declaration():
     # Test insufficient arc (edge) declarations
     glines = reset_glines()
@@ -191,7 +215,7 @@ def test_validate_lastgraph_unseen_node_in_edge():
     # This *should* work, though. Referring to negations of nodes is ok.
     glines[7] = "ARC\t-1\t2\t5"
     run_validate(glines)
-    glines[7] = "ARC\t-1\t-2\t5"
+    glines[7] = "ARC\t1\t-2\t5"
     run_validate(glines)
 
 
