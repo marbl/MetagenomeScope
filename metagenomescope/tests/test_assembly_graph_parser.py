@@ -20,6 +20,12 @@ def get_validate_err(glines):
     return str(ei.value)
 
 
+def run_validate(glines):
+    # Like get_validate_err(), but this assumes that validation will work.
+    good_lg = StringIO("\n".join(glines))
+    attempt_to_validate_lastgraph_file(good_lg)
+
+
 def reset_glines():
     return [
         "2\t10\t1\t1",
@@ -59,35 +65,33 @@ def test_validate_lastgraph():
 
     # Test cases where the specified number of nodes isn't an int value
     glines = reset_glines()
+    exp_msg = "Line 1: $NUMBER_OF_NODES must be a positive integer"
     glines[0] = "3.5\t10\t1\t1"
-    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_err(
-        glines
-    )
+    assert exp_msg in get_validate_err(glines)
+    glines[0] = "-3.5\t10\t1\t1"
+    assert exp_msg in get_validate_err(glines)
+    glines[0] = "-2\t10\t1\t1"
+    assert exp_msg in get_validate_err(glines)
+    glines[0] = "2.0\t10\t1\t1"
+    assert exp_msg in get_validate_err(glines)
     glines[0] = "ABC\t10\t1\t1"
-    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_err(
-        glines
-    )
+    assert exp_msg in get_validate_err(glines)
     glines[0] = "0x123\t10\t1\t1"
-    assert "Line 1: $NUMBER_OF_NODES must be an integer" in get_validate_err(
-        glines
-    )
+    assert exp_msg in get_validate_err(glines)
 
     # Test insufficient node declarations
     glines = reset_glines()
+    exp_msg = "Line 5: Node declaration doesn't include enough fields"
     glines[4] = "NODE\t2"
-    assert (
-        "Line 5: Node declaration doesn't include enough fields"
-        in get_validate_err(glines)
-    )
+    assert exp_msg in get_validate_err(glines)
     glines[4] = "NODE\t2\t6"
-    assert (
-        "Line 5: Node declaration doesn't include enough fields"
-        in get_validate_err(glines)
-    )
+    assert exp_msg in get_validate_err(glines)
+
     # Test node declarations where $COV_SHORT1 or $O_COV_SHORT1 are not ints
     glines = reset_glines()
     exp_msg = (
-        "Line 5: The $COV_SHORT1 and $O_COV_SHORT1 values must be integers."
+        "Line 5: The $COV_SHORT1 and $O_COV_SHORT1 values must be positive "
+        "integers."
     )
     glines[4] = "NODE\t2\t6.0\t20\t5\t0\t0"
     assert exp_msg in get_validate_err(glines)
@@ -98,6 +102,12 @@ def test_validate_lastgraph():
     glines[4] = "NODE\t2\t6\tABC\t5\t0\t0"
     assert exp_msg in get_validate_err(glines)
     glines[4] = "NODE\t2\tABC\tABC\t5\t0\t0"
+    assert exp_msg in get_validate_err(glines)
+    glines[4] = "NODE\t2\t-6\t20\t5\t0\t0"
+    assert exp_msg in get_validate_err(glines)
+    glines[4] = "NODE\t2\t6\t-20\t5\t0\t0"
+    assert exp_msg in get_validate_err(glines)
+    glines[4] = "NODE\t2\t-6\t-20\t5\t0\t0"
     assert exp_msg in get_validate_err(glines)
 
     # Test node declarations where the ID starts with a minus sign (-)
@@ -124,6 +134,68 @@ def test_validate_lastgraph():
     glines[1] = "NODE\tABC\t1\t5\t5\t0\t0"
     glines[4] = "NODE\tABC\t6\t20\t5\t0\t0"
     assert "Line 5: Node ID ABC declared multiple times." in get_validate_err(
+        glines
+    )
+
+    # Test insufficient arc (edge) declarations
+    glines = reset_glines()
+    exp_msg = "Line 8: Arc declaration doesn't include enough fields."
+    glines[7] = "ARC\t1\t2"
+    assert exp_msg in get_validate_err(glines)
+    glines[7] = "ARC\t1"
+    assert exp_msg in get_validate_err(glines)
+    glines[7] = "ARC\t"
+    assert exp_msg in get_validate_err(glines)
+
+    # Test non-integer multiplicity values
+    glines = reset_glines()
+    exp_msg = (
+        "Line 8: The $MULTIPLICITY value of an arc must be a positive integer."
+    )
+    glines[7] = "ARC\t1\t2\t5.0"
+    assert exp_msg in get_validate_err(glines)
+    glines[7] = "ARC\t1\t2\tABC"
+    assert exp_msg in get_validate_err(glines)
+
+    # Test edges that include non-existent nodes
+    glines = reset_glines()
+    glines[7] = "ARC\t1\t3\t5"
+    assert "Line 8: Unseen node 3" in get_validate_err(glines)
+    glines[7] = "ARC\t3\t3\t5"
+    assert "Line 8: Unseen node 3" in get_validate_err(glines)
+    glines[7] = "ARC\t3\t1\t5"
+    assert "Line 8: Unseen node 3" in get_validate_err(glines)
+    glines[7] = "ARC\t3\t4\t5"
+    assert "Line 8: Unseen node 3" in get_validate_err(glines)
+    glines[7] = "ARC\t4\t3\t5"
+    assert "Line 8: Unseen node 4" in get_validate_err(glines)
+    glines[7] = "ARC\t-4\t3\t5"
+    assert "Line 8: Unseen node -4" in get_validate_err(glines)
+    # This *should* work, though. Referring to negations of nodes is ok.
+    glines[7] = "ARC\t-1\t2\t5"
+    run_validate(glines)
+    glines[7] = "ARC\t-1\t-2\t5"
+    run_validate(glines)
+
+    # Test weird stuff with node lengths being inconsistent
+    # 1. forward sequence length doesn't match $COV_SHORT1
+    glines = reset_glines()
+    glines[2] = "GGAGAGAGA"
+    assert (
+        "Line 3: Node sequence length doesn't match $COV_SHORT1"
+        in get_validate_err(glines)
+    )
+    glines = reset_glines()
+    glines[5] = "GG"
+    assert (
+        "Line 6: Node sequence length doesn't match $COV_SHORT1"
+        in get_validate_err(glines)
+    )
+    # 2. reverse sequence length doesn't match forward sequence length (and,
+    # therefore, $COV_SHORT1)
+    glines = reset_glines()
+    glines[3] = "GGG"
+    assert "Line 4: Node sequences have unequal lengths" in get_validate_err(
         glines
     )
 

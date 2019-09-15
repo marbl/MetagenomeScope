@@ -104,7 +104,7 @@ def attempt_to_validate_lastgraph_file(graph_file):
             header_num_nodes_str = line.split()[0]
             if not header_num_nodes_str.isdigit():
                 raise ValueError(
-                    "Line 1: $NUMBER_OF_NODES must be an integer value. "
+                    "Line 1: $NUMBER_OF_NODES must be a positive integer."
                     "Currently, it's {}.".format(header_num_nodes_str)
                 )
             header_num_nodes = int(header_num_nodes_str)
@@ -123,7 +123,7 @@ def attempt_to_validate_lastgraph_file(graph_file):
             if not split_line[2].isdigit() or not split_line[3].isdigit():
                 raise ValueError(
                     "Line {}: The $COV_SHORT1 and $O_COV_SHORT1 values "
-                    "must be integers.".format(line_num)
+                    "must be positive integers.".format(line_num)
                 )
             if split_line[1][0] == "-":
                 raise ValueError(
@@ -153,12 +153,16 @@ def attempt_to_validate_lastgraph_file(graph_file):
                     "Line {}: Arc declaration doesn't include enough "
                     "fields.".format(line_num)
                 )
-            if not split_line[2].isdigit():
+            if not split_line[3].isdigit():
                 raise ValueError(
                     "Line {}: The $MULTIPLICITY value of an arc must be "
-                    "an integer.".format(line_num)
+                    "a positive integer.".format(line_num)
                 )
             for node_id in split_line[1:3]:
+                # For reference, split_line[1:3] just gives you all the stuff
+                # in the range [1, 3) (i.e. the second and third elements of
+                # split_line, referring to the source and target node of this
+                # edge)
                 if node_id not in seen_nodes:
                     raise ValueError(
                         "Line {}: Unseen node {} referred to in an "
