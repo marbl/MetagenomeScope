@@ -2,6 +2,7 @@ import pytest
 from io import StringIO
 from metagenomescope.assembly_graph_parser import (
     attempt_to_validate_lastgraph_file,
+    is_not_pos_int,
 )
 
 
@@ -77,6 +78,8 @@ def test_validate_lastgraph_invalid_node_count():
     glines[0] = "ABC\t10\t1\t1"
     assert exp_msg in get_validate_err(glines)
     glines[0] = "0x123\t10\t1\t1"
+    assert exp_msg in get_validate_err(glines)
+    glines[0] = "0\t10\t1\t1"
     assert exp_msg in get_validate_err(glines)
 
 
@@ -243,3 +246,25 @@ def test_validate_lastgraph_node_count_mismatch():
         "indicated that there were 1 node(s), but we identified 2 node(s)"
         in get_validate_err(glines)
     )
+
+
+def test_is_not_pos_int():
+    assert is_not_pos_int("-3")
+    assert is_not_pos_int("-3.0")
+    assert is_not_pos_int("3.0")
+    assert is_not_pos_int("ABC")
+    assert is_not_pos_int("0x123")
+    assert is_not_pos_int("0")
+    assert is_not_pos_int("0.0")
+    assert is_not_pos_int("5.6")
+    assert is_not_pos_int("5 6")
+    assert is_not_pos_int("5/6")
+    assert is_not_pos_int("6/6")
+    assert is_not_pos_int("12345.6789")
+    assert is_not_pos_int("-50000")
+    assert is_not_pos_int("---50000")
+    assert not is_not_pos_int("5")
+    assert not is_not_pos_int("3")
+    assert not is_not_pos_int("1")
+    assert not is_not_pos_int("50000")
+    assert not is_not_pos_int("12345")

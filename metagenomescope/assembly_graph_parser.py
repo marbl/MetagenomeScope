@@ -41,6 +41,20 @@ import gfapy
 from .input_node_utils import gc_content, negate_node_id
 
 
+def is_not_pos_int(number_string):
+    """Returns False if a str represents a positive integer; True otherwise.
+
+    CODELINK: Note that we explicitly consider 0 as non-positive.
+    I actually forgot about this corner case until looking over Bandage's
+    LastGraph-parsing code (buildDeBruijnGraphFromLastGraph(), in
+    https://github.com/rrwick/Bandage/blob/1fccd83c072f1e2b47191d144a6d38fdb69126d9/graph/assemblygraph.cpp)
+    -- thanks Torsten Seemann for the suggestion to look over that code.
+    """
+    # Due to boolean short-circuiting, the int() call won't happen if
+    # not number_string.isdigit() is True
+    return not number_string.isdigit() or int(number_string) <= 0
+
+
 def attempt_to_validate_lastgraph_file(graph_file):
     """Attempts to verify that this LastGraph file seems "valid."
 
@@ -102,7 +116,7 @@ def attempt_to_validate_lastgraph_file(graph_file):
     for line in graph_file:
         if line_num == 1:
             header_num_nodes_str = line.split()[0]
-            if not header_num_nodes_str.isdigit():
+            if is_not_pos_int(header_num_nodes_str):
                 raise ValueError(
                     "Line 1: $NUMBER_OF_NODES must be a positive integer."
                     "Currently, it's {}.".format(header_num_nodes_str)
@@ -120,7 +134,7 @@ def attempt_to_validate_lastgraph_file(graph_file):
                     "Line {}: Node declaration doesn't include enough "
                     "fields.".format(line_num)
                 )
-            if not split_line[2].isdigit() or not split_line[3].isdigit():
+            if is_not_pos_int(split_line[2]) or is_not_pos_int(split_line[3]):
                 raise ValueError(
                     "Line {}: The $COV_SHORT1 and $O_COV_SHORT1 values "
                     "must be positive integers.".format(line_num)
@@ -153,7 +167,7 @@ def attempt_to_validate_lastgraph_file(graph_file):
                     "Line {}: Arc declaration doesn't include enough "
                     "fields.".format(line_num)
                 )
-            if not split_line[3].isdigit():
+            if is_not_pos_int(split_line[3]):
                 raise ValueError(
                     "Line {}: The $MULTIPLICITY value of an arc must be "
                     "a positive integer.".format(line_num)
