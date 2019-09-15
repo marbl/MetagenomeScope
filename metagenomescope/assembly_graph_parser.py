@@ -213,7 +213,12 @@ def attempt_to_validate_lastgraph_file(graph_file):
 
 
 def parse_gml(filename):
-    return nx.gml.read_gml(filename)
+    g = nx.gml.read_gml(filename)
+    if not g.is_directed():
+        raise ValueError("The input graph should be directed.")
+    if g.is_multigraph():
+        raise ValueError("Multigraphs are unsupported in MetagenomeScope.")
+    return g
 
 
 def parse_gfa(filename):
