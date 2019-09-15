@@ -2,7 +2,22 @@ import pytest
 from metagenomescope.assembly_graph_parser import (
     sniff_filetype,
     parse_lastgraph,
+    parse_gml,
 )
+
+
+def test_parse_gml():
+    digraph = parse_gml("metagenomescope/tests/input/marygold_fig2a.gml")
+    assert len(digraph.nodes) == 12
+    assert len(digraph.edges) == 16
+    # parse_gml() really just uses networkx to do parsing, so we don't need to
+    # be super thorough here
+    assert digraph.nodes["NODE_10"]["orientation"] == "FOW"
+    assert digraph.nodes["NODE_10"]["length"] == "100"
+    assert "id" not in digraph.nodes["NODE_10"]
+    assert "label" not in digraph.nodes["NODE_10"]
+
+    # TODO add various bad-GML parsing tests
 
 
 def test_parse_lastgraph():
