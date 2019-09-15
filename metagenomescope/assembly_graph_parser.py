@@ -317,11 +317,6 @@ def parse_lastgraph(filename):
                 parsing_node = True
                 line_contents = line.split()
                 curr_node_attrs["id"] = line_contents[1]
-                if curr_node_attrs["id"][0] == "-":
-                    raise ValueError(
-                        "Node IDs in the input assembly graph cannot "
-                        'start with the "-" character.'
-                    )
                 curr_node_attrs["length"] = int(line_contents[2])
                 # NOTE: we define "depth" as just the node's O_COV_SHORT_1
                 # value divided by the node's length (its COV_SHORT_1
