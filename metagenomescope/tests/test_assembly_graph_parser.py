@@ -199,6 +199,31 @@ def test_validate_lastgraph():
         glines
     )
 
+    # Test a node ending before the file ends
+    glines = reset_glines()
+    glines.append("NODE\t3\t1\t5\t5\t0\t0")
+    assert "Node block ended too early at end-of-file" in get_validate_err(
+        glines
+    )
+    glines.append("A")
+    assert "Node block ended too early at end-of-file" in get_validate_err(
+        glines
+    )
+
+    # Test the number of nodes in the file not matching the actual number of
+    # nodes
+    glines = reset_glines()
+    glines[0] = "3\t10\t1\t1"
+    assert (
+        "indicated that there were 3 node(s), but we identified 2 node(s)"
+        in get_validate_err(glines)
+    )
+    glines[0] = "1\t10\t1\t1"
+    assert (
+        "indicated that there were 1 node(s), but we identified 2 node(s)"
+        in get_validate_err(glines)
+    )
+
 
 def test_parse_lastgraph():
     digraph = parse_lastgraph(

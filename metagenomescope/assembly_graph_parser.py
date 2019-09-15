@@ -201,9 +201,14 @@ def attempt_to_validate_lastgraph_file(graph_file):
     if in_node_block:
         raise ValueError("Node block ended too early at end-of-file.")
     if len(seen_nodes) != (header_num_nodes * 2):
+        # seen_nodes should always be divisible by 2 (since every time we
+        # record a node we add it and its complement), so dividing
+        # len(seen_nodes) by 2 is ok
         raise ValueError(
-            "The file's header indicated that there were {} nodes, but "
-            "we identified {} nodes.".format(header_num_nodes, len(seen_nodes))
+            "The file's header indicated that there were {} node(s), but "
+            "we identified {} node(s).".format(
+                header_num_nodes, int(len(seen_nodes) / 2)
+            )
         )
 
 
