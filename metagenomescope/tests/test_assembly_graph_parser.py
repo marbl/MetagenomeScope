@@ -4,6 +4,7 @@ from metagenomescope.assembly_graph_parser import (
     parse_lastgraph,
 )
 
+
 def test_parse_lastgraph():
     digraph = parse_lastgraph(
         "metagenomescope/tests/input/cycletest_LastGraph"
