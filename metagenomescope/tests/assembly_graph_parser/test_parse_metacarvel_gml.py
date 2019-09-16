@@ -223,3 +223,57 @@ def test_parse_metacarvel_gml_duplicate_edges():
     run_tempfile_test(
         "gml", mg, ValueError, "Multigraphs are unsupported", join_char=""
     )
+
+
+def test_parse_metacarvel_gml_duplicate_nodes():
+    """Tests parsing a GML with duplicate nodes, which is disallowed in both
+    MetagenomeScope and NetworkX.
+    """
+    # First: just insert a node definition twice, and make sure NX doesn't
+    # parse it
+    mg = get_marygold_gml()
+    # Remove the last line in the file
+    mg.pop()
+    # ...And insert in another definition for node 1
+
+    mg.append("  node [\n")
+    mg.append("   id 1\n")
+    mg.append('   label "NODE_1"\n')
+    mg.append('   orientation "FOW"\n')
+    mg.append('   length "100"\n')
+    mg.append("  ]\n")
+    mg.append("]")
+
+    run_tempfile_test(
+        "gml", mg, NetworkXError, "node id 1 is duplicated", join_char=""
+    )
+
+    # Second: since that failed because of the node ID being duplicated, try
+    # using a new ID but the same label as an extant node
+    mg = get_marygold_gml()
+    # Remove the last line in the file
+    mg.pop()
+    # ...And insert in another definition for node 1
+
+    mg.append("  node [\n")
+    mg.append("   id 100\n")
+    mg.append('   label "NODE_1"\n')
+    mg.append('   orientation "FOW"\n')
+    mg.append('   length "100"\n')
+    mg.append("  ]\n")
+    mg.append("]")
+
+    run_tempfile_test(
+        "gml",
+        mg,
+        NetworkXError,
+        "node label 'NODE_1' is duplicated",
+        join_char="",
+    )
+
+    # Cool, so now we know that NX disallows duplicate IDs and duplicate
+    # labels.
+    # You could say "well, what if you add in a node with a different ID *and*
+    # a different label?"
+    # ...But that would just mean that you added in a completely new node! And
+    # that's cool.
