@@ -4,7 +4,9 @@ import pytest
 from metagenomescope.assembly_graph_parser import parse
 
 
-def run_tempfile_test(suffix, file_contents, err_expected, in_err):
+def run_tempfile_test(
+    suffix, file_contents, err_expected, in_err, join_char="\n"
+):
     """Simple function that creates a tempfile and runs parse() on it.
 
     Parameters
@@ -31,6 +33,12 @@ def run_tempfile_test(suffix, file_contents, err_expected, in_err):
         If err_expected is not None, we assert that this text is contained in
         the corresponding error message.
 
+    join_char: str
+        The character (or string, I guess; doesn't really matter) to use when
+        joining file_contents. Defaults to \n, but you can do things like set
+        this to "" if your lines in file_contents already have newlines
+        included (as is the case with the output of .readlines()).
+
     References
     ----------
     CODELINK: Our use of temporary files in this function (using mkstemp(), and
@@ -39,9 +47,10 @@ def run_tempfile_test(suffix, file_contents, err_expected, in_err):
     https://github.com/networkx/networkx/blob/master/networkx/readwrite/tests/test_gml.py.
     """
     filehandle, filename = tempfile.mkstemp(suffix=suffix)
+    ei = None
     try:
         with open(filename, "w") as f:
-            f.write("\n".join(file_contents))
+            f.write(join_char.join(file_contents))
         if err_expected is not None:
             with pytest.raises(err_expected) as ei:
                 parse(filename)
@@ -57,9 +66,14 @@ def run_tempfile_test(suffix, file_contents, err_expected, in_err):
         # "Failed" exception -- which is a subclass of Exception, so that'll be
         # caught by this except block. Phew!)
         print("*** HEY, run_tempfile_test() FAILED. PRINTING EXCEPTION: ***")
-        print("NOTE THAT THE EXCEPTION MIGHT SHOW UP ABOVE FOR SOME REASON;")
-        print("IDK WHY. IN MY DEFENSE, COMPUTERS ARE HARD")
         print(e)
+        print(
+            "EXCEPTION PRINTED. IF NOTHING SHOWED UP ABOVE, IT'S LIKELY THE "
+            "assert STATEMENT RE: THE EXPECTED ERROR MESSAGE FAILED."
+        )
+        if ei is not None:
+            print("ALSO, 'ei' IS DEFINED. HERE'S str(ei.value):")
+            print(str(ei.value))
         raise
     finally:
         os.close(filehandle)

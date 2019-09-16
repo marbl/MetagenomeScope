@@ -1,3 +1,5 @@
+from networkx import NetworkXError
+from .utils import run_tempfile_test
 from metagenomescope.assembly_graph_parser import parse_metacarvel_gml
 
 
@@ -49,5 +51,58 @@ def test_parse_metacarvel_gml_good():
     # - undirected graph (caught in parse_metacarvel_gml)
 
 
-# def test_parse_metacarvel_gml_no_labels():
-#     """TODO: do these using tmpfiles"""
+def get_marygold_gml():
+    with open("metagenomescope/tests/input/marygold_fig2a.gml", "r") as mg:
+        return mg.readlines()
+
+
+def test_parse_metacarvel_gml_no_labels():
+    """Tests parsing GMLs where a node doesn't have a label.
+
+    NX should raise an error automatically in this case.
+    """
+    mg = get_marygold_gml()
+    # Remove the fifth line (the one that defines a label for node 10)
+    mg.pop(4)
+    run_tempfile_test(
+        "gml", mg, NetworkXError, "no 'label' attribute", join_char=""
+    )
+    # Remove another label attribute, this time for node 6
+    # (This label decl. is on line 17, and we use an index of 15 here due to
+    # 0-indexing and then due to line 5 already being removed)
+    mg.pop(15)
+    run_tempfile_test(
+        "gml", mg, NetworkXError, "no 'label' attribute", join_char=""
+    )
+
+
+def test_parse_metacarvel_gml_no_ids():
+    """Tests parsing GMLs where a node doesn't have an ID.
+
+    NX should raise an error automatically in this case.
+    """
+    mg = get_marygold_gml()
+    # Remove the fourth line (the one that defines an ID for node 10)
+    mg.pop(3)
+    run_tempfile_test(
+        "gml", mg, NetworkXError, "no 'id' attribute", join_char=""
+    )
+    # Remove another ID attribute, this time for node 1
+    mg.pop(8)
+    run_tempfile_test(
+        "gml", mg, NetworkXError, "no 'id' attribute", join_char=""
+    )
+
+
+def test_parse_metacarvel_gml_insufficient_node_metadata():
+    """Tests parsing GMLs where nodes don't have orientation and/or length."""
+    mg = get_marygold_gml()
+    # Remove orientation from node 10
+    mg.pop(5)
+    run_tempfile_test(
+        "gml",
+        mg,
+        ValueError,
+        "Only 11 / 12 nodes have orientation given.",
+        join_char="",
+    )
