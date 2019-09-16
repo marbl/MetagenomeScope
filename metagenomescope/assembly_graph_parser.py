@@ -28,13 +28,15 @@
 #
 # ADDING SUPPORT FOR MORE ASSEMBLY GRAPH FILETYPES
 #
-# This should be very doable (and hopefully painless). All you'll need to do is
+# This should be very doable (and hopefully mostly-painless). You'll need to:
 #
 #  1. Create a function that takes as input a filename and (if the graph is
 #  valid) returns a NetworkX DiGraph representing the contained assembly graph.
 #
 #  2. Add the lowercase file extension as a key in SUPPORTED_FILETYPE_TO_PARSER
 #  that maps to your new function.
+#
+#  3. Add tests for your parser in metagenomescope/tests/assembly_graph_parser/
 
 import networkx as nx
 import gfapy
