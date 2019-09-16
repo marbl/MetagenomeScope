@@ -99,10 +99,32 @@ def test_parse_metacarvel_gml_insufficient_node_metadata():
     mg = get_marygold_gml()
     # Remove orientation from node 10
     mg.pop(5)
-    run_tempfile_test(
-        "gml",
-        mg,
-        ValueError,
-        "Only 11 / 12 nodes have orientation given.",
-        join_char="",
-    )
+    exp_msg = "Only 11 / 12 nodes have orientation given."
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    # Remove length from node 10 (it's the line after the previous line we
+    # removed)
+    mg.pop(5)
+    # due to "precedence" (just the order of iteration in the for loops), we
+    # expect orientation to take priority over length in these error messages
+    # -- but this doesn't really matter
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    # Restore mg
+    mg = get_marygold_gml()
+    # Now, just remove the length line. We should see an error message about
+    # length, not orientation, now.
+    mg.pop(6)
+    exp_msg = "Only 11 / 12 nodes have length given."
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    # For fun, let's remove all of the lines with length and make sure this
+    # updates the error msg accordingly
+    mg = [line for line in mg if "length" not in line]
+    exp_msg = "Only 0 / 12 nodes have length given."
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    # ... And let's try that same thing with orientation, which as we've
+    # established takes priority in error messages (again, doesn't actually
+    # matter, but we might as well test that this behavior remains consistent)
+    mg = [line for line in mg if "orientation" not in line]
+    exp_msg = "Only 0 / 12 nodes have orientation given."
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
