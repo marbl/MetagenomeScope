@@ -1,5 +1,8 @@
 import pytest
-from metagenomescope.assembly_graph_parser import sniff_filetype, is_not_pos_int
+from metagenomescope.assembly_graph_parser import (
+    sniff_filetype,
+    is_not_pos_int,
+)
 
 
 def test_is_not_pos_int():

@@ -1,4 +1,19 @@
+import os
+import tempfile
+import pytest
 from metagenomescope.assembly_graph_parser import parse_lastgraph
+from metagenomescope.tests.assembly_graph_parser.test_validate_lastgraph import (
+    reset_glines,
+)
+
+
+def get_lastgraph_tempfile():
+    """Creates a temporary file using tempfile.mkstemp().
+
+    Returns the output of the mkstemp() call.
+    """
+    return tempfile.mkstemp(suffix=".LastGraph", text=True)
+
 
 def test_parse_lastgraph_good():
     digraph = parse_lastgraph(
@@ -36,3 +51,20 @@ def test_parse_lastgraph_good():
     assert digraph.nodes["-2"]["length"] == 6
     assert digraph.nodes["-2"]["depth"] == (20 / 6)
     assert digraph.nodes["-2"]["gc_content"] == (1 / 6)
+
+
+def test_parse_lastgraph_node_interrupted():
+    glines = reset_glines()
+    glines.pop(3)
+    # CODELINK: Use of tempfile in this way is based on NetworkX's tests --
+    # https://github.com/networkx/networkx/blob/master/networkx/readwrite/tests/test_gml.py.
+    filehandle, filename = get_lastgraph_tempfile()
+    try:
+        with open(filename, "w") as f:
+            f.write("\n".join(glines))
+        with pytest.raises(ValueError) as ei:
+            parse_lastgraph(filename)
+        assert "Line 4: Node block ends too early." in str(ei.value)
+    finally:
+        os.close(filehandle)
+        os.unlink(filename)
