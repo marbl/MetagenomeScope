@@ -241,7 +241,7 @@ def validate_lastgraph_file(graph_file):
         )
 
 
-def parse_gml(filename):
+def parse_metacarvel_gml(filename):
     """Returns a nx.DiGraph representation of a GML (MetaCarvel output) file.
 
     Unlike, say, LastGraph, the GML file spec isn't inherently tied to
@@ -249,7 +249,7 @@ def parse_gml(filename):
     simplifying assumption that -- if you're trying to load in a GML file
     to MetagenomeScope -- that file was generated from MetaCarvel. Of course,
     if future assemblers/scaffolders can produce graphs that are also in GML,
-    we'll need to modify this function to handle those graphs properly.
+    we'll need to modify this module to handle those graphs properly.
 
     Since NetworkX has a function for reading GML files built-in, the bulk of
     effort in this function is just spent validating that the nx.DiGraph
@@ -270,9 +270,11 @@ def parse_gml(filename):
     for required_field in ("orientation", "length"):
         num_nodes_with_field = len(nx.get_node_attributes(g, required_field))
         if num_nodes_with_field < num_nodes:
-            raise ValueError("Only {} / {} nodes have a {} field.".format(
-                num_nodes_with_field, num_nodes, required_field
-            ))
+            raise ValueError(
+                "Only {} / {} nodes have a {} field.".format(
+                    num_nodes_with_field, num_nodes, required_field
+                )
+            )
 
     # Verify that all edges have the properties we expect edges in MetaCarvel
     # output graphs to have (orientation, mean, stdev, bsize)
@@ -282,10 +284,12 @@ def parse_gml(filename):
     for required_field in ("orientation", "mean", "stdev", "bsize"):
         num_edges_with_field = len(nx.get_edge_attributes(g, required_field))
         if num_edges_with_field < num_edges:
-            raise ValueError("Only {} / {} edges have a {} field.".format(
-                num_edges_with_field, num_edges, required_field
-            ))
-    return g
+            raise ValueError(
+                "Only {} / {} edges have a {} field.".format(
+                    num_edges_with_field, num_edges, required_field
+                )
+            )
+    return g  # , ("orientation",), ("bsize", "orientation", "mean", "stdev")
 
 
 def parse_gfa(filename):
@@ -444,7 +448,7 @@ def parse_lastgraph(filename):
 
 SUPPORTED_FILETYPE_TO_PARSER = {
     "lastgraph": parse_lastgraph,
-    "gml": parse_gml,
+    "gml": parse_metacarvel_gml,
     "gfa": parse_gfa,
     "fastg": parse_fastg,
 }
