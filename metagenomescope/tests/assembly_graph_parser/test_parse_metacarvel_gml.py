@@ -42,14 +42,6 @@ def test_parse_metacarvel_gml_good():
         assert digraph.edges[e]["stdev"] == 25.1234
         assert digraph.edges[e]["bsize"] == 30
 
-    # TODO add various bad-GML parsing tests
-    # - Graph with no labels (nx should nuke this)
-    # - Graph with insufficient node metadata (caught in parse_metacarvel_gml)
-    # - Graph with insufficient edge metadata (caught in parse_metacarvel_gml)
-    # - Graph with duplicate edges and is multigraph (caught in parse_metacarvel_gml)
-    # - Graph with duplicate edges and not multigraph (nx should nuke this)
-    # - undirected graph (caught in parse_metacarvel_gml)
-
 
 def get_marygold_gml():
     with open("metagenomescope/tests/input/marygold_fig2a.gml", "r") as mg:
@@ -99,7 +91,7 @@ def test_parse_metacarvel_gml_insufficient_node_metadata():
     mg = get_marygold_gml()
     # Remove orientation from node 10
     mg.pop(5)
-    exp_msg = "Only 11 / 12 nodes have orientation given."
+    exp_msg = 'Only 11 / 12 nodes have "orientation" given.'
     run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
     # Remove length from node 10 (it's the line after the previous line we
     # removed)
@@ -114,17 +106,120 @@ def test_parse_metacarvel_gml_insufficient_node_metadata():
     # Now, just remove the length line. We should see an error message about
     # length, not orientation, now.
     mg.pop(6)
-    exp_msg = "Only 11 / 12 nodes have length given."
+    exp_msg = 'Only 11 / 12 nodes have "length" given.'
     run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
     # For fun, let's remove all of the lines with length and make sure this
     # updates the error msg accordingly
     mg = [line for line in mg if "length" not in line]
-    exp_msg = "Only 0 / 12 nodes have length given."
+    exp_msg = 'Only 0 / 12 nodes have "length" given.'
     run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
 
     # ... And let's try that same thing with orientation, which as we've
     # established takes priority in error messages (again, doesn't actually
     # matter, but we might as well test that this behavior remains consistent)
     mg = [line for line in mg if "orientation" not in line]
-    exp_msg = "Only 0 / 12 nodes have orientation given."
+    exp_msg = 'Only 0 / 12 nodes have "orientation" given.'
     run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+
+def test_parse_metacarvel_gml_insufficient_edge_metadata():
+    """Tests parsing GMLs where nodes don't have orientation and/or length."""
+    mg = get_marygold_gml()
+    # Remove orientation from edge 8 -> 9 (line 190 in the file)
+    mg.pop(189)
+    exp_msg = 'Only 15 / 16 edges have "orientation" given.'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    # Remove orientation from all edges in the file
+    mg = [
+        line
+        for line in mg
+        if 'orientation "E' not in line and 'orientation "B' not in line
+    ]
+    exp_msg = 'Only 0 / 16 edges have "orientation" given.'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    # Restore mg
+    mg = get_marygold_gml()
+    # Remove mean from edge 12 -> 8
+    mg.pop(182)
+    exp_msg = 'Only 15 / 16 edges have "mean" given.'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    # Also remove mean from edge 8 -> 9
+    # This is actually line 191 of the file, but remember 0-indexing + already
+    # popped one line above in the file
+    mg.pop(189)
+    exp_msg = 'Only 14 / 16 edges have "mean" given.'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    # Restore mg
+    mg = get_marygold_gml()
+    # Remove bsize from edge 7 -> 12
+    mg.pop(168)
+    exp_msg = 'Only 15 / 16 edges have "bsize" given.'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    # Remove stdev from edge 7 -> 9
+    # Note that we haven't restored mg from above yet! This tests the whole
+    # precedence thing mentioned in the ...insufficient_node_metadata() test
+    # above (orientation, mean, stdev, bsize is the order of attributes
+    # checked) -- I don't care too much about that, but this at least gives us
+    # some confidence that multiple things can be missing without completely
+    # breaking this function.
+    mg.pop(174)
+    exp_msg = 'Only 15 / 16 edges have "stdev" given.'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    # Remove bsize from *all* lines -- stdev error should still show up
+    mg = [line for line in mg if "bsize" not in line]
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+
+def test_parse_metacarvel_gml_undirected_graph():
+    """Tests parsing a GML that isn't directed."""
+    mg = get_marygold_gml()
+    exp_msg = "The input graph should be directed."
+
+    # Try two things: 1) the choice of directed/undirected isn't specified
+    # (defaults to undirected), 2) explicitly specified as not directed
+    mg.pop(1)
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    mg.insert(1, "  directed 0\n")
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+
+def test_parse_metacarvel_gml_duplicate_edges():
+    """Tests parsing GMLs with duplicate edges, which are disallowed in
+    MetagenomeScope.
+    """
+    mg = get_marygold_gml()
+    # Remove the last line in the file (only contains a ] character, and closes
+    # the graph definition)
+    mg.pop()
+    # ...And insert in another definition for edge 12 -> 8
+    mg.append(" edge [\n")
+    mg.append("  source 12\n")
+    mg.append("  target 8\n")
+    mg.append('  orientation "EB"\n')
+    mg.append('  mean "-200.00"\n')
+    mg.append("  stdev 25.1234\n")
+    mg.append("  bsize 30\n")
+    mg.append(" ]\n")
+    mg.append("]")
+
+    run_tempfile_test(
+        "gml", mg, NetworkXError, "(12->8) is duplicated", join_char=""
+    )
+
+    # NetworkX should have just failed when trying to read this GML file, since
+    # it includes a duplicate edge and is a multigraph. Cool!
+    # Now, let's be antagonistic and turn this graph into a multigraph, in an
+    # attempt to get NetworkX to let this slide.
+    mg.insert(1, "  multigraph 1\n")
+
+    # This time around, parse_metacarvel_gml() should raise an error: it'll
+    # detect that the input graph is a multigraph and be all like "nuh uh
+    # you didn't get that from MetaCarvel, now did you" (something like that)
+    run_tempfile_test(
+        "gml", mg, ValueError, "Multigraphs are unsupported", join_char=""
+    )

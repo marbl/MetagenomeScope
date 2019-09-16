@@ -273,7 +273,7 @@ def parse_metacarvel_gml(filename):
         num_nodes_with_field = len(nx.get_node_attributes(g, required_field))
         if num_nodes_with_field < num_nodes:
             raise ValueError(
-                "Only {} / {} nodes have {} given.".format(
+                'Only {} / {} nodes have "{}" given.'.format(
                     num_nodes_with_field, num_nodes, required_field
                 )
             )
@@ -287,7 +287,7 @@ def parse_metacarvel_gml(filename):
         num_edges_with_field = len(nx.get_edge_attributes(g, required_field))
         if num_edges_with_field < num_edges:
             raise ValueError(
-                "Only {} / {} edges have {} given.".format(
+                'Only {} / {} edges have "{}" given.'.format(
                     num_edges_with_field, num_edges, required_field
                 )
             )
