@@ -242,11 +242,49 @@ def validate_lastgraph_file(graph_file):
 
 
 def parse_gml(filename):
+    """Returns a nx.DiGraph representation of a GML (MetaCarvel output) file.
+
+    Unlike, say, LastGraph, the GML file spec isn't inherently tied to
+    MetaCarvel (it's used by lots of different programs). However, we make the
+    simplifying assumption that -- if you're trying to load in a GML file
+    to MetagenomeScope -- that file was generated from MetaCarvel. Of course,
+    if future assemblers/scaffolders can produce graphs that are also in GML,
+    we'll need to modify this function to handle those graphs properly.
+
+    Since NetworkX has a function for reading GML files built-in, the bulk of
+    effort in this function is just spent validating that the nx.DiGraph
+    produced follows the format we expect (i.e. has all the metadata we
+    anticipate MetaCarvel output graphs having).
+    """
     g = nx.gml.read_gml(filename)
+
+    # Verify that the graph is directed and doesn't have duplicate edges
     if not g.is_directed():
         raise ValueError("The input graph should be directed.")
     if g.is_multigraph():
         raise ValueError("Multigraphs are unsupported in MetagenomeScope.")
+
+    # Verify that all nodes have the properties we expect nodes in MetaCarvel
+    # output graphs to have (orientation, length)
+    num_nodes = len(g.nodes)
+    for required_field in ("orientation", "length"):
+        num_nodes_with_field = len(nx.get_node_attributes(g, required_field))
+        if num_nodes_with_field < num_nodes:
+            raise ValueError("Only {} / {} nodes have a {} field.".format(
+                num_nodes_with_field, num_nodes, required_field
+            ))
+
+    # Verify that all edges have the properties we expect edges in MetaCarvel
+    # output graphs to have (orientation, mean, stdev, bsize)
+    # bsize is the most important of these (in my opinion), since it actually
+    # impacts the visual display of edges in the viewer interface.
+    num_edges = len(g.edges)
+    for required_field in ("orientation", "mean", "stdev", "bsize"):
+        num_edges_with_field = len(nx.get_edge_attributes(g, required_field))
+        if num_edges_with_field < num_edges:
+            raise ValueError("Only {} / {} edges have a {} field.".format(
+                num_edges_with_field, num_edges, required_field
+            ))
     return g
 
 
