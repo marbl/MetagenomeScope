@@ -1,4 +1,3 @@
-import pytest
 from metagenomescope.assembly_graph_parser import parse_metacarvel_gml
 
 
@@ -50,5 +49,5 @@ def test_parse_metacarvel_gml_good():
     # - undirected graph (caught in parse_metacarvel_gml)
 
 
-def test_parse_metacarvel_gml_no_labels():
-    """TODO: do these using tmpfiles"""
+# def test_parse_metacarvel_gml_no_labels():
+#     """TODO: do these using tmpfiles"""

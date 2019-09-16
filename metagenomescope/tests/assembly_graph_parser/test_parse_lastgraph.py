@@ -1,18 +1,8 @@
-import os
-import tempfile
-import pytest
+from .utils import run_tempfile_test
 from metagenomescope.assembly_graph_parser import parse_lastgraph
 from metagenomescope.tests.assembly_graph_parser.test_validate_lastgraph import (
     reset_glines,
 )
-
-
-def get_lastgraph_tempfile():
-    """Creates a temporary file using tempfile.mkstemp().
-
-    Returns the output of the mkstemp() call.
-    """
-    return tempfile.mkstemp(suffix=".LastGraph", text=True)
 
 
 def test_parse_lastgraph_good():
@@ -53,18 +43,50 @@ def test_parse_lastgraph_good():
     assert digraph.nodes["-2"]["gc_content"] == (1 / 6)
 
 
+# The remaining functions in this file test a few expected-to-fail LastGraph
+# files. These should all be caught by validate_lastgraph_file(), which we've
+# already thoroughly unit-tested using these same exact inputs, so this isn't
+# very comprehensive -- essentially, these just check that yes, we are calling
+# validate_lastgraph_file() from parse_lastgraph().
+# A potential TODO here is porting over all of the validate_lastgraph_file()
+# tests here, but I'm not sure that's really necessary.
+
+
 def test_parse_lastgraph_node_interrupted():
     glines = reset_glines()
     glines.pop(3)
-    # CODELINK: Use of tempfile in this way is based on NetworkX's tests --
-    # https://github.com/networkx/networkx/blob/master/networkx/readwrite/tests/test_gml.py.
-    filehandle, filename = get_lastgraph_tempfile()
-    try:
-        with open(filename, "w") as f:
-            f.write("\n".join(glines))
-        with pytest.raises(ValueError) as ei:
-            parse_lastgraph(filename)
-        assert "Line 4: Node block ends too early." in str(ei.value)
-    finally:
-        os.close(filehandle)
-        os.unlink(filename)
+    run_tempfile_test(
+        "LastGraph", glines, ValueError, "Line 4: Node block ends too early."
+    )
+
+    glines = reset_glines()
+    glines[2] = "ARC\t1\t1\t5"
+    run_tempfile_test(
+        "LastGraph", glines, ValueError, "Line 3: Node block ends too early."
+    )
+
+
+def test_parse_lastgraph_invalid_node_count():
+    glines = reset_glines()
+    exp_msg = "Line 1: $NUMBER_OF_NODES must be a positive integer"
+
+    glines[0] = "3.5\t10\t1\t1"
+    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+
+    glines[0] = "-3.5\t10\t1\t1"
+    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+
+    glines[0] = "-2\t10\t1\t1"
+    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+
+    glines[0] = "2.0\t10\t1\t1"
+    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+
+    glines[0] = "ABC\t10\t1\t1"
+    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+
+    glines[0] = "0x123\t10\t1\t1"
+    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+
+    glines[0] = "0\t10\t1\t1"
+    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
