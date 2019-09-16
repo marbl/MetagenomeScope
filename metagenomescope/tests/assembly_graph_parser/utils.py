@@ -1,6 +1,7 @@
 import os
 import tempfile
 import pytest
+from _pytest.outcomes import Failed
 from metagenomescope.assembly_graph_parser import parse
 
 
@@ -57,23 +58,27 @@ def run_tempfile_test(
             assert in_err in str(ei.value)
         else:
             parse(filename)
-    except Exception as e:
-        # For some reason, I don't seem to be getting detailed error messages
-        # when the stuff in this function fails. So this just prints the error
-        # message to stdout then re-raises the exception.
+    except (Exception, Failed) as e:
+        # To give more context about *why* a failure occurred, print error info
+        # (then reraise the exception).
         # (And for reference, when the "with pytest.raises(...)" block fails
         # due to the expected error *not* being raised, that raises a pytest
-        # "Failed" exception -- which is a subclass of Exception, so that'll be
-        # caught by this except block. Phew!)
+        # "Failed" exception -- which we catch explicitly here, since it's
+        # ultimately derived from BaseException instead of from Exception.)
         print("*** HEY, run_tempfile_test() FAILED. PRINTING EXCEPTION: ***")
         print(e)
         print(
             "EXCEPTION PRINTED. IF NOTHING SHOWED UP ABOVE, IT'S LIKELY THE "
             "assert STATEMENT RE: THE EXPECTED ERROR MESSAGE FAILED."
         )
-        if ei is not None:
-            print("ALSO, 'ei' IS DEFINED. HERE'S str(ei.value):")
-            print(str(ei.value))
+        # NOTE: I'm commenting this out because using ei.value here seems to
+        # cause an error (???), but only when pytest throws Failed due to
+        # parse() *not* failing in the way we expected.
+        # if ei is not None:
+        #     print("ANOTHER THING: 'ei' IS DEFINED. HERE'S str(ei.value):")
+        #     print(str(ei.value))
+        #     print("AND HERE IS type(ei.value):")
+        #     print(type(ei.value))
         raise
     finally:
         os.close(filehandle)

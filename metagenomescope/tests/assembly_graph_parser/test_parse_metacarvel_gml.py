@@ -229,7 +229,7 @@ def test_parse_metacarvel_gml_duplicate_nodes():
     """Tests parsing a GML with duplicate nodes, which is disallowed in both
     MetagenomeScope and NetworkX.
     """
-    # First: just insert a node definition twice, and make sure NX doesn't
+    # CASE 1: just insert a repeated node definition, and make sure NX doesn't
     # parse it
     mg = get_marygold_gml()
     # Remove the last line in the file
@@ -248,7 +248,7 @@ def test_parse_metacarvel_gml_duplicate_nodes():
         "gml", mg, NetworkXError, "node id 1 is duplicated", join_char=""
     )
 
-    # Second: since that failed because of the node ID being duplicated, try
+    # CASE 2: since that failed because of the node ID being duplicated, try
     # using a new ID but the same label as an extant node
     mg = get_marygold_gml()
     # Remove the last line in the file
@@ -276,4 +276,41 @@ def test_parse_metacarvel_gml_duplicate_nodes():
     # You could say "well, what if you add in a node with a different ID *and*
     # a different label?"
     # ...But that would just mean that you added in a completely new node! And
-    # that's cool.
+    # that's cool. So we're done here :)
+
+
+def test_parse_metacarvel_gml_invalid_node_metadata():
+    """Tests GMLs where node metadata is provided, but is somehow incorrect."""
+
+    # Test invalid orientations
+    mg = get_marygold_gml()
+    mg.pop(5)
+    mg.insert(5, '   orientation "HIMOM"\n')
+    exp_msg = 'Node NODE_10 has unsupported orientation "HIMOM".'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    mg.pop(5)
+    mg.insert(5, "   orientation 1\n")
+    exp_msg = 'Node NODE_10 has unsupported orientation "1".'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    # Test invalid lengths
+    lengths = [
+        "100.0",
+        "0",
+        "ABC",
+        "-1",
+        "-1.0",
+        "-100",
+        "2a",
+        "0x123",
+        "01.2",
+    ]
+    for length_to_test in lengths:
+        mg = get_marygold_gml()
+        mg.pop(6)
+        mg.insert(6, '   length "{}"\n'.format(length_to_test))
+        exp_msg = 'Node NODE_10 has non-positive-integer length "{}".'.format(
+            length_to_test
+        )
+        run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")

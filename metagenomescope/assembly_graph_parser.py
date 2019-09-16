@@ -278,6 +278,20 @@ def parse_metacarvel_gml(filename):
                 )
             )
 
+    # Verify that orientation and length types are good
+    for n in g.nodes:
+        if g.nodes[n]["orientation"] not in ("FOW", "REV"):
+            raise ValueError(
+                'Node {} has unsupported orientation "{}". Should be either '
+                '"FOW" or "REV".'.format(n, g.nodes[n]["orientation"])
+            )
+        if is_not_pos_int(g.nodes[n]["length"]):
+            raise ValueError(
+                'Node {} has non-positive-integer length "{}".'.format(
+                    n, g.nodes[n]["length"]
+                )
+            )
+
     # Verify that all edges have the properties we expect edges in MetaCarvel
     # output graphs to have (orientation, mean, stdev, bsize)
     # bsize is the most important of these (in my opinion), since it actually
