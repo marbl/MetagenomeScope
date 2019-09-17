@@ -321,13 +321,30 @@ def test_parse_metacarvel_gml_invalid_node_metadata():
 def test_parse_metacarvel_gml_invalid_edge_metadata():
     """Tests GMLs where edge metadata is provided, but is somehow incorrect."""
 
-    mg = get_marygold_gml()
-
     # 1. Test orientation
-    mg.pop(189)
-    mg.insert(189, '   orientation "FOW"\n')
-    exp_msg = 'has unsupported orientation "FOW".'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    for val in (
+        '"FOW"',
+        '"REV"',
+        '"ABC"',
+        "3.2",
+        "3",
+        "2",
+        "1",
+        "0",
+        "-1",
+        '"NaN"',
+        '"inf"',
+    ):
+        mg = get_marygold_gml()
+        mg.pop(189)
+        mg.insert(189, "   orientation {}\n".format(val))
+        # Remove double-quotes from val when checking the error message
+        # (since *everything* will get encased in one layer double-quotes,
+        # including the stuff that already has double-quotes like "FOW")
+        # (See test_parse_metacarvel_gml_invalid_node_metadata() above)
+        p = "".join([c for c in val if c != '"'])
+        exp_msg = 'has unsupported orientation "{}".'.format(p)
+        run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
 
     mg.pop(189)
     mg.insert(189, '   orientation "REV"\n')
@@ -339,11 +356,27 @@ def test_parse_metacarvel_gml_invalid_edge_metadata():
     mg.insert(189, '   orientation "BB"\n')
     run_tempfile_test("gml", mg, None, None, join_char="")
 
-    # 2. Test bsize
-    mg.pop(192)
-    mg.insert(192, "   bsize 6.2\n")
-    exp_msg = 'has non-positive-integer bsize "6.2".'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    # 2. Test various disallowed bsize values
+    vals = (
+        "6.2",
+        "0.0",
+        "0",
+        "1.2",
+        "1.0",
+        "-1",
+        "-2",
+        '"nan"',
+        '"inf"',
+        '"-inf"',
+        '"NaN"',
+    )
+    for val in vals:
+        mg = get_marygold_gml()
+        mg.pop(192)
+        mg.insert(192, "   bsize {}\n".format(val))
+        p = "".join([c for c in val if c != '"'])
+        exp_msg = 'has non-positive-integer bsize "{}".'.format(p)
+        run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
 
     # 3. Test mean
     mg = get_marygold_gml()
@@ -360,9 +393,20 @@ def test_parse_metacarvel_gml_invalid_edge_metadata():
     run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
     # TODO test bsize, mean, stdev more thoroughly
 
-    # Test that NaN/infinity values work ok (but only with mean/stdev; not with
-    # bsize)
-    for val in ("nan", "NaN", "inf", "-inf", "Infinity", "-Infinity"):
+    # Test that NaN/infinity/zero/negative values work ok (but only with
+    # mean/stdev; not with bsize)
+    vals = (
+        "nan",
+        "NaN",
+        "inf",
+        "-inf",
+        "Infinity",
+        "-Infinity",
+        "0",
+        "0.0",
+        "-1.0",
+    )
+    for val in vals:
         for field, line_num in (("mean", 198), ("stdev", 199)):
             mg = get_marygold_gml()
             mg.pop(line_num)
@@ -425,6 +469,4 @@ def test_parse_metacarvel_gml_repeated_node_attrs():
         "Node NODE_10 has non-positive-integer length \"['200', '100']\"."
     )
     run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
-    # TODO test corner case wherein properties are repeated for the same node
-    # or edge (that's a nx problem, right? might as well add a test here just
-    # to be safe)
+    # TODO test this for edge attributes
