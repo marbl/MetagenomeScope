@@ -360,6 +360,15 @@ def test_parse_metacarvel_gml_invalid_edge_metadata():
     run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
     # TODO test bsize, mean, stdev more thoroughly
 
+    # Test that NaN/infinity values work ok (but only with mean/stdev; not with
+    # bsize)
+    for val in ("nan", "NaN", "inf", "-inf", "Infinity", "-Infinity"):
+        for field, line_num in (("mean", 198), ("stdev", 199)):
+            mg = get_marygold_gml()
+            mg.pop(line_num)
+            mg.insert(line_num, '   {} "{}"\n'.format(field, val))
+            run_tempfile_test("gml", mg, None, None, join_char="")
+
 
 def test_parse_metacarvel_gml_repeated_node_labels_and_ids():
     """This and the following tests test a horrifying edge case I only
