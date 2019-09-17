@@ -502,4 +502,29 @@ def test_parse_metacarvel_gml_repeated_edge_attrs():
         "Edge ('NODE_7', 'NODE_12') has non-positive-integer bsize "
         '"[15, 30]".'
     )
-    # TODO test this for all edge attributes
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+
+def test_parse_metacarvel_gml_repeated_edge_source_or_target():
+    """If the user seriously tries to specify a source / target twice for a
+    single edge, it should crash NetworkX. This test verifies that.
+    """
+    # 1. duplicate source
+    mg = get_marygold_gml()
+    mg.insert(167, "   source 8\n")
+    exp_msg = "undefined source [7, 8]"
+    run_tempfile_test("gml", mg, NetworkXError, exp_msg, join_char="")
+
+    # 2. duplicate source *and* target (again, one of those "we're checking
+    # this to make sure that having both things wrong doesn't somehow make a
+    # right, but we really don't care about error precedence so long as at
+    # least one error is reported" kinda scenarios)
+    mg.insert(167, "   target 6\n")
+    exp_msg = "undefined source [7, 8]"
+    run_tempfile_test("gml", mg, NetworkXError, exp_msg, join_char="")
+
+    # 3. just a duplicate target (reset the graph first)
+    mg = get_marygold_gml()
+    mg.insert(167, "   target 6\n")
+    exp_msg = "undefined target [12, 6]"
+    run_tempfile_test("gml", mg, NetworkXError, exp_msg, join_char="")
