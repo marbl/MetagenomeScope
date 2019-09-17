@@ -14,3 +14,4 @@ node_modules/
 js_coverage.json
 viewer/instrumented_js/
 dist/
+big-list-of-naughty-strings/
