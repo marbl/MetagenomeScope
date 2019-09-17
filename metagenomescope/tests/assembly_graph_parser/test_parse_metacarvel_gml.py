@@ -358,8 +358,64 @@ def test_parse_metacarvel_gml_invalid_edge_metadata():
     mg.insert(199, '   stdev "ABC"\n')
     exp_msg = 'has non-numeric stdev "ABC".'
     run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
-
     # TODO test bsize, mean, stdev more thoroughly
+
+
+def test_parse_metacarvel_gml_repeated_node_labels_and_ids():
+    """This and the following tests test a horrifying edge case I only
+    realized *after* writing all of the above tests wherein the GML file
+    specifies the same attribute twice for the same element. This produces a
+    list of values: for example --
+
+    node [
+     id 10
+     label "NODE_10"
+     orientation "FOW"
+     orientation "CC"
+     length "100"
+    ]
+
+    will have the attribute dict
+    {'orientation': ['FOW', 'CC'], 'length': '100'}
+
+    Fortunately, pretty much all of the existing type validation code should
+    fail against this nonsense. But we should test this.
+    """
+    # Test duplicate label -- this will crash networkx on trying to load the
+    # graph
+    mg = get_marygold_gml()
+    mg.insert(5, '   label "NODE_10"\n')
+    exp_msg = "unhashable type: 'list'"
+    run_tempfile_test("gml", mg, TypeError, exp_msg, join_char="")
+
+    # Test duplicate (but with different contents) label -- same error as above
+    mg = get_marygold_gml()
+    mg.insert(5, '   label "NODE_50"\n')
+    run_tempfile_test("gml", mg, TypeError, exp_msg, join_char="")
+
+    # Now, test duplicate ID -- same error
+    mg = get_marygold_gml()
+    mg.insert(5, "   id 1\n")
+    run_tempfile_test("gml", mg, TypeError, exp_msg, join_char="")
+
+    # Similarly, test duplicate but different ID
+    mg = get_marygold_gml()
+    mg.insert(5, "   id 100\n")
+    run_tempfile_test("gml", mg, TypeError, exp_msg, join_char="")
+
+
+def test_parse_metacarvel_gml_repeated_node_attrs():
+    mg = get_marygold_gml()
+    mg.insert(5, '   orientation "REV"\n')
+    exp_msg = "Node NODE_10 has unsupported orientation \"['REV', 'FOW']\"."
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    mg = get_marygold_gml()
+    mg.insert(5, '   length "200"\n')
+    exp_msg = (
+        "Node NODE_10 has non-positive-integer length \"['200', '100']\"."
+    )
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
     # TODO test corner case wherein properties are repeated for the same node
     # or edge (that's a nx problem, right? might as well add a test here just
     # to be safe)

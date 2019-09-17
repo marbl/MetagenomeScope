@@ -65,10 +65,15 @@ def is_not_pos_int(number_string):
         return number_string <= 0
     elif type(number_string) == float:
         return True
-    else:
+    elif type(number_string) == str:
         # Due to boolean short-circuiting, the int() call won't happen if
         # not number_string.isdigit() is True
         return not number_string.isdigit() or int(number_string) <= 0
+    else:
+        # This isn't an int, float, or str. (It could be a list, as is the case
+        # if the same attribute is specified twice for a given element.) Return
+        # True -- this definitely isn't handleable as a positive integer.
+        return True
 
 
 def validate_lastgraph_file(graph_file):
@@ -294,10 +299,11 @@ def parse_metacarvel_gml(filename):
 
     # Verify that orientation and length types are good
     for n in g.nodes:
-        if g.nodes[n]["orientation"] not in ("FOW", "REV"):
+        orientation = g.nodes[n]["orientation"]
+        if type(orientation) != str or orientation not in ("FOW", "REV"):
             raise ValueError(
                 'Node {} has unsupported orientation "{}". Should be either '
-                '"FOW" or "REV".'.format(n, g.nodes[n]["orientation"])
+                '"FOW" or "REV".'.format(n, orientation)
             )
         if is_not_pos_int(g.nodes[n]["length"]):
             raise ValueError(
