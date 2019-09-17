@@ -283,16 +283,18 @@ def test_parse_metacarvel_gml_invalid_node_metadata():
     """Tests GMLs where node metadata is provided, but is somehow incorrect."""
 
     # Test invalid orientations
-    mg = get_marygold_gml()
-    mg.pop(5)
-    mg.insert(5, '   orientation "HIMOM"\n')
-    exp_msg = 'Node NODE_10 has unsupported orientation "HIMOM".'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
-
-    mg.pop(5)
-    mg.insert(5, "   orientation 1\n")
-    exp_msg = 'Node NODE_10 has unsupported orientation "1".'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    ors = ['"HIMOM"', "1", '"EB"', '"BB"', '"BE"', '"EE"', '"ABC"']
+    for o in ors:
+        mg = get_marygold_gml()
+        mg.pop(5)
+        mg.insert(5, "   orientation {}\n".format(o))
+        # p is just the thing we expect in the error message, without any
+        # double-quotes. We have to account for quotes here in order to be able
+        # to test both numbers (e.g. 1) and strings (e.g. "FOW"). (NX gets
+        # angry if you put a string like FOW outside of quotes in a GML file.)
+        p = "".join([c for c in o if c != '"'])
+        exp_msg = 'Node NODE_10 has unsupported orientation "{}".'.format(p)
+        run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
 
     # Test invalid lengths
     lengths = [
@@ -314,3 +316,50 @@ def test_parse_metacarvel_gml_invalid_node_metadata():
             length_to_test
         )
         run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+
+def test_parse_metacarvel_gml_invalid_edge_metadata():
+    """Tests GMLs where edge metadata is provided, but is somehow incorrect."""
+
+    mg = get_marygold_gml()
+
+    # 1. Test orientation
+    mg.pop(189)
+    mg.insert(189, '   orientation "FOW"\n')
+    exp_msg = 'has unsupported orientation "FOW".'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    mg.pop(189)
+    mg.insert(189, '   orientation "REV"\n')
+    exp_msg = 'has unsupported orientation "REV".'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    # Restoring the orientation to something normal (say, BB) should work
+    mg.pop(189)
+    mg.insert(189, '   orientation "BB"\n')
+    run_tempfile_test("gml", mg, None, None, join_char="")
+
+    # 2. Test bsize
+    mg.pop(192)
+    mg.insert(192, "   bsize 6.2\n")
+    exp_msg = 'has non-positive-integer bsize "6.2".'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    # 3. Test mean
+    mg = get_marygold_gml()
+    mg.pop(198)
+    mg.insert(198, '   mean "ABC"\n')
+    exp_msg = 'has non-numeric mean "ABC".'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    # 4. Test stdev
+    mg = get_marygold_gml()
+    mg.pop(199)
+    mg.insert(199, '   stdev "ABC"\n')
+    exp_msg = 'has non-numeric stdev "ABC".'
+    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+
+    # TODO test bsize, mean, stdev more thoroughly
+    # TODO test corner case wherein properties are repeated for the same node
+    # or edge (that's a nx problem, right? might as well add a test here just
+    # to be safe)

@@ -32,7 +32,9 @@ def run_tempfile_test(
 
     in_err: str
         If err_expected is not None, we assert that this text is contained in
-        the corresponding error message.
+        the corresponding error message. (If err_expected is None, then this
+        argument won't be used for anything; feel free to set it to None or ""
+        or whatever.)
 
     join_char: str
         The character (or string, I guess; doesn't really matter) to use when
@@ -71,14 +73,15 @@ def run_tempfile_test(
             "EXCEPTION PRINTED. IF NOTHING SHOWED UP ABOVE, IT'S LIKELY THE "
             "assert STATEMENT RE: THE EXPECTED ERROR MESSAGE FAILED."
         )
-        # NOTE: I'm commenting this out because using ei.value here seems to
-        # cause an error (???), but only when pytest throws Failed due to
-        # parse() *not* failing in the way we expected.
-        # if ei is not None:
-        #     print("ANOTHER THING: 'ei' IS DEFINED. HERE'S str(ei.value):")
-        #     print(str(ei.value))
-        #     print("AND HERE IS type(ei.value):")
-        #     print(type(ei.value))
+        # NOTE: Using ei.value here apparently causes an error when pytest
+        # throws Failed??? I'm keeping this uncommented because it's really
+        # useful for testing other errors (i.e. the assert inside the try block
+        # failed)
+        if ei is not None:
+            print("ANOTHER THING: 'ei' IS DEFINED. HERE'S str(ei.value):")
+            print(str(ei.value))
+            print("AND HERE IS type(ei.value):")
+            print(type(ei.value))
         raise
     finally:
         os.close(filehandle)

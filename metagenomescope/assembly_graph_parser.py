@@ -46,15 +46,29 @@ from .input_node_utils import gc_content, negate_node_id
 def is_not_pos_int(number_string):
     """Returns False if a str represents a positive integer; True otherwise.
 
-    CODELINK: Note that we explicitly consider 0 as non-positive.
+    (Also, if number_string is actually an int, this'll return False if it's
+    a *positive* int. If number_string is actually a float, this'll immediately
+    return True.)
+
+    The behavior of this function is a tad bit confusing, so another way to
+    think about it is "should we throw an error, given this input (which is
+    supposed to represent a positive integer number)?"
+
+    CODELINK: Note that we explicitly consider 0 as non-positive (i.e. "no,
+    this is not ok and we should throw an error").
     I actually forgot about this corner case until looking over Bandage's
     LastGraph-parsing code (buildDeBruijnGraphFromLastGraph(), in
     https://github.com/rrwick/Bandage/blob/1fccd83c072f1e2b47191d144a6d38fdb69126d9/graph/assemblygraph.cpp)
-    -- thanks Torsten Seemann for the suggestion to look over that code.
+    -- thanks to Torsten Seemann for the suggestion to look over that code.
     """
-    # Due to boolean short-circuiting, the int() call won't happen if
-    # not number_string.isdigit() is True
-    return not number_string.isdigit() or int(number_string) <= 0
+    if type(number_string) == int:
+        return number_string <= 0
+    elif type(number_string) == float:
+        return True
+    else:
+        # Due to boolean short-circuiting, the int() call won't happen if
+        # not number_string.isdigit() is True
+        return not number_string.isdigit() or int(number_string) <= 0
 
 
 def validate_lastgraph_file(graph_file):
@@ -305,6 +319,41 @@ def parse_metacarvel_gml(filename):
                     num_edges_with_field, num_edges, required_field
                 )
             )
+
+    for e in g.edges:
+        if g.edges[e]["orientation"] not in ("EE", "EB", "BE", "BB"):
+            raise ValueError(
+                'Edge {} has unsupported orientation "{}". Should be one of '
+                '"EE", "EB", "BE", or "BB".'.format(
+                    e, g.edges[e]["orientation"]
+                )
+            )
+        if is_not_pos_int(g.edges[e]["bsize"]):
+            raise ValueError(
+                'Edge {} has non-positive-integer bsize "{}".'.format(
+                    e, g.edges[e]["bsize"]
+                )
+            )
+        # NOTE: Yeah, this technically allows for NaN/Infinity values to pass
+        # through (since float('nan') and float('inf'), etc. are both allowed
+        # in Python). That being said: I don't think that matters? If
+        # people request it, I can change this in the future. (From what I can
+        # tell, MetaCarvel outputs mean/stdev values from python, so if we see
+        # a NaN or +/- Infinity in the data then this will interpret it
+        # as was originally intended.)
+        for field in ("mean", "stdev"):
+            try:
+                float(g.edges[e][field])
+            except Exception:
+                # Rationale for using except Exception is analogous to what's
+                # discussed in this comment thread:
+                # https://github.com/biocore/LabControl/pull/585#discussion_r323413268
+                raise ValueError(
+                    'Edge {} has non-numeric {} "{}".'.format(
+                        e, field, g.edges[e][field]
+                    )
+                )
+
     return g  # , ("orientation",), ("bsize", "orientation", "mean", "stdev")
 
 

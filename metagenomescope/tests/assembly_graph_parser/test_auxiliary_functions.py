@@ -26,6 +26,30 @@ def test_is_not_pos_int():
     assert not is_not_pos_int("50000")
     assert not is_not_pos_int("12345")
 
+    # Now, repeat most of the tests above but with non-string ints/floats
+    # (where applicable)
+    # A few notes re: weird-looking cases:
+    # 1. 6 / 6 is actually equal to 1.0 in Python (i.e. it's a float). That is,
+    #    it's not an integer, even though yes ~~mathematically~~ it's equal to
+    #    1.
+    # 2. I was going to write a second note here but I forgot what it was while
+    #    I was writing the first note. If anything here looks especially
+    #    questionable to whoever is reading this, feel free to submit a PR ;)
+    assert is_not_pos_int(-3)
+    assert is_not_pos_int(-3.0)
+    assert is_not_pos_int(3.0)
+    assert is_not_pos_int(0)
+    assert is_not_pos_int(0.0)
+    assert is_not_pos_int(5 / 6)
+    assert is_not_pos_int(6 / 6)
+    assert is_not_pos_int(12345.6789)
+    assert is_not_pos_int(-50000)
+    assert not is_not_pos_int(5)
+    assert not is_not_pos_int(3)
+    assert not is_not_pos_int(1)
+    assert not is_not_pos_int(50000)
+    assert not is_not_pos_int(12345)
+
 
 def test_sniff_filetype():
     assert sniff_filetype("asdf.lastgraph") == "lastgraph"
