@@ -24,3 +24,10 @@ to the `-spqr` option (which has some extra installation requirements).
 `loop.gfa` was created by Shaun Jackman.
 [Here](https://github.com/sjackman/assembly-graph/blob/fef9fada23ddfb3da04db8221fac1ca8c99bfc66/loop.gfa)
 is a link to the version of the file used.
+
+`sample1.gfa` and `sample2.gfa` were also created by Shaun Jackman, and were
+downloaded from the [gfalint](https://github.com/sjackman/gfalint) repository
+(in the `examples/` folder).
+
+`marygold_fig2a.gml` is based on Figure 2a from
+[Nijkamp et al. 2013](https://www.ncbi.nlm.nih.gov/pubmed/24058058).
