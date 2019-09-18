@@ -395,7 +395,12 @@ def parse_gfa(filename):
     # Up front, make sure we're considering the complement of every edge
     gfa_edges_to_add = gfa_graph.edges
     for edge in gfa_graph.edges:
-        gfa_edges_to_add.append(edge.complement())
+        # NOTE: .complement() isn't available for GFA2 edges. either resolve
+        # manually or just fix in the loop below (don't bother adding to
+        # gfa_edges_to_add, instead just do adding when constructing nx graph)
+        complement_edge = edge.complement()
+        if edge != complement_edge:
+            gfa_edges_to_add.append(edge.complement())
 
     # Now, add edges to the DiGraph
     for edge in gfa_edges_to_add:

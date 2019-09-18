@@ -3,8 +3,19 @@ from metagenomescope.input_node_utils import negate_node_id
 from metagenomescope.assembly_graph_parser import parse_gfa
 
 
-def test_parse_gfa1_good():
-    digraph = parse_gfa("metagenomescope/tests/input/sample1.gfa")
+def check_sample_gfa_digraph(digraph):
+    """Checks that all of the collected data (nodes, edges, node gc content)
+    looks good for the NX DiGraph produced by running parse_gfa() on
+    sample1.gfa or sample2.gfa.
+
+    (sample1.gfa and sample2.gfa describe the same graph structure, albeit in
+    GFA1 and GFA2 respectively.)
+
+    Using the same assertions on the output of parsing both graphs has two
+    benefits: 1) it lets us ensure that these graphs are equal (at least in
+    the ways parse_gfa() cares about), and 2) it lets me be lazy and reuse all
+    of this test code ;)
+    """
     assert len(digraph.nodes) == 12
     assert len(digraph.edges) == 8
 
@@ -35,3 +46,17 @@ def test_parse_gfa1_good():
     for node_id in ("6", "-6"):
         assert digraph.nodes[node_id]["length"] == 4
         assert digraph.nodes[node_id]["gc_content"] == 0.25
+
+    # TODO: CHECK EDGES! (that they exist, etc.)
+
+
+def test_parse_gfa1_good():
+    check_sample_gfa_digraph(
+        parse_gfa("metagenomescope/tests/input/sample1.gfa")
+    )
+
+
+def test_parse_gfa2_good():
+    check_sample_gfa_digraph(
+        parse_gfa("metagenomescope/tests/input/sample2.gfa")
+    )
