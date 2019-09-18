@@ -364,10 +364,13 @@ def parse_metacarvel_gml(filename):
 
 
 def parse_gfa(filename):
-    # NOTE: At present, we only care about segments (nodes) and links
-    # (edges) in the GFA graph. A TODO is displaying all or most of the
-    # relevant information in these graphs, like GfaViz does: see
-    # https://github.com/marbl/MetagenomeScope/issues/147.
+    """Returns a nx.DiGraph representation of a GFA1 or GFA2 file.
+
+    NOTE that, at present, we only visualize nodes and edges in the GFA graph.
+    A TODO is displaying all or most of the relevant information in these
+    graphs, like GfaViz does: see
+    https://github.com/marbl/MetagenomeScope/issues/147 for discussion of this.
+    """
     digraph = nx.DiGraph()
     gfa_graph = gfapy.Gfa.from_file(filename)
 
