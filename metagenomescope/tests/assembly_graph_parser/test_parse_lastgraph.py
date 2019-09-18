@@ -42,6 +42,14 @@ def test_parse_lastgraph_good():
     assert digraph.nodes["-2"]["depth"] == (20 / 6)
     assert digraph.nodes["-2"]["gc_content"] == (1 / 6)
 
+    # Check that edges were properly stored in the digraph
+    for edge_id in (("1", "2"), ("-2", "-1")):
+        assert edge_id in digraph.edges
+        assert digraph.edges[edge_id]["multiplicity"] == 5
+    for edge_id in (("2", "1"), ("-1", "-2")):
+        assert edge_id in digraph.edges
+        assert digraph.edges[edge_id]["multiplicity"] == 9
+
 
 # The remaining functions in this file test a few expected-to-fail LastGraph
 # files. These should all be caught by validate_lastgraph_file(), which we've
