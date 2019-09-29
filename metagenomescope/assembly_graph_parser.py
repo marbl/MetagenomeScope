@@ -392,25 +392,31 @@ def parse_gfa(filename):
         # Add both a positive and negative node.
         for name in (node.name, negate_node_id(node.name)):
             digraph.add_node(name, length=node.length, gc_content=sequence_gc)
-    # Up front, make sure we're considering the complement of every edge
-    gfa_edges_to_add = gfa_graph.edges
-    for edge in gfa_graph.edges:
-        # NOTE: .complement() isn't available for GFA2 edges. either resolve
-        # manually or just fix in the loop below (don't bother adding to
-        # gfa_edges_to_add, instead just do adding when constructing nx graph)
-        complement_edge = edge.complement()
-        if edge != complement_edge:
-            gfa_edges_to_add.append(edge.complement())
 
     # Now, add edges to the DiGraph
-    for edge in gfa_edges_to_add:
-        src_id = edge.from_name
-        tgt_id = edge.to_name
+    for edge in gfa_graph.edges:
+        # Set edge_tuple to the edge's explicitly specified orientation
+        # This code is a bit verbose, but that was the easiest way to write it
+        # I could think of
         if edge.from_orient == "-":
-            src_id = negate_node_id(src_id)
+            src_id = negate_node_id(edge.from_name)
+        else:
+            src_id = edge.from_name
         if edge.to_orient == "-":
-            tgt_id = negate_node_id(tgt_id)
-        digraph.add_edge(src_id, tgt_id)
+            tgt_id = negate_node_id(edge.to_name)
+        else:
+            tgt_id = edge.to_name
+        edge_tuple = (src_id, tgt_id)
+        digraph.add_edge(*edge_tuple)
+
+        # Now, try to add the complement of the edge (done manually, since
+        # .complement() isn't available for GFA2 edges as of writing)
+        complement_tuple = (negate_node_id(tgt_id), negate_node_id(src_id))
+
+        # Don't add an edge twice if its complement is itself (as in the
+        # loop.gfa test case)
+        if complement_tuple != edge_tuple:
+            digraph.add_edge(*complement_tuple)
     return digraph
 
 
