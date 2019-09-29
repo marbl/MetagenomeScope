@@ -47,7 +47,18 @@ def check_sample_gfa_digraph(digraph):
         assert digraph.nodes[node_id]["length"] == 4
         assert digraph.nodes[node_id]["gc_content"] == 0.25
 
-    # TODO: CHECK EDGES! (that they exist, etc.)
+    valid_edges = (
+        ("1", "2"),
+        ("-2", "-1"),
+        ("3", "2"),
+        ("-2", "-3"),
+        ("3", "-4"),
+        ("4", "-3"),
+        ("-4", "5"),
+        ("-5", "4"),
+    )
+    for edge_id in valid_edges:
+        assert edge_id in digraph.edges
 
 
 def test_parse_gfa1_good():
