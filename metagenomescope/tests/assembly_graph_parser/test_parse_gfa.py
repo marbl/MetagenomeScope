@@ -141,14 +141,18 @@ def test_parse_no_length_node():
     # (since the length is then implied)
     s1.pop(1)
     s1.insert(1, "S\t1\tAAA")
-    run_tempfile_test("gfa", s1, None, None)
+    digraph = run_tempfile_test("gfa", s1, None, None)
+    assert digraph.nodes["1"]["gc_content"] == 0
+    assert digraph.nodes["1"]["length"] == 3
 
     # Similarly, explicitly giving node 1 a length should also be ok
     # (for reference, see
     # https://github.com/GFA-spec/GFA-spec/blob/master/GFA1.md#optional-fields-2)
     s1.pop(1)
     s1.insert(1, "S\t1\t*\tLN:i:6")
-    run_tempfile_test("gfa", s1, None, None)
+    digraph = run_tempfile_test("gfa", s1, None, None)
+    assert digraph.nodes["1"]["gc_content"] is None
+    assert digraph.nodes["1"]["length"] == 6
 
     # test super weird corner case where both forms of length are given, but
     # they disagree -- should be caught by gfapy

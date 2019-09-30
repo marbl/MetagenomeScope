@@ -42,6 +42,10 @@ def run_tempfile_test(
         this to "" if your lines in file_contents already have newlines
         included (as is the case with the output of .readlines()).
 
+    Returns
+    -------
+    The output of parse() (but only if parsing "succeeds").
+
     References
     ----------
     CODELINK: Our use of temporary files in this function (using mkstemp(), and
@@ -51,6 +55,7 @@ def run_tempfile_test(
     """
     filehandle, filename = tempfile.mkstemp(suffix=suffix)
     ei = None
+    output_graph = None
     try:
         with open(filename, "w") as f:
             f.write(join_char.join(file_contents))
@@ -59,7 +64,7 @@ def run_tempfile_test(
                 parse(filename)
             assert in_err in str(ei.value)
         else:
-            parse(filename)
+            output_graph = parse(filename)
     except (Exception, Failed) as e:
         # To give more context about *why* a failure occurred, print error info
         # (then reraise the exception).
@@ -86,3 +91,4 @@ def run_tempfile_test(
     finally:
         os.close(filehandle)
         os.unlink(filename)
+    return output_graph
