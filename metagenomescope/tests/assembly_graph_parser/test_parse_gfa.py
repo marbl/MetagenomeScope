@@ -2,6 +2,7 @@
 from metagenomescope.input_node_utils import negate_node_id
 from metagenomescope.assembly_graph_parser import parse_gfa
 from .utils import run_tempfile_test
+from gfapy.error import InconsistencyError
 
 
 def check_sample_gfa_digraph(digraph):
@@ -147,3 +148,11 @@ def test_parse_no_length_node():
     s1.pop(1)
     s1.insert(1, "S\t1\t*\tLN:i:6")
     run_tempfile_test("gfa", s1, None, None)
+
+    # test super weird corner case where both forms of length are given, but
+    # they disagree -- should be caught by gfapy
+    s1.pop(1)
+    s1.insert(1, "S\t1\tATCA\tLN:i:6")
+    run_tempfile_test("gfa", s1, InconsistencyError,
+        "Length in LN tag (6) is different from length of sequence field (4)"
+    )
