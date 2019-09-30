@@ -72,6 +72,7 @@ def test_parse_gfa2_good():
         parse_gfa("metagenomescope/tests/input/sample2.gfa")
     )
 
+
 def test_parse_self_implied_edge():
     """Uses loop.gfa (c/o Shaun Jackman) to test self-implied GFA edges.
 
@@ -100,7 +101,7 @@ def test_parse_self_implied_edge():
         ("2", "-2"),
         ("-3", "3"),
         ("-4", "-4"),
-        ("4", "4")
+        ("4", "4"),
     )
     for edge_id in expected_edges:
         assert edge_id in digraph.edges
