@@ -1,6 +1,7 @@
 # from .utils import run_tempfile_test
 from metagenomescope.input_node_utils import negate_node_id
 from metagenomescope.assembly_graph_parser import parse_gfa
+from .utils import run_tempfile_test
 
 
 def check_sample_gfa_digraph(digraph):
@@ -105,3 +106,44 @@ def test_parse_self_implied_edge():
     )
     for edge_id in expected_edges:
         assert edge_id in digraph.edges
+
+
+def get_sample1_gfa():
+    """Just returns a list representation of sample1.gfa, which as mentioned
+    is from https://github.com/sjackman/gfalint/tree/master/examples.
+    """
+    # We could also just open and read the file, but this is easier to look at
+    return [
+        "H	VN:Z:1.0",
+        "S	1	CGATGCAA",
+        "S	2	TGCAAAGTAC",
+        "S	3	TGCAACGTATAGACTTGTCAC	RC:i:4",
+        "S	4	TATATGC",
+        "S	5	CGATGATA",
+        "S	6	ATGA",
+        "L	1	+	2	+	5M",
+        "L	3	+	2	+	0M",
+        "L	3	+	4	-	1M1D3M",
+        "L	4	-	5	+	0M"
+    ]
+
+def test_parse_no_length_node():
+    s1 = get_sample1_gfa()
+    s1.pop(1)
+    s1.insert(1, "S\t1\t*")
+    run_tempfile_test(
+        "gfa", s1, ValueError, "Found a node without a specified length: 1"
+    )
+
+    # Manually assigning node 1 a sequence should fix the problem
+    # (since the length is then implied)
+    s1.pop(1)
+    s1.insert(1, "S\t1\tAAA")
+    run_tempfile_test("gfa", s1, None, None)
+
+    # Similarly, explicitly giving node 1 a length should also be ok
+    # (for reference, see
+    # https://github.com/GFA-spec/GFA-spec/blob/master/GFA1.md#optional-fields-2)
+    s1.pop(1)
+    s1.insert(1, "S\t1\t*\tLN:i:6")
+    run_tempfile_test("gfa", s1, None, None)
