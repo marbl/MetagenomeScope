@@ -125,8 +125,9 @@ def get_sample1_gfa():
         "L	1	+	2	+	5M",
         "L	3	+	2	+	0M",
         "L	3	+	4	-	1M1D3M",
-        "L	4	-	5	+	0M"
+        "L	4	-	5	+	0M",
     ]
+
 
 def test_parse_no_length_node():
     s1 = get_sample1_gfa()
@@ -153,6 +154,26 @@ def test_parse_no_length_node():
     # they disagree -- should be caught by gfapy
     s1.pop(1)
     s1.insert(1, "S\t1\tATCA\tLN:i:6")
-    run_tempfile_test("gfa", s1, InconsistencyError,
-        "Length in LN tag (6) is different from length of sequence field (4)"
+    run_tempfile_test(
+        "gfa",
+        s1,
+        InconsistencyError,
+        "Length in LN tag (6) is different from length of sequence field (4)",
+    )
+
+
+def test_parse_invalid_id_node():
+    s1 = get_sample1_gfa()
+    # Evil hack to replace the two lines referring to node 1 to refer instead
+    # to node "-1"
+    for line_num in (1, 7):
+        line = s1.pop(line_num)
+        line = line.replace("1", "-1")
+        s1.insert(line_num, line)
+    run_tempfile_test(
+        "gfa",
+        s1,
+        ValueError,
+        "Node IDs in the input assembly graph cannot "
+        'start with the "-" character.',
     )
