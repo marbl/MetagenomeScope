@@ -1,5 +1,3 @@
-# from .utils import run_tempfile_test
-from metagenomescope.assembly_graph_parser import parse_fastg
 from .utils import run_tempfile_test
 
 
