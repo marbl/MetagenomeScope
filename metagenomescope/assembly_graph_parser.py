@@ -40,6 +40,7 @@
 
 import networkx as nx
 import gfapy
+import pyfastg
 from .input_node_utils import gc_content, negate_node_id
 
 
@@ -262,6 +263,36 @@ def validate_lastgraph_file(graph_file):
         )
 
 
+def validate_nx_digraph(g, required_node_fields, required_edge_fields):
+    # Verify that the graph is directed and doesn't have duplicate edges
+    if not g.is_directed():
+        raise ValueError("The input graph should be directed.")
+    if g.is_multigraph():
+        raise ValueError("Multigraphs are unsupported in MetagenomeScope.")
+
+    # Verify that all nodes have the properties we expect nodes to have
+    num_nodes = len(g.nodes)
+    for required_field in required_node_fields:
+        num_nodes_with_field = len(nx.get_node_attributes(g, required_field))
+        if num_nodes_with_field < num_nodes:
+            raise ValueError(
+                'Only {} / {} nodes have "{}" given.'.format(
+                    num_nodes_with_field, num_nodes, required_field
+                )
+            )
+
+    # Verify that all edges have the properties we expect edges to have
+    num_edges = len(g.edges)
+    for required_field in required_edge_fields:
+        num_edges_with_field = len(nx.get_edge_attributes(g, required_field))
+        if num_edges_with_field < num_edges:
+            raise ValueError(
+                'Only {} / {} edges have "{}" given.'.format(
+                    num_edges_with_field, num_edges, required_field
+                )
+            )
+
+
 def parse_metacarvel_gml(filename):
     """Returns a nx.DiGraph representation of a GML (MetaCarvel output) file.
 
@@ -279,25 +310,11 @@ def parse_metacarvel_gml(filename):
     """
     g = nx.gml.read_gml(filename)
 
-    # Verify that the graph is directed and doesn't have duplicate edges
-    if not g.is_directed():
-        raise ValueError("The input graph should be directed.")
-    if g.is_multigraph():
-        raise ValueError("Multigraphs are unsupported in MetagenomeScope.")
+    validate_nx_digraph(
+        g, ("orientation", "length"), ("orientation", "mean", "stdev", "bsize")
+    )
 
-    # Verify that all nodes have the properties we expect nodes in MetaCarvel
-    # output graphs to have (orientation, length)
-    num_nodes = len(g.nodes)
-    for required_field in ("orientation", "length"):
-        num_nodes_with_field = len(nx.get_node_attributes(g, required_field))
-        if num_nodes_with_field < num_nodes:
-            raise ValueError(
-                'Only {} / {} nodes have "{}" given.'.format(
-                    num_nodes_with_field, num_nodes, required_field
-                )
-            )
-
-    # Verify that orientation and length types are good
+    # Verify that node attributes are good
     for n in g.nodes:
         orientation = g.nodes[n]["orientation"]
         if type(orientation) != str or orientation not in ("FOW", "REV"):
@@ -312,20 +329,7 @@ def parse_metacarvel_gml(filename):
                 )
             )
 
-    # Verify that all edges have the properties we expect edges in MetaCarvel
-    # output graphs to have (orientation, mean, stdev, bsize)
-    # bsize is the most important of these (in my opinion), since it actually
-    # impacts the visual display of edges in the viewer interface.
-    num_edges = len(g.edges)
-    for required_field in ("orientation", "mean", "stdev", "bsize"):
-        num_edges_with_field = len(nx.get_edge_attributes(g, required_field))
-        if num_edges_with_field < num_edges:
-            raise ValueError(
-                'Only {} / {} edges have "{}" given.'.format(
-                    num_edges_with_field, num_edges, required_field
-                )
-            )
-
+    # Verify that edge attributes are good
     for e in g.edges:
         if g.edges[e]["orientation"] not in ("EE", "EB", "BE", "BB"):
             raise ValueError(
@@ -346,7 +350,8 @@ def parse_metacarvel_gml(filename):
         # people request it, I can change this in the future. (From what I can
         # tell, MetaCarvel outputs mean/stdev values from python, so if we see
         # a NaN or +/- Infinity in the data then this will interpret it
-        # as was originally intended.)
+        # as was originally intended.) Unlike bsize, we don't really use "mean"
+        # or "stdev" for anything at present.
         for field in ("mean", "stdev"):
             try:
                 float(g.edges[e][field])
@@ -421,9 +426,9 @@ def parse_gfa(filename):
 
 
 def parse_fastg(filename):
-    raise NotImplementedError(
-        "FASTG support isn't done yet! Give me a few weeks!"
-    )
+    g = pyfastg.parse_fastg(filename)
+    validate_nx_digraph(g, ("length", "cov", "gc"), ())
+    return g
 
 
 def parse_lastgraph(filename):
