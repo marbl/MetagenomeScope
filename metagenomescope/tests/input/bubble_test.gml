@@ -1,4 +1,5 @@
 graph [
+  directed 1
   node [
    id 1 
    label "contig-100_1"
@@ -26,29 +27,33 @@ graph [
   edge [
    source 1
    target 2
-   orientation EB
+   orientation "EB"
    mean "-100"
    stdev 50
+   bsize 5
   ]
   edge [
    source 1
    target 3
-   orientation EB
+   orientation "EB"
    mean "-100"
-   stdev 50 
+   stdev 50
+   bsize 5
   ]
   edge [
    source 2
    target 4
-   orientation EB
+   orientation "EB"
    mean "-100"
-   stdev 50 
+   stdev 50
+   bsize 5
   ]
   edge [
    source 3
    target 4
-   orientation EB
+   orientation "EB"
    mean "-100"
-   stdev 50 
+   stdev 50
+   bsize 5
   ]
 ]
