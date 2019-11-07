@@ -532,11 +532,26 @@ def collate_graph(args):
     # List of all the node lengths in the assembly. Used when calculating n50.
     bp_length_list = []
 
-    # Parse assembly graph
+    # Parse the assembly graph!
     operation_msg(config.READ_FILE_MSG + "%s..." % (os.path.basename(asm_fn)))
-    # NOTE: in the future, this will be as simple as --
     asm_graph = graph_objects.AssemblyGraph(asm_fn)
     conclude_msg()
+
+    # TODO from here on down.
+    # -Identify user-supplied bubbles.
+    # -Identify user-supplied misc. patterns.
+    # -Identify bubbles.
+    # -If -spqr passed, compute SPQR trees and record composition/structure.
+    # -Identify frayed ropes.
+    # -Identify cyclic chains.
+    # -Identify chains.
+    # -Output identified pattern info if -sp passed
+    # -Identify connected components for the "single" graph (SPQR mode).
+    # -Identify connected components for the "normal" graph (non-SPQR mode).
+    # -Compute node scaling for each connected component
+    # -Compute edge scaling for each connected component
+    # -SPQR layout!
+    # -Normal layout!
 
     # Try to collapse special "groups" of Nodes (Bubbles, Ropes, etc.)
     # As we check nodes, we add either the individual node (if it can't be
