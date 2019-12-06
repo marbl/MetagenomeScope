@@ -118,3 +118,71 @@ def test_intervening_paths_easier():
     assert not AssemblyGraph.is_valid_chain(g, 3)[0]
     assert not AssemblyGraph.is_valid_chain(g, 4)[0]
     assert not AssemblyGraph.is_valid_chain(g, 5)[0]
+
+
+def test_cyclic_chain_easy():
+    """Checks that the following graph isn't considered a chain:
+
+         __
+        /  \ 
+       V    \ 
+       1 --> 2
+
+       It should get tagged as a cyclic chain later on.
+    """
+    g = nx.DiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(2, 1)
+    # Regardless of picked starting node, this shouldn't work
+    for s in [1, 2]:
+        assert not AssemblyGraph.is_valid_chain(g, s)[0]
+
+
+def test_cyclic_chain_ambiguous_end():
+    """Checks that the following graph isn't considered a chain:
+
+         __
+        /  \ 
+       V    \ 
+       1 --> 2 --> 3
+
+       Note the "3" at the end. This test should make sure that the code
+       can identify (even in the case where it initially finds a chain starting
+       at node 1) that this putatively-ok chain is actually a cyclic chain.
+    """
+    g = nx.DiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(2, 1)
+    g.add_edge(2, 3)
+    # Regardless of picked starting node, this shouldn't work
+    for s in [1, 2, 3]:
+        assert not AssemblyGraph.is_valid_chain(g, s)[0]
+
+
+def test_cyclic_chain_found_to_be_cyclic_during_backwards_extension():
+    """Function name is probably self-explanatory. This looks at this graph:
+
+         ________
+        /        \ 
+       V          \ 
+       1 --> 2 --> 3 --> 4
+
+       If we look for a chain starting at "2", then we'll see that 2 -> 3 seems
+       to be a valid chain (none of 3's outgoing edges hit 2 or 3). However,
+       when we try to do backwards extension (finding a more "optimal" starting
+       node for the chain than 2), we should hit 1 and then 3, and this should
+       cause the code to realize that the pattern here is really a cyclic
+       chain.
+
+       Fun fact: I'm pretty sure this sort of case was treated as a "chain" by
+       MetagenomeScope's pattern detection code before. Adding this test
+       actually made me realize this bug existed!
+    """
+    g = nx.DiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(2, 3)
+    g.add_edge(3, 1)
+    g.add_edge(3, 4)
+    # Regardless of picked starting node, this shouldn't work
+    for s in [1, 2, 3, 4]:
+        assert not AssemblyGraph.is_valid_chain(g, s)[0]

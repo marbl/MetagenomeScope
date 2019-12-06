@@ -211,11 +211,13 @@ class AssemblyGraph(object):
                     return False, None
                 backwards_chain_list.append(curr_node_id)
                 break
-            # The backwards chain continues. Fortunately, if the chain had
-            # invalid references (e.g. last node has an outgoing edge to the
-            # prior start node or something), those should have been caught
-            # in the forwards chain-checking, so we don't need to check for
-            # that corner case here.
+
+            # Double-check that the node we're going to "go back to" isn't
+            # already in the chain (if so, this chain begins cyclically)
+            if in_curr_node_ids[0] in chain_list:
+                return False, None
+
+            # At this point, we can safely continue moving "back".
             backwards_chain_list.append(curr_node_id)
             curr_node_id = in_curr_node_ids[0]
 
