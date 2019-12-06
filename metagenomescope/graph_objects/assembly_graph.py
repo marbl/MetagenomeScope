@@ -201,21 +201,19 @@ class AssemblyGraph(object):
                 # start of the chain. Therefore the previous node we were
                 # looking at is the optimal starting node.
                 break
+
             in_curr_node_ids = list(g.pred[curr_node_id].keys())
+
+            if len(set(in_curr_node_ids) & set(chain_list)) > 0:
+                # The chain "begins" cyclically, so we'll tag it as a
+                # cyclic chain later on.
+                return False, None
+
             if len(in_curr_node_ids) != 1:
                 # This node has multiple (or 0) incoming edges, so it's
                 # the optimal start of the chain.
-                if len(set(in_curr_node_ids) & set(chain_list)) > 0:
-                    # The chain "begins" cyclically, so we'll tag it as a
-                    # cyclic chain later on.
-                    return False, None
                 backwards_chain_list.append(curr_node_id)
                 break
-
-            # Double-check that the node we're going to "go back to" isn't
-            # already in the chain (if so, this chain begins cyclically)
-            if in_curr_node_ids[0] in chain_list:
-                return False, None
 
             # At this point, we can safely continue moving "back".
             backwards_chain_list.append(curr_node_id)
