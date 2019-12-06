@@ -67,9 +67,12 @@ class AssemblyGraph(object):
         if len(m1_node_ids) <= 1:
             return False, None
 
+        # Will be recorded here (if we get to it...)
+        ending_node_id = None
+
         # Each outgoing node from the "starting node" represents a possible
         # path through this bubble.
-        for m in m1_node_id:
+        for m in m1_node_ids:
             # ... And of course, each node on this path can't have extra
             # incoming nodes (which would be from outside of the bubble) or
             # extra outgoing nodes (which would represent non-bubble-like
@@ -77,7 +80,11 @@ class AssemblyGraph(object):
             if len(g.pred[m]) != 1 or len(g.adj[m]) != 1:
                 return False, None
             # Check to see if we an build a "Chain" of >= 2 nodes starting at
-            # m. If so, do so!
+            # m. If so, do so! (TODO: structure code so that this either
+            # produces a bubble with a child chain, or structure
+            # hierarchically_identify_patterns() so that chains are always
+            # detected before bubbles? or just acknowledge that bottom-level
+            # chains in bubbles/patterns just won't get identified)
             chain_validity, path_nodes = AssemblyGraph.is_valid_chain(g, m)
             if not chain_validity:
                 # Try out single middle node case
@@ -229,7 +236,22 @@ class AssemblyGraph(object):
         backwards_chain_list.reverse()
         return True, backwards_chain_list + chain_list
 
-    def identify_bubbles(self):
+
+    def hierarchically_identify_patterns(self):
+        """WIP: Eventually, this will run all of the pattern detection
+           algorithms above on the graph repeatedly until the graph has been
+           "fully" squished into patterns.
+
+           I imagine this will involve converting the assembly graph into a NX
+           digraph such that each top-level pattern is just represented as a
+           node in the graph (so that the pattern detection algorithms
+           straight-up can't tell the difference between a 'pattern' and an
+           actual node in the graph). We'll have to keep doing this conversion
+           at each layer, I guess, but I don't think this should be *too*
+           computationally expensive (knock on wood).
+        """
+
+
         # make collection of candidate nodes (collection of all nodes in self.digraph -- should be a deep copy, so that we don't actually modify self.digraph!)
         candidate_nodes = list(self.digraph.nodes)
         # make collection of candidate bubbles (initially empty) -- where each "bubble"
