@@ -201,7 +201,7 @@ class AssemblyGraph(object):
                 # start of the chain. Therefore the previous node we were
                 # looking at is the optimal starting node.
                 break
-            in_curr_node_ids = list(g.prev[curr_node_id].keys())
+            in_curr_node_ids = list(g.pred[curr_node_id].keys())
             if len(in_curr_node_ids) != 1:
                 # This node has multiple (or 0) incoming edges, so it's
                 # the optimal start of the chain.
