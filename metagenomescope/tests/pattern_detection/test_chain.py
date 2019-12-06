@@ -77,7 +77,8 @@ def test_intervening_paths_harder():
     """
     g = get_intervening_graph()
     # Only one chain can be detected in this graph: 2 -> 3
-    for i in set(range(0, 2)) & set(range(3, 6)):
+    # ... So starting at everything except for 2 should result in nothing found
+    for i in [0, 1, 3, 4, 5]:
         results = AssemblyGraph.is_valid_chain(g, i)
         assert not results[0] and results[1] is None
 
