@@ -1,4 +1,6 @@
+from copy import deepcopy
 from .. import assembly_graph_parser
+from ..input_node_utils import get_uuid
 
 # from .basic_objects import Node, Edge
 
@@ -24,12 +26,26 @@ class AssemblyGraph(object):
         self.nodes = []
         self.edges = []
         self.components = []
+        # Each entry in these structures will be the unique ID of a node group
+        # pointing to a list containing all of the node IDs in the node group
+        # in question (these node IDs can include other group IDs!)
+        #
+        # NOTE that these patterns will only be "represented" in
+        # self.decomposed_digraph; self.digraph represents the literal graph
+        # structure as initially parsed.
+        self.chains = {}
+        self.cyclic_chains = {}
+        self.bubbles = {}
+        self.frayed_ropes = {}
+
         # TODO extract common node/edge attrs from parse(). There are various
         # ways to do this, from elegant (e.g. create classes for each filetype
         # parser that define the expected node/edge attrs) to patchwork (just
         # return 3 things from each parsing function and from parse(), where
         # the last two things are tuples of node and edge attrs respectively).
         self.digraph = assembly_graph_parser.parse(self.filename)
+
+        self.decomposed_digraph = None
         # Poss TODO: Convert self.digraph into collections of Node/Edge objs?
         # So one option is doing this immediately after creating self.digraph,
         # and another option is deferring this until just before layout (or
@@ -421,10 +437,44 @@ class AssemblyGraph(object):
         backwards_chain_list.reverse()
         return True, backwards_chain_list + chain_list
 
+    def add_pattern(self, member_node_ids):
+        """Adds a pattern composed of a list of node IDs to the decomposed
+           DiGraph, and removes its children from the decomposed DiGraph.
+
+           Returns the UUID of the pattern.
+        """
+        pattern_id = get_uuid()
+        # Get incoming edges to this pattern
+        in_edges = self.decomposed_digraph.in_edges(member_node_ids)
+        p_in_edges = list(
+            filter(lambda e: e[0] not in member_node_ids, in_edges)
+        )
+        # Get outgoing edges from this pattern
+        out_edges = self.decomposed_digraph.out_edges(member_node_ids)
+        p_out_edges = list(
+            filter(lambda e: e[1] not in member_node_ids, out_edges)
+        )
+        # Add this pattern to the decomposed digraph, with the same in/out
+        # nodes as in the subgraph of this chain's nodes (and the same UUID,
+        # of course)
+        self.decomposed_digraph.add_node(pattern_id)
+        for e in p_in_edges:
+            self.decomposed_digraph.add_edge(e[0], pattern_id)
+        for e in p_out_edges:
+            self.decomposed_digraph.add_edge(pattern_id, e[1])
+
+        # Remove the children of this pattern from the decomposed DiGraph
+        # (they're not gone forever, of course! -- we should hold on a
+        # reference to everything, albeit sort of circuitously -- so the
+        # topmost pattern has a reference to its child nodes' and patterns'
+        # IDs, and these child pattern(s) will have references to their
+        # children node/pattern IDs, etc.)
+        self.decomposed_digraph.remove_nodes_from(member_node_ids)
+        return pattern_id
+
     def hierarchically_identify_patterns(self):
-        """WIP: Eventually, this will run all of the pattern detection
-           algorithms above on the graph repeatedly until the graph has been
-           "fully" squished into patterns.
+        """Run all of the pattern detection algorithms above on the graph
+           repeatedly until the graph has been "fully" squished into patterns.
 
            I imagine this will involve converting the assembly graph into a NX
            digraph such that each top-level pattern is just represented as a
@@ -434,70 +484,42 @@ class AssemblyGraph(object):
            at each layer, I guess, but I don't think this should be *too*
            computationally expensive (knock on wood).
         """
+        # We'll modify this as we go through this method
+        self.decomposed_digraph = deepcopy(self.digraph)
 
-        # make collection of candidate nodes (collection of all nodes in self.digraph -- should be a deep copy, so that we don't actually modify self.digraph!)
-        candidate_nodes = list(self.digraph.nodes)
-        # make collection of candidate bubbles (initially empty) -- where each "bubble"
-        # is just a list of node ids or something, nothing fancy at all
-        candidate_bubbles = []
+        while True:
+            # Run through all of the pattern detection methods on all of the
+            # top-level nodes (or node groups) in the decomposed DiGraph.
+            # Keep doing this until we get to a point where we've run every
+            # pattern detection method on the graph, and nothing new has been
+            # found.
+            something_collapsed = False
 
-        # The output: a list of identified bubbles that we can collapse in the
-        # visualization
-        identified_bubbles = []
+            # You could totally switch the order of this tuple up in order to
+            # change the "precedence" of pattern detection. I don't think that
+            # would make a huge difference, though...?
+            for collection, validator in (
+                (self.chains, AssemblyGraph.is_valid_chain),
+                (self.cyclic_chains, AssemblyGraph.is_valid_cyclic_chain),
+                (self.bubbles, AssemblyGraph.is_valid_bubble),
+                (self.frayed_ropes, AssemblyGraph.is_valid_frayed_rope),
+            ):
+                candidate_nodes = set(self.decomposed_digraph.nodes)
+                while len(candidate_nodes) > 0:
+                    n = candidate_nodes.pop()
+                    pattern_valid, pattern_node_ids = validator(
+                        self.decomposed_digraph, n
+                    )
+                    if pattern_valid:
+                        pattern_id = self.add_pattern(pattern_node_ids)
+                        collection[pattern_id] = pattern_node_ids
+                        candidate_nodes.difference_update(pattern_node_ids)
+                        something_collapsed = True
+                    # Even if this pattern wasn't valid, no need to manually
+                    # remove n from candidate_nodes -- pop() has already taken
+                    # it out
 
-        # for every node in the graph
-        for n in candidate_nodes:
-            # is it the start of a bubble?
-            bubble_valid, bubble_node_ids = AssemblyGraph.is_valid_bubble(n)
-            # if so, record it in a list of candidate bubbles
-            if bubble_valid:
-                # Create bubble object or list or whatever?
-                candidate_bubbles.append(bubble_node_ids)
-
-        if len(candidate_bubbles) > 0:
-            pass
-            # sort bubbles in descending order by num of nodes
-            # go through all candidate bubbles (in descending order)
-            # If all of the nodes in the bubble are still in candidate nodes,
-            # then collapse this bubble: set its child nodes' parent prop to
-            # a unique bubble id (can be a uuid or a combo of node ids,
-            # doesn't really matter), remove its child nodes from the
-            # candidate nodes, and add a new Node representing the bubble
-            # (with requisite incoming and outgoing edges matching the
-            # incoming and outgoing edges of the start and end nodes of the
-            # bubble, naturally) to candidate nodes
-            # (also, add this bubble's info to identified_bubbles)
-            #
-            # at this point, we've collapsed all the bubbles we've can at this
-            # "stage," giving preference to larger bubbles. So far this process is
-            # basically identical to how MetagenomeScope classic (tm) (just
-            # kidding) worked.
-            #
-            # Now, what we can do is REPEAT the process. This allows for bubbles of
-            # bubbles to be created!
-            # If desired, we can disallow starting or ending nodes in a bubble from
-            # themselves being bubbles. You can imagine that sort of thing
-            # happening when you have a repeating sequence of bubbles, e.g.
-            #
-            #   b   e
-            #  / \ / \
-            # a   d   g
-            #  \ / \ /
-            #   c   f
-            #
-            # Ordinarily, this would collapse either the "ad" or "dg" bubble first
-            # (arbitrary in this case since they both have 4 nodes) and then on the
-            # next go-round collapse the other bubble into a superbubble involving
-            # the first bubble. But if you don't want this behavior, disallowing
-            # starting/ending nodes in a bubble from themselves being bubbles would
-            # just collapse one bubble then stop (again, analogous to classic
-            # MgSc). This limtiation is due to the way MetagenomeScope's layout
-            # algorithm works -- a given node can only have one parent node
-            # group (sure, it can have *grandparent* / etc. node groups, but it
-            # can't be in two places at once).
-        else:
-            # We couldn't detect any (more) bubbles -- at this point, we're
-            # done.
-            # Actually, is returning this list the best thing? maybe modifying
-            # stuff as we go above is clearer. whatever, it'll work out
-            return identified_bubbles
+            if not something_collapsed:
+                # We didn't collapse anything... so we're done here! We can't
+                # do any more.
+                break

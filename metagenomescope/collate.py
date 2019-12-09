@@ -537,6 +537,10 @@ def collate_graph(args):
     asm_graph = graph_objects.AssemblyGraph(asm_fn)
     conclude_msg()
 
+    # Hierarchically decompose graph
+    asm_graph.hierarchically_identify_patterns()
+    return asm_graph
+
     # TODO from here on down.
     # -Identify user-supplied bubbles.
     # -Identify user-supplied misc. patterns.
@@ -2558,7 +2562,7 @@ def run_script(cmdline_args=sys.argv[1:]):
     """
     # Delay parsing the command-line arguments
     args = parser.parse_args(cmdline_args)
-    collate_graph(args)
+    return collate_graph(args)
 
 
 if __name__ == "__main__":
