@@ -115,10 +115,82 @@ class AssemblyGraph(object):
         # If we've made it here, this frayed rope is valid!
         return True, composite
 
-
     @staticmethod
-    def is_valid_cyclic_chain(digraph, starting_node_id):
-        pass
+    def is_valid_cyclic_chain(g, starting_node_id):
+        """Identifies the cyclic chain that "starts at" a given starting
+           node, if such a cyclic chain exists. Returns (True, [nodes]) if
+           such a cyclic chain exists (where [nodes] is a list of all the
+           node IDs in the cyclic chain), and (False, None) otherwise.
+        """
+        s_outgoing_node_ct = len(g.adj[starting_node_id])
+        if len(g.pred[starting_node_id]) == 0 or s_outgoing_node_ct == 0:
+            # If the starting node has no incoming or no outgoing nodes, it
+            # can't be in a cycle!
+            return False, None
+        # Edge case: we identify single nodes with loops to themselves.
+        # If the start node has multiple outgoing edges but no reference to
+        # itself, then it isn't the start node for a cycle. (It could very
+        # well be the "end node" of another cycle, but we would eventually
+        # test that node for being a cycle later on.)
+        if starting_node_id in list(g.adj[starting_node_id].keys()):
+            # Valid whether s has 1 or >= 1 outgoing edges
+            return True, [starting_node_id]
+        elif s_outgoing_node_ct > 1:
+            # Although we allow singleton looped nodes to be cycles (and to
+            # have > 1 outgoing nodes), we don't allow larger cycles to be
+            # constructed from a start node with > 1 outgoing nodes (since
+            # these are simple chain-like cycles, as discussed above).
+            return False, None
+
+        # Ok, things look promising. Now, we iterate "down" through the cyclic
+        # chain to see what it's composed of.
+        cch_list = [starting_node_id]
+        curr = list(g.adj[starting_node_id].keys())[0]
+        while True:
+            if len(g.pred[curr]) != 1:
+                # The cyclic chain has ended, and this can't be the last node
+                # in it -- but since the cyclic chain didn't "loop back" yet,
+                # we weren't able to identify an applicable cyclic chain
+                # (The node before this node, if applicable, is the cycle's
+                # actual end.)
+                return False, None
+            if len(g.adj[curr]) != 1:
+                # Like above, this means the "end" of the cyclic chain, but it
+                # could mean the cyclic chain is valid.
+                # NOTE that at this point, if curr has an outgoing edge to a
+                # node in cch_list, it has to be to the starting node.
+                # This is because we've already checked every other node in
+                # cch_list to ensure that every non-starting node has
+                # only 1 incoming node.
+                if len(g.adj[curr]) > 1 and starting_node_id in list(
+                    g.adj[curr].keys()
+                ):
+                    return True, cch_list + [curr]
+                else:
+                    # If we didn't loop back to start at the end of the
+                    # cyclic chain, we never will for this particular
+                    # structure. So just return False.
+                    return False, None
+
+            # We know curr has one incoming and one outgoing edge. If its
+            # outgoing edge is to the starting node, then we've found a cycle.
+            if list(g.adj[curr].keys())[0] == starting_node_id:
+                return True, cch_list + [curr]
+
+            # If we're here, the cyclic chain is still going on -- the next
+            # node to check is not already in cch_list.
+            cch_list.append(curr)
+            curr = list(g.adj[curr].keys())[0]
+
+        # If we're here then something went terribly wrong
+        raise RuntimeError(
+            (
+                "Sorry! Something went terribly wrong during cyclic chain "
+                "detection using a tentative starting node ID of {}. Please "
+                "raise an issue on the MetagenomeScope GitHub page, and "
+                "include the assembly graph file you're using as input."
+            ).format(starting_node_id)
+        )
 
     @staticmethod
     def is_valid_bubble(g, starting_node_id):
