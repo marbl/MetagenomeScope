@@ -77,3 +77,111 @@ def test_easy_3_node_bubble_fails():
     g = get_3_node_bubble_graph()
     for s in [1, 2]:
         assert not AssemblyGraph.is_valid_bubble(g, s)[0]
+
+
+def test_extra_nodes_on_middle():
+    """Tests that "intervening" edges on/from the middle nodes of a bubble
+       causes the bubble to not get detected.
+
+       We test a graph that looks like this -- first where the top edge is
+       4 -> 1, and and then when the top edge is 1 -> 4 (both cases should
+       cause the bubble to not be detected).
+
+           4
+           |
+         /-1-\
+        /     \
+       0       3
+        \     /
+         \-2-/
+    """
+    g = get_easy_bubble_graph()
+    g.add_edge(4, 1)
+    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
+    g = get_easy_bubble_graph()
+    g.add_edge(1, 4)
+    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
+
+
+def test_converge_to_diff_endings():
+    """Tests that the following graph isn't identified as a bubble:
+         /-1--2
+        /
+       0
+        \
+         \-3--4
+    """
+    g = nx.DiGraph()
+    g.add_path([0, 1, 2])
+    g.add_path([0, 3, 4])
+    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
+
+
+def test_extra_nodes_on_ending():
+    """Tests that the following graph (starting at 0) isn't identified as a
+       bubble, due to the 4 -> 3 edge.
+
+               4
+         /-1-\ |
+        /     \V
+       0       3
+        \     /
+         \-2-/
+
+       However, flipping this edge to be 3 -> 4 makes this back into a valid
+       bubble (since ending nodes can have arbitrary outgoing edges so long as
+       they aren't cyclic).
+    """
+    g = get_easy_bubble_graph()
+    g.add_edge(4, 3)
+    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
+
+    # Test that we can get this back to a valid bubble by reversing 4 -> 3 to
+    # be 3 -> 4
+    g.remove_edge(4, 3)
+    g.add_edge(3, 4)
+    results = AssemblyGraph.is_valid_bubble(g, 0)
+    assert results[0]
+    assert set(results[1]) == set([0, 1, 2, 3])
+
+
+def test_cyclic_bubbles_not_ok():
+    """Tests that the following graph (starting at 0) isn't identified as a
+       bubble, due to the 3 -> 0 edge.
+
+       +-------+
+       |       |
+       | /-1-\ |
+       V/     \|
+       0       3
+        \     /
+         \-2-/
+    """
+    g = get_easy_bubble_graph()
+    g.add_edge(3, 0)
+    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
+
+
+def test_converges_to_start():
+    """Tests that the following graph (starting at 0) isn't identified as a
+       bubble.
+
+       +-----+
+       |     |
+       | /-1-+
+       V/
+       0
+       ^\
+       | \-2-+
+       |     |
+       +-----+
+
+       This should fail because, although both paths converge to a common
+       point, this common point is the starting node... so the starting and
+       ending point in the bubble is the same, and should be explicitly
+       disallowed.
+    """
+    g = nx.DiGraph()
+    g.add_path([0, 1, 0])
+    g.add_path([0, 2, 0])
+    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]

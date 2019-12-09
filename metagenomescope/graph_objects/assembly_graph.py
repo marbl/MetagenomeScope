@@ -220,7 +220,7 @@ class AssemblyGraph(object):
 
              /-m1-\        /-m1-\
             /      \      /      \ 
-           s        e or s---m2--e  ..., etc.
+           s        e or s---m2---e  ..., etc.
             \      /      \      /
              \-m2-/        \-m3-/
 
@@ -534,7 +534,9 @@ class AssemblyGraph(object):
     def to_dot(self):
         """Debug method. Work in progress."""
         layout = "digraph {\n"
-        for cc_node_ids in nx.weakly_connected_components(self.decomposed_digraph):
+        for cc_node_ids in nx.weakly_connected_components(
+            self.decomposed_digraph
+        ):
             for n in cc_node_ids:
                 if n in self.digraph.nodes:
                     layout += "\t{}\n".format(n)
