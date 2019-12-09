@@ -112,8 +112,8 @@ def test_converge_to_diff_endings():
          \-3--4
     """
     g = nx.DiGraph()
-    g.add_path([0, 1, 2])
-    g.add_path([0, 3, 4])
+    nx.add_path(g, [0, 1, 2])
+    nx.add_path(g, [0, 3, 4])
     assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
 
 
@@ -182,6 +182,6 @@ def test_converges_to_start():
        disallowed.
     """
     g = nx.DiGraph()
-    g.add_path([0, 1, 0])
-    g.add_path([0, 2, 0])
+    nx.add_path(g, [0, 1, 0])
+    nx.add_path(g, [0, 2, 0])
     assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
