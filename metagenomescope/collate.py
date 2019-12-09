@@ -538,7 +538,9 @@ def collate_graph(args):
     conclude_msg()
 
     # Hierarchically decompose graph
+    operation_msg("Running hierarchical pattern decomposition...")
     asm_graph.hierarchically_identify_patterns()
+    conclude_msg()
     return asm_graph
 
     # TODO from here on down.

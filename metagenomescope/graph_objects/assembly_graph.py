@@ -1,4 +1,5 @@
 from copy import deepcopy
+import networkx as nx
 from .. import assembly_graph_parser
 from ..input_node_utils import get_uuid
 
@@ -506,6 +507,12 @@ class AssemblyGraph(object):
             ):
                 candidate_nodes = set(self.decomposed_digraph.nodes)
                 while len(candidate_nodes) > 0:
+                    # NOTE: set.pop() isn't deterministic
+                    # (see https://stackoverflow.com/a/10432828/10730311), so
+                    # running this multiple times results in sometimes diff
+                    # results. would be good to make this detreministic (e.g.
+                    # sort node IDs, or try to be greedy and select large
+                    # patterns first at a given level, ...)
                     n = candidate_nodes.pop()
                     pattern_valid, pattern_node_ids = validator(
                         self.decomposed_digraph, n
@@ -523,3 +530,18 @@ class AssemblyGraph(object):
                 # We didn't collapse anything... so we're done here! We can't
                 # do any more.
                 break
+
+    def to_dot(self):
+        """Debug method. Work in progress."""
+        layout = "digraph {\n"
+        for cc_node_ids in nx.weakly_connected_components(self.decomposed_digraph):
+            for n in cc_node_ids:
+                if n in self.digraph.nodes:
+                    layout += "\t{}\n".format(n)
+                else:
+                    # TODO: recursively describe children of this node group
+                    pass
+            # TODO: describe edges.
+
+    def to_cytoscape_compatible_format(self):
+        """TODO."""
