@@ -24,6 +24,7 @@ def test_simple_fr_detection():
         assert results[0]
         assert set(results[1]) == set([0, 1, 2, 3, 4])
 
+
 def test_simple_fr_detection_failures():
     g = get_simple_fr_graph()
     for s in [2, 3, 4]:
