@@ -54,17 +54,45 @@ class AssemblyGraph(object):
 
     @staticmethod
     def is_valid_bubble(g, starting_node_id):
-        """
-              m1--m2
-             /      \ 
-            s        e
-             \      /
-              \-m1-/
+        """Checks if a given node is the "start" of a simple bubble.
+
+           NOTE that we only consider "simple" bubbles that look like
+
+             /-m1-\
+            /      \
+           s        e
+            \      /
+             \-m2-/
+
+           or
+
+             /-m1-\
+            /      \
+           s---m2--e
+            \      /
+             \-m3-/
+
+           ...etc. That is, we expect that this each path between the start
+           node and the end node must only have one "middle" node.
+
+           This is because we assume that other complexities, such as
+           "chains" (e.g. a middle path actually contains n nodes where
+           m1 -> m2 -> ... mn), have already been collapsed.
+
+           Note that we don't currently detect 3-node bubbles (or other bubbles
+           where there's an edge directly between the start and end node), like
+
+             /-m-\
+            /     \
+           s-------e
+
+           ...but this should be caught by stuff like the SPQR decomposition
+           code, or by more robust bubble-finding techniques.
         """
         # The starting node in a bubble obviously must have at least 2 outgoing
         # edges. If not, we can bail early on.
-        m1_node_ids = list(g.adj[starting_node_id].keys())
-        if len(m1_node_ids) <= 1:
+        m_node_ids = list(g.adj[starting_node_id].keys())
+        if len(m_node_ids) <= 1:
             return False, None
 
         # Will be recorded here (if we get to it...)
@@ -72,30 +100,51 @@ class AssemblyGraph(object):
 
         # Each outgoing node from the "starting node" represents a possible
         # path through this bubble.
-        for m in m1_node_ids:
+        for m in m_node_ids:
             # ... And of course, each node on this path can't have extra
             # incoming nodes (which would be from outside of the bubble) or
             # extra outgoing nodes (which would represent non-bubble-like
             # branching behavior).
             if len(g.pred[m]) != 1 or len(g.adj[m]) != 1:
                 return False, None
-            # Check to see if we an build a "Chain" of >= 2 nodes starting at
-            # m. If so, do so! (TODO: structure code so that this either
-            # produces a bubble with a child chain, or structure
-            # hierarchically_identify_patterns() so that chains are always
-            # detected before bubbles? or just acknowledge that bottom-level
-            # chains in bubbles/patterns just won't get identified)
-            chain_validity, path_nodes = AssemblyGraph.is_valid_chain(g, m)
-            if not chain_validity:
-                # Try out single middle node case
-                pass
-            else:
-                # Middle nodes form a chain -- great! check that this works
-                pass
 
-        # Check ending node details
-        # Check entire bubble structure
-        # Return stuff
+            # Ok, so this tentatively seems like a valid path.
+            outgoing_node_id_from_m = list(g.adj[m].keys())[0]
+
+            # If this is the first "middle" node we're checking, then record
+            # its outgoing node as the tentative "ending" node
+            if ending_node_id is None:
+                ending_node_id = outgoing_node_id_from_m
+            # If we've already checked another middle node, verify that this
+            # middle node converges to the same "ending"
+            elif ending_node_id != outgoing_node_id_from_m:
+                return False, None
+
+        # Check that the ending node is reasonable
+
+        # If the ending node has any incoming nodes that aren't in m_node_ids,
+        # reject this bubble.
+        if set(g.pred[ending_node_id]) != set(m_node_ids):
+            return False, None
+
+        # Reject cyclic bubbles (although we could allow this if people want
+        # it, I guess?)
+        if starting_node_id in list(g.adj[ending_node_id].keys()):
+            return False, None
+
+        # Ensure that all nodes in the bubble are distinct (protects against
+        # weird cases like
+        #
+        #   -> m1 ->
+        # s -> m2 -> s
+        #
+        # Where the starting node is the ending node, etc.)
+        composite = [starting_node_id] + m_node_ids + [ending_node_id]
+        if len(set(composite)) != len(composite):
+            return False, None
+
+        # If we've gotten here, then we know that this is a valid bubble.
+        return True, composite
 
     @staticmethod
     def is_valid_chain(g, starting_node_id):
@@ -236,7 +285,6 @@ class AssemblyGraph(object):
         backwards_chain_list.reverse()
         return True, backwards_chain_list + chain_list
 
-
     def hierarchically_identify_patterns(self):
         """WIP: Eventually, this will run all of the pattern detection
            algorithms above on the graph repeatedly until the graph has been
@@ -250,7 +298,6 @@ class AssemblyGraph(object):
            at each layer, I guess, but I don't think this should be *too*
            computationally expensive (knock on wood).
         """
-
 
         # make collection of candidate nodes (collection of all nodes in self.digraph -- should be a deep copy, so that we don't actually modify self.digraph!)
         candidate_nodes = list(self.digraph.nodes)
