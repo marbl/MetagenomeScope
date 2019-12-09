@@ -2,11 +2,6 @@ import networkx as nx
 from metagenomescope.graph_objects import AssemblyGraph
 
 
-def get_test_path_graph(num_nodes):
-    """Returns a "path graph" as a nx DiGraph."""
-    return nx.path_graph(num_nodes, nx.DiGraph())
-
-
 def get_3_node_bubble_graph():
     """Returns a graph that looks like:
 
