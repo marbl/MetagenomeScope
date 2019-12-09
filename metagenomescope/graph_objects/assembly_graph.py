@@ -46,6 +46,23 @@ class AssemblyGraph(object):
 
     @staticmethod
     def is_valid_frayed_rope(g, starting_node_id):
+        """Returns a 2-tuple of (True, a list of all the nodes in the f. rope)
+           if a frayed rope with the given start node would be valid.
+           Returns a 2-tuple of (False, None) if such a frayed rope would be
+           considered invalid.
+
+           NOTE that we only consider "simple" frayed ropes that look like
+
+           s1 -\ /-> e1
+                m
+           s2 -/ \-> e2
+
+           ...that is, frayed ropes containing only one middle node. There can
+           be an arbitrary amount of start and end nodes defined (so long as
+           there are >= 2 start/end nodes), though. (Also, the number of start
+           and end nodes doesn't have to match up.)
+        """
+
         # If the starting node doesn't have exactly 1 outgoing node, fail
         if len(g.adj[starting_node_id]) != 1:
             return False, None
@@ -105,26 +122,22 @@ class AssemblyGraph(object):
 
     @staticmethod
     def is_valid_bubble(g, starting_node_id):
-        """Checks if a given node is the "start" of a simple bubble.
+        """Returns a 2-tuple of (True, a list of all the nodes in the bubble)
+           if a bubble defined at the given start node would be valid.
+           Returns a 2-tuple of (False, None) if such a bubble would be
+           considered invalid.
 
            NOTE that we only consider "simple" bubbles that look like
 
-             /-m1-\
-            /      \
-           s        e
-            \      /
-             \-m2-/
+             /-m1-\        /-m1-\
+            /      \      /      \ 
+           s        e or s---m2--e  ..., etc.
+            \      /      \      /
+             \-m2-/        \-m3-/
 
-           or
-
-             /-m1-\
-            /      \
-           s---m2--e
-            \      /
-             \-m3-/
-
-           ...etc. That is, we expect that this each path between the start
-           node and the end node must only have one "middle" node.
+           That is, we expect that this each path between the start
+           node and the end node must only have one "middle" node, although
+           there can be an arbitrary (>= 2) amount of such paths.
 
            This is because we assume that other complexities, such as
            "chains" (e.g. a middle path actually contains n nodes where
