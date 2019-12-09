@@ -125,8 +125,8 @@ def test_cyclic_chain_easy():
     """Checks that the following graph isn't considered a chain:
 
          __
-        /  \ 
-       V    \ 
+        /  \
+       V    \
        1 --> 2
 
        It should get tagged as a cyclic chain later on.
@@ -143,8 +143,8 @@ def test_cyclic_chain_ambiguous_end():
     """Checks that the following graph isn't considered a chain:
 
          __
-        /  \ 
-       V    \ 
+        /  \
+       V    \
        1 --> 2 --> 3
 
        Note the "3" at the end. This test should make sure that the code
@@ -164,8 +164,8 @@ def test_cyclic_chain_found_to_be_cyclic_during_backwards_extension():
     """Function name is probably self-explanatory. This looks at this graph:
 
          ________
-        /        \ 
-       V          \ 
+        /        \
+       V          \
        1 --> 2 --> 3 --> 4
 
        If we look for a chain starting at "2", then we'll see that 2 -> 3 seems
