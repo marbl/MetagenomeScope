@@ -45,8 +45,59 @@ class AssemblyGraph(object):
         #     pass
 
     @staticmethod
-    def is_valid_rope(digraph, starting_node_id):
-        pass
+    def is_valid_frayed_rope(g, starting_node_id):
+        # If the starting node doesn't have exactly 1 outgoing node, fail
+        if len(g.adj[starting_node_id]) != 1:
+            return False, None
+
+        # Get the tentative "middle" node in the rope
+        middle_node_id = list(g.adj[starting_node_id].keys())[0]
+
+        # Now, get all "starting" nodes (the incoming nodes on the middle node)
+        starting_node_ids = list(g.pred[middle_node_id].keys())
+
+        # A frayed rope must have multiple paths from which to converge to
+        # the "middle node" section
+        if len(starting_node_ids) < 2:
+            return False, None
+
+        # Ensure none of the start nodes have extraneous outgoing nodes
+        for n in starting_node_ids:
+            if len(g.adj[n]) != 1:
+                return False, None
+
+        # Now we know the start nodes are mostly valid. We'll still need to
+        # check that each node in the rope is distinct, but that is done
+        # later on -- after we've identified all the nodes in the tentative
+        # rope.
+
+        ending_node_ids = list(g.adj[middle_node_id].keys())
+
+        # The middle node has to diverge to something for this to be a frayed
+        # rope.
+        if len(ending_node_ids) < 2:
+            return False, None
+        for n in ending_node_ids:
+            # Check for extraneous incoming edges
+            if len(g.pred[n]) != 1:
+                return False, None
+            for o in list(g.adj[n].keys()):
+                # We know now that all of the ending nodes only have one
+                # incoming node, but we don't know that about the starting
+                # nodes. Make sure that this frayed rope isn't cyclical.
+                if o in starting_node_ids:
+                    return False, None
+
+        # Check the entire frayed rope's structure
+        composite = starting_node_ids + [middle_node_id] + ending_node_ids
+
+        # Verify all nodes in the frayed rope are distinct
+        if len(set(composite)) != len(composite):
+            return False, None
+
+        # If we've made it here, this frayed rope is valid!
+        return True, composite
+
 
     @staticmethod
     def is_valid_cyclic_chain(digraph, starting_node_id):
