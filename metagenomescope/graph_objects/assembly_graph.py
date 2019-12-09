@@ -63,7 +63,7 @@ class AssemblyGraph(object):
 
     @staticmethod
     def is_valid_frayed_rope(g, starting_node_id):
-        """Returns a 2-tuple of (True, a list of all the nodes in the f. rope)
+        r"""Returns a 2-tuple of (True, a list of all the nodes in the f. rope)
            if a frayed rope with the given start node would be valid.
            Returns a 2-tuple of (False, None) if such a frayed rope would be
            considered invalid.
@@ -211,7 +211,7 @@ class AssemblyGraph(object):
 
     @staticmethod
     def is_valid_bubble(g, starting_node_id):
-        """Returns a 2-tuple of (True, a list of all the nodes in the bubble)
+        r"""Returns a 2-tuple of (True, a list of all the nodes in the bubble)
            if a bubble defined at the given start node would be valid.
            Returns a 2-tuple of (False, None) if such a bubble would be
            considered invalid.

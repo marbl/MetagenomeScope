@@ -3,7 +3,7 @@ from metagenomescope.graph_objects import AssemblyGraph
 
 
 def get_simple_fr_graph():
-    """Produces a graph that looks like:
+    r"""Produces a graph that looks like:
 
        0 -\ /-> 3
            2

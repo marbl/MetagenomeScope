@@ -3,7 +3,7 @@ from metagenomescope.graph_objects import AssemblyGraph
 
 
 def get_3_node_bubble_graph():
-    """Returns a graph that looks like:
+    r"""Returns a graph that looks like:
 
          /-1-\
         /     \
@@ -17,7 +17,7 @@ def get_3_node_bubble_graph():
 
 
 def get_easy_bubble_graph():
-    """Returns a graph that looks like:
+    r"""Returns a graph that looks like:
 
          /-1-\
         /     \
@@ -80,7 +80,7 @@ def test_easy_3_node_bubble_fails():
 
 
 def test_extra_nodes_on_middle():
-    """Tests that "intervening" edges on/from the middle nodes of a bubble
+    r"""Tests that "intervening" edges on/from the middle nodes of a bubble
        causes the bubble to not get detected.
 
        We test a graph that looks like this -- first where the top edge is
@@ -104,7 +104,7 @@ def test_extra_nodes_on_middle():
 
 
 def test_converge_to_diff_endings():
-    """Tests that the following graph isn't identified as a bubble:
+    r"""Tests that the following graph isn't identified as a bubble:
          /-1--2
         /
        0
@@ -118,7 +118,7 @@ def test_converge_to_diff_endings():
 
 
 def test_extra_nodes_on_ending():
-    """Tests that the following graph (starting at 0) isn't identified as a
+    r"""Tests that the following graph (starting at 0) isn't identified as a
        bubble, due to the 4 -> 3 edge.
 
                4
@@ -146,7 +146,7 @@ def test_extra_nodes_on_ending():
 
 
 def test_cyclic_bubbles_not_ok():
-    """Tests that the following graph (starting at 0) isn't identified as a
+    r"""Tests that the following graph (starting at 0) isn't identified as a
        bubble, due to the 3 -> 0 edge.
 
        +-------+
@@ -163,7 +163,7 @@ def test_cyclic_bubbles_not_ok():
 
 
 def test_converges_to_start():
-    """Tests that the following graph (starting at 0) isn't identified as a
+    r"""Tests that the following graph (starting at 0) isn't identified as a
        bubble.
 
        +-----+
