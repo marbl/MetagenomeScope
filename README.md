@@ -3,6 +3,12 @@
 
 ![Screenshot of MetagenomeScope's standard mode, showing a region of a biofilm assembly graph](https://user-images.githubusercontent.com/4177727/46389776-f1d63780-c688-11e8-82ae-13d58d6f4738.png "Screenshot of MetagenomeScope's standard mode, showing a region of a biofilm assembly graph.")
 
+## NOTE: This is a development branch of MetagenomeScope!
+It's not quite at feature parity with the main branch (it'll actually just
+crash if you try to run it right now due to some restructuring changes I've
+been making to the codebase), so if you want to use MetagenomeScope in
+the meantime I recommend using the main branch. Sorry for the inconvenience!
+
 ## Summary
 
 MetagenomeScope is an interactive visualization tool designed for metagenomic
