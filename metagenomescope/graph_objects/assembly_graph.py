@@ -219,7 +219,7 @@ class AssemblyGraph(object):
            NOTE that we only consider "simple" bubbles that look like
 
              /-m1-\        /-m1-\
-            /      \      /      \ 
+            /      \      /      \
            s        e or s---m2---e  ..., etc.
             \      /      \      /
              \-m2-/        \-m3-/

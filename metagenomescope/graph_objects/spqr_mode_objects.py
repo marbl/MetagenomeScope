@@ -145,9 +145,11 @@ class SPQRMetaNode(NodeGroup):
                 raise ValueError("unknown edge obtained from layout")
             self.edges.append(curr_edge)
             # Get control points, then find them relative to cluster dimensions
-            ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = Edge.get_control_points(
-                e.attr[u"pos"]
-            )
+            (
+                ctrl_pt_str,
+                coord_list,
+                curr_edge.xdot_ctrl_pt_count,
+            ) = Edge.get_control_points(e.attr[u"pos"])
             curr_edge.xdot_rel_ctrl_pt_str = ""
             p = 0
             while p <= len(coord_list) - 2:
@@ -371,9 +373,11 @@ class Bicomponent(NodeGroup):
             curr_edge = source_node.outgoing_edge_objects[str(e[1])]
             self.edges.append(curr_edge)
             # Get control points, then find them relative to cluster dimensions
-            ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = Edge.get_control_points(
-                e.attr[u"pos"]
-            )
+            (
+                ctrl_pt_str,
+                coord_list,
+                curr_edge.xdot_ctrl_pt_count,
+            ) = Edge.get_control_points(e.attr[u"pos"])
             curr_edge.xdot_rel_ctrl_pt_str = ""
             p = 0
             while p <= len(coord_list) - 2:

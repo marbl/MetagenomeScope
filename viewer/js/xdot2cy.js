@@ -300,7 +300,7 @@ function initGraph(viewType) {
             // We parse GraphViz' generated xdot files to copy the layout
             // provided by GraphViz. To manually specify node positions, we
             // use the "preset" Cytoscape.js layout.
-            name: "preset"
+            name: "preset",
         },
         // We set minZoom based on the zoom level obtained by cy.fit().
         // maxZoom, however, is defined based on the zoom level of zooming to
@@ -334,8 +334,8 @@ function initGraph(viewType) {
                 selector: "node",
                 style: {
                     width: "data(w)",
-                    height: "data(h)"
-                }
+                    height: "data(h)",
+                },
             },
             // The following few classes are used to set properties of
             // compound nodes (analogous to clusters in GraphViz)
@@ -343,14 +343,14 @@ function initGraph(viewType) {
                 selector: "node.cluster",
                 style: {
                     shape: "rectangle",
-                    "border-width": 0
-                }
+                    "border-width": 0,
+                },
             },
             {
                 selector: "node.cluster.spqrMetanode",
                 style: {
-                    "background-opacity": 0.65
-                }
+                    "background-opacity": 0.65,
+                },
             },
             {
                 selector: "node.cluster.structuralPattern",
@@ -360,8 +360,8 @@ function initGraph(viewType) {
                     "padding-left": 0,
                     "padding-bottom": 0,
                     width: "data(w)",
-                    height: "data(h)"
-                }
+                    height: "data(h)",
+                },
             },
             {
                 // Give collapsed variants a number indicating child count
@@ -372,8 +372,8 @@ function initGraph(viewType) {
                     label: "data(interiorNodeCount)",
                     "text-valign": "center",
                     "font-weight": "bold",
-                    color: $("#cngcccp").colorpicker("getValue")
-                }
+                    color: $("#cngcccp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.F",
@@ -382,94 +382,94 @@ function initGraph(viewType) {
                     // (but honestly I just picked what I considered to be
                     // the least visually offensive shade of green)
                     "background-color": $("#fropecp").colorpicker("getValue"),
-                    shape: "polygon"
-                }
+                    shape: "polygon",
+                },
             },
             {
                 selector: "node.B",
                 style: {
                     // default color matches 'cornflowerblue' in graphviz
                     "background-color": $("#bubblecp").colorpicker("getValue"),
-                    shape: "polygon"
-                }
+                    shape: "polygon",
+                },
             },
             {
                 selector: "node.B.leftrightdir",
                 style: {
-                    "shape-polygon-points": mgsc.BUBBLE_LEFTRIGHTDIR
-                }
+                    "shape-polygon-points": mgsc.BUBBLE_LEFTRIGHTDIR,
+                },
             },
             {
                 selector: "node.B.updowndir",
                 style: {
-                    "shape-polygon-points": mgsc.BUBBLE_UPDOWNDIR
-                }
+                    "shape-polygon-points": mgsc.BUBBLE_UPDOWNDIR,
+                },
             },
             {
                 selector: "node.F.leftrightdir",
                 style: {
-                    "shape-polygon-points": mgsc.FRAYED_ROPE_LEFTRIGHTDIR
-                }
+                    "shape-polygon-points": mgsc.FRAYED_ROPE_LEFTRIGHTDIR,
+                },
             },
             {
                 selector: "node.F.updowndir",
                 style: {
-                    "shape-polygon-points": mgsc.FRAYED_ROPE_UPDOWNDIR
-                }
+                    "shape-polygon-points": mgsc.FRAYED_ROPE_UPDOWNDIR,
+                },
             },
             {
                 selector: "node.C",
                 style: {
                     // default color matches 'salmon' in graphviz
-                    "background-color": $("#chaincp").colorpicker("getValue")
-                }
+                    "background-color": $("#chaincp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.Y",
                 style: {
                     // default color matches 'darkgoldenrod1' in graphviz
                     "background-color": $("#ychaincp").colorpicker("getValue"),
-                    shape: "ellipse"
-                }
+                    shape: "ellipse",
+                },
             },
             {
                 selector: "node.M",
                 style: {
                     "background-color": $("#miscpatterncp").colorpicker(
                         "getValue"
-                    )
-                }
+                    ),
+                },
             },
             {
                 selector: "node.cluster.pseudoparent",
                 style: {
                     "z-index-compare": "manual",
-                    "z-index": 0
-                }
+                    "z-index": 0,
+                },
             },
             {
                 selector: "node.I",
                 style: {
-                    "background-color": $("#bicmpcp").colorpicker("getValue")
-                }
+                    "background-color": $("#bicmpcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.S",
                 style: {
-                    "background-color": $("#spqrscp").colorpicker("getValue")
-                }
+                    "background-color": $("#spqrscp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.P",
                 style: {
-                    "background-color": $("#spqrpcp").colorpicker("getValue")
-                }
+                    "background-color": $("#spqrpcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.R",
                 style: {
-                    "background-color": $("#spqrrcp").colorpicker("getValue")
-                }
+                    "background-color": $("#spqrrcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.bb_enforcing",
@@ -479,8 +479,8 @@ function initGraph(viewType) {
                     // A width/height of zero just results in Cytoscape.js not
                     // drawing these nodes -- hence a width/height of one
                     width: 1,
-                    height: 1
-                }
+                    height: 1,
+                },
             },
             {
                 selector: "node.noncluster",
@@ -493,8 +493,8 @@ function initGraph(viewType) {
                     // render the text.
                     "min-zoomed-font-size": 12,
                     "z-index": 2,
-                    "z-index-compare": "manual"
-                }
+                    "z-index-compare": "manual",
+                },
             },
             {
                 // Used for individual nodes in a SPQR-integrated view
@@ -502,102 +502,102 @@ function initGraph(viewType) {
                 // rectangles)
                 selector: "node.noncluster.singlenode",
                 style: {
-                    shape: "rectangle"
-                }
+                    shape: "rectangle",
+                },
             },
             {
                 selector: "node.noncluster.noncolorized",
                 style: {
                     "background-color": mgsc.DEFAULT_NODE_COLOR,
-                    color: $("#usnlcp").colorpicker("getValue")
-                }
+                    color: $("#usnlcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.noncluster.gccolorized",
                 style: {
                     "background-color": "data(gc_color)",
-                    color: $("#cnlcp").colorpicker("getValue")
-                }
+                    color: $("#cnlcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.noncluster.repeatcolorized",
                 style: {
                     "background-color": "data(repeat_color)",
-                    color: $("#cnlcp").colorpicker("getValue")
-                }
+                    color: $("#cnlcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.noncluster.updir",
                 style: {
                     "shape-polygon-points": mgsc.NODE_UPDIR,
-                    shape: "polygon"
-                }
+                    shape: "polygon",
+                },
             },
             {
                 selector: "node.noncluster.downdir",
                 style: {
                     "shape-polygon-points": mgsc.NODE_DOWNDIR,
-                    shape: "polygon"
-                }
+                    shape: "polygon",
+                },
             },
             {
                 selector: "node.noncluster.leftdir",
                 style: {
                     "shape-polygon-points": mgsc.NODE_LEFTDIR,
-                    shape: "polygon"
-                }
+                    shape: "polygon",
+                },
             },
             {
                 selector: "node.noncluster.rightdir",
                 style: {
                     "shape-polygon-points": mgsc.NODE_RIGHTDIR,
-                    shape: "polygon"
-                }
+                    shape: "polygon",
+                },
             },
             {
                 selector: "node.noncluster.tentative",
                 style: {
                     "border-width": 5,
-                    "border-color": $("#tnbcp").colorpicker("getValue")
-                }
+                    "border-color": $("#tnbcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.cluster.tentative",
                 style: {
                     "border-width": 5,
-                    "border-color": $("#tngbcp").colorpicker("getValue")
-                }
+                    "border-color": $("#tngbcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.currpath",
                 style: {
-                    "background-color": $("#cpcp").colorpicker("getValue")
-                }
+                    "background-color": $("#cpcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.noncluster:selected",
                 style: {
-                    "background-color": $("#sncp").colorpicker("getValue")
-                }
+                    "background-color": $("#sncp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.noncluster.noncolorized:selected",
                 style: {
-                    color: $("#snlcp").colorpicker("getValue")
-                }
+                    color: $("#snlcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.noncluster.gccolorized:selected",
                 style: {
-                    color: $("#csnlcp").colorpicker("getValue")
-                }
+                    color: $("#csnlcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "node.cluster:selected",
                 style: {
                     "border-width": 5,
-                    "border-color": $("#sngbcp").colorpicker("getValue")
-                }
+                    "border-color": $("#sngbcp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "edge",
@@ -607,36 +607,36 @@ function initGraph(viewType) {
                     "target-arrow-color": $("#usecp").colorpicker("getValue"),
                     "loop-direction": "30deg",
                     "z-index": 1,
-                    "z-index-compare": "manual"
-                }
+                    "z-index-compare": "manual",
+                },
             },
             {
                 selector: "edge:selected",
                 style: {
                     "line-color": $("#secp").colorpicker("getValue"),
-                    "target-arrow-color": $("#secp").colorpicker("getValue")
-                }
+                    "target-arrow-color": $("#secp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "edge.oriented",
                 style: {
                     "target-arrow-shape": "triangle",
                     "target-endpoint": "-50% 0%",
-                    "source-endpoint": "50% 0"
-                }
+                    "source-endpoint": "50% 0",
+                },
             },
             {
                 selector: "edge:loop",
                 style: {
-                    "z-index": 5
-                }
+                    "z-index": 5,
+                },
             },
             {
                 selector: "edge.unoriented_loop",
                 style: {
                     "target-endpoint": "-50% 0%",
-                    "source-endpoint": "50% 0"
-                }
+                    "source-endpoint": "50% 0",
+                },
             },
             {
                 // Used for edges that were assigned valid (i.e. not
@@ -647,8 +647,8 @@ function initGraph(viewType) {
                     "curve-style": "unbundled-bezier",
                     "control-point-distances": "data(cpd)",
                     "control-point-weights": "data(cpw)",
-                    "edge-distances": "node-position"
-                }
+                    "edge-distances": "node-position",
+                },
             },
             {
                 // Used for:
@@ -660,42 +660,42 @@ function initGraph(viewType) {
                 //   during the collapsing process)
                 selector: "edge.basicbezier",
                 style: {
-                    "curve-style": "bezier"
-                }
+                    "curve-style": "bezier",
+                },
             },
             {
                 selector: "edge.virtual",
                 style: {
-                    "line-style": "dashed"
-                }
+                    "line-style": "dashed",
+                },
             },
             {
                 selector: "edge.high_outlier",
                 style: {
                     "line-color": $("#hoecp").colorpicker("getValue"),
-                    "target-arrow-color": $("#hoecp").colorpicker("getValue")
-                }
+                    "target-arrow-color": $("#hoecp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "edge.high_outlier:selected",
                 style: {
                     "line-color": $("#hosecp").colorpicker("getValue"),
-                    "target-arrow-color": $("#hosecp").colorpicker("getValue")
-                }
+                    "target-arrow-color": $("#hosecp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "edge.low_outlier",
                 style: {
                     "line-color": $("#loecp").colorpicker("getValue"),
-                    "target-arrow-color": $("#loecp").colorpicker("getValue")
-                }
+                    "target-arrow-color": $("#loecp").colorpicker("getValue"),
+                },
             },
             {
                 selector: "edge.low_outlier:selected",
                 style: {
                     "line-color": $("#losecp").colorpicker("getValue"),
-                    "target-arrow-color": $("#losecp").colorpicker("getValue")
-                }
+                    "target-arrow-color": $("#losecp").colorpicker("getValue"),
+                },
             },
             {
                 // Used to differentiate edges without an overlap between nodes
@@ -705,10 +705,10 @@ function initGraph(viewType) {
                 // (using "dotted" lines was really slow)
                 selector: "edge.nooverlap",
                 style: {
-                    "line-style": "dashed"
-                }
-            }
-        ]
+                    "line-style": "dashed",
+                },
+            },
+        ],
     });
 }
 
@@ -1011,7 +1011,7 @@ function removeSelectedEleInfo(ele) {
  */
 function setEnterBinding(inputID, f) {
     "use strict";
-    $("#" + inputID).on("keypress", function(e) {
+    $("#" + inputID).on("keypress", function (e) {
         if (e.which === 13) {
             f();
         }
@@ -1058,10 +1058,10 @@ function doThingsWhenDOMReady() {
     // does something (makes certain actions quicker and easier for the user)
     setEnterBinding("searchInput", searchForEles);
     setEnterBinding("layoutInput", testLayout);
-    setEnterBinding("componentselector", function() {
+    setEnterBinding("componentselector", function () {
         startDrawComponent("double");
     });
-    setEnterBinding("SPQRcomponentselector", function() {
+    setEnterBinding("SPQRcomponentselector", function () {
         startDrawComponent("SPQR");
     });
     setEnterBinding("binCountInput", drawEdgeWeightHistogram);
@@ -1071,7 +1071,7 @@ function doThingsWhenDOMReady() {
         "settingsDialog",
         "fsDialog",
         "infoDialog",
-        "edgeFilteringDialog"
+        "edgeFilteringDialog",
     ];
     function onModalShow() {
         mgsc.MODAL_ACTIVE = true;
@@ -1100,7 +1100,7 @@ function doThingsWhenDOMReady() {
         "componentselector",
         "SPQRcomponentselector",
         "searchInput",
-        "layoutInput"
+        "layoutInput",
     ];
     function onInputFocusIn() {
         mgsc.INPUT_ACTIVE = true;
@@ -1114,10 +1114,10 @@ function doThingsWhenDOMReady() {
     }
     // Initialize colorpickers
     $(".colorpicker-component").colorpicker({ format: "hex" });
-    $("#mincncp").on("changeColor", function(e) {
+    $("#mincncp").on("changeColor", function (e) {
         redrawGradientPreview(e.color.toHex(), -1);
     });
-    $("#maxcncp").on("changeColor", function(e) {
+    $("#maxcncp").on("changeColor", function (e) {
         redrawGradientPreview(e.color.toHex(), 1);
     });
     // Update the gradient preview to whatever the default colorization values
@@ -1184,7 +1184,7 @@ function setGraphBindings() {
     // We store added edges + removed nodes/edges in element-level
     // data, to facilitate only doing the work of determining which
     // elements to remove/etc. once (the first time around)
-    cy.on("cxttap", "node.cluster.structuralPattern", function(e) {
+    cy.on("cxttap", "node.cluster.structuralPattern", function (e) {
         // Prevent collapsing being done during iterative drawing
         // NOTE: In retrospect, I think that thanks to the use of
         // autoungrabify/autounselectify while drawing the graph that
@@ -1197,7 +1197,7 @@ function setGraphBindings() {
     // Autozoom on clusters that the user taps on, if the user explicitly
     // requested it (i.e. checked the settings box).
     if ($("#autozoomClusterCheckbox").prop("checked")) {
-        cy.on("tap", "node.cluster.structuralPattern", function(e) {
+        cy.on("tap", "node.cluster.structuralPattern", function (e) {
             cy.animate({ fit: { eles: e.target } });
         });
     }
@@ -1206,16 +1206,16 @@ function setGraphBindings() {
     // User can click on an uncollapsed metanode to reveal its immediate
     // children
     // User can click on a collapsed metanode to remove its immediate children
-    cy.on("cxttap", "node.cluster.spqrMetanode", function(e) {
+    cy.on("cxttap", "node.cluster.spqrMetanode", function (e) {
         if (!$("#fitButton").hasClass("disabled")) {
             var mn = e.target;
             if (mn.data("descendantCount") > 0) {
                 if (mn.data("isCollapsed")) {
-                    cy.batch(function() {
+                    cy.batch(function () {
                         uncollapseSPQRMetanode(mn);
                     });
                 } else {
-                    cy.batch(function() {
+                    cy.batch(function () {
                         collapseSPQRMetanode(mn);
                     });
                 }
@@ -1223,7 +1223,7 @@ function setGraphBindings() {
         }
     });
 
-    cy.on("select", "node.noncluster, edge, node.cluster", function(e) {
+    cy.on("select", "node.noncluster, edge, node.cluster", function (e) {
         var x = e.target;
         if (x.hasClass("noncluster")) {
             mgsc.SELECTED_NODE_COUNT += 1;
@@ -1253,7 +1253,7 @@ function setGraphBindings() {
             enableButton("fitSelectedButton");
         }
     });
-    cy.on("unselect", "node.noncluster, edge, node.cluster", function(e) {
+    cy.on("unselect", "node.noncluster, edge, node.cluster", function (e) {
         var x = e.target;
         if (x.hasClass("noncluster")) {
             mgsc.SELECTED_NODE_COUNT -= 1;
@@ -1349,12 +1349,12 @@ function changeRotation() {
     // or not a graph is currently rendered; sorta hack-ish, but it works
     if (!$("#fitButton").hasClass("disabled")) {
         startIndeterminateProgressBar();
-        window.setTimeout(function() {
+        window.setTimeout(function () {
             cy.startBatch();
             // This only rotates nodes that are not collapsed
             cy.filter("node").each(rotateNode);
             // Rotate nodes within currently collapsed node groups
-            cy.scratch("_collapsed").each(function(n, i) {
+            cy.scratch("_collapsed").each(function (n, i) {
                 n.scratch("_interiorNodes").each(rotateNode);
             });
             cy.endBatch();
@@ -1411,7 +1411,7 @@ function loadLocalDB() {
         $("#currComponentInfo").html(
             "No connected component has been drawn yet."
         );
-        fr.onload = function(e) {
+        fr.onload = function (e) {
             if (e.target.readyState === FileReader.DONE) {
                 initDB(e.target.result);
                 document.getElementById("fileselector").value = "";
@@ -1428,7 +1428,7 @@ function loadLocalDB() {
         // timeout happens
         // (javascript can be strange sometimes)
         startIndeterminateProgressBar();
-        window.setTimeout(function() {
+        window.setTimeout(function () {
             fr.readAsArrayBuffer(inputfile);
         }, 50);
     } else {
@@ -2024,12 +2024,12 @@ function drawSPQRComponent(cmpRank) {
     if (mgsc.CURR_SPQRMODE === "explicit") {
         bb = {
             boundingbox_x: fullObj.boundingbox_x,
-            boundingbox_y: fullObj.boundingbox_y
+            boundingbox_y: fullObj.boundingbox_y,
         };
     } else {
         bb = {
             boundingbox_x: fullObj.i_boundingbox_x,
-            boundingbox_y: fullObj.i_boundingbox_y
+            boundingbox_y: fullObj.i_boundingbox_y,
         };
     }
     var bicmpCount = fullObj.bicomponent_count;
@@ -2113,7 +2113,7 @@ function drawSPQRComponent(cmpRank) {
     cy.fit();
     // Draw single nodes.
     updateTextStatus("Drawing nodes...", false);
-    window.setTimeout(function() {
+    window.setTimeout(function () {
         cy.startBatch();
         var spqrSpecs =
             "WHERE scc_rank = ? AND (parent_metanode_id IS NULL " +
@@ -2259,7 +2259,7 @@ function drawComponent(cmpRank) {
     bbStmt.free();
     var bb = {
         boundingbox_x: fullObj.boundingbox_x,
-        boundingbox_y: fullObj.boundingbox_y
+        boundingbox_y: fullObj.boundingbox_y,
     };
     var totalElementCount = fullObj.node_count + 0.5 * fullObj.edge_count;
     // here we scale mgsc.PROGRESSBAR_FREQ to totalElementCount for the
@@ -2295,7 +2295,7 @@ function drawComponent(cmpRank) {
     cy.endBatch();
     cy.fit();
     updateTextStatus("Drawing nodes...", false);
-    window.setTimeout(function() {
+    window.setTimeout(function () {
         /* I originally didn't have this wrapped in a timeout, but for some
          * reason a few clusters in the test MetaCarvel E. coli assembly
          * weren't being rendered at the waiting point. It seemed some sort of
@@ -2373,7 +2373,7 @@ function drawComponentNodes(
         mgsc.CURR_NE += 1;
         if (mgsc.CURR_NE % mgsc.PROGRESSBAR_FREQ === 0) {
             updateProgressBar((mgsc.CURR_NE / totalElementCount) * 100);
-            window.setTimeout(function() {
+            window.setTimeout(function () {
                 drawComponentNodes(
                     nodesStmt,
                     bb,
@@ -2481,7 +2481,7 @@ function drawComponentEdges(
         mgsc.CURR_NE += 0.5;
         if (mgsc.CURR_NE % mgsc.PROGRESSBAR_FREQ === 0) {
             updateProgressBar((mgsc.CURR_NE / totalElementCount) * 100);
-            window.setTimeout(function() {
+            window.setTimeout(function () {
                 drawComponentEdges(
                     edgesStmt,
                     bb,
@@ -2657,14 +2657,14 @@ function finishDrawComponent(
     // we do this after fitting to ensure the best precision possible
     // (also, this helps when drawing collapsed SPQR trees. See the MaryGold
     // test graph as a good example of why this is needed)
-    cy.batch(function() {
+    cy.batch(function () {
         removeBoundingBoxEnforcingNodes();
     });
     // Set minZoom to whatever the zoom level when viewing the entire drawn
     // component at once (i.e. right now) is
     cy.minZoom(cy.zoom());
     updateTextStatus("Preparing interface...", false);
-    window.setTimeout(function() {
+    window.setTimeout(function () {
         // If we have scaffold data still loaded for this assembly, use it
         // for the newly drawn connected component.
         if (!$.isEmptyObject(mgsc.SCAFFOLDID2NODEKEYS)) {
@@ -2820,7 +2820,7 @@ function loadHostedDB() {
     var xhr = new XMLHttpRequest();
     xhr.open("GET", mgsc.DB_FILENAME, true);
     xhr.responseType = "arraybuffer";
-    xhr.onload = function(eve) {
+    xhr.onload = function (eve) {
         if (this.status === 200) {
             initDB(this.response);
         }
@@ -2878,10 +2878,8 @@ function toggleFinishingAnimationSettings() {
  */
 function invertColorSettings() {
     "use strict";
-    $(".colorpicker-component").each(function(i) {
-        var oldRGB = $(this)
-            .data("colorpicker")
-            .color.toRGB();
+    $(".colorpicker-component").each(function (i) {
+        var oldRGB = $(this).data("colorpicker").color.toRGB();
         var newRGB =
             "rgb(" +
             (255 - oldRGB.r) +
@@ -2902,7 +2900,7 @@ function invertColorSettings() {
 function exportColorSettings(toDownload) {
     "use strict";
     var textToExport = "";
-    $(".colorpicker-component").each(function(i) {
+    $(".colorpicker-component").each(function (i) {
         textToExport += this.id + "\t" + $(this).colorpicker("getValue") + "\n";
     });
     if (toDownload) {
@@ -2963,7 +2961,7 @@ function importColorSettings() {
         return;
     }
     if (inputfile.name.toLowerCase().endsWith(".tsv")) {
-        csfr.onload = function(e) {
+        csfr.onload = function (e) {
             if (e.target.readyState === FileReader.DONE) {
                 var fileText = e.target.result;
                 // read file, synthesize colorpickers
@@ -3063,7 +3061,7 @@ function clearSelectedInfo() {
 function fitGraph(toSelected) {
     "use strict";
     startIndeterminateProgressBar();
-    window.setTimeout(function() {
+    window.setTimeout(function () {
         if (toSelected) {
             // Right now, we don't throw any sort of error here if
             // no elements are selected. This is because the fit-selected
@@ -3128,17 +3126,16 @@ function drawEdgeWeightHistogram() {
         .domain([0, max * 1.1])
         .rangeRound([0, width]);
     var bin_count = +$("#binCountInput").val();
-    var bins = d3
-        .histogram()
-        .domain(x.domain())
-        .thresholds(x.ticks(bin_count))(mgsc.COMPONENT_EDGE_WEIGHTS);
+    var bins = d3.histogram().domain(x.domain()).thresholds(x.ticks(bin_count))(
+        mgsc.COMPONENT_EDGE_WEIGHTS
+    );
     var y = d3
         .scaleLinear()
         .domain([
             0,
-            d3.max(bins, function(b) {
+            d3.max(bins, function (b) {
                 return b.length;
-            })
+            }),
         ])
         .range([height, 0]);
     var bar = g
@@ -3147,15 +3144,15 @@ function drawEdgeWeightHistogram() {
         .enter()
         .append("g")
         .attr("class", "edge_chart_bar")
-        .attr("transform", function(b) {
+        .attr("transform", function (b) {
             return "translate(" + x(b.x0) + "," + y(b.length) + ")";
         });
     bar.append("rect")
         .attr("x", 1)
-        .attr("width", function(d) {
+        .attr("width", function (d) {
             return x(d.x1) - x(d.x0) - 1;
         })
-        .attr("height", function(d) {
+        .attr("height", function (d) {
             return height - y(d.length);
         });
 
@@ -3165,9 +3162,7 @@ function drawEdgeWeightHistogram() {
         .attr("class", "axis axis--x")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis);
-    g.append("g")
-        .attr("class", "axis axis--y")
-        .call(yAxis);
+    g.append("g").attr("class", "axis axis--y").call(yAxis);
     // Add x-axis label
     g.append("text")
         .attr(
@@ -3213,7 +3208,7 @@ function cullEdges() {
         // Restore removed edges that would fit within a lowered threshold
         // Also, remove these edges from mgsc.REMOVED_EDGES
         var restoredEdges = cy.collection();
-        mgsc.REMOVED_EDGES.each(function(e, i) {
+        mgsc.REMOVED_EDGES.each(function (e, i) {
             if (e.data("multiplicity") >= threshold) {
                 // If the edge points to/from a node within a collapsed
                 // cluster, then make the edge a basicbezier and move the
@@ -3236,7 +3231,7 @@ function cullEdges() {
         mgsc.REMOVED_EDGES = mgsc.REMOVED_EDGES.difference(restoredEdges);
         // Remove edges that have multiplicity less than the specified
         // threshold
-        cy.$("edge").each(function(e, i) {
+        cy.$("edge").each(function (e, i) {
             var mult = e.data("multiplicity");
             if (mult !== null && mult < threshold) {
                 if (e.selected()) e.unselect();
@@ -3270,7 +3265,7 @@ function beginLoadAGPfile() {
         sfr.readingFinalBlob = false;
         // This is called after every Blob (manageably-sized chunk of the file)
         // is loaded via this FileReader object.
-        sfr.onload = function(e) {
+        sfr.onload = function (e) {
             if (e.target.readyState === FileReader.DONE) {
                 var blobText = e.target.result;
                 var blobLines = blobText.split("\n");
@@ -3329,7 +3324,7 @@ function beginLoadAGPfile() {
         // use a small timeout so the call to startIndeterminateProgressBar()
         // can update the DOM
         $("#agpLoadedFileName").addClass("notviewable");
-        window.setTimeout(function() {
+        window.setTimeout(function () {
             loadAGPfile(sfr, inputfile, 0);
         }, 50);
     } else {
@@ -3797,17 +3792,13 @@ function togglePauseFinishingButtonStyle(pauseOrFinish) {
         $("#pauseFinishingButtonIconSpan").addClass("glyphicon-pause");
         $("#pauseFinishingButtonIconSpan").removeClass("glyphicon-play");
         $("#pauseFinishingButton").html(
-            $("#pauseFinishingButton")
-                .html()
-                .replace("Resume", "Pause")
+            $("#pauseFinishingButton").html().replace("Resume", "Pause")
         );
     } else {
         $("#pauseFinishingButtonIconSpan").removeClass("glyphicon-pause");
         $("#pauseFinishingButtonIconSpan").addClass("glyphicon-play");
         $("#pauseFinishingButton").html(
-            $("#pauseFinishingButton")
-                .html()
-                .replace("Pause", "Resume")
+            $("#pauseFinishingButton").html().replace("Pause", "Resume")
         );
     }
 }
@@ -3924,7 +3915,7 @@ function startChangeNodeColorization() {
     // current one -- if not, we don't bother doing anything
     if (newColorization !== mgsc.CURR_NODE_COLORIZATION) {
         startIndeterminateProgressBar();
-        window.setTimeout(function() {
+        window.setTimeout(function () {
             changeNodeColorization(newColorization);
             finishProgressBar();
         }, 50);
@@ -3938,7 +3929,7 @@ function changeNodeColorization(newColorization) {
         .removeClass(mgsc.CURR_NODE_COLORIZATION)
         .addClass(newColorization);
     // Make sure to apply the colorization to collapsed nodes, also!
-    cy.scratch("_collapsed").each(function(nodeGroup, i) {
+    cy.scratch("_collapsed").each(function (nodeGroup, i) {
         nodeGroup
             .scratch("_interiorNodes")
             .removeClass(mgsc.CURR_NODE_COLORIZATION)
@@ -4017,9 +4008,7 @@ function redrawGradientPreview(hexColor, minOrMax) {
     var tmpColor;
     if (minOrMax === -1) {
         $("#0gp").css("background-color", hexColor);
-        mgsc.MIN_RGB = $("#mincncp")
-            .data("colorpicker")
-            .color.toRGB();
+        mgsc.MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
         mgsc.MIN_HEX = hexColor;
         if (mgsc.MAX_RGB === undefined) {
             tmpColor = $("#maxcncp").data("colorpicker").color;
@@ -4028,9 +4017,7 @@ function redrawGradientPreview(hexColor, minOrMax) {
         }
     } else {
         $("#100gp").css("background-color", hexColor);
-        mgsc.MAX_RGB = $("#maxcncp")
-            .data("colorpicker")
-            .color.toRGB();
+        mgsc.MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
         mgsc.MAX_HEX = hexColor;
         if (mgsc.MIN_RGB === undefined) {
             tmpColor = $("#mincncp").data("colorpicker").color;
@@ -4050,7 +4037,7 @@ function testLayout() {
     if ($("#layoutInput").val() !== "") {
         startIndeterminateProgressBar();
         cy.minZoom(0);
-        window.setTimeout(function() {
+        window.setTimeout(function () {
             // Change to simple bezier edges, since node placement
             // will be changed
             // Adjust min zoom to scope of new layout
@@ -4059,9 +4046,9 @@ function testLayout() {
                 name: $("#layoutInput").val(),
                 fit: true,
                 padding: 0,
-                stop: function() {
+                stop: function () {
                     finishProgressBar();
-                }
+                },
             }).run();
         }, 20);
     }
@@ -4081,7 +4068,7 @@ function reduceEdgesToStraightLines(useProgressBar) {
     "use strict";
     if (useProgressBar) {
         startIndeterminateProgressBar();
-        window.setTimeout(function() {
+        window.setTimeout(function () {
             doReduceEdges();
             finishProgressBar();
         }, 50);
@@ -4094,7 +4081,7 @@ function reduceEdgesToStraightLines(useProgressBar) {
 function doReduceEdges() {
     "use strict";
     cy.startBatch();
-    var reducingFunction = function(e, i) {
+    var reducingFunction = function (e, i) {
         e.removeClass("unbundledbezier");
         e.addClass("reducededge");
         e.addClass("basicbezier");
@@ -4407,7 +4394,7 @@ function startCollapseAll() {
     if (mgsc.CURR_VIEWTYPE !== "SPQR") {
         var currVal = $("#collapseButtonText").text();
         startIndeterminateProgressBar();
-        window.setTimeout(function() {
+        window.setTimeout(function () {
             collapseAll(currVal[0]);
         }, 50);
     }
@@ -4422,11 +4409,11 @@ function collapseAll(operationCharacter) {
     "use strict";
     cy.startBatch();
     if (operationCharacter === "U") {
-        cy.scratch("_collapsed").each(function(cluster, i) {
+        cy.scratch("_collapsed").each(function (cluster, i) {
             uncollapseCluster(cluster);
         });
     } else {
-        cy.scratch("_uncollapsed").each(function(cluster, i) {
+        cy.scratch("_uncollapsed").each(function (cluster, i) {
             collapseCluster(cluster);
         });
     }
@@ -4542,7 +4529,7 @@ function ctrlPtStrToList(ctrlPointStr, boundingbox) {
  */
 function initNodeAdjacents() {
     "use strict";
-    cy.filter("node.noncluster").each(function(node, i) {
+    cy.filter("node.noncluster").each(function (node, i) {
         node.data(
             "adjacentEdges",
             node.incomers("edge").union(node.outgoers("edge"))
@@ -4561,7 +4548,7 @@ function initNodeAdjacents() {
 function initClusters() {
     "use strict";
     // For each compound node...
-    cy.scratch("_uncollapsed").each(function(node, i) {
+    cy.scratch("_uncollapsed").each(function (node, i) {
         var children = node.children();
         // Unfiltered incoming/outgoing edges
         var uIncomingEdges = children.incomers("edge");
@@ -4578,16 +4565,16 @@ function initClusters() {
         // "Canonical" incoming/outgoing edge properties -- these
         // are used to represent the ideal connections
         // between nodes regardless of collapsing
-        incomingEdges.each(function(edge, j) {
+        incomingEdges.each(function (edge, j) {
             incomingEdgeMap[edge.id()] = [
                 edge.source().id(),
-                edge.target().id()
+                edge.target().id(),
             ];
         });
-        outgoingEdges.each(function(edge, j) {
+        outgoingEdges.each(function (edge, j) {
             outgoingEdgeMap[edge.id()] = [
                 edge.source().id(),
-                edge.target().id()
+                edge.target().id(),
             ];
         });
         // Get the "interior elements" of the cluster: all child nodes,
@@ -4610,7 +4597,7 @@ function initClusters() {
             outgoingEdgeMap: outgoingEdgeMap,
             interiorNodeCount: children.size(),
             w: node.scratch("_w"),
-            h: node.scratch("_h")
+            h: node.scratch("_h"),
         });
         node.removeScratch("_w");
         node.removeScratch("_h");
@@ -4621,12 +4608,12 @@ function initClusters() {
         // rotateNodes just select nodes from interiorEles
         node.scratch({
             _interiorEles: interiorEdges.union(children),
-            _interiorNodes: children
+            _interiorNodes: children,
         });
     });
     // Also set up the list of clusters sorted from left to right in the
     // component
-    mgsc.CLUSTERID2TOP.sort(function(c1, c2) {
+    mgsc.CLUSTERID2TOP.sort(function (c1, c2) {
         return c2.t - c1.t;
     });
 }
@@ -4675,7 +4662,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
     }
     var pos = gv2cyPoint(nx, ny, [
         boundingboxObject.boundingbox_x,
-        boundingboxObject.boundingbox_y
+        boundingboxObject.boundingbox_y,
     ]);
 
     var nodeShapeClass = "singlenode";
@@ -4763,7 +4750,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         gc_content: nodeGC,
         gc_color: gcColor,
         repeat_color: repeatColor,
-        is_repeat: nodeIsRepeat
+        is_repeat: nodeIsRepeat,
     };
     if (parentID !== null) {
         var typeTag = parentID[0];
@@ -4795,7 +4782,7 @@ function renderNodeObject(nodeObj, cyNodeID, boundingboxObject, mode) {
         classes:
             "noncluster " + mgsc.CURR_NODE_COLORIZATION + " " + nodeShapeClass,
         data: nodeData,
-        position: { x: pos[0], y: pos[1] }
+        position: { x: pos[0], y: pos[1] },
     });
     return pos;
 }
@@ -4809,12 +4796,12 @@ function drawBoundingBoxEnforcingNodes(boundingboxObject) {
     cy.add({
         classes: "bb_enforcing",
         data: { id: "bottom_left" },
-        position: { x: bottomLeftPt[0], y: bottomLeftPt[1] }
+        position: { x: bottomLeftPt[0], y: bottomLeftPt[1] },
     });
     cy.add({
         classes: "bb_enforcing",
         data: { id: "top_right" },
-        position: { x: topRightPt[0], y: topRightPt[1] }
+        position: { x: topRightPt[0], y: topRightPt[1] },
     });
 }
 
@@ -4859,17 +4846,17 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     }
     var bottomLeftPos = gv2cyPoint(clusterObj[l], clusterObj[b], [
         boundingboxObject.boundingbox_x,
-        boundingboxObject.boundingbox_y
+        boundingboxObject.boundingbox_y,
     ]);
     var topRightPos = gv2cyPoint(clusterObj[r], clusterObj[t], [
         boundingboxObject.boundingbox_x,
-        boundingboxObject.boundingbox_y
+        boundingboxObject.boundingbox_y,
     ]);
     var clusterData = {
         id: clusterID,
         w: Math.abs(topRightPos[0] - bottomLeftPos[0]),
         h: Math.abs(topRightPos[1] - bottomLeftPos[1]),
-        isCollapsed: false
+        isCollapsed: false,
     };
     // Only assign the metanode a bicomponent parent when in explicit mode
     if (parent_bicmp_id !== null && mgsc.CURR_SPQRMODE === "explicit") {
@@ -4877,7 +4864,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
     }
     var pos = [
         (bottomLeftPos[0] + topRightPos[0]) / 2,
-        (bottomLeftPos[1] + topRightPos[1]) / 2
+        (bottomLeftPos[1] + topRightPos[1]) / 2,
     ];
     var abbrev = clusterID[0];
     var classes = abbrev + " cluster " + getClusterCoordClass();
@@ -4916,7 +4903,7 @@ function renderClusterObject(clusterObj, boundingboxObject, spqrtype) {
         classes: classes,
         data: clusterData,
         position: { x: pos[0], y: pos[1] },
-        locked: spqrRelated
+        locked: spqrRelated,
     });
     if (spqrtype === "metanode") {
         if (mgsc.CURR_SPQRMODE === "explicit") {
@@ -5044,8 +5031,8 @@ function renderEdgeObject(
                     target: targetID,
                     dispsrc: displaySourceID,
                     disptgt: displayTargetID,
-                    thickness: mgsc.MAX_EDGE_THICKNESS
-                }
+                    thickness: mgsc.MAX_EDGE_THICKNESS,
+                },
             });
             if (addNote) {
                 cy.getElementById(parent_mn_id)
@@ -5112,8 +5099,8 @@ function renderEdgeObject(
                 multiplicity: multiplicity,
                 orientation: orientation,
                 mean: mean,
-                stdev: stdev
-            }
+                stdev: stdev,
+            },
         });
         return;
     }
@@ -5124,7 +5111,7 @@ function renderEdgeObject(
     var srcSinkDist = distance(srcPos, tgtPos);
     var ctrlPts = ctrlPtStrToList(edgeObj.control_point_string, [
         boundingboxObject.boundingbox_x,
-        boundingboxObject.boundingbox_y
+        boundingboxObject.boundingbox_y,
     ]);
     var ctrlPtLen = edgeObj.control_point_count;
     var nonzero = false;
@@ -5205,8 +5192,8 @@ function renderEdgeObject(
                 multiplicity: multiplicity,
                 orientation: orientation,
                 mean: mean,
-                stdev: stdev
-            }
+                stdev: stdev,
+            },
         });
     } else {
         // The control point distances are small enough that
@@ -5220,8 +5207,8 @@ function renderEdgeObject(
                 multiplicity: multiplicity,
                 orientation: orientation,
                 mean: mean,
-                stdev: stdev
-            }
+                stdev: stdev,
+            },
         });
     }
 }

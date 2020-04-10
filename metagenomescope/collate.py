@@ -61,7 +61,7 @@ from . import config
 # NOTE: We really shouldn't need to use reverse_complement() at all, I think,
 # but in the future we can just use gfapy's rc() function (which is much more
 # robust).
-from .input_node_utils import gc_content, reverse_complement, negate_node_id
+# from .input_node_utils import gc_content, reverse_complement, negate_node_id
 from .file_utils import check_file_existence, safe_file_remove, save_aux_file
 from .msg_utils import operation_msg, conclude_msg
 
@@ -2030,9 +2030,11 @@ def collate_graph(args):
                         source_id = source_id[8:]
                     if target_id.startswith("cluster_"):
                         target_id = target_id[8:]
-                    xdot_ctrl_pt_str, coord_list, xdot_ctrl_pt_count = graph_objects.Edge.get_control_points(
-                        e.attr[u"pos"]
-                    )
+                    (
+                        xdot_ctrl_pt_str,
+                        coord_list,
+                        xdot_ctrl_pt_count,
+                    ) = graph_objects.Edge.get_control_points(e.attr[u"pos"])
                     # Try to expand the component bounding box (just to be safe)
                     p = 0
                     while p <= len(coord_list) - 2:
@@ -2116,11 +2118,11 @@ def collate_graph(args):
     # in the database.
     t3 = time.time()
     component_size_rank = (
-        1
-    )  # largest component is 1, the 2nd largest is 2, etc
+        1  # largest component is 1, the 2nd largest is 2, etc
+    )
     no_print = (
-        False
-    )  # used to reduce excess printing (see issue #133 on GitHub)
+        False  # used to reduce excess printing (see issue #133 on GitHub)
+    )
     # Should be the default value in the (standard mode) component selector in
     # the viewer interface. TODO: put this in the assembly table of the db file
     smallest_viewable_comp_rank = -1
@@ -2444,9 +2446,11 @@ def collate_graph(args):
             component_edge_count += 1
             if curr_edge.group is not None:
                 continue
-            curr_edge.xdot_ctrl_pt_str, coord_list, curr_edge.xdot_ctrl_pt_count = graph_objects.Edge.get_control_points(
-                e.attr[u"pos"]
-            )
+            (
+                curr_edge.xdot_ctrl_pt_str,
+                coord_list,
+                curr_edge.xdot_ctrl_pt_count,
+            ) = graph_objects.Edge.get_control_points(e.attr[u"pos"])
             if source_id != e[0]:
                 # Adjust edge to point from interior node "source"'s tailport
                 pts_height = source.height * config.POINTS_PER_INCH

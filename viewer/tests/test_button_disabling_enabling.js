@@ -1,15 +1,15 @@
 mgsc.mochaTestSampleButtonClicked = false;
-mgsc.mochaTestEmitSampleButtonClicked = function() {
+mgsc.mochaTestEmitSampleButtonClicked = function () {
     mgsc.mochaTestSampleButtonClicked = true;
 };
-mgsc.resetMochaTestSampleButton = function() {
+mgsc.resetMochaTestSampleButton = function () {
     disableButton("mochaTestSampleButton");
     mgsc.mochaTestSampleButtonClicked = false;
 };
 
-describe("disableButton()", function() {
+describe("disableButton()", function () {
     mgsc.mochaTestSampleButtonClicked = false;
-    it("Prevents a button from being clicked", function() {
+    it("Prevents a button from being clicked", function () {
         // Make sure our test environment is initially sane
         chai.assert.isFalse(mgsc.mochaTestSampleButtonClicked);
         // Call disableButton() then try to click it
@@ -36,8 +36,8 @@ describe("disableButton()", function() {
     //});
 });
 
-describe("enableButton()", function() {
-    it("Enables clicking a previously disabled button", function() {
+describe("enableButton()", function () {
+    it("Enables clicking a previously disabled button", function () {
         // Again: make sure our test environment is initially sane
         chai.assert.isFalse(mgsc.mochaTestSampleButtonClicked);
         // Call enableButton on the disabled button then try to click it

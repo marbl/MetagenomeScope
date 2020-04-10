@@ -351,7 +351,9 @@ def parse_metacarvel_gml(filename):
         # tell, MetaCarvel outputs mean/stdev values from python, so if we see
         # a NaN or +/- Infinity in the data then this will interpret it
         # as was originally intended.) Unlike bsize, we don't really use "mean"
-        # or "stdev" for anything at present.
+        # or "stdev" for anything at present, so there isn't a risk of us e.g.
+        # scaling edges by their stdev and then having an edge with an
+        # "infinity" stdev just explode everything
         for field in ("mean", "stdev"):
             try:
                 float(g.edges[e][field])
