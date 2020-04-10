@@ -54,7 +54,7 @@ SCRIPT_DIR = metagenomescope/
 SPQR_CODE = $(addprefix $(SCRIPT_DIR), spqr.cpp)
 SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 
-PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov
+PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov --ignore=metagenomescope/tests/integration_tests/
 PYLOCS = metagenomescope/ setup.py viewer/populate_demo.py
 JSLOCS = viewer/js/xdot2cy.js viewer/tests/*.js docs/js/extra_functionality.js .jshintrc
 HTMLCSSLOCS = viewer/index.html viewer/404.html viewer/css/viewer_style.css docs/404.html docs/index.html docs/css/mgsc_docs_style.css
@@ -62,11 +62,11 @@ HTMLCSSLOCS = viewer/index.html viewer/404.html viewer/css/viewer_style.css docs
 # -B: don't create __pycache__/ directories
 pytest:
 	$(PYTEST_COMMAND)
-	rm metagenomescope/tests/output/*
+	rm -f metagenomescope/tests/output/*
 
 spqrtest:
 	$(PYTEST_COMMAND) -m "spqrtest"
-	rm metagenomescope/tests/output/*
+	rm -f metagenomescope/tests/output/*
 
 viewertest:
 	bash minify_files.sh
