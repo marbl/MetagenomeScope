@@ -505,27 +505,24 @@ class AssemblyGraph(object):
                 (self.bubbles, AssemblyGraph.is_valid_bubble),
                 (self.frayed_ropes, AssemblyGraph.is_valid_frayed_rope),
             ):
-                candidate_nodes = set(self.decomposed_digraph.nodes)
+                # We sort the nodes in order to make this deterministic
+                # (I doubt the extra time cost from sorting will be a big deal)
+                candidate_nodes = sorted(list(self.decomposed_digraph.nodes))
                 while len(candidate_nodes) > 0:
-                    # NOTE: set.pop() isn't deterministic
-                    # (see https://stackoverflow.com/a/10432828/10730311), so
-                    # running this multiple times results in sometimes diff
-                    # results. would be good to make this detreministic (e.g.
-                    # sort node IDs, or try to be greedy and select large
-                    # patterns first at a given level, ...)
-                    n = candidate_nodes.pop()
+                    n = candidate_nodes[0]
                     pattern_valid, pattern_node_ids = validator(
                         self.decomposed_digraph, n
                     )
                     if pattern_valid:
                         pattern_id = self.add_pattern(pattern_node_ids)
                         collection[pattern_id] = pattern_node_ids
-                        candidate_nodes.difference_update(pattern_node_ids)
+                        for pn in pattern_node_ids:
+                            candidate_nodes.remove(pn)
                         something_collapsed = True
-                    # Even if this pattern wasn't valid, no need to manually
-                    # remove n from candidate_nodes -- pop() has already taken
-                    # it out
-
+                    else:
+                        # If the pattern wasn't invalid, we still need to
+                        # remove n
+                        candidate_nodes.remove(n)
             if not something_collapsed:
                 # We didn't collapse anything... so we're done here! We can't
                 # do any more.

@@ -73,6 +73,7 @@ def test_nondiverging_middle_node():
        1 -/
 
         ... is not a valid frayed rope.
+        (It does look like a church rotated 90 degrees, though, I guess?)
     """
     g = get_simple_fr_graph()
     g.remove_edge(2, 4)
