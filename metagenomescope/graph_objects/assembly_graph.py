@@ -210,6 +210,77 @@ class AssemblyGraph(object):
         )
 
     @staticmethod
+    def is_valid_3node_bubble(g, starting_node_id):
+        r"""Returns a 2-tuple of (True, a list of all the nodes in the bubble)
+           if a 3-node bubble defined at the given start node would be valid.
+           Returns a 2-tuple of (False, None) if such a bubble would be
+           considered invalid.
+
+           The bubbles we try to detect look like:
+
+             /-m-\
+            /     \
+           s-------e
+
+           Due to the nature of hierarchical pattern decomposition, we only
+           allow the middle "path" to be a single node. This is still broad
+           enough to allow for bubbles with a linear path of multiple nodes
+           in the middle, e.g.
+
+             /-m1-m2-m3-\
+            /            \
+           s--------------e
+
+           ... since we assume that this path has already been collapsed into a
+           chain.
+        """
+        # The starting node in a 3-node bubble must have exactly 2 out edges
+        out_node_ids = list(g.adj[starting_node_id].keys())
+        if len(out_node_ids) != 2:
+            return False, None
+
+        # Of the two nodes the start node points to, one must have two incoming
+        # edges (this is the end node) and the other must have one incoming
+        # edge (this is the middle node)
+        m = None
+        e = None
+        for out_node in out_node_ids:
+            if len(g.pred[out_node]) == 2 and e is None:
+                e = out_node
+            elif len(g.pred[out_node]) == 1 and m is None:
+                m = out_node
+            else:
+                return False, None
+
+        # We tentatively have a valid 3-node bubble, but we need to do some
+        # more verification.
+
+        # First, check that the middle node points to the end node: if not,
+        # then that's a problem!
+        if m not in g.pred[e]:
+            return False, None
+
+        # Also, check that the middle node has exactly 1 outgoing edge (this
+        # would imply that it points outside of the bubble, which we don't
+        # allow)
+        if len(g.adj[m]) != 1:
+            return False, None
+
+        # Reject cyclic bubbles and/or bubbles where the end node points to the
+        # starting node, the middle node, or itself
+        if len(set([starting_node_id, m, e]) & set(g.adj[e])) > 0:
+            return False, None
+
+        # Ensure that all nodes in the bubble are distinct (protects against
+        # weird cases like s -> m -> s where the starting node is the end node)
+        composite = [starting_node_id, m, e]
+        if len(set(composite)) != 3:
+            return False, None
+
+        # If we've gotten here, then we know that this is a valid bubble.
+        return True, composite
+
+    @staticmethod
     def is_valid_bubble(g, starting_node_id):
         r"""Returns a 2-tuple of (True, a list of all the nodes in the bubble)
            if a bubble defined at the given start node would be valid.
@@ -232,15 +303,12 @@ class AssemblyGraph(object):
            "chains" (e.g. a middle path actually contains n nodes where
            m1 -> m2 -> ... mn), have already been collapsed.
 
-           Note that we don't currently detect 3-node bubbles (or other bubbles
-           where there's an edge directly between the start and end node), like
+           Also, note that we don't detect 3-node bubbles here (those are
+           detected by is_valid_3node_bubble()).
 
-             /-m-\
-            /     \
-           s-------e
-
-           ...but this should be caught by stuff like the SPQR decomposition
-           code, or by more robust bubble-finding techniques.
+           Lastly, we don't currently detect bubbles where there's an edge
+           directly between the start and end node. ...but these should be
+           possible to detect with more robust bubble-finding techniques.
         """
         # The starting node in a bubble obviously must have at least 2 outgoing
         # edges. If not, we can bail early on.
@@ -502,6 +570,7 @@ class AssemblyGraph(object):
             for collection, validator in (
                 (self.chains, AssemblyGraph.is_valid_chain),
                 (self.cyclic_chains, AssemblyGraph.is_valid_cyclic_chain),
+                (self.bubbles, AssemblyGraph.is_valid_3node_bubble),
                 (self.bubbles, AssemblyGraph.is_valid_bubble),
                 (self.frayed_ropes, AssemblyGraph.is_valid_frayed_rope),
             ):
