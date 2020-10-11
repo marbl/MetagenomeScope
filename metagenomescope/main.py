@@ -26,9 +26,7 @@ import errno
 import sqlite3
 import time
 
-from . import graph_objects
-from . import config
-
+from . import graph_objects, config, arg_utils
 from .file_utils import check_file_existence, safe_file_remove, save_aux_file
 from .msg_utils import operation_msg, conclude_msg
 
@@ -204,50 +202,8 @@ def make_viz(
     nbdf: bool,
     npdf: bool,
 ):
-    # NOTE this is ostensibly vulnerable to a race condition in which this
-    # directory is removed after it's either created or shown to already exist
-    # as a directory. In this case, though, the user would just get an error
-    # when the script tries to write the first output file (either a _links
-    # file, if -spqr is passed, or the .db file otherwise) -- shouldn't cause
-    # any side effects.
-    try:
-        os.makedirs(output_dir)
-    except OSError as e:
-        if e.errno == errno.EEXIST:
-            # If the directory already exists as a directory, there isn't a
-            # problem
-            if not os.path.isdir(output_dir):
-                raise IOError(output_dir + config.EXISTS_AS_NON_DIR_ERR)
-        else:
-            # If the error we got was some other type of error (e.g. a
-            # permission error), then just raise that error to let the user
-            # know what went wrong
-            raise
-
-    # Check the validity of -maxn and -maxe
-    if max_node_ct < 1:
-        raise ValueError("maximum node count must be at least 1")
-    if max_edge_ct < 1:
-        raise ValueError("maximum edge count must be at least 1")
-
-    # NOTE Used to test the "race condition" mentioned above in which the
-    # directory is removed.
-    # Only uncomment this if you're ok with output_dir being removed!
-    # os.rmdir(output_dir)
-
-    # Right off the bat, check if the .db file name causes an error somehow.
-    # (See check_file_existence() for possible causes.)
-    # This prevents us from doing a lot of work and then realizing that due to
-    # the nature of the .db file name we can't continue.
-    # Yeah, there is technically a race condition here where the user/some
-    # process could create a file with the same .db name in between us checking
-    # for its existence here/etc. and us actually connecting to the .db file
-    # using SQLite. However, as is detailed below, that doesn't really matter
-    # -- SQLite will handle that condition suitably.
-    db_fullfn = os.path.join(output_dir, db_fn)
-    if check_file_existence(db_fullfn, overwrite):
-        # The user asked to overwrite this database via -w, so remove it
-        safe_file_remove(db_fullfn)
+    arg_utils.create_output_dir(output_dir)
+    arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
     # Maps Node ID (as int) to the Node object in question
     # This is nice, since it allows us to do things like
