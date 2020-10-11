@@ -4,16 +4,16 @@ from .basic_objects import NodeGroup, Node
 class Bubble(NodeGroup):
     """A group of nodes collapsed into a Bubble.
 
-       Simple bubbles that MetagenomeScope automatically identifies (and
-       validates using the is_valid_bubble() method of this class) consist
-       of one node which points to >= 2 "middle" nodes, all of which in turn
-       have linear paths that point to one "end" node.
+    Simple bubbles that MetagenomeScope automatically identifies (and
+    validates using the is_valid_bubble() method of this class) consist
+    of one node which points to >= 2 "middle" nodes, all of which in turn
+    have linear paths that point to one "end" node.
 
-       More complex bubbles (for example, those identified by MetaCarvel)
-       can be specified by the user.
+    More complex bubbles (for example, those identified by MetaCarvel)
+    can be specified by the user.
 
-       (In any case, this Bubble class is agnostic as to the structure of its
-       nodes; all that's needed to create a Bubble is a list of its nodes.)
+    (In any case, this Bubble class is agnostic as to the structure of its
+    nodes; all that's needed to create a Bubble is a list of its nodes.)
     """
 
     plural_name = "bubbles"
@@ -27,11 +27,11 @@ class Bubble(NodeGroup):
     @staticmethod
     def is_valid_bubble(s):
         """Returns a 2-tuple of True and a list of the nodes comprising the
-           Bubble if a Bubble defined with the given start node is valid.
-           Returns a 2-tuple of (False, None) if such a Bubble would be
-           invalid.
+        Bubble if a Bubble defined with the given start node is valid.
+        Returns a 2-tuple of (False, None) if such a Bubble would be
+        invalid.
 
-           NOTE that this assumes that s has > 1 outgoing edges.
+        NOTE that this assumes that s has > 1 outgoing edges.
         """
         if s.used_in_collapsing:
             return False, None
@@ -137,12 +137,12 @@ class Bubble(NodeGroup):
 class MiscPattern(NodeGroup):
     """A group of nodes identified by the user as a pattern.
 
-       Basically, this is handled the same as the other structural pattern
-       classes (Bubble, Rope, Chain, Cycle) with the slight exceptions that
-       1) no validation is imposed on the pattern structure (aside from
-       checking that node IDs are valid) and 2) the "type name" of this
-       class can be any string, and is defined in the input file alongside
-       the pattern structure."""
+    Basically, this is handled the same as the other structural pattern
+    classes (Bubble, Rope, Chain, Cycle) with the slight exceptions that
+    1) no validation is imposed on the pattern structure (aside from
+    checking that node IDs are valid) and 2) the "type name" of this
+    class can be any string, and is defined in the input file alongside
+    the pattern structure."""
 
     plural_name = "misc_patterns"
 
@@ -165,11 +165,11 @@ class Rope(NodeGroup):
     @staticmethod
     def is_valid_rope(s):
         """Returns a 2-tuple of (True, a list of all the nodes in the Rope)
-           if a Rope defined with the given start node would be a valid
-           Rope. Returns a 2-tuple of (False, None) if such a Rope would be
-           invalid.
+        if a Rope defined with the given start node would be a valid
+        Rope. Returns a 2-tuple of (False, None) if such a Rope would be
+        invalid.
 
-           Assumes s has only 1 outgoing node.
+        Assumes s has only 1 outgoing node.
         """
         # Detect the first middle node in the rope
         m1 = s.outgoing_nodes[0]
@@ -252,7 +252,7 @@ class Rope(NodeGroup):
 
 class Chain(NodeGroup):
     """A group of nodes collapsed into a Chain. This is defined as > 1
-       nodes that occur one after the other, with no intermediate edges.
+    nodes that occur one after the other, with no intermediate edges.
     """
 
     plural_name = "chains"
@@ -265,15 +265,15 @@ class Chain(NodeGroup):
     @staticmethod
     def is_valid_chain(s):
         """Returns a 2-tuple of (True, a list of all the nodes in the Chain
-           in order from start to end) if a Chain defined at the given start
-           node would be valid. Returns a 2-tuple of (False, None) if such a
-           Chain would be considered invalid.
+        in order from start to end) if a Chain defined at the given start
+        node would be valid. Returns a 2-tuple of (False, None) if such a
+        Chain would be considered invalid.
 
-           Note that this finds the longest possible Chain that includes s,
-           if a Chain exists starting at s. If we decide that no Chain
-           exists starting at s then we just return (False, None), but if we
-           find that a Chain does exist starting at s then we traverse
-           "backwards" to find the longest possible chain including s.
+        Note that this finds the longest possible Chain that includes s,
+        if a Chain exists starting at s. If we decide that no Chain
+        exists starting at s then we just return (False, None), but if we
+        find that a Chain does exist starting at s then we traverse
+        "backwards" to find the longest possible chain including s.
         """
         if len(s.outgoing_nodes) != 1:
             return False, None
@@ -384,11 +384,11 @@ class Chain(NodeGroup):
 
 class Cycle(NodeGroup):
     """A group of nodes collapsed into a Cycle. This is defined as > 1
-       nodes that occur one after another with no intermediate edges, where
-       the sequence of nodes repeats.
+    nodes that occur one after another with no intermediate edges, where
+    the sequence of nodes repeats.
 
-       (Less formally, this is essentially a Chain where the 'last' node has
-       one outgoing edge to the 'first' node.)
+    (Less formally, this is essentially a Chain where the 'last' node has
+    one outgoing edge to the 'first' node.)
     """
 
     plural_name = "cyclic_chains"
@@ -401,19 +401,19 @@ class Cycle(NodeGroup):
     @staticmethod
     def is_valid_cycle(s):
         """Identifies the simple cycle that "starts at" a given starting
-           node, if such a cycle exists. Returns (True, [nodes]) if
-           such a cycle exists (where [nodes] is a list of all the nodes in
-           the cycle), and (False, None) otherwise.
+        node, if such a cycle exists. Returns (True, [nodes]) if
+        such a cycle exists (where [nodes] is a list of all the nodes in
+        the cycle), and (False, None) otherwise.
 
-           NOTE that this only identifies cycles without any intermediate
-           incoming/outgoing edges not in the simple cycle -- that is, this
-           basically just looks for chains that end cyclically. (This also
-           identifies single-node loops as cycles.)
+        NOTE that this only identifies cycles without any intermediate
+        incoming/outgoing edges not in the simple cycle -- that is, this
+        basically just looks for chains that end cyclically. (This also
+        identifies single-node loops as cycles.)
 
-           The ideal way to implement cycle detection in a graph is to use
-           Depth-First Search (so, in our case, it would be to modify the
-           code in collate.py that already runs DFS to identify cycles), but
-           for now I think this more limited-in-scope method should work ok.
+        The ideal way to implement cycle detection in a graph is to use
+        Depth-First Search (so, in our case, it would be to modify the
+        code in collate.py that already runs DFS to identify cycles), but
+        for now I think this more limited-in-scope method should work ok.
         """
         s_outgoing_node_ct = len(s.outgoing_nodes)
         if len(s.incoming_nodes) == 0 or s_outgoing_node_ct == 0:

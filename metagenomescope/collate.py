@@ -25,12 +25,6 @@
 # For further information, please consult README.md in the root directory of
 # MetagenomeScope.
 
-# For parsing command-line arguments
-import argparse
-
-# For flushing the output and getting command-line arguments
-import sys
-
 # For running the C++ spqr script binary
 from subprocess import check_output, STDOUT
 
@@ -65,211 +59,26 @@ from . import config
 from .file_utils import check_file_existence, safe_file_remove, save_aux_file
 from .msg_utils import operation_msg, conclude_msg
 
-# Define supported command-line arguments. (We don't actually run
-# parser.parse_args() until later on, in order to support use of this file
-# aside from as a script.)
-parser = argparse.ArgumentParser(description=config.COLLATE_DESCRIPTION)
-parser.add_argument(
-    "-i",
-    "--inputfile",
-    required=True,
-    help="""input assembly
-    graph filename (LastGraph, GFA, or MetaCarvel GML)""",
-)
-parser.add_argument(
-    "-o",
-    "--outputprefix",
-    required=True,
-    help="""output file
-    prefix for .db files; also used for most auxiliary files""",
-)
-parser.add_argument(
-    "-d",
-    "--outputdirectory",
-    required=False,
-    default=os.getcwd(),
-    help="""directory in which all output files will be
-    stored; defaults to current working directory (this directory will be
-    created if it does not exist, but if the directory cannot be created then
-    an error will be raised)""",
-)
-parser.add_argument(
-    "-w",
-    "--overwrite",
-    required=False,
-    default=False,
-    action="store_true",
-    help="""overwrite output files (if this isn't passed,
-    and a non-auxiliary file would need to be overwritten, an error will be
-    raised)""",
-)
-parser.add_argument(
-    "-maxn",
-    "--maxnodecount",
-    required=False,
-    default=config.MAXN_DEFAULT,
-    type=int,
-    help="""connected components with more
-    nodes than this value will not be laid out or available for display in the
-    viewer interface (default {}, must be at least
-    1)""".format(
-        config.MAXN_DEFAULT
-    ),
-)
-parser.add_argument(
-    "-maxe",
-    "--maxedgecount",
-    required=False,
-    default=config.MAXE_DEFAULT,
-    type=int,
-    help="""connected components with more
-    edges than this value will not be laid out or available for display in the
-    viewer interface (default {}, must be at least
-    1)""".format(
-        config.MAXE_DEFAULT
-    ),
-)
-parser.add_argument(
-    "-ub",
-    "--userbubblefile",
-    required=False,
-    help="""file describing pre-identified bubbles in the graph, in the format
-    of MetaCarvel's bubbles.txt output: each line of the file is formatted
-    as (source ID) (tab) (sink ID) (tab) (all node IDs in the bubble,
-    including source and sink IDs, all separated by tabs). See the MetaCarvel
-    documentation for more details on this format.""",
-)
-parser.add_argument(
-    "-ubl",
-    "--userbubblelabelsused",
-    required=False,
-    action="store_true",
-    default=False,
-    help="""use node labels instead of IDs
-    in the pre-identified bubbles file specified by -ub""",
-)
-parser.add_argument(
-    "-up",
-    "--userpatternfile",
-    required=False,
-    help="""file
-    describing any pre-identified structural patterns in the graph:
-    each line of the file is formatted as (pattern type) (tab) (all node IDs
-    in the pattern, all separated by tabs). If (pattern type) is "Bubble" or
-    "Frayed Rope", then the pattern will be represented in the visualization
-    as a Bubble or Frayed Rope, respectively; otherwise, the pattern will
-    be represented as a generic "misc. user-specified pattern," and colorized
-    accordingly in the visualization.""",
-)
-parser.add_argument(
-    "-upl",
-    "--userpatternlabelsused",
-    required=False,
-    action="store_true",
-    default=False,
-    help="""use node labels instead of IDs
-    in the pre-identified misc. patterns file specified by -up""",
-)
-parser.add_argument(
-    "-spqr",
-    "--computespqrdata",
-    required=False,
-    action="store_true",
-    default=False,
-    help="""compute data for the SPQR
-    "decomposition modes" in MetagenomeScope; necessitates a few additional
-    system requirements (see MetagenomeScope's installation instructions
-    wiki page for details)""",
-)
-parser.add_argument(
-    "-b",
-    "--bicomponentfile",
-    required=False,
-    help="""file containing bicomponent information for the assembly graph
-    (this argument is only used if -spqr is passed, and is not required even in
-    that case; the needed files will be generated if -spqr is passed and this
-    option is not passed)""",
-)
-parser.add_argument(
-    "-sp",
-    "--structuralpatterns",
-    required=False,
-    default=False,
-    action="store_true",
-    help="""save .txt files containing node
-    information for all structural patterns identified in the graph""",
-)
-parser.add_argument(
-    "-pg",
-    "--preservegv",
-    required=False,
-    action="store_true",
-    default=False,
-    help="""save all .gv (DOT) files generated for nontrivial
-    (i.e. containing more than one node, or at least one edge or node group)
-    connected components""",
-)
-parser.add_argument(
-    "-px",
-    "--preservexdot",
-    required=False,
-    default=False,
-    action="store_true",
-    help="""save all .xdot files generated for nontrivial
-    connected components""",
-)
-parser.add_argument(
-    "-nbdf",
-    "--nobackfilldotfiles",
-    required=False,
-    action="store_true",
-    default=False,
-    help="""produces .gv (DOT) files without
-    cluster \"backfilling\" for each nontrivial connected component in the
-    graph; use of this argument doesn't impact the .db file produced by this
-    script -- it just demonstrates the functionality in layout linearization
-    provided by cluster \"backfilling\" """,
-)
-parser.add_argument(
-    "-npdf",
-    "--nopatterndotfiles",
-    required=False,
-    action="store_true",
-    default=False,
-    help="""produces .gv (DOT) files
-    without any structural pattern information embedded; as with -nbdf, this
-    doesn't actually impact the .db file -- it just provides a frame of
-    reference for the impact clustering can have on dot's layouts""",
-)
-# parser.add_argument("-au", "--assumeunoriented", required=False, default=False,
-#        action="store_true", help="assume that input GML-file graphs are" + \
-#            " unoriented (default for GML files is assuming they are" + \
-#            " oriented); this option is unfinished")
-# parser.add_argument("-ao", "--assumeoriented", required=False, default=False,
-#        action="store_true", help="assume that input LastGraph-/GFA-file" + \
-#            " graphs are oriented (default for LastGraph/GFA files is" + \
-#            " assuming they are unoriented); this option is unfinished")
-
 
 def dfs(n):
     """Recursively runs depth-first search, starting at node n.
-       Returns a list of all nodes found that corresponds to a list of all
-       nodes within the entire connected component (ignoring edge
-       directionality) in which n resides.
+    Returns a list of all nodes found that corresponds to a list of all
+    nodes within the entire connected component (ignoring edge
+    directionality) in which n resides.
 
-       This assumes that the connected component containing n has not had this
-       method run on it before (due to its reliance on the .seen_in_dfs Node
-       property).
+    This assumes that the connected component containing n has not had this
+    method run on it before (due to its reliance on the .seen_in_dfs Node
+    property).
 
-       (In identifying a connected component, the graph is treated as if
-       its edges are undirected, so the actual starting node within a
-       connected component should not make a difference on the connected
-       component node list returned.)
+    (In identifying a connected component, the graph is treated as if
+    its edges are undirected, so the actual starting node within a
+    connected component should not make a difference on the connected
+    component node list returned.)
 
-       I modified this function to not use recursion since Python isn't
-       super great at that -- this allows us to avoid hitting the maximum
-       recursion depth, which would cause us to get a RuntimeError for
-       really large connected components.
+    I modified this function to not use recursion since Python isn't
+    super great at that -- this allows us to avoid hitting the maximum
+    recursion depth, which would cause us to get a RuntimeError for
+    really large connected components.
     """
     nodes_to_check = [n]
     nodes_in_ccomponent = []
@@ -294,8 +103,8 @@ def dfs(n):
 
 def assembly_gc(gc_ct, total_bp):
     """Returns the G/C content of an assembly, where total_bp is the number of
-       base pairs (2 * the number of nucleotides) and gc_ct is the number of
-       G/C nucleotides in the entire assembly.
+    base pairs (2 * the number of nucleotides) and gc_ct is the number of
+    G/C nucleotides in the entire assembly.
     """
     if gc_ct is None:
         return None
@@ -305,15 +114,15 @@ def assembly_gc(gc_ct, total_bp):
 
 def fastg_long_id_to_id(fastg_id_string):
     """Converts a FASTG-style ID (e.g. "NODE_123_length_100_cov_3.0123") to a
-       more normal ID that MetagenomeScope uses (e.g. "3"). Adds a "-" to the
-       prefix of the ID if the ID ends with a single quote ("'").
+    more normal ID that MetagenomeScope uses (e.g. "3"). Adds a "-" to the
+    prefix of the ID if the ID ends with a single quote ("'").
 
-       This only produces output differing from input if the input ID starts
-       with "NODE_" or "EDGE_". Otherwise, this just returns the input.
+    This only produces output differing from input if the input ID starts
+    with "NODE_" or "EDGE_". Otherwise, this just returns the input.
 
-       NOTE that this is a temporary workaround until #66 is implemented, and
-       NODE_...-style IDs are doable. In the interim, though, it should be
-       fine to selectively remove the prefixes.
+    NOTE that this is a temporary workaround until #66 is implemented, and
+    NODE_...-style IDs are doable. In the interim, though, it should be
+    fine to selectively remove the prefixes.
     """
     output_id = fastg_id_string
     if fastg_id_string[:5] in ("NODE_", "EDGE_"):
@@ -333,14 +142,14 @@ def fastg_long_id_to_id(fastg_id_string):
 def n50(node_lengths):
     """Determines the N50 statistic of an assembly, given its node lengths.
 
-       Note that multiple definitions of the N50 statistic exist (see
-       https://en.wikipedia.org/wiki/N50,_L50,_and_related_statistics for
-       more information).
+    Note that multiple definitions of the N50 statistic exist (see
+    https://en.wikipedia.org/wiki/N50,_L50,_and_related_statistics for
+    more information).
 
-       CODELINK: Here, we use the calculation method described by Yandell and
-       Ence (2012), Nature Reviews Genetics 13(5). Box 1 in the paper describes
-       the method for calculating the N50 statistic that is used in this
-       function.
+    CODELINK: Here, we use the calculation method described by Yandell and
+    Ence (2012), Nature Reviews Genetics 13(5). Box 1 in the paper describes
+    the method for calculating the N50 statistic that is used in this
+    function.
     """
 
     if len(node_lengths) == 0:
@@ -362,13 +171,13 @@ def n50(node_lengths):
 def add_node_to_stdmode_mapping(nodeid2obj, n, rc=None):
     """Adds a Node object n to nodeid2obj.
 
-       If rc is defined, also adds rc to nodeid2obj.
+    If rc is defined, also adds rc to nodeid2obj.
 
-       This checks to make sure n and rc's IDs are not already in nodeid2obj.
-       If either of their IDs are already in nodeid2obj before adding them, an
-       AttributeError is raised.
+    This checks to make sure n and rc's IDs are not already in nodeid2obj.
+    If either of their IDs are already in nodeid2obj before adding them, an
+    AttributeError is raised.
 
-       Returns the modified nodeid2obj.
+    Returns the modified nodeid2obj.
     """
     # Check for duplicate IDs
     if n.id_string in nodeid2obj:
@@ -385,15 +194,15 @@ def add_node_to_stdmode_mapping(nodeid2obj, n, rc=None):
 def run_spqr_script(invocation):
     """Runs the SPQR script using check_output().
 
-       Catches Exceptions caused by running the SPQR script, and then re-raises
-       them with some added context.
+    Catches Exceptions caused by running the SPQR script, and then re-raises
+    them with some added context.
 
-       (I know that catching any Exception without alerting the user is
-       generally bad practice, but here we stop execution *and* preserve the
-       error that occurred. The main goal here is to let the user know that the
-       probable cause of this error was running the SPQR script -- I figure
-       errors will usually be thrown here due to the user using -spqr without
-       first building the script for their system.)
+    (I know that catching any Exception without alerting the user is
+    generally bad practice, but here we stop execution *and* preserve the
+    error that occurred. The main goal here is to let the user know that the
+    probable cause of this error was running the SPQR script -- I figure
+    errors will usually be thrown here due to the user using -spqr without
+    first building the script for their system.)
     """
     try:
         check_output(invocation, stderr=STDOUT)
@@ -2548,28 +2357,3 @@ def collate_graph(args):
     conclude_msg()
     # Close the database connection
     connection.close()
-
-
-def run_script(cmdline_args=sys.argv[1:]):
-    """Parses command-line arguments, then runs the main script.
-
-       Optionally accepts as input a list of command-line arguments,
-       analogous to sys.argv[1:]. It's possible to just specify your own
-       list of arguments instead of relying on sys.argv; this is how the
-       tests of the preprocessing script work.
-
-       The argument parsing is abstracted to this function in order to avoid
-       ArgParse raising errors when this file (collate.py) is imported into
-       other code.
-
-       CODELINK: This general paradigm is based on Viktor Kerkez' answer here:
-       https://stackoverflow.com/questions/18160078/. Link to Viktor's SO
-       profile: https://stackoverflow.com/users/2199958/viktor-kerkez
-    """
-    # Delay parsing the command-line arguments
-    args = parser.parse_args(cmdline_args)
-    return collate_graph(args)
-
-
-if __name__ == "__main__":
-    run_script()

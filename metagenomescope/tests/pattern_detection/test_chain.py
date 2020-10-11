@@ -9,15 +9,15 @@ def get_test_path_graph(num_nodes):
 
 def get_intervening_graph():
     """Returns a graph that contains nodes that "intervene" in many possible
-       chains. Looks something like:
+    chains. Looks something like:
 
-          4
-         ^
-        /
-       0 -> 1 -> 2 -> 3
-                ^
-               /
-              5
+       4
+      ^
+     /
+    0 -> 1 -> 2 -> 3
+             ^
+            /
+           5
     """
     g = nx.DiGraph()
     g.add_edge(0, 1)
@@ -30,7 +30,7 @@ def get_intervening_graph():
 
 def test_easiest_possible_case():
     """Tests case where the chain is 0 -> 1 -> 2, and the "starting node" used
-       is 0.
+    is 0.
     """
     g = get_test_path_graph(3)
     results = AssemblyGraph.is_valid_chain(g, 0)
@@ -42,10 +42,10 @@ def test_easiest_possible_case():
 
 def test_backwards_extension():
     """Tests case where the chain is 0 -> 1 -> 2, and the "starting node" used
-       is 1. In this case, a chain will be detected of 1 -> 2, and -- to verify
-       that this chain is "maximally" large -- the chain should be extended
-       back up. This should result in a chain being detected that covers the
-       full path graph.
+    is 1. In this case, a chain will be detected of 1 -> 2, and -- to verify
+    that this chain is "maximally" large -- the chain should be extended
+    back up. This should result in a chain being detected that covers the
+    full path graph.
     """
     g = get_test_path_graph(3)
     results = AssemblyGraph.is_valid_chain(g, 1)
@@ -57,8 +57,8 @@ def test_backwards_extension():
 
 def test_easy_no_chain():
     """Tests 0 -> 1 -> 2 case starting at 2. No chain will be found here to
-       start off with, so the code won't bother doing the backwards extension
-       stuff.
+    start off with, so the code won't bother doing the backwards extension
+    stuff.
     """
     g = get_test_path_graph(3)
     results = AssemblyGraph.is_valid_chain(g, 2)
@@ -71,9 +71,9 @@ def test_easy_no_chain():
 def test_intervening_paths_harder():
     """Test that checks what chains are found in the "intervening graph."
 
-       Only 2 -> 3 should be detected -- everything else isn't possible due to
-       the "intervening" nodes/edges (also, sidenote, writing out "intervening"
-       like 5 times here has made it not look like a word at all).
+    Only 2 -> 3 should be detected -- everything else isn't possible due to
+    the "intervening" nodes/edges (also, sidenote, writing out "intervening"
+    like 5 times here has made it not look like a word at all).
     """
     g = get_intervening_graph()
     # Only one chain can be detected in this graph: 2 -> 3
@@ -89,16 +89,16 @@ def test_intervening_paths_harder():
 
 def test_intervening_paths_easier():
     """Removes an edge in the "intervening graph" and checks that
-       the chain detection's behavior adapts accordingly.
+    the chain detection's behavior adapts accordingly.
 
-       After this modification, the graph should look like:
+    After this modification, the graph should look like:
 
-          4
-         ^
-        /
-       0 -> 1 -> 2 -> 3
+       4
+      ^
+     /
+    0 -> 1 -> 2 -> 3
 
-       ... so we should find one chain in this graph, 1 -> 2 -> 3.
+    ... so we should find one chain in this graph, 1 -> 2 -> 3.
     """
     g = get_intervening_graph()
     # Try lopping off the 5 -> 2 edge

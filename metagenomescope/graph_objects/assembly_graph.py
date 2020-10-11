@@ -9,16 +9,16 @@ from ..input_node_utils import get_uuid
 class AssemblyGraph(object):
     """Representation of an input assembly graph.
 
-       This contains information about the top-level structure of the graph:
-       including nodes, edges, and connected components.
+    This contains information about the top-level structure of the graph:
+    including nodes, edges, and connected components.
 
-       In fancy object-oriented programming terminology, this class is a
-       "composition" with a NetworkX DiGraph. This really just means that,
-       rather than subclassing nx.DiGraph, this class just contains an instance
-       of nx.DiGraph (self.digraph) that we occasionally delegate to.
+    In fancy object-oriented programming terminology, this class is a
+    "composition" with a NetworkX DiGraph. This really just means that,
+    rather than subclassing nx.DiGraph, this class just contains an instance
+    of nx.DiGraph (self.digraph) that we occasionally delegate to.
 
-       CODELINK: This "composition" paradigm was based on this post:
-       https://www.thedigitalcatonline.com/blog/2014/08/20/python-3-oop-part-3-delegation-composition-and-inheritance/
+    CODELINK: This "composition" paradigm was based on this post:
+    https://www.thedigitalcatonline.com/blog/2014/08/20/python-3-oop-part-3-delegation-composition-and-inheritance/
     """
 
     def __init__(self, filename):
@@ -64,20 +64,20 @@ class AssemblyGraph(object):
     @staticmethod
     def is_valid_frayed_rope(g, starting_node_id):
         r"""Returns a 2-tuple of (True, a list of all the nodes in the f. rope)
-           if a frayed rope with the given start node would be valid.
-           Returns a 2-tuple of (False, None) if such a frayed rope would be
-           considered invalid.
+        if a frayed rope with the given start node would be valid.
+        Returns a 2-tuple of (False, None) if such a frayed rope would be
+        considered invalid.
 
-           NOTE that we only consider "simple" frayed ropes that look like
+        NOTE that we only consider "simple" frayed ropes that look like
 
-           s1 -\ /-> e1
-                m
-           s2 -/ \-> e2
+        s1 -\ /-> e1
+             m
+        s2 -/ \-> e2
 
-           ...that is, frayed ropes containing only one middle node. There can
-           be an arbitrary amount of start and end nodes defined (so long as
-           there are >= 2 start/end nodes), though. (Also, the number of start
-           and end nodes doesn't have to match up.)
+        ...that is, frayed ropes containing only one middle node. There can
+        be an arbitrary amount of start and end nodes defined (so long as
+        there are >= 2 start/end nodes), though. (Also, the number of start
+        and end nodes doesn't have to match up.)
         """
 
         # If the starting node doesn't have exactly 1 outgoing node, fail
@@ -135,9 +135,9 @@ class AssemblyGraph(object):
     @staticmethod
     def is_valid_cyclic_chain(g, starting_node_id):
         """Identifies the cyclic chain that "starts at" a given starting
-           node, if such a cyclic chain exists. Returns (True, [nodes]) if
-           such a cyclic chain exists (where [nodes] is a list of all the
-           node IDs in the cyclic chain), and (False, None) otherwise.
+        node, if such a cyclic chain exists. Returns (True, [nodes]) if
+        such a cyclic chain exists (where [nodes] is a list of all the
+        node IDs in the cyclic chain), and (False, None) otherwise.
         """
         s_outgoing_node_ct = len(g.adj[starting_node_id])
         if len(g.pred[starting_node_id]) == 0 or s_outgoing_node_ct == 0:
@@ -302,25 +302,25 @@ class AssemblyGraph(object):
     @staticmethod
     def is_valid_chain(g, starting_node_id):
         """Returns a 2-tuple of (True, a list of all the nodes in the Chain
-           in order from start to end) if a Chain defined at the given start
-           node would be valid. Returns a 2-tuple of (False, None) if such a
-           Chain would be considered invalid.
+        in order from start to end) if a Chain defined at the given start
+        node would be valid. Returns a 2-tuple of (False, None) if such a
+        Chain would be considered invalid.
 
-           NOTE that this finds the longest possible Chain that includes s,
-           if a Chain exists starting at s. If we decide that no Chain
-           exists starting at s then we just return (False, None), but if we
-           find that a Chain does exist starting at s then we traverse
-           "backwards" to find the longest possible chain including s.
+        NOTE that this finds the longest possible Chain that includes s,
+        if a Chain exists starting at s. If we decide that no Chain
+        exists starting at s then we just return (False, None), but if we
+        find that a Chain does exist starting at s then we traverse
+        "backwards" to find the longest possible chain including s.
 
-           ALSO NOTE that if this is actually a cyclic chain (i.e. the end node
-           of the chain has an edge to the start node of the chain), we will
-           return (False, None). These sorts of cases should be caught when
-           looking for cyclic chains later on.
+        ALSO NOTE that if this is actually a cyclic chain (i.e. the end node
+        of the chain has an edge to the start node of the chain), we will
+        return (False, None). These sorts of cases should be caught when
+        looking for cyclic chains later on.
 
-           Ideally there would be a preexisting function in NetworkX that
-           computes this, but I wasn't able to find something that does this.
-           If you're aware of another library's implementation of this sort of
-           thing, let me know! It'd be nice to avoid duplication of effort.
+        Ideally there would be a preexisting function in NetworkX that
+        computes this, but I wasn't able to find something that does this.
+        If you're aware of another library's implementation of this sort of
+        thing, let me know! It'd be nice to avoid duplication of effort.
         """
         out_node_ids = list(g.adj[starting_node_id].keys())
         # If the starting node doesn't have an outgoing edge to exactly one
@@ -440,9 +440,9 @@ class AssemblyGraph(object):
 
     def add_pattern(self, member_node_ids):
         """Adds a pattern composed of a list of node IDs to the decomposed
-           DiGraph, and removes its children from the decomposed DiGraph.
+        DiGraph, and removes its children from the decomposed DiGraph.
 
-           Returns the UUID of the pattern.
+        Returns the UUID of the pattern.
         """
         pattern_id = get_uuid()
         # Get incoming edges to this pattern
@@ -475,15 +475,15 @@ class AssemblyGraph(object):
 
     def hierarchically_identify_patterns(self):
         """Run all of the pattern detection algorithms above on the graph
-           repeatedly until the graph has been "fully" squished into patterns.
+        repeatedly until the graph has been "fully" squished into patterns.
 
-           I imagine this will involve converting the assembly graph into a NX
-           digraph such that each top-level pattern is just represented as a
-           node in the graph (so that the pattern detection algorithms
-           straight-up can't tell the difference between a 'pattern' and an
-           actual node in the graph). We'll have to keep doing this conversion
-           at each layer, I guess, but I don't think this should be *too*
-           computationally expensive (knock on wood).
+        I imagine this will involve converting the assembly graph into a NX
+        digraph such that each top-level pattern is just represented as a
+        node in the graph (so that the pattern detection algorithms
+        straight-up can't tell the difference between a 'pattern' and an
+        actual node in the graph). We'll have to keep doing this conversion
+        at each layer, I guess, but I don't think this should be *too*
+        computationally expensive (knock on wood).
         """
         # We'll modify this as we go through this method
         self.decomposed_digraph = deepcopy(self.digraph)

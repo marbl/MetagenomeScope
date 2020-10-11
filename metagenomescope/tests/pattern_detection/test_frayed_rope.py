@@ -5,9 +5,9 @@ from metagenomescope.graph_objects import AssemblyGraph
 def get_simple_fr_graph():
     r"""Produces a graph that looks like:
 
-       0 -\ /-> 3
-           2
-       1 -/ \-> 4
+    0 -\ /-> 3
+        2
+    1 -/ \-> 4
     """
     g = nx.DiGraph()
     g.add_edge(0, 2)
@@ -36,12 +36,12 @@ def test_simple_fr_detection_failures():
 def test_only_1_starting_node():
     r"""Tests that a graph that looks like:
 
-            /-> 3
-       0 --2
-            \-> 4
+         /-> 3
+    0 --2
+         \-> 4
 
-        ... is not a valid frayed rope, since it only has 1 "starting" node (2
-        only has 1 incoming node).
+     ... is not a valid frayed rope, since it only has 1 "starting" node (2
+     only has 1 incoming node).
     """
     g = get_simple_fr_graph()
     g.remove_edge(1, 2)
@@ -51,13 +51,13 @@ def test_only_1_starting_node():
 def test_extraneous_outgoing_node_from_start_nodes():
     r"""Tests that a graph that looks like:
 
-         5
-        /
-       0 -\ /-> 3
-           2
-       1 -/ \-> 4
+      5
+     /
+    0 -\ /-> 3
+        2
+    1 -/ \-> 4
 
-        ... is not a valid frayed rope, regardless of if you "start" at 0 or 1.
+     ... is not a valid frayed rope, regardless of if you "start" at 0 or 1.
     """
     g = get_simple_fr_graph()
     g.add_edge(0, 5)
@@ -114,14 +114,14 @@ def test_extraneous_incoming_node_to_end_nodes():
 def test_cyclic_frayed_rope():
     r"""Tests that a graph that looks like:
 
-       +--------+
-       |        |
-       V        |
-       0 -\ /-> 3
-           2
-       1 -/ \-> 4
+    +--------+
+    |        |
+    V        |
+    0 -\ /-> 3
+        2
+    1 -/ \-> 4
 
-        ... is not a valid frayed rope.
+     ... is not a valid frayed rope.
     """
     g = get_simple_fr_graph()
     g.add_edge(3, 0)
@@ -132,14 +132,14 @@ def test_cyclic_frayed_rope():
 def test_diverges_to_start():
     r"""Tests that a graph that looks like:
 
-       +--------+
-       |        |
-       V     /--+
-       0 -\ /
-           2
-       1 -/ \-> 4
+    +--------+
+    |        |
+    V     /--+
+    0 -\ /
+        2
+    1 -/ \-> 4
 
-        ... is not a valid frayed rope.
+     ... is not a valid frayed rope.
     """
     g = get_simple_fr_graph()
     g.remove_edge(2, 3)

@@ -53,7 +53,7 @@ def test_easy_bubble():
 
 def test_easy_bubble_fails_when_starting_point_bad():
     """Tests that the same basic bubble as above isn't identified if you don't
-       start at "0".
+    start at "0".
     """
     g = get_easy_bubble_graph()
     for s in [1, 2, 3]:
@@ -119,18 +119,18 @@ def test_converge_to_diff_endings():
 
 def test_extra_nodes_on_ending():
     r"""Tests that the following graph (starting at 0) isn't identified as a
-       bubble, due to the 4 -> 3 edge.
+    bubble, due to the 4 -> 3 edge.
 
-               4
-         /-1-\ |
-        /     \V
-       0       3
-        \     /
-         \-2-/
+            4
+      /-1-\ |
+     /     \V
+    0       3
+     \     /
+      \-2-/
 
-       However, flipping this edge to be 3 -> 4 makes this back into a valid
-       bubble (since ending nodes can have arbitrary outgoing edges so long as
-       they aren't cyclic).
+    However, flipping this edge to be 3 -> 4 makes this back into a valid
+    bubble (since ending nodes can have arbitrary outgoing edges so long as
+    they aren't cyclic).
     """
     g = get_easy_bubble_graph()
     g.add_edge(4, 3)
@@ -147,15 +147,15 @@ def test_extra_nodes_on_ending():
 
 def test_cyclic_bubbles_not_ok():
     r"""Tests that the following graph (starting at 0) isn't identified as a
-       bubble, due to the 3 -> 0 edge.
+    bubble, due to the 3 -> 0 edge.
 
-       +-------+
-       |       |
-       | /-1-\ |
-       V/     \|
-       0       3
-        \     /
-         \-2-/
+    +-------+
+    |       |
+    | /-1-\ |
+    V/     \|
+    0       3
+     \     /
+      \-2-/
     """
     g = get_easy_bubble_graph()
     g.add_edge(3, 0)

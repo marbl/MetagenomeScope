@@ -7,15 +7,15 @@ import pygraphviz
 class SPQRMetaNode(NodeGroup):
     """A group of nodes collapsed into a metanode in a SPQR tree.
 
-       We use OGDF (via the SPQR script) to construct SPQR trees. That
-       particular implementation of the algorithm for construction does not
-       create "Q" nodes, so the only possible types of metanodes we'll identify
-       are S, P, and R metanodes.
+    We use OGDF (via the SPQR script) to construct SPQR trees. That
+    particular implementation of the algorithm for construction does not
+    create "Q" nodes, so the only possible types of metanodes we'll identify
+    are S, P, and R metanodes.
 
-       For some high-level background on SPQR trees, Wikipedia is a good
-       resource -- see https://en.wikipedia.org/wiki/SPQR_tree. For details on
-       the linear-time implementation used in OGDF, see
-       http://www.ogdf.net/doc-ogdf/classogdf_1_1_s_p_q_r_tree.html#details.
+    For some high-level background on SPQR trees, Wikipedia is a good
+    resource -- see https://en.wikipedia.org/wiki/SPQR_tree. For details on
+    the linear-time implementation used in OGDF, see
+    http://www.ogdf.net/doc-ogdf/classogdf_1_1_s_p_q_r_tree.html#details.
     """
 
     def __init__(
@@ -40,8 +40,8 @@ class SPQRMetaNode(NodeGroup):
 
     def assign_implicit_spqr_borders(self):
         """Uses this metanode's child nodes' positions to determine
-           the left/right/bottom/top positions of this metanode in the
-           implicit SPQR decomposition mode layout.
+        the left/right/bottom/top positions of this metanode in the
+        implicit SPQR decomposition mode layout.
         """
         for n in self.nodes:
             hw_pts = config.POINTS_PER_INCH * (n.width / 2.0)
@@ -61,7 +61,7 @@ class SPQRMetaNode(NodeGroup):
 
     def layout_isolated(self):
         """Similar to NodeGroup.layout_isolated(), but with metanode-specific
-           stuff.
+        stuff.
         """
         # pipe .gv into pygraphviz to lay out this node group
         gv_input = ""
@@ -170,10 +170,10 @@ class SPQRMetaNode(NodeGroup):
 
     def db_values(self):
         """Returns a tuple containing the values of this metanode, for
-           insertion into the .db file.
+        insertion into the .db file.
 
-           Should be called after parsing .xdot layout information for this
-           metanode.
+        Should be called after parsing .xdot layout information for this
+        metanode.
         """
         return (
             self.id_string,
@@ -195,20 +195,20 @@ class SPQRMetaNode(NodeGroup):
 
 class Bicomponent(NodeGroup):
     """A biconnected component in the graph. We use this to store
-       information about the metanodes contained within the SPQR tree
-       decomposition corresponding to this biconnected component.
+    information about the metanodes contained within the SPQR tree
+    decomposition corresponding to this biconnected component.
 
-       The process of constructing the "SPQR-integrated" view of the graph is
-       relatively involved. Briefly speaking, it involves
-       1) Identifying all biconnected components in the assembly graph
-       2) Obtaining the SPQR tree decomposition of each biconnected component
-       3) Laying out each metanode within a SPQR tree in isolation
-       4) Laying out each entire SPQR tree, with metanodes "filled in"
-          as solid rectangular nodes (with the width/height determined from
-          step 3)
-       5) Laying out each connected component of the "single graph," with
-          biconnected components "filled in" as solid rectangular nodes (with
-          the width/height determined from step 4)
+    The process of constructing the "SPQR-integrated" view of the graph is
+    relatively involved. Briefly speaking, it involves
+    1) Identifying all biconnected components in the assembly graph
+    2) Obtaining the SPQR tree decomposition of each biconnected component
+    3) Laying out each metanode within a SPQR tree in isolation
+    4) Laying out each entire SPQR tree, with metanodes "filled in"
+       as solid rectangular nodes (with the width/height determined from
+       step 3)
+    5) Laying out each connected component of the "single graph," with
+       biconnected components "filled in" as solid rectangular nodes (with
+       the width/height determined from step 4)
     """
 
     def __init__(self, bicomponent_id, metanode_list, root_metanode):
@@ -253,7 +253,7 @@ class Bicomponent(NodeGroup):
 
     def implicit_backfill_node_info(self):
         """Like calling Bicomponent.node_info(), but using the "implicit"
-           decomposition mode dimensions instead of the explicit dimensions.
+        decomposition mode dimensions instead of the explicit dimensions.
         """
         return "\tcluster_%s [height=%g,width=%g,shape=rectangle];\n" % (
             self.gv_id_string,
@@ -263,10 +263,10 @@ class Bicomponent(NodeGroup):
 
     def implicit_layout_isolated(self):
         """Lays out all the singlenodes within this bicomponent, ignoring the
-           presence of metanodes in this bicomponent when running layout.
+        presence of metanodes in this bicomponent when running layout.
 
-           After that, goes through each metanode to determine its coordinates
-           in relation to the singlenodes contained here.
+        After that, goes through each metanode to determine its coordinates
+        in relation to the singlenodes contained here.
         """
         gv_input = ""
         gv_input += "graph bicomponent {\n"
@@ -314,11 +314,11 @@ class Bicomponent(NodeGroup):
 
     def explicit_layout_isolated(self):
         """Lays out in isolation the metanodes within this bicomponent by
-           calling their respective SPQRMetaNode.layout_isolated() methods.
+        calling their respective SPQRMetaNode.layout_isolated() methods.
 
-           After that, lays out the entire SPQR tree structure defined for this
-           Bicomponent, representing each metanode as a solid rectangle defined
-           by its xdot_c_width and xdot_c_height properties.
+        After that, lays out the entire SPQR tree structure defined for this
+        Bicomponent, representing each metanode as a solid rectangle defined
+        by its xdot_c_width and xdot_c_height properties.
         """
         for mn in self.metanode_list:
             mn.layout_isolated()
@@ -393,10 +393,10 @@ class Bicomponent(NodeGroup):
 
     def db_values(self):
         """Returns the "values" of this Bicomponent, suitable for inserting
-           into the .db file.
+        into the .db file.
 
-           Note that this should only be called after this Bicomponent has
-           been laid out in the context of a single connected component.
+        Note that this should only be called after this Bicomponent has
+        been laid out in the context of a single connected component.
         """
         return (
             int(self.bicomponent_id),

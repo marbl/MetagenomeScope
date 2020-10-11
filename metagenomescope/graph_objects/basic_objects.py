@@ -29,8 +29,8 @@ from .. import config
 
 class Edge(object):
     """A generic edge, used for storing layout data (e.g. control points)
-       and, if applicable for this type of assembly file, biological
-       metadata (e.g. multiplicity).
+    and, if applicable for this type of assembly file, biological
+    metadata (e.g. multiplicity).
     """
 
     def __init__(
@@ -89,23 +89,23 @@ class Edge(object):
     @staticmethod
     def get_control_points(position):
         """Removes "startp" and "endp" data, if present, from a string
-           definining the "position" attribute (i.e. the spline control
-           points) of an edge object in pygraphviz.
+        definining the "position" attribute (i.e. the spline control
+        points) of an edge object in pygraphviz.
 
-           Also replaces all commas in the filtered string with spaces,
-           to make splitting the string easier.
+        Also replaces all commas in the filtered string with spaces,
+        to make splitting the string easier.
 
-           Returns a 3-tuple of the filtered string, the split list of
-           coordinates (in the format [x1, y1, x2, y2, ... , xn, yn] where
-           each coordinate is a float), and the number of points specified by
-           the coordinate list (equal to the length of the coordinate list
-           divided by 2).
+        Returns a 3-tuple of the filtered string, the split list of
+        coordinates (in the format [x1, y1, x2, y2, ... , xn, yn] where
+        each coordinate is a float), and the number of points specified by
+        the coordinate list (equal to the length of the coordinate list
+        divided by 2).
 
-           Raises a ValueError if the number of remaining coordinates (i.e.
-           the length of the split list to be returned) is not divisible by 2.
+        Raises a ValueError if the number of remaining coordinates (i.e.
+        the length of the split list to be returned) is not divisible by 2.
 
-           See http://www.graphviz.org/doc/Dot.ref for more information on
-           how splines work in GraphViz.
+        See http://www.graphviz.org/doc/Dot.ref for more information on
+        how splines work in GraphViz.
         """
         # Remove startp data
         if position.startswith("s,"):
@@ -124,11 +124,11 @@ class Edge(object):
     def db_values(self):
         """Returns a tuple containing the values of this edge.
 
-           The tuple is created to be inserted into the "edges" database
-           table.
+        The tuple is created to be inserted into the "edges" database
+        table.
 
-           Should be called after parsing .xdot layout information for this
-           edge.
+        Should be called after parsing .xdot layout information for this
+        edge.
         """
         group_id = None
         if self.group is not None:
@@ -150,11 +150,11 @@ class Edge(object):
 
     def s_db_values(self):
         """Returns a tuple of the "values" of this Edge, for insertion
-           as a single edge contained within a metanode's skeleton in the
-           SPQR-integrated graph.
+        as a single edge contained within a metanode's skeleton in the
+        SPQR-integrated graph.
 
-           Should only be called after this edge has been assigned a
-           component_size_rank.
+        Should only be called after this edge has been assigned a
+        component_size_rank.
         """
         is_virtual_num = 1 if self.is_virtual else 0
         return (
@@ -167,10 +167,10 @@ class Edge(object):
 
     def metanode_edge_db_values(self):
         """Returns a tuple containing the values of this edge,
-           relying on the assumption that this edge is an edge between
-           metanodes inside a Bicomponent.
+        relying on the assumption that this edge is an edge between
+        metanodes inside a Bicomponent.
 
-           Should be called after parsing .xdot layout info for this edge.
+        Should be called after parsing .xdot layout info for this edge.
         """
         return (
             self.source_id,
@@ -187,7 +187,7 @@ class Edge(object):
 
 class Node(object):
     """A generic node. Used for representing individual contigs/scaffolds,
-       and as the superclass for groups of nodes.
+    and as the superclass for groups of nodes.
     """
 
     def __init__(
@@ -202,10 +202,10 @@ class Node(object):
         is_repeat=None,
     ):
         """Initializes the object. bp initially stood for "base pairs," but
-           it really just means the length of this node. In single graphs
-           that's measured in bp and in double graphs that's measured in nt.
+        it really just means the length of this node. In single graphs
+        that's measured in bp and in double graphs that's measured in nt.
 
-           (Size scaling based on length is done in self.set_dimensions().)
+        (Size scaling based on length is done in self.set_dimensions().)
         """
         self.id_string = id_string
         self.bp = bp
@@ -281,20 +281,20 @@ class Node(object):
 
     def set_dimensions(self):
         """Calculates the width and height of this node and assigns them to
-           this node's self.width and self.height attributes, respectively.
+        this node's self.width and self.height attributes, respectively.
 
-           NOTE that "height" and "width" are relative to the default vertical
-           layout of the nodes (from top to bottom) -- so height refers to the
-           long side of the node and width refers to the short side.
+        NOTE that "height" and "width" are relative to the default vertical
+        layout of the nodes (from top to bottom) -- so height refers to the
+        long side of the node and width refers to the short side.
 
-           Some things to keep in mind:
-           -self.bp has a minimum possible value of 1
-           -self.bp has no maximum possible value, although in practice it'll
-            probably be somewhere in the billions (at the time of writing this,
-            the longest known genome seems to be Paris japonica's, at
-            ~150 billion bp -- source:
-            https://en.wikipedia.org/wiki/Paris_japonica)
-           -It's desirable to have node area proportional to node length
+        Some things to keep in mind:
+        -self.bp has a minimum possible value of 1
+        -self.bp has no maximum possible value, although in practice it'll
+         probably be somewhere in the billions (at the time of writing this,
+         the longest known genome seems to be Paris japonica's, at
+         ~150 billion bp -- source:
+         https://en.wikipedia.org/wiki/Paris_japonica)
+        -It's desirable to have node area proportional to node length
         """
 
         # Area is based on the relatively-scaled logarithm of contig length
@@ -319,7 +319,7 @@ class Node(object):
 
     def node_info(self):
         """Returns a string representing this node that can be used in a .dot
-           file for input to GraphViz.
+        file for input to GraphViz.
         """
         self.set_dimensions()
         info = "\t%s [height=%g,width=%g,shape=" % (
@@ -335,10 +335,10 @@ class Node(object):
         self, node2, multiplicity=None, orientation=None, mean=None, stdev=None
     ):
         """Adds an outgoing edge from this node to another node, and adds an
-           incoming edge from the other node referencing this node.
+        incoming edge from the other node referencing this node.
 
-           Also adds an Edge with any specified data to this node's
-           dict of outgoing Edge objects.
+        Also adds an Edge with any specified data to this node's
+        dict of outgoing Edge objects.
         """
         self.outgoing_nodes.append(node2)
         node2.incoming_nodes.append(self)
@@ -353,15 +353,15 @@ class Node(object):
 
     def edge_info(self, constrained_nodes=None):
         """Returns a GraphViz-compatible string containing all information
-           about outgoing edges from this node.
+        about outgoing edges from this node.
 
-           Useful for only printing edges relevant to the nodes we're
-           interested in.
+        Useful for only printing edges relevant to the nodes we're
+        interested in.
 
-           If constrained_nodes is not None, then it is interpreted as a list
-           of nodes to "constrain" the edges: that is, edges pointing to the
-           nodes within this list are the only edges whose info will be
-           included in the returned string.
+        If constrained_nodes is not None, then it is interpreted as a list
+        of nodes to "constrain" the edges: that is, edges pointing to the
+        nodes within this list are the only edges whose info will be
+        included in the returned string.
         """
         o = ""
         # Since we only care about the target ID and not about any other
@@ -376,17 +376,17 @@ class Node(object):
     def collapsed_edge_info(self):
         """Returns a GraphViz-compatible string (like in edge_info()) but:
 
-           -Edges that have a .group attribute of None that point to/from
-            nodes that have a .group attribute that is not None will be
-            reassigned (in the string) to point to/from those node groups.
+        -Edges that have a .group attribute of None that point to/from
+         nodes that have a .group attribute that is not None will be
+         reassigned (in the string) to point to/from those node groups.
 
-           -Edges that have a .group attribute that is not None will not be
-            included in the string.
+        -Edges that have a .group attribute that is not None will not be
+         included in the string.
 
-           -All edges will have a comment attribute of the format "a,b" where
-            a is the id_string of the original source node of the edge (so,
-            not a node group) and b is the id_string of the original target
-            node of the edge.
+        -All edges will have a comment attribute of the format "a,b" where
+         a is the id_string of the original source node of the edge (so,
+         not a node group) and b is the id_string of the original target
+         node of the edge.
         """
         o = ""
         if self.group is not None:
@@ -411,7 +411,7 @@ class Node(object):
 
     def set_component_rank(self, component_size_rank):
         """Sets the component_size_rank property of this node and of all
-           its outgoing edges.
+        its outgoing edges.
         """
         self.component_size_rank = component_size_rank
         for e in self.outgoing_edge_objects.values():
@@ -419,15 +419,15 @@ class Node(object):
 
     def s_db_values(self, parent_metanode=None):
         """Returns a tuple of the "values" of this Node, for insertion
-           as a single node (i.e. a node in the SPQR-integrated graph view).
+        as a single node (i.e. a node in the SPQR-integrated graph view).
 
-           If parent_metanode is None, then this just returns these values
-           with the parent_metanode_id entry set as None. (It's assumed in
-           this case that this node is not in any metanodes, and has
-           been assigned .xdot_x and .xdot_y values accordingly.)
+        If parent_metanode is None, then this just returns these values
+        with the parent_metanode_id entry set as None. (It's assumed in
+        this case that this node is not in any metanodes, and has
+        been assigned .xdot_x and .xdot_y values accordingly.)
 
-           Should only be called after this node (and its parent metanode,
-           if applicable) have been laid out.
+        Should only be called after this node (and its parent metanode,
+        if applicable) have been laid out.
         """
         ix = iy = x = y = 0
         parent_metanode_id = parent_bicmp_id = None
@@ -474,17 +474,17 @@ class Node(object):
     def db_values(self):
         """Returns a tuple of the "values" of this Node.
 
-           This value will be used to populate the database's "contigs"
-           table with information about this node.
+        This value will be used to populate the database's "contigs"
+        table with information about this node.
 
-           Note that this doesn't really apply to NodeGroups, since they
-           don't have most of these attributes defined. I'll define a more
-           specific NodeGroup.db_values() function later.
+        Note that this doesn't really apply to NodeGroups, since they
+        don't have most of these attributes defined. I'll define a more
+        specific NodeGroup.db_values() function later.
 
-           Also, this shouldn't be called until after this Node's layout
-           information has been parsed from an .xdot file and recorded.
-           (Unless we're "faking" the layout of this Node's component, in
-           which case everything here should be accounted for anyway.)
+        Also, this shouldn't be called until after this Node's layout
+        information has been parsed from an .xdot file and recorded.
+        (Unless we're "faking" the layout of this Node's component, in
+        which case everything here should be accounted for anyway.)
         """
         # See collate.py for the most up-to-date specifications of how this
         # table is laid out.
@@ -518,13 +518,13 @@ class Node(object):
 class NodeGroup(Node):
     """A group of nodes, accessible via the .nodes attribute.
 
-       Note that node groups here are used to create "clusters" in GraphViz,
-       in which a cluster is composed of >= 1 child nodes.
+    Note that node groups here are used to create "clusters" in GraphViz,
+    in which a cluster is composed of >= 1 child nodes.
 
-       (This is similar to Cytoscape.js' concept of a "compound node," for
-       reference -- with the distinction that in Cytoscape.js a compound
-       node is an actual "node," while in GraphViz a cluster is merely a
-       "subgraph.")
+    (This is similar to Cytoscape.js' concept of a "compound node," for
+    reference -- with the distinction that in Cytoscape.js a compound
+    node is an actual "node," while in GraphViz a cluster is merely a
+    "subgraph.")
     """
 
     plural_name = "other_structural_patterns"
@@ -534,24 +534,24 @@ class NodeGroup(Node):
         self, group_prefix, nodes, spqr_related=False, unique_id=None
     ):
         """Initializes the node group, given all the Node objects comprising
-           the node group, a prefix character for the group (i.e. 'F' for
-           frayed ropes, 'B' for bubbles, 'C' for chains, 'Y' for cycles),
-           and a GraphViz style setting for the group (generally
-           from config.py).
+        the node group, a prefix character for the group (i.e. 'F' for
+        frayed ropes, 'B' for bubbles, 'C' for chains, 'Y' for cycles),
+        and a GraphViz style setting for the group (generally
+        from config.py).
 
-           Note that we use two IDs for Node Groups: one with '-'s replaced
-           with 'c's (since GraphViz only allows '-' in IDs when it's the
-           first character and the other ID characters are numbers), and one
-           with the original ID names. The 'c' version is passed into GraphViz,
-           and the '-' version is passed into the .db file to be used in
-           Cytoscape.js.
+        Note that we use two IDs for Node Groups: one with '-'s replaced
+        with 'c's (since GraphViz only allows '-' in IDs when it's the
+        first character and the other ID characters are numbers), and one
+        with the original ID names. The 'c' version is passed into GraphViz,
+        and the '-' version is passed into the .db file to be used in
+        Cytoscape.js.
 
-           Also, if this NodeGroup has some unique ID, then you can
-           pass that here via the unique_id argument. This makes the
-           NodeGroup ID's just the group_prefix + the unique_id, instead
-           of a combination of all of the node names contained within this
-           NodeGroup (this approach is useful for NodeGroups of NodeGroups,
-           e.g. Bicomponents).
+        Also, if this NodeGroup has some unique ID, then you can
+        pass that here via the unique_id argument. This makes the
+        NodeGroup ID's just the group_prefix + the unique_id, instead
+        of a combination of all of the node names contained within this
+        NodeGroup (this approach is useful for NodeGroups of NodeGroups,
+        e.g. Bicomponents).
         """
         self.node_count = 0
         self.edge_count = 0
@@ -606,8 +606,8 @@ class NodeGroup(Node):
 
     def layout_isolated(self):
         """Lays out this node group by itself. Stores layout information in
-           the attributes of both this NodeGroup object and its child
-           nodes/edges.
+        the attributes of both this NodeGroup object and its child
+        nodes/edges.
         """
         # pipe .gv into pygraphviz to lay out this node group
         gv_input = ""
@@ -681,15 +681,15 @@ class NodeGroup(Node):
     def node_info(self, backfill=True, incl_cluster_prefix=True):
         """Returns a string of the node_info() of this NodeGroup.
 
-           If backfill is False, this works as normal: this node group is
-           treated as a subgraph cluster, and all its child information is
-           returned.
+        If backfill is False, this works as normal: this node group is
+        treated as a subgraph cluster, and all its child information is
+        returned.
 
-           If backfill is True, however, this node group is just treated
-           as a rectangular normal node. Furthermore, the resulting node
-           "definition" line will be prefixed with "cluster_" if
-           incl_cluster_prefix is True. (The value of incl_cluster_prefix is
-           only utilized if backfill is True.)
+        If backfill is True, however, this node group is just treated
+        as a rectangular normal node. Furthermore, the resulting node
+        "definition" line will be prefixed with "cluster_" if
+        incl_cluster_prefix is True. (The value of incl_cluster_prefix is
+        only utilized if backfill is True.)
         """
         if backfill:
             output = "\t"
@@ -722,8 +722,8 @@ class NodeGroup(Node):
 
     def db_values(self):
         """Returns a tuple containing the values associated with this group.
-           Should be called after parsing and assigning .xdot bounding box
-           values accordingly.
+        Should be called after parsing and assigning .xdot bounding box
+        values accordingly.
         """
         # Assign "collapsed dimensions"; these are used when the NodeGroup is
         # collapsed in the viewer interface.

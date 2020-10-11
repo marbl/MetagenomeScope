@@ -549,13 +549,13 @@ SUPPORTED_FILETYPE_TO_PARSER = {
 def sniff_filetype(filename):
     """Attempts to determine the filetype of the file specified by a filename.
 
-       Currently, this just returns the extension of the filename (after
-       converting the filename to lowercase). If the extension isn't one of
-       "lastgraph", "gfa", "fastg", or "gml", this throws a
-       NotImplementedError.
+    Currently, this just returns the extension of the filename (after
+    converting the filename to lowercase). If the extension isn't one of
+    "lastgraph", "gfa", "fastg", or "gml", this throws a
+    NotImplementedError.
 
-       It might be worth extending this in the future to try sniffing via a
-       more sophisticated method, but this seems fine for the time being.
+    It might be worth extending this in the future to try sniffing via a
+    more sophisticated method, but this seems fine for the time being.
     """
     lowercase_fn = filename.lower()
     for suffix in SUPPORTED_FILETYPE_TO_PARSER:

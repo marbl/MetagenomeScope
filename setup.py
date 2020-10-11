@@ -63,10 +63,15 @@ setup(
     packages=find_packages(),
     package_data={"metagenomescope": ["spqr"]},
     include_package_data=True,
-    install_requires=["pygraphviz", "numpy", "networkx", "gfapy", "pyfastg"],
+    install_requires=[
+        "pygraphviz",
+        "numpy",
+        "networkx",
+        "gfapy",
+        "pyfastg",
+        "scikit-bio >= 0.5.4",
+    ],
     extras_require={"dev": ["pytest", "pytest-cov", "flake8", "black"]},
-    entry_points={
-        "console_scripts": ["mgsc=metagenomescope.collate:run_script"]
-    },
+    entry_points={"console_scripts": ["mgsc=metagenomescope._cli:run_script"]},
     zip_safe=False,
 )

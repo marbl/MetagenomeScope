@@ -3,14 +3,14 @@ from .. import config
 
 class Component(object):
     """A connected component in the graph. We use this in order to
-       maintain meta-information, such as node groups, for each connected
-       component we're interested in.
+    maintain meta-information, such as node groups, for each connected
+    component we're interested in.
     """
 
     def __init__(self, node_list, node_group_list):
         """Given a list of all nodes (i.e. not node groups) and a list of
-           all node groups in the connected component, intializes the
-           connected component.
+        all node groups in the connected component, intializes the
+        connected component.
         """
         self.node_list = node_list
         self.node_group_list = node_group_list
@@ -27,8 +27,8 @@ class Component(object):
 
     def node_and_edge_info(self):
         """Returns the node and edge info for this connected component
-           as a 2-string tuple, where the first string is node info and the
-           second string is edge info (and both strings are DOT-compatible).
+        as a 2-string tuple, where the first string is node info and the
+        second string is edge info (and both strings are DOT-compatible).
         """
 
         node_info = ""
@@ -51,9 +51,9 @@ class Component(object):
 
     def produce_non_backfilled_dot_file(self, output_prefix):
         """Returns a string defining the graph (in DOT format) for the current
-           component, but without cluster backfilling (i.e. all clusters are
-           included as actual dot clusters, and are thus susceptible for edges
-           going through them).
+        component, but without cluster backfilling (i.e. all clusters are
+        included as actual dot clusters, and are thus susceptible for edges
+        going through them).
         """
 
         fcontent = "digraph " + output_prefix + " {\n"
@@ -76,8 +76,8 @@ class Component(object):
 
     def produce_non_patterned_dot_file(self, output_prefix):
         """Returns a string defining the graph (in DOT format) for the current
-           component, but without any clusters (so all nodes and edges are
-           still in the graph, but they aren't encapsulated by any clusters).
+        component, but without any clusters (so all nodes and edges are
+        still in the graph, but they aren't encapsulated by any clusters).
         """
 
         fcontent = "digraph " + output_prefix + " {\n"
@@ -96,7 +96,7 @@ class Component(object):
 
     def __repr__(self):
         """Returns a (somewhat verbose) string representation of this
-           component.
+        component.
         """
         return (
             "Component of "
