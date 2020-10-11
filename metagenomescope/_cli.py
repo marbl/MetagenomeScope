@@ -16,8 +16,10 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
+####
+# Structure of this file adapted roughly from
+# https://github.com/biocore/qurro/blob/master/qurro/scripts/_plot.py.
 
-import sys
 import click
 from .config import MAXN_DEFAULT, MAXE_DEFAULT
 from .main import make_viz
