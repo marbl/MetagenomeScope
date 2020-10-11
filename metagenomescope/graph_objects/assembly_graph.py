@@ -67,10 +67,10 @@ class AssemblyGraph(object):
 
     def reindex_digraph(self):
         """Assigns every node in the graph a unique integer ID, and adds a
-           "name" attribute containing the original ID. This unique integer ID
-           should never be shown to the user, but will be used for things like
-           layout and internal storage of nodes. This way, we can have multiple
-           nodes with the same name without causing a problem.
+        "name" attribute containing the original ID. This unique integer ID
+        should never be shown to the user, but will be used for things like
+        layout and internal storage of nodes. This way, we can have multiple
+        nodes with the same name without causing a problem.
         """
         self.digraph = nx.convert_node_labels_to_integers(
             self.digraph, label_attribute="name"
@@ -84,11 +84,10 @@ class AssemblyGraph(object):
 
     @staticmethod
     def is_valid_frayed_rope(g, starting_node_id):
-        r"""Returns a 4-tuple of (True, a list of all the nodes in the f. rope,
-        a list of all starting nodes in the f. rope, and a list of all ending
-        nodes in the f. rope) if a frayed rope with the given start node
-        would be valid. Returns a 2-tuple of (False, None) if such a frayed
-        rope would be considered invalid.
+        r"""Returns a 2-tuple of (True, a list of all the nodes in the f. rope)
+        if a frayed rope with the given start node would be valid. Returns a
+        2-tuple of (False, None) if such a frayed rope would be considered
+        invalid.
 
         NOTE that we only consider "simple" frayed ropes that look like
 
@@ -152,7 +151,7 @@ class AssemblyGraph(object):
             return False, None
 
         # If we've made it here, this frayed rope is valid!
-        return True, composite, starting_node_ids, ending_node_ids
+        return True, composite
 
     @staticmethod
     def is_valid_cyclic_chain(g, starting_node_id):
@@ -234,10 +233,10 @@ class AssemblyGraph(object):
     @staticmethod
     def is_valid_3node_bubble(g, starting_node_id):
         r"""Returns a 4-tuple of (True, a list of all the nodes in the bubble,
-           a list with the starting node in the bubble, a list with the ending
-           node in the bubble) if a 3-node bubble defined at the given start
-           node would be valid. Returns a 2-tuple of (False, None) if such a
-           bubble would be considered invalid.
+           the starting node in the bubble, the ending node in the bubble)
+           if a 3-node bubble defined at the given start node would be valid.
+           Returns a 2-tuple of (False, None) if such a bubble would be
+           considered invalid.
 
            The bubbles we try to detect look like:
 
@@ -301,15 +300,15 @@ class AssemblyGraph(object):
             return False, None
 
         # If we've gotten here, then we know that this is a valid bubble.
-        return True, composite, [starting_node_id], [e]
+        return True, composite, starting_node_id, e
 
     @staticmethod
     def is_valid_bubble(g, starting_node_id):
         r"""Returns a 4-tuple of (True, a list of all the nodes in the bubble,
-           a list with the starting node in the bubble, a list with the ending
-           node in the bubble) if a bubble defined at the given start node
-           would be valid. Returns a 2-tuple of (False, None) if such a bubble
-           would be considered invalid.
+           the starting node in the bubble, the ending node in the bubble) if
+           a bubble defined at the given start node would be valid.
+           Returns a 2-tuple of (False, None) if such a bubble would be
+           considered invalid.
 
            NOTE that we only consider "simple" bubbles that look like
 
@@ -389,7 +388,7 @@ class AssemblyGraph(object):
             return False, None
 
         # If we've gotten here, then we know that this is a valid bubble.
-        return True, composite, [starting_node_id], [ending_node_id]
+        return True, composite, starting_node_id, ending_node_id
 
     @staticmethod
     def is_valid_chain(g, starting_node_id):
@@ -539,10 +538,10 @@ class AssemblyGraph(object):
         nodes within this pattern (to outside of the pattern) to originate from
         the pattern node.
 
-        Returns the UUID of the pattern, which will just be an integer number.
-        (This is safe b/c all of the nodes in the graph should have integer
-        numbers in the range [0, # nodes - 1], so we can just set this
-        pattern's ID to (# nodes).
+        Returns the unique ID of the pattern node, which will just be an
+        integer number. (This is safe b/c all of the nodes in the graph should
+        have integer numbers in the range [0, # nodes - 1], so we can just set
+        this pattern's ID to (# nodes).
         """
         pattern_id = self.get_new_node_id()
         # Get incoming edges to this pattern
@@ -574,23 +573,22 @@ class AssemblyGraph(object):
         return pattern_id
 
     def add_pattern_and_duplicate_nodes(
-        self, member_node_ids, starting_node_ids, ending_node_ids
+        self, member_node_ids, starting_node_id, ending_node_id
     ):
         """Adds a pattern composed of a list of node IDs to the decomposed
         DiGraph, and removes its children from the decomposed DiGraph.
 
-        Additionally, this will add duplicate nodes for every starting and
-        ending node in the starting_node_ids and ending_node_ids lists, and
-        will route incoming edges to the starting nodes to the new duplicate
-        start nodes (and route outgoing edges from the ending nodes from the
-        new duplicate ending nodes).
-        
+        Additionally, this will add duplicate nodes for the starting and ending
+        node IDs provided. Incoming edges to the start node will be routed to
+        its new duplicate node, and outgoing edges from the ending node will be
+        routed from its new duplicate node.
+
         After the above steps, if there are any remaining edges from
         outside of the pattern incident on any of the nodes within the
         pattern, then this will raise an error: this is an indication that the
-        list of start and ending nodes this was given is inaccurate.
+        start and ending nodes provided were inaccurate.
 
-        Returns the UUID of the pattern.
+        Returns the unique ID of the pattern.
         """
         pattern_id = self.get_new_node_id()
         self.decomposed_digraph.add_node(pattern_id)
@@ -612,7 +610,8 @@ class AssemblyGraph(object):
         #         |  \ /  |
         #         |   3   |
         #         +-------+
-        for s in starting_node_ids:
+
+        for old_node_id in (starting_node_id, ending_node_id):
             # Create a new node, with a new unique integer ID that picks up
             # right where the last one should've left off (if the graph has 4
             # nodes then the last integer ID should be 3; so this'll add a node
@@ -623,26 +622,33 @@ class AssemblyGraph(object):
             # extracting a dict of this metadata and passing it as keywords to
             # add_node().
             self.decomposed_digraph.add_node(
-                new_node_id, **self.decomposed_digraph.nodes[s]
+                new_node_id, **self.decomposed_digraph.nodes[old_node_id]
             )
             # Similarly to how we applied all of the node metadata to the
-            # duplicate, apply the edge metadata to the duplicate edge here.
-            for edge in self.decomposed_digraph.in_edges(s):
-                edge_attrs = self.decomposed_digraph.edges[edge]
-                self.decomposed_digraph.add_edge(edge[0], new_node_id, **edge_attrs)
-            # This node should have a single outgoing edge pointing to the
-            # pattern node.
-            self.decomposed_digraph.add_edge(new_node_id, pattern_id, from_dup=True)
-
-        for e in ending_node_ids:
-            new_node_id = self.get_new_node_id()
-            self.decomposed_digraph.add_node(
-                new_node_id, **self.decomposed_digraph.nodes[e]
-            )
-            for edge in self.decomposed_digraph.out_edges(e):
-                edge_attrs = self.decomposed_digraph.edges[edge]
-                self.decomposed_digraph.add_edge(new_node_id, edge[1], **edge_attrs)
-            self.decomposed_digraph.add_edge(pattern_id, new_node_id, to_dup=True)
+            # duplicate, apply the edge metadata to the duplicate edge(s) we
+            # need to create.
+            if old_node_id == starting_node_id:
+                for edge in self.decomposed_digraph.in_edges(old_node_id):
+                    edge_attrs = self.decomposed_digraph.edges[edge]
+                    self.decomposed_digraph.add_edge(
+                        edge[0], new_node_id, **edge_attrs
+                    )
+                # This node should have a single outgoing edge pointing to the
+                # pattern node.
+                self.decomposed_digraph.add_edge(
+                    new_node_id, pattern_id, from_dup=True
+                )
+            else:
+                for edge in self.decomposed_digraph.out_edges(old_node_id):
+                    edge_attrs = self.decomposed_digraph.edges[edge]
+                    self.decomposed_digraph.add_edge(
+                        new_node_id, edge[1], **edge_attrs
+                    )
+                # This node should have a single incoming edge coming from the
+                # pattern node.
+                self.decomposed_digraph.add_edge(
+                    pattern_id, new_node_id, to_dup=True
+                )
 
         # Remove the children of this pattern from the decomposed DiGraph. This
         # includes the nodes which have now been duplicated -- their duplicates
@@ -666,7 +672,6 @@ class AssemblyGraph(object):
             raise ValueError("Invalid out-edges: {}".format(p_out_edges))
 
         return pattern_id
-
 
     def hierarchically_identify_patterns(self):
         """Run all of the pattern detection algorithms above on the graph
@@ -711,18 +716,14 @@ class AssemblyGraph(object):
                     if pattern_valid:
                         pattern_node_ids = validator_outputs[1]
 
-                        starting_node_ids = ending_node_ids = []
-
                         if len(validator_outputs) == 4:
-                            # There are "start" and "ending" nodes in this
-                            # pattern that we want to duplicate. See
-                            # https://github.com/marbl/MetagenomeScope/issues/84
-                            # for lots and lots of details.
-                            starting_node_ids = validator_outputs[2]
-                            ending_node_ids = validator_outputs[3]
+                            # There is a start and ending node in this pattern
+                            # that we want to duplicate. See issue #84 on
+                            # GitHub for lots and lots of details.
+                            s_id = validator_outputs[2]
+                            e_id = validator_outputs[3]
                             pattern_id = self.add_pattern_and_duplicate_nodes(
-                                pattern_node_ids, starting_node_ids,
-                                ending_node_ids
+                                pattern_node_ids, s_id, e_id
                             )
                         else:
                             pattern_id = self.add_pattern(pattern_node_ids)
