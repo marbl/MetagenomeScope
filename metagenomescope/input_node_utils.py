@@ -1,4 +1,3 @@
-import uuid
 from . import config
 
 
@@ -57,13 +56,3 @@ def negate_node_id(id_string):
         return id_string[1:]
     else:
         return "-" + id_string
-
-
-def get_uuid():
-    """Returns a (hopefully) unique string ID.
-
-    A small TODO is adding something to check that there really are no other
-    elements in the graph with this exact ID... but I doubt that will be a
-    problem in practice.
-    """
-    return str(uuid.uuid4()).replace("-", "_")
