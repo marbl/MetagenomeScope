@@ -205,84 +205,24 @@ def make_viz(
     arg_utils.create_output_dir(output_dir)
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
-    # Maps Node ID (as int) to the Node object in question
-    # This is nice, since it allows us to do things like
-    # list(nodeid2obj.values()) to get a list of every Node object that's been
-    # processed
-    # (And, more importantly, to reconcile edge data with prev.-seen node data)
-    nodeid2obj = {}
-
-    # Like nodeid2obj, but for preserving references to clusters (NodeGroups)
-    clusterid2obj = {}
-
-    # Like nodeid2obj but for "single" Nodes, to be used in the SPQR-integrated
-    # graph
-    singlenodeid2obj = {}
-    # List of 2-tuples, where each 2-tuple contains two node IDs
-    # For GML files this will just contain all the normal connections in the graph
-    # For LastGraph/GFA files, though, this will contain half of the connections
-    # in the graph, due to no edges being "implied"
-    single_graph_edges = []
-
-    # Like nodeid2obj but using labels as the key instead; used when processing
-    # user-specified bubble/misc. pattern files if the user specifies the -ubl or
-    # -upl options above
-    nodelabel2obj = {}
-    # Will be True if we need to populate nodelabel2obj
-    need_label_mapping = False
-
-    # Pertinent Assembly-wide information we use
-    graph_filetype = ""
-    distinct_single_graph = True
-    # If DNA is given for each contig, then we can calculate GC content
-    # (In LastGraph files, DNA is always given; in GML files, DNA is never given;
-    # in GFA files, DNA is sometimes given.)
-    # (That being said, it's ostensibly possible to store DNA in an external FASTA
-    # file along with GML/GFA files that don't have DNA explicitly given -- so
-    # these constraints are subject to change.)
-    dna_given = True
-    # Whether or not repeat data for nodes is provided. Currently this is only
-    # passed through certain GML files, so we assume it's false until we encounter
-    # a node with repeat data provided.
-    repeats_given = False
-    total_node_count = 0
-    total_edge_count = 0
-    total_all_edge_count = 0
-    total_length = 0
-    total_gc_nt_count = 0
-    total_component_count = 0
-    total_single_component_count = 0
-    total_bicomponent_count = 0
-    # Used to determine whether or not we can scale edges by multiplicity/bundle
-    # size. Currently we make the following assumptions (might need to change) --
-    # -All LastGraph files contain edge multiplicity values
-    # -Some GML files contain edge bundle size values, and some do not
-    #   -The presence of a single edge in a GML file without a bundle size
-    #    attribute will result in edge_weights_available being set to False.
-    # -All GFA files do not contain edge multiplicity values
-    edge_weights_available = True
-    # List of all the node lengths in the assembly. Used when calculating n50.
-    bp_length_list = []
-
     # Parse the assembly graph!
-    operation_msg(config.READ_FILE_MSG + "%s..." % (os.path.basename(asm_fn)))
+    operation_msg(
+        "Reading and parsing input file {}...".format(os.path.basename(asm_fn))
+    )
     asm_graph = graph_objects.AssemblyGraph(asm_fn)
     conclude_msg()
 
-    # Hierarchically decompose graph
+    # Hierarchically decompose graph, creating duplicate nodes where needed
+    # TODO: Have this utilize user-supplied bubbles and patterns. They should
+    # be "lowest level" patterns, i.e. collapsed first.
     operation_msg("Running hierarchical pattern decomposition...")
     asm_graph.hierarchically_identify_patterns()
     conclude_msg()
-    return asm_graph
 
     # TODO from here on down.
     # -Identify user-supplied bubbles.
     # -Identify user-supplied misc. patterns.
-    # -Identify bubbles.
     # -If -spqr passed, compute SPQR trees and record composition/structure.
-    # -Identify frayed ropes.
-    # -Identify cyclic chains.
-    # -Identify chains.
     # -Output identified pattern info if -sp passed
     # -Identify connected components for the "single" graph (SPQR mode).
     # -Identify connected components for the "normal" graph (non-SPQR mode).
@@ -290,6 +230,65 @@ def make_viz(
     # -Compute edge scaling for each connected component
     # -SPQR layout!
     # -Normal layout!
+
+    ## Maps Node ID (as int) to the Node object in question
+    ## This is nice, since it allows us to do things like
+    ## list(nodeid2obj.values()) to get a list of every Node object that's been
+    ## processed
+    ## (And, more importantly, to reconcile edge data with prev.-seen node data)
+    # nodeid2obj = {}
+
+    ## Like nodeid2obj, but for preserving references to clusters (NodeGroups)
+    # clusterid2obj = {}
+
+    ## Like nodeid2obj but for "single" Nodes, to be used in the SPQR-integrated
+    ## graph
+    # singlenodeid2obj = {}
+    ## List of 2-tuples, where each 2-tuple contains two node IDs
+    ## For GML files this will just contain all the normal connections in the graph
+    ## For LastGraph/GFA files, though, this will contain half of the connections
+    ## in the graph, due to no edges being "implied"
+    # single_graph_edges = []
+
+    ## Like nodeid2obj but using labels as the key instead; used when processing
+    ## user-specified bubble/misc. pattern files if the user specifies the -ubl or
+    ## -upl options above
+    # nodelabel2obj = {}
+    ## Will be True if we need to populate nodelabel2obj
+    # need_label_mapping = False
+
+    ## Pertinent Assembly-wide information we use
+    # graph_filetype = ""
+    # distinct_single_graph = True
+    ## If DNA is given for each contig, then we can calculate GC content
+    ## (In LastGraph files, DNA is always given; in GML files, DNA is never given;
+    ## in GFA files, DNA is sometimes given.)
+    ## (That being said, it's ostensibly possible to store DNA in an external FASTA
+    ## file along with GML/GFA files that don't have DNA explicitly given -- so
+    ## these constraints are subject to change.)
+    # dna_given = True
+    ## Whether or not repeat data for nodes is provided. Currently this is only
+    ## passed through certain GML files, so we assume it's false until we encounter
+    ## a node with repeat data provided.
+    # repeats_given = False
+    # total_node_count = 0
+    # total_edge_count = 0
+    # total_all_edge_count = 0
+    # total_length = 0
+    # total_gc_nt_count = 0
+    # total_component_count = 0
+    # total_single_component_count = 0
+    # total_bicomponent_count = 0
+    ## Used to determine whether or not we can scale edges by multiplicity/bundle
+    ## size. Currently we make the following assumptions (might need to change) --
+    ## -All LastGraph files contain edge multiplicity values
+    ## -Some GML files contain edge bundle size values, and some do not
+    ##   -The presence of a single edge in a GML file without a bundle size
+    ##    attribute will result in edge_weights_available being set to False.
+    ## -All GFA files do not contain edge multiplicity values
+    # edge_weights_available = True
+    ## List of all the node lengths in the assembly. Used when calculating n50.
+    # bp_length_list = []
 
     # Try to collapse special "groups" of Nodes (Bubbles, Ropes, etc.)
     # As we check nodes, we add either the individual node (if it can't be

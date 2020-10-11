@@ -195,7 +195,6 @@ EDGE_SCALING_MSG = "Scaling edge thicknesses in each connected component..."
 CONTIG_SCALING_MSG = (
     "Scaling contig areas/dimensions in each connected component..."
 )
-READ_FILE_MSG = "Reading and parsing input file "
 DB_INIT_MSG = "Initializing output file "
 SAVE_AUX_FAIL_MSG = "Not saving "
 LAYOUT_MSG = "Laying out "

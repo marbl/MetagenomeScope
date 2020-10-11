@@ -10,6 +10,7 @@ def create_output_dir(output_dir):
     # any side effects.
     os.makedirs(output_dir)
 
+
 def validate_max_counts(max_node_count, max_edge_count):
     if max_node_ct < 1:
         raise ValueError("Maximum node count must be at least 1")
