@@ -16,221 +16,153 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
-####
-# Manages the main command-line interface (CLI) of MetagenomeScope.
 
 import sys
-import os
-import argparse
+import click
+from .config import MAXN_DEFAULT, MAXE_DEFAULT
+from .main import make_viz
+from ._param_descriptions import (
+    INPUT,
+    OUTPUT_DIR,
+    ASSUME_ORIENTED,
+    MAXN,
+    MAXE,
+    MBF,
+    UP,
+    SPQR,
+    STRUCTPATT,
+    PG,
+    PX,
+    NBDF,
+    NPDF,
+)
 
-from . import config
-from .collate import collate_graph
 
-# Define supported command-line arguments. (We don't actually run
-# parser.parse_args() until later on, in order to support use of this file
-# aside from as a script.)
-parser = argparse.ArgumentParser(description=config.COLLATE_DESCRIPTION)
-parser.add_argument(
-    "-i",
-    "--inputfile",
-    required=True,
-    help="""input assembly
-    graph filename (LastGraph, GFA, or MetaCarvel GML)""",
-)
-parser.add_argument(
-    "-o",
-    "--outputprefix",
-    required=True,
-    help="""output file
-    prefix for .db files; also used for most auxiliary files""",
-)
-parser.add_argument(
-    "-d",
-    "--outputdirectory",
-    required=False,
-    default=os.getcwd(),
-    help="""directory in which all output files will be
-    stored; defaults to current working directory (this directory will be
-    created if it does not exist, but if the directory cannot be created then
-    an error will be raised)""",
-)
-parser.add_argument(
-    "-w",
-    "--overwrite",
+# Make mgsc -h show the help text
+@click.command(context_settings={"help_option_names": ["-h", "--help"]})
+@click.option("-i", "--input-file", required=True, help=INPUT)
+@click.option("-o", "--output-dir", required=True, help=OUTPUT_DIR)
+@click.option(
+    "-ao",
+    "--assume-oriented",
     required=False,
     default=False,
-    action="store_true",
-    help="""overwrite output files (if this isn't passed,
-    and a non-auxiliary file would need to be overwritten, an error will be
-    raised)""",
+    help=ASSUME_ORIENTED,
 )
-parser.add_argument(
+@click.option(
     "-maxn",
-    "--maxnodecount",
+    "--max-node-count",
     required=False,
-    default=config.MAXN_DEFAULT,
-    type=int,
-    help="""connected components with more
-    nodes than this value will not be laid out or available for display in the
-    viewer interface (default {}, must be at least
-    1)""".format(
-        config.MAXN_DEFAULT
-    ),
+    default=MAXN_DEFAULT,
+    help=MAXN,
+    show_default=True,
 )
-parser.add_argument(
+@click.option(
     "-maxe",
-    "--maxedgecount",
+    "--max-edge-count",
     required=False,
-    default=config.MAXE_DEFAULT,
-    type=int,
-    help="""connected components with more
-    edges than this value will not be laid out or available for display in the
-    viewer interface (default {}, must be at least
-    1)""".format(
-        config.MAXE_DEFAULT
-    ),
+    default=MAXE_DEFAULT,
+    help=MAXE,
+    show_default=True,
 )
-parser.add_argument(
-    "-ub",
-    "--userbubblefile",
-    required=False,
-    help="""file describing pre-identified bubbles in the graph, in the format
-    of MetaCarvel's bubbles.txt output: each line of the file is formatted
-    as (source ID) (tab) (sink ID) (tab) (all node IDs in the bubble,
-    including source and sink IDs, all separated by tabs). See the MetaCarvel
-    documentation for more details on this format.""",
+@click.option(
+    "-mbf", "--metacarvel-bubble-file", required=False, default=None, help=MBF
 )
-parser.add_argument(
-    "-ubl",
-    "--userbubblelabelsused",
-    required=False,
-    action="store_true",
-    default=False,
-    help="""use node labels instead of IDs
-    in the pre-identified bubbles file specified by -ub""",
+@click.option(
+    "-up", "--user-pattern-file", required=False, default=None, help=UP
 )
-parser.add_argument(
-    "-up",
-    "--userpatternfile",
-    required=False,
-    help="""file
-    describing any pre-identified structural patterns in the graph:
-    each line of the file is formatted as (pattern type) (tab) (all node IDs
-    in the pattern, all separated by tabs). If (pattern type) is "Bubble" or
-    "Frayed Rope", then the pattern will be represented in the visualization
-    as a Bubble or Frayed Rope, respectively; otherwise, the pattern will
-    be represented as a generic "misc. user-specified pattern," and colorized
-    accordingly in the visualization.""",
-)
-parser.add_argument(
-    "-upl",
-    "--userpatternlabelsused",
-    required=False,
-    action="store_true",
-    default=False,
-    help="""use node labels instead of IDs
-    in the pre-identified misc. patterns file specified by -up""",
-)
-parser.add_argument(
+@click.option(
     "-spqr",
-    "--computespqrdata",
+    "--compute-spqr-data",
     required=False,
-    action="store_true",
+    is_flag=True,
     default=False,
-    help="""compute data for the SPQR
-    "decomposition modes" in MetagenomeScope; necessitates a few additional
-    system requirements (see MetagenomeScope's installation instructions
-    wiki page for details)""",
+    help=SPQR,
 )
-parser.add_argument(
-    "-b",
-    "--bicomponentfile",
-    required=False,
-    help="""file containing bicomponent information for the assembly graph
-    (this argument is only used if -spqr is passed, and is not required even in
-    that case; the needed files will be generated if -spqr is passed and this
-    option is not passed)""",
-)
-parser.add_argument(
+@click.option(
     "-sp",
-    "--structuralpatterns",
+    "--save-structural-patterns",
+    is_flag=True,
     required=False,
     default=False,
-    action="store_true",
-    help="""save .txt files containing node
-    information for all structural patterns identified in the graph""",
+    help=STRUCTPATT,
 )
-parser.add_argument(
+@click.option(
     "-pg",
-    "--preservegv",
+    "--preserve-gv",
+    is_flag=True,
     required=False,
-    action="store_true",
     default=False,
-    help="""save all .gv (DOT) files generated for nontrivial
-    (i.e. containing more than one node, or at least one edge or node group)
-    connected components""",
+    help=PG,
 )
-parser.add_argument(
+@click.option(
     "-px",
-    "--preservexdot",
+    "--preserve-xdot",
     required=False,
+    is_flag=True,
     default=False,
-    action="store_true",
-    help="""save all .xdot files generated for nontrivial
-    connected components""",
+    help=PX,
 )
-parser.add_argument(
+@click.option(
     "-nbdf",
-    "--nobackfilldotfiles",
+    "--save-no-backfill-dot-files",
+    is_flag=True,
     required=False,
-    action="store_true",
     default=False,
-    help="""produces .gv (DOT) files without
-    cluster \"backfilling\" for each nontrivial connected component in the
-    graph; use of this argument doesn't impact the .db file produced by this
-    script -- it just demonstrates the functionality in layout linearization
-    provided by cluster \"backfilling\" """,
+    help=NBDF,
 )
-parser.add_argument(
+@click.option(
     "-npdf",
-    "--nopatterndotfiles",
+    "--save-no-pattern-dot-files",
+    is_flag=True,
     required=False,
-    action="store_true",
     default=False,
-    help="""produces .gv (DOT) files
-    without any structural pattern information embedded; as with -nbdf, this
-    doesn't actually impact the .db file -- it just provides a frame of
-    reference for the impact clustering can have on dot's layouts""",
+    help=NPDF,
 )
-# parser.add_argument("-au", "--assumeunoriented", required=False, default=False,
-#        action="store_true", help="assume that input GML-file graphs are" + \
-#            " unoriented (default for GML files is assuming they are" + \
-#            " oriented); this option is unfinished")
-# parser.add_argument("-ao", "--assumeoriented", required=False, default=False,
-#        action="store_true", help="assume that input LastGraph-/GFA-file" + \
-#            " graphs are oriented (default for LastGraph/GFA files is" + \
-#            " assuming they are unoriented); this option is unfinished")
+def run_script(
+    input_file: str,
+    output_dir: str,
+    assume_oriented: bool,
+    max_node_count: int,
+    max_edge_count: int,
+    metacarvel_bubble_file: str,
+    user_pattern_file: str,
+    spqr: bool,
+    sp: bool,
+    pg: bool,
+    px: bool,
+    nbdf: bool,
+    npdf: bool,
+) -> None:
+    """Visualizes an assembly graph and identifies structural patterns therein.
 
+    This generates a folder containing an interactive HTML/JS visualization of
+    the graph's connected component(s).
 
-def run_script(cmdline_args=sys.argv[1:]):
-    """Parses command-line arguments, then runs the main script.
+    There are many options available to customize the visualization / output,
+    but the only two you probably need to worry about are the input file and
+    output directory: generating a visualization can be as simple as
 
-    Optionally accepts as input a list of command-line arguments,
-    analogous to sys.argv[1:]. It's possible to just specify your own
-    list of arguments instead of relying on sys.argv; this is how the
-    tests of the preprocessing script work.
+        mgsc -i graph.gfa -o viz
 
-    The argument parsing is abstracted to this function in order to avoid
-    ArgParse raising errors when this file (collate.py) is imported into
-    other code.
-
-    CODELINK: This general paradigm is based on Viktor Kerkez' answer here:
-    https://stackoverflow.com/questions/18160078/. Link to Viktor's SO
-    profile: https://stackoverflow.com/users/2199958/viktor-kerkez
+    Which will generate an output directory viz/ containing an index.html
+    file that visualizes the graph's connected components.
     """
-    # Delay parsing the command-line arguments
-    args = parser.parse_args(cmdline_args)
-    collate_graph(args)
+    make_viz(
+        input_file,
+        output_dir,
+        assume_oriented,
+        max_node_count,
+        max_edge_count,
+        metacarvel_bubble_file,
+        user_pattern_file,
+        spqr,
+        sp,
+        pg,
+        px,
+        nbdf,
+        npdf,
+    )
 
 
 if __name__ == "__main__":

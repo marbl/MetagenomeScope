@@ -16,46 +16,19 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
-####
-# Converts an assembly graph to a DOT file, lays out the DOT file using
-# PyGraphviz, and then reconciles the layout data with biological data in a
-# SQLite .db file that can be visualized in the MetagenomeScope viewer
-# interface.
-#
-# For further information, please consult README.md in the root directory of
-# MetagenomeScope.
 
-# For running the C++ spqr script binary
 from subprocess import check_output, STDOUT
-
-# For laying out graphs using Graphviz
 import pygraphviz
-
-# For creating the output directory, and for file I/O
 import os
-
-# For parsing certain filenames easily
 import re
-
-# For calculating quartiles, etc. for edge weight outlier detection
 import numpy
-
-# For checking I/O errors
 import errno
-
-# For interfacing with SQLite
 import sqlite3
-
-# For benchmarking
 import time
 
 from . import graph_objects
 from . import config
 
-# NOTE: We really shouldn't need to use reverse_complement() at all, I think,
-# but in the future we can just use gfapy's rc() function (which is much more
-# robust).
-# from .input_node_utils import gc_content, reverse_complement, negate_node_id
 from .file_utils import check_file_existence, safe_file_remove, save_aux_file
 from .msg_utils import operation_msg, conclude_msg
 
@@ -216,27 +189,21 @@ def run_spqr_script(invocation):
         raise
 
 
-def collate_graph(args):
-    asm_fn = args.inputfile
-    output_fn = args.outputprefix
-    db_fn = output_fn + ".db"
-    dir_fn = args.outputdirectory
-    max_node_ct = args.maxnodecount
-    max_edge_ct = args.maxedgecount
-    preserve_gv = args.preservegv
-    preserve_xdot = args.preservexdot
-    output_spatts = args.structuralpatterns
-    overwrite = args.overwrite
-    bicmps_fullfn = args.bicomponentfile
-    ububbles_fullfn = args.userbubblefile
-    ububbles_labels = args.userbubblelabelsused
-    upatterns_fullfn = args.userpatternfile
-    upatterns_labels = args.userpatternlabelsused
-    make_no_backfilled_dot_files = args.nobackfilldotfiles
-    make_no_patterned_dot_files = args.nopatterndotfiles
-    # assume_unoriented = args.assumeunoriented
-    # assume_oriented = args.assumeoriented
-
+def make_viz(
+    input_file: str,
+    output_dir: str,
+    assume_oriented: bool,
+    max_node_count: int,
+    max_edge_count: int,
+    metacarvel_bubble_file: str,
+    user_pattern_file: str,
+    spqr: bool,
+    sp: bool,
+    pg: bool,
+    px: bool,
+    nbdf: bool,
+    npdf: bool,
+):
     # NOTE this is ostensibly vulnerable to a race condition in which this
     # directory is removed after it's either created or shown to already exist
     # as a directory. In this case, though, the user would just get an error
@@ -244,13 +211,13 @@ def collate_graph(args):
     # file, if -spqr is passed, or the .db file otherwise) -- shouldn't cause
     # any side effects.
     try:
-        os.makedirs(dir_fn)
+        os.makedirs(output_dir)
     except OSError as e:
         if e.errno == errno.EEXIST:
             # If the directory already exists as a directory, there isn't a
             # problem
-            if not os.path.isdir(dir_fn):
-                raise IOError(dir_fn + config.EXISTS_AS_NON_DIR_ERR)
+            if not os.path.isdir(output_dir):
+                raise IOError(output_dir + config.EXISTS_AS_NON_DIR_ERR)
         else:
             # If the error we got was some other type of error (e.g. a
             # permission error), then just raise that error to let the user
@@ -265,8 +232,8 @@ def collate_graph(args):
 
     # NOTE Used to test the "race condition" mentioned above in which the
     # directory is removed.
-    # Only uncomment this if you're ok with dir_fn being removed!
-    # os.rmdir(dir_fn)
+    # Only uncomment this if you're ok with output_dir being removed!
+    # os.rmdir(output_dir)
 
     # Right off the bat, check if the .db file name causes an error somehow.
     # (See check_file_existence() for possible causes.)
@@ -277,7 +244,7 @@ def collate_graph(args):
     # for its existence here/etc. and us actually connecting to the .db file
     # using SQLite. However, as is detailed below, that doesn't really matter
     # -- SQLite will handle that condition suitably.
-    db_fullfn = os.path.join(dir_fn, db_fn)
+    db_fullfn = os.path.join(output_dir, db_fn)
     if check_file_existence(db_fullfn, overwrite):
         # The user asked to overwrite this database via -w, so remove it
         safe_file_remove(db_fullfn)
@@ -577,16 +544,16 @@ def collate_graph(args):
         # present (see issue #191 on the GitHub page)
         cfn_regex = re.compile(r"component_(\d+)\.info")
         sfn_regex = re.compile(r"spqr\d+\.gml")
-        for fn in os.listdir(dir_fn):
+        for fn in os.listdir(output_dir):
             match = cfn_regex.match(fn)
             if match is not None:
-                c_fullfn = os.path.join(dir_fn, fn)
+                c_fullfn = os.path.join(output_dir, fn)
                 if check_file_existence(c_fullfn, overwrite):
                     safe_file_remove(c_fullfn)
             else:
                 s_match = sfn_regex.match(fn)
                 if s_match is not None:
-                    s_fullfn = os.path.join(dir_fn, fn)
+                    s_fullfn = os.path.join(output_dir, fn)
                     if check_file_existence(s_fullfn, overwrite):
                         safe_file_remove(s_fullfn)
 
@@ -606,12 +573,12 @@ def collate_graph(args):
             save_aux_file(
                 s_edges_fn,
                 s_edges_fn_text,
-                dir_fn,
+                output_dir,
                 False,
                 overwrite,
                 warnings=False,
             )
-            s_edges_fullfn = os.path.join(dir_fn, s_edges_fn)
+            s_edges_fullfn = os.path.join(output_dir, s_edges_fn)
 
         # Prepare non-single-graph _links file
         # (unnecessary for the case where -b is passed and the input graph has a
@@ -629,12 +596,12 @@ def collate_graph(args):
             save_aux_file(
                 edges_fn,
                 edges_fn_text,
-                dir_fn,
+                output_dir,
                 False,
                 overwrite,
                 warnings=False,
             )
-            edges_fullfn = os.path.join(dir_fn, edges_fn)
+            edges_fullfn = os.path.join(output_dir, edges_fn)
 
         # Get the location of the spqr script -- it should be in the same dir as
         # collate.py, i.e. the currently running python script
@@ -664,7 +631,7 @@ def collate_graph(args):
                     edges_fullfn,
                     "-t",
                     "-d",
-                    dir_fn,
+                    output_dir,
                 ]
             else:
                 # Input file has unoriented contigs (e.g. Velvet LastGraph output)
@@ -675,14 +642,14 @@ def collate_graph(args):
                     s_edges_fullfn,
                     "-t",
                     "-d",
-                    dir_fn,
+                    output_dir,
                 ]
         else:
             # -b has not been passed: we need to call the SPQR script to generate
             # the separation pairs file
             # Detect (and remove) a file with a conflicting name, if present
             bicmps_fn = output_fn + "_bicmps"
-            bicmps_fullfn = os.path.join(dir_fn, bicmps_fn)
+            bicmps_fullfn = os.path.join(output_dir, bicmps_fn)
             if check_file_existence(bicmps_fullfn, overwrite):
                 safe_file_remove(bicmps_fullfn)
 
@@ -698,7 +665,7 @@ def collate_graph(args):
                     "-o",
                     bicmps_fn,
                     "-d",
-                    dir_fn,
+                    output_dir,
                 ]
             else:
                 # Input files has unoriented contigs
@@ -712,7 +679,7 @@ def collate_graph(args):
                     "-o",
                     bicmps_fn,
                     "-d",
-                    dir_fn,
+                    output_dir,
                 ]
                 spqr_invocation_2 = [
                     spqr_fullfn,
@@ -720,7 +687,7 @@ def collate_graph(args):
                     s_edges_fullfn,
                     "-t",
                     "-d",
-                    dir_fn,
+                    output_dir,
                 ]
                 run_spqr_script(spqr_invocation_2)
         run_spqr_script(spqr_invocation)
@@ -743,10 +710,10 @@ def collate_graph(args):
         # Identify the component_*.info files representing the SPQR tree's
         # composition
         bicomponentid2fn = {}
-        for fn in os.listdir(dir_fn):
+        for fn in os.listdir(output_dir):
             match = cfn_regex.match(fn)
             if match is not None:
-                c_fullfn = os.path.join(dir_fn, fn)
+                c_fullfn = os.path.join(output_dir, fn)
                 if os.path.isfile(c_fullfn):
                     bicomponentid2fn[match.group(1)] = c_fullfn
 
@@ -796,7 +763,9 @@ def collate_graph(args):
             # given biconnected component saved in metanodeid2obj.
             # For now, let's just parse the structure of this tree and lay it out
             # using GraphViz -- will implement in the web visualization tool soon.
-            tree_structure_fn = os.path.join(dir_fn, "spqr%s.gml" % (cfn_id))
+            tree_structure_fn = os.path.join(
+                output_dir, "spqr%s.gml" % (cfn_id)
+            )
             # List of 2-tuples of SPQRMetaNode objects.
             with open(tree_structure_fn, "r") as spqr_structure_file:
                 parsing_edge = False
@@ -909,7 +878,7 @@ def collate_graph(args):
             save_aux_file(
                 "sp_" + ct.plural_name + ".txt",
                 input_text,
-                dir_fn,
+                output_dir,
                 False,
                 overwrite,
             )
@@ -1550,7 +1519,7 @@ def collate_graph(args):
                     r = save_aux_file(
                         scc_prefix + ".gv",
                         gv_input,
-                        dir_fn,
+                        output_dir,
                         layout_msg_printed,
                         overwrite,
                     )
@@ -1565,7 +1534,7 @@ def collate_graph(args):
                     save_aux_file(
                         scc_prefix + ".xdot",
                         h,
-                        dir_fn,
+                        output_dir,
                         layout_msg_printed,
                         overwrite,
                     )
@@ -2049,7 +2018,7 @@ def collate_graph(args):
             r = save_aux_file(
                 component_prefix + "_nobackfill.gv",
                 component.produce_non_backfilled_dot_file(component_prefix),
-                dir_fn,
+                output_dir,
                 layout_msg_printed,
                 overwrite,
             )
@@ -2060,7 +2029,7 @@ def collate_graph(args):
             r = save_aux_file(
                 component_prefix + "_nopatterns.gv",
                 component.produce_non_patterned_dot_file(component_prefix),
-                dir_fn,
+                output_dir,
                 layout_msg_printed,
                 overwrite,
             )
@@ -2088,7 +2057,7 @@ def collate_graph(args):
             r = save_aux_file(
                 component_prefix + ".gv",
                 gv_input,
-                dir_fn,
+                output_dir,
                 layout_msg_printed,
                 overwrite,
             )
@@ -2109,7 +2078,7 @@ def collate_graph(args):
             save_aux_file(
                 component_prefix + ".xdot",
                 h,
-                dir_fn,
+                output_dir,
                 layout_msg_printed,
                 overwrite,
             )

@@ -174,12 +174,6 @@ MAXN_DEFAULT = 7999
 MAXE_DEFAULT = 7999
 
 # Various status messages/message prefixes that are displayed to the user.
-# Displayed during command-line argument parsing
-COLLATE_DESCRIPTION = (
-    "Prepares an assembly graph file for visualization, "
-    + "generating a database file that can be loaded in the MetagenomeScope "
-    + "viewer interface."
-)
 USERBUBBLES_SEARCH_MSG = "Identifying user-specified bubbles in the graph..."
 USERPATTERNS_SEARCH_MSG = (
     "Identifying user-specified misc. patterns in " + "the graph..."

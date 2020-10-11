@@ -64,6 +64,7 @@ setup(
     package_data={"metagenomescope": ["spqr"]},
     include_package_data=True,
     install_requires=[
+        "click",
         "pygraphviz",
         "numpy",
         "networkx",

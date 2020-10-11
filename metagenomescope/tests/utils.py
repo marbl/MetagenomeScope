@@ -23,7 +23,7 @@ import os
 import sqlite3
 import random
 
-from metagenomescope import collate
+from metagenomescope import main
 
 INDIR = os.path.join("metagenomescope", "tests", "input")
 OUTDIR = os.path.join("metagenomescope", "tests", "output")
