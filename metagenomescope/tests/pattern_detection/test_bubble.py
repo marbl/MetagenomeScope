@@ -53,7 +53,7 @@ def test_easy_bubble():
 
 def test_easy_bubble_fails_when_starting_point_bad():
     """Tests that the same basic bubble as above isn't identified if you don't
-       start at "0".
+    start at "0".
     """
     g = get_easy_bubble_graph()
     for s in [1, 2, 3]:
@@ -68,9 +68,50 @@ def test_easy_3_node_bubble():
     assert results[0] and set(results[1]) == set([0, 1, 2])
 
 
-def test_easy_3_node_bubble_fails():
+def test_3node_bubble_func_fails_on_normal_bubble():
+    """(It should only detect 3-node bubbles, not normal bubbles.)"""
+    g = get_easy_bubble_graph()
+    for s in [0, 1, 2, 3]:
+        assert not AssemblyGraph.is_valid_3node_bubble(g, s)[0]
+
+
+def test_3node_bubble_func_fails_on_cyclic():
+    g = get_3_node_bubble_graph()
+    g.add_edge(2, 0)
+    for s in [0, 1, 2]:
+        assert not AssemblyGraph.is_valid_3node_bubble(g, s)[0]
+
+
+def test_3node_bubble_func_fails_on_middle_spur():
+    """Tests something looking like
+
+      1----3
+     /
+    0------2
+    """
+    g = get_3_node_bubble_graph()
+    g.add_edge(1, 3)
+    g.remove_edge(1, 2)
+    for s in [0, 1, 2, 3]:
+        assert not AssemblyGraph.is_valid_3node_bubble(g, s)[0]
+
+
+def test_3node_bubble_func_fails_on_middle_extra_branch():
+    r"""Tests something looking like
+
+      1----3
+     / \
+    0---2
+    """
+    g = get_3_node_bubble_graph()
+    g.add_edge(1, 3)
+    for s in [0, 1, 2, 3]:
+        assert not AssemblyGraph.is_valid_3node_bubble(g, s)[0]
+
+
+def test_easy_3_node_bubble_fails_with_normal_simple_bubble_detection():
     """Tests that is_valid_bubble() doesn't detect 3-node bubbles. Don't
-       worry, though, because is_valid_3node_bubble() does!
+    worry, though, because is_valid_3node_bubble() does!
     """
     g = get_3_node_bubble_graph()
     for s in [1, 2]:
