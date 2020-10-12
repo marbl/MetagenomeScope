@@ -629,7 +629,7 @@ class AssemblyGraph(object):
                 # was previously used as the ending node for another pattern,
                 # or vice versa. So, this means that we have a situation like:
                 #
-                #         +-------+ 
+                #         +-------+
                 #         |   2   |     8
                 #         |  / \  |    / \
                 # 0 -> 6 == 1   4 === 7   A -> B
@@ -669,7 +669,8 @@ class AssemblyGraph(object):
             # extracting a dict of this metadata and passing it as keywords to
             # add_node().
             self.decomposed_digraph.add_node(
-                new_node_id, is_dup=True,
+                new_node_id,
+                is_dup=True,
                 **self.decomposed_digraph.nodes[old_node_id]
             )
             # Similarly to how we applied all of the node metadata to the

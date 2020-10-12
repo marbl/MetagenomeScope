@@ -43,6 +43,7 @@ def test_simple_hierarch_decomp():
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 1
 
+
 def test_bubble_chain_identification():
     r"""The input graph looks like
            2   5
@@ -89,6 +90,7 @@ def test_bubble_chain_identification():
     ... which makes sense.
     """
     raise NotImplementedError
+
 
 def test_bubble_cyclic_chain_identification():
     r"""The input graph looks like
