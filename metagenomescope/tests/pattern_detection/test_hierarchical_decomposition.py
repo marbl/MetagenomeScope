@@ -24,20 +24,11 @@ def test_simple_hierarch_decomp():
      \            /          /
       \--> [Chain] -> [Chain]
 
-      22=[Bubble]=23 -> 6 ------> [Chain]
+      [Bubble] -> 6 ------> [Chain]
      /                 /         /
     0                11         /
      \              /          /
       \----> [Chain] -> [Chain]
-
-      [Chain] --------> 6 ------> [Chain]
-     /                 /         /
-    0                11         /
-     \              /          /
-      \----> [Chain] -> [Chain]
-
-    Arguably, the final simplification with the 22->Bubble->23 thing isn't
-    really useful. I am not sure what the best way to handle this is.
     """
     ag = AssemblyGraph(
         "metagenomescope/tests/input/hierarchical_test_graph.gml"
@@ -51,3 +42,84 @@ def test_simple_hierarch_decomp():
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 1
+
+def test_bubble_chain_identification():
+    r"""The input graph looks like
+           2   5
+          / \ / \
+    0 -> 1   4   7 -> 8
+          \ / \ /
+           3   6
+
+    First, we should collapse one of the bubbles (order shouldn't impact
+    result). Let's say the leftmost bubble is collapsed first.
+
+        +-------+
+        |   2   | 5
+        |  / \  |/ \
+    0 ->| 1   4 |   7 -> 8
+        |  \ /  |\ /
+        |   3   | 6
+        +-------+
+
+    Then a valid bubble would exist where the first bubble is the start node:
+
+        +------+
+        |   5  |
+        |  / \ |
+    0 ->|B1   7|-> 8
+        |  \ / |
+        |   6  |
+        +------+
+
+    However, this is silly, because nothing about the input graph implied any
+    sort of hierarchy between these two bubbles. The code should detect that a
+    bubble is being used as the start node of this other bubble (or as the end
+    node, if the rightmost bubble was detected first), and then handle this
+    by duplicating just the shared node between the bubbles:
+
+        +-------+-------+
+        |   2   |   5   |
+        |  / \  |  / \  |
+    0 ->| 1   4 = 4   7 | -> 8
+        |  \ /  |  \ /  |
+        |   3   |   6   |
+        +-------+-------+
+
+    ... which makes sense.
+    """
+    raise NotImplementedError
+
+def test_bubble_cyclic_chain_identification():
+    r"""The input graph looks like
+
+    +-----------------+
+    |                 |
+    |   2   5   8    11
+     \ / \ / \ / \  /
+      1   4   7   10
+     / \ / \ / \ /  \
+    |   3   6   9    12
+    |                 |
+    +-----------------+
+
+    ... that is, it's just a bunch of cyclic bubbles, with the "last" bubble
+    in this visual representation (10 -> [11|12] -> 1) being the one that
+    has the back-edges drawn.
+
+    TLDR, we should end up with something like
+
+    +=======================================+
+    |                                       |
+    | +-------+-------+--------+---------+  |
+    | |   2   |   5   |   8    |    11   |  |
+    | |  / \  |  / \  |  / \   |   /  \  |  |
+    +== 1   4 = 4   7 = 7   10 = 10    1 ===+
+      |  \ /  |  \ /  |  \ /   |   \  /  |
+      |   3   |   6   |   9    |    12   |
+      +-------+-------+--------+---------+
+
+    ... where the nodes "shared" by adjacent bubbles (4, 7, 10, 1) are all
+    duplicated.
+    """
+    raise NotImplementedError
