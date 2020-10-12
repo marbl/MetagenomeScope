@@ -578,15 +578,25 @@ class AssemblyGraph(object):
         """Adds a pattern composed of a list of node IDs to the decomposed
         DiGraph, and removes its children from the decomposed DiGraph.
 
-        Additionally, this will add duplicate nodes for the starting and ending
-        node IDs provided. Incoming edges to the start node will be routed to
-        its new duplicate node, and outgoing edges from the ending node will be
-        routed from its new duplicate node.
+        Additionally, this will attempt to add duplicate nodes for the starting
+        and ending node IDs provided. Incoming edges to the start node will be
+        routed to its new duplicate node, and outgoing edges from the ending
+        node will be routed from its new duplicate node. If the starting node
+        is already a duplicate, then it will not be duplicated again;
+        similarly, if the ending node is already a duplicate, then it will not
+        be duplicated again.
 
-        After the above steps, if there are any remaining edges from
+        TODO RM After the above steps, if there are any remaining edges from
         outside of the pattern incident on any of the nodes within the
         pattern, then this will raise an error: this is an indication that the
         start and ending nodes provided were inaccurate.
+
+        This function is intended to be used with bubbles: the duplication
+        process allows for "chains" of bubbles to all be detected and collapsed
+        in a way that accurately models the underlying biology (i.e. we're not
+        collapsing adjacent bubbles _into_ each other -- rather, we're
+        collapsing adjacent bubbles independently). See #84 on GitHub for
+        details.
 
         Returns the unique ID of the pattern.
         """
@@ -612,6 +622,43 @@ class AssemblyGraph(object):
         #         +-------+
 
         for old_node_id in (starting_node_id, ending_node_id):
+            data = self.decomposed_digraph.nodes[old_node_id]
+            if "is_dup" in data and data["is_dup"]:
+                # This node is already a duplicate! What this means is that
+                # (if this is a starting node for the current pattern) then it
+                # was previously used as the ending node for another pattern,
+                # or vice versa. So, this means that we have a situation like:
+                #
+                #         +-------+ 
+                #         |   2   |     8
+                #         |  / \  |    / \
+                # 0 -> 6 == 1   4 === 7   A -> B
+                #         |  \ /  |    \ /
+                #         |   3   |     9
+                #         +-------+
+                #
+                # ... where we're currently trying to add a pattern for the
+                # second bubble (starting at 7 and ending at 10). There is no
+                # point in duplicating 7, since it's already the end of an
+                # existing pattern. So we can just use 7 as is in a bubble:
+                #
+                #         +-------+ +-------+
+                #         |   2   | |   8   |
+                #         |  / \  | |  / \  |
+                # 0 -> 6 == 1   4 === 7   A == C -> B
+                #         |  \ /  | |  \ /  |
+                #         |   3   | |   9   |
+                #         +-------+ --------+
+                #
+                # Resulting in a fully collapsed thing of:
+                #
+                # 0 -> 6 == P1 == P2 == C -> B
+                #
+                # And post trimming unused duplicate nodes:
+                #
+                # 0 -> P1 == P2 -> B
+                continue
+
             # Create a new node, with a new unique integer ID that picks up
             # right where the last one should've left off (if the graph has 4
             # nodes then the last integer ID should be 3; so this'll add a node
@@ -622,7 +669,8 @@ class AssemblyGraph(object):
             # extracting a dict of this metadata and passing it as keywords to
             # add_node().
             self.decomposed_digraph.add_node(
-                new_node_id, **self.decomposed_digraph.nodes[old_node_id]
+                new_node_id, is_dup=True,
+                **self.decomposed_digraph.nodes[old_node_id]
             )
             # Similarly to how we applied all of the node metadata to the
             # duplicate, apply the edge metadata to the duplicate edge(s) we
@@ -651,25 +699,9 @@ class AssemblyGraph(object):
                 )
 
         # Remove the children of this pattern from the decomposed DiGraph. This
-        # includes the nodes which have now been duplicated -- their duplicates
+        # includes the node(s) which have been duplicated -- their duplicates
         # will live on, to potentially be included in another pattern.
         self.decomposed_digraph.remove_nodes_from(member_node_ids)
-
-        # After going through the whole node duplication song and dance, we
-        # should be kosher -- no edges from outside this pattern should hit
-        # this pattern. If any such edges exist, we should just raise an error.
-        in_edges = self.decomposed_digraph.in_edges(member_node_ids)
-        p_in_edges = list(
-            filter(lambda e: e[0] not in member_node_ids, in_edges)
-        )
-        out_edges = self.decomposed_digraph.out_edges(member_node_ids)
-        p_out_edges = list(
-            filter(lambda e: e[1] not in member_node_ids, out_edges)
-        )
-        if len(p_in_edges) > 0:
-            raise ValueError("Invalid in-edges: {}".format(p_in_edges))
-        if len(p_out_edges) > 0:
-            raise ValueError("Invalid out-edges: {}".format(p_out_edges))
 
         return pattern_id
 
