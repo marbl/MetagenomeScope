@@ -46,6 +46,8 @@ def test_simple_hierarch_decomp():
 
 def test_bubble_chain_identification():
     r"""The input graph looks like
+
+
            2   5
           / \ / \
     0 -> 1   4   7 -> 8
@@ -78,6 +80,18 @@ def test_bubble_chain_identification():
     bubble is being used as the start node of this other bubble (or as the end
     node, if the rightmost bubble was detected first), and then handle this
     by duplicating just the shared node between the bubbles:
+
+        +-------+-------+
+        |   2   |   5   |
+        |  / \  |  / \  |
+    0 ->| 1   4 = 4   7 | -> 8
+        |  \ /  |  \ /  |
+        |   3   |   6   |
+        +-------+-------+
+
+
+    0 -> (Bubble 1) = (Bubble 2) -> 8
+
 
         +-------+-------+
         |   2   |   5   |

@@ -1,8 +1,7 @@
 from copy import deepcopy
 import networkx as nx
 from .. import assembly_graph_parser
-
-# from .basic_objects import Node, Edge
+from .pattern import StartEndPattern, Pattern
 
 
 class AssemblyGraph(object):
@@ -26,17 +25,18 @@ class AssemblyGraph(object):
         self.nodes = []
         self.edges = []
         self.components = []
-        # Each entry in these structures will be the unique ID of a node group
-        # pointing to a list containing all of the node IDs in the node group
-        # in question (these node IDs can include other group IDs!)
-        #
+
+        # Each entry in these structures will be a Pattern (or subclass).
         # NOTE that these patterns will only be "represented" in
         # self.decomposed_digraph; self.digraph represents the literal graph
-        # structure as initially parsed.
-        self.chains = {}
-        self.cyclic_chains = {}
-        self.bubbles = {}
-        self.frayed_ropes = {}
+        # structure as initially parsed (albeit with some duplicate nodes added
+        # in for convenience's sake, maybe).
+        self.chains = []
+        self.cyclic_chains = []
+        self.bubbles = []
+        self.frayed_ropes = []
+
+        self.id2pattern = {}
 
         # TODO extract common node/edge attrs from parse(). There are various
         # ways to do this, from elegant (e.g. create classes for each filetype
@@ -231,6 +231,18 @@ class AssemblyGraph(object):
         )
 
     @staticmethod
+    def is_bubble_boundary_node_invalid(g, node_id):
+        """Returns True if the node is a collapsed pattern that is NOT a
+           bubble, False otherwise.
+
+           Basically, the purpose of this is rejecting things like frayed
+           ropes that don't make sense as the start / end nodes of bubbles.
+        """
+        if "pattern_type" in g.nodes[node_id]:
+            return g.nodes[node_id]["pattern_type"] != "bubble"
+        return False
+
+    @staticmethod
     def is_valid_3node_bubble(g, starting_node_id):
         r"""Returns a 4-tuple of (True, a list of all the nodes in the bubble,
            the starting node in the bubble, the ending node in the bubble)
@@ -256,6 +268,10 @@ class AssemblyGraph(object):
            ... since we assume that this path has already been collapsed into a
            chain.
         """
+        # Starting node must be either an uncollapsed node or another bubble
+        if is_bubble_boundary_node_invalid(starting_node_id):
+            return False, None
+
         # The starting node in a 3-node bubble must have exactly 2 out edges
         out_node_ids = list(g.adj[starting_node_id].keys())
         if len(out_node_ids) != 2:
@@ -276,6 +292,10 @@ class AssemblyGraph(object):
 
         # We tentatively have a valid 3-node bubble, but we need to do some
         # more verification.
+
+        # Verify that end node is either an uncollapsed node or another bubble
+        if is_bubble_boundary_node_invalid(e):
+            return False, None
 
         # First, check that the middle node points to the end node: if not,
         # then that's a problem!
@@ -333,6 +353,12 @@ class AssemblyGraph(object):
            directly between the start and end node. ...but these should be
            possible to detect with more robust bubble-finding techniques.
         """
+
+        # For now, bubbles can only start with 1) uncollapsed nodes or 2) other
+        # bubbles (which'll cause us to duplicate stuff)
+        if is_bubble_boundary_node_invalid(starting_node_id):
+            return False, None
+
         # The starting node in a bubble obviously must have at least 2 outgoing
         # edges. If not, we can bail early on.
         m_node_ids = list(g.adj[starting_node_id].keys())
@@ -365,6 +391,10 @@ class AssemblyGraph(object):
                 return False, None
 
         # Check that the ending node is reasonable
+
+        # If the ending node is a non-bubble pattern, reject this (for now).
+        if is_bubble_boundary_node_invalid(ending_node_id):
+            return False, None
 
         # If the ending node has any incoming nodes that aren't in m_node_ids,
         # reject this bubble.
@@ -529,7 +559,7 @@ class AssemblyGraph(object):
         backwards_chain_list.reverse()
         return True, backwards_chain_list + chain_list
 
-    def add_pattern(self, member_node_ids):
+    def add_pattern(self, member_node_ids, pattern_type):
         """Adds a pattern composed of a list of node IDs to the decomposed
         DiGraph, and removes its children from the decomposed DiGraph.
 
@@ -555,9 +585,8 @@ class AssemblyGraph(object):
             filter(lambda e: e[1] not in member_node_ids, out_edges)
         )
         # Add this pattern to the decomposed digraph, with the same in/out
-        # nodes as in the subgraph of this chain's nodes (and the same UUID,
-        # of course)
-        self.decomposed_digraph.add_node(pattern_id)
+        # nodes as in the subgraph of this pattern's nodes
+        self.decomposed_digraph.add_node(pattern_id, pattern_type=pattern_type)
         for e in p_in_edges:
             self.decomposed_digraph.add_edge(e[0], pattern_id)
         for e in p_out_edges:
@@ -570,141 +599,82 @@ class AssemblyGraph(object):
         # IDs, and these child pattern(s) will have references to their
         # children node/pattern IDs, etc.)
         self.decomposed_digraph.remove_nodes_from(member_node_ids)
-        return pattern_id
 
-    def add_pattern_and_duplicate_nodes(
-        self, member_node_ids, starting_node_id, ending_node_id
-    ):
-        """Adds a pattern composed of a list of node IDs to the decomposed
+        p = Pattern(pattern_id, pattern_type, member_node_ids)
+        return p
+
+    def add_bubble(self, member_node_ids, starting_node_id, ending_node_id):
+        """Adds a bubble composed of a list of node IDs to the decomposed
         DiGraph, and removes its children from the decomposed DiGraph.
 
-        Additionally, this will attempt to add duplicate nodes for the starting
-        and ending node IDs provided. Incoming edges to the start node will be
-        routed to its new duplicate node, and outgoing edges from the ending
-        node will be routed from its new duplicate node. If the starting node
-        is already a duplicate, then it will not be duplicated again;
-        similarly, if the ending node is already a duplicate, then it will not
-        be duplicated again.
+        Additionally, this will check to see if the nodes corresponding to
+        starting_node_id and ending_node_id are themselves collapsed patterns
+        (for now they can only be other bubbles, but in theory any pattern with
+        a single starting and end node is kosher -- e.g. chains, cyclic
+        chains).
 
-        TODO RM After the above steps, if there are any remaining edges from
-        outside of the pattern incident on any of the nodes within the
-        pattern, then this will raise an error: this is an indication that the
-        start and ending nodes provided were inaccurate.
+        If the starting node is already a collapsed pattern, this will
+        duplicate the ending node of that pattern within this new bubble and
+        create a link accordingly. Similarly, if the ending node is already a
+        collapsed pattern, this'll duplicate the starting node of that bubble
+        in the new bubble.
 
-        This function is intended to be used with bubbles: the duplication
-        process allows for "chains" of bubbles to all be detected and collapsed
-        in a way that accurately models the underlying biology (i.e. we're not
-        collapsing adjacent bubbles _into_ each other -- rather, we're
-        collapsing adjacent bubbles independently). See #84 on GitHub for
-        details.
-
-        Returns the unique ID of the pattern.
+        Returns the unique ID of the bubble.
         """
         pattern_id = self.get_new_node_id()
         self.decomposed_digraph.add_node(pattern_id)
 
-        # Let's say we have something like:
-        #
-        #        2
-        #       / \
-        # 0 -> 1   4 -> 5
-        #       \ /
-        #        3
-        #
-        # We want to end up with:
-        #
-        #         +-------+
-        #         |   2   |
-        #         |  / \  |
-        # 0 -> 6 == 1   4 == 7 -> 5
-        #         |  \ /  |
-        #         |   3   |
-        #         +-------+
+        if "pattern_type" in g.nodes[starting_node_id]:
+            # In the decomposed digraph, link the starting pattern with the
+            # curr pattern.
+            self.decomposed_digraph.add_edge(starting_node_id, pattern_id, is_dup=True)
+            # In the actual digraph, create a new node that'll serve as the
+            # "duplicate" of this node within the new pattern we're creating.
+            # Shares all data, and holds the outgoing edges of the original
+            # node -- all of these outgoing edges should be _within_ this new
+            # pattern.
 
-        for old_node_id in (starting_node_id, ending_node_id):
-            data = self.decomposed_digraph.nodes[old_node_id]
-            if "is_dup" in data and data["is_dup"]:
-                # This node is already a duplicate! What this means is that
-                # (if this is a starting node for the current pattern) then it
-                # was previously used as the ending node for another pattern,
-                # or vice versa. So, this means that we have a situation like:
-                #
-                #         +-------+
-                #         |   2   |     8
-                #         |  / \  |    / \
-                # 0 -> 6 == 1   4 === 7   A -> B
-                #         |  \ /  |    \ /
-                #         |   3   |     9
-                #         +-------+
-                #
-                # ... where we're currently trying to add a pattern for the
-                # second bubble (starting at 7 and ending at 10). There is no
-                # point in duplicating 7, since it's already the end of an
-                # existing pattern. So we can just use 7 as is in a bubble:
-                #
-                #         +-------+ +-------+
-                #         |   2   | |   8   |
-                #         |  / \  | |  / \  |
-                # 0 -> 6 == 1   4 === 7   A == C -> B
-                #         |  \ /  | |  \ /  |
-                #         |   3   | |   9   |
-                #         +-------+ --------+
-                #
-                # Resulting in a fully collapsed thing of:
-                #
-                # 0 -> 6 == P1 == P2 == C -> B
-                #
-                # And post trimming unused duplicate nodes:
-                #
-                # 0 -> P1 == P2 -> B
-                continue
-
-            # Create a new node, with a new unique integer ID that picks up
-            # right where the last one should've left off (if the graph has 4
-            # nodes then the last integer ID should be 3; so this'll add a node
-            # with the ID 4, etc.)
+            # Get ending node of the starting pattern, and duplicate it
+            end_node_to_dup = self.id2pattern[starting_node_id].get_end_node()
+            data = self.digraph.nodes[end_node_to_dup]
             new_node_id = self.get_new_node_id()
-            # This new node shares all of the metadata (name, length, etc.)
-            # that the original node has. This is what the ** is doing; it's
-            # extracting a dict of this metadata and passing it as keywords to
-            # add_node().
-            self.decomposed_digraph.add_node(
-                new_node_id,
-                is_dup=True,
-                **self.decomposed_digraph.nodes[old_node_id]
-            )
-            # Similarly to how we applied all of the node metadata to the
-            # duplicate, apply the edge metadata to the duplicate edge(s) we
-            # need to create.
-            if old_node_id == starting_node_id:
-                for edge in self.decomposed_digraph.in_edges(old_node_id):
-                    edge_attrs = self.decomposed_digraph.edges[edge]
-                    self.decomposed_digraph.add_edge(
-                        edge[0], new_node_id, **edge_attrs
-                    )
-                # This node should have a single outgoing edge pointing to the
-                # pattern node.
-                self.decomposed_digraph.add_edge(
-                    new_node_id, pattern_id, from_dup=True
-                )
-            else:
-                for edge in self.decomposed_digraph.out_edges(old_node_id):
-                    edge_attrs = self.decomposed_digraph.edges[edge]
-                    self.decomposed_digraph.add_edge(
-                        new_node_id, edge[1], **edge_attrs
-                    )
-                # This node should have a single incoming edge coming from the
-                # pattern node.
-                self.decomposed_digraph.add_edge(
-                    pattern_id, new_node_id, to_dup=True
-                )
+            self.digraph.add_node(new_node_id, is_dup=True, **data)
 
-        # Remove the children of this pattern from the decomposed DiGraph. This
-        # includes the node(s) which have been duplicated -- their duplicates
-        # will live on, to potentially be included in another pattern.
+            # Duplicate outgoing edges of the duplicated node
+            for edge in self.digraph.out_edges(end_node_to_dup):
+                edge_data = self.digraph.edges[edge]
+                self.digraph.add_edge(new_node_id, edge[1], **edge_data)
+                self.digraph.remove_edge(end_node_to_dup, edge[1])
+
+            self.digraph.add_edge(end_node_to_dup, new_node_id, is_dup=True)
+
+            starting_node_id = new_node_id
+
+        if "pattern_type" in g.nodes[ending_node_id]:
+            self.decomposed_digraph.add_edge(pattern_id, ending_node_id, is_dup=True)
+            # Get starting node of the ending pattern, and duplicate it
+            start_node_to_dup = self.id2pattern[ending_node_id].get_end_node()
+            data = self.digraph.nodes[start_node_to_dup]
+            new_node_id = self.get_new_node_id()
+            self.digraph.add_node(new_node_id, is_dup=True, **data)
+
+            # Duplicate incoming edges of the duplicated node
+            for edge in self.digraph.in_edges(start_node_to_dup):
+                edge_data = self.digraph.edges[edge]
+                self.digraph.add_edge(edge[0], new_node_id, **edge_data)
+                self.digraph.remove_edge(edge[0], start_node_to_dup)
+
+            self.digraph.add_edge(new_node_id, start_node_to_dup, is_dup=True)
+
+            ending_node_id = new_node_id
+
+        # Remove the children of this pattern from the decomposed DiGraph.
         self.decomposed_digraph.remove_nodes_from(member_node_ids)
 
-        return pattern_id
+        p = StartEndPattern(
+            pattern_id, "bubble", member_node_ids, starting_node_id, ending_node_id
+        )
+        return p
 
     def hierarchically_identify_patterns(self):
         """Run all of the pattern detection algorithms above on the graph
@@ -732,12 +702,12 @@ class AssemblyGraph(object):
             # You could totally switch the order of this tuple up in order to
             # change the "precedence" of pattern detection. I don't think that
             # would make a huge difference, though...?
-            for collection, validator in (
-                (self.chains, AssemblyGraph.is_valid_chain),
-                (self.cyclic_chains, AssemblyGraph.is_valid_cyclic_chain),
-                (self.bubbles, AssemblyGraph.is_valid_3node_bubble),
-                (self.bubbles, AssemblyGraph.is_valid_bubble),
-                (self.frayed_ropes, AssemblyGraph.is_valid_frayed_rope),
+            for collection, validator, ptype in (
+                (self.chains, AssemblyGraph.is_valid_chain, "chain"),
+                (self.cyclic_chains, AssemblyGraph.is_valid_cyclic_chain, "cyclicchain"),
+                (self.bubbles, AssemblyGraph.is_valid_3node_bubble, "bubble"),
+                (self.bubbles, AssemblyGraph.is_valid_bubble, "bubble"),
+                (self.frayed_ropes, AssemblyGraph.is_valid_frayed_rope, "frayedrope"),
             ):
                 # We sort the nodes in order to make this deterministic
                 # (I doubt the extra time cost from sorting will be a big deal)
@@ -749,20 +719,19 @@ class AssemblyGraph(object):
                     if pattern_valid:
                         pattern_node_ids = validator_outputs[1]
 
-                        if len(validator_outputs) == 4:
+                        if ptype == "bubble":
                             # There is a start and ending node in this pattern
-                            # that we want to duplicate. See issue #84 on
+                            # that we may want to duplicate. See issue #84 on
                             # GitHub for lots and lots of details.
                             s_id = validator_outputs[2]
                             e_id = validator_outputs[3]
-                            pattern_id = self.add_pattern_and_duplicate_nodes(
-                                pattern_node_ids, s_id, e_id
-                            )
+                            p = self.add_bubble(pattern_node_ids, s_id, e_id)
                         else:
-                            pattern_id = self.add_pattern(pattern_node_ids)
+                            p = self.add_pattern(pattern_node_ids, ptype)
 
-                        collection[pattern_id] = pattern_node_ids
-                        for pn in pattern_node_ids:
+                        collection.append(p)
+                        self.id2pattern[p.pattern_id] = p
+                        for pn in p.node_ids:
                             candidate_nodes.remove(pn)
                         something_collapsed = True
                     else:
