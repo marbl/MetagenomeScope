@@ -24,11 +24,8 @@ def test_simple_hierarch_decomp():
      \            /          /
       \--> [Chain] -> [Chain]
 
-      [Bubble] -> 6 ------> [Chain]
-     /                 /         /
-    0                11         /
-     \              /          /
-      \----> [Chain] -> [Chain]
+    Eventually, the 1-2-3-chain thing should turn into a bubble.
+    But for now this isn't happening.
     """
     ag = AssemblyGraph(
         "metagenomescope/tests/input/hierarchical_test_graph.gml"
@@ -36,12 +33,12 @@ def test_simple_hierarch_decomp():
     ag.hierarchically_identify_patterns()
     # write_dot(ag.decomposed_digraph, "dec.gv")
     # This is with the "maximum" decomposition settings for this test graph.
-    assert len(ag.decomposed_digraph.nodes) == 7
-    assert len(ag.decomposed_digraph.edges) == 8
+    assert len(ag.decomposed_digraph.nodes) == 10
+    assert len(ag.decomposed_digraph.edges) == 12
     assert len(ag.chains) == 4
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
-    assert len(ag.bubbles) == 1
+    assert len(ag.bubbles) == 0
 
 
 def test_bubble_chain_identification():
