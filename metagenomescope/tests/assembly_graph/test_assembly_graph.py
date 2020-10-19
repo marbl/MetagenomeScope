@@ -4,26 +4,27 @@ from metagenomescope import config
 import networkx as nx
 from pytest import approx
 
+
 def test_scale_nodes():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     # This graph has six nodes, with lengths 8, 10, 21, 7, 8, 4.
     #                          (for node IDs 1,  2,  3, 4, 5, 6.)
     ag.scale_nodes()
     nodename2rl = {
-        "1" : approx(0.4180047),
-        "2" : approx(0.5525722),
-        "3" : 1,
-        "4" : approx(0.3374782),
-        "5" : approx(0.4180047),
-        "6" : 0
+        "1": approx(0.4180047),
+        "2": approx(0.5525722),
+        "3": 1,
+        "4": approx(0.3374782),
+        "5": approx(0.4180047),
+        "6": 0,
     }
     nodename2lp = {
-        "1" : config.MID_LONGSIDE_PROPORTION,
-        "2" : config.HIGH_LONGSIDE_PROPORTION,
-        "3" : config.HIGH_LONGSIDE_PROPORTION,
-        "4" : config.MID_LONGSIDE_PROPORTION,
-        "5" : config.MID_LONGSIDE_PROPORTION,
-        "6" : config.LOW_LONGSIDE_PROPORTION
+        "1": config.MID_LONGSIDE_PROPORTION,
+        "2": config.HIGH_LONGSIDE_PROPORTION,
+        "3": config.HIGH_LONGSIDE_PROPORTION,
+        "4": config.MID_LONGSIDE_PROPORTION,
+        "5": config.MID_LONGSIDE_PROPORTION,
+        "6": config.LOW_LONGSIDE_PROPORTION,
     }
     seen_nodenames = []
     for node in ag.digraph.nodes:
@@ -40,10 +41,14 @@ def test_scale_nodes():
         seen_nodenames.append(name)
     assert len(seen_nodenames) == 12
 
+
 def test_scale_nodes_all_lengths_equal():
     ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
     # all of the nodes in this graph have length 3
     ag.scale_nodes()
     for node in ag.digraph.nodes:
         assert ag.digraph.nodes[node]["relative_length"] == 0.5
-        assert ag.digraph.nodes[node]["longside_proportion"] == config.MID_LONGSIDE_PROPORTION
+        assert (
+            ag.digraph.nodes[node]["longside_proportion"]
+            == config.MID_LONGSIDE_PROPORTION
+        )
