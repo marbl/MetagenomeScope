@@ -111,9 +111,7 @@ def test_bubble_chain_identification():
     the overall chain. So even if 0 -> 1 or 7 -> 8 is created first, the
     resulting graph should be the same.
     """
-    ag = AssemblyGraph(
-        "metagenomescope/tests/input/bubble_chain_test.gml"
-    )
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
     ag.hierarchically_identify_patterns()
     assert len(ag.decomposed_digraph.nodes) == 1
     assert len(ag.decomposed_digraph.edges) == 0

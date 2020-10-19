@@ -18,7 +18,6 @@
 
 
 class Pattern(object):
-
     def __init__(self, pattern_id, pattern_type, node_ids):
         self.pattern_id = pattern_id
         self.pattern_type = pattern_type
@@ -29,9 +28,11 @@ class Pattern(object):
             self.pattern_type, self.pattern_id, self.node_ids
         )
 
-class StartEndPattern(Pattern):
 
-    def __init__(self, pattern_id, pattern_type, node_ids, start_node_id, end_node_id):
+class StartEndPattern(Pattern):
+    def __init__(
+        self, pattern_id, pattern_type, node_ids, start_node_id, end_node_id
+    ):
         # NOTE: not recursive, but for now this is ok since at no point can
         # another pattern be the "real" start/end node of a bubble.
         self.start_node_id = start_node_id

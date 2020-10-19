@@ -233,10 +233,10 @@ class AssemblyGraph(object):
     @staticmethod
     def is_bubble_boundary_node_invalid(g, node_id):
         """Returns True if the node is a collapsed pattern that is NOT a
-           bubble, False otherwise.
+        bubble, False otherwise.
 
-           Basically, the purpose of this is rejecting things like frayed
-           ropes that don't make sense as the start / end nodes of bubbles.
+        Basically, the purpose of this is rejecting things like frayed
+        ropes that don't make sense as the start / end nodes of bubbles.
         """
         if "pattern_type" in g.nodes[node_id]:
             return g.nodes[node_id]["pattern_type"] != "bubble"
@@ -587,8 +587,9 @@ class AssemblyGraph(object):
         )
         # Add this pattern to the decomposed digraph, with the same in/out
         # nodes as in the subgraph of this pattern's nodes
-        self.decomposed_digraph.add_node(pattern_id, pattern_type=pattern_type,
-                children=member_node_ids)
+        self.decomposed_digraph.add_node(
+            pattern_id, pattern_type=pattern_type, children=member_node_ids
+        )
         for e in p_in_edges:
             self.decomposed_digraph.add_edge(e[0], pattern_id)
         for e in p_out_edges:
@@ -631,7 +632,9 @@ class AssemblyGraph(object):
         if "pattern_type" in self.decomposed_digraph.nodes[starting_node_id]:
             # In the decomposed digraph, link the starting pattern with the
             # curr pattern.
-            self.decomposed_digraph.add_edge(starting_node_id, pattern_id, is_dup=True)
+            self.decomposed_digraph.add_edge(
+                starting_node_id, pattern_id, is_dup=True
+            )
             # In the actual digraph, create a new node that'll serve as the
             # "duplicate" of this node within the new pattern we're creating.
             # Shares all data, and holds the outgoing edges of the original
@@ -657,9 +660,13 @@ class AssemblyGraph(object):
             starting_node_id = new_node_id
 
         if "pattern_type" in self.decomposed_digraph.nodes[ending_node_id]:
-            self.decomposed_digraph.add_edge(pattern_id, ending_node_id, is_dup=True)
+            self.decomposed_digraph.add_edge(
+                pattern_id, ending_node_id, is_dup=True
+            )
             # Get starting node of the ending pattern, and duplicate it
-            start_node_to_dup = self.id2pattern[ending_node_id].get_start_node()
+            start_node_to_dup = self.id2pattern[
+                ending_node_id
+            ].get_start_node()
             data = self.digraph.nodes[start_node_to_dup]
             new_node_id = self.get_new_node_id()
             self.digraph.add_node(new_node_id, is_dup=True, **data)
@@ -696,7 +703,11 @@ class AssemblyGraph(object):
         self.decomposed_digraph.remove_nodes_from(member_node_ids)
 
         p = StartEndPattern(
-            pattern_id, "bubble", member_node_ids, starting_node_id, ending_node_id
+            pattern_id,
+            "bubble",
+            member_node_ids,
+            starting_node_id,
+            ending_node_id,
         )
         return p
 
@@ -728,10 +739,18 @@ class AssemblyGraph(object):
             # would make a huge difference, though...?
             for collection, validator, ptype in (
                 (self.chains, AssemblyGraph.is_valid_chain, "chain"),
-                (self.cyclic_chains, AssemblyGraph.is_valid_cyclic_chain, "cyclicchain"),
+                (
+                    self.cyclic_chains,
+                    AssemblyGraph.is_valid_cyclic_chain,
+                    "cyclicchain",
+                ),
                 (self.bubbles, AssemblyGraph.is_valid_3node_bubble, "bubble"),
                 (self.bubbles, AssemblyGraph.is_valid_bubble, "bubble"),
-                (self.frayed_ropes, AssemblyGraph.is_valid_frayed_rope, "frayedrope"),
+                (
+                    self.frayed_ropes,
+                    AssemblyGraph.is_valid_frayed_rope,
+                    "frayedrope",
+                ),
             ):
                 # We sort the nodes in order to make this deterministic
                 # (I doubt the extra time cost from sorting will be a big deal)
