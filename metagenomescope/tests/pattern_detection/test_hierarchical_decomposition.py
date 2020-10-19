@@ -51,6 +51,11 @@ def test_bubble_chain_identification():
           \ / \ /
            3   6
 
+    NOTE: currently a suboptimal decomposition is done here, since bubbles
+    can't work with chains as start/end nodes. this should be fixed so this
+    looks like follows, but for now it's a weird chain->frayedrope->chain chain
+    thing.
+
     First, we should collapse one of the bubbles (order shouldn't impact
     result). Let's say the leftmost bubble is collapsed first.
 
@@ -99,8 +104,23 @@ def test_bubble_chain_identification():
         +-------+-------+
 
     ... which makes sense.
+
+    Also at some point we should merge everything into a chain going from 0 to
+    8. Ideally, chains will support _merging_: so when a chain is created that
+    includes another chain at the top-level, that chain will be subsumed into
+    the overall chain. So even if 0 -> 1 or 7 -> 8 is created first, the
+    resulting graph should be the same.
     """
-    raise NotImplementedError
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/bubble_chain_test.gml"
+    )
+    ag.hierarchically_identify_patterns()
+    assert len(ag.decomposed_digraph.nodes) == 1
+    assert len(ag.decomposed_digraph.edges) == 0
+    assert len(ag.chains) == 3
+    assert len(ag.cyclic_chains) == 0
+    assert len(ag.frayed_ropes) == 1
+    assert len(ag.bubbles) == 0
 
 
 def test_bubble_cyclic_chain_identification():
@@ -136,7 +156,7 @@ def test_bubble_cyclic_chain_identification():
     duplicated.
     """
     ag = AssemblyGraph(
-        "metagenomescope/tests/input/bubble_chain_test.gml"
+        "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
     )
     ag.hierarchically_identify_patterns()
     # write_dot(ag.decomposed_digraph, "dec.gv")
