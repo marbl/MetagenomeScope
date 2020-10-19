@@ -133,19 +133,27 @@ def make_viz(
     operation_msg("Scaling nodes based on lengths...")
     asm_graph.scale_nodes()
     conclude_msg()
+
     # Immediate TODO:
-    # -For each component in the graph, do node scaling. (Can likely be an
-    #  assemblygraph operation.)
     # -For each component in the graph, do edge scaling.
+    #   - will need to modify asm graph parsers to return edge attrs,
+    #     and then use this to determine if edge weights available. add method
+    #     that (conditionally upon that) does said scaling within asm graph.
+    #
     # -Compute graph layouts. For each component:
     #   -Lay out individual patterns, starting at lowest level and moving up.
     #    Similar to SPQR layout code.
     #   -Finally, lay out the entire graph for the component, with patterns
     #    replaced with their bounding box.
     #   -Backfill all node/edge coordinates in.
+    #
+    #   At this point we can create AssemblyGraph.to_dot(), to_cytoscape(),
+    #   etc. methods for temporary testing.
+    #
     # -Use jinja2 to pass data to the viewer index.html file.
+    #
     # -Modify the JS to prepare the graph summary, etc. and get ready for
-    #  component drawing.
+    #  component drawing. Replace DB operations with just looking at the JSON.
 
     # TODO from here on down.
     # -Identify user-supplied bubbles.
