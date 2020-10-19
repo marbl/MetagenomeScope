@@ -31,47 +31,6 @@ from .file_utils import check_file_existence, safe_file_remove, save_aux_file
 from .msg_utils import operation_msg, conclude_msg
 
 
-def dfs(n):
-    """Recursively runs depth-first search, starting at node n.
-    Returns a list of all nodes found that corresponds to a list of all
-    nodes within the entire connected component (ignoring edge
-    directionality) in which n resides.
-
-    This assumes that the connected component containing n has not had this
-    method run on it before (due to its reliance on the .seen_in_dfs Node
-    property).
-
-    (In identifying a connected component, the graph is treated as if
-    its edges are undirected, so the actual starting node within a
-    connected component should not make a difference on the connected
-    component node list returned.)
-
-    I modified this function to not use recursion since Python isn't
-    super great at that -- this allows us to avoid hitting the maximum
-    recursion depth, which would cause us to get a RuntimeError for
-    really large connected components.
-    """
-    nodes_to_check = [n]
-    nodes_in_ccomponent = []
-    # len() of a list in python is a constant-time operation, so this is okay--
-    while len(nodes_to_check) > 0:
-        # We rely on the invariant that all nodes in nodes_to_check have
-        # seen_in_dfs = False, and that no duplicate nodes exist within
-        # nodes_to_check
-        j = nodes_to_check.pop()
-        j.seen_in_dfs = True
-        nodes_in_ccomponent.append(j)
-        tentative_nodes = j.outgoing_nodes + j.incoming_nodes
-        # Only travel to unvisited and not already-marked-to-visit neighbor
-        # nodes of j
-        for m in tentative_nodes:
-            if not m.seen_in_dfs and not m.in_nodes_to_check:
-                # in_nodes_to_check prevents duplicate nodes in that list
-                m.in_nodes_to_check = True
-                nodes_to_check.append(m)
-    return nodes_in_ccomponent
-
-
 def assembly_gc(gc_ct, total_bp):
     """Returns the G/C content of an assembly, where total_bp is the number of
     base pairs (2 * the number of nucleotides) and gc_ct is the number of
@@ -81,33 +40,6 @@ def assembly_gc(gc_ct, total_bp):
         return None
     else:
         return float(gc_ct) / (2 * total_bp)
-
-
-def fastg_long_id_to_id(fastg_id_string):
-    """Converts a FASTG-style ID (e.g. "NODE_123_length_100_cov_3.0123") to a
-    more normal ID that MetagenomeScope uses (e.g. "3"). Adds a "-" to the
-    prefix of the ID if the ID ends with a single quote ("'").
-
-    This only produces output differing from input if the input ID starts
-    with "NODE_" or "EDGE_". Otherwise, this just returns the input.
-
-    NOTE that this is a temporary workaround until #66 is implemented, and
-    NODE_...-style IDs are doable. In the interim, though, it should be
-    fine to selectively remove the prefixes.
-    """
-    output_id = fastg_id_string
-    if fastg_id_string[:5] in ("NODE_", "EDGE_"):
-        output_id = fastg_id_string.split("_")[1]
-        if fastg_id_string[-1] == "'":
-            output_id = "-" + output_id
-            # Remove ' if it remains next to the extracted ID
-            # e.g. if we have "NODE_123'", then we'd get to here with output_id
-            # being "-123'". So we remove the trailing "'", on the assumption
-            # that the numerical ID contained in a FASTG node ID won't include
-            # a "'".
-            if output_id[-1] == "'":
-                output_id = output_id[:-1]
-    return output_id
 
 
 def n50(node_lengths):
@@ -162,31 +94,6 @@ def add_node_to_stdmode_mapping(nodeid2obj, n, rc=None):
     return nodeid2obj
 
 
-def run_spqr_script(invocation):
-    """Runs the SPQR script using check_output().
-
-    Catches Exceptions caused by running the SPQR script, and then re-raises
-    them with some added context.
-
-    (I know that catching any Exception without alerting the user is
-    generally bad practice, but here we stop execution *and* preserve the
-    error that occurred. The main goal here is to let the user know that the
-    probable cause of this error was running the SPQR script -- I figure
-    errors will usually be thrown here due to the user using -spqr without
-    first building the script for their system.)
-    """
-    try:
-        check_output(invocation, stderr=STDOUT)
-    except:  # noqa
-        # We assume that the thing printed before this was config.SPQR_MSG,
-        # with no trailing newline (hence why we prepend a newline to the first
-        # config.MESSAGE_BORDER).
-        print("\n" + config.MESSAGE_BORDER)
-        print(config.SPQR_MISC_ERR)
-        print(config.MESSAGE_BORDER)
-        raise
-
-
 def make_viz(
     input_file: str,
     output_dir: str,
@@ -215,10 +122,17 @@ def make_viz(
     # Hierarchically decompose graph, creating duplicate nodes where needed
     # TODO: Have this utilize user-supplied bubbles and patterns. They should
     # be "lowest level" patterns, i.e. collapsed first.
+    # ALSO TODO: Have this use fancier complex bubble detection, similar to
+    # what's described in the MaryGold / MetaFlye papers. For now very complex
+    # bubbles are assumed to be covered by decomposition or by user input, but
+    # this will not always be the case.
     operation_msg("Running hierarchical pattern decomposition...")
     asm_graph.hierarchically_identify_patterns()
     conclude_msg()
 
+    operation_msg("Scaling nodes based on lengths...")
+    asm_graph.scale_nodes()
+    conclude_msg()
     # Immediate TODO:
     # -For each component in the graph, do node scaling. (Can likely be an
     #  assemblygraph operation.)

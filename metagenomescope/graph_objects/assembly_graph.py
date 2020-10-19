@@ -1,6 +1,8 @@
+import math
 from copy import deepcopy
+import numpy
 import networkx as nx
-from .. import assembly_graph_parser
+from .. import assembly_graph_parser, config
 from .pattern import StartEndPattern, Pattern
 
 
@@ -22,9 +24,6 @@ class AssemblyGraph(object):
     def __init__(self, filename):
         """Parses the input graph file and initializes the AssemblyGraph."""
         self.filename = filename
-        self.nodes = []
-        self.edges = []
-        self.components = []
 
         # Each entry in these structures will be a Pattern (or subclass).
         # NOTE that these patterns will only be "represented" in
@@ -43,6 +42,9 @@ class AssemblyGraph(object):
         # parser that define the expected node/edge attrs) to patchwork (just
         # return 3 things from each parsing function and from parse(), where
         # the last two things are tuples of node and edge attrs respectively).
+        # Eventually we'll need to check for conflicting attribute names (e.g.
+        # relative_length, longside_proportion, etc.) Maybe reserve _mgsc as
+        # proportion prefix?
         self.digraph = assembly_graph_parser.parse(self.filename)
         self.reindex_digraph()
 
@@ -812,3 +814,52 @@ class AssemblyGraph(object):
 
     def to_cytoscape_compatible_format(self):
         """TODO."""
+
+    def scale_nodes(self):
+        """Scales nodes in the graph based on their lengths.
+
+           This assigns two new attributes for each node:
+
+           1. relative_length: a number in the range [0, 1]. Corresponds to
+              where log(node length) falls in a range between log(min node
+              length) and log(max node length), relative to the rest of the
+              graph's nodes. Used for scaling node area.
+
+           2. longside_proportion: another number in the range [0, 1], assigned
+              based on the relative percentile range the node's log length
+              falls into. Used for determining the proportions of a node, and
+              how "long" it looks.
+
+           Previously, this scaled nodes in separate components differently.
+           However, MetagenomeScope will (soon) be able to show multiple
+           components at once, so we scale nodes based on the min/max lengths
+           throughout the entire graph.
+        """
+        node_lengths = nx.get_node_attributes(self.digraph, "length")
+        node_log_lengths = {}
+        for node, length in node_lengths.items():
+            node_log_lengths[node] = math.log(
+                length,
+                config.CONTIG_SCALING_LOG_BASE
+            )
+        min_log_len = min(node_log_lengths.values())
+        max_log_len = max(node_log_lengths.values())
+        if min_log_len == max_log_len:
+            for node in self.digraph.nodes:
+                self.digraph.nodes[node]["relative_length"] = 0.5
+                self.digraph.nodes[node]["longside_proportion"] = \
+                    config.MID_LONGSIDE_PROPORTION
+        else:
+            log_len_range = max_log_len - min_log_len
+            q25, q75 = numpy.percentile(list(node_log_lengths.values()), [25, 75])
+            for node in self.digraph.nodes:
+                node_log_len = node_log_lengths[node]
+                self.digraph.nodes[node]["relative_length"] = \
+                    (node_log_len - min_log_len) / log_len_range
+                if node_log_len < q25:
+                    lp = config.LOW_LONGSIDE_PROPORTION
+                elif node_log_len < q75:
+                    lp = config.MID_LONGSIDE_PROPORTION
+                else:
+                    lp = config.HIGH_LONGSIDE_PROPORTION
+                self.digraph.nodes[node]["longside_proportion"] = lp
