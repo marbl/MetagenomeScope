@@ -574,6 +574,7 @@ class AssemblyGraph(object):
         this pattern's ID to (# nodes).
         """
         pattern_id = self.get_new_node_id()
+
         # Get incoming edges to this pattern
         in_edges = self.decomposed_digraph.in_edges(member_node_ids)
         p_in_edges = list(
@@ -644,7 +645,7 @@ class AssemblyGraph(object):
             self.digraph.add_node(new_node_id, is_dup=True, **data)
 
             # Duplicate outgoing edges of the duplicated node
-            for edge in self.digraph.out_edges(end_node_to_dup):
+            for edge in list(self.digraph.out_edges(end_node_to_dup)):
                 edge_data = self.digraph.edges[edge]
                 self.digraph.add_edge(new_node_id, edge[1], **edge_data)
                 self.digraph.remove_edge(end_node_to_dup, edge[1])
@@ -658,13 +659,13 @@ class AssemblyGraph(object):
         if "pattern_type" in self.decomposed_digraph.nodes[ending_node_id]:
             self.decomposed_digraph.add_edge(pattern_id, ending_node_id, is_dup=True)
             # Get starting node of the ending pattern, and duplicate it
-            start_node_to_dup = self.id2pattern[ending_node_id].get_end_node()
+            start_node_to_dup = self.id2pattern[ending_node_id].get_start_node()
             data = self.digraph.nodes[start_node_to_dup]
             new_node_id = self.get_new_node_id()
             self.digraph.add_node(new_node_id, is_dup=True, **data)
 
             # Duplicate incoming edges of the duplicated node
-            for edge in self.digraph.in_edges(start_node_to_dup):
+            for edge in list(self.digraph.in_edges(start_node_to_dup)):
                 edge_data = self.digraph.edges[edge]
                 self.digraph.add_edge(edge[0], new_node_id, **edge_data)
                 self.digraph.remove_edge(edge[0], start_node_to_dup)
@@ -674,6 +675,22 @@ class AssemblyGraph(object):
             member_node_ids.remove(ending_node_id)
             member_node_ids.append(new_node_id)
             ending_node_id = new_node_id
+
+        # NOTE TODO abstract between this and prev func.
+        # Get incoming edges to this pattern
+        in_edges = self.decomposed_digraph.in_edges(member_node_ids)
+        p_in_edges = list(
+            filter(lambda e: e[0] not in member_node_ids, in_edges)
+        )
+        # Get outgoing edges from this pattern
+        out_edges = self.decomposed_digraph.out_edges(member_node_ids)
+        p_out_edges = list(
+            filter(lambda e: e[1] not in member_node_ids, out_edges)
+        )
+        for e in p_in_edges:
+            self.decomposed_digraph.add_edge(e[0], pattern_id)
+        for e in p_out_edges:
+            self.decomposed_digraph.add_edge(pattern_id, e[1])
 
         # Remove the children of this pattern from the decomposed DiGraph.
         self.decomposed_digraph.remove_nodes_from(member_node_ids)
@@ -737,6 +754,7 @@ class AssemblyGraph(object):
                             p = self.add_pattern(pattern_node_ids, ptype)
 
                         collection.append(p)
+                        candidate_nodes.append(p.pattern_id)
                         self.id2pattern[p.pattern_id] = p
                         for pn in p.node_ids:
                             # Remove nodes if they're in candidate nodes. There

@@ -142,13 +142,13 @@ def test_bubble_cyclic_chain_identification():
         "metagenomescope/tests/input/bubble_chain_test.gml"
     )
     ag.hierarchically_identify_patterns()
-    write_dot(ag.decomposed_digraph, "dec.gv")
-    write_dot(ag.digraph, "digraph.gv")
-    for bub in ag.bubbles:
-        print(bub)
-    assert len(ag.decomposed_digraph.nodes) == 4
-    assert len(ag.decomposed_digraph.edges) == 4
-    assert len(ag.chains) == 1
-    assert len(ag.cyclic_chains) == 0
+    # write_dot(ag.decomposed_digraph, "dec.gv")
+    # write_dot(ag.digraph, "digraph.gv")
+    # for bub in ag.bubbles:
+    #     print(bub)
+    assert len(ag.decomposed_digraph.nodes) == 1
+    assert len(ag.decomposed_digraph.edges) == 0
+    assert len(ag.chains) == 0
+    assert len(ag.cyclic_chains) == 1
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 4

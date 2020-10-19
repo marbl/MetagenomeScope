@@ -24,6 +24,11 @@ class Pattern(object):
         self.pattern_type = pattern_type
         self.node_ids = node_ids
 
+    def __repr__(self):
+        return "{} (ID {}) of nodes {}".format(
+            self.pattern_type, self.pattern_id, self.node_ids
+        )
+
 class StartEndPattern(Pattern):
 
     def __init__(self, pattern_id, pattern_type, node_ids, start_node_id, end_node_id):
