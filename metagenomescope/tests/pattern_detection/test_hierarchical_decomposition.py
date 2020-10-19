@@ -34,7 +34,7 @@ def test_simple_hierarch_decomp():
         "metagenomescope/tests/input/hierarchical_test_graph.gml"
     )
     ag.hierarchically_identify_patterns()
-    write_dot(ag.decomposed_digraph, "dec.gv")
+    # write_dot(ag.decomposed_digraph, "dec.gv")
     # This is with the "maximum" decomposition settings for this test graph.
     assert len(ag.decomposed_digraph.nodes) == 7
     assert len(ag.decomposed_digraph.edges) == 8
@@ -138,4 +138,17 @@ def test_bubble_cyclic_chain_identification():
     ... where the nodes "shared" by adjacent bubbles (4, 7, 10, 1) are all
     duplicated.
     """
-    raise NotImplementedError
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/bubble_chain_test.gml"
+    )
+    ag.hierarchically_identify_patterns()
+    write_dot(ag.decomposed_digraph, "dec.gv")
+    write_dot(ag.digraph, "digraph.gv")
+    for bub in ag.bubbles:
+        print(bub)
+    assert len(ag.decomposed_digraph.nodes) == 4
+    assert len(ag.decomposed_digraph.edges) == 4
+    assert len(ag.chains) == 1
+    assert len(ag.cyclic_chains) == 0
+    assert len(ag.frayed_ropes) == 0
+    assert len(ag.bubbles) == 4

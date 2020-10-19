@@ -586,7 +586,8 @@ class AssemblyGraph(object):
         )
         # Add this pattern to the decomposed digraph, with the same in/out
         # nodes as in the subgraph of this pattern's nodes
-        self.decomposed_digraph.add_node(pattern_id, pattern_type=pattern_type)
+        self.decomposed_digraph.add_node(pattern_id, pattern_type=pattern_type,
+                children=member_node_ids)
         for e in p_in_edges:
             self.decomposed_digraph.add_edge(e[0], pattern_id)
         for e in p_out_edges:
@@ -622,9 +623,11 @@ class AssemblyGraph(object):
         Returns the unique ID of the bubble.
         """
         pattern_id = self.get_new_node_id()
-        self.decomposed_digraph.add_node(pattern_id)
+        self.decomposed_digraph.add_node(
+            pattern_id, pattern_type="bubble", children=member_node_ids
+        )
 
-        if "pattern_type" in g.nodes[starting_node_id]:
+        if "pattern_type" in self.decomposed_digraph.nodes[starting_node_id]:
             # In the decomposed digraph, link the starting pattern with the
             # curr pattern.
             self.decomposed_digraph.add_edge(starting_node_id, pattern_id, is_dup=True)
@@ -648,9 +651,11 @@ class AssemblyGraph(object):
 
             self.digraph.add_edge(end_node_to_dup, new_node_id, is_dup=True)
 
+            member_node_ids.remove(starting_node_id)
+            member_node_ids.append(new_node_id)
             starting_node_id = new_node_id
 
-        if "pattern_type" in g.nodes[ending_node_id]:
+        if "pattern_type" in self.decomposed_digraph.nodes[ending_node_id]:
             self.decomposed_digraph.add_edge(pattern_id, ending_node_id, is_dup=True)
             # Get starting node of the ending pattern, and duplicate it
             start_node_to_dup = self.id2pattern[ending_node_id].get_end_node()
@@ -666,6 +671,8 @@ class AssemblyGraph(object):
 
             self.digraph.add_edge(new_node_id, start_node_to_dup, is_dup=True)
 
+            member_node_ids.remove(ending_node_id)
+            member_node_ids.append(new_node_id)
             ending_node_id = new_node_id
 
         # Remove the children of this pattern from the decomposed DiGraph.
@@ -732,7 +739,16 @@ class AssemblyGraph(object):
                         collection.append(p)
                         self.id2pattern[p.pattern_id] = p
                         for pn in p.node_ids:
-                            candidate_nodes.remove(pn)
+                            # Remove nodes if they're in candidate nodes. There
+                            # may be nodes in this pattern not in candidate
+                            # nodes, e.g. if duplication was done. In that case
+                            # no need to do anything for those nodes.
+                            # This should perform decently; see
+                            # https://stackoverflow.com/a/4915964/10730311.
+                            try:
+                                candidate_nodes.remove(pn)
+                            except ValueError:
+                                continue
                         something_collapsed = True
                     else:
                         # If the pattern wasn't invalid, we still need to
