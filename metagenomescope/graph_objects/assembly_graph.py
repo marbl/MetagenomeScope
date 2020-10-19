@@ -269,7 +269,7 @@ class AssemblyGraph(object):
            chain.
         """
         # Starting node must be either an uncollapsed node or another bubble
-        if is_bubble_boundary_node_invalid(starting_node_id):
+        if AssemblyGraph.is_bubble_boundary_node_invalid(g, starting_node_id):
             return False, None
 
         # The starting node in a 3-node bubble must have exactly 2 out edges
@@ -294,7 +294,7 @@ class AssemblyGraph(object):
         # more verification.
 
         # Verify that end node is either an uncollapsed node or another bubble
-        if is_bubble_boundary_node_invalid(e):
+        if AssemblyGraph.is_bubble_boundary_node_invalid(g, e):
             return False, None
 
         # First, check that the middle node points to the end node: if not,
@@ -356,7 +356,7 @@ class AssemblyGraph(object):
 
         # For now, bubbles can only start with 1) uncollapsed nodes or 2) other
         # bubbles (which'll cause us to duplicate stuff)
-        if is_bubble_boundary_node_invalid(starting_node_id):
+        if AssemblyGraph.is_bubble_boundary_node_invalid(g, starting_node_id):
             return False, None
 
         # The starting node in a bubble obviously must have at least 2 outgoing
@@ -393,7 +393,7 @@ class AssemblyGraph(object):
         # Check that the ending node is reasonable
 
         # If the ending node is a non-bubble pattern, reject this (for now).
-        if is_bubble_boundary_node_invalid(ending_node_id):
+        if AssemblyGraph.is_bubble_boundary_node_invalid(g, ending_node_id):
             return False, None
 
         # If the ending node has any incoming nodes that aren't in m_node_ids,

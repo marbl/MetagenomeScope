@@ -40,15 +40,18 @@ def test_easy_bubble():
     g = get_easy_bubble_graph()
     results = AssemblyGraph.is_valid_bubble(g, 0)
 
-    assert len(results) == 2
+    assert len(results) == 4
     assert results[0]
     # Unlike the chain detection tests, we don't look at results[1] (the list
     # of IDs in the pattern) directly. Instead, we convert it to a set, and
     # compare using that. This is because we don't care about the ID order
     # here (I don't think order really matters in the chain node ID list,
     # either, but it's at least easy to list it out there... whereas here,
-    # it's kind of amibiguous which middle paths occur in what order.)
+    # it's kind of ambiguous which middle paths occur in what order.)
     assert set(results[1]) == set([0, 1, 2, 3])
+    # Check that start and ending nodes identified
+    assert results[2] == 0
+    assert results[3] == 3
 
 
 def test_easy_bubble_fails_when_starting_point_bad():
@@ -66,6 +69,8 @@ def test_easy_3_node_bubble():
     g = get_3_node_bubble_graph()
     results = AssemblyGraph.is_valid_3node_bubble(g, 0)
     assert results[0] and set(results[1]) == set([0, 1, 2])
+    assert results[2] == 0
+    assert results[3] == 2
 
 
 def test_3node_bubble_func_fails_on_normal_bubble():
