@@ -1,5 +1,4 @@
 import os
-from . import config
 
 
 def create_output_dir(output_dir):
@@ -11,7 +10,7 @@ def create_output_dir(output_dir):
     os.makedirs(output_dir)
 
 
-def validate_max_counts(max_node_count, max_edge_count):
+def validate_max_counts(max_node_ct, max_edge_ct):
     if max_node_ct < 1:
         raise ValueError("Maximum node count must be at least 1")
     if max_edge_ct < 1:

@@ -44,11 +44,11 @@ def test_reverse_complement():
         for b in range(len(seq)):
             assert config.COMPLEMENT[seq[b]] == seq_rc[len(seq_rc) - b - 1]
     # Non-ACGT
-    with pytest.raises(KeyError) as ki:
+    with pytest.raises(KeyError):
         input_node_utils.reverse_complement("ACTMG")
-    with pytest.raises(KeyError) as ki:
+    with pytest.raises(KeyError):
         input_node_utils.reverse_complement("AUCGT")
-    with pytest.raises(KeyError) as ki:
+    with pytest.raises(KeyError):
         input_node_utils.reverse_complement("ZZZZZZZZ")
 
 

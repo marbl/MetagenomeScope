@@ -1,4 +1,3 @@
-from networkx.drawing.nx_agraph import write_dot
 from metagenomescope.graph_objects import AssemblyGraph
 
 
