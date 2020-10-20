@@ -52,6 +52,7 @@ def test_scale_nodes_all_lengths_equal():
             == config.MID_LONGSIDE_PROPORTION
         )
 
+# TODO FIX
 def test_has_edge_weights():
     ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
     assert not ag.has_edge_weights()

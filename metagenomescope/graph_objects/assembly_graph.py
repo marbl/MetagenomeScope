@@ -84,23 +84,33 @@ class AssemblyGraph(object):
         self.num_nodes += 1
         return new_id
 
-    def has_edge_weights(self, field_names=["bsize", "multiplicity"]):
-        """Returns True if edges in the graph have weights, False otherwise.
+    def get_edge_weight_field(self, field_names=["bsize", "multiplicity"]):
+        """Returns the name of the edge weight field this graph has.
 
-           (If this is the case, then we can do edge thickness scaling.)
+           If the graph does not have any edge weight fields, returns None.
 
-           The list of field names analogous to "edge weights" is configurable
-           via the field_names parameter.
+           The list of field names corresponding to "edge weights" is
+           configurable via the field_names parameter.
 
            NOTE that this assumes that at least one edge having a weight
            implies that the other edges in the graph have weights. This should
            always be the case, but if there are graphs with partial edge weight
            data then this may cause problems with scaling later on.
         """
+        fn_had = None
         for fn in field_names:
             if len(nx.get_edge_attributes(self.digraph, fn)) > 0:
-                return True
-        return False
+                if fn_had is None:
+                    fn_had = fn
+                else:
+                    raise ValueError(
+                        (
+                            "Graph has multiple 'edge weight' fields, "
+                            "including {} and {}. It's ambiguous which we "
+                            "should use for scaling."
+                        ).format(fn_had, fn)
+                    )
+        return fn_had
 
     @staticmethod
     def is_valid_frayed_rope(g, starting_node_id):
@@ -884,3 +894,44 @@ class AssemblyGraph(object):
                 else:
                     lp = config.HIGH_LONGSIDE_PROPORTION
                 self.digraph.nodes[node]["longside_proportion"] = lp
+
+    def scale_edges(self):
+        """Scales edges in the graph based on their weights, if present.
+
+        If this graph has edge weights, this assigns two new attributes for
+        each edge:
+
+        1. is_outlier: one of -1, 0, or 1. Ways to interpret this:
+            -1: This edge's weight is a low outlier
+             0: This edge's weight is not an outlier
+             1: This edge's weight is a high outlier
+
+           NOTE that if the graph has less than 4 edges, this'll just set all
+           of their is_outlier values to 0 (since with such a small number of
+           data points the notion of "outliers" kinda breaks apart).
+
+        2. relative_weight: a number in the range [0, 1]. If this edge is not
+           an outlier, this corresponds to where this edge's weight falls
+           within a range between the minimum non-outlier edge weight and the
+           maximum non-outlier edge weight. If this edge is a low outlier, this
+           will just be 0, and if this edge is a high outlier, this will just
+           be 1.
+
+        Relative scaling will only be done for non-outlier edges. This helps
+        make things look more consistent.
+
+        Outlier detection is done using "inner" Tukey fences, as described in
+        Exploratory Data Analysis (1977).
+        """
+        ew_field = self.get_edge_weight_field()
+        if ew_field is not None:
+            weights = nx.get_edge_attributes(self.digraph, ew_field)
+            # If there are < 4 edges in this connected component, don't bother
+            # with flagging outliers -- at that point, computing quartiles
+            # becomes a bit silly.
+            if len(weights) >= 4:
+                pass
+            else:
+                pass
+
+            # TODO assign stuff to the is_outlier and relative_weight fields
