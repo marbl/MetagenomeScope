@@ -84,6 +84,24 @@ class AssemblyGraph(object):
         self.num_nodes += 1
         return new_id
 
+    def has_edge_weights(self, field_names=["bsize", "multiplicity"]):
+        """Returns True if edges in the graph have weights, False otherwise.
+
+           (If this is the case, then we can do edge thickness scaling.)
+
+           The list of field names analogous to "edge weights" is configurable
+           via the field_names parameter.
+
+           NOTE that this assumes that at least one edge having a weight
+           implies that the other edges in the graph have weights. This should
+           always be the case, but if there are graphs with partial edge weight
+           data then this may cause problems with scaling later on.
+        """
+        for fn in field_names:
+            if len(nx.get_edge_attributes(self.digraph, fn)) > 0:
+                return True
+        return False
+
     @staticmethod
     def is_valid_frayed_rope(g, starting_node_id):
         r"""Returns a 2-tuple of (True, a list of all the nodes in the f. rope)

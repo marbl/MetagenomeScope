@@ -62,6 +62,11 @@ def make_viz(
     asm_graph.scale_nodes()
     conclude_msg()
 
+    if asm_graph.has_edge_weights():
+        operation_msg("Scaling edges based on weights...")
+        asm_graph.scale_edges()
+        conclude_msg()
+
     # Immediate TODO:
     # -For each component in the graph, do edge scaling.
     #   - will need to modify asm graph parsers to return edge attrs,

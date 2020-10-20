@@ -51,3 +51,13 @@ def test_scale_nodes_all_lengths_equal():
             ag.digraph.nodes[node]["longside_proportion"]
             == config.MID_LONGSIDE_PROPORTION
         )
+
+def test_has_edge_weights():
+    ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
+    assert not ag.has_edge_weights()
+
+    ag = AssemblyGraph("metagenomescope/tests/input/cycletest_LastGraph")
+    assert ag.has_edge_weights()
+
+    ag = AssemblyGraph("metagenomescope/tests/input/marygold_fig2a.gml")
+    assert ag.has_edge_weights()
