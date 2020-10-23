@@ -52,7 +52,7 @@ def test_scale_nodes_all_lengths_equal():
             == config.MID_LONGSIDE_PROPORTION
         )
 
-# TODO FIX
+
 def test_has_edge_weights():
     ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
     assert not ag.has_edge_weights()
@@ -62,3 +62,14 @@ def test_has_edge_weights():
 
     ag = AssemblyGraph("metagenomescope/tests/input/marygold_fig2a.gml")
     assert ag.has_edge_weights()
+
+
+def test_get_edge_weight_field():
+    ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
+    assert ag.get_edge_weight_field() is None
+
+    ag = AssemblyGraph("metagenomescope/tests/input/cycletest_LastGraph")
+    assert ag.get_edge_weight_field() is "multiplicity"
+
+    ag = AssemblyGraph("metagenomescope/tests/input/marygold_fig2a.gml")
+    assert ag.get_edge_weight_field() is "bsize"

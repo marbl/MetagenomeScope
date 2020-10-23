@@ -90,7 +90,10 @@ class AssemblyGraph(object):
            If the graph does not have any edge weight fields, returns None.
 
            The list of field names corresponding to "edge weights" is
-           configurable via the field_names parameter.
+           configurable via the field_names parameter. The two fields accepted
+           now (bsize and multiplicity) are both verified in the assembly graph
+           parser to correspond to positive integers, so future fields accepted
+           as edge weights should also be verified in this way.
 
            NOTE that this assumes that at least one edge having a weight
            implies that the other edges in the graph have weights. This should
@@ -111,6 +114,10 @@ class AssemblyGraph(object):
                         ).format(fn_had, fn)
                     )
         return fn_had
+
+    def has_edge_weights(self):
+        """Returns True if the graph has edge weight data, False otherwise."""
+        return self.get_edge_weight_field() is not None
 
     @staticmethod
     def is_valid_frayed_rope(g, starting_node_id):
@@ -923,15 +930,67 @@ class AssemblyGraph(object):
         Outlier detection is done using "inner" Tukey fences, as described in
         Exploratory Data Analysis (1977).
         """
+        def _assign_default_weight_attrs(edges):
+            """Assigns "normal" attributes to each edge in edges."""
+            for edge in edges:
+                self.digraph.edges[edge]["is_outlier"] = 0
+                self.digraph.edges[edge]["relative_weight"] = 0.5
+
         ew_field = self.get_edge_weight_field()
         if ew_field is not None:
             weights = nx.get_edge_attributes(self.digraph, ew_field)
-            # If there are < 4 edges in this connected component, don't bother
-            # with flagging outliers -- at that point, computing quartiles
-            # becomes a bit silly.
+            non_outlier_edges = []
+            non_outlier_edge_weights = []
+            # Only try to flag outlier edges if the graph contains at least 4
+            # edges. With < 4 data points, computing quartiles becomes a bit
+            # silly.
             if len(weights) >= 4:
-                pass
+                # Calculate lower and upper Tukey fences. First, compute the
+                # upper and lower quartiles (aka the 25th and 75th percentiles)
+                lq, uq = numpy.percentile(weights, [25, 75])
+                # Determine 1.5 * the interquartile range.
+                # (If desired, we could use other values besides 1.5 -- this
+                # isn't set in stone.)
+                d = 1.5 * (uq - lq)
+                # Now we can calculate the actual Tukey fences:
+                lf = lq - d
+                uf = uq + d
+                # Now, iterate through every edge and flag outliers.
+                # Non-outlier edges will be added to a list of edges that we'll
+                # scale relatively.
+                for edge in self.digraph.edges:
+                    ew = edge[ew_field]
+                    if ew > uf:
+                        self.digraph.edges[edge]["is_outlier"] = 1
+                        self.digraph.edges[edge]["relative_weight"] = 1
+                    elif ew < lf:
+                        self.digraph.edges[edge]["is_outlier"] = -1
+                        self.digraph.edges[edge]["relative_weight"] = 0
+                    else:
+                        self.digraph.edges[edge]["is_outlier"] = 0
+                        non_outlier_edges.append(edge)
+                        non_outlier_edge_weights.append(ew)
             else:
-                pass
+                # There are < 4 edges, so consider all edges as "non-outliers."
+                for edge in self.digraph.edges:
+                    self.digraph.edges[edge]["is_outlier"] = 0
+                    non_outlier_edges.append(edge)
+                    non_outlier_edge_weights.append(edge[ew_field])
 
-            # TODO assign stuff to the is_outlier and relative_weight fields
+            # Perform relative scaling for non-outlier edges, if possible.
+            if len(non_outlier_edges) >= 2:
+                min_ew = min(non_outlier_edge_weights)
+                max_ew = max(non_outlier_edge_weights)
+                if min_ew != max_ew:
+                    ew_range = max_ew - min_ew
+                    for edge in non_outlier_edges:
+                        rw = edge[ew_field] / ew_range
+                        self.digraph.edges[edge]["relative_weight"] = rw
+                else:
+                    # Can't do edge scaling, so just assign this list of edges
+                    # (... which should in practice just be a list with one or
+                    # zero edges, I guess...?) "default" edge weight attributes
+                    _assign_default_weight_attrs(non_outlier_edges)
+        else:
+            # Can't do edge scaling, so just assign every edge "default" attrs
+            _assign_default_weight_attrs(self.digraph.edges)
