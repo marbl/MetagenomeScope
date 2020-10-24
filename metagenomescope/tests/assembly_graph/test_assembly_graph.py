@@ -87,9 +87,17 @@ def test_scale_edges_four_edges():
     # relative weight of 1.
     for edge in ag.digraph.edges:
         data = ag.digraph.edges[edge]
-        print(edge, data)
         assert not data["is_outlier"]
         if data["multiplicity"] == 5:
             assert data["relative_weight"] == 0
         else:
             assert data["relative_weight"] == 1
+
+
+def test_scale_edges_no_edge_weights():
+    ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
+    ag.scale_edges()
+    for edge in ag.digraph.edges:
+        data = ag.digraph.edges[edge]
+        assert not data["is_outlier"]
+        assert data["relative_weight"] == 0.5

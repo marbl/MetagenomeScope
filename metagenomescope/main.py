@@ -62,17 +62,13 @@ def make_viz(
     asm_graph.scale_nodes()
     conclude_msg()
 
-    if asm_graph.has_edge_weights():
-        operation_msg("Scaling edges based on weights...")
-        asm_graph.scale_edges()
-        conclude_msg()
+    # TODO: don't display this if no edge weight data available. right now it's
+    # ok tho since scale_edges() detects that case and behaves accordingly
+    operation_msg("Attempting to scale edges based on weights...")
+    asm_graph.scale_edges()
+    conclude_msg()
 
     # Immediate TODO:
-    # -For each component in the graph, do edge scaling.
-    #   - will need to modify asm graph parsers to return edge attrs,
-    #     and then use this to determine if edge weights available. add method
-    #     that (conditionally upon that) does said scaling within asm graph.
-    #
     # -Compute graph layouts. For each component:
     #   -Lay out individual patterns, starting at lowest level and moving up.
     #    Similar to SPQR layout code.
