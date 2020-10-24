@@ -114,7 +114,7 @@ def test_scale_edges_all_edge_weights_equal():
 
 def test_scale_edges_high_outlier():
     ag = AssemblyGraph(
-        "metagenomescope/tests/input/edge_scaling_test.LastGraph"
+        "metagenomescope/tests/input/edge_scaling_test_high.LastGraph"
     )
     ag.scale_edges()
     for edge in ag.digraph.edges:
@@ -134,5 +134,55 @@ def test_scale_edges_high_outlier():
             assert data["relative_weight"] == 1
         else:
             # The edges with weight 1000 are high outliers!
+            assert data["is_outlier"] == 1
+            assert data["relative_weight"] == 1
+
+
+def test_scale_edges_low_outlier():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/edge_scaling_test_low.LastGraph"
+    )
+    ag.scale_edges()
+    # Low outlier weights: 1
+    # Non-outlier weights: 1000, 1001, 1005
+    for edge in ag.digraph.edges:
+        data = ag.digraph.edges[edge]
+        if data["multiplicity"] == 1:
+            assert data["is_outlier"] == -1
+            assert data["relative_weight"] == 0
+        elif data["multiplicity"] == 1000:
+            assert data["is_outlier"] == 0
+            assert data["relative_weight"] == 0
+        elif data["multiplicity"] == 1001:
+            assert data["is_outlier"] == 0
+            assert data["relative_weight"] == 1 / 5
+        else:
+            assert data["is_outlier"] == 0
+            assert data["relative_weight"] == 1
+
+
+def test_scale_edges_low_and_high_outliers():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/edge_scaling_test_both_outliers.LastGraph"
+    )
+    ag.scale_edges()
+    # Low outlier weights: 1
+    # High outlier weights: 2001
+    # Non-outlier weights: 1000, 1001, 1005
+    for edge in ag.digraph.edges:
+        data = ag.digraph.edges[edge]
+        if data["multiplicity"] == 1:
+            assert data["is_outlier"] == -1
+            assert data["relative_weight"] == 0
+        elif data["multiplicity"] == 1000:
+            assert data["is_outlier"] == 0
+            assert data["relative_weight"] == 0
+        elif data["multiplicity"] == 1001:
+            assert data["is_outlier"] == 0
+            assert data["relative_weight"] == 1 / 5
+        elif data["multiplicity"] == 1005:
+            assert data["is_outlier"] == 0
+            assert data["relative_weight"] == 1
+        else:
             assert data["is_outlier"] == 1
             assert data["relative_weight"] == 1
