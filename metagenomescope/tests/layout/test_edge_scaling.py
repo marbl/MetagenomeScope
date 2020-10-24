@@ -193,4 +193,3 @@ def test_scale_edges_dup_edges():
     # And it should have the default scaling values
     assert ag.digraph.edges[0, 0]["is_outlier"] == 0
     assert ag.digraph.edges[0, 0]["relative_weight"] == 0.5
-
