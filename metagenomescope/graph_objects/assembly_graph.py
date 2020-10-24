@@ -978,15 +978,16 @@ class AssemblyGraph(object):
                 # Non-outlier edges will be added to a list of edges that we'll
                 # scale relatively.
                 for edge in self.digraph.edges:
-                    ew = self.digraph.edges[edge][ew_field]
+                    data = self.digraph.edges[edge]
+                    ew = data[ew_field]
                     if ew > uf:
-                        self.digraph.edges[edge]["is_outlier"] = 1
-                        self.digraph.edges[edge]["relative_weight"] = 1
+                        data["is_outlier"] = 1
+                        data["relative_weight"] = 1
                     elif ew < lf:
-                        self.digraph.edges[edge]["is_outlier"] = -1
-                        self.digraph.edges[edge]["relative_weight"] = 0
+                        data["is_outlier"] = -1
+                        data["relative_weight"] = 0
                     else:
-                        self.digraph.edges[edge]["is_outlier"] = 0
+                        data["is_outlier"] = 0
                         non_outlier_edges.append(edge)
                         non_outlier_edge_weights.append(ew)
             else:
