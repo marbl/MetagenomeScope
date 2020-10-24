@@ -38,7 +38,7 @@ def make_viz(
     nbdf: bool,
     npdf: bool,
 ):
-    arg_utils.create_output_dir(output_dir)
+    arg_utils.check_dir_existence(output_dir)
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
     # Parse the assembly graph!
@@ -70,8 +70,9 @@ def make_viz(
 
     operation_msg("Laying out the graph...", True)
     asm_graph.layout()
-    operation_msg("...Finished laying out the graph.")
+    operation_msg("...Finished laying out the graph.", True)
 
+    arg_utils.create_output_dir(output_dir)
     # Immediate TODO:
     # -Compute graph layouts. For each component:
     #   -Lay out individual patterns, starting at lowest level and moving up.
