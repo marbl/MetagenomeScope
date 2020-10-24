@@ -87,7 +87,7 @@ def test_scale_edges_four_edges():
     # relative weight of 1.
     for edge in ag.digraph.edges:
         data = ag.digraph.edges[edge]
-        assert not data["is_outlier"]
+        assert data["is_outlier"] == 0
         if data["multiplicity"] == 5:
             assert data["relative_weight"] == 0
         else:
@@ -99,7 +99,7 @@ def test_scale_edges_no_edge_weights():
     ag.scale_edges()
     for edge in ag.digraph.edges:
         data = ag.digraph.edges[edge]
-        assert not data["is_outlier"]
+        assert data["is_outlier"] == 0
         assert data["relative_weight"] == 0.5
 
 
@@ -108,5 +108,31 @@ def test_scale_edges_all_edge_weights_equal():
     ag.scale_edges()
     for edge in ag.digraph.edges:
         data = ag.digraph.edges[edge]
-        assert not data["is_outlier"]
+        assert data["is_outlier"] == 0
         assert data["relative_weight"] == 0.5
+
+
+def test_scale_edges_high_outlier():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/edge_scaling_test.LastGraph"
+    )
+    ag.scale_edges()
+    for edge in ag.digraph.edges:
+        data = ag.digraph.edges[edge]
+        # We omit the outlier edge weight (1000) from the non-outlier-edge
+        # relative scaling. So the "effective" min and max edge weights are 5
+        # and 99, ignoring the 1000s.
+        if data["multiplicity"] == 5:
+            assert data["is_outlier"] == 0
+            assert data["relative_weight"] == 0
+        elif data["multiplicity"] == 9:
+            assert data["is_outlier"] == 0
+            # (9 - 5) / (99 - 5) = 4 / 94 = 0.04255319...
+            assert data["relative_weight"] == approx(0.0425532)
+        elif data["multiplicity"] == 99:
+            assert data["is_outlier"] == 0
+            assert data["relative_weight"] == 1
+        else:
+            # The edges with weight 1000 are high outliers!
+            assert data["is_outlier"] == 1
+            assert data["relative_weight"] == 1
