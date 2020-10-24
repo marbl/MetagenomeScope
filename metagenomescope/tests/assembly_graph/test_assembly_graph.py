@@ -177,16 +177,21 @@ def test_scale_edges_low_outlier():
             assert data["relative_weight"] == 1
 
 
-def test_scale_edges_low_and_high_outliers():
-    ag = AssemblyGraph(
-        "metagenomescope/tests/input/edge_scaling_test_both_outliers.LastGraph"
-    )
-    ag.scale_edges()
+def _verify_both_graph(digraph, expected_dups = 0):
+    """Verifies the edge scaling values for all of the (real) edges in the
+    edge_scaling_test_both_outliers.LastGraph test graph.
+
+    Made this into a function so it can be reused between tests.
+    """
     # Low outlier weights: 1
     # High outlier weights: 2001
     # Non-outlier weights: 1000, 1001, 1005
-    for edge in ag.digraph.edges:
-        data = ag.digraph.edges[edge]
+    seen_dups = 0
+    for edge in digraph.edges:
+        data = digraph.edges[edge]
+        if "is_dup" in data:
+            seen_dups += 1
+            continue
         if data["multiplicity"] == 1:
             assert data["is_outlier"] == -1
             assert data["relative_weight"] == 0
@@ -202,3 +207,40 @@ def test_scale_edges_low_and_high_outliers():
         else:
             assert data["is_outlier"] == 1
             assert data["relative_weight"] == 1
+    if seen_dups != expected_dups:
+        raise ValueError(
+            "Expected {} dupe edges; saw {}.".format(expected_dups, seen_dups)
+        )
+
+
+def test_scale_edges_low_and_high_outliers():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/edge_scaling_test_both_outliers.LastGraph"
+    )
+    ag.scale_edges()
+    _verify_both_graph(ag.digraph, 0)
+
+
+def test_scale_edges_dup_edges():
+    """Test that edges marked with is_dup = True are assigned default values.
+
+    These particular edges are only used (as of writing, at least) to connect a
+    node with its duplicate. Scaling them doesn't make sense, since they don't
+    have any weight or anything (since they're not "real" edges).
+    """
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/edge_scaling_test_both_outliers.LastGraph"
+    )
+    # Simulate having a "duplicate" edge by connecting node 0 with itself. Not
+    # a perfect replication but good enough.
+    ag.digraph.add_edge(0, 0, is_dup=True)
+    ag.scale_edges()
+
+    # Verify that including a dup edge didn't break the other edge scaling
+    _verify_both_graph(ag.digraph, 1)
+
+    # This edge should, uh, remain a duplicate
+    assert ag.digraph.edges[0, 0]["is_dup"]
+    # And it should have the default scaling values
+    assert ag.digraph.edges[0, 0]["is_outlier"] == 0
+    assert ag.digraph.edges[0, 0]["relative_weight"] == 0.5

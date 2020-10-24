@@ -955,9 +955,17 @@ class AssemblyGraph(object):
 
         ew_field = self.get_edge_weight_field()
         if ew_field is not None:
-            weights = list(
-                nx.get_edge_attributes(self.digraph, ew_field).values()
-            )
+            real_edges = []
+            weights = []
+            fake_edges = []
+            for edge in self.digraph.edges:
+                data = self.digraph.edges[edge]
+                if "is_dup" not in data:
+                    real_edges.append(edge)
+                    weights.append(data[ew_field])
+                else:
+                    fake_edges.append(edge)
+
             non_outlier_edges = []
             non_outlier_edge_weights = []
             # Only try to flag outlier edges if the graph contains at least 4
@@ -977,23 +985,22 @@ class AssemblyGraph(object):
                 # Now, iterate through every edge and flag outliers.
                 # Non-outlier edges will be added to a list of edges that we'll
                 # scale relatively.
-                for edge in self.digraph.edges:
+                for edge in real_edges:
                     data = self.digraph.edges[edge]
-                    if "is_dup" not in data:
-                        ew = data[ew_field]
-                        if ew > uf:
-                            data["is_outlier"] = 1
-                            data["relative_weight"] = 1
-                        elif ew < lf:
-                            data["is_outlier"] = -1
-                            data["relative_weight"] = 0
-                        else:
-                            data["is_outlier"] = 0
-                            non_outlier_edges.append(edge)
-                            non_outlier_edge_weights.append(ew)
+                    ew = data[ew_field]
+                    if ew > uf:
+                        data["is_outlier"] = 1
+                        data["relative_weight"] = 1
+                    elif ew < lf:
+                        data["is_outlier"] = -1
+                        data["relative_weight"] = 0
+                    else:
+                        data["is_outlier"] = 0
+                        non_outlier_edges.append(edge)
+                        non_outlier_edge_weights.append(ew)
             else:
                 # There are < 4 edges, so consider all edges as "non-outliers."
-                for edge in self.digraph.edges:
+                for edge in real_edges:
                     data = self.digraph.edges[edge]
                     if "is_dup" not in data:
                         data["is_outlier"] = 0
@@ -1008,14 +1015,18 @@ class AssemblyGraph(object):
                 if min_ew != max_ew:
                     ew_range = max_ew - min_ew
                     for edge in non_outlier_edges:
-                        ew = self.digraph.edges[edge][ew_field]
+                        data = self.digraph.edges[edge]
+                        ew = data[ew_field]
                         rw = (ew - min_ew) / ew_range
-                        self.digraph.edges[edge]["relative_weight"] = rw
+                        data["relative_weight"] = rw
                 else:
                     # Can't do edge scaling, so just assign this list of edges
                     # (... which should in practice just be a list with one or
                     # zero edges, I guess...?) "default" edge weight attributes
                     _assign_default_weight_attrs(non_outlier_edges)
+            # Assign default edge weight attrs to fake edges, i.e. those
+            # between a node and its duplicate
+            _assign_default_weight_attrs(fake_edges)
         else:
             # Can't do edge scaling, so just assign every edge "default" attrs
             _assign_default_weight_attrs(self.digraph.edges)
