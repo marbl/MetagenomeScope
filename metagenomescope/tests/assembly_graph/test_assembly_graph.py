@@ -101,3 +101,12 @@ def test_scale_edges_no_edge_weights():
         data = ag.digraph.edges[edge]
         assert not data["is_outlier"]
         assert data["relative_weight"] == 0.5
+
+
+def test_scale_edges_all_edge_weights_equal():
+    ag = AssemblyGraph("metagenomescope/tests/input/marygold_fig2a.gml")
+    ag.scale_edges()
+    for edge in ag.digraph.edges:
+        data = ag.digraph.edges[edge]
+        assert not data["is_outlier"]
+        assert data["relative_weight"] == 0.5
