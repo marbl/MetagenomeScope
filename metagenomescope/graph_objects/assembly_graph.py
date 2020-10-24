@@ -1023,15 +1023,19 @@ class AssemblyGraph(object):
         # width/hgt, which would simplify this. However we choose to model this
         # data here, it'll get turned into JSON or whatever the same way -- so
         # not a big deal.
+
+        # First, lay out each pattern in isolation (this could involve multiple
+        # layers, since patterns can contain other patterns)
         for node_id in self.decomposed_digraph.nodes:
             if self.is_pattern(node_id):
-                # Lay out this pattern in isolation
-                # (... Recursively, since patterns can contain other
-                # patterns. Yuck!)
                 self.id2pattern[node_id].layout()
+
+        # Now that all patterns have been laid out, lay out each component at
+        # the top level.
         for cc_node_ids in nx.weakly_connected_components(
             self.decomposed_digraph
         ):
+            pass
             # Lay out this component, using the node and edge data as well as
             # the width/height assigned for pattern nodes.
         # For each component:

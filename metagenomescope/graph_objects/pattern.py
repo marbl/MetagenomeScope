@@ -41,6 +41,7 @@ class Pattern(object):
         # params \._./)
         # TODO: keep track of orientation for plain nodes. I guess add that to
         # the stuff stored in the nx dicts.
+        raise NotImplementedError
 
 
 class StartEndPattern(Pattern):
