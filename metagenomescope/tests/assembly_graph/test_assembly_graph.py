@@ -112,6 +112,22 @@ def test_scale_edges_all_edge_weights_equal():
         assert data["relative_weight"] == 0.5
 
 
+def test_scale_edges_less_than_4_edges():
+    ag = AssemblyGraph("metagenomescope/tests/input/1_node_1_edge.LastGraph")
+    ag.scale_edges()
+    # I mean, I guess it really has 2 edges if we assume it's unoriented
+    # (which as of writing is the default for LastGraph / GFAs but not
+    # required)
+    for edge in ag.digraph.edges:
+        data = ag.digraph.edges[edge]
+        # No outlier detection should be done
+        assert data["is_outlier"] == 0
+        # Normal, relative scaling should have been done -- in this particular
+        # case both edges have the same weight so they both get 0.5 for their
+        # relative weight
+        assert data["relative_weight"] == 0.5
+
+
 def test_scale_edges_high_outlier():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/edge_scaling_test_high.LastGraph"

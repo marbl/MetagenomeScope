@@ -979,24 +979,27 @@ class AssemblyGraph(object):
                 # scale relatively.
                 for edge in self.digraph.edges:
                     data = self.digraph.edges[edge]
-                    ew = data[ew_field]
-                    if ew > uf:
-                        data["is_outlier"] = 1
-                        data["relative_weight"] = 1
-                    elif ew < lf:
-                        data["is_outlier"] = -1
-                        data["relative_weight"] = 0
-                    else:
-                        data["is_outlier"] = 0
-                        non_outlier_edges.append(edge)
-                        non_outlier_edge_weights.append(ew)
+                    if "is_dup" not in data:
+                        ew = data[ew_field]
+                        if ew > uf:
+                            data["is_outlier"] = 1
+                            data["relative_weight"] = 1
+                        elif ew < lf:
+                            data["is_outlier"] = -1
+                            data["relative_weight"] = 0
+                        else:
+                            data["is_outlier"] = 0
+                            non_outlier_edges.append(edge)
+                            non_outlier_edge_weights.append(ew)
             else:
                 # There are < 4 edges, so consider all edges as "non-outliers."
                 for edge in self.digraph.edges:
-                    self.digraph.edges[edge]["is_outlier"] = 0
-                    non_outlier_edges.append(edge)
-                    ew = self.digraph.edges[edge][ew_field]
-                    non_outlier_edge_weights.append(ew)
+                    data = self.digraph.edges[edge]
+                    if "is_dup" not in data:
+                        data["is_outlier"] = 0
+                        non_outlier_edges.append(edge)
+                        ew = data[ew_field]
+                        non_outlier_edge_weights.append(ew)
 
             # Perform relative scaling for non-outlier edges, if possible.
             if len(non_outlier_edges) >= 2:
