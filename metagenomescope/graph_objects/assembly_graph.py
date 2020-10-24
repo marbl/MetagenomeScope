@@ -833,6 +833,17 @@ class AssemblyGraph(object):
                 # do any more.
                 break
 
+    def layout(self):
+        """Lays out the graph. ...This part is important!"""
+        # For each component:
+        # -Identify patterns in the component. Lay out these patterns. If these
+        #  patterns contain other patterns, lay out those patterns first (this
+        #  is recursive since there can be many layers of patterns), and then
+        #  use the pattern bounding box for backfilling.
+        # -Finally, lay out the entire component.
+        # -Backfill all node/edge coordinates within patterns in. This will
+        #  need to also be recursive to accommodate really deep down stuff.
+
     def to_dot(self):
         """Debug method. Work in progress."""
         layout = "digraph {\n"
