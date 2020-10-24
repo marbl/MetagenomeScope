@@ -129,12 +129,12 @@ def run_script(
     max_edge_count: int,
     metacarvel_bubble_file: str,
     user_pattern_file: str,
-    spqr: bool,
-    sp: bool,
-    pg: bool,
-    px: bool,
-    nbdf: bool,
-    npdf: bool,
+    compute_spqr_data: bool,
+    save_structural_patterns: bool,
+    preserve_gv: bool,
+    preserve_xdot: bool,
+    save_no_backfill_dot_files: bool,
+    save_no_pattern_dot_files: bool,
 ) -> None:
     """Visualizes an assembly graph and identifies structural patterns therein.
 
@@ -158,12 +158,12 @@ def run_script(
         max_edge_count,
         metacarvel_bubble_file,
         user_pattern_file,
-        spqr,
-        sp,
-        pg,
-        px,
-        nbdf,
-        npdf,
+        compute_spqr_data,
+        save_structural_patterns,
+        preserve_gv,
+        preserve_xdot,
+        save_no_backfill_dot_files,
+        save_no_pattern_dot_files,
     )
 
 
