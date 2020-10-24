@@ -177,7 +177,7 @@ def test_scale_edges_low_outlier():
             assert data["relative_weight"] == 1
 
 
-def _verify_both_graph(digraph, expected_dups = 0):
+def _verify_both_graph(digraph, expected_dups=0):
     """Verifies the edge scaling values for all of the (real) edges in the
     edge_scaling_test_both_outliers.LastGraph test graph.
 
