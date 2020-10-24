@@ -605,10 +605,7 @@ class AssemblyGraph(object):
         nodes within this pattern (to outside of the pattern) to originate from
         the pattern node.
 
-        Returns the unique ID of the pattern node, which will just be an
-        integer number. (This is safe b/c all of the nodes in the graph should
-        have integer numbers in the range [0, # nodes - 1], so we can just set
-        this pattern's ID to (# nodes).
+        Returns a new Pattern object.
         """
         pattern_id = self.get_new_node_id()
 
@@ -659,7 +656,7 @@ class AssemblyGraph(object):
         collapsed pattern, this'll duplicate the starting node of that bubble
         in the new bubble.
 
-        Returns the unique ID of the bubble.
+        Returns a new StartEndPattern object.
         """
         pattern_id = self.get_new_node_id()
         self.decomposed_digraph.add_node(
@@ -833,34 +830,6 @@ class AssemblyGraph(object):
                 # do any more.
                 break
 
-    def layout(self):
-        """Lays out the graph. ...This part is important!"""
-        # For each component:
-        # -Identify patterns in the component. Lay out these patterns. If these
-        #  patterns contain other patterns, lay out those patterns first (this
-        #  is recursive since there can be many layers of patterns), and then
-        #  use the pattern bounding box for backfilling.
-        # -Finally, lay out the entire component.
-        # -Backfill all node/edge coordinates within patterns in. This will
-        #  need to also be recursive to accommodate really deep down stuff.
-
-    def to_dot(self):
-        """Debug method. Work in progress."""
-        layout = "digraph {\n"
-        for cc_node_ids in nx.weakly_connected_components(
-            self.decomposed_digraph
-        ):
-            for n in cc_node_ids:
-                if n in self.digraph.nodes:
-                    layout += "\t{}\n".format(n)
-                else:
-                    # TODO: recursively describe children of this node group
-                    pass
-            # TODO: describe edges.
-
-    def to_cytoscape_compatible_format(self):
-        """TODO."""
-
     def scale_nodes(self):
         """Scales nodes in the graph based on their lengths.
 
@@ -1030,3 +999,134 @@ class AssemblyGraph(object):
         else:
             # Can't do edge scaling, so just assign every edge "default" attrs
             _assign_default_weight_attrs(self.digraph.edges)
+
+    def is_pattern(self, node_id):
+        """Returns True if a node ID is for a pattern, False otherwise.
+
+        The node ID should be a nonnegative integer. If it seems invalid,
+        this'll throw an error -- mostly to prevent me from messing things
+        up and this silently returning False or whatever. Programming is hard!
+        """
+        if node_id >= self.num_nodes or node_id < 0:
+            raise ValueError("Node ID {} seems out of range.".format(node_id))
+        return node_id in self.id2pattern
+
+    def layout(self):
+        """Lays out the graph. ...This part is important!"""
+        # TODO: create a way for nodes to store their dimensions. I guess we
+        # could resurrect the Node class and use that for this? The goal is
+        # making it easy to go from a node's longside proportion / rel len to
+        # its width and height in a consistent way, like set_dimensions() was.
+        #
+        # Or we could just modify scale_nodes() (or add another func) that goes
+        # straight from the longside proportion / rel len stuff to the
+        # width/hgt, which would simplify this. However we choose to model this
+        # data here, it'll get turned into JSON or whatever the same way -- so
+        # not a big deal.
+        for node_id in self.decomposed_digraph.nodes:
+            if self.is_pattern(node_id):
+                # Lay out this pattern in isolation
+                # (... Recursively, since patterns can contain other
+                # patterns. Yuck!)
+                self.id2pattern[node_id].layout()
+        for cc_node_ids in nx.weakly_connected_components(
+            self.decomposed_digraph
+        ):
+            # Lay out this component, using the node and edge data as well as
+            # the width/height assigned for pattern nodes.
+        # For each component:
+        # -Identify patterns in the component. Lay out these patterns. If these
+        #  patterns contain other patterns, lay out those patterns first (this
+        #  is recursive since there can be many layers of patterns), and then
+        #  use the pattern bounding box for backfilling.
+        # -Finally, lay out the entire component.
+        # -Backfill all node/edge coordinates within patterns in. This will
+        #  need to also be recursive to accommodate really deep down stuff.
+        raise NotImplementedError
+
+    def to_dot(self):
+        """Debug method. Work in progress.
+
+        I imagine this should require that layout() has already been called?
+        Maybe we should add a .layout_computed attr to this class or something.
+        """
+        raise NotImplementedError
+        layout = "digraph {\n"
+        for cc_node_ids in nx.weakly_connected_components(
+            self.decomposed_digraph
+        ):
+            for n in cc_node_ids:
+                if n in self.digraph.nodes:
+                    layout += "\t{}\n".format(n)
+                else:
+                    # TODO: recursively describe children of this node group
+                    pass
+            # TODO: describe edges.
+
+    def to_cytoscape_compatible_format(self):
+        """TODO."""
+
+    def to_dict(self):
+        """Returns a dict representation of the graph usable as JSON.
+
+        This should be analogous to the SQLite3 database schema previously
+        used for MgSc. After thinking about this a bit, I think it makes sense
+        to _not_ try to create a JSON serialization of a Cytoscape.js
+        visualization -- this is because the visualizations can vary a lot, and
+        with things like multiple-component drawing we really can't guarantee a
+        ton of stuff. We should prioritize flexibility here, which mimicking
+        the prior database approach will do.
+
+        Something like the following should be decently space-efficient.
+        "extra_data" is a wildcard that I guess could store whatever extra
+        metadata we decide to accept in input graphs -- it should store
+        optional stuff like GC content, depth, repeat status, taxonomy
+        classification info, etc.
+
+            NODE_ATTRS:
+                ["id", "label", "length", "x", "y", "w", "h", "is_fwd",
+                 "parent_id", "extra_data"]
+
+        Edges could be indexed by start node ID, I guess? Or they could just be
+        stored as an array of arrays. I guess do we wanna keep this JSON
+        hanging around in memory, or just immediately use Cy.js for all of the
+        stuff like topology lookups? I guess Cy.js. So no need to make querying
+        this fast.
+
+            EDGE_ATTRS:
+                ["src_id", "snk_id", "ctrl_pt_str", "ctrl_pt_ct", "parent_id",
+                 "extra_data"]
+
+        Patterns work similarly...
+
+            PATT_ATTRS:
+                ["id", "left", "bottom", "right", "top", "w", "h", "type"]
+
+
+        I think the best way to handle this is having things stored under each
+        component. So, something like
+
+        NODE_ATTRS (dict mapping node attr names to posns in node data arrays,
+                    so that the JS code can say "give me the node length"
+                    easily)
+        EDGE_ATTRS ("" but for edges)
+        PATT_ATTRS ("" but for patterns)
+        [
+            {
+                nodes: [Array of node data],
+                edges: [Array of edge data],
+                patterns: [Array of pattern data],
+                componentData: [Array of component-level data, e.g. bb]
+            },
+            ...
+        ]
+
+        where the first JSON in the array is for the largest component,
+        second is for the second-largest component, etc. The reason for doing
+        things this way is that SO much of the JS code right now that accesses
+        the database does it by querying for nodes / edges / patterns / etc.
+        within a given component ID. So making that operation fast will make
+        life easier.
+
+        I think that's the gist of it?
+        """

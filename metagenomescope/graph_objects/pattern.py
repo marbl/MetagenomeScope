@@ -28,6 +28,20 @@ class Pattern(object):
             self.pattern_type, self.pattern_id, self.node_ids
         )
 
+    def layout(self, asm_graph):
+        # TODO: need a way of associating node ids with if pattern or not
+        # -> yeah, AssemblyGraph.is_pattern()
+        # TODO: OH DANG also need access to the graph (for e.g. node lengths,
+        # edges between nodes, etc.)? I guess we could have this method take in
+        # the AssemblyGraph itself, so we could here access the digraph, etc.
+        # Yeah that'd work.
+        # TODO: actually do layout using dot, then store bounding box,
+        # width/height, and assign node relative positions. I guess we should
+        # keep track of namespace issues (e.g. what if nodes actually have 'x'
+        # params \._./)
+        # TODO: keep track of orientation for plain nodes. I guess add that to
+        # the stuff stored in the nx dicts.
+
 
 class StartEndPattern(Pattern):
     def __init__(
