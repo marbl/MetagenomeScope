@@ -73,3 +73,23 @@ def test_get_edge_weight_field():
 
     ag = AssemblyGraph("metagenomescope/tests/input/marygold_fig2a.gml")
     assert ag.get_edge_weight_field() is "bsize"
+
+
+def test_scale_edges_four_edges():
+    # Really, there are two edges in this particular graph, but due to
+    # reverse complementing we consider there to be four edges.
+    ag = AssemblyGraph("metagenomescope/tests/input/cycletest_LastGraph")
+    ag.scale_edges()
+    # No edges should have been flagged as outliers.
+    # The two edges with weight 5 (the minimum weight in this dataset)
+    # should've been assigned a relative weight of 0.
+    # The two edges with weight 9 (the max weight) should've been assigned a
+    # relative weight of 1.
+    for edge in ag.digraph.edges:
+        data = ag.digraph.edges[edge]
+        print(edge, data)
+        assert not data["is_outlier"]
+        if data["multiplicity"] == 5:
+            assert data["relative_weight"] == 0
+        else:
+            assert data["relative_weight"] == 1

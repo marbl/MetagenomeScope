@@ -87,18 +87,18 @@ class AssemblyGraph(object):
     def get_edge_weight_field(self, field_names=["bsize", "multiplicity"]):
         """Returns the name of the edge weight field this graph has.
 
-           If the graph does not have any edge weight fields, returns None.
+        If the graph does not have any edge weight fields, returns None.
 
-           The list of field names corresponding to "edge weights" is
-           configurable via the field_names parameter. The two fields accepted
-           now (bsize and multiplicity) are both verified in the assembly graph
-           parser to correspond to positive integers, so future fields accepted
-           as edge weights should also be verified in this way.
+        The list of field names corresponding to "edge weights" is
+        configurable via the field_names parameter. The two fields accepted
+        now (bsize and multiplicity) are both verified in the assembly graph
+        parser to correspond to positive integers, so future fields accepted
+        as edge weights should also be verified in this way.
 
-           NOTE that this assumes that at least one edge having a weight
-           implies that the other edges in the graph have weights. This should
-           always be the case, but if there are graphs with partial edge weight
-           data then this may cause problems with scaling later on.
+        NOTE that this assumes that at least one edge having a weight
+        implies that the other edges in the graph have weights. This should
+        always be the case, but if there are graphs with partial edge weight
+        data then this may cause problems with scaling later on.
         """
         fn_had = None
         for fn in field_names:
@@ -924,12 +924,18 @@ class AssemblyGraph(object):
            will just be 0, and if this edge is a high outlier, this will just
            be 1.
 
+        If edge weight scaling cannot be done for some or all edges
+        (e.g. no edge weight data is available, or only one non-outlier edge
+        exists) then this will assign is_outlier = 0 and relative_weight = 0.5
+        to the impacted edges.
+
         Relative scaling will only be done for non-outlier edges. This helps
         make things look more consistent.
 
         Outlier detection is done using "inner" Tukey fences, as described in
         Exploratory Data Analysis (1977).
         """
+
         def _assign_default_weight_attrs(edges):
             """Assigns "normal" attributes to each edge in edges."""
             for edge in edges:
@@ -938,7 +944,9 @@ class AssemblyGraph(object):
 
         ew_field = self.get_edge_weight_field()
         if ew_field is not None:
-            weights = nx.get_edge_attributes(self.digraph, ew_field)
+            weights = list(
+                nx.get_edge_attributes(self.digraph, ew_field).values()
+            )
             non_outlier_edges = []
             non_outlier_edge_weights = []
             # Only try to flag outlier edges if the graph contains at least 4
@@ -959,7 +967,7 @@ class AssemblyGraph(object):
                 # Non-outlier edges will be added to a list of edges that we'll
                 # scale relatively.
                 for edge in self.digraph.edges:
-                    ew = edge[ew_field]
+                    ew = self.digraph.edges[edge][ew_field]
                     if ew > uf:
                         self.digraph.edges[edge]["is_outlier"] = 1
                         self.digraph.edges[edge]["relative_weight"] = 1
@@ -975,7 +983,8 @@ class AssemblyGraph(object):
                 for edge in self.digraph.edges:
                     self.digraph.edges[edge]["is_outlier"] = 0
                     non_outlier_edges.append(edge)
-                    non_outlier_edge_weights.append(edge[ew_field])
+                    ew = self.digraph.edges[edge][ew_field]
+                    non_outlier_edge_weights.append(ew)
 
             # Perform relative scaling for non-outlier edges, if possible.
             if len(non_outlier_edges) >= 2:
@@ -984,7 +993,8 @@ class AssemblyGraph(object):
                 if min_ew != max_ew:
                     ew_range = max_ew - min_ew
                     for edge in non_outlier_edges:
-                        rw = edge[ew_field] / ew_range
+                        ew = self.digraph.edges[edge][ew_field]
+                        rw = (ew - min_ew) / ew_range
                         self.digraph.edges[edge]["relative_weight"] = rw
                 else:
                     # Can't do edge scaling, so just assign this list of edges
