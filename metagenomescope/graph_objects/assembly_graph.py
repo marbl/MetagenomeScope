@@ -621,13 +621,15 @@ class AssemblyGraph(object):
         )
         # Add this pattern to the decomposed digraph, with the same in/out
         # nodes as in the subgraph of this pattern's nodes
-        self.decomposed_digraph.add_node(
-            pattern_id, pattern_type=pattern_type, children=member_node_ids
-        )
+        self.decomposed_digraph.add_node(pattern_id, pattern_type=pattern_type)
         for e in p_in_edges:
             self.decomposed_digraph.add_edge(e[0], pattern_id)
         for e in p_out_edges:
             self.decomposed_digraph.add_edge(pattern_id, e[1])
+
+        # Get the "induced subgraph" of just the first-level child nodes. Used
+        # for layout.
+        subgraph = self.decomposed_digraph.subgraph(member_node_ids)
 
         # Remove the children of this pattern from the decomposed DiGraph
         # (they're not gone forever, of course! -- we should hold on a
@@ -637,7 +639,7 @@ class AssemblyGraph(object):
         # children node/pattern IDs, etc.)
         self.decomposed_digraph.remove_nodes_from(member_node_ids)
 
-        p = Pattern(pattern_id, pattern_type, member_node_ids)
+        p = Pattern(pattern_id, pattern_type, member_node_ids, subgraph)
         return p
 
     def add_bubble(self, member_node_ids, starting_node_id, ending_node_id):
@@ -659,9 +661,7 @@ class AssemblyGraph(object):
         Returns a new StartEndPattern object.
         """
         pattern_id = self.get_new_node_id()
-        self.decomposed_digraph.add_node(
-            pattern_id, pattern_type="bubble", children=member_node_ids
-        )
+        self.decomposed_digraph.add_node(pattern_id, pattern_type="bubble")
 
         if "pattern_type" in self.decomposed_digraph.nodes[starting_node_id]:
             # In the decomposed digraph, link the starting pattern with the
@@ -733,6 +733,8 @@ class AssemblyGraph(object):
         for e in p_out_edges:
             self.decomposed_digraph.add_edge(pattern_id, e[1])
 
+        subgraph = self.decomposed_digraph.subgraph(member_node_ids)
+
         # Remove the children of this pattern from the decomposed DiGraph.
         self.decomposed_digraph.remove_nodes_from(member_node_ids)
 
@@ -742,6 +744,7 @@ class AssemblyGraph(object):
             member_node_ids,
             starting_node_id,
             ending_node_id,
+            subgraph,
         )
         return p
 
@@ -1036,22 +1039,11 @@ class AssemblyGraph(object):
 
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""
-        # TODO: create a way for nodes to store their dimensions. I guess we
-        # could resurrect the Node class and use that for this? The goal is
-        # making it easy to go from a node's longside proportion / rel len to
-        # its width and height in a consistent way, like set_dimensions() was.
-        #
-        # Or we could just modify scale_nodes() (or add another func) that goes
-        # straight from the longside proportion / rel len stuff to the
-        # width/hgt, which would simplify this. However we choose to model this
-        # data here, it'll get turned into JSON or whatever the same way -- so
-        # not a big deal.
-
         # First, lay out each pattern in isolation (this could involve multiple
         # layers, since patterns can contain other patterns)
         for node_id in self.decomposed_digraph.nodes:
             if self.is_pattern(node_id):
-                self.id2pattern[node_id].layout()
+                self.id2pattern[node_id].layout(self)
 
         # Now that all patterns have been laid out, lay out each component at
         # the top level.

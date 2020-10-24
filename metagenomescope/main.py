@@ -60,6 +60,7 @@ def make_viz(
 
     operation_msg("Scaling nodes based on lengths...")
     asm_graph.scale_nodes()
+    asm_graph.compute_node_dimensions()
     conclude_msg()
 
     # TODO: don't display this if no edge weight data available. right now it's
