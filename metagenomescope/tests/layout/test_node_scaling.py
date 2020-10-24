@@ -51,3 +51,17 @@ def test_scale_nodes_all_lengths_equal():
             ag.digraph.nodes[node]["longside_proportion"]
             == config.MID_LONGSIDE_PROPORTION
         )
+
+
+def test_compute_node_dimensions_all_lengths_equal():
+    ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
+    ag.scale_nodes()
+    ag.compute_node_dimensions()
+    default_area = config.MIN_NODE_AREA + (
+        0.5 * (config.MAX_NODE_AREA - config.MIN_NODE_AREA)
+    )
+    default_height = default_area ** config.MID_LONGSIDE_PROPORTION
+    default_width = default_area / default_height
+    for node in ag.digraph.nodes:
+        assert ag.digraph.nodes[node]["height"] == default_height
+        assert ag.digraph.nodes[node]["width"] == default_width

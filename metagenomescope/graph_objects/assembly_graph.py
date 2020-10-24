@@ -854,7 +854,7 @@ class AssemblyGraph(object):
         node_log_lengths = {}
         for node, length in node_lengths.items():
             node_log_lengths[node] = math.log(
-                length, config.CONTIG_SCALING_LOG_BASE
+                length, config.NODE_SCALING_LOG_BASE
             )
         min_log_len = min(node_log_lengths.values())
         max_log_len = max(node_log_lengths.values())
@@ -881,6 +881,29 @@ class AssemblyGraph(object):
                 else:
                     lp = config.HIGH_LONGSIDE_PROPORTION
                 self.digraph.nodes[node]["longside_proportion"] = lp
+
+    def compute_node_dimensions(self):
+        """Adds height and width attributes to each node in the graph.
+
+        It is assumed that scale_nodes() has already been called; otherwise,
+        this will be unable to access the relative_length and
+        longside_proportion node attributes, which will cause a KeyError.
+
+        This only covers "bottom-level" nodes -- i.e. patterns are not assigned
+        dimensions, since those should be scaled based on the bounding box
+        needed to contain their child elements. However, "duplicate" nodes
+        should be assigned dimensions, since for all intents and purposes
+        they're "real". (It may be possible to speed this up slightly by only
+        duplicating data for these nodes after doing scaling, etc., but I doubt
+        that the time savings there will be that useful in most cases.)
+        """
+        for node in self.digraph.nodes:
+            data = self.digraph.nodes[node]
+            area = config.MIN_NODE_AREA + (
+                data["relative_length"] * config.NODE_AREA_RANGE
+            )
+            data["height"] = area ** data["longside_proportion"]
+            data["width"] = area / data["height"]
 
     def scale_edges(self):
         """Scales edges in the graph based on their weights, if present.
@@ -1012,7 +1035,7 @@ class AssemblyGraph(object):
         return node_id in self.id2pattern
 
     def layout(self):
-        """Lays out the graph. ...This part is important!"""
+        """Lays out the graph's components, handling patterns specially."""
         # TODO: create a way for nodes to store their dimensions. I guess we
         # could resurrect the Node class and use that for this? The goal is
         # making it easy to go from a node's longside proportion / rel len to

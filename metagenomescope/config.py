@@ -58,14 +58,14 @@ POINTS_PER_INCH = 72.0
 AUXMOD = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
 
 # The base we use when logarithmically scaling contig dimensions from length
-CONTIG_SCALING_LOG_BASE = 10
+NODE_SCALING_LOG_BASE = 10
 # The minimum/maximum area of a node.
 # These variables are used directly in GraphViz, so they're in "inches".
 # That being said, "inches" are really an intermediate unit from our
 # perspective since they're converted to pixels in the viewer interface's code.
-MAX_CONTIG_AREA = 10
-MIN_CONTIG_AREA = 1
-CONTIG_AREA_RANGE = MAX_CONTIG_AREA - MIN_CONTIG_AREA
+MAX_NODE_AREA = 10
+MIN_NODE_AREA = 1
+NODE_AREA_RANGE = MAX_NODE_AREA - MIN_NODE_AREA
 # Proportions of the "long side" of a contig, for various levels of contigs in
 # the graph.
 # Used for the lower 25% (from 0% to 25%) of contigs in a component
