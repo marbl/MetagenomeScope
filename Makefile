@@ -54,7 +54,7 @@ SCRIPT_DIR = metagenomescope/
 SPQR_CODE = $(addprefix $(SCRIPT_DIR), spqr.cpp)
 SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 
-PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov --ignore=metagenomescope/tests/integration_tests/
+PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov
 PYLOCS = metagenomescope/ setup.py
 JSLOCS = metagenomescope/viewer/js/xdot2cy.js metagenomescope/viewer/tests/*.js docs/js/extra_functionality.js .jshintrc
 HTMLCSSLOCS = metagenomescope/viewer/index.html metagenomescope/viewer/css/viewer_style.css docs/404.html docs/index.html docs/css/mgsc_docs_style.css
