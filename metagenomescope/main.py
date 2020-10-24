@@ -72,7 +72,6 @@ def make_viz(
     asm_graph.layout()
     operation_msg("...Finished laying out the graph.", True)
 
-    arg_utils.create_output_dir(output_dir)
     # Immediate TODO:
     # -Compute graph layouts. For each component:
     #   -Lay out individual patterns, starting at lowest level and moving up.
@@ -88,6 +87,8 @@ def make_viz(
     #
     # -Modify the JS to prepare the graph summary, etc. and get ready for
     #  component drawing. Replace DB operations with just looking at the JSON.
+
+    arg_utils.create_output_dir(output_dir)
 
     # TODO from here on down.
     # -Identify user-supplied bubbles.
