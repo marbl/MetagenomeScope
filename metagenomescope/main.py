@@ -68,6 +68,10 @@ def make_viz(
     asm_graph.scale_edges()
     conclude_msg()
 
+    operation_msg("Laying out the graph...", True)
+    asm_graph.layout()
+    operation_msg("...Finished laying out the graph.")
+
     # Immediate TODO:
     # -Compute graph layouts. For each component:
     #   -Lay out individual patterns, starting at lowest level and moving up.
