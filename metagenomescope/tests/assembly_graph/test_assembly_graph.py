@@ -69,10 +69,10 @@ def test_get_edge_weight_field():
     assert ag.get_edge_weight_field() is None
 
     ag = AssemblyGraph("metagenomescope/tests/input/cycletest_LastGraph")
-    assert ag.get_edge_weight_field() is "multiplicity"
+    assert ag.get_edge_weight_field() == "multiplicity"
 
     ag = AssemblyGraph("metagenomescope/tests/input/marygold_fig2a.gml")
-    assert ag.get_edge_weight_field() is "bsize"
+    assert ag.get_edge_weight_field() == "bsize"
 
 
 def test_scale_edges_four_edges():
