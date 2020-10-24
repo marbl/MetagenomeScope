@@ -1,7 +1,7 @@
 from metagenomescope.graph_objects import AssemblyGraph
 from metagenomescope.input_node_utils import negate_node_id
 from metagenomescope import config
-from pytest import approx
+from pytest import approx, raises
 
 
 def test_scale_nodes():
@@ -109,3 +109,10 @@ def test_compute_node_dimensions_all_lengths_equal():
     for node in ag.digraph.nodes:
         assert ag.digraph.nodes[node]["height"] == default_height
         assert ag.digraph.nodes[node]["width"] == default_width
+
+
+def test_compute_node_dimensions_fails_if_scale_nodes_not_called_first():
+    # (Since relative_length and longside_proportion data won't be available.)
+    ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
+    with raises(KeyError):
+        ag.compute_node_dimensions()
