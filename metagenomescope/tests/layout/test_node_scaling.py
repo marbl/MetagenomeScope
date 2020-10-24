@@ -59,7 +59,9 @@ def test_compute_node_dimensions():
     ag.compute_node_dimensions()
 
     def get_dims(rl, lp):
-        area = config.MIN_NODE_AREA + (rl * (config.MAX_NODE_AREA - config.MIN_NODE_AREA))
+        area = config.MIN_NODE_AREA + (
+            rl * (config.MAX_NODE_AREA - config.MIN_NODE_AREA)
+        )
         hgt = area ** lp
         wid = area / hgt
         return (wid, hgt)
@@ -88,6 +90,7 @@ def test_compute_node_dimensions():
         assert h == approx(exp_data[1])
         seen_nodenames.append(name)
     assert len(seen_nodenames) == 12
+
 
 def test_compute_node_dimensions_all_lengths_equal():
     ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
