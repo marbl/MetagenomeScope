@@ -1053,7 +1053,6 @@ class AssemblyGraph(object):
 
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""
-        self.digraph_to_dot("dec-graph.png")
         # First, lay out each pattern in isolation (this could involve multiple
         # layers, since patterns can contain other patterns)
         for node_id in self.decomposed_digraph.nodes:
@@ -1133,8 +1132,12 @@ class AssemblyGraph(object):
         if config.GLOBALEDGE_STYLE != "":
             gv_input += "\tedge [{}];\n".format(config.GLOBALEDGE_STYLE)
 
-        for n in self.decomposed_digraph.nodes:
-            data = self.decomposed_digraph.nodes[n]
+        subg = self.decomposed_digraph.subgraph(
+            sorted(nx.weakly_connected_components(self.decomposed_digraph), key=len, reverse=True)
+        [0])
+
+        for n in subg.nodes:
+            data = subg.nodes[n]
             if n in self.id2pattern:
                 p = self.id2pattern[n]
                 gv_input += (
@@ -1153,7 +1156,7 @@ class AssemblyGraph(object):
                     )
                 )
 
-        for e in self.decomposed_digraph.edges:
+        for e in subg.edges:
             style = ""
             if "is_dup" in subg.edges[e]:
                 style = " [style=dashed]"
