@@ -79,13 +79,12 @@ class Pattern(object):
                 # If this is a normal node, get its dimensions from the
                 # graph. Shape is based on the node's orientation, which should
                 # also be stored in the graph.
-                print(self.subgraph.nodes, self.subgraph.edges)
                 data = self.subgraph.nodes[node_id]
                 height = data["height"]
                 width = data["width"]
                 shape = config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]]
             gv_input += "\t{} [height={},width={},shape={}];\n".format(
-                height, width, shape
+                node_id, height, width, shape
             )
 
         # Add edge info. Note that we don't bother passing thickness info to

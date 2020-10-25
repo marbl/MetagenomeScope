@@ -41,21 +41,9 @@ def make_viz(
     arg_utils.check_dir_existence(output_dir)
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
-    # Parse the assembly graph!
     bn = os.path.basename(input_file)
     operation_msg("Reading and parsing input file {}...".format(bn))
     asm_graph = graph_objects.AssemblyGraph(input_file)
-    conclude_msg()
-
-    # Hierarchically decompose graph, creating duplicate nodes where needed
-    # TODO: Have this utilize user-supplied bubbles and patterns. They should
-    # be "lowest level" patterns, i.e. collapsed first.
-    # ALSO TODO: Have this use fancier complex bubble detection, similar to
-    # what's described in the MaryGold / MetaFlye papers. For now very complex
-    # bubbles are assumed to be covered by decomposition or by user input, but
-    # this will not always be the case.
-    operation_msg("Running hierarchical pattern decomposition...")
-    asm_graph.hierarchically_identify_patterns()
     conclude_msg()
 
     operation_msg("Scaling nodes based on lengths...")
@@ -67,6 +55,17 @@ def make_viz(
     # ok tho since scale_edges() detects that case and behaves accordingly
     operation_msg("Attempting to scale edges based on weights...")
     asm_graph.scale_edges()
+    conclude_msg()
+
+    # Hierarchically decompose graph, creating duplicate nodes where needed
+    # TODO: Have this utilize user-supplied bubbles and patterns. They should
+    # be "lowest level" patterns, i.e. collapsed first.
+    # ALSO TODO: Have this use fancier complex bubble detection, similar to
+    # what's described in the MaryGold / MetaFlye papers. For now very complex
+    # bubbles are assumed to be covered by decomposition or by user input, but
+    # this will not always be the case.
+    operation_msg("Running hierarchical pattern decomposition...")
+    asm_graph.hierarchically_identify_patterns()
     conclude_msg()
 
     operation_msg("Laying out the graph...", True)
