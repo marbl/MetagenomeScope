@@ -315,7 +315,8 @@ def parse_metacarvel_gml(filename):
     )
 
     # Verify that node attributes are good. Also, change orientations from FOW
-    # and REV to + and -, to standardize this across filetypes.
+    # and REV to + and -, to standardize this across filetypes, and convert
+    # lengths from strings to integers.
     for n in g.nodes:
         orientation = g.nodes[n]["orientation"]
         if type(orientation) != str or orientation not in ("FOW", "REV"):
@@ -330,6 +331,7 @@ def parse_metacarvel_gml(filename):
                 )
             )
         g.nodes[n]["orientation"] = "+" if orientation == "FOW" else "-"
+        g.nodes[n]["length"] = int(g.nodes[n]["length"])
 
     # Verify that edge attributes are good
     for e in g.edges:

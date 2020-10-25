@@ -28,7 +28,7 @@ def test_parse_metacarvel_gml_good():
             assert digraph.nodes[label]["orientation"] == "-"
         else:
             assert digraph.nodes[label]["orientation"] == "+"
-        assert digraph.nodes[label]["length"] == "100"
+        assert digraph.nodes[label]["length"] == 100
         assert "id" not in digraph.nodes[label]
         assert "label" not in digraph.nodes[label]
     for e in digraph.edges:
