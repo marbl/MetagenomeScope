@@ -18,6 +18,7 @@
 
 
 import pygraphviz
+from metagenomescope import config
 
 
 class Pattern(object):
@@ -68,19 +69,21 @@ class Pattern(object):
             if node_id in id2pattern:
                 # If this node is a collapsed pattern, get its dimensions from
                 # its Pattern object using id2pattern.
-                # This is probably a pretty roundabout way of doing this but it
-                # works and honestly that is all I can hope for right now. 2020
-                # is such a weird year, dude.
+                # This is a pretty roundabout way of doing this but it works
+                # and honestly that is all I can hope for right now. Out of all
+                # the years that have happened, 2020 certainly is one of them.
                 height = id2pattern[node_id].height
                 width = id2pattern[node_id].width
                 shape = id2pattern[node_id].shape
             else:
-                # If this is a normal node, just get its dimensions from the
-                # graph.
-                data = subgraph.nodes[node_id]
+                # If this is a normal node, get its dimensions from the
+                # graph. Shape is based on the node's orientation, which should
+                # also be stored in the graph.
+                print(self.subgraph.nodes, self.subgraph.edges)
+                data = self.subgraph.nodes[node_id]
                 height = data["height"]
                 width = data["width"]
-                shape = data["shape"]
+                shape = config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]]
             gv_input += "\t{} [height={},width={},shape={}];\n".format(
                 height, width, shape
             )
@@ -99,6 +102,8 @@ class Pattern(object):
         # Extract dimension info. The first two coordinates in the bounding box
         # (bb) should always be (0, 0).
         _, _, self.width, self.height = cg.graph_attr["bb"].split(",")
+
+        raise ValueError("my name jeff")
 
         # TODO: assign relative node coordinates (x and y):
         # -For each normal node in this component, assign x and y.

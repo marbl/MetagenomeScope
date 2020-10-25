@@ -399,11 +399,17 @@ def parse_gfa(filename):
         if not gfapy.is_placeholder(node.sequence):
             sequence_gc = gc_content(node.sequence)[0]
         # Add both a positive and negative node.
-        digraph.add_node(node.name, length=node.length, gc_content=sequence_gc,
-                         orientation="+")
         digraph.add_node(
-            negate_node_id(node.name), length=node.length,
-            gc_content=sequence_gc, orientation="-"
+            node.name,
+            length=node.length,
+            gc_content=sequence_gc,
+            orientation="+",
+        )
+        digraph.add_node(
+            negate_node_id(node.name),
+            length=node.length,
+            gc_content=sequence_gc,
+            orientation="-",
         )
 
     # Now, add edges to the DiGraph

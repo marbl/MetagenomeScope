@@ -85,9 +85,8 @@ COLL_CL_H_FAC = 1.0 / 2.0
 
 ### Frequently-used GraphViz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html
-BASIC_NODE_SHAPE = "invhouse"
-RCOMP_NODE_SHAPE = "house"
-SINGLE_NODE_SHAPE = "rectangle"
+
+NODE_ORIENTATION_TO_SHAPE = {"+": "invhouse", "-": "house"}
 
 ### Global graph settings (applied to every node/edge/etc. in the graph) ###
 #
