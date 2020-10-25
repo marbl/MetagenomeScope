@@ -1053,7 +1053,7 @@ class AssemblyGraph(object):
 
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""
-        self.decomposed_digraph_to_dot("dec-graph.png")
+        self.digraph_to_dot("dec-graph.png")
         # First, lay out each pattern in isolation (this could involve multiple
         # layers, since patterns can contain other patterns)
         for node_id in self.decomposed_digraph.nodes:
@@ -1091,8 +1091,12 @@ class AssemblyGraph(object):
         if config.GLOBALEDGE_STYLE != "":
             gv_input += "\tedge [{}];\n".format(config.GLOBALEDGE_STYLE)
 
-        for n in self.digraph.nodes:
-            data = self.digraph.nodes[n]
+        subg = self.digraph.subgraph(
+            sorted(nx.weakly_connected_components(self.digraph), key=len, reverse=True)
+        [0])
+
+        for n in subg.nodes:
+            data = subg.nodes[n]
             gv_input += (
                 '\t{} [height={},width={},shape={},label="{}"];\n'.format(
                     n,
@@ -1103,16 +1107,17 @@ class AssemblyGraph(object):
                 )
             )
 
-        for e in self.digraph.edges:
+        for e in subg.edges:
             style = ""
-            if "is_dup" in e and e["is_dup"]:
-                style = " [style=dashed]"
+            if "is_dup" in subg.edges[e]:
+                style = " [color=\"green\"]"
             gv_input += "\t{} -> {}{};\n".format(e[0], e[1], style)
 
         gv_input += "}"
         g = pygraphviz.AGraph(gv_input)
         g.layout(prog="dot")
         g.draw(output_filepath)
+        g.draw("graph.gv")
         g.draw("graph.xdot")
 
     def decomposed_digraph_to_dot(self, output_filepath):
@@ -1150,7 +1155,7 @@ class AssemblyGraph(object):
 
         for e in self.decomposed_digraph.edges:
             style = ""
-            if "is_dup" in e and e["is_dup"]:
+            if "is_dup" in subg.edges[e]:
                 style = " [style=dashed]"
             gv_input += "\t{} -> {}{};\n".format(e[0], e[1], style)
 
