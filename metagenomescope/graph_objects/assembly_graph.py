@@ -2,6 +2,9 @@ import math
 from copy import deepcopy
 import numpy
 import networkx as nx
+import pygraphviz
+
+
 from .. import assembly_graph_parser, config
 from .pattern import StartEndPattern, Pattern
 
@@ -693,6 +696,11 @@ class AssemblyGraph(object):
             member_node_ids.remove(starting_node_id)
             member_node_ids.append(new_node_id)
             starting_node_id = new_node_id
+            print(
+                "Duplicating node {} with name {} b/c in start: new node is {}".format(
+                    end_node_to_dup, data["name"], new_node_id
+                )
+            )
 
         if "pattern_type" in self.decomposed_digraph.nodes[ending_node_id]:
             self.decomposed_digraph.add_edge(
@@ -717,6 +725,11 @@ class AssemblyGraph(object):
             member_node_ids.remove(ending_node_id)
             member_node_ids.append(new_node_id)
             ending_node_id = new_node_id
+            print(
+                "Duplicating node {} with name {} b/c in end: new node is {}".format(
+                    start_node_to_dup, data["name"], new_node_id
+                )
+            )
 
         # NOTE TODO abstract between this and prev func.
         # Get incoming edges to this pattern
@@ -1040,6 +1053,7 @@ class AssemblyGraph(object):
 
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""
+        self.decomposed_digraph_to_dot("dec-graph.png")
         # First, lay out each pattern in isolation (this could involve multiple
         # layers, since patterns can contain other patterns)
         for node_id in self.decomposed_digraph.nodes:
@@ -1064,24 +1078,87 @@ class AssemblyGraph(object):
         #  need to also be recursive to accommodate really deep down stuff.
         raise NotImplementedError
 
-    def to_dot(self):
-        """Debug method. Work in progress.
+    def digraph_to_dot(self, output_filepath):
+        """Visualizes the top-level graph (as represented in self.digraph).
 
-        I imagine this should require that layout() has already been called?
-        Maybe we should add a .layout_computed attr to this class or something.
+        Intended for debugging.
         """
-        raise NotImplementedError
-        layout = "digraph {\n"
-        for cc_node_ids in nx.weakly_connected_components(
-            self.decomposed_digraph
-        ):
-            for n in cc_node_ids:
-                if n in self.digraph.nodes:
-                    layout += "\t{}\n".format(n)
-                else:
-                    # TODO: recursively describe children of this node group
-                    pass
-            # TODO: describe edges.
+        gv_input = "digraph entiregraph {\n"
+        if config.GRAPH_STYLE != "":
+            gv_input += "\t{};\n".format(config.GRAPH_STYLE)
+        if config.GLOBALNODE_STYLE != "":
+            gv_input += "\tnode [{}];\n".format(config.GLOBALNODE_STYLE)
+        if config.GLOBALEDGE_STYLE != "":
+            gv_input += "\tedge [{}];\n".format(config.GLOBALEDGE_STYLE)
+
+        for n in self.digraph.nodes:
+            data = self.digraph.nodes[n]
+            gv_input += (
+                '\t{} [height={},width={},shape={},label="{}"];\n'.format(
+                    n,
+                    data["height"],
+                    data["width"],
+                    config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]],
+                    data["name"],
+                )
+            )
+
+        for e in self.digraph.edges:
+            style = ""
+            if "is_dup" in e and e["is_dup"]:
+                style = " [style=dashed]"
+            gv_input += "\t{} -> {}{};\n".format(e[0], e[1], style)
+
+        gv_input += "}"
+        g = pygraphviz.AGraph(gv_input)
+        g.layout(prog="dot")
+        g.draw(output_filepath)
+        g.draw("graph.xdot")
+
+    def decomposed_digraph_to_dot(self, output_filepath):
+        """Visualizes the decomposed digraph.
+
+        Intended for debugging.
+        """
+        gv_input = "digraph decomposeddigraph {\n"
+        if config.GRAPH_STYLE != "":
+            gv_input += "\t{};\n".format(config.GRAPH_STYLE)
+        if config.GLOBALNODE_STYLE != "":
+            gv_input += "\tnode [{}];\n".format(config.GLOBALNODE_STYLE)
+        if config.GLOBALEDGE_STYLE != "":
+            gv_input += "\tedge [{}];\n".format(config.GLOBALEDGE_STYLE)
+
+        for n in self.decomposed_digraph.nodes:
+            data = self.decomposed_digraph.nodes[n]
+            if n in self.id2pattern:
+                p = self.id2pattern[n]
+                gv_input += (
+                    '\t{} [height={},width={},shape={},label="{}"];\n'.format(
+                        n, 1, 1, "rectangle", p.pattern_type
+                    )
+                )
+            else:
+                gv_input += (
+                    '\t{} [height={},width={},shape={},label="{}"];\n'.format(
+                        n,
+                        data["height"],
+                        data["width"],
+                        config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]],
+                        data["name"],
+                    )
+                )
+
+        for e in self.decomposed_digraph.edges:
+            style = ""
+            if "is_dup" in e and e["is_dup"]:
+                style = " [style=dashed]"
+            gv_input += "\t{} -> {}{};\n".format(e[0], e[1], style)
+
+        gv_input += "}"
+        g = pygraphviz.AGraph(gv_input)
+        g.layout(prog="dot")
+        g.draw(output_filepath)
+        g.draw("graph.xdot")
 
     def to_cytoscape_compatible_format(self):
         """TODO."""

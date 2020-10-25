@@ -79,7 +79,14 @@ class Pattern(object):
                 # If this is a normal node, get its dimensions from the
                 # graph. Shape is based on the node's orientation, which should
                 # also be stored in the graph.
-                data = self.subgraph.nodes[node_id]
+                try:
+                    data = self.subgraph.nodes[node_id]
+                except KeyError:
+                    print("ERROR WITH {}".format(node_id))
+                    print(asm_graph.digraph.nodes[node_id])
+                    print(self.subgraph.edges)
+                    print(self)
+                    raise
                 height = data["height"]
                 width = data["width"]
                 shape = config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]]
@@ -90,7 +97,7 @@ class Pattern(object):
         # Add edge info. Note that we don't bother passing thickness info to
         # dot, since (at least to my knowledge) it doesn't impact the layout.
         for edge in self.subgraph.edges:
-            gv_input += "\t{} -> {}\n".format(edge[0], edge[1])
+            gv_input += "\t{} -> {};\n".format(edge[0], edge[1])
 
         gv_input += "}"
 
@@ -100,9 +107,9 @@ class Pattern(object):
 
         # Extract dimension info. The first two coordinates in the bounding box
         # (bb) should always be (0, 0).
-        _, _, self.width, self.height = cg.graph_attr["bb"].split(",")
-
-        raise ValueError("my name jeff")
+        bb_split = cg.graph_attr["bb"].split(",")
+        self.width = float(bb_split[2]) / config.POINTS_PER_INCH
+        self.height = float(bb_split[3]) / config.POINTS_PER_INCH
 
         # TODO: assign relative node coordinates (x and y):
         # -For each normal node in this component, assign x and y.
