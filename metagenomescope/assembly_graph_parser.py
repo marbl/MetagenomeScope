@@ -314,7 +314,8 @@ def parse_metacarvel_gml(filename):
         g, ("orientation", "length"), ("orientation", "mean", "stdev", "bsize")
     )
 
-    # Verify that node attributes are good
+    # Verify that node attributes are good. Also, change orientations from FOW
+    # and REV to + and -, to standardize this across filetypes.
     for n in g.nodes:
         orientation = g.nodes[n]["orientation"]
         if type(orientation) != str or orientation not in ("FOW", "REV"):
@@ -328,6 +329,7 @@ def parse_metacarvel_gml(filename):
                     n, g.nodes[n]["length"]
                 )
             )
+        g.nodes[n]["orientation"] = "+" if orientation == "FOW" else "-"
 
     # Verify that edge attributes are good
     for e in g.edges:
@@ -397,8 +399,12 @@ def parse_gfa(filename):
         if not gfapy.is_placeholder(node.sequence):
             sequence_gc = gc_content(node.sequence)[0]
         # Add both a positive and negative node.
-        for name in (node.name, negate_node_id(node.name)):
-            digraph.add_node(name, length=node.length, gc_content=sequence_gc)
+        digraph.add_node(node.name, length=node.length, gc_content=sequence_gc,
+                         orientation="+")
+        digraph.add_node(
+            negate_node_id(node.name), length=node.length,
+            gc_content=sequence_gc, orientation="-"
+        )
 
     # Now, add edges to the DiGraph
     for edge in gfa_graph.edges:
@@ -430,6 +436,18 @@ def parse_gfa(filename):
 def parse_fastg(filename):
     g = pyfastg.parse_fastg(filename)
     validate_nx_digraph(g, ("length", "cov", "gc"), ())
+    for n in g.nodes:
+        if n[-1] == "+":
+            g.nodes[n]["orientation"] = "+"
+        elif n[-1] == "-":
+            g.nodes[n]["orientation"] = "-"
+        else:
+            raise ValueError(
+                (
+                    "Node {} in parsed FASTG file doesn't have an "
+                    "orientation?"
+                ).format(n)
+            )
     return g
 
 
@@ -512,6 +530,7 @@ def parse_lastgraph(filename):
                         length=curr_node_attrs["length"],
                         depth=curr_node_attrs["depth"],
                         gc_content=gc_content(curr_node_attrs["fwdseq"])[0],
+                        orientation="+",
                     )
                     parsed_fwdseq = True
                 else:
@@ -522,6 +541,7 @@ def parse_lastgraph(filename):
                         length=curr_node_attrs["length"],
                         depth=curr_node_attrs["depth"],
                         gc_content=gc_content(curr_node_attrs["revseq"])[0],
+                        orientation="-",
                     )
                     # At this point, we're done with parsing this node.
                     # Clear our temporary variables for later use if
