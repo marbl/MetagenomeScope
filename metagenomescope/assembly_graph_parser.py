@@ -436,10 +436,14 @@ def parse_gfa(filename):
 def parse_fastg(filename):
     g = pyfastg.parse_fastg(filename)
     validate_nx_digraph(g, ("length", "cov", "gc"), ())
+    # Add an "orientation" attribute for every node.
+    # pyfastg guarantees that every node should have a +/- suffix assigned to
+    # its name, so this should be safe.
     for n in g.nodes:
-        if n[-1] == "+":
+        suffix = n[-1]
+        if suffix == "+":
             g.nodes[n]["orientation"] = "+"
-        elif n[-1] == "-":
+        elif suffix == "-":
             g.nodes[n]["orientation"] = "-"
         else:
             raise ValueError(
