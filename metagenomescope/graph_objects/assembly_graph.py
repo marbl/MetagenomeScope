@@ -628,8 +628,9 @@ class AssemblyGraph(object):
             self.decomposed_digraph.add_edge(pattern_id, e[1])
 
         # Get the "induced subgraph" of just the first-level child nodes. Used
-        # for layout.
-        subgraph = self.decomposed_digraph.subgraph(member_node_ids)
+        # for layout. We call .copy() because otherwise the node removal stuff
+        # from self.decomposed_digraph will also remove nodes from subgraph.
+        subgraph = self.decomposed_digraph.subgraph(member_node_ids).copy()
 
         # Remove the children of this pattern from the decomposed DiGraph
         # (they're not gone forever, of course! -- we should hold on a
@@ -733,7 +734,7 @@ class AssemblyGraph(object):
         for e in p_out_edges:
             self.decomposed_digraph.add_edge(pattern_id, e[1])
 
-        subgraph = self.decomposed_digraph.subgraph(member_node_ids)
+        subgraph = self.decomposed_digraph.subgraph(member_node_ids).copy()
 
         # Remove the children of this pattern from the decomposed DiGraph.
         self.decomposed_digraph.remove_nodes_from(member_node_ids)
