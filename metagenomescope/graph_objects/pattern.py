@@ -111,18 +111,25 @@ class Pattern(object):
         self.width = float(bb_split[2]) / config.POINTS_PER_INCH
         self.height = float(bb_split[3]) / config.POINTS_PER_INCH
 
-        # TODO: assign / update relative node coordinates (x and y)
+        # TODO: assign relative node coordinates (x and y)
         for node_id in self.node_ids:
             if node_id in id2pattern:
-                # Assign x and y
-                # Update child nodes and edges' x and y coordinates accordingly
+                # Assign x and y for this pattern.
+                #
+                # We should not need to _update_ the child node/edge positions
+                # within this sub-pattern just yet: we only need to worry about
+                # having stuff be relative to the immediate parent pattern.
+                # When the top level of each component is laid out, we can go
+                # down through the patterns and update positions accordingly --
+                # no need to slow ourselves down by repeatedly updating this
+                # information throughout the layout process.
                 pass
             else:
                 # Assign x and y
                 pass
 
+        # TODO: Assign (relative) edge control points
         for edge in self.subgraph.edges:
-            # Assign edge control points
             pass
 
 
