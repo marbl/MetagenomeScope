@@ -1091,8 +1091,12 @@ class AssemblyGraph(object):
             gv_input += "\tedge [{}];\n".format(config.GLOBALEDGE_STYLE)
 
         subg = self.digraph.subgraph(
-            sorted(nx.weakly_connected_components(self.digraph), key=len, reverse=True)
-        [0])
+            sorted(
+                nx.weakly_connected_components(self.digraph),
+                key=len,
+                reverse=True,
+            )[0]
+        )
 
         for n in subg.nodes:
             data = subg.nodes[n]
@@ -1109,7 +1113,7 @@ class AssemblyGraph(object):
         for e in subg.edges:
             style = ""
             if "is_dup" in subg.edges[e]:
-                style = " [color=\"green\"]"
+                style = ' [color="green"]'
             gv_input += "\t{} -> {}{};\n".format(e[0], e[1], style)
 
         gv_input += "}"
@@ -1133,8 +1137,12 @@ class AssemblyGraph(object):
             gv_input += "\tedge [{}];\n".format(config.GLOBALEDGE_STYLE)
 
         subg = self.decomposed_digraph.subgraph(
-            sorted(nx.weakly_connected_components(self.decomposed_digraph), key=len, reverse=True)
-        [0])
+            sorted(
+                nx.weakly_connected_components(self.decomposed_digraph),
+                key=len,
+                reverse=True,
+            )[0]
+        )
 
         for n in subg.nodes:
             data = subg.nodes[n]
@@ -1159,7 +1167,7 @@ class AssemblyGraph(object):
         for e in subg.edges:
             style = ""
             if "is_dup" in subg.edges[e]:
-                style = " [style=dashed]"
+                style = ' [color="green"]'
             gv_input += "\t{} -> {}{};\n".format(e[0], e[1], style)
 
         gv_input += "}"
