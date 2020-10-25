@@ -111,20 +111,19 @@ class Pattern(object):
         self.width = float(bb_split[2]) / config.POINTS_PER_INCH
         self.height = float(bb_split[3]) / config.POINTS_PER_INCH
 
-        # TODO: assign relative node coordinates (x and y):
-        # -For each normal node in this component, assign x and y.
-        # -For each pattern node in this component, assign x and y, then update
-        #  its child nodes' x and y coordinates accordingly.
-        #
-        # Then TODO I guess we should do the same for edge control points
+        # TODO: assign / update relative node coordinates (x and y)
+        for node_id in self.node_ids:
+            if node_id in id2pattern:
+                # Assign x and y
+                # Update child nodes and edges' x and y coordinates accordingly
+                pass
+            else:
+                # Assign x and y
+                pass
 
-        # TODO: actually do layout using dot, then store bounding box,
-        # width/height, and assign node relative positions. I guess we should
-        # keep track of namespace issues (e.g. what if nodes actually have 'x'
-        # params \._./).
-        #
-        # TODO: keep track of orientation for plain nodes. I guess add that to
-        # the stuff stored in the nx dicts. "shape"?
+        for edge in self.subgraph.edges:
+            # Assign edge control points
+            pass
 
 
 class StartEndPattern(Pattern):
