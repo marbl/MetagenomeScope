@@ -668,11 +668,6 @@ class AssemblyGraph(object):
         self.decomposed_digraph.add_node(pattern_id, pattern_type="bubble")
 
         if "pattern_type" in self.decomposed_digraph.nodes[starting_node_id]:
-            # In the decomposed digraph, link the starting pattern with the
-            # curr pattern.
-            self.decomposed_digraph.add_edge(
-                starting_node_id, pattern_id, is_dup=True
-            )
             # In the actual digraph, create a new node that'll serve as the
             # "duplicate" of this node within the new pattern we're creating.
             # Shares all data, and holds the outgoing edges of the original
@@ -685,12 +680,19 @@ class AssemblyGraph(object):
             new_node_id = self.get_new_node_id()
             self.digraph.add_node(new_node_id, is_dup=True, **data)
 
-            # Duplicate outgoing edges of the duplicated node
+            # Duplicate outgoing edges of the duplicated node in the original
+            # digraph
             for edge in list(self.digraph.out_edges(end_node_to_dup)):
                 edge_data = self.digraph.edges[edge]
-                for graph in (self.digraph, self.decomposed_digraph):
-                    graph.add_edge(new_node_id, edge[1], **edge_data)
+                self.digraph.add_edge(new_node_id, edge[1], **edge_data)
                 self.digraph.remove_edge(end_node_to_dup, edge[1])
+
+            # Duplicate outgoing edges of the duplicated node in the decomposed
+            # digraph
+            for edge in list(self.decomposed_digraph.out_edges(starting_node_id)):
+                edge_data = self.decomposed_digraph.edges[edge]
+                self.decomposed_digraph.add_edge(new_node_id, edge[1], **edge_data)
+                self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
                 # NOTE: Removing edges from the decomposed digraph should be
                 # unnecessary, since edge[1] and all of the other nodes within
                 # this pattern (ignoring starting_node_id) will be removed from
@@ -698,15 +700,17 @@ class AssemblyGraph(object):
                 #self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
 
             self.digraph.add_edge(end_node_to_dup, new_node_id, is_dup=True)
+            # In the decomposed digraph, link the starting pattern with the
+            # curr pattern.
+            self.decomposed_digraph.add_edge(
+                starting_node_id, pattern_id, is_dup=True
+            )
 
             member_node_ids.remove(starting_node_id)
             member_node_ids.append(new_node_id)
             starting_node_id = new_node_id
 
         if "pattern_type" in self.decomposed_digraph.nodes[ending_node_id]:
-            self.decomposed_digraph.add_edge(
-                pattern_id, ending_node_id, is_dup=True
-            )
             # Get starting node of the ending pattern, and duplicate it
             start_node_to_dup = self.id2pattern[
                 ending_node_id
@@ -722,14 +726,21 @@ class AssemblyGraph(object):
                 # the new duplicate. And update the nodes in the decomposed
                 # digraph -- they'll be removed soon anyway, but we do this
                 # so that the subgraph is accurate)
-                for graph in (self.digraph, self.decomposed_digraph):
-                    graph.add_edge(edge[0], new_node_id, **edge_data)
+                self.digraph.add_edge(edge[0], new_node_id, **edge_data)
                 self.digraph.remove_edge(edge[0], start_node_to_dup)
                 # See comment in the above block (for replacing the start node)
                 # about this
                 #self.decomposed_digraph.remove_edge(edge[0], ending_node_id)
 
+            for edge in list(self.decomposed_digraph.in_edges(ending_node_id)):
+                edge_data = self.decomposed_digraph.edges[edge]
+                self.decomposed_digraph.add_edge(edge[0], new_node_id, **edge_data)
+                self.decomposed_digraph.remove_edge(edge[0], ending_node_id)
+
             self.digraph.add_edge(new_node_id, start_node_to_dup, is_dup=True)
+            self.decomposed_digraph.add_edge(
+                pattern_id, ending_node_id, is_dup=True
+            )
 
             member_node_ids.remove(ending_node_id)
             member_node_ids.append(new_node_id)
