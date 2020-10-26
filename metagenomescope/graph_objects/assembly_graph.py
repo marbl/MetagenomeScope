@@ -702,12 +702,6 @@ class AssemblyGraph(object):
             member_node_ids.remove(starting_node_id)
             member_node_ids.append(new_node_id)
             starting_node_id = new_node_id
-            print(
-                "Duplicating node {} with name {} b/c in start: new node is {}".format(
-                    end_node_to_dup, data["name"], new_node_id
-                )
-            )
-
 
         if "pattern_type" in self.decomposed_digraph.nodes[ending_node_id]:
             self.decomposed_digraph.add_edge(
@@ -740,11 +734,6 @@ class AssemblyGraph(object):
             member_node_ids.remove(ending_node_id)
             member_node_ids.append(new_node_id)
             ending_node_id = new_node_id
-            print(
-                "Duplicating node {} with name {} b/c in end: new node is {}".format(
-                    start_node_to_dup, data["name"], new_node_id
-                )
-            )
 
         # NOTE TODO abstract between this and prev func.
         # Get incoming edges to this pattern
