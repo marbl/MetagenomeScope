@@ -79,14 +79,7 @@ class Pattern(object):
                 # If this is a normal node, get its dimensions from the
                 # graph. Shape is based on the node's orientation, which should
                 # also be stored in the graph.
-                try:
-                    data = self.subgraph.nodes[node_id]
-                except KeyError:
-                    print("ERROR WITH {}".format(node_id))
-                    print(asm_graph.digraph.nodes[node_id])
-                    print(self.subgraph.edges)
-                    print(self)
-                    raise
+                data = asm_graph.digraph.nodes[node_id]
                 height = data["height"]
                 width = data["width"]
                 shape = config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]]
