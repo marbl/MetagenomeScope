@@ -18,7 +18,7 @@
 
 
 import pygraphviz
-from metagenomescope import config
+from metagenomescope import config, layout_utils
 
 
 class Pattern(object):
@@ -56,13 +56,7 @@ class Pattern(object):
         # Now that all of the patterns (if present) within this pattern have
         # been laid out, lay out this pattern.
 
-        gv_input = "digraph nodegroup {\n"
-        if config.GRAPH_STYLE != "":
-            gv_input += "\t{};\n".format(config.GRAPH_STYLE)
-        if config.GLOBALNODE_STYLE != "":
-            gv_input += "\tnode [{}];\n".format(config.GLOBALNODE_STYLE)
-        if config.GLOBALEDGE_STYLE != "":
-            gv_input += "\tedge [{}];\n".format(config.GLOBALEDGE_STYLE)
+        gv_input = layout_utils.get_gv_header()
 
         # Add node info
         for node_id in self.node_ids:

@@ -5,7 +5,7 @@ import networkx as nx
 import pygraphviz
 
 
-from .. import assembly_graph_parser, config
+from .. import assembly_graph_parser, config, layout_utils
 from .pattern import StartEndPattern, Pattern
 
 
@@ -1086,13 +1086,7 @@ class AssemblyGraph(object):
 
         Intended for debugging.
         """
-        gv_input = "digraph entiregraph {\n"
-        if config.GRAPH_STYLE != "":
-            gv_input += "\t{};\n".format(config.GRAPH_STYLE)
-        if config.GLOBALNODE_STYLE != "":
-            gv_input += "\tnode [{}];\n".format(config.GLOBALNODE_STYLE)
-        if config.GLOBALEDGE_STYLE != "":
-            gv_input += "\tedge [{}];\n".format(config.GLOBALEDGE_STYLE)
+        gv_input = layout_utils.get_gv_header()
 
         subg = self.digraph.subgraph(
             sorted(
@@ -1132,13 +1126,7 @@ class AssemblyGraph(object):
 
         Intended for debugging.
         """
-        gv_input = "digraph decomposeddigraph {\n"
-        if config.GRAPH_STYLE != "":
-            gv_input += "\t{};\n".format(config.GRAPH_STYLE)
-        if config.GLOBALNODE_STYLE != "":
-            gv_input += "\tnode [{}];\n".format(config.GLOBALNODE_STYLE)
-        if config.GLOBALEDGE_STYLE != "":
-            gv_input += "\tedge [{}];\n".format(config.GLOBALEDGE_STYLE)
+        gv_input = layout_utils.get_gv_header()
 
         subg = self.decomposed_digraph.subgraph(
             sorted(
