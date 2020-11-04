@@ -2,7 +2,7 @@ from . import config
 
 
 def get_gv_header(graphname="thing"):
-    gv_input = "digraph nodegroup {\n"
+    gv_input = "digraph " + graphname + "{\n"
     if config.GRAPH_STYLE != "":
         gv_input += "\t{};\n".format(config.GRAPH_STYLE)
     if config.GLOBALNODE_STYLE != "":
