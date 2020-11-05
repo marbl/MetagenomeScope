@@ -1075,22 +1075,47 @@ class AssemblyGraph(object):
                 self.id2pattern[node_id].layout(self)
 
         # Now that all patterns have been laid out, lay out each component at
-        # the top level.
-        for cc_node_ids in nx.weakly_connected_components(
+        # the top level. TODO -- don't bother laying out single-node components
+        # -- see hack in old MgSc version.
+        for cc_i, cc_node_ids in enumerate(nx.weakly_connected_components(
             self.decomposed_digraph
-        ):
-            pass
-            # Lay out this component, using the node and edge data as well as
-            # the width/height assigned for pattern nodes.
+        ), 1):
+            # Lay out this component, using the node and edge data for
+            # top-level nodes and edges as well as the width/height computed
+            # for "pattern nodes" (in which other nodes, edges, and patterns
+            # can be contained).
+            gv_input = layout_utils.get_gv_header()
+
+            # Populate GraphViz input with node information
+            # This mirrors what's done in Pattern.layout().
+            for node_id in cc_node_ids:
+                if self.is_pattern(node_id):
+                    height = self.id2pattern[node_id].height
+                    width = self.id2pattern[node_id].width
+                    shape = self.id2pattern[node_id].shape
+                else:
+                    data = self.digraph.nodes[node_id]
+                    height = data["height"]
+                    width = data["width"]
+                    shape = config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]]
+                gv_input += "\t{} [height={},width={},shape={}];\n".format(
+                    node_id, height, width, shape
+                )
+
+            # Add edge info.
+            for edge in self.decomposed_digraph.subgraph(cc_node_ids).edges:
+                gv_input += "\t{} -> {};\n".format(edge[0], edge[1])
+
+            gv_input += "}"
+            top_level_cc_graph = pygraphviz.AGraph(gv_input)
+            top_level_cc_graph.layout(prog="dot")
+
+            top_level_cc_graph.draw("cc{}.png".format(cc_i))
+
         # For each component:
-        # -Identify patterns in the component. Lay out these patterns. If these
-        #  patterns contain other patterns, lay out those patterns first (this
-        #  is recursive since there can be many layers of patterns), and then
-        #  use the pattern bounding box for backfilling.
         # -Finally, lay out the entire component.
         # -Backfill all node/edge coordinates within patterns in. This will
         #  need to also be recursive to accommodate really deep down stuff.
-        raise NotImplementedError
 
     def digraph_to_dot(self, output_filepath):
         """Visualizes the top-level graph (as represented in self.digraph).
