@@ -134,7 +134,7 @@ class Pattern(object):
             # earlier.
             coords = layout_utils.get_control_points(cg_edge.attr["pos"])
             # debugging junk
-            #for n in edge:
+            # for n in edge:
             #    if n in id2pattern:
             #        print("P")
             #        print(id2pattern[n])
