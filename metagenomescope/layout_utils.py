@@ -26,19 +26,19 @@ def get_gv_header(graphname="thing"):
 
 def get_control_points(pos):
     """Removes "startp" and "endp" data, if present, from a string definining
-       the "pos" attribute (i.e. the spline control points) of an edge object
-       in pygraphviz.
+    the "pos" attribute (i.e. the spline control points) of an edge object
+    in pygraphviz.
 
-       Also replaces all commas in the filtered string with spaces,
-       to make splitting the string easier.
+    Also replaces all commas in the filtered string with spaces,
+    to make splitting the string easier.
 
-       Returns the split list of coordinates, in the format
-       [x1, y1, x2, y2, ..., xn, yn], where each coordinate is a float.
+    Returns the split list of coordinates, in the format
+    [x1, y1, x2, y2, ..., xn, yn], where each coordinate is a float.
 
-       Raises a ValueError if the number of coordinates is not divisible by 2.
+    Raises a ValueError if the number of coordinates is not divisible by 2.
 
-       See http://www.graphviz.org/doc/Dot.ref for more information on
-       how splines work in GraphViz.
+    See http://www.graphviz.org/doc/Dot.ref for more information on
+    how splines work in GraphViz.
     """
     # Remove startp data
     if pos.startswith("s,"):
