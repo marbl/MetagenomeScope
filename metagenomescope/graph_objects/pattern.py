@@ -31,6 +31,13 @@ class Pattern(object):
         # Will be filled in after calling self.layout()
         self.width = None
         self.height = None
+
+        # Will be filled in after either the parent pattern of this pattern is
+        # laid out, or the entire graph is laid out (if this pattern has no
+        # parent)
+        self.relative_x = None
+        self.relative_y = None
+
         # This is the shape used for this pattern during layout. In the actual
         # end visualization we might use different shapes for collapsed
         # patterns (e.g. hexagons for bubbles, hourglasses for frayed ropes),
@@ -98,8 +105,10 @@ class Pattern(object):
         self.width = float(bb_split[2]) / config.POINTS_PER_INCH
         self.height = float(bb_split[3]) / config.POINTS_PER_INCH
 
-        # TODO: assign relative node coordinates (x and y)
+        # Extract relative node coordinates (x and y)
         for node_id in self.node_ids:
+            node = cg.get_node(node_id)
+            pos = node.attr["pos"].split(",")
             if node_id in id2pattern:
                 # Assign x and y for this pattern.
                 #
@@ -110,13 +119,20 @@ class Pattern(object):
                 # down through the patterns and update positions accordingly --
                 # no need to slow ourselves down by repeatedly updating this
                 # information throughout the layout process.
-                pass
+                id2pattern[node_id].relative_x = pos[0]
+                id2pattern[node_id].relative_y = pos[1]
             else:
-                # Assign x and y
-                pass
+                asm_graph.digraph.nodes[node_id]["relative_x"] = pos[0]
+                asm_graph.digraph.nodes[node_id]["relative_y"] = pos[1]
 
-        # TODO: Assign (relative) edge control points
+        # Extract (relative) edge control points
         for edge in self.subgraph.edges:
+            # TODO move get_control_points() to layout utils and call it here
+            # on the pos attribute of each edge. Store child edges within the
+            # parent pattern, I guess? And then top-level edges can be stored
+            # within the AssemblyGraph. When it comes to associating edges with
+            # their "original" start/end node, I think it'd be easiest to store
+            # these originals as edge data attrs.
             pass
 
 
