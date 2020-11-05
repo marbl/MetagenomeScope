@@ -1100,6 +1100,22 @@ class AssemblyGraph(object):
             raise ValueError("Node ID {} seems out of range.".format(node_id))
         return node_id in self.id2pattern
 
+    def get_connected_components(self):
+        """Returns a list of sets of node IDs within each component in the
+        decomposed digraph.
+
+        Components are sorted in descending order by number of nodes.
+        As a TODO, I need to set this up so that number of edges and number of
+        patterns are used as tie-breakers:
+        https://github.com/marbl/MetagenomeScope/issues/146.
+        """
+        ccs = sorted(
+            nx.weakly_connected_components(self.decomposed_digraph),
+            key=len,
+            reverse=True,
+        )
+        return ccs
+
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""
         # First, lay out each pattern in isolation (this could involve multiple
@@ -1111,10 +1127,7 @@ class AssemblyGraph(object):
         # Now that all patterns have been laid out, lay out each component at
         # the top level. TODO -- don't bother laying out single-node components
         # -- see hack in old MgSc version.
-        for cc_i, cc_node_ids in enumerate(
-            sorted(nx.weakly_connected_components(self.decomposed_digraph),
-                key=len, reverse=True), 1
-        ):
+        for cc_i, cc_node_ids in enumerate(self.get_connected_components(), 1):
             # TODO -- don't show layout msg for components with < 5 nodes like
             # in old MgSc version (double check exact conditions)
             operation_msg("Laying out component {}...".format(cc_i))
