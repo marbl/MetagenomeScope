@@ -133,6 +133,14 @@ class Pattern(object):
             # as edge data attrs rather than using the "comment" hack from
             # earlier.
             coords = layout_utils.get_control_points(cg_edge.attr["pos"])
+            # debugging junk
+            #for n in edge:
+            #    if n in id2pattern:
+            #        print("P")
+            #        print(id2pattern[n])
+            #    else:
+            #        print("N")
+            #        print("{} ({})".format(n, asm_graph.digraph.nodes[n]))
             asm_graph.digraph.edges[edge]["relative_ctrl_pt_coords"] = coords
 
 
