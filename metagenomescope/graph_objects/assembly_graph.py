@@ -1108,6 +1108,9 @@ class AssemblyGraph(object):
         As a TODO, I need to set this up so that number of edges and number of
         patterns are used as tie-breakers:
         https://github.com/marbl/MetagenomeScope/issues/146.
+
+        Assumes that self.hierarchically_identify_patterns() has already been
+        called.
         """
         ccs = sorted(
             nx.weakly_connected_components(self.decomposed_digraph),
