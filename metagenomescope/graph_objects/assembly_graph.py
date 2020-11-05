@@ -6,6 +6,7 @@ import pygraphviz
 
 
 from .. import assembly_graph_parser, config, layout_utils
+from ..msg_utils import operation_msg, conclude_msg
 from .pattern import StartEndPattern, Pattern
 
 
@@ -76,10 +77,33 @@ class AssemblyGraph(object):
         should never be shown to the user, but will be used for things like
         layout and internal storage of nodes. This way, we can have multiple
         nodes with the same name without causing a problem.
+
+        Also calls self.save_orig_src_and_tgt() on every edge in the digraph.
         """
         self.digraph = nx.convert_node_labels_to_integers(
             self.digraph, label_attribute="name"
         )
+        for edge in self.digraph.edges:
+            self.save_orig_src_and_tgt(edge)
+
+    def save_orig_src_and_tgt(
+        self, e, srcfield="orig_src", tgtfield="orig_tgt"
+    ):
+        """Saves an edge's current source and target node ID in data fields.
+
+        Helps out with backfilling stuff during layout -- useful so we can keep
+        track of edges even as their source / target nodes may be modified as
+        patterns are collapsed, etc.
+        """
+        if (
+            srcfield in self.digraph.edges[e]
+            or tgtfield in self.digraph.edges[e]
+        ):
+            raise ValueError(
+                "Edge {} already has src/tgt orig field.".format(e)
+            )
+        self.digraph.edges[e][srcfield] = e[0]
+        self.digraph.edges[e][tgtfield] = e[1]
 
     def get_new_node_id(self):
         """Returns an int guaranteed to be usable as a unique new node ID."""
@@ -626,9 +650,11 @@ class AssemblyGraph(object):
         # nodes as in the subgraph of this pattern's nodes
         self.decomposed_digraph.add_node(pattern_id, pattern_type=pattern_type)
         for e in p_in_edges:
-            self.decomposed_digraph.add_edge(e[0], pattern_id)
+            edge_data = self.decomposed_digraph.edges[e]
+            self.decomposed_digraph.add_edge(e[0], pattern_id, **edge_data)
         for e in p_out_edges:
-            self.decomposed_digraph.add_edge(pattern_id, e[1])
+            edge_data = self.decomposed_digraph.edges[e]
+            self.decomposed_digraph.add_edge(pattern_id, e[1], **edge_data)
 
         # Get the "induced subgraph" of just the first-level child nodes. Used
         # for layout. We call .copy() because otherwise the node removal stuff
@@ -689,15 +715,19 @@ class AssemblyGraph(object):
 
             # Duplicate outgoing edges of the duplicated node in the decomposed
             # digraph
-            for edge in list(self.decomposed_digraph.out_edges(starting_node_id)):
+            for edge in list(
+                self.decomposed_digraph.out_edges(starting_node_id)
+            ):
                 edge_data = self.decomposed_digraph.edges[edge]
-                self.decomposed_digraph.add_edge(new_node_id, edge[1], **edge_data)
+                self.decomposed_digraph.add_edge(
+                    new_node_id, edge[1], **edge_data
+                )
                 self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
                 # NOTE: Removing edges from the decomposed digraph should be
                 # unnecessary, since edge[1] and all of the other nodes within
                 # this pattern (ignoring starting_node_id) will be removed from
                 # the decomposed digraph at the end of this function
-                #self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
+                # self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
 
             self.digraph.add_edge(end_node_to_dup, new_node_id, is_dup=True)
             # In the decomposed digraph, link the starting pattern with the
@@ -730,11 +760,13 @@ class AssemblyGraph(object):
                 self.digraph.remove_edge(edge[0], start_node_to_dup)
                 # See comment in the above block (for replacing the start node)
                 # about this
-                #self.decomposed_digraph.remove_edge(edge[0], ending_node_id)
+                # self.decomposed_digraph.remove_edge(edge[0], ending_node_id)
 
             for edge in list(self.decomposed_digraph.in_edges(ending_node_id)):
                 edge_data = self.decomposed_digraph.edges[edge]
-                self.decomposed_digraph.add_edge(edge[0], new_node_id, **edge_data)
+                self.decomposed_digraph.add_edge(
+                    edge[0], new_node_id, **edge_data
+                )
                 self.decomposed_digraph.remove_edge(edge[0], ending_node_id)
 
             self.digraph.add_edge(new_node_id, start_node_to_dup, is_dup=True)
@@ -758,9 +790,11 @@ class AssemblyGraph(object):
             filter(lambda e: e[1] not in member_node_ids, out_edges)
         )
         for e in p_in_edges:
-            self.decomposed_digraph.add_edge(e[0], pattern_id)
+            edge_data = self.decomposed_digraph.edges[e]
+            self.decomposed_digraph.add_edge(e[0], pattern_id, **edge_data)
         for e in p_out_edges:
-            self.decomposed_digraph.add_edge(pattern_id, e[1])
+            edge_data = self.decomposed_digraph.edges[e]
+            self.decomposed_digraph.add_edge(pattern_id, e[1], **edge_data)
 
         subgraph = self.decomposed_digraph.subgraph(member_node_ids).copy()
 
@@ -1077,9 +1111,13 @@ class AssemblyGraph(object):
         # Now that all patterns have been laid out, lay out each component at
         # the top level. TODO -- don't bother laying out single-node components
         # -- see hack in old MgSc version.
-        for cc_i, cc_node_ids in enumerate(nx.weakly_connected_components(
-            self.decomposed_digraph
-        ), 1):
+        for cc_i, cc_node_ids in enumerate(
+            sorted(nx.weakly_connected_components(self.decomposed_digraph),
+                key=len, reverse=True), 1
+        ):
+            # TODO -- don't show layout msg for components with < 5 nodes like
+            # in old MgSc version (double check exact conditions)
+            operation_msg("Laying out component {}...".format(cc_i))
             # Lay out this component, using the node and edge data for
             # top-level nodes and edges as well as the width/height computed
             # for "pattern nodes" (in which other nodes, edges, and patterns
@@ -1097,7 +1135,9 @@ class AssemblyGraph(object):
                     data = self.digraph.nodes[node_id]
                     height = data["height"]
                     width = data["width"]
-                    shape = config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]]
+                    shape = config.NODE_ORIENTATION_TO_SHAPE[
+                        data["orientation"]
+                    ]
                 gv_input += "\t{} [height={},width={},shape={}];\n".format(
                     node_id, height, width, shape
                 )
@@ -1110,12 +1150,13 @@ class AssemblyGraph(object):
             top_level_cc_graph = pygraphviz.AGraph(gv_input)
             top_level_cc_graph.layout(prog="dot")
 
-            top_level_cc_graph.draw("cc{}.png".format(cc_i))
+            # TODO: Go through _all_ nodes, edges, and patterns within this
+            # component and set final position information. Nodes and edges
+            # within patterns will need to be updated based on their parent
+            # pattern's position information.
 
-        # For each component:
-        # -Finally, lay out the entire component.
-        # -Backfill all node/edge coordinates within patterns in. This will
-        #  need to also be recursive to accommodate really deep down stuff.
+            # top_level_cc_graph.draw("cc{}.png".format(cc_i))
+            conclude_msg()
 
     def digraph_to_dot(self, output_filepath):
         """Visualizes the top-level graph (as represented in self.digraph).
