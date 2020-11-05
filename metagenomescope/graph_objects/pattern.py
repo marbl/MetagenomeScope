@@ -127,13 +127,13 @@ class Pattern(object):
 
         # Extract (relative) edge control points
         for edge in self.subgraph.edges:
-            # TODO move get_control_points() to layout utils and call it here
-            # on the pos attribute of each edge. Store child edges within the
-            # parent pattern, I guess? And then top-level edges can be stored
-            # within the AssemblyGraph. When it comes to associating edges with
-            # their "original" start/end node, I think it'd be easiest to store
-            # these originals as edge data attrs.
-            pass
+            cg_edge = cg.get_edge(*edge)
+            # When it comes to associating edges with their "original"
+            # start/end node, I think it'd be easiest to store these originals
+            # as edge data attrs rather than using the "comment" hack from
+            # earlier.
+            coords = layout_utils.get_control_points(cg_edge.attr["pos"])
+            asm_graph.digraph.edges[edge]["relative_ctrl_pt_coords"] = coords
 
 
 class StartEndPattern(Pattern):
