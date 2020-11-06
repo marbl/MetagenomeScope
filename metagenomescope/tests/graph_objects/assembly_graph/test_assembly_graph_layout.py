@@ -12,6 +12,7 @@ def test_ccs_avoided_due_to_max_node_ct(capsys):
 
     ag.layout()
     # For now, just check the print messages.
+    # https://docs.pytest.org/en/stable/capture.html
     captured = capsys.readouterr()
     exp_msgs = (
         (
