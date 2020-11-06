@@ -1138,7 +1138,7 @@ class AssemblyGraph(object):
                 else:
                     indices_and_cts[i][1] += 1
         sorted_indices_and_cts = sorted(
-            indices_and_cts, key=itemgetter(1,2,3), reverse=True
+            indices_and_cts, key=itemgetter(1, 2, 3), reverse=True
         )
         # Use the first item within sorted_indices_and_cts (representing the
         # zero-indexed position of that component in the "ccs" list defined at
@@ -1205,7 +1205,7 @@ class AssemblyGraph(object):
             # within patterns will need to be updated based on their parent
             # pattern's position information.
 
-            # top_level_cc_graph.draw("cc{}.png".format(cc_i))
+            top_level_cc_graph.draw("cc{}.png".format(cc_i))
             conclude_msg()
 
     def digraph_to_dot(self, output_filepath):

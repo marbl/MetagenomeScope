@@ -31,3 +31,7 @@ downloaded from the [gfalint](https://github.com/sjackman/gfalint) repository
 
 `marygold_fig2a.gml` is based on Figure 2a from
 [Nijkamp et al. 2013](https://www.ncbi.nlm.nih.gov/pubmed/24058058).
+
+`E_coli_LastGraph` is one of [Bandage's](http://rrwick.github.io/Bandage/)
+sample graphs, and apparently was created from data located on NCBI
+[here](https://www.ncbi.nlm.nih.gov/sra?linkname=bioproject_sra_all&from_uid=272917).
