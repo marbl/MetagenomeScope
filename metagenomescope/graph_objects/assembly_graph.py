@@ -1022,6 +1022,7 @@ class AssemblyGraph(object):
 
         ew_field = self.get_edge_weight_field()
         if ew_field is not None:
+            operation_msg("Scaling edges based on weights...")
             real_edges = []
             weights = []
             fake_edges = []
@@ -1094,6 +1095,7 @@ class AssemblyGraph(object):
             # Assign default edge weight attrs to fake edges, i.e. those
             # between a node and its duplicate
             _assign_default_weight_attrs(fake_edges)
+            conclude_msg()
         else:
             # Can't do edge scaling, so just assign every edge "default" attrs
             _assign_default_weight_attrs(self.digraph.edges)

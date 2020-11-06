@@ -72,11 +72,7 @@ def make_viz(
     asm_graph.compute_node_dimensions()
     conclude_msg()
 
-    # TODO: don't display this if no edge weight data available. right now it's
-    # ok tho since scale_edges() detects that case and behaves accordingly
-    operation_msg("Attempting to scale edges based on weights...")
     asm_graph.scale_edges()
-    conclude_msg()
 
     # Create the output directory now (since we know the graph is probably ok).
     # We do this up here so that we can output pattern files, etc.
