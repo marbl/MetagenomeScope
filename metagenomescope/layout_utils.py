@@ -80,9 +80,18 @@ def shift_control_points(coord_list, left, bottom):
     new_coord_list = []
     for i, coord in enumerate(coord_list):
         if i % 2 == 0:
+            # This is an x position (since the list is [x, y, x, y, ...])
             new_coord_list.append(left + coord)
         else:
+            # This is a y position
             new_coord_list.append(bottom + coord)
+
+    # We should have ended on a y position. If we didn't, something is
+    # seriously wrong.
+    if i % 2 == 0:
+        raise ValueError(
+            "Non-even number of control points: {}".format(coord_list)
+        )
     return new_coord_list
 
 
