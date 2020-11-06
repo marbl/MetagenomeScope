@@ -1,5 +1,6 @@
 import math
 from copy import deepcopy
+from operator import itemgetter
 import numpy
 import networkx as nx
 import pygraphviz
@@ -1112,12 +1113,43 @@ class AssemblyGraph(object):
         Assumes that self.hierarchically_identify_patterns() has already been
         called.
         """
-        ccs = sorted(
-            nx.weakly_connected_components(self.decomposed_digraph),
-            key=len,
-            reverse=True,
+        ccs = list(nx.weakly_connected_components(self.decomposed_digraph))
+        # Set up as [[zero-indexed cc pos, node ct, edge ct, pattern ct], ...]
+        # Done this way to make sorting components easier.
+        indices_and_cts = [[n, 0, 0, 0] for n in range(len(ccs))]
+        for i, cc in enumerate(ccs):
+            # We can immediately add all of the (top-level, at least) edges in
+            # this component up front. However, for nodes / patterns / edges
+            # within patterns, we need to go through the "nodes" (which may
+            # include collapsed patterns) in more detail.
+            indices_and_cts[i][2] = len(self.decomposed_digraph.edges)
+            for node_id in cc:
+                if self.is_pattern(node_id):
+                    # Add the pattern's node, edge, and pattern counts to this
+                    # component's node, edge, and pattern counts.
+                    counts = self.id2pattern[node_id].get_counts(self)
+                    indices_and_cts[i][1] += counts[0]
+                    indices_and_cts[i][2] += counts[1]
+                    # (Increase the pattern count by 1, to account for this
+                    # pattern itself.)
+                    indices_and_cts[i][3] += counts[2] + 1
+                else:
+                    indices_and_cts[i][1] += 1
+        sorted_indices_and_cts = sorted(
+            indices_and_cts, key=itemgetter(1,2,3), reverse=True
         )
-        return ccs
+        # Use the first item within sorted_indices_and_cts (representing the
+        # zero-indexed position of that component in the "ccs" list defined at
+        # the start of this function) to return a list containing the node IDs
+        # in each component, sorted in the order used in
+        # sorted_indices_and_cts.
+        #
+        # I can't help but think this approach is overly complicated, but also
+        # christ I am so tired. If you're reading this comment in 2021 then
+        # friend I am so jealous of you for not being in 2020 any more. If you
+        # wanna use all the free time you have in 2021 to submit a PR and make
+        # this function prettier, us 2020 denizens would welcome that.
+        return [ccs[t[0]] for t in sorted_indices_and_cts]
 
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""

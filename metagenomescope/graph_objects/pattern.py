@@ -50,6 +50,22 @@ class Pattern(object):
             self.pattern_type, self.pattern_id, self.node_ids
         )
 
+    def get_counts(self, asm_graph):
+        node_ct = 0
+        edge_ct = len(self.subgraph.edges)
+        patt_ct = 0
+        for node_id in self.node_ids:
+            if asm_graph.is_pattern(node_id):
+                patt_ct += 1
+                counts = asm_graph.id2pattern[node_id].get_counts()
+                node_ct += counts[0]
+                edge_ct += counts[1]
+                patt_ct += counts[2]
+            else:
+                node_ct += 1
+
+        return [node_ct, edge_ct, patt_ct]
+
     def layout(self, asm_graph):
         # Recursively go through all of the nodes within this pattern. If any
         # of these isn't actually a node (and is actually a pattern), then lay
