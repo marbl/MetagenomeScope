@@ -96,6 +96,11 @@ def shift_control_points(coord_list, left, bottom):
 
 
 def getxy(pos_string):
-    """Given a string of the format "x,y", returns floats of x and y."""
+    """Given a string of the format "x,y", returns floats of x and y.
+
+    This should implicitly fail if there is not exactly one "," within the
+    input string, or if the values on either side are not valid representations
+    of numbers.
+    """
     xs, ys = pos_string.split(",")
     return float(xs), float(ys)

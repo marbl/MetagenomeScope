@@ -30,6 +30,7 @@ def test_shift_control_points_good():
 
     assert layout_utils.shift_control_points([10, 10], 5.3, -2) == [15.3, 8]
 
+
 def test_shift_control_points_odd():
     # If there are an odd number of coordinates, something is very wrong, so
     # an error should be raised.
@@ -38,3 +39,32 @@ def test_shift_control_points_odd():
 
     with pytest.raises(ValueError):
         layout_utils.shift_control_points([1, 2, 3], 10, 100)
+
+
+def test_getxy():
+    assert layout_utils.getxy("5,-2") == (5, -2)
+    assert layout_utils.getxy("123.456,789.012") == (123.456, 789.012)
+    # I'm pretty sure GraphViz doesn't include leading/trailing whitespace in
+    # these position attributes, but even if this would change we should still
+    # be able to handle that
+    assert layout_utils.getxy(" 123.456 , 789.012  ") == (123.456, 789.012)
+    assert layout_utils.getxy(" -123.456 , 789.012  ") == (-123.456, 789.012)
+    assert layout_utils.getxy(" 123.456 , -789.012  ") == (123.456, -789.012)
+    assert layout_utils.getxy(" -123.456 , -789.012  ") == (-123.456, -789.012)
+
+    # Errors when not exactly one ","
+    with pytest.raises(ValueError):
+        layout_utils.getxy("haha i am going to cause problems")
+
+    with pytest.raises(ValueError):
+        layout_utils.getxy("1,2,3")
+
+    with pytest.raises(ValueError):
+        layout_utils.getxy("1,2,3,4")
+
+    # Error when values aren't valid representations of numbers
+    with pytest.raises(ValueError):
+        layout_utils.getxy("a,b")
+
+    with pytest.raises(ValueError):
+        layout_utils.getxy("one, two")

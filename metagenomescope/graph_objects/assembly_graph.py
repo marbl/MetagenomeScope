@@ -1233,7 +1233,9 @@ class AssemblyGraph(object):
                 )
 
             # Add edge info.
-            top_level_edges = self.decomposed_digraph.subgraph(cc_node_ids).edges
+            top_level_edges = self.decomposed_digraph.subgraph(
+                cc_node_ids
+            ).edges
             for edge in top_level_edges:
                 gv_input += "\t{} -> {};\n".format(edge[0], edge[1])
 
@@ -1307,7 +1309,7 @@ class AssemblyGraph(object):
                             ] = layout_utils.shift_control_points(
                                 data["relative_ctrl_pt_coords"],
                                 curr_patt.left,
-                                curr_patt.bottom
+                                curr_patt.bottom,
                             )
 
                 else:
@@ -1321,9 +1323,7 @@ class AssemblyGraph(object):
                 os = data["orig_src"]
                 ot = data["orig_tgt"]
                 gv_edge = top_level_cc_graph.get_edge(*edge)
-                coords = layout_utils.get_control_points(
-                    gv_edge.attr["pos"]
-                )
+                coords = layout_utils.get_control_points(gv_edge.attr["pos"])
                 orig_edge_data = self.digraph.edges[os, ot]
                 orig_edge_data["ctrl_pt_coords"] = coords
 
