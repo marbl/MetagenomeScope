@@ -1132,11 +1132,6 @@ class AssemblyGraph(object):
         # https://docs.python.org/3.3/howto/sorting.html#operator-module-functions
         indices_and_cts = [[n, 0, 0, 0] for n in range(len(ccs))]
         for i, cc in enumerate(ccs):
-            # We can immediately add all of the (top-level, at least) edges in
-            # this component up front. However, for nodes / patterns / edges
-            # within patterns, we need to go through the "nodes" (which may
-            # include collapsed patterns) in more detail.
-            indices_and_cts[i][2] = len(self.decomposed_digraph.subgraph(cc).edges)
             for node_id in cc:
                 if self.is_pattern(node_id):
                     # Add the pattern's node, edge, and pattern counts to this
@@ -1149,6 +1144,14 @@ class AssemblyGraph(object):
                     indices_and_cts[i][3] += counts[2] + 1
                 else:
                     indices_and_cts[i][1] += 1
+                # Record all of the top-level edges in this component by
+                # looking at the outgoing edges of each "node", whether it's a
+                # real or collapsed-pattern node.
+                # We could also create the induced subgraph of this component's
+                # nodes (in "cc") and then count the number of edges there, but
+                # I think this is more efficient.
+                indices_and_cts[i][2] += len(self.decomposed_digraph.edges(node_id))
+
         sorted_indices_and_cts = sorted(
             indices_and_cts, key=itemgetter(1, 2, 3), reverse=True
         )
