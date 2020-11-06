@@ -1102,13 +1102,17 @@ class AssemblyGraph(object):
         return node_id in self.id2pattern
 
     def get_connected_components(self):
-        """Returns a list of sets of node IDs within each component in the
-        decomposed digraph.
+        """Returns a list of 2-tuples, where the first element in each tuple is
+        a set of (top-level) node IDs within this component in the decomposed
+        digraph and the second element is the total number of nodes (not
+        counting collapsed patterns, but including nodes within patterns)
+        within this component.
 
-        Components are sorted in descending order by number of nodes.
-        As a TODO, I need to set this up so that number of edges and number of
-        patterns are used as tie-breakers:
-        https://github.com/marbl/MetagenomeScope/issues/146.
+        Components are sorted in descending order by number of nodes first,
+        then number of edges, then number of patterns. This is a simple-ish way
+        of highlighting the most "interesting" components -- e.g. a component
+        with 1 node with an edge to itself is more "interesting" than a
+        component with just 1 node and no edges.
 
         Assumes that self.hierarchically_identify_patterns() has already been
         called.
@@ -1151,7 +1155,7 @@ class AssemblyGraph(object):
         # friend I am so jealous of you for not being in 2020 any more. If you
         # wanna use all the free time you have in 2021 to submit a PR and make
         # this function prettier, us 2020 denizens would welcome that.
-        return [ccs[t[0]] for t in sorted_indices_and_cts]
+        return [(ccs[t[0]], t[1]) for t in sorted_indices_and_cts]
 
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""
@@ -1164,10 +1168,19 @@ class AssemblyGraph(object):
         # Now that all patterns have been laid out, lay out each component at
         # the top level. TODO -- don't bother laying out single-node components
         # -- see hack in old MgSc version.
-        for cc_i, cc_node_ids in enumerate(self.get_connected_components(), 1):
-            # TODO -- don't show layout msg for components with < 5 nodes like
-            # in old MgSc version (double check exact conditions)
-            operation_msg("Laying out component {}...".format(cc_i))
+        first_small_component = False
+        for cc_i, cc_tuple in enumerate(self.get_connected_components(), 1):
+            cc_node_ids = cc_tuple[0]
+            cc_full_node_ct = cc_tuple[1]
+            if not first_small_component:
+                if cc_full_node_ct > 5:
+                    operation_msg("Laying out component {}...".format(cc_i))
+                else:
+                    operation_msg(
+                        "Laying out small (each containing < 5 nodes) "
+                        "remaining component(s)..."
+                    )
+                    first_small_component = True
             # Lay out this component, using the node and edge data for
             # top-level nodes and edges as well as the width/height computed
             # for "pattern nodes" (in which other nodes, edges, and patterns
@@ -1206,6 +1219,10 @@ class AssemblyGraph(object):
             # pattern's position information.
 
             top_level_cc_graph.draw("cc{}.png".format(cc_i))
+            if not first_small_component:
+                conclude_msg()
+
+        if first_small_component:
             conclude_msg()
 
     def digraph_to_dot(self, output_filepath):
