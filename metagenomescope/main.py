@@ -62,8 +62,8 @@ def make_viz(
     operation_msg("Reading and parsing input file {}...".format(bn))
     asm_graph = graph_objects.AssemblyGraph(
         input_file,
-        max_node_ct=max_node_ct,
-        max_edge_ct=max_edge_ct
+        max_node_count=max_node_count,
+        max_edge_count=max_edge_count
     )
     conclude_msg()
 

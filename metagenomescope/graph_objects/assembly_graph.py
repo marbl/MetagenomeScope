@@ -29,13 +29,13 @@ class AssemblyGraph(object):
     def __init__(
         self,
         filename,
-        max_node_ct=config.MAXN_DEFAULT,
-        max_edge_ct=config.MAXE_DEFAULT
+        max_node_count=config.MAXN_DEFAULT,
+        max_edge_count=config.MAXE_DEFAULT
     ):
         """Parses the input graph file and initializes the AssemblyGraph."""
         self.filename = filename
-        self.max_node_ct = max_node_ct
-        self.max_edge_ct = max_edge_ct
+        self.max_node_count = max_node_count
+        self.max_edge_count = max_edge_count
 
         # Each entry in these structures will be a Pattern (or subclass).
         # NOTE that these patterns will only be "represented" in
@@ -1167,14 +1167,8 @@ class AssemblyGraph(object):
 
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""
-        # First, lay out each pattern in isolation (this could involve multiple
-        # layers, since patterns can contain other patterns)
-        for node_id in self.decomposed_digraph.nodes:
-            if self.is_pattern(node_id):
-                self.id2pattern[node_id].layout(self)
-
-        # Now that all patterns have been laid out, lay out each component at
-        # the top level. TODO -- don't bother laying out single-node components
+        # Do layout one component at a time.
+        # TODO -- don't bother laying out single-node components
         # -- see hack in old MgSc version.
         first_small_component = False
         for cc_i, cc_tuple in enumerate(self.get_connected_components(), 1):
@@ -1200,6 +1194,9 @@ class AssemblyGraph(object):
             # This mirrors what's done in Pattern.layout().
             for node_id in cc_node_ids:
                 if self.is_pattern(node_id):
+                    # Lay out the pattern in isolation (could involve multiple
+                    # layers, since patterns can contain other patterns).
+                    self.id2pattern[node_id].layout(self)
                     height = self.id2pattern[node_id].height
                     width = self.id2pattern[node_id].width
                     shape = self.id2pattern[node_id].shape
