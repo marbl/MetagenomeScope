@@ -1176,7 +1176,16 @@ class AssemblyGraph(object):
             cc_full_node_ct = cc_tuple[1]
             cc_full_edge_ct = cc_tuple[2]
             if not first_small_component:
-                if cc_full_node_ct > 5:
+                if cc_full_node_ct > self.max_node_count or cc_full_edge_ct > self.max_edge_count:
+                    operation_msg(
+                        (
+                            "Not laying out component {} ({} nodes, {} "
+                            "edges): exceeds -maxn or -maxe."
+                        ).format(cc_i, cc_full_node_ct, cc_full_edge_ct),
+                        True
+                    )
+                    continue
+                elif cc_full_node_ct > 5:
                     operation_msg("Laying out component {}...".format(cc_i))
                 else:
                     operation_msg(
