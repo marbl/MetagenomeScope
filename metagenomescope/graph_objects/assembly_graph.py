@@ -1102,11 +1102,12 @@ class AssemblyGraph(object):
         return node_id in self.id2pattern
 
     def get_connected_components(self):
-        """Returns a list of 2-tuples, where the first element in each tuple is
+        """Returns a list of 3-tuples, where the first element in each tuple is
         a set of (top-level) node IDs within this component in the decomposed
-        digraph and the second element is the total number of nodes (not
+        digraph, the second element is the total number of nodes (not
         counting collapsed patterns, but including nodes within patterns)
-        within this component.
+        within this component, and the third element is the total number of
+        edges within this component.
 
         Components are sorted in descending order by number of nodes first,
         then number of edges, then number of patterns. This is a simple-ish way
@@ -1146,7 +1147,7 @@ class AssemblyGraph(object):
         )
         # Use the first item within sorted_indices_and_cts (representing the
         # zero-indexed position of that component in the "ccs" list defined at
-        # the start of this function) to return a list containing the node IDs
+        # the start of this function) to produce a list containing the node IDs
         # in each component, sorted in the order used in
         # sorted_indices_and_cts.
         #
@@ -1155,7 +1156,7 @@ class AssemblyGraph(object):
         # friend I am so jealous of you for not being in 2020 any more. If you
         # wanna use all the free time you have in 2021 to submit a PR and make
         # this function prettier, us 2020 denizens would welcome that.
-        return [(ccs[t[0]], t[1]) for t in sorted_indices_and_cts]
+        return [(ccs[t[0]], t[1], t[2]) for t in sorted_indices_and_cts]
 
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""
@@ -1172,6 +1173,7 @@ class AssemblyGraph(object):
         for cc_i, cc_tuple in enumerate(self.get_connected_components(), 1):
             cc_node_ids = cc_tuple[0]
             cc_full_node_ct = cc_tuple[1]
+            cc_full_edge_ct = cc_tuple[2]
             if not first_small_component:
                 if cc_full_node_ct > 5:
                     operation_msg("Laying out component {}...".format(cc_i))

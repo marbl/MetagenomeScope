@@ -38,6 +38,22 @@ def make_viz(
     nbdf: bool,
     npdf: bool,
 ):
+    """Creates a visualization.
+
+    NOTE: Not all arguments are supported yet.
+    TODOs:
+        -assume oriented
+        -max node ct
+        -max edge ct
+        -metacarvel bubble file
+        -user pattern file
+        -spqr
+        -sp
+        -pg
+        -px
+        -nbdf
+        -npdf
+    """
     arg_utils.check_dir_existence(output_dir)
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
@@ -56,6 +72,10 @@ def make_viz(
     operation_msg("Attempting to scale edges based on weights...")
     asm_graph.scale_edges()
     conclude_msg()
+
+    # Create the output directory now (since we know the graph is probably ok).
+    # We do this up here so that we can output pattern files, etc.
+    arg_utils.create_output_dir(output_dir)
 
     # Hierarchically decompose graph, creating duplicate nodes where needed
     # TODO: Have this utilize user-supplied bubbles and patterns. They should
@@ -87,8 +107,6 @@ def make_viz(
     #
     # -Modify the JS to prepare the graph summary, etc. and get ready for
     #  component drawing. Replace DB operations with just looking at the JSON.
-
-    arg_utils.create_output_dir(output_dir)
 
     # TODO from here on down.
     # -Identify user-supplied bubbles.
