@@ -1173,8 +1173,9 @@ class AssemblyGraph(object):
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""
         # Do layout one component at a time.
-        # TODO -- don't bother laying out single-node components
-        # -- see hack in old MgSc version.
+        # TODO -- don't bother laying out single-node components, instead
+        # "fake" the dimensions -- see hack in old MgSc version:
+        # https://github.com/marbl/MetagenomeScope/blob/0db5e3790fc736f428f65b4687bd4d1e054c3978/metagenomescope/collate.py#L2785-L2807
         first_small_component = False
         for cc_i, cc_tuple in enumerate(self.get_connected_components(), 1):
             cc_node_ids = cc_tuple[0]
