@@ -1339,92 +1339,16 @@ class AssemblyGraph(object):
         # self.id2pattern. Now we should be able to make a JSON representation
         # of this graph and move on to visualizing it in the browser!
 
-    def digraph_to_dot(self, output_filepath):
-        """Visualizes the top-level graph (as represented in self.digraph).
+    def dot(self, output_filepath, component_number):
+        """TODO. Visualizes a component of the laid out graph.
 
         Intended for debugging.
+
+        TODO -- use the components as ordered by get_connected_components(),
+        and allow caller to specify which component to lay out. Also, include
+        all nodes/edges/patterns in the layout (I guess we could uhhh just
+        overlay the nodes onto the patterns? idk.)
         """
-        gv_input = layout_utils.get_gv_header()
-
-        subg = self.digraph.subgraph(
-            sorted(
-                nx.weakly_connected_components(self.digraph),
-                key=len,
-                reverse=True,
-            )[0]
-        )
-
-        for n in subg.nodes:
-            data = subg.nodes[n]
-            gv_input += (
-                '\t{} [height={},width={},shape={},label="{}"];\n'.format(
-                    n,
-                    data["height"],
-                    data["width"],
-                    config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]],
-                    data["name"],
-                )
-            )
-
-        for e in subg.edges:
-            style = ""
-            if "is_dup" in subg.edges[e]:
-                style = ' [color="green"]'
-            gv_input += "\t{} -> {}{};\n".format(e[0], e[1], style)
-
-        gv_input += "}"
-        g = pygraphviz.AGraph(gv_input)
-        g.layout(prog="dot")
-        g.draw(output_filepath)
-        g.draw("graph.gv")
-        g.draw("graph.xdot")
-
-    def decomposed_digraph_to_dot(self, output_filepath):
-        """Visualizes the decomposed digraph.
-
-        Intended for debugging.
-        """
-        gv_input = layout_utils.get_gv_header()
-
-        subg = self.decomposed_digraph.subgraph(
-            sorted(
-                nx.weakly_connected_components(self.decomposed_digraph),
-                key=len,
-                reverse=True,
-            )[0]
-        )
-
-        for n in subg.nodes:
-            data = subg.nodes[n]
-            if n in self.id2pattern:
-                p = self.id2pattern[n]
-                gv_input += (
-                    '\t{} [height={},width={},shape={},label="{}"];\n'.format(
-                        n, 1, 1, "rectangle", p.pattern_type
-                    )
-                )
-            else:
-                gv_input += (
-                    '\t{} [height={},width={},shape={},label="{}"];\n'.format(
-                        n,
-                        data["height"],
-                        data["width"],
-                        config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]],
-                        data["name"],
-                    )
-                )
-
-        for e in subg.edges:
-            style = ""
-            if "is_dup" in subg.edges[e]:
-                style = ' [color="green"]'
-            gv_input += "\t{} -> {}{};\n".format(e[0], e[1], style)
-
-        gv_input += "}"
-        g = pygraphviz.AGraph(gv_input)
-        g.layout(prog="dot")
-        g.draw(output_filepath)
-        g.draw("graph.xdot")
 
     def to_cytoscape_compatible_format(self):
         """TODO."""
@@ -1493,6 +1417,17 @@ class AssemblyGraph(object):
 
         I think that's the gist of it?
         """
+        # TODO: I guess we probably need to format these as dicts instead (e.g.
+        # {"id": 0, "label": 1, ...})
+        NODE_ATTRS = ["id", "label", "length", "x", "y", "w", "h", "is_fwd", "parent_id", "extra_data"]
+        EDGE_ATTRS = ["src_id", "snk_id", "ctrl_pts", "parent_id", "extra_data"]
+        PATT_ATTRS = ["id", "left", "bottom", "right", "top", "w", "h", "type"]
+
+        out = {}
+        # TODO: for each component:
+        # 1. Add node data to out
+        # 2. Add edge data to out
+        # 3. Add pattern data to out
 
     def process(self):
         """Basic pipeline for preparing a graph for visualization."""
