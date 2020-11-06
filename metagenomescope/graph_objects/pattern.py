@@ -57,7 +57,7 @@ class Pattern(object):
         for node_id in self.node_ids:
             if asm_graph.is_pattern(node_id):
                 patt_ct += 1
-                counts = asm_graph.id2pattern[node_id].get_counts()
+                counts = asm_graph.id2pattern[node_id].get_counts(asm_graph)
                 node_ct += counts[0]
                 edge_ct += counts[1]
                 patt_ct += counts[2]
