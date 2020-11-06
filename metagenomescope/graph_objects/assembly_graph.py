@@ -30,7 +30,7 @@ class AssemblyGraph(object):
         self,
         filename,
         max_node_count=config.MAXN_DEFAULT,
-        max_edge_count=config.MAXE_DEFAULT
+        max_edge_count=config.MAXE_DEFAULT,
     ):
         """Parses the input graph file and initializes the AssemblyGraph."""
         self.filename = filename
@@ -1150,7 +1150,9 @@ class AssemblyGraph(object):
                 # We could also create the induced subgraph of this component's
                 # nodes (in "cc") and then count the number of edges there, but
                 # I think this is more efficient.
-                indices_and_cts[i][2] += len(self.decomposed_digraph.edges(node_id))
+                indices_and_cts[i][2] += len(
+                    self.decomposed_digraph.edges(node_id)
+                )
 
         sorted_indices_and_cts = sorted(
             indices_and_cts, key=itemgetter(1, 2, 3), reverse=True
@@ -1179,13 +1181,16 @@ class AssemblyGraph(object):
             cc_full_node_ct = cc_tuple[1]
             cc_full_edge_ct = cc_tuple[2]
             if not first_small_component:
-                if cc_full_node_ct > self.max_node_count or cc_full_edge_ct > self.max_edge_count:
+                if (
+                    cc_full_node_ct > self.max_node_count
+                    or cc_full_edge_ct > self.max_edge_count
+                ):
                     operation_msg(
                         (
                             "Not laying out component {} ({} nodes, {} "
                             "edges): exceeds -maxn or -maxe."
                         ).format(cc_i, cc_full_node_ct, cc_full_edge_ct),
-                        True
+                        True,
                     )
                     continue
                 elif cc_full_node_ct > 5:

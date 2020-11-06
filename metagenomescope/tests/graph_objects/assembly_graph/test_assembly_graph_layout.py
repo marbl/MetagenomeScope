@@ -3,8 +3,7 @@ from metagenomescope.graph_objects import AssemblyGraph
 
 def test_ccs_avoided_due_to_max_node_ct(capsys):
     ag = AssemblyGraph(
-        "metagenomescope/tests/input/sample1.gfa",
-        max_node_count=2
+        "metagenomescope/tests/input/sample1.gfa", max_node_count=2
     )
     ag.scale_nodes()
     ag.compute_node_dimensions()
