@@ -1136,7 +1136,7 @@ class AssemblyGraph(object):
             # this component up front. However, for nodes / patterns / edges
             # within patterns, we need to go through the "nodes" (which may
             # include collapsed patterns) in more detail.
-            indices_and_cts[i][2] = len(self.decomposed_digraph.edges)
+            indices_and_cts[i][2] = len(self.decomposed_digraph.subgraph(cc).edges)
             for node_id in cc:
                 if self.is_pattern(node_id):
                     # Add the pattern's node, edge, and pattern counts to this
@@ -1233,7 +1233,7 @@ class AssemblyGraph(object):
             # within patterns will need to be updated based on their parent
             # pattern's position information.
 
-            top_level_cc_graph.draw("cc{}.png".format(cc_i))
+            # top_level_cc_graph.draw("cc{}.png".format(cc_i))
             if not first_small_component:
                 conclude_msg()
 
