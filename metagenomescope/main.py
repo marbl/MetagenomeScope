@@ -94,29 +94,18 @@ def make_viz(
     operation_msg("...Finished laying out the graph.", True)
 
     # Immediate TODO:
-    # -Compute graph layouts. For each component:
-    #   -Lay out individual patterns, starting at lowest level and moving up.
-    #    Similar to SPQR layout code.
-    #   -Finally, lay out the entire graph for the component, with patterns
-    #    replaced with their bounding box.
-    #   -Backfill all node/edge coordinates in.
+    #   Make AssemblyGraph.to_dot(), to_cytoscape() to_json(), etc. methods.
+    #   The JSON should be the most important, since it'll be passed to the JS.
     #
-    #   At this point we can create AssemblyGraph.to_dot(), to_cytoscape(),
-    #   etc. methods for temporary testing.
     #
     # -Use jinja2 to pass data to the viewer index.html file.
     #
     # -Modify the JS to prepare the graph summary, etc. and get ready for
     #  component drawing. Replace DB operations with just looking at the JSON.
 
-    # TODO from here on down.
+    # Other TODO items:
     # -Identify user-supplied bubbles.
     # -Identify user-supplied misc. patterns.
     # -If -spqr passed, compute SPQR trees and record composition/structure.
     # -Output identified pattern info if -sp passed
-    # -Identify connected components for the "single" graph (SPQR mode).
-    # -Identify connected components for the "normal" graph (non-SPQR mode).
-    # -Compute node scaling for each connected component
-    # -Compute edge scaling for each connected component
     # -SPQR layout!
-    # -Normal layout!
