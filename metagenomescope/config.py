@@ -177,7 +177,6 @@ USERBUBBLES_SEARCH_MSG = "Identifying user-specified bubbles in the graph..."
 USERPATTERNS_SEARCH_MSG = (
     "Identifying user-specified misc. patterns in " + "the graph..."
 )
-BUBBLE_SEARCH_MSG = "Looking for simple bubbles in the graph..."
 SPQR_MSG = (
     "Generating SPQR tree decompositions for the bicomponents of the graph..."
 )
@@ -186,20 +185,9 @@ BICOMPONENT_BUBBLE_SEARCH_MSG = (
     "Looking for complex bubbles in the graph using SPQR tree "
     "decompositions..."
 )
-FRAYEDROPE_SEARCH_MSG = "Looking for frayed ropes in the graph..."
-CYCLE_SEARCH_MSG = "Looking for cyclic chains in the graph..."
-CHAIN_SEARCH_MSG = "Looking for chains in the graph..."
-COMPONENT_MSG = "Identifying connected components within the graph..."
-EDGE_SCALING_MSG = "Scaling edge thicknesses in each connected component..."
-CONTIG_SCALING_MSG = (
-    "Scaling contig areas/dimensions in each connected component..."
-)
 DB_INIT_MSG = "Initializing output file "
 SAVE_AUX_FAIL_MSG = "Not saving "
-LAYOUT_MSG = "Laying out "
-SMALL_COMPONENTS_MSG = "small (containing < 5 nodes) remaining components..."
 SPQR_COMPONENTS_MSG = " SPQR-integrated component "
-START_LAYOUT_MSG = "Laying out connected component "
 LARGE_COMPONENT_MSG = (
     "Not laying out component {cr} ({nc} nodes, {ec} "
     + "edges): exceeds -maxn or -maxe."
