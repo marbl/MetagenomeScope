@@ -1116,6 +1116,8 @@ class AssemblyGraph(object):
         ccs = list(nx.weakly_connected_components(self.decomposed_digraph))
         # Set up as [[zero-indexed cc pos, node ct, edge ct, pattern ct], ...]
         # Done this way to make sorting components easier.
+        # This paradigm based roughly on what's done here:
+        # https://docs.python.org/3.3/howto/sorting.html#operator-module-functions
         indices_and_cts = [[n, 0, 0, 0] for n in range(len(ccs))]
         for i, cc in enumerate(ccs):
             # We can immediately add all of the (top-level, at least) edges in
