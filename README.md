@@ -39,16 +39,27 @@ MetagenomeScope's **preprocessing script** (contained in the
 takes as input an assembly graph file and produces a directory containing a
 HTML visualization of the graph.
 
-This preprocessing step takes care of structural pattern detection and
-decomposition as well as the graph layout. Since hierarchical layout can take a
-really long time for complex and/or large graphs, this script may run for a while.
-
 Once you've installed MetagenomeScope, running the preprocessing script is as
 simple as
 
 ```bash
 mgsc -i [input assembly graph file] -o [output directory name]
 ```
+
+**Note.** By default, connected components containing 8,000 or more nodes or
+edges will not be laid out. These thresholds are configurable using the
+`--max-node-count` / `--max-edge-count` parameters. This default is intended
+to save time and effort: hierarchical layout can take a really long time for
+complex and/or large connected components, so oftentimes trying to visualize
+the largest few components of a graph will take an intractable amount of
+computational resources / time. Furthermore, really complex components of
+assembly graphs can be hard to visualize meaningfully.
+
+This isn't always the case (for example, a
+connected component containing 10,000 nodes all in a straight line will be
+much easier to lay out and visualize than a connected component
+with 5,000 nodes and 20,000 edges), but we wanted to be conservative with the
+defaults.
 
 #### What types of assembly graphs can I use as input?
 
