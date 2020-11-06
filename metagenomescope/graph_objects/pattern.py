@@ -131,7 +131,7 @@ class Pattern(object):
         # Extract relative node coordinates (x and y)
         for node_id in self.node_ids:
             node = cg.get_node(node_id)
-            pos = node.attr["pos"].split(",")
+            x, y = layout_utils.getxy(node.attr["pos"])
             if node_id in id2pattern:
                 # Assign x and y for this pattern.
                 #
@@ -142,11 +142,11 @@ class Pattern(object):
                 # down through the patterns and update positions accordingly --
                 # no need to slow ourselves down by repeatedly updating this
                 # information throughout the layout process.
-                id2pattern[node_id].relative_x = pos[0]
-                id2pattern[node_id].relative_y = pos[1]
+                id2pattern[node_id].relative_x = x
+                id2pattern[node_id].relative_y = y
             else:
-                asm_graph.digraph.nodes[node_id]["relative_x"] = pos[0]
-                asm_graph.digraph.nodes[node_id]["relative_y"] = pos[1]
+                asm_graph.digraph.nodes[node_id]["relative_x"] = x
+                asm_graph.digraph.nodes[node_id]["relative_y"] = y
 
         # Extract (relative) edge control points
         for edge in self.subgraph.edges:
@@ -158,7 +158,7 @@ class Pattern(object):
             coords = layout_utils.get_control_points(cg_edge.attr["pos"])
             self.subgraph.edges[edge]["relative_ctrl_pt_coords"] = coords
 
-    def set_bb(x, y):
+    def set_bb(self, x, y):
         """Given a center position of this Pattern, sets its bounding box."""
         half_w_pts = (self.width / 2) * config.POINTS_PER_INCH
         half_h_pts = (self.height / 2) * config.POINTS_PER_INCH

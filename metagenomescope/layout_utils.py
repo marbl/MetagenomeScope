@@ -64,3 +64,8 @@ def shift_control_points(coord_list, left, bottom):
         else:
             new_coord_list.append(bottom + coord)
     return new_coord_list
+
+
+def getxy(pos_string):
+    xs, ys = pos_string.split(",")
+    return float(xs), float(ys)

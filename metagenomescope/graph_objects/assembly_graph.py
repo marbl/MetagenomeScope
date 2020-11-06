@@ -1252,7 +1252,7 @@ class AssemblyGraph(object):
             for node_id in cc_node_ids:
                 gv_node = top_level_cc_graph.get_node(node_id)
                 # The (x, y) position for this node describes its center pos
-                x, y = [float(c) for c in gv_node.attr["pos"].split(",")]
+                x, y = layout_utils.getxy(gv_node.attr["pos"])
 
                 if self.is_pattern(node_id):
                     patt = self.id2pattern[node_id]
@@ -1274,7 +1274,7 @@ class AssemblyGraph(object):
                     # (Of course, patterns at the top level don't have a
                     # parent, hence the None in the second element of the tuple
                     # below.)
-                    patt_queue = deqeue(patt)
+                    patt_queue = deque([patt])
                     while len(patt_queue) > 0:
                         # Get the first pattern added
                         curr_patt = patt_queue.popleft()
@@ -1299,13 +1299,15 @@ class AssemblyGraph(object):
 
                         for edge in curr_patt.subgraph.edges:
                             data = curr_patt.subgraph.edges[edge]
-                            os = edge["orig_src"]
-                            ot = edge["orig_tgt"]
+                            os = data["orig_src"]
+                            ot = data["orig_tgt"]
                             orig_edge_data = self.digraph.edges[os, ot]
                             orig_edge_data[
                                 "ctrl_pt_coords"
                             ] = layout_utils.shift_control_points(
-                                data["relative_ctrl_pt_coords"]
+                                data["relative_ctrl_pt_coords"],
+                                curr_patt.left,
+                                curr_patt.bottom
                             )
 
                 else:
