@@ -43,11 +43,12 @@ def make_viz(
     NOTE: Not all arguments are supported yet.
     TODOs:
         -assume oriented
-        -max node ct
-        -max edge ct
+
         -metacarvel bubble file
         -user pattern file
+
         -spqr
+
         -sp
         -pg
         -px
@@ -59,7 +60,11 @@ def make_viz(
 
     bn = os.path.basename(input_file)
     operation_msg("Reading and parsing input file {}...".format(bn))
-    asm_graph = graph_objects.AssemblyGraph(input_file)
+    asm_graph = graph_objects.AssemblyGraph(
+        input_file,
+        max_node_ct=max_node_ct,
+        max_edge_ct=max_edge_ct
+    )
     conclude_msg()
 
     operation_msg("Scaling nodes based on lengths...")

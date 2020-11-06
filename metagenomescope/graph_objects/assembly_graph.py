@@ -26,9 +26,16 @@ class AssemblyGraph(object):
     https://www.thedigitalcatonline.com/blog/2014/08/20/python-3-oop-part-3-delegation-composition-and-inheritance/
     """
 
-    def __init__(self, filename):
+    def __init__(
+        self,
+        filename,
+        max_node_ct=config.MAXN_DEFAULT,
+        max_edge_ct=config.MAXE_DEFAULT
+    ):
         """Parses the input graph file and initializes the AssemblyGraph."""
         self.filename = filename
+        self.max_node_ct = max_node_ct
+        self.max_edge_ct = max_edge_ct
 
         # Each entry in these structures will be a Pattern (or subclass).
         # NOTE that these patterns will only be "represented" in
