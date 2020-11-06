@@ -57,6 +57,26 @@ def get_control_points(pos):
 
 
 def shift_control_points(coord_list, left, bottom):
+    r"""Given a list of coordinates (e.g. the output of get_control_points()),
+    increases each x coordinate in the list by "left" and increases each y
+    coordinate in the list by "bottom".
+
+    The purpose for this is altering the control points of edges within a
+    pattern -- the control points are positioned relative to the pattern
+    containing the edge, so they can be "shifted" by just taking into account
+    the left x and bottom y position of the pattern within the top-level
+    component layout.
+
+    ^
+    |      +-------------+
+    |      | /--->3---\  |
+    | 1 -> |2          5 |
+    |      | \--->4---/  |
+    |  left+-------------+
+    |      bottom
+    |
+    (0, 0)------------------------>
+    """
     new_coord_list = []
     for i, coord in enumerate(coord_list):
         if i % 2 == 0:
@@ -67,5 +87,6 @@ def shift_control_points(coord_list, left, bottom):
 
 
 def getxy(pos_string):
+    """Given a string of the format "x,y", returns floats of x and y."""
     xs, ys = pos_string.split(",")
     return float(xs), float(ys)
