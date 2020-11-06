@@ -54,3 +54,13 @@ def get_control_points(pos):
             "Invalid GraphViz edge control points: {}".format(pos)
         )
     return coord_list
+
+
+def shift_control_points(coord_list, left, bottom):
+    new_coord_list = []
+    for i, coord in enumerate(coord_list):
+        if i % 2 == 0:
+            new_coord_list.append(left + coord)
+        else:
+            new_coord_list.append(bottom + coord)
+    return new_coord_list

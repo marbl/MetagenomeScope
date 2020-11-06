@@ -28,15 +28,22 @@ class Pattern(object):
         self.node_ids = node_ids
         self.subgraph = subgraph
 
-        # Will be filled in after calling self.layout()
+        # Will be filled in after calling self.layout(). Stored in inches.
         self.width = None
         self.height = None
 
         # Will be filled in after either the parent pattern of this pattern is
         # laid out, or the entire graph is laid out (if this pattern has no
-        # parent)
+        # parent). Stored in points.
         self.relative_x = None
         self.relative_y = None
+
+        # Will be filled in after performing top-level AssemblyGraph layout,
+        # when self.set_bb() is called. Stored in points.
+        self.left = None
+        self.bottom = None
+        self.right = None
+        self.top = None
 
         # This is the shape used for this pattern during layout. In the actual
         # end visualization we might use different shapes for collapsed
@@ -150,6 +157,15 @@ class Pattern(object):
             # earlier.
             coords = layout_utils.get_control_points(cg_edge.attr["pos"])
             self.subgraph.edges[edge]["relative_ctrl_pt_coords"] = coords
+
+    def set_bb(x, y):
+        """Given a center position of this Pattern, sets its bounding box."""
+        half_w_pts = (self.width / 2) * config.POINTS_PER_INCH
+        half_h_pts = (self.height / 2) * config.POINTS_PER_INCH
+        self.left = x - half_w_pts
+        self.right = x + half_w_pts
+        self.bottom = y - half_h_pts
+        self.top = y + half_h_pts
 
 
 class StartEndPattern(Pattern):

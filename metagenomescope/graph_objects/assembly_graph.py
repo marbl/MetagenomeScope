@@ -1,6 +1,7 @@
 import math
 from copy import deepcopy
 from operator import itemgetter
+from collections import deque
 import numpy
 import networkx as nx
 import pygraphviz
@@ -1235,19 +1236,102 @@ class AssemblyGraph(object):
 
             gv_input += "}"
             top_level_cc_graph = pygraphviz.AGraph(gv_input)
+            # Actually perform layout for this component!
+            # If you're wondering why MetagenomeScope is taking so long to run
+            # on your graph and you traced your way back to this line of code,
+            # then boy do I have an NP-Hard problem for you .____________.
             top_level_cc_graph.layout(prog="dot")
 
-            # TODO: Go through _all_ nodes, edges, and patterns within this
+            # Go through _all_ nodes, edges, and patterns within this
             # component and set final position information. Nodes and edges
             # within patterns will need to be updated based on their parent
             # pattern's position information.
+            for node_id in cc_node_ids:
+                gv_node = top_level_cc_graph.get_node(node_id)
+                # The (x, y) position for this node describes its center pos
+                x, y = [float(c) for c in gv_node.attr["pos"].split(",")]
 
-            # top_level_cc_graph.draw("cc{}.png".format(cc_i))
+                if self.is_pattern(node_id):
+                    patt = self.id2pattern[node_id]
+                    patt.set_bb(x, y)
+
+                    # "Reconcile" child nodes, edges, and patterns' relative
+                    # positions with the absolute position of this pattern in
+                    # the layout.
+                    # We go arbitrarily deep here, since patterns can contain
+                    # other patterns (which can contain other patterns, ...)
+                    #
+                    # We use a FIFO queue where each element is a 2-tuple of
+                    # (Pattern object, parent Pattern object). This storage
+                    # method lets us easily associate patterns with their
+                    # parent patterns, and traverse the patterns in such a way
+                    # that whenever we get to a given pattern we've already
+                    # determined coordinate info for its parent.
+                    #
+                    # (Of course, patterns at the top level don't have a
+                    # parent, hence the None in the second element of the tuple
+                    # below.)
+                    patt_queue = deqeue(patt)
+                    while len(patt_queue) > 0:
+                        # Get the first pattern added
+                        curr_patt = patt_queue.popleft()
+                        for child_node_id in curr_patt.node_ids:
+                            if self.is_pattern(child_node_id):
+                                new_patt = self.id2pattern[child_node_id]
+                                # Set pattern bounding box
+                                cx = curr_patt.left + new_patt.relative_x
+                                cy = curr_patt.bottom + new_patt.relative_y
+                                new_patt.set_bb(cx, cy)
+                                # Add patterns within this pattern to the end of
+                                # the queue
+                                patt_queue.append(new_patt)
+                            else:
+                                # Reconcile data for this normal node within a
+                                # pattern
+                                data = self.digraph.nodes[child_node_id]
+                                data["x"] = curr_patt.left + data["relative_x"]
+                                data["y"] = (
+                                    curr_patt.bottom + data["relative_y"]
+                                )
+
+                        for edge in curr_patt.subgraph.edges:
+                            data = curr_patt.subgraph.edges[edge]
+                            os = edge["orig_src"]
+                            ot = edge["orig_tgt"]
+                            orig_edge_data = self.digraph.edges[os, ot]
+                            orig_edge_data[
+                                "ctrl_pt_coords"
+                            ] = layout_utils.shift_control_points(
+                                data["relative_ctrl_pt_coords"]
+                            )
+
+                else:
+                    # Save data for this normal node
+                    self.digraph.nodes[node_id]["x"] = x
+                    self.digraph.nodes[node_id]["y"] = y
+
+                # Save ctrl pt data for top-level edges
+                for edge in self.decomposed_digraph.edges:
+                    gv_edge = top_level_cc_graph.get_edge(*edge)
+                    coords = layout_utils.get_control_points(
+                        gv_edge.attr["pos"]
+                    )
+                    os = edge["orig_src"]
+                    ot = edge["orig_tgt"]
+                    orig_edge_data = self.digraph.edges[os, ot]
+                    orig_edge_data["ctrl_pt_coords"] = coords
+
             if not first_small_component:
                 conclude_msg()
 
         if first_small_component:
             conclude_msg()
+
+        # At this point, we are now done with layout. Coordinate information
+        # for nodes and edges is stored in self.digraph; coordinate information
+        # for patterns is stored in the Pattern objects referenced in
+        # self.id2pattern. Now we should be able to make a JSON representation
+        # of this graph and move on to visualizing it in the browser!
 
     def digraph_to_dot(self, output_filepath):
         """Visualizes the top-level graph (as represented in self.digraph).
