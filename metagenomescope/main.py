@@ -67,36 +67,18 @@ def make_viz(
     )
     conclude_msg()
 
-    operation_msg("Scaling nodes based on lengths...")
-    asm_graph.scale_nodes()
-    asm_graph.compute_node_dimensions()
-    conclude_msg()
+    # Identify patterns, do layout, etc.
+    asm_graph.process()
 
-    asm_graph.scale_edges()
+    # TODO: get JSON from the graph and (using Jinja2) write to a HTML file.
 
-    # Create the output directory now (since we know the graph is probably ok).
-    # We do this up here so that we can output pattern files, etc.
+    return
+
     arg_utils.create_output_dir(output_dir)
-
-    # Hierarchically decompose graph, creating duplicate nodes where needed
-    # TODO: Have this utilize user-supplied bubbles and patterns. They should
-    # be "lowest level" patterns, i.e. collapsed first.
-    # ALSO TODO: Have this use fancier complex bubble detection, similar to
-    # what's described in the MaryGold / MetaFlye papers. For now very complex
-    # bubbles are assumed to be covered by decomposition or by user input, but
-    # this will not always be the case.
-    operation_msg("Running hierarchical pattern decomposition...")
-    asm_graph.hierarchically_identify_patterns()
-    conclude_msg()
-
-    operation_msg("Laying out the graph...", True)
-    asm_graph.layout()
-    operation_msg("...Finished laying out the graph.", True)
 
     # Immediate TODO:
     #   Make AssemblyGraph.to_dot(), to_cytoscape() to_json(), etc. methods.
     #   The JSON should be the most important, since it'll be passed to the JS.
-    #
     #
     # -Use jinja2 to pass data to the viewer index.html file.
     #
@@ -104,8 +86,12 @@ def make_viz(
     #  component drawing. Replace DB operations with just looking at the JSON.
 
     # Other TODO items:
-    # -Identify user-supplied bubbles.
-    # -Identify user-supplied misc. patterns.
+    # -Identify user-supplied bubbles and patterns. Should be "lowest level"
+    #  patterns, i.e. collapsed first.
+    # -Use fancier complex bubble detection, similar to
+    #  what's described in the MaryGold / MetaFlye papers. For now very complex
+    #  bubbles are assumed to be covered by decomposition or by user input, but
+    #  this will not always be the case.
     # -If -spqr passed, compute SPQR trees and record composition/structure.
     # -Output identified pattern info if -sp passed
     # -SPQR layout!

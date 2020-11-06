@@ -1493,3 +1493,20 @@ class AssemblyGraph(object):
 
         I think that's the gist of it?
         """
+
+    def process(self):
+        """Basic pipeline for preparing a graph for visualization."""
+        operation_msg("Scaling nodes based on lengths...")
+        self.scale_nodes()
+        self.compute_node_dimensions()
+        conclude_msg()
+
+        self.scale_edges()
+
+        operation_msg("Running hierarchical pattern decomposition...")
+        self.hierarchically_identify_patterns()
+        conclude_msg()
+
+        operation_msg("Laying out the graph...", True)
+        self.layout()
+        operation_msg("...Finished laying out the graph.", True)
