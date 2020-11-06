@@ -1231,7 +1231,8 @@ class AssemblyGraph(object):
                 )
 
             # Add edge info.
-            for edge in self.decomposed_digraph.subgraph(cc_node_ids).edges:
+            top_level_edges = self.decomposed_digraph.subgraph(cc_node_ids).edges
+            for edge in top_level_edges:
                 gv_input += "\t{} -> {};\n".format(edge[0], edge[1])
 
             gv_input += "}"
@@ -1310,16 +1311,17 @@ class AssemblyGraph(object):
                     self.digraph.nodes[node_id]["x"] = x
                     self.digraph.nodes[node_id]["y"] = y
 
-                # Save ctrl pt data for top-level edges
-                for edge in self.decomposed_digraph.edges:
-                    gv_edge = top_level_cc_graph.get_edge(*edge)
-                    coords = layout_utils.get_control_points(
-                        gv_edge.attr["pos"]
-                    )
-                    os = edge["orig_src"]
-                    ot = edge["orig_tgt"]
-                    orig_edge_data = self.digraph.edges[os, ot]
-                    orig_edge_data["ctrl_pt_coords"] = coords
+            # Save ctrl pt data for top-level edges
+            for edge in top_level_edges:
+                data = self.decomposed_digraph.edges[edge]
+                os = data["orig_src"]
+                ot = data["orig_tgt"]
+                gv_edge = top_level_cc_graph.get_edge(*edge)
+                coords = layout_utils.get_control_points(
+                    gv_edge.attr["pos"]
+                )
+                orig_edge_data = self.digraph.edges[os, ot]
+                orig_edge_data["ctrl_pt_coords"] = coords
 
             if not first_small_component:
                 conclude_msg()
