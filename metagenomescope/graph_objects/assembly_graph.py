@@ -1419,8 +1419,25 @@ class AssemblyGraph(object):
         """
         # TODO: I guess we probably need to format these as dicts instead (e.g.
         # {"id": 0, "label": 1, ...})
-        NODE_ATTRS = ["id", "label", "length", "x", "y", "w", "h", "is_fwd", "parent_id", "extra_data"]
-        EDGE_ATTRS = ["src_id", "snk_id", "ctrl_pts", "parent_id", "extra_data"]
+        NODE_ATTRS = [
+            "id",
+            "label",
+            "length",
+            "x",
+            "y",
+            "w",
+            "h",
+            "is_fwd",
+            "parent_id",
+            "extra_data",
+        ]
+        EDGE_ATTRS = [
+            "src_id",
+            "snk_id",
+            "ctrl_pts",
+            "parent_id",
+            "extra_data",
+        ]
         PATT_ATTRS = ["id", "left", "bottom", "right", "top", "w", "h", "type"]
 
         out = {}

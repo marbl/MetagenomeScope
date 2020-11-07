@@ -18,7 +18,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-
+import jinja2
 from . import graph_objects, arg_utils
 from .msg_utils import operation_msg, conclude_msg
 
@@ -70,20 +70,28 @@ def make_viz(
     # Identify patterns, do layout, etc.
     asm_graph.process()
 
-    # TODO: get JSON from the graph and (using Jinja2) write to a HTML file.
-
     return
 
+    operation_msg(
+        "Writing graph data to the output directory, {}...".format(output_dir)
+    )
+    # Make the output directory.
     arg_utils.create_output_dir(output_dir)
 
-    # Immediate TODO:
-    #   Make AssemblyGraph.to_dot(), to_cytoscape() to_json(), etc. methods.
-    #   The JSON should be the most important, since it'll be passed to the JS.
-    #
-    # -Use jinja2 to pass data to the viewer index.html file.
-    #
-    # -Modify the JS to prepare the graph summary, etc. and get ready for
-    #  component drawing. Replace DB operations with just looking at the JSON.
+    # TODO: Copy "support files" to output directory (see Qurro)
+    pass
+
+    # Get JSON representation of the graph data.
+    graph_data = asm_graph.to_dict()
+
+    # TODO: Load the index.html file in the output directory
+    pass
+
+    # TODO: Using Jinja2, populate the {{ dataJSON }} tag in the HTML file with
+    # the output of asm_graph.to_dict()
+    pass
+
+    conclude_msg()
 
     # Other TODO items:
     # -Identify user-supplied bubbles and patterns. Should be "lowest level"
