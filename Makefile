@@ -56,8 +56,8 @@ SPQR_BINARY = $(addprefix $(SCRIPT_DIR), spqr)
 
 PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov
 PYLOCS = metagenomescope/ setup.py
-JSLOCS = metagenomescope/viewer/js/xdot2cy.js metagenomescope/viewer/tests/*.js docs/js/extra_functionality.js .jshintrc
-HTMLCSSLOCS = metagenomescope/viewer/index.html metagenomescope/viewer/css/viewer_style.css docs/404.html docs/index.html docs/css/mgsc_docs_style.css
+JSLOCS = metagenomescope/support_files/js/xdot2cy.js metagenomescope/support_files/tests/*.js docs/js/extra_functionality.js .jshintrc
+HTMLCSSLOCS = metagenomescope/support_files/index.html metagenomescope/support_files/css/viewer_style.css docs/404.html docs/index.html docs/css/mgsc_docs_style.css
 
 # -B: don't create __pycache__/ directories
 pytest:
@@ -70,7 +70,7 @@ spqrtest:
 
 viewertest:
 	bash minify_files.sh
-	mocha-headless-chrome -f metagenomescope/viewer/headless_tests_index.html -c js_coverage.json
+	mocha-headless-chrome -f metagenomescope/support_files/headless_tests_index.html -c js_coverage.json
 
 test: pytest viewertest
 
