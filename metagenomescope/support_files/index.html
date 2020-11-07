@@ -29,7 +29,7 @@
             name="description"
             content="Web application for the hierarchical visualization of metagenomic assembly graphs."
         />
-        <title>MetagenomeScope Viewer</title>
+        <title>MetagenomeScope</title>
         <link rel="shortcut icon" href="bubble.ico" />
         <!-- Load external libraries -->
         <link rel="stylesheet" href="vendor/css/bootstrap.min.css" />
@@ -2434,4 +2434,9 @@
         </div>
         <!-- end modal div -->
     </body>
+    <script>
+        // Get the data JSON from the preprocessing script. TODO, save in the
+        // JavaScript code.
+        var dataJSON = {{ dataJSON }};
+    </script>
 </html>

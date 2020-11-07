@@ -71,6 +71,7 @@ setup(
         "gfapy",
         "pyfastg",
         "scikit-bio >= 0.5.4",
+        "jinja2",
     ],
     extras_require={"dev": ["pytest", "pytest-cov", "flake8", "black"]},
     entry_points={"console_scripts": ["mgsc=metagenomescope._cli:run_script"]},
