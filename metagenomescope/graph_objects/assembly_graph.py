@@ -1419,32 +1419,54 @@ class AssemblyGraph(object):
         """
         # TODO: I guess we probably need to format these as dicts instead (e.g.
         # {"id": 0, "label": 1, ...})
-        NODE_ATTRS = [
-            "id",
-            "label",
-            "length",
-            "x",
-            "y",
-            "w",
-            "h",
-            "is_fwd",
-            "parent_id",
-            "extra_data",
-        ]
-        EDGE_ATTRS = [
-            "src_id",
-            "snk_id",
-            "ctrl_pts",
-            "parent_id",
-            "extra_data",
-        ]
-        PATT_ATTRS = ["id", "left", "bottom", "right", "top", "w", "h", "type"]
+        NODE_ATTRS = {
+            "id": 0,
+            "label": 1,
+            "length": 2,
+            "x": 3,
+            "y": 4,
+            "w": 5,
+            "h": 6,
+            "is_fwd": 7,
+            "parent_id": 8,
+            "extra_data": 9,
+        }
+        EDGE_ATTRS = {
+            "src_id": 0,
+            "snk_id": 1,
+            "ctrl_pts": 2,
+            "parent_id": 3,
+            "extra_data": 4,
+        }
+        PATT_ATTRS = {
+            "id": 0,
+            "left": 1,
+            "bottom": 2,
+            "right": 3,
+            "top": 4,
+            "w": 5,
+            "h": 6,
+            "type": 7,
+        }
 
-        out = {}
-        # TODO: for each component:
-        # 1. Add node data to out
-        # 2. Add edge data to out
-        # 3. Add pattern data to out
+        out = {
+            "node_attrs": NODE_ATTRS,
+            "edge_attrs": EDGE_ATTRS,
+            "patt_attrs": PATT_ATTRS,
+            "components": [],
+        }
+        # For each component:
+        for cc_i, cc_tuple in enumerate(self.get_connected_components(), 1):
+            out["components"].append({"nodes": {}, "edges": {}, "patts": {}})
+            # TODO:
+            # 1. Add node data to component
+            # 2. add edge data
+            # 3. add pattern data
+            # the nodes, edgs, and patts JSONs for each component should
+            # map node/edge/pattern ID? to their data array. Maybe edges can be
+            # formatted so that source ID maps to array of data for each unique
+            # sink? I think that makes sense, but see how edges are accessed in
+            # the JS now I guess.
 
     def process(self):
         """Basic pipeline for preparing a graph for visualization."""
