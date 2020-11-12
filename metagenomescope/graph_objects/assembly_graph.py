@@ -75,6 +75,7 @@ class AssemblyGraph(object):
                 "relative_weight",
                 "orig_src",
                 "orig_tgt",
+                "is_dup",
             ]
         )
 
