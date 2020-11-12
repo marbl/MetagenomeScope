@@ -800,11 +800,33 @@ class AssemblyGraph(object):
                 # the decomposed digraph at the end of this function
                 # self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
 
-            self.digraph.add_edge(end_node_to_dup, new_node_id, is_dup=True)
+            # Mock needed edge data -- unlike duplicate nodes (which are just
+            # copies of an existing node), duplicate edges don't have a
+            # reference to draw from since they're not really created "from"
+            # another edge. So we just make up stuff (the JS interface should
+            # see is_dup: True and display information accordingly).
+            # TODO: self.to_dict() should be able to detect is_dup edges and
+            # fill them in accordingly
+            dup_data = {
+                "is_dup": True,
+                "is_outlier": 0,
+                "relative_weight": 0.5,
+            }
+            self.digraph.add_edge(
+                end_node_to_dup,
+                new_node_id,
+                orig_src=end_node_to_dup,
+                orig_tgt=new_node_id,
+                **dup_data
+            )
             # In the decomposed digraph, link the starting pattern with the
             # curr pattern.
             self.decomposed_digraph.add_edge(
-                starting_node_id, pattern_id, is_dup=True
+                starting_node_id,
+                pattern_id,
+                orig_src=starting_node_id,
+                orig_tgt=pattern_id,
+                **dup_data
             )
 
             member_node_ids.remove(starting_node_id)
@@ -840,9 +862,24 @@ class AssemblyGraph(object):
                 )
                 self.decomposed_digraph.remove_edge(edge[0], ending_node_id)
 
-            self.digraph.add_edge(new_node_id, start_node_to_dup, is_dup=True)
+            dup_data = {
+                "is_dup": True,
+                "is_outlier": 0,
+                "relative_weight": 0.5,
+            }
+            self.digraph.add_edge(
+                new_node_id,
+                start_node_to_dup,
+                orig_src=new_node_id,
+                orig_tgt=start_node_to_dup,
+                **dup_data
+            )
             self.decomposed_digraph.add_edge(
-                pattern_id, ending_node_id, is_dup=True
+                pattern_id,
+                ending_node_id,
+                orig_src=pattern_id,
+                orig_tgt=ending_node_id,
+                **dup_data
             )
 
             member_node_ids.remove(ending_node_id)
@@ -964,7 +1001,7 @@ class AssemblyGraph(object):
         # pattern
         for node_id in self.decomposed_digraph.nodes:
             if not self.is_pattern(node_id):
-                self.decomposed_digraph.nodes[node_id]["parent_id"] = None
+                self.digraph.nodes[node_id]["parent_id"] = None
         for edge in self.decomposed_digraph.edges:
             self.decomposed_digraph.edges[edge]["parent_id"] = None
 
@@ -1361,7 +1398,7 @@ class AssemblyGraph(object):
                             else:
                                 # Reconcile data for this normal node within a
                                 # pattern
-                                data = curr_patt.subgraph.nodes[child_node_id]
+                                data = self.digraph.nodes[child_node_id]
                                 data["x"] = curr_patt.left + data["relative_x"]
                                 data["y"] = (
                                     curr_patt.bottom + data["relative_y"]
@@ -1379,8 +1416,8 @@ class AssemblyGraph(object):
 
                 else:
                     # Save data for this normal node
-                    self.decomposed_digraph.nodes[node_id]["x"] = x
-                    self.decomposed_digraph.nodes[node_id]["y"] = y
+                    self.digraph.nodes[node_id]["x"] = x
+                    self.digraph.nodes[node_id]["y"] = y
 
             # Save ctrl pt data for top-level edges
             for edge in top_level_edges:
@@ -1396,7 +1433,7 @@ class AssemblyGraph(object):
             conclude_msg()
 
         # At this point, we are now done with layout. Coordinate information
-        # for nodes and edges is stored in self.decomposed_digraph or in the
+        # for nodes and edges is stored in self.digraph or in the
         # subgraphs of patterns; coordinate information for patterns is stored
         # in the Pattern objects referenced in self.id2pattern. Now we should
         # be able to make a JSON representation of this graph and move on to
@@ -1589,7 +1626,7 @@ class AssemblyGraph(object):
                             else:
                                 # This is a normal node in a pattern. Add data.
                                 data = get_node_data(
-                                    curr_patt.subgraph.nodes[child_node_id]
+                                    self.digraph.nodes[child_node_id]
                                 )
                                 this_component["nodes"][child_node_id] = data
 
@@ -1608,9 +1645,7 @@ class AssemblyGraph(object):
                         raise ValueError(
                             "Node {} added to JSON twice?".format(node_id)
                         )
-                    data = get_node_data(
-                        self.decomposed_digraph.nodes[node_id]
-                    )
+                    data = get_node_data(self.digraph.nodes[node_id])
                     this_component["nodes"][node_id] = data
 
             # Go through top-level edges and add data
@@ -1640,6 +1675,13 @@ class AssemblyGraph(object):
 
     def process(self):
         """Basic pipeline for preparing a graph for visualization."""
+
+        # Node/edge scaling is done *before* pattern detection, so duplicate
+        # nodes/edges created during pattern detection shouldn't influence
+        # relative scaling stuff. (For what it's worth, duplicate nodes should
+        # be drawn with the same width/height/etc. as their original node, and
+        # duplicate edges (linking one duplicate node with another) should just
+        # be drawn as non-outlier edges with a special style.
         operation_msg("Scaling nodes based on lengths...")
         self.scale_nodes()
         self.compute_node_dimensions()
