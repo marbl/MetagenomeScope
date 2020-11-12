@@ -2737,28 +2737,6 @@ function changeDropdownVal(arrowHTML) {
     $("#rotationDropdown").html(arrowHTML + " <span class='caret'></span>");
 }
 
-/* Toggles visibility of the controls div.
- *
- * CODELINK: This toggling mechanism was inspired by a similar mechanism in
- * this Cytoscape.js demo: http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/
- * The code repository for this demo is located at:
- * https://github.com/cytoscape/cytoscape.js/tree/master/documentation/demos/colajs-graph
- */
-function toggleControls() {
-    "use strict";
-    $("#controls").toggleClass("notviewable");
-    $("#cy").toggleClass("nosubsume");
-    $("#cy").toggleClass("subsume");
-    if (cy !== null) {
-        cy.resize();
-    }
-}
-
-function openFileSelectDialog() {
-    "use strict";
-    $("#fsDialog").modal();
-}
-
 /* Loads a .db file using an XML HTTP Request. */
 function loadHostedDB() {
     "use strict";

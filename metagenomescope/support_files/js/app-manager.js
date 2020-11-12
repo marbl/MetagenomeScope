@@ -6,7 +6,16 @@ define(["jquery", "bootstrap", "cytoscape", "util"], function (
 ) {
     class AppManager {
         constructor(dataHolder) {
+
+            // Holds all of the actual graph data (nodes, edges, etc.)
             this.dataHolder = dataHolder;
+
+            // Instance of Cytoscape.js used to draw the graph.
+            this.cy = null;
+
+            this.controlsDiv = $("#controls");
+            this.cyDiv = $("#cy");
+
             $(this.doThingsWhenDOMReady.bind(this));
         }
 
@@ -20,6 +29,20 @@ define(["jquery", "bootstrap", "cytoscape", "util"], function (
                     this.dataHolder.numComponents() +
                     " components."
             );
+            $("#controlsToggler").click(this.toggleControls.bind(this));
+        }
+
+        toggleControls() {
+            this.controlsDiv.toggleClass("notviewable");
+            this.cyDiv.toggleClass("nosubsume");
+            this.cyDiv.toggleClass("subsume");
+            if (this.cy !== null) {
+                this.cy.resize();
+            }
+        }
+
+        initGraph() {
+            // TODO init cytoscape, etc
         }
     }
     return { AppManager: AppManager };
