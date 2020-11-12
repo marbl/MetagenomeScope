@@ -64,6 +64,7 @@ class AssemblyGraph(object):
                 "relative_y",
                 "parent_id",
                 "name",
+                "is_dup",
             ]
         )
 
@@ -83,6 +84,11 @@ class AssemblyGraph(object):
         self.digraph = assembly_graph_parser.parse(self.filename)
         self.check_attrs()
         self.reindex_digraph()
+
+        # Initialize all edges with is_dup by default, so that in the future we
+        # can distinguish easily between duplicate and non-duplicate edges
+        for e in self.digraph.edges:
+            self.digraph.edges[e]["is_dup"] = False
 
         # Number of nodes in the graph, including patterns and duplicate nodes.
         # Used for assigning new unique node IDs.
@@ -1442,9 +1448,12 @@ class AssemblyGraph(object):
         # integer IDs)
         EDGE_ATTRS = {
             "ctrl_pt_coords": 0,
-            "parent_id": 1,
+            "is_outlier": 1,
+            "relative_weight": 2,
+            "is_dup": 3,
+            "parent_id": 4,
             # Extra data contains things like multiplicity, orientation, etc.
-            "extra_data": 2,
+            "extra_data": 5,
         }
         # These are keyed by ID (integer IDs, from get_new_node_id())
         PATT_ATTRS = {
