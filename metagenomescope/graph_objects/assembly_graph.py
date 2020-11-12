@@ -800,17 +800,11 @@ class AssemblyGraph(object):
                 # the decomposed digraph at the end of this function
                 # self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
 
-            self.digraph.add_edge(
-                end_node_to_dup,
-                new_node_id,
-                is_dup=True
-            )
+            self.digraph.add_edge(end_node_to_dup, new_node_id, is_dup=True)
             # In the decomposed digraph, link the starting pattern with the
             # curr pattern.
             self.decomposed_digraph.add_edge(
-                starting_node_id,
-                pattern_id,
-                is_dup=True
+                starting_node_id, pattern_id, is_dup=True
             )
 
             member_node_ids.remove(starting_node_id)
@@ -846,15 +840,9 @@ class AssemblyGraph(object):
                 )
                 self.decomposed_digraph.remove_edge(edge[0], ending_node_id)
 
-            self.digraph.add_edge(
-                new_node_id,
-                start_node_to_dup,
-                is_dup=True
-            )
+            self.digraph.add_edge(new_node_id, start_node_to_dup, is_dup=True)
             self.decomposed_digraph.add_edge(
-                pattern_id,
-                ending_node_id,
-                is_dup=True
+                pattern_id, ending_node_id, is_dup=True
             )
 
             member_node_ids.remove(ending_node_id)
@@ -1526,7 +1514,10 @@ class AssemblyGraph(object):
                     continue
                 val = None
                 if attr not in graph_edge_data:
-                    if not "is_dup" in graph_edge_data or not graph_edge_data["is_dup"]:
+                    if (
+                        not "is_dup" in graph_edge_data
+                        or not graph_edge_data["is_dup"]
+                    ):
                         raise ValueError(
                             "Edge {} -> {} doesn't have attribute {}".format(
                                 srcid, snkid, attr
