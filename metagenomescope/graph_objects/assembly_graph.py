@@ -800,33 +800,17 @@ class AssemblyGraph(object):
                 # the decomposed digraph at the end of this function
                 # self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
 
-            # Mock needed edge data -- unlike duplicate nodes (which are just
-            # copies of an existing node), duplicate edges don't have a
-            # reference to draw from since they're not really created "from"
-            # another edge. So we just make up stuff (the JS interface should
-            # see is_dup: True and display information accordingly).
-            # TODO: self.to_dict() should be able to detect is_dup edges and
-            # fill them in accordingly
-            dup_data = {
-                "is_dup": True,
-                "is_outlier": 0,
-                "relative_weight": 0.5,
-            }
             self.digraph.add_edge(
                 end_node_to_dup,
                 new_node_id,
-                orig_src=end_node_to_dup,
-                orig_tgt=new_node_id,
-                **dup_data
+                is_dup=True
             )
             # In the decomposed digraph, link the starting pattern with the
             # curr pattern.
             self.decomposed_digraph.add_edge(
                 starting_node_id,
                 pattern_id,
-                orig_src=starting_node_id,
-                orig_tgt=pattern_id,
-                **dup_data
+                is_dup=True
             )
 
             member_node_ids.remove(starting_node_id)
@@ -862,24 +846,15 @@ class AssemblyGraph(object):
                 )
                 self.decomposed_digraph.remove_edge(edge[0], ending_node_id)
 
-            dup_data = {
-                "is_dup": True,
-                "is_outlier": 0,
-                "relative_weight": 0.5,
-            }
             self.digraph.add_edge(
                 new_node_id,
                 start_node_to_dup,
-                orig_src=new_node_id,
-                orig_tgt=start_node_to_dup,
-                **dup_data
+                is_dup=True
             )
             self.decomposed_digraph.add_edge(
                 pattern_id,
                 ending_node_id,
-                orig_src=pattern_id,
-                orig_tgt=ending_node_id,
-                **dup_data
+                is_dup=True
             )
 
             member_node_ids.remove(ending_node_id)
@@ -1125,14 +1100,15 @@ class AssemblyGraph(object):
             operation_msg("Scaling edges based on weights...")
             real_edges = []
             weights = []
-            fake_edges = []
             for edge in self.digraph.edges:
                 data = self.digraph.edges[edge]
-                if "is_dup" not in data:
+                if "is_dup" not in data or not data["is_dup"]:
                     real_edges.append(edge)
                     weights.append(data[ew_field])
                 else:
-                    fake_edges.append(edge)
+                    raise ValueError(
+                        "Duplicate edges shouldn't exist in the graph yet."
+                    )
 
             non_outlier_edges = []
             non_outlier_edge_weights = []
@@ -1170,11 +1146,15 @@ class AssemblyGraph(object):
                 # There are < 4 edges, so consider all edges as "non-outliers."
                 for edge in real_edges:
                     data = self.digraph.edges[edge]
-                    if "is_dup" not in data:
+                    if "is_dup" not in data or not data["is_dup"]:
                         data["is_outlier"] = 0
                         non_outlier_edges.append(edge)
                         ew = data[ew_field]
                         non_outlier_edge_weights.append(ew)
+                    else:
+                        raise ValueError(
+                            "Duplicate edges shouldn't exist in the graph yet."
+                        )
 
             # Perform relative scaling for non-outlier edges, if possible.
             if len(non_outlier_edges) >= 2:
@@ -1192,9 +1172,6 @@ class AssemblyGraph(object):
                     # (... which should in practice just be a list with one or
                     # zero edges, I guess...?) "default" edge weight attributes
                     _assign_default_weight_attrs(non_outlier_edges)
-            # Assign default edge weight attrs to fake edges, i.e. those
-            # between a node and its duplicate
-            _assign_default_weight_attrs(fake_edges)
             conclude_msg()
         else:
             # Can't do edge scaling, so just assign every edge "default" attrs
@@ -1547,13 +1524,20 @@ class AssemblyGraph(object):
             for attr in EDGE_ATTRS.keys():
                 if attr == "extra_data":
                     continue
+                val = None
                 if attr not in graph_edge_data:
-                    raise ValueError(
-                        "Edge {} -> {} doesn't have attribute {}".format(
-                            srcid, snkid, attr
+                    if not "is_dup" in graph_edge_data or not graph_edge_data["is_dup"]:
+                        raise ValueError(
+                            "Edge {} -> {} doesn't have attribute {}".format(
+                                srcid, snkid, attr
+                            )
                         )
-                    )
-                out_edge_data[EDGE_ATTRS[attr]] = graph_edge_data[attr]
+                    # If this is a duplicate edge, let's just leave its value
+                    # for this thing it doesn't have (e.g. outlier status)
+                    # as None.
+                else:
+                    val = graph_edge_data[attr]
+                out_edge_data[EDGE_ATTRS[attr]] = val
 
             extra_attrs = set(graph_edge_data.keys()) - set(EDGE_ATTRS.keys())
             # Don't pass internal edge data in the extra data
