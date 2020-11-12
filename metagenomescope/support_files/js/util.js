@@ -29,7 +29,6 @@ define(function () {
      * @returns {String} Hex color string of the format #RRGGBB.
      */
     function getNodeColorization(perc, minRGB, maxRGB) {
-        "use strict";
         // Linearly scale each RGB value between the extreme colors'
         // corresponding RGB values
         var red_i = perc * (mgsc.MAX_RGB.r - mgsc.MIN_RGB.r) + mgsc.MIN_RGB.r;
@@ -55,7 +54,6 @@ define(function () {
      * functions).
      */
     function degreesToRadians(angle) {
-        "use strict";
         return angle * (Math.PI / 180);
     }
 
@@ -68,7 +66,6 @@ define(function () {
         prevRotation = 0,
         nextRotation = 90
     ) {
-        "use strict";
         // NOTE The formula for a coordinate transformation here works for all
         // degree inputs of rotation. However, to save time, we just check
         // to see if the rotation is a factor of 360 (i.e. the rotated
@@ -112,7 +109,6 @@ define(function () {
      * just modify this function accordingly.
      */
     function gv2cyPoint(xCoord, yCoord, boundingbox) {
-        "use strict";
         // Convert from GraphViz to Cytoscape.js
         var cyY = boundingbox[1] - yCoord;
         var cyX = xCoord;
@@ -130,7 +126,6 @@ define(function () {
      * (Hence why the graph's bounding box and rotation are parameters here.)
      */
     function ctrlPtStrToList(ctrlPointStr, boundingbox) {
-        "use strict";
         // Create coordList, where every coordinate is an element (e.g.
         // [x1, y1, x2, y2, ...]
         var coordList = ctrlPointStr.trim().split(" ");
@@ -164,7 +159,6 @@ define(function () {
      * e.g. distance([1, 2], [3, 4]) = sqrt((3 - 1)^2 + (4 - 2)^2) = sqrt(8)
      */
     function distance(point1, point2) {
-        "use strict";
         return Math.sqrt(
             Math.pow(point2[0] - point1[0], 2) +
                 Math.pow(point2[1] - point1[1], 2)
@@ -210,7 +204,6 @@ define(function () {
      * https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points.
      */
     function pointToLineDistance(point, linePoint1, linePoint2) {
-        "use strict";
         var lineDistance = distance(linePoint1, linePoint2);
         if (lineDistance === 0) {
             throw new Error(

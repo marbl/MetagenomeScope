@@ -1,4 +1,4 @@
-define(function () {
+define([], function () {
     class DataHolder {
         constructor(dataJSON) {
             this.data = dataJSON;

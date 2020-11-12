@@ -38,26 +38,6 @@
             rel="stylesheet"
             href="vendor/css/bootstrap-colorpicker.min.css"
         />
-        <script src="vendor/js/jquery-3.2.1.min.js"></script>
-        <script src="vendor/js/cytoscape.min.js"></script>
-        <!-- NOTE if including Cytoscape.js layout plugins for testing, those
-             can go here -->
-        <script src="vendor/js/sql.js"></script>
-        <script src="js/xdot2cy.js"></script>
-        <script src="vendor/js/bootstrap.min.js"></script>
-        <script src="vendor/js/bootstrap-colorpicker.min.js"></script>
-        <script src="vendor/js/d3.v4.min.js"></script>
-        <!-- Initialize some event bindings for the application -->
-        <script>
-            $(function () {
-                $(window).on("beforeunload", doThingsBeforeUnload);
-                // $(f) is an alias for $().ready(f), where f is a function
-                // So the external function here should will only be called
-                // when the DOM is ready to be manipulated
-                doThingsWhenDOMReady(false);
-                checkFileAPIAvailability();
-            });
-        </script>
     </head>
     <body>
         <!-- Invisible <a> used for downloading data URIs for various purposes
@@ -835,104 +815,8 @@
             </div>
         </div>
         <!-- end controls div -->
-        <div id="cy" class="nosubsume"></div>
         <!--container for Cytoscape.js-->
-        <!-- CODELINK: The markup defining the base of these modal dialogs is
-             adapted from Bootstrap's tutorial on modal dialogs, located at
-             https://getbootstrap.com/docs/3.3/javascript/#modals
-        -->
-        <div class="modal fade" tabindex="-1" role="dialog" id="testDialog">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <!--
-                        <button type="button" class="close"
-                            data-dismiss="modal" aria-label="Close dialog">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        -->
-                        <h4 class="modal-title">
-                            Viewer Interface Tests
-                        </h4>
-                    </div>
-                    <!-- end modal-header -->
-                    <div class="modal-body">
-                        <!-- Mocha/Chai vendor stuff. The CSS should only
-                             impact Mocha elements, so this shouldn't mess with
-                             the rest of the application.
-
-                             CODELINK: some of this basic HTML/JS (e.g. the
-                             tags that load mocha.js and mocha.css, the "mocha"
-                             div, the use of mocha.setup() in
-                             tests/setup_tests.js) were derived from the
-                             environment output by "mocha init", which I
-                             refactored to squeeze into this dialog :)
-                        -->
-                        <link rel="stylesheet" href="tests/vendor/mocha.css" />
-                        <script src="tests/vendor/mocha.js"></script>
-                        <script src="tests/vendor/chai.js"></script>
-                        <!-- Simple code that sets up the Mocha testing
-                             environment in relation to the rest of
-                             MetagenomeScope.
-                        -->
-                        <script src="tests/setup_tests.js"></script>
-                        <!-- External JS files that define various tests. -->
-                        <script src="tests/test_distances.js"></script>
-                        <script src="tests/test_button_disabling_enabling.js"></script>
-                        <div id="mocha"></div>
-                        <!-- In the headless index HTML file, the following
-                             script will be used to automatically call
-                             mgsc.runTests() (since there isn't a user to click
-                             "run tests"). The reason we don't automatically run
-                             tests in the normal version of the viewer interface
-                             is so we don't delay the user.
-
-                             ANYWAY: please don't change the following script's
-                             ID from what it currently is! Otherwise, the
-                             minify_files.fish script will fail.
-                        -->
-                        <script id="runTestsHere"></script>
-                        <!--
-                            Some sample elements for unit-testing interactions.
-                            Their IDs should all start with "mochaTest" in
-                            order to avoid conflicts.
-                        -->
-                        <button
-                            class="btn btn-sm disabled"
-                            id="mochaTestSampleButton"
-                            disabled="disabled"
-                            onclick="mgsc.mochaTestEmitSampleButtonClicked();"
-                        >
-                            <span
-                                class="glyphicon glyphicon-exclamation-sign"
-                                aria-hidden="true"
-                            ></span>
-                            &nbsp; Test Button
-                        </button>
-                    </div>
-                    <div class="modal-footer">
-                        <button
-                            type="button"
-                            class="btn btn-default"
-                            data-dismiss="modal"
-                        >
-                            Close
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-primary"
-                            id="runTestsButton"
-                            onclick="mgsc.runTests();"
-                        >
-                            Run tests
-                        </button>
-                    </div>
-                </div>
-                <!-- end modal-content -->
-            </div>
-            <!-- end modal-dialog -->
-        </div>
-        <!-- end modal -->
+        <div id="cy" class="nosubsume"></div>
         <!-- XHR .db loader dialog -->
         <div class="modal fade" tabindex="-1" role="dialog" id="fsDialog">
             <div class="modal-dialog" role="document">

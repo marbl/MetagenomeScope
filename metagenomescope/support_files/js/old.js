@@ -247,31 +247,10 @@ mgsc.TD_START = "<td>";
 // Regular expression we use when matching integers.
 mgsc.INTEGER_RE = /^\d+$/;
 
-/* Checks if the HTML5 File API is available. If not, creates an alert.
- * Potential TODO: make this more subtle by just disabling the "Upload .db
- * file" button. Although I'm sure this won't be a problem for most browsers
- * that access the viewer interface.
- *
- * CODELINK: This method for checking that the File API is supported is adapted
- * from https://www.html5rocks.com/en/tutorials/file/dndfiles/, by
- * Eric Bidelman.
- */
-function checkFileAPIAvailability() {
-    "use strict";
-    if (!(window.File && window.FileReader && window.Blob)) {
-        alert(
-            "Your browser does not support the HTML5 File APIs. " +
-                "You will not be able to upload any .db files, although " +
-                "you can still try out any available demo .db files."
-        );
-    }
-}
-
 // Initializes the Cytoscape.js graph instance.
 // Takes as argument the "view type" of the graph to be drawn (see top of file
 // defn. of mgsc.CURR_VIEWTYPE for details).
 function initGraph(viewType) {
-    "use strict";
     mgsc.CURR_VIEWTYPE = viewType;
     // mgsc.MAX_RGB and mgsc.MIN_RGB will only be computed if they haven't been set
     // already (i.e. if the user hasn't changed the default colors and hasn't
@@ -716,7 +695,6 @@ function initGraph(viewType) {
  * uncollapses it (if already collapsed).
  */
 function toggleCluster(cluster) {
-    "use strict";
     cy.startBatch();
     if (cluster.data("isCollapsed")) {
         uncollapseCluster(cluster);
@@ -734,7 +712,6 @@ function toggleCluster(cluster) {
  * node has two outgoing edges, to both starting nodes of a frayed rope).
  */
 function collapseCluster(cluster, moveMap) {
-    "use strict";
     var children = cluster.children();
     // Prevent this cluster from being collapsed if any of its children are
     // tentative nodes in finishing mode
@@ -781,7 +758,6 @@ function collapseCluster(cluster, moveMap) {
  * and canonical exterior edge data.
  */
 function uncollapseCluster(cluster) {
-    "use strict";
     // Prevent this cluster from being uncollapsed if it's a "tentative" node
     // in finishing mode
     if (mgsc.FINISHING_MODE_ON) {
@@ -846,7 +822,6 @@ function uncollapseCluster(cluster) {
 }
 
 function addSelectedNodeInfo(ele) {
-    "use strict";
     var lengthEntry = ele.data("length").toLocaleString();
     if (mgsc.ASM_FILETYPE === "GML" || mgsc.CURR_VIEWTYPE === "SPQR") {
         // These are oriented contigs (in a GML file), or they're directionless
@@ -906,7 +881,6 @@ function addSelectedNodeInfo(ele) {
 }
 
 function addSelectedEdgeInfo(ele) {
-    "use strict";
     // returns an array of two elements: [source node id, target node id]
     var displaySourceID, displayTargetID;
     if (mgsc.CURR_VIEWTYPE === "SPQR" && ele.data("dispsrc") !== undefined) {
@@ -954,7 +928,6 @@ function addSelectedEdgeInfo(ele) {
 }
 
 function addSelectedClusterInfo(ele) {
-    "use strict";
     var clustID = ele.data("id");
     var clustType;
     switch (clustID[0]) {
@@ -1169,12 +1142,6 @@ function moveThroughClusters(e) {
 function moveToCurrentCluster() {
     "use strict";
     cy.fit(cy.getElementById(mgsc.CLUSTERID2TOP[mgsc.CLUSTER_X].id));
-}
-
-// Things that are bound to the "beforeunload" event on the window.
-function doThingsBeforeUnload() {
-    "use strict";
-    closeDB();
 }
 
 // Sets bindings for certain objects in the graph.
