@@ -59,10 +59,7 @@ class Pattern(object):
                 asm_graph.digraph.nodes[node_id]["parent_id"] = self.pattern_id
 
         for edge in self.subgraph.edges:
-            data = self.subgraph.edges[edge]
-            os = data["orig_src"]
-            ot = data["orig_tgt"]
-            asm_graph.digraph.edges[os, ot]["parent_id"] = self.pattern_id
+            self.subgraph.edges[edge]["parent_id"] = self.pattern_id
 
         # This is the shape used for this pattern during layout. In the actual
         # end visualization we might use different shapes for collapsed
