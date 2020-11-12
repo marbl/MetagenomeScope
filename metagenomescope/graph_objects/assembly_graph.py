@@ -1406,6 +1406,12 @@ class AssemblyGraph(object):
             if not first_small_component:
                 conclude_msg()
 
+        if len(self.skipped_components) == cc_i:
+            raise ValueError(
+                "All components were too large to lay out. Try increasing the "
+                "-maxn/-maxe parameters, or reducing the size of the graph."
+            )
+
         if first_small_component:
             conclude_msg()
 

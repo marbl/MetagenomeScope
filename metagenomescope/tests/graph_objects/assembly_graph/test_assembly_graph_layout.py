@@ -1,3 +1,4 @@
+import pytest
 from metagenomescope.graph_objects import AssemblyGraph
 
 
@@ -30,3 +31,12 @@ def test_ccs_avoided_due_to_max_node_ct(capsys):
     )
     for m in exp_msgs:
         assert m in captured.out
+
+
+def test_error_if_all_ccs_avoided():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/sample1.gfa", max_node_count=0
+    )
+    with pytest.raises(ValueError) as ei:
+        ag.process()
+    assert "All components were too large to lay out." in str(ei.value)
