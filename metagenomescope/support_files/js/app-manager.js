@@ -19,7 +19,8 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
         }
 
         /**
-         * Set various bindings, etc.
+         * Set various bindings, enable elements that don't need to have
+         * something drawn on the screen, etc.
          */
         doThingsWhenDOMReady() {
             // Make that "hamburger" button show/hide the control panel
@@ -38,8 +39,18 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
 
             // Pop open the wiki when the help button is clicked
             $("#helpButton").click(function () {
-                window.open("https://github.com/marbl/MetagenomeScope/wiki", "_blank");
+                window.open(
+                    "https://github.com/marbl/MetagenomeScope/wiki",
+                    "_blank"
+                );
             });
+
+            // TODO set other things -- max, min, etc -- for the component
+            // selector
+            $("#componentselector").prop(
+                "value",
+                this.dataHolder.smallestViewableComponent()
+            );
         }
 
         toggleControls() {
@@ -51,8 +62,16 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
             }
         }
 
+        populateGraphInfo() {
+            // TODO: populate with basic graph-level stuff. mention no component drawn yet.
+        }
+
+        populateGraphComponentInfo() {
+            // TODO: populate based on the component(s) currently drawn.
+        }
+
         initGraph() {
-            // TODO init cytoscape, etc
+            // TODO: init cytoscape, etc
         }
     }
     return { AppManager: AppManager };
