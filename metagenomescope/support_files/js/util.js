@@ -51,42 +51,6 @@ function getNodeColorization(perc, minRGB, maxRGB) {
     return "#" + channels[0] + channels[1] + channels[2];
 }
 
-/* Redraws the gradient preview for node colorization.
- * If minOrMax is -1, then we use hexColor as the new minimum color.
- * Otherwise, we use hexColor as the new maximum color.
- */
-function redrawGradientPreview(hexColor, minOrMax) {
-    "use strict";
-    var tmpColor;
-    if (minOrMax === -1) {
-        $("#0gp").css("background-color", hexColor);
-        mgsc.MIN_RGB = $("#mincncp").data("colorpicker").color.toRGB();
-        mgsc.MIN_HEX = hexColor;
-        if (mgsc.MAX_RGB === undefined) {
-            tmpColor = $("#maxcncp").data("colorpicker").color;
-            mgsc.MAX_RGB = tmpColor.toRGB();
-            mgsc.MAX_HEX = tmpColor.toHex();
-        }
-    } else {
-        $("#100gp").css("background-color", hexColor);
-        mgsc.MAX_RGB = $("#maxcncp").data("colorpicker").color.toRGB();
-        mgsc.MAX_HEX = hexColor;
-        if (mgsc.MIN_RGB === undefined) {
-            tmpColor = $("#mincncp").data("colorpicker").color;
-            mgsc.MIN_RGB = tmpColor.toRGB();
-            mgsc.MIN_HEX = tmpColor.toHex();
-        }
-    }
-    // Change intermediate colors in the gradient
-    $("#25gp").css("background-color", getNodeColorization(0.25));
-    $("#50gp").css("background-color", getNodeColorization(0.5));
-    $("#75gp").css("background-color", getNodeColorization(0.75));
-}
-
-// Allows user to test one of Cytoscape.js' predefined layouts
-function testLayout() {
-    "use strict";
-    if ($("#layoutInput").val() !== "") {
 /* Converts an angle in degrees to radians (for use with Javascript's trig
  * functions).
  */
