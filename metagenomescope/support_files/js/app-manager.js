@@ -1,12 +1,6 @@
-define(["jquery", "bootstrap", "cytoscape", "util"], function (
-    $,
-    bootstrap,
-    cy,
-    util
-) {
+define(["jquery", "cytoscape", "util"], function ($, cy, util) {
     class AppManager {
         constructor(dataHolder) {
-
             // Holds all of the actual graph data (nodes, edges, etc.)
             this.dataHolder = dataHolder;
 
@@ -19,17 +13,16 @@ define(["jquery", "bootstrap", "cytoscape", "util"], function (
             $(this.doThingsWhenDOMReady.bind(this));
         }
 
+        /**
+         * Set various bindings, etc.
+         */
         doThingsWhenDOMReady() {
-            console.log(
-                "This is a " +
-                    this.dataHolder.fileType() +
-                    " file named " +
-                    this.dataHolder.fileName() +
-                    " with " +
-                    this.dataHolder.numComponents() +
-                    " components."
-            );
+            // Make that "hamburger" button show/hide the control panel
             $("#controlsToggler").click(this.toggleControls.bind(this));
+            // Make the "Graph info" button show a modal dialog
+            $("#infoButton").click(function () {
+                $("#infoDialog").modal();
+            });
         }
 
         toggleControls() {

@@ -1040,11 +1040,7 @@ function doThingsWhenDOMReady() {
     setEnterBinding("binCountInput", drawEdgeWeightHistogram);
     setEnterBinding("cullEdgesInput", cullEdges);
     // Update mgsc.MODAL_ACTIVE when dialogs are opened/closed.
-    var dialogIDs = [
-        "settingsDialog",
-        "infoDialog",
-        "edgeFilteringDialog",
-    ];
+    var dialogIDs = ["settingsDialog", "infoDialog", "edgeFilteringDialog"];
     function onModalShow() {
         mgsc.MODAL_ACTIVE = true;
     }
