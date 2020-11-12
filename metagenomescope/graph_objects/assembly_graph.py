@@ -83,7 +83,9 @@ class AssemblyGraph(object):
         )
 
         self.basename = os.path.basename(self.filename)
-        operation_msg("Reading and parsing input file {}...".format(self.basename))
+        operation_msg(
+            "Reading and parsing input file {}...".format(self.basename)
+        )
         # NOTE: Ideally we'd just return this along with the digraph from
         # assembly_graph_parser.parse(), but uhhhh that will make me refactor
         # like 20 tests and I don't want to do that ._.
@@ -1565,7 +1567,7 @@ class AssemblyGraph(object):
             "patt_attrs": PATT_ATTRS,
             "components": [],
             "input_file_basename": self.basename,
-            "input_filetype": self.filetype,
+            "input_file_type": self.filetype,
         }
 
         # For each component:
