@@ -59,14 +59,11 @@ def make_viz(
     arg_utils.check_dir_existence(output_dir)
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
-    bn = os.path.basename(input_file)
-    operation_msg("Reading and parsing input file {}...".format(bn))
     asm_graph = graph_objects.AssemblyGraph(
         input_file,
         max_node_count=max_node_count,
         max_edge_count=max_edge_count,
     )
-    conclude_msg()
 
     # Identify patterns, do layout, etc.
     asm_graph.process()

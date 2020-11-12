@@ -1,5 +1,6 @@
 import math
 import json
+import os
 from copy import deepcopy
 from operator import itemgetter
 from collections import deque
@@ -81,9 +82,18 @@ class AssemblyGraph(object):
             ]
         )
 
+        self.basename = os.path.basename(self.filename)
+        operation_msg("Reading and parsing input file {}...".format(self.basename))
+        # NOTE: Ideally we'd just return this along with the digraph from
+        # assembly_graph_parser.parse(), but uhhhh that will make me refactor
+        # like 20 tests and I don't want to do that ._.
+        self.filetype = assembly_graph_parser.sniff_filetype(self.filename)
+
         self.digraph = assembly_graph_parser.parse(self.filename)
         self.check_attrs()
         self.reindex_digraph()
+
+        conclude_msg()
 
         # Initialize all edges with is_dup by default, so that in the future we
         # can distinguish easily between duplicate and non-duplicate edges
@@ -1554,6 +1564,8 @@ class AssemblyGraph(object):
             "edge_attrs": EDGE_ATTRS,
             "patt_attrs": PATT_ATTRS,
             "components": [],
+            "input_file_basename": self.basename,
+            "input_filetype": self.filetype,
         }
 
         # For each component:
