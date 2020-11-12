@@ -73,6 +73,17 @@ class AssemblyGraph(object):
         # within the subgraph of another pattern, etc.)
         self.decomposed_digraph = None
 
+        # Records the (1-indexed!!!) component numbers for components that we
+        # didn't bother laying out.
+        self.skipped_components = []
+
+        # Records the bounding boxes of each component in the graph. Indexed by
+        # component number (1-indexed). (... We could also store this as an
+        # array, but due to the whole component skipping stuff that sounds like
+        # asking for trouble. Plus it's not like this will take up a ton of
+        # memory, I think.)
+        self.cc_num_to_bb = {}
+
     def reindex_digraph(self):
         """Assigns every node in the graph a unique integer ID, and adds a
         "name" attribute containing the original ID. This unique integer ID
@@ -671,7 +682,7 @@ class AssemblyGraph(object):
         # children node/pattern IDs, etc.)
         self.decomposed_digraph.remove_nodes_from(member_node_ids)
 
-        p = Pattern(pattern_id, pattern_type, member_node_ids, subgraph)
+        p = Pattern(pattern_id, pattern_type, member_node_ids, subgraph, self)
         return p
 
     def add_bubble(self, member_node_ids, starting_node_id, ending_node_id):
@@ -810,6 +821,7 @@ class AssemblyGraph(object):
             starting_node_id,
             ending_node_id,
             subgraph,
+            self,
         )
         return p
 
@@ -890,7 +902,7 @@ class AssemblyGraph(object):
                                 continue
                         something_collapsed = True
                     else:
-                        # If the pattern wasn't invalid, we still need to
+                        # If the pattern was invalid, we still need to
                         # remove n
                         candidate_nodes.remove(n)
             if not something_collapsed:
@@ -1189,6 +1201,7 @@ class AssemblyGraph(object):
                         ).format(cc_i, cc_full_node_ct, cc_full_edge_ct),
                         True,
                     )
+                    self.skipped_components.append(cc_i)
                     continue
                 elif cc_full_node_ct > 5:
                     operation_msg("Laying out component {}...".format(cc_i))
@@ -1240,6 +1253,11 @@ class AssemblyGraph(object):
             # then boy do I have an NP-Hard problem for you .____________.
             top_level_cc_graph.layout(prog="dot")
 
+            cc_bb = top_level_cc_graph.graph_attr["bb"].split(",")
+            self.cc_num_to_bb[cc_i] = layout_utils.get_bb_x2_y2(
+                top_level_cc_graph.graph_attr["bb"]
+            )
+
             # Go through _all_ nodes, edges, and patterns within this
             # component and set final position information. Nodes and edges
             # within patterns will need to be updated based on their parent
@@ -1286,7 +1304,9 @@ class AssemblyGraph(object):
                             else:
                                 # Reconcile data for this normal node within a
                                 # pattern
-                                data = self.digraph.nodes[child_node_id]
+                                data = self.decomposed_digraph.nodes[
+                                    child_node_id
+                                ]
                                 data["x"] = curr_patt.left + data["relative_x"]
                                 data["y"] = (
                                     curr_patt.bottom + data["relative_y"]
@@ -1294,10 +1314,7 @@ class AssemblyGraph(object):
 
                         for edge in curr_patt.subgraph.edges:
                             data = curr_patt.subgraph.edges[edge]
-                            os = data["orig_src"]
-                            ot = data["orig_tgt"]
-                            orig_edge_data = self.digraph.edges[os, ot]
-                            orig_edge_data[
+                            data[
                                 "ctrl_pt_coords"
                             ] = layout_utils.shift_control_points(
                                 data["relative_ctrl_pt_coords"],
@@ -1307,18 +1324,15 @@ class AssemblyGraph(object):
 
                 else:
                     # Save data for this normal node
-                    self.digraph.nodes[node_id]["x"] = x
-                    self.digraph.nodes[node_id]["y"] = y
+                    self.decomposed_digraph.nodes[node_id]["x"] = x
+                    self.decomposed_digraph.nodes[node_id]["y"] = y
 
             # Save ctrl pt data for top-level edges
             for edge in top_level_edges:
                 data = self.decomposed_digraph.edges[edge]
-                os = data["orig_src"]
-                ot = data["orig_tgt"]
                 gv_edge = top_level_cc_graph.get_edge(*edge)
                 coords = layout_utils.get_control_points(gv_edge.attr["pos"])
-                orig_edge_data = self.digraph.edges[os, ot]
-                orig_edge_data["ctrl_pt_coords"] = coords
+                data["ctrl_pt_coords"] = coords
 
             if not first_small_component:
                 conclude_msg()
@@ -1327,10 +1341,11 @@ class AssemblyGraph(object):
             conclude_msg()
 
         # At this point, we are now done with layout. Coordinate information
-        # for nodes and edges is stored in self.digraph; coordinate information
-        # for patterns is stored in the Pattern objects referenced in
-        # self.id2pattern. Now we should be able to make a JSON representation
-        # of this graph and move on to visualizing it in the browser!
+        # for nodes and edges is stored in self.decomposed_digraph or in the
+        # subgraphs of patterns; coordinate information for patterns is stored
+        # in the Pattern objects referenced in self.id2pattern. Now we should
+        # be able to make a JSON representation of this graph and move on to
+        # visualizing it in the browser!
 
     def dot(self, output_filepath, component_number):
         """TODO. Visualizes a component of the laid out graph.
@@ -1350,116 +1365,196 @@ class AssemblyGraph(object):
         """Returns a dict representation of the graph usable as JSON.
 
         This should be analogous to the SQLite3 database schema previously
-        used for MgSc. After thinking about this a bit, I think it makes sense
-        to _not_ try to create a JSON serialization of a Cytoscape.js
-        visualization -- this is because the visualizations can vary a lot, and
-        with things like multiple-component drawing we really can't guarantee a
-        ton of stuff. We should prioritize flexibility here, which mimicking
-        the prior database approach will do.
+        used for MgSc.
 
-        Something like the following should be decently space-efficient.
-        "extra_data" is a wildcard that I guess could store whatever extra
-        metadata we decide to accept in input graphs -- it should store
-        optional stuff like GC content, depth, repeat status, taxonomy
-        classification info, etc.
-
-            NODE_ATTRS:
-                ["id", "label", "length", "x", "y", "w", "h", "is_fwd",
-                 "parent_id", "extra_data"]
-
-        Edges could be indexed by start node ID, I guess? Or they could just be
-        stored as an array of arrays. I guess do we wanna keep this JSON
-        hanging around in memory, or just immediately use Cy.js for all of the
-        stuff like topology lookups? I guess Cy.js. So no need to make querying
-        this fast.
-
-            EDGE_ATTRS:
-                ["src_id", "snk_id", "ctrl_pt_str", "ctrl_pt_ct", "parent_id",
-                 "extra_data"]
-
-        Patterns work similarly...
-
-            PATT_ATTRS:
-                ["id", "left", "bottom", "right", "top", "w", "h", "type"]
-
-
-        I think the best way to handle this is having things stored under each
-        component. So, something like
-
-        NODE_ATTRS (dict mapping node attr names to posns in node data arrays,
-                    so that the JS code can say "give me the node length"
-                    easily)
-        EDGE_ATTRS ("" but for edges)
-        PATT_ATTRS ("" but for patterns)
-        [
-            {
-                nodes: [Array of node data],
-                edges: [Array of edge data],
-                patterns: [Array of pattern data],
-                componentData: [Array of component-level data, e.g. bb]
-            },
-            ...
-        ]
-
-        where the first JSON in the array is for the largest component,
-        second is for the second-largest component, etc. The reason for doing
-        things this way is that SO much of the JS code right now that accesses
-        the database does it by querying for nodes / edges / patterns / etc.
-        within a given component ID. So making that operation fast will make
-        life easier.
-
-        I think that's the gist of it?
+        Should only be called after self.process() has already been called.
         """
-        # TODO: I guess we probably need to format these as dicts instead (e.g.
-        # {"id": 0, "label": 1, ...})
+        # These are keyed by integer ID (i.e. what was produced by
+        # self.reindex_digraph())
         NODE_ATTRS = {
-            "id": 0,
-            "label": 1,
-            "length": 2,
-            "x": 3,
-            "y": 4,
-            "w": 5,
-            "h": 6,
-            "is_fwd": 7,
-            "parent_id": 8,
-            "extra_data": 9,
+            "name": 0,
+            "length": 1,
+            "x": 2,
+            "y": 3,
+            "width": 4,
+            "height": 5,
+            "orientation": 6,
+            "parent_id": 7,
+            # Extra data contains things like coverage, label, GC content, etc.
+            "extra_data": 8,
         }
+        # These are keyed by source ID and sink ID (both reindex_digraph()
+        # integer IDs)
         EDGE_ATTRS = {
-            "src_id": 0,
-            "snk_id": 1,
-            "ctrl_pts": 2,
-            "parent_id": 3,
-            "extra_data": 4,
+            "ctrl_pt_coords": 0,
+            "parent_id": 1,
+            # Extra data contains things like multiplicity, orientation, etc.
+            "extra_data": 2,
         }
+        # These are keyed by ID (integer IDs, from get_new_node_id())
         PATT_ATTRS = {
-            "id": 0,
-            "left": 1,
-            "bottom": 2,
-            "right": 3,
-            "top": 4,
-            "w": 5,
-            "h": 6,
-            "type": 7,
+            "left": 0,
+            "bottom": 1,
+            "right": 2,
+            "top": 3,
+            "width": 4,
+            "height": 5,
+            "pattern_type": 6,
+            "parent_id": 7,
         }
+        # Real quick, validate that I didn't mess up the attribute "schema"s
+        # defined above -- i.e. there aren't any gaps. So if, say, there are 9
+        # node attributes, then set(NODE_ATTRS.values()) should equal
+        # set(range(9)) (i.e. both should be {0, 1, 2, 3, 4, 5, 6, 7, 8}).
+        for attrs in (NODE_ATTRS, EDGE_ATTRS, PATT_ATTRS):
+            if set(attrs.values()) != set(range(len(attrs))):
+                raise ValueError("Invalid attribute schema: {}".format(attrs))
 
+        def get_node_data(graph_node_data):
+            """Utility function for extracting necessary data from a node.
+
+            graph_node_data should be a dictionary-like object, i.e. the node
+            data accessible using NetworkX.
+            """
+            out_node_data = [None] * len(NODE_ATTRS)
+            for attr in NODE_ATTRS.keys():
+                if attr not in graph_node_data:
+                    raise ValueError(
+                        "Node {} doesn't have attribute {}".format(
+                            graph_node_data["name"], attr
+                        )
+                    )
+                out_node_data[NODE_ATTRS[attr]] = graph_node_data[attr]
+
+            # Add extra data, if present
+            # This enables us to pass arbitrary stuff like coverage, GC
+            # content, etc.
+            extra_attrs = set(graph_node_data.keys()) - set(NODE_ATTRS.keys())
+            if len(extra_attrs) > 0:
+                extra_data = {a: graph_node_data[a] for a in extra_attrs}
+                out_node_data[NODE_KEYS["extra_data"]] = extra_data
+
+            return out_node_data
+
+        def get_edge_data(srcid, snkid, graph_edge_data):
+            out_edge_data = [None] * len(EDGE_ATTRS)
+            for attr in EDGE_ATTRS.keys():
+                if attr not in graph_edge_data:
+                    raise ValueError(
+                        "Edge {} -> {} doesn't have attribute {}".format(
+                            srcid, snkid, attr
+                        )
+                    )
+                out_edge_data[EDGE_ATTRS[attr]] = graph_edge_data[attr]
+            extra_attrs = set(graph_edge_data.keys()) - set(EDGE_ATTRS.keys())
+            if len(extra_attrs) > 0:
+                extra_data = {a: graph_edge_data[a] for a in extra_attrs}
+                out_edge_data[EDGE_KEYS["extra_data"]] = extra_data
+            return out_edge_data
+
+        def add_edge(component_dict, edge, edge_data):
+            if edge[0] in component_dict["edges"]:
+                if edge[1] in component_dict["edges"][edge[0]]:
+                    raise ValueError(
+                        "Edge {} -> {} added to JSON twice?".format(
+                            edge[0], edge[1]
+                        )
+                    )
+                component_dict["edges"][edge[0]][edge[1]] = edge_data
+            else:
+                component_dict["edges"][edge[0]] = {edge[1]: edge_data}
+
+        # This is the dict we'll return from this function.
         out = {
             "node_attrs": NODE_ATTRS,
             "edge_attrs": EDGE_ATTRS,
             "patt_attrs": PATT_ATTRS,
             "components": [],
         }
+
         # For each component:
+        # (This is the same general strategy for iterating through the graph as
+        # self.layout() uses.)
         for cc_i, cc_tuple in enumerate(self.get_connected_components(), 1):
-            out["components"].append({"nodes": {}, "edges": {}, "patts": {}})
-            # TODO:
-            # 1. Add node data to component
-            # 2. add edge data
-            # 3. add pattern data
-            # the nodes, edgs, and patts JSONs for each component should
-            # map node/edge/pattern ID? to their data array. Maybe edges can be
-            # formatted so that source ID maps to array of data for each unique
-            # sink? I think that makes sense, but see how edges are accessed in
-            # the JS now I guess.
+            # Make note of components we didn't lay out
+            if cc_i in self.skipped_components:
+                out["components"].append({"skipped": True})
+                continue
+            this_component = {
+                "nodes": {},
+                "edges": {},
+                "patts": {},
+                "skipped": False,
+                "bb": self.cc_num_to_bb[cc_i],
+            }
+            # Go through top-level nodes and collapsed patterns
+            for node_id in cc_tuple[0]:
+                if self.is_pattern(node_id):
+                    # Add pattern data, and data for child + descendant
+                    # nodes and edges
+                    patt = self.id2pattern[node_id]
+                    patt_queue = deque([patt])
+                    while len(patt_queue) > 0:
+                        curr_patt = patt_queue.popleft()
+
+                        # Add data for this pattern. All of the stuff in
+                        # PATT_ATTRS should be literal attributes of Pattern
+                        # objects, so this step is blessedly simple (ish).
+                        data = [None] * len(PATT_ATTRS)
+                        for attr in PATT_ATTRS.keys():
+                            data[PATT_ATTRS[attr]] = getattr(curr_patt, attr)
+                        this_component["patts"][patt_data.pattern_id] = data
+
+                        # Add data for the nodes within this pattern, and add
+                        # patterns within this pattern to the queue.
+                        for child_node_id in curr_patt.node_ids:
+                            if self.is_pattern(child_node_id):
+                                patt_queue.append(
+                                    self.id2pattern[child_node_id]
+                                )
+                            else:
+                                # This is a normal node in a pattern. Add data.
+                                data = get_node_data(
+                                    self.decomposed_digraph.nodes[
+                                        child_node_id
+                                    ]
+                                )
+                                this_component["nodes"][child_node_id] = data
+
+                        # Add data for the edges within this pattern.
+                        for edge in curr_patt.subgraph.edges:
+                            data = get_edge_data(
+                                edge[0],
+                                edge[1],
+                                curr_patt.subgraph.edges[edge],
+                            )
+                            add_edge(this_component, edge, data)
+                else:
+                    # Add node data (top level, i.e. not present in any
+                    # patterns)
+                    if node_id in this_component["nodes"]:
+                        raise ValueError(
+                            "Node {} added to JSON twice?".format(node_id)
+                        )
+                    data = get_node_data(
+                        self.decomposed_digraph.nodes[node_id]
+                    )
+                    this_component["nodes"][node_id] = data
+
+            # Go through top-level edges and add data
+            for edge in self.decomposed_digraph.subgraph(cc_node_ids).edges:
+                data = get_edge_data(
+                    edge[0],
+                    edge[1],
+                    self.decomposed_digraph.edges[edge],
+                )
+                add_edge(this_component, edge, data)
+
+            # Since we're going through components in the order dictated by
+            # self.get_connected_components() we can just add component JSONs
+            # to out["components"] as we go through things.
+            out["components"].append(this_component)
+        return out
 
     def process(self):
         """Basic pipeline for preparing a graph for visualization."""

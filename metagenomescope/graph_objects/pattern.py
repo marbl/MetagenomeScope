@@ -22,7 +22,9 @@ from metagenomescope import config, layout_utils
 
 
 class Pattern(object):
-    def __init__(self, pattern_id, pattern_type, node_ids, subgraph):
+    def __init__(
+        self, pattern_id, pattern_type, node_ids, subgraph, asm_graph
+    ):
         self.pattern_id = pattern_id
         self.pattern_type = pattern_type
         self.node_ids = node_ids
@@ -44,6 +46,23 @@ class Pattern(object):
         self.bottom = None
         self.right = None
         self.top = None
+
+        # ID of the pattern containing this pattern, or None if this pattern
+        # exists in the top level of the graph.
+        self.parent_id = None
+
+        # Update parent ID info for child nodes, patterns, and edges
+        for node_id in self.node_ids:
+            if asm_graph.is_pattern(node_id):
+                asm_graph.id2pattern[node_id].parent_id = self.pattern_id
+            else:
+                asm_graph.digraph.nodes[node_id]["parent_id"] = self.pattern_id
+
+        for edge in self.subgraph.edges:
+            data = self.subgraph.edges[edge]
+            os = data["orig_src"]
+            ot = data["orig_tgt"]
+            asm_graph.digraph.edges[os, ot]["parent_id"] = self.pattern_id
 
         # This is the shape used for this pattern during layout. In the actual
         # end visualization we might use different shapes for collapsed
@@ -124,9 +143,9 @@ class Pattern(object):
 
         # Extract dimension info. The first two coordinates in the bounding box
         # (bb) should always be (0, 0).
-        bb_split = cg.graph_attr["bb"].split(",")
-        self.width = float(bb_split[2]) / config.POINTS_PER_INCH
-        self.height = float(bb_split[3]) / config.POINTS_PER_INCH
+        self.width, self.height = layout_utils.get_bb_x2_y2(
+            cg.graph_attr["bb"]
+        )
 
         # Extract relative node coordinates (x and y)
         for node_id in self.node_ids:
@@ -183,12 +202,15 @@ class StartEndPattern(Pattern):
         start_node_id,
         end_node_id,
         subgraph,
+        asm_graph,
     ):
         # NOTE: not recursive, but for now this is ok since at no point can
         # another pattern be the "real" start/end node of a bubble.
         self.start_node_id = start_node_id
         self.end_node_id = end_node_id
-        super().__init__(pattern_id, pattern_type, node_ids, subgraph)
+        super().__init__(
+            pattern_id, pattern_type, node_ids, subgraph, asm_graph
+        )
 
     def get_start_node(self):
         return self.start_node_id

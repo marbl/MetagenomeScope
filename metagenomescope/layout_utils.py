@@ -104,3 +104,26 @@ def getxy(pos_string):
     """
     xs, ys = pos_string.split(",")
     return float(xs), float(ys)
+
+
+def get_bb_x2_y2(bb_string):
+    """Given a string of the format "x1,y1,x2,y2", returns floats of x2 and y2
+    divided by config.POINTS_PER_INCH.
+
+    In a bounding box produced by GraphViz, (x1, y1) is the bottom left
+    position of the box and (x2, y2) is the top right position of the box.
+    Usually we only care about (x2, y2) (since often the bottom left is just
+    (0, 0)), hence this function.
+
+    The reason we divide by POINTS_PER_INCH is because, in GraphViz' output,
+    node positions and edge control points are (usually) given in inches,
+    whereas bounding boxes are (usually) given in points. To quote Plato,
+    "that's kinda annoying tbh." I'm like 90% sure Plato said that once.
+
+    See http://www.graphviz.org/doc/info/attrs.html#d:bb and
+    http://www.graphviz.org/doc/info/attrs.html#k:rect for reference.
+    """
+    x1, y1, x2, y2 = bb_string.split(",")
+    x2i = float(x2) / config.POINTS_PER_INCH
+    y2i = float(y2) / config.POINTS_PER_INCH
+    return x2i, y2i

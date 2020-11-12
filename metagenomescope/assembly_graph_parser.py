@@ -311,7 +311,9 @@ def parse_metacarvel_gml(filename):
     g = nx.gml.read_gml(filename)
 
     validate_nx_digraph(
-        g, ("orientation", "length"), ("orientation", "mean", "stdev", "bsize")
+        g,
+        ("orientation", "length"),
+        ("orientation", "mean", "stdev", "bsize"),
     )
 
     # Verify that node attributes are good. Also, change orientations from FOW
