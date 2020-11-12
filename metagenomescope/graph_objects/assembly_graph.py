@@ -50,15 +50,32 @@ class AssemblyGraph(object):
 
         self.id2pattern = {}
 
-        # TODO extract common node/edge attrs from parse(). There are various
-        # ways to do this, from elegant (e.g. create classes for each filetype
-        # parser that define the expected node/edge attrs) to patchwork (just
-        # return 3 things from each parsing function and from parse(), where
-        # the last two things are tuples of node and edge attrs respectively).
-        # Eventually we'll need to check for conflicting attribute names (e.g.
-        # relative_length, longside_proportion, etc.) Maybe reserve _mgsc as
-        # proportion prefix?
+        # Reserved attributes we use for nodes/edges -- see self.check_attrs().
+        self.internal_node_attrs = set([
+            "relative_length",
+            "longside_proportion",
+            "width",
+            "height",
+            "x",
+            "y",
+            "relative_x",
+            "relative_y",
+            "parent_id",
+            "name",
+        ])
+
+        self.internal_edge_attrs = set([
+            "ctrl_pt_coords",
+            "relative_ctrl_pt_coords",
+            "parent_id",
+            "is_outlier",
+            "relative_weight",
+            "orig_src",
+            "orig_tgt",
+        ])
+
         self.digraph = assembly_graph_parser.parse(self.filename)
+        self.check_attrs()
         self.reindex_digraph()
 
         # Number of nodes in the graph, including patterns and duplicate nodes.
@@ -84,6 +101,35 @@ class AssemblyGraph(object):
         # memory, I think.)
         self.cc_num_to_bb = {}
 
+    def check_attrs(self):
+        """Verifies that nodes and edges in self.digraph don't have attributes
+        that would conflict with built-in attributes we store here.
+
+        The fact that we have to do this in the first place is an indication
+        that the code for storing this data should be improved. ...That is a
+        job for future Marcus, I guess. But honestly I doubt a lot of people
+        are going to be coming at us with graphs that have
+        "longside_proportion" in their node attributes so I thiiiink we're ok.
+        """
+        for node in self.digraph.nodes:
+            data = self.digraph.nodes[node]
+            shared_attrs = set(data.keys()) & self.internal_node_attrs
+            if len(shared_attrs) > 0:
+                raise ValueError(
+                    "Sorry -- node {} has reserved attribute(s) {}. Please rename these.".format(
+                        node, shared_attrs
+                    )
+                )
+        for edge in self.digraph.edges:
+            data = self.digraph.edges[edge]
+            shared_attrs = set(data.keys()) & self.internal_edge_attrs
+            if len(shared_attrs) > 0:
+                raise ValueError(
+                    "Sorry -- edge {} has reserved attribute(s) {}. Please rename these.".format(
+                        edge, shared_attrs
+                    )
+                )
+
     def reindex_digraph(self):
         """Assigns every node in the graph a unique integer ID, and adds a
         "name" attribute containing the original ID. This unique integer ID
@@ -99,15 +145,15 @@ class AssemblyGraph(object):
         for edge in self.digraph.edges:
             self.save_orig_src_and_tgt(edge)
 
-    def save_orig_src_and_tgt(
-        self, e, srcfield="orig_src", tgtfield="orig_tgt"
-    ):
+    def save_orig_src_and_tgt(self, e):
         """Saves an edge's current source and target node ID in data fields.
 
         Helps out with backfilling stuff during layout -- useful so we can keep
         track of edges even as their source / target nodes may be modified as
         patterns are collapsed, etc.
         """
+        srcfield = "orig_src"
+        tgtfield = "orig_tgt"
         if (
             srcfield in self.digraph.edges[e]
             or tgtfield in self.digraph.edges[e]
