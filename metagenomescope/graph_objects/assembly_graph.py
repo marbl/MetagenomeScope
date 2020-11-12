@@ -51,28 +51,32 @@ class AssemblyGraph(object):
         self.id2pattern = {}
 
         # Reserved attributes we use for nodes/edges -- see self.check_attrs().
-        self.internal_node_attrs = set([
-            "relative_length",
-            "longside_proportion",
-            "width",
-            "height",
-            "x",
-            "y",
-            "relative_x",
-            "relative_y",
-            "parent_id",
-            "name",
-        ])
+        self.internal_node_attrs = set(
+            [
+                "relative_length",
+                "longside_proportion",
+                "width",
+                "height",
+                "x",
+                "y",
+                "relative_x",
+                "relative_y",
+                "parent_id",
+                "name",
+            ]
+        )
 
-        self.internal_edge_attrs = set([
-            "ctrl_pt_coords",
-            "relative_ctrl_pt_coords",
-            "parent_id",
-            "is_outlier",
-            "relative_weight",
-            "orig_src",
-            "orig_tgt",
-        ])
+        self.internal_edge_attrs = set(
+            [
+                "ctrl_pt_coords",
+                "relative_ctrl_pt_coords",
+                "parent_id",
+                "is_outlier",
+                "relative_weight",
+                "orig_src",
+                "orig_tgt",
+            ]
+        )
 
         self.digraph = assembly_graph_parser.parse(self.filename)
         self.check_attrs()
@@ -956,7 +960,6 @@ class AssemblyGraph(object):
         for edge in self.decomposed_digraph.edges:
             self.decomposed_digraph.edges[edge]["parent_id"] = None
 
-
     def scale_nodes(self):
         """Scales nodes in the graph based on their lengths.
 
@@ -1351,9 +1354,7 @@ class AssemblyGraph(object):
                             else:
                                 # Reconcile data for this normal node within a
                                 # pattern
-                                data = curr_patt.subgraph.nodes[
-                                    child_node_id
-                                ]
+                                data = curr_patt.subgraph.nodes[child_node_id]
                                 data["x"] = curr_patt.left + data["relative_x"]
                                 data["y"] = (
                                     curr_patt.bottom + data["relative_y"]
@@ -1566,9 +1567,7 @@ class AssemblyGraph(object):
                             else:
                                 # This is a normal node in a pattern. Add data.
                                 data = get_node_data(
-                                    curr_patt.subgraph.nodes[
-                                        child_node_id
-                                    ]
+                                    curr_patt.subgraph.nodes[child_node_id]
                                 )
                                 this_component["nodes"][child_node_id] = data
 
