@@ -2909,12 +2909,6 @@ function downloadDataURI(filename, contentToDownload, isPlainText) {
     document.getElementById("downloadHelper").click();
 }
 
-/* Opens a link to the MetagenomeScope wiki in another tab/window. */
-function openHelp() {
-    "use strict";
-    window.open("https://github.com/marbl/MetagenomeScope/wiki", "_blank");
-}
-
 /* eleType can be one of {"node", "edge", "cluster"} */
 function toggleEleInfo(eleType) {
     "use strict";

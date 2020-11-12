@@ -24,14 +24,21 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
         doThingsWhenDOMReady() {
             // Make that "hamburger" button show/hide the control panel
             $("#controlsToggler").click(this.toggleControls.bind(this));
+
             // Make the "Graph info" button show a modal dialog
             $("#infoButton").click(function () {
                 $("#infoDialog").modal();
             });
             domUtils.enableButton("infoButton");
+
             // Make the "Settings" button show the settings dialog
             $("#settingsButton").click(function () {
                 $("#settingsDialog").modal();
+            });
+
+            // Pop open the wiki when the help button is clicked
+            $("#helpButton").click(function () {
+                window.open("https://github.com/marbl/MetagenomeScope/wiki", "_blank");
             });
         }
 
