@@ -1672,37 +1672,6 @@ function parseDBcomponents() {
     }
 }
 
-/* Enables a disabled <button> element that is currently disabled: that is,
- * it has the disabled class (which covers Bootstrap styling) and has the
- * disabled="disabled" property.
- */
-function enableButton(buttonID) {
-    "use strict";
-    $("#" + buttonID).removeClass("disabled");
-    $("#" + buttonID).prop("disabled", false);
-}
-
-/* Disables an enabled <button> element. */
-function disableButton(buttonID) {
-    "use strict";
-    $("#" + buttonID).addClass("disabled");
-    $("#" + buttonID).prop("disabled", true);
-}
-
-/* Like disableButton(), but for the inline radio buttons used for node
- * colorization options. Since these don't have "disabled" as a class, we use
- * a different method for disabling them.
- */
-function disableInlineRadio(inputID) {
-    "use strict";
-    $("#" + inputID).prop("disabled", true);
-}
-
-function enableInlineRadio(inputID) {
-    "use strict";
-    $("#" + inputID).prop("disabled", false);
-}
-
 /* Disables some "volatile" controls in the graph. Should be used when doing
  * any sort of operation, I guess. */
 function disableVolatileControls() {

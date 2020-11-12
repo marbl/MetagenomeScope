@@ -1,4 +1,9 @@
-define(["jquery", "cytoscape", "util"], function ($, cy, util) {
+define(["jquery", "cytoscape", "utils", "dom-utils"], function (
+    $,
+    cy,
+    utils,
+    domUtils
+) {
     class AppManager {
         constructor(dataHolder) {
             // Holds all of the actual graph data (nodes, edges, etc.)
@@ -23,6 +28,7 @@ define(["jquery", "cytoscape", "util"], function ($, cy, util) {
             $("#infoButton").click(function () {
                 $("#infoDialog").modal();
             });
+            domUtils.enableButton("infoButton");
         }
 
         toggleControls() {
