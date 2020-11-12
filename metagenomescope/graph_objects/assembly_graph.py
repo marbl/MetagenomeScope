@@ -1,4 +1,5 @@
 import math
+import json
 from copy import deepcopy
 from operator import itemgetter
 from collections import deque
@@ -1412,10 +1413,16 @@ class AssemblyGraph(object):
     def to_dict(self):
         """Returns a dict representation of the graph usable as JSON.
 
+        (The dict will need to be pushed through json.dumps() first in order
+        to make it valid JSON, of course -- e.g. converting Nones to nulls,
+        etc.)
+
         This should be analogous to the SQLite3 database schema previously
         used for MgSc.
 
         Should only be called after self.process() has already been called.
+
+        Inspired by to_dict() in Empress.
         """
         # These are keyed by integer ID (i.e. what was produced by
         # self.reindex_digraph())
@@ -1611,6 +1618,16 @@ class AssemblyGraph(object):
             # to out["components"] as we go through things.
             out["components"].append(this_component)
         return out
+
+    def to_json(self):
+        """Calls self.to_dict() and then pushes that through json.dumps().
+
+        Why are these even separate functions in the first place? Probably
+        testing, mostly -- it's easier to test that a dict contains a certain
+        element, etc. than it would be if we had to go through the dict -> JSON
+        str -> dict song and dance for every test.
+        """
+        return json.dumps(self.to_dict())
 
     def process(self):
         """Basic pipeline for preparing a graph for visualization."""

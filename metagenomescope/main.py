@@ -72,7 +72,7 @@ def make_viz(
     asm_graph.process()
 
     # Get JSON representation of the graph data.
-    graph_data = asm_graph.to_dict()
+    graph_data = asm_graph.to_json()
 
     operation_msg(
         "Writing graph data to the output directory, {}...".format(output_dir)
