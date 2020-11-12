@@ -7,4 +7,3 @@ def test_to_dict_simple():
 
     data = ag.to_dict()
     assert type(data) == dict
-    print(data)

@@ -18,6 +18,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from distutils.dir_util import copy_tree
 import jinja2
 from . import graph_objects, arg_utils
 from .msg_utils import operation_msg, conclude_msg
@@ -70,26 +71,36 @@ def make_viz(
     # Identify patterns, do layout, etc.
     asm_graph.process()
 
-    return
+    # Get JSON representation of the graph data.
+    graph_data = asm_graph.to_dict()
 
     operation_msg(
         "Writing graph data to the output directory, {}...".format(output_dir)
     )
+
     # Make the output directory.
     arg_utils.create_output_dir(output_dir)
 
-    # TODO: Copy "support files" to output directory (see Qurro)
-    pass
+    # Copy "support files" to output directory. (This part of code taken from
+    # https://github.com/biocore/qurro/blob/master/qurro/generate.py, in the
+    # gen_visualization() function.)
+    #
+    # First, figure out where this file (main.py) is, since support_files/ is
+    # located alongside it.
+    curr_loc = os.path.dirname(os.path.realpath(__file__))
+    support_files_loc = os.path.join(curr_loc, "support_files")
+    copy_tree(support_files_loc, output_dir)
 
-    # Get JSON representation of the graph data.
-    graph_data = asm_graph.to_dict()
-
-    # TODO: Load the index.html file in the output directory
-    pass
-
-    # TODO: Using Jinja2, populate the {{ dataJSON }} tag in the HTML file with
-    # the output of asm_graph.to_dict()
-    pass
+    # Using Jinja2, populate the {{ dataJSON }} tag in the index HTML file with
+    # the JSON representation of the graph data.
+    # This part of code taken from
+    # https://github.com/biocore/empress/blob/master/empress/core.py, in
+    # particular _get_template() and make_empress(), and
+    # https://github.com/biocore/empress/blob/master/tests/python/make-dev-page.py.
+    env = jinja2.Environment(loader=jinja2.FileSystemLoader(output_dir))
+    index_template = env.get_template("index.html")
+    with open(os.path.join(output_dir, "index.html"), "w") as index_file:
+        index_file.write(index_template.render({"dataJSON": graph_data}))
 
     conclude_msg()
 
