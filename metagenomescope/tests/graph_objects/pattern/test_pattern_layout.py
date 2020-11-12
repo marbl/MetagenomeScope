@@ -15,7 +15,7 @@ def test_simple_pattern_layout():
     p.layout(ag)
 
     # Verify that the layout looks reasonable
-    w, h = p.width, p.height
+    # w, h = p.width, p.height
     # TODO: assert stuff about the layout
 
 

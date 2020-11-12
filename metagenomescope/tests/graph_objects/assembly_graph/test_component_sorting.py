@@ -51,7 +51,6 @@ def test_component_sorting_ecoli_graph():
                 break
         else:
             # Recursively go through all patterns until we find 89
-            child_node_ids = []
             pattern_queue = [node_id]
             while len(pattern_queue) > 0:
                 pattern = pattern_queue.pop()
