@@ -1509,15 +1509,13 @@ class AssemblyGraph(object):
         def get_edge_data(srcid, snkid, graph_edge_data):
             """Analogue of get_node_data() for edges."""
             out_edge_data = [None] * len(EDGE_ATTRS)
+            is_dup = "is_dup" in graph_edge_data and graph_edge_data["is_dup"]
             for attr in EDGE_ATTRS.keys():
                 if attr == "extra_data":
                     continue
                 val = None
                 if attr not in graph_edge_data:
-                    if (
-                        not "is_dup" in graph_edge_data
-                        or not graph_edge_data["is_dup"]
-                    ):
+                    if not is_dup:
                         raise ValueError(
                             "Edge {} -> {} doesn't have attribute {}".format(
                                 srcid, snkid, attr
