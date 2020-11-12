@@ -1,4 +1,9 @@
-define(["jquery", "bootstrap", "cytoscape", "util"], function ($, bootstrap, cy, util) {
+define(["jquery", "bootstrap", "cytoscape", "util"], function (
+    $,
+    bootstrap,
+    cy,
+    util
+) {
     class AppManager {
         constructor(dataHolder) {
             this.dataHolder = dataHolder;
