@@ -65,20 +65,13 @@ class AssemblyGraph(object):
         # Used for assigning new unique node IDs.
         self.num_nodes = len(self.digraph)
 
+        # Holds the top-level decomposed digraph. All of the original nodes /
+        # edges in the graph are accounted for within this graph in some way --
+        # they're either present within the actual graph (i.e. they were not
+        # collapsed into patterns), or they are present within the subgraph of
+        # a pattern (which may in turn be a node in the top-level graph or
+        # within the subgraph of another pattern, etc.)
         self.decomposed_digraph = None
-        # Poss TODO: Convert self.digraph into collections of Node/Edge objs?
-        # So one option is doing this immediately after creating self.digraph,
-        # and another option is deferring this until just before layout (or
-        # even not doing this at all, and rewriting layout to not use my custom
-        # Node/Edge/... types).
-        # So, at least *a fair portion* of the custom Node/Edge classes is
-        # rendered unnecessary by the fact that we're using an actual graph
-        # library instead of implementing DFS, adjacency, etc. custom (why did
-        # I ever think that was a good idea...?) however, it'll likely be
-        # easiest to still use the custom Node/Edge classes for doing layout
-        # crap, as well as storing other weird stuff.
-        # for node in self.digraph.nodes:
-        #     pass
 
     def reindex_digraph(self):
         """Assigns every node in the graph a unique integer ID, and adds a
