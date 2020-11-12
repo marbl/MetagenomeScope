@@ -1480,6 +1480,8 @@ class AssemblyGraph(object):
             # This enables us to pass arbitrary stuff like coverage, GC
             # content, etc.
             extra_attrs = set(graph_node_data.keys()) - set(NODE_ATTRS.keys())
+            # Don't pass internal node data in the extra data
+            extra_attrs -= self.internal_node_attrs
             if len(extra_attrs) > 0:
                 extra_data = {a: graph_node_data[a] for a in extra_attrs}
                 out_node_data[NODE_ATTRS["extra_data"]] = extra_data
@@ -1487,6 +1489,7 @@ class AssemblyGraph(object):
             return out_node_data
 
         def get_edge_data(srcid, snkid, graph_edge_data):
+            """Analogue of get_node_data() for edges."""
             out_edge_data = [None] * len(EDGE_ATTRS)
             for attr in EDGE_ATTRS.keys():
                 if attr == "extra_data":
@@ -1498,7 +1501,10 @@ class AssemblyGraph(object):
                         )
                     )
                 out_edge_data[EDGE_ATTRS[attr]] = graph_edge_data[attr]
+
             extra_attrs = set(graph_edge_data.keys()) - set(EDGE_ATTRS.keys())
+            # Don't pass internal edge data in the extra data
+            extra_attrs -= self.internal_edge_attrs
             if len(extra_attrs) > 0:
                 extra_data = {a: graph_edge_data[a] for a in extra_attrs}
                 out_edge_data[EDGE_ATTRS["extra_data"]] = extra_data
