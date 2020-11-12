@@ -56,7 +56,7 @@ class Pattern(object):
             if asm_graph.is_pattern(node_id):
                 asm_graph.id2pattern[node_id].parent_id = self.pattern_id
             else:
-                asm_graph.digraph.nodes[node_id]["parent_id"] = self.pattern_id
+                self.subgraph.nodes[node_id]["parent_id"] = self.pattern_id
 
         for edge in self.subgraph.edges:
             self.subgraph.edges[edge]["parent_id"] = self.pattern_id
@@ -119,7 +119,7 @@ class Pattern(object):
                 # If this is a normal node, get its dimensions from the
                 # graph. Shape is based on the node's orientation, which should
                 # also be stored in the graph.
-                data = asm_graph.digraph.nodes[node_id]
+                data = self.subgraph.nodes[node_id]
                 height = data["height"]
                 width = data["width"]
                 shape = config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]]
@@ -161,16 +161,12 @@ class Pattern(object):
                 id2pattern[node_id].relative_x = x
                 id2pattern[node_id].relative_y = y
             else:
-                asm_graph.digraph.nodes[node_id]["relative_x"] = x
-                asm_graph.digraph.nodes[node_id]["relative_y"] = y
+                self.subgraph.nodes[node_id]["relative_x"] = x
+                self.subgraph.nodes[node_id]["relative_y"] = y
 
         # Extract (relative) edge control points
         for edge in self.subgraph.edges:
             cg_edge = cg.get_edge(*edge)
-            # When it comes to associating edges with their "original"
-            # start/end node, I think it'd be easiest to store these originals
-            # as edge data attrs rather than using the "comment" hack from
-            # earlier.
             coords = layout_utils.get_control_points(cg_edge.attr["pos"])
             self.subgraph.edges[edge]["relative_ctrl_pt_coords"] = coords
 

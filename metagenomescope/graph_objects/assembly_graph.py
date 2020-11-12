@@ -828,14 +828,6 @@ class AssemblyGraph(object):
     def hierarchically_identify_patterns(self):
         """Run all of the pattern detection algorithms above on the graph
         repeatedly until the graph has been "fully" squished into patterns.
-
-        I imagine this will involve converting the assembly graph into a NX
-        digraph such that each top-level pattern is just represented as a
-        node in the graph (so that the pattern detection algorithms
-        straight-up can't tell the difference between a 'pattern' and an
-        actual node in the graph). We'll have to keep doing this conversion
-        at each layer, I guess, but I don't think this should be *too*
-        computationally expensive (knock on wood).
         """
         # We'll modify this as we go through this method
         self.decomposed_digraph = deepcopy(self.digraph)
@@ -909,6 +901,15 @@ class AssemblyGraph(object):
                 # We didn't collapse anything... so we're done here! We can't
                 # do any more.
                 break
+        # Now that we're done here, go through all the nodes and edges in the
+        # top level of the graph and record that they don't have a parent
+        # pattern
+        for node_id in self.decomposed_digraph.nodes:
+            if not self.is_pattern(node_id):
+                self.decomposed_digraph.nodes[node_id]["parent_id"] = None
+        for edge in self.decomposed_digraph.edges:
+            self.decomposed_digraph.edges[edge]["parent_id"] = None
+
 
     def scale_nodes(self):
         """Scales nodes in the graph based on their lengths.
@@ -1304,7 +1305,7 @@ class AssemblyGraph(object):
                             else:
                                 # Reconcile data for this normal node within a
                                 # pattern
-                                data = self.decomposed_digraph.nodes[
+                                data = curr_patt.subgraph.nodes[
                                     child_node_id
                                 ]
                                 data["x"] = curr_patt.left + data["relative_x"]
@@ -1418,6 +1419,8 @@ class AssemblyGraph(object):
             """
             out_node_data = [None] * len(NODE_ATTRS)
             for attr in NODE_ATTRS.keys():
+                if attr == "extra_data":
+                    continue
                 if attr not in graph_node_data:
                     raise ValueError(
                         "Node {} doesn't have attribute {}".format(
@@ -1432,13 +1435,15 @@ class AssemblyGraph(object):
             extra_attrs = set(graph_node_data.keys()) - set(NODE_ATTRS.keys())
             if len(extra_attrs) > 0:
                 extra_data = {a: graph_node_data[a] for a in extra_attrs}
-                out_node_data[NODE_KEYS["extra_data"]] = extra_data
+                out_node_data[NODE_ATTRS["extra_data"]] = extra_data
 
             return out_node_data
 
         def get_edge_data(srcid, snkid, graph_edge_data):
             out_edge_data = [None] * len(EDGE_ATTRS)
             for attr in EDGE_ATTRS.keys():
+                if attr == "extra_data":
+                    continue
                 if attr not in graph_edge_data:
                     raise ValueError(
                         "Edge {} -> {} doesn't have attribute {}".format(
@@ -1449,7 +1454,7 @@ class AssemblyGraph(object):
             extra_attrs = set(graph_edge_data.keys()) - set(EDGE_ATTRS.keys())
             if len(extra_attrs) > 0:
                 extra_data = {a: graph_edge_data[a] for a in extra_attrs}
-                out_edge_data[EDGE_KEYS["extra_data"]] = extra_data
+                out_edge_data[EDGE_ATTRS["extra_data"]] = extra_data
             return out_edge_data
 
         def add_edge(component_dict, edge, edge_data):
@@ -1503,7 +1508,7 @@ class AssemblyGraph(object):
                         data = [None] * len(PATT_ATTRS)
                         for attr in PATT_ATTRS.keys():
                             data[PATT_ATTRS[attr]] = getattr(curr_patt, attr)
-                        this_component["patts"][patt_data.pattern_id] = data
+                        this_component["patts"][curr_patt.pattern_id] = data
 
                         # Add data for the nodes within this pattern, and add
                         # patterns within this pattern to the queue.
@@ -1515,7 +1520,7 @@ class AssemblyGraph(object):
                             else:
                                 # This is a normal node in a pattern. Add data.
                                 data = get_node_data(
-                                    self.decomposed_digraph.nodes[
+                                    curr_patt.subgraph.nodes[
                                         child_node_id
                                     ]
                                 )
@@ -1542,7 +1547,7 @@ class AssemblyGraph(object):
                     this_component["nodes"][node_id] = data
 
             # Go through top-level edges and add data
-            for edge in self.decomposed_digraph.subgraph(cc_node_ids).edges:
+            for edge in self.decomposed_digraph.subgraph(cc_tuple[0]).edges:
                 data = get_edge_data(
                     edge[0],
                     edge[1],
