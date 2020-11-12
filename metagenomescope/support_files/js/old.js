@@ -2909,18 +2909,6 @@ function downloadDataURI(filename, contentToDownload, isPlainText) {
     document.getElementById("downloadHelper").click();
 }
 
-/* Pops up the dialog for color preference selection. */
-function displaySettings() {
-    "use strict";
-    $("#settingsDialog").modal();
-}
-
-/* Pops up a dialog displaying assembly information. */
-function displayInfo() {
-    "use strict";
-    $("#infoDialog").modal();
-}
-
 /* Opens a link to the MetagenomeScope wiki in another tab/window. */
 function openHelp() {
     "use strict";

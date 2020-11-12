@@ -29,6 +29,10 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
                 $("#infoDialog").modal();
             });
             domUtils.enableButton("infoButton");
+            // Make the "Settings" button show the settings dialog
+            $("#settingsButton").click(function () {
+                $("#settingsDialog").modal();
+            });
         }
 
         toggleControls() {
