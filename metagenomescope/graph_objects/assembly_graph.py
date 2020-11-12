@@ -1303,7 +1303,6 @@ class AssemblyGraph(object):
             # then boy do I have an NP-Hard problem for you .____________.
             top_level_cc_graph.layout(prog="dot")
 
-            cc_bb = top_level_cc_graph.graph_attr["bb"].split(",")
             self.cc_num_to_bb[cc_i] = layout_utils.get_bb_x2_y2(
                 top_level_cc_graph.graph_attr["bb"]
             )
