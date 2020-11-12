@@ -1,0 +1,33 @@
+/**
+ * Adapted from
+ * https://github.com/biocore/qurro/blob/master/qurro/support_files/main.js.
+ */
+requirejs.config({
+    paths: {
+        jquery: "vendor/js/jquery-3.2.1.min",
+        bootstrap: "vendor/js/bootstrap.min",
+        cytoscape: "vendor/js/cytoscape.min",
+        "bootstrap-colorpicker": "vendor/js/bootstrap-colorpicker.min",
+    },
+    shim: {
+        bootstrap: { deps: ["jquery"] },
+        "bootstrap-colorpicker": { deps: ["bootstrap", "jquery"] },
+    },
+});
+requirejs(
+    [
+        "js/app-manager",
+        "js/data-holder",
+        "js/util",
+        "jquery",
+        "bootstrap",
+        "bootstrap-colorpicker",
+        "cytoscape",
+    ],
+    function (AppManager, DataHolder, util, $, bootstrap, bootstrapColorpicker, cy) {
+        // Get the graph data JSON from the preprocessing script.
+        var dataJSON = {{ dataJSON }};
+        var dh = new DataHolder(dataJSON);
+        new AppManager(dh);
+    }
+);

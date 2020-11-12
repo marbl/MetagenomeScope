@@ -98,9 +98,9 @@ def make_viz(
     # particular _get_template() and make_empress(), and
     # https://github.com/biocore/empress/blob/master/tests/python/make-dev-page.py.
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(output_dir))
-    index_template = env.get_template("index.html")
-    with open(os.path.join(output_dir, "index.html"), "w") as index_file:
-        index_file.write(index_template.render({"dataJSON": graph_data}))
+    mainjs_template = env.get_template("main.js")
+    with open(os.path.join(output_dir, "main.js"), "w") as mainjs_file:
+        mainjs_file.write(mainjs_template.render({"dataJSON": graph_data}))
 
     conclude_msg()
 
