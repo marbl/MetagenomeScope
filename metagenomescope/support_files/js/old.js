@@ -1042,7 +1042,6 @@ function doThingsWhenDOMReady() {
     // Update mgsc.MODAL_ACTIVE when dialogs are opened/closed.
     var dialogIDs = [
         "settingsDialog",
-        "fsDialog",
         "infoDialog",
         "edgeFilteringDialog",
     ];
@@ -2955,12 +2954,6 @@ function displaySettings() {
 function displayInfo() {
     "use strict";
     $("#infoDialog").modal();
-}
-
-/* Pops up a dialog that can run Mocha/Chai tests for the viewer interface. */
-function displayTests() {
-    "use strict";
-    $("#testDialog").modal();
 }
 
 /* Opens a link to the MetagenomeScope wiki in another tab/window. */
