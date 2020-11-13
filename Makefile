@@ -95,3 +95,8 @@ jsstyle:
 	@# Shorthand, for when I'm developing JS code and don't want to waste time
 	@# with python/HTML stuff
 	prettier --write --tab-width 4 $(JSLOCS)
+
+demo:
+	@# makes a simple demo with a tiny graph that lets us test out the viewer
+	@# interface
+	rm -r mg2; and mgsc -i testgraphs/sjackman/sample.gfa -o mg2 -maxn 1
