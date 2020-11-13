@@ -112,6 +112,7 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
 
         draw() {
             var componentsToDraw = this.getComponentsToDraw();
+            console.log("Drawing components " + componentsToDraw);
             // TODO: (This is just replicating drawComponent().)
             // -disable volatile controls
             // -if cy !== null, destroy graph
