@@ -217,3 +217,13 @@ button {
 #mochaTestSampleButton {
     opacity: 0;
 }
+
+/* Matches the border radius that bootstrap applies to buttons. For some reason
+ * that eludes me, bootstrap buttons outside of a <p> don't seem to have
+ * rounded corners -- but putting them inside a <p> does. However, doing that
+ * can mess up dropdowns, so if we want to give a button rounded corners
+ * without having it be inside a <p> we can just use this class. Sheesh!
+ */
+.has-border-radius {
+    border-radius: 4px !important;
+}
