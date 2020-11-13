@@ -1753,22 +1753,6 @@ function toggleClusterNav() {
     mgsc.USE_CLUSTER_KBD_NAV = !mgsc.USE_CLUSTER_KBD_NAV;
 }
 
-/* Only enable component +/- buttons if the graph has more than 1 cc.
- * This provides a visual indication to the user of when the graph contains
- * (or doesn't contain) multiple components.
- */
-function enableCompRankControlsIfNecessary() {
-    "use strict";
-    if ($("#componentselector").prop("max") > 1) {
-        enableButton("decrCompRankButton");
-        enableButton("incrCompRankButton");
-    }
-    if ($("#SPQRcomponentselector").prop("max") > 1) {
-        enableButton("decrSPQRCompRankButton");
-        enableButton("incrSPQRCompRankButton");
-    }
-}
-
 /* Returns null if the value indicated by the string is not an integer (we
  * consider a string to be an integer if it matches the mgsc.INTEGER_RE regex).
  * Returns -1 if it is an integer but is less than the min component rank.

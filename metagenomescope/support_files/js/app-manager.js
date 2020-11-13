@@ -9,6 +9,8 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
             // Holds all of the actual graph data (nodes, edges, etc.)
             this.dataHolder = dataHolder;
 
+            this.numComponents = this.dataHolder.numComponents();
+
             // Instance of Cytoscape.js used to draw the graph.
             this.cy = null;
 
@@ -56,25 +58,9 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
             // 2. Shows the user that components are 1-indexed, so the largest
             //    component is #1.
             $("#componentselector").prop("min", 1);
-            $("#componentselector").prop("max", this.dataHolder.numComponents());
+            $("#componentselector").prop("max", this.numComponents);
 
-            $(".persistentCtrl").each(function () {
-                // TODO: use more specific enabling func based on type...?
-                domUtils.enableButton(this.id);
-            });
-
-        }
-
-        disableDrawNeededControls() {
-            $(".drawCtrl").each(function () {
-                domUtils.disableButton(this.id);
-            });
-        }
-
-        enableDrawNeededControls() {
-            $(".drawCtrl").each(function () {
-                domUtils.enableButton(this.id);
-            });
+            domUtils.enablePersistentControls(this.numComponents);
         }
 
         /**
