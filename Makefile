@@ -99,4 +99,5 @@ jsstyle:
 demo:
 	@# makes a simple demo with a tiny graph that lets us test out the viewer
 	@# interface
-	rm -r mg2; and mgsc -i testgraphs/sjackman/sample.gfa -o mg2 -maxn 1
+	rm -rf mg2
+	mgsc -i testgraphs/sjackman/sample.gfa -o mg2 -maxn 1
