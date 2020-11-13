@@ -59,6 +59,8 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
             //    component is #1.
             $("#componentselector").prop("min", 1);
             $("#componentselector").prop("max", this.numComponents);
+            $("#decrCompRankButton").click(domUtils.decrCompRank);
+            $("#incrCompRankButton").click(domUtils.incrCompRank);
 
             domUtils.enablePersistentControls(this.numComponents);
         }

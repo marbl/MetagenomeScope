@@ -90,3 +90,8 @@ style:
 	@# thing by default.)
 	prettier --debug-check --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
 	prettier --write --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
+
+jsstyle:
+	@# Shorthand, for when I'm developing JS code and don't want to waste time
+	@# with python/HTML stuff
+	prettier --write --tab-width 4 $(JSLOCS)

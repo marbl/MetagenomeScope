@@ -1753,74 +1753,6 @@ function toggleClusterNav() {
     mgsc.USE_CLUSTER_KBD_NAV = !mgsc.USE_CLUSTER_KBD_NAV;
 }
 
-/* Returns null if the value indicated by the string is not an integer (we
- * consider a string to be an integer if it matches the mgsc.INTEGER_RE regex).
- * Returns -1 if it is an integer but is less than the min component rank.
- * Returns 1 if it is an integer but is greater than the max component rank.
- * Returns 0 if it is an integer and is within the range [min rank, max rank].
- *
- * (The min/max component rank values are obtained from $(csIDstr) -- it's
- * assumed csIDstr is some string of the format "#xyz" where xyz corresponds to
- * the ID of some input element with min/max properties.)
- *
- * We use this instead of just parseInt() because parseInt is (IMO) too
- * lenient when parsing integer values from strings, which can cause confusion
- * for users (e.g. a user enters in "2c" as a connected component and
- * component 2 is drawn, leading the user to somehow think that "2c" is a valid
- * connected component size rank).
- */
-function compRankValidity(strVal, csIDstr) {
-    "use strict";
-    if (strVal.match(mgsc.INTEGER_RE) === null) return null;
-    var intVal = parseInt(strVal);
-    if (intVal < parseInt($(csIDstr).prop("min"))) return -1;
-    if (intVal > parseInt($(csIDstr).prop("max"))) return 1;
-    return 0;
-}
-
-/* Decrements the size rank of the component selector by 1. If the current
- * value of the component selector is not an integer, then the size rank is set
- * to the minimum size rank; if the current value is an integer that is greater
- * than the maximum size rank, then the size rank is set to the maximum size
- * rank.
- *
- * Also, if the size rank is equal to the minimum size rank, nothing happens.
- */
-function decrCompRank(componentSelectorID) {
-    "use strict";
-    var csIDstr = "#" + componentSelectorID;
-    var currRank = $(csIDstr).val();
-    var minRank = parseInt($(csIDstr).prop("min"));
-    var validity = compRankValidity(currRank, csIDstr);
-    if (validity === null || parseInt(currRank) < minRank + 1) {
-        $(csIDstr).val(minRank);
-    } else if (validity === 1) {
-        $(csIDstr).val($(csIDstr).prop("max"));
-    } else {
-        $(csIDstr).val(parseInt(currRank) - 1);
-    }
-}
-
-/* Increments the size rank of the component selector by 1. Same "limits" as
- * in the first paragraph of decrCompRank()'s comments.
- *
- * Also, if the size rank is equal to the maximum size rank, nothing happens.
- */
-function incrCompRank(componentSelectorID) {
-    "use strict";
-    var csIDstr = "#" + componentSelectorID;
-    var currRank = $(csIDstr).val();
-    var maxRank = parseInt($(csIDstr).prop("max"));
-    var validity = compRankValidity(currRank, csIDstr);
-    if (validity === null || validity === -1) {
-        $(csIDstr).val($(csIDstr).prop("min"));
-    } else if (currRank > maxRank - 1) {
-        $(csIDstr).val(maxRank);
-    } else {
-        $(csIDstr).val(parseInt(currRank) + 1);
-    }
-}
-
 /* If mode == "SPQR", begins drawing the SPQR-integrated component of the
  * corresponding component rank selector; else, draws a component of the normal
  * (double) graph.
@@ -3062,6 +2994,7 @@ function cullEdges() {
     var strVal = $("#cullEdgesInput").val();
     // Check that the input is a nonnegative integer
     // (parseInt() is pretty lax)
+    // TODO: use utils.isValidInteger()
     if (strVal.match(mgsc.INTEGER_RE) === null) {
         alert(
             "Please enter a valid minimum edge weight (a nonnegative " +

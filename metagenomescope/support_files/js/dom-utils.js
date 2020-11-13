@@ -1,4 +1,4 @@
-define(["jquery", "underscore"], function ($, _) {
+define(["jquery", "underscore", "utils"], function ($, _, utils) {
     /**
      * Enables controls that don't need to have anything drawn to be useful
      * (e.g. graph info, component selector UI).
@@ -92,6 +92,65 @@ define(["jquery", "underscore"], function ($, _) {
         $("#" + inputID).prop("disabled", true);
     }
 
+    /**
+     * Returns null if the value indicated by the string is not an integer.
+     * Returns -1 if it is an integer but is less than the min component rank.
+     * Returns 1 if it is an integer but is greater than the max component rank.
+     * Returns 0 if it is an integer and is within the range [min rank, max rank].
+     *
+     * @param {String}
+     * @returns {Number or null}
+     */
+    function compRankValidity(strVal) {
+        if (!utils.isValidInteger(strVal)) return null;
+        var intVal = parseInt(strVal);
+        if (intVal < parseInt($("#componentselector").prop("min"))) return -1;
+        if (intVal > parseInt($("#componentselector").prop("max"))) return 1;
+        return 0;
+    }
+
+    /**
+     * Decrements the size rank of the component selector by 1. If the current
+     * value of the component selector is not an integer, then the size rank is set
+     * to the minimum size rank; if the current value is an integer that is greater
+     * than the maximum size rank, then the size rank is set to the maximum size
+     * rank.
+     *
+     * Also, if the size rank is equal to the minimum size rank, nothing happens.
+     */
+    function decrCompRank() {
+        var csIDstr = "#componentselector";
+        var currRank = $(csIDstr).val();
+        var minRank = parseInt($(csIDstr).prop("min"));
+        var validity = compRankValidity(currRank);
+        if (validity === null || parseInt(currRank) < minRank + 1) {
+            $(csIDstr).val(minRank);
+        } else if (validity === 1) {
+            $(csIDstr).val($(csIDstr).prop("max"));
+        } else {
+            $(csIDstr).val(parseInt(currRank) - 1);
+        }
+    }
+
+    /* Increments the size rank of the component selector by 1. Same "limits" as
+     * in the first paragraph of decrCompRank()'s comments.
+     *
+     * Also, if the size rank is equal to the maximum size rank, nothing happens.
+     */
+    function incrCompRank() {
+        var csIDstr = "#componentselector";
+        var currRank = $(csIDstr).val();
+        var maxRank = parseInt($(csIDstr).prop("max"));
+        var validity = compRankValidity(currRank);
+        if (validity === null || validity === -1) {
+            $(csIDstr).val($(csIDstr).prop("min"));
+        } else if (currRank > maxRank - 1) {
+            $(csIDstr).val(maxRank);
+        } else {
+            $(csIDstr).val(parseInt(currRank) + 1);
+        }
+    }
+
     return {
         enablePersistentControls: enablePersistentControls,
         disablePersistentControls: disablePersistentControls,
@@ -101,5 +160,8 @@ define(["jquery", "underscore"], function ($, _) {
         disableButton: disableButton,
         enableInlineRadio: enableInlineRadio,
         disableInlineRadio: disableInlineRadio,
+        compRankValidity: compRankValidity,
+        decrCompRank: decrCompRank,
+        incrCompRank: incrCompRank,
     };
 });

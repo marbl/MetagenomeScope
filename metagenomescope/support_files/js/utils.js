@@ -218,6 +218,22 @@ define(function () {
         return -numerator / lineDistance;
     }
 
+    /**
+     * Returns true if a number is a "valid integer," which to us just means
+     * it's a string with just digits.
+     *
+     * This is an overly strict way of checking this, probably -- you could
+     * imagine things like 1e2 being valid integers, in theory. But this hasn't
+     * been a problem yet, so... I'm not going to bother changing this yet.
+     * Plus I figure too strict is better than not strict enough.
+     *
+     * @param {String}
+     * @returns {Boolean}
+     */
+    function isValidInteger(strVal) {
+        return strVal.match(/^\d+$/) !== null;
+    }
+
     return {
         getNodeColorization: getNodeColorization,
         degreesToRadians: degreesToRadians,
@@ -226,5 +242,6 @@ define(function () {
         ctrlPtStrToList: ctrlPtStrToList,
         distance: distance,
         pointToLineDistance: pointToLineDistance,
+        isValidInteger: isValidInteger,
     };
 });
