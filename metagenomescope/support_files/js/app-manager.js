@@ -45,14 +45,42 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
                 );
             });
 
-            // TODO set other things -- max, min, etc -- for the component
-            // selector
-            $("#componentselector").prop(
-                "value",
-                this.dataHolder.smallestViewableComponent()
-            );
+            // Set up the component selector
+            var svc = this.dataHolder.smallestViewableComponent();
+            $("#componentselector").prop("value", svc);
+            // Setting the min to 1 instead of svc is done for a few reasons:
+            // 1. No guarantee that the maximum-number component will also be
+            //    drawable (although that should probably never happen in
+            //    practice, because usually there are a lot of components with
+            //    just 1 node) -- so we should be consistent.
+            // 2. Shows the user that components are 1-indexed, so the largest
+            //    component is #1.
+            $("#componentselector").prop("min", 1);
+            $("#componentselector").prop("max", this.dataHolder.numComponents());
+
+            $(".persistentCtrl").each(function () {
+                // TODO: use more specific enabling func based on type...?
+                domUtils.enableButton(this.id);
+            });
+
         }
 
+        disableDrawNeededControls() {
+            $(".drawCtrl").each(function () {
+                domUtils.disableButton(this.id);
+            });
+        }
+
+        enableDrawNeededControls() {
+            $(".drawCtrl").each(function () {
+                domUtils.enableButton(this.id);
+            });
+        }
+
+        /**
+         * Toggles whether or not the controls div is shown, adjusting the
+         * size of the Cytoscape.js div if applicable.
+         */
         toggleControls() {
             this.controlsDiv.toggleClass("notviewable");
             this.cyDiv.toggleClass("nosubsume");
@@ -62,11 +90,11 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
             }
         }
 
-        populateGraphInfo() {
+        populateGraphInfoMain() {
             // TODO: populate with basic graph-level stuff. mention no component drawn yet.
         }
 
-        populateGraphComponentInfo() {
+        populateGraphInfoCurrComponents() {
             // TODO: populate based on the component(s) currently drawn.
         }
 

@@ -4,14 +4,35 @@ define(["underscore"], function (_) {
             this.data = dataJSON;
         }
 
+        /**
+         * Returns the number of connected components in the graph, including
+         * those that were skipped during layout.
+         *
+         * @returns {Number}
+         */
         numComponents() {
             return this.data.components.length;
         }
 
+        /**
+         * Returns the filetype of the graph provided to the python script.
+         *
+         * @returns {String}
+         */
         fileType() {
             return this.data.input_file_type;
         }
 
+        /**
+         * Returns the file name of the graph provided to the python script.
+         *
+         * This is just the "base name" of the file, so it doesn't have
+         * directory information included -- e.g. if the file path provided to
+         * the python script was /home/marcus/graphs/my_cool_graph.gfa, then
+         * this should just be "my_cool_graph.gfa".
+         *
+         * @returns {String}
+         */
         fileName() {
             return this.data.input_file_basename;
         }

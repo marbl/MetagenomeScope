@@ -62,8 +62,13 @@
              disableButton functions (defined in xdot2cy.js) to ensure
              buttons are always properly disabled/enabled.
         -->
+        <!-- Oh, also, for reference: these particular elements are the icons
+             floating on the corners of the interface. (so yes, there are two
+             export buttons, and no, it isn't me being dumb and accidentally
+             copy-pasting things ;)
+        -->
         <button
-            class="btn btn-default btn-sm disabled"
+            class="btn btn-default btn-sm disabled drawCtrl"
             onclick="exportGraphView();"
             id="floatingExportButton"
             disabled="disabled"
@@ -72,7 +77,7 @@
         </button>
 
         <button
-            class="btn btn-default btn-sm disabled"
+            class="btn btn-default btn-sm disabled drawCtrl"
             onclick="fitGraph(false)"
             id="fitButton"
             disabled="disabled"
@@ -81,7 +86,7 @@
         </button>
 
         <button
-            class="btn btn-default btn-sm disabled"
+            class="btn btn-default btn-sm disabled drawCtrl"
             onclick="fitGraph(true)"
             id="fitSelectedButton"
             disabled="disabled"
@@ -93,7 +98,7 @@
             <h4 style="margin-top: 26px;">About</h4>
             <p>
                 <button
-                    class="btn btn-default btn-sm disabled"
+                    class="btn btn-default btn-sm disabled persistentCtrl"
                     disabled="disabled"
                     id="infoButton"
                 >
@@ -103,12 +108,12 @@
                     ></span>
                     &nbsp; Graph info
                 </button>
-                <button class="btn btn-default btn-sm" id="settingsButton">
+                <button class="btn btn-default btn-sm persistentCtrl" id="settingsButton">
                     <span class="glyphicon glyphicon-cog"></span> &nbsp;
                     <span>Settings</span>
                 </button>
 
-                <button class="btn btn-default btn-sm" id="helpButton">
+                <button class="btn btn-default btn-sm persistentCtrl" id="helpButton">
                     <span class="glyphicon glyphicon-question-sign"></span>
                     &nbsp;
                     <span>Help</span>
@@ -135,7 +140,7 @@
                 <div class="input-group input-group-sm">
                     <span class="input-group-btn">
                         <button
-                            class="btn btn-default disabled"
+                            class="btn btn-default disabled persistentCtrl"
                             disabled="disabled"
                             onclick='decrCompRank("componentselector");'
                             type="button"
@@ -151,7 +156,7 @@
                     </span>
                     <input
                         type="number"
-                        class="form-control"
+                        class="form-control persistentCtrl"
                         id="componentselector"
                         value="1"
                         min="1"
@@ -159,7 +164,7 @@
                     />
                     <span class="input-group-btn">
                         <button
-                            class="btn btn-default disabled"
+                            class="btn btn-default disabled persistentCtrl"
                             disabled="disabled"
                             onclick='incrCompRank("componentselector");'
                             type="button"
@@ -175,7 +180,7 @@
                     </span>
                 </div>
                 <button
-                    class="btn btn-default btn-sm disabled"
+                    class="btn btn-default btn-sm disabled persistentCtrl"
                     disabled="disabled"
                     onclick='startDrawComponent("double");'
                     type="button"
@@ -287,7 +292,7 @@
                             data-toggle="dropdown"
                             id="searchTypeButton"
                             disabled="disabled"
-                            class="btn btn-default dropdown-toggle disabled"
+                            class="btn btn-default dropdown-toggle disabled drawCtrl"
                             aria-haspopup="true"
                             aria-expanded="false"
                         >
@@ -306,14 +311,14 @@
                     </div>
                     <input
                         type="text"
-                        class="form-control"
+                        class="form-control drawCtrl"
                         id="searchInput"
                         placeholder="Node ID(s)"
                         disabled="disabled"
                     />
                     <span class="input-group-btn">
                         <button
-                            class="btn btn-default disabled"
+                            class="btn btn-default disabled drawCtrl"
                             disabled="disabled"
                             onclick="searchForEles();"
                             type="button"
@@ -335,7 +340,7 @@
                     <!-- Value of this button will be toggled as all nodes in graph
                      are collapsed/uncollapsed -->
                     <button
-                        class="btn btn-default btn-sm disabled"
+                        class="btn btn-default btn-sm disabled drawCtrl"
                         disabled="disabled"
                         id="collapseButton"
                         onclick="startCollapseAll();"
@@ -353,7 +358,7 @@
 
                 <p>
                     <button
-                        class="btn btn-default btn-sm disabled"
+                        class="btn btn-default btn-sm disabled drawCtrl"
                         disabled="disabled"
                         id="reduceEdgesButton"
                         onclick="reduceEdgesToStraightLines(true);"
@@ -365,7 +370,7 @@
 
                 <p>
                     <button
-                        class="btn btn-default btn-sm disabled"
+                        class="btn btn-default btn-sm disabled drawCtrl"
                         disabled="disabled"
                         id="filterEdgesButton"
                         onclick="openEdgeFilteringDialog();"
@@ -384,6 +389,7 @@
                         <input
                             type="radio"
                             name="nodeColorization"
+                            class="drawCtrl"
                             disabled
                             id="noneColorization"
                             value="noncolorized"
@@ -395,6 +401,7 @@
                         <input
                             type="radio"
                             name="nodeColorization"
+                            class="drawCtrl"
                             disabled
                             id="gcColorization"
                             value="gccolorized"
@@ -405,6 +412,7 @@
                         <input
                             type="radio"
                             name="nodeColorization"
+                            class="drawCtrl"
                             disabled
                             id="repeatColorization"
                             value="repeatcolorized"
@@ -427,7 +435,7 @@
                     -->
                 </div>
                 <button
-                    class="btn btn-default btn-sm disabled"
+                    class="btn btn-default btn-sm disabled drawCtrl"
                     disabled="disabled"
                     id="changeNodeColorizationButton"
                     onclick="startChangeNodeColorization();"
@@ -441,7 +449,7 @@
                 <h4>View Scaffolds</h4>
 
                 <button
-                    class="btn btn-default btn-sm disabled"
+                    class="btn btn-default btn-sm disabled drawCtrl"
                     id="scaffoldFileselectButton"
                     disabled="disabled"
                     onclick="$('#scaffoldFileSelector').click();"
@@ -485,7 +493,7 @@
 
                 <p>
                     <button
-                        class="btn btn-success btn-sm disabled"
+                        class="btn btn-success btn-sm disabled drawCtrl"
                         id="startFinishingButton"
                         disabled="disabled"
                         onclick="startFinishing();"
@@ -498,7 +506,7 @@
                     </button>
 
                     <button
-                        class="btn btn-warning btn-sm disabled"
+                        class="btn btn-warning btn-sm disabled drawCtrl"
                         id="pauseFinishingButton"
                         disabled="disabled"
                         onclick="togglePauseFinishing();"
@@ -512,7 +520,7 @@
                     </button>
 
                     <button
-                        class="btn btn-danger btn-sm disabled"
+                        class="btn btn-danger btn-sm disabled drawCtrl"
                         id="endFinishingButton"
                         disabled="disabled"
                         onclick="endFinishing();"
@@ -532,7 +540,7 @@
                     aria-label="Path export type (AGP vs. CSV) selector"
                 >
                     <button
-                        class="btn btn-info active disabled btn-sm"
+                        class="btn btn-info active disabled btn-sm drawCtrl"
                         value="AGP"
                         id="agpOption"
                         disabled="disabled"
@@ -545,7 +553,7 @@
                         />AGP
                     </button>
                     <button
-                        class="btn btn-info disabled btn-sm"
+                        class="btn btn-info disabled btn-sm drawCtrl"
                         value="CSV"
                         id="csvOption"
                         disabled="disabled"
@@ -559,7 +567,7 @@
                 </div>
 
                 <button
-                    class="btn btn-info btn-sm disabled"
+                    class="btn btn-info btn-sm disabled drawCtrl"
                     id="exportPathButton"
                     disabled="disabled"
                     onclick="exportPath();"
@@ -584,7 +592,7 @@
                     aria-label="Image type (PNG vs. JPG) selector"
                 >
                     <button
-                        class="btn btn-default active disabled btn-sm"
+                        class="btn btn-default active disabled btn-sm drawCtrl"
                         value="PNG"
                         id="pngOption"
                         disabled="disabled"
@@ -597,7 +605,7 @@
                         />PNG
                     </button>
                     <button
-                        class="btn btn-default disabled btn-sm"
+                        class="btn btn-default disabled btn-sm drawCtrl"
                         value="JPG"
                         id="jpgOption"
                         disabled="disabled"
@@ -611,7 +619,7 @@
                 </div>
 
                 <button
-                    class="btn btn-default btn-sm disabled"
+                    class="btn btn-default btn-sm disabled drawCtrl"
                     disabled="disabled"
                     id="exportImageButton"
                     onclick="exportGraphView();"
@@ -643,11 +651,11 @@
                         class="form-control"
                         placeholder="Layout name"
                         id="layoutInput"
-                        disabled="disabled"
+                        disabled="disabled drawCtrl"
                     />
                     <span class="input-group-btn">
                         <button
-                            class="btn btn-default disabled"
+                            class="btn btn-default disabled drawCtrl"
                             disabled="disabled"
                             onclick="testLayout();"
                             type="button"
