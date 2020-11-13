@@ -2602,16 +2602,6 @@ function finishDrawComponent(
     }, 0);
 }
 
-// TODO verify that this doesn't mess stuff up when you back out of and then
-// return to the page. Also are memory leaks even a thing that we have
-// to worry about in Javascript?????????
-function closeDB() {
-    "use strict";
-    if (mgsc.CURR_DB !== null) {
-        mgsc.CURR_DB.close();
-    }
-}
-
 function changeDropdownVal(arrowHTML) {
     "use strict";
     $("#rotationDropdown").html(arrowHTML + " <span class='caret'></span>");

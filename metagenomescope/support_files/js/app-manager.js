@@ -61,8 +61,14 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
             $("#componentselector").prop("max", this.numComponents);
             $("#decrCompRankButton").click(domUtils.decrCompRank);
             $("#incrCompRankButton").click(domUtils.incrCompRank);
+            $("#drawButton").click(this.draw.bind(this));
 
             domUtils.enablePersistentControls(this.numComponents);
+
+            this.populateGraphInfoMain();
+            // TODO: Set up node / edge / pattern info tables -- take into
+            // account optional stuff like coverage, GC content, multiplicity,
+            // ...
         }
 
         /**
@@ -88,6 +94,34 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
 
         initGraph() {
             // TODO: init cytoscape, etc
+        }
+
+        /**
+         * Returns an array containing all of the components to draw.
+         *
+         * If the components to draw are invalid in some way (e.g. they refer
+         * to a component or a node that does not exist), this will open an
+         * alert message (letting the user know what happened) and throw an
+         * error (stopping execution of draw()).
+         */
+        getComponentsToDraw() {
+            // TODO: Check status of component drawing select and then use that
+            // to inform which UI elements are checked.
+            return [];
+        }
+
+        draw() {
+            var componentsToDraw = this.getComponentsToDraw();
+            // TODO: (This is just replicating drawComponent().)
+            // -disable volatile controls
+            // -if cy !== null, destroy graph
+            // -set graph bindings
+            // -load data from the data holder and populate things
+            //  (Maybe pass cy to this.dataHolder and have it do that there?)
+            // -Patterns
+            // -Nodes
+            // -Edges
+            // -Set up interface
         }
     }
     return { AppManager: AppManager };

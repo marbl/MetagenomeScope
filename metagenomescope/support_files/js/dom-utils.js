@@ -132,7 +132,8 @@ define(["jquery", "underscore", "utils"], function ($, _, utils) {
         }
     }
 
-    /* Increments the size rank of the component selector by 1. Same "limits" as
+    /**
+     * Increments the size rank of the component selector by 1. Same "limits" as
      * in the first paragraph of decrCompRank()'s comments.
      *
      * Also, if the size rank is equal to the maximum size rank, nothing happens.
