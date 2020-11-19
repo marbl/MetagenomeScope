@@ -72,7 +72,9 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
 
             // On a new component selection method being, well, selected,
             // update this.cmpSelectionMethod.
-            $("#cmpSelectionMethod").change(this.updateCmpSelectionMethod.bind(this));
+            $("#cmpSelectionMethod").change(
+                this.updateCmpSelectionMethod.bind(this)
+            );
 
             domUtils.enablePersistentControls(this.numComponents);
 
@@ -109,15 +111,19 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
          */
         updateCmpSelectionMethod() {
             var newMethod = $("#cmpSelectionMethod").val();
-            $("#cmpSelectionMethod").children().each(function(i, e) {
-                if (e.value !== newMethod) {
-                    // Hide other selection UIs
-                    $("#" + e.value + "-draw-eles").addClass("notviewable");
-                } else {
-                    // Show the now-selected component selection UI
-                    $("#" + newMethod + "-draw-eles").removeClass("notviewable");
-                }
-            });
+            $("#cmpSelectionMethod")
+                .children()
+                .each(function (i, e) {
+                    if (e.value !== newMethod) {
+                        // Hide other selection UIs
+                        $("#" + e.value + "-draw-eles").addClass("notviewable");
+                    } else {
+                        // Show the now-selected component selection UI
+                        $("#" + newMethod + "-draw-eles").removeClass(
+                            "notviewable"
+                        );
+                    }
+                });
             this.cmpSelectionMethod = newMethod;
         }
 

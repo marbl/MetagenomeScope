@@ -144,8 +144,12 @@
                 <h4>Drawing</h4>
 
                 <select class="form-control input-sm" id="cmpSelectionMethod">
-                    <option value="single" selected>Draw single component (by size rank)</option>
-                    <option value="withnode">Draw single component (containing a node)</option>
+                    <option value="single" selected
+                        >Draw single component (by size rank)</option
+                    >
+                    <option value="withnode"
+                        >Draw single component (containing a node)</option
+                    >
                     <option value="all">Draw all available components</option>
                 </select>
 
@@ -208,16 +212,21 @@
                             </button>
                         </span>
                     </div>
-                    <p>Select the size rank of a component to draw. Rank 1
-                    is the largest component in the graph, rank 2 is
-                    the next-largest component, and so on.</p>
+                    <p>
+                        Select the size rank of a component to draw. Rank 1 is
+                        the largest component in the graph, rank 2 is the
+                        next-largest component, and so on.
+                    </p>
                 </div>
 
                 <div id="withnode-draw-eles" class="notviewable">
                     <!-- For some reason, the div here doesn't cover the full width
                         of the control panel unless we force it to. Not sure why.
                     -->
-                    <div class="input-group input-group-sm" style="width: 100%;">
+                    <div
+                        class="input-group input-group-sm"
+                        style="width: 100%;"
+                    >
                         <input
                             type="text"
                             class="form-control persistentCtrl"
@@ -230,8 +239,10 @@
                 </div>
 
                 <div id="all-draw-eles" class="notviewable">
-                    <p>This option will draw all components in the graph. It
-                    may take a while on large graphs.</p>
+                    <p>
+                        This option will draw all components in the graph. It
+                        may take a while on large graphs.
+                    </p>
                 </div>
 
                 <button
