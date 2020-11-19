@@ -207,6 +207,9 @@ button {
 .csbtn {
     width: 100%;
 }
+.full-width-dropdown-menu {
+    width: 100%;
+}
 .edge_chart_bar rect {
     fill: maroon;
 }
