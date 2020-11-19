@@ -127,8 +127,15 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
             this.cmpSelectionMethod = newMethod;
         }
 
+        /**
+         * Populates the "graph information" table based on the data holder.
+         *
+         * This should only be called once; the information applied here should
+         * not change as the graph is drawn.
+         */
         populateGraphInfoMain() {
-            // TODO: populate with basic graph-level stuff. mention no component drawn yet.
+            $("#filenameEntry").text(this.dataHolder.fileName());
+            $("#filetypeEntry").text(this.dataHolder.fileType());
         }
 
         populateGraphInfoCurrComponents() {
