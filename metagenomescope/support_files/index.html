@@ -154,9 +154,20 @@
                      if the "single" option is selected, we should just show
                      controls for selecting a single component, but if the
                      "withnode" option is selected, we should show controls for
-                     selecting a node by its name. -->
-
-                <div id="single-draw-eles" class="notviewable">
+                     selecting a node by its name.
+                
+                     Ideally all *-draw-eles <div>s would start off with the
+                     notviewable class used, but this results in having to show
+                     a choppy flash of content when the page is loaded (since
+                     we'd have to immediately un-hide #single-draw-eles). So
+                     we just show #single-draw-eles by default, and
+                     AppManager.updateCmpSelectionMethod() is smart enough to
+                     (if another thing is selected by default, which could
+                     happen if e.g. the browser is navigated back and then
+                     forward to MetagenomeScope) hide/show the relevant UI
+                     elements anyway.
+                -->
+                <div id="single-draw-eles">
                     <div class="input-group input-group-sm">
                         <span class="input-group-btn">
                             <button

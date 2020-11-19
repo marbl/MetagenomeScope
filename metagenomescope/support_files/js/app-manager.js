@@ -21,8 +21,9 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
             $(this.doThingsWhenDOMReady.bind(this));
 
             this.cmpSelectionMethod = undefined;
-            // Set the component selection method to whatever the first thing
-            // in the component selection method dropdown menu is
+            // Set the component selection method to whatever the
+            // currently-selected value in the component selection method
+            // dropdown menu is, and sort out the UI accordingly
             this.updateCmpSelectionMethod();
         }
 
@@ -99,16 +100,24 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
          * component", "draw all components", etc.) based on the option that
          * is currently selected, and shows/hides certain UI elements within
          * the "Drawing" control panel section accordingly.
+         *
+         * By hiding all UI elements, rather than trying to maintain a record
+         * of whatever the previously-selected method was (if any was
+         * selected), we can get around some corner cases -- see the HTML
+         * for some details. There are only, like, three of these options
+         * anyway, so this shouldn't be a performance problem.
          */
         updateCmpSelectionMethod() {
-            var oldMethod = this.cmpSelectionMethod;
             var newMethod = $("#cmpSelectionMethod").val();
-            // Hide the previous component selection UI, if available
-            if (!_.isUndefined(oldMethod)) {
-                $("#" + oldMethod + "-draw-eles").addClass("notviewable");
-            }
-            // Show the now-selected component selection UI
-            $("#" + newMethod + "-draw-eles").removeClass("notviewable");
+            $("#cmpSelectionMethod").children().each(function(i, e) {
+                if (e.value !== newMethod) {
+                    // Hide other selection UIs
+                    $("#" + e.value + "-draw-eles").addClass("notviewable");
+                } else {
+                    // Show the now-selected component selection UI
+                    $("#" + newMethod + "-draw-eles").removeClass("notviewable");
+                }
+            });
             this.cmpSelectionMethod = newMethod;
         }
 
