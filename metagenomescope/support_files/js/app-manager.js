@@ -82,7 +82,7 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
             this.populateGraphInfoMain();
 
             _.each(["node", "edge", "pattern"], function (eleType) {
-                $("#" + eleType + "Header").click(function() {
+                $("#" + eleType + "Header").click(function () {
                     scope.toggleEleInfo(eleType);
                 });
             });
