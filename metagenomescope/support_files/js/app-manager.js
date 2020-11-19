@@ -18,6 +18,10 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
             this.cyDiv = $("#cy");
 
             $(this.doThingsWhenDOMReady.bind(this));
+
+            // Set the component selection method to whatever the first thing
+            // in the component selection method dropdown menu is
+            this.cmpSelectionMethod = $("#cmpSelectionMethod").val();
         }
 
         /**
@@ -63,6 +67,10 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
             $("#incrCompRankButton").click(domUtils.incrCompRank);
             $("#drawButton").click(this.draw.bind(this));
 
+            // On a new component selection method being, well, selected,
+            // update this.cmpSelectionMethod.
+            $("#cmpSelectionMethod").change(this.updateCmpSelectionMethod.bind(this));
+
             domUtils.enablePersistentControls(this.numComponents);
 
             this.populateGraphInfoMain();
@@ -82,6 +90,17 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
             if (this.cy !== null) {
                 this.cy.resize();
             }
+        }
+
+        /**
+         * Updates the component selection method (e.g. "draw just a single
+         * component", "draw all components", etc.) based on the option that
+         * was selected.
+         *
+         * @param {Event} eve The event sent about the click event.
+         */
+        updateCmpSelectionMethod(e) {
+            this.cmpSelectionMethod = e.target.value;
         }
 
         populateGraphInfoMain() {

@@ -143,72 +143,12 @@
             <div id="connectedComponentControls">
                 <h4>Drawing</h4>
 
-                <div class="input-group input-group-sm">
-                    <div class="input-group-btn">
-                        <!-- https://getbootstrap.com/docs/3.3/components/#dropdowns,
-                             and also based on the other ID/Label dropdown stuff
-                             below for node searching
-                        -->
-                        <button
-                            class="btn btn-default btn-sm disabled persistentCtrl dropdown-toggle has-border-radius"
-                            type="button"
-                            id="cmpSelectionMethodDropdown"
-                            data-toggle="dropdown"
-                            disabled="disabled"
-                            aria-haspopup="true"
-                            aria-expanded="false"
-                        >
-                            <span
-                                class="glyphicon glyphicon-star"
-                                aria-hidden="true"
-                            ></span
-                            >&nbsp; Draw a single component
-                            <span class="caret"></span>
-                        </button>
-                        <ul
-                            class="dropdown-menu full-width-dropdown-menu"
-                            aria-labelledby="cmpSelectionMethodDropdown"
-                        >
-                            <li>
-                                <a class="btn-sm"
-                                    ><span
-                                        class="glyphicon glyphicon-star"
-                                        aria-hidden="true"
-                                    ></span
-                                    >&nbsp; Draw a single component</a
-                                >
-                            </li>
-                            <li>
-                                <a class="btn-sm"
-                                    ><span
-                                        class="glyphicon glyphicon-pushpin"
-                                        aria-hidden="true"
-                                    ></span
-                                    >&nbsp; Draw component containing a node</a
-                                >
-                            </li>
-                            <li>
-                                <a class="btn-sm"
-                                    ><span
-                                        class="glyphicon glyphicon-sort-by-attributes"
-                                        aria-hidden="true"
-                                    ></span
-                                    >&nbsp; Draw range of components</a
-                                >
-                            </li>
-                            <li>
-                                <a class="btn-sm"
-                                    ><span
-                                        class="glyphicon glyphicon-globe"
-                                        aria-hidden="true"
-                                    ></span
-                                    >&nbsp; Draw all available components</a
-                                >
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-
+                <select class="form-control input-sm" id="cmpSelectionMethod">
+                    <option value="single" selected>Draw a single component</option>
+                    <option value="withnode">Draw component containing a node</option>
+                    <option value="range">Draw range of components</option>
+                    <option value="all">Draw all available components</option>
+                </select>
                 <div class="input-group input-group-sm">
                     <span class="input-group-btn">
                         <button
