@@ -32,6 +32,7 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
          * something drawn on the screen, etc.
          */
         doThingsWhenDOMReady() {
+            var scope = this;
             // Make that "hamburger" button show/hide the control panel
             $("#controlsToggler").click(this.toggleControls.bind(this));
 
@@ -79,6 +80,12 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
             domUtils.enablePersistentControls(this.numComponents);
 
             this.populateGraphInfoMain();
+
+            _.each(["node", "edge", "pattern"], function (eleType) {
+                $("#" + eleType + "Header").click(function() {
+                    scope.toggleEleInfo(eleType);
+                });
+            });
             // TODO: Set up node / edge / pattern info tables -- take into
             // account optional stuff like coverage, GC content, multiplicity,
             // ...
@@ -94,6 +101,33 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
             this.cyDiv.toggleClass("subsume");
             if (this.cy !== null) {
                 this.cy.resize();
+            }
+        }
+
+        /**
+         * Toggles a "Selected Element" section of the control panel.
+         *
+         * There are three of these sections -- nodes, edges, and patterns.
+         *
+         * @param {String} eleType One of "node", "edge", "pattern".
+         *
+         * @throws {Error} if eleType is invalid
+         */
+        toggleEleInfo(eleType) {
+            var validEleTypes = ["node", "edge", "pattern"];
+            if (_.contains(validEleTypes, eleType)) {
+                var openerID = "#" + eleType + "Opener";
+                var infoDivID = "#" + eleType + "Info";
+                if ($(openerID).hasClass("glyphicon-triangle-right")) {
+                    $(openerID).removeClass("glyphicon-triangle-right");
+                    $(openerID).addClass("glyphicon-triangle-bottom");
+                } else {
+                    $(openerID).removeClass("glyphicon-triangle-bottom");
+                    $(openerID).addClass("glyphicon-triangle-right");
+                }
+                $(infoDivID).toggleClass("notviewable");
+            } else {
+                throw new Error("Unrecognized eleType: " + eleType);
             }
         }
 

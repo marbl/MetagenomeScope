@@ -2815,21 +2815,6 @@ function downloadDataURI(filename, contentToDownload, isPlainText) {
     document.getElementById("downloadHelper").click();
 }
 
-/* eleType can be one of {"node", "edge", "cluster"} */
-function toggleEleInfo(eleType) {
-    "use strict";
-    var openerID = "#" + eleType + "Opener";
-    var infoDivID = "#" + eleType + "Info";
-    if ($(openerID).hasClass("glyphicon-triangle-right")) {
-        $(openerID).removeClass("glyphicon-triangle-right");
-        $(openerID).addClass("glyphicon-triangle-bottom");
-    } else {
-        $(openerID).removeClass("glyphicon-triangle-bottom");
-        $(openerID).addClass("glyphicon-triangle-right");
-    }
-    $(infoDivID).toggleClass("notviewable");
-}
-
 function clearSelectedInfo() {
     "use strict";
     $("#nodeInfoTable tr.nonheader").remove();

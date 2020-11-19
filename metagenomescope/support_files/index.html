@@ -264,7 +264,7 @@
                 <h4>Selected Elements</h4>
 
                 <!-- Selected node info -->
-                <div class="selectedEleHeader" onclick="toggleEleInfo('node');">
+                <div class="selectedEleHeader" id="nodeHeader">
                     Nodes <span class="badge" id="selectedNodeBadge">0</span>
                     <span
                         class="glyphicon glyphicon-triangle-right opener"
@@ -296,7 +296,7 @@
                     </table>
                 </div>
                 <!-- Selected edge info -->
-                <div class="selectedEleHeader" onclick="toggleEleInfo('edge');">
+                <div class="selectedEleHeader" id="edgeHeader">
                     Edges <span class="badge" id="selectedEdgeBadge">0</span>
                     <span
                         class="glyphicon glyphicon-triangle-right opener"
@@ -320,25 +320,22 @@
                         </tr>
                     </table>
                 </div>
-                <!-- Selected cluster info -->
-                <div
-                    class="selectedEleHeader"
-                    onclick="toggleEleInfo('cluster');"
-                >
-                    Clusters
-                    <span class="badge" id="selectedClusterBadge">0</span>
+                <!-- Selected pattern info -->
+                <div class="selectedEleHeader" id="patternHeader">
+                    Patterns
+                    <span class="badge" id="selectedPatternBadge">0</span>
                     <span
                         class="glyphicon glyphicon-triangle-right opener"
-                        id="clusterOpener"
+                        id="patternOpener"
                     ></span>
                 </div>
-                <div id="clusterInfo" class="notviewable">
-                    <table id="clusterInfoTable" class="eleInfoTable">
+                <div id="patternInfo" class="notviewable">
+                    <table id="patternInfoTable" class="eleInfoTable">
                         <tr>
-                            <th colspan="2">Selected Cluster Information</th>
+                            <th colspan="2">Selected Pattern Information</th>
                         </tr>
                         <tr>
-                            <th>Cluster Type</th>
+                            <th>Pattern Type</th>
                             <th>Node Count</th>
                         </tr>
                     </table>
