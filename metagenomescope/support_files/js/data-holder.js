@@ -15,6 +15,42 @@ define(["underscore"], function (_) {
         }
 
         /**
+         * Returns the number of nodes in the graph.
+         *
+         * This doesn't draw a distinction between "positive" and "negative"
+         * nodes -- so for graphs where the negative nodes are implied (e.g.
+         * Velvet) the caller may want to divide these counts by 2.
+         *
+         * Also, this includes node counts for _all_ components, even those
+         * that have not been laid out (and thus for which no data is included
+         * in the data JSON we have access to). (This is doable because the
+         * Python code just computes the total number of nodes specifically for
+         * showing here. No point making things more confusing than they
+         * already are.)
+         *
+         * ... And this includes duplicate nodes (e.g. those created to
+         * separate adjacent bubble patterns).
+         *
+         * @returns {Number}
+         */
+        totalNumNodes() {
+            return this.data.total_num_nodes;
+        }
+
+        /**
+         * Returns the number of edges in the graph.
+         *
+         * As with totalNumNodes(), this includes "implied" edges, spans all
+         * components (including non-laid-out ones), and includes "duplicate"
+         * edges (non-real edges that connect a node with its duplicate).
+         *
+         * @returns {Number}
+         */
+        totalNumEdges() {
+            return this.data.total_num_edges;
+        }
+
+        /**
          * Returns the filetype of the graph provided to the python script.
          *
          * @returns {String}

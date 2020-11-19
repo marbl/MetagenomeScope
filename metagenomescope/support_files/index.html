@@ -1920,7 +1920,7 @@
             <!-- end modal-dialog div -->
         </div>
         <!-- end modal div -->
-        <!-- Assembly info dialog -->
+        <!-- Graph info dialog -->
         <div class="modal fade" tabindex="-1" role="dialog" id="infoDialog">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -1946,21 +1946,40 @@
                                 <tr>
                                     <th>Input Filename</th>
                                     <th>Input Filetype</th>
-                                    <th id="asmNodeCtTH">
-                                        Positive Node Count
-                                    </th>
-                                    <th id="asmEdgeCtTH">
-                                        Positive Edge Count
-                                    </th>
                                 </tr>
                                 <tr>
+                                    <!-- I don't remember why all of these
+                                         cells' IDs end with "Entry", but I'm
+                                         just gonna stick with it. I assume
+                                         Past Marcus knew what he was doing
+                                         (...might be a bad assumption).
+                                    -->
                                     <td id="filenameEntry"></td>
                                     <td id="filetypeEntry"></td>
-                                    <td id="nodeCtEntry"></td>
-                                    <td id="edgeCountEntry"></td>
                                 </tr>
                             </table>
                         </div>
+                        <div class="table-responsive">
+                            <table class="table table-condensed table-bordered asmInfoTable">
+                                <tr>
+                                    <th id="asmNodeCtTH">
+                                        Node Count
+                                    </th>
+                                    <th id="asmEdgeCtTH">
+                                        Edge Count
+                                    </th>
+                                    <th id="ccCtTH">
+                                        Connected Component Count
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <td id="nodeCtEntry"></td>
+                                    <td id="edgeCtEntry"></td>
+                                    <td id="ccCtEntry"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <!-- Old stuff that hasn't been hooked up yet
                         <div class="table-responsive">
                             <table
                                 class="table table-condensed table-bordered asmInfoTable"
@@ -1979,6 +1998,7 @@
                                 </tr>
                             </table>
                         </div>
+                        -->
                         <p id="currComponentInfo">
                             No connected component has been drawn yet.
                         </p>

@@ -1574,6 +1574,8 @@ class AssemblyGraph(object):
             "components": [],
             "input_file_basename": self.basename,
             "input_file_type": self.filetype,
+            "total_num_nodes": self.digraph.number_of_nodes(),
+            "total_num_edges": self.digraph.number_of_edges(),
         }
 
         # For each component:

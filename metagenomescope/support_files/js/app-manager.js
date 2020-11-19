@@ -136,6 +136,9 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
         populateGraphInfoMain() {
             $("#filenameEntry").text(this.dataHolder.fileName());
             $("#filetypeEntry").text(this.dataHolder.fileType());
+            $("#nodeCtEntry").text(this.dataHolder.totalNumNodes());
+            $("#edgeCtEntry").text(this.dataHolder.totalNumEdges());
+            $("#ccCtEntry").text(this.dataHolder.numComponents());
         }
 
         populateGraphInfoCurrComponents() {
