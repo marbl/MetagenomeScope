@@ -144,51 +144,84 @@
                 <h4>Drawing</h4>
 
                 <select class="form-control input-sm" id="cmpSelectionMethod">
-                    <option value="single" selected>Draw a single component</option>
-                    <option value="withnode">Draw component containing a node</option>
-                    <option value="range">Draw range of components</option>
+                    <option value="single" selected>Draw single component (by size rank)</option>
+                    <option value="withnode">Draw single component (containing a node)</option>
                     <option value="all">Draw all available components</option>
                 </select>
-                <div class="input-group input-group-sm">
-                    <span class="input-group-btn">
-                        <button
-                            class="btn btn-default disabled persistentCtrl"
-                            disabled="disabled"
-                            type="button"
-                            id="decrCompRankButton"
-                            aria-label="Decrement component size rank by 1"
-                        >
-                            <span
-                                class="glyphicon glyphicon-minus"
-                                aria-hidden="true"
+
+                <!-- Depending on the component selection method chosen above,
+                     we'll change the UI elements in this section: for example,
+                     if the "single" option is selected, we should just show
+                     controls for selecting a single component, but if the
+                     "withnode" option is selected, we should show controls for
+                     selecting a node by its name. -->
+
+                <div id="single-draw-eles" class="notviewable">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-btn">
+                            <button
+                                class="btn btn-default disabled persistentCtrl"
+                                disabled="disabled"
+                                type="button"
+                                id="decrCompRankButton"
+                                aria-label="Decrement component size rank by 1"
                             >
-                            </span>
-                        </button>
-                    </span>
-                    <input
-                        type="number"
-                        class="form-control persistentCtrl"
-                        id="componentselector"
-                        value="1"
-                        min="1"
-                        disabled="disabled"
-                    />
-                    <span class="input-group-btn">
-                        <button
-                            class="btn btn-default disabled persistentCtrl"
+                                <span
+                                    class="glyphicon glyphicon-minus"
+                                    aria-hidden="true"
+                                >
+                                </span>
+                            </button>
+                        </span>
+                        <input
+                            type="number"
+                            class="form-control persistentCtrl"
+                            id="componentselector"
+                            value="1"
+                            min="1"
                             disabled="disabled"
-                            type="button"
-                            id="incrCompRankButton"
-                            aria-label="Increment component size rank by 1"
-                        >
-                            <span
-                                class="glyphicon glyphicon-plus"
-                                aria-hidden="true"
+                        />
+                        <span class="input-group-btn">
+                            <button
+                                class="btn btn-default disabled persistentCtrl"
+                                disabled="disabled"
+                                type="button"
+                                id="incrCompRankButton"
+                                aria-label="Increment component size rank by 1"
                             >
-                            </span>
-                        </button>
-                    </span>
+                                <span
+                                    class="glyphicon glyphicon-plus"
+                                    aria-hidden="true"
+                                >
+                                </span>
+                            </button>
+                        </span>
+                    </div>
+                    <p>Select the size rank of a component to draw. Rank 1
+                    is the largest component in the graph, rank 2 is
+                    the next-largest component, and so on.</p>
                 </div>
+
+                <div id="withnode-draw-eles" class="notviewable">
+                    <!-- For some reason, the div here doesn't cover the full width
+                        of the control panel unless we force it to. Not sure why.
+                    -->
+                    <div class="input-group input-group-sm" style="width: 100%;">
+                        <input
+                            type="text"
+                            class="form-control persistentCtrl"
+                            id="nodeNameSelector"
+                            disabled="disabled"
+                        />
+                    </div>
+                    <p>Enter a node name to search for.</p>
+                </div>
+
+                <div id="all-draw-eles" class="notviewable">
+                    <p>This option will draw all components in the graph. It
+                    may take a while on large graphs.</p>
+                </div>
+
                 <button
                     class="btn btn-default btn-sm disabled persistentCtrl"
                     disabled="disabled"

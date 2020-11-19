@@ -1,5 +1,6 @@
-define(["jquery", "cytoscape", "utils", "dom-utils"], function (
+define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
     $,
+    _,
     cy,
     utils,
     domUtils
@@ -19,9 +20,10 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
 
             $(this.doThingsWhenDOMReady.bind(this));
 
+            this.cmpSelectionMethod = undefined;
             // Set the component selection method to whatever the first thing
             // in the component selection method dropdown menu is
-            this.cmpSelectionMethod = $("#cmpSelectionMethod").val();
+            this.updateCmpSelectionMethod();
         }
 
         /**
@@ -95,12 +97,19 @@ define(["jquery", "cytoscape", "utils", "dom-utils"], function (
         /**
          * Updates the component selection method (e.g. "draw just a single
          * component", "draw all components", etc.) based on the option that
-         * was selected.
-         *
-         * @param {Event} eve The event sent about the click event.
+         * is currently selected, and shows/hides certain UI elements within
+         * the "Drawing" control panel section accordingly.
          */
-        updateCmpSelectionMethod(e) {
-            this.cmpSelectionMethod = e.target.value;
+        updateCmpSelectionMethod() {
+            var oldMethod = this.cmpSelectionMethod;
+            var newMethod = $("#cmpSelectionMethod").val();
+            // Hide the previous component selection UI, if available
+            if (!_.isUndefined(oldMethod)) {
+                $("#" + oldMethod + "-draw-eles").addClass("notviewable");
+            }
+            // Show the now-selected component selection UI
+            $("#" + newMethod + "-draw-eles").removeClass("notviewable");
+            this.cmpSelectionMethod = newMethod;
         }
 
         populateGraphInfoMain() {
