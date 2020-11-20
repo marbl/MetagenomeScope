@@ -87,6 +87,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // TODO: Set up node / edge / pattern info tables -- take into
             // account optional stuff like coverage, GC content, multiplicity,
             // ...
+
+            // Set up colorpickers
+            $(".colorpicker-component").colorpicker({ format: "hex" });
         }
 
         /**
