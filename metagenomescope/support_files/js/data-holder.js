@@ -120,30 +120,41 @@ define(["underscore"], function (_) {
          * problem of ambiguity in search results, unless we enforce that node
          * names must be unique ignoring case).
          *
-         * @param {String} name
+         * @param {String} queryName
          *
          * @returns {Number} cmpRank
          */
-        findComponentContainingNodeName(name) {
+        findComponentContainingNodeName(queryName) {
             var nodeNamePos = this.data.node_attrs.name;
+            // Part 1: run the  search (_.findIndex() and _.some() should both
+            // use short circuiting, so potentially these won't involve
+            // searching every node in the graph)
             var matchingCmpIdx = _.findIndex(this.data.components, function (
                 cmp
             ) {
                 if (!cmp.skipped) {
+                    // Return true if any of the values in cmp.nodes (the
+                    // values in this Object are Arrays of node data) has the
+                    // "name" property that matches the query name
                     return _.some(cmp.nodes, function (nodeData) {
-                        return nodeData[nodeNamePos] === name;
+                        return nodeData[nodeNamePos] === queryName;
                     });
                 }
                 return false;
             });
+            // Part 2: figure out if the search failed or succeeded
             if (matchingCmpIdx === -1) {
                 // No components contained this node name. Sometimes it be like
-                // that. Just return -1 so it's very clear that the search
-                // failed.
+                // that. Just return -1 so it's clear that the search failed.
+                // (We could also simplify this by just returning
+                // matchingCmpIdx + 1 regardless of the outcome, since it's not
+                // like 0 is being used, but that strikes me as messy and prone
+                // to errors.
                 return -1;
             } else {
-                // Component size ranks are 1-indexed, so increment the index
-                // we found by 1
+                // The search succeeded! One of the components contains this
+                // node. Component size ranks are 1-indexed, so increment the
+                // index of the component we found by 1.
                 return matchingCmpIdx + 1;
             }
         }
