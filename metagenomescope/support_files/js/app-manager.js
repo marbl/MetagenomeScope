@@ -1,9 +1,9 @@
-define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
+define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
     $,
     _,
-    cy,
-    utils,
-    domUtils
+    Drawer,
+    Utils,
+    DomUtils
 ) {
     class AppManager {
         constructor(dataHolder) {
@@ -12,11 +12,9 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
 
             this.numComponents = this.dataHolder.numComponents();
 
-            // Instance of Cytoscape.js used to draw the graph.
-            this.cy = null;
+            this.drawer = new Drawer.Drawer("cy");
 
             this.controlsDiv = $("#controls");
-            this.cyDiv = $("#cy");
 
             $(this.doThingsWhenDOMReady.bind(this));
 
@@ -40,7 +38,7 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
             $("#infoButton").click(function () {
                 $("#infoDialog").modal();
             });
-            domUtils.enableButton("infoButton");
+            DomUtils.enableButton("infoButton");
 
             // Make the "Settings" button show the settings dialog
             $("#settingsButton").click(function () {
@@ -67,8 +65,8 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
             //    component is #1.
             $("#componentselector").prop("min", 1);
             $("#componentselector").prop("max", this.numComponents);
-            $("#decrCompRankButton").click(domUtils.decrCompRank);
-            $("#incrCompRankButton").click(domUtils.incrCompRank);
+            $("#decrCompRankButton").click(DomUtils.decrCompRank);
+            $("#incrCompRankButton").click(DomUtils.incrCompRank);
             $("#drawButton").click(this.draw.bind(this));
 
             // On a new component selection method being, well, selected,
@@ -77,7 +75,7 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
                 this.updateCmpSelectionMethod.bind(this)
             );
 
-            domUtils.enablePersistentControls(this.numComponents);
+            DomUtils.enablePersistentControls(this.numComponents);
 
             this.populateGraphInfoMain();
 
@@ -97,11 +95,7 @@ define(["jquery", "underscore", "cytoscape", "utils", "dom-utils"], function (
          */
         toggleControls() {
             this.controlsDiv.toggleClass("notviewable");
-            this.cyDiv.toggleClass("nosubsume");
-            this.cyDiv.toggleClass("subsume");
-            if (this.cy !== null) {
-                this.cy.resize();
-            }
+            this.drawer.toggleSize();
         }
 
         /**

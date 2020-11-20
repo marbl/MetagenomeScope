@@ -20,6 +20,7 @@ requirejs(
     [
         "app-manager",
         "data-holder",
+        "drawer",
         "utils",
         "dom-utils",
         "jquery",
@@ -28,7 +29,7 @@ requirejs(
         "bootstrap-colorpicker",
         "cytoscape",
     ],
-    function (AppManager, DataHolder, utils, domUtils, $, _, bootstrap, bootstrapColorpicker, cy) {
+    function (AppManager, DataHolder, Drawer, Utils, DomUtils, $, _, bootstrap, bootstrapColorpicker, cy) {
         // Get the graph data JSON from the preprocessing script.
         var dataJSON = {{ dataJSON }};
         var dh = new DataHolder.DataHolder(dataJSON);
