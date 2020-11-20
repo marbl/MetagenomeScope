@@ -106,6 +106,62 @@ define(["underscore"], function (_) {
                 "No components were laid out -- python script broken."
             );
         }
+
+        /**
+         * Returns the size rank of the component containing a node with a
+         * given name. We stop after finding a match -- so this will break if
+         * multiple nodes share a name (this should never happen in practice).
+         *
+         * If no component contains a node with the given name, this returns
+         * -1 (so the caller can throw an error / alert the user).
+         *
+         * This is currently case sensitive. I guess we could change that in
+         * the future if people request it (although then we would run into the
+         * problem of ambiguity in search results, unless we enforce that node
+         * names must be unique ignoring case).
+         *
+         * @param {String} name
+         *
+         * @returns {Number} cmpRank
+         */
+        findComponentContainingNodeName(name) {
+            var nodeNamePos = this.data.node_attrs.name;
+            var matchingCmpIdx = _.findIndex(this.data.components, function (
+                cmp
+            ) {
+                if (!cmp.skipped) {
+                    return _.some(cmp.nodes, function (nodeData) {
+                        return nodeData[nodeNamePos] === name;
+                    });
+                }
+                return false;
+            });
+            if (matchingCmpIdx === -1) {
+                // No components contained this node name. Sometimes it be like
+                // that. Just return -1 so it's very clear that the search
+                // failed.
+                return -1;
+            } else {
+                // Component size ranks are 1-indexed, so increment the index
+                // we found by 1
+                return matchingCmpIdx + 1;
+            }
+        }
+
+        /**
+         * Returns an Array with all component size ranks that were laid out.
+         *
+         * @returns {Array}
+         */
+        getAllLaidOutComponentRanks() {
+            var laidOutRanks = [];
+            for (var i = 0; i < this.data.components.length; i++) {
+                if (!this.data.components[i].skipped) {
+                    laidOutRanks.push(i + 1);
+                }
+            }
+            return laidOutRanks;
+        }
     }
     return { DataHolder: DataHolder };
 });

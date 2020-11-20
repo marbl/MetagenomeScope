@@ -184,16 +184,58 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          * to a component or a node that does not exist), this will open an
          * alert message (letting the user know what happened) and throw an
          * error (stopping execution of draw()).
+         *
+         * @returns {Array} Size ranks (1-indexed) of the component(s) to draw,
+         *                  stored as Numbers. This will be an Array no matter
+         *                  what, so even if just one component will be drawn
+         *                  this'll still return an Array with just that one
+         *                  Number.
+         *
+         * @throws {Error} If component selection is invalid (e.g. the size
+         *                 rank is out of range for method === "single", or the
+         *                 node name for method === "withnode" is not in the
+         *                 graph)
          */
         getComponentsToDraw() {
-            // TODO: Check status of component drawing select and then use that
-            // to inform which UI elements are checked.
-            return [];
+            if (this.cmpSelectionMethod === "single") {
+                var cmpRank = $("#componentselector").val();
+                if (DomUtils.compRankValidity(cmpRank) !== 0) {
+                    // TODO? -- give more detailed error messages listing e.g.
+                    // the lowest laid out component rank
+                    alert("Please enter a valid component size rank.");
+                    throw new Error("Invalid component size rank.");
+                } else {
+                    return [cmpRank];
+                }
+            } else if (this.cmpSelectionMethod === "withnode") {
+                var name = $("#nodeNameSelector").val();
+                var cmpRank = this.dataHolder.findComponentContainingNodeName(
+                    name
+                );
+                if (cmpRank === -1) {
+                    alert(
+                        'No laid-out components contain a node with the name "' +
+                            name +
+                            '".'
+                    );
+                    throw new Error("Invalid node name.");
+                } else {
+                    return [cmpRank];
+                }
+            } else if (this.cmpSelectionMethod === "all") {
+                return this.dataHolder.getAllLaidOutComponentRanks();
+            } else {
+                throw new Error(
+                    "Invalid cmp selection method set: " +
+                        this.cmpSelectionMethod
+                );
+            }
         }
 
         draw() {
             var componentsToDraw = this.getComponentsToDraw();
             console.log("Drawing components " + componentsToDraw);
+            this.drawer.draw(componentsToDraw, this.dataHolder);
             // TODO: (This is just replicating drawComponent().)
             // -disable volatile controls
             // -if cy !== null, destroy graph

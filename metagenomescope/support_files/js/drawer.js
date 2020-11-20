@@ -6,7 +6,21 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
             this.cy = null;
         }
 
-        draw(nodes, edges, patterns) {}
+        /**
+         * Draws component(s) in the graph.
+         *
+         * @param {Array} componentsToDraw 1-indexed size rank numbers of the
+         *                                 component(s) to draw.
+         *
+         * @param {DataHolder} dataHolder Object containing graph data.
+         *
+         * @throws {Error} If componentsToDraw contains duplicate values and/or
+         *                 if any of the numbers within it are invalid with
+         *                 respect to the dataHolder.
+         */
+        draw(componentsToDraw, dataHolder) {
+            this.validateComponentRanks(componentsToDraw);
+        }
 
         /**
          * Adjusts the size of the Cytoscape.js area.
