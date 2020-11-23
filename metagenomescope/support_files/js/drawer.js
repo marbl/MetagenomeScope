@@ -145,7 +145,7 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
                     {
                         // NOTE: Not currently used but might need to be if
                         // hierarch. pattern decomposition is a bottleneck
-                        selector: "node.cluster.pseudoparent",
+                        selector: "node.pattern.pseudoparent",
                         style: {
                             "z-index-compare": "manual",
                             "z-index": 0,
@@ -163,7 +163,11 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
                         },
                     },
                     {
-                        selector: "node.noncluster",
+                        // Nodes with the "basic" class, known in old versions
+                        // of MetagenomeScope as "noncluster", are just regular
+                        // nodes (i.e. not collapsed patterns that behave like
+                        // nodes).
+                        selector: "node.basic",
                         style: {
                             label: "data(label)",
                             "text-valign": "center",
@@ -177,7 +181,7 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
                         },
                     },
                     {
-                        selector: "node.noncluster.noncolorized",
+                        selector: "node.basic.noncolorized",
                         style: {
                             "background-color": mgsc.DEFAULT_NODE_COLOR,
                             color: $("#usnlcp").colorpicker("getValue"),
@@ -186,7 +190,7 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
                     // TODO: add a generalized "colorized" class or something
                     // for coloring by GC content, coverage, ...
                     {
-                        selector: "node.noncluster.leftdir",
+                        selector: "node.basic.leftdir",
                         style: {
                             // Represents a node pointing left (i.e. in the
                             // reverse direction, if the graph flows from left
@@ -199,7 +203,7 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
                         },
                     },
                     {
-                        selector: "node.noncluster.rightdir",
+                        selector: "node.basic.rightdir",
                         style: {
                             // Represents a node pointing left (i.e. in the
                             // reverse direction, if the graph flows from left
@@ -212,14 +216,12 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
                         },
                     },
                     {
-                        selector: "node.noncluster.tentative",
+                        selector: "node.basic.tentative",
                         style: {
                             "border-width": 5,
                             "border-color": $("#tnbcp").colorpicker("getValue"),
                         },
                     },
-                    // TODO pick up from here
-                    // and rename noncluster to just nonpattern or something
                     {
                         selector: "node.pattern.tentative",
                         style: {
@@ -238,7 +240,7 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
                         },
                     },
                     {
-                        selector: "node.noncluster:selected",
+                        selector: "node.basic:selected",
                         style: {
                             "background-color": $("#sncp").colorpicker(
                                 "getValue"
@@ -246,19 +248,19 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
                         },
                     },
                     {
-                        selector: "node.noncluster.noncolorized:selected",
+                        selector: "node.basic.noncolorized:selected",
                         style: {
                             color: $("#snlcp").colorpicker("getValue"),
                         },
                     },
                     {
-                        selector: "node.noncluster.gccolorized:selected",
+                        selector: "node.basic.gccolorized:selected",
                         style: {
                             color: $("#csnlcp").colorpicker("getValue"),
                         },
                     },
                     {
-                        selector: "node.cluster:selected",
+                        selector: "node.pattern:selected",
                         style: {
                             "border-width": 5,
                             "border-color": $("#sngbcp").colorpicker(
@@ -374,17 +376,6 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
                             "target-arrow-color": $("#losecp").colorpicker(
                                 "getValue"
                             ),
-                        },
-                    },
-                    {
-                        // Used to differentiate edges without an overlap between nodes
-                        // in graphs where overlap data is given
-                        // this conflicts with virtual edges' style, so we may want to
-                        // change this in the future
-                        // (using "dotted" lines was really slow)
-                        selector: "edge.nooverlap",
-                        style: {
-                            "line-style": "dashed",
                         },
                     },
                 ],
