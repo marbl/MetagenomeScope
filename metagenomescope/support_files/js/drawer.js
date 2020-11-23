@@ -1,4 +1,4 @@
-define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
+define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
     class Drawer {
         constructor(cyDivID) {
             this.cyDivID = cyDivID;
@@ -29,7 +29,7 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
             this.cyDiv.css("background", this.bgColor);
             this.cy = cytoscape({
                 container: document.getElementById(this.cyDivID),
-                layout: { name: "present" },
+                layout: { name: "preset" },
                 // TODO: this should be a config-level thing (should we make a
                 // Config object or file or whatever?) rather than hardcoded
                 // here
@@ -183,7 +183,7 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cy) {
                     {
                         selector: "node.basic.noncolorized",
                         style: {
-                            "background-color": mgsc.DEFAULT_NODE_COLOR,
+                            "background-color": $("#usncp").colorpicker("getValue"),
                             color: $("#usnlcp").colorpicker("getValue"),
                         },
                     },
