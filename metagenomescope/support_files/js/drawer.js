@@ -1,4 +1,4 @@
-define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
+define(["jquery", "underscore", "cytoscape", "utils"], function ($, _, cytoscape, utils) {
     class Drawer {
         constructor(cyDivID) {
             this.cyDivID = cyDivID;
@@ -407,6 +407,7 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
                 this.destroyGraph();
             }
             this.initGraph();
+            this.cy.startBatch();
             // -set graph bindings
             //
             // -Pass each component to DataHolder, and have it give us all the
@@ -414,10 +415,44 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
             // need to iterate through each component and then concatenate the
             // positions based on previously drawn components.
             _.each(componentsToDraw, function (sizeRank) {
+                var pattAttrs = dataHolder.data.patt_attrs;
                 _.each(dataHolder.getPatternsInComponent(sizeRank), function (
-                    patt
+                    pattVals, pattID
                 ) {
-                    console.log(patt);
+                    var bb = dataHolder.data.components[sizeRank - 1].bb;
+                    var bottLeft = utils.gv2cyPoint(
+                        pattVals[pattAttrs.left], pattVals[pattAttrs.bottom], bb
+                    );
+                    var topRight = utils.gv2cyPoint(
+                        pattVals[pattAttrs.right], pattVals[pattAttrs.top], bb
+                    );
+                    var centerPos = [
+                        (bottLeft[0] + topRight[0]) / 2,
+                        (bottLeft[1] + topRight[1]) / 2,
+                    ];
+                    var pattData = {
+                        id: pattID,
+                        w: pattVals[pattAttrs.right] - pattVals[pattAttrs.left],
+                        h: pattVals[pattAttrs.top] - pattVals[pattAttrs.bottom],
+                        isCollapsed: false,
+                    };
+                    var classes = "pattern";
+                    if (pattVals[pattAttrs.pattern_type] === "chain") {
+                        classes += " C";
+                    } else if (pattVals[pattAttrs.pattern_type] === "cyclicchain") {
+                        classes += " Y";
+                    } else if (pattVals[pattAttrs.pattern_type] === "bubble") {
+                        classes += " B";
+                    } else if (pattVals[pattAttrs.pattern_type] === "frayedrope") {
+                        classes += " F";
+                    } else {
+                        classes += " M";
+                    }
+                    var newObj = scope.cy.add({
+                        data: pattData,
+                        position: { x: centerPos[0], y: centerPos[1] },
+                        classes: classes,
+                    });
                 });
                 _.each(dataHolder.getNodesInComponent(sizeRank), function (
                     node
@@ -430,6 +465,8 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
                     console.log(edge);
                 });
             });
+            this.cy.endBatch();
+            this.cy.fit();
             //
             // -patterns
             // -nodes
