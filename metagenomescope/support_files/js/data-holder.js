@@ -122,7 +122,8 @@ define(["underscore"], function (_) {
          *
          * @param {String} queryName
          *
-         * @returns {Number} cmpRank
+         * @returns {Number} cmpRank (1-indexed, so the largest component is 1,
+         *                           etc.)
          */
         findComponentContainingNodeName(queryName) {
             var nodeNamePos = this.data.node_attrs.name;
@@ -162,6 +163,8 @@ define(["underscore"], function (_) {
         /**
          * Returns an Array with all component size ranks that were laid out.
          *
+         * Size ranks given in the array are 1-indexed.
+         *
          * @returns {Array}
          */
         getAllLaidOutComponentRanks() {
@@ -172,6 +175,74 @@ define(["underscore"], function (_) {
                 }
             }
             return laidOutRanks;
+        }
+
+        /**
+         * Throws an error if a component size rank is invalid.
+         *
+         * This is not designed to be used for user-facing validation -- this
+         * is an internal method, meant to catch errors that I accidentally
+         * make.
+         *
+         * @param {Number} sizeRank
+         *
+         * @returns {Boolean} true if the size rank is valid. This shouldn't be
+         *                    relied on, though; this function should probably
+         *                    just be called without caring about the return
+         *                    value.
+         * 
+         * @throws {Error} If sizeRank is not a positive integer in the range
+         *                 [1, this.data.components.length]
+         *
+         */
+        validateComponentRank(sizeRank) {
+            if (sizeRank > 0 && Number.isInteger(sizeRank)) {
+                if (sizeRank <= this.data.components.length) {
+                    return true;
+                } else {
+                    throw new Error(
+                        "Size rank of " + sizeRank + " is too large: only " +
+                            this.data.components.length +
+                            " components in the graph"
+                    );
+                }
+            } else {
+                console.log(sizeRank);
+                console.log(typeof sizeRank);
+                throw new Error(
+                    "Size rank of " + sizeRank + " isn't a positive integer"
+                );
+            }
+        }
+
+        /**
+         * Returns an Object with data for all patterns in a given component.
+         *
+         * @returns {Array}
+         */
+        getPatternsInComponent(sizeRank) {
+            this.validateComponentRank(sizeRank);
+            return this.data.components[sizeRank - 1].patts;
+        }
+
+        /**
+         * Returns an Object with data for all nodes in a given component.
+         *
+         * @returns {Array}
+         */
+        getNodesInComponent(sizeRank) {
+            this.validateComponentRank(sizeRank);
+            return this.data.components[sizeRank - 1].nodes;
+        }
+
+        /**
+         * Returns an Object with data for all edges in a given component.
+         *
+         * @returns {Array}
+         */
+        getEdgesInComponent(sizeRank) {
+            this.validateComponentRank(sizeRank);
+            return this.data.components[sizeRank - 1].edges;
         }
     }
     return { DataHolder: DataHolder };

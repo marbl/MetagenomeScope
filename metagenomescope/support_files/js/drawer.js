@@ -393,15 +393,33 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
          * @throws {Error} If componentsToDraw contains duplicate values and/or
          *                 if any of the numbers within it are invalid with
          *                 respect to the dataHolder. (TODO -- maybe make this
-         *                 a dataholder method?)
+         *                 a dataholder method? validation shouldn't be the
+         *                 drawer's problem.)
          */
         draw(componentsToDraw, dataHolder) {
+            var scope = this;
             if (!_.isNull(this.cy)) {
                 this.destroyGraph();
             }
             this.initGraph();
-            // set graph bindings
-            // load data from the data holder and populate:
+            // -set graph bindings
+            //
+            // -Pass each component to DataHolder, and have it give us all the
+            // patterns, nodes, and edges to draw for that component. We will
+            // need to iterate through each component and then concatenate the
+            // positions based on previously drawn components.
+            _.each(componentsToDraw, function (sizeRank) {
+                _.each(dataHolder.getPatternsInComponent(sizeRank), function (patt) {
+                    console.log(patt);
+                });
+                _.each(dataHolder.getNodesInComponent(sizeRank), function (node) {
+                    console.log(node);
+                });
+                _.each(dataHolder.getEdgesInComponent(sizeRank), function (edge) {
+                    console.log(edge);
+                });
+            });
+            //
             // -patterns
             // -nodes
             // -edges

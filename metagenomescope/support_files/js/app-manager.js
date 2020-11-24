@@ -208,7 +208,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                     alert("Please enter a valid component size rank.");
                     throw new Error("Invalid component size rank.");
                 } else {
-                    return [cmpRank];
+                    return [parseInt(cmpRank)];
                 }
             } else if (this.cmpSelectionMethod === "withnode") {
                 var name = $("#nodeNameSelector").val();
