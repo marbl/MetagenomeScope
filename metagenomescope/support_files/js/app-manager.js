@@ -239,16 +239,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             var componentsToDraw = this.getComponentsToDraw();
             console.log("Drawing components " + componentsToDraw);
             this.drawer.draw(componentsToDraw, this.dataHolder);
-            // TODO: (This is just replicating drawComponent().)
-            // -disable volatile controls
-            // -if cy !== null, destroy graph
-            // -set graph bindings
-            // -load data from the data holder and populate things
-            //  (Maybe pass cy to this.dataHolder and have it do that there?)
-            // -Patterns
-            // -Nodes
-            // -Edges
-            // -Set up interface
+            DomUtils.enableDrawNeededControls();
         }
     }
     return { AppManager: AppManager };

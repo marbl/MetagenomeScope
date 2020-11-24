@@ -408,7 +408,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function ($, _, cytoscape
             }
             this.initGraph();
             this.cy.startBatch();
-            // -set graph bindings
+            // TODO: set graph bindings
             //
             // -Pass each component to DataHolder, and have it give us all the
             // patterns, nodes, and edges to draw for that component. We will
@@ -485,15 +485,29 @@ define(["jquery", "underscore", "cytoscape", "utils"], function ($, _, cytoscape
                 _.each(dataHolder.getEdgesInComponent(sizeRank), function (
                     edge
                 ) {
-                    console.log(edge);
+                    // TODO: replicate renderEdgeObject() here. Yeesh!
                 });
             });
+            this.finishDraw();
+        }
+
+        /**
+         * Enables interaction with the graph interface after drawing.
+         */
+        finishDraw() {
             this.cy.endBatch();
             this.cy.fit();
-            //
-            // -patterns
-            // -nodes
-            // -edges
+            // Set minZoom to whatever the zoom level when viewing the entire drawn
+            // component at once (i.e. right now) is, divided by 2 to give some
+            // leeway for users to zoom out if they want
+            this.cy.minZoom(this.cy.zoom() / 2);
+
+            // Enable interaction with the graph
+            this.cy.userPanningEnabled(true);
+            this.cy.userZoomingEnabled(true);
+            this.cy.boxSelectionEnabled(true);
+            this.cy.autounselectify(false);
+            this.cy.autoungrabify(false);
         }
 
         /**

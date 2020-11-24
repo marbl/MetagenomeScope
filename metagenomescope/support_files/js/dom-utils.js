@@ -40,13 +40,13 @@ define(["jquery", "underscore", "utils"], function ($, _, utils) {
      */
     function enableDrawNeededControls() {
         $(".drawCtrl").each(function () {
-            domUtils.enableButton(this.id);
+            enableButton(this.id);
         });
     }
 
     function disableDrawNeededControls() {
         $(".drawCtrl").each(function () {
-            domUtils.disableButton(this.id);
+            disableButton(this.id);
         });
     }
 
