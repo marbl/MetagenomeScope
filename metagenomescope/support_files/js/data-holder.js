@@ -209,8 +209,6 @@ define(["underscore"], function (_) {
                     );
                 }
             } else {
-                console.log(sizeRank);
-                console.log(typeof sizeRank);
                 throw new Error(
                     "Size rank of " + sizeRank + " isn't a positive integer"
                 );
