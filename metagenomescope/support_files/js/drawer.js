@@ -63,8 +63,7 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
                     },
                     {
                         // Give collapsed patterns a number indicating child count
-                        selector:
-                            "node.pattern[?isCollapsed]",
+                        selector: "node.pattern[?isCollapsed]",
                         style: {
                             "min-zoomed-font-size": 12,
                             "font-size": 48,
@@ -96,7 +95,8 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
                             // |\/|
                             // |  |
                             // |/\|
-                            "shape-polygon-points": "-1 -1 0 -0.5 1 -1 1 1 0 0.5 -1 1",
+                            "shape-polygon-points":
+                                "-1 -1 0 -0.5 1 -1 1 1 0 0.5 -1 1",
                         },
                     },
                     {
@@ -112,7 +112,8 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
                             //  ___
                             // /   \
                             // \___/
-                            "shape-polygon-points": "-1 0 -0.5 -1 0.5 -1 1 0 0.5 1 -0.5 1",
+                            "shape-polygon-points":
+                                "-1 0 -0.5 -1 0.5 -1 1 0 0.5 1 -0.5 1",
                         },
                     },
                     {
@@ -183,7 +184,9 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
                     {
                         selector: "node.basic.noncolorized",
                         style: {
-                            "background-color": $("#usncp").colorpicker("getValue"),
+                            "background-color": $("#usncp").colorpicker(
+                                "getValue"
+                            ),
                             color: $("#usnlcp").colorpicker("getValue"),
                         },
                     },
@@ -199,7 +202,8 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
                             // /   |
                             // \___|
                             shape: "polygon",
-                            "shape-polygon-points": "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1",
+                            "shape-polygon-points":
+                                "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1",
                         },
                     },
                     {
@@ -212,7 +216,8 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
                             // |   \
                             // |___/
                             shape: "polygon",
-                            "shape-polygon-points": "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1",
+                            "shape-polygon-points":
+                                "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1",
                         },
                     },
                     {
@@ -409,13 +414,19 @@ define(["jquery", "underscore", "cytoscape"], function ($, _, cytoscape) {
             // need to iterate through each component and then concatenate the
             // positions based on previously drawn components.
             _.each(componentsToDraw, function (sizeRank) {
-                _.each(dataHolder.getPatternsInComponent(sizeRank), function (patt) {
+                _.each(dataHolder.getPatternsInComponent(sizeRank), function (
+                    patt
+                ) {
                     console.log(patt);
                 });
-                _.each(dataHolder.getNodesInComponent(sizeRank), function (node) {
+                _.each(dataHolder.getNodesInComponent(sizeRank), function (
+                    node
+                ) {
                     console.log(node);
                 });
-                _.each(dataHolder.getEdgesInComponent(sizeRank), function (edge) {
+                _.each(dataHolder.getEdgesInComponent(sizeRank), function (
+                    edge
+                ) {
                     console.log(edge);
                 });
             });

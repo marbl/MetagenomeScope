@@ -190,7 +190,7 @@ define(["underscore"], function (_) {
          *                    relied on, though; this function should probably
          *                    just be called without caring about the return
          *                    value.
-         * 
+         *
          * @throws {Error} If sizeRank is not a positive integer in the range
          *                 [1, this.data.components.length]
          *
@@ -201,7 +201,9 @@ define(["underscore"], function (_) {
                     return true;
                 } else {
                     throw new Error(
-                        "Size rank of " + sizeRank + " is too large: only " +
+                        "Size rank of " +
+                            sizeRank +
+                            " is too large: only " +
                             this.data.components.length +
                             " components in the graph"
                     );
