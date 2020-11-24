@@ -448,16 +448,39 @@ define(["jquery", "underscore", "cytoscape", "utils"], function ($, _, cytoscape
                     } else {
                         classes += " M";
                     }
-                    var newObj = scope.cy.add({
+                    scope.cy.add({
                         data: pattData,
                         position: { x: centerPos[0], y: centerPos[1] },
                         classes: classes,
                     });
                 });
+                var nodeAttrs = dataHolder.data.node_attrs;
                 _.each(dataHolder.getNodesInComponent(sizeRank), function (
-                    node
+                    nodeVals, nodeID
                 ) {
-                    console.log(node);
+                    var nodeData = {
+                        id: nodeID,
+                        label: nodeVals[nodeAttrs.name],
+                        length: nodeVals[nodeAttrs.length],
+                        // TODO lotta junk here we should preemptively set up
+                        // in python
+                        w: nodeVals[nodeAttrs.height] * 54,
+                        h: nodeVals[nodeAttrs.width] * 54,
+                    };
+                    var classes = "basic";
+                    var orientation = nodeVals[nodeAttrs.orientation];
+                    if (orientation === "+") {
+                        classes += " rightdir";
+                    } else if (orientation === "-") {
+                        classes += " leftdir";
+                    } else {
+                        throw new Error("Invalid node orientation " + orientation);
+                    }
+                    scope.cy.add({
+                        data: nodeData,
+                        position: { x: nodeVals[nodeAttrs.x], y: nodeVals[nodeAttrs.y] },
+                        classes: classes,
+                    });
                 });
                 _.each(dataHolder.getEdgesInComponent(sizeRank), function (
                     edge
