@@ -1711,20 +1711,16 @@ class AssemblyGraph(object):
             patt.width, patt.height = patt.height, patt.width
             patt.width *= config.INCHES_TO_PIXELS
             patt.height *= config.INCHES_TO_PIXELS
-            # Change bounding box of the pattern. Rotation by 90 degrees is
-            # equal to changing (x, y) to (-y, x), so we change
-            # (left, bottom) into (-bottom, left), and we change
-            # (right, top) into (-top, right).
+            # Change bounding box of the pattern.
             #
-            #     T
-            #    ___                  _______
-            #   |   |       --->     |       |
-            # L |   | R              |_______|
-            #   |___|
+            #    _T_                  ___R___
+            #   |   |       --->    T|       |B
+            #  L|   |R      --->     |_______|
+            #   |___|                    L
             #     B
             l, b, r, t = patt.left, patt.bottom, patt.right, patt.top
-            patt.left = -b
-            patt.right = -t
+            patt.left = -t
+            patt.right = -b
             patt.top = r
             patt.bottom = l
 
