@@ -815,14 +815,20 @@ class AssemblyGraph(object):
                 # self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
 
             self.digraph.add_edge(
-                end_node_to_dup, new_node_id, is_dup=True,
-                orig_src=end_node_to_dup, orig_tgt=new_node_id
+                end_node_to_dup,
+                new_node_id,
+                is_dup=True,
+                orig_src=end_node_to_dup,
+                orig_tgt=new_node_id,
             )
             # In the decomposed digraph, link the starting pattern with the
             # curr pattern.
             self.decomposed_digraph.add_edge(
-                starting_node_id, pattern_id, is_dup=True,
-                orig_src=end_node_to_dup, orig_tgt=new_node_id
+                starting_node_id,
+                pattern_id,
+                is_dup=True,
+                orig_src=end_node_to_dup,
+                orig_tgt=new_node_id,
             )
 
             member_node_ids.remove(starting_node_id)
@@ -858,12 +864,19 @@ class AssemblyGraph(object):
                 )
                 self.decomposed_digraph.remove_edge(edge[0], ending_node_id)
 
-            self.digraph.add_edge(new_node_id, start_node_to_dup, is_dup=True,
-                orig_src=new_node_id, orig_tgt=start_node_to_dup
+            self.digraph.add_edge(
+                new_node_id,
+                start_node_to_dup,
+                is_dup=True,
+                orig_src=new_node_id,
+                orig_tgt=start_node_to_dup,
             )
             self.decomposed_digraph.add_edge(
-                pattern_id, ending_node_id, is_dup=True,
-                orig_src=new_node_id, orig_tgt=start_node_to_dup
+                pattern_id,
+                ending_node_id,
+                is_dup=True,
+                orig_src=new_node_id,
+                orig_tgt=start_node_to_dup,
             )
 
             member_node_ids.remove(ending_node_id)
@@ -1594,7 +1607,11 @@ class AssemblyGraph(object):
             if len(extra_attrs) > 0:
                 extra_data = {a: graph_edge_data[a] for a in extra_attrs}
                 out_edge_data[EDGE_ATTRS["extra_data"]] = extra_data
-            return graph_edge_data["orig_src"], graph_edge_data["orig_tgt"], out_edge_data
+            return (
+                graph_edge_data["orig_src"],
+                graph_edge_data["orig_tgt"],
+                out_edge_data,
+            )
 
         def add_edge(component_dict, edge, edge_data):
             if edge[0] in component_dict["edges"]:
