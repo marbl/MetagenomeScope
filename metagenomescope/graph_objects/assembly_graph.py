@@ -1711,15 +1711,6 @@ class AssemblyGraph(object):
             patt.width, patt.height = patt.height, patt.width
             patt.width *= config.INCHES_TO_PIXELS
             patt.height *= config.INCHES_TO_PIXELS
-
-            # Rotate relative position
-            # This only needs to be done if this pattern is a child of another
-            # pattern
-            if patt.relative_x is not None:
-                (
-                    patt.relative_x,
-                    patt.relative_y,
-                ) = layout_utils.rotate(patt.relative_x, patt.relative_y)
             # Change bounding box of the pattern. Rotation by 90 degrees is
             # equal to changing (x, y) to (-y, x), so we change
             # (left, bottom) into (-bottom, left), and we change
