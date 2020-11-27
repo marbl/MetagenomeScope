@@ -1705,6 +1705,14 @@ class AssemblyGraph(object):
 
     def rotate_from_TB_to_LR(self):
         """Rotates the graph so it flows from L -> R rather than T -> B."""
+        # Rotate and scale bounding boxes
+        for cc_num in self.cc_num_to_bb.keys():
+            bb = self.cc_num_to_bb[cc_num]
+            self.cc_num_to_bb[cc_num] = [
+                bb[1] * config.INCHES_TO_PIXELS,
+                bb[0] * config.INCHES_TO_PIXELS,
+            ]
+
         # Rotate patterns
         for patt in self.id2pattern.values():
             # Swap height and width
@@ -1738,14 +1746,6 @@ class AssemblyGraph(object):
             data["ctrl_pt_coords"] = layout_utils.rotate_ctrl_pt_coords(
                 data["ctrl_pt_coords"]
             )
-
-        # Rotate and scale bounding boxes
-        for cc_num in self.cc_num_to_bb.keys():
-            bb = self.cc_num_to_bb[cc_num]
-            self.cc_num_to_bb[cc_num] = [
-                bb[1] * config.INCHES_TO_PIXELS,
-                bb[0] * config.INCHES_TO_PIXELS,
-            ]
 
     def process(self):
         """Basic pipeline for preparing a graph for visualization."""
