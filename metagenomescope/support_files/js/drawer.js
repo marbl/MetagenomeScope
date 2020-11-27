@@ -488,7 +488,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 var ctrlPtDists = "";
                 var ctrlPtWeights = "";
                 var currPt, pld, pldsquared, dsp, dtp, w, ws, wt;
-                console.log("Control points are: ", ctrlPts);
                 for (var p = 0; p < ctrlPts.length; p += 2) {
                     currPt = [ctrlPts[p] + dx, ctrlPts[p + 1] + dy];
                     pld = utils.pointToLineDistance(currPt, srcPos, tgtPos);
@@ -543,7 +542,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 ctrlPtWeights = ctrlPtWeights.trim();
 
                 if (nonzero) {
-                    console.log("Complex!");
                     // Control points are valid
                     this.cy.add({
                         classes: classes + " unbundledbezier",
@@ -556,7 +554,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                         },
                     });
                 } else {
-                    console.log("Approximating.");
                     // Control point distances from a straight line between
                     // source and sink are small enough that we can just
                     // approximate this edge as a straight line
