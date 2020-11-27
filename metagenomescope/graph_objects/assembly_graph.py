@@ -1516,8 +1516,9 @@ class AssemblyGraph(object):
             "height": 5,
             "orientation": 6,
             "parent_id": 7,
-            # Extra data contains things like coverage, label, GC content, etc.
-            "extra_data": 8,
+            "is_dup": 8,
+            # Extra data contains things like coverage, GC content, etc.
+            "extra_data": 9,
         }
         # These are keyed by source ID and sink ID (both reindex_digraph()
         # integer IDs)
@@ -1560,6 +1561,9 @@ class AssemblyGraph(object):
                 if attr == "extra_data":
                     continue
                 if attr not in graph_node_data:
+                    if attr == "is_dup":
+                        out_node_data[NODE_ATTRS["is_dup"]] = False
+                        continue
                     raise ValueError(
                         "Node {} doesn't have attribute {}".format(
                             graph_node_data["name"], attr

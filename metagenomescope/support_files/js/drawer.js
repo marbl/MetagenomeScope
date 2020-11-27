@@ -165,6 +165,13 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                             ),
                         },
                     },
+                    // Just for debugging. For now, at least.
+                    {
+                        selector: "node.is_dup",
+                        style: {
+                            "background-color": "#cc00cc"
+                        }
+                    },
                     {
                         selector: "node.bb_enforcing",
                         style: {
@@ -441,6 +448,10 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 classes += " leftdir";
             } else {
                 throw new Error("Invalid node orientation " + orientation);
+            }
+
+            if (nodeVals[nodeAttrs.is_dup]) {
+                classes += " is_dup";
             }
             var x = nodeVals[nodeAttrs.x] + dx;
             var y = nodeVals[nodeAttrs.y] + dy;
