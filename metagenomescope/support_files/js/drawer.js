@@ -51,6 +51,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                         style: {
                             width: "data(w)",
                             height: "data(h)",
+                            "z-index-compare": "manual",
                         },
                     },
                     // The following few classes are used to set properties of
@@ -149,15 +150,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                         },
                     },
                     {
-                        // NOTE: Not currently used but might need to be if
-                        // hierarch. pattern decomposition is a bottleneck
-                        selector: "node.pattern.pseudoparent",
-                        style: {
-                            "z-index-compare": "manual",
-                            "z-index": 0,
-                        },
-                    },
-                    {
                         selector: "node.bb_enforcing",
                         style: {
                             // Make these nodes invisible
@@ -183,7 +175,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                             // render the text.
                             "min-zoomed-font-size": 12,
                             "z-index": 2,
-                            "z-index-compare": "manual",
                         },
                     },
                     {
