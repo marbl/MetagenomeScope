@@ -48,7 +48,7 @@ def get_control_points(pos):
         pos = pos[pos.index(" ") + 1 :]
 
     points_str = pos.replace(",", " ")
-    coord_list = [float(c) * config.PT_TO_PX for c in points_str.split()]
+    coord_list = [float(c) for c in points_str.split()]
     if len(coord_list) % 2 != 0:
         raise ValueError(
             "Invalid GraphViz edge control points: {}".format(pos)
@@ -96,6 +96,11 @@ def shift_control_points(coord_list, left, bottom):
 
 
 def rotate(x, y):
+    """Rotates a position by 90 degrees counterclockwise.
+
+    This is used when converting the graph layout from the top -> bottom
+    direction to the left -> right direction.
+    """
     return (-y, x)
 
 
@@ -125,7 +130,7 @@ def getxy(pos_string):
     of numbers.
     """
     xs, ys = pos_string.split(",")
-    return float(xs) * config.PT_TO_PX, float(ys) * config.PT_TO_PX
+    return float(xs), float(ys)
 
 
 def get_bb_x2_y2(bb_string):
@@ -146,6 +151,6 @@ def get_bb_x2_y2(bb_string):
     http://www.graphviz.org/doc/info/attrs.html#k:rect for reference.
     """
     x1, y1, x2, y2 = bb_string.split(",")
-    x2i = float(x2) * config.PT_TO_PX
-    y2i = float(y2) * config.PT_TO_PX
+    x2i = float(x2) / config.POINTS_PER_INCH
+    y2i = float(y2) / config.POINTS_PER_INCH
     return x2i, y2i
