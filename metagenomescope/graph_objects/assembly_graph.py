@@ -1351,6 +1351,8 @@ class AssemblyGraph(object):
                 self.decomposed_digraph.edges[edge]["cc_num"] = cc_i
 
             gv_input += "}"
+            with open("cc_{}.gv".format(cc_i), "w") as f:
+                f.write(gv_input)
             top_level_cc_graph = pygraphviz.AGraph(gv_input)
             # Actually perform layout for this component!
             # If you're wondering why MetagenomeScope is taking so long to run
@@ -1705,9 +1707,10 @@ class AssemblyGraph(object):
         """Rotates the graph so it flows from L -> R rather than T -> B."""
         # Rotate patterns
         for patt in self.id2pattern.values():
-            bb = self.cc_num_to_bb[patt.cc_num]
             # Swap height and width
             patt.width, patt.height = patt.height, patt.width
+            patt.width *= config.INCHES_TO_PIXELS
+            patt.height *= config.INCHES_TO_PIXELS
 
             # Rotate relative position
             # This only needs to be done if this pattern is a child of another
@@ -1737,7 +1740,6 @@ class AssemblyGraph(object):
         # Rotate normal nodes
         for node_id in self.digraph.nodes:
             data = self.digraph.nodes[node_id]
-            bb = self.cc_num_to_bb[data["cc_num"]]
             data["width"], data["height"] = data["height"], data["width"]
             data["width"] *= config.INCHES_TO_PIXELS
             data["height"] *= config.INCHES_TO_PIXELS
@@ -1746,7 +1748,6 @@ class AssemblyGraph(object):
         # Rotate edges
         for edge in self.decomposed_digraph.edges:
             data = self.decomposed_digraph.edges[edge]
-            bb = self.cc_num_to_bb[data["cc_num"]]
             data["ctrl_pt_coords"] = layout_utils.rotate_ctrl_pt_coords(
                 data["ctrl_pt_coords"]
             )
