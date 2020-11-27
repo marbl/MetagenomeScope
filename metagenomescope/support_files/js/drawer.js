@@ -440,8 +440,8 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     ];
                     var pattData = {
                         id: pattID,
-                        w: pattVals[pattAttrs.right] - pattVals[pattAttrs.left],
-                        h: pattVals[pattAttrs.top] - pattVals[pattAttrs.bottom],
+                        w: pattVals[pattAttrs.width],
+                        h: pattVals[pattAttrs.height],
                         isCollapsed: false,
                     };
                     var classes = "pattern";
@@ -475,10 +475,8 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                         id: nodeID,
                         label: nodeVals[nodeAttrs.name],
                         length: nodeVals[nodeAttrs.length],
-                        // TODO lotta junk here we should preemptively set up
-                        // in python
-                        w: nodeVals[nodeAttrs.height] * 54,
-                        h: nodeVals[nodeAttrs.width] * 54,
+                        w: nodeVals[nodeAttrs.width],
+                        h: nodeVals[nodeAttrs.height],
                     };
                     var classes = "basic";
                     var orientation = nodeVals[nodeAttrs.orientation];

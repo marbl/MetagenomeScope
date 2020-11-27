@@ -30,13 +30,13 @@ class Pattern(object):
         self.node_ids = node_ids
         self.subgraph = subgraph
 
-        # Will be filled in after calling self.layout(). Stored in inches.
+        # Will be filled in after calling self.layout(). Stored in pixels.
         self.width = None
         self.height = None
 
         # Will be filled in after either the parent pattern of this pattern is
         # laid out, or the entire graph is laid out (if this pattern has no
-        # parent). Stored in points.
+        # parent). Stored in pixels.
         self.relative_x = None
         self.relative_y = None
 
@@ -192,12 +192,12 @@ class Pattern(object):
 
     def set_bb(self, x, y):
         """Given a center position of this Pattern, sets its bounding box."""
-        half_w_pts = (self.width / 2) * config.POINTS_PER_INCH
-        half_h_pts = (self.height / 2) * config.POINTS_PER_INCH
-        self.left = x - half_w_pts
-        self.right = x + half_w_pts
-        self.bottom = y - half_h_pts
-        self.top = y + half_h_pts
+        half_w_px = (self.width / 2)
+        half_h_px = (self.height / 2)
+        self.left = x - half_w_px
+        self.right = x + half_w_px
+        self.bottom = y - half_h_px
+        self.top = y + half_h_px
 
 
 class StartEndPattern(Pattern):

@@ -1718,6 +1718,7 @@ class AssemblyGraph(object):
             bb = self.cc_num_to_bb[patt.cc_num]
             # Swap height and width
             patt.width, patt.height = patt.height, patt.width
+
             # Rotate relative position
             # This only needs to be done if this pattern is a child of another
             # pattern
@@ -1750,6 +1751,8 @@ class AssemblyGraph(object):
             data = self.digraph.nodes[node_id]
             bb = self.cc_num_to_bb[data["cc_num"]]
             data["width"], data["height"] = data["height"], data["width"]
+            data["width"] *= config.INCHES_TO_PIXELS
+            data["height"] *= config.INCHES_TO_PIXELS
             data["x"], data["y"] = layout_utils.gv2cy_and_rotate(
                 data["x"], data["y"], bb
             )
