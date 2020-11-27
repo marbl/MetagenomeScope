@@ -256,7 +256,6 @@ define(["underscore"], function (_) {
         getEdgeAttrs() {
             return this.data.edge_attrs;
         }
-
     }
     return { DataHolder: DataHolder };
 });

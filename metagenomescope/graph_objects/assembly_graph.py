@@ -1702,17 +1702,7 @@ class AssemblyGraph(object):
         return json.dumps(self.to_dict())
 
     def rotate_from_TB_to_LR(self):
-        """Rotates the graph so it flows from L -> R rather than T -> B.
-
-        Also inverts y-coordinates, so that coordinates are suitable for
-        Cytoscape.js. For reference -- GraphViz uses the standard Cartesian
-        system in which the bottom-left corner of the screen is the origin,
-        (0, 0). Cytoscape.js inverts the y-axis, with the origin (0, 0)
-        being situated at the top-left corner of the screen. So to transform
-        a point (x, y) from GraphViz to Cytoscape.js, we first turn it into
-        (x, y'), where y' = the vertical length of the bounding box of the
-        component, minus y.
-        """
+        """Rotates the graph so it flows from L -> R rather than T -> B."""
         # Rotate patterns
         for patt in self.id2pattern.values():
             bb = self.cc_num_to_bb[patt.cc_num]
@@ -1726,9 +1716,7 @@ class AssemblyGraph(object):
                 (
                     patt.relative_x,
                     patt.relative_y,
-                ) = layout_utils.gv2cy_and_rotate(
-                    patt.relative_x, patt.relative_y, bb
-                )
+                ) = layout_utils.rotate(patt.relative_x, patt.relative_y)
             # Change bounding box of the pattern. Rotation by 90 degrees is
             # equal to changing (x, y) to (-y, x), so we change
             # (left, bottom) into (-bottom, left), and we change
@@ -1753,18 +1741,14 @@ class AssemblyGraph(object):
             data["width"], data["height"] = data["height"], data["width"]
             data["width"] *= config.INCHES_TO_PIXELS
             data["height"] *= config.INCHES_TO_PIXELS
-            data["x"], data["y"] = layout_utils.gv2cy_and_rotate(
-                data["x"], data["y"], bb
-            )
+            data["x"], data["y"] = layout_utils.rotate(data["x"], data["y"])
 
         # Rotate edges
         for edge in self.decomposed_digraph.edges:
             data = self.decomposed_digraph.edges[edge]
             bb = self.cc_num_to_bb[data["cc_num"]]
-            data[
-                "ctrl_pt_coords"
-            ] = layout_utils.gv2cy_and_rotate_ctrl_pt_coords(
-                data["ctrl_pt_coords"], bb
+            data["ctrl_pt_coords"] = layout_utils.rotate_ctrl_pt_coords(
+                data["ctrl_pt_coords"]
             )
 
         # Rotate bounding boxes

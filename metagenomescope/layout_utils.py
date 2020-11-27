@@ -95,14 +95,11 @@ def shift_control_points(coord_list, left, bottom):
     return new_coord_list
 
 
-def gv2cy_and_rotate(x, y, bb):
-    # 1. Convert from GraphViz to Cytoscape.js
-    newy = bb[1] - y
-    # 2. Rotate by 90 degrees
-    return (-newy, x)
+def rotate(x, y):
+    return (-y, x)
 
 
-def gv2cy_and_rotate_ctrl_pt_coords(coords, bb):
+def rotate_ctrl_pt_coords(coords):
     if len(coords) % 2 != 0:
         raise ValueError("Non-even number of control points")
 
@@ -113,7 +110,7 @@ def gv2cy_and_rotate_ctrl_pt_coords(coords, bb):
     new_coords = []
     for i in range(0, len(coords), 2):
         x, y = coords[i], coords[i + 1]
-        newx, newy = gv2cy_and_rotate(x, y, bb)
+        newx, newy = rotate(x, y)
         new_coords.append(newx)
         new_coords.append(newy)
 

@@ -532,7 +532,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             }
         }
 
-
         /**
          * Fits the graph: either to all elements or just to those selected.
          *
@@ -552,8 +551,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 this.cy.fit();
             }
         }
-
-
     }
     return { Drawer: Drawer };
 });

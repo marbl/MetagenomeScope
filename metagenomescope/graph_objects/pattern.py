@@ -192,8 +192,8 @@ class Pattern(object):
 
     def set_bb(self, x, y):
         """Given a center position of this Pattern, sets its bounding box."""
-        half_w_px = (self.width / 2)
-        half_h_px = (self.height / 2)
+        half_w_px = self.width / 2
+        half_h_px = self.height / 2
         self.left = x - half_w_px
         self.right = x + half_w_px
         self.bottom = y - half_h_px
