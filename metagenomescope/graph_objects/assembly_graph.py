@@ -1748,7 +1748,7 @@ class AssemblyGraph(object):
             bb = self.cc_num_to_bb[cc_num]
             self.cc_num_to_bb[cc_num] = [
                 bb[1] * config.INCHES_TO_PIXELS,
-                bb[0] * config.INCHES_TO_PIXELS
+                bb[0] * config.INCHES_TO_PIXELS,
             ]
 
     def process(self):
