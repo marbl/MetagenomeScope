@@ -477,7 +477,10 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 var srcPos = node2pos[srcID];
                 var tgtPos = node2pos[tgtID];
                 if (!_.has(node2pos, srcID) || !_.has(node2pos, tgtID)) {
-                    throw new Error("ID not in node2pos...?");
+                    console.log("node2pos: ", node2pos);
+                    console.log("src ID: ", srcID);
+                    console.log("tgt ID: ", tgtID);
+                    throw new Error("ID(s) not in node2pos...?");
                 }
                 var srcTgtDist = utils.distance(srcPos, tgtPos);
                 var ctrlPts = edgeVals[edgeAttrs.ctrl_pt_coords];
