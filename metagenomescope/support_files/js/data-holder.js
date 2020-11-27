@@ -216,7 +216,14 @@ define(["underscore"], function (_) {
         }
 
         /**
-         * Returns an Object with data for all patterns in a given component.
+         * Returns an Array of Arrays with data for all patterns in a given
+         * component.
+         *
+         * Previously this was just an Object (similarly to how nodes are
+         * stored), but it turns out that we have to care about pattern drawing
+         * order, so we now store this in an Array. (See
+         * AssemblyGraph.to_dict() in the Python code for details; tldr,
+         * gotta draw parent patterns before child patterns.)
          *
          * @returns {Array}
          */

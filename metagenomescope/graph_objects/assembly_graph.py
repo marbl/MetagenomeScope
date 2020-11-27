@@ -1533,14 +1533,15 @@ class AssemblyGraph(object):
         }
         # These are keyed by ID (integer IDs, from get_new_node_id())
         PATT_ATTRS = {
-            "left": 0,
-            "bottom": 1,
-            "right": 2,
-            "top": 3,
-            "width": 4,
-            "height": 5,
-            "pattern_type": 6,
-            "parent_id": 7,
+            "pattern_id": 0,
+            "left": 1,
+            "bottom": 2,
+            "right": 3,
+            "top": 4,
+            "width": 5,
+            "height": 6,
+            "pattern_type": 7,
+            "parent_id": 8,
         }
         # Real quick, validate that I didn't mess up the attribute "schema"s
         # defined above -- i.e. there aren't any gaps. So if, say, there are 9
@@ -1652,7 +1653,7 @@ class AssemblyGraph(object):
             this_component = {
                 "nodes": {},
                 "edges": {},
-                "patts": {},
+                "patts": [],
                 "skipped": False,
                 "bb": self.cc_num_to_bb[cc_i],
             }
@@ -1669,10 +1670,21 @@ class AssemblyGraph(object):
                         # Add data for this pattern. All of the stuff in
                         # PATT_ATTRS should be literal attributes of Pattern
                         # objects, so this step is blessedly simple (ish).
+                        #
+                        # One important thing to note: we store patterns in a
+                        # list, not in a dict. This is because we unfortunately
+                        # have to care about the order in which patterns are
+                        # drawn in the visualization: if we try to draw a
+                        # pattern which in turn is a child of another pattern
+                        # that hasn't been drawn yet, then Cytoscape.js will
+                        # just silently fail. By populating the "patts" list
+                        # for each component such that every pattern is added
+                        # before its child pattern(s) are, we avoid this
+                        # problem.
                         data = [None] * len(PATT_ATTRS)
                         for attr in PATT_ATTRS.keys():
                             data[PATT_ATTRS[attr]] = getattr(curr_patt, attr)
-                        this_component["patts"][curr_patt.pattern_id] = data
+                        this_component["patts"].append(data)
 
                         # Add data for the nodes within this pattern, and add
                         # patterns within this pattern to the queue.

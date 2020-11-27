@@ -399,13 +399,25 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             });
         }
 
-        renderPattern(pattAttrs, pattVals, pattID, dx, dy) {
+        renderPattern(pattAttrs, pattVals, dx, dy) {
+            var pattID = pattVals[pattAttrs.pattern_id];
             var pattData = {
                 id: pattID,
                 w: pattVals[pattAttrs.width],
                 h: pattVals[pattAttrs.height],
                 isCollapsed: false,
             };
+
+            // Add parent ID, if needed.
+            // This is safe, because the data export from the python code
+            // ensures that, for each parent pattern in a component, this
+            // parent pattern is stored earlier in the pattern array than the
+            // child pattern(s) within it.
+            var parentID = pattVals[pattAttrs.parent_id];
+            if (!_.isNull(parentID)) {
+                pattData.parent = parentID;
+            }
+
             var classes = "pattern";
             if (pattVals[pattAttrs.pattern_type] === "chain") {
                 classes += " C";
@@ -693,9 +705,8 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 var pattAttrs = dataHolder.getPattAttrs();
                 _.each(dataHolder.getPatternsInComponent(sizeRank), function (
                     pattVals,
-                    pattID
                 ) {
-                    scope.renderPattern(pattAttrs, pattVals, pattID, dx, dy);
+                    scope.renderPattern(pattAttrs, pattVals, dx, dy);
                 });
 
                 // Draw nodes
