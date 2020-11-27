@@ -90,6 +90,14 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
 
             // Set up colorpickers
             $(".colorpicker-component").colorpicker({ format: "hex" });
+
+            // Set up "fit" buttons
+            $("#fitButton").click(function () {
+                scope.drawer.fit(false);
+            });
+            $("#fitSelectedButton").click(function () {
+                scope.drawer.fit(true);
+            });
         }
 
         /**

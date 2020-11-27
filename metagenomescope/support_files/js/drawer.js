@@ -540,6 +540,29 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 this.cy.resize();
             }
         }
+
+
+        /**
+         * Fits the graph: either to all elements or just to those selected.
+         *
+         * @param {Boolean} toSelected If true, fit to just the currently-
+         *                             selected elements in the graph; if
+         *                             false, fit to all drawn elements.
+         */
+        fit(toSelected) {
+            // TODO: use progress bar
+            if (toSelected) {
+                // Right now, we don't throw any sort of error here if
+                // no elements are selected. This is because the fit-selected
+                // button should only be enabled when >= 1 elements are
+                // selected.
+                this.cy.fit(cy.$(":selected"));
+            } else {
+                this.cy.fit();
+            }
+        }
+
+
     }
     return { Drawer: Drawer };
 });

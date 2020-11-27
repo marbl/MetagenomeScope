@@ -2831,29 +2831,6 @@ function clearSelectedInfo() {
     }
 }
 
-/* Fits the graph to all its elements if toSelected is false, and to only
- * selected elements if toSelected is true.
- */
-function fitGraph(toSelected) {
-    "use strict";
-    startIndeterminateProgressBar();
-    window.setTimeout(function () {
-        if (toSelected) {
-            // Right now, we don't throw any sort of error here if
-            // no elements are selected. This is because the fit-selected
-            // button is only enabled when >= 1 elements are selected.
-            cy.fit(
-                mgsc.SELECTED_NODES.union(mgsc.SELECTED_EDGES).union(
-                    mgsc.SELECTED_CLUSTERS
-                )
-            );
-        } else {
-            cy.fit();
-        }
-        finishProgressBar();
-    }, 20);
-}
-
 /* Exports image of graph. */
 function exportGraphView() {
     "use strict";
