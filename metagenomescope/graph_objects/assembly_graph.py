@@ -66,6 +66,7 @@ class AssemblyGraph(object):
                 "parent_id",
                 "name",
                 "is_dup",
+                "cc_num",
             ]
         )
 
@@ -79,6 +80,7 @@ class AssemblyGraph(object):
                 "orig_src",
                 "orig_tgt",
                 "is_dup",
+                "cc_num",
             ]
         )
 
@@ -1033,7 +1035,7 @@ class AssemblyGraph(object):
                 self.digraph.nodes[node]["longside_proportion"] = lp
 
     def compute_node_dimensions(self):
-        """Adds height and width attributes to each node in the graph.
+        r"""Adds height and width attributes to each node in the graph.
 
         It is assumed that scale_nodes() has already been called; otherwise,
         this will be unable to access the relative_length and
@@ -1046,12 +1048,38 @@ class AssemblyGraph(object):
         they're "real". (It may be possible to speed this up slightly by only
         duplicating data for these nodes after doing scaling, etc., but I doubt
         that the time savings there will be that useful in most cases.)
+
+        It is very important to understand that here, "height" and "width"
+        refer to nodes' positions in the graph when laid out from top to
+        bottom:
+         __
+        |  |
+        |  |
+         \/
+
+         |                  ___         ___
+         |           , not |   \       |   \    :(
+         V                 |___/  ---> |___/
+         __
+        |  |
+        |  |
+         \/
+
+        Although Graphviz does accept a "rankdir" graph attribute that can be
+        used to make graph drawings flow from left to right, rather than from
+        top to bottom, this attribute is not respected when *just* laying out
+        the graph. At least to my knowledge. So unfortunately we have to do the
+        rotation ourselves. Therefore, in the visualization interface shown to
+        MetagenomeScope users, the width and height of each node are really the
+        opposite from what we store here.
         """
         for node in self.digraph.nodes:
             data = self.digraph.nodes[node]
             area = config.MIN_NODE_AREA + (
                 data["relative_length"] * config.NODE_AREA_RANGE
             )
+            # Again, in the interface the height will be the width and the
+            # width will be the height
             data["height"] = area ** data["longside_proportion"]
             data["width"] = area / data["height"]
 
@@ -1291,8 +1319,11 @@ class AssemblyGraph(object):
 
             # Populate GraphViz input with node information
             # This mirrors what's done in Pattern.layout().
+            # Also, while we're at it, set component numbers to make traversal
+            # easier later on.
             for node_id in cc_node_ids:
                 if self.is_pattern(node_id):
+                    self.id2pattern[node_id].set_cc_num(self, cc_i)
                     # Lay out the pattern in isolation (could involve multiple
                     # layers, since patterns can contain other patterns).
                     self.id2pattern[node_id].layout(self)
@@ -1301,6 +1332,7 @@ class AssemblyGraph(object):
                     shape = self.id2pattern[node_id].shape
                 else:
                     data = self.digraph.nodes[node_id]
+                    data["cc_num"] = cc_i
                     height = data["height"]
                     width = data["width"]
                     shape = config.NODE_ORIENTATION_TO_SHAPE[
@@ -1316,6 +1348,7 @@ class AssemblyGraph(object):
             ).edges
             for edge in top_level_edges:
                 gv_input += "\t{} -> {};\n".format(edge[0], edge[1])
+                self.decomposed_digraph.subgraph.edges[edge]["cc_num"] = cc_i
 
             gv_input += "}"
             top_level_cc_graph = pygraphviz.AGraph(gv_input)
@@ -1668,6 +1701,69 @@ class AssemblyGraph(object):
         """
         return json.dumps(self.to_dict())
 
+    def rotate_from_TB_to_LR(self):
+        """Rotates the graph so it flows from L -> R rather than T -> B.
+
+        Also inverts y-coordinates, so that coordinates are suitable for
+        Cytoscape.js. For reference -- GraphViz uses the standard Cartesian
+        system in which the bottom-left corner of the screen is the origin,
+        (0, 0). Cytoscape.js inverts the y-axis, with the origin (0, 0)
+        being situated at the top-left corner of the screen. So to transform
+        a point (x, y) from GraphViz to Cytoscape.js, we first turn it into
+        (x, y'), where y' = the vertical length of the bounding box of the
+        component, minus y.
+        """
+        # Rotate patterns
+        for patt in self.id2pattern.values():
+            bb = self.cc_num_to_bb[patt.cc_num]
+            # Swap height and width
+            patt.width, patt.height = patt.height, patt.width
+            # Rotate relative position
+            # This only needs to be done if this pattern is a child of another
+            # pattern
+            if patt.relative_x is not None:
+                (
+                    patt.relative_x,
+                    patt.relative_y,
+                ) = layout_utils.gv2cy_and_rotate(
+                    patt.relative_x, patt.relative_y, bb
+                )
+            # Change bounding box of the pattern. Rotation by 90 degrees is
+            # equal to changing (x, y) to (-y, x), so we change
+            # (left, bottom) into (-bottom, left), and we change
+            # (right, top) into (-top, right).
+            #
+            #     T
+            #    ___                  _______
+            #   |   |       --->     |       |
+            # L |   | R              |_______|
+            #   |___|
+            #     B
+            l, b, r, t = patt.left, patt.bottom, patt.right, patt.top
+            patt.left = -b
+            patt.right = -t
+            patt.top = r
+            patt.bottom = l
+
+        # Rotate normal nodes
+        for node_id in self.digraph.nodes:
+            data = self.digraph.nodes[node_id]
+            bb = self.cc_num_to_bb[data["cc_num"]]
+            data["width"], data["height"] = data["height"], data["width"]
+            data["x"], data["y"] = layout_utils.gv2cy_and_rotate(
+                data["x"], data["y"], bb
+            )
+
+        # Rotate edges
+        for edge in self.decomposed_digraph.edges:
+            data = self.decomposed_digraph.edges[edge]
+            bb = self.cc_num_to_bb[data["cc_num"]]
+            data[
+                "ctrl_pt_coords"
+            ] = layout_utils.gv2cy_and_rotate_ctrl_pt_coords(
+                data["ctrl_pt_coords"], bb
+            )
+
     def process(self):
         """Basic pipeline for preparing a graph for visualization."""
 
@@ -1691,3 +1787,5 @@ class AssemblyGraph(object):
         operation_msg("Laying out the graph...", True)
         self.layout()
         operation_msg("...Finished laying out the graph.", True)
+
+        self.rotate_from_TB_to_LR()

@@ -51,6 +51,10 @@ class Pattern(object):
         # exists in the top level of the graph.
         self.parent_id = None
 
+        # Number (1-indexed) of the connected component containing this pattern
+        # and its child nodes/edges. Will be set in layout().
+        self.cc_num = None
+
         # Update parent ID info for child nodes, patterns, and edges
         for node_id in self.node_ids:
             if asm_graph.is_pattern(node_id):
@@ -88,6 +92,22 @@ class Pattern(object):
                 node_ct += 1
 
         return [node_ct, edge_ct, patt_ct]
+
+    def set_cc_num(self, asm_graph, cc_num):
+        """Updates the component number attribute of all Patterns, nodes, and
+        edges in this Pattern.
+
+        This is really important to keep around for later -- it allows us to
+        traverse nodes/edges/etc. in the graph more easily later on.
+        """
+        self.cc_num = cc_num
+        for node_id in self.node_ids:
+            if asm_graph.is_pattern(node_id):
+                asm_graph.id2pattern[node_id].set_cc_num(cc_num)
+            else:
+                asm_graph.digraph.nodes[node_id]["cc_num"] = cc_num
+        for edge in self.subgraph.edges:
+            self.subgraph.edges[edge]["cc_num"] = cc_num
 
     def layout(self, asm_graph):
         # Recursively go through all of the nodes within this pattern. If any
