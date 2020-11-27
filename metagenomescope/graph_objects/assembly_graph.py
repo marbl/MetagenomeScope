@@ -1348,7 +1348,7 @@ class AssemblyGraph(object):
             ).edges
             for edge in top_level_edges:
                 gv_input += "\t{} -> {};\n".format(edge[0], edge[1])
-                self.decomposed_digraph.subgraph.edges[edge]["cc_num"] = cc_i
+                self.decomposed_digraph.edges[edge]["cc_num"] = cc_i
 
             gv_input += "}"
             top_level_cc_graph = pygraphviz.AGraph(gv_input)
