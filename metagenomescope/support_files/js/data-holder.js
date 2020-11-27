@@ -256,6 +256,11 @@ define(["underscore"], function (_) {
         getEdgeAttrs() {
             return this.data.edge_attrs;
         }
+
+        getComponentBoundingBox(sizeRank) {
+            this.validateComponentRank(sizeRank);
+            return this.data.components[sizeRank - 1].bb;
+        }
     }
     return { DataHolder: DataHolder };
 });

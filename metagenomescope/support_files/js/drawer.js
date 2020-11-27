@@ -383,7 +383,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             });
         }
 
-        renderPattern(pattAttrs, pattVals, pattID) {
+        renderPattern(pattAttrs, pattVals, pattID, dx, dy) {
             var bottLeft = [
                 pattVals[pattAttrs.left],
                 pattVals[pattAttrs.bottom],
@@ -413,12 +413,12 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             }
             this.cy.add({
                 data: pattData,
-                position: { x: centerPos[0], y: centerPos[1] },
+                position: { x: centerPos[0] + dx, y: centerPos[1] + dy },
                 classes: classes,
             });
         }
 
-        renderNode(nodeAttrs, nodeVals, nodeID) {
+        renderNode(nodeAttrs, nodeVals, nodeID, dx, dy) {
             var nodeData = {
                 id: nodeID,
                 label: nodeVals[nodeAttrs.name],
@@ -438,8 +438,8 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             this.cy.add({
                 data: nodeData,
                 position: {
-                    x: nodeVals[nodeAttrs.x],
-                    y: nodeVals[nodeAttrs.y],
+                    x: nodeVals[nodeAttrs.x] + dx,
+                    y: nodeVals[nodeAttrs.y] + dy,
                 },
                 classes: classes,
             });
@@ -469,20 +469,24 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             this.initGraph();
             // TODO: set graph bindings
             this.cy.startBatch();
+            // These are the "offsets" from the top-left of each component's
+            // bounding box, used when drawing multiple components at once.
+            var dx = 0;
+            var dy = 0;
             _.each(componentsToDraw, function (sizeRank) {
                 var pattAttrs = dataHolder.getPattAttrs();
                 _.each(dataHolder.getPatternsInComponent(sizeRank), function (
                     pattVals,
                     pattID
                 ) {
-                    scope.renderPattern(pattAttrs, pattVals, pattID);
+                    scope.renderPattern(pattAttrs, pattVals, pattID, dx, dy);
                 });
                 var nodeAttrs = dataHolder.getNodeAttrs();
                 _.each(dataHolder.getNodesInComponent(sizeRank), function (
                     nodeVals,
                     nodeID
                 ) {
-                    scope.renderNode(nodeAttrs, nodeVals, nodeID);
+                    scope.renderNode(nodeAttrs, nodeVals, nodeID, dx, dy);
                 });
                 var edgeAttrs = dataHolder.getEdgeAttrs();
                 // Edges are a bit different: they're structured as
@@ -492,9 +496,12 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     srcID
                 ) {
                     _.each(edgesFromSrcID, function (edgeVals, snkID) {
-                        scope.renderEdge(edgeAttrs, edgeVals, srcID, snkID);
+                        scope.renderEdge(edgeAttrs, edgeVals, srcID, snkID, dx, dy);
                     });
                 });
+                var componentBoundingBox = dataHolder.getComponentBoundingBox(sizeRank);
+                dy += componentBoundingBox[1];
+                console.log("BB", componentBoundingBox);
             });
             this.finishDraw();
         }

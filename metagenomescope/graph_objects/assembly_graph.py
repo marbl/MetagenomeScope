@@ -1752,10 +1752,13 @@ class AssemblyGraph(object):
                 data["ctrl_pt_coords"]
             )
 
-        # Rotate bounding boxes
+        # Rotate and scale bounding boxes
         for cc_num in self.cc_num_to_bb.keys():
             bb = self.cc_num_to_bb[cc_num]
-            self.cc_num_to_bb[cc_num] = [bb[1], bb[0]]
+            self.cc_num_to_bb[cc_num] = [
+                bb[1] * config.INCHES_TO_PIXELS,
+                bb[0] * config.INCHES_TO_PIXELS
+            ]
 
     def process(self):
         """Basic pipeline for preparing a graph for visualization."""
