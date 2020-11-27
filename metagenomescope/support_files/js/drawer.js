@@ -306,13 +306,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                         },
                     },
                     {
-                        selector: "edge.unoriented_loop",
-                        style: {
-                            "target-endpoint": "-50% 0%",
-                            "source-endpoint": "50% 0",
-                        },
-                    },
-                    {
                         // Used for edges that were assigned valid (i.e. not
                         // just a straight line or self-directed edge)
                         // cpd/cpw properties from the xdot file.
@@ -453,7 +446,51 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             );
         }
 
-        renderEdge(edgeAttrs, edgeVals, srcID, snkID) {}
+        renderEdge(edgeAttrs, edgeVals, srcID, snkID) {
+            var MIN_EDGE_THICKNESS = 3;
+            var MAX_EDGE_THICKNESS = 10;
+            var EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
+            var edgeWidth =
+                MIN_EDGE_THICKNESS +
+                edgeVals[edgeAttrs.relative_weight] * EDGE_THICKNESS_RANGE;
+            var classes = "oriented";
+            if (edgeVals[edgeAttrs.is_outlier] === 1) {
+                classes += " high_outlier";
+            } else if (edgeVals[edgeAttrs.is_outlier] === -1) {
+                classes += " low_outlier";
+            }
+            if (srcID === snkID) {
+                // It's a self-directed edge; don't bother parsing ctrl pt
+                // info, just render it as a bezier edge and be done with it
+                this.cy.add({
+                    classes: classes + " basicbezier",
+                    data: {
+                        source: srcID,
+                        target: snkID,
+                        thickness: edgeWidth,
+                    },
+                });
+                return;
+            } else {
+                // TODO: Get the positions of the source and sink node
+                // (probs just pass it directly into renderEdge() -- get it
+                // from the data holder directly in draw()). Convert into
+                // distances and weights for each point, which we can set as
+                // the cpd / cpw data attributes of an edge. If the control
+                // points basically approximate a straight line between source
+                // and sink then we can just draw a basicbezier instead.
+                //
+                // For now we just draw a straight line in any case
+                this.cy.add({
+                    classes: classes + " basicbezier",
+                    data: {
+                        source: srcID,
+                        target: snkID,
+                        thickness: edgeWidth,
+                    },
+                });
+            }
+        }
 
         /**
          * Draws component(s) in the graph.
