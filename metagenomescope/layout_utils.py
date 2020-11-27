@@ -101,7 +101,7 @@ def rotate(x, y):
     This is used when converting the graph layout from the top -> bottom
     direction to the left -> right direction.
     """
-    return (-y, x)
+    return -y, x
 
 
 def rotate_ctrl_pt_coords(coords):
@@ -151,6 +151,10 @@ def get_bb_x2_y2(bb_string):
     http://www.graphviz.org/doc/info/attrs.html#k:rect for reference.
     """
     x1, y1, x2, y2 = bb_string.split(",")
+    if x1 != "0" or y1 != "0":
+        raise ValueError(
+            "Bounding box doesn't start at (0, 0): {}".format(bb_string)
+        )
     x2i = float(x2) / config.POINTS_PER_INCH
     y2i = float(y2) / config.POINTS_PER_INCH
     return x2i, y2i
