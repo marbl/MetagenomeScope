@@ -169,8 +169,8 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     {
                         selector: "node.is_dup",
                         style: {
-                            "background-color": "#cc00cc"
-                        }
+                            "background-color": "#cc00cc",
+                        },
                     },
                     {
                         selector: "node.bb_enforcing",
@@ -440,6 +440,16 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 w: nodeVals[nodeAttrs.width],
                 h: nodeVals[nodeAttrs.height],
             };
+
+            // Store within parent, if needed
+            var parentID = nodeVals[nodeAttrs.parent_id];
+            if (!_.isNull(parentID)) {
+                nodeData.parent = parentID;
+                // TODO update a global ele2parent thing for collpasing /
+                // searching?
+            }
+
+            // Figure out node orientation and shape
             var classes = "basic";
             var orientation = nodeVals[nodeAttrs.orientation];
             if (orientation === "+") {
@@ -453,13 +463,15 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             if (nodeVals[nodeAttrs.is_dup]) {
                 classes += " is_dup";
             }
+
             var x = nodeVals[nodeAttrs.x] + dx;
             var y = nodeVals[nodeAttrs.y] + dy;
-            this.cy.add({
+            var data = {
                 data: nodeData,
                 position: { x: x, y: y },
                 classes: classes,
-            });
+            };
+            this.cy.add(data);
             console.log(
                 "Rendered node " +
                     nodeID +
@@ -583,6 +595,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
         }
 
         renderEdge(edgeAttrs, edgeVals, node2pos, srcID, tgtID, dx, dy) {
+            // Scale edge thickness, and see if it's an "outlier" or not
             var edgeWidth =
                 this.MIN_EDGE_THICKNESS +
                 edgeVals[edgeAttrs.relative_weight] * this.EDGE_THICKNESS_RANGE;
@@ -592,16 +605,25 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             } else if (edgeVals[edgeAttrs.is_outlier] === -1) {
                 classes += " low_outlier";
             }
+
+            var data = {
+                source: srcID,
+                target: tgtID,
+                thickness: edgeWidth,
+            };
+
+            var parentID = edgeVals[edgeAttrs.parent_id];
+            if (!_.isNull(parentID)) {
+                data.parent = parentID;
+                console.log("Parent of this edge is " + parentID);
+            }
+
             if (srcID === tgtID) {
                 // It's a self-directed edge; don't bother parsing ctrl pt
                 // info, just render it as a bezier edge and be done with it
                 this.cy.add({
                     classes: classes + " basicbezier",
-                    data: {
-                        source: srcID,
-                        target: tgtID,
-                        thickness: edgeWidth,
-                    },
+                    data: data,
                 });
                 return;
             } else {
@@ -621,18 +643,13 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     dx,
                     dy
                 );
-
                 if (ctrlPtData.complex) {
                     // Control points are valid
+                    data.cpd = ctrlPtData.dists;
+                    data.cpw = ctrlPtData.weights;
                     this.cy.add({
                         classes: classes + " unbundledbezier",
-                        data: {
-                            source: srcID,
-                            target: tgtID,
-                            thickness: edgeWidth,
-                            cpd: ctrlPtData.dists,
-                            cpw: ctrlPtData.weights,
-                        },
+                        data: data,
                     });
                 } else {
                     // Control point distances from a straight line between
@@ -640,11 +657,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     // approximate this edge as a straight line
                     this.cy.add({
                         classes: classes + " basicbezier",
-                        data: {
-                            source: srcID,
-                            target: tgtID,
-                            thickness: edgeWidth,
-                        },
+                        data: data,
                     });
                 }
             }
