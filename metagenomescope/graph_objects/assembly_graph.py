@@ -1587,7 +1587,7 @@ class AssemblyGraph(object):
             if len(extra_attrs) > 0:
                 extra_data = {a: graph_edge_data[a] for a in extra_attrs}
                 out_edge_data[EDGE_ATTRS["extra_data"]] = extra_data
-            return out_edge_data
+            return graph_edge_data["orig_src"], graph_edge_data["orig_tgt"], out_edge_data
 
         def add_edge(component_dict, edge, edge_data):
             if edge[0] in component_dict["edges"]:
@@ -1662,12 +1662,12 @@ class AssemblyGraph(object):
 
                         # Add data for the edges within this pattern.
                         for edge in curr_patt.subgraph.edges:
-                            data = get_edge_data(
+                            os, ot, data = get_edge_data(
                                 edge[0],
                                 edge[1],
                                 curr_patt.subgraph.edges[edge],
                             )
-                            add_edge(this_component, edge, data)
+                            add_edge(this_component, [os, ot], data)
                 else:
                     # Add node data (top level, i.e. not present in any
                     # patterns)
@@ -1680,12 +1680,12 @@ class AssemblyGraph(object):
 
             # Go through top-level edges and add data
             for edge in self.decomposed_digraph.subgraph(cc_tuple[0]).edges:
-                data = get_edge_data(
+                os, ot, data = get_edge_data(
                     edge[0],
                     edge[1],
                     self.decomposed_digraph.edges[edge],
                 )
-                add_edge(this_component, edge, data)
+                add_edge(this_component, [os, ot], data)
 
             # Since we're going through components in the order dictated by
             # self.get_connected_components() we can just add component JSONs
@@ -1731,6 +1731,13 @@ class AssemblyGraph(object):
             patt.right = -b
             patt.top = r
             patt.bottom = l
+
+            # Rotate edges within this pattern
+            for edge in patt.subgraph.edges:
+                data = patt.subgraph.edges[edge]
+                data["ctrl_pt_coords"] = layout_utils.rotate_ctrl_pt_coords(
+                    data["ctrl_pt_coords"]
+                )
 
         # Rotate normal nodes
         for node_id in self.digraph.nodes:
