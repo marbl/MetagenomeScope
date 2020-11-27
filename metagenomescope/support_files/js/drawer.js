@@ -1,4 +1,9 @@
-define(["jquery", "underscore", "cytoscape", "utils"], function ($, _, cytoscape, utils) {
+define(["jquery", "underscore", "cytoscape", "utils"], function (
+    $,
+    _,
+    cytoscape,
+    utils
+) {
     class Drawer {
         constructor(cyDivID) {
             this.cyDivID = cyDivID;
@@ -417,15 +422,18 @@ define(["jquery", "underscore", "cytoscape", "utils"], function ($, _, cytoscape
             _.each(componentsToDraw, function (sizeRank) {
                 var pattAttrs = dataHolder.data.patt_attrs;
                 _.each(dataHolder.getPatternsInComponent(sizeRank), function (
-                    pattVals, pattID
+                    pattVals,
+                    pattID
                 ) {
                     var bb = dataHolder.data.components[sizeRank - 1].bb;
-                    var bottLeft = utils.gv2cyPoint(
-                        pattVals[pattAttrs.left], pattVals[pattAttrs.bottom], bb
-                    );
-                    var topRight = utils.gv2cyPoint(
-                        pattVals[pattAttrs.right], pattVals[pattAttrs.top], bb
-                    );
+                    var bottLeft = [
+                        pattVals[pattAttrs.left],
+                        pattVals[pattAttrs.bottom],
+                    ];
+                    var topRight = [
+                        pattVals[pattAttrs.right],
+                        pattVals[pattAttrs.top],
+                    ];
                     var centerPos = [
                         (bottLeft[0] + topRight[0]) / 2,
                         (bottLeft[1] + topRight[1]) / 2,
@@ -439,11 +447,15 @@ define(["jquery", "underscore", "cytoscape", "utils"], function ($, _, cytoscape
                     var classes = "pattern";
                     if (pattVals[pattAttrs.pattern_type] === "chain") {
                         classes += " C";
-                    } else if (pattVals[pattAttrs.pattern_type] === "cyclicchain") {
+                    } else if (
+                        pattVals[pattAttrs.pattern_type] === "cyclicchain"
+                    ) {
                         classes += " Y";
                     } else if (pattVals[pattAttrs.pattern_type] === "bubble") {
                         classes += " B";
-                    } else if (pattVals[pattAttrs.pattern_type] === "frayedrope") {
+                    } else if (
+                        pattVals[pattAttrs.pattern_type] === "frayedrope"
+                    ) {
                         classes += " F";
                     } else {
                         classes += " M";
@@ -456,7 +468,8 @@ define(["jquery", "underscore", "cytoscape", "utils"], function ($, _, cytoscape
                 });
                 var nodeAttrs = dataHolder.data.node_attrs;
                 _.each(dataHolder.getNodesInComponent(sizeRank), function (
-                    nodeVals, nodeID
+                    nodeVals,
+                    nodeID
                 ) {
                     var nodeData = {
                         id: nodeID,
@@ -474,11 +487,16 @@ define(["jquery", "underscore", "cytoscape", "utils"], function ($, _, cytoscape
                     } else if (orientation === "-") {
                         classes += " leftdir";
                     } else {
-                        throw new Error("Invalid node orientation " + orientation);
+                        throw new Error(
+                            "Invalid node orientation " + orientation
+                        );
                     }
                     scope.cy.add({
                         data: nodeData,
-                        position: { x: nodeVals[nodeAttrs.x], y: nodeVals[nodeAttrs.y] },
+                        position: {
+                            x: nodeVals[nodeAttrs.x],
+                            y: nodeVals[nodeAttrs.y],
+                        },
                         classes: classes,
                     });
                 });
