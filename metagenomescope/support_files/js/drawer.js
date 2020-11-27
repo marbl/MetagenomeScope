@@ -444,9 +444,11 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     y +
                     ")"
             );
+            return [x, y];
         }
 
-        renderEdge(edgeAttrs, edgeVals, srcID, snkID) {
+        renderEdge(edgeAttrs, edgeVals, node2pos, srcID, tgtID, dx, dy) {
+            var CTRL_PT_DIST_EPSILON = 1.0;
             var MIN_EDGE_THICKNESS = 3;
             var MAX_EDGE_THICKNESS = 10;
             var EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
@@ -459,36 +461,111 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             } else if (edgeVals[edgeAttrs.is_outlier] === -1) {
                 classes += " low_outlier";
             }
-            if (srcID === snkID) {
+            if (srcID === tgtID) {
                 // It's a self-directed edge; don't bother parsing ctrl pt
                 // info, just render it as a bezier edge and be done with it
                 this.cy.add({
                     classes: classes + " basicbezier",
                     data: {
                         source: srcID,
-                        target: snkID,
+                        target: tgtID,
                         thickness: edgeWidth,
                     },
                 });
                 return;
             } else {
-                // TODO: Get the positions of the source and sink node
-                // (probs just pass it directly into renderEdge() -- get it
-                // from the data holder directly in draw()). Convert into
-                // distances and weights for each point, which we can set as
-                // the cpd / cpw data attributes of an edge. If the control
-                // points basically approximate a straight line between source
-                // and sink then we can just draw a basicbezier instead.
-                //
-                // For now we just draw a straight line in any case
-                this.cy.add({
-                    classes: classes + " basicbezier",
-                    data: {
-                        source: srcID,
-                        target: snkID,
-                        thickness: edgeWidth,
-                    },
-                });
+                var srcPos = node2pos[srcID];
+                var tgtPos = node2pos[tgtID];
+                if (!_.has(node2pos, srcID) || !_.has(node2pos, tgtID)) {
+                    throw new Error("ID not in node2pos...?");
+                }
+                var srcTgtDist = utils.distance(srcPos, tgtPos);
+                var ctrlPts = edgeVals[edgeAttrs.ctrl_pt_coords];
+                var nonzero = false;
+                var ctrlPtDists = "";
+                var ctrlPtWeights = "";
+                var currPt, pld, pldsquared, dsp, dtp, w, ws, wt;
+                console.log("Control points are: ", ctrlPts);
+                for (var p = 0; p < ctrlPts.length; p += 2) {
+                    currPt = [ctrlPts[p] + dx, ctrlPts[p + 1] + dy];
+                    pld = utils.pointToLineDistance(currPt, srcPos, tgtPos);
+                    pldsquared = Math.pow(pld, 2);
+                    dsp = utils.distance(currPt, srcPos);
+                    dtp = utils.distance(currPt, tgtPos);
+                    // By the pythagorean thm., the interior of the square root
+                    // below should always be positive -- the hypotenuse must
+                    // always be greater than both of the other sides of a right
+                    // triangle.
+                    // However, due to Javascript's lovely (...)
+                    // type system, rounding errors can cause the hypotenuse (dsp
+                    // or dtp)
+                    // be represented as slightly less than d. So, to account for
+                    // these cases, we just take the abs. value of the sqrt body.
+                    // NOTE that ws = distance on line to source;
+                    //           wt = distance on line to target
+                    ws = Math.sqrt(Math.abs(Math.pow(dsp, 2) - pldsquared));
+                    wt = Math.sqrt(Math.abs(Math.pow(dtp, 2) - pldsquared));
+                    // Get the weight of the control point on the line between
+                    // source and sink oriented properly -- if the control point is
+                    // "behind" the source node, we make it negative, and if the
+                    // point is "past" the sink node, we make it > 1. Everything in
+                    // between the source and sink falls within [0, 1] inclusive.
+                    if (wt > srcTgtDist && wt > ws) {
+                        // The ctrl. pt. is "behind" the source node
+                        w = -ws / srcTgtDist;
+                    } else {
+                        // The ctrl. pt. is anywhere past the source node
+                        w = ws / srcTgtDist;
+                    }
+                    // If we detect all of the control points of an edge are less
+                    // than some epsilon value, we just render the edge as a normal
+                    // bezier (which defaults to a straight line).
+                    if (Math.abs(pld) > CTRL_PT_DIST_EPSILON) {
+                        nonzero = true;
+                    }
+                    // Control points with a weight of 0 (as the first ctrl pt)
+                    // or a weight of 1 (as the last ctrl pt) aren't valid due
+                    // to implicit points already "existing there."
+                    // (See https://github.com/cytoscape/cytoscape.js/issues/1451)
+                    // This preemptively rectifies such control points.
+                    if (p === 0 && w === 0.0) {
+                        w = 0.01;
+                    } else if (p == ctrlPts.length - 2 && w === 1.0) {
+                        w = 0.99;
+                    }
+                    ctrlPtDists += pld.toFixed(2) + " ";
+                    ctrlPtWeights += w.toFixed(2) + " ";
+                }
+                ctrlPtDists = ctrlPtDists.trim();
+                ctrlPtWeights = ctrlPtWeights.trim();
+
+                if (nonzero) {
+                    console.log("Complex!");
+                    // Control points are valid
+                    this.cy.add({
+                        classes: classes + " unbundledbezier",
+                        data: {
+                            source: srcID,
+                            target: tgtID,
+                            thickness: edgeWidth,
+                            cpd: ctrlPtDists,
+                            cpw: ctrlPtWeights,
+                        },
+                    });
+                } else {
+                    console.log("Approximating.");
+                    // Control point distances from a straight line between
+                    // source and sink are small enough that we can just
+                    // approximate this edge as a straight line
+                    this.cy.add({
+                        classes: classes + " basicbezier",
+                        data: {
+                            source: srcID,
+                            target: tgtID,
+                            thickness: edgeWidth,
+                        },
+                    });
+                }
             }
         }
 
@@ -520,6 +597,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             var dx = 0;
             var dy = 0;
             _.each(componentsToDraw, function (sizeRank) {
+                // Draw patterns
                 var pattAttrs = dataHolder.getPattAttrs();
                 _.each(dataHolder.getPatternsInComponent(sizeRank), function (
                     pattVals,
@@ -527,31 +605,48 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 ) {
                     scope.renderPattern(pattAttrs, pattVals, pattID, dx, dy);
                 });
+
+                // Draw nodes
+                var node2pos = {};
                 var nodeAttrs = dataHolder.getNodeAttrs();
                 _.each(dataHolder.getNodesInComponent(sizeRank), function (
                     nodeVals,
                     nodeID
                 ) {
-                    scope.renderNode(nodeAttrs, nodeVals, nodeID, dx, dy);
+                    var pos = scope.renderNode(
+                        nodeAttrs,
+                        nodeVals,
+                        nodeID,
+                        dx,
+                        dy
+                    );
+                    node2pos[nodeID] = pos;
                 });
+
+                // Draw edges
                 var edgeAttrs = dataHolder.getEdgeAttrs();
                 // Edges are a bit different: they're structured as
-                // {srcID: {snkID: edgeVals, snkID2: edgeVals}, ...}
+                // {srcID: {tgtID: edgeVals, tgtID2: edgeVals}, ...}
                 _.each(dataHolder.getEdgesInComponent(sizeRank), function (
                     edgesFromSrcID,
                     srcID
                 ) {
-                    _.each(edgesFromSrcID, function (edgeVals, snkID) {
+                    _.each(edgesFromSrcID, function (edgeVals, tgtID) {
                         scope.renderEdge(
                             edgeAttrs,
                             edgeVals,
+                            node2pos,
                             srcID,
-                            snkID,
+                            tgtID,
                             dx,
                             dy
                         );
                     });
                 });
+
+                // If we're drawing multiple components at once, let's update
+                // dx and dy so that we can place other components somewhere
+                // that doesn't interfere with previously-drawn components.
                 var componentBoundingBox = dataHolder.getComponentBoundingBox(
                     sizeRank
                 );
