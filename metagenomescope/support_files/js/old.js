@@ -61,19 +61,6 @@ mgsc.NODE_DOWNDIR = "-1 -1 -1 0.23587 0 1 1 0.23587 1 -1";
 // 72 ppi?
 mgsc.INCHES_TO_PIXELS = 54;
 
-// Anything less than this constant will be considered a "straight" control
-// point distance. This way we can approximate simple B-splines with straight
-// bezier curves (which are cheaper and easier to draw).
-mgsc.CTRL_PT_DIST_EPSILON = 1.0;
-// Edge thickness stuff, as will be rendered by Cytoscape.js
-// Used in tandem with the "thickness" percentage associated with each edge in
-// the input .db file to scale edges' displayed "weight" accordingly
-mgsc.MAX_EDGE_THICKNESS = 10;
-mgsc.MIN_EDGE_THICKNESS = 3;
-// We just calculate this here to save on the costs of calculating it |edges|
-// times during drawing:
-mgsc.EDGE_THICKNESS_RANGE = mgsc.MAX_EDGE_THICKNESS - mgsc.MIN_EDGE_THICKNESS;
-
 // Misc. global variables we use to get certain functionality
 // The current "view type" -- will always be one of {"SPQR", "double"}
 mgsc.CURR_VIEWTYPE = undefined;

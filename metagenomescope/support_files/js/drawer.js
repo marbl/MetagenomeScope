@@ -12,6 +12,22 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             this.cy = null;
 
             this.bgColor = undefined;
+
+            // Various constants
+            //
+            // Anything less than this constant will be considered a "straight"
+            // control point distance. This way we can approximate simple
+            // B-splines with straight bezier curves (which are cheaper and
+            // easier to draw).
+            this.CTRL_PT_DIST_EPSILON = 1.0;
+            // Edge thickness stuff, as will be rendered by Cytoscape.js. Used
+            // in tandem with the "relative_weight" (formerly "thickness")
+            // value associated with each edge to scale edges' displayed
+            // "weights" accordingly.
+            this.MIN_EDGE_THICKNESS = 3;
+            this.MAX_EDGE_THICKNESS = 10;
+            this.EDGE_THICKNESS_RANGE =
+                this.MAX_EDGE_THICKNESS - this.MIN_EDGE_THICKNESS;
         }
 
         /**
@@ -447,14 +463,118 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             return [x, y];
         }
 
+        /**
+         * Given a start node position, an end node position, and the
+         * control points of an edge connecting the two nodes, converts
+         * the control points into arrays of "distances" and "weights" that
+         * Cytoscape.js can use when drawing an unbundled Bezier edge.
+         *
+         * For more information about what "distances" and "weights" mean in
+         * this context (it's been so long since I first wrote this code that I
+         * forget the details...), see Cytoscape.js' documentation at
+         * https://js.cytoscape.org/#style/unbundled-bezier-edges. The Cliff
+         * Notes explanation is that this is just a way of representing
+         * control points besides literally just listing the control points, as
+         * GraphViz does.
+         *
+         * Note that all of the Array parameters below should have only Numbers
+         * as their values.
+         *
+         * @param {Array} srcPos Of the format [x, y].
+         * @param {Array} tgtPos Of the format [x, y].
+         * @param {Array} ctrlPts Of the format [x1, y1, x2, y2, ...].
+         * @param {Number} dx Value to add to every control point x-coordinate
+         * @param {Number} dy Value to add to every control point y-coordinate
+         *
+         * @return {Object} Has the following keys:
+         *                  -complex: Maps to a Boolean. If this is true,
+         *                   then this edge cannot be easily approximated with
+         *                   a straight line, and an unbundled Bezier curve
+         *                   should thus be drawn for this edge. If this is
+         *                   false, then we can probably just draw a straight
+         *                   line (i.e. using the class "basicbezier") for this
+         *                   edge, and the "dists" and "weights" keys in this
+         *                   Object can probably be ignored.
+         *
+         *                  -dists: Maps to an Array of Numbers representing
+         *                   the distances from each control point to a line
+         *                   from the source to the target position. Usable as
+         *                   the "cpd" data attribute for unbundled bezier
+         *                   edges.
+         *
+         *                  -weights: Maps to an Array of Numbers representing
+         *                   the "weights" of each control point along a line
+         *                   from the source to the target position. Usable as
+         *                   the "cpw" data attribute for unbundled bezier
+         *                   edges.
+         */
+        convertCtrlPtsToDistsAndWeights(srcPos, tgtPos, ctrlPts, dx, dy) {
+            var srcTgtDist = utils.distance(srcPos, tgtPos);
+            var complex = false;
+            var ctrlPtDists = "";
+            var ctrlPtWeights = "";
+            var currPt, pld, pldsquared, dsp, dtp, w, ws, wt;
+            for (var p = 0; p < ctrlPts.length; p += 2) {
+                currPt = [ctrlPts[p] + dx, ctrlPts[p + 1] + dy];
+                pld = utils.pointToLineDistance(currPt, srcPos, tgtPos);
+                pldsquared = Math.pow(pld, 2);
+                dsp = utils.distance(currPt, srcPos);
+                dtp = utils.distance(currPt, tgtPos);
+                // By the pythagorean thm., the interior of the square root
+                // below should always be positive -- the hypotenuse must
+                // always be greater than both of the other sides of a right
+                // triangle.
+                // However, due to Javascript's lovely (...)
+                // type system, rounding errors can cause the hypotenuse (dsp
+                // or dtp)
+                // be represented as slightly less than d. So, to account for
+                // these cases, we just take the abs. value of the sqrt body.
+                // NOTE that ws = distance on line to source;
+                //           wt = distance on line to target
+                ws = Math.sqrt(Math.abs(Math.pow(dsp, 2) - pldsquared));
+                wt = Math.sqrt(Math.abs(Math.pow(dtp, 2) - pldsquared));
+                // Get the weight of the control point on the line between
+                // source and sink oriented properly -- if the control point is
+                // "behind" the source node, we make it negative, and if the
+                // point is "past" the sink node, we make it > 1. Everything in
+                // between the source and sink falls within [0, 1] inclusive.
+                if (wt > srcTgtDist && wt > ws) {
+                    // The ctrl. pt. is "behind" the source node
+                    w = -ws / srcTgtDist;
+                } else {
+                    // The ctrl. pt. is anywhere past the source node
+                    w = ws / srcTgtDist;
+                }
+                // If we detect all of the control points of an edge are less
+                // than some epsilon value, we just render the edge as a normal
+                // bezier (which defaults to a straight line).
+                if (Math.abs(pld) > this.CTRL_PT_DIST_EPSILON) {
+                    complex = true;
+                }
+                // Control points with a weight of 0 (as the first ctrl pt)
+                // or a weight of 1 (as the last ctrl pt) aren't valid due
+                // to implicit points already "existing there."
+                // (See https://github.com/cytoscape/cytoscape.js/issues/1451)
+                // This preemptively rectifies such control points.
+                if (p === 0 && w === 0.0) {
+                    w = 0.01;
+                } else if (p == ctrlPts.length - 2 && w === 1.0) {
+                    w = 0.99;
+                }
+                ctrlPtDists += pld.toFixed(2) + " ";
+                ctrlPtWeights += w.toFixed(2) + " ";
+            }
+            return {
+                complex: complex,
+                dists: ctrlPtDists.trim(),
+                weights: ctrlPtWeights.trim(),
+            };
+        }
+
         renderEdge(edgeAttrs, edgeVals, node2pos, srcID, tgtID, dx, dy) {
-            var CTRL_PT_DIST_EPSILON = 1.0;
-            var MIN_EDGE_THICKNESS = 3;
-            var MAX_EDGE_THICKNESS = 10;
-            var EDGE_THICKNESS_RANGE = MAX_EDGE_THICKNESS - MIN_EDGE_THICKNESS;
             var edgeWidth =
-                MIN_EDGE_THICKNESS +
-                edgeVals[edgeAttrs.relative_weight] * EDGE_THICKNESS_RANGE;
+                this.MIN_EDGE_THICKNESS +
+                edgeVals[edgeAttrs.relative_weight] * this.EDGE_THICKNESS_RANGE;
             var classes = "oriented";
             if (edgeVals[edgeAttrs.is_outlier] === 1) {
                 classes += " high_outlier";
@@ -482,66 +602,16 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     console.log("tgt ID: ", tgtID);
                     throw new Error("ID(s) not in node2pos...?");
                 }
-                var srcTgtDist = utils.distance(srcPos, tgtPos);
                 var ctrlPts = edgeVals[edgeAttrs.ctrl_pt_coords];
-                var nonzero = false;
-                var ctrlPtDists = "";
-                var ctrlPtWeights = "";
-                var currPt, pld, pldsquared, dsp, dtp, w, ws, wt;
-                for (var p = 0; p < ctrlPts.length; p += 2) {
-                    currPt = [ctrlPts[p] + dx, ctrlPts[p + 1] + dy];
-                    pld = utils.pointToLineDistance(currPt, srcPos, tgtPos);
-                    pldsquared = Math.pow(pld, 2);
-                    dsp = utils.distance(currPt, srcPos);
-                    dtp = utils.distance(currPt, tgtPos);
-                    // By the pythagorean thm., the interior of the square root
-                    // below should always be positive -- the hypotenuse must
-                    // always be greater than both of the other sides of a right
-                    // triangle.
-                    // However, due to Javascript's lovely (...)
-                    // type system, rounding errors can cause the hypotenuse (dsp
-                    // or dtp)
-                    // be represented as slightly less than d. So, to account for
-                    // these cases, we just take the abs. value of the sqrt body.
-                    // NOTE that ws = distance on line to source;
-                    //           wt = distance on line to target
-                    ws = Math.sqrt(Math.abs(Math.pow(dsp, 2) - pldsquared));
-                    wt = Math.sqrt(Math.abs(Math.pow(dtp, 2) - pldsquared));
-                    // Get the weight of the control point on the line between
-                    // source and sink oriented properly -- if the control point is
-                    // "behind" the source node, we make it negative, and if the
-                    // point is "past" the sink node, we make it > 1. Everything in
-                    // between the source and sink falls within [0, 1] inclusive.
-                    if (wt > srcTgtDist && wt > ws) {
-                        // The ctrl. pt. is "behind" the source node
-                        w = -ws / srcTgtDist;
-                    } else {
-                        // The ctrl. pt. is anywhere past the source node
-                        w = ws / srcTgtDist;
-                    }
-                    // If we detect all of the control points of an edge are less
-                    // than some epsilon value, we just render the edge as a normal
-                    // bezier (which defaults to a straight line).
-                    if (Math.abs(pld) > CTRL_PT_DIST_EPSILON) {
-                        nonzero = true;
-                    }
-                    // Control points with a weight of 0 (as the first ctrl pt)
-                    // or a weight of 1 (as the last ctrl pt) aren't valid due
-                    // to implicit points already "existing there."
-                    // (See https://github.com/cytoscape/cytoscape.js/issues/1451)
-                    // This preemptively rectifies such control points.
-                    if (p === 0 && w === 0.0) {
-                        w = 0.01;
-                    } else if (p == ctrlPts.length - 2 && w === 1.0) {
-                        w = 0.99;
-                    }
-                    ctrlPtDists += pld.toFixed(2) + " ";
-                    ctrlPtWeights += w.toFixed(2) + " ";
-                }
-                ctrlPtDists = ctrlPtDists.trim();
-                ctrlPtWeights = ctrlPtWeights.trim();
+                var ctrlPtData = this.convertCtrlPtsToDistsAndWeights(
+                    srcPos,
+                    tgtPos,
+                    ctrlPts,
+                    dx,
+                    dy
+                );
 
-                if (nonzero) {
+                if (ctrlPtData.complex) {
                     // Control points are valid
                     this.cy.add({
                         classes: classes + " unbundledbezier",
@@ -549,8 +619,8 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                             source: srcID,
                             target: tgtID,
                             thickness: edgeWidth,
-                            cpd: ctrlPtDists,
-                            cpw: ctrlPtWeights,
+                            cpd: ctrlPtData.dists,
+                            cpw: ctrlPtData.weights,
                         },
                     });
                 } else {
@@ -579,9 +649,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
          *
          * @throws {Error} If componentsToDraw contains duplicate values and/or
          *                 if any of the numbers within it are invalid with
-         *                 respect to the dataHolder. (TODO -- maybe make this
-         *                 a dataholder method? validation shouldn't be the
-         *                 drawer's problem.)
+         *                 respect to the dataHolder.
          */
         draw(componentsToDraw, dataHolder) {
             var scope = this;
