@@ -704,7 +704,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 // Draw patterns
                 var pattAttrs = dataHolder.getPattAttrs();
                 _.each(dataHolder.getPatternsInComponent(sizeRank), function (
-                    pattVals,
+                    pattVals
                 ) {
                     scope.renderPattern(pattAttrs, pattVals, dx, dy);
                 });
