@@ -384,15 +384,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
         }
 
         renderPattern(pattAttrs, pattVals, pattID, dx, dy) {
-            var bottLeft = [
-                pattVals[pattAttrs.left],
-                pattVals[pattAttrs.bottom],
-            ];
-            var topRight = [pattVals[pattAttrs.right], pattVals[pattAttrs.top]];
-            var centerPos = [
-                (bottLeft[0] + topRight[0]) / 2,
-                (bottLeft[1] + topRight[1]) / 2,
-            ];
             var pattData = {
                 id: pattID,
                 w: pattVals[pattAttrs.width],
@@ -411,11 +402,18 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             } else {
                 classes += " M";
             }
+            var x =
+                dx + (pattVals[pattAttrs.left] + pattVals[pattAttrs.right]) / 2;
+            var y =
+                dy + (pattVals[pattAttrs.bottom] + pattVals[pattAttrs.top]) / 2;
             this.cy.add({
                 data: pattData,
-                position: { x: centerPos[0] + dx, y: centerPos[1] + dy },
+                position: { x: x, y: y },
                 classes: classes,
             });
+            console.log(
+                "Rendered pattern " + pattID + " at (" + x + ", " + y + ")"
+            );
         }
 
         renderNode(nodeAttrs, nodeVals, nodeID, dx, dy) {
@@ -435,14 +433,24 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             } else {
                 throw new Error("Invalid node orientation " + orientation);
             }
+            var x = nodeVals[nodeAttrs.x] + dx;
+            var y = nodeVals[nodeAttrs.y] + dy;
             this.cy.add({
                 data: nodeData,
-                position: {
-                    x: nodeVals[nodeAttrs.x] + dx,
-                    y: nodeVals[nodeAttrs.y] + dy,
-                },
+                position: { x: x, y: y },
                 classes: classes,
             });
+            console.log(
+                "Rendered node " +
+                    nodeID +
+                    " (name " +
+                    nodeVals[nodeAttrs.name] +
+                    ") at (" +
+                    x +
+                    ", " +
+                    y +
+                    ")"
+            );
         }
 
         renderEdge(edgeAttrs, edgeVals, srcID, snkID) {}
@@ -471,6 +479,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             this.cy.startBatch();
             // These are the "offsets" from the top-left of each component's
             // bounding box, used when drawing multiple components at once.
+            var maxWidth = null;
             var dx = 0;
             var dy = 0;
             _.each(componentsToDraw, function (sizeRank) {
@@ -496,12 +505,20 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     srcID
                 ) {
                     _.each(edgesFromSrcID, function (edgeVals, snkID) {
-                        scope.renderEdge(edgeAttrs, edgeVals, srcID, snkID, dx, dy);
+                        scope.renderEdge(
+                            edgeAttrs,
+                            edgeVals,
+                            srcID,
+                            snkID,
+                            dx,
+                            dy
+                        );
                     });
                 });
-                var componentBoundingBox = dataHolder.getComponentBoundingBox(sizeRank);
+                var componentBoundingBox = dataHolder.getComponentBoundingBox(
+                    sizeRank
+                );
                 dy += componentBoundingBox[1];
-                console.log("BB", componentBoundingBox);
             });
             this.finishDraw();
         }
