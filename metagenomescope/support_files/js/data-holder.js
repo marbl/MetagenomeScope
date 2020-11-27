@@ -244,6 +244,19 @@ define(["underscore"], function (_) {
             this.validateComponentRank(sizeRank);
             return this.data.components[sizeRank - 1].edges;
         }
+
+        getPattAttrs() {
+            return this.data.patt_attrs;
+        }
+
+        getNodeAttrs() {
+            return this.data.node_attrs;
+        }
+
+        getEdgeAttrs() {
+            return this.data.edge_attrs;
+        }
+
     }
     return { DataHolder: DataHolder };
 });

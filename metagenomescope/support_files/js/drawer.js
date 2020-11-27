@@ -392,6 +392,70 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             });
         }
 
+        renderPattern(pattAttrs, pattVals, pattID) {
+            var bottLeft = [
+                pattVals[pattAttrs.left],
+                pattVals[pattAttrs.bottom],
+            ];
+            var topRight = [pattVals[pattAttrs.right], pattVals[pattAttrs.top]];
+            var centerPos = [
+                (bottLeft[0] + topRight[0]) / 2,
+                (bottLeft[1] + topRight[1]) / 2,
+            ];
+            var pattData = {
+                id: pattID,
+                w: pattVals[pattAttrs.width],
+                h: pattVals[pattAttrs.height],
+                isCollapsed: false,
+            };
+            var classes = "pattern";
+            if (pattVals[pattAttrs.pattern_type] === "chain") {
+                classes += " C";
+            } else if (pattVals[pattAttrs.pattern_type] === "cyclicchain") {
+                classes += " Y";
+            } else if (pattVals[pattAttrs.pattern_type] === "bubble") {
+                classes += " B";
+            } else if (pattVals[pattAttrs.pattern_type] === "frayedrope") {
+                classes += " F";
+            } else {
+                classes += " M";
+            }
+            this.cy.add({
+                data: pattData,
+                position: { x: centerPos[0], y: centerPos[1] },
+                classes: classes,
+            });
+        }
+
+        renderNode(nodeAttrs, nodeVals, nodeID) {
+            var nodeData = {
+                id: nodeID,
+                label: nodeVals[nodeAttrs.name],
+                length: nodeVals[nodeAttrs.length],
+                w: nodeVals[nodeAttrs.width],
+                h: nodeVals[nodeAttrs.height],
+            };
+            var classes = "basic";
+            var orientation = nodeVals[nodeAttrs.orientation];
+            if (orientation === "+") {
+                classes += " rightdir";
+            } else if (orientation === "-") {
+                classes += " leftdir";
+            } else {
+                throw new Error("Invalid node orientation " + orientation);
+            }
+            this.cy.add({
+                data: nodeData,
+                position: {
+                    x: nodeVals[nodeAttrs.x],
+                    y: nodeVals[nodeAttrs.y],
+                },
+                classes: classes,
+            });
+        }
+
+        renderEdge(edgeAttrs, edgeVals, srcID, snkID) {}
+
         /**
          * Draws component(s) in the graph.
          *
@@ -412,96 +476,33 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 this.destroyGraph();
             }
             this.initGraph();
-            this.cy.startBatch();
             // TODO: set graph bindings
-            //
-            // -Pass each component to DataHolder, and have it give us all the
-            // patterns, nodes, and edges to draw for that component. We will
-            // need to iterate through each component and then concatenate the
-            // positions based on previously drawn components.
+            this.cy.startBatch();
             _.each(componentsToDraw, function (sizeRank) {
-                var pattAttrs = dataHolder.data.patt_attrs;
+                var pattAttrs = dataHolder.getPattAttrs();
                 _.each(dataHolder.getPatternsInComponent(sizeRank), function (
                     pattVals,
                     pattID
                 ) {
-                    var bb = dataHolder.data.components[sizeRank - 1].bb;
-                    var bottLeft = [
-                        pattVals[pattAttrs.left],
-                        pattVals[pattAttrs.bottom],
-                    ];
-                    var topRight = [
-                        pattVals[pattAttrs.right],
-                        pattVals[pattAttrs.top],
-                    ];
-                    var centerPos = [
-                        (bottLeft[0] + topRight[0]) / 2,
-                        (bottLeft[1] + topRight[1]) / 2,
-                    ];
-                    var pattData = {
-                        id: pattID,
-                        w: pattVals[pattAttrs.width],
-                        h: pattVals[pattAttrs.height],
-                        isCollapsed: false,
-                    };
-                    var classes = "pattern";
-                    if (pattVals[pattAttrs.pattern_type] === "chain") {
-                        classes += " C";
-                    } else if (
-                        pattVals[pattAttrs.pattern_type] === "cyclicchain"
-                    ) {
-                        classes += " Y";
-                    } else if (pattVals[pattAttrs.pattern_type] === "bubble") {
-                        classes += " B";
-                    } else if (
-                        pattVals[pattAttrs.pattern_type] === "frayedrope"
-                    ) {
-                        classes += " F";
-                    } else {
-                        classes += " M";
-                    }
-                    scope.cy.add({
-                        data: pattData,
-                        position: { x: centerPos[0], y: centerPos[1] },
-                        classes: classes,
-                    });
+                    scope.renderPattern(pattAttrs, pattVals, pattID);
                 });
-                var nodeAttrs = dataHolder.data.node_attrs;
+                var nodeAttrs = dataHolder.getNodeAttrs();
                 _.each(dataHolder.getNodesInComponent(sizeRank), function (
                     nodeVals,
                     nodeID
                 ) {
-                    var nodeData = {
-                        id: nodeID,
-                        label: nodeVals[nodeAttrs.name],
-                        length: nodeVals[nodeAttrs.length],
-                        w: nodeVals[nodeAttrs.width],
-                        h: nodeVals[nodeAttrs.height],
-                    };
-                    var classes = "basic";
-                    var orientation = nodeVals[nodeAttrs.orientation];
-                    if (orientation === "+") {
-                        classes += " rightdir";
-                    } else if (orientation === "-") {
-                        classes += " leftdir";
-                    } else {
-                        throw new Error(
-                            "Invalid node orientation " + orientation
-                        );
-                    }
-                    scope.cy.add({
-                        data: nodeData,
-                        position: {
-                            x: nodeVals[nodeAttrs.x],
-                            y: nodeVals[nodeAttrs.y],
-                        },
-                        classes: classes,
-                    });
+                    scope.renderNode(nodeAttrs, nodeVals, nodeID);
                 });
+                var edgeAttrs = dataHolder.getEdgeAttrs();
+                // Edges are a bit different: they're structured as
+                // {srcID: {snkID: edgeVals, snkID2: edgeVals}, ...}
                 _.each(dataHolder.getEdgesInComponent(sizeRank), function (
-                    edge
+                    edgesFromSrcID,
+                    srcID
                 ) {
-                    // TODO: replicate renderEdgeObject() here. Yeesh!
+                    _.each(edgesFromSrcID, function (edgeVals, snkID) {
+                        scope.renderEdge(edgeAttrs, edgeVals, srcID, snkID);
+                    });
                 });
             });
             this.finishDraw();

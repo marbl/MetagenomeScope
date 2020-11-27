@@ -1767,6 +1767,11 @@ class AssemblyGraph(object):
                 data["ctrl_pt_coords"], bb
             )
 
+        # Rotate bounding boxes
+        for cc_num in self.cc_num_to_bb.keys():
+            bb = self.cc_num_to_bb[cc_num]
+            self.cc_num_to_bb[cc_num] = [bb[1], bb[0]]
+
     def process(self):
         """Basic pipeline for preparing a graph for visualization."""
 
