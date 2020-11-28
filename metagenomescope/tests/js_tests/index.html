@@ -29,38 +29,19 @@
             name="description"
             content="Web application for the hierarchical visualization of metagenomic assembly graphs."
         />
-        <title>MetagenomeScope Viewer</title>
-        <link rel="shortcut icon" href="bubble.ico" />
+        <title>MetagenomeScope</title>
+        <link rel="shortcut icon" href="../../support_files/bubble.ico" />
         <!-- Load external libraries -->
-        <!-- Reference viewer_style.min.css and xdot2cy.min.js in releases -->
-        <link rel="stylesheet" href="vendor/css/bootstrap.min.css" />
-        <link rel="stylesheet" href="css/viewer_style.css" />
+        <link rel="stylesheet" href="../../support_files/vendor/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="../../support_files/css/viewer_style.css" />
         <link
             rel="stylesheet"
-            href="vendor/css/bootstrap-colorpicker.min.css"
+            href="../../support_files/vendor/css/bootstrap-colorpicker.min.css"
         />
-        <script src="vendor/js/jquery-3.2.1.min.js"></script>
-        <script src="vendor/js/cytoscape.min.js"></script>
-        <!-- NOTE if including Cytoscape.js layout plugins for testing, those
-             can go here -->
-        <script src="vendor/js/sql.js"></script>
-        <script src="instrumented_js/xdot2cy.js"></script>
-        <script src="vendor/js/bootstrap.min.js"></script>
-        <script src="vendor/js/bootstrap-colorpicker.min.js"></script>
-        <script src="vendor/js/d3.v4.min.js"></script>
-        <!-- Initialize some event bindings for the application -->
-        <script>
-            $(function () {
-                $(window).on("beforeunload", doThingsBeforeUnload);
-                // $(f) is an alias for $().ready(f), where f is a function
-                // So the external function here should will only be called
-                // when the DOM is ready to be manipulated
-                doThingsWhenDOMReady(false);
-                checkFileAPIAvailability();
-            });
-        </script>
+        <link rel="stylesheet" href="vendor/mocha.css" />
     </head>
     <body>
+        <div style="z-index: 999; position: absolute; background-color: white; border: 5px solid black;" id="mocha"></div>
         <!-- Invisible <a> used for downloading data URIs for various purposes
              (e.g. path exporting, color settings export). By adjusting the
              download parameter of this tag, we can provide the user with a
@@ -69,7 +50,7 @@
         -->
         <a class="notviewable" id="downloadHelper"></a>
         <!-- Absolutely positioned tools -->
-        <div id="controlsToggler" onclick="toggleControls();" class="btn">
+        <div id="controlsToggler" class="btn">
             <span class="glyphicon glyphicon-menu-hamburger"></span>
         </div>
 
@@ -83,8 +64,13 @@
              disableButton functions (defined in xdot2cy.js) to ensure
              buttons are always properly disabled/enabled.
         -->
+        <!-- Oh, also, for reference: these particular elements are the icons
+             floating on the corners of the interface. (so yes, there are two
+             export buttons, and no, it isn't me being dumb and accidentally
+             copy-pasting things ;)
+        -->
         <button
-            class="btn btn-default btn-sm disabled"
+            class="btn btn-default btn-sm disabled drawCtrl"
             onclick="exportGraphView();"
             id="floatingExportButton"
             disabled="disabled"
@@ -93,8 +79,7 @@
         </button>
 
         <button
-            class="btn btn-default btn-sm disabled"
-            onclick="fitGraph(false)"
+            class="btn btn-default btn-sm disabled drawCtrl"
             id="fitButton"
             disabled="disabled"
         >
@@ -103,7 +88,6 @@
 
         <button
             class="btn btn-default btn-sm disabled"
-            onclick="fitGraph(true)"
             id="fitSelectedButton"
             disabled="disabled"
         >
@@ -111,85 +95,34 @@
         </button>
 
         <div id="controls">
-            <!-- TODO replace these headers with a nicer-looking system? -->
-            <h4 style="margin-top: 26px;">File Selection and Setup</h4>
+            <h4 style="margin-top: 26px;">About</h4>
             <p>
-                <!-- Ideally this would use a fancy Bootstrap tooltip, but there
-                are some issues I've run into with applying tooltips to
-                disabled buttons; easiest + most consistent to just set the
-                title attribute.
-            -->
                 <button
-                    class="btn btn-default btn-sm disabled"
+                    class="btn btn-default btn-sm disabled persistentCtrl"
                     disabled="disabled"
-                    id="xmlFileselectButton"
-                    onclick="openFileSelectDialog();"
-                    title="Demoing .db files is only supported when accessing the viewer interface non-locally (i.e. using a http or https protocol)."
-                >
-                    <span
-                        class="glyphicon glyphicon-repeat"
-                        aria-hidden="true"
-                    ></span>
-                    &nbsp; Demo .db file
-                </button>
-                <button
-                    class="btn btn-default btn-sm"
-                    id="fileselectButton"
-                    onclick="$('#fileselector').click();"
-                >
-                    <span
-                        class="glyphicon glyphicon-folder-open"
-                        aria-hidden="true"
-                    ></span>
-                    &nbsp; Upload .db file
-                </button>
-                <!-- For some reason, styling this with the "notviewable" CSS class
-                doesn't work; I suspect it's due to the way browsers handle
-                styling of file inputs. Anyway, this should work fine. -->
-                <input
-                    type="file"
-                    id="fileselector"
-                    onchange="loadLocalDB();"
-                    style="display: none;"
-                />
-
-                <button
-                    class="btn btn-default btn-sm disabled"
-                    disabled="disabled"
-                    onclick="displayInfo();"
                     id="infoButton"
                 >
                     <span
                         class="glyphicon glyphicon-info-sign"
                         aria-hidden="true"
                     ></span>
-                    &nbsp; Assembly info
+                    &nbsp; Graph info
                 </button>
                 <button
-                    class="btn btn-default btn-sm"
+                    class="btn btn-default btn-sm persistentCtrl"
                     id="settingsButton"
-                    onclick="displaySettings();"
                 >
                     <span class="glyphicon glyphicon-cog"></span> &nbsp;
                     <span>Settings</span>
                 </button>
 
                 <button
-                    class="btn btn-default btn-sm"
+                    class="btn btn-default btn-sm persistentCtrl"
                     id="helpButton"
-                    onclick="openHelp();"
                 >
                     <span class="glyphicon glyphicon-question-sign"></span>
                     &nbsp;
                     <span>Help</span>
-                </button>
-                <button
-                    class="btn btn-default btn-sm"
-                    id="openTestDialogButton"
-                    onclick="displayTests();"
-                >
-                    <span class="glyphicon glyphicon-dashboard"></span> &nbsp;
-                    <span>Open Test Dialog</span>
                 </button>
             </p>
             <div class="progress">
@@ -208,54 +141,114 @@
             <hr />
 
             <div id="connectedComponentControls">
-                <h4>Standard Mode</h4>
+                <h4>Drawing</h4>
 
-                <div class="input-group input-group-sm">
-                    <span class="input-group-btn">
-                        <button
-                            class="btn btn-default disabled"
-                            disabled="disabled"
-                            onclick='decrCompRank("componentselector");'
-                            type="button"
-                            id="decrCompRankButton"
-                            aria-label="Decrement component size rank by 1"
-                        >
-                            <span
-                                class="glyphicon glyphicon-minus"
-                                aria-hidden="true"
+                <select class="form-control input-sm" id="cmpSelectionMethod">
+                    <option value="single" selected
+                        >Draw single component (by size rank)</option
+                    >
+                    <option value="withnode"
+                        >Draw single component (containing a node)</option
+                    >
+                    <option value="all">Draw all available components</option>
+                </select>
+
+                <!-- Depending on the component selection method chosen above,
+                     we'll change the UI elements in this section: for example,
+                     if the "single" option is selected, we should just show
+                     controls for selecting a single component, but if the
+                     "withnode" option is selected, we should show controls for
+                     selecting a node by its name.
+                
+                     Ideally all *-draw-eles <div>s would start off with the
+                     notviewable class used, but this results in having to show
+                     a choppy flash of content when the page is loaded (since
+                     we'd have to immediately un-hide #single-draw-eles). So
+                     we just show #single-draw-eles by default, and
+                     AppManager.updateCmpSelectionMethod() is smart enough to
+                     (if another thing is selected by default, which could
+                     happen if e.g. the browser is navigated back and then
+                     forward to MetagenomeScope) hide/show the relevant UI
+                     elements anyway.
+                -->
+                <div id="single-draw-eles">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-btn">
+                            <button
+                                class="btn btn-default disabled persistentCtrl"
+                                disabled="disabled"
+                                type="button"
+                                id="decrCompRankButton"
+                                aria-label="Decrement component size rank by 1"
                             >
-                            </span>
-                        </button>
-                    </span>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="componentselector"
-                        value="1"
-                        min="1"
-                        disabled="disabled"
-                    />
-                    <span class="input-group-btn">
-                        <button
-                            class="btn btn-default disabled"
+                                <span
+                                    class="glyphicon glyphicon-minus"
+                                    aria-hidden="true"
+                                >
+                                </span>
+                            </button>
+                        </span>
+                        <input
+                            type="number"
+                            class="form-control persistentCtrl"
+                            id="componentselector"
+                            placeholder="Size rank"
+                            value="1"
+                            min="1"
                             disabled="disabled"
-                            onclick='incrCompRank("componentselector");'
-                            type="button"
-                            id="incrCompRankButton"
-                            aria-label="Increment component size rank by 1"
-                        >
-                            <span
-                                class="glyphicon glyphicon-plus"
-                                aria-hidden="true"
+                        />
+                        <span class="input-group-btn">
+                            <button
+                                class="btn btn-default disabled persistentCtrl"
+                                disabled="disabled"
+                                type="button"
+                                id="incrCompRankButton"
+                                aria-label="Increment component size rank by 1"
                             >
-                            </span>
-                        </button>
-                    </span>
+                                <span
+                                    class="glyphicon glyphicon-plus"
+                                    aria-hidden="true"
+                                >
+                                </span>
+                            </button>
+                        </span>
+                    </div>
+                    <p>
+                        Select the size rank of a component to draw. Rank 1 is
+                        the largest component in the graph, rank 2 is the
+                        next-largest component, and so on.
+                    </p>
                 </div>
+
+                <div id="withnode-draw-eles" class="notviewable">
+                    <!-- For some reason, the div here doesn't cover the full width
+                        of the control panel unless we force it to. Not sure why.
+                    -->
+                    <div
+                        class="input-group input-group-sm"
+                        style="width: 100%;"
+                    >
+                        <input
+                            type="text"
+                            class="form-control persistentCtrl"
+                            id="nodeNameSelector"
+                            placeholder="Node name"
+                            disabled="disabled"
+                        />
+                    </div>
+                    <p>Enter a node name to search for.</p>
+                </div>
+
+                <div id="all-draw-eles" class="notviewable">
+                    <p>
+                        This option will draw all components in the graph. It
+                        may take a while for large graphs.
+                    </p>
+                </div>
+
                 <button
-                    class="btn btn-default btn-sm disabled"
+                    class="btn btn-default btn-sm disabled persistentCtrl"
                     disabled="disabled"
-                    onclick='startDrawComponent("double");'
                     type="button"
                     id="drawButton"
                 >
@@ -263,109 +256,15 @@
                         class="glyphicon glyphicon-pencil"
                         aria-hidden="true"
                     ></span>
-                    &nbsp; Draw connected component
+                    &nbsp; Draw
                 </button>
-                <hr />
-            </div>
-            <div id="spqrConnectedComponentControls">
-                <h4>SPQR Decomposition Mode</h4>
-
-                <div class="input-group input-group-sm">
-                    <span class="input-group-btn">
-                        <button
-                            class="btn btn-default disabled"
-                            disabled="disabled"
-                            onclick='decrCompRank("SPQRcomponentselector");'
-                            type="button"
-                            id="decrSPQRCompRankButton"
-                            aria-label="Decrement component size rank by 1"
-                        >
-                            <span
-                                class="glyphicon glyphicon-minus"
-                                aria-hidden="true"
-                            >
-                            </span>
-                        </button>
-                    </span>
-                    <input
-                        type="number"
-                        class="form-control"
-                        id="SPQRcomponentselector"
-                        value="1"
-                        min="1"
-                        disabled="disabled"
-                    />
-                    <span class="input-group-btn">
-                        <button
-                            class="btn btn-default disabled"
-                            disabled="disabled"
-                            onclick='incrCompRank("SPQRcomponentselector");'
-                            type="button"
-                            id="incrSPQRCompRankButton"
-                            aria-label="Increment component size rank by 1"
-                        >
-                            <span
-                                class="glyphicon glyphicon-plus"
-                                aria-hidden="true"
-                            >
-                            </span>
-                        </button>
-                    </span>
-                </div>
-                <button
-                    class="btn btn-default btn-sm disabled"
-                    disabled="disabled"
-                    onclick='startDrawComponent("SPQR");'
-                    type="button"
-                    id="drawSPQRButton"
-                >
-                    <span
-                        class="glyphicon glyphicon-pencil"
-                        aria-hidden="true"
-                    ></span>
-                    &nbsp; Draw connected component
-                </button>
-                <div
-                    class="btn-group"
-                    data-toggle="buttons"
-                    id="decompositionOptionButtonGroup"
-                    aria-label="SPQR Decomposition Options"
-                >
-                    <button
-                        class="btn btn-default active disabled btn-sm"
-                        value="implicit"
-                        id="implicitSPQROption"
-                        disabled="disabled"
-                    >
-                        <input
-                            type="radio"
-                            name="spqrDecomposition"
-                            id="implicitSPQRtrees"
-                            autocomplete="off"
-                        />Implicit
-                    </button>
-                    <button
-                        class="btn btn-default disabled btn-sm"
-                        value="explicit"
-                        id="explicitSPQROption"
-                        disabled="disabled"
-                    >
-                        <input
-                            type="radio"
-                            name="spqrDecomposition"
-                            id="explicitSPQRtrees"
-                            autocomplete="off"
-                        />Explicit
-                    </button>
-                </div>
-
                 <hr />
             </div>
             <div id="selectedElementControls">
                 <h4>Selected Elements</h4>
 
                 <!-- Selected node info -->
-                <div class="selectedEleHeader" onclick="toggleEleInfo('node');">
+                <div class="selectedEleHeader" id="nodeHeader">
                     Nodes <span class="badge" id="selectedNodeBadge">0</span>
                     <span
                         class="glyphicon glyphicon-triangle-right opener"
@@ -397,7 +296,7 @@
                     </table>
                 </div>
                 <!-- Selected edge info -->
-                <div class="selectedEleHeader" onclick="toggleEleInfo('edge');">
+                <div class="selectedEleHeader" id="edgeHeader">
                     Edges <span class="badge" id="selectedEdgeBadge">0</span>
                     <span
                         class="glyphicon glyphicon-triangle-right opener"
@@ -421,25 +320,22 @@
                         </tr>
                     </table>
                 </div>
-                <!-- Selected cluster info -->
-                <div
-                    class="selectedEleHeader"
-                    onclick="toggleEleInfo('cluster');"
-                >
-                    Clusters
-                    <span class="badge" id="selectedClusterBadge">0</span>
+                <!-- Selected pattern info -->
+                <div class="selectedEleHeader" id="patternHeader">
+                    Patterns
+                    <span class="badge" id="selectedPatternBadge">0</span>
                     <span
                         class="glyphicon glyphicon-triangle-right opener"
-                        id="clusterOpener"
+                        id="patternOpener"
                     ></span>
                 </div>
-                <div id="clusterInfo" class="notviewable">
-                    <table id="clusterInfoTable" class="eleInfoTable">
+                <div id="patternInfo" class="notviewable">
+                    <table id="patternInfoTable" class="eleInfoTable">
                         <tr>
-                            <th colspan="2">Selected Cluster Information</th>
+                            <th colspan="2">Selected Pattern Information</th>
                         </tr>
                         <tr>
-                            <th>Cluster Type</th>
+                            <th>Pattern Type</th>
                             <th>Node Count</th>
                         </tr>
                     </table>
@@ -459,7 +355,7 @@
                             data-toggle="dropdown"
                             id="searchTypeButton"
                             disabled="disabled"
-                            class="btn btn-default dropdown-toggle disabled"
+                            class="btn btn-default dropdown-toggle disabled drawCtrl"
                             aria-haspopup="true"
                             aria-expanded="false"
                         >
@@ -478,14 +374,14 @@
                     </div>
                     <input
                         type="text"
-                        class="form-control"
+                        class="form-control drawCtrl"
                         id="searchInput"
                         placeholder="Node ID(s)"
                         disabled="disabled"
                     />
                     <span class="input-group-btn">
                         <button
-                            class="btn btn-default disabled"
+                            class="btn btn-default disabled drawCtrl"
                             disabled="disabled"
                             onclick="searchForEles();"
                             type="button"
@@ -507,7 +403,7 @@
                     <!-- Value of this button will be toggled as all nodes in graph
                      are collapsed/uncollapsed -->
                     <button
-                        class="btn btn-default btn-sm disabled"
+                        class="btn btn-default btn-sm disabled drawCtrl"
                         disabled="disabled"
                         id="collapseButton"
                         onclick="startCollapseAll();"
@@ -525,7 +421,7 @@
 
                 <p>
                     <button
-                        class="btn btn-default btn-sm disabled"
+                        class="btn btn-default btn-sm disabled drawCtrl"
                         disabled="disabled"
                         id="reduceEdgesButton"
                         onclick="reduceEdgesToStraightLines(true);"
@@ -537,7 +433,7 @@
 
                 <p>
                     <button
-                        class="btn btn-default btn-sm disabled"
+                        class="btn btn-default btn-sm disabled drawCtrl"
                         disabled="disabled"
                         id="filterEdgesButton"
                         onclick="openEdgeFilteringDialog();"
@@ -556,6 +452,7 @@
                         <input
                             type="radio"
                             name="nodeColorization"
+                            class="drawCtrl"
                             disabled
                             id="noneColorization"
                             value="noncolorized"
@@ -567,6 +464,7 @@
                         <input
                             type="radio"
                             name="nodeColorization"
+                            class="drawCtrl"
                             disabled
                             id="gcColorization"
                             value="gccolorized"
@@ -577,6 +475,7 @@
                         <input
                             type="radio"
                             name="nodeColorization"
+                            class="drawCtrl"
                             disabled
                             id="repeatColorization"
                             value="repeatcolorized"
@@ -599,7 +498,7 @@
                     -->
                 </div>
                 <button
-                    class="btn btn-default btn-sm disabled"
+                    class="btn btn-default btn-sm disabled drawCtrl"
                     disabled="disabled"
                     id="changeNodeColorizationButton"
                     onclick="startChangeNodeColorization();"
@@ -613,7 +512,7 @@
                 <h4>View Scaffolds</h4>
 
                 <button
-                    class="btn btn-default btn-sm disabled"
+                    class="btn btn-default btn-sm disabled drawCtrl"
                     id="scaffoldFileselectButton"
                     disabled="disabled"
                     onclick="$('#scaffoldFileSelector').click();"
@@ -657,7 +556,7 @@
 
                 <p>
                     <button
-                        class="btn btn-success btn-sm disabled"
+                        class="btn btn-success btn-sm disabled drawCtrl"
                         id="startFinishingButton"
                         disabled="disabled"
                         onclick="startFinishing();"
@@ -670,7 +569,7 @@
                     </button>
 
                     <button
-                        class="btn btn-warning btn-sm disabled"
+                        class="btn btn-warning btn-sm disabled drawCtrl"
                         id="pauseFinishingButton"
                         disabled="disabled"
                         onclick="togglePauseFinishing();"
@@ -684,7 +583,7 @@
                     </button>
 
                     <button
-                        class="btn btn-danger btn-sm disabled"
+                        class="btn btn-danger btn-sm disabled drawCtrl"
                         id="endFinishingButton"
                         disabled="disabled"
                         onclick="endFinishing();"
@@ -704,7 +603,7 @@
                     aria-label="Path export type (AGP vs. CSV) selector"
                 >
                     <button
-                        class="btn btn-info active disabled btn-sm"
+                        class="btn btn-info active disabled btn-sm drawCtrl"
                         value="AGP"
                         id="agpOption"
                         disabled="disabled"
@@ -717,7 +616,7 @@
                         />AGP
                     </button>
                     <button
-                        class="btn btn-info disabled btn-sm"
+                        class="btn btn-info disabled btn-sm drawCtrl"
                         value="CSV"
                         id="csvOption"
                         disabled="disabled"
@@ -731,7 +630,7 @@
                 </div>
 
                 <button
-                    class="btn btn-info btn-sm disabled"
+                    class="btn btn-info btn-sm disabled drawCtrl"
                     id="exportPathButton"
                     disabled="disabled"
                     onclick="exportPath();"
@@ -756,7 +655,7 @@
                     aria-label="Image type (PNG vs. JPG) selector"
                 >
                     <button
-                        class="btn btn-default active disabled btn-sm"
+                        class="btn btn-default active disabled btn-sm drawCtrl"
                         value="PNG"
                         id="pngOption"
                         disabled="disabled"
@@ -769,7 +668,7 @@
                         />PNG
                     </button>
                     <button
-                        class="btn btn-default disabled btn-sm"
+                        class="btn btn-default disabled btn-sm drawCtrl"
                         value="JPG"
                         id="jpgOption"
                         disabled="disabled"
@@ -783,7 +682,7 @@
                 </div>
 
                 <button
-                    class="btn btn-default btn-sm disabled"
+                    class="btn btn-default btn-sm disabled drawCtrl"
                     disabled="disabled"
                     id="exportImageButton"
                     onclick="exportGraphView();"
@@ -815,11 +714,11 @@
                         class="form-control"
                         placeholder="Layout name"
                         id="layoutInput"
-                        disabled="disabled"
+                        disabled="disabled drawCtrl"
                     />
                     <span class="input-group-btn">
                         <button
-                            class="btn btn-default disabled"
+                            class="btn btn-default disabled drawCtrl"
                             disabled="disabled"
                             onclick="testLayout();"
                             type="button"
@@ -836,325 +735,8 @@
             </div>
         </div>
         <!-- end controls div -->
-        <div id="cy" class="nosubsume"></div>
         <!--container for Cytoscape.js-->
-        <!-- CODELINK: The markup defining the base of these modal dialogs is
-             adapted from Bootstrap's tutorial on modal dialogs, located at
-             https://getbootstrap.com/docs/3.3/javascript/#modals
-        -->
-        <div class="modal fade" tabindex="-1" role="dialog" id="testDialog">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <!--
-                        <button type="button" class="close"
-                            data-dismiss="modal" aria-label="Close dialog">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        -->
-                        <h4 class="modal-title">
-                            Viewer Interface Tests
-                        </h4>
-                    </div>
-                    <!-- end modal-header -->
-                    <div class="modal-body">
-                        <!-- Mocha/Chai vendor stuff. The CSS should only
-                             impact Mocha elements, so this shouldn't mess with
-                             the rest of the application.
-
-                             CODELINK: some of this basic HTML/JS (e.g. the
-                             tags that load mocha.js and mocha.css, the "mocha"
-                             div, the use of mocha.setup() in
-                             tests/setup_tests.js) were derived from the
-                             environment output by "mocha init", which I
-                             refactored to squeeze into this dialog :)
-                        -->
-                        <link rel="stylesheet" href="tests/vendor/mocha.css" />
-                        <script src="tests/vendor/mocha.js"></script>
-                        <script src="tests/vendor/chai.js"></script>
-                        <!-- Simple code that sets up the Mocha testing
-                             environment in relation to the rest of
-                             MetagenomeScope.
-                        -->
-                        <script src="tests/setup_tests.js"></script>
-                        <!-- External JS files that define various tests. -->
-                        <script src="tests/test_distances.js"></script>
-                        <script src="tests/test_button_disabling_enabling.js"></script>
-                        <div id="mocha"></div>
-                        <!-- In the headless index HTML file, the following
-                             script will be used to automatically call
-                             mgsc.runTests() (since there isn't a user to click
-                             "run tests"). The reason we don't automatically run
-                             tests in the normal version of the viewer interface
-                             is so we don't delay the user.
-
-                             ANYWAY: please don't change the following script's
-                             ID from what it currently is! Otherwise, the
-                             minify_files.fish script will fail.
-                        -->
-                        <script id="runTestsHere">
-                            mgsc.runTests();
-                        </script>
-                        <!--
-                            Some sample elements for unit-testing interactions.
-                            Their IDs should all start with "mochaTest" in
-                            order to avoid conflicts.
-                        -->
-                        <button
-                            class="btn btn-sm disabled"
-                            id="mochaTestSampleButton"
-                            disabled="disabled"
-                            onclick="mgsc.mochaTestEmitSampleButtonClicked();"
-                        >
-                            <span
-                                class="glyphicon glyphicon-exclamation-sign"
-                                aria-hidden="true"
-                            ></span>
-                            &nbsp; Test Button
-                        </button>
-                    </div>
-                    <div class="modal-footer">
-                        <button
-                            type="button"
-                            class="btn btn-default"
-                            data-dismiss="modal"
-                        >
-                            Close
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-primary"
-                            id="runTestsButton"
-                            onclick="mgsc.runTests();"
-                        >
-                            Run tests
-                        </button>
-                    </div>
-                </div>
-                <!-- end modal-content -->
-            </div>
-            <!-- end modal-dialog -->
-        </div>
-        <!-- end modal -->
-        <!-- XHR .db loader dialog -->
-        <div class="modal fade" tabindex="-1" role="dialog" id="fsDialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button
-                            type="button"
-                            class="close"
-                            data-dismiss="modal"
-                            aria-label="Close dialog"
-                        >
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        <h4 class="modal-title">
-                            Select a demo assembly file
-                        </h4>
-                    </div>
-                    <!-- end modal-header div -->
-                    <div class="modal-body">
-                        <!-- NOTE: the data-mgscdbdirectory attribute of the
-                             below span is prepended to every demo .db file's
-                             URL when we try to load it in loadHostedDB().
-
-                             A "/" character is added on the end of the
-                             data-mgscdbdirectory attribute if the attribute:
-                                1. isn't an empty string and
-                                2. doesn't already end with a "/" character.
-
-                             You can modify the attribute directly here, or you
-                             can also change it via the populate_demo script
-                             (using the -hd argument).
-
-                             ALSO: note that in order for the populate_demo
-                             script to work properly here, the id and
-                             data-mgscdbdirectory attributes need to be
-                             declared on the same line.
-                        -->
-                        <span
-                            id="demoDir"
-                            data-mgscdbdirectory="db"
-                            class="notviewable"
-                        ></span>
-                        <!-- BEGIN DEMO .DB LIST -->
-                        <div class="radio">
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="fs"
-                                    id="august1.db"
-                                    checked="checked"
-                                />
-                                SRS049959: post-clean (GML, 28,064 contigs,
-                                21,769 edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input type="radio" name="fs" id="shakya.db" />
-                                64-genome bacterial/archaeal metagenome from
-                                <a
-                                    target="_blank"
-                                    href="http://www.ncbi.nlm.nih.gov/pubmed/23387867"
-                                    ><em>Shakya et al.</em> 2013</a
-                                >
-                                (GML, 21,950 contigs, 23,501 edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="fs"
-                                    id="shakya_new.db"
-                                />
-                                <a
-                                    target="_blank"
-                                    href="http://www.ncbi.nlm.nih.gov/pubmed/23387867"
-                                    ><em>Shakya et al.</em></a
-                                >
-                                metagenome, simplified (GML, 379 contigs, 229
-                                edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="fs"
-                                    id="biofilm_judson.db"
-                                />
-                                Ship Hull Biofilm graph 1 (GML, 28,107 contigs,
-                                23,405 edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="fs"
-                                    id="biofilm_judson2.db"
-                                />
-                                Ship Hull Biofilm graph 2 (GML, 1,839 contigs,
-                                530 edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="fs"
-                                    id="marygoldtest.db"
-                                />
-                                <a
-                                    target="_blank"
-                                    href="https://www.ncbi.nlm.nih.gov/pubmed/24058058"
-                                >
-                                    MaryGold paper</a
-                                >
-                                Figure 2 graph (GML, 12 contigs, 16 edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="fs"
-                                    id="small_ecoli.db"
-                                />
-                                E. coli (GML, 168 contigs, 470 edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input type="radio" name="fs" id="ecoli.db" />
-                                E. coli, included with
-                                <a
-                                    target="_blank"
-                                    href="http://rrwick.github.io/Bandage"
-                                    >Bandage</a
-                                >
-                                (LastGraph, 279 positive contigs, 332 positive
-                                edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="fs"
-                                    id="sample_LastGraph.db"
-                                />
-                                <code>sample_LastGraph</code>, included with
-                                <a
-                                    target="_blank"
-                                    href="http://rrwick.github.io/Bandage"
-                                    >Bandage</a
-                                >
-                                (LastGraph, 61 positive contigs, 82 positive
-                                edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="fs"
-                                    id="sample_gfa.db"
-                                />
-                                <code>sample.gfa</code>, from
-                                <a
-                                    target="_blank"
-                                    href="https://github.com/sjackman/assembly-graph/blob/master/sample.gfa"
-                                    >Shaun Jackman</a
-                                >
-                                (GFA, 6 positive contigs, 4 positive edges)
-                            </label>
-                        </div>
-                        <div class="radio">
-                            <label>
-                                <input
-                                    type="radio"
-                                    name="fs"
-                                    id="loop_gfa.db"
-                                />
-                                <code>loop.gfa</code>, from
-                                <a
-                                    target="_blank"
-                                    href="https://github.com/sjackman/assembly-graph/blob/master/loop.gfa"
-                                    >Shaun Jackman</a
-                                >
-                                (GFA, 4 positive contigs, 4 positive edges)
-                            </label>
-                        </div>
-                        <!-- END DEMO .DB LIST -->
-                    </div>
-                    <!-- end modal-body div -->
-                    <div class="modal-footer">
-                        <button
-                            type="button"
-                            class="btn btn-default"
-                            data-dismiss="modal"
-                        >
-                            Close
-                        </button>
-                        <button
-                            type="button"
-                            class="btn btn-primary"
-                            id="loadDBbutton"
-                            onclick="loadHostedDB();"
-                        >
-                            Load selected file
-                        </button>
-                    </div>
-                </div>
-                <!-- end modal-content div -->
-            </div>
-            <!-- end modal-dialog div -->
-        </div>
-        <!-- end modal div -->
+        <div id="cy" class="nosubsume"></div>
         <!-- Settings dialog -->
         <div class="modal fade" tabindex="-1" role="dialog" id="settingsDialog">
             <div class="modal-dialog" role="document">
@@ -1740,6 +1322,7 @@
                                                         <i></i
                                                     ></span>
                                                 </div>
+                                                <!--
                                                 <label
                                                     class="cplabel"
                                                     for="spqrscp_id"
@@ -1828,6 +1411,7 @@
                                                         <i></i
                                                     ></span>
                                                 </div>
+                                                -->
                                                 <label
                                                     class="cplabel"
                                                     for="tnbcp_id"
@@ -2335,7 +1919,7 @@
             <!-- end modal-dialog div -->
         </div>
         <!-- end modal div -->
-        <!-- Assembly info dialog -->
+        <!-- Graph info dialog -->
         <div class="modal fade" tabindex="-1" role="dialog" id="infoDialog">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
@@ -2349,7 +1933,7 @@
                             <span aria-hidden="true">&times;</span>
                         </button>
                         <h4 class="modal-title">
-                            Assembly information
+                            Graph information
                         </h4>
                     </div>
                     <!-- end modal-header div -->
@@ -2361,18 +1945,16 @@
                                 <tr>
                                     <th>Input Filename</th>
                                     <th>Input Filetype</th>
-                                    <th id="asmNodeCtTH">
-                                        Positive Node Count
-                                    </th>
-                                    <th id="asmEdgeCtTH">
-                                        Positive Edge Count
-                                    </th>
                                 </tr>
                                 <tr>
+                                    <!-- I don't remember why all of these
+                                         cells' IDs end with "Entry", but I'm
+                                         just gonna stick with it. I assume
+                                         Past Marcus knew what he was doing
+                                         (...might be a bad assumption).
+                                    -->
                                     <td id="filenameEntry"></td>
                                     <td id="filetypeEntry"></td>
-                                    <td id="nodeCtEntry"></td>
-                                    <td id="edgeCountEntry"></td>
                                 </tr>
                             </table>
                         </div>
@@ -2381,24 +1963,24 @@
                                 class="table table-condensed table-bordered asmInfoTable"
                             >
                                 <tr>
-                                    <th id="sccCountTH">
-                                        SPQR Decomposition Mode Connected
-                                        Component Count
+                                    <th id="asmNodeCtTH">
+                                        Node Count
                                     </th>
-                                    <th id="bicmpCountTH">
-                                        Biconnected Component Count
+                                    <th id="asmEdgeCtTH">
+                                        Edge Count
                                     </th>
-                                    <th id="connCmpCtTH">
-                                        Standard Mode Connected Component Count
+                                    <th id="ccCtTH">
+                                        Connected Component Count
                                     </th>
                                 </tr>
                                 <tr>
-                                    <td id="sccCountEntry"></td>
-                                    <td id="bicmpCountEntry"></td>
-                                    <td id="connCmpCtEntry"></td>
+                                    <td id="nodeCtEntry"></td>
+                                    <td id="edgeCtEntry"></td>
+                                    <td id="ccCtEntry"></td>
                                 </tr>
                             </table>
                         </div>
+                        <!-- Old stuff that hasn't been hooked up yet
                         <div class="table-responsive">
                             <table
                                 class="table table-condensed table-bordered asmInfoTable"
@@ -2417,8 +1999,9 @@
                                 </tr>
                             </table>
                         </div>
+                        -->
                         <p id="currComponentInfo">
-                            No connected component has been drawn yet.
+                            No connected component(s) have been drawn yet.
                         </p>
                     </div>
                     <div class="modal-footer">
@@ -2437,4 +2020,5 @@
         </div>
         <!-- end modal div -->
     </body>
+    <script data-main="setup" src="../../support_files/vendor/js/require.js"></script>
 </html>

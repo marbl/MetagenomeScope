@@ -1,3 +1,7 @@
+// NOTE: These tests are super old and should be refactored to use the DOM
+// utils stuff. Also, we really should just create button elements within the
+// tests and then destroy them at the end using setup / teardown or however
+// it's done in mocha; no sense making life harder for ourselves.
 mgsc.mochaTestSampleButtonClicked = false;
 mgsc.mochaTestEmitSampleButtonClicked = function () {
     mgsc.mochaTestSampleButtonClicked = true;

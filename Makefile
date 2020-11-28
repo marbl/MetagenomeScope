@@ -1,15 +1,13 @@
 # Since the bulk of MetagenomeScope's code isn't compiled, this Makefile just
 # performs a few actions using the following (phony) targets:
 #
-# test: Runs the python and viewer tests.
+# test: Runs the python and js tests.
 #
 # pytest: Runs all preprocessing script tests using pytest.
 #
 # spqrtest: Runs the SPQR-specific preprocessing script tests using pytest.
 #
-# viewertest: Minifies web code (and instruments JS code) and creates/updates
-#  viewer/headless_tests_index.html, then runs the viewer interface tests
-#  using mocha-headless-chrome.
+# jstest: Runs the JS tests using mocha-headless-chrome.
 #
 # spqr: this is used to compile the "SPQR script" (metagenomescope/spqr.cpp).
 #  NOTE that compiling the SPQR script is only necessary if you want to use
@@ -25,7 +23,7 @@
 #  Requires that a few extra packages are installed. This directive was taken
 #  from Qurro's Makefile.
 
-.PHONY: pytest spqrtest viewertest test spqr
+.PHONY: pytest spqrtest jstest test spqr
 
 # This might have to be changed depending on your system. When I tried
 # compiling this on a Mac computer, the g++ binary seemed to just redirect to
@@ -68,11 +66,10 @@ spqrtest:
 	$(PYTEST_COMMAND) -m "spqrtest"
 	rm -f metagenomescope/tests/output/*
 
-viewertest:
-	bash minify_files.sh
-	mocha-headless-chrome -f metagenomescope/support_files/headless_tests_index.html -c js_coverage.json
+jstest:
+	mocha-headless-chrome -f metagenomescope/tests/js_tests/index.html -c js_coverage.json
 
-test: pytest viewertest
+test: pytest jstest
 
 spqr:
 	$(COMPILER) $(SPQR_CODE) $(CFLAGS) $(OGDF_FLAGS) -o $(SPQR_BINARY)
@@ -100,4 +97,4 @@ demo:
 	@# makes a simple demo with a tiny graph that lets us test out the viewer
 	@# interface
 	rm -rf mg2
-	mgsc -i testgraphs/sjackman/sample.gfa -o mg2 -maxn 1
+	mgsc -i testgraphs/sjackman/sample.gfa -o mg2
