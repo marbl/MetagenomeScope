@@ -28,6 +28,9 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             this.MAX_EDGE_THICKNESS = 10;
             this.EDGE_THICKNESS_RANGE =
                 this.MAX_EDGE_THICKNESS - this.MIN_EDGE_THICKNESS;
+
+            // Used for debugging
+            this.VERBOSE = false;
         }
 
         /**
@@ -434,9 +437,11 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 position: { x: x, y: y },
                 classes: classes,
             });
-            console.log(
-                "Rendered pattern " + pattID + " at (" + x + ", " + y + ")"
-            );
+            if (this.VERBOSE) {
+                console.log(
+                    "Rendered pattern " + pattID + " at (" + x + ", " + y + ")"
+                );
+            }
         }
 
         renderNode(nodeAttrs, nodeVals, nodeID, dx, dy) {
@@ -479,17 +484,19 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 classes: classes,
             };
             this.cy.add(data);
-            console.log(
-                "Rendered node " +
-                    nodeID +
-                    " (name " +
-                    nodeVals[nodeAttrs.name] +
-                    ") at (" +
-                    x +
-                    ", " +
-                    y +
-                    ")"
-            );
+            if (this.VERBOSE) {
+                console.log(
+                    "Rendered node " +
+                        nodeID +
+                        " (name " +
+                        nodeVals[nodeAttrs.name] +
+                        ") at (" +
+                        x +
+                        ", " +
+                        y +
+                        ")"
+                );
+            }
             return [x, y];
         }
 
@@ -626,7 +633,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             var parentID = edgeVals[edgeAttrs.parent_id];
             if (!_.isNull(parentID)) {
                 data.parent = parentID;
-                console.log("Parent of this edge is " + parentID);
             }
 
             if (srcID === tgtID) {

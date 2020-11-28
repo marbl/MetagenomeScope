@@ -245,7 +245,6 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
 
         draw() {
             var componentsToDraw = this.getComponentsToDraw();
-            console.log("Drawing components " + componentsToDraw);
             this.drawer.draw(componentsToDraw, this.dataHolder);
             DomUtils.enableDrawNeededControls();
         }
