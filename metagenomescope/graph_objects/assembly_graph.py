@@ -1371,14 +1371,14 @@ class AssemblyGraph(object):
                 self.decomposed_digraph.edges[edge]["cc_num"] = cc_i
 
             gv_input += "}"
-            with open("cc_{}.gv".format(cc_i), "w") as f:
-                f.write(gv_input)
             top_level_cc_graph = pygraphviz.AGraph(gv_input)
             # Actually perform layout for this component!
             # If you're wondering why MetagenomeScope is taking so long to run
             # on your graph and you traced your way back to this line of code,
             # then boy do I have an NP-Hard problem for you .____________.
             top_level_cc_graph.layout(prog="dot")
+
+            top_level_cc_graph.draw("cc_{}.xdot".format(cc_i), format="xdot")
 
             self.cc_num_to_bb[cc_i] = layout_utils.get_bb_x2_y2(
                 top_level_cc_graph.graph_attr["bb"]
@@ -1434,6 +1434,15 @@ class AssemblyGraph(object):
                                 data["x"] = curr_patt.left + data["relative_x"]
                                 data["y"] = (
                                     curr_patt.bottom + data["relative_y"]
+                                )
+                                print(
+                                    "Node {} at relative x,y of {}, {} --> at absolute x,y of {}, {}".format(
+                                        child_node_id,
+                                        data["relative_x"],
+                                        data["relative_y"],
+                                        data["x"],
+                                        data["y"],
+                                    )
                                 )
 
                         for edge in curr_patt.subgraph.edges:
@@ -1749,8 +1758,8 @@ class AssemblyGraph(object):
         for cc_num in self.cc_num_to_bb.keys():
             bb = self.cc_num_to_bb[cc_num]
             self.cc_num_to_bb[cc_num] = [
-                bb[1] * config.INCHES_TO_PIXELS,
-                bb[0] * config.INCHES_TO_PIXELS,
+                bb[1] * config.POINTS_PER_INCH,
+                bb[0] * config.POINTS_PER_INCH,
             ]
 
         # Rotate patterns
@@ -1769,8 +1778,8 @@ class AssemblyGraph(object):
             l, b, r, t = patt.left, patt.bottom, patt.right, patt.top
             patt.left = -t
             patt.right = -b
-            patt.top = r
-            patt.bottom = l
+            patt.top = -r
+            patt.bottom = -l
 
             # Rotate edges within this pattern
             for edge in patt.subgraph.edges:
@@ -1783,9 +1792,19 @@ class AssemblyGraph(object):
         for node_id in self.digraph.nodes:
             data = self.digraph.nodes[node_id]
             data["width"], data["height"] = data["height"], data["width"]
+            print(
+                "Pre-rotating, Node {} has final x,y of {}, {}".format(
+                    node_id, data["x"], data["y"]
+                )
+            )
             data["width"] *= config.INCHES_TO_PIXELS
             data["height"] *= config.INCHES_TO_PIXELS
             data["x"], data["y"] = layout_utils.rotate(data["x"], data["y"])
+            print(
+                "Node {} has final x,y of {}, {}".format(
+                    node_id, data["x"], data["y"]
+                )
+            )
 
         # Rotate edges
         for edge in self.decomposed_digraph.edges:
