@@ -30,13 +30,13 @@ class Pattern(object):
         self.node_ids = node_ids
         self.subgraph = subgraph
 
-        # Will be filled in after calling self.layout(). Stored in pixels.
+        # Will be filled in after calling self.layout(). Stored in points.
         self.width = None
         self.height = None
 
         # Will be filled in after either the parent pattern of this pattern is
         # laid out, or the entire graph is laid out (if this pattern has no
-        # parent). Stored in pixels.
+        # parent). Stored in points.
         self.relative_x = None
         self.relative_y = None
 
@@ -158,10 +158,19 @@ class Pattern(object):
         cg = pygraphviz.AGraph(gv_input)
         cg.layout(prog="dot")
 
+        cg.draw("pattern{}.xdot".format(self.pattern_id), format="xdot")
+
         # Extract dimension info. The first two coordinates in the bounding box
         # (bb) should always be (0, 0).
+        # The width and height we store here are large enough in order to
+        # contain the layout of the nodes/edges/other patterns in this pattern.
         self.width, self.height = layout_utils.get_bb_x2_y2(
             cg.graph_attr["bb"]
+        )
+        print(
+            "Pattern {} has w/h of {}, {}".format(
+                self.pattern_id, self.width, self.height
+            )
         )
 
         # Extract relative node coordinates (x and y)
@@ -183,6 +192,11 @@ class Pattern(object):
             else:
                 asm_graph.digraph.nodes[node_id]["relative_x"] = x
                 asm_graph.digraph.nodes[node_id]["relative_y"] = y
+                print(
+                    "Node {} at relative x,y of {}, {} :omg:".format(
+                        node_id, x, y
+                    )
+                )
 
         # Extract (relative) edge control points
         for edge in self.subgraph.edges:
@@ -191,13 +205,22 @@ class Pattern(object):
             self.subgraph.edges[edge]["relative_ctrl_pt_coords"] = coords
 
     def set_bb(self, x, y):
-        """Given a center position of this Pattern, sets its bounding box."""
-        half_w_px = self.width / 2
-        half_h_px = self.height / 2
-        self.left = x - half_w_px
-        self.right = x + half_w_px
-        self.bottom = y - half_h_px
-        self.top = y + half_h_px
+        """Given a center position of this Pattern, sets its bounding box.
+
+        This assumes that x and y are both given in points, since the width and
+        height of this pattern are both stored in points.
+        """
+        print(
+            "pattern {}: x, y are {}, {}, and w, h are {}, {}".format(
+                self.pattern_id, x, y, self.width, self.height
+            )
+        )
+        half_w = (self.width * config.POINTS_PER_INCH) / 2
+        half_h = (self.height * config.POINTS_PER_INCH) / 2
+        self.left = x - half_w
+        self.right = x + half_w
+        self.bottom = y - half_h
+        self.top = y + half_h
 
 
 class StartEndPattern(Pattern):
