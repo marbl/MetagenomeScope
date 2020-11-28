@@ -167,11 +167,6 @@ class Pattern(object):
         self.width, self.height = layout_utils.get_bb_x2_y2(
             cg.graph_attr["bb"]
         )
-        print(
-            "Pattern {} has w/h of {}, {}".format(
-                self.pattern_id, self.width, self.height
-            )
-        )
 
         # Extract relative node coordinates (x and y)
         for node_id in self.node_ids:
@@ -192,11 +187,6 @@ class Pattern(object):
             else:
                 asm_graph.digraph.nodes[node_id]["relative_x"] = x
                 asm_graph.digraph.nodes[node_id]["relative_y"] = y
-                print(
-                    "Node {} at relative x,y of {}, {} :omg:".format(
-                        node_id, x, y
-                    )
-                )
 
         # Extract (relative) edge control points
         for edge in self.subgraph.edges:
@@ -210,11 +200,6 @@ class Pattern(object):
         This assumes that x and y are both given in points, since the width and
         height of this pattern are both stored in points.
         """
-        print(
-            "pattern {}: x, y are {}, {}, and w, h are {}, {}".format(
-                self.pattern_id, x, y, self.width, self.height
-            )
-        )
         half_w = (self.width * config.POINTS_PER_INCH) / 2
         half_h = (self.height * config.POINTS_PER_INCH) / 2
         self.left = x - half_w

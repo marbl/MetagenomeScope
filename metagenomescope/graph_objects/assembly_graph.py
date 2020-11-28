@@ -1435,15 +1435,6 @@ class AssemblyGraph(object):
                                 data["y"] = (
                                     curr_patt.bottom + data["relative_y"]
                                 )
-                                print(
-                                    "Node {} at relative x,y of {}, {} --> at absolute x,y of {}, {}".format(
-                                        child_node_id,
-                                        data["relative_x"],
-                                        data["relative_y"],
-                                        data["x"],
-                                        data["y"],
-                                    )
-                                )
 
                         for edge in curr_patt.subgraph.edges:
                             data = curr_patt.subgraph.edges[edge]
@@ -1792,19 +1783,9 @@ class AssemblyGraph(object):
         for node_id in self.digraph.nodes:
             data = self.digraph.nodes[node_id]
             data["width"], data["height"] = data["height"], data["width"]
-            print(
-                "Pre-rotating, Node {} has final x,y of {}, {}".format(
-                    node_id, data["x"], data["y"]
-                )
-            )
             data["width"] *= config.INCHES_TO_PIXELS
             data["height"] *= config.INCHES_TO_PIXELS
             data["x"], data["y"] = layout_utils.rotate(data["x"], data["y"])
-            print(
-                "Node {} has final x,y of {}, {}".format(
-                    node_id, data["x"], data["y"]
-                )
-            )
 
         # Rotate edges
         for edge in self.decomposed_digraph.edges:
