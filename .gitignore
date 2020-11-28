@@ -16,5 +16,6 @@ viewer/instrumented_js/
 dist/
 big-list-of-naughty-strings/
 *.gv
+*.xdot
 *.db
 *.png
