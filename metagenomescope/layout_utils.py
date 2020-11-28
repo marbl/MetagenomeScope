@@ -101,7 +101,7 @@ def rotate(x, y):
     This is used when converting the graph layout from the top -> bottom
     direction to the left -> right direction.
     """
-    return -y, x
+    return -y, -x
 
 
 def rotate_ctrl_pt_coords(coords):
