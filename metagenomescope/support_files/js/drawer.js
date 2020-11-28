@@ -76,7 +76,8 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                         selector: "node.pattern",
                         style: {
                             shape: "rectangle",
-                            "border-width": 0,
+                            "border-width": 2,
+                            "border-color": "#000000",
                             "padding-top": 0,
                             "padding-right": 0,
                             "padding-left": 0,
