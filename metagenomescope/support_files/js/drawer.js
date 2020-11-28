@@ -166,13 +166,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                             ),
                         },
                     },
-                    // Just for debugging. For now, at least.
-                    {
-                        selector: "node.is_dup",
-                        style: {
-                            "background-color": "#cc00cc",
-                        },
-                    },
                     {
                         selector: "node.bb_enforcing",
                         style: {
@@ -199,11 +192,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                             // render the text.
                             "min-zoomed-font-size": 12,
                             "z-index": 2,
-                        },
-                    },
-                    {
-                        selector: "node.basic.noncolorized",
-                        style: {
                             "background-color": $("#usncp").colorpicker(
                                 "getValue"
                             ),
@@ -238,6 +226,13 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                             shape: "polygon",
                             "shape-polygon-points":
                                 "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1",
+                        },
+                    },
+                    // Just for debugging. For now, at least.
+                    {
+                        selector: "node.is_dup",
+                        style: {
+                            "background-color": "#cc00cc",
                         },
                     },
                     {
