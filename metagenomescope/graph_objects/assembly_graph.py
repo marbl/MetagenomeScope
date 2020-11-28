@@ -1760,8 +1760,8 @@ class AssemblyGraph(object):
         for patt in self.id2pattern.values():
             # Swap height and width
             patt.width, patt.height = patt.height, patt.width
-            patt.width *= config.INCHES_TO_PIXELS
-            patt.height *= config.INCHES_TO_PIXELS
+            patt.width *= config.POINTS_PER_INCH
+            patt.height *= config.POINTS_PER_INCH
             # Change bounding box of the pattern.
             #
             #    _T_                  ___R___
@@ -1786,8 +1786,8 @@ class AssemblyGraph(object):
         for node_id in self.digraph.nodes:
             data = self.digraph.nodes[node_id]
             data["width"], data["height"] = data["height"], data["width"]
-            data["width"] *= config.INCHES_TO_PIXELS
-            data["height"] *= config.INCHES_TO_PIXELS
+            data["width"] *= config.POINTS_PER_INCH
+            data["height"] *= config.POINTS_PER_INCH
             data["x"], data["y"] = layout_utils.rotate(data["x"], data["y"])
 
         # Rotate edges
