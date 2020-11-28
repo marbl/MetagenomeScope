@@ -795,6 +795,7 @@ class AssemblyGraph(object):
             # digraph
             for edge in list(self.digraph.out_edges(end_node_to_dup)):
                 edge_data = self.digraph.edges[edge]
+                edge_data["orig_src"] = new_node_id
                 self.digraph.add_edge(new_node_id, edge[1], **edge_data)
                 self.digraph.remove_edge(end_node_to_dup, edge[1])
 
@@ -804,6 +805,7 @@ class AssemblyGraph(object):
                 self.decomposed_digraph.out_edges(starting_node_id)
             ):
                 edge_data = self.decomposed_digraph.edges[edge]
+                edge_data["orig_src"] = new_node_id
                 self.decomposed_digraph.add_edge(
                     new_node_id, edge[1], **edge_data
                 )
@@ -814,6 +816,7 @@ class AssemblyGraph(object):
                 # the decomposed digraph at the end of this function
                 # self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
 
+            # In the normal digraph, link the node and its duplicate
             self.digraph.add_edge(
                 end_node_to_dup,
                 new_node_id,
@@ -847,6 +850,7 @@ class AssemblyGraph(object):
             # Duplicate incoming edges of the duplicated node
             for edge in list(self.digraph.in_edges(start_node_to_dup)):
                 edge_data = self.digraph.edges[edge]
+                edge_data["orig_tgt"] = new_node_id
                 # Update the original nodes in the plain digraph to point to
                 # the new duplicate. And update the nodes in the decomposed
                 # digraph -- they'll be removed soon anyway, but we do this
@@ -859,6 +863,7 @@ class AssemblyGraph(object):
 
             for edge in list(self.decomposed_digraph.in_edges(ending_node_id)):
                 edge_data = self.decomposed_digraph.edges[edge]
+                edge_data["orig_tgt"] = new_node_id
                 self.decomposed_digraph.add_edge(
                     edge[0], new_node_id, **edge_data
                 )
