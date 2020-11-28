@@ -19,7 +19,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             // control point distance. This way we can approximate simple
             // B-splines with straight bezier curves (which are cheaper and
             // easier to draw).
-            this.CTRL_PT_DIST_EPSILON = 1.0;
+            this.CTRL_PT_DIST_EPSILON = 5.0;
             // Edge thickness stuff, as will be rendered by Cytoscape.js. Used
             // in tandem with the "relative_weight" (formerly "thickness")
             // value associated with each edge to scale edges' displayed
@@ -426,10 +426,9 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             } else {
                 classes += " M";
             }
-            var x =
-                dx + (pattVals[pattAttrs.left] + pattVals[pattAttrs.right]) / 2;
+            var x = (pattVals[pattAttrs.left] + pattVals[pattAttrs.right]) / 2;
             var y =
-                dy + (pattVals[pattAttrs.bottom] + pattVals[pattAttrs.top]) / 2;
+                dy - (pattVals[pattAttrs.bottom] + pattVals[pattAttrs.top]) / 2;
             this.cy.add({
                 data: pattData,
                 position: { x: x, y: y },
@@ -472,8 +471,8 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 classes += " is_dup";
             }
 
-            var x = nodeVals[nodeAttrs.x] + dx;
-            var y = nodeVals[nodeAttrs.y] + dy;
+            var x = nodeVals[nodeAttrs.x];
+            var y = dy - nodeVals[nodeAttrs.y];
             var data = {
                 data: nodeData,
                 position: { x: x, y: y },
@@ -546,7 +545,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             var ctrlPtWeights = "";
             var currPt, pld, pldsquared, dsp, dtp, w, ws, wt;
             for (var p = 0; p < ctrlPts.length; p += 2) {
-                currPt = [ctrlPts[p] + dx, ctrlPts[p + 1] + dy];
+                currPt = [ctrlPts[p], dy - ctrlPts[p + 1]];
                 pld = utils.pointToLineDistance(currPt, srcPos, tgtPos);
                 pldsquared = Math.pow(pld, 2);
                 dsp = utils.distance(currPt, srcPos);
@@ -753,7 +752,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 var componentBoundingBox = dataHolder.getComponentBoundingBox(
                     sizeRank
                 );
-                dy += componentBoundingBox[1];
+                dy -= componentBoundingBox[1];
             });
             this.finishDraw();
         }
