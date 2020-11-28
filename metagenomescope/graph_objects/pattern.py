@@ -158,8 +158,6 @@ class Pattern(object):
         cg = pygraphviz.AGraph(gv_input)
         cg.layout(prog="dot")
 
-        cg.draw("pattern{}.xdot".format(self.pattern_id), format="xdot")
-
         # Extract dimension info. The first two coordinates in the bounding box
         # (bb) should always be (0, 0).
         # The width and height we store here are large enough in order to
