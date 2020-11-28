@@ -355,7 +355,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                         },
                     },
                     {
-                        selector: "edge.virtual",
+                        selector: "edge.is_dup",
                         style: {
                             "line-style": "dashed",
                         },
@@ -617,6 +617,10 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 classes += " high_outlier";
             } else if (edgeVals[edgeAttrs.is_outlier] === -1) {
                 classes += " low_outlier";
+            }
+
+            if (edgeVals[edgeAttrs.is_dup]) {
+                classes += " is_dup";
             }
 
             var data = {
