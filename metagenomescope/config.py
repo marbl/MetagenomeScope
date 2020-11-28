@@ -26,16 +26,26 @@ import stat
 # complements that we can use when getting the reverse complement of a sequence
 # from the GFA format.
 COMPLEMENT = {"A": "T", "T": "A", "C": "G", "G": "C"}
+
 # The conversion factor between points (in GraphViz output) and inches, as used
-# by GraphViz. By default GraphViz uses 72 points per inch, so changing this is
-# not recommended. (This must be a float.)
-POINTS_PER_INCH = 72.0
-
-INCHES_TO_PIXELS = 54.0
-
-# Shortcut for converting some measure from GraphViz points to pixels for
-# display in Cytoscape.js.
-PT_TO_PX = POINTS_PER_INCH / INCHES_TO_PIXELS
+# by GraphViz. GraphViz uses 72 points per inch, but here we use 63
+# points per inch -- this is kind of a compromise. In old versions of
+# MetagenomeScope, at times we would pass inch values (for node / pattern
+# widths and heights) directly to the JS interface and have that code do the
+# conversion using an INCHES_TO_PIXELS value of 54 -- which was inconsistent,
+# since things like edge control points were just stored as points and not
+# converted to pixels.
+#
+# We now do all the conversions in the Python code, but
+# I've noticed that using the 72 points-per-inch value for nodes kinda squishes
+# the graph too much, making things look gross. (Some of the edge arrows for
+# bubbles don't even show up in the interface.) Using a smaller value helps a
+# bit -- using 54 for this spaces out the graph a bit too much, and using the
+# midpoint between 54 and 72 (63) seems ok. Since this really scales _all_
+# distances in the graph, I think, changing this value doesn't change the
+# intepretation of the graph -- at least for node sizes, it seems to rescale
+# all nodes. But I should really try to formally look into this sometime...
+POINTS_PER_INCH = 63.0
 
 # File mode used when creating "auxiliary" files directly in the
 # preprocessing script (collate.py). Possible auxiliary files
@@ -66,9 +76,10 @@ AUXMOD = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
 # The base we use when logarithmically scaling contig dimensions from length
 NODE_SCALING_LOG_BASE = 10
 # The minimum/maximum area of a node.
-# These variables are used directly in GraphViz, so they're in "inches".
-# That being said, "inches" are really an intermediate unit from our
-# perspective since they're converted to pixels in the viewer interface's code.
+# These variables are used directly in GraphViz, so they're technically in
+# "inches". That being said, "inches" are really an intermediate unit from our
+# perspective since (at least as of writing) they're converted to points and
+# then passed directly to Cytoscape.js. See POINTS_PER_INCH above for details.
 MAX_NODE_AREA = 10
 MIN_NODE_AREA = 1
 NODE_AREA_RANGE = MAX_NODE_AREA - MIN_NODE_AREA
