@@ -277,7 +277,7 @@ define(["underscore", "utils"], function (_, utils) {
             // should be safe since (for nodes/patterns, at least) we're the
             // ones who come up with these IDs.
             var intID;
-            if (utils.isValidInteger(pattID) {
+            if (utils.isValidInteger(pattID)) {
                 intID = parseInt(pattID);
             } else {
                 throw new Error(
