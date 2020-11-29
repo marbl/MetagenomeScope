@@ -27,8 +27,13 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
          *                                           right-clicked, to be
          *                                           either collapsed or
          *                                           uncollapsed.
+         *
+         * @param {Function} onDestroy Function to be called when the graph is
+         *                             destroyed (i.e. when the user presses
+         *                             the "Draw" button, and stuff is already
+         *                             drawn that needs to be removed).
          */
-        constructor(cyDivID, onSelect, onUnselect, onTogglePatternCollapse) {
+        constructor(cyDivID, onSelect, onUnselect, onTogglePatternCollapse, onDestroy) {
             this.cyDivID = cyDivID;
             this.cyDiv = $("#" + cyDivID);
             // Instance of Cytoscape.js
@@ -39,6 +44,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             this.onSelect = onSelect;
             this.onUnselect = onUnselect;
             this.onTogglePatternCollapse = onTogglePatternCollapse;
+            this.onDestroy = onDestroy;
 
             // Various constants
             //
@@ -67,6 +73,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
          */
         destroyGraph() {
             this.cy.destroy();
+            this.onDestroy();
         }
 
         /**

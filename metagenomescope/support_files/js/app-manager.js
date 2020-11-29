@@ -19,7 +19,8 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 "cy",
                 this.onSelect.bind(this),
                 this.onUnselect.bind(this),
-                this.onTogglePatternCollapse.bind(this)
+                this.onTogglePatternCollapse.bind(this),
+                this.onDestroy.bind(this)
             );
 
             this.controlsDiv = $("#controls");
@@ -237,7 +238,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                     pattInfo[this.dataHolder.getPattAttrs().pattern_type]
                 );
                 $("#patternInfoTable").append(
-                    '<tr class="nonheader" id="row' +
+                    '<tr class="selectedEleRow" id="selectedEleRow' +
                         eleID +
                         '"><td>' +
                         pattType +
@@ -249,7 +250,47 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         }
 
         removeSelectedEleInfo(eleID) {
-            $("#row" + eleID).remove();
+            $("#selectedEleRow" + eleID).remove();
+        }
+
+        /**
+         * Removes all selected element rows from the node/edge/pattern tables.
+         *
+         * Also sets the "badges" containing the numbers of currently-selected
+         * nodes/edges/patterns back to zero.
+         *
+         * Intended for use when the graph state is fundamentally changed --
+         * e.g. when drawing something new (in which case the Cytoscape.js
+         * instance will be destroyed and then re-initialized).
+         *
+         * Fun Fact: for some reason, the "badge" resetting stuff wasn't part
+         * of this function back in Old MetagenomeScope. Instead, those three
+         * lines of code were duplicated like four times throughout the
+         * codebase. Coding While Tired: Not Even Once. (TM)
+         */
+        removeAllSelectedEleInfo() {
+            // Remove (non-header) table rows
+            $(".selectedEleRow").remove();
+            // Close element info sections, if they're open
+            if ($("#nodeOpener").hasClass("glyphicon-triangle-bottom")) {
+                this.toggleEleInfo("node");
+            }
+            if ($("#edgeOpener").hasClass("glyphicon-triangle-bottom")) {
+                this.toggleEleInfo("edge");
+            }
+            if ($("#patternOpener").hasClass("glyphicon-triangle-bottom")) {
+                this.toggleEleInfo("pattern");
+            }
+            // Reset badges showing selected element counts to 0
+            $("#selectedNodeBadge").text(0);
+            $("#selectedEdgeBadge").text(0);
+            $("#selectedPatternBadge").text(0);
+            // Empty the Sets we maintain with actual selected node/edge/patt
+            // counts, since if we leave stuff in them that'll mess up things
+            // in the future
+            this.selectedNodes = new Set();
+            this.selectedEdges = new Set();
+            this.selectedPatterns = new Set();
         }
 
         /**
@@ -430,6 +471,17 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          */
         onTogglePatternCollapse(eve) {
             var x = eve.target;
+        }
+
+        /**
+         * Clears application state when the graph is destroyed.
+         *
+         * This should happen whenever a portion of the graph is redrawn.
+         *
+         * ...I will probably think of more things to add here later.
+         */
+        onDestroy() {
+            this.removeAllSelectedEleInfo();
         }
 
         /**
