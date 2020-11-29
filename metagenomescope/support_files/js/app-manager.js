@@ -31,6 +31,16 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // currently-selected value in the component selection method
             // dropdown menu is, and sort out the UI accordingly
             this.updateCmpSelectionMethod();
+
+            // Sets of IDs of selected elements (nodes/edges/patterns).
+            // We could probably get away with using Arrays here instead,
+            // but using Sets accounts for silly corner cases where e.g. a node
+            // is somehow selected twice without being unselected in the
+            // middle. (I don't... think that should be possible in
+            // Cytoscape.js, but let's just be defensive from the start, ok?)
+            this.selectedNodes = new Set();
+            this.selectedEdges = new Set();
+            this.selectedPatterns = new Set();
         }
 
         /**
@@ -255,14 +265,27 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          */
         onSelect(eve) {
             var x = eve.target;
-            if (x.hasClass("node")) {
+            if (x.isNode()) {
                 if (x.hasClass("basic")) {
                     // It's a regular node (not a pattern).
-                } else {
+                    this.selectedNodes.add(x.id());
+                    $("#selectedNodeBadge").text(this.selectedNodes.size);
+                } else if (x.hasClass("pattern")) {
                     // It's a pattern.
+                    this.selectedPatterns.add(x.id());
+                    $("#selectedPatternBadge").text(this.selectedPatterns.size);
+                } else {
+                    throw new Error("Invalid target element: " + x);
                 }
-            } else {
+            } else if (x.isEdge()) {
                 // It's an edge.
+                // NOTE: Although we don't explicitly define edge IDs,
+                // Cytoscape.js initializes edges with UUIDs, which makes our
+                // job here easier.
+                this.selectedEdges.add(x.id());
+                $("#selectedEdgeBadge").text(this.selectedEdges.size);
+            } else {
+                throw new Error("Invalid target element: " + x);
             }
         }
 
@@ -274,15 +297,27 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          */
         onUnselect(eve) {
             var x = eve.target;
-            console.log(x.data());
-            if (x.hasClass("node")) {
+            if (x.isNode()) {
                 if (x.hasClass("basic")) {
                     // It's a regular node (not a pattern).
-                } else {
+                    this.selectedNodes.delete(x.id());
+                    $("#selectedNodeBadge").text(this.selectedNodes.size);
+                } else if (x.hasClass("pattern")) {
                     // It's a pattern.
+                    this.selectedPatterns.delete(x.id());
+                    $("#selectedPatternBadge").text(this.selectedPatterns.size);
+                } else {
+                    throw new Error("Invalid target element: " + x);
                 }
-            } else {
+            } else if (x.isEdge()) {
                 // It's an edge.
+                // NOTE: Although we don't explicitly define edge IDs,
+                // Cytoscape.js initializes edges with UUIDs, which makes our
+                // job here easier.
+                this.selectedEdges.delete(x.id());
+                $("#selectedEdgeBadge").text(this.selectedEdges.size);
+            } else {
+                throw new Error("Invalid target element: " + x);
             }
         }
 
