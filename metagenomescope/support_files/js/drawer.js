@@ -720,8 +720,16 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
          * This should be called every time the graph is initialized.
          */
         setGraphBindings() {
-            this.cy.on("select", "node.basic, edge, node.pattern", this.onSelect);
-            this.cy.on("unselect", "node.basic, edge, node.pattern", this.onUnselect);
+            this.cy.on(
+                "select",
+                "node.basic, edge, node.pattern",
+                this.onSelect
+            );
+            this.cy.on(
+                "unselect",
+                "node.basic, edge, node.pattern",
+                this.onUnselect
+            );
             this.cy.on("cxttap", "node.pattern", this.onTogglePatternCollapse);
         }
 

@@ -28,7 +28,7 @@ define(["utils", "mocha", "chai"], function (utils, mocha, chai) {
             // x-intercepts for each line.)
             var d = utils.pointToLineDistance([5, 6], [0, -4 / 3], [2, 0]);
             chai.assert.approximately(d, 3.328, 0.001);
-    
+
             var d2 = utils.pointToLineDistance([-3, 7], [0, 2], [-5 / 3, 0]);
             chai.assert.approximately(d2, -5.506, 0.001);
         });

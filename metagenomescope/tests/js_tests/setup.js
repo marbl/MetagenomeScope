@@ -12,14 +12,15 @@ requirejs.config({
     paths: {
         "app-manager": "instrumented_js/app-manager",
         "data-holder": "instrumented_js/data-holder",
-        "drawer": "instrumented_js/drawer",
-        "utils": "instrumented_js/utils",
+        drawer: "instrumented_js/drawer",
+        utils: "instrumented_js/utils",
         "dom-utils": "instrumented_js/dom-utils",
         jquery: "../../support_files/vendor/js/jquery-3.2.1.min",
         underscore: "../../support_files/vendor/js/underscore-min",
         bootstrap: "../../support_files/vendor/js/bootstrap.min",
         cytoscape: "../../support_files/vendor/js/cytoscape.min",
-        "bootstrap-colorpicker": "../../support_files/vendor/js/bootstrap-colorpicker.min",
+        "bootstrap-colorpicker":
+            "../../support_files/vendor/js/bootstrap-colorpicker.min",
         mocha: "vendor/mocha",
         chai: "vendor/chai",
     },
@@ -53,8 +54,19 @@ requirejs(
         "test_distances",
     ],
     function (
-        AppManager, DataHolder, Drawer, Utils, DomUtils, $, _, bootstrap, bootstrapColorpicker, cy,
-    mocha, chai, test_distances
+        AppManager,
+        DataHolder,
+        Drawer,
+        Utils,
+        DomUtils,
+        $,
+        _,
+        bootstrap,
+        bootstrapColorpicker,
+        cy,
+        mocha,
+        chai,
+        test_distances
     ) {
         mocha.checkLeaks();
         mocha.run();
