@@ -279,6 +279,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          * nodes / edges / patterns Set and updates the corresponding badge's
          * number.
          *
+         * Also enables / disables the #fitSelectedButton as needed, since that
+         * should only be enabled if at least one element is selected.
+         *
          * Most of the code for these functions was basically the same, so
          * this function is here to mitigate code reuse.
          *
