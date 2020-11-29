@@ -2,8 +2,8 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
     $,
     _,
     Drawer,
-    Utils,
-    DomUtils
+    utils,
+    domUtils
 ) {
     class AppManager {
         constructor(dataHolder) {
@@ -56,7 +56,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             $("#infoButton").click(function () {
                 $("#infoDialog").modal();
             });
-            DomUtils.enableButton("infoButton");
+            domUtils.enableButton("infoButton");
 
             // Make the "Settings" button show the settings dialog
             $("#settingsButton").click(function () {
@@ -83,8 +83,8 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             //    component is #1.
             $("#componentselector").prop("min", 1);
             $("#componentselector").prop("max", this.numComponents);
-            $("#decrCompRankButton").click(DomUtils.decrCompRank);
-            $("#incrCompRankButton").click(DomUtils.incrCompRank);
+            $("#decrCompRankButton").click(domUtils.decrCompRank);
+            $("#incrCompRankButton").click(domUtils.incrCompRank);
             $("#drawButton").click(this.draw.bind(this));
 
             // On a new component selection method being, well, selected,
@@ -93,7 +93,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 this.updateCmpSelectionMethod.bind(this)
             );
 
-            DomUtils.enablePersistentControls(this.numComponents);
+            domUtils.enablePersistentControls(this.numComponents);
 
             this.populateGraphInfoMain();
 
@@ -274,7 +274,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         getComponentsToDraw() {
             if (this.cmpSelectionMethod === "single") {
                 var cmpRank = $("#componentselector").val();
-                if (DomUtils.compRankValidity(cmpRank) !== 0) {
+                if (domUtils.compRankValidity(cmpRank) !== 0) {
                     // TODO? -- give more detailed error messages listing e.g.
                     // the lowest laid out component rank
                     alert("Please enter a valid component size rank.");
@@ -390,7 +390,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             if (setFunc === "add" && totalSelectedEleCt === 1) {
                 // The #fitSelectedButton element should be enabled if at least
                 // one element is selected.
-                DomUtils.enableButton("fitSelectedButton");
+                domUtils.enableButton("fitSelectedButton");
             } else {
                 // Similarly, if we just un-selected an element, then check if
                 // no elements are now selected. If so, disable the button.
@@ -398,7 +398,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 // elements, but I figure we might as well cover our bases with
                 // the <= 0 here :P)
                 if (totalSelectedEleCt <= 0) {
-                    DomUtils.disableButton("fitSelectedButton");
+                    domUtils.disableButton("fitSelectedButton");
                 }
             }
         }
@@ -448,7 +448,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             this.drawer.draw(componentsToDraw, this.dataHolder);
             // Enable controls that only have meaning when stuff is drawn (e.g.
             // the "fit graph" buttons)
-            DomUtils.enableDrawNeededControls();
+            domUtils.enableDrawNeededControls();
         }
     }
     return { AppManager: AppManager };
