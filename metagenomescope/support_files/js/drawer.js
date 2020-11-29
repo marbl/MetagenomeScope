@@ -451,6 +451,86 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             this.setGraphBindings();
         }
 
+        /**
+         * Records incoming/outgoing edges and all interior elements of
+         * patterns.
+         *
+         * Basically, this function sets up a bunch of details that will make
+         * collapsing and uncollapsing a lot easier later on.
+         *
+         * This should be called after all elements (nodes, edges, patterns)
+         * have been added to the Cytoscape.js instance, but before drawing is
+         * finished (i.e. before the user can interact with the graph).
+         *
+         * This was previously known as initClusters() in the old version of
+         * MetagenomeScope. As you may have noticed if you're reading over this
+         * code, I was previously being inconsistent and periodically used the
+         * terms "Node Group", "Cluster", "Pattern", etc. to refer to patterns.
+         * I'm trying to just be consistent and say "Pattern" now :P
+         */
+        initPatterns() {
+            // For each pattern...
+            this.cy.$("node.pattern").each(function (pattern, i) {
+                var children = pattern.children();
+                // Unfiltered incoming/outgoing edges
+                var uIncomingEdges = children.incomers("edge");
+                var uOutgoingEdges = children.outgoers("edge");
+                // Actual incoming/outgoing edges -- will be move()'d as
+                // this pattern/adjacent pattern(s) are collapsed/uncollapsed
+                var incomingEdges = uIncomingEdges.difference(uOutgoingEdges);
+                var outgoingEdges = uOutgoingEdges.difference(uIncomingEdges);
+                // Mapping of edge ID to [cSource, cTarget]
+                // Used since move() removes references to edges, so storing IDs
+                // is more permanent
+                var incomingEdgeMap = {};
+                var outgoingEdgeMap = {};
+                // "Canonical" incoming/outgoing edge properties -- these
+                // are used to represent the ideal connections
+                // between nodes regardless of collapsing
+                incomingEdges.each(function (edge, j) {
+                    incomingEdgeMap[edge.id()] = [
+                        edge.source().id(),
+                        edge.target().id(),
+                    ];
+                });
+                outgoingEdges.each(function (edge, j) {
+                    outgoingEdgeMap[edge.id()] = [
+                        edge.source().id(),
+                        edge.target().id(),
+                    ];
+                });
+                // Get the "interior elements" of the pattern: all child nodes,
+                // plus the edges connecting child nodes within the pattern
+                // This considers cyclic edges (e.g. the edge connecting a
+                // cycle's "end" and "start" nodes) as "interior elements,"
+                // which makes sense as they don't connect the cycle's children
+                //  to any elements outside the cycle.
+                var interiorEdges = children
+                    .connectedEdges()
+                    .difference(incomingEdges)
+                    .difference(outgoingEdges);
+                // Record incoming/outgoing edges in this
+                // pattern's data. Will be useful during collapsing.
+                // We also record "interiorNodes" -- having a reference to just
+                // these nodes saves us the time of filtering nodes out of
+                // interiorEles when rotating collapsed node groups.
+                pattern.data({
+                    incomingEdgeMap: incomingEdgeMap,
+                    outgoingEdgeMap: outgoingEdgeMap,
+                    interiorNodeCount: children.size(),
+                });
+                // We store collections of elements in the pattern's scratch
+                // data. Storing it in the main "data" section will mess up
+                // JSON exporting, since it isn't serializable.
+                // TODO reduce redundancy here -- only store interiorEles, and in
+                // rotateNodes just select nodes from interiorEles
+                pattern.scratch({
+                    _interiorEles: interiorEdges.union(children),
+                    _interiorNodes: children,
+                });
+            });
+        }
+
         renderPattern(pattAttrs, pattVals, dx, dy) {
             var pattID = pattVals[pattAttrs.pattern_id];
             var pattData = {
@@ -840,6 +920,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 );
                 dy -= componentBoundingBox[1];
             });
+            this.initPatterns();
             this.finishDraw();
         }
 
