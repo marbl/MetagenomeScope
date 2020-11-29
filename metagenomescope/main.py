@@ -88,16 +88,31 @@ def make_viz(
     support_files_loc = os.path.join(curr_loc, "support_files")
     copy_tree(support_files_loc, output_dir)
 
-    # Using Jinja2, populate the {{ dataJSON }} tag in the index HTML file with
+    # Using Jinja2, populate the {{ dataJSON }} tag in the main.js file with
     # the JSON representation of the graph data.
+    #
+    # Also, populate the {{ graphFilename }} tag in the index.html file, so we
+    # can show the filename in the application title (this way the title is
+    # shown immediately, rather than flickering when the page is loaded).
+    # (... This is obviously much less important than the first thing, but it's
+    # a nice little detail that should help users if they have many MgSc tabs
+    # open at once.)
+    #
     # This part of code taken from
     # https://github.com/biocore/empress/blob/master/empress/core.py, in
     # particular _get_template() and make_empress(), and
     # https://github.com/biocore/empress/blob/master/tests/python/make-dev-page.py.
     env = jinja2.Environment(loader=jinja2.FileSystemLoader(output_dir))
+
     mainjs_template = env.get_template("main.js")
     with open(os.path.join(output_dir, "main.js"), "w") as mainjs_file:
         mainjs_file.write(mainjs_template.render({"dataJSON": graph_data}))
+
+    index_template = env.get_template("index.html")
+    with open(os.path.join(output_dir, "index.html"), "w") as index_file:
+        index_file.write(index_template.render(
+            {"graphFilename": asm_graph.basename}
+        ))
 
     conclude_msg()
 
