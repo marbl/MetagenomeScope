@@ -12,7 +12,15 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
 
             this.numComponents = this.dataHolder.numComponents();
 
-            this.drawer = new Drawer.Drawer("cy");
+            // Set up the Drawer, which'll interface with Cytoscape.js.
+            // We pass a few callbacks to the Drawer so that the Drawer can let
+            // the App Manager know when various things happen in the graph.
+            this.drawer = new Drawer.Drawer(
+                "cy",
+                this.onSelect.bind(this),
+                this.onUnselect.bind(this),
+                this.onTogglePatternCollapse.bind(this)
+            );
 
             this.controlsDiv = $("#controls");
 
@@ -184,10 +192,6 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // TODO: populate based on the component(s) currently drawn.
         }
 
-        initGraph() {
-            // TODO: init cytoscape, etc
-        }
-
         /**
          * Returns an array containing all of the components to draw.
          *
@@ -243,9 +247,70 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             }
         }
 
+        /**
+         * Updates the selected elements section in response to an element
+         * being selected.
+         *
+         * @param {Cytoscape.js Event} eve Event triggered by Cytoscape.js.
+         */
+        onSelect(eve) {
+            var x = eve.target;
+            if (x.hasClass("node")) {
+                if (x.hasClass("basic")) {
+                    // It's a regular node (not a pattern).
+                } else {
+                    // It's a pattern.
+                }
+            } else {
+                // It's an edge.
+            }
+        }
+
+        /**
+         * Updates the selected elements section in response to an element
+         * being unselected.
+         *
+         * @param {Cytoscape.js Event} eve Event triggered by Cytoscape.js.
+         */
+        onUnselect(eve) {
+            var x = eve.target;
+            console.log(x.data());
+            if (x.hasClass("node")) {
+                if (x.hasClass("basic")) {
+                    // It's a regular node (not a pattern).
+                } else {
+                    // It's a pattern.
+                }
+            } else {
+                // It's an edge.
+            }
+        }
+
+        /**
+         * Collapses/uncollapses a pattern.
+         *
+         * @param {Cytoscape.js Event} eve Event triggered by Cytoscape.js.
+         */
+        onTogglePatternCollapse(eve) {
+            var x = eve.target;
+        }
+
+        /**
+         * Attempts to draw component(s) based on the component(s) selected.
+         *
+         * It's very possible that this.getComponentsToDraw() will fail if the
+         * current component selection is invalid (e.g. an invalid size rank is
+         * selected). In that case, this.getComponentsToDraw() will just throw
+         * an Error, and this'll stop before it actually calls
+         * this.drawer.draw().
+         *
+         * @throws {Error} If component selection is invalid.
+         */
         draw() {
             var componentsToDraw = this.getComponentsToDraw();
             this.drawer.draw(componentsToDraw, this.dataHolder);
+            // Enable controls that only have meaning when stuff is drawn (e.g.
+            // the "fit graph" buttons)
             DomUtils.enableDrawNeededControls();
         }
     }

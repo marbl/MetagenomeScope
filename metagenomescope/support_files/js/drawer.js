@@ -5,13 +5,40 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
     utils
 ) {
     class Drawer {
-        constructor(cyDivID) {
+        /**
+         * Constructs a Drawer.
+         *
+         * This object is used for drawing elements and for interfacing
+         * directly with Cytoscape.js. It also accepts a few callback functions
+         * that we'll call when certain things in the graph happen, so that we
+         * can update the state of the rest of the application.
+         *
+         * @param {String} cyDivID ID of the <div> which will contain the
+         *                         Cytoscape.js display.
+         *
+         * @param {Function} onSelect Function to be called when an element in
+         *                            the graph is selected.
+         *
+         * @param {Function} onUnselect Function to be called when an element
+         *                              in the graph is unselected/deselected.
+         *
+         * @param {Function} onTogglePatternCollapse Function to be called when
+         *                                           a pattern in the graph is
+         *                                           right-clicked, to be
+         *                                           either collapsed or
+         *                                           uncollapsed.
+         */
+        constructor(cyDivID, onSelect, onUnselect, onTogglePatternCollapse) {
             this.cyDivID = cyDivID;
             this.cyDiv = $("#" + cyDivID);
             // Instance of Cytoscape.js
             this.cy = null;
 
             this.bgColor = undefined;
+
+            this.onSelect = onSelect;
+            this.onUnselect = onUnselect;
+            this.onTogglePatternCollapse = onTogglePatternCollapse;
 
             // Various constants
             //
@@ -44,6 +71,8 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
 
         /**
          * Creates an instance of Cytoscape.js to which we can add elements.
+         *
+         * Also calls setGraphBindings().
          */
         initGraph() {
             // Update the bg color only when we call initGraph(). This ensures
@@ -396,6 +425,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     },
                 ],
             });
+            this.setGraphBindings();
         }
 
         renderPattern(pattAttrs, pattVals, dx, dy) {
@@ -681,7 +711,25 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
         }
 
         /**
+         * Sets bindings for various user interactions with the graph.
+         *
+         * These bindings cover a lot of the useful things in MetagenomeScope's
+         * interface -- collapsing/uncollapsing patterns, selecting elements,
+         * etc.
+         *
+         * This should be called every time the graph is initialized.
+         */
+        setGraphBindings() {
+            this.cy.on("select", "node.basic, edge, node.pattern", this.onSelect);
+            this.cy.on("unselect", "node.basic, edge, node.pattern", this.onUnselect);
+            this.cy.on("cxttap", "node.pattern", this.onTogglePatternCollapse);
+        }
+
+        /**
          * Draws component(s) in the graph.
+         *
+         * This effectively involves remaking the instance of Cytoscape.js in
+         * use, so we require that some callbacks
          *
          * @param {Array} componentsToDraw 1-indexed size rank numbers of the
          *                                 component(s) to draw.
@@ -698,7 +746,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 this.destroyGraph();
             }
             this.initGraph();
-            // TODO: set graph bindings
             this.cy.startBatch();
             // These are the "offsets" from the top-left of each component's
             // bounding box, used when drawing multiple components at once.
