@@ -97,14 +97,13 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
 
             this.populateGraphInfoMain();
 
+            this.initSelectedEleInfoTables();
+
             _.each(["node", "edge", "pattern"], function (eleType) {
                 $("#" + eleType + "Header").click(function () {
                     scope.toggleEleInfo(eleType);
                 });
             });
-            // TODO: Set up node / edge / pattern info tables -- take into
-            // account optional stuff like coverage, GC content, multiplicity,
-            // ...
 
             // Set up colorpickers
             $(".colorpicker-component").colorpicker({ format: "hex" });
@@ -200,6 +199,23 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
 
         populateGraphInfoCurrComponents() {
             // TODO: populate based on the component(s) currently drawn.
+        }
+
+
+        /**
+         * Prepares the info tables for selected elements.
+         *
+         * This only needs to be called once, since it's based on the data in
+         * the DataHolder.
+         *
+         * Currently... currently, this doesn't do anything, lol.
+         *
+         * TODO: Look at the extra data for nodes/edges in the DataHolder, and
+         * add more columns as needed. That'll require refactoring the JSON
+         * export a bit so that all extra data cols are stored in a central
+         * location.
+         */
+        initSelectedEleInfoTables() {
         }
 
         /**
@@ -324,6 +340,25 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 $("#selectedEdgeBadge").text(this.selectedEdges.size);
             } else {
                 throw new Error("Target element not a node or edge: " + x);
+            }
+
+            var totalSelectedEleCt =
+                this.selectedNodes.size +
+                this.selectedEdges.size +
+                this.selectedPatterns.size;
+            if (setFunc === "add" && totalSelectedEleCt === 1) {
+                // The #fitSelectedButton element should be enabled if at least
+                // one element is selected.
+                DomUtils.enableButton("fitSelectedButton");
+            } else {
+                // Similarly, if we just un-selected an element, then check if
+                // no elements are now selected. If so, disable the button.
+                // (...Not sure how we'd have a negative amount of selected
+                // elements, but I figure we might as well cover our bases with
+                // the <= 0 here :P)
+                if (totalSelectedEleCt <= 0) {
+                    DomUtils.disableButton("fitSelectedButton");
+                }
             }
         }
 

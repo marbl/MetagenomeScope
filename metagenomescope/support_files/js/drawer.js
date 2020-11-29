@@ -865,7 +865,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 // no elements are selected. This is because the fit-selected
                 // button should only be enabled when >= 1 elements are
                 // selected.
-                this.cy.fit(cy.$(":selected"));
+                this.cy.fit(this.cy.$(":selected"));
             } else {
                 this.cy.fit();
             }
