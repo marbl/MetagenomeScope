@@ -258,35 +258,83 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         }
 
         /**
-         * Updates the selected elements section in response to an element
-         * being selected.
+         * Helper function for onSelect() and onUnselect(). Based on the type
+         * of the element that was selected or unselected, updates the selected
+         * nodes / edges / patterns Set and updates the corresponding badge's
+         * number.
+         *
+         * Most of the code for these functions was basically the same, so
+         * this function is here to mitigate code reuse.
          *
          * @param {Cytoscape.js Event} eve Event triggered by Cytoscape.js.
+         *
+         * @param {String} selectOrUnselect If this is "select", then this'll
+         *                                  add the element described in
+         *                                  eve.target to the corresponding
+         *                                  selected element Set; if this is
+         *                                  "unselect", then this'll remove
+         *                                  that element from the Set. If this
+         *                                  isn't either of those things,
+         *                                  this'll raise an error.
+         *
+         * @throws {Error} If any of the following conditions is met:
+         *                 -The element described by eve.target isn't a node
+         *                  (here "node" includes both normal nodes and
+         *                  patterns) or edge.
+         *                 -The element described by eve.target is a node,
+         *                  but it doesn't seem to be a normal or pattern node.
+         *                 -selectOrUnselect isn't "select" or "unselect"
          */
-        onSelect(eve) {
+        updateSelectedEles(eve, selectOrUnselect) {
+            // This is the name of the Set function we want to call with the
+            // element's ID. It's either .add() or .delete(), and fortunately
+            // JS makes swapping out functions to be called fairly easy.
+            var setFunc;
+            if (selectOrUnselect === "select") {
+                setFunc = "add";
+            } else if (selectOrUnselect === "unselect") {
+                setFunc = "delete";
+            } else {
+                throw new Error(
+                    "Invalid selectOrUnselect value: " + selectOrUnselect
+                );
+            }
+
             var x = eve.target;
             if (x.isNode()) {
                 if (x.hasClass("basic")) {
                     // It's a regular node (not a pattern).
-                    this.selectedNodes.add(x.id());
+                    this.selectedNodes[setFunc](x.id());
                     $("#selectedNodeBadge").text(this.selectedNodes.size);
                 } else if (x.hasClass("pattern")) {
                     // It's a pattern.
-                    this.selectedPatterns.add(x.id());
+                    this.selectedPatterns[setFunc](x.id());
                     $("#selectedPatternBadge").text(this.selectedPatterns.size);
                 } else {
-                    throw new Error("Invalid target element: " + x);
+                    throw new Error(
+                        "Unrecognized node type of target element: " + x
+                    );
                 }
             } else if (x.isEdge()) {
                 // It's an edge.
                 // NOTE: Although we don't explicitly define edge IDs,
                 // Cytoscape.js initializes edges with UUIDs, which makes our
                 // job here easier.
-                this.selectedEdges.add(x.id());
+                this.selectedEdges[setFunc](x.id());
                 $("#selectedEdgeBadge").text(this.selectedEdges.size);
             } else {
-                throw new Error("Invalid target element: " + x);
+                throw new Error("Target element not a node or edge: " + x);
             }
+        }
+
+        /**
+         * Updates the selected elements section in response to an element
+         * being selected.
+         *
+         * @param {Cytoscape.js Event} eve Event triggered by Cytoscape.js.
+         */
+        onSelect(eve) {
+            this.updateSelectedEles(eve, "select");
         }
 
         /**
@@ -296,29 +344,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          * @param {Cytoscape.js Event} eve Event triggered by Cytoscape.js.
          */
         onUnselect(eve) {
-            var x = eve.target;
-            if (x.isNode()) {
-                if (x.hasClass("basic")) {
-                    // It's a regular node (not a pattern).
-                    this.selectedNodes.delete(x.id());
-                    $("#selectedNodeBadge").text(this.selectedNodes.size);
-                } else if (x.hasClass("pattern")) {
-                    // It's a pattern.
-                    this.selectedPatterns.delete(x.id());
-                    $("#selectedPatternBadge").text(this.selectedPatterns.size);
-                } else {
-                    throw new Error("Invalid target element: " + x);
-                }
-            } else if (x.isEdge()) {
-                // It's an edge.
-                // NOTE: Although we don't explicitly define edge IDs,
-                // Cytoscape.js initializes edges with UUIDs, which makes our
-                // job here easier.
-                this.selectedEdges.delete(x.id());
-                $("#selectedEdgeBadge").text(this.selectedEdges.size);
-            } else {
-                throw new Error("Invalid target element: " + x);
-            }
+            this.updateSelectedEles(eve, "unselect");
         }
 
         /**
