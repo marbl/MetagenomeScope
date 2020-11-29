@@ -145,7 +145,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                         style: {
                             "min-zoomed-font-size": 12,
                             "font-size": 48,
-                            label: "data(interiorNodeCount)",
+                            label: "data(collapsedLabel)",
                             "text-valign": "center",
                             "font-weight": "bold",
                             color: $("#cngcccp").colorpicker("getValue"),
@@ -514,10 +514,17 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 // We also record "interiorNodes" -- having a reference to just
                 // these nodes saves us the time of filtering nodes out of
                 // interiorEles when rotating collapsed node groups.
+                //
+                // Set the label of this pattern when collapsed.
+                var numChildren = children.size();
+                var collapsedLabel = numChildren + " child";
+                if (numChildren > 1) {
+                    collapsedLabel += "ren";
+                }
                 pattern.data({
                     incomingEdgeMap: incomingEdgeMap,
                     outgoingEdgeMap: outgoingEdgeMap,
-                    interiorNodeCount: children.size(),
+                    collapsedLabel: collapsedLabel,
                 });
                 // We store collections of elements in the pattern's scratch
                 // data. Storing it in the main "data" section will mess up
