@@ -268,6 +268,27 @@ define(["underscore"], function (_) {
             this.validateComponentRank(sizeRank);
             return this.data.components[sizeRank - 1].bb;
         }
+
+        getPatternInfo(pattID) {
+            var pattAttrs = this.getPattAttrs();
+            // Cytoscape.js stores IDs as Strings, even though we store
+            // node/pattern IDs as integers. We get around this by just
+            // converting the ID Cytoscape.js gives us to an integer, which
+            // should be safe since (for nodes/patterns, at least) we're the
+            // ones who come up with these IDs.
+            var intID = parseInt(pattID);
+            for (var i = 0; i < this.data.components.length; i++) {
+                var cmp = this.data.components[i];
+                if (!cmp.skipped) {
+                    for (var p = 0; p < cmp.patts.length; p++) {
+                        if (cmp.patts[p][pattAttrs.pattern_id] === intID) {
+                            return cmp.patts[p];
+                        }
+                    }
+                }
+            }
+            throw new Error("Pattern " + pattID + " not found in data.");
+        }
     }
     return { DataHolder: DataHolder };
 });

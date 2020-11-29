@@ -218,6 +218,40 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         initSelectedEleInfoTables() {
         }
 
+        updateSelectedNodeInfo(eleID, selectOrUnselect) {
+            if (selectOrUnselect === "select") {
+            } else {
+                this.removeSelectedEleInfo(eleID);
+            }
+        }
+
+        updateSelectedEdgeInfo(eleID, selectOrUnselect) {
+            if (selectOrUnselect === "select") {
+            } else {
+                this.removeSelectedEleInfo(eleID);
+            }
+        }
+
+        updateSelectedPatternInfo(eleID, selectOrUnselect) {
+            if (selectOrUnselect === "select") {
+                var pattInfo = this.dataHolder.getPatternInfo(eleID);
+                var pattType = pattInfo[this.dataHolder.getPattAttrs().pattern_type];
+                $("#patternInfoTable").append(
+                    '<tr class="nonheader" id="row' +
+                        eleID +
+                        '"><td>' +
+                        pattType +
+                        "</td></tr>"
+                );
+            } else {
+                this.removeSelectedEleInfo(eleID);
+            }
+        }
+
+        removeSelectedEleInfo(eleID) {
+            $("#row" + eleID).remove();
+        }
+
         /**
          * Returns an array containing all of the components to draw.
          *
@@ -320,15 +354,18 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             }
 
             var x = eve.target;
+            var xID = x.id();
             if (x.isNode()) {
                 if (x.hasClass("basic")) {
                     // It's a regular node (not a pattern).
-                    this.selectedNodes[setFunc](x.id());
+                    this.selectedNodes[setFunc](xID);
                     $("#selectedNodeBadge").text(this.selectedNodes.size);
+                    this.updateSelectedNodeInfo(xID, selectOrUnselect);
                 } else if (x.hasClass("pattern")) {
                     // It's a pattern.
-                    this.selectedPatterns[setFunc](x.id());
+                    this.selectedPatterns[setFunc](xID);
                     $("#selectedPatternBadge").text(this.selectedPatterns.size);
+                    this.updateSelectedPatternInfo(xID, selectOrUnselect);
                 } else {
                     throw new Error(
                         "Unrecognized node type of target element: " + x
@@ -339,8 +376,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 // NOTE: Although we don't explicitly define edge IDs,
                 // Cytoscape.js initializes edges with UUIDs, which makes our
                 // job here easier.
-                this.selectedEdges[setFunc](x.id());
+                this.selectedEdges[setFunc](xID);
                 $("#selectedEdgeBadge").text(this.selectedEdges.size);
+                this.updateSelectedEdgeInfo(xID, selectOrUnselect);
             } else {
                 throw new Error("Target element not a node or edge: " + x);
             }
