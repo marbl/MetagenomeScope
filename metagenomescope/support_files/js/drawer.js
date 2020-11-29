@@ -33,7 +33,13 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
          *                             the "Draw" button, and stuff is already
          *                             drawn that needs to be removed).
          */
-        constructor(cyDivID, onSelect, onUnselect, onTogglePatternCollapse, onDestroy) {
+        constructor(
+            cyDivID,
+            onSelect,
+            onUnselect,
+            onTogglePatternCollapse,
+            onDestroy
+        ) {
             this.cyDivID = cyDivID;
             this.cyDiv = $("#" + cyDivID);
             // Instance of Cytoscape.js
