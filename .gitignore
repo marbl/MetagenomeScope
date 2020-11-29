@@ -12,7 +12,7 @@ node_modules/
 *.bak
 .coverage
 js_coverage.json
-viewer/instrumented_js/
+metagenomescope/tests/js_tests/instrumented_js/*
 dist/
 big-list-of-naughty-strings/
 *.gv

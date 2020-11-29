@@ -10,11 +10,11 @@
  */
 requirejs.config({
     paths: {
-        "app-manager": "../../support_files/js/app-manager",
-        "data-holder": "../../support_files/js/data-holder",
-        "drawer": "../../support_files/js/drawer",
-        "utils": "../../support_files/js/utils",
-        "dom-utils": "../../support_files/js/dom-utils",
+        "app-manager": "instrumented_js/app-manager",
+        "data-holder": "instrumented_js/data-holder",
+        "drawer": "instrumented_js/drawer",
+        "utils": "instrumented_js/utils",
+        "dom-utils": "instrumented_js/dom-utils",
         jquery: "../../support_files/vendor/js/jquery-3.2.1.min",
         underscore: "../../support_files/vendor/js/underscore-min",
         bootstrap: "../../support_files/vendor/js/bootstrap.min",

@@ -15,39 +15,16 @@ install:
     - hash -r
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
-    # Install OGDF. Note that the "Baobab" stable release fails when running
-    # makeMakefile.sh in a python 3.6 environment, so we create a new
-    # environment just for the purposes of installing OGDF. (This is a hack,
-    # but it's the easiest solution right now.)
-    - travis_retry conda create -q -n py2env python=2.7
-    - source activate py2env
-    - unzip ogdf.zip
-    - cd OGDF
-    # Install OGDF
-    # (As of writing, the Travis CI virtual environments all have two cores.
-    # So we parallelize the make operation to at most two jobs at once.)
-    - bash makeMakefile.sh
-    - make -j 2
-    # At this point, OGDF has been installed. Now we can build the SPQR script.
-    - cd ..
-    - make spqr IDIR=OGDF/include/ RDIR=OGDF/_release/
-    - conda deactivate
-    # Now, install MetagenomeScope from source (using the new SPQR script).
+    # Install MetagenomeScope from source
     - travis_retry conda create -q -c anaconda -n mgsc python=3.6 graphviz=2.38.0 pygraphviz numpy
     - source activate mgsc
     - pip install -e .[dev]
-    - conda deactivate
     # Install npm packages needed for JS testing
     - npm install -g mocha-headless-chrome nyc
     # Install npm packages needed for JS style-checking
     - npm install -g prettier jshint
-    # Install npm packages needed for JS/HTML/CSS minification
-    # (TODO: avoid needing to do this on Travis, since we test the
-    # *un-minified* files?)
-    - npm install -g csso-cli uglify-js html-minifier
 script:
-    - source activate mgsc
-    # This runs both the preprocessing script and viewer interface tests
+    # This runs both the Python and JS tests
     - make test
     - make stylecheck
 after_success:
