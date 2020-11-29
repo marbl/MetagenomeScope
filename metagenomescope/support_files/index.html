@@ -272,24 +272,13 @@
                 <div id="nodeInfo" class="notviewable">
                     <table id="nodeInfoTable" class="eleInfoTable">
                         <tr>
-                            <th colspan="6" id="nodeTH">
+                            <th colspan="2" id="nodeTH">
                                 Selected Node Information
                             </th>
                         </tr>
                         <tr>
-                            <th>ID</th>
-                            <th id="labelCol">Label</th>
-                            <th>Length</th>
-                            <th id="depthCol">Depth</th>
-                            <th id="gcContentCol">GC Content</th>
-                            <!-- We make this notviewable at the start so that
-                                 the node info table doesn't get too wide.
-                                 We can (and probably should) change this in
-                                 the future, though.
-                            -->
-                            <th id="repeatCol" class="notviewable">
-                                Is Repeat?
-                            </th>
+                            <th id="nameCol">Name</th>
+                            <th id="lengthCol">Length</th>
                         </tr>
                     </table>
                 </div>
@@ -304,17 +293,13 @@
                 <div id="edgeInfo" class="notviewable">
                     <table id="edgeInfoTable" class="eleInfoTable">
                         <tr>
-                            <th colspan="6" id="edgeTH">
+                            <th colspan="2" id="edgeTH">
                                 Selected Edge Information
                             </th>
                         </tr>
                         <tr>
-                            <th>Src ID</th>
-                            <th>Tgt ID</th>
-                            <th id="multiplicityCol">Multiplicity</th>
-                            <th id="orientationCol">Orient</th>
-                            <th id="meanCol">Mean</th>
-                            <th id="stdevCol">Std. Dev</th>
+                            <th>Source</th>
+                            <th>Target</th>
                         </tr>
                     </table>
                 </div>
@@ -330,11 +315,14 @@
                 <div id="patternInfo" class="notviewable">
                     <table id="patternInfoTable" class="eleInfoTable">
                         <tr>
-                            <th colspan="2">Selected Pattern Information</th>
+                            <th colspan="1">Selected Pattern Information</th>
                         </tr>
                         <tr>
                             <th>Pattern Type</th>
-                            <th>Node Count</th>
+                            <!-- TODO: compute node count *recursively* in
+                                 Python, so we can just fetch it and show it
+                                 here.
+                            -->
                         </tr>
                     </table>
                 </div>
