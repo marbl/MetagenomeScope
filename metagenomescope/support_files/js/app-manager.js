@@ -42,6 +42,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             this.selectedNodes = new Set();
             this.selectedEdges = new Set();
             this.selectedPatterns = new Set();
+
+            // Set of IDs of collapsed patterns.
+            this.collapsedPatterns = new Set();
         }
 
         /**
@@ -470,7 +473,55 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          * @param {Cytoscape.js Event} eve Event triggered by Cytoscape.js.
          */
         onTogglePatternCollapse(eve) {
-            var x = eve.target;
+            var pattern = eve.target;
+            // TODO set up
+            if (pattern.data("isCollapsed")) {
+                this.uncollapsePattern(pattern);
+            } else {
+                this.collapsePattern(pattern);
+            }
+        }
+
+        collapsePattern(pattern) {
+            // Prevent this pattern from being collapsed if any of its children are
+            // tentative nodes in finishing mode (TODO, reimplement when we get
+            // finishing working again)
+            //
+            // var children = pattern.children();
+            // if (this.finishingModeOn) {
+            //     for (var ci = 0; ci < children.length; ci++) {
+            //         if (children[ci].hasClass("tentative")) {
+            //             return;
+            //         }
+            //     }
+            // }
+            this.drawer.collapsePattern(pattern);
+            this.collapsedPatterns.add(pattern.id());
+            if (this.collapsedPatterns.size === this.drawer.numDrawnPatterns) {
+                // TODO: reenable when the collapse button is working again
+                // if ($("#collapseButtonText").text()[0] === "C") {
+                //     this.changeCollapseButton(true);
+                // }
+            }
+        }
+
+        uncollapsePattern(pattern) {
+            // Prevent this cluster from being uncollapsed if it's a
+            // "tentative" node in finishing mode (TODO, reimplement when
+            // finishing working again)
+            // if (mgsc.FINISHING_MODE_ON) {
+            //     if (cluster.hasClass("tentative")) {
+            //         return;
+            //     }
+            // }
+            this.drawer.uncollapsePattern(pattern);
+            this.collapsedPatterns.delete(pattern.id());
+            if (this.collapsedPatterns.size === 0) {
+                // TODO: reenable when the collapse button is working again
+                // if ($("#collapseButtonText").text()[0] === "U") {
+                //     this.changeCollapseButton(false);
+                // }
+            }
         }
 
         /**
@@ -482,6 +533,10 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          */
         onDestroy() {
             this.removeAllSelectedEleInfo();
+            // Clear collapsed pattern info
+            // (... If we're drawing patterns as already collapsed, then
+            // those patterns should be added to this when that happens)
+            this.collapsedPatterns = new Set();
         }
 
         /**

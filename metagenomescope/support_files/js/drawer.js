@@ -52,6 +52,13 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             this.onTogglePatternCollapse = onTogglePatternCollapse;
             this.onDestroy = onDestroy;
 
+            // Some numbers indicating the number of elements currently drawn.
+            // Useful for things like figuring out whether or not all patterns
+            // are currently collapsed.
+            this.numDrawnNodes = 0;
+            this.numDrawnEdges = 0;
+            this.numDrawnPatterns = 0;
+
             // Various constants
             //
             // Anything less than this constant will be considered a "straight"
@@ -79,6 +86,9 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
          */
         destroyGraph() {
             this.cy.destroy();
+            this.numDrawnNodes = 0;
+            this.numDrawnEdges = 0;
+            this.numDrawnPatterns = 0;
             this.onDestroy();
         }
 
@@ -485,6 +495,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     "Rendered pattern " + pattID + " at (" + x + ", " + y + ")"
                 );
             }
+            this.numDrawnPatterns++;
         }
 
         renderNode(nodeAttrs, nodeVals, nodeID, dx, dy) {
@@ -540,6 +551,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                         ")"
                 );
             }
+            this.numDrawnNodes++;
             return [x, y];
         }
 
@@ -685,7 +697,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     classes: classes + " basicbezier",
                     data: data,
                 });
-                return;
             } else {
                 var srcPos = node2pos[srcID];
                 var tgtPos = node2pos[tgtID];
@@ -721,6 +732,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     });
                 }
             }
+            this.numDrawnEdges++;
         }
 
         /**
@@ -882,6 +894,99 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             } else {
                 this.cy.fit();
             }
+        }
+
+        makeEdgeBasic(edgeEle) {
+            edgeEle.removeClass("unbundledbezier");
+            edgeEle.addClass("basicbezier");
+        }
+
+        /**
+         * Collapses a pattern, taking care of the display-level details.
+         *
+         * @param {Cytoscape.js Element} pattern
+         */
+        collapsePattern(pattern) {
+            this.cy.startBatch();
+            var pattID = pattern.id();
+            // For each edge with a target in the compound node...
+            var oldIncomingEdge;
+            for (var incomingEdgeID in pattern.data("incomingEdgeMap")) {
+                oldIncomingEdge = this.cy.getElementById(incomingEdgeID);
+                this.makeEdgeBasic(oldIncomingEdge);
+                oldIncomingEdge.move({ target: pattID });
+            }
+
+            // For each edge with a source in the compound node...
+            var oldOutgoingEdge;
+            for (var outgoingEdgeID in pattern.data("outgoingEdgeMap")) {
+                oldOutgoingEdge = this.cy.getElementById(outgoingEdgeID);
+                this.makeEdgeBasic(oldOutgoingEdge);
+                oldOutgoingEdge.move({ source: pattID });
+            }
+            pattern.data("isCollapsed", true);
+            // Unselect the elements before removing them (fixes #158 on GitHub)
+            pattern.scratch("_interiorEles").unselect();
+            // "Remove" the elements (they can be added back to the graph upon
+            // uncollapsing this pattern, of course)
+            pattern.scratch("_interiorEles").remove();
+            this.cy.endBatch();
+        }
+
+        uncollapsePattern(pattern) {
+            this.cy.startBatch();
+            // Restore child nodes + interior edges
+            pattern.scratch("_interiorEles").restore();
+            // "Reset" edges to their original target/source within the pattern
+            var oldIncomingEdge, newTgt;
+            for (var incomingEdgeID in pattern.data("incomingEdgeMap")) {
+                // TODO / NOTE: Edge weight removal isn't implemented yet so
+                // for now we don't gotta worry about this
+                // if (mgsc.REMOVED_EDGES.is('[id="' + incomingEdgeID + '"]')) {
+                //     // The edge has probably been removed from the graph due to
+                //     // the edge weight thing -- ignore it
+                //     continue;
+                // }
+                newTgt = pattern.data("incomingEdgeMap")[incomingEdgeID][1];
+                oldIncomingEdge = this.cy.getElementById(incomingEdgeID);
+                // If the edge isn't connected to another pattern, and the edge
+                // wasn't a basicbezier to start off with (i.e. it has control point
+                // data), then change its classes to update its style.
+                if (
+                    !oldIncomingEdge.source().hasClass("pattern") &&
+                    oldIncomingEdge.data("cpd")
+                ) {
+                    // TODO / NOTE: Also, "reducing" edges to straight lines
+                    // isn't implemented yet, so again don't gotta worry about
+                    // this. But we may in the future.
+                    // if (!oldIncomingEdge.hasClass("reducededge")) {
+                    oldIncomingEdge.removeClass("basicbezier");
+                    oldIncomingEdge.addClass("unbundledbezier");
+                    // }
+                }
+                oldIncomingEdge.move({ target: newTgt });
+            }
+            var oldOutgoingEdge, newSrc;
+            for (var outgoingEdgeID in pattern.data("outgoingEdgeMap")) {
+                // if (mgsc.REMOVED_EDGES.is('[id="' + outgoingEdgeID + '"]')) {
+                //     continue;
+                // }
+                newSrc = pattern.data("outgoingEdgeMap")[outgoingEdgeID][0];
+                oldOutgoingEdge = this.cy.getElementById(outgoingEdgeID);
+                if (
+                    !oldOutgoingEdge.target().hasClass("pattern") &&
+                    oldOutgoingEdge.data("cpd")
+                ) {
+                    // if (!oldOutgoingEdge.hasClass("reducededge")) {
+                    oldOutgoingEdge.removeClass("basicbezier");
+                    oldOutgoingEdge.addClass("unbundledbezier");
+                    // }
+                }
+                oldOutgoingEdge.move({ source: newSrc });
+            }
+            // Update local flag for collapsed status (useful for local toggling)
+            pattern.data("isCollapsed", false);
+            this.cy.endBatch();
         }
     }
     return { Drawer: Drawer };
