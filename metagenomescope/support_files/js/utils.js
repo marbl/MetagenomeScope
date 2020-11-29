@@ -234,6 +234,21 @@ define(function () {
         return strVal.match(/^\d+$/) !== null;
     }
 
+    function getHumanReadablePatternType(pattType) {
+        var lctype = pattType.toLowerCase();
+        if (lctype === "chain") {
+            return "Chain";
+        } else if (lctype === "cyclicchain") {
+            return "Cyclic Chain";
+        } else if (lctype === "bubble") {
+            return "Bubble";
+        } else if (lctype === "frayedrope") {
+            return "Frayed Rope";
+        } else {
+            return pattType;
+        }
+    }
+
     return {
         getNodeColorization: getNodeColorization,
         degreesToRadians: degreesToRadians,
@@ -243,5 +258,6 @@ define(function () {
         distance: distance,
         pointToLineDistance: pointToLineDistance,
         isValidInteger: isValidInteger,
+        getHumanReadablePatternType: getHumanReadablePatternType,
     };
 });

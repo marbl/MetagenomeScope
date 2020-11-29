@@ -201,7 +201,6 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // TODO: populate based on the component(s) currently drawn.
         }
 
-
         /**
          * Prepares the info tables for selected elements.
          *
@@ -215,8 +214,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          * export a bit so that all extra data cols are stored in a central
          * location.
          */
-        initSelectedEleInfoTables() {
-        }
+        initSelectedEleInfoTables() {}
 
         updateSelectedNodeInfo(eleID, selectOrUnselect) {
             if (selectOrUnselect === "select") {
@@ -235,7 +233,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         updateSelectedPatternInfo(eleID, selectOrUnselect) {
             if (selectOrUnselect === "select") {
                 var pattInfo = this.dataHolder.getPatternInfo(eleID);
-                var pattType = pattInfo[this.dataHolder.getPattAttrs().pattern_type];
+                var pattType = utils.getHumanReadablePatternType(
+                    pattInfo[this.dataHolder.getPattAttrs().pattern_type]
+                );
                 $("#patternInfoTable").append(
                     '<tr class="nonheader" id="row' +
                         eleID +
