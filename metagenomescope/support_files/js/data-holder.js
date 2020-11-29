@@ -1,4 +1,4 @@
-define(["underscore"], function (_) {
+define(["underscore", "utils"], function (_, utils) {
     class DataHolder {
         constructor(dataJSON) {
             this.data = dataJSON;
@@ -276,7 +276,14 @@ define(["underscore"], function (_) {
             // converting the ID Cytoscape.js gives us to an integer, which
             // should be safe since (for nodes/patterns, at least) we're the
             // ones who come up with these IDs.
-            var intID = parseInt(pattID);
+            var intID;
+            if (utils.isValidInteger(pattID) {
+                intID = parseInt(pattID);
+            } else {
+                throw new Error(
+                    "Pattern ID " + pattID + " is not a nonnegative integer."
+                );
+            }
             for (var i = 0; i < this.data.components.length; i++) {
                 var cmp = this.data.components[i];
                 if (!cmp.skipped) {

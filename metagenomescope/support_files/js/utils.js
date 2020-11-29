@@ -220,7 +220,7 @@ define(function () {
 
     /**
      * Returns true if a number is a "valid integer," which to us just means
-     * it's a string with just digits.
+     * it's a string with just digits. Negative numbers are not allowed.
      *
      * This is an overly strict way of checking this, probably -- you could
      * imagine things like 1e2 being valid integers, in theory. But this hasn't
