@@ -624,7 +624,8 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             var channelRange = MAX_CHANNEL_VAL - MIN_CHANNEL_VAL;
             var hexColor = "#";
             _.times(3, function () {
-                var channel = MIN_CHANNEL_VAL + Math.floor(Math.random() * channelRange);
+                var channel =
+                    MIN_CHANNEL_VAL + Math.floor(Math.random() * channelRange);
                 var hexChannel = channel.toString(16);
                 if (hexChannel.length === 1) {
                     hexChannel = "0" + hexChannel;

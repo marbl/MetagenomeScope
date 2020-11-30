@@ -573,19 +573,19 @@ class AssemblyGraph(object):
     @staticmethod
     def is_valid_superbubble(g, starting_node_id):
         r"""Returns a 4-tuple of (True, a list of all the nodes in the bubble,
-           the starting node in the bubble, the ending node in the bubble)
-           if a "superbubble" defined at the given start node would be valid.
-           Returns a 2-tuple of (False, None) if such a bubble would be
-           considered invalid.
+        the starting node in the bubble, the ending node in the bubble)
+        if a "superbubble" defined at the given start node would be valid.
+        Returns a 2-tuple of (False, None) if such a bubble would be
+        considered invalid.
 
-           If there is a superbubble starting at the start node, but it
-           contains other superbubbles within it, then this'll just return a
-           minimal superbubble (not starting at starting_node_id). It's
-           expected that hierarchical decomposition will mean that we'll
-           revisit this question later.
+        If there is a superbubble starting at the start node, but it
+        contains other superbubbles within it, then this'll just return a
+        minimal superbubble (not starting at starting_node_id). It's
+        expected that hierarchical decomposition will mean that we'll
+        revisit this question later.
 
-           This algorithm is adapted from Onodera et al. 2013:
-           https://arxiv.org/pdf/1307.7925.pdf
+        This algorithm is adapted from Onodera et al. 2013:
+        https://arxiv.org/pdf/1307.7925.pdf
         """
         # Starting node must be either an uncollapsed node or another bubble
         if AssemblyGraph.is_bubble_boundary_node_invalid(g, starting_node_id):
@@ -650,7 +650,9 @@ class AssemblyGraph(object):
             # If just one vertex (let's call it t) is left in S, and if t is
             # the only vertex marked as seen, then it's the exit node of the
             # bubble! (aka the "end node".)
-            seen_node_ids = [n for n in nodeid2label if nodeid2label[n] == "seen"]
+            seen_node_ids = [
+                n for n in nodeid2label if nodeid2label[n] == "seen"
+            ]
             if len(S) == 1 and len(seen_node_ids) == 1:
                 t = S.pop()
                 if t != seen_node_ids[0]:
@@ -1443,14 +1445,13 @@ class AssemblyGraph(object):
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""
         # Do layout one component at a time.
-        # TODO -- don't bother laying out single-node components, instead
-        # "fake" the dimensions -- see hack in old MgSc version:
-        # https://github.com/marbl/MetagenomeScope/blob/0db5e3790fc736f428f65b4687bd4d1e054c3978/metagenomescope/collate.py#L2785-L2807
         first_small_component = False
         for cc_i, cc_tuple in enumerate(self.get_connected_components(), 1):
             cc_node_ids = cc_tuple[0]
             cc_full_node_ct = cc_tuple[1]
             cc_full_edge_ct = cc_tuple[2]
+            # NOTE: I guess this assumes that max_node_count is greater than 5.
+            # That... really should not be violated, lol.
             if not first_small_component:
                 if (
                     cc_full_node_ct > self.max_node_count

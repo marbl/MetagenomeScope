@@ -27,17 +27,17 @@ from .msg_utils import operation_msg, conclude_msg
 def make_viz(
     input_file: str,
     output_dir: str,
-    #assume_oriented: bool,
+    # assume_oriented: bool,
     max_node_count: int,
     max_edge_count: int,
-    #metacarvel_bubble_file: str,
-    #user_pattern_file: str,
-    #spqr: bool,
-    #sp: bool,
-    #pg: bool,
-    #px: bool,
-    #nbdf: bool,
-    #npdf: bool,
+    # metacarvel_bubble_file: str,
+    # user_pattern_file: str,
+    # spqr: bool,
+    # sp: bool,
+    # pg: bool,
+    # px: bool,
+    # nbdf: bool,
+    # npdf: bool,
 ):
     """Creates a visualization."""
     arg_utils.check_dir_existence(output_dir)
@@ -94,8 +94,8 @@ def make_viz(
 
     index_template = env.get_template("index.html")
     with open(os.path.join(output_dir, "index.html"), "w") as index_file:
-        index_file.write(index_template.render(
-            {"graphFilename": asm_graph.basename}
-        ))
+        index_file.write(
+            index_template.render({"graphFilename": asm_graph.basename})
+        )
 
     conclude_msg()
