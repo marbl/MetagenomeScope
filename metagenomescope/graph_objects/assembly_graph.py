@@ -1483,6 +1483,30 @@ class AssemblyGraph(object):
                     )
                     first_small_component = True
 
+            # If this component contains just one basic node, and no edges or
+            # patterns, then we can "fake" its layout. This lets us avoid
+            # calling PyGraphviz a gazillion times, and speeds things up (esp
+            # for large graphs with gazillions of 1-node components).
+            # As a TODO, we can probs generalize this to other types of simple
+            # components -- e.g. components with just one loop edge (since we
+            # don't even use the control points from loop edges right now), etc
+            if cc_full_node_ct == 1 and cc_full_edge_ct == 0:
+                # Get the single value from the set without actually popping
+                # it, because knowing my luck I feel like that would cause
+                # problems.
+                # https://stackoverflow.com/questions/59825#comment67384382_60233
+                lone_node_id = next(iter(cc_node_ids))
+                if not self.is_pattern(lone_node_id):
+                    # Alright, we can fake this! Nice.
+                    data = self.digraph.nodes[lone_node_id]
+                    data["cc_num"] = cc_i
+                    data["x"] = data["width"] / 2
+                    data["y"] = data["height"] / 2
+                    self.cc_num_to_bb[cc_i] = (
+                        data["width"] + 0.1, data["height"] + 0.1
+                    )
+                    continue
+
             # Lay out this component, using the node and edge data for
             # top-level nodes and edges as well as the width/height computed
             # for "pattern nodes" (in which other nodes, edges, and patterns
@@ -1529,6 +1553,10 @@ class AssemblyGraph(object):
             # on your graph and you traced your way back to this line of code,
             # then boy do I have an NP-Hard problem for you .____________.
             top_level_cc_graph.layout(prog="dot")
+
+            # Output the layout info for this component to an xdot file
+            # (TODO, reenable with the -px option; will be nice for debugging)
+            # top_level_cc_graph.draw("cc_{}.xdot".format(cc_i))
 
             self.cc_num_to_bb[cc_i] = layout_utils.get_bb_x2_y2(
                 top_level_cc_graph.graph_attr["bb"]
