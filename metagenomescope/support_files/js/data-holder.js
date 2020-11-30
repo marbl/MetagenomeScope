@@ -21,12 +21,7 @@ define(["underscore", "utils"], function (_, utils) {
          * nodes -- so for graphs where the negative nodes are implied (e.g.
          * Velvet) the caller may want to divide these counts by 2.
          *
-         * Also, this includes node counts for _all_ components, even those
-         * that have not been laid out (and thus for which no data is included
-         * in the data JSON we have access to). (This is doable because the
-         * Python code just computes the total number of nodes specifically for
-         * showing here. No point making things more confusing than they
-         * already are.)
+         * Note: currently excludes nodes in non-laid-out components. Oops.
          *
          * ... And this includes duplicate nodes (e.g. those created to
          * separate adjacent bubble patterns).
@@ -40,8 +35,8 @@ define(["underscore", "utils"], function (_, utils) {
         /**
          * Returns the number of edges in the graph.
          *
-         * As with totalNumNodes(), this includes "implied" edges, spans all
-         * components (including non-laid-out ones), and includes "duplicate"
+         * As with totalNumNodes(), this includes "implied" edges, doesn't
+         * span non-laid-out components, and includes "duplicate"
          * edges (non-real edges that connect a node with its duplicate).
          *
          * @returns {Number}

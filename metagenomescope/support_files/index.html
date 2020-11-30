@@ -239,8 +239,12 @@
 
                 <div id="all-draw-eles" class="notviewable">
                     <p>
-                        This option will draw all components in the graph. It
-                        may take a while for large graphs.
+                        <!-- TODO: use templating to modify this depending on
+                             if any components were skipped. -->
+                        This option will draw all components in the graph
+                        (ignoring those, if any, that were not laid out due to
+                        having too many nodes/edges). It may take a while for
+                        large graphs.
                     </p>
                 </div>
 
