@@ -570,6 +570,128 @@ class AssemblyGraph(object):
         return True, composite, starting_node_id, ending_node_id
 
     @staticmethod
+    def is_valid_superbubble(g, starting_node_id):
+        r"""Returns a 4-tuple of (True, a list of all the nodes in the bubble,
+           the starting node in the bubble, the ending node in the bubble)
+           if a "superbubble" defined at the given start node would be valid.
+           Returns a 2-tuple of (False, None) if such a bubble would be
+           considered invalid.
+
+           If there is a superbubble starting at the start node, but it
+           contains other superbubbles within it, then this'll just return a
+           minimal superbubble (not starting at starting_node_id). It's
+           expected that hierarchical decomposition will mean that we'll
+           revisit this question later.
+
+           This algorithm is adapted from Onodera et al. 2013:
+           https://arxiv.org/pdf/1307.7925.pdf
+        """
+        # Starting node must be either an uncollapsed node or another bubble
+        if AssemblyGraph.is_bubble_boundary_node_invalid(g, starting_node_id):
+            return False, None
+
+        # From section 3 of Onodera 2013:
+        # Nodes are visited if they have already been visited in the main
+        # portion of the while loop below.
+        # Nodes are seen if at least one of the node's parents has been
+        # visited.
+        # (A node can only have one label at a time -- there are multiple ways
+        # to set this up; what we do here is just enforce this by storing node
+        # labels, both visited and seen, in a single structure. That way, if we
+        # e.g. mark a node as visited, then that automatically overrides that
+        # node's previous label (e.g. seen).
+        nodeid2label = {}
+
+        S = set([starting_node_id])
+        while len(S) > 0:
+            v = S.pop()
+
+            # Mark v as visited
+            nodeid2label[v] = "visited"
+
+            # If v doesn't have any outgoing edges, abort: this is a "tip"
+            if len(g.adj[v]) == 0:
+                return False, None
+
+            # Otherwise, let's go through v's "children".
+            for u in g.adj[v]:
+                # if v points to the starting node then there is a cycle, and
+                # per the definitions outlined Onodera 2013 superbubbles must
+                # be acyclic. So we abort.
+                if u == starting_node_id:
+                    return False, None
+
+                # Mark u as "seen"
+                nodeid2label[u] = "seen"
+
+                # If all of u's parents have been visited, let's go visit u.
+                all_parents_visited = True
+                parents = g.pred[u]
+                for p in g.pred[u]:
+                    if p not in nodeid2label or nodeid2label[p] != "visited":
+                        all_parents_visited = False
+                        break
+                if all_parents_visited:
+                    S.add(u)
+
+            # If just one vertex (let's call it t) is left in S, and if t is
+            # the only vertex marked as seen, then it's the exit node of the
+            # bubble! (aka the "end node".)
+            seen_node_ids = [n for n in nodeid2label if nodeid2label[n] == "seen"]
+            if len(S) == 1 and len(seen_node_ids) == 1:
+                t = S.pop()
+                if t != seen_node_ids[0]:
+                    raise ValueError("Something went really wrong...?")
+
+                # If there's an edge from t to the starting node, then this
+                # isn't a valid superbubble :(
+                if starting_node_id in g.adj[t]:
+                    return False, None
+
+                # A quick MetagenomeScope-specific check: Verify that end node
+                # is either an uncollapsed node or another bubble
+                if AssemblyGraph.is_bubble_boundary_node_invalid(g, t):
+                    return False, None
+
+                composite = list(nodeid2label.keys())
+
+                # This part was not present in Onodera 2013. They make the
+                # claim of "minimality," but only with respect to superbubbles
+                # that begin at a specific starting node -- as far as I can
+                # tell they don't account for the case when one superbubble
+                # completely contains another (see for example Fig. 2a of
+                # Nijkamp et al. 2013). To account for this, we just rerun the
+                # superbubble detection algorithm on all non-start/end nodes
+                # within a superbubble, and if we find a hit we just return
+                # THAT superbubble. (Since we use recursion, the superbubble
+                # returned here should be guaranteed to not contain any other
+                # ones.)
+                #
+                # This does not mean we're abandoning this superbubble - due
+                # to the hierarchical decomp stuff, we'll come back to it
+                # later!
+                #
+                # This is of course super inefficient in theory. However, since
+                # this repeated check only gets run once we DO find a
+                # superbubble, I don't think it will be too slow. Sorta similar
+                # to how the superbubble detection algorithms for MetaFlye are
+                # slow in theory but in practice are pretty fast.
+                for c in composite:
+                    if c != t and c != starting_node_id:
+                        out = AssemblyGraph.is_valid_superbubble(g, c)
+                        if out[0]:
+                            print("sub sb valid: " + str(out))
+                            for ni in out[1]:
+                                print(ni, g.nodes[ni]["name"])
+                            return out
+
+                # If the checks above succeeded, this is a valid
+                # superbubble! Nice.
+                return True, composite, starting_node_id, t
+
+        return False, None
+
+    @staticmethod
     def is_valid_chain(g, starting_node_id):
         """Returns a 2-tuple of (True, a list of all the nodes in the Chain
         in order from start to end) if a Chain defined at the given start
@@ -949,6 +1071,7 @@ class AssemblyGraph(object):
                 ),
                 (self.bubbles, AssemblyGraph.is_valid_3node_bubble, "bubble"),
                 (self.bubbles, AssemblyGraph.is_valid_bubble, "bubble"),
+                (self.bubbles, AssemblyGraph.is_valid_superbubble, "bubble"),
                 (
                     self.frayed_ropes,
                     AssemblyGraph.is_valid_frayed_rope,
