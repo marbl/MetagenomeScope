@@ -1450,30 +1450,39 @@ class AssemblyGraph(object):
             cc_node_ids = cc_tuple[0]
             cc_full_node_ct = cc_tuple[1]
             cc_full_edge_ct = cc_tuple[2]
-            # NOTE: I guess this assumes that max_node_count is greater than 5.
-            # That... really should not be violated, lol.
-            if not first_small_component:
-                if (
-                    cc_full_node_ct > self.max_node_count
-                    or cc_full_edge_ct > self.max_edge_count
-                ):
-                    operation_msg(
-                        (
-                            "Not laying out component {} ({} nodes, {} "
-                            "edges): exceeds -maxn or -maxe."
-                        ).format(cc_i, cc_full_node_ct, cc_full_edge_ct),
-                        True,
-                    )
-                    self.skipped_components.append(cc_i)
-                    continue
-                elif cc_full_node_ct > 5:
-                    operation_msg("Laying out component {}...".format(cc_i))
-                else:
+
+            # See if we need to skip laying out this component
+            if (
+                cc_full_node_ct > self.max_node_count
+                or cc_full_edge_ct > self.max_edge_count
+            ):
+                operation_msg(
+                    (
+                        "Not laying out component {} ({} nodes, {} "
+                        "edges): exceeds -maxn or -maxe."
+                    ).format(cc_i, cc_full_node_ct, cc_full_edge_ct),
+                    True,
+                )
+                self.skipped_components.append(cc_i)
+                continue
+
+            # If we've reached this point, then we're definitely laying out
+            # this component (we might "fake" the layout, but we're definitely
+            # at least going to produce coordinates for the node(s) in this
+            # component one way or another). All that we gotta figure out here
+            # is whether or not to print a message about this. (To save time
+            # and console space, we don't print individual messages about
+            # laying out all of the tiny components with < 5 nodes.)
+            if cc_full_node_ct >= 5:
+                operation_msg("Laying out component {}...".format(cc_i))
+            else:
+                if not first_small_component:
                     operation_msg(
                         "Laying out small (each containing < 5 nodes) "
                         "remaining component(s)..."
                     )
                     first_small_component = True
+
             # Lay out this component, using the node and edge data for
             # top-level nodes and edges as well as the width/height computed
             # for "pattern nodes" (in which other nodes, edges, and patterns
