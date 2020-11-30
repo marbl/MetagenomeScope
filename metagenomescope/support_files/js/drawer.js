@@ -247,10 +247,10 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                             // render the text.
                             "min-zoomed-font-size": 12,
                             "z-index": 2,
-                            "background-color": $("#usncp").colorpicker(
-                                "getValue"
-                            ),
-                            color: $("#usnlcp").colorpicker("getValue"),
+                            // "background-color": $("#usncp").colorpicker(
+                            //     "getValue"
+                            // ),
+                            "background-color": "data(randColor)",
                         },
                     },
                     // TODO: add a generalized "colorized" class or something
@@ -592,6 +592,44 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             this.numDrawnPatterns++;
         }
 
+        /**
+         * Produces a random hex color.
+         *
+         * @param {Number} minChannelVal Minimum value, in base 10, of any
+         *                               R/G/B channel. Depending on the use
+         *                               case for these colors, we may or may
+         *                               not want to have this be above 0.
+         *                               (e.g. for coloring nodes: we currently
+         *                               just use black text to label nodes,
+         *                               so we use a value of 50 for this to
+         *                               make node labels easier to read.)
+         *
+         * @param {Number} maxChannelVal Maximum value, in base 10, of any
+         *                               R/G/B channel. Similar considerations
+         *                               as with minChannelVal apply.
+         *
+         * @return {String} hexColor In the format "#rrggbb".
+         */
+        randomColor(minChannelVal = 100, maxChannelVal = 205) {
+            // Can change these values to change the brightness of these colors
+            // Our use of [50, 205] means that we can rule out a lot of really
+            // dark or really light colors, making text easier to read and
+            // not making things look too jarring
+            var MAX_CHANNEL_VAL = 205;
+            var MIN_CHANNEL_VAL = 50;
+            var channelRange = MAX_CHANNEL_VAL - MIN_CHANNEL_VAL;
+            var hexColor = "#";
+            _.times(3, function () {
+                var channel = MIN_CHANNEL_VAL + Math.floor(Math.random() * channelRange);
+                var hexChannel = channel.toString(16);
+                if (hexChannel.length === 1) {
+                    hexChannel = "0" + hexChannel;
+                }
+                hexColor += hexChannel;
+            });
+            return hexColor;
+        }
+
         renderNode(nodeAttrs, nodeVals, nodeID, dx, dy) {
             var nodeData = {
                 id: nodeID,
@@ -599,6 +637,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 length: nodeVals[nodeAttrs.length],
                 w: nodeVals[nodeAttrs.width],
                 h: nodeVals[nodeAttrs.height],
+                randColor: this.randomColor(),
             };
 
             // Store within parent, if needed
