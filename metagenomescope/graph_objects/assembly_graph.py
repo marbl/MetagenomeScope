@@ -610,7 +610,11 @@ class AssemblyGraph(object):
             nodeid2label[v] = "visited"
 
             # If v doesn't have any outgoing edges, abort: this is a "tip"
-            if len(g.adj[v]) == 0:
+            # MgSc-specific thing: also, if this node only has one outgoing
+            # edge, then it should be collapsed into a chain, not a bubble.
+            # There might be a bubble later on down from it, but it isn't the
+            # start of a bubble.
+            if len(g.adj[v]) < 2:
                 return False, None
 
             # Otherwise, let's go through v's "children".
