@@ -1384,9 +1384,9 @@ class AssemblyGraph(object):
         """Returns a list of 3-tuples, where the first element in each tuple is
         a set of (top-level) node IDs within this component in the decomposed
         digraph, the second element is the total number of nodes (not
-        counting collapsed patterns, but including nodes within patterns)
-        within this component, and the third element is the total number of
-        edges within this component.
+        counting collapsed patterns, but including nodes within patterns and
+        also including duplicate nodes) within this component, and the third
+        element is the total number of edges within this component.
 
         Components are sorted in descending order by number of nodes first,
         then number of edges, then number of patterns. This is a simple-ish way
@@ -1474,7 +1474,11 @@ class AssemblyGraph(object):
             # and console space, we don't print individual messages about
             # laying out all of the tiny components with < 5 nodes.)
             if cc_full_node_ct >= 5:
-                operation_msg("Laying out component {}...".format(cc_i))
+                operation_msg(
+                    "Laying out component {} ({} nodes, {} edges)...".format(
+                        cc_i, cc_full_node_ct, cc_full_edge_ct
+                    )
+                )
             else:
                 if not first_small_component:
                     operation_msg(
@@ -1996,4 +2000,6 @@ class AssemblyGraph(object):
         self.layout()
         operation_msg("...Finished laying out the graph.", True)
 
+        operation_msg("Rotating and scaling things as needed...")
         self.rotate_from_TB_to_LR()
+        conclude_msg()
