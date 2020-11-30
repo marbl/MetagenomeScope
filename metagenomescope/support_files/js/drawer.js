@@ -354,6 +354,9 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                             "loop-direction": "30deg",
                             "z-index": 1,
                             "z-index-compare": "manual",
+                            "target-arrow-shape": "triangle",
+                            "target-endpoint": "-50% 0%",
+                            "source-endpoint": "50% 0",
                         },
                     },
                     {
@@ -363,14 +366,6 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                             "target-arrow-color": $("#secp").colorpicker(
                                 "getValue"
                             ),
-                        },
-                    },
-                    {
-                        selector: "edge.oriented",
-                        style: {
-                            "target-arrow-shape": "triangle",
-                            "target-endpoint": "-50% 0%",
-                            "source-endpoint": "50% 0",
                         },
                     },
                     {
@@ -402,6 +397,18 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                         selector: "edge.basicbezier",
                         style: {
                             "curve-style": "bezier",
+                        },
+                    },
+                    {
+                        // Used for edges incident on collapsed patterns. These
+                        // edges no longer have their control point data in
+                        // use, so making them hit the tailport / headport of
+                        // their source / target looks really gross. So we just
+                        // say "screw it, any direction is ok."
+                        selector: "edge.not_using_ports",
+                        style: {
+                            "source-endpoint": "outside-to-node",
+                            "target-endpoint": "outside-to-node",
                         },
                     },
                     {
@@ -984,15 +991,39 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             }
         }
 
+        /**
+         * Makes an edge "basic" -- if it isn't already a basicbezier, makes it
+         * a basicbezier (i.e. makes it basically a straight line), and also
+         * adds the not_using_ports class (no longer constrains it to hitting
+         * the exact end / start of its source / end nodes).
+         *
+         * @param {Cytoscape.js edge Element} edgeEle
+         */
         makeEdgeBasic(edgeEle) {
-            edgeEle.removeClass("unbundledbezier");
-            edgeEle.addClass("basicbezier");
+            if (edgeEle.data("cpd")) {
+                edgeEle.removeClass("unbundledbezier");
+                edgeEle.addClass("basicbezier");
+            }
+            edgeEle.addClass("not_using_ports");
+        }
+
+        /**
+         * Reverses what makeEdgeBasic() does.
+         *
+         * @param {Cytoscape.js edge Element} edgeEle
+         */
+        makeEdgeNonBasic(edgeEle) {
+            if (edgeEle.data("cpd")) {
+                edgeEle.removeClass("basicbezier");
+                edgeEle.addClass("unbundledbezier");
+            }
+            edgeEle.removeClass("not_using_ports");
         }
 
         /**
          * Collapses a pattern, taking care of the display-level details.
          *
-         * @param {Cytoscape.js Element} pattern
+         * @param {Cytoscape.js node Element} pattern
          */
         collapsePattern(pattern) {
             this.cy.startBatch();
@@ -1021,6 +1052,11 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             this.cy.endBatch();
         }
 
+        /**
+         * Reverses collapsePattern().
+         *
+         * @param {Cytoscape.js node Element} Pattern
+         */
         uncollapsePattern(pattern) {
             this.cy.startBatch();
             // Restore child nodes + interior edges
@@ -1040,16 +1076,12 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 // If the edge isn't connected to another pattern, and the edge
                 // wasn't a basicbezier to start off with (i.e. it has control point
                 // data), then change its classes to update its style.
-                if (
-                    !oldIncomingEdge.source().hasClass("pattern") &&
-                    oldIncomingEdge.data("cpd")
-                ) {
+                if (!oldIncomingEdge.source().hasClass("pattern")) {
                     // TODO / NOTE: Also, "reducing" edges to straight lines
                     // isn't implemented yet, so again don't gotta worry about
                     // this. But we may in the future.
                     // if (!oldIncomingEdge.hasClass("reducededge")) {
-                    oldIncomingEdge.removeClass("basicbezier");
-                    oldIncomingEdge.addClass("unbundledbezier");
+                    this.makeEdgeNonBasic(oldIncomingEdge);
                     // }
                 }
                 oldIncomingEdge.move({ target: newTgt });
@@ -1061,13 +1093,9 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 // }
                 newSrc = pattern.data("outgoingEdgeMap")[outgoingEdgeID][0];
                 oldOutgoingEdge = this.cy.getElementById(outgoingEdgeID);
-                if (
-                    !oldOutgoingEdge.target().hasClass("pattern") &&
-                    oldOutgoingEdge.data("cpd")
-                ) {
+                if (!oldOutgoingEdge.target().hasClass("pattern")) {
                     // if (!oldOutgoingEdge.hasClass("reducededge")) {
-                    oldOutgoingEdge.removeClass("basicbezier");
-                    oldOutgoingEdge.addClass("unbundledbezier");
+                    this.makeEdgeNonBasic(oldOutgoingEdge);
                     // }
                 }
                 oldOutgoingEdge.move({ source: newSrc });
