@@ -149,7 +149,7 @@ def run_script(
         mgsc -i graph.gfa -o viz
 
     ...which will generate an output directory named "viz". (You'll need to
-    replace "graph.gfa" with whatever the path to your assembly graph is!)
+    replace "graph.gfa" with whatever the path to your assembly graph is.)
     """
     make_viz(
         input_file,

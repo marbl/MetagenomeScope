@@ -42,7 +42,10 @@ MAXN = (
     "laid out or available for display in the visualization. Since "
     "hierarchical graph layout is relatively slow for large or tangled "
     "connected components, this is a heuristic to enable visualization "
-    "of the less messy regions of graphs with a few 'hairball' components."
+    "of the less messy regions of graphs with a few 'hairball' components. "
+    "(Note that certain patterns might result in nodes being duplicated in "
+    "the display so that they can be present in multiple patterns; these "
+    '"duplicate" nodes will not count against this number.)'
 )
 
 MAXE = (

@@ -95,9 +95,13 @@ class AssemblyGraph(object):
 
         self.digraph = assembly_graph_parser.parse(self.filename)
         self.check_attrs()
-        self.reindex_digraph()
-
         conclude_msg()
+
+        # Remove nodes/edges in components that are too large to lay out.
+        self.num_too_large_components = 0
+        self.remove_too_large_components()
+
+        self.reindex_digraph()
 
         # Initialize all edges with is_dup by default, so that in the future we
         # can distinguish easily between duplicate and non-duplicate edges
@@ -115,10 +119,6 @@ class AssemblyGraph(object):
         # a pattern (which may in turn be a node in the top-level graph or
         # within the subgraph of another pattern, etc.)
         self.decomposed_digraph = None
-
-        # Records the (1-indexed!!!) component numbers for components that we
-        # didn't bother laying out.
-        self.skipped_components = []
 
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
@@ -155,6 +155,35 @@ class AssemblyGraph(object):
                         edge, shared_attrs
                     )
                 )
+
+    def remove_too_large_components(self):
+        # We convert the WCC collection to a list so that even if we alter the
+        # digraph in the middle of the loop we don't risk the collection being
+        # messed up
+        wccs = list(nx.weakly_connected_components(self.digraph))
+        num_wccs = len(wccs)
+        for cc_node_ids in wccs:
+            num_nodes = len(cc_node_ids)
+            num_edges = len(self.digraph.subgraph(cc_node_ids).edges)
+            if (
+                num_nodes > self.max_node_count
+                or num_edges > self.max_edge_count
+            ):
+                self.digraph.remove_nodes_from(cc_node_ids)
+                self.num_too_large_components += 1
+                operation_msg(
+                    (
+                        "Ignoring a component ({} nodes, {} "
+                        "edges): exceeds -maxn or -maxe."
+                    ).format(num_nodes, num_edges),
+                    True,
+                )
+
+        if self.num_too_large_components == num_wccs:
+            raise ValueError(
+                "All components were too large to lay out. Try increasing the "
+                "-maxn/-maxe parameters, or reducing the size of the graph."
+            )
 
     def reindex_digraph(self):
         """Assigns every node in the graph a unique integer ID, and adds a
@@ -639,7 +668,6 @@ class AssemblyGraph(object):
 
                 # If all of u's parents have been visited, let's go visit u.
                 all_parents_visited = True
-                parents = g.pred[u]
                 for p in g.pred[u]:
                     if p not in nodeid2label or nodeid2label[p] != "visited":
                         all_parents_visited = False
@@ -1445,34 +1473,16 @@ class AssemblyGraph(object):
     def layout(self):
         """Lays out the graph's components, handling patterns specially."""
         # Do layout one component at a time.
+        # (We don't bother checking for skipped components, since we should
+        # have already called self.remove_too_large_components().)
         first_small_component = False
-        for cc_i, cc_tuple in enumerate(self.get_connected_components(), 1):
+        for cc_i, cc_tuple in enumerate(
+            self.get_connected_components(), self.num_too_large_components + 1
+        ):
             cc_node_ids = cc_tuple[0]
             cc_full_node_ct = cc_tuple[1]
             cc_full_edge_ct = cc_tuple[2]
 
-            # See if we need to skip laying out this component
-            if (
-                cc_full_node_ct > self.max_node_count
-                or cc_full_edge_ct > self.max_edge_count
-            ):
-                operation_msg(
-                    (
-                        "Not laying out component {} ({} nodes, {} "
-                        "edges): exceeds -maxn or -maxe."
-                    ).format(cc_i, cc_full_node_ct, cc_full_edge_ct),
-                    True,
-                )
-                self.skipped_components.append(cc_i)
-                continue
-
-            # If we've reached this point, then we're definitely laying out
-            # this component (we might "fake" the layout, but we're definitely
-            # at least going to produce coordinates for the node(s) in this
-            # component one way or another). All that we gotta figure out here
-            # is whether or not to print a message about this. (To save time
-            # and console space, we don't print individual messages about
-            # laying out all of the tiny components with < 5 nodes.)
             if cc_full_node_ct >= 5:
                 operation_msg(
                     "Laying out component {} ({} nodes, {} edges)...".format(
@@ -1507,7 +1517,8 @@ class AssemblyGraph(object):
                     data["x"] = data["width"] / 2
                     data["y"] = data["height"] / 2
                     self.cc_num_to_bb[cc_i] = (
-                        data["width"] + 0.1, data["height"] + 0.1
+                        data["width"] + 0.1,
+                        data["height"] + 0.1,
                     )
                     continue
 
@@ -1642,12 +1653,6 @@ class AssemblyGraph(object):
 
             if not first_small_component:
                 conclude_msg()
-
-        if len(self.skipped_components) == cc_i:
-            raise ValueError(
-                "All components were too large to lay out. Try increasing the "
-                "-maxn/-maxe parameters, or reducing the size of the graph."
-            )
 
         if first_small_component:
             conclude_msg()
@@ -1827,16 +1832,13 @@ class AssemblyGraph(object):
         # For each component:
         # (This is the same general strategy for iterating through the graph as
         # self.layout() uses.)
-        for cc_i, cc_tuple in enumerate(self.get_connected_components(), 1):
-            # Make note of components we didn't lay out
-            if cc_i in self.skipped_components:
-                out["components"].append({"skipped": True})
-                continue
+        for cc_i, cc_tuple in enumerate(
+            self.get_connected_components(), self.num_too_large_components + 1
+        ):
             this_component = {
                 "nodes": {},
                 "edges": {},
                 "patts": [],
-                "skipped": False,
                 "bb": self.cc_num_to_bb[cc_i],
             }
             # Go through top-level nodes and collapsed patterns
@@ -1967,6 +1969,8 @@ class AssemblyGraph(object):
             data["width"], data["height"] = data["height"], data["width"]
             data["width"] *= config.POINTS_PER_INCH
             data["height"] *= config.POINTS_PER_INCH
+            if "x" not in data:
+                print(data, "tf lol")
             data["x"], data["y"] = layout_utils.rotate(data["x"], data["y"])
 
         # Rotate edges
