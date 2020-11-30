@@ -1829,6 +1829,14 @@ class AssemblyGraph(object):
             "total_num_edges": self.digraph.number_of_edges(),
         }
 
+        # Hack: indicate the number of skipped components in the exported data.
+        # There are obviously much more efficient ways to do this (e.g. just
+        # pass the number of skipped components as a global data property), but
+        # this works with the JS I have set up right now and dude it's 5am give
+        # me a break
+        for n in range(self.num_too_large_components):
+            out["components"].append({"skipped": True})
+
         # For each component:
         # (This is the same general strategy for iterating through the graph as
         # self.layout() uses.)
@@ -1840,6 +1848,7 @@ class AssemblyGraph(object):
                 "edges": {},
                 "patts": [],
                 "bb": self.cc_num_to_bb[cc_i],
+                "skipped": False,
             }
             # Go through top-level nodes and collapsed patterns
             for node_id in cc_tuple[0]:

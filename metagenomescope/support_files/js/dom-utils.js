@@ -98,6 +98,12 @@ define(["jquery", "underscore", "utils"], function ($, _, utils) {
      * Returns 1 if it is an integer but is greater than the max component rank.
      * Returns 0 if it is an integer and is within the range [min rank, max rank].
      *
+     * Actually, TODO, this function is fundamentally flawed because valid
+     * components aren't necessarily in a range -- due to -maxe they could
+     * theoretically happen at periodic intervals throughout the range of
+     * sorted components. Consult the data holder instead (so probs just move
+     * this func outta dom utils i guess...? or pass in the data holder. eesh.)
+     *
      * @param {String}
      * @returns {Number or null}
      */

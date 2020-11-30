@@ -78,14 +78,11 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // Set up the component selector
             var svc = this.dataHolder.smallestViewableComponent();
             $("#componentselector").prop("value", svc);
-            // Setting the min to 1 instead of svc is done for a few reasons:
-            // 1. No guarantee that the maximum-number component will also be
-            //    drawable (although that should probably never happen in
-            //    practice, because usually there are a lot of components with
-            //    just 1 node) -- so we should be consistent.
-            // 2. Shows the user that components are 1-indexed, so the largest
-            //    component is #1.
-            $("#componentselector").prop("min", 1);
+            // TODO?: May be ok to always allow this to go down to 1 if we
+            // have very explicit error messages about cmps not having been
+            // laid out, and update domUtils.compRankValidity() to not rely on
+            // the "min" property of this ._.
+            $("#componentselector").prop("min", svc);
             $("#componentselector").prop("max", this.numComponents);
             $("#decrCompRankButton").click(domUtils.decrCompRank);
             $("#incrCompRankButton").click(domUtils.incrCompRank);
