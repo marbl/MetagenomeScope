@@ -247,10 +247,14 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                             // render the text.
                             "min-zoomed-font-size": 12,
                             "z-index": 2,
-                            // "background-color": $("#usncp").colorpicker(
-                            //     "getValue"
-                            // ),
-                            "background-color": "data(randColor)",
+                            "background-color": $("#usncp").colorpicker(
+                                "getValue"
+                            ),
+                            // Uncomment this (and comment out the entry above)
+                            // to use a random color for each node, provided
+                            // these random color is generated in renderNode().
+                            // (Keep in mind how dup nodes are labeled...)
+                            // "background-color": "data(randColor)",
                         },
                     },
                     // TODO: add a generalized "colorized" class or something
@@ -637,7 +641,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 length: nodeVals[nodeAttrs.length],
                 w: nodeVals[nodeAttrs.width],
                 h: nodeVals[nodeAttrs.height],
-                randColor: this.randomColor(),
+                // randColor: this.randomColor(),
             };
 
             // Store within parent, if needed
