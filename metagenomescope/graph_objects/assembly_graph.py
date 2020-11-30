@@ -590,6 +590,18 @@ class AssemblyGraph(object):
         if AssemblyGraph.is_bubble_boundary_node_invalid(g, starting_node_id):
             return False, None
 
+        # MgSc-specific thing: if the starting node only has one outgoing
+        # edge, then it should be collapsed into a chain, not a bubble.
+        # There might be a bubble later on down from it, but it isn't the
+        # start of a bubble. (We don't guarantee that the graph is
+        # a unipath graph, which is an assumption of Onodera 2013's algorithm I
+        # think -- hence our need to impose this restriction. Otherwise, I
+        # found that weird stuff was getting called as a bubble in the test
+        # Velvet E. coli graph, and it was breaking my code, so I added this
+        # in.)
+        if len(g.adj[starting_node_id]) < 2:
+            return False, None
+
         # From section 3 of Onodera 2013:
         # Nodes are visited if they have already been visited in the main
         # portion of the while loop below.
@@ -610,12 +622,7 @@ class AssemblyGraph(object):
             nodeid2label[v] = "visited"
 
             # If v doesn't have any outgoing edges, abort: this is a "tip".
-            # MgSc-specific thing: also, if this node only has one outgoing
-            # edge, then it should be collapsed into a chain, not a bubble.
-            # There might be a bubble later on down from it, but it isn't the
-            # start of a bubble. (We don't guarantee that the graph is
-            # a unipath graph, hence our need to impose this restriction.)
-            if len(g.adj[v]) < 2:
+            if len(g.adj[v]) == 0:
                 return False, None
 
             # Otherwise, let's go through v's "children".
