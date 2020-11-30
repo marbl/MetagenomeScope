@@ -27,35 +27,19 @@ from .msg_utils import operation_msg, conclude_msg
 def make_viz(
     input_file: str,
     output_dir: str,
-    assume_oriented: bool,
+    #assume_oriented: bool,
     max_node_count: int,
     max_edge_count: int,
-    metacarvel_bubble_file: str,
-    user_pattern_file: str,
-    spqr: bool,
-    sp: bool,
-    pg: bool,
-    px: bool,
-    nbdf: bool,
-    npdf: bool,
+    #metacarvel_bubble_file: str,
+    #user_pattern_file: str,
+    #spqr: bool,
+    #sp: bool,
+    #pg: bool,
+    #px: bool,
+    #nbdf: bool,
+    #npdf: bool,
 ):
-    """Creates a visualization.
-
-    NOTE: Not all arguments are supported yet.
-    TODOs:
-        -assume oriented
-
-        -metacarvel bubble file
-        -user pattern file
-
-        -spqr
-
-        -sp
-        -pg
-        -px
-        -nbdf
-        -npdf
-    """
+    """Creates a visualization."""
     arg_utils.check_dir_existence(output_dir)
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
@@ -115,14 +99,3 @@ def make_viz(
         ))
 
     conclude_msg()
-
-    # Other TODO items:
-    # -Identify user-supplied bubbles and patterns. Should be "lowest level"
-    #  patterns, i.e. collapsed first.
-    # -Use fancier complex bubble detection, similar to
-    #  what's described in the MaryGold / MetaFlye papers. For now very complex
-    #  bubbles are assumed to be covered by decomposition or by user input, but
-    #  this will not always be the case.
-    # -If -spqr passed, compute SPQR trees and record composition/structure.
-    # -Output identified pattern info if -sp passed
-    # -SPQR layout!

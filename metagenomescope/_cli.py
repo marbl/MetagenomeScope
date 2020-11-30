@@ -44,13 +44,13 @@ from ._param_descriptions import (
 @click.command(context_settings={"help_option_names": ["-h", "--help"]})
 @click.option("-i", "--input-file", required=True, help=INPUT)
 @click.option("-o", "--output-dir", required=True, help=OUTPUT_DIR)
-@click.option(
-    "-ao",
-    "--assume-oriented",
-    required=False,
-    default=False,
-    help=ASSUME_ORIENTED,
-)
+#@click.option(
+#    "-ao",
+#    "--assume-oriented",
+#    required=False,
+#    default=False,
+#    help=ASSUME_ORIENTED,
+#)
 @click.option(
     "-maxn",
     "--max-node-count",
@@ -67,79 +67,80 @@ from ._param_descriptions import (
     help=MAXE,
     show_default=True,
 )
-@click.option(
-    "-mbf", "--metacarvel-bubble-file", required=False, default=None, help=MBF
-)
-@click.option(
-    "-up", "--user-pattern-file", required=False, default=None, help=UP
-)
-@click.option(
-    "-spqr",
-    "--compute-spqr-data",
-    required=False,
-    is_flag=True,
-    default=False,
-    help=SPQR,
-)
-@click.option(
-    "-sp",
-    "--save-structural-patterns",
-    is_flag=True,
-    required=False,
-    default=False,
-    help=STRUCTPATT,
-)
-@click.option(
-    "-pg",
-    "--preserve-gv",
-    is_flag=True,
-    required=False,
-    default=False,
-    help=PG,
-)
-@click.option(
-    "-px",
-    "--preserve-xdot",
-    required=False,
-    is_flag=True,
-    default=False,
-    help=PX,
-)
-@click.option(
-    "-nbdf",
-    "--save-no-backfill-dot-files",
-    is_flag=True,
-    required=False,
-    default=False,
-    help=NBDF,
-)
-@click.option(
-    "-npdf",
-    "--save-no-pattern-dot-files",
-    is_flag=True,
-    required=False,
-    default=False,
-    help=NPDF,
-)
+#@click.option(
+#    "-mbf", "--metacarvel-bubble-file", required=False, default=None, help=MBF
+#)
+#@click.option(
+#    "-up", "--user-pattern-file", required=False, default=None, help=UP
+#)
+#@click.option(
+#    "-spqr",
+#    "--compute-spqr-data",
+#    required=False,
+#    is_flag=True,
+#    default=False,
+#    help=SPQR,
+#)
+#@click.option(
+#    "-sp",
+#    "--save-structural-patterns",
+#    is_flag=True,
+#    required=False,
+#    default=False,
+#    help=STRUCTPATT,
+#)
+#@click.option(
+#    "-pg",
+#    "--preserve-gv",
+#    is_flag=True,
+#    required=False,
+#    default=False,
+#    help=PG,
+#)
+#@click.option(
+#    "-px",
+#    "--preserve-xdot",
+#    required=False,
+#    is_flag=True,
+#    default=False,
+#    help=PX,
+#)
+#@click.option(
+#    "-nbdf",
+#    "--save-no-backfill-dot-files",
+#    is_flag=True,
+#    required=False,
+#    default=False,
+#    help=NBDF,
+#)
+#@click.option(
+#    "-npdf",
+#    "--save-no-pattern-dot-files",
+#    is_flag=True,
+#    required=False,
+#    default=False,
+#    help=NPDF,
+#)
 def run_script(
     input_file: str,
     output_dir: str,
-    assume_oriented: bool,
+    #assume_oriented: bool,
     max_node_count: int,
     max_edge_count: int,
-    metacarvel_bubble_file: str,
-    user_pattern_file: str,
-    compute_spqr_data: bool,
-    save_structural_patterns: bool,
-    preserve_gv: bool,
-    preserve_xdot: bool,
-    save_no_backfill_dot_files: bool,
-    save_no_pattern_dot_files: bool,
+    #metacarvel_bubble_file: str,
+    #user_pattern_file: str,
+    #compute_spqr_data: bool,
+    #save_structural_patterns: bool,
+    #preserve_gv: bool,
+    #preserve_xdot: bool,
+    #save_no_backfill_dot_files: bool,
+    #save_no_pattern_dot_files: bool,
 ) -> None:
-    """Visualizes an assembly graph and identifies structural patterns therein.
+    """Visualizes an assembly graph and the structural patterns in it.
 
     This generates a folder containing an interactive HTML/JS visualization of
-    the graph's connected component(s).
+    the graph. The folder's index.html file can be opened in a web browser to
+    access the visualization.
 
     There are many options available to customize the visualization / output,
     but the only two you probably need to worry about are the input file and
@@ -147,23 +148,23 @@ def run_script(
 
         mgsc -i graph.gfa -o viz
 
-    Which will generate an output directory viz/ containing an index.html
-    file that visualizes the graph's connected components.
+    ...which will generate an output directory named "viz". (You'll need to
+    replace "graph.gfa" with whatever the path to your assembly graph is!)
     """
     make_viz(
         input_file,
         output_dir,
-        assume_oriented,
+        #assume_oriented,
         max_node_count,
         max_edge_count,
-        metacarvel_bubble_file,
-        user_pattern_file,
-        compute_spqr_data,
-        save_structural_patterns,
-        preserve_gv,
-        preserve_xdot,
-        save_no_backfill_dot_files,
-        save_no_pattern_dot_files,
+        #metacarvel_bubble_file,
+        #user_pattern_file,
+        #compute_spqr_data,
+        #save_structural_patterns,
+        #preserve_gv,
+        #preserve_xdot,
+        #save_no_backfill_dot_files,
+        #save_no_pattern_dot_files,
     )
 
 
