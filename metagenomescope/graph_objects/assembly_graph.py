@@ -459,7 +459,8 @@ class AssemblyGraph(object):
 
         # Reject cyclic bubbles and/or bubbles where the end node points to the
         # starting node, the middle node, or itself
-        if len(set([starting_node_id, m, e]) & set(g.adj[e])) > 0:
+        # NOTE: for now, allowing end node to point to start node.
+        if len(set([m, e]) & set(g.adj[e])) > 0:
             return False, None
 
         # Ensure that all nodes in the bubble are distinct (protects against
@@ -552,8 +553,8 @@ class AssemblyGraph(object):
 
         # Reject cyclic bubbles (although we could allow this if people want
         # it, I guess?)
-        if starting_node_id in list(g.adj[ending_node_id].keys()):
-            return False, None
+        # if starting_node_id in list(g.adj[ending_node_id].keys()):
+        #     return False, None
 
         # Ensure that all nodes in the bubble are distinct (protects against
         # weird cases like
@@ -656,9 +657,13 @@ class AssemblyGraph(object):
                     raise ValueError("Something went really wrong...?")
 
                 # If there's an edge from t to the starting node, then this
-                # isn't a valid superbubble :(
-                if starting_node_id in g.adj[t]:
-                    return False, None
+                # superbubble is cyclic.
+                # We actually allow this, although Onodera et al. do not.
+                # Partially because this helps with hierarchical decomp stuff,
+                # and partially because I don't think there's a problem with
+                # this...? but idk. Up for debate.
+                # if starting_node_id in g.adj[t]:
+                #     return False, None
 
                 # A quick MetagenomeScope-specific check: Verify that end node
                 # is either an uncollapsed node or another bubble
