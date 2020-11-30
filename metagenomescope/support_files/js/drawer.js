@@ -615,17 +615,11 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
          * @return {String} hexColor In the format "#rrggbb".
          */
         randomColor(minChannelVal = 100, maxChannelVal = 205) {
-            // Can change these values to change the brightness of these colors
-            // Our use of [50, 205] means that we can rule out a lot of really
-            // dark or really light colors, making text easier to read and
-            // not making things look too jarring
-            var MAX_CHANNEL_VAL = 205;
-            var MIN_CHANNEL_VAL = 50;
-            var channelRange = MAX_CHANNEL_VAL - MIN_CHANNEL_VAL;
+            var channelRange = maxChannelVal - minChannelVal;
             var hexColor = "#";
             _.times(3, function () {
                 var channel =
-                    MIN_CHANNEL_VAL + Math.floor(Math.random() * channelRange);
+                    minChannelVal + Math.floor(Math.random() * channelRange);
                 var hexChannel = channel.toString(16);
                 if (hexChannel.length === 1) {
                     hexChannel = "0" + hexChannel;
