@@ -680,9 +680,6 @@ class AssemblyGraph(object):
                     if c != t and c != starting_node_id:
                         out = AssemblyGraph.is_valid_superbubble(g, c)
                         if out[0]:
-                            print("sub sb valid: " + str(out))
-                            for ni in out[1]:
-                                print(ni, g.nodes[ni]["name"])
                             return out
 
                 # If the checks above succeeded, this is a valid
