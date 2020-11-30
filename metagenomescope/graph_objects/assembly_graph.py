@@ -609,11 +609,12 @@ class AssemblyGraph(object):
             # Mark v as visited
             nodeid2label[v] = "visited"
 
-            # If v doesn't have any outgoing edges, abort: this is a "tip"
+            # If v doesn't have any outgoing edges, abort: this is a "tip".
             # MgSc-specific thing: also, if this node only has one outgoing
             # edge, then it should be collapsed into a chain, not a bubble.
             # There might be a bubble later on down from it, but it isn't the
-            # start of a bubble.
+            # start of a bubble. (We don't guarantee that the graph is
+            # a unipath graph, hence our need to impose this restriction.)
             if len(g.adj[v]) < 2:
                 return False, None
 
