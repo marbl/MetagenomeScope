@@ -282,7 +282,37 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                     eleID +
                     '">';
                 _.each(this.nodeInfoTableAttrs, function (attr) {
-                    rowHTML += "<td>" + nodeInfo[nodeAttrs[attr]] + "</td>";
+                    // Although these extra attributes are in theory arbitrary,
+                    // for certain known attributes we take some extra effort
+                    // and format things a bit nicely. This makes the user
+                    // experience nicer.
+                    // TODO abstract this to a util function.
+                    var lowercaseattr = attr.toLowerCase();
+                    var val = nodeInfo[nodeAttrs[attr]];
+
+                    if (attr === "length") {
+                        // Unlike the old version of MgSc, we just say every
+                        // length measure is in bp instead of trying to
+                        // distinguish nt from bp. I think this is kosher,
+                        // since it's not like we can tell if contigs are
+                        // oriented are not for general formats like GFA...?
+                        val = val.toLocaleString() + " bp";
+                    } else if (attr === "coverage" || attr === "depth") {
+                        // Show coverages with at most two decimal places worth
+                        // of precision, but less if possible. I will be
+                        // honest, this code is from the old MgSc and I have
+                        // no idea how I came up with this. wtf marcus 4 years
+                        // ago lol
+                        val = Math.round(val * 100) / 100 + "x";
+                    } else if (attr === "gc_content") {
+                        // GC content should be shown as a percentage, rounded
+                        // to two decimal places. We multiply by 10,000 because
+                        // we're really multiplying by 100 twice: first to
+                        // convert to a percentage, then to start the rounding
+                        // process.
+                        val = Math.round(val * 10000) / 100 + "%";
+                    }
+                    rowHTML += "<td>" + val + "</td>";
                 });
                 rowHTML += "</tr>";
                 $("#nodeInfoTable").append(rowHTML);
@@ -322,6 +352,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                     } else if (attr === "target") {
                         val = scope.dataHolder.getNodeName(edgeData.origTgtID);
                     } else {
+                        // It's a "normal" attribute stored in the edge's data.
                         val = edgeInfo[edgeAttrs[attr]];
                     }
                     rowHTML += "<td>" + val + "</td>";
