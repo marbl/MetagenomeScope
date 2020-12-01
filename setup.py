@@ -65,6 +65,8 @@ setup(
     include_package_data=True,
     install_requires=[
         "click",
+        # version 1.3 gives me errors when accessing bounding boxes sometimes:
+        # https://github.com/pygraphviz/pygraphviz/issues/113#issuecomment-298631567
         "pygraphviz>=1.6",
         "numpy",
         "networkx",
