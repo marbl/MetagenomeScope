@@ -15,7 +15,11 @@ install:
     - pip install -e .[dev]
     # Taken from Qurro's .travis.yml file:
     # Update Node.js to the latest version, since otherwise installing certain
-    # packages will fail.
+    # packages will fail. See https://stackoverflow.com/a/62639315 (Puppeteer
+    # needs later versions); https://github.com/nvm-sh/nvm#usage ("node" =
+    # shortcut for latest version);
+    # https://github.com/travis-ci/travis-ci/issues/4090#issuecomment-122688955
+    # (why we use language: python in this file and can still use Node.js)
     - nvm install node
     # Install npm packages needed for JS testing
     - npm install -g mocha-headless-chrome nyc
