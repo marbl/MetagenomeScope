@@ -40,7 +40,7 @@ Probably the easiest way to install MetagenomeScope is using a
 [conda](https://docs.conda.io/en/latest/) environment:
 
 ```bash
-conda create -n mgsc graphviz python=3.6 graphviz pygraphviz numpy
+conda create -n mgsc graphviz python=3.6 graphviz numpy
 source activate mgsc
 pip install git+https://github.com/marbl/MetagenomeScope.git
 ```
@@ -105,6 +105,13 @@ identified structural patterns within it.
 You should be able to load visualizations created by MetagenomeScope
 in most modern web browsers (mobile browsers probably will also work, although
 using a desktop browser is recommended).
+
+## Installation notes
+
+Getting Graphviz and PyGraphviz installed -- and getting them to communicate
+with each other -- can be tricky. I'm looking into ways of making this less
+painful; for now, if you run into problems, please feel free to contact me and
+I'll try to help out.
 
 ## More thorough documentation
 
