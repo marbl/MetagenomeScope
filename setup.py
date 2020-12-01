@@ -70,7 +70,6 @@ setup(
         "networkx",
         "gfapy",
         "pyfastg",
-        "scikit-bio >= 0.5.4",
         "jinja2",
     ],
     extras_require={"dev": ["pytest", "pytest-cov", "flake8", "black"]},
