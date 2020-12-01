@@ -24,7 +24,7 @@ install:
     # Install npm packages needed for JS testing
     - npm install -g mocha-headless-chrome nyc
     # Install npm packages needed for JS style-checking
-    - npm install -g prettier jshint
+    - npm install -g prettier@2.0.5 jshint
 script:
     # This runs both the Python and JS tests
     - make test
