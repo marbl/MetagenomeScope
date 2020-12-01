@@ -1052,8 +1052,14 @@ define([
          * @param {Cytoscape.js node Element} Pattern
          */
         uncollapsePattern(pattern) {
+            // Importantly, we retrieve the edges incident on this pattern
+            // BEFORE uncollapsing it. This is so that we can evaluate for each
+            // of these edges whether or not we should make it non-basic.
             var incidentEdges = pattern.connectedEdges();
             this.cyEC.expand(pattern);
+            // Now, let's try to make these edges non-basic -- this'll involve
+            // looking at their new (well, really, old) source/target, and
+            // seeing if both of these are real nodes.
             incidentEdges.each(this.makeEdgeNonBasic);
             pattern.data("isCollapsed", false);
         }
