@@ -61,11 +61,11 @@ setup(
     url="https://github.com/marbl/MetagenomeScope",
     classifiers=classifiers,
     packages=find_packages(),
-    package_data={"metagenomescope": ["spqr"]},
+    package_data={"metagenomescope": ["support_files"]},
     include_package_data=True,
     install_requires=[
         "click",
-        "pygraphviz",
+        "pygraphviz>=1.6",
         "numpy",
         "networkx",
         "gfapy",
