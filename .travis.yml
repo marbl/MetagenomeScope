@@ -10,7 +10,7 @@ install:
     - conda config --set always_yes yes --set changeps1 no
     - conda update -q conda
     # Install MetagenomeScope from source
-    - travis_retry conda create -q -c anaconda -n mgsc python=3.6 graphviz=2.38.0 pygraphviz numpy
+    - travis_retry conda create -q -c anaconda -n mgsc python=3.6 graphviz numpy
     - source activate mgsc
     - pip install -e .[dev]
     # Install npm packages needed for JS testing
