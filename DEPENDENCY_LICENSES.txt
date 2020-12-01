@@ -2,43 +2,22 @@ PURPOSE
 
 MetagenomeScope is a visualization tool intended to aid in the analysis of
 metagenomic assembly and scaffold graphs. It consists of a preprocessing
-script (implemented in Python and C++) and a web-based visualization interface
+script (implemented in Python) and a web-based visualization interface
 (implemented in JavaScript, HTML, and CSS; also referred to as the "viewer
 interface").
 
-The C++ component of the preprocessing script is derived from spqr.cpp in
-MetaCarvel:
-
--MetaCarvel
-    -https://github.com/marbl/MetaCarvel
-    -Source code is available at https://github.com/marbl/MetaCarvel
-    -Copyright is contained in dependency_licenses/MetaCarvel.license
-    -Licensed under the MIT License
-     (included in dependency_licenses/MetaCarvel.license)
-
-This C++ component is linked with:
-
--OGDF
-    -https://ogdf.uos.de/
-    -Source code available at https://github.com/ogdf/ogdf
-    -Copyright (C) 1999-2018
-    -Licensed under the GNU GPL, version 2 or version 3
-     (GPL version 3 is included in dependency_licenses/ogdf/LICENSE_GPL_v3.txt,
-     and the accompanying terms from OGDF are included in
-     dependency_licenses/ogdf/LICENSE.txt)
-
--cmdline.h
-    -https://github.com/tanakh/cmdline
-    -Source code is available at https://github.com/tanakh/cmdline
-    -Copyright is contained in dependency_licenses/cmdline.h.license
-    -Licensed under the BSD 3-clause License
-     (included in dependency_licenses/cmdline.h.license)
-
-Furthermore, the visualization interface is distributed with:
+The visualization interface code is distributed with:
 
 -Cytoscape.js
     -http://js.cytoscape.org
     -Copyright is contained in viewer/js/cytoscape.min.js
+    -Licensed under the MIT License
+     (included in dependency_licenses/cytoscape.js.license)
+
+-Cytoscape.js expand-collapse extension
+    -https://github.com/iVis-at-Bilkent/cytoscape.js-expand-collapse
+    -Copyright is contained in
+     dependency_licenses/cytoscape.js-expand-collapse.license
     -Licensed under the MIT License
      (included in dependency_licenses/cytoscape.js.license)
 
@@ -55,17 +34,15 @@ Furthermore, the visualization interface is distributed with:
     -Licensed under the Apache License, version 2.0
      (included in dependency_licenses/bootstrap-colorpicker/apache-license-2.0)
 
--D3.js
-    -https://d3js.org
-    -Copyright is contained in dependency_licenses/d3.js.license
-    -Licensed under the BSD 3-clause License
-     (included in dependency_licenses/d3.js.license)
+-RequireJS
+    -https://requirejs.org/
+    -Copyright is contained in dependency_licenses/requirejs.license
+    -License included in dependency_licenses/requirejs.license
 
--sql.js
-    -https://github.com/kripken/sql.js
-    -Copyright is contained in dependency_licenses/sql.js/LICENSE
-    -Licensed under the MIT License
-     (included in dependency_licenses/sql.js/LICENSE)
+-Underscore.js
+    -https://underscorejs.org/
+    -Copyright is contained in dependency_licenses/underscore.js.license
+    -License included in dependency_licenses/underscore.js.license
 
 -jQuery
     -http://jquery.com
@@ -101,17 +78,29 @@ MetagenomeScope:
     -http://pygraphviz.github.io
     -Licensed under the BSD 3-clause License
 
--pysqlite (used via the built-in sqlite3 Python module)
-    -https://github.com/ghaering/pysqlite
-    -Licensed under the zlib License
-
 -NumPy
     -http://www.numpy.org
     -Licensed under the BSD 3-clause License
 
--SQLite is used indirectly through pysqlite and sql.js.
-    -https://sqlite.org
-    -Public domain
+-NetworkX
+    -https://networkx.org
+    -Licensed under the BSD 3-clause License
+
+-Click
+    -https://click.palletsprojects.com/en/7.x/
+    -Licensed under the BSD 3-clause License
+
+-GfaPy
+    -https://github.com/ggonnella/gfapy
+    -Licensed under an ISC License
+
+-pyfastg
+    -https://github.com/fedarko/pyfastg
+    -Licensed under the MIT License
+
+-Jinja
+    -https://jinja.palletsprojects.com/en/2.11.x/
+    -Licensed under the BSD 3-clause License
 
 The preprocessing script code was converted from Python 2 to Python 3 using
 futurize as a starting point:
@@ -119,18 +108,6 @@ futurize as a starting point:
 -futurize
     -https://python-future.org/futurize.html
     -Licensed under the MIT License
-
-Minification of the visualization interface code is done using the following
-tools:
-
--csso-cli
-    -https://github.com/css/csso-cli
-
--UglifyJS
-    -https://github.com/mishoo/UglifyJS2
-
--html-minifier
-    -https://github.com/kangax/html-minifier
 
 Automatic testing, style-checking, and linting is done using the following
 tools that have not been mentioned yet (none of these tools are distributed

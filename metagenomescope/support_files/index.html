@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<!--
+    Copyright (C) 2016- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
+    Authored by Marcus Fedarko
+
+    This file is part of MetagenomeScope.
+
+    MetagenomeScope is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    MetagenomeScope is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta
+            name="viewport"
+            content="width=device-width,initial-scale=1,user-scalable=no"
+        />
+        <meta
+            name="description"
+            content="Web application for the hierarchical visualization of metagenomic assembly graphs."
+        />
+        <title>{{ graphFilename }}</title>
+        <link rel="shortcut icon" href="bubble.ico" />
+        <!-- Load external libraries -->
+        <link rel="stylesheet" href="vendor/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="css/viewer_style.css" />
+        <link
+            rel="stylesheet"
+            href="vendor/css/bootstrap-colorpicker.min.css"
+        />
+    </head>
+    <body>
+        <!-- Invisible <a> used for downloading data URIs for various purposes
+             (e.g. path exporting, color settings export). By adjusting the
+             download parameter of this tag, we can provide the user with a
+             suggested filename for the file to be downloaded (instead of just
+             opening the data URI using window.open()).
+        -->
+        <a class="notviewable" id="downloadHelper"></a>
+        <!-- Absolutely positioned tools -->
+        <div id="controlsToggler" class="btn">
+            <span class="glyphicon glyphicon-menu-hamburger"></span>
+        </div>
+
+        <!-- NOTE: For all Bootstrap buttons, we need to do two "layers"
+             of disabling. Adding the disabled class to a button makes
+             Bootstrap style the button to look disabled, but the button
+             will still be usable. Adding the disabled="disabled" attribute
+             makes the button actually disabled (i.e. not usable).
+        
+             To handle this properly, we use the enableButton and
+             disableButton functions (defined in xdot2cy.js) to ensure
+             buttons are always properly disabled/enabled.
+        -->
+        <!-- Oh, also, for reference: these particular elements are the icons
+             floating on the corners of the interface. (so yes, there are two
+             export buttons, and no, it isn't me being dumb and accidentally
+             copy-pasting things ;)
+        -->
+        <button
+            class="btn btn-default btn-sm disabled drawCtrl"
+            onclick="exportGraphView();"
+            id="floatingExportButton"
+            disabled="disabled"
+        >
+            <span class="glyphicon glyphicon-camera"></span>
+        </button>
+
+        <button
+            class="btn btn-default btn-sm disabled drawCtrl"
+            id="fitButton"
+            disabled="disabled"
+        >
+            <span class="glyphicon glyphicon-resize-full"></span>
+        </button>
+
+        <button
+            class="btn btn-default btn-sm disabled"
+            id="fitSelectedButton"
+            disabled="disabled"
+        >
+            <span class="glyphicon glyphicon-resize-small"></span>
+        </button>
+
+        <div id="controls">
+            <h4 style="margin-top: 26px;">About</h4>
+            <p>
+                <button
+                    class="btn btn-default btn-sm disabled persistentCtrl"
+                    disabled="disabled"
+                    id="infoButton"
+                >
+                    <span
+                        class="glyphicon glyphicon-info-sign"
+                        aria-hidden="true"
+                    ></span>
+                    &nbsp; Graph info
+                </button>
+                <button
+                    class="btn btn-default btn-sm persistentCtrl"
+                    id="settingsButton"
+                >
+                    <span class="glyphicon glyphicon-cog"></span> &nbsp;
+                    <span>Settings</span>
+                </button>
+
+                <button
+                    class="btn btn-default btn-sm persistentCtrl"
+                    id="helpButton"
+                >
+                    <span class="glyphicon glyphicon-question-sign"></span>
+                    &nbsp;
+                    <span>Help</span>
+                </button>
+            </p>
+            <div class="progress">
+                <div
+                    class="progress-bar notransitions"
+                    role="progressbar"
+                    aria-valuenow="0"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    style="width: 100%;"
+                >
+                    <span class="sr-only"></span>
+                </div>
+            </div>
+            <div id="textStatus">&nbsp;</div>
+            <hr />
+
+            <div id="connectedComponentControls">
+                <h4>Draw</h4>
+
+                <select class="form-control input-sm" id="cmpSelectionMethod">
+                    <option value="single" selected
+                        >Draw single component (by size rank)</option
+                    >
+                    <option value="withnode"
+                        >Draw single component (containing a node)</option
+                    >
+                    <option value="all">Draw all available components</option>
+                </select>
+
+                <!-- Depending on the component selection method chosen above,
+                     we'll change the UI elements in this section: for example,
+                     if the "single" option is selected, we should just show
+                     controls for selecting a single component, but if the
+                     "withnode" option is selected, we should show controls for
+                     selecting a node by its name.
+                
+                     Ideally all *-draw-eles <div>s would start off with the
+                     notviewable class used, but this results in having to show
+                     a choppy flash of content when the page is loaded (since
+                     we'd have to immediately un-hide #single-draw-eles). So
+                     we just show #single-draw-eles by default, and
+                     AppManager.updateCmpSelectionMethod() is smart enough to
+                     (if another thing is selected by default, which could
+                     happen if e.g. the browser is navigated back and then
+                     forward to MetagenomeScope) hide/show the relevant UI
+                     elements anyway.
+                -->
+                <div id="single-draw-eles">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-btn">
+                            <button
+                                class="btn btn-default disabled persistentCtrl"
+                                disabled="disabled"
+                                type="button"
+                                id="decrCompRankButton"
+                                aria-label="Decrement component size rank by 1"
+                            >
+                                <span
+                                    class="glyphicon glyphicon-minus"
+                                    aria-hidden="true"
+                                >
+                                </span>
+                            </button>
+                        </span>
+                        <input
+                            type="number"
+                            class="form-control persistentCtrl"
+                            id="componentselector"
+                            placeholder="Size rank"
+                            value="1"
+                            min="1"
+                            disabled="disabled"
+                        />
+                        <span class="input-group-btn">
+                            <button
+                                class="btn btn-default disabled persistentCtrl"
+                                disabled="disabled"
+                                type="button"
+                                id="incrCompRankButton"
+                                aria-label="Increment component size rank by 1"
+                            >
+                                <span
+                                    class="glyphicon glyphicon-plus"
+                                    aria-hidden="true"
+                                >
+                                </span>
+                            </button>
+                        </span>
+                    </div>
+                    <p>
+                        Select the size rank of a component to draw. Rank 1 is
+                        the largest component in the graph, rank 2 is the
+                        next-largest component, and so on.
+                    </p>
+                </div>
+
+                <div id="withnode-draw-eles" class="notviewable">
+                    <!-- For some reason, the div here doesn't cover the full width
+                        of the control panel unless we force it to. Not sure why.
+                    -->
+                    <div
+                        class="input-group input-group-sm"
+                        style="width: 100%;"
+                    >
+                        <input
+                            type="text"
+                            class="form-control persistentCtrl"
+                            id="nodeNameSelector"
+                            placeholder="Node name"
+                            disabled="disabled"
+                        />
+                    </div>
+                    <p>Enter a node name to search for.</p>
+                </div>
+
+                <div id="all-draw-eles" class="notviewable">
+                    <p>
+                        <!-- TODO: use templating to modify this depending on
+                             if any components were skipped. -->
+                        This option will draw all components in the graph
+                        (ignoring those, if any, that were not laid out due to
+                        having too many nodes/edges). It may take a while for
+                        large graphs.
+                    </p>
+                </div>
+
+                <button
+                    class="btn btn-default btn-sm disabled persistentCtrl"
+                    disabled="disabled"
+                    type="button"
+                    id="drawButton"
+                >
+                    <span
+                        class="glyphicon glyphicon-pencil"
+                        aria-hidden="true"
+                    ></span>
+                    &nbsp; Draw
+                </button>
+                <hr />
+            </div>
+            <div id="selectedElementControls">
+                <h4>Selected Elements</h4>
+
+                <!-- Selected node info -->
+                <div class="selectedEleHeader" id="nodeHeader">
+                    Nodes <span class="badge" id="selectedNodeBadge">0</span>
+                    <span
+                        class="glyphicon glyphicon-triangle-right opener"
+                        id="nodeOpener"
+                    ></span>
+                </div>
+                <div id="nodeInfo" class="notviewable">
+                    <table id="nodeInfoTable" class="eleInfoTable">
+                        <tr>
+                            <th colspan="3" id="nodeTH">
+                                Selected Node Information
+                            </th>
+                        </tr>
+                        <tr>
+                            <th id="nodeInfoTable-name">name</th>
+                            <th id="nodeInfoTable-length">length</th>
+                            <th id="nodeInfoTable-orientation">+/-</th>
+                        </tr>
+                    </table>
+                </div>
+                <!-- Selected edge info -->
+                <div class="selectedEleHeader" id="edgeHeader">
+                    Edges <span class="badge" id="selectedEdgeBadge">0</span>
+                    <span
+                        class="glyphicon glyphicon-triangle-right opener"
+                        id="edgeOpener"
+                    ></span>
+                </div>
+                <div id="edgeInfo" class="notviewable">
+                    <table id="edgeInfoTable" class="eleInfoTable">
+                        <tr>
+                            <th colspan="2" id="edgeTH">
+                                Selected Edge Information
+                            </th>
+                        </tr>
+                        <tr>
+                            <th id="edgeInfoTable-source">source</th>
+                            <th id="edgeInfoTable-target">target</th>
+                        </tr>
+                    </table>
+                </div>
+                <!-- Selected pattern info -->
+                <div class="selectedEleHeader" id="patternHeader">
+                    Patterns
+                    <span class="badge" id="selectedPatternBadge">0</span>
+                    <span
+                        class="glyphicon glyphicon-triangle-right opener"
+                        id="patternOpener"
+                    ></span>
+                </div>
+                <div id="patternInfo" class="notviewable">
+                    <table id="patternInfoTable" class="eleInfoTable">
+                        <tr>
+                            <th colspan="1">Selected Pattern Information</th>
+                        </tr>
+                        <tr>
+                            <th>pattern type</th>
+                            <!-- TODO: compute node count *recursively* in
+                                 Python, so we can just fetch it and show it
+                                 here.
+                            -->
+                        </tr>
+                    </table>
+                </div>
+
+                <hr />
+            </div>
+            <!--
+            <div id="searchForElementsControls">
+                <h4>Search for Nodes</h4>
+                <div class="input-group input-group-sm">
+                    CODELINK:
+                         https://getbootstrap.com/docs/3.3/components/#input-groups-buttons-dropdowns
+                    
+                    <div class="input-group-btn">
+                        <button
+                            type="button"
+                            data-toggle="dropdown"
+                            id="searchTypeButton"
+                            disabled="disabled"
+                            class="btn btn-default dropdown-toggle disabled drawCtrl"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                        >
+                            ID <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li id="IDSearchTypeOption">
+                                <a onclick="toggleSearchType('ID');">ID</a>
+                            </li>
+                            <li id="LabelSearchTypeOption">
+                                <a onclick="toggleSearchType('Label');"
+                                    >Label</a
+                                >
+                            </li>
+                        </ul>
+                    </div>
+                    <input
+                        type="text"
+                        class="form-control drawCtrl"
+                        id="searchInput"
+                        placeholder="Node ID(s)"
+                        disabled="disabled"
+                    />
+                    <span class="input-group-btn">
+                        <button
+                            class="btn btn-default disabled drawCtrl"
+                            disabled="disabled"
+                            onclick="searchForEles();"
+                            type="button"
+                            id="searchButton"
+                            aria-label="Search"
+                        >
+                            <span
+                                class="glyphicon glyphicon-search"
+                                aria-hidden="true"
+                            ></span>
+                        </button>
+                    </span>
+                </div>
+                <hr />
+            </div>
+            <div id="displayOptionsControls">
+                <h4>Display Options</h4>
+                <p id="collapseButtonControls">
+                    Value of this button will be toggled as all nodes in graph
+                     are collapsed/uncollapsed
+                    <button
+                        class="btn btn-default btn-sm disabled drawCtrl"
+                        disabled="disabled"
+                        id="collapseButton"
+                        onclick="startCollapseAll();"
+                    >
+                        <span
+                            id="collapseButtonIcon"
+                            class="glyphicon glyphicon-minus-sign"
+                        ></span>
+                        &nbsp;
+                        <span id="collapseButtonText"
+                            >Collapse all node groups
+                        </span>
+                    </button>
+                </p>
+
+                <p>
+                    <button
+                        class="btn btn-default btn-sm disabled drawCtrl"
+                        disabled="disabled"
+                        id="reduceEdgesButton"
+                        onclick="reduceEdgesToStraightLines(true);"
+                    >
+                        <span class="glyphicon glyphicon-sort"></span> &nbsp;
+                        <span>Straighten non-collapsed edges</span>
+                    </button>
+                </p>
+
+                <p>
+                    <button
+                        class="btn btn-default btn-sm disabled drawCtrl"
+                        disabled="disabled"
+                        id="filterEdgesButton"
+                        onclick="openEdgeFilteringDialog();"
+                    >
+                        <span class="glyphicon glyphicon-filter"></span> &nbsp;
+                        <span>Filter edges by weight</span>
+                    </button>
+                </p>
+
+                <hr />
+            </div>
+            <div id="nodeColorizationControls">
+                <h4>Color Nodes</h4>
+                <div class="radio" id="nodeColorizationRadioButtonGroup">
+                    <label class="radio-inline">
+                        <input
+                            type="radio"
+                            name="nodeColorization"
+                            class="drawCtrl"
+                            disabled
+                            id="noneColorization"
+                            value="noncolorized"
+                            checked
+                        />
+                        Uniform color
+                    </label>
+                    <label class="radio-inline">
+                        <input
+                            type="radio"
+                            name="nodeColorization"
+                            class="drawCtrl"
+                            disabled
+                            id="randColorization"
+                            value="randcolorized"
+                        />
+                        Random colors
+                    </label>
+                    TODO: Populate with additional coloring methods based
+                         on whatever the extra data given for nodes is: so, GC
+                         content, Coverage, etc.
+                </div>
+                <button
+                    class="btn btn-default btn-sm disabled drawCtrl"
+                    disabled="disabled"
+                    id="changeNodeColorizationButton"
+                    onclick="startChangeNodeColorization();"
+                >
+                    <span class="glyphicon glyphicon-check"></span> &nbsp; Apply
+                </button>
+
+                <hr />
+            </div>
+            <div id="viewScaffoldsControls">
+                <h4>View Scaffolds</h4>
+
+                <button
+                    class="btn btn-default btn-sm disabled drawCtrl"
+                    id="scaffoldFileselectButton"
+                    disabled="disabled"
+                    onclick="$('#scaffoldFileSelector').click();"
+                >
+                    <span
+                        class="glyphicon glyphicon-folder-open"
+                        aria-hidden="true"
+                    ></span>
+                    &nbsp; Upload AGP file
+                </button>
+                <input
+                    type="file"
+                    id="scaffoldFileSelector"
+                    onchange="beginLoadAGPfile();"
+                    style="display: none;"
+                />
+
+                <p id="agpLoadedFileName" class="notviewable monospace"></p>
+                <p id="scaffoldInfoHeader" class="notviewable"></p>
+                <p id="scaffoldCycler" class="notviewable nonselectable">
+                    <span
+                        class="glyphicon glyphicon-triangle-left cyclerBtn"
+                        onclick="cycleScaffoldsLeft();"
+                    >
+                    </span>
+                    <button
+                        class="btn btn-default btn-sm"
+                        id="drawScaffoldButton"
+                        onclick="highlightScaffold(this.innerText);"
+                    ></button>
+                    <span
+                        class="glyphicon glyphicon-triangle-right cyclerBtn"
+                        onclick="cycleScaffoldsRight();"
+                    >
+                    </span>
+                </p>
+                <hr />
+            </div>
+            <div id="assemblyFinishingControls">
+                <h4>Select paths ("Finishing")</h4>
+
+                <p>
+                    <button
+                        class="btn btn-success btn-sm disabled drawCtrl"
+                        id="startFinishingButton"
+                        disabled="disabled"
+                        onclick="startFinishing();"
+                    >
+                        <span
+                            class="glyphicon glyphicon-play"
+                            aria-hidden="true"
+                        ></span>
+                        &nbsp; Start
+                    </button>
+
+                    <button
+                        class="btn btn-warning btn-sm disabled drawCtrl"
+                        id="pauseFinishingButton"
+                        disabled="disabled"
+                        onclick="togglePauseFinishing();"
+                    >
+                        <span
+                            id="pauseFinishingButtonIconSpan"
+                            class="glyphicon glyphicon-pause"
+                            aria-hidden="true"
+                        ></span>
+                        &nbsp; Pause
+                    </button>
+
+                    <button
+                        class="btn btn-danger btn-sm disabled drawCtrl"
+                        id="endFinishingButton"
+                        disabled="disabled"
+                        onclick="endFinishing();"
+                    >
+                        <span
+                            class="glyphicon glyphicon-stop"
+                            aria-hidden="true"
+                        ></span>
+                        &nbsp; End
+                    </button>
+                </p>
+
+                <div
+                    class="btn-group"
+                    data-toggle="buttons"
+                    id="pathExportButtonGroup"
+                    aria-label="Path export type (AGP vs. CSV) selector"
+                >
+                    <button
+                        class="btn btn-info active disabled btn-sm drawCtrl"
+                        value="AGP"
+                        id="agpOption"
+                        disabled="disabled"
+                    >
+                        <input
+                            type="radio"
+                            name="pathExportTypeRadio"
+                            checked="checked"
+                            autocomplete="off"
+                        />AGP
+                    </button>
+                    <button
+                        class="btn btn-info disabled btn-sm drawCtrl"
+                        value="CSV"
+                        id="csvOption"
+                        disabled="disabled"
+                    >
+                        <input
+                            type="radio"
+                            name="pathExportTypeRadio"
+                            autocomplete="off"
+                        />CSV
+                    </button>
+                </div>
+
+                <button
+                    class="btn btn-info btn-sm disabled drawCtrl"
+                    id="exportPathButton"
+                    disabled="disabled"
+                    onclick="exportPath();"
+                >
+                    <span
+                        class="glyphicon glyphicon-download-alt"
+                        aria-hidden="true"
+                    ></span>
+                    &nbsp; Export Path
+                </button>
+
+                <p id="assembledNodes"></p>
+
+                <hr />
+            </div>
+            <div id="exportGraphViewControls">
+                <h4>Export Graph View</h4>
+                <div
+                    class="btn-group"
+                    data-toggle="buttons"
+                    id="imgTypeButtonGroup"
+                    aria-label="Image type (PNG vs. JPG) selector"
+                >
+                    <button
+                        class="btn btn-default active disabled btn-sm drawCtrl"
+                        value="PNG"
+                        id="pngOption"
+                        disabled="disabled"
+                    >
+                        <input
+                            type="radio"
+                            name="imgTypeRadio"
+                            checked="checked"
+                            autocomplete="off"
+                        />PNG
+                    </button>
+                    <button
+                        class="btn btn-default disabled btn-sm drawCtrl"
+                        value="JPG"
+                        id="jpgOption"
+                        disabled="disabled"
+                    >
+                        <input
+                            type="radio"
+                            name="imgTypeRadio"
+                            autocomplete="off"
+                        />JPG
+                    </button>
+                </div>
+
+                <button
+                    class="btn btn-default btn-sm disabled drawCtrl"
+                    disabled="disabled"
+                    id="exportImageButton"
+                    onclick="exportGraphView();"
+                >
+                    <span class="glyphicon glyphicon-camera"></span> &nbsp;
+                    Export
+                </button>
+            </div>
+            <div id="testLayoutsControls">
+                <hr />
+                <h4>Test Layouts</h4>
+                <p>
+                    See
+                    <a
+                        class="actuallyalink"
+                        target="_blank"
+                        href="http://js.cytoscape.org/#layouts"
+                        >here</a
+                    >
+                    for a list of predefined layouts.
+                </p>
+                <div class="input-group input-group-sm bottom-page-div">
+                    <input
+                        type="text"
+                        class="form-control"
+                        placeholder="Layout name"
+                        id="layoutInput"
+                        disabled="disabled drawCtrl"
+                    />
+                    <span class="input-group-btn">
+                        <button
+                            class="btn btn-default disabled drawCtrl"
+                            disabled="disabled"
+                            onclick="testLayout();"
+                            type="button"
+                            id="layoutButton"
+                            aria-label="Test layout algorithm"
+                        >
+                            <span
+                                class="glyphicon glyphicon-arrow-right"
+                                aria-hidden="true"
+                            ></span>
+                        </button>
+                    </span>
+                </div>
+            </div>
+            -->
+        </div>
+        <!-- end controls div -->
+        <!--container for Cytoscape.js-->
+        <div id="cy" class="nosubsume"></div>
+        <!-- Settings dialog -->
+        <div class="modal fade" tabindex="-1" role="dialog" id="settingsDialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button
+                            type="button"
+                            class="close"
+                            data-dismiss="modal"
+                            aria-label="Close dialog"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title">Settings</h4>
+                    </div>
+                    <!-- end modal-header div -->
+                    <div class="modal-body">
+                        <p>
+                            Changes to most of the animation settings will take
+                            effect without having to redraw the graph, if one
+                            has already been drawn. (Animation settings where
+                            this is not the case are marked as such in their
+                            description.)
+                        </p>
+                        <p>
+                            Changes to other parameters will only take effect
+                            after redrawing the graph.
+                        </p>
+                        <div>
+                            <ul class="nav nav-tabs" role="tablist">
+                                <li role="presentation" class="active">
+                                    <a
+                                        href="#animationtab"
+                                        aria-controls="animationtab"
+                                        role="tab"
+                                        data-toggle="tab"
+                                    >
+                                        Animation</a
+                                    >
+                                </li>
+                                <li role="presentation">
+                                    <a
+                                        href="#performancetab"
+                                        aria-controls="performancetab"
+                                        role="tab"
+                                        data-toggle="tab"
+                                    >
+                                        Performance</a
+                                    >
+                                </li>
+                                <li role="presentation">
+                                    <a
+                                        href="#colortab"
+                                        aria-controls="colortab"
+                                        role="tab"
+                                        data-toggle="tab"
+                                    >
+                                        Colors</a
+                                    >
+                                </li>
+                                <li role="presentation">
+                                    <a
+                                        href="#keyboardtab"
+                                        aria-controls="keyboardtab"
+                                        role="tab"
+                                        data-toggle="tab"
+                                    >
+                                        Keyboard Navigation</a
+                                    >
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div
+                                    role="tabpanel"
+                                    class="tab-pane active"
+                                    id="animationtab"
+                                >
+                                    <div class="checkbox">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                id="autozoomClusterCheckbox"
+                                            />
+                                            Automatically zoom in on clicked
+                                            node groups in standard mode (<em
+                                                >Requires redrawing the graph
+                                                for changes to take effect</em
+                                            >)
+                                        </label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked
+                                                id="animateFinishingCheckbox"
+                                                onchange="toggleFinishingAnimationSettings();"
+                                            />
+                                            Automatically pan the viewport
+                                            during finishing
+                                        </label>
+                                    </div>
+                                    <!-- NOTE: there's a weird issue where this
+                                        div, even when it's set with the
+                                        notviewable class, seems to take up a
+                                        little bit of vertical space in between
+                                        the checkboxes. A small TODO is fixing
+                                        this, although it's so minor an issue
+                                        that it barely really matters.
+                                    -->
+                                    <div
+                                        class="input-group input-group-sm"
+                                        id="maxFinishingZoomDiv"
+                                    >
+                                        <span
+                                            class="input-group-addon"
+                                            id="maxFinishingZoomDesc"
+                                        >
+                                            Maximum zoom level during finishing
+                                            animation
+                                        </span>
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="maxFinishingZoomLvl"
+                                            value="1.2"
+                                            aria-describedby="maxFinishingZoomDesc"
+                                        />
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked
+                                                id="useProgressBarStripesCheckbox"
+                                            />
+                                            Show moving stripes on indeterminate
+                                            progress bars
+                                        </label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked
+                                                id="useDrawingStatusTextCheckbox"
+                                            />
+                                            Update status text while drawing
+                                            connected components (for graphs
+                                            that take a short amount of time to
+                                            draw, this text might change
+                                            relatively quickly)
+                                        </label>
+                                    </div>
+                                </div>
+                                <!-- end animationtab -->
+                                <div
+                                    role="tabpanel"
+                                    class="tab-pane"
+                                    id="performancetab"
+                                >
+                                    <div class="checkbox">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                id="hideEdgesCheckbox"
+                                                onchange="toggleHEV();"
+                                            />
+                                            Hide edges during movement
+                                        </label>
+                                    </div>
+                                    <div class="checkbox">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                id="useTexturesCheckbox"
+                                                onchange="toggleUTV();"
+                                            />
+                                            Use a texture during movement
+                                        </label>
+                                    </div>
+                                </div>
+                                <!-- end performancetab -->
+                                <div
+                                    role="tabpanel"
+                                    class="tab-pane"
+                                    id="colortab"
+                                >
+                                    <!-- the margin-top:10px matches the
+                                        default checkbox formatting in
+                                        bootstrap, making switching between
+                                        tabs look smooth.
+                                    -->
+                                    <div
+                                        class="container-fluid"
+                                        style="margin-top: 10px;"
+                                    >
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <button
+                                                    class="btn btn-default btn-sm csbtn"
+                                                    id="importColorSettingsButton"
+                                                    onclick="$('#colorSettingsFS').click();"
+                                                >
+                                                    <span
+                                                        class="glyphicon glyphicon-folder-open"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    &nbsp; Import color settings
+                                                    file
+                                                </button>
+                                                <input
+                                                    type="file"
+                                                    id="colorSettingsFS"
+                                                    onchange="importColorSettings();"
+                                                    style="display: none;"
+                                                />
+                                            </div>
+                                            <!-- end col-lg-6 div -->
+                                            <div class="col-lg-6">
+                                                <button
+                                                    class="btn btn-default btn-sm csbtn"
+                                                    id="exportColorSettingsButton"
+                                                    onclick="exportColorSettings(true);"
+                                                >
+                                                    <span
+                                                        class="glyphicon glyphicon-download-alt"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    &nbsp; Export color settings
+                                                    file
+                                                </button>
+                                            </div>
+                                            <!-- end col-lg-6 div -->
+                                        </div>
+                                        <!-- end row div -->
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <button
+                                                    class="btn btn-default btn-sm csbtn"
+                                                    id="resetColorSettingsButton"
+                                                    onclick="resetColorSettings();"
+                                                >
+                                                    <span
+                                                        class="glyphicon glyphicon-refresh"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    &nbsp; Reset color settings
+                                                    to defaults
+                                                </button>
+                                            </div>
+                                            <div class="col-lg-6">
+                                                <button
+                                                    class="btn btn-default btn-sm csbtn"
+                                                    id="invertColorsButton"
+                                                    onclick="invertColorSettings();"
+                                                >
+                                                    <span
+                                                        class="glyphicon glyphicon-adjust"
+                                                        aria-hidden="true"
+                                                    ></span>
+                                                    &nbsp; Invert all color
+                                                    settings
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- end container-fluid div -->
+                                    <p>
+                                        Color settings can be modified using the
+                                        corresponding text boxes or their
+                                        corresponding color pickers (accessible
+                                        via clicking on the colored square in
+                                        the right side of each text box).
+                                    </p>
+                                    <p>
+                                        Colors can be entered in text boxes as
+                                        RGB triplets (of the form
+                                        <kbd>rgb(r, g, b)</kbd> where
+                                        <kbd>r</kbd>, <kbd>g</kbd>, and
+                                        <kbd>b</kbd> are integers in the range
+                                        <kbd>[0, 255]</kbd>),
+                                        <a
+                                            href="https://en.wikipedia.org/wiki/Web_colors#Hex_triplet"
+                                            >hex triplets</a
+                                        >, or
+                                        <a
+                                            href="https://en.wikipedia.org/wiki/Web_colors#X11_color_names"
+                                            >HTML color names.</a
+                                        >
+                                    </p>
+                                    <p>
+                                        Changes to the two extreme colors used
+                                        for node colorization (for 0% and 100%)
+                                        will also adjust the below gradient
+                                        accordingly, to give a preview of the
+                                        resulting colorization scheme.
+                                    </p>
+                                    <!-- Colorpickers for node colorization -->
+                                    <!-- Gradient preview -->
+                                    <div class="gradient_preview nonselectable">
+                                        <span id="0gp">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;</span
+                                        >
+                                        <span id="25gp">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;</span
+                                        >
+                                        <span id="50gp">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;</span
+                                        >
+                                        <span id="75gp">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;</span
+                                        >
+                                        <span id="100gp">
+                                            &nbsp;&nbsp;&nbsp;&nbsp;</span
+                                        >
+                                    </div>
+                                    <!-- NOTE changes to the below colors'
+                                        defaults (or additions of more colors)
+                                        should be mirrored in the declaration
+                                        of DEFAULT_COLOR_SETTINGS in xdot2cy.js
+                                    -->
+                                    <div class="container-fluid">
+                                        <div class="row">
+                                            <!-- Left column -->
+                                            <div class="col-lg-6">
+                                                <label
+                                                    class="cplabel"
+                                                    for="mincncp_id"
+                                                >
+                                                    Nodes (colorized: 0%)</label
+                                                >
+                                                <!-- CODELINK: for bootstrap-colorpicker
+                                            colorpickers, an otherwise empty
+                                            <span> containing an (empty) <i> is
+                                            needed to display a properly
+                                            formatted color "preview." (I've
+                                            tested this, and it looks like
+                                            similar tags like <b> or <u> won't
+                                            work properly; it has to be an <i>.)
+
+                                            See the "As a component" example in
+                                            https://farbelous.io/bootstrap-colorpicker/v2/
+                                            for details on this. The
+                                            colorpickers' code in this file was
+                                            adapted from this example. -->
+                                                <div
+                                                    id="mincncp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#0022ff"
+                                                        class="form-control"
+                                                        id="mincncp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                            </div>
+                                            <!-- Right column -->
+                                            <div class="col-lg-6">
+                                                <label
+                                                    class="cplabel"
+                                                    for="maxcncp_id"
+                                                >
+                                                    Nodes (colorized:
+                                                    100%)</label
+                                                >
+                                                <div
+                                                    id="maxcncp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#ff2200"
+                                                        class="form-control"
+                                                        id="maxcncp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Colorpickers for labels of colorized
+                                        nodes; placed here in order to be
+                                        close to other node colorization
+                                        colorpickers -->
+                                        <div class="row">
+                                            <div class="col-lg-6">
+                                                <label
+                                                    class="cplabel"
+                                                    for="cnlcp_id"
+                                                >
+                                                    Node labels
+                                                    (colorized)</label
+                                                >
+                                                <div
+                                                    id="cnlcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#aaaaaa"
+                                                        class="form-control"
+                                                        id="cnlcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                            </div>
+                                            <!-- Right column -->
+                                            <div class="col-lg-6">
+                                                <label
+                                                    class="cplabel"
+                                                    for="csnlcp_id"
+                                                >
+                                                    Node labels (colorized,
+                                                    selected)
+                                                </label>
+                                                <div
+                                                    id="csnlcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#aaaaaa"
+                                                        class="form-control"
+                                                        id="csnlcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Colorpickers for non-node-
+                                        colorization stuff -->
+                                        <div class="row">
+                                            <!-- Left column of colorpickers -->
+                                            <div class="col-lg-6">
+                                                <label
+                                                    class="cplabel"
+                                                    for="usncp_id"
+                                                >
+                                                    Nodes (default)</label
+                                                >
+                                                <div
+                                                    id="usncp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#888888"
+                                                        class="form-control"
+                                                        id="usncp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="sncp_id"
+                                                >
+                                                    Nodes (default,
+                                                    selected)</label
+                                                >
+                                                <div
+                                                    id="sncp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#444444"
+                                                        class="form-control"
+                                                        id="sncp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="bubblecp_id"
+                                                >
+                                                    Bubbles</label
+                                                >
+                                                <div
+                                                    id="bubblecp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#9abaf3"
+                                                        class="form-control"
+                                                        id="bubblecp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="fropecp_id"
+                                                >
+                                                    Frayed Ropes</label
+                                                >
+                                                <div
+                                                    id="fropecp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#59f459"
+                                                        class="form-control"
+                                                        id="fropecp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="chaincp_id"
+                                                >
+                                                    Chains</label
+                                                >
+                                                <div
+                                                    id="chaincp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#fcaca3"
+                                                        class="form-control"
+                                                        id="chaincp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="ychaincp_id"
+                                                >
+                                                    Cyclic Chains</label
+                                                >
+                                                <div
+                                                    id="ychaincp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#ffd163"
+                                                        class="form-control"
+                                                        id="ychaincp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <!--
+                                                <label
+                                                    class="cplabel"
+                                                    for="spqrscp_id"
+                                                >
+                                                    Series Metanodes</label
+                                                >
+                                                <div
+                                                    id="spqrscp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#FFD644"
+                                                        class="form-control"
+                                                        id="spqrscp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="spqrpcp_id"
+                                                >
+                                                    Parallel Metanodes</label
+                                                >
+                                                <div
+                                                    id="spqrpcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#EB8EF9"
+                                                        class="form-control"
+                                                        id="spqrpcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="spqrrcp_id"
+                                                >
+                                                    Rigid Metanodes</label
+                                                >
+                                                <div
+                                                    id="spqrrcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#31BF6F"
+                                                        class="form-control"
+                                                        id="spqrrcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="bicmpcp_id"
+                                                >
+                                                    Bicomponent Nodes</label
+                                                >
+                                                <div
+                                                    id="bicmpcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#e9e9e9"
+                                                        class="form-control"
+                                                        id="bicmpcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                -->
+                                                <label
+                                                    class="cplabel"
+                                                    for="tnbcp_id"
+                                                >
+                                                    Finishing Candidate Node
+                                                    borders
+                                                </label>
+                                                <div
+                                                    id="tnbcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#ff6600"
+                                                        class="form-control"
+                                                        id="tnbcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="tngbcp_id"
+                                                >
+                                                    Finishing Candidate Node
+                                                    Group borders
+                                                </label>
+                                                <div
+                                                    id="tngbcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#ff6600"
+                                                        class="form-control"
+                                                        id="tngbcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="miscpatterncp_id"
+                                                >
+                                                    Misc. user-specified
+                                                    patterns
+                                                </label>
+                                                <div
+                                                    id="miscpatterncp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#c398eb"
+                                                        class="form-control"
+                                                        id="miscpatterncp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                            </div>
+                                            <!-- Right column of colorpickers -->
+                                            <div class="col-lg-6">
+                                                <label
+                                                    class="cplabel"
+                                                    for="usnlcp_id"
+                                                >
+                                                    Node labels (default)</label
+                                                >
+                                                <div
+                                                    id="usnlcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#000000"
+                                                        class="form-control"
+                                                        id="usnlcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="snlcp_id"
+                                                >
+                                                    Node labels (default,
+                                                    selected)
+                                                </label>
+                                                <div
+                                                    id="snlcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#aaaaaa"
+                                                        class="form-control"
+                                                        id="snlcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="usecp_id"
+                                                >
+                                                    Edges (default)</label
+                                                >
+                                                <div
+                                                    id="usecp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#555555"
+                                                        class="form-control"
+                                                        id="usecp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="secp_id"
+                                                >
+                                                    Edges (default,
+                                                    selected)</label
+                                                >
+                                                <div
+                                                    id="secp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#111111"
+                                                        class="form-control"
+                                                        id="secp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="hoecp_id"
+                                                >
+                                                    Edges (high outlier)</label
+                                                >
+                                                <div
+                                                    id="hoecp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#ff0000"
+                                                        class="form-control"
+                                                        id="hoecp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="hosecp_id"
+                                                >
+                                                    Edges (high outlier,
+                                                    selected)
+                                                </label>
+                                                <div
+                                                    id="hosecp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#800000"
+                                                        class="form-control"
+                                                        id="hosecp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="loecp_id"
+                                                >
+                                                    Edges (low outlier)</label
+                                                >
+                                                <div
+                                                    id="loecp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#0000ff"
+                                                        class="form-control"
+                                                        id="loecp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="losecp_id"
+                                                >
+                                                    Edges (low outlier,
+                                                    selected)
+                                                </label>
+                                                <div
+                                                    id="losecp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#000080"
+                                                        class="form-control"
+                                                        id="losecp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="cngcccp_id"
+                                                >
+                                                    Node Group "child count"
+                                                    labels
+                                                </label>
+                                                <div
+                                                    id="cngcccp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#000000"
+                                                        class="form-control"
+                                                        id="cngcccp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="sngbcp_id"
+                                                >
+                                                    Selected Node Group
+                                                    borders</label
+                                                >
+                                                <div
+                                                    id="sngbcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#000000"
+                                                        class="form-control"
+                                                        id="sngbcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="cpcp_id"
+                                                >
+                                                    Nodes and Node Groups Added
+                                                    to Finishing Path
+                                                </label>
+                                                <div
+                                                    id="cpcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#994700"
+                                                        class="form-control"
+                                                        id="cpcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                                <label
+                                                    class="cplabel"
+                                                    for="bgcp_id"
+                                                >
+                                                    Graph background</label
+                                                >
+                                                <div
+                                                    id="bgcp"
+                                                    class="input-group colorpicker-component"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value="#FFFFFF"
+                                                        class="form-control"
+                                                        id="bgcp_id"
+                                                    />
+                                                    <span
+                                                        class="input-group-addon"
+                                                    >
+                                                        <i></i
+                                                    ></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- end row div -->
+                                    </div>
+                                    <!-- end container-fluid div -->
+                                </div>
+                                <!-- end colortab -->
+                                <div
+                                    role="tabpanel"
+                                    class="tab-pane"
+                                    id="keyboardtab"
+                                >
+                                    <div class="checkbox">
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                id="enableClusterNavCheckbox"
+                                                onchange="toggleClusterNav();"
+                                            />
+                                            Enable navigation through standard
+                                            mode node groups with left/right
+                                            arrow keys and A/D keys (supported
+                                            in desktop browsers only)
+                                        </label>
+                                    </div>
+                                </div>
+                                <!-- end keyboardtab -->
+                            </div>
+                            <!-- end tab-content -->
+                        </div>
+                        <!-- end tab div -->
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default"
+                            data-dismiss="modal"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+                <!-- end modal-content div -->
+            </div>
+            <!-- end modal-dialog div -->
+        </div>
+        <!-- end modal div -->
+        <!-- Edge filtering dialog -->
+        <div
+            class="modal fade"
+            tabindex="-1"
+            role="dialog"
+            id="edgeFilteringDialog"
+        >
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button
+                            type="button"
+                            class="close"
+                            data-dismiss="modal"
+                            aria-label="Close dialog"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title">Filter edges by weight</h4>
+                    </div>
+                    <!-- end modal-header div -->
+                    <div class="modal-body">
+                        <svg
+                            id="edgeWeightChart"
+                            width="550"
+                            height="200"
+                        ></svg>
+
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="input-group input-group-sm">
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="binCountInput"
+                                            value="20"
+                                        />
+                                        <span class="input-group-btn">
+                                            <button
+                                                class="btn btn-default"
+                                                onclick="drawEdgeWeightHistogram();"
+                                                type="button"
+                                                id="setBinCountButton"
+                                            >
+                                                <span
+                                                    class="glyphicon glyphicon-resize-horizontal"
+                                                    aria-hidden="true"
+                                                ></span>
+                                                &nbsp; Change histogram bin
+                                                count
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+                                <!-- end col 1 -->
+                                <div class="col-lg-6">
+                                    <!-- NOTE this feature doesn't work very well with
+                            collapsing yet -->
+                                    <div class="input-group input-group-sm">
+                                        <input
+                                            type="text"
+                                            class="form-control"
+                                            id="cullEdgesInput"
+                                            value="0"
+                                        />
+                                        <span class="input-group-btn">
+                                            <button
+                                                class="btn btn-default"
+                                                onclick="cullEdges();"
+                                                type="button"
+                                                id="cullEdgesButton"
+                                            >
+                                                <span
+                                                    class="glyphicon glyphicon-remove"
+                                                    aria-hidden="true"
+                                                ></span>
+                                                &nbsp; Hide edges below weight
+                                            </button>
+                                        </span>
+                                    </div>
+                                </div>
+                                <!-- end col 2 -->
+                            </div>
+                            <!-- end row 1 -->
+                            <div class="row" style="margin-top: 1em;">
+                                <div class="alert alert-warning" role="alert">
+                                    <strong
+                                        >These controls are still under
+                                        development.</strong
+                                    >
+                                    They may not function correctly in certain
+                                    cases.
+                                </div>
+                                <!-- end alert -->
+                            </div>
+                            <!-- end row 2 -->
+                        </div>
+                        <!-- end container-fluid -->
+                    </div>
+                    <!-- end modal-body div -->
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default"
+                            data-dismiss="modal"
+                        >
+                            Close
+                        </button>
+                    </div>
+                    <!-- end modal-footer div -->
+                </div>
+                <!-- end modal-content div -->
+            </div>
+            <!-- end modal-dialog div -->
+        </div>
+        <!-- end modal div -->
+        <!-- Graph info dialog -->
+        <div class="modal fade" tabindex="-1" role="dialog" id="infoDialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button
+                            type="button"
+                            class="close"
+                            data-dismiss="modal"
+                            aria-label="Close dialog"
+                        >
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title">
+                            Graph information
+                        </h4>
+                    </div>
+                    <!-- end modal-header div -->
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table
+                                class="table table-condensed table-bordered asmInfoTable"
+                            >
+                                <tr>
+                                    <th>Input Filename</th>
+                                    <th>Input Filetype</th>
+                                </tr>
+                                <tr>
+                                    <!-- I don't remember why all of these
+                                         cells' IDs end with "Entry", but I'm
+                                         just gonna stick with it. I assume
+                                         Past Marcus knew what he was doing
+                                         (...might be a bad assumption).
+                                    -->
+                                    <td id="filenameEntry"></td>
+                                    <td id="filetypeEntry"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="table-responsive">
+                            <table
+                                class="table table-condensed table-bordered asmInfoTable"
+                            >
+                                <tr>
+                                    <th id="asmNodeCtTH">
+                                        Node Count
+                                    </th>
+                                    <th id="asmEdgeCtTH">
+                                        Edge Count
+                                    </th>
+                                    <th id="ccCtTH">
+                                        Connected Component Count
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <td id="nodeCtEntry"></td>
+                                    <td id="edgeCtEntry"></td>
+                                    <td id="ccCtEntry"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <!-- Old stuff that hasn't been hooked up yet
+                        <div class="table-responsive">
+                            <table
+                                class="table table-condensed table-bordered asmInfoTable"
+                            >
+                                <tr>
+                                    <th id="asmNodeLenTH">
+                                        Total Positive Node Length
+                                    </th>
+                                    <th>N50</th>
+                                    <th id="asmGCTH">Assembly GC Content</th>
+                                </tr>
+                                <tr>
+                                    <td id="totalBPLengthEntry"></td>
+                                    <td id="n50Entry"></td>
+                                    <td id="asmGCEntry"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <p id="currComponentInfo">
+                            No connected component(s) have been drawn yet.
+                        </p>
+                        -->
+                    </div>
+                    <div class="modal-footer">
+                        <button
+                            type="button"
+                            class="btn btn-default"
+                            data-dismiss="modal"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+                <!-- end modal-content div -->
+            </div>
+            <!-- end modal-dialog div -->
+        </div>
+        <!-- end modal div -->
+    </body>
+    <script data-main="main" src="vendor/js/require.js"></script>
+</html>

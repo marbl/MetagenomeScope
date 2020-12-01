@@ -46,7 +46,7 @@ long_description = (
     "structural patterns within the graph."
 )
 
-version = "0.0.0"
+version = "0.1.0-dev"
 
 setup(
     name="metagenomescope",
@@ -63,10 +63,16 @@ setup(
     packages=find_packages(),
     package_data={"metagenomescope": ["spqr"]},
     include_package_data=True,
-    install_requires=["pygraphviz", "numpy", "networkx", "gfapy", "pyfastg"],
+    install_requires=[
+        "click",
+        "pygraphviz",
+        "numpy",
+        "networkx",
+        "gfapy",
+        "pyfastg",
+        "jinja2",
+    ],
     extras_require={"dev": ["pytest", "pytest-cov", "flake8", "black"]},
-    entry_points={
-        "console_scripts": ["mgsc=metagenomescope.collate:run_script"]
-    },
+    entry_points={"console_scripts": ["mgsc=metagenomescope._cli:run_script"]},
     zip_safe=False,
 )

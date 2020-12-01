@@ -34,8 +34,8 @@
  * information on this sort of solution and its corner cases:
  * https://stackoverflow.com/questions/21203111/bootstrap-3-collapsed-menu-doesnt-close-on-click
  */
-$(function() {
-    $("nav a").on("click", function() {
+$(function () {
+    $("nav a").on("click", function () {
         if ($("#main-navbar-content").hasClass("in")) {
             $("#main-navbar-content").collapse("hide");
         }

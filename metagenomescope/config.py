@@ -26,10 +26,26 @@ import stat
 # complements that we can use when getting the reverse complement of a sequence
 # from the GFA format.
 COMPLEMENT = {"A": "T", "T": "A", "C": "G", "G": "C"}
+
 # The conversion factor between points (in GraphViz output) and inches, as used
-# by GraphViz. By default GraphViz uses 72 points per inch, so changing this is
-# not recommended. (This must be a float.)
-POINTS_PER_INCH = 72.0
+# by GraphViz. GraphViz uses 72 points per inch, but here we use 63
+# points per inch -- this is kind of a compromise. In old versions of
+# MetagenomeScope, at times we would pass inch values (for node / pattern
+# widths and heights) directly to the JS interface and have that code do the
+# conversion using an INCHES_TO_PIXELS value of 54 -- which was inconsistent,
+# since things like edge control points were just stored as points and not
+# converted to pixels.
+#
+# We now do all the conversions in the Python code, but
+# I've noticed that using the 72 points-per-inch value for nodes kinda squishes
+# the graph too much, making things look gross. (Some of the edge arrows for
+# bubbles don't even show up in the interface.) Using a smaller value helps a
+# bit -- using 54 for this spaces out the graph a bit too much, and using the
+# midpoint between 54 and 72 (63) seems ok. Since this really scales _all_
+# distances in the graph, I think, changing this value doesn't change the
+# intepretation of the graph -- at least for node sizes, it seems to rescale
+# all nodes. But I should really try to formally look into this sometime...
+POINTS_PER_INCH = 63.0
 
 # File mode used when creating "auxiliary" files directly in the
 # preprocessing script (collate.py). Possible auxiliary files
@@ -58,14 +74,15 @@ POINTS_PER_INCH = 72.0
 AUXMOD = stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
 
 # The base we use when logarithmically scaling contig dimensions from length
-CONTIG_SCALING_LOG_BASE = 10
+NODE_SCALING_LOG_BASE = 10
 # The minimum/maximum area of a node.
-# These variables are used directly in GraphViz, so they're in "inches".
-# That being said, "inches" are really an intermediate unit from our
-# perspective since they're converted to pixels in the viewer interface's code.
-MAX_CONTIG_AREA = 10
-MIN_CONTIG_AREA = 1
-CONTIG_AREA_RANGE = MAX_CONTIG_AREA - MIN_CONTIG_AREA
+# These variables are used directly in GraphViz, so they're technically in
+# "inches". That being said, "inches" are really an intermediate unit from our
+# perspective since (at least as of writing) they're converted to points and
+# then passed directly to Cytoscape.js. See POINTS_PER_INCH above for details.
+MAX_NODE_AREA = 10
+MIN_NODE_AREA = 1
+NODE_AREA_RANGE = MAX_NODE_AREA - MIN_NODE_AREA
 # Proportions of the "long side" of a contig, for various levels of contigs in
 # the graph.
 # Used for the lower 25% (from 0% to 25%) of contigs in a component
@@ -85,9 +102,8 @@ COLL_CL_H_FAC = 1.0 / 2.0
 
 ### Frequently-used GraphViz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html
-BASIC_NODE_SHAPE = "invhouse"
-RCOMP_NODE_SHAPE = "house"
-SINGLE_NODE_SHAPE = "rectangle"
+
+NODE_ORIENTATION_TO_SHAPE = {"+": "invhouse", "-": "house"}
 
 ### Global graph settings (applied to every node/edge/etc. in the graph) ###
 #
@@ -101,7 +117,7 @@ SINGLE_NODE_SHAPE = "rectangle"
 # in order to facilitate rotation in the .xdot viewer. (So I'd recommend not
 # changing that unless you have a good reason.)
 # Any text here must end without a semicolon.
-GRAPH_STYLE = "xdotversion=1.7;\n\tK=2.0"
+GRAPH_STYLE = "xdotversion=1.7"
 # Useful for visualizing .gv files. Shouldn't impact the viewer interface's
 # visualization -- only impacts dot's drawings.
 # GRAPH_STYLE = "xdotversion=1.7;\n\toverlap=false;\n\tdpi=30;\n\trotate=90"
@@ -174,17 +190,10 @@ MAXN_DEFAULT = 7999
 MAXE_DEFAULT = 7999
 
 # Various status messages/message prefixes that are displayed to the user.
-# Displayed during command-line argument parsing
-COLLATE_DESCRIPTION = (
-    "Prepares an assembly graph file for visualization, "
-    + "generating a database file that can be loaded in the MetagenomeScope "
-    + "viewer interface."
-)
 USERBUBBLES_SEARCH_MSG = "Identifying user-specified bubbles in the graph..."
 USERPATTERNS_SEARCH_MSG = (
     "Identifying user-specified misc. patterns in " + "the graph..."
 )
-BUBBLE_SEARCH_MSG = "Looking for simple bubbles in the graph..."
 SPQR_MSG = (
     "Generating SPQR tree decompositions for the bicomponents of the graph..."
 )
@@ -193,21 +202,9 @@ BICOMPONENT_BUBBLE_SEARCH_MSG = (
     "Looking for complex bubbles in the graph using SPQR tree "
     "decompositions..."
 )
-FRAYEDROPE_SEARCH_MSG = "Looking for frayed ropes in the graph..."
-CYCLE_SEARCH_MSG = "Looking for cyclic chains in the graph..."
-CHAIN_SEARCH_MSG = "Looking for chains in the graph..."
-COMPONENT_MSG = "Identifying connected components within the graph..."
-EDGE_SCALING_MSG = "Scaling edge thicknesses in each connected component..."
-CONTIG_SCALING_MSG = (
-    "Scaling contig areas/dimensions in each connected component..."
-)
-READ_FILE_MSG = "Reading and parsing input file "
 DB_INIT_MSG = "Initializing output file "
 SAVE_AUX_FAIL_MSG = "Not saving "
-LAYOUT_MSG = "Laying out "
-SMALL_COMPONENTS_MSG = "small (containing < 5 nodes) remaining components..."
 SPQR_COMPONENTS_MSG = " SPQR-integrated component "
-START_LAYOUT_MSG = "Laying out connected component "
 LARGE_COMPONENT_MSG = (
     "Not laying out component {cr} ({nc} nodes, {ec} "
     + "edges): exceeds -maxn or -maxe."
@@ -223,7 +220,6 @@ EDGE_CTRL_PT_ERR = "Invalid GraphViz edge control points"
 NO_FN_ERR = "No filename provided for "
 ARG_ERR = "Invalid argument: "
 NO_FN_PROVIDED_ERR = "No input and/or output file name provided"
-EXISTS_AS_NON_DIR_ERR = " already exists as a non-directory file"
 IS_DIR_ERR = " is a directory"
 EXISTS_ERR = " already exists and -w is not set"
 EMPTY_LIST_N50_ERR = "N50 of an empty list does not exist"

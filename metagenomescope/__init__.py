@@ -15,11 +15,3 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
-####
-# MetagenomeScope is a visualization tool for (meta)genomic sequence assembly
-# graphs. Once MetagenomeScope is installed, you should be able to run it from
-# the command line using the command "mgsc".
-
-from . import collate
-
-__all__ = ["collate"]

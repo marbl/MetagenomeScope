@@ -311,10 +311,14 @@ def parse_metacarvel_gml(filename):
     g = nx.gml.read_gml(filename)
 
     validate_nx_digraph(
-        g, ("orientation", "length"), ("orientation", "mean", "stdev", "bsize")
+        g,
+        ("orientation", "length"),
+        ("orientation", "mean", "stdev", "bsize"),
     )
 
-    # Verify that node attributes are good
+    # Verify that node attributes are good. Also, change orientations from FOW
+    # and REV to + and -, to standardize this across filetypes, and convert
+    # lengths from strings to integers.
     for n in g.nodes:
         orientation = g.nodes[n]["orientation"]
         if type(orientation) != str or orientation not in ("FOW", "REV"):
@@ -328,6 +332,8 @@ def parse_metacarvel_gml(filename):
                     n, g.nodes[n]["length"]
                 )
             )
+        g.nodes[n]["orientation"] = "+" if orientation == "FOW" else "-"
+        g.nodes[n]["length"] = int(g.nodes[n]["length"])
 
     # Verify that edge attributes are good
     for e in g.edges:
@@ -351,7 +357,9 @@ def parse_metacarvel_gml(filename):
         # tell, MetaCarvel outputs mean/stdev values from python, so if we see
         # a NaN or +/- Infinity in the data then this will interpret it
         # as was originally intended.) Unlike bsize, we don't really use "mean"
-        # or "stdev" for anything at present.
+        # or "stdev" for anything at present, so there isn't a risk of us e.g.
+        # scaling edges by their stdev and then having an edge with an
+        # "infinity" stdev just explode everything
         for field in ("mean", "stdev"):
             try:
                 float(g.edges[e][field])
@@ -395,8 +403,18 @@ def parse_gfa(filename):
         if not gfapy.is_placeholder(node.sequence):
             sequence_gc = gc_content(node.sequence)[0]
         # Add both a positive and negative node.
-        for name in (node.name, negate_node_id(node.name)):
-            digraph.add_node(name, length=node.length, gc_content=sequence_gc)
+        digraph.add_node(
+            node.name,
+            length=node.length,
+            gc_content=sequence_gc,
+            orientation="+",
+        )
+        digraph.add_node(
+            negate_node_id(node.name),
+            length=node.length,
+            gc_content=sequence_gc,
+            orientation="-",
+        )
 
     # Now, add edges to the DiGraph
     for edge in gfa_graph.edges:
@@ -428,6 +446,22 @@ def parse_gfa(filename):
 def parse_fastg(filename):
     g = pyfastg.parse_fastg(filename)
     validate_nx_digraph(g, ("length", "cov", "gc"), ())
+    # Add an "orientation" attribute for every node.
+    # pyfastg guarantees that every node should have a +/- suffix assigned to
+    # its name, so this should be safe.
+    for n in g.nodes:
+        suffix = n[-1]
+        if suffix == "+":
+            g.nodes[n]["orientation"] = "+"
+        elif suffix == "-":
+            g.nodes[n]["orientation"] = "-"
+        else:
+            raise ValueError(
+                (
+                    "Node {} in parsed FASTG file doesn't have an "
+                    "orientation?"
+                ).format(n)
+            )
     return g
 
 
@@ -510,6 +544,7 @@ def parse_lastgraph(filename):
                         length=curr_node_attrs["length"],
                         depth=curr_node_attrs["depth"],
                         gc_content=gc_content(curr_node_attrs["fwdseq"])[0],
+                        orientation="+",
                     )
                     parsed_fwdseq = True
                 else:
@@ -520,6 +555,7 @@ def parse_lastgraph(filename):
                         length=curr_node_attrs["length"],
                         depth=curr_node_attrs["depth"],
                         gc_content=gc_content(curr_node_attrs["revseq"])[0],
+                        orientation="-",
                     )
                     # At this point, we're done with parsing this node.
                     # Clear our temporary variables for later use if
@@ -547,13 +583,13 @@ SUPPORTED_FILETYPE_TO_PARSER = {
 def sniff_filetype(filename):
     """Attempts to determine the filetype of the file specified by a filename.
 
-       Currently, this just returns the extension of the filename (after
-       converting the filename to lowercase). If the extension isn't one of
-       "lastgraph", "gfa", "fastg", or "gml", this throws a
-       NotImplementedError.
+    Currently, this just returns the extension of the filename (after
+    converting the filename to lowercase). If the extension isn't one of
+    "lastgraph", "gfa", "fastg", or "gml", this throws a
+    NotImplementedError.
 
-       It might be worth extending this in the future to try sniffing via a
-       more sophisticated method, but this seems fine for the time being.
+    It might be worth extending this in the future to try sniffing via a
+    more sophisticated method, but this seems fine for the time being.
     """
     lowercase_fn = filename.lower()
     for suffix in SUPPORTED_FILETYPE_TO_PARSER:
