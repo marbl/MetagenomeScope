@@ -34,7 +34,7 @@ visualization, path finishing, and coloring nodes by biological metadata (e.g.
 GC content). (As mentioned above, many of these features are not available in
 the current version yet.)
 
-## Quick usage
+## Quick installation and usage
 
 Probably the easiest way to install MetagenomeScope is using a
 [conda](https://docs.conda.io/en/latest/) environment:
@@ -45,7 +45,9 @@ source activate mgsc
 pip install git+https://github.com/marbl/MetagenomeScope.git
 ```
 
-To visualize a graph:
+Assuming you are currently in the conda environment we just created,
+visualizing an assembly graph can be done in one command:
+
 ```
 mgsc -i [path to your assembly graph] -o [output directory name]
 ```
