@@ -815,6 +815,10 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 source: srcID,
                 target: tgtID,
                 thickness: edgeWidth,
+                // We store this so we can always connect an edge element, even
+                // after collapsing, to its data in the DataHolder
+                origSrcID: srcID,
+                origTgtID: tgtID,
             };
 
             var parentID = edgeVals[edgeAttrs.parent_id];

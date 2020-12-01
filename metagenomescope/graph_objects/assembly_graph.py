@@ -81,6 +81,10 @@ class AssemblyGraph(object):
                 "orig_tgt",
                 "is_dup",
                 "cc_num",
+                # these are used in the JS, so we exclude them here out of an
+                # abundance of caution
+                "source",
+                "target",
             ]
         )
 

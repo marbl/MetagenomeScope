@@ -276,6 +276,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         }
 
         updateSelectedNodeInfo(eleID, selectOrUnselect) {
+            // TODO abstract across nodes/edges/patterns -- basically the same
             if (selectOrUnselect === "select") {
                 var nodeInfo = this.dataHolder.getNodeInfo(eleID);
                 // TODO: cache this for this class since it doesn't change
@@ -294,8 +295,43 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             }
         }
 
-        updateSelectedEdgeInfo(eleID, selectOrUnselect) {
+        /**
+         * Adds or removes a row in the selected edge info table.
+         *
+         * Note that we have an extra param here -- the Cytoscape.js edge
+         * element that is being updated. This is so we can get the original
+         * source/target from this element easily.
+         */
+        updateSelectedEdgeInfo(ele, eleID, selectOrUnselect) {
+            var scope = this;
             if (selectOrUnselect === "select") {
+                var edgeData = ele.data();
+                var edgeInfo = this.dataHolder.getEdgeInfo(
+                    edgeData.origSrcID, edgeData.origTgtID
+                );
+                var edgeAttrs = this.dataHolder.getEdgeAttrs();
+                var rowHTML =
+                    '<tr class="selectedEleRow" id="selectedEleRow' +
+                    eleID +
+                    '">';
+                _.each(this.edgeInfoTableAttrs, function (attr) {
+                    console.log("attr: " + attr);
+                    var val;
+                    // NOTE: this is super inefficient since getNodeName()
+                    // iterates over worst-case all nodes in the graph. TODO,
+                    // at minimum do both searches at once, or figure out a way
+                    // to limit the components checked.
+                    if (attr === "source") {
+                        val = scope.dataHolder.getNodeName(edgeData.origSrcID);
+                    } else if (attr === "target") {
+                        val = scope.dataHolder.getNodeName(edgeData.origTgtID);
+                    } else {
+                        val = edgeInfo[edgeAttrs[attr]];
+                    }
+                    rowHTML += "<td>" + val + "</td>";
+                });
+                rowHTML += "</tr>";
+                $("#edgeInfoTable").append(rowHTML);
             } else {
                 this.removeSelectedEleInfo(eleID);
             }
@@ -489,7 +525,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 // job here easier.
                 this.selectedEdges[setFunc](xID);
                 $("#selectedEdgeBadge").text(this.selectedEdges.size);
-                this.updateSelectedEdgeInfo(xID, selectOrUnselect);
+                this.updateSelectedEdgeInfo(x, xID, selectOrUnselect);
             } else {
                 throw new Error("Target element not a node or edge: " + x);
             }
