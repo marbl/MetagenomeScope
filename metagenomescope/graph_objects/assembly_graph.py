@@ -156,7 +156,7 @@ class AssemblyGraph(object):
                         node, shared_attrs
                     )
                 )
-            self.extra_node_attrs |= (fieldset - self.internal_node_attrs)
+            self.extra_node_attrs |= fieldset - self.internal_node_attrs
 
         for edge in self.digraph.edges:
             data = self.digraph.edges[edge]
@@ -168,7 +168,7 @@ class AssemblyGraph(object):
                         edge, shared_attrs
                     )
                 )
-            self.extra_edge_attrs |= (fieldset - self.internal_edge_attrs)
+            self.extra_edge_attrs |= fieldset - self.internal_edge_attrs
 
     def remove_too_large_components(self):
         # We convert the WCC collection to a list so that even if we alter the

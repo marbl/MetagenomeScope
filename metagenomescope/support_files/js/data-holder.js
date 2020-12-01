@@ -304,7 +304,6 @@ define(["underscore", "utils"], function (_, utils) {
             throw new Error("Node " + nodeID + " not found in data.");
         }
 
-
         getEdgeInfo(srcID, tgtID) {
             var edgeAttrs = this.getEdgeAttrs();
             for (var i = 0; i < this.data.components.length; i++) {
@@ -318,15 +317,20 @@ define(["underscore", "utils"], function (_, utils) {
                             // it doesn't seem to have an edge to the target
                             // node. something is seriously wrong.
                             throw new Error(
-                                "Found source node " + srcID + " but couldn't " +
-                                "find an edge from it to the target node " + tgtID
-                                + "."
+                                "Found source node " +
+                                    srcID +
+                                    " but couldn't " +
+                                    "find an edge from it to the target node " +
+                                    tgtID +
+                                    "."
                             );
                         }
                     }
                 }
             }
-            throw new Error("Edge from " + srcID + " to " + tgtID + " not found in data.");
+            throw new Error(
+                "Edge from " + srcID + " to " + tgtID + " not found in data."
+            );
         }
 
         getPatternInfo(pattID) {

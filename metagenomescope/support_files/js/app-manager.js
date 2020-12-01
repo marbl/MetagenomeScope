@@ -233,17 +233,13 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // practices, but sometimes it be like that.)
             _.each(extraNodeAttrs, function (attr) {
                 $("#nodeInfoTable tr:nth-child(2)").append(
-                    '<th id="nodeInfoTable-' +
-                        attr +
-                        '">' +
-                        attr +
-                        "</th>"
+                    '<th id="nodeInfoTable-' + attr + '">' + attr + "</th>"
                 );
             });
             // Update an internal array of attributes in the same order as
             // columns in the info table -- will help when populating the
             // tables later on
-            $("#nodeInfoTable tr:nth-child(2) > th").each(function(i, th) {
+            $("#nodeInfoTable tr:nth-child(2) > th").each(function (i, th) {
                 // Each <th>'s id is formatted as "nodeInfoTable-attrname".
                 // The .slice(14) removes the "nodeInfoTable-".
                 // Yes, this is a horrible, horrible, terrible no good very bad
@@ -269,7 +265,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                         "</th>"
                 );
             });
-            $("#edgeInfoTable tr:nth-child(2) > th").each(function(i, th) {
+            $("#edgeInfoTable tr:nth-child(2) > th").each(function (i, th) {
                 var attrName = th.id.slice(14);
                 scope.edgeInfoTableAttrs.push(attrName);
             });
@@ -307,7 +303,8 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             if (selectOrUnselect === "select") {
                 var edgeData = ele.data();
                 var edgeInfo = this.dataHolder.getEdgeInfo(
-                    edgeData.origSrcID, edgeData.origTgtID
+                    edgeData.origSrcID,
+                    edgeData.origTgtID
                 );
                 var edgeAttrs = this.dataHolder.getEdgeAttrs();
                 var rowHTML =
