@@ -312,7 +312,6 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                     eleID +
                     '">';
                 _.each(this.edgeInfoTableAttrs, function (attr) {
-                    console.log("attr: " + attr);
                     var val;
                     // NOTE: this is super inefficient since getNodeName()
                     // iterates over worst-case all nodes in the graph. TODO,
