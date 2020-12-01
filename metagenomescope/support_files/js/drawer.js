@@ -1,7 +1,8 @@
-define(["jquery", "underscore", "cytoscape", "utils"], function (
+define(["jquery", "underscore", "cytoscape", "cytoscape-expand-collapse", "utils"], function (
     $,
     _,
     cytoscape,
+    cyEC,
     utils
 ) {
     class Drawer {
@@ -44,6 +45,11 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
             this.cyDiv = $("#" + cyDivID);
             // Instance of Cytoscape.js
             this.cy = null;
+            // Instance of the Cytoscape.js expand/collapse extension
+            this.cyEC = null;
+
+            // "Register" extensions with Cytoscape.js
+            cyEC(cytoscape);
 
             this.bgColor = undefined;
 
@@ -459,6 +465,15 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                     },
                 ],
             });
+            // Don't do any animation or movement of the graph view upon
+            // toggling collapsing -- just change the thing being collapsed.
+            this.cy.expandCollapse({
+                animate: false,
+                cueEnabled: false,
+                fisheye: false,
+            });
+            // http://ivis-at-bilkent.github.io/cytoscape.js-expand-collapse/#api
+            this.cyEC = this.cy.expandCollapse("get");
             this.setGraphBindings();
         }
 
@@ -481,71 +496,17 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
          */
         initPatterns() {
             // For each pattern...
+            // TODO: compute descendant node count? or store that in the data
+            // holder from python. idk.
+            // Right now we compute *child* count, which is ok but not ideal
             this.cy.$("node.pattern").each(function (pattern, i) {
                 var children = pattern.children();
-                // Unfiltered incoming/outgoing edges
-                var uIncomingEdges = children.incomers("edge");
-                var uOutgoingEdges = children.outgoers("edge");
-                // Actual incoming/outgoing edges -- will be move()'d as
-                // this pattern/adjacent pattern(s) are collapsed/uncollapsed
-                var incomingEdges = uIncomingEdges.difference(uOutgoingEdges);
-                var outgoingEdges = uOutgoingEdges.difference(uIncomingEdges);
-                // Mapping of edge ID to [cSource, cTarget]
-                // Used since move() removes references to edges, so storing IDs
-                // is more permanent
-                var incomingEdgeMap = {};
-                var outgoingEdgeMap = {};
-                // "Canonical" incoming/outgoing edge properties -- these
-                // are used to represent the ideal connections
-                // between nodes regardless of collapsing
-                incomingEdges.each(function (edge, j) {
-                    incomingEdgeMap[edge.id()] = [
-                        edge.source().id(),
-                        edge.target().id(),
-                    ];
-                });
-                outgoingEdges.each(function (edge, j) {
-                    outgoingEdgeMap[edge.id()] = [
-                        edge.source().id(),
-                        edge.target().id(),
-                    ];
-                });
-                // Get the "interior elements" of the pattern: all child nodes,
-                // plus the edges connecting child nodes within the pattern
-                // This considers cyclic edges (e.g. the edge connecting a
-                // cycle's "end" and "start" nodes) as "interior elements,"
-                // which makes sense as they don't connect the cycle's children
-                //  to any elements outside the cycle.
-                var interiorEdges = children
-                    .connectedEdges()
-                    .difference(incomingEdges)
-                    .difference(outgoingEdges);
-                // Record incoming/outgoing edges in this
-                // pattern's data. Will be useful during collapsing.
-                // We also record "interiorNodes" -- having a reference to just
-                // these nodes saves us the time of filtering nodes out of
-                // interiorEles when rotating collapsed node groups.
-                //
-                // Set the label of this pattern when collapsed.
                 var numChildren = children.size();
                 var collapsedLabel = numChildren + " child";
                 if (numChildren > 1) {
                     collapsedLabel += "ren";
                 }
-                pattern.data({
-                    incomingEdgeMap: incomingEdgeMap,
-                    outgoingEdgeMap: outgoingEdgeMap,
-                    collapsedLabel: collapsedLabel,
-                });
-                // We store collections of elements in the pattern's scratch
-                // data. Storing it in the main "data" section will mess up
-                // JSON exporting, since it isn't serializable.
-                // TODO reduce redundancy here -- only store interiorEles, and in
-                // rotateNodes just select nodes from interiorEles
-                pattern.scratch({
-                    _interiorEles: interiorEdges.union(children),
-                    _interiorNodes: children,
-                });
+                pattern.data({collapsedLabel: collapsedLabel});
             });
         }
 
@@ -1054,12 +1015,19 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
         /**
          * Reverses what makeEdgeBasic() does.
          *
+         * Intended to be called on an edge that has already had its incident
+         * node uncollapsed, so now its source and target point to the "next"
+         * node down. This next node may still be a pattern, so we have a check
+         * here that sees if we REALLY can make this edge not basic yet.
+         *
          * @param {Cytoscape.js edge Element} edgeEle
          */
         makeEdgeNonBasic(edgeEle) {
             if (edgeEle.data("cpd")) {
-                edgeEle.removeClass("basicbezier");
-                edgeEle.addClass("unbundledbezier");
+                if (!edgeEle.source().data("isCollapsed") && !edgeEle.target().data("isCollapsed")) {
+                    edgeEle.removeClass("basicbezier");
+                    edgeEle.addClass("unbundledbezier");
+                }
             }
             edgeEle.removeClass("not_using_ports");
         }
@@ -1070,30 +1038,9 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
          * @param {Cytoscape.js node Element} pattern
          */
         collapsePattern(pattern) {
-            this.cy.startBatch();
-            var pattID = pattern.id();
-            // For each edge with a target in the compound node...
-            var oldIncomingEdge;
-            for (var incomingEdgeID in pattern.data("incomingEdgeMap")) {
-                oldIncomingEdge = this.cy.getElementById(incomingEdgeID);
-                this.makeEdgeBasic(oldIncomingEdge);
-                oldIncomingEdge.move({ target: pattID });
-            }
-
-            // For each edge with a source in the compound node...
-            var oldOutgoingEdge;
-            for (var outgoingEdgeID in pattern.data("outgoingEdgeMap")) {
-                oldOutgoingEdge = this.cy.getElementById(outgoingEdgeID);
-                this.makeEdgeBasic(oldOutgoingEdge);
-                oldOutgoingEdge.move({ source: pattID });
-            }
+            this.cyEC.collapse(pattern);
+            pattern.connectedEdges().each(this.makeEdgeBasic);
             pattern.data("isCollapsed", true);
-            // Unselect the elements before removing them (fixes #158 on GitHub)
-            pattern.scratch("_interiorEles").unselect();
-            // "Remove" the elements (they can be added back to the graph upon
-            // uncollapsing this pattern, of course)
-            pattern.scratch("_interiorEles").remove();
-            this.cy.endBatch();
         }
 
         /**
@@ -1102,51 +1049,10 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
          * @param {Cytoscape.js node Element} Pattern
          */
         uncollapsePattern(pattern) {
-            this.cy.startBatch();
-            // Restore child nodes + interior edges
-            pattern.scratch("_interiorEles").restore();
-            // "Reset" edges to their original target/source within the pattern
-            var oldIncomingEdge, newTgt;
-            for (var incomingEdgeID in pattern.data("incomingEdgeMap")) {
-                // TODO / NOTE: Edge weight removal isn't implemented yet so
-                // for now we don't gotta worry about this
-                // if (mgsc.REMOVED_EDGES.is('[id="' + incomingEdgeID + '"]')) {
-                //     // The edge has probably been removed from the graph due to
-                //     // the edge weight thing -- ignore it
-                //     continue;
-                // }
-                newTgt = pattern.data("incomingEdgeMap")[incomingEdgeID][1];
-                oldIncomingEdge = this.cy.getElementById(incomingEdgeID);
-                // If the edge isn't connected to another pattern, and the edge
-                // wasn't a basicbezier to start off with (i.e. it has control point
-                // data), then change its classes to update its style.
-                if (!oldIncomingEdge.source().hasClass("pattern")) {
-                    // TODO / NOTE: Also, "reducing" edges to straight lines
-                    // isn't implemented yet, so again don't gotta worry about
-                    // this. But we may in the future.
-                    // if (!oldIncomingEdge.hasClass("reducededge")) {
-                    this.makeEdgeNonBasic(oldIncomingEdge);
-                    // }
-                }
-                oldIncomingEdge.move({ target: newTgt });
-            }
-            var oldOutgoingEdge, newSrc;
-            for (var outgoingEdgeID in pattern.data("outgoingEdgeMap")) {
-                // if (mgsc.REMOVED_EDGES.is('[id="' + outgoingEdgeID + '"]')) {
-                //     continue;
-                // }
-                newSrc = pattern.data("outgoingEdgeMap")[outgoingEdgeID][0];
-                oldOutgoingEdge = this.cy.getElementById(outgoingEdgeID);
-                if (!oldOutgoingEdge.target().hasClass("pattern")) {
-                    // if (!oldOutgoingEdge.hasClass("reducededge")) {
-                    this.makeEdgeNonBasic(oldOutgoingEdge);
-                    // }
-                }
-                oldOutgoingEdge.move({ source: newSrc });
-            }
-            // Update local flag for collapsed status (useful for local toggling)
+            var incidentEdges = pattern.connectedEdges()
+            this.cyEC.expand(pattern);
+            incidentEdges.each(this.makeEdgeNonBasic);
             pattern.data("isCollapsed", false);
-            this.cy.endBatch();
         }
     }
     return { Drawer: Drawer };

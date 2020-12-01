@@ -9,6 +9,7 @@ requirejs.config({
         underscore: "../vendor/js/underscore-min",
         bootstrap: "../vendor/js/bootstrap.min",
         cytoscape: "../vendor/js/cytoscape.min",
+        "cytoscape-expand-collapse": "../vendor/js/cytoscape-expand-collapse",
         "bootstrap-colorpicker": "../vendor/js/bootstrap-colorpicker.min",
     },
     shim: {
@@ -28,8 +29,9 @@ requirejs(
         "bootstrap",
         "bootstrap-colorpicker",
         "cytoscape",
+        "cytoscape-expand-collapse",
     ],
-    function (AppManager, DataHolder, Drawer, Utils, DomUtils, $, _, bootstrap, bootstrapColorpicker, cy) {
+    function (AppManager, DataHolder, Drawer, Utils, DomUtils, $, _, bootstrap, bootstrapColorpicker, cy, cyEC) {
         // Get the graph data JSON from the preprocessing script.
         var dataJSON = {{ dataJSON }};
         var dh = new DataHolder.DataHolder(dataJSON);
