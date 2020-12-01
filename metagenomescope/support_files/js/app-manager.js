@@ -446,8 +446,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          *                 graph)
          */
         getComponentsToDraw() {
+            var cmpRank;
             if (this.cmpSelectionMethod === "single") {
-                var cmpRank = $("#componentselector").val();
+                cmpRank = $("#componentselector").val();
                 if (domUtils.compRankValidity(cmpRank) !== 0) {
                     // TODO? -- give more detailed error messages listing e.g.
                     // the lowest laid out component rank
@@ -458,9 +459,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 }
             } else if (this.cmpSelectionMethod === "withnode") {
                 var name = $("#nodeNameSelector").val();
-                var cmpRank = this.dataHolder.findComponentContainingNodeName(
-                    name
-                );
+                cmpRank = this.dataHolder.findComponentContainingNodeName(name);
                 if (cmpRank === -1) {
                     alert(
                         'No laid-out components contain a node with the name "' +

@@ -19,7 +19,8 @@ requirejs.config({
         underscore: "../../support_files/vendor/js/underscore-min",
         bootstrap: "../../support_files/vendor/js/bootstrap.min",
         cytoscape: "../../support_files/vendor/js/cytoscape.min",
-        "cytoscape-expand-collapse": "../../support_files/vendor/js/cytoscape-expand-collapse",
+        "cytoscape-expand-collapse":
+            "../../support_files/vendor/js/cytoscape-expand-collapse",
         "bootstrap-colorpicker":
             "../../support_files/vendor/js/bootstrap-colorpicker.min",
         mocha: "vendor/mocha",
