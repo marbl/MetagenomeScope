@@ -13,6 +13,10 @@ install:
     - travis_retry conda create -q -c anaconda -n mgsc python=3.6 graphviz numpy
     - source activate mgsc
     - pip install -e .[dev]
+    # Taken from Qurro's .travis.yml file:
+    # Update Node.js to the latest version, since otherwise installing certain
+    # packages will fail.
+    - nvm install node
     # Install npm packages needed for JS testing
     - npm install -g mocha-headless-chrome nyc
     # Install npm packages needed for JS style-checking
