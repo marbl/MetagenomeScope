@@ -1849,6 +1849,8 @@ class AssemblyGraph(object):
             "node_attrs": NODE_ATTRS,
             "edge_attrs": EDGE_ATTRS,
             "patt_attrs": PATT_ATTRS,
+            "extra_node_attrs": list(self.extra_node_attrs),
+            "extra_edge_attrs": list(self.extra_edge_attrs),
             "components": [],
             "input_file_basename": self.basename,
             "input_file_type": self.filetype,
