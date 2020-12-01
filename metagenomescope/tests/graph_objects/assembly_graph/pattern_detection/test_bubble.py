@@ -80,11 +80,13 @@ def test_3node_bubble_func_fails_on_normal_bubble():
         assert not AssemblyGraph.is_valid_3node_bubble(g, s)[0]
 
 
-def test_3node_bubble_func_fails_on_cyclic():
+def test_3node_bubble_func_doesnt_fail_on_cyclic():
+    """As with other cyclic bubble test below, this is up for debate."""
     g = get_3_node_bubble_graph()
     g.add_edge(2, 0)
-    for s in [0, 1, 2]:
+    for s in [1, 2]:
         assert not AssemblyGraph.is_valid_3node_bubble(g, s)[0]
+    assert AssemblyGraph.is_valid_3node_bubble(g, 0)[0]
 
 
 def test_3node_bubble_func_fails_on_middle_spur():
@@ -189,9 +191,11 @@ def test_extra_nodes_on_ending():
     assert set(results[1]) == set([0, 1, 2, 3])
 
 
-def test_cyclic_bubbles_not_ok():
-    r"""Tests that the following graph (starting at 0) isn't identified as a
-    bubble, due to the 3 -> 0 edge.
+def test_cyclic_bubbles_ok():
+    r"""Tests that the following graph (starting at 0) is identified as a
+    bubble, even with the 3 -> 0 edge.
+
+    This may be changed in the future. right now it's allowed.
 
     +-------+
     |       |
@@ -203,7 +207,7 @@ def test_cyclic_bubbles_not_ok():
     """
     g = get_easy_bubble_graph()
     g.add_edge(3, 0)
-    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
+    assert AssemblyGraph.is_valid_bubble(g, 0)[0]
 
 
 def test_converges_to_start():
