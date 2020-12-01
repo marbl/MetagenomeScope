@@ -83,6 +83,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             });
 
             // Set up the component selector
+            // TODO: set enter bindings for the <input>s here
             var svc = this.dataHolder.smallestViewableComponent();
             $("#componentselector").prop("value", svc);
             // TODO?: May be ok to always allow this to go down to 1 if we
@@ -123,6 +124,12 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             $("#fitSelectedButton").click(function () {
                 scope.drawer.fit(true);
             });
+
+            // When the node search button is clicked, or when Enter is
+            // pressed in the node search input, start a search
+            var searchFunc = this.searchForNodes.bind(this);
+            $("#searchButton").click(searchFunc);
+            domUtils.setEnterBinding("searchButton", searchFunc);
         }
 
         /**
@@ -609,6 +616,65 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             } else {
                 this.collapsePattern(pattern);
             }
+        }
+
+        /**
+         * Attempts to search for nodes.
+         * TODO: offload most of this to the Drawer
+         */
+        searchForNodes() {
+            var nameText = $("#searchInput").val();
+            if (nameText.trim() === "") {
+                alert("Error -- please enter node name(s) to search for.");
+                return;
+            }
+            var names = nameText.split(",");
+            var eles = cy.collection(); // empty collection (for now)
+            var newEle;
+            var parentID;
+            var queriedName;
+            for (var c = 0; c < names.length; c++) {
+                queriedName = names[c].trim();
+                if (mgsc.CURR_SEARCH_TYPE === "Label")
+                    newEle = cy.filter('[label="' + queriedName + '"]');
+                else newEle = cy.getElementById(queriedName);
+                if (newEle.empty()) {
+                    // Check if this element is in the graph (but currently
+                    // collapsed, and therefore inaccessible) or if it just
+                    // never existed in the first place
+                    parentID = cy.scratch("_ele2parent")[queriedName];
+                    if (parentID !== undefined) {
+                        // We've collapsed the parent of this element, so identify
+                        // its parent instead
+                        eles = eles.union(cy.getElementById(parentID));
+                    } else {
+                        // It's a bogus element
+                        alert(
+                            "Error -- element with " +
+                                mgsc.SEARCH_TYPE_HREADABLE[
+                                    mgsc.CURR_SEARCH_TYPE
+                                ] +
+                                " " +
+                                queriedName +
+                                " is not in this component."
+                        );
+                        return;
+                    }
+                } else {
+                    // Identify the node in question
+                    eles = eles.union(newEle);
+                }
+            }
+            // Fit the graph to the identified names.
+            cy.fit(eles);
+            // Unselect all previously-selected names
+            // (TODO: is this O(n)? because if so, it's not worth it, probably)
+            // (Look into this)
+            // TODO can make this more efficient -- see #115, etc.
+            cy.filter(":selected").unselect();
+            // Select all identified names, so they can be dragged if desired
+            // (and also to highlight them).
+            eles.select();
         }
 
         collapsePattern(pattern) {

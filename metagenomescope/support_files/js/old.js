@@ -966,18 +966,6 @@ function removeSelectedEleInfo(ele) {
     $("#row" + ele.id().replace(">", "")).remove();
 }
 
-/* Binds a function to be called when the input field denoted by a given ID
- * receives a keypress event from the "Enter" key.
- */
-function setEnterBinding(inputID, f) {
-    "use strict";
-    $("#" + inputID).on("keypress", function (e) {
-        if (e.which === 13) {
-            f();
-        }
-    });
-}
-
 /* Sets bindings for certain DOM elements on the page.
  * To be called when the DOM is ready to be manipulated.
  */
