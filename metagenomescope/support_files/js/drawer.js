@@ -1,10 +1,10 @@
-define(["jquery", "underscore", "cytoscape", "cytoscape-expand-collapse", "utils"], function (
-    $,
-    _,
-    cytoscape,
-    cyEC,
-    utils
-) {
+define([
+    "jquery",
+    "underscore",
+    "cytoscape",
+    "cytoscape-expand-collapse",
+    "utils",
+], function ($, _, cytoscape, cyEC, utils) {
     class Drawer {
         /**
          * Constructs a Drawer.
@@ -506,7 +506,7 @@ define(["jquery", "underscore", "cytoscape", "cytoscape-expand-collapse", "utils
                 if (numChildren > 1) {
                     collapsedLabel += "ren";
                 }
-                pattern.data({collapsedLabel: collapsedLabel});
+                pattern.data({ collapsedLabel: collapsedLabel });
             });
         }
 
@@ -1024,7 +1024,10 @@ define(["jquery", "underscore", "cytoscape", "cytoscape-expand-collapse", "utils
          */
         makeEdgeNonBasic(edgeEle) {
             if (edgeEle.data("cpd")) {
-                if (!edgeEle.source().data("isCollapsed") && !edgeEle.target().data("isCollapsed")) {
+                if (
+                    !edgeEle.source().data("isCollapsed") &&
+                    !edgeEle.target().data("isCollapsed")
+                ) {
                     edgeEle.removeClass("basicbezier");
                     edgeEle.addClass("unbundledbezier");
                 }
@@ -1049,7 +1052,7 @@ define(["jquery", "underscore", "cytoscape", "cytoscape-expand-collapse", "utils
          * @param {Cytoscape.js node Element} Pattern
          */
         uncollapsePattern(pattern) {
-            var incidentEdges = pattern.connectedEdges()
+            var incidentEdges = pattern.connectedEdges();
             this.cyEC.expand(pattern);
             incidentEdges.each(this.makeEdgeNonBasic);
             pattern.data("isCollapsed", false);
