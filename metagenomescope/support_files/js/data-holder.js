@@ -272,12 +272,32 @@ define(["underscore", "utils"], function (_, utils) {
             return this.data.components[sizeRank - 1].bb;
         }
 
+        getNodeInfo(nodeID) {
+            // NOTE: unlike in getPatternInfo(), node IDs are sorta stored as
+            // strings in the data JSON -- even though they're integers,
+            // they're used as the keys of Objects, which means that the JSON
+            // conversion automatically treats them as strings.
+            // So we don't need to worry about converting btwn strings/numbers:
+            // the data assumes these are strings, and Cytoscape.js assumes
+            // these are strings.
+            var nodeAttrs = this.getNodeAttrs();
+            for (var i = 0; i < this.data.components.length; i++) {
+                var cmp = this.data.components[i];
+                if (!cmp.skipped) {
+                    if (_.has(cmp.nodes, nodeID)) {
+                        return cmp.nodes[nodeID];
+                    }
+                }
+            }
+            throw new Error("Node " + nodeID + " not found in data.");
+        }
+
         getPatternInfo(pattID) {
             var pattAttrs = this.getPattAttrs();
             // Cytoscape.js stores IDs as Strings, even though we store
-            // node/pattern IDs as integers. We get around this by just
+            // pattern IDs as integers. We get around this by just
             // converting the ID Cytoscape.js gives us to an integer, which
-            // should be safe since (for nodes/patterns, at least) we're the
+            // should be safe since (for patterns, at least) we're the
             // ones who come up with these IDs.
             var intID;
             if (utils.isValidInteger(pattID)) {

@@ -45,6 +45,13 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
 
             // Set of IDs of collapsed patterns.
             this.collapsedPatterns = new Set();
+
+            // Attributes described in the columns of the selected node info
+            // and selected edge info tables. These'll be updated in
+            // initSelectedEleInfoTables(). (They're used to figure out how to
+            // structure a row of node/edge data to add to these tables.)
+            this.nodeInfoTableAttrs = [];
+            this.edgeInfoTableAttrs = [];
         }
 
         /**
@@ -209,23 +216,41 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          * the DataHolder.
          */
         initSelectedEleInfoTables() {
+            var scope = this;
             // Add columns to the tables for the extra data columns we have
             //
             // First, do this for the node info table
             var extraNodeAttrs = this.dataHolder.getExtraNodeAttrs();
+            // Update the "colspan" of the table's first row
             // https://stackoverflow.com/a/1294964
             $("#nodeTH").attr(
                 "colspan",
                 $("#nodeTH").attr("colspan") + extraNodeAttrs.length
             );
-            _.times(extraNodeAttrs.length, function (i) {
+            // Add as many header columns as needed
+            // Note that each <th> id is of the format "nodeInfoTable-attrname"
+            // -- this is important. (This obviously violates all kinds of best
+            // practices, but sometimes it be like that.)
+            _.each(extraNodeAttrs, function (attr) {
                 $("#nodeInfoTable tr:nth-child(2)").append(
                     '<th id="nodeInfoTable-' +
-                        extraNodeAttrs[i] +
+                        attr +
                         '">' +
-                        extraNodeAttrs[i] +
+                        attr +
                         "</th>"
                 );
+            });
+            // Update an internal array of attributes in the same order as
+            // columns in the info table -- will help when populating the
+            // tables later on
+            $("#nodeInfoTable tr:nth-child(2) > th").each(function(i, th) {
+                // Each <th>'s id is formatted as "nodeInfoTable-attrname".
+                // The .slice(14) removes the "nodeInfoTable-".
+                // Yes, this is a horrible, horrible, terrible no good very bad
+                // hack. However, it's the easiest way to do this I can think
+                // of and my friend I am SO TIRED right now lmao.
+                var attrName = th.id.slice(14);
+                scope.nodeInfoTableAttrs.push(attrName);
             });
 
             // Now do this for the edge info table. (TODO: merge this with the
@@ -244,10 +269,26 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                         "</th>"
                 );
             });
+            $("#edgeInfoTable tr:nth-child(2) > th").each(function(i, th) {
+                var attrName = th.id.slice(14);
+                scope.edgeInfoTableAttrs.push(attrName);
+            });
         }
 
         updateSelectedNodeInfo(eleID, selectOrUnselect) {
             if (selectOrUnselect === "select") {
+                var nodeInfo = this.dataHolder.getNodeInfo(eleID);
+                // TODO: cache this for this class since it doesn't change
+                var nodeAttrs = this.dataHolder.getNodeAttrs();
+                var rowHTML =
+                    '<tr class="selectedEleRow" id="selectedEleRow' +
+                    eleID +
+                    '">';
+                _.each(this.nodeInfoTableAttrs, function (attr) {
+                    rowHTML += "<td>" + nodeInfo[nodeAttrs[attr]] + "</td>";
+                });
+                rowHTML += "</tr>";
+                $("#nodeInfoTable").append(rowHTML);
             } else {
                 this.removeSelectedEleInfo(eleID);
             }
