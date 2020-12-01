@@ -1,7 +1,3 @@
-viewer/vendor/* linguist-vendored=true
-viewer/headless_tests_index.html linguist-generated=true
-*.min.js linguist-generated=true
-*.min.css linguist-generated=true
-*.min.html linguist-generated=true
-viewer/tests/vendor/* linguist-vendored=true
-metagenomescope/cmdline.h linguist-vendored=true
+metagenomescope/support_files/vendor/* linguist-vendored=true
+metagenomescope/tests/js_tests/vendor/* linguist-vendored=true
+metagenomescope/tests/js_tests/index.html linguist-generated=true
