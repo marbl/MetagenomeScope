@@ -84,6 +84,11 @@ class AssemblyGraph(object):
             ]
         )
 
+        # "Extra" data for nodes/edges -- e.g. GC content, coverage,
+        # multiplicity, ...
+        self.extra_node_attrs = set()
+        self.extra_edge_attrs = set()
+
         self.basename = os.path.basename(self.filename)
         operation_msg(
             "Reading and parsing input file {}...".format(self.basename)
@@ -139,22 +144,27 @@ class AssemblyGraph(object):
         """
         for node in self.digraph.nodes:
             data = self.digraph.nodes[node]
-            shared_attrs = set(data.keys()) & self.internal_node_attrs
+            fieldset = set(data.keys())
+            shared_attrs = fieldset & self.internal_node_attrs
             if len(shared_attrs) > 0:
                 raise ValueError(
                     "Sorry -- node {} has reserved attribute(s) {}. Please rename these.".format(
                         node, shared_attrs
                     )
                 )
+            self.extra_node_attrs |= (fieldset - self.internal_node_attrs)
+
         for edge in self.digraph.edges:
             data = self.digraph.edges[edge]
-            shared_attrs = set(data.keys()) & self.internal_edge_attrs
+            fieldset = set(data.keys())
+            shared_attrs = fieldset & self.internal_edge_attrs
             if len(shared_attrs) > 0:
                 raise ValueError(
                     "Sorry -- edge {} has reserved attribute(s) {}. Please rename these.".format(
                         edge, shared_attrs
                     )
                 )
+            self.extra_edge_attrs |= (fieldset - self.internal_edge_attrs)
 
     def remove_too_large_components(self):
         # We convert the WCC collection to a list so that even if we alter the
@@ -1692,82 +1702,96 @@ class AssemblyGraph(object):
 
         Inspired by to_dict() in Empress.
         """
+        # Determine what data we'll export. Each node and edge should have a
+        # set of "core attributes," defined in the three lists below, which
+        # we'll need to draw the graph.
+        #
+        # We'll also later go through and figure out what if any extra data
+        # (e.g. coverage, GC content, multiplicity) nodes/edges have, and
+        # add on additional fields accordingly.
+        #
         # These are keyed by integer ID (i.e. what was produced by
         # self.reindex_digraph())
-        NODE_ATTRS = {
-            "name": 0,
-            "length": 1,
-            "x": 2,
-            "y": 3,
-            "width": 4,
-            "height": 5,
-            "orientation": 6,
-            "parent_id": 7,
-            "is_dup": 8,
-            # Extra data contains things like coverage, GC content, etc.
-            "extra_data": 9,
-        }
+        node_fields = [
+            "name",
+            "length",
+            "x",
+            "y",
+            "width",
+            "height",
+            "orientation",
+            "parent_id",
+            "is_dup",
+        ]
         # These are keyed by source ID and sink ID (both reindex_digraph()
         # integer IDs)
-        EDGE_ATTRS = {
-            "ctrl_pt_coords": 0,
-            "is_outlier": 1,
-            "relative_weight": 2,
-            "is_dup": 3,
-            "parent_id": 4,
-            # Extra data contains things like multiplicity, orientation, etc.
-            "extra_data": 5,
-        }
-        # These are keyed by ID (integer IDs, from get_new_node_id())
-        PATT_ATTRS = {
-            "pattern_id": 0,
-            "left": 1,
-            "bottom": 2,
-            "right": 3,
-            "top": 4,
-            "width": 5,
-            "height": 6,
-            "pattern_type": 7,
-            "parent_id": 8,
-        }
-        # Real quick, validate that I didn't mess up the attribute "schema"s
-        # defined above -- i.e. there aren't any gaps. So if, say, there are 9
-        # node attributes, then set(NODE_ATTRS.values()) should equal
-        # set(range(9)) (i.e. both should be {0, 1, 2, 3, 4, 5, 6, 7, 8}).
-        for attrs in (NODE_ATTRS, EDGE_ATTRS, PATT_ATTRS):
-            if set(attrs.values()) != set(range(len(attrs))):
-                raise ValueError("Invalid attribute schema: {}".format(attrs))
+        edge_fields = [
+            "ctrl_pt_coords",
+            "is_outlier",
+            "relative_weight",
+            "is_dup",
+            "parent_id",
+        ]
+        # One pattern per list in a 2D list
+        patt_fields = [
+            "pattern_id",
+            "left",
+            "bottom",
+            "right",
+            "top",
+            "width",
+            "height",
+            "pattern_type",
+            "parent_id",
+        ]
+        # These dicts map field names to 0-indexed position in a data list
+        NODE_ATTRS = {}
+        EDGE_ATTRS = {}
+        PATT_ATTRS = {}
+        # Remove stuff we're going to export from the extra attrs
+        # (for non-"internal" but still-essential stuff like orientation)
+        # TODO: do this in a more clear way
+        self.extra_node_attrs -= set(node_fields)
+        self.extra_edge_attrs -= set(edge_fields)
+        for fields, attrs in (
+            (node_fields + list(self.extra_node_attrs), NODE_ATTRS),
+            (edge_fields + list(self.extra_edge_attrs), EDGE_ATTRS),
+            (patt_fields, PATT_ATTRS),
+        ):
+            for i, f in enumerate(fields):
+                attrs[f] = i
 
         def get_node_data(graph_node_data):
-            """Utility function for extracting necessary data from a node.
+            """Utility function for extracting data from a node.
 
             graph_node_data should be a dictionary-like object, i.e. the node
             data accessible using NetworkX.
             """
             out_node_data = [None] * len(NODE_ATTRS)
             for attr in NODE_ATTRS.keys():
-                if attr == "extra_data":
-                    continue
                 if attr not in graph_node_data:
-                    if attr == "is_dup":
-                        out_node_data[NODE_ATTRS["is_dup"]] = False
-                        continue
-                    raise ValueError(
-                        "Node {} doesn't have attribute {}".format(
-                            graph_node_data["name"], attr
-                        )
-                    )
-                out_node_data[NODE_ATTRS[attr]] = graph_node_data[attr]
 
-            # Add extra data, if present
-            # This enables us to pass arbitrary stuff like coverage, GC
-            # content, etc.
-            extra_attrs = set(graph_node_data.keys()) - set(NODE_ATTRS.keys())
-            # Don't pass internal node data in the extra data
-            extra_attrs -= self.internal_node_attrs
-            if len(extra_attrs) > 0:
-                extra_data = {a: graph_node_data[a] for a in extra_attrs}
-                out_node_data[NODE_ATTRS["extra_data"]] = extra_data
+                    if attr == "is_dup":
+                        # If this node doesn't have "is_dup", then it isn't a
+                        # duplicate. No biggie.
+                        out_node_data[NODE_ATTRS["is_dup"]] = False
+
+                    elif attr in self.extra_node_attrs:
+                        # Extra attrs are optional, so just leave as None
+                        continue
+
+                    else:
+                        # If we've made it here, then this node really should
+                        # have this data -- in which case yeah we should throw
+                        # an error.
+                        raise ValueError(
+                            "Node {} doesn't have attribute {}".format(
+                                graph_node_data["name"], attr
+                            )
+                        )
+
+                else:
+                    out_node_data[NODE_ATTRS[attr]] = graph_node_data[attr]
 
             return out_node_data
 
@@ -1776,29 +1800,32 @@ class AssemblyGraph(object):
             out_edge_data = [None] * len(EDGE_ATTRS)
             is_dup = "is_dup" in graph_edge_data and graph_edge_data["is_dup"]
             for attr in EDGE_ATTRS.keys():
-                if attr == "extra_data":
-                    continue
                 val = None
+
                 if attr not in graph_edge_data:
-                    if not is_dup:
+                    # If this is a duplicate edge (i.e. connecting a dup node
+                    # and its original node), then it isn't a "real" edge -- so
+                    # it is to be expected that it won't have this data.
+                    #
+                    # Even if this is a real edge, if this is an extra attr
+                    # (e.g. multiplicity), then this attr is optional and it
+                    # not being in this edge is ok.
+                    #
+                    # In either of the above cases, let's leave this attr as
+                    # None; however, if one of the above cases isn't met, then
+                    # throw an error because this edge should have this data.
+                    if is_dup or attr in self.extra_edge_attrs:
+                        continue
+                    else:
                         raise ValueError(
                             "Edge {} -> {} doesn't have attribute {}".format(
                                 srcid, snkid, attr
                             )
                         )
-                    # If this is a duplicate edge, let's just leave its value
-                    # for this thing it doesn't have (e.g. outlier status)
-                    # as None.
                 else:
                     val = graph_edge_data[attr]
-                out_edge_data[EDGE_ATTRS[attr]] = val
+                    out_edge_data[EDGE_ATTRS[attr]] = val
 
-            extra_attrs = set(graph_edge_data.keys()) - set(EDGE_ATTRS.keys())
-            # Don't pass internal edge data in the extra data
-            extra_attrs -= self.internal_edge_attrs
-            if len(extra_attrs) > 0:
-                extra_data = {a: graph_edge_data[a] for a in extra_attrs}
-                out_edge_data[EDGE_ATTRS["extra_data"]] = extra_data
             return (
                 graph_edge_data["orig_src"],
                 graph_edge_data["orig_tgt"],
