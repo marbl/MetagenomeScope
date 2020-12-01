@@ -276,13 +276,14 @@
                 <div id="nodeInfo" class="notviewable">
                     <table id="nodeInfoTable" class="eleInfoTable">
                         <tr>
-                            <th colspan="2" id="nodeTH">
+                            <th colspan="3" id="nodeTH">
                                 Selected Node Information
                             </th>
                         </tr>
                         <tr>
-                            <th id="nameCol">Name</th>
-                            <th id="lengthCol">Length</th>
+                            <th id="nodeInfoTable-name">name</th>
+                            <th id="nodeInfoTable-length">length</th>
+                            <th id="nodeInfoTable-orientation">orientation</th>
                         </tr>
                     </table>
                 </div>
@@ -302,8 +303,8 @@
                             </th>
                         </tr>
                         <tr>
-                            <th>Source</th>
-                            <th>Target</th>
+                            <th>source</th>
+                            <th>target</th>
                         </tr>
                     </table>
                 </div>
@@ -322,7 +323,7 @@
                             <th colspan="1">Selected Pattern Information</th>
                         </tr>
                         <tr>
-                            <th>Pattern Type</th>
+                            <th>pattern type</th>
                             <!-- TODO: compute node count *recursively* in
                                  Python, so we can just fetch it and show it
                                  here.

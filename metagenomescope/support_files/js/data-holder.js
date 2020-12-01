@@ -259,6 +259,14 @@ define(["underscore", "utils"], function (_, utils) {
             return this.data.edge_attrs;
         }
 
+        getExtraNodeAttrs() {
+            return this.data.extra_node_attrs;
+        }
+
+        getExtraEdgeAttrs() {
+            return this.data.extra_edge_attrs;
+        }
+
         getComponentBoundingBox(sizeRank) {
             this.validateComponentRank(sizeRank);
             return this.data.components[sizeRank - 1].bb;

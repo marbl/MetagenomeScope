@@ -207,15 +207,44 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          *
          * This only needs to be called once, since it's based on the data in
          * the DataHolder.
-         *
-         * Currently... currently, this doesn't do anything, lol.
-         *
-         * TODO: Look at the extra data for nodes/edges in the DataHolder, and
-         * add more columns as needed. That'll require refactoring the JSON
-         * export a bit so that all extra data cols are stored in a central
-         * location.
          */
-        initSelectedEleInfoTables() {}
+        initSelectedEleInfoTables() {
+            // Add columns to the tables for the extra data columns we have
+            //
+            // First, do this for the node info table
+            var extraNodeAttrs = this.dataHolder.getExtraNodeAttrs();
+            // https://stackoverflow.com/a/1294964
+            $("#nodeTH").attr(
+                "colspan",
+                $("#nodeTH").attr("colspan") + extraNodeAttrs.length
+            );
+            _.times(extraNodeAttrs.length, function (i) {
+                $("#nodeInfoTable tr:nth-child(2)").append(
+                    '<th id="nodeInfoTable-' +
+                        extraNodeAttrs[i] +
+                        '">' +
+                        extraNodeAttrs[i] +
+                        "</th>"
+                );
+            });
+
+            // Now do this for the edge info table. (TODO: merge this with the
+            // node code...)
+            var extraEdgeAttrs = this.dataHolder.getExtraEdgeAttrs();
+            $("#edgeTH").attr(
+                "colspan",
+                $("#edgeTH").attr("colspan") + extraEdgeAttrs.length
+            );
+            _.times(extraEdgeAttrs.length, function (i) {
+                $("#edgeInfoTable tr:nth-child(2)").append(
+                    '<th id="edgeInfoTable-' +
+                        extraEdgeAttrs[i] +
+                        '">' +
+                        extraEdgeAttrs[i] +
+                        "</th>"
+                );
+            });
+        }
 
         updateSelectedNodeInfo(eleID, selectOrUnselect) {
             if (selectOrUnselect === "select") {

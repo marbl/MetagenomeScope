@@ -972,7 +972,7 @@ define(["jquery", "underscore", "cytoscape", "utils"], function (
                 );
                 // The 50 gives us some breathing room between adjacent comps;
                 // not an ideal solution but it works (tm)
-                dy -= (componentBoundingBox[1] + 50);
+                dy -= componentBoundingBox[1] + 50;
             });
             this.initPatterns();
             this.finishDraw();
