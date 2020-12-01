@@ -26,17 +26,8 @@ from .main import make_viz
 from ._param_descriptions import (
     INPUT,
     OUTPUT_DIR,
-    ASSUME_ORIENTED,
     MAXN,
     MAXE,
-    MBF,
-    UP,
-    SPQR,
-    STRUCTPATT,
-    PG,
-    PX,
-    NBDF,
-    NPDF,
 )
 
 
