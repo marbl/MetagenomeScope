@@ -58,4 +58,4 @@ demo:
 	@# makes a simple demo with a tiny graph that lets us test out the viewer
 	@# interface
 	rm -rf mg2
-	mgsc -i testgraphs/sjackman/sample.gfa -o mg2
+	mgsc -i metagenomescope/tests/input/sample1.gfa -o mg2
