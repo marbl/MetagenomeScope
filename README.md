@@ -34,21 +34,38 @@ visualization, path finishing, and coloring nodes by biological metadata (e.g.
 GC content). (As mentioned above, many of these features are not available in
 the current version yet.)
 
+## Quick usage
+
+To install MetagenomeScope:
+```bash
+pip install git+https://github.com/marbl/MetagenomeScope.git
+```
+
+To visualize a graph:
+```
+mgsc -i [path to your assembly graph] -o [output directory name]
+```
+
+#### What types of assembly graphs can I use as input?
+
+Currently, this supports
+LastGraph ([Velvet](https://www.ebi.ac.uk/~zerbino/velvet/)),
+[GFA](https://gfa-spec.github.io/GFA-spec/) (e.g.
+[Flye/MetaFlye](https://github.com/fenderglass/Flye)),
+GML ([MetaCarvel](https://github.com/marbl/MetaCarvel)),
+and FASTG ([SPAdes](https://cab.spbu.ru/software/spades/)) files.
+
+## Code structure
+
 MetagenomeScope is composed of two main components:
 
-### 1. Preprocessing Script
+### 1. Preprocessing script
 
 MetagenomeScope's **preprocessing script** (contained in the
 `metagenomescope/` directory of this repository) is a mostly-Python script that
 takes as input an assembly graph file and produces a directory containing a
-HTML visualization of the graph.
-
-Once you've installed MetagenomeScope, running the preprocessing script is as
-simple as
-
-```bash
-mgsc -i [input assembly graph file] -o [output directory name]
-```
+HTML visualization of the graph. Once installed, it can be run from the command
+line using the `mgsc` command.
 
 **Note.** By default, connected components containing 8,000 or more nodes or
 edges will not be laid out. These thresholds are configurable using the
@@ -65,16 +82,7 @@ much easier to lay out and visualize than a connected component
 with 5,000 nodes and 20,000 edges), but we wanted to be conservative with the
 defaults.
 
-#### What types of assembly graphs can I use as input?
-
-Currently, this supports
-LastGraph ([Velvet](https://www.ebi.ac.uk/~zerbino/velvet/)),
-[GFA](https://gfa-spec.github.io/GFA-spec/) (e.g.
-[Flye](https://github.com/fenderglass/Flye)),
-GML ([MetaCarvel](https://github.com/marbl/MetaCarvel)),
-and FASTG ([SPAdes](https://cab.spbu.ru/software/spades/)) files.
-
-### 2. Viewer Interface
+### 2. Viewer interface
 
 MetagenomeScope's **viewer interface** (contained in the
 `metagenomescope/support_files/` directory
@@ -88,7 +96,7 @@ You should be able to load visualizations created by MetagenomeScope
 in most modern web browsers (mobile browsers probably will also work, although
 using a desktop browser is recommended).
 
-## Documentation
+## More thorough documentation
 
 Coming soon.
 
