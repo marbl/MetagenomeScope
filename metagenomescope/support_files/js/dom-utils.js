@@ -158,6 +158,22 @@ define(["jquery", "underscore", "utils"], function ($, _, utils) {
         }
     }
 
+    /**
+     * Binds a function to be called when the input field denoted by a given ID
+     * receives a keypress event from the "Enter" key.
+     *
+     * @param {String} inputID ID of a <input> field
+     * @param {Function} f Function to call when Enter is pressed within this
+     *                     field
+     */
+    function setEnterBinding(inputID, f) {
+        $("#" + inputID).on("keypress", function (e) {
+            if (e.which === 13) {
+                f();
+            }
+        });
+    }
+
     return {
         enablePersistentControls: enablePersistentControls,
         disablePersistentControls: disablePersistentControls,
@@ -170,5 +186,6 @@ define(["jquery", "underscore", "utils"], function ($, _, utils) {
         compRankValidity: compRankValidity,
         decrCompRank: decrCompRank,
         incrCompRank: incrCompRank,
+        setEnterBinding: setEnterBinding,
     };
 });

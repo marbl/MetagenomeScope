@@ -23,6 +23,10 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 this.onDestroy.bind(this)
             );
 
+            // Array of the size ranks of the currently drawn components.
+            // Only updated when this.draw() is called.
+            this.currentlyDrawnComponents = [];
+
             this.controlsDiv = $("#controls");
 
             $(this.doThingsWhenDOMReady.bind(this));
@@ -83,6 +87,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             });
 
             // Set up the component selector
+            // TODO: set enter bindings for the <input>s here
             var svc = this.dataHolder.smallestViewableComponent();
             $("#componentselector").prop("value", svc);
             // TODO?: May be ok to always allow this to go down to 1 if we
@@ -123,6 +128,12 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             $("#fitSelectedButton").click(function () {
                 scope.drawer.fit(true);
             });
+
+            // When the node search button is clicked, or when Enter is
+            // pressed in the node search input, start a search
+            var searchFunc = this.searchForNodes.bind(this);
+            $("#searchButton").click(searchFunc);
+            domUtils.setEnterBinding("searchInput", searchFunc);
         }
 
         /**
@@ -427,12 +438,17 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         }
 
         /**
-         * Returns an array containing all of the components to draw.
+         * Returns an array containing all of the components to draw, based on
+         * the current UI.
          *
          * If the components to draw are invalid in some way (e.g. they refer
          * to a component or a node that does not exist), this will open an
          * alert message (letting the user know what happened) and throw an
          * error (stopping execution of draw()).
+         *
+         * Notably, this does *NOT* modify this.currentlyDrawnComponents --
+         * that should only be updated after stuff has actually been drawn,
+         * just to be on the safe side.
          *
          * @returns {Array} Size ranks (1-indexed) of the component(s) to draw,
          *                  stored as Numbers. This will be an Array no matter
@@ -611,6 +627,38 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             }
         }
 
+        /**
+         * Centers the graph on a given list of node names separated by commas,
+         * with spaces optional.
+         *
+         * @throws {Error} If the name text is invalid.
+         */
+        searchForNodes() {
+            var nameText = $("#searchInput").val();
+            var nodeNames;
+            try {
+                nodeNames = utils.searchNodeTextToArray(nameText);
+            } catch (error) {
+                // Alert the user about what went wrong, then re-throw the
+                // error
+                alert(error.message);
+                throw error;
+            }
+            var notFoundNames = this.drawer.searchForNodes(nodeNames);
+            if (notFoundNames.length > 0) {
+                var notFoundNamesReadable = utils.arrToHumanReadableString(
+                    notFoundNames
+                );
+                alert(
+                    "Node name(s) " +
+                        notFoundNamesReadable +
+                        " were not found in the currently-drawn component. They may " +
+                        "be within collapsed patterns or in another component " +
+                        "of the graph, though."
+                );
+            }
+        }
+
         collapsePattern(pattern) {
             // Prevent this pattern from being collapsed if any of its children are
             // tentative nodes in finishing mode (TODO, reimplement when we get
@@ -682,6 +730,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         draw() {
             var componentsToDraw = this.getComponentsToDraw();
             this.drawer.draw(componentsToDraw, this.dataHolder);
+            // Only update this.currentlyDrawnComponents once
+            // this.drawer.draw() is finished.
+            this.currentlyDrawnComponents = componentsToDraw;
             // Enable controls that only have meaning when stuff is drawn (e.g.
             // the "fit graph" buttons)
             domUtils.enableDrawNeededControls();

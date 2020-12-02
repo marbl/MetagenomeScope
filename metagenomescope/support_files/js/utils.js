@@ -18,7 +18,7 @@
  ****
  * Various utilities used by MetagenomeScope.
  */
-define(function () {
+define(["underscore"], function (_) {
     /* Returns a #RRGGBB string indicating the color of a node, scaled by a
      * percentage (some value in the range [0, 1]).
      *
@@ -249,6 +249,79 @@ define(function () {
         }
     }
 
+    /**
+     * Converts user-input search text to an array of node names.
+     *
+     * Splits at commas, trims leading/trailing whitespace around each name,
+     * and filters to unique names.
+     *
+     * @param {String} nameText
+     *
+     * @returns {Array} uniqueTrimmedNames
+     *
+     * @throws {Error} If nameText is empty, or if it only contains whitespace.
+     *                 The error text returned here is designed to be human-
+     *                 readable, so the caller can alert the user with it.
+     */
+    function searchNodeTextToArray(nameText) {
+        // If only whitespace is given in the search input, alert the user.
+        // I guess this assumes that node names do not just contain
+        // whitespace. That should be a safe assumption...?
+        if (nameText.trim() === "") {
+            if (nameText.length > 0) {
+                throw new Error(
+                    "Only whitespace characters entered in the search text."
+                );
+            } else {
+                throw new Error("Nothing entered in the search text.");
+            }
+        }
+        var nodeNames = nameText.split(",");
+        // Trim leading and trailing whitespace around node names
+        var trimmedNodeNames = _.map(nodeNames, function (n) {
+            return n.trim();
+        });
+        // Remove duplicate node names.
+        // We *could* raise an error if there are duplicates (and alert the
+        // user that "hey you entered 12 twice"), but I think just being
+        // permissive is ok (the user should see "oh dang only 5 nodes are
+        // selected but I entered 6 node names what gives oh wait nvm haha I
+        // put 12 twice what a wacky and relatable user story").
+        return _.uniq(trimmedNodeNames);
+    }
+
+    /**
+     * Converts an Array to a human-readable String.
+     *
+     * The output String is surrounded by double quotation marks, and elements
+     * are separated by a comma and space.
+     *
+     * e.g. arrToHumanReadableString(["abc", "def", "ghi"])
+     * should produce '"abc, def, ghi"'.
+     *
+     * @param {Array} arr Non-empty Array of values.
+     *
+     * @returns {String} Human-readable string formatted as described above.
+     *
+     * @throws {Error} If arr is empty.
+     */
+    function arrToHumanReadableString(arr) {
+        if (arr.length === 0) {
+            throw new Error(
+                "Passed an empty array to arrToHumanReadableString()."
+            );
+        }
+        var s = '"';
+        _.each(arr, function (val, i) {
+            if (i > 0) {
+                s += ", ";
+            }
+            s += val;
+        });
+        s += '"';
+        return s;
+    }
+
     return {
         getNodeColorization: getNodeColorization,
         degreesToRadians: degreesToRadians,
@@ -259,5 +332,7 @@ define(function () {
         pointToLineDistance: pointToLineDistance,
         isValidInteger: isValidInteger,
         getHumanReadablePatternType: getHumanReadablePatternType,
+        searchNodeTextToArray: searchNodeTextToArray,
+        arrToHumanReadableString: arrToHumanReadableString,
     };
 });

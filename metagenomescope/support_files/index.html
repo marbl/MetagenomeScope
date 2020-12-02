@@ -334,48 +334,21 @@
 
                 <hr />
             </div>
-            <!--
             <div id="searchForElementsControls">
                 <h4>Search for Nodes</h4>
                 <div class="input-group input-group-sm">
-                    CODELINK:
-                         https://getbootstrap.com/docs/3.3/components/#input-groups-buttons-dropdowns
-                    
-                    <div class="input-group-btn">
-                        <button
-                            type="button"
-                            data-toggle="dropdown"
-                            id="searchTypeButton"
-                            disabled="disabled"
-                            class="btn btn-default dropdown-toggle disabled drawCtrl"
-                            aria-haspopup="true"
-                            aria-expanded="false"
-                        >
-                            ID <span class="caret"></span>
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li id="IDSearchTypeOption">
-                                <a onclick="toggleSearchType('ID');">ID</a>
-                            </li>
-                            <li id="LabelSearchTypeOption">
-                                <a onclick="toggleSearchType('Label');"
-                                    >Label</a
-                                >
-                            </li>
-                        </ul>
-                    </div>
                     <input
                         type="text"
                         class="form-control drawCtrl"
                         id="searchInput"
-                        placeholder="Node ID(s)"
+                        placeholder="Node name(s)"
+                        autocomplete="off"
                         disabled="disabled"
                     />
                     <span class="input-group-btn">
                         <button
                             class="btn btn-default disabled drawCtrl"
                             disabled="disabled"
-                            onclick="searchForEles();"
                             type="button"
                             id="searchButton"
                             aria-label="Search"
@@ -387,8 +360,13 @@
                         </button>
                     </span>
                 </div>
+                <p>
+                    Enter node name(s) to search for. You can use commas to
+                    search for multiple nodes.
+                </p>
                 <hr />
             </div>
+            <!--
             <div id="displayOptionsControls">
                 <h4>Display Options</h4>
                 <p id="collapseButtonControls">
