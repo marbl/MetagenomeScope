@@ -65,4 +65,19 @@ define(["utils", "mocha", "chai"], function (utils, mocha, chai) {
             }, /pointToLineDistance\(\) given a line of the same point twice/);
         });
     });
+    describe("utils.arrToHumanReadableString()", function () {
+        it("Throws an error when passed an empty array", function () {
+            chai.assert.throws(function () {
+                utils.arrToHumanReadableString([]);
+            }, /Passed an empty array to arrToHumanReadableString()./);
+        });
+        it("Succeeds with basic case (arr of three strings)", function () {
+            var hrs = utils.arrToHumanReadableString(["abc", "def", "ghi"]);
+            chai.assert.equal(hrs, '"abc, def, ghi"');
+        });
+        it("Handles one-value case properly (just encloses in quotes)", function () {
+            var hrs = utils.arrToHumanReadableString(["haha i'm tricky"]);
+            chai.assert.equal(hrs, '"haha i\'m tricky"');
+        });
+    });
 });
