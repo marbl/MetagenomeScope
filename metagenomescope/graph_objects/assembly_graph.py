@@ -1499,7 +1499,7 @@ class AssemblyGraph(object):
 
             if cc_full_node_ct >= 5:
                 operation_msg(
-                    "Laying out component {} ({} nodes, {} edges)...".format(
+                    "Laying out component {:,} ({:,} nodes, {:,} edges)...".format(
                         cc_i, cc_full_node_ct, cc_full_edge_ct
                     )
                 )
