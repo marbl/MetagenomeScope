@@ -133,7 +133,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // pressed in the node search input, start a search
             var searchFunc = this.searchForNodes.bind(this);
             $("#searchButton").click(searchFunc);
-            domUtils.setEnterBinding("searchButton", searchFunc);
+            domUtils.setEnterBinding("searchInput", searchFunc);
         }
 
         /**
