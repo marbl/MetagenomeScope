@@ -1,0 +1,232 @@
+/* Copyright (C) 2016-- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
+ * Authored by Marcus Fedarko
+ *
+ * This file is part of MetagenomeScope.
+ *
+ * MetagenomeScope is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * MetagenomeScope is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+html,
+body {
+    height: 100%;
+    width: 100%;
+}
+/* CODELINK: The toggling mechanism for the control panel was inspired by a
+ * similar mechanism in the following Cytoscape.js demo:
+ * http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/
+ * Link to the demo's code:
+ * https://github.com/cytoscape/cytoscape.js/tree/master/documentation/demos/colajs-graph
+ */
+#controlsToggler {
+    position: absolute;
+    left: 0em;
+    top: 0em;
+    z-index: 2;
+    cursor: pointer;
+    color: #777;
+}
+#floatingExportButton {
+    position: absolute;
+    right: 0em;
+    top: 0em;
+    z-index: 2;
+}
+#fitButton {
+    position: absolute;
+    right: 0em;
+    bottom: 0em;
+    z-index: 2;
+}
+#fitSelectedButton {
+    position: absolute;
+    right: 0em;
+    /* Should work as long as fitButton has the btn-sm class. TODO, test tho */
+    bottom: 35px;
+    z-index: 2;
+}
+/* Might want to consider adding some sort of transition on going to
+ * .notviewable, but not necessary */
+.notviewable {
+    visibility: hidden;
+    opacity: 0;
+    display: none;
+}
+/* Add smooth transitions on enabling/disabling for buttons.
+ * Note that the (animatable) CSS properties changed on enabling/disabling
+ * a button in Bootstrap 3.3 are opacity (it's 0.65 for disabled and 1 for
+ * enabled) and box-shadow. (The change in opacity is more apparent, but
+ * it's still impacted by button enabling/disabling.)
+ */
+button {
+    transition-duration: 0.5s;
+    transition-timing-function: ease-in-out;
+    transition-property: opacity, box-shadow;
+}
+#controls {
+    position: absolute;
+    width: 20em;
+    top: 0em;
+    bottom: 0em;
+    background-color: #123;
+    overflow-y: scroll;
+    text-align: center;
+    z-index: 1;
+    color: #ccc;
+}
+#controls p {
+    /* not the greatest solution. work on something better-looking */
+    margin: 0.1em;
+}
+.bottom-page-div {
+    margin-bottom: 0.1em;
+}
+.selectedEleHeader {
+    cursor: pointer;
+    text-align: left;
+}
+.opener {
+    margin-right: 0.1em;
+    float: right;
+}
+.cyclerBtn {
+    cursor: pointer;
+    font-size: 2em;
+}
+.cyclerBtn:active {
+    color: #808080;
+}
+#scaffoldCycler * {
+    display: inline-block;
+    vertical-align: middle;
+}
+/* TODO in the future it might be nice to keep the graph view in place when
+ * uncollapsing or collapsing the controls div -- however, for now, this
+ * behavior is fine. */
+#cy {
+    position: absolute;
+    right: 0em;
+    top: 0em;
+    bottom: 0em;
+    z-index: 0;
+}
+.nosubsume {
+    left: 20em;
+}
+.subsume {
+    left: 0em;
+}
+.table-bordered * {
+    border: 2px solid #555 !important;
+}
+.asmInfoTable {
+    /* Override Bootstrap's default CSS (which gives a margin-bottom of 20px on
+     * elements with class .table) */
+    margin-bottom: 10px !important;
+}
+.eleInfoTable {
+    margin: 0 auto; /* Center the table */
+}
+.eleInfoTable * {
+    text-align: center;
+    border: 1px solid #555 !important;
+}
+.modal-body {
+    /* TODO: come up with a cleaner way of representing the table on small
+     * screens?
+     */
+    overflow-x: auto;
+}
+.progress {
+    margin-bottom: 0px;
+}
+/* Applied to the progress bar during "manual" animation. Unlike the
+ * user-select CSS3 property, the prefixes aren't needed for most modern
+ * browsers. That being said, I guess I'm gonna keep these around for the time
+ * being; these are needed to make manually animating the progress bar work, so
+ * I'd rather include a few extra lines of code than risk users on some old
+ * browsers getting really confused at the progress bar not working correctly.
+ * (NOTE: In the future, it might be worth reevaluating this.)
+ */
+.notransitions {
+    transition: none;
+    -webkit-transition: none;
+    -moz-transition: none;
+    -o-transition: none;
+    -ms-transition: none;
+}
+/* Overriding the text-decoration: none set by Bootstrap makes this link easier
+ * to see for colorblind individuals
+ */
+.actuallyalink {
+    text-decoration: underline;
+}
+.actuallyalink:link {
+    color: #d22;
+}
+.actuallyalink:visited {
+    color: #d22;
+}
+.monospace {
+    font-family: monospace;
+}
+.cplabel {
+    margin-top: 10px;
+}
+/* Used to make the gradient preview (and scaffold cycler buttons) not
+ * selectable by the user, even though they could technically be interpreted as
+ * text. This isn't standardized among all browsers yet, hence the multiple
+ * prefix versions of *-user-select here. (Ideally we'd just be able to say
+ * "user-select: none;", but for now we've gotta do this for certain browsers.)
+ */
+.nonselectable {
+    -moz-user-select: none;
+    -khtml-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.gradient_preview {
+    text-align: center;
+    cursor: default;
+}
+.gradient_preview span {
+    border: 1px solid #000000;
+}
+.csbtn {
+    width: 100%;
+}
+.full-width-dropdown-menu {
+    width: 100%;
+}
+.edge_chart_bar rect {
+    fill: maroon;
+}
+
+.dropdown-menu a {
+    cursor: pointer;
+}
+#mochaTestSampleButton {
+    opacity: 0;
+}
+
+/* Matches the border radius that bootstrap applies to buttons. For some reason
+ * that eludes me, bootstrap buttons outside of a <p> don't seem to have
+ * rounded corners -- but putting them inside a <p> does. However, doing that
+ * can mess up dropdowns, so if we want to give a button rounded corners
+ * without having it be inside a <p> we can just use this class. Sheesh!
+ */
+.has-border-radius {
+    border-radius: 4px !important;
+}
