@@ -50,110 +50,6 @@ define(["underscore"], function (_) {
         return "#" + channels[0] + channels[1] + channels[2];
     }
 
-    /* Converts an angle in degrees to radians (for use with Javascript's trig
-     * functions).
-     */
-    function degreesToRadians(angle) {
-        return angle * (Math.PI / 180);
-    }
-
-    /* Rotates a coordinate by a given clockwise angle (in degrees).
-     * Returns an array of [x', y'] representing the new point.
-     */
-    function rotateCoordinate(
-        xCoord,
-        yCoord,
-        prevRotation = 0,
-        nextRotation = 90
-    ) {
-        // NOTE The formula for a coordinate transformation here works for all
-        // degree inputs of rotation. However, to save time, we just check
-        // to see if the rotation is a factor of 360 (i.e. the rotated
-        // point would be the same as the initial point), and if so we just
-        // return the original coordinates.
-        var rotation = prevRotation - nextRotation;
-        if (rotation % 360 === 0) {
-            return [xCoord, yCoord];
-        } else {
-            var newX =
-                xCoord * Math.cos(degreesToRadians(rotation)) -
-                yCoord * Math.sin(degreesToRadians(rotation));
-            var newY =
-                yCoord * Math.cos(degreesToRadians(rotation)) +
-                xCoord * Math.sin(degreesToRadians(rotation));
-            // TODO: why... did I write this like this? I'm leaving this as is for
-            // now in case there is some bizarre precision issue that I have
-            // forgetten about, but if I haven't figured this out soon then I
-            // should really just return newX and newY as they are.
-            newX = parseFloat(newX.toFixed(2));
-            newY = parseFloat(newY.toFixed(2));
-            return [newX, newY];
-        }
-    }
-
-    /* Given the bounding box of the graph, a graph rotation angle (in degrees),
-     * and a point specified by x and y coordinates, converts the point from
-     * GraphViz' coordinate system to Cytoscape.js' coordinate system, rotating
-     * the point if necessary (i.e. the rotation angle mod 360 !== 0).
-     *
-     * For reference -- GraphViz uses the standard Cartesian system in which
-     * the bottom-left corner of the screen is the origin, (0, 0). Cytoscape.js
-     * inverts the y-axis, with the origin (0, 0) being situated at the
-     * top-left corner of the screen. So to transform a point (x, y) from
-     * GraphViz to Cytoscape.js, you just return (x, y'), where
-     * y' = the vertical length of the bounding box, minus y.
-     * (The x-coordinate remains the same.)
-     *
-     * This is a purposely simple function -- in the event that we decide to
-     * use another graphing library/layout system/etc. for some reason, we can
-     * just modify this function accordingly.
-     */
-    function gv2cyPoint(xCoord, yCoord, boundingbox) {
-        // Convert from GraphViz to Cytoscape.js
-        var cyY = boundingbox[1] - yCoord;
-        var cyX = xCoord;
-        // Rotate the point about the axis if necessary
-        return rotateCoordinate(cyX, cyY);
-    }
-
-    /* Converts a string of control points (defined in the form "x1 y1 x2 y2",
-     * for an arbitrary number of points) to a 2-dimensional list of floats,
-     * of the form [[x1, y1], [x2, y2], ...]. If the input string contains an
-     * odd number of coordinate components for some reason (e.g.
-     * "x1 y1 x2 y2 x3") then this will return null, since that's invalid.
-     * This also takes care of converting each point in the input string from
-     * GraphViz' coordinate system to Cytoscape.js' coordinate system.
-     * (Hence why the graph's bounding box and rotation are parameters here.)
-     */
-    function ctrlPtStrToList(ctrlPointStr, boundingbox) {
-        // Create coordList, where every coordinate is an element (e.g.
-        // [x1, y1, x2, y2, ...]
-        var coordList = ctrlPointStr.trim().split(" ");
-        // Merge two elements of coordList at a time. NOTE that this is only
-        // possible when coordList.length is even, so this is why we have to
-        // wait until we're finished parsing all control points until doing
-        // this conversion. (If coordList.length is odd, return null --
-        // something went very wrong in that case.)
-        var clLen = coordList.length;
-        if (clLen % 2 !== 0) {
-            return null;
-        } else {
-            var pointList = [];
-            var currPoint = [];
-            for (var i = 0; i < clLen; i++) {
-                if (i % 2 === 0) {
-                    // i/2 is always an integer, since i is even
-                    pointList[i / 2] = gv2cyPoint(
-                        parseFloat(coordList[i]),
-                        parseFloat(coordList[i + 1]),
-                        boundingbox
-                    );
-                }
-            }
-            return pointList;
-        }
-    }
-
     /* Given two points, each in the form [x, y], returns the distance between
      * the points obtained using d = sqrt((x2 - x1)^2 + (y2 - y1)^2).
      * e.g. distance([1, 2], [3, 4]) = sqrt((3 - 1)^2 + (4 - 2)^2) = sqrt(8)
@@ -250,6 +146,28 @@ define(["underscore"], function (_) {
     }
 
     /**
+     * Throws a human-readable error message if a string is empty or has just
+     * whitespace.
+     *
+     * If the string doesn't have either of these problems, nothing is done.
+     *
+     * @param {String} text
+     *
+     * @throws {Error} If the conditions mentioned above are met
+     */
+    function throwErrOnEmptyOrWhitespace(text) {
+        if (text.trim() === "") {
+            if (text.length > 0) {
+                throw new Error(
+                    "Only whitespace characters entered in the search text."
+                );
+            } else {
+                throw new Error("Nothing entered in the search text.");
+            }
+        }
+    }
+
+    /**
      * Converts user-input search text to an array of node names.
      *
      * Splits at commas, trims leading/trailing whitespace around each name,
@@ -267,15 +185,7 @@ define(["underscore"], function (_) {
         // If only whitespace is given in the search input, alert the user.
         // I guess this assumes that node names do not just contain
         // whitespace. That should be a safe assumption...?
-        if (nameText.trim() === "") {
-            if (nameText.length > 0) {
-                throw new Error(
-                    "Only whitespace characters entered in the search text."
-                );
-            } else {
-                throw new Error("Nothing entered in the search text.");
-            }
-        }
+        throwErrOnEmptyOrWhitespace(nameText);
         var nodeNames = nameText.split(",");
         // Trim leading and trailing whitespace around node names
         var trimmedNodeNames = _.map(nodeNames, function (n) {
@@ -387,10 +297,6 @@ define(["underscore"], function (_) {
 
     return {
         getNodeColorization: getNodeColorization,
-        degreesToRadians: degreesToRadians,
-        rotateCoordinate: rotateCoordinate,
-        gv2cyPoint: gv2cyPoint,
-        ctrlPtStrToList: ctrlPtStrToList,
         distance: distance,
         pointToLineDistance: pointToLineDistance,
         isValidInteger: isValidInteger,
@@ -399,5 +305,6 @@ define(["underscore"], function (_) {
         arrToHumanReadableString: arrToHumanReadableString,
         getFancyTimestamp: getFancyTimestamp,
         leftPad: leftPad,
+        throwErrOnEmptyOrWhitespace: throwErrOnEmptyOrWhitespace,
     };
 });

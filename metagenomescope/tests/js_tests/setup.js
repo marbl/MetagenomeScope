@@ -54,7 +54,7 @@ requirejs(
         "cytoscape-expand-collapse",
         "mocha",
         "chai",
-        "test_distances",
+        "test-utils",
     ],
     function (
         AppManager,
@@ -70,7 +70,7 @@ requirejs(
         cyEC,
         mocha,
         chai,
-        test_distances
+        testUtils
     ) {
         mocha.checkLeaks();
         mocha.run();

@@ -22,13 +22,24 @@ def check_dir_existence(output_dir):
     directory already exists.
     """
     if os.path.exists(output_dir):
+        # (FileExistsError is documented as "Raised when trying to create a
+        # file or directory which already exists"
+        # --https://docs.python.org/3/library/exceptions.html -- so even though
+        # it would sound nicer if it was called DirectoryExistsError I'm
+        # following convention apparently)
         raise FileExistsError(
             "Output directory {} already exists.".format(output_dir)
         )
 
 
 def validate_max_counts(max_node_ct, max_edge_ct):
-    if max_node_ct < 1:
+    nodebad = max_node_ct < 1
+    edgebad = max_edge_ct < 1
+    if nodebad and edgebad:
+        raise ValueError(
+            "Maximum node / maximum edge counts must be at least 1"
+        )
+    if nodebad:
         raise ValueError("Maximum node count must be at least 1")
-    if max_edge_ct < 1:
+    if edgebad:
         raise ValueError("Maximum edge count must be at least 1")
