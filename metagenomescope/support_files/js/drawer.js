@@ -65,6 +65,15 @@ define([
             this.numDrawnEdges = 0;
             this.numDrawnPatterns = 0;
 
+            // Maps node names to an array of their parent pattern ID(s).
+            // For most node names, the array will just have a single ID, but
+            // for duplicate node names split across multiple patterns this
+            // array will have two elements (at most two, I think, but I don't
+            // want to try to prove that to myself right now ._.).
+            // This corresponds to the "_ele2parent" scratch object in the old
+            // version of MetagenomeScope.
+            this.nodeName2parent = {};
+
             // Various constants
             //
             // Anything less than this constant will be considered a "straight"
@@ -245,7 +254,7 @@ define([
                         // nodes).
                         selector: "node.basic",
                         style: {
-                            label: "data(label)",
+                            label: "data(nodeLabel)",
                             "text-valign": "center",
                             // rendering text is computationally expensive, so if
                             // we're zoomed out so much that the text would be
@@ -591,9 +600,14 @@ define([
         }
 
         renderNode(nodeAttrs, nodeVals, nodeID, dx, dy) {
+            var name = nodeVals[nodeAttrs.name];
             var nodeData = {
                 id: nodeID,
-                label: nodeVals[nodeAttrs.name],
+                // We specifically use a "nodeLabel" field to avoid the
+                // potential for internal conflicts between labels in collapsed
+                // patterns and labels in nodes: if a "node" in the graph has a
+                // "nodeLabel" field, it's gotta be a basic node.
+                nodeLabel: name,
                 length: nodeVals[nodeAttrs.length],
                 w: nodeVals[nodeAttrs.width],
                 h: nodeVals[nodeAttrs.height],
@@ -604,8 +618,11 @@ define([
             var parentID = nodeVals[nodeAttrs.parent_id];
             if (!_.isNull(parentID)) {
                 nodeData.parent = parentID;
-                // TODO update a global ele2parent thing for collpasing /
-                // searching?
+                if (_.has(this.nodeName2parent, name)) {
+                    this.nodeName2parent[name].push(parentID);
+                } else {
+                    this.nodeName2parent[name] = [parentID];
+                }
             }
 
             // Figure out node orientation and shape
@@ -1062,6 +1079,57 @@ define([
             // seeing if both of these are real nodes.
             incidentEdges.each(this.makeEdgeNonBasic);
             pattern.data("isCollapsed", false);
+        }
+
+        /**
+         * Given an array of node names, attempts to select them.
+         *
+         * @param {Array} nodeNames Node names to search for. These should have
+         *                          already had leading/trailing whitespace and
+         *                          duplicates removed.
+         *
+         * @return {Array} notFoundNames Node names that the search couldn't
+         *                               find. If all names were found, this
+         *                               array will be empty. The user should
+         *                               be warned if this array isn't empty.
+         */
+        searchForNodes(nodeNames) {
+            var scope = this;
+            var eles = this.cy.collection(); // empty collection (for now)
+            var newEle;
+            var parentID;
+            var notFoundNames = [];
+            var atLeastOneNameFound = false;
+            _.each(nodeNames, function (name) {
+                newEle = scope.cy.filter('[nodeLabel="' + name + '"]');
+                // TODO: If we don't find the node(s), they might be within
+                // collapsed pattern(s). Check this.nodeName2parent (or the
+                // data holder? get it from AppManager?) and use
+                // that to figure things out. (Complicating things: a node
+                // might be present in one uncollapsed pattern while its
+                // duplicate might be present in another (collapsed) pattern.)
+                // I'm not 100% sure how to do this best right now, so for the
+                // time being searching only works for shown nodes in currently
+                // drawn components.
+                if (newEle.empty()) {
+                    notFoundNames.push(name);
+                } else {
+                    atLeastOneNameFound = true;
+                    eles = eles.union(newEle);
+                }
+            });
+            if (atLeastOneNameFound) {
+                // Fit the graph to the identified nodes
+                this.cy.fit(eles);
+                // Unselect all previously-selected elements (including edges
+                // and patterns)
+                // NOTE can make this more efficient if needed -- see
+                // https://github.com/fedarko/MetagenomeScope/issues/115#issuecomment-294407711
+                this.cy.filter(":selected").unselect();
+                // Select all identified nodes
+                eles.select();
+            }
+            return notFoundNames;
         }
     }
     return { Drawer: Drawer };

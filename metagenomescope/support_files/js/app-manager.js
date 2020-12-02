@@ -23,6 +23,10 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 this.onDestroy.bind(this)
             );
 
+            // Array of the size ranks of the currently drawn components.
+            // Only updated when this.draw() is called.
+            this.currentlyDrawnComponents = [];
+
             this.controlsDiv = $("#controls");
 
             $(this.doThingsWhenDOMReady.bind(this));
@@ -434,12 +438,17 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         }
 
         /**
-         * Returns an array containing all of the components to draw.
+         * Returns an array containing all of the components to draw, based on
+         * the current UI.
          *
          * If the components to draw are invalid in some way (e.g. they refer
          * to a component or a node that does not exist), this will open an
          * alert message (letting the user know what happened) and throw an
          * error (stopping execution of draw()).
+         *
+         * Notably, this does *NOT* modify this.currentlyDrawnComponents --
+         * that should only be updated after stuff has actually been drawn,
+         * just to be on the safe side.
          *
          * @returns {Array} Size ranks (1-indexed) of the component(s) to draw,
          *                  stored as Numbers. This will be an Array no matter
@@ -619,62 +628,35 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         }
 
         /**
-         * Attempts to search for nodes.
-         * TODO: offload most of this to the Drawer
+         * Centers the graph on a given list of node names separated by commas,
+         * with spaces optional.
+         *
+         * @throws {Error} If the name text is invalid.
          */
         searchForNodes() {
             var nameText = $("#searchInput").val();
-            if (nameText.trim() === "") {
-                alert("Error -- please enter node name(s) to search for.");
-                return;
+            var nodeNames;
+            try {
+                nodeNames = utils.searchNodeTextToArray(nameText);
+            } catch (error) {
+                // Alert the user about what went wrong, then re-throw the
+                // error
+                alert(error.message);
+                throw error;
             }
-            var names = nameText.split(",");
-            var eles = cy.collection(); // empty collection (for now)
-            var newEle;
-            var parentID;
-            var queriedName;
-            for (var c = 0; c < names.length; c++) {
-                queriedName = names[c].trim();
-                if (mgsc.CURR_SEARCH_TYPE === "Label")
-                    newEle = cy.filter('[label="' + queriedName + '"]');
-                else newEle = cy.getElementById(queriedName);
-                if (newEle.empty()) {
-                    // Check if this element is in the graph (but currently
-                    // collapsed, and therefore inaccessible) or if it just
-                    // never existed in the first place
-                    parentID = cy.scratch("_ele2parent")[queriedName];
-                    if (parentID !== undefined) {
-                        // We've collapsed the parent of this element, so identify
-                        // its parent instead
-                        eles = eles.union(cy.getElementById(parentID));
-                    } else {
-                        // It's a bogus element
-                        alert(
-                            "Error -- element with " +
-                                mgsc.SEARCH_TYPE_HREADABLE[
-                                    mgsc.CURR_SEARCH_TYPE
-                                ] +
-                                " " +
-                                queriedName +
-                                " is not in this component."
-                        );
-                        return;
-                    }
-                } else {
-                    // Identify the node in question
-                    eles = eles.union(newEle);
-                }
+            var notFoundNames = this.drawer.searchForNodes(nodeNames);
+            if (notFoundNames.length > 0) {
+                var notFoundNamesReadable = utils.arrToHumanReadableString(
+                    notFoundNames
+                );
+                alert(
+                    "Node name(s) " +
+                        notFoundNamesReadable +
+                        " were not found in the currently-drawn component. They may " +
+                        "be within collapsed patterns or in another component " +
+                        "of the graph, though."
+                );
             }
-            // Fit the graph to the identified names.
-            cy.fit(eles);
-            // Unselect all previously-selected names
-            // (TODO: is this O(n)? because if so, it's not worth it, probably)
-            // (Look into this)
-            // TODO can make this more efficient -- see #115, etc.
-            cy.filter(":selected").unselect();
-            // Select all identified names, so they can be dragged if desired
-            // (and also to highlight them).
-            eles.select();
         }
 
         collapsePattern(pattern) {
@@ -748,6 +730,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         draw() {
             var componentsToDraw = this.getComponentsToDraw();
             this.drawer.draw(componentsToDraw, this.dataHolder);
+            // Only update this.currentlyDrawnComponents once
+            // this.drawer.draw() is finished.
+            this.currentlyDrawnComponents = componentsToDraw;
             // Enable controls that only have meaning when stuff is drawn (e.g.
             // the "fit graph" buttons)
             domUtils.enableDrawNeededControls();
