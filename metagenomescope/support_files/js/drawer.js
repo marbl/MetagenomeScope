@@ -1131,6 +1131,28 @@ define([
             }
             return notFoundNames;
         }
+
+        /**
+         * Returns a base64-encoded image of the graph.
+         *
+         * This is basically just a wrapper for cy.png() or cy.jpg().
+         *
+         * @param {String} imgType Should be either "PNG" or "JPG".
+         *
+         * @returns {String} encodedImage
+         *
+         * @throws {Error} if imgType is not "PNG" or "JPG".
+         */
+        exportImage(imgType) {
+            var options = { bg: this.bgColor };
+            if (imgType === "PNG") {
+                return this.cy.png(options);
+            } else if (imgType === "JPG") {
+                return this.cy.jpg(options);
+            } else {
+                throw new Error("Unrecognized imgType: " + imgType);
+            }
+        }
     }
     return { Drawer: Drawer };
 });

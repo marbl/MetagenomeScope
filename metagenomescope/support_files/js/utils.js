@@ -322,6 +322,69 @@ define(["underscore"], function (_) {
         return s;
     }
 
+    /**
+     * Given a number, converts to a String and makes it have two digits.
+     *
+     * e.g. leftPad(9) -> "09"
+     *      leftPad(12) -> "12"
+     *
+     * @param {Number} x Must be an integer and in the range [0, 99], or this
+     *                   will throw an error.
+     *
+     * @return {String} xPadded
+     */
+    function leftPad(x) {
+        if (Number.isInteger(x)) {
+            if (x >= 0 && x <= 99) {
+                return String(x).padStart(2, 0);
+            } else {
+                throw new Error(
+                    "Argument to leftPad() not in the range [0, 99]: " + x
+                );
+            }
+        } else {
+            throw new Error("Argument to leftPad() not an integer: " + x);
+        }
+    }
+
+    /**
+     * Returns a String timestamp of the format "YYYY-MM-DDThh:mm:ss".
+     *
+     * This should be https://xkcd.com/1179 compliant. And ISO-8601
+     * compliant... uh, I think. Don't hold me to that :P
+     *
+     * Hours are in "military time" (American-speak for "5:00pm is 17:00")
+     * because that's the default of Date.prototype.getHours().
+     *
+     * Intended to produce useful, non-overlapping filenames for screenshots.
+     *
+     * This should be decently robust, but if you're reading this because it
+     * broke while you were in a plane across the date line on a leap year or
+     * something then I am sorry, please go open an issue and yell at me.
+     *
+     * FYI -- If you want a timestamp from the current time, you can just call
+     * getFancyTimestamp(new Date()).
+     *
+     * @param {Date} d Date object to convert to a timestamp.
+     *
+     * @returns {String} timestamp
+     */
+    function getFancyTimestamp(d) {
+        var timestamp = "";
+        timestamp += d.getFullYear() + "-";
+        // Date.prototype.getMonth() is 0-indexed ._.
+        timestamp += leftPad(d.getMonth() + 1) + "-";
+        // ...but getDate() isn't. (I guess getHours(), getMinutes(), and
+        // getSeconds() are, though? But those are already 0-indexed sooooo...)
+        // Oh, also: the reason we use "T" to separate the date (YYYY-MM-DD)
+        // and the time (hh:mm:ss) is because that's what ISO 8601 requires.
+        timestamp += leftPad(d.getDate()) + "T";
+        timestamp += leftPad(d.getHours()) + ":";
+        timestamp += leftPad(d.getMinutes()) + ":";
+        timestamp += leftPad(d.getSeconds());
+        return timestamp;
+    }
+
     return {
         getNodeColorization: getNodeColorization,
         degreesToRadians: degreesToRadians,
@@ -334,5 +397,7 @@ define(["underscore"], function (_) {
         getHumanReadablePatternType: getHumanReadablePatternType,
         searchNodeTextToArray: searchNodeTextToArray,
         arrToHumanReadableString: arrToHumanReadableString,
+        getFancyTimestamp: getFancyTimestamp,
+        leftPad: leftPad,
     };
 });

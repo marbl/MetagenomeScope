@@ -134,6 +134,13 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             var searchFunc = this.searchForNodes.bind(this);
             $("#searchButton").click(searchFunc);
             domUtils.setEnterBinding("searchInput", searchFunc);
+
+            // Graph image export buttons
+            // (one is in the top-right of the graph display, another is in the
+            // node selection menu)
+            var exportFunc = this.exportGraphView.bind(this);
+            $("#floatingExportButton").click(exportFunc);
+            $("#exportImageButton").click(exportFunc);
         }
 
         /**
@@ -736,6 +743,25 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // Enable controls that only have meaning when stuff is drawn (e.g.
             // the "fit graph" buttons)
             domUtils.enableDrawNeededControls();
+        }
+
+        /**
+         * Exports an image of the graph, calling downloadDataURI() to prompt
+         * the user.
+         *
+         * The image filetype is determined using a button group in the control
+         * panel.
+         */
+        exportGraphView() {
+            // Should be either "PNG" or "JPG"
+            var imgType = $("#imgTypeButtonGroup .btn.active").attr("value");
+            var encodedImage = this.drawer.exportImage(imgType);
+            var fn =
+                "mgsc-" +
+                utils.getFancyTimestamp(new Date()) +
+                "." +
+                imgType.toLowerCase();
+            domUtils.downloadDataURI(fn, encodedImage, false);
         }
     }
     return { AppManager: AppManager };
