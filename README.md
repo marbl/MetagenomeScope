@@ -122,7 +122,7 @@ future.
   - See [Nijkamp et al. 2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3916741/) for details.
     This graph was based on the topology shown in Fig. 2(a) of this paper.
 
-- [Velvet E. coli graph](https://marbl.github.io/MetagenomeScope/demos/marygold/index.html)
+- [Velvet E. coli graph](https://marbl.github.io/MetagenomeScope/demos/bandage-ecoli-example/index.html)
   - This graph is example data from [Bandage's website](http://rrwick.github.io/Bandage/)
     (which is another great tool for visualizing assembly graphs :)
 
