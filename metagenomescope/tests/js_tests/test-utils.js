@@ -1,4 +1,9 @@
-define(["utils", "mocha", "chai"], function (utils, mocha, chai) {
+define(["utils", "mocha", "chai", "underscore"], function (
+    utils,
+    mocha,
+    chai,
+    _
+) {
     describe("utils.distance()", function () {
         it("Computes distance between two [x, y] points", function () {
             chai.assert.equal(utils.distance([1, 2], [3, 4]), Math.sqrt(8));
@@ -69,7 +74,7 @@ define(["utils", "mocha", "chai"], function (utils, mocha, chai) {
         it("Throws an error when passed an empty array", function () {
             chai.assert.throws(function () {
                 utils.arrToHumanReadableString([]);
-            }, /Passed an empty array to arrToHumanReadableString()./);
+            }, /Passed an empty array to arrToHumanReadableString\(\)./);
         });
         it("Succeeds with basic case (arr of three strings)", function () {
             var hrs = utils.arrToHumanReadableString(["abc", "def", "ghi"]);
@@ -78,6 +83,48 @@ define(["utils", "mocha", "chai"], function (utils, mocha, chai) {
         it("Handles one-value case properly (just encloses in quotes)", function () {
             var hrs = utils.arrToHumanReadableString(["haha i'm tricky"]);
             chai.assert.equal(hrs, '"haha i\'m tricky"');
+        });
+    });
+    describe("utils.leftPad()", function () {
+        it("Throws an error when passed a non-integer", function () {
+            _.each(
+                [
+                    "12",
+                    null,
+                    undefined,
+                    NaN,
+                    [],
+                    [10],
+                    5.6,
+                    12.9,
+                    3.0001,
+                    { abc: 9 },
+                ],
+                function (nonIntEle) {
+                    chai.assert.throws(function () {
+                        utils.leftPad(nonIntEle);
+                    }, /Argument to leftPad\(\) not an integer/);
+                }
+            );
+        });
+        it("Throws an error when passed an integer outside of [0, 99]", function () {
+            _.each(
+                [-1, -10, -100, 100, 101, 1000, Number.MAX_SAFE_INTEGER],
+                function (badEle) {
+                    chai.assert.throws(function () {
+                        utils.leftPad(badEle);
+                    }, /Argument to leftPad\(\) not in the range \[0, 99\]/);
+                }
+            );
+        });
+        it("Pads 1-digit inputs", function () {
+            chai.assert.equal(utils.leftPad(5), "05");
+            chai.assert.equal(utils.leftPad(1), "01");
+            chai.assert.equal(utils.leftPad(0), "00");
+        });
+        it("Doesn't pad 2-digit inputs", function () {
+            chai.assert.equal(utils.leftPad(10), "10");
+            chai.assert.equal(utils.leftPad(99), "99");
         });
     });
 });
