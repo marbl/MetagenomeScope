@@ -6,7 +6,7 @@ script (implemented in Python) and a web-based visualization interface
 (implemented in JavaScript, HTML, and CSS; also referred to as the "viewer
 interface").
 
-The visualization interface code is distributed with:
+The viewer interface code is distributed with:
 
 -Cytoscape.js
     -http://js.cytoscape.org
