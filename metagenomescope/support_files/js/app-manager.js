@@ -757,7 +757,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             var imgType = $("#imgTypeButtonGroup .btn.active").attr("value");
             var encodedImage = this.drawer.exportImage(imgType);
             var fn =
-                "mgsc-screenshot-" +
+                "mgsc-" +
                 utils.getFancyTimestamp(new Date()) +
                 "." +
                 imgType.toLowerCase();
