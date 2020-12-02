@@ -482,6 +482,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 }
             } else if (this.cmpSelectionMethod === "withnode") {
                 var name = $("#nodeNameSelector").val();
+                this.alertAndThrowIfFails(function () {
+                    utils.throwErrOnEmptyOrWhitespace(name);
+                });
                 cmpRank = this.dataHolder.findComponentContainingNodeName(name);
                 if (cmpRank === -1) {
                     alert(
@@ -635,6 +638,26 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         }
 
         /**
+         * Utility method. Runs a function, and if it throws an error then this
+         * alerts the user with the error's message and then re-throws the
+         * error.
+         *
+         * @param {Function} func
+         *
+         * @throws {Error} If func throws an error
+         */
+        alertAndThrowIfFails(func) {
+            try {
+                func();
+            } catch (error) {
+                // Alert the user about what went wrong, then re-throw the
+                // error
+                alert(error.message);
+                throw error;
+            }
+        }
+
+        /**
          * Centers the graph on a given list of node names separated by commas,
          * with spaces optional.
          *
@@ -643,14 +666,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         searchForNodes() {
             var nameText = $("#searchInput").val();
             var nodeNames;
-            try {
+            this.alertAndThrowIfFails(function () {
                 nodeNames = utils.searchNodeTextToArray(nameText);
-            } catch (error) {
-                // Alert the user about what went wrong, then re-throw the
-                // error
-                alert(error.message);
-                throw error;
-            }
+            });
             var notFoundNames = this.drawer.searchForNodes(nodeNames);
             if (notFoundNames.length > 0) {
                 var notFoundNamesReadable = utils.arrToHumanReadableString(

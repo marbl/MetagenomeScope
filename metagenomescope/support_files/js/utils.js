@@ -146,6 +146,28 @@ define(["underscore"], function (_) {
     }
 
     /**
+     * Throws a human-readable error message if a string is empty or has just
+     * whitespace.
+     *
+     * If the string doesn't have either of these problems, nothing is done.
+     *
+     * @param {String} text
+     *
+     * @throws {Error} If the conditions mentioned above are met
+     */
+    function throwErrOnEmptyOrWhitespace(text) {
+        if (text.trim() === "") {
+            if (text.length > 0) {
+                throw new Error(
+                    "Only whitespace characters entered in the search text."
+                );
+            } else {
+                throw new Error("Nothing entered in the search text.");
+            }
+        }
+    }
+
+    /**
      * Converts user-input search text to an array of node names.
      *
      * Splits at commas, trims leading/trailing whitespace around each name,
@@ -163,15 +185,7 @@ define(["underscore"], function (_) {
         // If only whitespace is given in the search input, alert the user.
         // I guess this assumes that node names do not just contain
         // whitespace. That should be a safe assumption...?
-        if (nameText.trim() === "") {
-            if (nameText.length > 0) {
-                throw new Error(
-                    "Only whitespace characters entered in the search text."
-                );
-            } else {
-                throw new Error("Nothing entered in the search text.");
-            }
-        }
+        throwErrOnEmptyOrWhitespace(nameText);
         var nodeNames = nameText.split(",");
         // Trim leading and trailing whitespace around node names
         var trimmedNodeNames = _.map(nodeNames, function (n) {
@@ -291,5 +305,6 @@ define(["underscore"], function (_) {
         arrToHumanReadableString: arrToHumanReadableString,
         getFancyTimestamp: getFancyTimestamp,
         leftPad: leftPad,
+        throwErrOnEmptyOrWhitespace: throwErrOnEmptyOrWhitespace,
     };
 });
