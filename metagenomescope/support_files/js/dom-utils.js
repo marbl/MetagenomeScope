@@ -174,6 +174,43 @@ define(["jquery", "underscore", "utils"], function ($, _, utils) {
         });
     }
 
+    /**
+     * Uses the downloadHelper <a> element to prompt the user to save a data URI
+     * to their system.
+     *
+     * I don't remember how I originally wrote this function, but the
+     * method used here is basically the same as that shown in
+     * https://stackoverflow.com/a/15832662.
+     *
+     * @param {String} filename Filename to save the exported file as.
+     * @param {String} contentToDownload Stuff to download. May be either
+     *                                   plain text (in which case you
+     *                                   should set isPlainText to true),
+     *                                   or encoded stuff (already a valid
+     *                                   data URI).
+     * @param {Boolean} isPlainText If true, then this will treat
+     *                              contentToDownload as text/plain data
+     *                              (appending the necessary prefixes for
+     *                              constructing a data URI, and calling
+     *                              window.btoa() on contentToDownload).
+     *                              If this is false, however, then this
+     *                              won't append any prefixes to
+     *                              contentToDownload and won't call
+     *                              window.btoa() on it.
+     */
+    function downloadDataURI(filename, contentToDownload, isPlainText) {
+        $("#downloadHelper").attr("download", filename);
+        if (isPlainText) {
+            var data =
+                "data:text/plain;charset=utf-8;base64," +
+                window.btoa(contentToDownload);
+            $("#downloadHelper").attr("href", data);
+        } else {
+            $("#downloadHelper").attr("href", contentToDownload);
+        }
+        document.getElementById("downloadHelper").click();
+    }
+
     return {
         enablePersistentControls: enablePersistentControls,
         disablePersistentControls: disablePersistentControls,
@@ -187,5 +224,6 @@ define(["jquery", "underscore", "utils"], function ($, _, utils) {
         decrCompRank: decrCompRank,
         incrCompRank: incrCompRank,
         setEnterBinding: setEnterBinding,
+        downloadDataURI: downloadDataURI,
     };
 });

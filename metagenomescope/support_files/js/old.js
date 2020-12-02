@@ -2503,29 +2503,6 @@ function importColorSettings() {
     }
 }
 
-/* Uses the downloadHelper <a> element to prompt the user to save a data URI
- * to their system.
- *
- * If the isPlainText argument is true, then this will treat contentToDownload
- * as text/plain data (appending the necessary prefixes for constructing a data
- * URI, and calling window.btoa() on contentToDownload).
- * If isPlainText is false, however, then this won't append any prefixes to
- * contentToDownload and won't call window.btoa() on it.
- */
-function downloadDataURI(filename, contentToDownload, isPlainText) {
-    "use strict";
-    $("#downloadHelper").attr("download", filename);
-    if (isPlainText) {
-        var data =
-            "data:text/plain;charset=utf-8;base64," +
-            window.btoa(contentToDownload);
-        $("#downloadHelper").attr("href", data);
-    } else {
-        $("#downloadHelper").attr("href", contentToDownload);
-    }
-    document.getElementById("downloadHelper").click();
-}
-
 function clearSelectedInfo() {
     "use strict";
     $("#nodeInfoTable tr.nonheader").remove();
@@ -2539,17 +2516,6 @@ function clearSelectedInfo() {
     }
     if ($("#clusterOpener").hasClass("glyphicon-triangle-bottom")) {
         toggleEleInfo("cluster");
-    }
-}
-
-/* Exports image of graph. */
-function exportGraphView() {
-    "use strict";
-    var imgType = $("#imgTypeButtonGroup .btn.active").attr("value");
-    if (imgType === "PNG") {
-        downloadDataURI("screenshot.png", cy.png({ bg: mgsc.BG_COLOR }), false);
-    } else {
-        downloadDataURI("screenshot.jpg", cy.jpg({ bg: mgsc.BG_COLOR }), false);
     }
 }
 
