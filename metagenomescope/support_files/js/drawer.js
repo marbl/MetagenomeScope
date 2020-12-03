@@ -90,6 +90,8 @@ define([
             this.EDGE_THICKNESS_RANGE =
                 this.MAX_EDGE_THICKNESS - this.MIN_EDGE_THICKNESS;
 
+            this.COMPONENT_PADDING = 200;
+
             // Used for debugging
             this.VERBOSE = false;
         }
@@ -550,7 +552,7 @@ define([
             } else {
                 classes += " M";
             }
-            var x = (pattVals[pattAttrs.left] + pattVals[pattAttrs.right]) / 2;
+            var x = dx + (pattVals[pattAttrs.left] + pattVals[pattAttrs.right]) / 2;
             var y =
                 dy - (pattVals[pattAttrs.bottom] + pattVals[pattAttrs.top]) / 2;
             this.cy.add({
@@ -640,7 +642,7 @@ define([
                 classes += " is_dup";
             }
 
-            var x = nodeVals[nodeAttrs.x];
+            var x = dx + nodeVals[nodeAttrs.x];
             var y = dy - nodeVals[nodeAttrs.y];
             var data = {
                 data: nodeData,
@@ -717,7 +719,7 @@ define([
             var ctrlPtWeights = "";
             var currPt, pld, pldsquared, dsp, dtp, w, ws, wt;
             for (var p = 0; p < ctrlPts.length; p += 2) {
-                currPt = [ctrlPts[p], dy - ctrlPts[p + 1]];
+                currPt = [dx + ctrlPts[p], dy - ctrlPts[p + 1]];
                 pld = utils.pointToLineDistance(currPt, srcPos, tgtPos);
                 pldsquared = Math.pow(pld, 2);
                 dsp = utils.distance(currPt, srcPos);
@@ -899,6 +901,7 @@ define([
             var maxWidth = null;
             var dx = 0;
             var dy = 0;
+            var firstCompWidth = null;
             _.each(componentsToDraw, function (sizeRank) {
                 // Draw patterns
                 var pattAttrs = dataHolder.getPattAttrs();
@@ -952,9 +955,36 @@ define([
                 var componentBoundingBox = dataHolder.getComponentBoundingBox(
                     sizeRank
                 );
-                // The 50 gives us some breathing room between adjacent comps;
-                // not an ideal solution but it works (tm)
-                dy -= componentBoundingBox[1] + 50;
+                // The way component tiling works right now is: we draw the
+                // first component (assumed to be the largest, of those being
+                // drawn), which has width W and height H. We then draw the
+                // next component just above the top-right position of this
+                // component (using some padding), and then tile components
+                // from right to left. When a component's bounding box would be
+                // drawn in a way that extends past the left side of the first
+                // component's bounding box, we reset the horizontal offset to
+                // 0 and increase the vertical offset. In this way we kind of
+                // use a grid pattern.
+                //
+                // This code is horrendous, because coordinates are confusingly
+                // stored as negative numbers and because Graphviz and
+                // Cytoscape.js use different conventions as to where (0, 0) is
+                // (GV has it at the bottom left; Cytoscape.js has it at the
+                // top left). It would be good to sort things out in the Python
+                // code so that coordinates are stored as positive numbers
+                // (using Cytoscape.js-based y-coordinates), which would enable
+                // 1) cleaning up this code and 2) tiling components from top
+                // to bottom and left to right.
+                if (_.isNull(firstCompWidth)) {
+                    firstCompWidth = componentBoundingBox[0];
+                    dy -= (componentBoundingBox[1] + scope.COMPONENT_PADDING);
+                } else {
+                    dx -= (componentBoundingBox[0] + scope.COMPONENT_PADDING);
+                    if (Math.abs(dx) > firstCompWidth) {
+                        dx = 0;
+                        dy -= (componentBoundingBox[1] + scope.COMPONENT_PADDING);
+                    }
+                }
             });
             this.initPatterns();
             this.finishDraw();
