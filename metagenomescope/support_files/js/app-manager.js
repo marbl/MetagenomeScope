@@ -56,6 +56,10 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // structure a row of node/edge data to add to these tables.)
             this.nodeInfoTableAttrs = [];
             this.edgeInfoTableAttrs = [];
+
+            // Text shown in selected element info tables for attributes not
+            // given for a node / edge / pattern.
+            this.ATTR_NA = "N/A";
         }
 
         /**
@@ -290,6 +294,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         }
 
         updateSelectedNodeInfo(eleID, selectOrUnselect) {
+            var scope = this;
             // TODO abstract across nodes/edges/patterns -- basically the same
             if (selectOrUnselect === "select") {
                 var nodeInfo = this.dataHolder.getNodeInfo(eleID);
@@ -308,27 +313,31 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                     var lowercaseattr = attr.toLowerCase();
                     var val = nodeInfo[nodeAttrs[attr]];
 
-                    if (attr === "length") {
-                        // Unlike the old version of MgSc, we just say every
-                        // length measure is in bp instead of trying to
-                        // distinguish nt from bp. I think this is kosher,
-                        // since it's not like we can tell if contigs are
-                        // oriented are not for general formats like GFA...?
-                        val = val.toLocaleString() + " bp";
-                    } else if (attr === "coverage" || attr === "depth") {
-                        // Show coverages with at most two decimal places worth
-                        // of precision, but less if possible. I will be
-                        // honest, this code is from the old MgSc and I have
-                        // no idea how I came up with this. wtf marcus 4 years
-                        // ago lol
-                        val = Math.round(val * 100) / 100 + "x";
-                    } else if (attr === "gc_content") {
-                        // GC content should be shown as a percentage, rounded
-                        // to two decimal places. We multiply by 10,000 because
-                        // we're really multiplying by 100 twice: first to
-                        // convert to a percentage, then to start the rounding
-                        // process.
-                        val = Math.round(val * 10000) / 100 + "%";
+                    if (_.isNull(val)) {
+                        val = scope.ATTR_NA;
+                    } else {
+                        if (attr === "length") {
+                            // Unlike the old version of MgSc, we just say every
+                            // length measure is in bp instead of trying to
+                            // distinguish nt from bp. I think this is kosher,
+                            // since it's not like we can tell if contigs are
+                            // oriented are not for general formats like GFA...?
+                            val = val.toLocaleString() + " bp";
+                        } else if (attr === "coverage" || attr === "depth") {
+                            // Show coverages with at most two decimal places worth
+                            // of precision, but less if possible. I will be
+                            // honest, this code is from the old MgSc and I have
+                            // no idea how I came up with this. wtf marcus 4 years
+                            // ago lol
+                            val = Math.round(val * 100) / 100 + "x";
+                        } else if (attr === "gc_content") {
+                            // GC content should be shown as a percentage, rounded
+                            // to two decimal places. We multiply by 10,000 because
+                            // we're really multiplying by 100 twice: first to
+                            // convert to a percentage, then to start the rounding
+                            // process.
+                            val = Math.round(val * 10000) / 100 + "%";
+                        }
                     }
                     rowHTML += "<td>" + val + "</td>";
                 });
@@ -372,6 +381,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                     } else {
                         // It's a "normal" attribute stored in the edge's data.
                         val = edgeInfo[edgeAttrs[attr]];
+                        if (_.isNull(val)) {
+                            val = scope.ATTR_NA;
+                        }
                     }
                     rowHTML += "<td>" + val + "</td>";
                 });
