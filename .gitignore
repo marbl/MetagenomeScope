@@ -20,3 +20,4 @@ big-list-of-naughty-strings/
 *.db
 *.png
 mg2/
+coverage/
