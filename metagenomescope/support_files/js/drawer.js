@@ -552,7 +552,8 @@ define([
             } else {
                 classes += " M";
             }
-            var x = dx + (pattVals[pattAttrs.left] + pattVals[pattAttrs.right]) / 2;
+            var x =
+                dx + (pattVals[pattAttrs.left] + pattVals[pattAttrs.right]) / 2;
             var y =
                 dy - (pattVals[pattAttrs.bottom] + pattVals[pattAttrs.top]) / 2;
             this.cy.add({
@@ -977,12 +978,12 @@ define([
                 // to bottom and left to right.
                 if (_.isNull(firstCompWidth)) {
                     firstCompWidth = componentBoundingBox[0];
-                    dy -= (componentBoundingBox[1] + scope.COMPONENT_PADDING);
+                    dy -= componentBoundingBox[1] + scope.COMPONENT_PADDING;
                 } else {
-                    dx -= (componentBoundingBox[0] + scope.COMPONENT_PADDING);
+                    dx -= componentBoundingBox[0] + scope.COMPONENT_PADDING;
                     if (Math.abs(dx) > firstCompWidth) {
                         dx = 0;
-                        dy -= (componentBoundingBox[1] + scope.COMPONENT_PADDING);
+                        dy -= componentBoundingBox[1] + scope.COMPONENT_PADDING;
                     }
                 }
             });
