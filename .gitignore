@@ -18,6 +18,5 @@ big-list-of-naughty-strings/
 *.gv
 *.xdot
 *.db
-*.png
 mg2/
 coverage/
