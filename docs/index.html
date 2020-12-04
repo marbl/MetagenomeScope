@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!--
-    Copyright (C) 2017 Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
+    Copyright (C) 2017- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
     Authored by Marcus Fedarko
 
     This file is part of MetagenomeScope.
@@ -78,9 +78,11 @@
                     <ul class="nav navbar-nav">
                         <li><a href="#news">News</a></li>
                         <li><a href="#overview">Overview</a></li>
+                        <!--
                         <li><a href="#demo">Demo</a></li>
                         <li><a href="#documentation">Documentation</a></li>
                         <li><a href="#installing">Installing</a></li>
+                        -->
                         <li><a href="#code">Code</a></li>
                         <li><a href="#contact">Contact</a></li>
                     </ul>
@@ -102,15 +104,35 @@
                         <div class="thumbnail">
                             <img
                                 onclick="openScreenshot(event);"
-                                src="res/screenshots/biofilm1_cc7.png"
-                                alt="Screenshot of MetagenomeScope's 'standard mode' with bubbles, frayed ropes, and chains visible."
+                                src="res/screenshots/marygold.png"
+                                alt="Visualization of a graph based on Fig. 2(a) of Nijkamp et al. 2013, demonstrating MetagenomeScope's use of hierarchical pattern decomposition."
                             />
                             <hr />
                             <div class="caption">
                                 <p>
-                                    Screenshot of MetagenomeScope's "standard
-                                    mode," zoomed in on a region of a biofilm
-                                    assembly graph.
+                                    Visualization of a graph based on Fig. 2(a)
+                                    of [<a
+                                        href="https://www.ncbi.nlm.nih.gov/pubmed/24058058"
+                                        >Nijkamp et al. 2013</a
+                                    >].
+                                </p>
+                                <p>
+                                    Due to MetagenomeScope's use of hierarchical
+                                    pattern decomposition, the input assembly
+                                    graph is automatically annotated as a bubble
+                                    containing two smaller bubbles: each of the
+                                    three bubbles can be interactively collapsed
+                                    and uncollapsed in the interface.
+                                </p>
+                                <p>
+                                    <strong
+                                        >Check out a
+                                        <a
+                                            href="https://marbl.github.io/MetagenomeScope/demos/marygold"
+                                            >demo</a
+                                        >
+                                        of this visualization!</strong
+                                    >
                                 </p>
                             </div>
                         </div>
@@ -119,19 +141,37 @@
                         <div class="thumbnail">
                             <img
                                 onclick="openScreenshot(event);"
-                                src="res/screenshots/marygold_fig2.png"
-                                alt="Screenshot of MetagenomeScope's 'explicit' SPQR tree decomposition mode, showing the full structure of a SPQR tree."
+                                src="res/screenshots/srs049959_cc6.png"
                             />
                             <hr />
                             <div class="caption">
                                 <p>
-                                    Screenshot of MetagenomeScope's "explicit"
-                                    SPQR tree decomposition mode, generated for
-                                    the figure 2a graph in [<a
-                                        href="https://www.ncbi.nlm.nih.gov/pubmed/24058058"
-                                        >Nijkamp, Pop, Reinders, de Ridder
-                                        2013</a
+                                    Visualization of a region of a stool
+                                    metagenome scaffold graph produced by
+                                    <a
+                                        href="https://github.com/marbl/MetaCarvel"
+                                        >MetaCarvel</a
+                                    >
+                                    [<a
+                                        href="https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1791-3"
+                                        >Ghurye et al. 2019</a
                                     >].
+                                </p>
+                                <p>
+                                    MetagenomeScope performs
+                                    <a
+                                        href="https://en.wikipedia.org/wiki/Layered_graph_drawing"
+                                        >hierarchical graph layout</a
+                                    >
+                                    using
+                                    <a href="https://graphviz.org/"
+                                        >Graphviz'</a
+                                    >
+                                    <span class="dotname">dot</span> layout
+                                    tool. This simplifies the visualization and
+                                    manual inspection of complex, small-scale
+                                    details within assembly graphs, such as
+                                    these branching paths.
                                 </p>
                             </div>
                         </div>
@@ -140,6 +180,15 @@
             </div>
 
             <h2 id="news">News</h2>
+            <p>
+                <strong>December 2020:</strong> MetagenomeScope is back! We just
+                merged in a new version of the codebase featuring many new
+                features, including hierarchical pattern decomposition, bubble
+                boundary duplication, drawing multiple components at once, and
+                much more. Check out the code and installation instructions
+                <a href="https://github.com/marbl/MetagenomeScope">on GitHub</a
+                >!
+            </p>
             <p>
                 <strong>August 2018:</strong> Gave a presentation and tutorial
                 on MetagenomeScope during the
@@ -183,45 +232,46 @@
                 graph.
             </p>
             <p>
-                The tool consists of a preprocessing script (written in Python
-                and C++) and a viewer interface (a client-side web application).
+                The tool consists of a preprocessing script (written in Python)
+                and a visualization interface (a client-side web application).
                 The preprocessing script takes as input an assembly graph file
-                (currently LastGraph, GFA, and
+                (currently LastGraph, GFA, FASTG, and
                 <a href="https://github.com/marbl/MetaCarvel">MetaCarvel</a> GML
-                files are accepted) and outputs a SQLite database file
-                containing the layout information for the graph's connected
-                components. This database file can be visualized in the viewer
-                interface.
+                files are accepted) and creates a directory containing the HTML
+                / JS / CSS visualization.
             </p>
             <p>
                 MetagenomeScope is still under active development, so please
                 <a href="#contact">get in touch with us</a> if you have any
                 questions or other feedback about the tool.
             </p>
-            <h3>Features</h3>
-            <ul>
+            <h3>Highlighted features</h3>
+            <ul class="highlighted-features">
                 <li>
-                    "Standard mode":
                     <strong>Hierarchical graph layout</strong> performed using
                     <a href="https://www.graphviz.org">Graphviz</a>'
-                    <em>dot</em> layout engine
+                    <span class="dotname">dot</span> layout engine.
                 </li>
                 <li>
-                    <strong>Built-in pattern detection:</strong> identifies and
-                    supports interactive collapsing/uncollapsing of bubbles and
-                    frayed ropes [<a
+                    <strong>Hierarchical pattern decomposition:</strong>
+                    identifies and supports interactive collapsing/uncollapsing
+                    of bubbles and frayed ropes [<a
                         href="https://www.ncbi.nlm.nih.gov/pubmed/20211242"
                         >Miller, Koren, Sutton 2010</a
-                    >], along with linear and cyclic linear sequences of contigs
+                    >], along with linear and cyclic linear sequences of
+                    contigs.
                     <ul>
                         <li>
-                            Contains options that allow users to select bubbles
-                            and other miscellaneous structural patterns in the
-                            graph to be automatically highlighted and grouped
-                            together in the display
+                            Runs pattern decomposition iteratively, so that
+                            patterns containing other patterns (e.g. bubbles
+                            containing chains) can be identified. In the viewer
+                            interface, these patterns can be collapsed or
+                            uncollapsed to show the graph at different levels of
+                            "complexity."
                         </li>
                     </ul>
                 </li>
+                <!--
                 <li>
                     Supports the
                     <strong
@@ -257,12 +307,13 @@
                         </li>
                     </ul>
                 </li>
+                -->
                 <li>
                     <strong>Scales edges</strong> in the graph by their
                     multiplicity/bundle size [<a
                         href="https://www.ncbi.nlm.nih.gov/pubmed/20211242"
                         >Miller, Koren, Sutton 2010</a
-                    >]
+                    >].
                     <ul>
                         <li>
                             Uses
@@ -279,19 +330,7 @@
                         </li>
                     </ul>
                 </li>
-                <li>
-                    "Decomposition mode":
-                    <a
-                        href="https://en.wikipedia.org/wiki/Biconnected_component"
-                        >biconnected components</a
-                    >
-                    in the graph are replaced with the root of their respective
-                    <a href="https://en.wikipedia.org/wiki/SPQR_tree"
-                        >SPQR tree</a
-                    >
-                    data structure, which can be iteratively uncollapsed to
-                    reveal structural details in these regions of the graph
-                </li>
+                <!--
                 <li>
                     <strong>Colorblind support:</strong> every color used in the
                     graph display of the application is easily configurable
@@ -313,7 +352,9 @@
                     >
                     and repeat annotations; more to come soon
                 </li>
+                -->
             </ul>
+            <!--
             <h2 id="demo">Demo</h2>
             <p>
                 A demo of MetagenomeScope's viewer interface (with about a dozen
@@ -360,6 +401,7 @@
                 >
                 of MetagenomeScope's wiki for details.
             </p>
+            -->
             <h2 id="code">Code</h2>
             <p>
                 The source code for MetagenomeScope is publicly available on

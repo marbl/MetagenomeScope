@@ -66,3 +66,15 @@ nav li:hover {
 #stuffbelowthenav a {
     text-decoration: underline;
 }
+
+.caption {
+    text-align: justify;
+}
+
+.dotname {
+    font-style: italic;
+}
+
+.highlighted-features > li {
+    margin-bottom: 1em;
+}
