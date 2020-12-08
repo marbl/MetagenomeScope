@@ -1130,11 +1130,6 @@ class AssemblyGraph(object):
                 (self.bubbles, AssemblyGraph.is_valid_3node_bubble, "bubble"),
                 (self.bubbles, AssemblyGraph.is_valid_bubble, "bubble"),
                 (self.bubbles, AssemblyGraph.is_valid_superbubble, "bubble"),
-                (
-                    self.frayed_ropes,
-                    AssemblyGraph.is_valid_frayed_rope,
-                    "frayedrope",
-                ),
             ):
                 # We sort the nodes in order to make this deterministic
                 # (I doubt the extra time cost from sorting will be a big deal)
