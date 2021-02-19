@@ -877,7 +877,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                             // Process first line, which may or may not include
                             // sfr.partialLine's contents (sfr.partialLine may
                             // be "", or blobLines[0] may be "").
-                            c =scope.integrateAGPLine(
+                            c = scope.integrateAGPLine(
                                 sfr.partialLine + blobLines[0]
                             );
                             if (c !== 0) {
@@ -898,7 +898,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                             // this last line as a complete line. Otherwise,
                             // we just store it in sfr.partialLine.
                             if (sfr.readingFinalBlob) {
-                                c =scope.integrateAGPLine(
+                                c = scope.integrateAGPLine(
                                     blobLines[blobLines.length - 1]
                                 );
                                 if (c !== 0) {
@@ -912,7 +912,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                         } else if (blobLines.length === 1) {
                             // blobText doesn't contain any newlines
                             if (sfr.readingFinalBlob) {
-                                c =scope.integrateAGPLine(
+                                c = scope.integrateAGPLine(
                                     sfr.partialLine + blobText
                                 );
                                 if (c !== 0) {
@@ -923,9 +923,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                                 sfr.partialLine += blobText;
                             }
                         }
-                        scope.loadAGPFile(
-                            this, inFile, this.nextStartPosition
-                        );
+                        scope.loadAGPFile(this, inFile, this.nextStartPosition);
                     }
                 };
                 // TODO: update the progress bar to "intermediate", and
@@ -958,7 +956,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          *                              file. If this line seems good, returns
          *                              0.
          */
-       integrateAGPLine(lineText) {
+        integrateAGPLine(lineText) {
             // Avoid processing empty lines (e.g. due to trailing newlines
             // in files). Also avoid processing comment lines (lines that start
             // with #).
@@ -1128,8 +1126,10 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          * Changes the selected scaffold, and if needed "loops around".
          */
         cycleScaffoldsRight() {
-            if (this.scaffoldCyclerCurrIndex >=
-                this.currComponentsScaffolds.length - 1) {
+            if (
+                this.scaffoldCyclerCurrIndex >=
+                this.currComponentsScaffolds.length - 1
+            ) {
                 this.scaffoldCyclerCurrIndex = 0;
             } else {
                 this.scaffoldCyclerCurrIndex++;
@@ -1143,8 +1143,9 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          * Intended to be used after clicking the cycle left / right button.
          */
         cycleToAndDrawScaffold() {
-            var newScaffoldID =
-                this.currComponentsScaffolds[this.scaffoldCyclerCurrIndex];
+            var newScaffoldID = this.currComponentsScaffolds[
+                this.scaffoldCyclerCurrIndex
+            ];
             $("#drawScaffoldButton").text(newScaffoldID);
             this.drawSelectedScaffold();
         }
