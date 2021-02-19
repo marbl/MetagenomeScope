@@ -67,11 +67,16 @@ body {
  * a button in Bootstrap 3.3 are opacity (it's 0.65 for disabled and 1 for
  * enabled) and box-shadow. (The change in opacity is more apparent, but
  * it's still impacted by button enabling/disabling.)
+ *
+ * Also, while we're at it, add outline: none to all buttons to avoid a
+ * gross-looking line surrounding them after clicking
+ * (https://stackoverflow.com/a/23337989)
  */
 button {
     transition-duration: 0.5s;
     transition-timing-function: ease-in-out;
     transition-property: opacity, box-shadow;
+    outline: none !important;
 }
 #controls {
     position: absolute;
