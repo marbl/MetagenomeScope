@@ -28,7 +28,7 @@ and uses [Graphviz](https://www.graphviz.org/)'
 [`dot`](https://www.graphviz.org/pdf/dotguide.pdf) tool to hierarchically
 lay out each connected component of the graph.
 
-MetagenomeScope also contains a bunch of other features intended to simplify
+MetagenomeScope also contains many other features intended to simplify
 exploratory analysis of assembly graphs, including tools for scaffold
 visualization, path finishing, and coloring nodes by biological metadata (e.g.
 GC content). (As mentioned above, many of these features are not available in
@@ -58,12 +58,14 @@ directory, so please don't move it out of the directory.)
 
 #### What types of assembly graphs can I use as input?
 
-Currently, this supports
-LastGraph ([Velvet](https://www.ebi.ac.uk/~zerbino/velvet/)),
-[GFA](https://gfa-spec.github.io/GFA-spec/) (e.g.
-[Flye/MetaFlye](https://github.com/fenderglass/Flye)),
-GML ([MetaCarvel](https://github.com/marbl/MetaCarvel)),
-and FASTG ([SPAdes](https://cab.spbu.ru/software/spades/)) files.
+Currently, MetagenomeScope supports the following filetypes:
+
+| Filetype | Assemblers that output this filetype | Notes |
+| -------- | ------------------------------------ | ----- |
+| [GFA](https://gfa-spec.github.io/GFA-spec/) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA), more | Both v1 and v2 work, but [currently](https://github.com/marbl/MetagenomeScope/issues/147) only the raw structure (segments and links) are included |
+| FASTG | [SPAdes](https://cab.spbu.ru/software/spades/) | Expects SPAdes-"dialect" FASTG files: see [pyfastg's documentation](https://github.com/fedarko/pyfastg) for details |
+| [GML](https://networkx.org/documentation/stable/reference/readwrite/gml.html) | [MetaCarvel](https://github.com/marbl/MetaCarvel) | Expects MetaCarvel-"dialect" GML files |
+| LastGraph | [Velvet](https://www.ebi.ac.uk/~zerbino/velvet/) | Only the raw structure (nodes and arcs) are included |
 
 ## Code structure
 
