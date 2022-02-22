@@ -106,6 +106,7 @@ define([
             this.numDrawnNodes = 0;
             this.numDrawnEdges = 0;
             this.numDrawnPatterns = 0;
+            this.nodeName2parent = {};
             this.onDestroy();
         }
 
@@ -256,7 +257,7 @@ define([
                         // nodes).
                         selector: "node.basic",
                         style: {
-                            label: "data(nodeLabel)",
+                            label: "data(nodeName)",
                             "text-valign": "center",
                             // rendering text is computationally expensive, so if
                             // we're zoomed out so much that the text would be
@@ -606,11 +607,11 @@ define([
             var name = nodeVals[nodeAttrs.name];
             var nodeData = {
                 id: nodeID,
-                // We specifically use a "nodeLabel" field to avoid the
+                // We specifically use a "nodeName" field to avoid the
                 // potential for internal conflicts between labels in collapsed
                 // patterns and labels in nodes: if a "node" in the graph has a
-                // "nodeLabel" field, it's gotta be a basic node.
-                nodeLabel: name,
+                // "nodeName" field, it's gotta be a basic node.
+                nodeName: name,
                 length: nodeVals[nodeAttrs.length],
                 w: nodeVals[nodeAttrs.width],
                 h: nodeVals[nodeAttrs.height],
@@ -656,7 +657,7 @@ define([
                     "Rendered node " +
                         nodeID +
                         " (name " +
-                        nodeVals[nodeAttrs.name] +
+                        name +
                         ") at (" +
                         x +
                         ", " +
@@ -1115,6 +1116,9 @@ define([
         /**
          * Given an array of node names, attempts to select them.
          *
+         * NOTE / TODO: There are various inefficiencies and corner-cases that
+         * should be fixed for this.
+         *
          * @param {Array} nodeNames Node names to search for. These should have
          *                          already had leading/trailing whitespace and
          *                          duplicates removed.
@@ -1132,7 +1136,7 @@ define([
             var notFoundNames = [];
             var atLeastOneNameFound = false;
             _.each(nodeNames, function (name) {
-                newEle = scope.cy.filter('[nodeLabel="' + name + '"]');
+                newEle = scope.cy.nodes('[nodeName="' + name + '"]');
                 // TODO: If we don't find the node(s), they might be within
                 // collapsed pattern(s). Check this.nodeName2parent (or the
                 // data holder? get it from AppManager?) and use
@@ -1154,13 +1158,80 @@ define([
                 this.cy.fit(eles);
                 // Unselect all previously-selected elements (including edges
                 // and patterns)
-                // NOTE can make this more efficient if needed -- see
-                // https://github.com/fedarko/MetagenomeScope/issues/115#issuecomment-294407711
-                this.cy.filter(":selected").unselect();
+                this.unselectAll();
                 // Select all identified nodes
                 eles.select();
             }
             return notFoundNames;
+        }
+
+        /**
+         * Takes as input an array of node names, and highlights them.
+         *
+         * @param {Array} nodeNames Array of node names. This will fail if any of
+         *                          these names do not map to a node in the graph.
+         */
+        highlightNodesInScaffold(nodeNames) {
+            var scope = this;
+            this.unselectAll();
+            var nodesToHighlight = this.cy.collection();
+            var nodeToAdd;
+            var prefix;
+            _.each(nodeNames, function (name) {
+                nodeToAdd = scope.cy.nodes('[nodeName="' + name + '"]');
+                if (nodeToAdd.empty()) {
+                    // TODO: check nodeName2parent instead of just immediately
+                    // throwing this error -- the node could still be contained
+                    // within a collapsed pattern (could also be duplicated,
+                    // complicating things -- and if it is duplicated we should
+                    // highlight both instances of it, accounting for either
+                    // potentially being in a collapsed pattern).
+                    throw new Error("Couldn't find node(s) in this scaffold.");
+                }
+                nodesToHighlight = nodesToHighlight.union(nodeToAdd);
+            });
+            nodesToHighlight.select();
+        }
+
+        /**
+         * Finds scaffolds that apply to the currently drawn part of the graph.
+         *
+         * The current definition of "apply" is "the first node listed in this
+         * scaffold is currently drawn." Ideally, we should tighten this up
+         * to say "all nodes in this scaffold are currently drawn." -- and also
+         * account for other wack things like nodes in collapsed patterns,
+         * duplicates, etc. Currently this is an early draft of this
+         * functionality in New MetagenomeScope (tm).
+         *
+         * @param {Object} scaffoldID2NodeNames Maps scaffold IDs (Strings) to
+         *                                      an Array of node names within
+         *                                      this scaffold.
+         *
+         * @returns {Array} availableScaffolds A subset of the keys in
+         *                                     scaffoldID2NodeNames, limited
+         *                                     to just scaffolds that "apply"
+         *                                     to the currently drawn part of
+         *                                     the graph. If no scaffolds
+         *                                     apply, this will be [].
+         */
+        getAvailableScaffolds(scaffoldID2NodeNames) {
+            // Avoid storing all node names in memory, and avoid searching
+            // node names once for every node name to query, by just going
+            // through all drawn node names once up front.
+            // Based on https://js.cytoscape.org/#eles.map
+            var drawnNodeNames = this.cy.nodes().map(function (n) {
+                return n.data("nodeName");
+            });
+            var availableScaffolds = [];
+            _.each(scaffoldID2NodeNames, function (nodeNames, scaffoldID) {
+                // NOTE: definitely possible to speed this up, e.g. by sorting
+                // drawnNodeNames then using the binary search stuff with
+                // _.indexOf()
+                if (_.contains(drawnNodeNames, nodeNames[0])) {
+                    availableScaffolds.push(scaffoldID);
+                }
+            });
+            return availableScaffolds;
         }
 
         /**
@@ -1183,6 +1254,17 @@ define([
             } else {
                 throw new Error("Unrecognized imgType: " + imgType);
             }
+        }
+
+        /**
+         * Unselects all currently-selected nodes / edges / patterns.
+         *
+         * I've made this its own function for convenience and because
+         * it should be possible to speed this up if desired: see
+         * https://github.com/fedarko/MetagenomeScope/issues/115#issuecomment-294407711
+         */
+        unselectAll() {
+            this.cy.filter(":selected").unselect();
         }
     }
     return { Drawer: Drawer };

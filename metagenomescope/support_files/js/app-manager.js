@@ -57,9 +57,35 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             this.nodeInfoTableAttrs = [];
             this.edgeInfoTableAttrs = [];
 
+            // Maps scaffold ID to an array of node IDs within this scaffold.
+            this.scaffoldID2NodeNames = {};
+            // Array of scaffolds in the currently drawn component(s), in the
+            // same order as listed in the input AGP file. Used when cycling
+            // through scaffolds.
+            this.currComponentsScaffolds = [];
+            // Current "index" of the drawScaffoldButton in
+            // this.currComponentsScaffolds. Updated as the user cycles through
+            // scaffolds.
+            this.scaffoldCyclerCurrIndex = 0;
+            // Set to true if the currently drawn component(s) have any nodes
+            // within scaffolds in an uploaded AGP file; false otherwise.
+            this.currComponentsHaveScaffolds = false;
+
             // Text shown in selected element info tables for attributes not
             // given for a node / edge / pattern.
             this.ATTR_NA = "N/A";
+
+            // How many bytes to read at once from an AGP file.
+            // For now, we set this to 1 MiB. The maximum Blob size in most
+            // browsers (... at least when I implemented this code originally
+            // in 2017, might have increased since) is around 500 - 600 MiB, so
+            // this should be well within that range.
+            //
+            // (We want to strike a balance between a small Blob size -- which
+            // causes lots of reading operations to be done, which takes a lot
+            // of time -- and a huge Blob size, which can potentially run out
+            // of memory, causing the read operation to fail.)
+            this.BLOB_SIZE = 1048576;
         }
 
         /**
@@ -138,6 +164,25 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             var searchFunc = this.searchForNodes.bind(this);
             $("#searchButton").click(searchFunc);
             domUtils.setEnterBinding("searchInput", searchFunc);
+
+            // Viewing scaffolds / AGP files
+            // Clicking on the "select a file" button should trigger a click
+            // event on the actual <input> element, which will prompt the user
+            // to select a file. This lets us use a visually consistent style
+            // for the file selection interface. Web dev is weird!
+            // For more details on why these sorts of solutions are needed, see
+            // e.g. https://developer.mozilla.org/en-US/docs/Learn/Forms/Advanced_form_styling#file_input_types
+            $("#scaffoldFileSelectButton").click(function () {
+                $("#scaffoldFileSelector").click();
+            });
+            var loadAGP = this.beginLoadAGPFile.bind(this);
+            $("#scaffoldFileSelector").change(loadAGP);
+            var cycleLeft = this.cycleScaffoldsLeft.bind(this);
+            $("#scaffoldCyclerLeft").click(cycleLeft);
+            var cycleRight = this.cycleScaffoldsRight.bind(this);
+            $("#scaffoldCyclerRight").click(cycleRight);
+            var drawScaffold = this.drawSelectedScaffold.bind(this);
+            $("#drawScaffoldButton").click(drawScaffold);
 
             // Graph image export buttons
             // (one is in the top-right of the graph display, another is in the
@@ -770,9 +815,352 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // Only update this.currentlyDrawnComponents once
             // this.drawer.draw() is finished.
             this.currentlyDrawnComponents = componentsToDraw;
+            if (!_.isEmpty(this.scaffoldID2NodeNames)) {
+                // We need to alter the scaffold UI based on what scaffolds
+                // "apply" to the currently drawn nodes
+                this.currComponentsHaveScaffolds = false;
+                $("#scaffoldCycler").addClass("notviewable");
+                this.updateAvailableScaffolds(false);
+            }
             // Enable controls that only have meaning when stuff is drawn (e.g.
             // the "fit graph" buttons)
             domUtils.enableDrawNeededControls();
+        }
+
+        /**
+         * Starts the process of loading an AGP file.
+         */
+        beginLoadAGPFile() {
+            var scope = this;
+            var sfr = new FileReader();
+            var inFile = document.getElementById("scaffoldFileSelector")
+                .files[0];
+            if (_.isUndefined(inFile)) {
+                // This case can be triggered if the user cancels out of the
+                // file selection dialog. In practice, beginLoadAGPFile()
+                // should (as of writing) only be called when the AGP file
+                // selection input changes: therefore, I think ending up in
+                // this spot in the code requires first uploading a file,
+                // then going to upload another one (and then cancelling out
+                // of the resulting file selection dialog). Anyway, we don't
+                // do anything noticeable in this case; if prior AGP file
+                // information exists in the app, we retain it.
+                return;
+            }
+            if (inFile.name.toLowerCase().endsWith(".agp")) {
+                // The file is valid (for a very loose definition of "valid").
+                // We can load it, and also clear information from any old AGP
+                // files that exists.
+                this.currComponentsHaveScaffolds = false;
+                this.scaffoldID2NodeKeys = {};
+                // Hide the UI elements associated with loaded AGP info
+                $("#scaffoldInfoHeader").addClass("notviewable");
+                $("#scaffoldCycler").addClass("notviewable");
+                // Set some attributes of the FileReader object that we update
+                // while reading the file.
+                sfr.nextStartPosition = 0;
+                sfr.partialLine = "";
+                sfr.readingFinalBlob = false;
+                // This is called after every Blob (manageably-sized chunk of
+                // the file) is loaded via this FileReader object.
+                sfr.onload = function (e) {
+                    if (e.target.readyState === FileReader.DONE) {
+                        var blobText = e.target.result;
+                        var blobLines = blobText.split("\n");
+                        // Newlines located at the very start or end of
+                        // blobText will cause .split() to add "" in those
+                        // places, which makes integrating sfr.partialLine with
+                        // this a lot easier. (As opposed to us having to
+                        // manually check for newlines in those places.)
+                        var c;
+                        if (blobLines.length > 1) {
+                            // Process first line, which may or may not include
+                            // sfr.partialLine's contents (sfr.partialLine may
+                            // be "", or blobLines[0] may be "").
+                            c = scope.integrateAGPLine(
+                                sfr.partialLine + blobLines[0]
+                            );
+                            if (c !== 0) {
+                                scope.clearScaffoldFS(true);
+                                return;
+                            }
+                            sfr.partialLine = "";
+                            // Process "intermediate" lines
+                            for (var i = 1; i < blobLines.length - 1; i++) {
+                                c = scope.integrateAGPLine(blobLines[i]);
+                                if (c !== 0) {
+                                    scope.clearScaffoldFS(true);
+                                    return;
+                                }
+                            }
+                            // Process last line in the blob: if we know this
+                            // is the last blob we can read then we treat
+                            // this last line as a complete line. Otherwise,
+                            // we just store it in sfr.partialLine.
+                            if (sfr.readingFinalBlob) {
+                                c = scope.integrateAGPLine(
+                                    blobLines[blobLines.length - 1]
+                                );
+                                if (c !== 0) {
+                                    scope.clearScaffoldFS(true);
+                                    return;
+                                }
+                            } else {
+                                sfr.partialLine =
+                                    blobLines[blobLines.length - 1];
+                            }
+                        } else if (blobLines.length === 1) {
+                            // blobText doesn't contain any newlines
+                            if (sfr.readingFinalBlob) {
+                                c = scope.integrateAGPLine(
+                                    sfr.partialLine + blobText
+                                );
+                                if (c !== 0) {
+                                    scope.clearScaffoldFS(true);
+                                    return;
+                                }
+                            } else {
+                                sfr.partialLine += blobText;
+                            }
+                        }
+                        scope.loadAGPFile(this, inFile, this.nextStartPosition);
+                    }
+                };
+                // TODO: update the progress bar to "intermediate", and
+                // use a timeout on loadAGPFile() so the DOM has time to update
+                $("#agpLoadedFileName").addClass("notviewable");
+                // Now that we've set up the onload for the sfr FileReader,
+                // we can go ahead and call loadAGPFile(), which'll start
+                // reading blobs of the AGP file.
+                scope.loadAGPFile(sfr, inFile, 0);
+            } else {
+                alert("Please select a valid AGP file to load.");
+            }
+        }
+
+        /**
+         * Given a line of text, adds the node referenced in that line to
+         * this.scaffoldID2NodeNames. Also adds the scaffold referenced in
+         * that line, if not already defined (i.e. this is the first line
+         * we've called this function on that references that scaffold).
+         *
+         * Saves node/scaffold info for the entire (laid-out) assembly graph,
+         * not just the current connected component. This will allow us to
+         * reuse the same mapping for multiple components' visualizations.
+         *
+         * @param {String} lineText Represents a single line in an AGP file.
+         * @returns {Number} returnCode This will be nonzero if something went
+         *                              wrong in processing this line (i.e.
+         *                              it seems invalid) -- this should be a
+         *                              sign to halt processing of this AGP
+         *                              file. If this line seems good, returns
+         *                              0.
+         */
+        integrateAGPLine(lineText) {
+            // Avoid processing empty lines (e.g. due to trailing newlines
+            // in files). Also avoid processing comment lines (lines that start
+            // with #).
+            if (lineText != "" && lineText[0] !== "#") {
+                var lineColumns = lineText.split("\t");
+                var scaffoldID = lineColumns[0];
+                var nodeName = lineColumns[5];
+                if (_.isUndefined(nodeName)) {
+                    alert("Invalid line in input AGP file: \n" + lineText);
+                    return -1;
+                }
+                // Save scaffold node composition data for all scaffolds, not
+                // just scaffolds pertinent to the currently drawn components.
+                if (_.isUndefined(this.scaffoldID2NodeNames[scaffoldID])) {
+                    this.scaffoldID2NodeNames[scaffoldID] = [nodeName];
+                } else {
+                    this.scaffoldID2NodeNames[scaffoldID].push(nodeName);
+                }
+            }
+            return 0;
+        }
+
+        /**
+         * Updates the UI / app-level data about a scaffold being available.
+         *
+         * Our definition of "available" is that all of the nodes
+         * within this scaffold are currently drawn (this can change depending
+         * on what connected components are drawn -- therefore, this work will
+         * need to be re-done when changing components).
+         */
+        addAvailableScaffold(scaffoldID) {
+            if (!this.currComponentsHaveScaffolds) {
+                this.currComponentsHaveScaffolds = true;
+                this.currComponentsScaffolds = [];
+                $("#drawScaffoldButton").text(scaffoldID);
+                this.scaffoldCyclerCurrIndex = 0;
+                $("#scaffoldCycler").removeClass("notviewable");
+            }
+            this.currComponentsScaffolds.push(scaffoldID);
+        }
+
+        /**
+         * Finds scaffolds located in the currently drawn component(s),
+         * using the keys to this.scaffoldID2NodeNames as a list of scaffolds
+         * to try. Calls addAvailableScaffold() on each of these scaffolds.
+         */
+        updateAvailableScaffolds(agpFileJustLoaded) {
+            var scope = this;
+            var availScaffs = this.drawer.getAvailableScaffolds(
+                this.scaffoldID2NodeNames
+            );
+            _.each(availScaffs, function (s) {
+                scope.addAvailableScaffold(s);
+            });
+            this.updateScaffoldInfoHeader(agpFileJustLoaded);
+        }
+
+        /**
+         * Recursively (...sort of) loads an AGP file using Blobs.
+         *
+         * (Technically, this function doesn't directly call itself,
+         * but after the FileReader loads a Blob, it calls this method for
+         * the next Blob.)
+         *
+         * fileReader and file should remain constant throughout the recursive
+         * loading process, while filePosition will be updated as the file is
+         * loaded. The initial call to loadAGPFile() should use
+         * filePosition = 0 (in order to start reading the file from its 0th
+         * byte, i.e. its beginning).
+         */
+        loadAGPFile(fileReader, file, filePosition) {
+            // Only get a Blob if it'd have some data in it
+            if (filePosition <= file.size) {
+                // In interval notation, the slice includes bytes in the range
+                // [filePosition, endPosition). That is, the endPosition byte
+                // is not included in currentBlob.
+                var endPosition = filePosition + this.BLOB_SIZE;
+                var currentBlob = file.slice(filePosition, endPosition);
+                if (endPosition > file.size) {
+                    fileReader.readingFinalBlob = true;
+                }
+                fileReader.nextStartPosition = endPosition;
+                fileReader.readAsText(currentBlob);
+            } else {
+                // We're done reading the AGP file! We can now update the UI.
+                this.updateAvailableScaffolds(true);
+            }
+        }
+
+        /**
+         * Updates scaffoldInfoHeader depending on whether or not scaffolds
+         * were identified in the currently drawn connected component(s).
+         *
+         * If agpFileJustLoaded is true, then the agpLoadedFileName will be
+         * updated and scaffoldFileSelector will have its value cleared
+         * (to allow for the same AGP file to be loaded again if necessary).
+         * Therefore, agpFileJustLoaded should only be set to true when this
+         * function is being called after an AGP file has just been loaded;
+         * it should be set to false when, for example, a new component is
+         * drawn (while an AGP file is already loaded) and we want to update
+         * the UI.
+         */
+        updateScaffoldInfoHeader(agpFileJustLoaded) {
+            if (this.currComponentsHaveScaffolds) {
+                $("#scaffoldInfoHeader").html(
+                    "<strong>Scaffolds in Connected Component</strong><br/>" +
+                        "(Click to highlight in graph)"
+                );
+            } else {
+                $("#scaffoldInfoHeader").html(
+                    "No scaffolds apply to the nodes " +
+                        "in the currently drawn connected component(s)."
+                );
+            }
+            $("#scaffoldInfoHeader").removeClass("notviewable");
+            // Perform a few useful operations if the user just loaded this
+            // AGP file. These operations are not useful, however, if the
+            // AGP file has already been loaded and we just ran
+            // updateAvailableScaffolds().
+            if (agpFileJustLoaded) {
+                $("#agpLoadedFileName").html(
+                    document.getElementById("scaffoldFileSelector").files[0]
+                        .name
+                );
+                $("#agpLoadedFileName").removeClass("notviewable");
+                this.clearScaffoldFS(false);
+            }
+        }
+
+        /**
+         * Clears the scaffold file selector's value attribute and calls
+         * finishProgressBar().
+         *
+         * If errorOnAGPLoad is true, then this also:
+         *  -Clears various info fields for scaffolds
+         *  -Adds the "notviewable" class to #scaffoldCycler
+         */
+        clearScaffoldFS(errorOnAGPLoad) {
+            if (errorOnAGPLoad) {
+                this.scaffoldID2NodeNames = {};
+                this.currComponentsScaffolds = [];
+                this.currComponentsHaveScaffolds = false;
+                $("#scaffoldCycler").addClass("notviewable");
+            }
+            document.getElementById("scaffoldFileSelector").value = "";
+            // finishProgressBar();
+        }
+
+        /**
+         * Called when the < button is clicked in the scaffold cycler.
+         *
+         * Changes the selected scaffold, and if needed "loops around".
+         */
+        cycleScaffoldsLeft() {
+            if (this.scaffoldCyclerCurrIndex <= 0) {
+                this.scaffoldCyclerCurrIndex =
+                    this.currComponentsScaffolds.length - 1;
+            } else {
+                this.scaffoldCyclerCurrIndex--;
+            }
+            this.cycleToAndDrawScaffold();
+        }
+
+        /**
+         * Called when the > button is clicked in the scaffold cycler.
+         *
+         * Changes the selected scaffold, and if needed "loops around".
+         */
+        cycleScaffoldsRight() {
+            if (
+                this.scaffoldCyclerCurrIndex >=
+                this.currComponentsScaffolds.length - 1
+            ) {
+                this.scaffoldCyclerCurrIndex = 0;
+            } else {
+                this.scaffoldCyclerCurrIndex++;
+            }
+            this.cycleToAndDrawScaffold();
+        }
+
+        /**
+         * Updates the draw scaffold button text, and draws this new scaffold.
+         *
+         * Intended to be used after clicking the cycle left / right button.
+         */
+        cycleToAndDrawScaffold() {
+            var newScaffoldID = this.currComponentsScaffolds[
+                this.scaffoldCyclerCurrIndex
+            ];
+            $("#drawScaffoldButton").text(newScaffoldID);
+            this.drawSelectedScaffold();
+        }
+
+        /**
+         * Highlights the nodes within a scaffold.
+         *
+         * Currently, this works by just selecting these nodes.
+         */
+        drawSelectedScaffold() {
+            var scaffoldID = this.currComponentsScaffolds[
+                this.scaffoldCyclerCurrIndex
+            ];
+            var nodeNames = this.scaffoldID2NodeNames[scaffoldID];
+            this.drawer.highlightNodesInScaffold(nodeNames);
         }
 
         /**

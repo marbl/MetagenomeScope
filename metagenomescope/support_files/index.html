@@ -455,14 +455,14 @@
 
                 <hr />
             </div>
+            -->
             <div id="viewScaffoldsControls">
                 <h4>View Scaffolds</h4>
 
                 <button
                     class="btn btn-default btn-sm disabled drawCtrl"
-                    id="scaffoldFileselectButton"
+                    id="scaffoldFileSelectButton"
                     disabled="disabled"
-                    onclick="$('#scaffoldFileSelector').click();"
                 >
                     <span
                         class="glyphicon glyphicon-folder-open"
@@ -473,7 +473,6 @@
                 <input
                     type="file"
                     id="scaffoldFileSelector"
-                    onchange="beginLoadAGPfile();"
                     style="display: none;"
                 />
 
@@ -482,22 +481,32 @@
                 <p id="scaffoldCycler" class="notviewable nonselectable">
                     <span
                         class="glyphicon glyphicon-triangle-left cyclerBtn"
-                        onclick="cycleScaffoldsLeft();"
+                        id="scaffoldCyclerLeft"
                     >
                     </span>
                     <button
                         class="btn btn-default btn-sm"
                         id="drawScaffoldButton"
-                        onclick="highlightScaffold(this.innerText);"
                     ></button>
                     <span
                         class="glyphicon glyphicon-triangle-right cyclerBtn"
-                        onclick="cycleScaffoldsRight();"
+                        id="scaffoldCyclerRight"
                     >
                     </span>
                 </p>
+                <p style="margin-top: 10px;">
+                    You can upload an
+                    <a
+                        class="actuallyalink"
+                        target="_blank"
+                        href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/"
+                        >AGP file</a
+                    >
+                    here to visualize scaffolds (paths of nodes) on the graph.
+                </p>
                 <hr />
             </div>
+            <!--
             <div id="assemblyFinishingControls">
                 <h4>Select paths ("Finishing")</h4>
 
@@ -595,7 +604,7 @@
             </div>
             -->
             <div id="exportGraphViewControls">
-                <h4>Export Graph View</h4>
+                <h4>Take Screenshot</h4>
                 <div
                     class="btn-group"
                     data-toggle="buttons"
