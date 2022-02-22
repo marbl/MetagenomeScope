@@ -7,7 +7,7 @@
 # CIGAR for links), which will obvs cause problems if this is applied to
 # arbitrary GFA files.
 
-with open("sheepgut_g1217.gfa", 'r') as f:
+with open("sheepgut_g1217.gfa", "r") as f:
     gfa = f.read()
 
 ot = ""
@@ -26,7 +26,7 @@ for line in gfa.splitlines():
         else:
             # Another line (... which I assume does not contain node
             # information)
-            ot += (line + "\n")
+            ot += line + "\n"
 
     else:
         # This is a "S" line (segment, aka node, even though if this is a de
