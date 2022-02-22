@@ -40,3 +40,8 @@ The version included here has been modified so that every node's sequence has
 just been changed to `ACGT` -- this is because we don't really care about the
 actual sequence data for the tests here so much as the topology of the graph
 (so there's no reason to store like 9 MB of sequence data).
+
+<!-- TODO: add a ref to the strainFlye paper eventually -->
+`sheepgut_g1217.gfa` corresponds to a small, highly-mutated region of a MAG
+"smoothed-read" assembly graph generated from the sheep gut dataset used in
+[Bickhart and Kolmogorov et al. 2022](https://www.nature.com/articles/s41587-021-01130-z).
