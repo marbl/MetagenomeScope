@@ -18,6 +18,7 @@ big-list-of-naughty-strings/
 *.gv
 *.xdot
 *.db
+*.agp
 mg2/
 coverage/
 metagenomescope/tests/input/extras/sheepgut_g1217.gfa
