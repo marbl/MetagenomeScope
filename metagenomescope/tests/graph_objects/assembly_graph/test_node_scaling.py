@@ -62,7 +62,7 @@ def test_compute_node_dimensions():
         area = config.MIN_NODE_AREA + (
             rl * (config.MAX_NODE_AREA - config.MIN_NODE_AREA)
         )
-        hgt = area ** lp
+        hgt = area**lp
         wid = area / hgt
         return (wid, hgt)
 
@@ -99,7 +99,7 @@ def test_compute_node_dimensions_all_lengths_equal():
     default_area = config.MIN_NODE_AREA + (
         0.5 * (config.MAX_NODE_AREA - config.MIN_NODE_AREA)
     )
-    default_height = default_area ** config.MID_LONGSIDE_PROPORTION
+    default_height = default_area**config.MID_LONGSIDE_PROPORTION
     default_width = default_area / default_height
 
     # This double-checks that the defaults we expect here are computed
