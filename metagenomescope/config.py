@@ -179,7 +179,7 @@ COLOR_PATTERNS = True
 PATTERN2COLOR = {
     "bubbles": "#9abaf3",
     "frayed_ropes": "#59f459",
-    "chains": "#fcaca3",
+    "chains": "#eedddd",
     "cyclic_chains": "#ffd163",
     "misc_patterns": "#c398eb",
     "other_structural_patterns": "#000000",
