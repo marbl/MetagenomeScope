@@ -1250,7 +1250,11 @@ define([
          * @throws {Error} if imgType is not "PNG" or "JPG".
          */
         exportImage(imgType) {
-            var options = { bg: this.bgColor };
+            // TODO: Make scale configurable to the user -- see
+            // https://github.com/marbl/MetagenomeScope/issues/226.
+            // 5 seems like a good default, but it'll be too big for large
+            // graphs and maybe too small for really tiny graphs
+            var options = { bg: this.bgColor, scale: 5 };
             if (imgType === "PNG") {
                 return this.cy.png(options);
             } else if (imgType === "JPG") {
