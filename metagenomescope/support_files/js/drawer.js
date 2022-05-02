@@ -437,6 +437,10 @@ define([
                         selector: "edge.is_dup",
                         style: {
                             "line-style": "dashed",
+                            // TODO FIXME? see
+                            // github.com/marbl/MetagenomeScope/issues/231
+                            width: 35,
+                            "line-dash-pattern": [5, 5],
                         },
                     },
                     {
