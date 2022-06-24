@@ -31,7 +31,7 @@ jobs:
         run: conda run -n mgsc make pystylecheck
 
       - name: Run Python tests
-        run: conda run -n strainflye make pytest
+        run: conda run -n mgsc make pytest
 
       - name: Upload Python code coverage information to Codecov
         uses: codecov/codecov-action@v2
