@@ -22,3 +22,4 @@ big-list-of-naughty-strings/
 mg2/
 coverage/
 metagenomescope/tests/input/extras/sheepgut_g1217.gfa
+coverage.xml

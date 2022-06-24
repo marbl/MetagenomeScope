@@ -19,7 +19,7 @@
 
 .PHONY: pytest jstest test
 
-PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov
+PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov-report xml --cov-report term --cov metagenomescope
 PYLOCS = metagenomescope/ setup.py
 JSLOCS = metagenomescope/support_files/js/*.js metagenomescope/tests/js_tests/*.js docs/js/extra_functionality.js .jshintrc
 HTMLCSSLOCS = metagenomescope/support_files/index.html metagenomescope/tests/js_tests/*.html metagenomescope/support_files/css/viewer_style.css docs/404.html docs/index.html docs/css/mgsc_docs_style.css
