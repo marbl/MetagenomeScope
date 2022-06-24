@@ -40,8 +40,17 @@ Probably the easiest way to install MetagenomeScope is using a
 [conda](https://docs.conda.io/en/latest/) environment:
 
 ```bash
-conda create -n mgsc python=3.6 graphviz numpy
-source activate mgsc
+# Download the YAML file describing the conda packages we'll install
+wget https://raw.githubusercontent.com/marbl/MetagenomeScope/main/environment.yml
+
+# Create a new conda environment based on this YAML file
+# (by default, it'll be named "mgsc")
+conda env create -f environment.yml
+
+# Activate this conda environment
+conda activate mgsc
+
+# Install the actual MetagenomeScope software
 pip install git+https://github.com/marbl/MetagenomeScope.git
 ```
 
