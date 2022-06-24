@@ -63,11 +63,11 @@ setup(
     packages=find_packages(),
     package_data={"metagenomescope": ["support_files"]},
     include_package_data=True,
+    # Sanity check before trying to install -- these should be installed with
+    # the parent conda environment
+    setup_requires=["numpy", "pygraphviz"],
     install_requires=[
         "click",
-        # version 1.3 gives me errors when accessing bounding boxes sometimes:
-        # https://github.com/pygraphviz/pygraphviz/issues/113#issuecomment-298631567
-        "pygraphviz>=1.6",
         "numpy",
         "networkx",
         "gfapy",

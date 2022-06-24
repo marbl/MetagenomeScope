@@ -17,9 +17,9 @@
 # based on the initial version of this Makefile, anyway, so it's a silly
 # chicken-and-egg thing).
 
-.PHONY: pytest jstest test
+.PHONY: pytest jstest test pystylecheck jsstylecheck stylecheck pystyle jsstyle style demo
 
-PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov
+PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov-report xml --cov-report term --cov metagenomescope
 PYLOCS = metagenomescope/ setup.py
 JSLOCS = metagenomescope/support_files/js/*.js metagenomescope/tests/js_tests/*.js docs/js/extra_functionality.js .jshintrc
 HTMLCSSLOCS = metagenomescope/support_files/index.html metagenomescope/tests/js_tests/*.html metagenomescope/support_files/css/viewer_style.css docs/404.html docs/index.html docs/css/mgsc_docs_style.css
@@ -35,24 +35,25 @@ jstest:
 
 test: pytest jstest
 
-stylecheck:
+pystylecheck:
 	flake8 --ignore=E203,W503,E266,E501 $(PYLOCS)
 	black --check -l 79 $(PYLOCS)
+
+jsstylecheck:
 	jshint $(JSLOCS)
 	prettier --check --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
 
-style:
+stylecheck: pystylecheck jsstylecheck
+
+pystyle:
 	black -l 79 $(PYLOCS)
-	@# To be extra safe, do a dry run of prettier and check that it hasn't
-	@# changed the code's abstract syntax tree (AST). (Black does this sort of
-	@# thing by default.)
-	prettier --debug-check --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
-	prettier --write --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
 
 jsstyle:
 	@# Shorthand, for when I'm developing JS code and don't want to waste time
 	@# with python/HTML stuff
 	prettier --write --tab-width 4 $(JSLOCS)
+
+style: pystyle jsstyle
 
 demo:
 	@# makes a simple demo with a tiny graph that lets us test out the viewer
