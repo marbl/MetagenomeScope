@@ -17,7 +17,7 @@
 # based on the initial version of this Makefile, anyway, so it's a silly
 # chicken-and-egg thing).
 
-.PHONY: pytest jstest test
+.PHONY: pytest jstest test pystylecheck jsstylecheck stylecheck jsstyle style demo
 
 PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov-report xml --cov-report term --cov metagenomescope
 PYLOCS = metagenomescope/ setup.py
@@ -35,11 +35,20 @@ jstest:
 
 test: pytest jstest
 
-stylecheck:
+pystylecheck:
 	flake8 --ignore=E203,W503,E266,E501 $(PYLOCS)
 	black --check -l 79 $(PYLOCS)
+
+jsstylecheck:
 	jshint $(JSLOCS)
 	prettier --check --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
+
+stylecheck: pystylecheck jsstylecheck
+
+jsstyle:
+	@# Shorthand, for when I'm developing JS code and don't want to waste time
+	@# with python/HTML stuff
+	prettier --write --tab-width 4 $(JSLOCS)
 
 style:
 	black -l 79 $(PYLOCS)
@@ -48,11 +57,6 @@ style:
 	@# thing by default.)
 	prettier --debug-check --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
 	prettier --write --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
-
-jsstyle:
-	@# Shorthand, for when I'm developing JS code and don't want to waste time
-	@# with python/HTML stuff
-	prettier --write --tab-width 4 $(JSLOCS)
 
 demo:
 	@# makes a simple demo with a tiny graph that lets us test out the viewer
