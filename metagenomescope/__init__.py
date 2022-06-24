@@ -15,3 +15,26 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
+
+# Import submodules so they're easy to see from REPL
+from . import (
+    arg_utils,
+    assembly_graph_parser,
+    config,
+    file_utils,
+    input_node_utils,
+    layout_utils,
+    msg_utils,
+)
+
+# ... And explicitly declare them in __all__. This will stop flake8 from
+# yelling at us about these imports being unused.
+__all__ = [
+    "arg_utils",
+    "assembly_graph_parser",
+    "config",
+    "file_utils",
+    "input_node_utils",
+    "layout_utils",
+    "msg_utils",
+]

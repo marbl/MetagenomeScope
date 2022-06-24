@@ -65,10 +65,7 @@ setup(
     include_package_data=True,
     # Sanity check before trying to install -- these should be installed with
     # the parent conda environment
-    setup_requires=[
-        "numpy",
-        "pygraphviz",
-    ],
+    setup_requires=["numpy", "pygraphviz"],
     install_requires=[
         "click",
         "numpy",
