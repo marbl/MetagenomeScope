@@ -1942,7 +1942,9 @@ class AssemblyGraph(object):
             # Go through top-level edges and add data
             for edge in self.decomposed_digraph.subgraph(cc_tuple[0]).edges:
                 os, ot, data = get_edge_data(
-                    edge[0], edge[1], self.decomposed_digraph.edges[edge],
+                    edge[0],
+                    edge[1],
+                    self.decomposed_digraph.edges[edge],
                 )
                 add_edge(this_component, [os, ot], data)
 

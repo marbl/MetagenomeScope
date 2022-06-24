@@ -17,7 +17,7 @@
 # based on the initial version of this Makefile, anyway, so it's a silly
 # chicken-and-egg thing).
 
-.PHONY: pytest jstest test pystylecheck jsstylecheck stylecheck jsstyle style demo
+.PHONY: pytest jstest test pystylecheck jsstylecheck stylecheck pystyle jsstyle style demo
 
 PYTEST_COMMAND = python3 -B -m pytest metagenomescope/tests/ --cov-report xml --cov-report term --cov metagenomescope
 PYLOCS = metagenomescope/ setup.py
@@ -45,18 +45,15 @@ jsstylecheck:
 
 stylecheck: pystylecheck jsstylecheck
 
+pystyle:
+	black -l 79 $(PYLOCS)
+
 jsstyle:
 	@# Shorthand, for when I'm developing JS code and don't want to waste time
 	@# with python/HTML stuff
 	prettier --write --tab-width 4 $(JSLOCS)
 
-style:
-	black -l 79 $(PYLOCS)
-	@# To be extra safe, do a dry run of prettier and check that it hasn't
-	@# changed the code's abstract syntax tree (AST). (Black does this sort of
-	@# thing by default.)
-	prettier --debug-check --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
-	prettier --write --tab-width 4 $(JSLOCS) $(HTMLCSSLOCS)
+style: pystyle jsstyle
 
 demo:
 	@# makes a simple demo with a tiny graph that lets us test out the viewer
