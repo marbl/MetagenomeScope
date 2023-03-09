@@ -206,7 +206,8 @@ class AssemblyGraph(object):
         layout and internal storage of nodes. This way, we can have multiple
         nodes with the same name without causing a problem.
 
-        Also calls self.save_orig_src_and_tgt() on every edge in the digraph.
+        Also calls self.save_orig_src_and_tgt() on every edge in the digraph
+        (critically, that's done *after* assigning nodes unique integer IDs).
         """
         self.digraph = nx.convert_node_labels_to_integers(
             self.digraph, label_attribute="name"
