@@ -31,8 +31,11 @@ from ._param_descriptions import (
 )
 
 
-# Make mgsc -h show the help text
-@click.command(context_settings={"help_option_names": ["-h", "--help"]})
+# Make mgsc -h (or just mgsc by itself) show the help text
+@click.command(
+    context_settings={"help_option_names": ["-h", "--help"]},
+    no_args_is_help=True,
+)
 @click.option("-i", "--input-file", required=True, help=INPUT)
 @click.option("-o", "--output-dir", required=True, help=OUTPUT_DIR)
 # @click.option(
