@@ -135,7 +135,10 @@ def test_parse_no_length_node():
     s1.pop(1)
     s1.insert(1, "S\t1\t*")
     run_tempfile_test(
-        "gfa", s1, GraphParsingError, "Found a node without a specified length: 1"
+        "gfa",
+        s1,
+        GraphParsingError,
+        "Found a node without a specified length: 1",
     )
 
     # Manually assigning node 1 a sequence should fix the problem

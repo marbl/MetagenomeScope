@@ -273,7 +273,9 @@ def validate_nx_digraph(g, required_node_fields, required_edge_fields):
     if not g.is_directed():
         raise GraphParsingError("The input graph should be directed.")
     if g.is_multigraph():
-        raise GraphParsingError("Multigraphs are unsupported in MetagenomeScope.")
+        raise GraphParsingError(
+            "Multigraphs are unsupported in MetagenomeScope."
+        )
 
     # Verify that all nodes have the properties we expect nodes to have
     num_nodes = len(g.nodes)
@@ -665,11 +667,11 @@ def parse_dot(filename):
             id_parts = id_part.split()
             if len(id_parts) != 2:
                 raise GraphParsingError(
-                        f"{err_prefix} has a label where the first line is "
-                        f"{id_part}. There should be a single space character "
-                        "between the word 'id' and the actual ID, and the ID "
-                        "shouldn't contain any whitespace."
-                    )
+                    f"{err_prefix} has a label where the first line is "
+                    f"{id_part}. There should be a single space character "
+                    "between the word 'id' and the actual ID, and the ID "
+                    "shouldn't contain any whitespace."
+                )
             eid = id_parts[1]
 
             # Get the length and coverage

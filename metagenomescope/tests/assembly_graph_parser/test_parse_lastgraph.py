@@ -65,13 +65,19 @@ def test_parse_lastgraph_node_interrupted():
     glines = reset_glines()
     glines.pop(3)
     run_tempfile_test(
-        "LastGraph", glines, GraphParsingError, "Line 4: Node block ends too early."
+        "LastGraph",
+        glines,
+        GraphParsingError,
+        "Line 4: Node block ends too early.",
     )
 
     glines = reset_glines()
     glines[2] = "ARC\t1\t1\t5"
     run_tempfile_test(
-        "LastGraph", glines, GraphParsingError, "Line 3: Node block ends too early."
+        "LastGraph",
+        glines,
+        GraphParsingError,
+        "Line 3: Node block ends too early.",
     )
 
 

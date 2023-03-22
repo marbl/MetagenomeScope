@@ -222,7 +222,11 @@ def test_parse_metacarvel_gml_duplicate_edges():
     # detect that the input graph is a multigraph and be all like "nuh uh
     # you didn't get that from MetaCarvel, now did you" (something like that)
     run_tempfile_test(
-        "gml", mg, GraphParsingError, "Multigraphs are unsupported", join_char=""
+        "gml",
+        mg,
+        GraphParsingError,
+        "Multigraphs are unsupported",
+        join_char="",
     )
 
 
