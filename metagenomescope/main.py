@@ -39,10 +39,16 @@ def make_viz(
     # nbdf: bool,
     # npdf: bool,
 ):
-    """Creates a visualization."""
+    """Creates a visualization.
+
+    Using MetagenomeScope's command-line interface will cause this function to
+    be called, but -- if you'd like to -- you can just call this yourself from
+    Python (e.g. if you want to procedurally create lots of visualizations).
+    """
     arg_utils.check_dir_existence(output_dir)
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
+    # Read the assembly graph file and create an object representing it.
     asm_graph = graph_objects.AssemblyGraph(
         input_file,
         max_node_count=max_node_count,
