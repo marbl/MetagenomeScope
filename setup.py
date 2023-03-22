@@ -54,7 +54,7 @@ setup(
     license="GPL3",
     description=description,
     long_description=long_description,
-    author="MetagenomeScope Development Team"
+    author="MetagenomeScope Development Team",
     author_email="mfedarko@ucsd.edu",
     maintainer="Marcus Fedarko",
     maintainer_email="mfedarko@ucsd.edu",
