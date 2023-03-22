@@ -130,15 +130,15 @@ def run_script(
     # save_no_backfill_dot_files: bool,
     # save_no_pattern_dot_files: bool,
 ) -> None:
-    """Visualizes an assembly graph and the structural patterns in it.
+    """Creates a visualization of an assembly graph.
 
-    This generates a folder containing an interactive HTML/JS visualization of
+    This creates a folder containing an interactive HTML/JS visualization of
     the graph. The folder's index.html file can be opened in a web browser to
     access the visualization.
 
     There are many options available to customize the visualization / output,
-    but the only two you probably need to worry about are the input file and
-    output directory: generating a visualization can be as simple as
+    but the two most important ones are the input file and output directory:
+    generating a visualization can be as simple as
 
         mgsc -i graph.gfa -o viz
 
