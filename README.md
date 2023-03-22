@@ -37,10 +37,12 @@ visualization, path finishing, and coloring nodes by biological metadata (e.g.
 GC content). (As mentioned above, many of these features are not available in
 the current version yet.)
 
-## Quick installation and usage
+## Installation
 
 Probably the easiest way to install MetagenomeScope is using a
-[conda](https://docs.conda.io/en/latest/) environment:
+[conda](https://docs.conda.io/en/latest/) environment. Eventually we'll put
+this up on bioconda or something, but until then you can use the following
+steps:
 
 ```bash
 # Download the YAML file describing the conda packages we'll install
@@ -57,6 +59,8 @@ conda activate mgsc
 pip install git+https://github.com/marbl/MetagenomeScope.git
 ```
 
+## Visualizing an assembly graph
+
 Assuming you are currently in the conda environment we just created,
 visualizing an assembly graph can be done in one command:
 
@@ -68,7 +72,7 @@ The output directory will contain an `index.html` file that can be opened in
 most modern web browsers. (The file points to other resources within the
 directory, so please don't move it out of the directory.)
 
-#### What types of assembly graphs can I use as input?
+### What types of assembly graphs can I use as input?
 
 Currently, MetagenomeScope supports the following filetypes:
 
