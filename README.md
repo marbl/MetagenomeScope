@@ -72,14 +72,14 @@ directory, so please don't move it out of the directory.)
 
 Currently, MetagenomeScope supports the following filetypes:
 
-<!-- TODO: I haven't tested miniasm and hifiasm(-meta) output graphs here --
+<!-- TODO: I haven't tested miniasm, hifiasm(-meta), and MEGAHIT output graphs here;
 should do that to verify that their graphs work ok -->
 
-| Filetype | Assemblers that output this filetype | Notes |
-| -------- | ------------------------------------ | ----- |
+| Filetype | Tools that output this filetype | Notes |
+| -------- | ------------------------------- | ----- |
 | [GFA](https://gfa-spec.github.io/GFA-spec/) (`.gfa`) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA), [miniasm](https://github.com/lh3/miniasm), [hifiasm](https://github.com/chhylp123/hifiasm), [hifiasm-meta](https://github.com/xfengnefx/hifiasm-meta), ... | Both GFA v1 and GFA v2 files are accepted, but [currently](https://github.com/marbl/MetagenomeScope/issues/147) only the raw structure (segments and links) are included. |
+| FASTG (`.fastg`) | [SPAdes](https://cab.spbu.ru/software/spades/), [MEGAHIT](https://github.com/voutcn/megahit) | Expects SPAdes-"dialect" FASTG files: see [pyfastg's documentation](https://github.com/fedarko/pyfastg) for details. |
 | [DOT](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) (`.dot`, `.gv`) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA) | GFA and FASTG files [are not ideal for storing de Bruijn graphs](https://github.com/AntonBankevich/LJA/blob/main/docs/jumbodbg_manual.md#output-of-de-bruijn-graph-construction) or other graphs in which sequences are stored on edges rather than nodes. To visualize the _original_ structure of these graphs (in which edges in the visualization actually correspond to edges in the original graph), you can provide the DOT file rather than the GFA file. |
-| FASTG (`.fastg`) | [SPAdes](https://cab.spbu.ru/software/spades/) | Expects SPAdes-"dialect" FASTG files: see [pyfastg's documentation](https://github.com/fedarko/pyfastg) for details. |
 | [GML](https://networkx.org/documentation/stable/reference/readwrite/gml.html) (`.gml`) | [MetaCarvel](https://github.com/marbl/MetaCarvel) | Expects MetaCarvel-"dialect" GML files |
 | LastGraph (`.LastGraph`) | [Velvet](https://github.com/dzerbino/velvet) | Only the raw structure (nodes and arcs) are included. |
 
