@@ -1,5 +1,6 @@
 from networkx import NetworkXError
 from .utils import run_tempfile_test
+from metagenomescope.errors import GraphParsingError
 from metagenomescope.assembly_graph_parser import parse_metacarvel_gml
 
 
@@ -92,14 +93,14 @@ def test_parse_metacarvel_gml_insufficient_node_metadata():
     # Remove orientation from node 10
     mg.pop(5)
     exp_msg = 'Only 11 / 12 nodes have "orientation" given.'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
     # Remove length from node 10 (it's the line after the previous line we
     # removed)
     mg.pop(5)
     # due to "precedence" (just the order of iteration in the for loops), we
     # expect orientation to take priority over length in these error messages
     # -- but this doesn't really matter
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     # Restore mg
     mg = get_marygold_gml()
@@ -107,19 +108,19 @@ def test_parse_metacarvel_gml_insufficient_node_metadata():
     # length, not orientation, now.
     mg.pop(6)
     exp_msg = 'Only 11 / 12 nodes have "length" given.'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
     # For fun, let's remove all of the lines with length and make sure this
     # updates the error msg accordingly
     mg = [line for line in mg if "length" not in line]
     exp_msg = 'Only 0 / 12 nodes have "length" given.'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     # ... And let's try that same thing with orientation, which as we've
     # established takes priority in error messages (again, doesn't actually
     # matter, but we might as well test that this behavior remains consistent)
     mg = [line for line in mg if "orientation" not in line]
     exp_msg = 'Only 0 / 12 nodes have "orientation" given.'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
 
 def test_parse_metacarvel_gml_insufficient_edge_metadata():
@@ -128,7 +129,7 @@ def test_parse_metacarvel_gml_insufficient_edge_metadata():
     # Remove orientation from edge 8 -> 9 (line 190 in the file)
     mg.pop(189)
     exp_msg = 'Only 15 / 16 edges have "orientation" given.'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
     # Remove orientation from all edges in the file
     mg = [
         line
@@ -136,27 +137,27 @@ def test_parse_metacarvel_gml_insufficient_edge_metadata():
         if 'orientation "E' not in line and 'orientation "B' not in line
     ]
     exp_msg = 'Only 0 / 16 edges have "orientation" given.'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     # Restore mg
     mg = get_marygold_gml()
     # Remove mean from edge 12 -> 8
     mg.pop(182)
     exp_msg = 'Only 15 / 16 edges have "mean" given.'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
     # Also remove mean from edge 8 -> 9
     # This is actually line 191 of the file, but remember 0-indexing + already
     # popped one line above in the file
     mg.pop(189)
     exp_msg = 'Only 14 / 16 edges have "mean" given.'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     # Restore mg
     mg = get_marygold_gml()
     # Remove bsize from edge 7 -> 12
     mg.pop(168)
     exp_msg = 'Only 15 / 16 edges have "bsize" given.'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     # Remove stdev from edge 7 -> 9
     # Note that we haven't restored mg from above yet! This tests the whole
@@ -167,11 +168,11 @@ def test_parse_metacarvel_gml_insufficient_edge_metadata():
     # breaking this function.
     mg.pop(174)
     exp_msg = 'Only 15 / 16 edges have "stdev" given.'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     # Remove bsize from *all* lines -- stdev error should still show up
     mg = [line for line in mg if "bsize" not in line]
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
 
 def test_parse_metacarvel_gml_undirected_graph():
@@ -182,10 +183,10 @@ def test_parse_metacarvel_gml_undirected_graph():
     # Try two things: 1) the choice of directed/undirected isn't specified
     # (defaults to undirected), 2) explicitly specified as not directed
     mg.pop(1)
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     mg.insert(1, "  directed 0\n")
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
 
 def test_parse_metacarvel_gml_duplicate_edges():
@@ -221,7 +222,7 @@ def test_parse_metacarvel_gml_duplicate_edges():
     # detect that the input graph is a multigraph and be all like "nuh uh
     # you didn't get that from MetaCarvel, now did you" (something like that)
     run_tempfile_test(
-        "gml", mg, ValueError, "Multigraphs are unsupported", join_char=""
+        "gml", mg, GraphParsingError, "Multigraphs are unsupported", join_char=""
     )
 
 
@@ -294,7 +295,7 @@ def test_parse_metacarvel_gml_invalid_node_metadata():
         # angry if you put a string like FOW outside of quotes in a GML file.)
         p = "".join([c for c in o if c != '"'])
         exp_msg = 'Node NODE_10 has unsupported orientation "{}".'.format(p)
-        run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+        run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     # Test invalid lengths
     lengths = [
@@ -315,7 +316,7 @@ def test_parse_metacarvel_gml_invalid_node_metadata():
         exp_msg = 'Node NODE_10 has non-positive-integer length "{}".'.format(
             length_to_test
         )
-        run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+        run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
 
 def test_parse_metacarvel_gml_invalid_edge_metadata():
@@ -344,12 +345,12 @@ def test_parse_metacarvel_gml_invalid_edge_metadata():
         # (See test_parse_metacarvel_gml_invalid_node_metadata() above)
         p = "".join([c for c in val if c != '"'])
         exp_msg = 'has unsupported orientation "{}".'.format(p)
-        run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+        run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     mg.pop(189)
     mg.insert(189, '   orientation "REV"\n')
     exp_msg = 'has unsupported orientation "REV".'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     # Restoring the orientation to something normal (say, BB) should work
     mg.pop(189)
@@ -376,21 +377,21 @@ def test_parse_metacarvel_gml_invalid_edge_metadata():
         mg.insert(192, "   bsize {}\n".format(val))
         p = "".join([c for c in val if c != '"'])
         exp_msg = 'has non-positive-integer bsize "{}".'.format(p)
-        run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+        run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     # 3. Test mean
     mg = get_marygold_gml()
     mg.pop(198)
     mg.insert(198, '   mean "ABC"\n')
     exp_msg = 'has non-numeric mean "ABC".'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     # 4. Test stdev
     mg = get_marygold_gml()
     mg.pop(199)
     mg.insert(199, '   stdev "ABC"\n')
     exp_msg = 'has non-numeric stdev "ABC".'
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
     # TODO test bsize, mean, stdev more thoroughly
 
     # Test that NaN/infinity/zero/negative values work ok (but only with
@@ -461,14 +462,14 @@ def test_parse_metacarvel_gml_repeated_node_attrs():
     mg = get_marygold_gml()
     mg.insert(5, '   orientation "REV"\n')
     exp_msg = "Node NODE_10 has unsupported orientation \"['REV', 'FOW']\"."
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     mg = get_marygold_gml()
     mg.insert(5, '   length "200"\n')
     exp_msg = (
         "Node NODE_10 has non-positive-integer length \"['200', '100']\"."
     )
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
 
 def test_parse_metacarvel_gml_repeated_edge_attrs():
@@ -478,7 +479,7 @@ def test_parse_metacarvel_gml_repeated_edge_attrs():
         "Edge ('NODE_7', 'NODE_12') has unsupported orientation "
         "\"['EB', 'EB']\"."
     )
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     mg = get_marygold_gml()
     mg.insert(166, '   mean "123.45"\n')
@@ -486,7 +487,7 @@ def test_parse_metacarvel_gml_repeated_edge_attrs():
         "Edge ('NODE_7', 'NODE_12') has non-numeric mean "
         "\"['123.45', '-200.00']\"."
     )
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     mg = get_marygold_gml()
     mg.insert(166, '   stdev "123.45"\n')
@@ -494,7 +495,7 @@ def test_parse_metacarvel_gml_repeated_edge_attrs():
         "Edge ('NODE_7', 'NODE_12') has non-numeric stdev "
         "\"['123.45', 25.1234]\"."
     )
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
     mg = get_marygold_gml()
     mg.insert(167, "   bsize 15\n")
@@ -502,7 +503,7 @@ def test_parse_metacarvel_gml_repeated_edge_attrs():
         "Edge ('NODE_7', 'NODE_12') has non-positive-integer bsize "
         '"[15, 30]".'
     )
-    run_tempfile_test("gml", mg, ValueError, exp_msg, join_char="")
+    run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
 
 
 def test_parse_metacarvel_gml_repeated_edge_source_or_target():

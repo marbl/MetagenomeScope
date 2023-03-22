@@ -1,4 +1,5 @@
 from .utils import run_tempfile_test
+from metagenomescope.errors import GraphParsingError
 from metagenomescope.assembly_graph_parser import parse_lastgraph
 from metagenomescope.tests.assembly_graph_parser.test_validate_lastgraph import (
     reset_glines,
@@ -64,13 +65,13 @@ def test_parse_lastgraph_node_interrupted():
     glines = reset_glines()
     glines.pop(3)
     run_tempfile_test(
-        "LastGraph", glines, ValueError, "Line 4: Node block ends too early."
+        "LastGraph", glines, GraphParsingError, "Line 4: Node block ends too early."
     )
 
     glines = reset_glines()
     glines[2] = "ARC\t1\t1\t5"
     run_tempfile_test(
-        "LastGraph", glines, ValueError, "Line 3: Node block ends too early."
+        "LastGraph", glines, GraphParsingError, "Line 3: Node block ends too early."
     )
 
 
@@ -79,22 +80,22 @@ def test_parse_lastgraph_invalid_node_count():
     exp_msg = "Line 1: $NUMBER_OF_NODES must be a positive integer"
 
     glines[0] = "3.5\t10\t1\t1"
-    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+    run_tempfile_test("LastGraph", glines, GraphParsingError, exp_msg)
 
     glines[0] = "-3.5\t10\t1\t1"
-    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+    run_tempfile_test("LastGraph", glines, GraphParsingError, exp_msg)
 
     glines[0] = "-2\t10\t1\t1"
-    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+    run_tempfile_test("LastGraph", glines, GraphParsingError, exp_msg)
 
     glines[0] = "2.0\t10\t1\t1"
-    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+    run_tempfile_test("LastGraph", glines, GraphParsingError, exp_msg)
 
     glines[0] = "ABC\t10\t1\t1"
-    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+    run_tempfile_test("LastGraph", glines, GraphParsingError, exp_msg)
 
     glines[0] = "0x123\t10\t1\t1"
-    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+    run_tempfile_test("LastGraph", glines, GraphParsingError, exp_msg)
 
     glines[0] = "0\t10\t1\t1"
-    run_tempfile_test("LastGraph", glines, ValueError, exp_msg)
+    run_tempfile_test("LastGraph", glines, GraphParsingError, exp_msg)

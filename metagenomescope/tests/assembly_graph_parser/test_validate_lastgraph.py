@@ -1,5 +1,6 @@
 import pytest
 from io import StringIO
+from metagenomescope.errors import GraphParsingError
 from metagenomescope.assembly_graph_parser import validate_lastgraph_file
 
 
@@ -9,9 +10,9 @@ def get_validate_err(glines):
     bad_lg = StringIO("\n".join(glines))
     # Assume that the LastGraph file represented by bad_lg will fail
     # validation, and return the accompanying error message.
-    # (If a ValueError *isn't* raised, this'll throw an error saying DID NOT
-    # RAISE or something.)
-    with pytest.raises(ValueError) as ei:
+    # (If a GraphParsingError *isn't* raised, this'll throw an error saying
+    # DID NOT RAISE or something.)
+    with pytest.raises(GraphParsingError) as ei:
         validate_lastgraph_file(bad_lg)
     return str(ei.value)
 

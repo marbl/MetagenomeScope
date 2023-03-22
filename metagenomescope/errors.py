@@ -1,0 +1,2 @@
+class GraphParsingError(Exception):
+    pass

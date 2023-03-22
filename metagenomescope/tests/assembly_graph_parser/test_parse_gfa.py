@@ -1,6 +1,7 @@
 # from .utils import run_tempfile_test
 from metagenomescope.input_node_utils import negate_node_id
 from metagenomescope.assembly_graph_parser import parse_gfa
+from metagenomescope.errors import GraphParsingError
 from .utils import run_tempfile_test
 from gfapy.error import InconsistencyError
 
@@ -134,7 +135,7 @@ def test_parse_no_length_node():
     s1.pop(1)
     s1.insert(1, "S\t1\t*")
     run_tempfile_test(
-        "gfa", s1, ValueError, "Found a node without a specified length: 1"
+        "gfa", s1, GraphParsingError, "Found a node without a specified length: 1"
     )
 
     # Manually assigning node 1 a sequence should fix the problem
@@ -177,7 +178,7 @@ def test_parse_invalid_id_node():
     run_tempfile_test(
         "gfa",
         s1,
-        ValueError,
+        GraphParsingError,
         "Node IDs in the input assembly graph cannot "
         'start with the "-" character.',
     )

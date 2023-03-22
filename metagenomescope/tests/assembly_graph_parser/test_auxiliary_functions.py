@@ -76,6 +76,11 @@ def test_sniff_filetype():
     assert sniff_filetype("aSdF.FaStG") == "fastg"
     assert sniff_filetype("LastGraphfastg") == "fastg"
 
+    assert sniff_filetype("asdf.dot") == "dot"
+    assert sniff_filetype("ASDF.DOT") == "dot"
+    assert sniff_filetype("asdf.gv") == "gv"
+    assert sniff_filetype("ASDF.GV") == "gv"
+
     with pytest.raises(NotImplementedError):
         sniff_filetype("asdf.asdf")
     with pytest.raises(NotImplementedError):
