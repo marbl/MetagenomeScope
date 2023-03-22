@@ -30,7 +30,13 @@ jobs:
       - name: Install MetagenomeScope (and its pip dependencies)
         run: conda run -n mgsc pip install -e .[dev]
 
+      # I think later versions of black (e.g. 23.1) changed things in ways that
+      # will cause this to fail. Since not all black versions support all
+      # python versions, the easiest solution is to just only do stylechecking
+      # when we're working with python 3.6.
+      # See https://stackoverflow.com/q/73598359 re: "if" expressions here.
       - name: Lint and stylecheck the Python code
+        if: ${{ matrix.python-version == 3.6 }}
         run: conda run -n mgsc make pystylecheck
 
       - name: Run Python tests
