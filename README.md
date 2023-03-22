@@ -72,12 +72,16 @@ directory, so please don't move it out of the directory.)
 
 Currently, MetagenomeScope supports the following filetypes:
 
+<!-- TODO: I haven't tested miniasm and hifiasm(-meta) output graphs here --
+should do that to verify that their graphs work ok -->
+
 | Filetype | Assemblers that output this filetype | Notes |
 | -------- | ------------------------------------ | ----- |
-| [GFA](https://gfa-spec.github.io/GFA-spec/) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA), more | Both v1 and v2 work, but [currently](https://github.com/marbl/MetagenomeScope/issues/147) only the raw structure (segments and links) are included |
-| FASTG | [SPAdes](https://cab.spbu.ru/software/spades/) | Expects SPAdes-"dialect" FASTG files: see [pyfastg's documentation](https://github.com/fedarko/pyfastg) for details |
-| [GML](https://networkx.org/documentation/stable/reference/readwrite/gml.html) | [MetaCarvel](https://github.com/marbl/MetaCarvel) | Expects MetaCarvel-"dialect" GML files |
-| LastGraph | [Velvet](https://www.ebi.ac.uk/~zerbino/velvet/) | Only the raw structure (nodes and arcs) are included |
+| [GFA (`.gfa`)](https://gfa-spec.github.io/GFA-spec/) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA), [miniasm](https://github.com/lh3/miniasm), [hifiasm](https://github.com/chhylp123/hifiasm), [hifiasm-meta](https://github.com/xfengnefx/hifiasm-meta), ... | Both GFA v1 and GFA v2 files are accepted, but [currently](https://github.com/marbl/MetagenomeScope/issues/147) only the raw structure (segments and links) are included. |
+| [DOT (`.dot`, `.gv`)](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA) | (meta)Flye and LJA subtly adjust their internal repeat / de Bruijn graphs before outputting GFA files: they convert edges to nodes and vice versa. If you want to visualize the _original_ structure of these graphs (in which edges in the visualization correspond to edges in the original repeat / de Bruijn graph), you should provide the DOT file rather than the GFA file. |
+| FASTG (`.fastg`) | [SPAdes](https://cab.spbu.ru/software/spades/) | Expects SPAdes-"dialect" FASTG files: see [pyfastg's documentation](https://github.com/fedarko/pyfastg) for details. |
+| [GML (`.gml`)](https://networkx.org/documentation/stable/reference/readwrite/gml.html) | [MetaCarvel](https://github.com/marbl/MetaCarvel) | Expects MetaCarvel-"dialect" GML files |
+| LastGraph (`.LastGraph`) | [Velvet](https://github.com/dzerbino/velvet) | Only the raw structure (nodes and arcs) are included. |
 
 ## Code structure
 
