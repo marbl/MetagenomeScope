@@ -28,6 +28,7 @@ from ._param_descriptions import (
     OUTPUT_DIR,
     MAXN,
     MAXE,
+    PATTERNS_FLAG
 )
 
 
@@ -60,6 +61,13 @@ from ._param_descriptions import (
     default=MAXE_DEFAULT,
     help=MAXE,
     show_default=True,
+)
+@click.option(
+    "--patterns/--no-patterns",
+    is_flag=True,
+    default=True,
+    show_default=True,
+    help=PATTERNS_FLAG,
 )
 # @click.option(
 #    "-mbf", "--metacarvel-bubble-file", required=False, default=None, help=MBF
@@ -121,6 +129,7 @@ def run_script(
     # assume_oriented: bool,
     max_node_count: int,
     max_edge_count: int,
+    patterns: bool,
     # metacarvel_bubble_file: str,
     # user_pattern_file: str,
     # compute_spqr_data: bool,
@@ -145,6 +154,8 @@ def run_script(
     ...which will generate an output directory named "viz". (You'll need to
     replace "graph.gfa" with whatever the path to your assembly graph is.)
     """
+    if not patterns:
+        raise NotImplementedError("uhhh")
     make_viz(
         input_file,
         output_dir,

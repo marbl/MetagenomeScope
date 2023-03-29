@@ -18,8 +18,8 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 INPUT = (
-    "Assembly graph file to be visualized. GFA, FASTG, LastGraph (Velvet), "
-    "and GML (MetaCarvel) file formats are accepted."
+    "Assembly graph file to be visualized. We accept GFA, FASTG, DOT, GML, "
+    "and LastGraph files."
 )
 
 OUTPUT_DIR = (
@@ -38,20 +38,21 @@ ASSUME_ORIENTED = (
 )
 
 MAXN = (
-    "Connected components with more nodes than this value will not be "
-    "laid out or available for display in the visualization. Since "
-    "hierarchical graph layout is relatively slow for large or tangled "
-    "connected components, this is a heuristic to enable visualization "
-    "of the less messy regions of graphs with a few 'hairball' components. "
-    "(Note that certain patterns might result in nodes being duplicated in "
-    "the display so that they can be present in multiple patterns; these "
-    '"duplicate" nodes will not count against this number.)'
+    "We will not visualize connected components containing more nodes than "
+    "this. This option is given here because hierarchical graph layout is "
+    "relatively slow for large/tangled components, and because our "
+    "visualization interface becomes slow when drawing lots of nodes / edges."
 )
 
 MAXE = (
-    "Connected components with more edges than this value will not be "
-    "laid out or available for display in the visualization. Functions "
-    "analogously to --max-node-count."
+    "We will not visualize connected components containing more edges than "
+    "this. Functions analogously to --max-node-count."
+)
+
+PATTERNS_FLAG = (
+    "If --patterns is set, we'll identify structural patterns (e.g. bubbles) "
+    "in the graph and highlight these in the visualization. If --no-patterns "
+    "is set, we'll skip this step."
 )
 
 # TODO: actually change way this works so that -ubl always true
