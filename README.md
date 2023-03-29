@@ -88,7 +88,7 @@ should do that to verify that their graphs work ok -->
 | [LastGraph](https://github.com/dzerbino/velvet/blob/master/Manual.pdf) (`.LastGraph`) | [Velvet](https://github.com/dzerbino/velvet) | Only the raw structure (nodes and arcs) are included. |
 
 If you run into any additional assembly graph filetypes you'd like us to
-support, feel free to [open an issue](#contact)!
+support, please [let us know](#contact)!
 
 ## Code structure
 
