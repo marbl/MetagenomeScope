@@ -159,6 +159,11 @@ class AssemblyGraph(object):
         I doubt a lot of people are going to be coming at us with graphs that
         have "longside_proportion" in their node attributes so I thiiiink we're
         ok.
+
+        Also, this updates self.extra_node_attrs and self.extra_edge_attrs with
+        information about the "extra" attributes that some (or all) nodes/edges
+        in self.digraph have. Just so we know to pass this data over to the
+        visualization.
         """
         for node in self.digraph.nodes:
             data = self.digraph.nodes[node]
