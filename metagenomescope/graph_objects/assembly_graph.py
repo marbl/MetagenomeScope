@@ -1693,9 +1693,11 @@ class AssemblyGraph(object):
         all nodes/edges/patterns in the layout (I guess we could uhhh just
         overlay the nodes onto the patterns? idk.)
         """
+        raise NotImplementedError
 
     def to_cytoscape_compatible_format(self):
         """TODO."""
+        raise NotImplementedError
 
     def to_dict(self):
         """Returns a dict representation of the graph usable as JSON.
