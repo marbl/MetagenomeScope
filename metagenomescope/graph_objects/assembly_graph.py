@@ -254,7 +254,9 @@ class AssemblyGraph(object):
         self.num_nodes += 1
         return new_id
 
-    def get_edge_weight_field(self, field_names=["bsize", "multiplicity"]):
+    def get_edge_weight_field(
+        self, field_names=["bsize", "multiplicity", "cov", "kmer_cov"]
+    ):
         """Returns the name of the edge weight field this graph has.
 
         If the graph does not have any edge weight fields, returns None.
