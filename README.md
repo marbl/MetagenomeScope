@@ -72,7 +72,7 @@ The output directory will contain an `index.html` file that can be opened in
 most modern web browsers. (The file points to other resources within the
 directory, so please don't move it out of the directory.)
 
-### What types of assembly graphs can I use as input?
+### What types of assembly graphs can this tool visualize?
 
 Currently, MetagenomeScope supports the following filetypes:
 
