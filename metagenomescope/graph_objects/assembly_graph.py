@@ -53,6 +53,13 @@ class AssemblyGraph(object):
         self.id2pattern = {}
 
         # Reserved attributes we use for nodes/edges -- see self.check_attrs().
+        # These attributes correspond to properties that we may add to nodes /
+        # edges in the graph ourselves, so we can't accept any NetworkX graphs
+        # produced by the parsing module with any nodes / edges that contain
+        # these attributes.
+        #
+        # Most of these attributes are things we don't show to the user (and
+        # correspond to internal data sources), ... but this isn't a hard rule.
         self.internal_node_attrs = set(
             [
                 "relative_length",
@@ -141,10 +148,12 @@ class AssemblyGraph(object):
         that would conflict with built-in attributes we store here.
 
         The fact that we have to do this in the first place is an indication
-        that the code for storing this data should be improved. ...That is a
-        job for future Marcus, I guess. But honestly I doubt a lot of people
-        are going to be coming at us with graphs that have
-        "longside_proportion" in their node attributes so I thiiiink we're ok.
+        that the code for storing this data should be improved; ideally, we'd
+        have two data sources for each node and edge ("user-provided" and
+        "internal", or something). This is a job for future Marcus; that said,
+        I doubt a lot of people are going to be coming at us with graphs that
+        have "longside_proportion" in their node attributes so I thiiiink we're
+        ok.
         """
         for node in self.digraph.nodes:
             data = self.digraph.nodes[node]
