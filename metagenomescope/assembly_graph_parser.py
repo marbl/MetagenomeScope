@@ -598,14 +598,6 @@ def parse_dot(filename):
     # already have installed.)
     g = nx.nx_agraph.read_dot(filename)
 
-    # NOTE: both LJA and Flye DOT files, as of writing, have some cosmetic
-    # node-specific attributes (e.g. "style" = "filled", "fillcolor" = "grey"
-    # for every node [?] in Flye's DOT files), which we don't really care
-    # about. These attributes could take up a nontrivial amount of storage for
-    # large graphs; I'm not sure it's worth it to go through here and manually
-    # delete these attributes from these nodes, so I'm just documenting this
-    # here in case this becomes a bottleneck at some point.
-
     # For both LJA and Flye DOT files, the main attributes we care about are
     # stored in the edge labels.
     #
@@ -728,8 +720,12 @@ def parse_dot(filename):
             # length, and coverage of this edge. Save it, and (if we haven't
             # already) record that this is probably a Flye assembly graph.
             g.edges[e[:3]]["id"] = eid
-            g.edges[e[:3]]["approx-length"] = elen
+            g.edges[e[:3]]["approx_length"] = elen
             g.edges[e[:3]]["cov"] = ecov
+            # We've now extracted, as far as I can tell, all of the information
+            # contained in Flye's edge labels. Let's remove this label from the
+            # edge data -- showing it to the user would be redundant.
+            del e[3]["label"]
             flye_vibes = True
         else:
             if flye_vibes:
@@ -750,13 +746,26 @@ def parse_dot(filename):
             # The length and kmer-cov lines could cause errors if these aren't
             # valid numbers. That's fine -- like in the Flye parser, let the
             # errors propagate up to the user.
-            g.edges[e[:3]]["first-nt"] = groups[0]
+            g.edges[e[:3]]["first_nt"] = groups[0]
             g.edges[e[:3]]["length"] = int(groups[1])
-            g.edges[e[:3]]["kmer-cov"] = float(groups[2])
+            g.edges[e[:3]]["kmer_cov"] = float(groups[2])
+
+            # Both Flye and LJA give all edges "color" attributes in these DOT
+            # files. As far as I can tell, Flye will color edges if they are
+            # special (e.g. repeats, according to Flye?), while LJA will just color
+            # all edges black. For now, we preserve "color" for Flye edges,
+            # but delete this info for LJA edges.
+            if "color" in e[3]:
+                # It turns out that the "data" object returned by g.edges()
+                # is still linked to the "graph"'s version of this data -- we can
+                # modify e[3] directly here to remove this. (Previously, I was
+                # thinking we'd have to say "del g.edges[e[:3]]["color"]".)
+                del e[3]["color"]
+
             # The full label could be useful for the visualization. LJA can
             # generate labels spanning multiple lines (although jumboDBG's
-            # labels seem mostly to span single lines).
-            g.edges[e[:3]]["label"] = label
+            # labels seem mostly to span single lines). So, we will not delete
+            # this label from the edge data.
             lja_vibes = True
 
     if not seen_one_edge:
@@ -770,6 +779,20 @@ def parse_dot(filename):
     # something up.
     if not (lja_vibes ^ flye_vibes):
         raise GraphParsingError("Call a priest. Something went wrong.")
+
+    # Both Flye and LJA DOT files, as of writing, provide some cosmetic
+    # node-specific attributes ("style" = "filled", "fillcolor" = either "grey"
+    # (Flye) or "white" (LJA)) which I don't think we need to care about here.
+    # (In all the Flye / LJA example DOT files I've seen these are uniform for
+    # all nodes in the graph.) Maybe, if there are differences between nodes
+    # within a graph, we could pass these on to the visualization, but I don't
+    # think that's needed yet.) To limit confusion and save space, we delete
+    # these attributes here.
+    for n in g.nodes:
+        if "style" in g.nodes[n]:
+            del g.nodes[n]["style"]
+        if "fillcolor" in g.nodes[n]:
+            del g.nodes[n]["fillcolor"]
 
     return g
 
