@@ -23,13 +23,7 @@
 import click
 from .config import MAXN_DEFAULT, MAXE_DEFAULT
 from .main import make_viz
-from ._param_descriptions import (
-    INPUT,
-    OUTPUT_DIR,
-    MAXN,
-    MAXE,
-    PATTERNS_FLAG
-)
+from ._param_descriptions import INPUT, OUTPUT_DIR, MAXN, MAXE, PATTERNS_FLAG
 
 
 # Make mgsc -h (or just mgsc by itself) show the help text
