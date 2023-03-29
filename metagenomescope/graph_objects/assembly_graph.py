@@ -35,7 +35,12 @@ class AssemblyGraph(object):
         max_node_count=config.MAXN_DEFAULT,
         max_edge_count=config.MAXE_DEFAULT,
     ):
-        """Parses the input graph file and initializes the AssemblyGraph."""
+        """Parses the input graph file and initializes the AssemblyGraph.
+
+        After you create a graph, you should usually call the process() method
+        to prepare the graph for visualization (scaling nodes/edges,
+        identifying patterns, etc.).
+        """
         self.filename = filename
         self.max_node_count = max_node_count
         self.max_edge_count = max_edge_count
@@ -1193,6 +1198,13 @@ class AssemblyGraph(object):
         for edge in self.decomposed_digraph.edges:
             self.decomposed_digraph.edges[edge]["parent_id"] = None
 
+    def scale_nodes_all_uniform(self):
+        for node in self.digraph.nodes:
+            self.digraph.nodes[node]["relative_length"] = 0.5
+            self.digraph.nodes[node][
+                "longside_proportion"
+            ] = config.MID_LONGSIDE_PROPORTION
+
     def scale_nodes(self):
         """Scales nodes in the graph based on their lengths.
 
@@ -1209,41 +1221,62 @@ class AssemblyGraph(object):
            how "long" it looks.
 
         Previously, this scaled nodes in separate components differently.
-        However, MetagenomeScope will (soon) be able to show multiple
-        components at once, so we scale nodes based on the min/max lengths
-        throughout the entire graph.
+        However, MetagenomeScope can now show multiple components at once, so
+        we scale nodes based on the min/max lengths throughout the entire
+        graph.
+
+        Notes
+        -----
+        If either of the following conditions are met:
+
+        1. at least one of the graph's nodes does not have a "length" attribute
+        2. all nodes in the graph have the same "length" attribute
+
+        ...Then this will assign each node a relative_length of 0.5 and a
+        longside_proportion of config.MID_LONGSIDE_PROPORTION.
+
+        (TODO, just omit these or something instead? would slim down the
+        visualization filesize.)
         """
+        # dict that maps node IDs --> lengths
         node_lengths = nx.get_node_attributes(self.digraph, "length")
-        node_log_lengths = {}
-        for node, length in node_lengths.items():
-            node_log_lengths[node] = math.log(
-                length, config.NODE_SCALING_LOG_BASE
-            )
-        min_log_len = min(node_log_lengths.values())
-        max_log_len = max(node_log_lengths.values())
-        if min_log_len == max_log_len:
-            for node in self.digraph.nodes:
-                self.digraph.nodes[node]["relative_length"] = 0.5
-                self.digraph.nodes[node][
-                    "longside_proportion"
-                ] = config.MID_LONGSIDE_PROPORTION
+
+        # bail out if not all nodes have a length
+        if len(node_lengths) < len(self.digraph.nodes):
+            self.scale_nodes_all_uniform()
         else:
-            log_len_range = max_log_len - min_log_len
-            q25, q75 = numpy.percentile(
-                list(node_log_lengths.values()), [25, 75]
-            )
-            for node in self.digraph.nodes:
-                node_log_len = node_log_lengths[node]
-                self.digraph.nodes[node]["relative_length"] = (
-                    node_log_len - min_log_len
-                ) / log_len_range
-                if node_log_len < q25:
-                    lp = config.LOW_LONGSIDE_PROPORTION
-                elif node_log_len < q75:
-                    lp = config.MID_LONGSIDE_PROPORTION
-                else:
-                    lp = config.HIGH_LONGSIDE_PROPORTION
-                self.digraph.nodes[node]["longside_proportion"] = lp
+            node_length_values = node_lengths.values()
+            min_len = min(node_length_values)
+            max_len = max(node_length_values)
+
+            # bail out if all nodes have equal lengths
+            if min_len == max_len:
+                self.scale_nodes_all_uniform()
+            else:
+                # okay, if we've made it here we can actually do node scaling
+                node_log_lengths = {}
+                for node, length in node_lengths.items():
+                    node_log_lengths[node] = math.log(
+                        length, config.NODE_SCALING_LOG_BASE
+                    )
+                min_log_len = min(node_log_lengths.values())
+                max_log_len = max(node_log_lengths.values())
+                log_len_range = max_log_len - min_log_len
+                q25, q75 = numpy.percentile(
+                    list(node_log_lengths.values()), [25, 75]
+                )
+                for node in self.digraph.nodes:
+                    node_log_len = node_log_lengths[node]
+                    self.digraph.nodes[node]["relative_length"] = (
+                        node_log_len - min_log_len
+                    ) / log_len_range
+                    if node_log_len < q25:
+                        lp = config.LOW_LONGSIDE_PROPORTION
+                    elif node_log_len < q75:
+                        lp = config.MID_LONGSIDE_PROPORTION
+                    else:
+                        lp = config.HIGH_LONGSIDE_PROPORTION
+                    self.digraph.nodes[node]["longside_proportion"] = lp
 
     def compute_node_dimensions(self):
         r"""Adds height and width attributes to each node in the graph.
