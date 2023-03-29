@@ -726,6 +726,12 @@ def parse_dot(filename):
             # contained in Flye's edge labels. Let's remove this label from the
             # edge data -- showing it to the user would be redundant.
             del e[3]["label"]
+            # Also, remove the penwidth attr, which flye assigns to repetitive
+            # (?) edges -- we already keep the "color" attr around for these
+            # edges, which I believe should be sufficient. And I don't want to
+            # confuse this with the edge thickness scaling for coverages.
+            if "penwidth" in e[3]:
+                del e[3]["penwidth"]
             flye_vibes = True
         else:
             if flye_vibes:
