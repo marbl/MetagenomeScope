@@ -52,7 +52,8 @@ MAXE = (
 PATTERNS_FLAG = (
     "If --patterns is set, we'll identify structural patterns (e.g. bubbles) "
     "in the graph and highlight these in the visualization. If --no-patterns "
-    "is set, we'll skip this step."
+    'is set, we won\'t do this (and will just display the "original" graph '
+    "structure)."
 )
 
 # TODO: actually change way this works so that -ubl always true
