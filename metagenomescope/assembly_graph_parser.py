@@ -523,10 +523,11 @@ def parse_fastg(filename):
         elif suffix == "-":
             g.nodes[n]["orientation"] = "-"
         else:
-            raise GraphParsingError(
-                (
-                    "Node {} in parsed FASTG file doesn't have an orientation?"
-                ).format(n)
+            # shouldn't happen, unless pyfastg breaks or changes its behavior
+            # (but it's useful to have this check anyway, just to make this
+            # bulletproof in case i forget and break something later lol)
+            raise WeirdError(
+                f"Node {n} in parsed FASTG file doesn't have an orientation?"
             )
     return g
 
