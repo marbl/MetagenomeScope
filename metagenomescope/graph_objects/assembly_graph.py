@@ -101,7 +101,7 @@ class AssemblyGraph(object):
         )
 
         # "Extra" data for nodes/edges -- e.g. GC content, coverage,
-        # multiplicity, ...
+        # multiplicity, ... -- will vary based on the input graph.
         self.extra_node_attrs = set()
         self.extra_edge_attrs = set()
 

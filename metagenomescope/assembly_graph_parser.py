@@ -18,9 +18,9 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################################################
 # This module contains various utility functions for parsing assembly graph
-# files. All of the parse_() functions here should return a NetworkX DiGraph
-# representing the assembly graph in the input file, assuming the input file is
-# "valid."
+# files. All of the parse_() functions here should return a NetworkX
+# MultiDiGraph representing the assembly graph in the input file, assuming the
+# input file is "valid."
 #
 # You can also just call parse(), which will attempt to determine which parser
 # should be used for an assembly graph file. (This is what is done in
@@ -31,7 +31,8 @@
 # This should be very doable (and hopefully mostly-painless). You'll need to:
 #
 #  1. Create a function that takes as input a filename and (if the graph is
-#  valid) returns a NetworkX DiGraph representing the contained assembly graph.
+#  valid) returns a NetworkX MultiDiGraph representing the contained assembly
+#  graph.
 #
 #  2. Add the lowercase file extension as a key in SUPPORTED_FILETYPE_TO_PARSER
 #  that maps to your new function.
@@ -43,7 +44,7 @@ import networkx as nx
 import gfapy
 import pyfastg
 from .input_node_utils import gc_content, negate_node_id
-from .errors import GraphParsingError
+from .errors import GraphParsingError, WeirdError
 
 
 LJA_LFL_PATT = re.compile(r"([ACGT]) ?([0-9]+)\(([0-9\.]+)\)")
@@ -103,7 +104,7 @@ def validate_lastgraph_file(graph_file):
     Raises
     ------
     GraphParsingError
-        If any of the following conditions are observed:
+        If any of the following conditions hold in the file:
 
         General:
         -The $NUMBER_OF_NODES in the file header does not equal the number
@@ -111,8 +112,8 @@ def validate_lastgraph_file(graph_file):
 
         Any NODE:
         -doesn't have a $NODE_ID, $COV_SHORT1, and $O_COV_SHORT1 value
-        -has a $NODE_ID that starts with a "-" character, or has been seen
-         before in the file
+        -has a $NODE_ID that starts with a "-" character
+        -shares a $NODE_ID with another node in the same file
         -has less than two sequences given*
         -has two sequences given, but the sequences are of unequal lengths (or
          the sequence lengths don't match the node's $COV_SHORT1 value)
@@ -215,13 +216,14 @@ def validate_lastgraph_file(graph_file):
                 negate_node_id(split_line[2]),
                 negate_node_id(split_line[1]),
             )
-            # If rev_ids is in seen_edges, then so is fwd_ids. No need to check
-            # both here.
-            if fwd_ids in seen_edges:
-                raise GraphParsingError(
-                    "Line {}: Edge from {} to {} somehow declared multiple "
-                    "times.".format(line_num, split_line[1], split_line[2])
-                )
+            # NOTE: We could say "if fwd_ids in seen_edges" to check if this
+            # edge has already been defined earlier in the file (if we wanted
+            # to disallow multigraphs). Note that we would only need to check
+            # if fwd_ids is present in seen_edges, rather than also checking
+            # rev_ids, since these things are added in pairs (so the presence
+            # of one implies the other). ... That all being said, we want to
+            # allow multigraphs now! (In the futuristic days of, uh, 2023.
+            # Jesus.) So, we don't trigger an error here.
             seen_edges.append(fwd_ids)
             seen_edges.append(rev_ids)
         elif in_node_block:
@@ -272,10 +274,6 @@ def validate_nx_digraph(g, required_node_fields, required_edge_fields):
     # Verify that the graph is directed and doesn't have duplicate edges
     if not g.is_directed():
         raise GraphParsingError("The input graph should be directed.")
-    if g.is_multigraph():
-        raise GraphParsingError(
-            "Multigraphs are unsupported in MetagenomeScope."
-        )
 
     # Verify that all nodes have the properties we expect nodes to have
     num_nodes = len(g.nodes)
@@ -300,20 +298,49 @@ def validate_nx_digraph(g, required_node_fields, required_edge_fields):
             )
 
 
-def parse_metacarvel_gml(filename):
-    """Returns a nx.DiGraph representation of a GML (MetaCarvel output) file.
+def make_multigraph_if_not_already(g):
+    """Converts a nx.DiGraph to a nx.MultiDiGraph, if needed.
 
-    Unlike, say, LastGraph, the GML file spec isn't inherently tied to
-    MetaCarvel (it's used by lots of different programs). However, we make the
+    Also, raises an error if the input graph is not a nx.DiGraph or a
+    nx.MultiDiGraph. (This could happen if you have an undirected graph, I
+    guess -- that's a big no-no for us, at least right now.)
+    """
+    if type(g) is nx.DiGraph:
+        return nx.MultiDiGraph(g)
+    elif type(g) is nx.MultiDiGraph:
+        # we don't need to do anything
+        return g
+    else:
+        raise WeirdError(
+            f"Graph isn't a (Multi)DiGraph: it's of type {type(g)}?"
+        )
+
+
+def parse_metacarvel_gml(filename):
+    """Returns a nx.MultiDiGraph representation of a MetaCarvel GML file.
+
+    Unlike, say, LastGraph (which I'm pretty sure is only used by Velvet),
+    the GML file spec isn't inherently tied to MetaCarvel; lots of different
+    programs can produce and consume GML files. However, we make the
     simplifying assumption that -- if you're trying to load in a GML file
     to MetagenomeScope -- that file was generated from MetaCarvel. Of course,
     if future assemblers/scaffolders can produce graphs that are also in GML,
-    we'll need to modify this module to handle those graphs properly.
+    we'll need to modify this module to handle those graphs properly. But I
+    doubt that that will happen any time soon.
 
     Since NetworkX has a function for reading GML files built-in, the bulk of
-    effort in this function is just spent validating that the nx.DiGraph
-    produced follows the format we expect (i.e. has all the metadata we
-    anticipate MetaCarvel output graphs having).
+    effort in this function is just spent validating that the nx.(Multi)DiGraph
+    produced by NetworkX's reader follows the format we expect (i.e. it has all
+    the node and edge attributes we anticipate MetaCarvel graphs having).
+
+    Notes
+    -----
+    Nodes in GML files are expected (by nx.gml.read_gml()) to have both "id"
+    and "label" fields. Furthermore, both of these should apparently be unique
+    (no two nodes in the same file should have the same ID or label). By
+    default, nx.gml.read_gml() will name nodes according to their label; node
+    IDs won't actually be visible to us. This is fine, since (in MetaCarvel
+    outputs) node labels seem to be more important than IDs.
     """
     g = nx.gml.read_gml(filename)
 
@@ -322,6 +349,13 @@ def parse_metacarvel_gml(filename):
         ("orientation", "length"),
         ("orientation", "mean", "stdev", "bsize"),
     )
+
+    # nx.gml.read_gml() returns graphs of variable types, depending on the
+    # "directed" and "multigraph" flags in the first few lines of the file (and
+    # maybe some other things, idk). But the important thing is -- we want to
+    # make sure we return a nx.MultiDiGraph object from here, even if the graph
+    # contains (for now) no parallel edges.
+    g = make_multigraph_if_not_already(g)
 
     # Verify that node attributes are good. Also, change orientations from FOW
     # and REV to + and -, to standardize this across filetypes, and convert
@@ -384,17 +418,18 @@ def parse_metacarvel_gml(filename):
 
 
 def parse_gfa(filename):
-    """Returns a nx.DiGraph representation of a GFA1 or GFA2 file.
+    """Returns a nx.MultiDiGraph representation of a GFA1 or GFA2 file.
 
     NOTE that, at present, we only visualize nodes and edges in the GFA graph.
     A TODO is displaying all or most of the relevant information in these
     graphs, like GfaViz does: see
-    https://github.com/marbl/MetagenomeScope/issues/147 for discussion of this.
+    https://github.com/marbl/MetagenomeScope/issues/147 and
+    https://github.com/marbl/MetagenomeScope/issues/238 for further details.
     """
-    digraph = nx.DiGraph()
+    digraph = nx.MultiDiGraph()
     gfa_graph = gfapy.Gfa.from_file(filename)
 
-    # Add nodes ("segments") to the DiGraph
+    # Add nodes ("segments") to the graph
     for node in gfa_graph.segments:
         if node.length is None:
             raise GraphParsingError(
@@ -451,8 +486,21 @@ def parse_gfa(filename):
 
 
 def parse_fastg(filename):
+    """Returns a nx.MultiDiGraph representation of a FASTG file.
+
+    We delegate most of this work to the pyfastg library
+    (https://github.com/fedarko/pyfastg).
+    """
     g = pyfastg.parse_fastg(filename)
     validate_nx_digraph(g, ("length", "cov", "gc"), ())
+    # As writing, the latest pyfastg version (0.1.0) will throw an error if you
+    # try to use it to parse a multigraph. See
+    # https://github.com/fedarko/pyfastg/issues/8. This probably isn't a big
+    # deal, since I don't think SPAdes or MEGAHIT generate multigraph FASTG
+    # files (although I'm not 100% sure about that). In any case, if people
+    # want us to support multigraph FASTG files, then we'd just need to update
+    # pyfastg (and then the rest of this function shouldn't need to change).
+    g = make_multigraph_if_not_already(g)
     # Add an "orientation" attribute for every node.
     # pyfastg guarantees that every node should have a +/- suffix assigned to
     # its name, so this should be safe.
@@ -465,15 +513,14 @@ def parse_fastg(filename):
         else:
             raise GraphParsingError(
                 (
-                    "Node {} in parsed FASTG file doesn't have an "
-                    "orientation?"
+                    "Node {} in parsed FASTG file doesn't have an orientation?"
                 ).format(n)
             )
     return g
 
 
 def parse_lastgraph(filename):
-    """Returns a nx.DiGraph representation of a LastGraph (Velvet) file.
+    """Returns a nx.MultiDiGraph representation of a LastGraph (Velvet) file.
 
     As far as I'm aware, there isn't a standard LastGraph parser available
     for Python. This function, then, just uses a simple line-by-line
@@ -483,6 +530,14 @@ def parse_lastgraph(filename):
 
     Fun fact: this parser was the first part of MetagenomeScope I ever
     wrote! (I've updated the code since to be a bit less sloppy.)
+
+    Notes
+    -----
+    I haven't actually seen any LastGraph files that are multigraphs (you know,
+    besides the files I've made up for testing). Returning a MultiDiGraph
+    instead of a DiGraph might be overkill, then. (But we can definitely
+    introduce parallel edges later on during pattern collapsing, so it's good
+    to keep this around for now.)
 
     References
     ----------
@@ -504,7 +559,7 @@ def parse_lastgraph(filename):
         # this time, instead of just checking it for correctness.
         # CODELINK: https://stackoverflow.com/a/2106825/10730311
         graph_file.seek(0)
-        digraph = nx.DiGraph()
+        digraph = nx.MultiDiGraph()
         parsing_node = False
         parsed_fwdseq = False
         curr_node_attrs = {
