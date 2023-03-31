@@ -848,10 +848,10 @@ def parse_dot(filename):
 
     # Only one of these should be True. ("^" is the XOR operator in Python.)
     # I thiiiink this case will only get triggered if, uh, there aren't any
-    # edges in the graph. But I'm keeping this here just in case I messed
-    # something up.
+    # edges in the graph (which already should have been taken care of above).
+    # But I'm keeping this here just in case I messed something up.
     if not (lja_vibes ^ flye_vibes):
-        raise GraphParsingError("Call a priest. Something went wrong.")
+        raise WeirdError("Call a priest. Something went wrong.")
 
     # Both Flye and LJA DOT files, as of writing, provide some cosmetic
     # node-specific attributes ("style" = "filled", "fillcolor" = either "grey"
