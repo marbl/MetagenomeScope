@@ -1,4 +1,4 @@
-# from .utils import run_tempfile_test
+import networkx as nx
 from metagenomescope.input_node_utils import negate_node_id
 from metagenomescope.assembly_graph_parser import parse_gfa
 from metagenomescope.errors import GraphParsingError
@@ -8,7 +8,7 @@ from gfapy.error import InconsistencyError
 
 def check_sample_gfa_digraph(digraph):
     """Checks that all of the collected data (nodes, edges, node gc content)
-    looks good for the NX DiGraph produced by running parse_gfa() on
+    looks good for the NX MultiDiGraph produced by running parse_gfa() on
     sample1.gfa or sample2.gfa.
 
     (sample1.gfa and sample2.gfa describe the same graph structure, albeit in
@@ -19,6 +19,7 @@ def check_sample_gfa_digraph(digraph):
     the ways parse_gfa() cares about), and 2) it lets me be lazy and reuse all
     of this test code ;)
     """
+    assert type(digraph) is nx.MultiDiGraph
     assert len(digraph.nodes) == 12
     assert len(digraph.edges) == 8
 
@@ -82,12 +83,11 @@ def test_parse_self_implied_edge():
     We define a "self-implied edge" as an edge whose complement is itself. An
     example of such an edge is 2+ -> 2- in loop.gfa; the complement of this
     edge is -(2-) -> -(2+), which is equal to 2+ -> 2- (my notation looks kind
-    of sillyt but you get the idea).
+    of silly but you get the idea).
 
     The expected behavior is that self-implied edges are only added to the
-    assembly graph visualization once, since duplicate edges in general don't
-    really make sense here. This corroborates the visualization of loop.gfa in
-    Shaun's repository containing it
+    assembly graph visualization once. This corroborates the visualization of
+    loop.gfa in Shaun's repository containing it
     (https://github.com/sjackman/assembly-graph).
     """
     digraph = parse_gfa("metagenomescope/tests/input/loop.gfa")

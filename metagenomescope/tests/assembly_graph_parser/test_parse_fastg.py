@@ -1,3 +1,4 @@
+import networkx as nx
 from .utils import run_tempfile_test
 
 
@@ -24,6 +25,7 @@ def get_test_fastg():
 
 def test_good():
     g = run_tempfile_test("fastg", get_test_fastg(), None, None)
+    assert type(g) is nx.MultiDiGraph
     # CODELINK: remaining code in this function is taken from
     # test_parse_small_assembly_graph() in the pyfastg codebase.
     # (...I mean, I literally wrote that function, but might as well cite it?)

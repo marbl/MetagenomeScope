@@ -1,3 +1,4 @@
+import networkx as nx
 from .utils import run_tempfile_test
 from metagenomescope.errors import GraphParsingError
 from metagenomescope.assembly_graph_parser import parse_lastgraph
@@ -10,7 +11,9 @@ def test_parse_lastgraph_good():
     digraph = parse_lastgraph(
         "metagenomescope/tests/input/cycletest_LastGraph"
     )
-    # Verify that a NetworkX DiGraph was computed based on this file accurately
+    # Verify that a NetworkX MultiDiGraph was computed based on this file
+    # accurately.
+    assert type(digraph) is nx.MultiDiGraph
     # We expect 4 nodes and 4 edges due to the graph being interpreted as
     # unoriented (i.e. each node's forward or reverse orientation can be used)
     assert len(digraph.nodes) == 4
@@ -44,10 +47,11 @@ def test_parse_lastgraph_good():
     assert digraph.nodes["-2"]["gc_content"] == (1 / 6)
 
     # Check that edges were properly stored in the digraph
-    for edge_id in (("1", "2"), ("-2", "-1")):
+    # (The 0s correspond to keys, since this is a multigraph)
+    for edge_id in (("1", "2", 0), ("-2", "-1", 0)):
         assert edge_id in digraph.edges
         assert digraph.edges[edge_id]["multiplicity"] == 5
-    for edge_id in (("2", "1"), ("-1", "-2")):
+    for edge_id in (("2", "1", 0), ("-1", "-2", 0)):
         assert edge_id in digraph.edges
         assert digraph.edges[edge_id]["multiplicity"] == 9
 

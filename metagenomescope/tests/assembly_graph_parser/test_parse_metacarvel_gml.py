@@ -1,3 +1,4 @@
+import networkx as nx
 from networkx import NetworkXError
 from .utils import run_tempfile_test
 from metagenomescope.errors import GraphParsingError
@@ -20,6 +21,7 @@ def test_parse_metacarvel_gml_good():
     digraph = parse_metacarvel_gml(
         "metagenomescope/tests/input/marygold_fig2a.gml"
     )
+    assert type(digraph) is nx.MultiDiGraph
     # Make sure that the appropriate amounts of nodes and edges are read
     assert len(digraph.nodes) == 12
     assert len(digraph.edges) == 16
