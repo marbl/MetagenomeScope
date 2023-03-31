@@ -1,8 +1,11 @@
+import networkx as nx
 import pytest
 from metagenomescope.assembly_graph_parser import (
     sniff_filetype,
     is_not_pos_int,
+    make_multigraph_if_not_already,
 )
+from metagenomescope.errors import WeirdError
 
 
 def test_is_not_pos_int():
@@ -87,12 +90,59 @@ def test_sniff_filetype():
         sniff_filetype("asdf")
 
 
-# def test_assemblygraph_constructor_and_sniff_filetype():
-#     velvet_g = AssemblyGraph("metagenomescope/tests/input/cycletest_LastGraph")
-#
-#     gml_g = AssemblyGraph("metagenomescope/tests/input/marygold_fig2a.gml")
-#
-#     gfa_g = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
-#
-#     with pytest.raises(NotImplementedError):
-#         AssemblyGraph("metagenomescope/tests/input/garbage.thing")
+def test_make_multigraph_if_not_already_conversion():
+    g = nx.DiGraph()
+    g.add_edge(5, 6)
+    g.add_edge(5, 6)
+    assert len(g.nodes) == 2
+    # adding the same edge twice won't do anything
+    assert len(g.edges) == 1
+
+    m = make_multigraph_if_not_already(g)
+    assert type(m) == nx.MultiDiGraph
+    # of course, the structure of the graph is still the same. it's not like
+    # networkx *knows* about the parallel edge that we tried to add earlier.
+    assert len(m.nodes) == 2
+    assert len(m.edges) == 1
+    # ... but now, we can add parallel edges!
+    m.add_edge(5, 6)
+    assert len(m.nodes) == 2
+    assert len(m.edges) == 2
+
+
+def test_make_multigraph_if_not_already_no_conversion():
+    g = nx.MultiDiGraph()
+    g.add_edge(5, 6)
+    g.add_edge(5, 6)
+    assert len(g.nodes) == 2
+    assert len(g.edges) == 2
+    m = make_multigraph_if_not_already(g)
+    assert type(m) == nx.MultiDiGraph
+    assert g == m
+
+
+def test_make_multigraph_if_not_already_bad_type_undirected():
+    # construct an undirected graph
+    g = nx.Graph()
+    g.add_edge(5, 6)
+    g.add_edge(5, 6)
+    assert len(g.nodes) == 2
+    assert len(g.edges) == 1
+    with pytest.raises(WeirdError):
+        make_multigraph_if_not_already(g)
+
+
+def test_make_multigraph_if_not_already_bad_type_undirected_multigraph():
+    # construct an undirected multigraph
+    g = nx.MultiGraph()
+    g.add_edge(5, 6)
+    g.add_edge(5, 6)
+    assert len(g.nodes) == 2
+    assert len(g.edges) == 2
+    with pytest.raises(WeirdError):
+        make_multigraph_if_not_already(g)
+
+
+def test_make_multigraph_if_not_already_bad_type_misc():
+    with pytest.raises(WeirdError):
+        make_multigraph_if_not_already("lol i'm evil")
