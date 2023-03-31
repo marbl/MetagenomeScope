@@ -5,6 +5,28 @@ from metagenomescope.errors import GraphParsingError
 from metagenomescope.assembly_graph_parser import parse_metacarvel_gml
 
 
+def check_marygold_fig2a_graph_nodes_and_edges(digraph):
+    for i in range(1, 13):
+        label = "NODE_{}".format(i)
+        if i == 3:
+            assert digraph.nodes[label]["orientation"] == "-"
+        else:
+            assert digraph.nodes[label]["orientation"] == "+"
+        assert digraph.nodes[label]["length"] == 100
+        assert "id" not in digraph.nodes[label]
+        assert "label" not in digraph.nodes[label]
+    for e in digraph.edges:
+        if e == ("NODE_3", "NODE_5", 0):
+            assert digraph.edges[e]["orientation"] == "BB"
+        elif e == ("NODE_1", "NODE_3", 0):
+            assert digraph.edges[e]["orientation"] == "EE"
+        else:
+            assert digraph.edges[e]["orientation"] == "EB"
+        assert digraph.edges[e]["mean"] == "-200.00"
+        assert digraph.edges[e]["stdev"] == 25.1234
+        assert digraph.edges[e]["bsize"] == 30
+
+
 def test_parse_metacarvel_gml_good():
     """Tests that MetaCarvel GMLs are parsed correctly, using the MaryGold
     fig. 2a graph as an example.
@@ -25,25 +47,7 @@ def test_parse_metacarvel_gml_good():
     # Make sure that the appropriate amounts of nodes and edges are read
     assert len(digraph.nodes) == 12
     assert len(digraph.edges) == 16
-    for i in range(1, 13):
-        label = "NODE_{}".format(i)
-        if i == 3:
-            assert digraph.nodes[label]["orientation"] == "-"
-        else:
-            assert digraph.nodes[label]["orientation"] == "+"
-        assert digraph.nodes[label]["length"] == 100
-        assert "id" not in digraph.nodes[label]
-        assert "label" not in digraph.nodes[label]
-    for e in digraph.edges:
-        if e == ("NODE_3", "NODE_5"):
-            assert digraph.edges[e]["orientation"] == "BB"
-        elif e == ("NODE_1", "NODE_3"):
-            assert digraph.edges[e]["orientation"] == "EE"
-        else:
-            assert digraph.edges[e]["orientation"] == "EB"
-        assert digraph.edges[e]["mean"] == "-200.00"
-        assert digraph.edges[e]["stdev"] == 25.1234
-        assert digraph.edges[e]["bsize"] == 30
+    check_marygold_fig2a_graph_nodes_and_edges(digraph)
 
 
 def get_marygold_gml():
@@ -192,8 +196,8 @@ def test_parse_metacarvel_gml_undirected_graph():
 
 
 def test_parse_metacarvel_gml_duplicate_edges():
-    """Tests parsing GMLs with duplicate edges, which are disallowed in
-    MetagenomeScope.
+    """Tests parsing GMLs with duplicate edges, which are **UPDATE**: now
+    allowed in MetagenomeScope! Whooooooo i am so tired
     """
     mg = get_marygold_gml()
     # Remove the last line in the file (only contains a ] character, and closes
@@ -215,21 +219,25 @@ def test_parse_metacarvel_gml_duplicate_edges():
     )
 
     # NetworkX should have just failed when trying to read this GML file, since
-    # it includes a duplicate edge and is a multigraph. Cool!
-    # Now, let's be antagonistic and turn this graph into a multigraph, in an
-    # attempt to get NetworkX to let this slide.
+    # it includes a duplicate edge and is a multigraph (but it doesn't have the
+    # "multigraph 1" GML flag set). Now, let's modify the file to set this
+    # flag, which should get NetworkX to let this slide.
     mg.insert(1, "  multigraph 1\n")
 
-    # This time around, parse_metacarvel_gml() should raise an error: it'll
-    # detect that the input graph is a multigraph and be all like "nuh uh
-    # you didn't get that from MetaCarvel, now did you" (something like that)
-    run_tempfile_test(
-        "gml",
-        mg,
-        GraphParsingError,
-        "Multigraphs are unsupported",
-        join_char="",
-    )
+    # This time around, parse_metacarvel_gml() should actually succeed.
+    g = run_tempfile_test("gml", mg, None, None, join_char="")
+    assert type(g) is nx.MultiDiGraph
+    assert len(g.nodes) == 12
+    # 1 more edge than the normal marygold fig. 2a graph
+    assert len(g.edges) == 17
+    # Verify that the nodes and edges look like we expect them to (this utility
+    # function will check that there are exactly 12 nodes numbered as expected,
+    # but it doesn't explicitly check the number of edges -- so it should still
+    # succeed for this graph)
+    check_marygold_fig2a_graph_nodes_and_edges(g)
+    # Verify that the duplicate edge made it through as expected
+    assert ("NODE_12", "NODE_8", 0) in g.edges
+    assert ("NODE_12", "NODE_8", 1) in g.edges
 
 
 def test_parse_metacarvel_gml_duplicate_nodes():
