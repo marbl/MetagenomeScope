@@ -163,6 +163,7 @@ def test_validate_lastgraph_repeat_edge_declaration():
     glines[8] = "ARC\t1\t2\t9"
     run_validate(glines)
 
+
 def test_validate_lastgraph_insufficent_edge_declaration():
     # Test insufficient arc (edge) declarations
     glines = reset_glines()
