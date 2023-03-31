@@ -1,5 +1,7 @@
 import networkx as nx
 from metagenomescope.assembly_graph_parser import parse_dot
+from metagenomescope.errors import GraphParsingError
+from .utils import run_tempfile_test
 
 
 def test_parse_flye_yeast_good():
@@ -91,3 +93,20 @@ def test_parse_flye_yeast_good():
         "cov": 77078,
         "dir": "both",
     }
+
+
+def test_parse_mixed_edge_type_dot():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "id -5\l6k 777x", color = "red", penwidth = 3];',
+            '2 -> 3 [color = "black", label="A99(2)"];',
+            "}",
+        ],
+        GraphParsingError,
+        (
+            "Edge 2 -> 3 looks like it came from LJA, but other edge(s) in "
+            "the same file look like they came from Flye?"
+        ),
+    )

@@ -705,7 +705,7 @@ def parse_dot(filename):
             if lja_vibes:
                 raise GraphParsingError(
                     f"{err_prefix} looks like it came from Flye, but other "
-                    "edges in the same file look like they came from LJA?"
+                    "edge(s) in the same file look like they came from LJA?"
                 )
             if "\\l" not in label:
                 raise GraphParsingError(
@@ -818,7 +818,7 @@ def parse_dot(filename):
             if flye_vibes:
                 raise GraphParsingError(
                     f"{err_prefix} looks like it came from LJA, but other "
-                    "edges in the same file look like they came from Flye?"
+                    "edge(s) in the same file look like they came from Flye?"
                 )
             label_first_line = label.splitlines()[0]
             lfl_match = re.match(LJA_LFL_PATT, label_first_line)
