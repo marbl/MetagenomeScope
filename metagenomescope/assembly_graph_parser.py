@@ -420,11 +420,18 @@ def parse_metacarvel_gml(filename):
 def parse_gfa(filename):
     """Returns a nx.MultiDiGraph representation of a GFA1 or GFA2 file.
 
-    NOTE that, at present, we only visualize nodes and edges in the GFA graph.
-    A TODO is displaying all or most of the relevant information in these
-    graphs, like GfaViz does: see
-    https://github.com/marbl/MetagenomeScope/issues/147 and
-    https://github.com/marbl/MetagenomeScope/issues/238 for further details.
+    Notes
+    -----
+    - At present, we only visualize nodes and edges in the GFA graph.
+      A TODO is displaying all or most of the relevant information in these
+      graphs, like GfaViz does: see
+      https://github.com/marbl/MetagenomeScope/issues/147 and
+      https://github.com/marbl/MetagenomeScope/issues/238 for further details.
+
+    - Although this returns an object of type nx.MultiGraph, it won't actually
+      contain any parallel edges. This is because, as of writing, GfaPy will
+      throw a NotUniqueError if you to have it read a GFA file containing
+      duplicate link lines.
     """
     digraph = nx.MultiDiGraph()
     gfa_graph = gfapy.Gfa.from_file(filename)
@@ -490,16 +497,21 @@ def parse_fastg(filename):
 
     We delegate most of this work to the pyfastg library
     (https://github.com/fedarko/pyfastg).
+
+    Notes
+    -----
+    Although this returns an object of type nx.MultiGraph, it won't actually
+    contain any parallel edges. This is because, as of writing, the latest
+    pyfastg version (0.1.0) will throw an error if you try to use it to parse
+    a multigraph. See https://github.com/fedarko/pyfastg/issues/8. This
+    probably isn't a big deal, since I don't think SPAdes or MEGAHIT generate
+    multigraph FASTG files (although I'm not 100% sure about that). In any
+    case, if people want us to support multigraph FASTG files, then we'd just
+    need to update pyfastg (and then the rest of this function shouldn't need
+    to change).
     """
     g = pyfastg.parse_fastg(filename)
     validate_nx_digraph(g, ("length", "cov", "gc"), ())
-    # As writing, the latest pyfastg version (0.1.0) will throw an error if you
-    # try to use it to parse a multigraph. See
-    # https://github.com/fedarko/pyfastg/issues/8. This probably isn't a big
-    # deal, since I don't think SPAdes or MEGAHIT generate multigraph FASTG
-    # files (although I'm not 100% sure about that). In any case, if people
-    # want us to support multigraph FASTG files, then we'd just need to update
-    # pyfastg (and then the rest of this function shouldn't need to change).
     g = make_multigraph_if_not_already(g)
     # Add an "orientation" attribute for every node.
     # pyfastg guarantees that every node should have a +/- suffix assigned to
