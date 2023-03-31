@@ -128,9 +128,35 @@ def test_parse_lastgraph_multigraph():
         ("1", "2", 0),
         ("1", "2", 1),
     ]
-    # This order should be consistent, since my LastGraph parser goes
-    # line-by-line
+    # This order (of which edge has a key of 0 and which edge has a key of 1
+    # according to NetworkX) should be consistent, since my LastGraph parser
+    # goes line-by-line through the input file (so if there are two edges, the
+    # first one listed in the file should have a key of 0 then the next one
+    # should have a key of 1)
     assert g.edges[("1", "2", 0)]["multiplicity"] == 5
     assert g.edges[("-2", "-1", 0)]["multiplicity"] == 5
     assert g.edges[("1", "2", 1)]["multiplicity"] == 8
     assert g.edges[("-2", "-1", 1)]["multiplicity"] == 8
+
+
+def test_parse_lastgraph_self_implying_edge():
+    glines = reset_glines()
+    glines[8] = "ARC\t2\t-2\t800"
+    # +2 -> -2 has a complement of -(-2) -> -(+2) = +2 -> -2. So, it implies
+    # itself. See https://github.com/marbl/MetagenomeScope/issues/240 for
+    # details about how I hope to eventually handle this; for now, we just only
+    # add this edge *once*.
+    g = run_tempfile_test("LastGraph", glines, None, None)
+    # There should be 4 nodes: 1, -1, 2, -2
+    assert len(g.nodes) == 4
+    # ... but only 3 edges: 1 -> 2, -2 -> -1, and 2 -> -2. This is because the
+    # complement of 2 -> -2 is itself, as shown above.
+    assert len(g.edges) == 3
+    assert sorted(g.edges) == [
+        ("-2", "-1", 0),
+        ("1", "2", 0),
+        ("2", "-2", 0),
+    ]
+    assert g.edges[("1", "2", 0)]["multiplicity"] == 5
+    assert g.edges[("-2", "-1", 0)]["multiplicity"] == 5
+    assert g.edges[("2", "-2", 0)]["multiplicity"] == 800
