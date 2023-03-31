@@ -109,3 +109,28 @@ def test_parse_lastgraph_invalid_node_count():
 
     glines[0] = "0\t10\t1\t1"
     run_tempfile_test("LastGraph", glines, GraphParsingError, exp_msg)
+
+
+def test_parse_lastgraph_multigraph():
+    glines = reset_glines()
+    glines[8] = "ARC\t1\t2\t8"
+    # This graph should now have four nodes (1, -1, 2, -2) and two edges
+    # (1  -->  2 with multiplicity 5;
+    #  -2 --> -1 with multiplicity 5;
+    #  1  -->  2 with multiplicity 8;
+    #  -2 --> -1 with multiplicity 8).
+    g = run_tempfile_test("LastGraph", glines, None, None)
+    assert len(g.nodes) == 4
+    assert len(g.edges) == 4
+    assert sorted(g.edges) == [
+        ("-2", "-1", 0),
+        ("-2", "-1", 1),
+        ("1", "2", 0),
+        ("1", "2", 1),
+    ]
+    # This order should be consistent, since my LastGraph parser goes
+    # line-by-line
+    assert g.edges[("1", "2", 0)]["multiplicity"] == 5
+    assert g.edges[("-2", "-1", 0)]["multiplicity"] == 5
+    assert g.edges[("1", "2", 1)]["multiplicity"] == 8
+    assert g.edges[("-2", "-1", 1)]["multiplicity"] == 8
