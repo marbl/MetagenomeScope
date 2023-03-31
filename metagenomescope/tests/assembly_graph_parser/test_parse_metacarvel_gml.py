@@ -490,7 +490,7 @@ def test_parse_metacarvel_gml_repeated_edge_attrs():
     mg = get_marygold_gml()
     mg.insert(166, '   orientation "EB"\n')
     exp_msg = (
-        "Edge ('NODE_7', 'NODE_12') has unsupported orientation "
+        "Edge ('NODE_7', 'NODE_12', 0) has unsupported orientation "
         "\"['EB', 'EB']\"."
     )
     run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
@@ -498,7 +498,7 @@ def test_parse_metacarvel_gml_repeated_edge_attrs():
     mg = get_marygold_gml()
     mg.insert(166, '   mean "123.45"\n')
     exp_msg = (
-        "Edge ('NODE_7', 'NODE_12') has non-numeric mean "
+        "Edge ('NODE_7', 'NODE_12', 0) has non-numeric mean "
         "\"['123.45', '-200.00']\"."
     )
     run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
@@ -506,7 +506,7 @@ def test_parse_metacarvel_gml_repeated_edge_attrs():
     mg = get_marygold_gml()
     mg.insert(166, '   stdev "123.45"\n')
     exp_msg = (
-        "Edge ('NODE_7', 'NODE_12') has non-numeric stdev "
+        "Edge ('NODE_7', 'NODE_12', 0) has non-numeric stdev "
         "\"['123.45', 25.1234]\"."
     )
     run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
@@ -514,7 +514,7 @@ def test_parse_metacarvel_gml_repeated_edge_attrs():
     mg = get_marygold_gml()
     mg.insert(167, "   bsize 15\n")
     exp_msg = (
-        "Edge ('NODE_7', 'NODE_12') has non-positive-integer bsize "
+        "Edge ('NODE_7', 'NODE_12', 0) has non-positive-integer bsize "
         '"[15, 30]".'
     )
     run_tempfile_test("gml", mg, GraphParsingError, exp_msg, join_char="")
