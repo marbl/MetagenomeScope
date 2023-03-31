@@ -685,6 +685,8 @@ def parse_dot(filename):
     flye_vibes = False
     seen_one_edge = False
 
+    seen_flye_edge_ids = set()
+
     for e in g.edges(data=True, keys=True):
         seen_one_edge = True
         err_prefix = f"Edge {e[0]} -> {e[1]}"
@@ -732,6 +734,17 @@ def parse_dot(filename):
                     "shouldn't contain any whitespace."
                 )
             eid = id_parts[1]
+            # Enforce the restriction that edge IDs must be unique. We don't
+            # really need to do this (lots of graph filetypes don't even have
+            # edge IDs), but... it's nice to know this. (And probably duplicate
+            # IDs here would be a symptom of bugs or other problems upstream
+            # that the user should look into.)
+            if eid in seen_flye_edge_ids:
+                raise GraphParsingError(
+                    f"{err_prefix} has the ID {eid}, but other edge(s) in "
+                    "this file have the same ID."
+                )
+            seen_flye_edge_ids.add(eid)
 
             # Get the length and coverage
             lencov_part = parts[1]
