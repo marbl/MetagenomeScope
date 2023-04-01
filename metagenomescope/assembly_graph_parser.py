@@ -695,7 +695,7 @@ def parse_dot(filename):
         if "label" not in e[3]:
             raise GraphParsingError(
                 f"{err_prefix} has no label. Note that we currently only "
-                "accept Graphviz files from Flye or LJA / jumboDBG."
+                "accept DOT files from Flye or LJA."
             )
 
         # Both Flye and LJA DOT files have edge labels. Use this label to

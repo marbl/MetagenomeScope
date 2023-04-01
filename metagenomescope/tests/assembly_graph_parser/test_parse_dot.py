@@ -95,7 +95,15 @@ def test_parse_flye_yeast_good():
     }
 
 
-def test_parse_mixed_edge_type_dot():
+def test_parse_mixed_edge_type():
+    # NOTE: if we eventually add in support for non-Flye/LJA DOT files (e.g.
+    # where we only parse the topology of the graph's nodes/edges, and ignore
+    # other stuff), then these graphs should of course be supported.
+
+    # The cases of (Flye edge, then LJA edge) and vice versa trigger different
+    # sanity checks, so hit both of them.
+
+    # First: Flye edge, then LJA edge
     run_tempfile_test(
         "gv",
         [
@@ -108,5 +116,55 @@ def test_parse_mixed_edge_type_dot():
         (
             "Edge 2 -> 3 looks like it came from LJA, but other edge(s) in "
             "the same file look like they came from Flye?"
+        ),
+    )
+
+    # Second: LJA edge, then Flye edge
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '2 -> 3 [color = "black", label="A99(2)"];',
+            '1 -> 2 [label = "id -5\l6k 777x", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        (
+            "Edge 1 -> 2 looks like it came from Flye, but other edge(s) in "
+            "the same file look like they came from LJA?"
+        ),
+    )
+
+    # Paranoid extra check: two LJA edges, then a Flye edge
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '3 -> 4 [color = "black", label="C99(2)"];',
+            '2 -> 3 [color = "black", label="A99(2)"];',
+            '1 -> 2 [label = "id -5\l6k 777x", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        (
+            "Edge 1 -> 2 looks like it came from Flye, but other edge(s) in "
+            "the same file look like they came from LJA?"
+        ),
+    )
+
+
+def test_parse_nolabel_edge():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [color = "red", penwidth = 3];',
+            '2 -> 3 [color = "black", label="A99(2)"];',
+            "}",
+        ],
+        GraphParsingError,
+        (
+            "Edge 1 -> 2 has no label. Note that we currently only accept "
+            "DOT files from Flye or LJA."
         ),
     )
