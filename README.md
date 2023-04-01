@@ -102,7 +102,7 @@ support, please [let us know](#contact)!
 <!-- use of <strong> here was stolen from strainflye's readme, which in turn is
 based on https://codedragontech.com/createwithcodedragon/how-to-style-html-details-and-summary-tags/ -->
 <details>
-  <summary>Well, just because you asked so nicely, you charmer. <strong>(Click here to open.)</strong>
+  <summary>Well, just because you asked so nicely, you charmer. <strong>(Click here to open.)</strong></summary>
 
 #### "Explicit" graph filetypes (FASTG, DOT, GML)
 
