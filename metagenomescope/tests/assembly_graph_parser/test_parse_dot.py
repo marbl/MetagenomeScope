@@ -206,3 +206,19 @@ def test_parse_flye_label_many_backslash_ells():
         GraphParsingError,
         "Edge 1 -> 2 has a label containing more than one '\\l' separator?",
     )
+
+
+def test_parse_flye_label_bad_id_line():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "idee -5\\l6k 777x", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        # i feel like this error message, as it is currently, is not my best
+        # work, and i don't wanna tie myself to it in this test. so let's just
+        # make sure the first sentence of this error message gets thrown. (lol)
+        'Edge 1 -> 2 has a label with a first line of "idee -5".',
+    )

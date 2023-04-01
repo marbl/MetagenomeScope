@@ -726,11 +726,14 @@ def parse_dot(filename):
             # Get the edge ID
             id_part = parts[0]
             id_parts = id_part.split()
-            if len(id_parts) != 2:
+            # We already know that id_part should start with "id", but let's
+            # go further here and verify that it starts with "id ". Is this ...
+            # necessary? I dunno, but we may as well be thorough.
+            if id_parts[0] != "id" or len(id_parts) != 2:
                 raise GraphParsingError(
-                    f"{err_prefix} has a label where the first line is "
-                    f"{id_part}. There should be a single space character "
-                    "between the word 'id' and the actual ID, and the ID "
+                    f"{err_prefix} has a label with a first line of "
+                    f'"{id_part}". These lines should be formatted like '
+                    '"id 500", for an edge with an ID of 500. Note that IDs '
                     "shouldn't contain any whitespace."
                 )
             eid = id_parts[1]
@@ -819,6 +822,9 @@ def parse_dot(filename):
                     f"{err_prefix} looks like it came from LJA, but other "
                     "edge(s) in the same file look like they came from Flye?"
                 )
+            # LJA can generate labels spanning multiple lines (although
+            # jumboDBG's labels seem mostly to span single lines). The first
+            # line of the label is what we mainly care about.
             label_first_line = label.splitlines()[0]
             lfl_match = re.match(LJA_LFL_PATT, label_first_line)
             if lfl_match is None:
@@ -848,10 +854,11 @@ def parse_dot(filename):
                 # thinking we'd have to say "del g.edges[e[:3]]["color"]".)
                 del e[3]["color"]
 
-            # The full label could be useful for the visualization. LJA can
-            # generate labels spanning multiple lines (although jumboDBG's
-            # labels seem mostly to span single lines). So, we will not delete
-            # this label from the edge data.
+            # If the label spans multiple lines, then it could be useful to
+            # keep it around for the visualization. So, we will not delete
+            # this label from the edge data. (Maybe we can change this in the
+            # future if the space incurred by storing these labels becomes
+            # prohibitively large.)
             lja_vibes = True
 
     if not seen_one_edge:
