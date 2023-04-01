@@ -59,6 +59,13 @@ conda activate mgsc
 pip install git+https://github.com/marbl/MetagenomeScope.git
 ```
 
+### Troubleshooting your installation
+
+Getting Graphviz and PyGraphviz installed -- and getting them to communicate
+with each other -- can be tricky. I'm looking into ways of making this less
+painful; for now, if you run into problems, please feel free to [contact
+me](#contact) and I'll try to help out.
+
 ## Visualizing an assembly graph
 
 Assuming you are currently in the conda environment we just created,
@@ -83,60 +90,70 @@ should do that to verify that their graphs work ok -->
 | -------- | ------------------------------- | ----- |
 | [GFA](https://gfa-spec.github.io/GFA-spec/) (`.gfa`) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA), [miniasm](https://github.com/lh3/miniasm), [hifiasm](https://github.com/chhylp123/hifiasm), [hifiasm-meta](https://github.com/xfengnefx/hifiasm-meta), ... | Both GFA v1 and GFA v2 files are accepted, but [currently](https://github.com/marbl/MetagenomeScope/issues/147) only the raw structure (segments and links) are included. |
 | FASTG (`.fastg`) | [SPAdes](https://cab.spbu.ru/software/spades/), [MEGAHIT](https://github.com/voutcn/megahit) | Expects SPAdes-"dialect" FASTG files: see [pyfastg's documentation](https://github.com/fedarko/pyfastg) for details. |
-| [DOT](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) (`.dot`, `.gv`) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA) | Expects DOT files produced by Flye or LJA. Visualizing DOT files (rather than the GFA files also produced by these assemblers) can be preferable because GFA and FASTG files [are not ideal for storing de Bruijn graphs](https://github.com/AntonBankevich/LJA/blob/main/docs/jumbodbg_manual.md#output-of-de-bruijn-graph-construction), or other graphs in which sequences are stored on edges rather than nodes. The DOT files output by Flye and LJA should contain the _original_ structure of these graphs (in which edges and nodes in the visualization actually correspond to edges and nodes in the original graph, respectively). |
+| [DOT](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) (`.dot`, `.gv`) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA) | Expects DOT files produced by Flye or LJA. Visualizing DOT files (rather than the GFA files also produced by these assemblers) can be preferable because GFA and FASTG files [are not ideal](https://github.com/AntonBankevich/LJA/blob/main/docs/jumbodbg_manual.md#output-of-de-bruijn-graph-construction) for representing graphs in which sequences are stored on edges rather than nodes (e.g. de Bruijn graphs). The DOT files output by Flye and LJA should contain the _original_ structure of these graphs (in which edges and nodes in the visualization actually correspond to edges and nodes in the original graph, respectively). |
 | [GML](https://networkx.org/documentation/stable/reference/readwrite/gml.html) (`.gml`) | [MetaCarvel](https://github.com/marbl/MetaCarvel) | Expects MetaCarvel-"dialect" GML files. |
 | [LastGraph](https://github.com/dzerbino/velvet/blob/master/Manual.pdf) (`.LastGraph`) | [Velvet](https://github.com/dzerbino/velvet) | Only the raw structure (nodes and arcs) are included. |
 
 If you run into any additional assembly graph filetypes you'd like us to
 support, please [let us know](#contact)!
 
-## Code structure
+### I really want you to add a few sentences to the README talking about reverse complements, even though most users of this tool probably don't need to worry about that. But I want you to do it anyway, because you're so good at writing documentation that doesn't involve inane conversations with yourself. Can you do that for me?
 
-MetagenomeScope is composed of two main components:
+<details>
+  <summary>Well, just because you asked so nicely, you charmer.</summary>
 
-### 1. Preprocessing script
+#### "Explicit" graph filetypes (FASTG, DOT, GML)
 
-MetagenomeScope's **preprocessing script** (contained in the
-`metagenomescope/` directory of this repository) is a mostly-Python script that
-takes as input an assembly graph file and produces a directory containing a
-HTML visualization of the graph. Once installed, it can be run from the command
-line using the `mgsc` command.
+To make a long story short: when MetagenomeScope reads in FASTG, DOT, and GML files,
+it assumes that _these files explicitly describe all of the nodes and edges in the graph_.
+So, let's say you give MetagenomeScope the following LJA-style DOT file:
 
-**Note.** By default, connected components containing 8,000 or more nodes or
-edges will not be laid out. These thresholds are configurable using the
-`--max-node-count` / `--max-edge-count` parameters. This default is intended
-to save time and effort: hierarchical layout can take a really long time for
-complex and/or large connected components, so oftentimes trying to visualize
-the largest few components of a graph will take an intractable amount of
-computational resources / time. Furthermore, really complex components of
-assembly graphs can be hard to visualize meaningfully.
+```dot
+digraph g {
+  1 -> 2 [label="A99(2.4)"];
+}
+```
 
-This isn't always the case (for example, a
-connected component containing 10,000 nodes all in a straight line will be
-much easier to lay out and visualize than a connected component
-with 5,000 nodes and 20,000 edges), but we wanted to be conservative with the
-defaults.
+We will interpret this as a graph with **two nodes** (`1`, `2`) and **one edge**
+(`1 -> 2`).
 
-### 2. Viewer interface
+#### "Implicit" graph filetypes (GFA, LastGraph)
 
-MetagenomeScope's **viewer interface** (contained in the
-`metagenomescope/support_files/` directory
-of this repository) is a client-side web application that visualizes laid-out
-assembly graphs using [Cytoscape.js](https://js.cytoscape.org/).
+However, for GFA and LastGraph files, MetagenomeScope cannot make the
+assumption that these files explicitly describe all of the nodes and edges in
+the graph. When we read in these files, we assume that each node
+and edge (in GFA parlance, "segment" and "link"; in LastGraph parlance, "node"
+and "arc") has a reverse complement. So, let's say you give MetagenomeScope the
+following GFA file (based on
+[this example](https://github.com/sjackman/gfalint/blob/master/examples/sample1.gfa)):
 
-This interface includes various features for interacting with the graph and the
-identified structural patterns within it.
+```gfa
+H	VN:Z:1.0
+S	1	CGATGCAA
+S	2	TGCAAAGTAC
+L	1	+	2	+	5M
+```
 
-You should be able to load visualizations created by MetagenomeScope
-in most modern web browsers (mobile browsers probably will also work, although
-using a desktop browser is recommended).
+We will interpret this as a graph with **four nodes** (`1`, `-1`, `2`, `-2`)
+and **two edges** (`1 -> 2`, `-2 -> -1`).
 
-## Installation notes
+#### Implications of reverse-complement nodes /edges
 
-Getting Graphviz and PyGraphviz installed -- and getting them to communicate
-with each other -- can be tricky. I'm looking into ways of making this less
-painful; for now, if you run into problems, please feel free to contact me and
-I'll try to help out.
+Often, the presence of reverse-complement nodes / edges in a graph (whether
+they are explicitly described in a FASTG, DOT, or GML file, or are implicitly
+described in a GFA or LastGraph File)  doesn't impact the graph much.
+
+Consider the GFA example above. There are four nodes and two edges in this
+graph, but they form two [(weakly) connected components](https://en.wikipedia.org/wiki/Component_(graph_theory)) --
+that is, the graph contains one "island" of `1` and `2`, and another "island"
+of `-1` and `-2`. You can think of these entire components as "reverse
+complements" of each other: although MetagenomeScope will visualize both of
+them ([at least right now](https://github.com/marbl/MetagenomeScope/issues/67)),
+you don't really need to them separately. They give the same information.
+
+_This is not always the case_, though. Sometimes, a node and its reverse
+complement may wind up in the same component.
+</details>
 
 ## Demos
 
@@ -150,10 +167,6 @@ future.
 - [Velvet E. coli graph](https://marbl.github.io/MetagenomeScope/demos/bandage-ecoli-example/index.html)
   - This graph is example data from the website of [Bandage](http://rrwick.github.io/Bandage/)
     (which is another great tool for visualizing assembly graphs :)
-
-## More thorough documentation
-
-Coming soon.
 
 ## License
 
