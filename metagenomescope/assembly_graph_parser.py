@@ -709,19 +709,18 @@ def parse_dot(filename):
                 )
             if "\\l" not in label:
                 raise GraphParsingError(
-                    f"{err_prefix} has a label that looks like it came from "
-                    "Flye, but doesn't include a '\\l' separator."
+                    f"{err_prefix} has a label containing zero '\\l' "
+                    "separators?"
                 )
             parts = label.split("\\l")
-            if len(parts) != 2:
-                # This is kind of untrue -- there are other newline separators
-                # that Graphviz accepts
-                # (https://graphviz.org/docs/attr-types/escString/) -- but we
-                # can assume that only \l will be used since that's what Flye
-                # uses (at the moment).
+            if len(parts) > 2:
+                # Note that there are other newline separators besides \l that
+                # Graphviz accepts (graphviz.org/docs/attr-types/escString/) --
+                # but we can assume that only \l will be used since that's what
+                # Flye uses. (Well, at the moment.)
                 raise GraphParsingError(
-                    f"{err_prefix} has a label that seems like it spans != 2 "
-                    "lines?"
+                    f"{err_prefix} has a label containing more than one '\\l' "
+                    "separator?"
                 )
 
             # Get the edge ID

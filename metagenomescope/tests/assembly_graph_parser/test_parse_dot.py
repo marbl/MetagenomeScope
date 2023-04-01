@@ -108,7 +108,7 @@ def test_parse_mixed_edge_type():
         "gv",
         [
             "digraph g {",
-            '1 -> 2 [label = "id -5\l6k 777x", color = "red", penwidth = 3];',
+            '1 -> 2 [label = "id -5\\l6k 777x", color = "red", penwidth = 3];',
             '2 -> 3 [color = "black", label="A99(2)"];',
             "}",
         ],
@@ -125,7 +125,7 @@ def test_parse_mixed_edge_type():
         [
             "digraph g {",
             '2 -> 3 [color = "black", label="A99(2)"];',
-            '1 -> 2 [label = "id -5\l6k 777x", color = "red", penwidth = 3];',
+            '1 -> 2 [label = "id -5\\l6k 777x", color = "red", penwidth = 3];',
             "}",
         ],
         GraphParsingError,
@@ -142,7 +142,7 @@ def test_parse_mixed_edge_type():
             "digraph g {",
             '3 -> 4 [color = "black", label="C99(2)"];',
             '2 -> 3 [color = "black", label="A99(2)"];',
-            '1 -> 2 [label = "id -5\l6k 777x", color = "red", penwidth = 3];',
+            '1 -> 2 [label = "id -5\\l6k 777x", color = "red", penwidth = 3];',
             "}",
         ],
         GraphParsingError,
@@ -167,4 +167,42 @@ def test_parse_nolabel_edge():
             "Edge 1 -> 2 has no label. Note that we currently only accept "
             "DOT files from Flye or LJA."
         ),
+    )
+
+
+def test_parse_flye_label_no_backslash_ell():
+    # \n instead of \l
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "id -5\n6k 777x", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        "Edge 1 -> 2 has a label containing zero '\\l' separators?",
+    )
+    # No newlines at all
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '100 -> 200 [label = "id -5 6k 777x", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        "Edge 100 -> 200 has a label containing zero '\\l' separators?",
+    )
+
+
+def test_parse_flye_label_many_backslash_ells():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "id -5\\l6k\\l777x", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        "Edge 1 -> 2 has a label containing more than one '\\l' separator?",
     )
