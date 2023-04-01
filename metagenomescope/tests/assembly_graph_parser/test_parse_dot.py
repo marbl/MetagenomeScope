@@ -222,3 +222,20 @@ def test_parse_flye_label_bad_id_line():
         # make sure the first sentence of this error message gets thrown. (lol)
         'Edge 1 -> 2 has a label with a first line of "idee -5".',
     )
+
+
+def test_parse_flye_duplicate_edge_ids():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "id -5\\l6k 777x", color = "red", penwidth = 3];',
+            '2 -> 3 [label = "id -5\\l7k 888x", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        (
+            "Edge 2 -> 3 has the ID -5, but other edge(s) in this file have "
+            "the same ID."
+        )
+    )
