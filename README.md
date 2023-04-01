@@ -137,22 +137,32 @@ L	1	+	2	+	5M
 We will interpret this as a graph with **four nodes** (`1`, `-1`, `2`, `-2`)
 and **two edges** (`1 -> 2`, `-2 -> -1`).
 
-#### Implications of reverse-complement nodes /edges
+#### Impacts of reverse-complement nodes / edges on the graph structure
 
-Often, the presence of reverse-complement nodes / edges in a graph (whether
+Often, the presence of reverse-complement nodes / edges (whether
 they are explicitly described in a FASTG, DOT, or GML file, or are implicitly
-described in a GFA or LastGraph File)  doesn't impact the graph much.
+described in a GFA or LastGraph file) doesn't impact the graph structure much.
 
-Consider the GFA example above. There are four nodes and two edges in this
-graph, but they form two [(weakly) connected components](https://en.wikipedia.org/wiki/Component_(graph_theory)) --
+What does this mean? Consider the GFA example above. There are four nodes and
+two edges in this graph, but they form two
+[(weakly) connected components](https://en.wikipedia.org/wiki/Component_(graph_theory)) --
 that is, the graph contains one "island" of `1` and `2`, and another "island"
 of `-1` and `-2`. You can think of these entire components as "reverse
 complements" of each other: although MetagenomeScope will visualize both of
 them ([at least right now](https://github.com/marbl/MetagenomeScope/issues/67)),
-you don't really need to them separately. They give the same information.
+you don't really need to analyze them separately. They describe the same
+sequences, just in different directions.\*
 
-_This is not always the case_, though. Sometimes, a node and its reverse
+_This is not always the case_, though. Sometimes a node and its reverse
 complement may wind up in the same component.
+
+\* This is technically not true for LastGraph files. Consider a node `A` in a
+LastGraph file: the sequence of `A` will not be exactly equal to the reverse
+complement of the sequence of `-A`, since they will be slightly shifted. See
+[the Bandage wiki](https://github.com/rrwick/Bandage/wiki/Assembler-differences#velvet)
+for a nice figure and explanation. (That being said, the intuition for
+"thinking about reverse-complement nodes / edges" here is pretty much the same
+as it is for other graphs.)
 </details>
 
 ## Demos
