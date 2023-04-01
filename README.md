@@ -146,10 +146,11 @@ described in a GFA or LastGraph file) doesn't impact the graph structure much.
 What does this mean? Consider the GFA example above. There are four nodes and
 two edges in this graph, but they form two
 [(weakly) connected components](https://en.wikipedia.org/wiki/Component_(graph_theory)) --
-that is, the graph contains one "island" of `1` and `2`, and another "island"
-of `-1` and `-2`. You can think of these entire components as "reverse
-complements" of each other: although MetagenomeScope will visualize both of
-them ([at least right now](https://github.com/marbl/MetagenomeScope/issues/67)),
+that is, the graph contains one "island" of `1` and `2` (which are connected to
+each other), and another "island" of `-1` and `-2` (which are also connected to each other).
+You can think of these entire components as "reverse complements" of each other:
+although MetagenomeScope will visualize both of them
+([at least right now](https://github.com/marbl/MetagenomeScope/issues/67)),
 you don't really need to analyze them separately. They describe the same
 sequences, just in different directions.\*
 
@@ -162,7 +163,7 @@ complement of the sequence of `-A`, since they will be slightly shifted. See
 [the Bandage wiki](https://github.com/rrwick/Bandage/wiki/Assembler-differences#velvet)
 for a nice figure and explanation. (That being said, the intuition for
 "thinking about reverse-complement nodes / edges" here is pretty much the same
-as it is for other graphs.)
+as it is for other files.)
 </details>
 
 ## Demos
