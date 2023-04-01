@@ -99,8 +99,10 @@ support, please [let us know](#contact)!
 
 ### I really want you to add a section to the README talking about reverse complements, even though most users of this tool probably don't need to worry about that. But I want you to do it anyway, because you're so good at writing documentation that doesn't involve inane conversations with yourself. Can you do that for me?
 
+<!-- use of <strong> here was stolen from strainflye's readme, which in turn is
+based on https://codedragontech.com/createwithcodedragon/how-to-style-html-details-and-summary-tags/ -->
 <details>
-  <summary>Well, just because you asked so nicely, you charmer. `(Click here.)`</summary>
+  <summary>Well, just because you asked so nicely, you charmer. <strong>(Click here to open.)</strong>
 
 #### "Explicit" graph filetypes (FASTG, DOT, GML)
 
