@@ -97,7 +97,7 @@ should do that to verify that their graphs work ok -->
 If you run into any additional assembly graph filetypes you'd like us to
 support, please [let us know](#contact)!
 
-### I really want you to add a few sentences to the README talking about reverse complements, even though most users of this tool probably don't need to worry about that. But I want you to do it anyway, because you're so good at writing documentation that doesn't involve inane conversations with yourself. Can you do that for me?
+### I really want you to add a section to the README talking about reverse complements, even though most users of this tool probably don't need to worry about that. But I want you to do it anyway, because you're so good at writing documentation that doesn't involve inane conversations with yourself. Can you do that for me?
 
 <details>
   <summary>Well, just because you asked so nicely, you charmer.</summary>
