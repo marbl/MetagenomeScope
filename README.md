@@ -100,7 +100,7 @@ support, please [let us know](#contact)!
 ### I really want you to add a section to the README talking about reverse complements, even though most users of this tool probably don't need to worry about that. But I want you to do it anyway, because you're so good at writing documentation that doesn't involve inane conversations with yourself. Can you do that for me?
 
 <details>
-  <summary>Well, just because you asked so nicely, you charmer.</summary>
+  <summary>Well, just because you asked so nicely, you charmer. `(Click here.)`</summary>
 
 #### "Explicit" graph filetypes (FASTG, DOT, GML)
 
@@ -159,7 +159,8 @@ complement may wind up in the same component.
 
 \* This is technically not true for LastGraph files. Consider a node `A` in a
 LastGraph file: the sequence of `A` will not be exactly equal to the reverse
-complement of the sequence of `-A`, since they will be slightly shifted. See
+complement of the sequence of `-A`, since these sequences will be slightly
+shifted. See
 [the Bandage wiki](https://github.com/rrwick/Bandage/wiki/Assembler-differences#velvet)
 for a nice figure and explanation. (That being said, the intuition for
 "thinking about reverse-complement nodes / edges" here is pretty much the same
