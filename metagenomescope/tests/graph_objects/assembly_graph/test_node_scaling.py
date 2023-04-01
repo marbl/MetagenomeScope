@@ -26,10 +26,10 @@ def test_scale_nodes():
         "6": config.LOW_LONGSIDE_PROPORTION,
     }
     seen_nodenames = []
-    for node in ag.digraph.nodes:
-        name = ag.digraph.nodes[node]["name"]
-        rl = ag.digraph.nodes[node]["relative_length"]
-        lp = ag.digraph.nodes[node]["longside_proportion"]
+    for node in ag.graph.nodes:
+        name = ag.graph.nodes[node]["name"]
+        rl = ag.graph.nodes[node]["relative_length"]
+        lp = ag.graph.nodes[node]["longside_proportion"]
         if name in nodename2rl:
             assert rl == nodename2rl[name]
             assert lp == nodename2lp[name]
@@ -45,10 +45,10 @@ def test_scale_nodes_all_lengths_equal():
     ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
     # all of the nodes in this graph have length 3
     ag.scale_nodes()
-    for node in ag.digraph.nodes:
-        assert ag.digraph.nodes[node]["relative_length"] == 0.5
+    for node in ag.graph.nodes:
+        assert ag.graph.nodes[node]["relative_length"] == 0.5
         assert (
-            ag.digraph.nodes[node]["longside_proportion"]
+            ag.graph.nodes[node]["longside_proportion"]
             == config.MID_LONGSIDE_PROPORTION
         )
 
@@ -77,10 +77,10 @@ def test_compute_node_dimensions():
     }
 
     seen_nodenames = []
-    for node in ag.digraph.nodes:
-        name = ag.digraph.nodes[node]["name"]
-        w = ag.digraph.nodes[node]["width"]
-        h = ag.digraph.nodes[node]["height"]
+    for node in ag.graph.nodes:
+        name = ag.graph.nodes[node]["name"]
+        w = ag.graph.nodes[node]["width"]
+        h = ag.graph.nodes[node]["height"]
         exp_data = ()
         if name in nodename2dims:
             exp_data = nodename2dims[name]
@@ -109,9 +109,9 @@ def test_compute_node_dimensions_all_lengths_equal():
     assert default_height == approx(3.115839)
     assert default_width == approx(1.765174)
 
-    for node in ag.digraph.nodes:
-        assert ag.digraph.nodes[node]["height"] == default_height
-        assert ag.digraph.nodes[node]["width"] == default_width
+    for node in ag.graph.nodes:
+        assert ag.graph.nodes[node]["height"] == default_height
+        assert ag.graph.nodes[node]["width"] == default_width
 
 
 def test_compute_node_dimensions_fails_if_scale_nodes_not_called_first():

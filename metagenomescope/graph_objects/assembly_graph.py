@@ -21,9 +21,9 @@ class AssemblyGraph(object):
     including nodes, edges, and connected components.
 
     In fancy object-oriented programming terminology, this class is a
-    "composition" with a NetworkX DiGraph. This really just means that,
-    rather than subclassing nx.DiGraph, this class just contains an instance
-    of nx.DiGraph (self.digraph) that we occasionally delegate to.
+    "composition" with a NetworkX MultiDiGraph. This really just means that,
+    rather than subclassing nx.MultiDiGraph, this class just contains an
+    instance of nx.MultiDiGraph (self.graph) of which we make use.
 
     CODELINK: This "composition" paradigm was based on this post:
     https://www.thedigitalcatonline.com/blog/2014/08/20/python-3-oop-part-3-delegation-composition-and-inheritance/
@@ -47,7 +47,7 @@ class AssemblyGraph(object):
 
         # Each entry in these structures will be a Pattern (or subclass).
         # NOTE that these patterns will only be "represented" in
-        # self.decomposed_digraph; self.digraph represents the literal graph
+        # self.decomposed_graph; self.graph represents the literal graph
         # structure as initially parsed (albeit with some duplicate nodes added
         # in for convenience's sake, maybe).
         self.chains = []
@@ -109,12 +109,12 @@ class AssemblyGraph(object):
         operation_msg(
             "Reading and parsing input file {}...".format(self.basename)
         )
-        # NOTE: Ideally we'd just return this along with the digraph from
+        # NOTE: Ideally we'd just return this along with the graph from
         # assembly_graph_parser.parse(), but uhhhh that will make me refactor
         # like 20 tests and I don't want to do that ._.
         self.filetype = assembly_graph_parser.sniff_filetype(self.filename)
 
-        self.digraph = assembly_graph_parser.parse(self.filename)
+        self.graph = assembly_graph_parser.parse(self.filename)
         self.check_attrs()
         conclude_msg()
 
@@ -122,24 +122,24 @@ class AssemblyGraph(object):
         self.num_too_large_components = 0
         self.remove_too_large_components()
 
-        self.reindex_digraph()
+        self.reindex_graph()
 
         # Initialize all edges with is_dup by default, so that in the future we
         # can distinguish easily between duplicate and non-duplicate edges
-        for e in self.digraph.edges:
-            self.digraph.edges[e]["is_dup"] = False
+        for e in self.graph.edges:
+            self.graph.edges[e]["is_dup"] = False
 
         # Number of nodes in the graph, including patterns and duplicate nodes.
         # Used for assigning new unique node IDs.
-        self.num_nodes = len(self.digraph)
+        self.num_nodes = len(self.graph)
 
-        # Holds the top-level decomposed digraph. All of the original nodes /
+        # Holds the top-level decomposed graph. All of the original nodes /
         # edges in the graph are accounted for within this graph in some way --
         # they're either present within the actual graph (i.e. they were not
         # collapsed into patterns), or they are present within the subgraph of
         # a pattern (which may in turn be a node in the top-level graph or
         # within the subgraph of another pattern, etc.)
-        self.decomposed_digraph = None
+        self.decomposed_graph = None
 
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
@@ -149,7 +149,7 @@ class AssemblyGraph(object):
         self.cc_num_to_bb = {}
 
     def check_attrs(self):
-        """Verifies that nodes and edges in self.digraph don't have attributes
+        """Verifies that nodes and edges in self.graph don't have attributes
         that would conflict with built-in attributes we store here.
 
         The fact that we have to do this in the first place is an indication
@@ -162,11 +162,11 @@ class AssemblyGraph(object):
 
         Also, this updates self.extra_node_attrs and self.extra_edge_attrs with
         information about the "extra" attributes that some (or all) nodes/edges
-        in self.digraph have. Just so we know to pass this data over to the
+        in self.graph have. Just so we know to pass this data over to the
         visualization.
         """
-        for node in self.digraph.nodes:
-            data = self.digraph.nodes[node]
+        for node in self.graph.nodes:
+            data = self.graph.nodes[node]
             fieldset = set(data.keys())
             shared_attrs = fieldset & self.internal_node_attrs
             if len(shared_attrs) > 0:
@@ -177,8 +177,8 @@ class AssemblyGraph(object):
                 )
             self.extra_node_attrs |= fieldset - self.internal_node_attrs
 
-        for edge in self.digraph.edges:
-            data = self.digraph.edges[edge]
+        for edge in self.graph.edges:
+            data = self.graph.edges[edge]
             fieldset = set(data.keys())
             shared_attrs = fieldset & self.internal_edge_attrs
             if len(shared_attrs) > 0:
@@ -191,18 +191,18 @@ class AssemblyGraph(object):
 
     def remove_too_large_components(self):
         # We convert the WCC collection to a list so that even if we alter the
-        # digraph in the middle of the loop we don't risk the collection being
+        # graph in the middle of the loop we don't risk the collection being
         # messed up
-        wccs = list(nx.weakly_connected_components(self.digraph))
+        wccs = list(nx.weakly_connected_components(self.graph))
         num_wccs = len(wccs)
         for cc_node_ids in wccs:
             num_nodes = len(cc_node_ids)
-            num_edges = len(self.digraph.subgraph(cc_node_ids).edges)
+            num_edges = len(self.graph.subgraph(cc_node_ids).edges)
             if (
                 num_nodes > self.max_node_count
                 or num_edges > self.max_edge_count
             ):
-                self.digraph.remove_nodes_from(cc_node_ids)
+                self.graph.remove_nodes_from(cc_node_ids)
                 self.num_too_large_components += 1
                 operation_msg(
                     (
@@ -218,20 +218,20 @@ class AssemblyGraph(object):
                 "-maxn/-maxe parameters, or reducing the size of the graph."
             )
 
-    def reindex_digraph(self):
+    def reindex_graph(self):
         """Assigns every node in the graph a unique integer ID, and adds a
         "name" attribute containing the original ID. This unique integer ID
         should never be shown to the user, but will be used for things like
         layout and internal storage of nodes. This way, we can have multiple
         nodes with the same name without causing a problem.
 
-        Also calls self.save_orig_src_and_tgt() on every edge in the digraph
+        Also calls self.save_orig_src_and_tgt() on every edge in the graph
         (critically, that's done *after* assigning nodes unique integer IDs).
         """
-        self.digraph = nx.convert_node_labels_to_integers(
-            self.digraph, label_attribute="name"
+        self.graph = nx.convert_node_labels_to_integers(
+            self.graph, label_attribute="name"
         )
-        for edge in self.digraph.edges:
+        for edge in self.graph.edges:
             self.save_orig_src_and_tgt(edge)
 
     def save_orig_src_and_tgt(self, e):
@@ -243,15 +243,12 @@ class AssemblyGraph(object):
         """
         srcfield = "orig_src"
         tgtfield = "orig_tgt"
-        if (
-            srcfield in self.digraph.edges[e]
-            or tgtfield in self.digraph.edges[e]
-        ):
+        if srcfield in self.graph.edges[e] or tgtfield in self.graph.edges[e]:
             raise ValueError(
                 "Edge {} already has src/tgt orig field.".format(e)
             )
-        self.digraph.edges[e][srcfield] = e[0]
-        self.digraph.edges[e][tgtfield] = e[1]
+        self.graph.edges[e][srcfield] = e[0]
+        self.graph.edges[e][tgtfield] = e[1]
 
     def get_new_node_id(self):
         """Returns an int guaranteed to be usable as a unique new node ID."""
@@ -279,7 +276,7 @@ class AssemblyGraph(object):
         """
         fn_had = None
         for fn in field_names:
-            if len(nx.get_edge_attributes(self.digraph, fn)) > 0:
+            if len(nx.get_edge_attributes(self.graph, fn)) > 0:
                 if fn_had is None:
                     fn_had = fn
                 else:
@@ -924,29 +921,29 @@ class AssemblyGraph(object):
         pattern_id = self.get_new_node_id()
 
         # Get incoming edges to this pattern
-        in_edges = self.decomposed_digraph.in_edges(member_node_ids)
+        in_edges = self.decomposed_graph.in_edges(member_node_ids)
         p_in_edges = list(
             filter(lambda e: e[0] not in member_node_ids, in_edges)
         )
         # Get outgoing edges from this pattern
-        out_edges = self.decomposed_digraph.out_edges(member_node_ids)
+        out_edges = self.decomposed_graph.out_edges(member_node_ids)
         p_out_edges = list(
             filter(lambda e: e[1] not in member_node_ids, out_edges)
         )
-        # Add this pattern to the decomposed digraph, with the same in/out
+        # Add this pattern to the decomposed graph, with the same in/out
         # nodes as in the subgraph of this pattern's nodes
-        self.decomposed_digraph.add_node(pattern_id, pattern_type=pattern_type)
+        self.decomposed_graph.add_node(pattern_id, pattern_type=pattern_type)
         for e in p_in_edges:
-            edge_data = self.decomposed_digraph.edges[e]
-            self.decomposed_digraph.add_edge(e[0], pattern_id, **edge_data)
+            edge_data = self.decomposed_graph.edges[e]
+            self.decomposed_graph.add_edge(e[0], pattern_id, **edge_data)
         for e in p_out_edges:
-            edge_data = self.decomposed_digraph.edges[e]
-            self.decomposed_digraph.add_edge(pattern_id, e[1], **edge_data)
+            edge_data = self.decomposed_graph.edges[e]
+            self.decomposed_graph.add_edge(pattern_id, e[1], **edge_data)
 
         # Get the "induced subgraph" of just the first-level child nodes. Used
         # for layout. We call .copy() because otherwise the node removal stuff
-        # from self.decomposed_digraph will also remove nodes from subgraph.
-        subgraph = self.decomposed_digraph.subgraph(member_node_ids).copy()
+        # from self.decomposed_graph will also remove nodes from subgraph.
+        subgraph = self.decomposed_graph.subgraph(member_node_ids).copy()
 
         # Remove the children of this pattern from the decomposed DiGraph
         # (they're not gone forever, of course! -- we should hold on a
@@ -954,7 +951,7 @@ class AssemblyGraph(object):
         # topmost pattern has a reference to its child nodes' and patterns'
         # IDs, and these child pattern(s) will have references to their
         # children node/pattern IDs, etc.)
-        self.decomposed_digraph.remove_nodes_from(member_node_ids)
+        self.decomposed_graph.remove_nodes_from(member_node_ids)
 
         p = Pattern(pattern_id, pattern_type, member_node_ids, subgraph, self)
         return p
@@ -978,10 +975,10 @@ class AssemblyGraph(object):
         Returns a new StartEndPattern object.
         """
         pattern_id = self.get_new_node_id()
-        self.decomposed_digraph.add_node(pattern_id, pattern_type="bubble")
+        self.decomposed_graph.add_node(pattern_id, pattern_type="bubble")
 
-        if "pattern_type" in self.decomposed_digraph.nodes[starting_node_id]:
-            # In the actual digraph, create a new node that'll serve as the
+        if "pattern_type" in self.decomposed_graph.nodes[starting_node_id]:
+            # In the actual graph, create a new node that'll serve as the
             # "duplicate" of this node within the new pattern we're creating.
             # Shares all data, and holds the outgoing edges of the original
             # node -- all of these outgoing edges should be _within_ this new
@@ -989,46 +986,46 @@ class AssemblyGraph(object):
 
             # Get ending node of the starting pattern, and duplicate it
             end_node_to_dup = self.id2pattern[starting_node_id].get_end_node()
-            data = self.digraph.nodes[end_node_to_dup]
+            data = self.graph.nodes[end_node_to_dup]
             new_node_id = self.get_new_node_id()
-            self.digraph.add_node(new_node_id, is_dup=True, **data)
+            self.graph.add_node(new_node_id, is_dup=True, **data)
 
             # Duplicate outgoing edges of the duplicated node in the original
-            # digraph
-            for edge in list(self.digraph.out_edges(end_node_to_dup)):
-                edge_data = self.digraph.edges[edge]
+            # graph
+            for edge in list(self.graph.out_edges(end_node_to_dup)):
+                edge_data = self.graph.edges[edge]
                 edge_data["orig_src"] = new_node_id
-                self.digraph.add_edge(new_node_id, edge[1], **edge_data)
-                self.digraph.remove_edge(end_node_to_dup, edge[1])
+                self.graph.add_edge(new_node_id, edge[1], **edge_data)
+                self.graph.remove_edge(end_node_to_dup, edge[1])
 
             # Duplicate outgoing edges of the duplicated node in the decomposed
-            # digraph
+            # graph
             for edge in list(
-                self.decomposed_digraph.out_edges(starting_node_id)
+                self.decomposed_graph.out_edges(starting_node_id)
             ):
-                edge_data = self.decomposed_digraph.edges[edge]
+                edge_data = self.decomposed_graph.edges[edge]
                 edge_data["orig_src"] = new_node_id
-                self.decomposed_digraph.add_edge(
+                self.decomposed_graph.add_edge(
                     new_node_id, edge[1], **edge_data
                 )
-                self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
-                # NOTE: Removing edges from the decomposed digraph should be
+                self.decomposed_graph.remove_edge(starting_node_id, edge[1])
+                # NOTE: Removing edges from the decomposed graph should be
                 # unnecessary, since edge[1] and all of the other nodes within
                 # this pattern (ignoring starting_node_id) will be removed from
-                # the decomposed digraph at the end of this function
-                # self.decomposed_digraph.remove_edge(starting_node_id, edge[1])
+                # the decomposed graph at the end of this function
+                # self.decomposed_graph.remove_edge(starting_node_id, edge[1])
 
-            # In the normal digraph, link the node and its duplicate
-            self.digraph.add_edge(
+            # In the normal graph, link the node and its duplicate
+            self.graph.add_edge(
                 end_node_to_dup,
                 new_node_id,
                 is_dup=True,
                 orig_src=end_node_to_dup,
                 orig_tgt=new_node_id,
             )
-            # In the decomposed digraph, link the starting pattern with the
+            # In the decomposed graph, link the starting pattern with the
             # curr pattern.
-            self.decomposed_digraph.add_edge(
+            self.decomposed_graph.add_edge(
                 starting_node_id,
                 pattern_id,
                 is_dup=True,
@@ -1040,45 +1037,45 @@ class AssemblyGraph(object):
             member_node_ids.append(new_node_id)
             starting_node_id = new_node_id
 
-        if "pattern_type" in self.decomposed_digraph.nodes[ending_node_id]:
+        if "pattern_type" in self.decomposed_graph.nodes[ending_node_id]:
             # Get starting node of the ending pattern, and duplicate it
             start_node_to_dup = self.id2pattern[
                 ending_node_id
             ].get_start_node()
-            data = self.digraph.nodes[start_node_to_dup]
+            data = self.graph.nodes[start_node_to_dup]
             new_node_id = self.get_new_node_id()
-            self.digraph.add_node(new_node_id, is_dup=True, **data)
+            self.graph.add_node(new_node_id, is_dup=True, **data)
 
             # Duplicate incoming edges of the duplicated node
-            for edge in list(self.digraph.in_edges(start_node_to_dup)):
-                edge_data = self.digraph.edges[edge]
+            for edge in list(self.graph.in_edges(start_node_to_dup)):
+                edge_data = self.graph.edges[edge]
                 edge_data["orig_tgt"] = new_node_id
-                # Update the original nodes in the plain digraph to point to
+                # Update the original nodes in the plain graph to point to
                 # the new duplicate. And update the nodes in the decomposed
-                # digraph -- they'll be removed soon anyway, but we do this
+                # graph -- they'll be removed soon anyway, but we do this
                 # so that the subgraph is accurate)
-                self.digraph.add_edge(edge[0], new_node_id, **edge_data)
-                self.digraph.remove_edge(edge[0], start_node_to_dup)
+                self.graph.add_edge(edge[0], new_node_id, **edge_data)
+                self.graph.remove_edge(edge[0], start_node_to_dup)
                 # See comment in the above block (for replacing the start node)
                 # about this
-                # self.decomposed_digraph.remove_edge(edge[0], ending_node_id)
+                # self.decomposed_graph.remove_edge(edge[0], ending_node_id)
 
-            for edge in list(self.decomposed_digraph.in_edges(ending_node_id)):
-                edge_data = self.decomposed_digraph.edges[edge]
+            for edge in list(self.decomposed_graph.in_edges(ending_node_id)):
+                edge_data = self.decomposed_graph.edges[edge]
                 edge_data["orig_tgt"] = new_node_id
-                self.decomposed_digraph.add_edge(
+                self.decomposed_graph.add_edge(
                     edge[0], new_node_id, **edge_data
                 )
-                self.decomposed_digraph.remove_edge(edge[0], ending_node_id)
+                self.decomposed_graph.remove_edge(edge[0], ending_node_id)
 
-            self.digraph.add_edge(
+            self.graph.add_edge(
                 new_node_id,
                 start_node_to_dup,
                 is_dup=True,
                 orig_src=new_node_id,
                 orig_tgt=start_node_to_dup,
             )
-            self.decomposed_digraph.add_edge(
+            self.decomposed_graph.add_edge(
                 pattern_id,
                 ending_node_id,
                 is_dup=True,
@@ -1092,26 +1089,26 @@ class AssemblyGraph(object):
 
         # NOTE TODO abstract between this and prev func.
         # Get incoming edges to this pattern
-        in_edges = self.decomposed_digraph.in_edges(member_node_ids)
+        in_edges = self.decomposed_graph.in_edges(member_node_ids)
         p_in_edges = list(
             filter(lambda e: e[0] not in member_node_ids, in_edges)
         )
         # Get outgoing edges from this pattern
-        out_edges = self.decomposed_digraph.out_edges(member_node_ids)
+        out_edges = self.decomposed_graph.out_edges(member_node_ids)
         p_out_edges = list(
             filter(lambda e: e[1] not in member_node_ids, out_edges)
         )
         for e in p_in_edges:
-            edge_data = self.decomposed_digraph.edges[e]
-            self.decomposed_digraph.add_edge(e[0], pattern_id, **edge_data)
+            edge_data = self.decomposed_graph.edges[e]
+            self.decomposed_graph.add_edge(e[0], pattern_id, **edge_data)
         for e in p_out_edges:
-            edge_data = self.decomposed_digraph.edges[e]
-            self.decomposed_digraph.add_edge(pattern_id, e[1], **edge_data)
+            edge_data = self.decomposed_graph.edges[e]
+            self.decomposed_graph.add_edge(pattern_id, e[1], **edge_data)
 
-        subgraph = self.decomposed_digraph.subgraph(member_node_ids).copy()
+        subgraph = self.decomposed_graph.subgraph(member_node_ids).copy()
 
         # Remove the children of this pattern from the decomposed DiGraph.
-        self.decomposed_digraph.remove_nodes_from(member_node_ids)
+        self.decomposed_graph.remove_nodes_from(member_node_ids)
 
         p = StartEndPattern(
             pattern_id,
@@ -1129,7 +1126,7 @@ class AssemblyGraph(object):
         repeatedly until the graph has been "fully" squished into patterns.
         """
         # We'll modify this as we go through this method
-        self.decomposed_digraph = deepcopy(self.digraph)
+        self.decomposed_graph = deepcopy(self.graph)
 
         while True:
             # Run through all of the pattern detection methods on all of the
@@ -1155,10 +1152,10 @@ class AssemblyGraph(object):
             ):
                 # We sort the nodes in order to make this deterministic
                 # (I doubt the extra time cost from sorting will be a big deal)
-                candidate_nodes = sorted(list(self.decomposed_digraph.nodes))
+                candidate_nodes = sorted(list(self.decomposed_graph.nodes))
                 while len(candidate_nodes) > 0:
                     n = candidate_nodes[0]
-                    validator_outputs = validator(self.decomposed_digraph, n)
+                    validator_outputs = validator(self.decomposed_graph, n)
                     pattern_valid = validator_outputs[0]
                     if pattern_valid:
                         pattern_node_ids = validator_outputs[1]
@@ -1199,16 +1196,16 @@ class AssemblyGraph(object):
         # Now that we're done here, go through all the nodes and edges in the
         # top level of the graph and record that they don't have a parent
         # pattern
-        for node_id in self.decomposed_digraph.nodes:
+        for node_id in self.decomposed_graph.nodes:
             if not self.is_pattern(node_id):
-                self.digraph.nodes[node_id]["parent_id"] = None
-        for edge in self.decomposed_digraph.edges:
-            self.decomposed_digraph.edges[edge]["parent_id"] = None
+                self.graph.nodes[node_id]["parent_id"] = None
+        for edge in self.decomposed_graph.edges:
+            self.decomposed_graph.edges[edge]["parent_id"] = None
 
     def scale_nodes_all_uniform(self):
-        for node in self.digraph.nodes:
-            self.digraph.nodes[node]["relative_length"] = 0.5
-            self.digraph.nodes[node][
+        for node in self.graph.nodes:
+            self.graph.nodes[node]["relative_length"] = 0.5
+            self.graph.nodes[node][
                 "longside_proportion"
             ] = config.MID_LONGSIDE_PROPORTION
 
@@ -1246,10 +1243,10 @@ class AssemblyGraph(object):
         visualization filesize.)
         """
         # dict that maps node IDs --> lengths
-        node_lengths = nx.get_node_attributes(self.digraph, "length")
+        node_lengths = nx.get_node_attributes(self.graph, "length")
 
         # bail out if not all nodes have a length
-        if len(node_lengths) < len(self.digraph.nodes):
+        if len(node_lengths) < len(self.graph.nodes):
             self.scale_nodes_all_uniform()
         else:
             node_length_values = node_lengths.values()
@@ -1272,9 +1269,9 @@ class AssemblyGraph(object):
                 q25, q75 = numpy.percentile(
                     list(node_log_lengths.values()), [25, 75]
                 )
-                for node in self.digraph.nodes:
+                for node in self.graph.nodes:
                     node_log_len = node_log_lengths[node]
-                    self.digraph.nodes[node]["relative_length"] = (
+                    self.graph.nodes[node]["relative_length"] = (
                         node_log_len - min_log_len
                     ) / log_len_range
                     if node_log_len < q25:
@@ -1283,7 +1280,7 @@ class AssemblyGraph(object):
                         lp = config.MID_LONGSIDE_PROPORTION
                     else:
                         lp = config.HIGH_LONGSIDE_PROPORTION
-                    self.digraph.nodes[node]["longside_proportion"] = lp
+                    self.graph.nodes[node]["longside_proportion"] = lp
 
     def compute_node_dimensions(self):
         r"""Adds height and width attributes to each node in the graph.
@@ -1324,8 +1321,8 @@ class AssemblyGraph(object):
         MetagenomeScope users, the width and height of each node are really the
         opposite from what we store here.
         """
-        for node in self.digraph.nodes:
-            data = self.digraph.nodes[node]
+        for node in self.graph.nodes:
+            data = self.graph.nodes[node]
             area = config.MIN_NODE_AREA + (
                 data["relative_length"] * config.NODE_AREA_RANGE
             )
@@ -1371,16 +1368,16 @@ class AssemblyGraph(object):
         def _assign_default_weight_attrs(edges):
             """Assigns "normal" attributes to each edge in edges."""
             for edge in edges:
-                self.digraph.edges[edge]["is_outlier"] = 0
-                self.digraph.edges[edge]["relative_weight"] = 0.5
+                self.graph.edges[edge]["is_outlier"] = 0
+                self.graph.edges[edge]["relative_weight"] = 0.5
 
         ew_field = self.get_edge_weight_field()
         if ew_field is not None:
             operation_msg("Scaling edges based on weights...")
             real_edges = []
             weights = []
-            for edge in self.digraph.edges:
-                data = self.digraph.edges[edge]
+            for edge in self.graph.edges:
+                data = self.graph.edges[edge]
                 if "is_dup" not in data or not data["is_dup"]:
                     real_edges.append(edge)
                     weights.append(data[ew_field])
@@ -1409,7 +1406,7 @@ class AssemblyGraph(object):
                 # Non-outlier edges will be added to a list of edges that we'll
                 # scale relatively.
                 for edge in real_edges:
-                    data = self.digraph.edges[edge]
+                    data = self.graph.edges[edge]
                     ew = data[ew_field]
                     if ew > uf:
                         data["is_outlier"] = 1
@@ -1424,7 +1421,7 @@ class AssemblyGraph(object):
             else:
                 # There are < 4 edges, so consider all edges as "non-outliers."
                 for edge in real_edges:
-                    data = self.digraph.edges[edge]
+                    data = self.graph.edges[edge]
                     if "is_dup" not in data or not data["is_dup"]:
                         data["is_outlier"] = 0
                         non_outlier_edges.append(edge)
@@ -1442,7 +1439,7 @@ class AssemblyGraph(object):
                 if min_ew != max_ew:
                     ew_range = max_ew - min_ew
                     for edge in non_outlier_edges:
-                        data = self.digraph.edges[edge]
+                        data = self.graph.edges[edge]
                         ew = data[ew_field]
                         rw = (ew - min_ew) / ew_range
                         data["relative_weight"] = rw
@@ -1454,7 +1451,7 @@ class AssemblyGraph(object):
             conclude_msg()
         else:
             # Can't do edge scaling, so just assign every edge "default" attrs
-            _assign_default_weight_attrs(self.digraph.edges)
+            _assign_default_weight_attrs(self.graph.edges)
 
     def is_pattern(self, node_id):
         """Returns True if a node ID is for a pattern, False otherwise.
@@ -1470,7 +1467,7 @@ class AssemblyGraph(object):
     def get_connected_components(self):
         """Returns a list of 3-tuples, where the first element in each tuple is
         a set of (top-level) node IDs within this component in the decomposed
-        digraph, the second element is the total number of nodes (not
+        graph, the second element is the total number of nodes (not
         counting collapsed patterns, but including nodes within patterns and
         also including duplicate nodes) within this component, and the third
         element is the total number of edges within this component.
@@ -1484,7 +1481,7 @@ class AssemblyGraph(object):
         Assumes that self.hierarchically_identify_patterns() has already been
         called.
         """
-        ccs = list(nx.weakly_connected_components(self.decomposed_digraph))
+        ccs = list(nx.weakly_connected_components(self.decomposed_graph))
         # Set up as [[zero-indexed cc pos, node ct, edge ct, pattern ct], ...]
         # Done this way to make sorting components easier.
         # This paradigm based roughly on what's done here:
@@ -1510,7 +1507,7 @@ class AssemblyGraph(object):
                 # nodes (in "cc") and then count the number of edges there, but
                 # I think this is more efficient.
                 indices_and_cts[i][2] += len(
-                    self.decomposed_digraph.edges(node_id)
+                    self.decomposed_graph.edges(node_id)
                 )
 
         sorted_indices_and_cts = sorted(
@@ -1571,7 +1568,7 @@ class AssemblyGraph(object):
                 lone_node_id = next(iter(cc_node_ids))
                 if not self.is_pattern(lone_node_id):
                     # Alright, we can fake this! Nice.
-                    data = self.digraph.nodes[lone_node_id]
+                    data = self.graph.nodes[lone_node_id]
                     data["cc_num"] = cc_i
                     data["x"] = data["width"] / 2
                     data["y"] = data["height"] / 2
@@ -1601,7 +1598,7 @@ class AssemblyGraph(object):
                     width = self.id2pattern[node_id].width
                     shape = self.id2pattern[node_id].shape
                 else:
-                    data = self.digraph.nodes[node_id]
+                    data = self.graph.nodes[node_id]
                     data["cc_num"] = cc_i
                     height = data["height"]
                     width = data["width"]
@@ -1613,12 +1610,10 @@ class AssemblyGraph(object):
                 )
 
             # Add edge info.
-            top_level_edges = self.decomposed_digraph.subgraph(
-                cc_node_ids
-            ).edges
+            top_level_edges = self.decomposed_graph.subgraph(cc_node_ids).edges
             for edge in top_level_edges:
                 gv_input += "\t{} -> {};\n".format(edge[0], edge[1])
-                self.decomposed_digraph.edges[edge]["cc_num"] = cc_i
+                self.decomposed_graph.edges[edge]["cc_num"] = cc_i
 
             gv_input += "}"
             top_level_cc_graph = pygraphviz.AGraph(gv_input)
@@ -1682,7 +1677,7 @@ class AssemblyGraph(object):
                             else:
                                 # Reconcile data for this normal node within a
                                 # pattern
-                                data = self.digraph.nodes[child_node_id]
+                                data = self.graph.nodes[child_node_id]
                                 data["x"] = curr_patt.left + data["relative_x"]
                                 data["y"] = (
                                     curr_patt.bottom + data["relative_y"]
@@ -1700,12 +1695,12 @@ class AssemblyGraph(object):
 
                 else:
                     # Save data for this normal node
-                    self.digraph.nodes[node_id]["x"] = x
-                    self.digraph.nodes[node_id]["y"] = y
+                    self.graph.nodes[node_id]["x"] = x
+                    self.graph.nodes[node_id]["y"] = y
 
             # Save ctrl pt data for top-level edges
             for edge in top_level_edges:
-                data = self.decomposed_digraph.edges[edge]
+                data = self.decomposed_graph.edges[edge]
                 gv_edge = top_level_cc_graph.get_edge(*edge)
                 coords = layout_utils.get_control_points(gv_edge.attr["pos"])
                 data["ctrl_pt_coords"] = coords
@@ -1717,7 +1712,7 @@ class AssemblyGraph(object):
             conclude_msg()
 
         # At this point, we are now done with layout. Coordinate information
-        # for nodes and edges is stored in self.digraph or in the
+        # for nodes and edges is stored in self.graph or in the
         # subgraphs of patterns; coordinate information for patterns is stored
         # in the Pattern objects referenced in self.id2pattern. Now we should
         # be able to make a JSON representation of this graph and move on to
@@ -1762,7 +1757,7 @@ class AssemblyGraph(object):
         # add on additional fields accordingly.
         #
         # These are keyed by integer ID (i.e. what was produced by
-        # self.reindex_digraph())
+        # self.reindex_graph())
         node_fields = [
             "name",
             "length",
@@ -1774,7 +1769,7 @@ class AssemblyGraph(object):
             "parent_id",
             "is_dup",
         ]
-        # These are keyed by source ID and sink ID (both reindex_digraph()
+        # These are keyed by source ID and sink ID (both reindex_graph()
         # integer IDs)
         edge_fields = [
             "ctrl_pt_coords",
@@ -1905,8 +1900,8 @@ class AssemblyGraph(object):
             "components": [],
             "input_file_basename": self.basename,
             "input_file_type": self.filetype,
-            "total_num_nodes": self.digraph.number_of_nodes(),
-            "total_num_edges": self.digraph.number_of_edges(),
+            "total_num_nodes": self.graph.number_of_nodes(),
+            "total_num_edges": self.graph.number_of_edges(),
         }
 
         # Hack: indicate the number of skipped components in the exported data.
@@ -1969,7 +1964,7 @@ class AssemblyGraph(object):
                             else:
                                 # This is a normal node in a pattern. Add data.
                                 data = get_node_data(
-                                    self.digraph.nodes[child_node_id]
+                                    self.graph.nodes[child_node_id]
                                 )
                                 this_component["nodes"][child_node_id] = data
 
@@ -1988,15 +1983,15 @@ class AssemblyGraph(object):
                         raise ValueError(
                             "Node {} added to JSON twice?".format(node_id)
                         )
-                    data = get_node_data(self.digraph.nodes[node_id])
+                    data = get_node_data(self.graph.nodes[node_id])
                     this_component["nodes"][node_id] = data
 
             # Go through top-level edges and add data
-            for edge in self.decomposed_digraph.subgraph(cc_tuple[0]).edges:
+            for edge in self.decomposed_graph.subgraph(cc_tuple[0]).edges:
                 os, ot, data = get_edge_data(
                     edge[0],
                     edge[1],
-                    self.decomposed_digraph.edges[edge],
+                    self.decomposed_graph.edges[edge],
                 )
                 add_edge(this_component, [os, ot], data)
 
@@ -2053,8 +2048,8 @@ class AssemblyGraph(object):
                 )
 
         # Rotate normal nodes
-        for node_id in self.digraph.nodes:
-            data = self.digraph.nodes[node_id]
+        for node_id in self.graph.nodes:
+            data = self.graph.nodes[node_id]
             data["width"], data["height"] = data["height"], data["width"]
             data["width"] *= config.POINTS_PER_INCH
             data["height"] *= config.POINTS_PER_INCH
@@ -2063,8 +2058,8 @@ class AssemblyGraph(object):
             data["x"], data["y"] = layout_utils.rotate(data["x"], data["y"])
 
         # Rotate edges
-        for edge in self.decomposed_digraph.edges:
-            data = self.decomposed_digraph.edges[edge]
+        for edge in self.decomposed_graph.edges:
+            data = self.decomposed_graph.edges[edge]
             data["ctrl_pt_coords"] = layout_utils.rotate_ctrl_pt_coords(
                 data["ctrl_pt_coords"]
             )

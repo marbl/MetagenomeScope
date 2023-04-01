@@ -46,7 +46,7 @@ def test_component_sorting_ecoli_graph():
     seen_89_in_largest_cc = False
     for node_id in wccs[0][0]:
         if not ag.is_pattern(node_id):
-            if ag.decomposed_digraph.nodes[node_id]["name"] == "89":
+            if ag.decomposed_graph.nodes[node_id]["name"] == "89":
                 seen_89_in_largest_cc = True
                 break
         else:
@@ -59,7 +59,7 @@ def test_component_sorting_ecoli_graph():
                     if ag.is_pattern(child_node_id):
                         pattern_queue.append(child_node_id)
                     else:
-                        if ag.digraph.nodes[child_node_id]["name"] == "89":
+                        if ag.graph.nodes[child_node_id]["name"] == "89":
                             seen_89_in_largest_cc = True
                             break
                 if seen_89_in_largest_cc:

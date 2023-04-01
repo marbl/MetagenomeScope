@@ -60,7 +60,7 @@ class Pattern(object):
             if asm_graph.is_pattern(node_id):
                 asm_graph.id2pattern[node_id].parent_id = self.pattern_id
             else:
-                asm_graph.digraph.nodes[node_id]["parent_id"] = self.pattern_id
+                asm_graph.graph.nodes[node_id]["parent_id"] = self.pattern_id
 
         for edge in self.subgraph.edges:
             self.subgraph.edges[edge]["parent_id"] = self.pattern_id
@@ -105,7 +105,7 @@ class Pattern(object):
             if asm_graph.is_pattern(node_id):
                 asm_graph.id2pattern[node_id].set_cc_num(asm_graph, cc_num)
             else:
-                asm_graph.digraph.nodes[node_id]["cc_num"] = cc_num
+                asm_graph.graph.nodes[node_id]["cc_num"] = cc_num
         for edge in self.subgraph.edges:
             self.subgraph.edges[edge]["cc_num"] = cc_num
 
@@ -139,7 +139,7 @@ class Pattern(object):
                 # If this is a normal node, get its dimensions from the
                 # graph. Shape is based on the node's orientation, which should
                 # also be stored in the graph.
-                data = asm_graph.digraph.nodes[node_id]
+                data = asm_graph.graph.nodes[node_id]
                 height = data["height"]
                 width = data["width"]
                 shape = config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]]
@@ -183,8 +183,8 @@ class Pattern(object):
                 id2pattern[node_id].relative_x = x
                 id2pattern[node_id].relative_y = y
             else:
-                asm_graph.digraph.nodes[node_id]["relative_x"] = x
-                asm_graph.digraph.nodes[node_id]["relative_y"] = y
+                asm_graph.graph.nodes[node_id]["relative_x"] = x
+                asm_graph.graph.nodes[node_id]["relative_y"] = y
 
         # Extract (relative) edge control points
         for edge in self.subgraph.edges:

@@ -34,8 +34,8 @@ def test_scale_edges_four_edges():
     # should've been assigned a relative weight of 0.
     # The two edges with weight 9 (the max weight) should've been assigned a
     # relative weight of 1.
-    for edge in ag.digraph.edges:
-        data = ag.digraph.edges[edge]
+    for edge in ag.graph.edges:
+        data = ag.graph.edges[edge]
         assert data["is_outlier"] == 0
         if data["multiplicity"] == 5:
             assert data["relative_weight"] == 0
@@ -46,8 +46,8 @@ def test_scale_edges_four_edges():
 def test_scale_edges_no_edge_weights():
     ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
     ag.scale_edges()
-    for edge in ag.digraph.edges:
-        data = ag.digraph.edges[edge]
+    for edge in ag.graph.edges:
+        data = ag.graph.edges[edge]
         assert data["is_outlier"] == 0
         assert data["relative_weight"] == 0.5
 
@@ -55,8 +55,8 @@ def test_scale_edges_no_edge_weights():
 def test_scale_edges_all_edge_weights_equal():
     ag = AssemblyGraph("metagenomescope/tests/input/marygold_fig2a.gml")
     ag.scale_edges()
-    for edge in ag.digraph.edges:
-        data = ag.digraph.edges[edge]
+    for edge in ag.graph.edges:
+        data = ag.graph.edges[edge]
         assert data["is_outlier"] == 0
         assert data["relative_weight"] == 0.5
 
@@ -67,8 +67,8 @@ def test_scale_edges_less_than_4_edges():
     # I mean, I guess it really has 2 edges if we assume it's unoriented
     # (which as of writing is the default for LastGraph / GFAs but not
     # required)
-    for edge in ag.digraph.edges:
-        data = ag.digraph.edges[edge]
+    for edge in ag.graph.edges:
+        data = ag.graph.edges[edge]
         # No outlier detection should be done
         assert data["is_outlier"] == 0
         # Normal, relative scaling should have been done -- in this particular
@@ -82,8 +82,8 @@ def test_scale_edges_high_outlier():
         "metagenomescope/tests/input/edge_scaling_test_high.LastGraph"
     )
     ag.scale_edges()
-    for edge in ag.digraph.edges:
-        data = ag.digraph.edges[edge]
+    for edge in ag.graph.edges:
+        data = ag.graph.edges[edge]
         # We omit the outlier edge weight (1000) from the non-outlier-edge
         # relative scaling. So the "effective" min and max edge weights are 5
         # and 99, ignoring the 1000s.
@@ -110,8 +110,8 @@ def test_scale_edges_low_outlier():
     ag.scale_edges()
     # Low outlier weights: 1
     # Non-outlier weights: 1000, 1001, 1005
-    for edge in ag.digraph.edges:
-        data = ag.digraph.edges[edge]
+    for edge in ag.graph.edges:
+        data = ag.graph.edges[edge]
         if data["multiplicity"] == 1:
             assert data["is_outlier"] == -1
             assert data["relative_weight"] == 0
@@ -159,7 +159,7 @@ def test_scale_edges_low_and_high_outliers():
         "metagenomescope/tests/input/edge_scaling_test_both_outliers.LastGraph"
     )
     ag.scale_edges()
-    _verify_both_graph(ag.digraph, 0)
+    _verify_both_graph(ag.graph, 0)
 
 
 def test_scale_edges_dup_edges():
@@ -174,7 +174,7 @@ def test_scale_edges_dup_edges():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/edge_scaling_test_both_outliers.LastGraph"
     )
-    ag.digraph.add_edge(0, 0, is_dup=True)
+    ag.graph.add_edge(0, 0, is_dup=True)
     with raises(ValueError) as ei:
         ag.scale_edges()
     assert str(ei.value) == "Duplicate edges shouldn't exist in the graph yet."
