@@ -241,6 +241,157 @@ def test_parse_flye_duplicate_edge_ids():
     )
 
 
+def test_parse_flye_nocov():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "id -5\\l6k", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        # just checking this is contained within the full error message
+        'Edge 1 -> 2 has a label where the second line is "6k".',
+    )
+
+
+def test_parse_flye_nolen():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "id -5\\l777x", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        'Edge 1 -> 2 has a label where the second line is "777x".',
+    )
+
+
+def test_parse_flye_extra_stuff_in_second_line():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "id -5\\l6k 777x himom", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        'Edge 1 -> 2 has a label where the second line is "6k 777x himom".',
+    )
+
+
+def test_parse_flye_len_cov_switched():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "id -5\\l777x 6k", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        'Edge 1 -> 2 has a confusing length of "777x"?',
+    )
+
+
+def test_parse_flye_no_k_len():
+    # Lengths that are rounded to the thousands (e.g. "1k") are ok.
+    # And, if flye decides to output full lengths instead (e.g. "1234"), then
+    # we can accept those also. (But... we'll still call them "approx_lengths",
+    # so uh maybe we should change that if this happens lol)
+    g = run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "id -5\\l12345 67x", color = "red", penwidth = 3];',
+            '2 -> 3 [label = "id 8\\l9k 1x", color = "blue", penwidth = 3];',
+            "}",
+        ],
+        None,
+        None,
+    )
+    assert len(g.nodes) == 3
+    assert len(g.edges) == 2
+
+    assert g.edges["1", "2", 0]["id"] == "-5"
+    assert g.edges["1", "2", 0]["approx_length"] == 12345
+    assert g.edges["1", "2", 0]["cov"] == 67
+    assert g.edges["1", "2", 0]["color"] == "red"
+
+    assert g.edges["2", "3", 0]["id"] == "8"
+    assert g.edges["2", "3", 0]["approx_length"] == 9000
+    assert g.edges["2", "3", 0]["cov"] == 1
+    assert g.edges["2", "3", 0]["color"] == "blue"
+
+
+def test_parse_flye_no_x_cov():
+    # also, if the coverage from flye lacks the trailing "x", then that's cool
+    g = run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            # silly example -- this graph is like one of those binary truth
+            # tables (11, 10, 01, 00), where we vary whether or not the length
+            # and coverage end with k/x or not. Omitting the "k" changes the
+            # lengths by a factor of 1,000; omitting the "x" doesn't do
+            # anything to the coverages.
+            '1 -> 2 [label = "id 1\\l9k 67x", color = "red", penwidth = 3];',
+            '1 -> 2 [label = "id 2\\l9k 67", color = "red", penwidth = 3];',
+            '1 -> 2 [label = "id 3\\l9 67x", color = "red", penwidth = 3];',
+            '1 -> 2 [label = "id 4\\l9 67", color = "red", penwidth = 3];',
+            "}",
+        ],
+        None,
+        None,
+    )
+    assert len(g.nodes) == 2
+    assert len(g.edges) == 4
+
+    assert g.edges["1", "2", 0]["id"] == "1"
+    assert g.edges["1", "2", 0]["approx_length"] == 9000
+    assert g.edges["1", "2", 0]["cov"] == 67
+    assert g.edges["1", "2", 0]["color"] == "red"
+
+    assert g.edges["1", "2", 1]["id"] == "2"
+    assert g.edges["1", "2", 1]["approx_length"] == 9000
+    assert g.edges["1", "2", 1]["cov"] == 67
+    assert g.edges["1", "2", 1]["color"] == "red"
+
+    assert g.edges["1", "2", 2]["id"] == "3"
+    assert g.edges["1", "2", 2]["approx_length"] == 9
+    assert g.edges["1", "2", 2]["cov"] == 67
+    assert g.edges["1", "2", 2]["color"] == "red"
+
+    assert g.edges["1", "2", 3]["id"] == "4"
+    assert g.edges["1", "2", 3]["approx_length"] == 9
+    assert g.edges["1", "2", 3]["cov"] == 67
+    assert g.edges["1", "2", 3]["color"] == "red"
+
+
+def test_parse_flye_bad_coverage():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "id -5\\l6k 67a", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        'Edge 1 -> 2 has a confusing coverage of "67a"?',
+    )
+
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label = "id -5\\l6k 0x67", color = "red", penwidth = 3];',
+            "}",
+        ],
+        GraphParsingError,
+        'Edge 1 -> 2 has a confusing coverage of "0x67"?',
+    )
+
+
 def test_parse_no_edges():
     run_tempfile_test(
         "gv",

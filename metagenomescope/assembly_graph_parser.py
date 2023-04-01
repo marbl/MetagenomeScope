@@ -755,8 +755,9 @@ def parse_dot(filename):
             if len(lencov_parts) != 2:
                 raise GraphParsingError(
                     f"{err_prefix} has a label where the second line is "
-                    f"{lencov_part}. It should contain just the edge length "
-                    "and coverage, separated by a single space character."
+                    f'"{lencov_part}". This line should contain just the edge '
+                    'length (e.g. "56k") and coverage (e.g. "80x"), separated '
+                    "by a single space character."
                 )
             elen_str, ecov_str = lencov_parts
             # Get the length
@@ -779,7 +780,7 @@ def parse_dot(filename):
                     elen = elen_thousands * 1000
                 else:
                     raise GraphParsingError(
-                        f"{err_prefix} has a confusing length of {elen_str}?"
+                        f'{err_prefix} has a confusing length of "{elen_str}"?'
                     )
 
             # Get the coverage -- this should just be a rounded integer ending
@@ -796,7 +797,8 @@ def parse_dot(filename):
                     ecov = int(ecov_str[:-1])
                 else:
                     raise GraphParsingError(
-                        f"{err_prefix} has a confusing coverage of {ecov_str}?"
+                        f"{err_prefix} has a confusing coverage of "
+                        f'"{ecov_str}"?'
                     )
 
             # If we've made it here, then we've successfully read the ID,
