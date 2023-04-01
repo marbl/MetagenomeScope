@@ -237,5 +237,19 @@ def test_parse_flye_duplicate_edge_ids():
         (
             "Edge 2 -> 3 has the ID -5, but other edge(s) in this file have "
             "the same ID."
-        )
+        ),
+    )
+
+
+def test_parse_no_edges():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            "1;",
+            "2;",
+            "}",
+        ],
+        GraphParsingError,
+        "DOT-format graph contains 0 edges.",
     )
