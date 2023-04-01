@@ -392,6 +392,60 @@ def test_parse_flye_bad_coverage():
     )
 
 
+def test_parse_lja_bad_label_first_line():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [color = "black", label="suspicious\nA99(2)"];',
+            "}",
+        ],
+        GraphParsingError,
+        (
+            "Edge 1 -> 2 looks like it came from LJA, but its label has an "
+            'invalid first line of "suspicious".'
+        ),
+    )
+
+
+def test_parse_lja_complicatedlabels_nocolor():
+    # Unusual-ish things about this graph:
+    # -The first edge has a floating-point k-mer coverage
+    # -The second edge has a space in between its first nt and length
+    # -The second edge has a multi-line label
+    # -The second edge has no "color" attribute given
+    # All of these things are ok, and our code should allow them.
+    g = run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [color="black", label="A99(2.4)"];',
+            '1 -> 2 [label="C 850(3)\nOtherStuffLol"];',
+            "}",
+        ],
+        None,
+        None,
+    )
+    assert len(g.nodes) == 2
+    assert len(g.edges) == 2
+    # Neither of the edges should have a defined "color" attribute in the
+    # NetworkX graph, since we remove it from LJA edges. (Our reason for doing
+    # so is that Flye can assign special colors to its edges, but LJA doesn't
+    # seem to do this.)
+    assert g.edges["1", "2", 0] == {
+        "label": "A99(2.4)",
+        "first_nt": "A",
+        "length": 99,
+        "kmer_cov": 2.4,
+    }
+    assert g.edges["1", "2", 1] == {
+        "label": "C 850(3)\nOtherStuffLol",
+        "first_nt": "C",
+        "length": 850,
+        "kmer_cov": 3,
+    }
+
+
 def test_parse_no_edges():
     run_tempfile_test(
         "gv",

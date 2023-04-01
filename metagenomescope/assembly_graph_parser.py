@@ -830,9 +830,13 @@ def parse_dot(filename):
             label_first_line = label.splitlines()[0]
             lfl_match = re.match(LJA_LFL_PATT, label_first_line)
             if lfl_match is None:
+                # we could make this error message more descriptive, but it
+                # probably won't be encountered by most users so i don't think
+                # it's super urgent
                 raise GraphParsingError(
-                    f"{err_prefix} has a label with a confusing first line, "
-                    "at least for LJA edge labels."
+                    f"{err_prefix} looks like it came from LJA, but its label "
+                    f'has an invalid first line of "{label_first_line}". LJA '
+                    'labels should have a first line formatted like "A99(2)".'
                 )
 
             groups = lfl_match.groups()
