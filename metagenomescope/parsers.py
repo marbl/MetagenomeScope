@@ -37,7 +37,7 @@
 #  2. Add the lowercase file extension as a key in SUPPORTED_FILETYPE_TO_PARSER
 #  that maps to your new function.
 #
-#  3. Add tests for your parser in metagenomescope/tests/assembly_graph_parser/
+#  3. Add tests for your parser in metagenomescope/tests/parsers/
 
 import re
 import networkx as nx

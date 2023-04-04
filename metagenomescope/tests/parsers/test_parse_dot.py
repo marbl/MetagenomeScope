@@ -1,5 +1,5 @@
 import networkx as nx
-from metagenomescope.assembly_graph_parser import parse_dot
+from metagenomescope.parsers import parse_dot
 from metagenomescope.errors import GraphParsingError
 from .utils import run_tempfile_test
 

@@ -1,6 +1,6 @@
 import networkx as nx
 import pytest
-from metagenomescope.assembly_graph_parser import (
+from metagenomescope.parsers import (
     sniff_filetype,
     is_not_pos_int,
     make_multigraph_if_not_already,

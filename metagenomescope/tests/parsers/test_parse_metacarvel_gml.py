@@ -2,7 +2,7 @@ import networkx as nx
 from networkx import NetworkXError
 from .utils import run_tempfile_test
 from metagenomescope.errors import GraphParsingError
-from metagenomescope.assembly_graph_parser import parse_metacarvel_gml
+from metagenomescope.parsers import parse_metacarvel_gml
 
 
 def check_marygold_fig2a_graph_nodes_and_edges(digraph):

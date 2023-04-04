@@ -19,7 +19,7 @@
 # Import submodules so they're easy to see from REPL
 from . import (
     arg_utils,
-    assembly_graph_parser,
+    parsers,
     config,
     file_utils,
     input_node_utils,
@@ -31,7 +31,7 @@ from . import (
 # yelling at us about these imports being unused.
 __all__ = [
     "arg_utils",
-    "assembly_graph_parser",
+    "parsers",
     "config",
     "file_utils",
     "input_node_utils",

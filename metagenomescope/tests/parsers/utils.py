@@ -2,7 +2,7 @@ import os
 import tempfile
 import pytest
 from _pytest.outcomes import Failed
-from metagenomescope.assembly_graph_parser import parse
+from metagenomescope.parsers import parse
 
 
 def run_tempfile_test(

@@ -1,7 +1,7 @@
 import pytest
 from io import StringIO
 from metagenomescope.errors import GraphParsingError
-from metagenomescope.assembly_graph_parser import validate_lastgraph_file
+from metagenomescope.parsers import validate_lastgraph_file
 
 
 def get_validate_err(glines):

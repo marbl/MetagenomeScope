@@ -9,7 +9,7 @@ import networkx as nx
 import pygraphviz
 
 
-from .. import assembly_graph_parser, config, layout_utils
+from .. import parsers, config, layout_utils
 from ..msg_utils import operation_msg, conclude_msg
 from .pattern import StartEndPattern, Pattern
 
@@ -127,11 +127,11 @@ class AssemblyGraph(object):
             "Reading and parsing input file {}...".format(self.basename)
         )
         # NOTE: Ideally we'd just return this along with the graph from
-        # assembly_graph_parser.parse(), but uhhhh that will make me refactor
+        # parsers.parse(), but uhhhh that will make me refactor
         # like 20 tests and I don't want to do that ._.
-        self.filetype = assembly_graph_parser.sniff_filetype(self.filename)
+        self.filetype = parsers.sniff_filetype(self.filename)
 
-        self.graph = assembly_graph_parser.parse(self.filename)
+        self.graph = parsers.parse(self.filename)
         self.check_attrs()
         conclude_msg()
 

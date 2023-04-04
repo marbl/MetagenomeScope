@@ -1,10 +1,8 @@
 import networkx as nx
 from .utils import run_tempfile_test
 from metagenomescope.errors import GraphParsingError
-from metagenomescope.assembly_graph_parser import parse_lastgraph
-from metagenomescope.tests.assembly_graph_parser.test_validate_lastgraph import (
-    reset_glines,
-)
+from metagenomescope.parsers import parse_lastgraph
+from metagenomescope.tests.parsers.test_validate_lastgraph import reset_glines
 
 
 def test_parse_lastgraph_good():

@@ -1,6 +1,6 @@
 import networkx as nx
 from metagenomescope.input_node_utils import negate_node_id
-from metagenomescope.assembly_graph_parser import parse_gfa
+from metagenomescope.parsers import parse_gfa
 from metagenomescope.errors import GraphParsingError
 from .utils import run_tempfile_test
 from gfapy.error import InconsistencyError
