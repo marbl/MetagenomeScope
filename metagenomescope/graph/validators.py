@@ -6,7 +6,50 @@ import networkx as nx
 from metagenomescope.errors import WeirdError
 
 
-def verify_node_in_graph(g: nx.MultiDiGraph, node_id: str):
+class ValidationResults(object):
+    """Stores the results of trying to validate a pattern.
+
+    ... I guess this is more consistent to work with than returning a 2-tuple,
+    or maybe sometimes a 4-tuple, or whatever.
+    """
+
+    def __init__(
+        self,
+        is_valid=False,
+        node_list=[],
+        starting_node_id=None,
+        ending_node_id=None,
+    ):
+        """Initializes this object.
+
+        Parameters
+        ----------
+        is_valid: bool
+            True if the proposed pattern was valid; False otherwise.
+
+        node_list: list
+            If is_valid is True, contains a list of the nodes in the pattern;
+            otherwise, this should be an empty list.
+
+        starting_node_id: str or None
+            If is_valid is True and if the pattern has a single defined start
+            and end node (which is the case for all patterns except frayed
+            ropes, at the moment), this should be the ID of the starting node
+            in the pattern. Otherwise, this should be None.
+
+        ending_node_id: str or None
+            Like starting_node_id, but for the ending node of the pattern.
+        """
+        self.is_valid = is_valid
+        self.node_list = node_list
+        self.starting_node_id = starting_node_id
+        self.ending_node_id = ending_node_id
+
+    def __bool__(self):
+        return self.is_valid
+
+
+def verify_node_in_graph(g, node_id):
     """Raises a WeirdError if a node is not present in a graph."""
     if node_id not in g.nodes:
         raise WeirdError(
@@ -15,8 +58,8 @@ def verify_node_in_graph(g: nx.MultiDiGraph, node_id: str):
         )
 
 
-def is_valid_frayed_rope(g: nx.MultiDiGraph, starting_node_id: str):
-    r"""Validates a frayed rope starting at a given node in a graph.
+def is_valid_frayed_rope(g, starting_node_id):
+    r"""Validates a frayed rope starting at a node in a graph.
 
     A frayed rope will have multiple starting nodes, of course -- this
     function doesn't care which of these is given (any is fine).
@@ -28,12 +71,7 @@ def is_valid_frayed_rope(g: nx.MultiDiGraph, starting_node_id: str):
 
     Returns
     -------
-    (is_valid, node_list): (bool, list or None)
-        is_valid: True if "starting_node_id" is a starting node of a valid
-                  frayed rope; False otherwise.
-
-        node_list: If is_valid is True, this is a list of all nodes in the
-                   frayed rope; otherwise, this is None.
+    ValidationResults
 
     Notes
     -----
@@ -108,33 +146,31 @@ def is_valid_frayed_rope(g: nx.MultiDiGraph, starting_node_id: str):
 
 
 def is_valid_cyclic_chain(g, starting_node_id):
-    r"""Validates a cyclic chain containing a given node in a graph.
+    r"""Validates a cyclic chain "starting at" a node in a graph.
 
     Parameters
     ----------
     g: nx.MultiDiGraph
     starting_node_id: str
-        Note that "starting_node_id" is sort of a misnomer, since some cyclic
-        chains don't have a single starting node (e.g. isolated cycles, like
-        0 -> 1 -> 0). Either 0 or 1 would be considered "starting nodes" for a
-        valid cyclic chain in this example. However, in cases like...
-
-              +--
-              V  \
-        2 -> 0 -> 1 -> 3
-
-        ... 0 would still be the starting node for a valid cyclic chain of 0
-        and 1, but 1 would not be the "starting node" (since it has two
-        separate outgoing nodes).
 
     Returns
     -------
-    (is_valid, node_list): (bool, list or None)
-        is_valid: True if "starting_node_id" is contained within a valid
-                  cyclic chain; False otherwise.
+    ValidationResults
 
-        node_list: If is_valid is True, this is a list of all nodes in the
-                   cyclic chain; otherwise, this is None.
+    Notes
+    -----
+    Note that "starting_node_id" is sort of a misnomer, since some cyclic
+    chains don't have a single starting node (e.g. isolated cycles, like
+    0 -> 1 -> 0). Either 0 or 1 would be considered "starting nodes" for a
+    valid cyclic chain in this example. However, in cases like...
+
+          +--
+          V  \
+    2 -> 0 -> 1 -> 3
+
+    ... 0 would still be the starting node for a valid cyclic chain of 0
+    and 1, but 1 would not be the "starting node" (since it has two
+    separate outgoing nodes).
     """
     verify_node_in_graph(g, starting_node_id)
     s_outgoing_node_ct = len(g.adj[starting_node_id])
@@ -221,30 +257,83 @@ def is_bubble_boundary_node_invalid(g, node_id):
     return False
 
 
+def is_valid_bulge(g, starting_node_id):
+    r"""Validates a simple bulge starting at a node in a graph.
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    starting_node_id: str
+
+    Returns
+    -------
+    ValidationResults
+
+    Notes
+    -----
+    We say that there exists a simple bulge on nodes (S, E) if all of the
+    following conditions are met:
+
+    1. There exist at least two edges from S --> E.
+    2. All of S's outgoing edges point to E.
+    3. All of E's incoming edges come from S.
+    4. There is not an edge from E to S.
+
+    We could relax conditions 2, 3, and 4 if desired, although it may
+    complicate the pattern decomposition stuff. So, for now, let's stick with
+    these strict "simple" bulges.
+    """
+    verify_node_in_graph(g, starting_node_id)
+    adj = g.adj[starting_node_id]
+    if len(adj) == 1:
+        # Condition 2 is met
+        ending_node_id = list(adj)[0]
+        if len(g.pred[ending_node_id]) == 1:
+            # Condition 3 is met
+            if len(adj[ending_node_id]) > 1:
+                # Condition 1 is met
+                if starting_node_id not in g.adj[ending_node_id]:
+                    # Condition 4 is met
+                    return ValidationResults(
+                        True,
+                        [starting_node_id, ending_node_id],
+                        starting_node_id,
+                        ending_node_id,
+                    )
+    return ValidationResults()
+
+
 def is_valid_3node_bubble(g, starting_node_id):
-    r"""Returns a 4-tuple of (True, a list of all the nodes in the bubble,
-       the starting node in the bubble, the ending node in the bubble)
-       if a 3-node bubble defined at the given start node would be valid.
-       Returns a 2-tuple of (False, None) if such a bubble would be
-       considered invalid.
+    r"""Validates a 3-node bubble starting at a node in a graph.
 
-       The bubbles we try to detect look like:
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    starting_node_id: str
 
-         /-m-\
-        /     \
-       s-------e
+    Returns
+    -------
+    ValidationResults
 
-       Due to the nature of hierarchical pattern decomposition, we only
-       allow the middle "path" to be a single node. This is still broad
-       enough to allow for bubbles with a linear path of multiple nodes
-       in the middle, e.g.
+    Notes
+    -----
+    The bubbles we try to detect look like:
 
-         /-m1-m2-m3-\
-        /            \
-       s--------------e
+      /-m-\
+     /     \
+    s-------e
 
-       ... since we assume that this path has already been collapsed into a
-       chain.
+    Due to the nature of hierarchical pattern decomposition, we only
+    allow the middle "path" to be a single node. This is still broad
+    enough to allow for bubbles with a linear path of multiple nodes
+    in the middle, e.g.
+
+      /-m1-m2-m3-\
+     /            \
+    s--------------e
+
+    ... since we assume that this path has already been collapsed into a
+    chain.
     """
     # NOTE - this is unneeded if we keep calling
     # is_bubble_boundary_node_invalid(), but i think we'll phase that out soon
@@ -306,34 +395,41 @@ def is_valid_3node_bubble(g, starting_node_id):
 
 
 def is_valid_bubble(g, starting_node_id):
-    r"""Returns a 4-tuple of (True, a list of all the nodes in the bubble,
-       the starting node in the bubble, the ending node in the bubble) if
-       a bubble defined at the given start node would be valid.
-       Returns a 2-tuple of (False, None) if such a bubble would be
-       considered invalid.
+    r"""Validates a simple bubble starting at a node in a graph.
 
-       NOTE that we only consider "simple" bubbles that look like
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    starting_node_id: str
 
-         /-m1-\        /-m1-\
-        /      \      /      \
-       s        e or s---m2---e  ..., etc.
-        \      /      \      /
-         \-m2-/        \-m3-/
+    Returns
+    -------
+    ValidationResults
 
-       That is, we expect that this each path between the start
-       node and the end node must only have one "middle" node, although
-       there can be an arbitrary (>= 2) amount of such paths.
+    Notes
+    -----
+    Here, we only consider "simple" bubbles that look like
 
-       This is because we assume that other complexities, such as
-       "chains" (e.g. a middle path actually contains n nodes where
-       m1 -> m2 -> ... mn), have already been collapsed.
+      /-m1-\        /-m1-\
+     /      \      /      \
+    s        e or s---m2---e  ..., etc.
+     \      /      \      /
+      \-m2-/        \-m3-/
 
-       Also, note that we don't detect 3-node bubbles here (those are
-       detected by is_valid_3node_bubble()).
+    That is, we expect that this each path between the start
+    node and the end node must only have one "middle" node, although
+    there can be an arbitrary (>= 2) amount of such paths.
 
-       Lastly, we don't currently detect bubbles where there's an edge
-       directly between the start and end node. ...but these should be
-       possible to detect with more robust bubble-finding techniques.
+    This is because we assume that other complexities, such as
+    "chains" (e.g. a middle path actually contains n nodes where
+    m1 -> m2 -> ... mn), have already been collapsed.
+
+    Also, note that we don't detect 3-node bubbles here (those are
+    detected by is_valid_3node_bubble()).
+
+    Lastly, we don't currently detect bubbles where there's an edge
+    directly between the start and end node. ...but these should be
+    possible to detect with more robust bubble-finding techniques.
     """
     verify_node_in_graph(g, starting_node_id)
 
@@ -405,18 +501,27 @@ def is_valid_bubble(g, starting_node_id):
 
 
 def is_valid_superbubble(g, starting_node_id):
-    r"""Returns a 4-tuple of (True, a list of all the nodes in the bubble,
-    the starting node in the bubble, the ending node in the bubble)
-    if a "superbubble" defined at the given start node would be valid.
-    Returns a 2-tuple of (False, None) if such a bubble would be
-    considered invalid.
+    r"""Validates a superbubble starting at a node in a graph.
 
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    starting_node_id: str
+
+    Returns
+    -------
+    ValidationResults
+
+    Notes
+    -----
     If there is a superbubble starting at the start node, but it
     contains other superbubbles within it, then this'll just return a
     minimal superbubble (not starting at starting_node_id). It's
     expected that hierarchical decomposition will mean that we'll
     revisit this question later.
 
+    References
+    ----------
     This algorithm is adapted from Onodera et al. 2013:
     https://arxiv.org/pdf/1307.7925.pdf
     """
@@ -540,23 +645,37 @@ def is_valid_superbubble(g, starting_node_id):
 
 
 def is_valid_chain(g, starting_node_id):
-    """Returns a 2-tuple of (True, a list of all the nodes in the Chain
-    in order from start to end) if a Chain defined at the given start
-    node would be valid. Returns a 2-tuple of (False, None) if such a
-    Chain would be considered invalid.
+    r"""Validates a chain "starting at" a node in a graph.
 
-    NOTE that this finds the longest possible Chain that includes s,
-    if a Chain exists starting at s. If we decide that no Chain
-    exists starting at s then we just return (False, None), but if we
-    find that a Chain does exist starting at s then we traverse
-    "backwards" to find the longest possible chain including s.
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    starting_node_id: str
 
-    ALSO NOTE that if this is actually a cyclic chain (i.e. the end node
-    of the chain has an edge to the start node of the chain), we will
-    return (False, None). These sorts of cases should be caught when
-    looking for cyclic chains later on.
+    Returns
+    -------
+    ValidationResults
 
-    Ideally there would be a preexisting function in NetworkX that
+    Notes
+    -----
+    THIS FINDS THE LONGEST POSSIBLE CHAIN that includes the starting node
+    (herein referred to as "s" for brevity), if a Chain exists beginning at s.
+
+    In other words: if we find that no Chain exists starting at s then we do
+    not identify a valid Chain here, but if we do find that a Chain does
+    exist starting at s then we traverse "backwards" to find the longest
+    possible chain including s. (This way, if this function returns a chain,
+    it's guaranteed to be "maximal.")
+
+    If "s" is really present in a chain (as the final node), then that's fine
+    -- we should come back to this later when running this function on another
+    node earlier on in that chain.
+
+    IF THIS IS ACTUALLY A CYCLIC CHAIN (i.e. the end node of the chain has an
+    edge to the start node of the chain), we will not identify a valid Chain
+    here. These sorts of cases should be caught when looking for cyclic chains.
+
+    IDEALLY there would be a preexisting function in NetworkX that
     computes this, but I wasn't able to find something that does this.
     If you're aware of another library's implementation of this sort of
     thing, let me know! It'd be nice to avoid duplication of effort.

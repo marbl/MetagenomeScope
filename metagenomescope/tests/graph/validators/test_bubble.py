@@ -233,3 +233,17 @@ def test_converges_to_start():
     nx.add_path(g, [0, 1, 0])
     nx.add_path(g, [0, 2, 0])
     assert not validators.is_valid_bubble(g, 0)[0]
+
+
+def test_bulge():
+    g = nx.MultiDiGraph()
+    # 2 edges from 0 -> 1
+    g.add_edge(0, 1)
+    g.add_edge(0, 1)
+    assert validators.is_valid_bulge(g, 0)
+    assert not validators.is_valid_bulge(g, 1)
+
+    # okay, now 3 edges from 0 -> 1
+    g.add_edge(0, 1)
+    assert validators.is_valid_bulge(g, 0)
+    assert not validators.is_valid_bulge(g, 1)
