@@ -72,12 +72,14 @@ def make_viz(
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
     # Read the assembly graph file and create an object representing it.
+    operation_msg("Loading the assembly graph...")
     asm_graph = graph.AssemblyGraph(
         input_file,
         max_node_count=max_node_count,
         max_edge_count=max_edge_count,
         patterns=patterns,
     )
+    conclude_msg()
 
     # Identify patterns (if patterns is True), do layout, etc.
     asm_graph.process()

@@ -123,9 +123,6 @@ class AssemblyGraph(object):
         self.extra_edge_attrs = set()
 
         self.basename = os.path.basename(self.filename)
-        operation_msg(
-            "Reading and parsing input file {}...".format(self.basename)
-        )
         # NOTE: Ideally we'd just return this along with the graph from
         # parsers.parse(), but uhhhh that will make me refactor
         # like 20 tests and I don't want to do that ._.
@@ -133,7 +130,6 @@ class AssemblyGraph(object):
 
         self.graph = parsers.parse(self.filename)
         self.check_attrs()
-        conclude_msg()
 
         # Remove nodes/edges in components that are too large to lay out.
         self.num_too_large_components = 0
