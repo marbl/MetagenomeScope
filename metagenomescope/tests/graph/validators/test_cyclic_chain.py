@@ -138,6 +138,51 @@ def test_extraneous_outgoing_edge_from_start():
             assert not results[0]
 
 
+def test_simple_whirl():
+    r"""Simple case: two nodes, each with an edge to the other.
+      __
+     /  \
+    V    |
+    0    1
+    |    ^
+     \__/
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(1, 0)
+    results0 = validators.is_valid_cyclic_chain(g, 0)
+    assert results0[0]
+    assert results0[1] == [0, 1]
+    results1 = validators.is_valid_cyclic_chain(g, 1)
+    assert results1[0]
+    assert results1[1] == [1, 0]
+
+
+def test_simple_whirl_intervening_edges():
+    r"""Simple case: two nodes, each with an edge to the other.
+            __
+           /  \
+          V    |
+    2 --> 0    1 --> 3
+          |    ^
+           \__/
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(1, 0)
+    g.add_edge(2, 0)
+    g.add_edge(1, 3)
+    results0 = validators.is_valid_cyclic_chain(g, 0)
+    assert results0[0]
+    assert results0[1] == [0, 1]
+    # Now, 1 is no longer a valid start node for the [0, 1] cyclic chain. This
+    # is because 1 has multiple outgoing nodes, so it can't be the "start" of a
+    # cyclic chain. dems the breaks
+    assert not validators.is_valid_cyclic_chain(g, 1)[0]
+    assert not validators.is_valid_cyclic_chain(g, 2)[0]
+    assert not validators.is_valid_cyclic_chain(g, 3)[0]
+
+
 # def test_simple_fr_detection_failures():
 #     g = get_simple_fr_graph()
 #     for s in [2, 3, 4]:

@@ -1,11 +1,25 @@
+# Validation methods for potential patterns starting at a given node ID in an
+# assembly graph.
+
+
 import networkx as nx
+from metagenomescope.errors import WeirdError
+
+
+def verify_node_in_graph(g: nx.MultiDiGraph, node_id: str):
+    """Raises a WeirdError if a node is not present in a graph."""
+    if node_id not in g.nodes:
+        raise WeirdError(
+            f"Node {node_id} is not present in the graph's nodes? Something "
+            "may have gone wrong during hierarchical decomposition."
+        )
 
 
 def is_valid_frayed_rope(g: nx.MultiDiGraph, starting_node_id: str):
     r"""Validates a frayed rope starting at a given node in a graph.
 
     A frayed rope will have multiple starting nodes, of course -- this
-    function doesn't care which of these is given.
+    function doesn't care which of these is given (any is fine).
 
     Parameters
     ----------
@@ -38,6 +52,7 @@ def is_valid_frayed_rope(g: nx.MultiDiGraph, starting_node_id: str):
     middle nodes, but these chains should have already been collapsed by the
     time we call this function.)
     """
+    verify_node_in_graph(g, starting_node_id)
 
     # If the starting node doesn't have exactly 1 outgoing node, fail
     if len(g.adj[starting_node_id]) != 1:
@@ -93,11 +108,35 @@ def is_valid_frayed_rope(g: nx.MultiDiGraph, starting_node_id: str):
 
 
 def is_valid_cyclic_chain(g, starting_node_id):
-    """Identifies the cyclic chain that "starts at" a given starting
-    node, if such a cyclic chain exists. Returns (True, [nodes]) if
-    such a cyclic chain exists (where [nodes] is a list of all the
-    node IDs in the cyclic chain), and (False, None) otherwise.
+    r"""Validates a cyclic chain containing a given node in a graph.
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    starting_node_id: str
+        Note that "starting_node_id" is sort of a misnomer, since some cyclic
+        chains don't have a single starting node (e.g. isolated cycles, like
+        0 -> 1 -> 0). Either 0 or 1 would be considered "starting nodes" for a
+        valid cyclic chain in this example. However, in cases like...
+
+              +--
+              V  \
+        2 -> 0 -> 1 -> 3
+
+        ... 0 would still be the starting node for a valid cyclic chain of 0
+        and 1, but 1 would not be the "starting node" (since it has two
+        separate outgoing nodes).
+
+    Returns
+    -------
+    (is_valid, node_list): (bool, list or None)
+        is_valid: True if "starting_node_id" is contained within a valid
+                  cyclic chain; False otherwise.
+
+        node_list: If is_valid is True, this is a list of all nodes in the
+                   cyclic chain; otherwise, this is None.
     """
+    verify_node_in_graph(g, starting_node_id)
     s_outgoing_node_ct = len(g.adj[starting_node_id])
     if len(g.pred[starting_node_id]) == 0 or s_outgoing_node_ct == 0:
         # If the starting node has no incoming or no outgoing nodes, it
@@ -159,7 +198,7 @@ def is_valid_cyclic_chain(g, starting_node_id):
         curr = list(g.adj[curr].keys())[0]
 
     # If we're here then something went terribly wrong
-    raise RuntimeError(
+    raise WeirdError(
         (
             "Sorry! Something went terribly wrong during cyclic chain "
             "detection using a tentative starting node ID of {}. Please "
@@ -176,6 +215,7 @@ def is_bubble_boundary_node_invalid(g, node_id):
     Basically, the purpose of this is rejecting things like frayed
     ropes that don't make sense as the start / end nodes of bubbles.
     """
+    verify_node_in_graph(g, node_id)
     if "pattern_type" in g.nodes[node_id]:
         return g.nodes[node_id]["pattern_type"] != "bubble"
     return False
@@ -206,6 +246,9 @@ def is_valid_3node_bubble(g, starting_node_id):
        ... since we assume that this path has already been collapsed into a
        chain.
     """
+    # NOTE - this is unneeded if we keep calling
+    # is_bubble_boundary_node_invalid(), but i think we'll phase that out soon
+    verify_node_in_graph(g, starting_node_id)
     # Starting node must be either an uncollapsed node or another bubble
     if is_bubble_boundary_node_invalid(g, starting_node_id):
         return False, None
@@ -292,6 +335,7 @@ def is_valid_bubble(g, starting_node_id):
        directly between the start and end node. ...but these should be
        possible to detect with more robust bubble-finding techniques.
     """
+    verify_node_in_graph(g, starting_node_id)
 
     # For now, bubbles can only start with 1) uncollapsed nodes or 2) other
     # bubbles (which'll cause us to duplicate stuff)
@@ -376,6 +420,7 @@ def is_valid_superbubble(g, starting_node_id):
     This algorithm is adapted from Onodera et al. 2013:
     https://arxiv.org/pdf/1307.7925.pdf
     """
+    verify_node_in_graph(g, starting_node_id)
     # Starting node must be either an uncollapsed node or another bubble
     if is_bubble_boundary_node_invalid(g, starting_node_id):
         return False, None
@@ -516,6 +561,7 @@ def is_valid_chain(g, starting_node_id):
     If you're aware of another library's implementation of this sort of
     thing, let me know! It'd be nice to avoid duplication of effort.
     """
+    verify_node_in_graph(g, starting_node_id)
     out_node_ids = list(g.adj[starting_node_id].keys())
     # If the starting node doesn't have an outgoing edge to exactly one
     # node -- or even if it does, but if that node is itself -- then this
