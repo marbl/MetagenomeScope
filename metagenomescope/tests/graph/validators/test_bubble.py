@@ -1,5 +1,5 @@
 import networkx as nx
-from metagenomescope.graph import AssemblyGraph
+from metagenomescope.graph import validators
 
 
 def get_3_node_bubble_graph():
@@ -38,7 +38,7 @@ def get_easy_bubble_graph():
 def test_easy_bubble():
     """Tests that a basic bubble is identified."""
     g = get_easy_bubble_graph()
-    results = AssemblyGraph.is_valid_bubble(g, 0)
+    results = validators.is_valid_bubble(g, 0)
 
     assert len(results) == 4
     assert results[0]
@@ -60,14 +60,14 @@ def test_easy_bubble_fails_when_starting_point_bad():
     """
     g = get_easy_bubble_graph()
     for s in [1, 2, 3]:
-        results = AssemblyGraph.is_valid_bubble(g, s)
+        results = validators.is_valid_bubble(g, s)
         assert not results[0]
         assert results[1] is None
 
 
 def test_easy_3_node_bubble():
     g = get_3_node_bubble_graph()
-    results = AssemblyGraph.is_valid_3node_bubble(g, 0)
+    results = validators.is_valid_3node_bubble(g, 0)
     assert results[0] and set(results[1]) == set([0, 1, 2])
     assert results[2] == 0
     assert results[3] == 2
@@ -77,7 +77,7 @@ def test_3node_bubble_func_fails_on_normal_bubble():
     """(It should only detect 3-node bubbles, not normal bubbles.)"""
     g = get_easy_bubble_graph()
     for s in [0, 1, 2, 3]:
-        assert not AssemblyGraph.is_valid_3node_bubble(g, s)[0]
+        assert not validators.is_valid_3node_bubble(g, s)[0]
 
 
 def test_3node_bubble_func_doesnt_fail_on_cyclic():
@@ -85,8 +85,8 @@ def test_3node_bubble_func_doesnt_fail_on_cyclic():
     g = get_3_node_bubble_graph()
     g.add_edge(2, 0)
     for s in [1, 2]:
-        assert not AssemblyGraph.is_valid_3node_bubble(g, s)[0]
-    assert AssemblyGraph.is_valid_3node_bubble(g, 0)[0]
+        assert not validators.is_valid_3node_bubble(g, s)[0]
+    assert validators.is_valid_3node_bubble(g, 0)[0]
 
 
 def test_3node_bubble_func_fails_on_middle_spur():
@@ -100,7 +100,7 @@ def test_3node_bubble_func_fails_on_middle_spur():
     g.add_edge(1, 3)
     g.remove_edge(1, 2)
     for s in [0, 1, 2, 3]:
-        assert not AssemblyGraph.is_valid_3node_bubble(g, s)[0]
+        assert not validators.is_valid_3node_bubble(g, s)[0]
 
 
 def test_3node_bubble_func_fails_on_middle_extra_branch():
@@ -113,7 +113,7 @@ def test_3node_bubble_func_fails_on_middle_extra_branch():
     g = get_3_node_bubble_graph()
     g.add_edge(1, 3)
     for s in [0, 1, 2, 3]:
-        assert not AssemblyGraph.is_valid_3node_bubble(g, s)[0]
+        assert not validators.is_valid_3node_bubble(g, s)[0]
 
 
 def test_easy_3_node_bubble_fails_with_normal_simple_bubble_detection():
@@ -122,7 +122,7 @@ def test_easy_3_node_bubble_fails_with_normal_simple_bubble_detection():
     """
     g = get_3_node_bubble_graph()
     for s in [1, 2]:
-        assert not AssemblyGraph.is_valid_bubble(g, s)[0]
+        assert not validators.is_valid_bubble(g, s)[0]
 
 
 def test_extra_nodes_on_middle():
@@ -143,10 +143,10 @@ def test_extra_nodes_on_middle():
     """
     g = get_easy_bubble_graph()
     g.add_edge(4, 1)
-    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
+    assert not validators.is_valid_bubble(g, 0)[0]
     g = get_easy_bubble_graph()
     g.add_edge(1, 4)
-    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
+    assert not validators.is_valid_bubble(g, 0)[0]
 
 
 def test_converge_to_diff_endings():
@@ -160,7 +160,7 @@ def test_converge_to_diff_endings():
     g = nx.DiGraph()
     nx.add_path(g, [0, 1, 2])
     nx.add_path(g, [0, 3, 4])
-    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
+    assert not validators.is_valid_bubble(g, 0)[0]
 
 
 def test_extra_nodes_on_ending():
@@ -180,13 +180,13 @@ def test_extra_nodes_on_ending():
     """
     g = get_easy_bubble_graph()
     g.add_edge(4, 3)
-    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
+    assert not validators.is_valid_bubble(g, 0)[0]
 
     # Test that we can get this back to a valid bubble by reversing 4 -> 3 to
     # be 3 -> 4
     g.remove_edge(4, 3)
     g.add_edge(3, 4)
-    results = AssemblyGraph.is_valid_bubble(g, 0)
+    results = validators.is_valid_bubble(g, 0)
     assert results[0]
     assert set(results[1]) == set([0, 1, 2, 3])
 
@@ -207,7 +207,7 @@ def test_cyclic_bubbles_ok():
     """
     g = get_easy_bubble_graph()
     g.add_edge(3, 0)
-    assert AssemblyGraph.is_valid_bubble(g, 0)[0]
+    assert validators.is_valid_bubble(g, 0)[0]
 
 
 def test_converges_to_start():
@@ -232,4 +232,4 @@ def test_converges_to_start():
     g = nx.DiGraph()
     nx.add_path(g, [0, 1, 0])
     nx.add_path(g, [0, 2, 0])
-    assert not AssemblyGraph.is_valid_bubble(g, 0)[0]
+    assert not validators.is_valid_bubble(g, 0)[0]

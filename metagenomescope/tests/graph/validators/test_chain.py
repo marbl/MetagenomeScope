@@ -1,5 +1,5 @@
 import networkx as nx
-from metagenomescope.graph import AssemblyGraph
+from metagenomescope.graph import validators
 
 
 def get_test_path_graph(num_nodes):
@@ -33,7 +33,7 @@ def test_easiest_possible_case():
     is 0.
     """
     g = get_test_path_graph(3)
-    results = AssemblyGraph.is_valid_chain(g, 0)
+    results = validators.is_valid_chain(g, 0)
 
     assert len(results) == 2
     assert results[0]
@@ -48,7 +48,7 @@ def test_backwards_extension():
     full path graph.
     """
     g = get_test_path_graph(3)
-    results = AssemblyGraph.is_valid_chain(g, 1)
+    results = validators.is_valid_chain(g, 1)
 
     assert len(results) == 2
     assert results[0]
@@ -61,7 +61,7 @@ def test_easy_no_chain():
     stuff.
     """
     g = get_test_path_graph(3)
-    results = AssemblyGraph.is_valid_chain(g, 2)
+    results = validators.is_valid_chain(g, 2)
 
     assert len(results) == 2
     assert not results[0]
@@ -79,11 +79,11 @@ def test_intervening_paths_harder():
     # Only one chain can be detected in this graph: 2 -> 3
     # ... So starting at everything except for 2 should result in nothing found
     for i in [0, 1, 3, 4, 5]:
-        results = AssemblyGraph.is_valid_chain(g, i)
+        results = validators.is_valid_chain(g, i)
         assert not results[0] and results[1] is None
 
     # Check that 2 -> 3 is indeed recognized as a chain
-    results = AssemblyGraph.is_valid_chain(g, 2)
+    results = validators.is_valid_chain(g, 2)
     assert results[0] and (results[1] == [2, 3])
 
 
@@ -109,16 +109,16 @@ def test_intervening_paths_easier():
     # and detect the same chain (note the (1, 3) range -- the endpoint, 3, is
     # excluded and therefore not checked)
     for i in range(1, 3):
-        results = AssemblyGraph.is_valid_chain(g, i)
+        results = validators.is_valid_chain(g, i)
         assert results[0] and results[1] == [1, 2, 3]
 
     # Of course, the other nodes in the graph won't result in chains being
     # detected (3 and 4 have no outgoing nodes, 5 is an "island", 0 has an
     # intervening outgoing edge to 4)
-    assert not AssemblyGraph.is_valid_chain(g, 0)[0]
-    assert not AssemblyGraph.is_valid_chain(g, 3)[0]
-    assert not AssemblyGraph.is_valid_chain(g, 4)[0]
-    assert not AssemblyGraph.is_valid_chain(g, 5)[0]
+    assert not validators.is_valid_chain(g, 0)[0]
+    assert not validators.is_valid_chain(g, 3)[0]
+    assert not validators.is_valid_chain(g, 4)[0]
+    assert not validators.is_valid_chain(g, 5)[0]
 
 
 def test_cyclic_chain_easy():
@@ -136,7 +136,7 @@ def test_cyclic_chain_easy():
     g.add_edge(2, 1)
     # Regardless of picked starting node, this shouldn't work
     for s in [1, 2]:
-        assert not AssemblyGraph.is_valid_chain(g, s)[0]
+        assert not validators.is_valid_chain(g, s)[0]
 
 
 def test_cyclic_chain_ambiguous_end():
@@ -157,7 +157,7 @@ def test_cyclic_chain_ambiguous_end():
     g.add_edge(2, 3)
     # Regardless of picked starting node, this shouldn't work
     for s in [1, 2, 3]:
-        assert not AssemblyGraph.is_valid_chain(g, s)[0]
+        assert not validators.is_valid_chain(g, s)[0]
 
 
 def test_cyclic_chain_found_to_be_cyclic_during_backwards_extension():
@@ -186,4 +186,4 @@ def test_cyclic_chain_found_to_be_cyclic_during_backwards_extension():
     g.add_edge(3, 4)
     # Regardless of picked starting node, this shouldn't work
     for s in [1, 2, 3, 4]:
-        assert not AssemblyGraph.is_valid_chain(g, s)[0]
+        assert not validators.is_valid_chain(g, s)[0]

@@ -1,5 +1,5 @@
 import networkx as nx
-from metagenomescope.graph import AssemblyGraph
+from metagenomescope.graph import validators
 
 
 def get_simple_fr_graph():
@@ -20,7 +20,7 @@ def get_simple_fr_graph():
 def test_simple_fr_detection():
     g = get_simple_fr_graph()
     for s in [0, 1]:
-        results = AssemblyGraph.is_valid_frayed_rope(g, s)
+        results = validators.is_valid_frayed_rope(g, s)
         assert results[0]
         assert set(results[1]) == set([0, 1, 2, 3, 4])
 
@@ -28,7 +28,7 @@ def test_simple_fr_detection():
 def test_simple_fr_detection_failures():
     g = get_simple_fr_graph()
     for s in [2, 3, 4]:
-        results = AssemblyGraph.is_valid_frayed_rope(g, s)
+        results = validators.is_valid_frayed_rope(g, s)
         assert not results[0]
         assert results[1] is None
 
@@ -45,7 +45,7 @@ def test_only_1_starting_node():
     """
     g = get_simple_fr_graph()
     g.remove_edge(1, 2)
-    assert not AssemblyGraph.is_valid_frayed_rope(g, 0)[0]
+    assert not validators.is_valid_frayed_rope(g, 0)[0]
 
 
 def test_extraneous_outgoing_node_from_start_nodes():
@@ -61,8 +61,8 @@ def test_extraneous_outgoing_node_from_start_nodes():
     """
     g = get_simple_fr_graph()
     g.add_edge(0, 5)
-    assert not AssemblyGraph.is_valid_frayed_rope(g, 0)[0]
-    assert not AssemblyGraph.is_valid_frayed_rope(g, 1)[0]
+    assert not validators.is_valid_frayed_rope(g, 0)[0]
+    assert not validators.is_valid_frayed_rope(g, 1)[0]
 
 
 def test_nondiverging_middle_node():
@@ -77,7 +77,7 @@ def test_nondiverging_middle_node():
     """
     g = get_simple_fr_graph()
     g.remove_edge(2, 4)
-    assert not AssemblyGraph.is_valid_frayed_rope(g, 0)[0]
+    assert not validators.is_valid_frayed_rope(g, 0)[0]
 
 
 def test_no_outgoing_edges_middle_node():
@@ -92,7 +92,7 @@ def test_no_outgoing_edges_middle_node():
     g = get_simple_fr_graph()
     g.remove_edge(2, 3)
     g.remove_edge(2, 4)
-    assert not AssemblyGraph.is_valid_frayed_rope(g, 0)[0]
+    assert not validators.is_valid_frayed_rope(g, 0)[0]
 
 
 def test_extraneous_incoming_node_to_end_nodes():
@@ -108,7 +108,7 @@ def test_extraneous_incoming_node_to_end_nodes():
     """
     g = get_simple_fr_graph()
     g.add_edge(5, 3)
-    assert not AssemblyGraph.is_valid_frayed_rope(g, 0)[0]
+    assert not validators.is_valid_frayed_rope(g, 0)[0]
 
 
 def test_cyclic_frayed_rope():
@@ -125,8 +125,8 @@ def test_cyclic_frayed_rope():
     """
     g = get_simple_fr_graph()
     g.add_edge(3, 0)
-    assert not AssemblyGraph.is_valid_frayed_rope(g, 0)[0]
-    assert not AssemblyGraph.is_valid_frayed_rope(g, 1)[0]
+    assert not validators.is_valid_frayed_rope(g, 0)[0]
+    assert not validators.is_valid_frayed_rope(g, 1)[0]
 
 
 def test_diverges_to_start():
@@ -144,5 +144,5 @@ def test_diverges_to_start():
     g = get_simple_fr_graph()
     g.remove_edge(2, 3)
     g.add_edge(2, 0)
-    assert not AssemblyGraph.is_valid_frayed_rope(g, 0)[0]
-    assert not AssemblyGraph.is_valid_frayed_rope(g, 1)[0]
+    assert not validators.is_valid_frayed_rope(g, 0)[0]
+    assert not validators.is_valid_frayed_rope(g, 1)[0]
