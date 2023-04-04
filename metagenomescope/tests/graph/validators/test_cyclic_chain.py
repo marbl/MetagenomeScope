@@ -23,8 +23,8 @@ def test_simple_cyclic_chain_detection():
     g = get_simple_cyclic_chain_graph()
     for s in [0, 1, 2, 3]:
         results = validators.is_valid_cyclic_chain(g, s)
-        assert results[0]
-        assert set(results[1]) == set([0, 1, 2, 3])
+        assert results
+        assert set(results.node_list) == set([0, 1, 2, 3])
 
 
 def test_isolated_start():
@@ -33,10 +33,10 @@ def test_isolated_start():
     """
     g = nx.DiGraph()
     g.add_node(0)
-    assert not validators.is_valid_cyclic_chain(g, 0)[0]
+    assert not validators.is_valid_cyclic_chain(g, 0)
     g.add_edge(0, 1)
-    assert not validators.is_valid_cyclic_chain(g, 0)[0]
-    assert not validators.is_valid_cyclic_chain(g, 1)[0]
+    assert not validators.is_valid_cyclic_chain(g, 0)
+    assert not validators.is_valid_cyclic_chain(g, 1)
 
 
 def test_selfloop():
@@ -63,15 +63,15 @@ def test_selfloop():
     g.add_edge(0, 0)
 
     results = validators.is_valid_cyclic_chain(g, 0)
-    assert results[0]
-    assert results[1] == [0]
+    assert results
+    assert results.node_list == [0]
 
     g.add_edge(1, 0)
     g.add_edge(0, 2)
 
     results = validators.is_valid_cyclic_chain(g, 0)
-    assert results[0]
-    assert results[1] == [0]
+    assert results
+    assert results.node_list == [0]
 
 
 def test_funky_selfloop():
@@ -99,13 +99,13 @@ def test_funky_selfloop():
 
     # 0 -> 0 is a cyclic chain
     results = validators.is_valid_cyclic_chain(g, 0)
-    assert results[0]
-    assert results[1] == [0]
+    assert results
+    assert results.node_list == [0]
 
     # However, with other starting nodes, you don't find anything -- 0 throws
     # off the detection
     for s in [1, 2, 3]:
-        assert not validators.is_valid_cyclic_chain(g, s)[0]
+        assert not validators.is_valid_cyclic_chain(g, s)
 
 
 def test_extraneous_outgoing_edge_from_start():
@@ -133,9 +133,10 @@ def test_extraneous_outgoing_edge_from_start():
         print(s)
         results = validators.is_valid_cyclic_chain(g, s)
         if s == 1:
-            assert results[0]
+            assert results
+            assert results.node_list == [1, 2, 3, 0]
         else:
-            assert not results[0]
+            assert not results
 
 
 def test_simple_whirl():
@@ -151,11 +152,11 @@ def test_simple_whirl():
     g.add_edge(0, 1)
     g.add_edge(1, 0)
     results0 = validators.is_valid_cyclic_chain(g, 0)
-    assert results0[0]
-    assert results0[1] == [0, 1]
+    assert results0
+    assert results0.node_list == [0, 1]
     results1 = validators.is_valid_cyclic_chain(g, 1)
-    assert results1[0]
-    assert results1[1] == [1, 0]
+    assert results1
+    assert results1.node_list == [1, 0]
 
 
 def test_simple_whirl_intervening_edges():
@@ -173,14 +174,14 @@ def test_simple_whirl_intervening_edges():
     g.add_edge(2, 0)
     g.add_edge(1, 3)
     results0 = validators.is_valid_cyclic_chain(g, 0)
-    assert results0[0]
-    assert results0[1] == [0, 1]
+    assert results0
+    assert results0.node_list == [0, 1]
     # Now, 1 is no longer a valid start node for the [0, 1] cyclic chain. This
     # is because 1 has multiple outgoing nodes, so it can't be the "start" of a
     # cyclic chain. dems the breaks
-    assert not validators.is_valid_cyclic_chain(g, 1)[0]
-    assert not validators.is_valid_cyclic_chain(g, 2)[0]
-    assert not validators.is_valid_cyclic_chain(g, 3)[0]
+    assert not validators.is_valid_cyclic_chain(g, 1)
+    assert not validators.is_valid_cyclic_chain(g, 2)
+    assert not validators.is_valid_cyclic_chain(g, 3)
 
 
 # def test_simple_fr_detection_failures():
