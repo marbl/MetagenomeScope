@@ -9,7 +9,7 @@ def get_3_node_bubble_graph():
         /     \
        0-------2
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     g.add_edge(0, 1)
     g.add_edge(1, 2)
     g.add_edge(0, 2)
@@ -27,7 +27,7 @@ def get_easy_bubble_graph():
 
        ... that doesn't look great, but you get the idea ;)
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     g.add_edge(0, 1)
     g.add_edge(1, 3)
     g.add_edge(0, 2)
@@ -158,7 +158,7 @@ def test_converge_to_diff_endings():
         \
          \-3--4
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     nx.add_path(g, [0, 1, 2])
     nx.add_path(g, [0, 3, 4])
     assert not validators.is_valid_bubble(g, 0)
@@ -230,7 +230,7 @@ def test_converges_to_start():
        ending point in the bubble is the same, and should be explicitly
        disallowed.
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     nx.add_path(g, [0, 1, 0])
     nx.add_path(g, [0, 2, 0])
     assert not validators.is_valid_bubble(g, 0)
