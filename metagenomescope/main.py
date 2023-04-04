@@ -20,7 +20,7 @@
 import os
 from distutils.dir_util import copy_tree
 import jinja2
-from . import graph_objects, arg_utils
+from . import graph, arg_utils
 from .msg_utils import operation_msg, conclude_msg
 
 
@@ -72,7 +72,7 @@ def make_viz(
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
     # Read the assembly graph file and create an object representing it.
-    asm_graph = graph_objects.AssemblyGraph(
+    asm_graph = graph.AssemblyGraph(
         input_file,
         max_node_count=max_node_count,
         max_edge_count=max_edge_count,

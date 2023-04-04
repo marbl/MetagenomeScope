@@ -1138,11 +1138,9 @@ class AssemblyGraph(object):
         )
         return p
 
-
     def init_decomposed_graph(self):
         """Copies self.graph to self.decomposed_graph."""
         self.decomposed_graph = deepcopy(self.graph)
-
 
     def hierarchically_identify_patterns(self):
         """Run all of our pattern detection algorithms on the graph repeatedly.
@@ -1150,6 +1148,7 @@ class AssemblyGraph(object):
         Notably, we do this repeatedly -- until the graph has been "fully"
         squished into patterns.
         """
+        self.init_decomposed_graph()
         while True:
             # Run through all of the pattern detection methods on all of the
             # top-level nodes (or node groups) in the decomposed DiGraph.
@@ -2102,16 +2101,17 @@ class AssemblyGraph(object):
 
         self.scale_edges()
 
-        # we need to call self.init_decomposed_graph() regardless of if
-        # --patterns or --no-patterns was specified, since the downstream
-        # layout stuff works with the decomposed graph. If --no-patterns was
-        # specified, then self.decomposed_graph will just be a copy of
-        # self.graph. This is kind of inefficient but it's probs not a big deal
-        self.init_decomposed_graph()
         if self.find_patterns:
             operation_msg("Running hierarchical pattern decomposition...")
             self.hierarchically_identify_patterns()
             conclude_msg()
+        else:
+            # Just set self.decomposed_graph as a copy of self.graph, and leave
+            # it at that. From the perspective of the downstream code, we just
+            # didn't identify any patterns in the graph. (This is inefficient,
+            # since ideally we wouldn't need to store two copies of this graph
+            # in memory... but it's likely not a big bottleneck for now.)
+            self.init_decomposed_graph()
 
         operation_msg("Laying out the graph...", True)
         self.layout()

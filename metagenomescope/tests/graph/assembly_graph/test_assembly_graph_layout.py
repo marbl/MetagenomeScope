@@ -1,5 +1,5 @@
 import pytest
-from metagenomescope.graph_objects import AssemblyGraph
+from metagenomescope.graph import AssemblyGraph
 
 
 def test_ccs_avoided_due_to_max_node_ct(capsys):

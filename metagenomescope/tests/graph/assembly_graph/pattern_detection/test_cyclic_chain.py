@@ -1,5 +1,5 @@
 import networkx as nx
-from metagenomescope.graph_objects import AssemblyGraph
+from metagenomescope.graph import AssemblyGraph
 
 
 def get_simple_cyclic_chain_graph():

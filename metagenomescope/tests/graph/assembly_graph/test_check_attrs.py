@@ -8,7 +8,7 @@
 # can be named anything, but ... that's gonna be a lot of work and if I
 # refactor this codebase one more time I think my brain is going to leap out of
 # my head and punch me in the face.
-from metagenomescope.graph_objects import AssemblyGraph
+from metagenomescope.graph import AssemblyGraph
 import pytest
 
 

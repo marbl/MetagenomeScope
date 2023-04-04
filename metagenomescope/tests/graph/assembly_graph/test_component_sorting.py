@@ -1,4 +1,4 @@
-from metagenomescope.graph_objects import AssemblyGraph
+from metagenomescope.graph import AssemblyGraph
 
 
 def test_component_sorting_simple():

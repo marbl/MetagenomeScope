@@ -1,4 +1,4 @@
-from metagenomescope.graph_objects import AssemblyGraph
+from metagenomescope.graph import AssemblyGraph
 from pytest import approx, raises
 
 

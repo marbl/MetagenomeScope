@@ -1,4 +1,4 @@
-from metagenomescope.graph_objects import AssemblyGraph
+from metagenomescope.graph import AssemblyGraph
 
 
 def test_simple_hierarch_decomp():

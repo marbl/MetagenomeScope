@@ -1,4 +1,4 @@
-# `graph_objects`
+# `graph`
 
 This directory contains various class definitions for the "objects" we define
 as making up an assembly graph. Previously, these were all stored in one gross
