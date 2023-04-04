@@ -148,8 +148,6 @@ def run_script(
     ...which will generate an output directory named "viz". (You'll need to
     replace "graph.gfa" with whatever the path to your assembly graph is.)
     """
-    if not patterns:
-        raise NotImplementedError("uhhh")
     make_viz(
         input_file,
         output_dir,
