@@ -3,8 +3,8 @@ from metagenomescope.graph import validators
 
 
 def get_test_path_graph(num_nodes):
-    """Returns a "path graph" as a nx DiGraph."""
-    return nx.path_graph(num_nodes, nx.DiGraph())
+    """Returns a "path graph" as a nx.MultiDiGraph."""
+    return nx.path_graph(num_nodes, nx.MultiDiGraph())
 
 
 def get_intervening_graph():
@@ -19,7 +19,7 @@ def get_intervening_graph():
             /
            5
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     g.add_edge(0, 1)
     g.add_edge(1, 2)
     g.add_edge(2, 3)
@@ -35,9 +35,10 @@ def test_easiest_possible_case():
     g = get_test_path_graph(3)
     results = validators.is_valid_chain(g, 0)
 
-    assert len(results) == 2
-    assert results[0]
-    assert results[1] == [0, 1, 2]
+    assert results
+    assert results.node_list == [0, 1, 2]
+    assert results.starting_node_id == 0
+    assert results.ending_node_id == 2
 
 
 def test_backwards_extension():
@@ -50,9 +51,10 @@ def test_backwards_extension():
     g = get_test_path_graph(3)
     results = validators.is_valid_chain(g, 1)
 
-    assert len(results) == 2
-    assert results[0]
-    assert results[1] == [0, 1, 2]
+    assert results
+    assert results.node_list == [0, 1, 2]
+    assert results.starting_node_id == 0
+    assert results.ending_node_id == 2
 
 
 def test_easy_no_chain():
@@ -63,9 +65,10 @@ def test_easy_no_chain():
     g = get_test_path_graph(3)
     results = validators.is_valid_chain(g, 2)
 
-    assert len(results) == 2
-    assert not results[0]
-    assert results[1] is None
+    assert not results
+    assert results.node_list == []
+    assert results.starting_node_id is None
+    assert results.ending_node_id is None
 
 
 def test_intervening_paths_harder():
@@ -80,11 +83,12 @@ def test_intervening_paths_harder():
     # ... So starting at everything except for 2 should result in nothing found
     for i in [0, 1, 3, 4, 5]:
         results = validators.is_valid_chain(g, i)
-        assert not results[0] and results[1] is None
+        assert not results
 
     # Check that 2 -> 3 is indeed recognized as a chain
     results = validators.is_valid_chain(g, 2)
-    assert results[0] and (results[1] == [2, 3])
+    assert results
+    assert results.node_list == [2, 3]
 
 
 def test_intervening_paths_easier():
@@ -110,15 +114,18 @@ def test_intervening_paths_easier():
     # excluded and therefore not checked)
     for i in range(1, 3):
         results = validators.is_valid_chain(g, i)
-        assert results[0] and results[1] == [1, 2, 3]
+        assert results
+        assert results.node_list == [1, 2, 3]
+        assert results.starting_node_id == 1
+        assert results.ending_node_id == 3
 
     # Of course, the other nodes in the graph won't result in chains being
     # detected (3 and 4 have no outgoing nodes, 5 is an "island", 0 has an
     # intervening outgoing edge to 4)
-    assert not validators.is_valid_chain(g, 0)[0]
-    assert not validators.is_valid_chain(g, 3)[0]
-    assert not validators.is_valid_chain(g, 4)[0]
-    assert not validators.is_valid_chain(g, 5)[0]
+    assert not validators.is_valid_chain(g, 0)
+    assert not validators.is_valid_chain(g, 3)
+    assert not validators.is_valid_chain(g, 4)
+    assert not validators.is_valid_chain(g, 5)
 
 
 def test_cyclic_chain_easy():
@@ -131,12 +138,12 @@ def test_cyclic_chain_easy():
 
        It should get tagged as a cyclic chain later on.
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     g.add_edge(1, 2)
     g.add_edge(2, 1)
     # Regardless of picked starting node, this shouldn't work
     for s in [1, 2]:
-        assert not validators.is_valid_chain(g, s)[0]
+        assert not validators.is_valid_chain(g, s)
 
 
 def test_cyclic_chain_ambiguous_end():
@@ -151,13 +158,13 @@ def test_cyclic_chain_ambiguous_end():
        can identify (even in the case where it initially finds a chain starting
        at node 1) that this putatively-ok chain is actually a cyclic chain.
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     g.add_edge(1, 2)
     g.add_edge(2, 1)
     g.add_edge(2, 3)
     # Regardless of picked starting node, this shouldn't work
     for s in [1, 2, 3]:
-        assert not validators.is_valid_chain(g, s)[0]
+        assert not validators.is_valid_chain(g, s)
 
 
 def test_cyclic_chain_found_to_be_cyclic_during_backwards_extension():
@@ -179,11 +186,11 @@ def test_cyclic_chain_found_to_be_cyclic_during_backwards_extension():
        MetagenomeScope's pattern detection code before. Adding this test
        actually made me realize this bug existed!
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     g.add_edge(1, 2)
     g.add_edge(2, 3)
     g.add_edge(3, 1)
     g.add_edge(3, 4)
     # Regardless of picked starting node, this shouldn't work
     for s in [1, 2, 3, 4]:
-        assert not validators.is_valid_chain(g, s)[0]
+        assert not validators.is_valid_chain(g, s)
