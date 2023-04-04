@@ -880,13 +880,18 @@ def parse_dot(filename):
         raise WeirdError("Call a priest. Something went wrong.")
 
     # Both Flye and LJA DOT files, as of writing, provide some cosmetic
-    # node-specific attributes ("style" = "filled", "fillcolor" = either "grey"
-    # (Flye) or "white" (LJA)) which I don't think we need to care about here.
-    # (In all the Flye / LJA example DOT files I've seen these are uniform for
-    # all nodes in the graph.) Maybe, if there are differences between nodes
-    # within a graph, we could pass these on to the visualization, but I don't
-    # think that's needed yet.) To limit confusion and save space, we delete
-    # these attributes here.
+    # node-specific attributes which I don't think we need to care about here.
+    #
+    # Both Flye and LJA use "style" = "filled" for all nodes; Flye seems to
+    # only a "fillcolor" of "grey", while LJA mostly seems to use a "fillcolor"
+    # of "white". (Although it looks like it can sometimes assign a "fillcolor"
+    # of "yellow" -- https://github.com/AntonBankevich/LJA/blob/acc02846ed10ae1b7fc49bc587b9adbee58d5a52/src/projects/dbg/visualization.hpp#L129
+    # -- but I don't understand what causes this exactly, since it depends on
+    # this function (https://github.com/AntonBankevich/LJA/blob/a066b5248fd42b7fd6e5259ef1dce6c6a229351a/src/projects/dbg/component.cpp#L155-L165).
+    #
+    # To limit confusion and save space, we delete these attributes here
+    # (I can adjust this to pass these colors on to the visualization if
+    # desired).
     for n in g.nodes:
         if "style" in g.nodes[n]:
             del g.nodes[n]["style"]
