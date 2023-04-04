@@ -46,6 +46,7 @@ class ValidationResults(object):
         self.ending_node_id = ending_node_id
 
     def __bool__(self):
+        """Returns self.is_valid; useful for quick testing."""
         return self.is_valid
 
 
@@ -94,7 +95,7 @@ def is_valid_frayed_rope(g, starting_node_id):
 
     # If the starting node doesn't have exactly 1 outgoing node, fail
     if len(g.adj[starting_node_id]) != 1:
-        return False, None
+        return ValidationResults()
 
     # Get the tentative "middle" node in the rope
     middle_node_id = list(g.adj[starting_node_id].keys())[0]
@@ -105,12 +106,12 @@ def is_valid_frayed_rope(g, starting_node_id):
     # A frayed rope must have multiple paths from which to converge to
     # the "middle node" section
     if len(starting_node_ids) < 2:
-        return False, None
+        return ValidationResults()
 
     # Ensure none of the start nodes have extraneous outgoing nodes
     for n in starting_node_ids:
         if len(g.adj[n]) != 1:
-            return False, None
+            return ValidationResults()
 
     # Now we know the start nodes are mostly valid. We'll still need to
     # check that each node in the rope is distinct, but that is done
@@ -122,27 +123,27 @@ def is_valid_frayed_rope(g, starting_node_id):
     # The middle node has to diverge to something for this to be a frayed
     # rope.
     if len(ending_node_ids) < 2:
-        return False, None
+        return ValidationResults()
     for n in ending_node_ids:
         # Check for extraneous incoming edges
         if len(g.pred[n]) != 1:
-            return False, None
+            return ValidationResults()
         for o in list(g.adj[n].keys()):
             # We know now that all of the ending nodes only have one
             # incoming node, but we don't know that about the starting
             # nodes. Make sure that this frayed rope isn't cyclical.
             if o in starting_node_ids:
-                return False, None
+                return ValidationResults()
 
     # Check the entire frayed rope's structure
     composite = starting_node_ids + [middle_node_id] + ending_node_ids
 
     # Verify all nodes in the frayed rope are distinct
     if len(set(composite)) != len(composite):
-        return False, None
+        return ValidationResults()
 
     # If we've made it here, this frayed rope is valid!
-    return True, composite
+    return ValidationResults(True, composite)
 
 
 def is_valid_cyclic_chain(g, starting_node_id):
@@ -177,7 +178,9 @@ def is_valid_cyclic_chain(g, starting_node_id):
     if len(g.pred[starting_node_id]) == 0 or s_outgoing_node_ct == 0:
         # If the starting node has no incoming or no outgoing nodes, it
         # can't be in a cycle!
-        return False, None
+        return ValidationResults()
+
+    # TODO CHANGE THIS
     # Edge case: we identify single nodes with loops to themselves.
     # If the start node has multiple outgoing edges but no reference to
     # itself, then it isn't the start node for a cycle. (It could very
@@ -185,13 +188,15 @@ def is_valid_cyclic_chain(g, starting_node_id):
     # test that node for being a cycle later on.)
     if starting_node_id in list(g.adj[starting_node_id].keys()):
         # Valid whether s has 1 or >= 1 outgoing edges
-        return True, [starting_node_id]
+        return ValidationResults(
+            True, [starting_node_id], starting_node_id, starting_node_id
+        )
     elif s_outgoing_node_ct > 1:
         # Although we allow singleton looped nodes to be cycles (and to
         # have > 1 outgoing nodes), we don't allow larger cycles to be
         # constructed from a start node with > 1 outgoing nodes (since
         # these are simple chain-like cycles, as discussed above).
-        return False, None
+        return ValidationResults()
 
     # Ok, things look promising. Now, we iterate "down" through the cyclic
     # chain to see what it's composed of.
@@ -204,7 +209,7 @@ def is_valid_cyclic_chain(g, starting_node_id):
             # we weren't able to identify an applicable cyclic chain
             # (The node before this node, if applicable, is the cycle's
             # actual end.)
-            return False, None
+            return ValidationResults()
         if len(g.adj[curr]) != 1:
             # Like above, this means the "end" of the cyclic chain, but it
             # could mean the cyclic chain is valid.
@@ -216,17 +221,21 @@ def is_valid_cyclic_chain(g, starting_node_id):
             if len(g.adj[curr]) > 1 and starting_node_id in list(
                 g.adj[curr].keys()
             ):
-                return True, cch_list + [curr]
+                return ValidationResults(
+                    True, cch_list + [curr], starting_node_id, curr
+                )
             else:
                 # If we didn't loop back to start at the end of the
                 # cyclic chain, we never will for this particular
                 # structure. So just return False.
-                return False, None
+                return ValidationResults()
 
         # We know curr has one incoming and one outgoing edge. If its
         # outgoing edge is to the starting node, then we've found a cycle.
         if list(g.adj[curr].keys())[0] == starting_node_id:
-            return True, cch_list + [curr]
+            return ValidationResults(
+                True, cch_list + [curr], starting_node_id, curr
+            )
 
         # If we're here, the cyclic chain is still going on -- the next
         # node to check is not already in cch_list.
@@ -340,12 +349,12 @@ def is_valid_3node_bubble(g, starting_node_id):
     verify_node_in_graph(g, starting_node_id)
     # Starting node must be either an uncollapsed node or another bubble
     if is_bubble_boundary_node_invalid(g, starting_node_id):
-        return False, None
+        return ValidationResults()
 
     # The starting node in a 3-node bubble must have exactly 2 out edges
     out_node_ids = list(g.adj[starting_node_id].keys())
     if len(out_node_ids) != 2:
-        return False, None
+        return ValidationResults()
 
     # Of the two nodes the start node points to, one must have two incoming
     # edges (this is the end node) and the other must have one incoming
@@ -358,40 +367,40 @@ def is_valid_3node_bubble(g, starting_node_id):
         elif len(g.pred[out_node]) == 1 and m is None:
             m = out_node
         else:
-            return False, None
+            return ValidationResults()
 
     # We tentatively have a valid 3-node bubble, but we need to do some
     # more verification.
 
     # Verify that end node is either an uncollapsed node or another bubble
     if is_bubble_boundary_node_invalid(g, e):
-        return False, None
+        return ValidationResults()
 
     # First, check that the middle node points to the end node: if not,
     # then that's a problem!
     if m not in g.pred[e]:
-        return False, None
+        return ValidationResults()
 
     # Also, check that the middle node has exactly 1 outgoing edge (this
     # would imply that it points outside of the bubble, which we don't
     # allow)
     if len(g.adj[m]) != 1:
-        return False, None
+        return ValidationResults()
 
     # Reject cyclic bubbles and/or bubbles where the end node points to the
     # starting node, the middle node, or itself
     # NOTE: for now, allowing end node to point to start node.
     if len(set([m, e]) & set(g.adj[e])) > 0:
-        return False, None
+        return ValidationResults()
 
     # Ensure that all nodes in the bubble are distinct (protects against
     # weird cases like s -> m -> s where the starting node is the end node)
     composite = [starting_node_id, m, e]
     if len(set(composite)) != 3:
-        return False, None
+        return ValidationResults()
 
     # If we've gotten here, then we know that this is a valid bubble.
-    return True, composite, starting_node_id, e
+    return ValidationResults(True, composite, starting_node_id, e)
 
 
 def is_valid_bubble(g, starting_node_id):
@@ -436,13 +445,13 @@ def is_valid_bubble(g, starting_node_id):
     # For now, bubbles can only start with 1) uncollapsed nodes or 2) other
     # bubbles (which'll cause us to duplicate stuff)
     if is_bubble_boundary_node_invalid(g, starting_node_id):
-        return False, None
+        return ValidationResults()
 
     # The starting node in a bubble obviously must have at least 2 outgoing
     # edges. If not, we can bail early on.
     m_node_ids = list(g.adj[starting_node_id].keys())
     if len(m_node_ids) <= 1:
-        return False, None
+        return ValidationResults()
 
     # Will be recorded here (if we get to it...)
     ending_node_id = None
@@ -455,7 +464,7 @@ def is_valid_bubble(g, starting_node_id):
         # extra outgoing nodes (which would represent non-bubble-like
         # branching behavior).
         if len(g.pred[m]) != 1 or len(g.adj[m]) != 1:
-            return False, None
+            return ValidationResults()
 
         # Ok, so this tentatively seems like a valid path.
         outgoing_node_id_from_m = list(g.adj[m].keys())[0]
@@ -467,23 +476,23 @@ def is_valid_bubble(g, starting_node_id):
         # If we've already checked another middle node, verify that this
         # middle node converges to the same "ending"
         elif ending_node_id != outgoing_node_id_from_m:
-            return False, None
+            return ValidationResults()
 
     # Check that the ending node is reasonable
 
     # If the ending node is a non-bubble pattern, reject this (for now).
     if is_bubble_boundary_node_invalid(g, ending_node_id):
-        return False, None
+        return ValidationResults()
 
     # If the ending node has any incoming nodes that aren't in m_node_ids,
     # reject this bubble.
     if set(g.pred[ending_node_id]) != set(m_node_ids):
-        return False, None
+        return ValidationResults()
 
     # Reject cyclic bubbles (although we could allow this if people want
     # it, I guess?)
     # if starting_node_id in list(g.adj[ending_node_id].keys()):
-    #     return False, None
+    #     return ValidationResults()
 
     # Ensure that all nodes in the bubble are distinct (protects against
     # weird cases like
@@ -494,10 +503,10 @@ def is_valid_bubble(g, starting_node_id):
     # Where the starting node is the ending node, etc.)
     composite = [starting_node_id] + m_node_ids + [ending_node_id]
     if len(set(composite)) != len(composite):
-        return False, None
+        return ValidationResults()
 
     # If we've gotten here, then we know that this is a valid bubble.
-    return True, composite, starting_node_id, ending_node_id
+    return ValidationResults(True, composite, starting_node_id, ending_node_id)
 
 
 def is_valid_superbubble(g, starting_node_id):
@@ -528,7 +537,7 @@ def is_valid_superbubble(g, starting_node_id):
     verify_node_in_graph(g, starting_node_id)
     # Starting node must be either an uncollapsed node or another bubble
     if is_bubble_boundary_node_invalid(g, starting_node_id):
-        return False, None
+        return ValidationResults()
 
     # MgSc-specific thing: if the starting node only has one outgoing
     # edge, then it should be collapsed into a chain, not a bubble.
@@ -540,7 +549,7 @@ def is_valid_superbubble(g, starting_node_id):
     # Velvet E. coli graph, and it was breaking my code, so I added this
     # in.)
     if len(g.adj[starting_node_id]) < 2:
-        return False, None
+        return ValidationResults()
 
     # From section 3 of Onodera 2013:
     # Nodes are visited if they have already been visited in the main
@@ -563,7 +572,7 @@ def is_valid_superbubble(g, starting_node_id):
 
         # If v doesn't have any outgoing edges, abort: this is a "tip".
         if len(g.adj[v]) == 0:
-            return False, None
+            return ValidationResults()
 
         # Otherwise, let's go through v's "children".
         for u in g.adj[v]:
@@ -571,7 +580,7 @@ def is_valid_superbubble(g, starting_node_id):
             # per the definitions outlined Onodera 2013 superbubbles must
             # be acyclic. So we abort.
             if u == starting_node_id:
-                return False, None
+                return ValidationResults()
 
             # Mark u as "seen"
             nodeid2label[u] = "seen"
@@ -601,12 +610,12 @@ def is_valid_superbubble(g, starting_node_id):
             # and partially because I don't think there's a problem with
             # this...? but idk. Up for debate.
             # if starting_node_id in g.adj[t]:
-            #     return False, None
+            #     return ValidationResults()
 
             # A quick MetagenomeScope-specific check: Verify that end node
             # is either an uncollapsed node or another bubble
             if is_bubble_boundary_node_invalid(g, t):
-                return False, None
+                return ValidationResults()
 
             composite = list(nodeid2label.keys())
 
@@ -634,14 +643,14 @@ def is_valid_superbubble(g, starting_node_id):
             for c in composite:
                 if c != t and c != starting_node_id:
                     out = is_valid_superbubble(g, c)
-                    if out[0]:
+                    if out:
                         return out
 
             # If the checks above succeeded, this is a valid
             # superbubble! Nice.
-            return True, composite, starting_node_id, t
+            return ValidationResults(True, composite, starting_node_id, t)
 
-    return False, None
+    return ValidationResults()
 
 
 def is_valid_chain(g, starting_node_id):
@@ -686,7 +695,7 @@ def is_valid_chain(g, starting_node_id):
     # node -- or even if it does, but if that node is itself -- then this
     # isn't a valid chain
     if len(out_node_ids) != 1 or out_node_ids[0] == starting_node_id:
-        return False, None
+        return ValidationResults()
 
     chain_list = [starting_node_id]
     curr_node_id = out_node_ids[0]
@@ -747,7 +756,7 @@ def is_valid_chain(g, starting_node_id):
         # that; we should get to it eventually.
         # Similarly, there might be a Cyclic Chain starting at the
         # specified node ID, but again we will Get To It Later (tm).
-        return False, None
+        return ValidationResults()
 
     in_node_ids = list(g.pred[starting_node_id].keys())
     if len(in_node_ids) != 1:
@@ -755,7 +764,9 @@ def is_valid_chain(g, starting_node_id):
         # so just return what we have currently. This is an "optimal" chain
         # ("optimal" in the sense that, of all possible chains that include
         # this starting node, this is the largest).
-        return True, chain_list
+        return ValidationResults(
+            True, chain_list, starting_node_id, chain_list[-1]
+        )
 
     # If we're here, we know a Chain exists starting at starting_node_id.
     # The question is: can it be extended in the opposite direction to
@@ -775,7 +786,7 @@ def is_valid_chain(g, starting_node_id):
         if len(set(in_curr_node_ids) & set(chain_list)) > 0:
             # The chain "begins" cyclically, so we'll tag it as a
             # cyclic chain later on.
-            return False, None
+            return ValidationResults()
 
         if len(in_curr_node_ids) != 1:
             # This node has multiple (or 0) incoming edges, so it's
@@ -791,8 +802,15 @@ def is_valid_chain(g, starting_node_id):
 
     if backwards_chain_list == []:
         # There wasn't a more optimal starting node. Oh well!
-        return True, chain_list
+        return ValidationResults(
+            True, chain_list, starting_node_id, chain_list[-1]
+        )
 
     # If we're here, we found a more optimal starting node. Nice!
     backwards_chain_list.reverse()
-    return True, backwards_chain_list + chain_list
+    return ValidationResults(
+        True,
+        backwards_chain_list + chain_list,
+        backwards_chain_list[0],
+        chain_list[-1],
+    )
