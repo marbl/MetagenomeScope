@@ -24,7 +24,7 @@ def test_simple_cyclic_chain_detection():
     for s in [0, 1, 2, 3]:
         results = validators.is_valid_cyclic_chain(g, s)
         assert results
-        assert set(results.node_list) == set([0, 1, 2, 3])
+        assert set(results.nodes) == set([0, 1, 2, 3])
 
 
 def test_isolated_start():
@@ -64,14 +64,14 @@ def test_selfloop():
 
     results = validators.is_valid_cyclic_chain(g, 0)
     assert results
-    assert results.node_list == [0]
+    assert results.nodes == [0]
 
     g.add_edge(1, 0)
     g.add_edge(0, 2)
 
     results = validators.is_valid_cyclic_chain(g, 0)
     assert results
-    assert results.node_list == [0]
+    assert results.nodes == [0]
 
 
 def test_funky_selfloop():
@@ -100,7 +100,7 @@ def test_funky_selfloop():
     # 0 -> 0 is a cyclic chain
     results = validators.is_valid_cyclic_chain(g, 0)
     assert results
-    assert results.node_list == [0]
+    assert results.nodes == [0]
 
     # However, with other starting nodes, you don't find anything -- 0 throws
     # off the detection
@@ -134,7 +134,7 @@ def test_extraneous_outgoing_edge_from_start():
         results = validators.is_valid_cyclic_chain(g, s)
         if s == 1:
             assert results
-            assert results.node_list == [1, 2, 3, 0]
+            assert results.nodes == [1, 2, 3, 0]
         else:
             assert not results
 
@@ -153,10 +153,10 @@ def test_simple_whirl():
     g.add_edge(1, 0)
     results0 = validators.is_valid_cyclic_chain(g, 0)
     assert results0
-    assert results0.node_list == [0, 1]
+    assert results0.nodes == [0, 1]
     results1 = validators.is_valid_cyclic_chain(g, 1)
     assert results1
-    assert results1.node_list == [1, 0]
+    assert results1.nodes == [1, 0]
 
 
 def test_simple_whirl_intervening_edges():
@@ -175,7 +175,7 @@ def test_simple_whirl_intervening_edges():
     g.add_edge(1, 3)
     results0 = validators.is_valid_cyclic_chain(g, 0)
     assert results0
-    assert results0.node_list == [0, 1]
+    assert results0.nodes == [0, 1]
     # Now, 1 is no longer a valid start node for the [0, 1] cyclic chain. This
     # is because 1 has multiple outgoing nodes, so it can't be the "start" of a
     # cyclic chain. dems the breaks

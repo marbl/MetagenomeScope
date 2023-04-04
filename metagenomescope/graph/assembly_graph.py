@@ -559,20 +559,25 @@ class AssemblyGraph(object):
                 candidate_nodes = sorted(list(self.decomposed_graph.nodes))
                 while len(candidate_nodes) > 0:
                     n = candidate_nodes[0]
-                    validator_outputs = validator(self.decomposed_graph, n)
-                    pattern_valid = validator_outputs[0]
-                    if pattern_valid:
-                        pattern_node_ids = validator_outputs[1]
+                    validator_results = validator(self.decomposed_graph, n)
+                    if validator_results:
 
+                        # TODO do this for all patterns that have these attrs
+                        # defined, not just bubbles. (Really, everything except
+                        # for frayed ropes, which are top-level-only patterns.)
                         if ptype == "bubble":
                             # There is a start and ending node in this pattern
                             # that we may want to duplicate. See issue #84 on
                             # GitHub for lots and lots of details.
-                            s_id = validator_outputs[2]
-                            e_id = validator_outputs[3]
-                            p = self.add_bubble(pattern_node_ids, s_id, e_id)
+                            p = self.add_bubble(
+                                validator_results.nodes,
+                                validator_results.starting_node,
+                                validator_results.ending_node,
+                            )
                         else:
-                            p = self.add_pattern(pattern_node_ids, ptype)
+                            p = self.add_pattern(
+                                validator_results.nodes, ptype
+                            )
 
                         collection.append(p)
                         candidate_nodes.append(p.pattern_id)

@@ -16,9 +16,9 @@ class ValidationResults(object):
     def __init__(
         self,
         is_valid=False,
-        node_list=[],
-        starting_node_id=None,
-        ending_node_id=None,
+        nodes=[],
+        starting_node=None,
+        ending_node=None,
     ):
         """Initializes this object.
 
@@ -27,23 +27,23 @@ class ValidationResults(object):
         is_valid: bool
             True if the proposed pattern was valid; False otherwise.
 
-        node_list: list
+        nodes: list
             If is_valid is True, contains a list of the nodes in the pattern;
             otherwise, this should be an empty list.
 
-        starting_node_id: str or None
+        starting_node: str or None
             If is_valid is True and if the pattern has a single defined start
             and end node (which is the case for all patterns except frayed
             ropes, at the moment), this should be the ID of the starting node
             in the pattern. Otherwise, this should be None.
 
-        ending_node_id: str or None
-            Like starting_node_id, but for the ending node of the pattern.
+        ending_node: str or None
+            Like starting_node, but for the ending node of the pattern.
         """
         self.is_valid = is_valid
-        self.node_list = node_list
-        self.starting_node_id = starting_node_id
-        self.ending_node_id = ending_node_id
+        self.nodes = nodes
+        self.starting_node = starting_node
+        self.ending_node = ending_node
 
     def __bool__(self):
         """Returns self.is_valid; useful for quick testing."""

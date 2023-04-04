@@ -22,7 +22,7 @@ def test_simple_fr_detection():
     for s in [0, 1]:
         results = validators.is_valid_frayed_rope(g, s)
         assert results
-        assert set(results.node_list) == set([0, 1, 2, 3, 4])
+        assert set(results.nodes) == set([0, 1, 2, 3, 4])
 
 
 def test_simple_fr_detection_failures():
@@ -30,7 +30,7 @@ def test_simple_fr_detection_failures():
     for s in [2, 3, 4]:
         results = validators.is_valid_frayed_rope(g, s)
         assert not results
-        assert results.node_list == []
+        assert results.nodes == []
 
 
 def test_only_1_starting_node():

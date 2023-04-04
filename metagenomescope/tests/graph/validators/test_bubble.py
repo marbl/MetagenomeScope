@@ -41,15 +41,15 @@ def test_easy_bubble():
     results = validators.is_valid_bubble(g, 0)
 
     assert results
-    # Unlike the chain detection tests, we convert results.node_list to a set,
+    # Unlike the chain detection tests, we convert results.nodes to a set,
     # and use that for comparison. This is because we don't care about the ID
     # order here (I don't think order really matters in the chain node ID list,
     # either, but it's at least easy to list it out there... whereas here,
     # it's kind of ambiguous which middle paths occur in what order.)
-    assert set(results.node_list) == set([0, 1, 2, 3])
+    assert set(results.nodes) == set([0, 1, 2, 3])
     # Check that start and ending nodes identified correctly
-    assert results.starting_node_id == 0
-    assert results.ending_node_id == 3
+    assert results.starting_node == 0
+    assert results.ending_node == 3
 
 
 def test_easy_bubble_fails_when_starting_point_bad():
@@ -60,18 +60,18 @@ def test_easy_bubble_fails_when_starting_point_bad():
     for s in [1, 2, 3]:
         results = validators.is_valid_bubble(g, s)
         assert not results
-        assert results.node_list == []
-        assert results.starting_node_id is None
-        assert results.ending_node_id is None
+        assert results.nodes == []
+        assert results.starting_node is None
+        assert results.ending_node is None
 
 
 def test_easy_3_node_bubble():
     g = get_3_node_bubble_graph()
     results = validators.is_valid_3node_bubble(g, 0)
     assert results
-    assert set(results.node_list) == set([0, 1, 2])
-    assert results.starting_node_id == 0
-    assert results.ending_node_id == 2
+    assert set(results.nodes) == set([0, 1, 2])
+    assert results.starting_node == 0
+    assert results.ending_node == 2
 
 
 def test_3node_bubble_func_fails_on_normal_bubble():
@@ -189,7 +189,7 @@ def test_extra_nodes_on_ending():
     g.add_edge(3, 4)
     results = validators.is_valid_bubble(g, 0)
     assert results
-    assert set(results.node_list) == set([0, 1, 2, 3])
+    assert set(results.nodes) == set([0, 1, 2, 3])
 
 
 def test_cyclic_bubbles_ok():

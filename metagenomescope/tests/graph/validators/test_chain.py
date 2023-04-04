@@ -36,9 +36,9 @@ def test_easiest_possible_case():
     results = validators.is_valid_chain(g, 0)
 
     assert results
-    assert results.node_list == [0, 1, 2]
-    assert results.starting_node_id == 0
-    assert results.ending_node_id == 2
+    assert results.nodes == [0, 1, 2]
+    assert results.starting_node == 0
+    assert results.ending_node == 2
 
 
 def test_backwards_extension():
@@ -52,9 +52,9 @@ def test_backwards_extension():
     results = validators.is_valid_chain(g, 1)
 
     assert results
-    assert results.node_list == [0, 1, 2]
-    assert results.starting_node_id == 0
-    assert results.ending_node_id == 2
+    assert results.nodes == [0, 1, 2]
+    assert results.starting_node == 0
+    assert results.ending_node == 2
 
 
 def test_easy_no_chain():
@@ -66,9 +66,9 @@ def test_easy_no_chain():
     results = validators.is_valid_chain(g, 2)
 
     assert not results
-    assert results.node_list == []
-    assert results.starting_node_id is None
-    assert results.ending_node_id is None
+    assert results.nodes == []
+    assert results.starting_node is None
+    assert results.ending_node is None
 
 
 def test_intervening_paths_harder():
@@ -88,7 +88,7 @@ def test_intervening_paths_harder():
     # Check that 2 -> 3 is indeed recognized as a chain
     results = validators.is_valid_chain(g, 2)
     assert results
-    assert results.node_list == [2, 3]
+    assert results.nodes == [2, 3]
 
 
 def test_intervening_paths_easier():
@@ -115,9 +115,9 @@ def test_intervening_paths_easier():
     for i in range(1, 3):
         results = validators.is_valid_chain(g, i)
         assert results
-        assert results.node_list == [1, 2, 3]
-        assert results.starting_node_id == 1
-        assert results.ending_node_id == 3
+        assert results.nodes == [1, 2, 3]
+        assert results.starting_node == 1
+        assert results.ending_node == 3
 
     # Of course, the other nodes in the graph won't result in chains being
     # detected (3 and 4 have no outgoing nodes, 5 is an "island", 0 has an
