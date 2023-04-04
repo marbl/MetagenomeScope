@@ -30,6 +30,7 @@ def make_viz(
     # assume_oriented: bool,
     max_node_count: int,
     max_edge_count: int,
+    patterns: bool,
     # metacarvel_bubble_file: str,
     # user_pattern_file: str,
     # spqr: bool,
@@ -44,6 +45,28 @@ def make_viz(
     Using MetagenomeScope's command-line interface will cause this function to
     be called, but -- if you'd like to -- you can just call this yourself from
     Python (e.g. if you want to procedurally create lots of visualizations).
+
+    Parameters
+    ----------
+    input_file: str
+        Path to the assembly graph to be visualized.
+
+    output_dir: str
+        Output directory to which the visualization will be written.
+
+    max_node_count: int
+        We won't visualize connected components containing more nodes than
+        this.
+
+    max_edge_count: int
+        Like max_node_count, but for edges.
+
+    patterns: bool
+        If True, identify and highlight structural patterns; if False, don't.
+
+    Returns
+    -------
+    None
     """
     arg_utils.check_dir_existence(output_dir)
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
@@ -53,9 +76,10 @@ def make_viz(
         input_file,
         max_node_count=max_node_count,
         max_edge_count=max_edge_count,
+        patterns=patterns,
     )
 
-    # Identify patterns, do layout, etc.
+    # Identify patterns (if patterns is True), do layout, etc.
     asm_graph.process()
 
     # Get JSON representation of the graph data.

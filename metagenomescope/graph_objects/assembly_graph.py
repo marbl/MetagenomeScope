@@ -34,16 +34,33 @@ class AssemblyGraph(object):
         filename,
         max_node_count=config.MAXN_DEFAULT,
         max_edge_count=config.MAXE_DEFAULT,
+        patterns=True,
     ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
         After you create a graph, you should usually call the process() method
         to prepare the graph for visualization (scaling nodes/edges,
         identifying patterns, etc.).
+
+        Parameters
+        ----------
+        filename: str
+            Path to the assembly graph to be visualized.
+
+        max_node_count: int
+            We won't visualize connected components containing more nodes than
+            this.
+
+        max_edge_count: int
+            Like max_node_count, but for edges.
+
+        patterns: bool
+            If True, identify & highlight structural patterns; if False, don't.
         """
         self.filename = filename
         self.max_node_count = max_node_count
         self.max_edge_count = max_edge_count
+        self.find_patterns = patterns
 
         # Each entry in these structures will be a Pattern (or subclass).
         # NOTE that these patterns will only be "represented" in
@@ -2080,9 +2097,10 @@ class AssemblyGraph(object):
 
         self.scale_edges()
 
-        operation_msg("Running hierarchical pattern decomposition...")
-        self.hierarchically_identify_patterns()
-        conclude_msg()
+        if self.find_patterns:
+            operation_msg("Running hierarchical pattern decomposition...")
+            self.hierarchically_identify_patterns()
+            conclude_msg()
 
         operation_msg("Laying out the graph...", True)
         self.layout()

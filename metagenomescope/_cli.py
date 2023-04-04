@@ -156,6 +156,7 @@ def run_script(
         # assume_oriented,
         max_node_count,
         max_edge_count,
+        patterns,
         # metacarvel_bubble_file,
         # user_pattern_file,
         # compute_spqr_data,
