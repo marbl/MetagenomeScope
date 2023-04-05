@@ -248,3 +248,8 @@ def test_bulge():
     g.add_edge(0, 1)
     assert validators.is_valid_bulge(g, 0)
     assert not validators.is_valid_bulge(g, 1)
+
+
+def test_bulge_in_bubble():
+    g = get_easy_bubble_graph()
+    g.add_edge(0, 1)

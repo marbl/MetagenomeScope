@@ -9,8 +9,11 @@ from metagenomescope.errors import WeirdError
 class ValidationResults(object):
     """Stores the results of trying to validate a pattern.
 
-    ... I guess this is more consistent to work with than returning a 2-tuple,
-    or maybe sometimes a 4-tuple, or whatever.
+    This class should make it easier to work with the results of different
+    validation methods -- if we know that each method will return an instance
+    of this object, it becomes easier to interpret the validation results
+    (rather than worrying about if a method returns a 2-tuple, or a 4-tuple,
+    etc).
     """
 
     def __init__(
@@ -42,12 +45,41 @@ class ValidationResults(object):
         """
         self.is_valid = is_valid
         self.nodes = nodes
+        # Both the starting and ending node should be defined or None. We can't
+        # have only one of them be defined. (^ = XOR operator)
+        if (starting_node is None) ^ (ending_node is None):
+            raise WeirdError(
+                f"Starting node = {starting_node} but ending node = "
+                f"{ending_node}?"
+            )
         self.starting_node = starting_node
         self.ending_node = ending_node
 
     def __bool__(self):
         """Returns self.is_valid; useful for quick testing."""
         return self.is_valid
+
+    def __repr__(self):
+        """Returns a summary of these results for help with debugging.
+
+        References
+        ----------
+        I feel like every few months I go through the obligatory pilgrimage of
+        trying to remember if I should define __repr__(), __str__(), both, or
+        if I should just give up and move to Antarctica. Based on moshez'
+        excellent SO answer (https://stackoverflow.com/a/2626364) I have just
+        defined __repr__() here, which should be more than sufficient.
+        """
+        if self.is_valid:
+            suffix = ""
+            if self.starting_node is not None:
+                suffix = (
+                    f" from {repr(self.starting_node)} to "
+                    f"{repr(self.ending_node)}"
+                )
+            return f"Valid pattern of nodes {repr(self.nodes)}{suffix}"
+        else:
+            return "Not a valid pattern"
 
 
 def verify_node_in_graph(g, node_id):
