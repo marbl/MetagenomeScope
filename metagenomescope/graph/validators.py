@@ -285,19 +285,6 @@ def is_valid_cyclic_chain(g, starting_node_id):
     )
 
 
-def is_bubble_boundary_node_invalid(g, node_id):
-    """Returns True if the node is a collapsed pattern that is NOT a
-    bubble, False otherwise.
-
-    Basically, the purpose of this is rejecting things like frayed
-    ropes that don't make sense as the start / end nodes of bubbles.
-    """
-    verify_node_in_graph(g, node_id)
-    if "pattern_type" in g.nodes[node_id]:
-        return g.nodes[node_id]["pattern_type"] != "bubble"
-    return False
-
-
 def is_valid_bulge(g, starting_node_id):
     r"""Validates a simple bulge starting at a node in a graph.
 
@@ -376,12 +363,7 @@ def is_valid_3node_bubble(g, starting_node_id):
     ... since we assume that this path has already been collapsed into a
     chain.
     """
-    # NOTE - this is unneeded if we keep calling
-    # is_bubble_boundary_node_invalid(), but i think we'll phase that out soon
     verify_node_in_graph(g, starting_node_id)
-    # Starting node must be either an uncollapsed node or another bubble
-    if is_bubble_boundary_node_invalid(g, starting_node_id):
-        return ValidationResults()
 
     # The starting node in a 3-node bubble must have exactly 2 out edges
     out_node_ids = list(g.adj[starting_node_id].keys())
@@ -403,10 +385,6 @@ def is_valid_3node_bubble(g, starting_node_id):
 
     # We tentatively have a valid 3-node bubble, but we need to do some
     # more verification.
-
-    # Verify that end node is either an uncollapsed node or another bubble
-    if is_bubble_boundary_node_invalid(g, e):
-        return ValidationResults()
 
     # First, check that the middle node points to the end node: if not,
     # then that's a problem!
@@ -474,11 +452,6 @@ def is_valid_bubble(g, starting_node_id):
     """
     verify_node_in_graph(g, starting_node_id)
 
-    # For now, bubbles can only start with 1) uncollapsed nodes or 2) other
-    # bubbles (which'll cause us to duplicate stuff)
-    if is_bubble_boundary_node_invalid(g, starting_node_id):
-        return ValidationResults()
-
     # The starting node in a bubble obviously must have at least 2 outgoing
     # edges. If not, we can bail early on.
     m_node_ids = list(g.adj[starting_node_id].keys())
@@ -511,10 +484,6 @@ def is_valid_bubble(g, starting_node_id):
             return ValidationResults()
 
     # Check that the ending node is reasonable
-
-    # If the ending node is a non-bubble pattern, reject this (for now).
-    if is_bubble_boundary_node_invalid(g, ending_node_id):
-        return ValidationResults()
 
     # If the ending node has any incoming nodes that aren't in m_node_ids,
     # reject this bubble.
@@ -567,9 +536,6 @@ def is_valid_superbubble(g, starting_node_id):
     https://arxiv.org/pdf/1307.7925.pdf
     """
     verify_node_in_graph(g, starting_node_id)
-    # Starting node must be either an uncollapsed node or another bubble
-    if is_bubble_boundary_node_invalid(g, starting_node_id):
-        return ValidationResults()
 
     # MgSc-specific thing: if the starting node only has one outgoing
     # edge, then it should be collapsed into a chain, not a bubble.
@@ -643,11 +609,6 @@ def is_valid_superbubble(g, starting_node_id):
             # this...? but idk. Up for debate.
             # if starting_node_id in g.adj[t]:
             #     return ValidationResults()
-
-            # A quick MetagenomeScope-specific check: Verify that end node
-            # is either an uncollapsed node or another bubble
-            if is_bubble_boundary_node_invalid(g, t):
-                return ValidationResults()
 
             composite = list(nodeid2label.keys())
 

@@ -236,7 +236,7 @@ def test_converges_to_start():
     assert not validators.is_valid_bubble(g, 0)
 
 
-def test_bulge():
+def test_bulge_easy():
     g = nx.MultiDiGraph()
     # 2 edges from 0 -> 1
     g.add_edge(0, 1)
@@ -244,12 +244,84 @@ def test_bulge():
     assert validators.is_valid_bulge(g, 0)
     assert not validators.is_valid_bulge(g, 1)
 
+
+def test_bulge_many_edges():
+    g = nx.MultiDiGraph()
     # okay, now 3 edges from 0 -> 1
+    g.add_edge(0, 1)
+    g.add_edge(0, 1)
+    g.add_edge(0, 1)
+    assert validators.is_valid_bulge(g, 0)
+    assert not validators.is_valid_bulge(g, 1)
+    # Can we do 4? Do I hear someone say 4?
     g.add_edge(0, 1)
     assert validators.is_valid_bulge(g, 0)
     assert not validators.is_valid_bulge(g, 1)
 
 
-def test_bulge_in_bubble():
+def test_bulge_intervening_edges():
+    g = nx.MultiDiGraph()
+    #  /--\
+    # 0    1
+    #  \--/^
+    #      |
+    #      2
+    g.add_edge(0, 1)
+    g.add_edge(0, 1)
+    g.add_edge(2, 1)
+    assert not validators.is_valid_bulge(g, 0)
+    assert not validators.is_valid_bulge(g, 1)
+    assert not validators.is_valid_bulge(g, 2)
+
+    g2 = nx.MultiDiGraph()
+    #  /--\
+    # 0    1
+    # |\--/
+    # V
+    # 2
+    g2.add_edge(0, 1)
+    g2.add_edge(0, 1)
+    g2.add_edge(0, 2)
+    assert not validators.is_valid_bulge(g2, 0)
+    assert not validators.is_valid_bulge(g2, 1)
+    assert not validators.is_valid_bulge(g2, 2)
+
+
+def test_bulge_linear_chain():
+    # just testing uncovered parts of the code...
+    # we definitely don't wanna accidentally label chains as bulges
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    assert not validators.is_valid_bulge(g, 0)
+    assert not validators.is_valid_bulge(g, 1)
+
+
+def test_cyclic_bulge():
+    # We could highlight this, I guess, but then what do you do with its edges
+    # (i guess... you route the back-edge from the right split node to the left
+    # split node? but eesh.) What do you even tag this as, anyway? is it a
+    # bubble or a cyclic chain or both? what does this even represent?
+    # SO let's ignore this for now.
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(0, 1)
+    g.add_edge(1, 0)
+    assert not validators.is_valid_bulge(g, 0)
+    assert not validators.is_valid_bulge(g, 1)
+
+
+def test_finding_bubble_containing_bulge():
+    # This can happen in practice, since we are pretty strict with how we
+    # define "bulges" -- not all cases of parallel edges will be turned into
+    # bulge patterns.
+    # It is kind of ambiguous if we want to allow bulges to remain within
+    # (other) bubbles, within chains, within cyclic chains, and within frayed
+    # ropes. I think it makes sense to allow them in bubbles and frayed ropes,
+    # but *not* within chains / cyclic chains.
     g = get_easy_bubble_graph()
     g.add_edge(0, 1)
+    vr = validators.is_valid_bubble(g, 0)
+    assert vr
+    assert vr.nodes == [0, 1, 2, 3]
+    assert vr.starting_node == 0
+    assert vr.ending_node == 3
