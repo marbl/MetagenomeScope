@@ -150,7 +150,9 @@ L	1	+	2	+	5M
 ```
 
 We will interpret this as a graph with **four nodes** (`1`, `-1`, `2`, `-2`)
-and **two edges** (`1 -> 2`, `-2 -> -1`).
+and **two edges** (`1 -> 2`, `-2 -> -1`). Each node and each edge
+[_implies_](https://github.com/bcgsc/abyss/wiki/ABySS-File-Formats#reverse-complement)
+its own reverse complement.
 
 #### Impacts of reverse-complement nodes / edges on the graph structure
 
@@ -171,29 +173,63 @@ sequences, just in different directions.\*
 
 _This is not always the case_, though. Sometimes a node and its reverse
 complement may wind up in the same component, for example in the following GFA
-file (which contains an extra "link" line):
+file (which contains an extra "link" line relative to the GFA file we
+considered above):
 
 ```gfa
 H	VN:Z:1.0
 S	1	CGATGCAA
 S	2	TGCAAAGTAC
 L	1	+	2	+	5M
-L	1	+	2	-	5M
+L	1	+	2	-	2D1M
 ```
 
 This graph (still containing **four nodes** [`1`, `-1`, `2`, `-2`], but now
-containing **four edges** [`1 -> 2`, `-2 -> -1`, `1 -> 2-`, `2 -> 1-`]) takes up only a single
+containing **four edges** [`1 -> 2`, `-2 -> -1`, `1 -> -2`, `2 -> -1`]) takes up only a single
 weakly connected component.
 
 \* The statement that reverse complements "describe the same sequences, just in
-different directions" is technically not true for LastGraph files. Consider a node `A` in a
-LastGraph file: the sequence represented by `A` will not be exactly equal to the reverse
-complement of the sequence represented by `-A`, since these sequences are slightly
+different directions" is technically not true for LastGraph files. Consider a node `N` in a
+LastGraph file: the sequence represented by `N` will not be exactly equal to the reverse
+complement of the sequence represented by `-N`, since these sequences are slightly
 shifted. See
 [the Bandage wiki](https://github.com/rrwick/Bandage/wiki/Assembler-differences#velvet)
 for a nice figure and explanation. (That being said, the intuition for
 "thinking about reverse-complement nodes / edges" here is pretty much the same
 as it is for other files.)
+</details>
+
+<details>
+  <summary><strong>What happens if an edge is its own reverse complement?</strong></summary>
+
+You really like asking hard questions, don't you? ;)
+
+This can happen in rare corner-cases. Consider
+[this GFA file](https://github.com/sjackman/assembly-graph/blob/master/loop.gfa),
+c/o Shaun Jackman:
+
+```gfa
+H	VN:Z:1.0
+S	1	AAA
+S	2	ACG
+S	3	CAT
+S	4	TTT
+L	1	+	1	+	2M
+L	2	+	2	-	2M
+L	3	-	3	+	2M
+L	4	-	4	-	2M
+```
+
+We might think, at first, that this graph contains eight edges.
+However, the graph actually only contains six unique
+edges. This is because the reverse complement of `2 -> -2` is itself:
+`-(-2) -> -(2)` = `2 -> -2`. The same goes for `-3 -> 3` (`-(3) -> -(-3)` = `-3 -> 3`).
+Both of these edges "imply" themselves as their own reverse complements.
+
+Currently: when MetagenomeScope visualizes these graphs, it will only draw one copy
+of these "self-implying" edges. This matches [the original visualization of this GFA
+file](https://github.com/sjackman/assembly-graph/blob/master/loop.gv.png), and
+also matches Bandage's visualization of this file.
 </details>
 
 ## License
