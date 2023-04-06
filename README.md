@@ -95,7 +95,7 @@ should do that to verify that their graphs work ok -->
 | [LastGraph](https://github.com/dzerbino/velvet/blob/master/Manual.pdf) (`.LastGraph`) | [Velvet](https://github.com/dzerbino/velvet) | Only the raw structure (nodes and arcs) are included. |
 
 If you run into any additional assembly graph filetypes you'd like us to
-support, please [let us know](#contact)!
+support ([...and/or if any more of these filetypes get created in the next few years](https://xkcd.com/927/)), please [let us know](#contact)!
 
 ## Demos
 
