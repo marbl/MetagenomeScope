@@ -150,9 +150,10 @@ L	1	+	2	+	5M
 ```
 
 We will interpret this as a graph with **four nodes** (`1`, `-1`, `2`, `-2`)
-and **two edges** (`1 -> 2`, `-2 -> -1`). Each node and each edge
-[_implies_](https://github.com/bcgsc/abyss/wiki/ABySS-File-Formats#reverse-complement)
-its own reverse complement.
+and **two edges** (`1 -> 2`, `-2 -> -1`). The presence of node `X`
+["implies"](https://github.com/bcgsc/abyss/wiki/ABySS-File-Formats#reverse-complement)
+the existence of the reverse complement node `-X`, and the presence of edge
+`X -> Y` "implies" the existence of the reverse complement edge `-Y -> -X`.
 
 #### Impacts of reverse-complement nodes / edges on the graph structure
 
@@ -220,10 +221,11 @@ L	3	-	3	+	2M
 L	4	-	4	-	2M
 ```
 
-We might think, at first, that this graph contains eight edges.
-However, the graph actually only contains six unique
+Since this GFA file contains four "link" lines, we might think at first that the corresponding graph
+contains 4 × 2 = 8 edges. However, the graph only contains 6 unique
 edges. This is because the reverse complement of `2 -> -2` is itself:
-`-(-2) -> -(2)` = `2 -> -2`. The same goes for `-3 -> 3` (`-(3) -> -(-3)` = `-3 -> 3`).
+`-(-2) -> -(2)` is equal to `2 -> -2`. The same goes for `-3 -> 3`:
+`-(3) -> -(-3)` is equal to `-3 -> 3`.
 Both of these edges "imply" themselves as their own reverse complements.
 
 Currently: when MetagenomeScope visualizes these graphs, it will only draw one copy
