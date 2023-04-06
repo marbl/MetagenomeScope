@@ -205,7 +205,8 @@ as it is for other files.)
 
 You really like asking hard questions, don't you? ;)
 
-This can happen if an edge exists from `X -> -X`, or from `-X -> X`. Consider
+This can happen if an edge exists from `X -> -X` or from `-X -> X` in an
+"implicit" graph file (GFA / LastGraph). Consider
 [this GFA file](https://github.com/sjackman/assembly-graph/blob/master/loop.gfa),
 c/o Shaun Jackman:
 
@@ -232,6 +233,28 @@ Currently: when MetagenomeScope visualizes these graphs, it will only draw one c
 of these "self-implying" edges. This matches [the original visualization of this GFA
 file](https://github.com/sjackman/assembly-graph/blob/master/loop.gv.png), and
 also matches Bandage's visualization of this file.
+
+Notably, since we assume that "explicit" graph files (FASTG / DOT / GML)
+explicitly define all of the nodes and edges in their graph, MetagenomeScope doesn't do anything
+special for this case for these files. (If your DOT file describes one edge
+from `X -> -X`, then that's fine; if it describes two edges from `X -> -X`,
+then that's also fine.)
+</details>
+
+<details>
+  <summary><strong>Can my graphs have parallel edges?</strong></summary>
+
+Yes! MetagenomeScope now supports
+[multigraphs](https://en.wikipedia.org/wiki/Multigraph). If your assembly graph
+file describes more than one edge from `X` -> `Y`, then MetagenomeScope will
+visualize all of these "parallel" edges. (This situation often occurs when
+visualizing de Bruijn graphs stored in DOT files.)
+
+Notably, the parsers MetagenomeScope uses for GFA and FASTG files [do not
+allow multigraphs](https://github.com/marbl/MetagenomeScope/issues/239) -- this
+means that, at the moment, trying to use MetagenomeScope to visualize a GFA or
+FASTG file containing parallel edges will cause an error. I hope to address
+this (at least for GFA files) soon.
 </details>
 
 ## License
