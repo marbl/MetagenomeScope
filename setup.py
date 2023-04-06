@@ -19,16 +19,15 @@
 ####
 # NOTE: This file is derived from Qurro's setup.py file.
 
+from metagenomescope import __version__
 from setuptools import find_packages, setup
 
 classes = """
     Development Status :: 3 - Alpha
     License :: OSI Approved :: GNU GPL 3 License
-    Topic :: Software Development :: Libraries
     Topic :: Scientific/Engineering
     Topic :: Scientific/Engineering :: Bio-Informatics
     Topic :: Scientific/Engineering :: Visualization
-    Programming Language :: Python :: 3
     Programming Language :: Python :: 3 :: Only
     Operating System :: Unix
     Operating System :: POSIX
@@ -36,21 +35,18 @@ classes = """
 """
 classifiers = [s.strip() for s in classes.split("\n") if s]
 
-description = "Visualization tool for metagenomic assembly graphs"
+description = "Visualization tool for (meta)genome assembly graphs"
 
 long_description = (
     "MetagenomeScope is a web-based visualization tool for "
-    "metagenomic assembly graphs. It focuses on presenting "
-    "a hierarchical layout of the graph that emphasizes "
-    "a semilinear display alongside highlighting various "
-    "structural patterns within the graph."
+    "metagenome assembly graphs. It focuses on presenting "
+    "a semilinear layout of the graph that highlights "
+    "common structural patterns."
 )
-
-version = "0.1.0-dev"
 
 setup(
     name="metagenomescope",
-    version=version,
+    version=__version__,
     license="GPL3",
     description=description,
     long_description=long_description,

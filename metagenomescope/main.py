@@ -18,10 +18,12 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
 from distutils.dir_util import copy_tree
 import jinja2
-from . import graph, arg_utils
+from . import graph, arg_utils, __version__
 from .msg_utils import operation_msg, conclude_msg
+from .config import SEPARATOR_CHAR
 
 
 def make_viz(
@@ -68,6 +70,12 @@ def make_viz(
     -------
     None
     """
+    t0 = time.time()
+    # Log the version, just for reference -- based on this blog post:
+    # http://lh3.github.io/2022/09/28/additional-recommendations-for-creating-command-line-interfaces
+    first_line = f"Running MetagenomeScope (version {__version__})..."
+    second_line = SEPARATOR_CHAR * len(first_line)
+    operation_msg(f"{first_line}\n{second_line}", newline=True)
     arg_utils.check_dir_existence(output_dir)
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
@@ -88,7 +96,7 @@ def make_viz(
     graph_data = asm_graph.to_json()
 
     operation_msg(
-        "Writing graph data to the output directory, {}...".format(output_dir)
+        f"Writing the visualization to the output directory, {output_dir}..."
     )
 
     # Make the output directory.
@@ -131,3 +139,11 @@ def make_viz(
         )
 
     conclude_msg()
+    t1 = time.time()
+    duration = t1 - t0
+    last_line = (
+        "MetagenomeScope successfully created a visualization in "
+        f"{duration:,.2f} seconds."
+    )
+    penultimate_line = SEPARATOR_CHAR * len(last_line)
+    operation_msg(f"{penultimate_line}\n{last_line}", newline=True)

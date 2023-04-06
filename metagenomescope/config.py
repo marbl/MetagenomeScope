@@ -189,7 +189,11 @@ PATTERN2COLOR = {
 MAXN_DEFAULT = 7999
 MAXE_DEFAULT = 7999
 
-# Various status messages/message prefixes that are displayed to the user.
+# Used to add an extra line below the first logging message, and just before
+# the last logging message.
+SEPARATOR_CHAR = "-"
+
+# Various status messages/message within the graph prefixes that are displayed to the user.
 USERBUBBLES_SEARCH_MSG = "Identifying user-specified bubbles in the graph..."
 USERPATTERNS_SEARCH_MSG = (
     "Identifying user-specified misc. patterns in " + "the graph..."
@@ -237,7 +241,6 @@ CONTIGUOUS_ERR = '" is not contiguous'
 LABEL_EXISTENCE_ERR = (
     "Can't use -ubl or -upl options for a graph type with no node labels"
 )
-MESSAGE_BORDER = "=========="
 SPQR_MISC_ERR = """An error occurred while trying to run the SPQR script.
 Please check to make sure you've built the SPQR script for your system.
 See MetagenomeScope's wiki for instructions for installing the -spqr
