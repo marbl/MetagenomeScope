@@ -223,16 +223,15 @@ L	4	-	4	-	2M
 ```
 
 Since this GFA file contains four "link" lines, we might think at first that the corresponding graph
-contains 4 × 2 = 8 edges. However, the graph only contains 6 unique
-edges. This is because the reverse complement of `2 -> -2` is itself:
+contains 4 × 2 = 8 edges. However, the graph only contains **6 unique
+edges**. This is because the reverse complement of `2 -> -2` is itself:
 `-(-2) -> -(2)` is equal to `2 -> -2`. The same goes for `-3 -> 3`:
 `-(3) -> -(-3)` is equal to `-3 -> 3`.
 Both of these edges "imply" themselves as their own reverse complements.
 
 Currently: when MetagenomeScope visualizes these graphs, it will only draw one copy
-of these "self-implying" edges. This matches [the original visualization of this GFA
-file](https://github.com/sjackman/assembly-graph/blob/master/loop.gv.png), and
-also matches Bandage's visualization of this file.
+of these "self-implying" edges. This matches
+[the original visualization of this graph](https://github.com/sjackman/assembly-graph/blob/master/loop.gv.png), and also matches Bandage's visualization of this GFA file.
 
 Notably, since we assume that "explicit" graph files (FASTG / DOT / GML)
 explicitly define all of the nodes and edges in their graph, MetagenomeScope doesn't do anything
@@ -246,12 +245,13 @@ then that's also fine.)
 
 Yes! MetagenomeScope now supports
 [multigraphs](https://en.wikipedia.org/wiki/Multigraph). If your assembly graph
-file describes more than one edge from `X` -> `Y`, then MetagenomeScope will
+file describes more than one edge from `X -> Y`, then MetagenomeScope will
 visualize all of these "parallel" edges. (This situation often occurs when
 visualizing de Bruijn graphs stored in DOT files.)
 
-Notably, the parsers MetagenomeScope uses for GFA and FASTG files [do not
-allow multigraphs](https://github.com/marbl/MetagenomeScope/issues/239) -- this
+Notably, this is only supported right now for some filetypes. The
+parsers MetagenomeScope uses for GFA and FASTG files
+[do not allow multigraphs](https://github.com/marbl/MetagenomeScope/issues/239) -- this
 means that, at the moment, trying to use MetagenomeScope to visualize a GFA or
 FASTG file containing parallel edges will cause an error. I hope to address
 this (at least for GFA files) soon.
