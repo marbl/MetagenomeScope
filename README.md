@@ -205,7 +205,7 @@ as it is for other files.)
 
 You really like asking hard questions, don't you? ;)
 
-This can happen in rare corner-cases. Consider
+This can happen if an edge exists from `X -> -X`, or from `-X -> X`. Consider
 [this GFA file](https://github.com/sjackman/assembly-graph/blob/master/loop.gfa),
 c/o Shaun Jackman:
 
