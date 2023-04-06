@@ -226,18 +226,20 @@ L	4	-	4	-	2M
 Since this GFA file contains four "link" lines, we might think at first that the corresponding graph
 contains 4 × 2 = 8 edges. However, the graph only contains **6 unique
 edges**. This is because the reverse complement of `2 -> -2` is itself:
-`-(-2) -> -(2)` is equal to `2 -> -2`. The same goes for `-3 -> 3`:
+we know from above that `X -> Y` implies `-Y -> -X`, but
+`-(-2) -> -(2)` is equal to `2 -> -2`! The same goes for `-3 -> 3`:
 `-(3) -> -(-3)` is equal to `-3 -> 3`.
-Both of these edges "imply" themselves as their own reverse complements.
+Both of these edges "imply" themselves as their own reverse complements!
 
-Currently: when MetagenomeScope visualizes these graphs, it will only draw one copy
+How do we handle this situation? As of writing,
+when MetagenomeScope visualizes these graphs it will only draw one copy
 of these "self-implying" edges. This matches
 [the original visualization of this graph](https://github.com/sjackman/assembly-graph/blob/master/loop.gv.png), and also matches Bandage's visualization of this GFA file.
 
 Notably, since we assume that "explicit" graph files (FASTG / DOT / GML)
 explicitly define all of the nodes and edges in their graph, MetagenomeScope doesn't do anything
 special for this case for these files. (If your DOT file describes one edge
-from `X -> -X`, then that's fine; if it describes two edges from `X -> -X`,
+from `X -> -X`, then that's fine; if it describes two or more edges from `X -> -X`,
 then that's also fine.)
 </details>
 
