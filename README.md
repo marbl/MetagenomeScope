@@ -90,19 +90,32 @@ should do that to verify that their graphs work ok -->
 | -------- | ------------------------------- | ----- |
 | [GFA](https://gfa-spec.github.io/GFA-spec/) (`.gfa`) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA), [miniasm](https://github.com/lh3/miniasm), [hifiasm](https://github.com/chhylp123/hifiasm), [hifiasm-meta](https://github.com/xfengnefx/hifiasm-meta), ... | Both GFA v1 and GFA v2 files are accepted, but [currently](https://github.com/marbl/MetagenomeScope/issues/147) only the raw structure (segments and links) are included. |
 | FASTG (`.fastg`) | [SPAdes](https://cab.spbu.ru/software/spades/), [MEGAHIT](https://github.com/voutcn/megahit) | Expects SPAdes-"dialect" FASTG files: see [pyfastg's documentation](https://github.com/fedarko/pyfastg) for details. |
-| [DOT](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) (`.dot`, `.gv`) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA) | Expects DOT files produced by Flye or LJA. Visualizing DOT files (rather than the GFA files also produced by these assemblers) can be preferable because GFA and FASTG files [are not ideal](https://github.com/AntonBankevich/LJA/blob/main/docs/jumbodbg_manual.md#output-of-de-bruijn-graph-construction) for representing graphs in which sequences are stored on edges rather than nodes (e.g. de Bruijn graphs). The DOT files output by Flye and LJA should contain the _original_ structure of these graphs (in which edges and nodes in the visualization actually correspond to edges and nodes in the original graph, respectively). |
+| [DOT](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) (`.dot`, `.gv`) | [(meta)Flye](https://github.com/fenderglass/Flye), [LJA](https://github.com/AntonBankevich/LJA) | Expects DOT files produced by Flye or LJA. Visualizing DOT files (rather than the GFA files also produced by these assemblers) can be preferable because GFA and FASTG files [are not ideal](https://github.com/AntonBankevich/LJA/blob/main/docs/jumbodbg_manual.md#output-of-de-bruijn-graph-construction) for representing graphs in which sequences are stored on edges rather than nodes (e.g. de Bruijn graphs); the DOT files output by Flye and LJA should contain the _original_ structure of these graphs (in which edges and nodes in the visualization actually correspond to edges and nodes in the original graph, respectively). |
 | [GML](https://networkx.org/documentation/stable/reference/readwrite/gml.html) (`.gml`) | [MetaCarvel](https://github.com/marbl/MetaCarvel) | Expects MetaCarvel-"dialect" GML files. |
 | [LastGraph](https://github.com/dzerbino/velvet/blob/master/Manual.pdf) (`.LastGraph`) | [Velvet](https://github.com/dzerbino/velvet) | Only the raw structure (nodes and arcs) are included. |
 
 If you run into any additional assembly graph filetypes you'd like us to
 support, please [let us know](#contact)!
 
-### I really want you to add a section to the README talking about reverse complements, even though most users of this tool probably don't need to worry about that. But I want you to do it anyway, because you're so good at writing documentation that doesn't involve inane conversations with yourself. Can you do that for me?
+## Demos
+
+Some early demos are available online. We'll probably add more of these in the
+future.
+
+- [Marygold Fig. 2(a) graph](https://marbl.github.io/MetagenomeScope/demos/marygold/index.html)
+  - See [Nijkamp et al. 2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3916741/) for details.
+    This graph was based on the topology shown in Fig. 2(a) of this paper.
+
+- [Velvet E. coli graph](https://marbl.github.io/MetagenomeScope/demos/bandage-ecoli-example/index.html)
+  - This graph is example data from the website of [Bandage](http://rrwick.github.io/Bandage/)
+    (which is another great tool for visualizing assembly graphs :)
+
+## Details
 
 <!-- use of <strong> here was stolen from strainflye's readme, which in turn is
 based on https://codedragontech.com/createwithcodedragon/how-to-style-html-details-and-summary-tags/ -->
 <details>
-  <summary>Well, just because you asked so nicely, you charmer. <strong>(Click here to open.)</strong></summary>
+  <summary><strong>What's the deal with "reverse complement" nodes/edges?</strong></summary>
 
 #### "Explicit" graph filetypes (FASTG, DOT, GML)
 
@@ -157,30 +170,31 @@ you don't really need to analyze them separately. They describe the same
 sequences, just in different directions.\*
 
 _This is not always the case_, though. Sometimes a node and its reverse
-complement may wind up in the same component.
+complement may wind up in the same component, for example in the following GFA
+file (which contains an extra "link" line):
 
-\* This is technically not true for LastGraph files. Consider a node `A` in a
-LastGraph file: the sequence of `A` will not be exactly equal to the reverse
-complement of the sequence of `-A`, since these sequences will be slightly
+```gfa
+H	VN:Z:1.0
+S	1	CGATGCAA
+S	2	TGCAAAGTAC
+L	1	+	2	+	5M
+L	1	+	2	-	5M
+```
+
+This graph (still containing **four nodes** [`1`, `-1`, `2`, `-2`], but now
+containing **four edges** [`1 -> 2`, `-2 -> -1`, `1 -> 2-`, `2 -> 1-`]) takes up only a single
+weakly connected component.
+
+\* The statement that reverse complements "describe the same sequences, just in
+different directions" is technically not true for LastGraph files. Consider a node `A` in a
+LastGraph file: the sequence represented by `A` will not be exactly equal to the reverse
+complement of the sequence represented by `-A`, since these sequences are slightly
 shifted. See
 [the Bandage wiki](https://github.com/rrwick/Bandage/wiki/Assembler-differences#velvet)
 for a nice figure and explanation. (That being said, the intuition for
 "thinking about reverse-complement nodes / edges" here is pretty much the same
 as it is for other files.)
 </details>
-
-## Demos
-
-Some early demos are available online. We'll probably add more of these in the
-future.
-
-- [Marygold Fig. 2(a) graph](https://marbl.github.io/MetagenomeScope/demos/marygold/index.html)
-  - See [Nijkamp et al. 2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3916741/) for details.
-    This graph was based on the topology shown in Fig. 2(a) of this paper.
-
-- [Velvet E. coli graph](https://marbl.github.io/MetagenomeScope/demos/bandage-ecoli-example/index.html)
-  - This graph is example data from the website of [Bandage](http://rrwick.github.io/Bandage/)
-    (which is another great tool for visualizing assembly graphs :)
 
 ## License
 
