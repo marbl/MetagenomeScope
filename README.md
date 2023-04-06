@@ -154,6 +154,7 @@ and **two edges** (`1 -> 2`, `-2 -> -1`). The presence of node `X`
 ["implies"](https://github.com/bcgsc/abyss/wiki/ABySS-File-Formats#reverse-complement)
 the existence of the reverse complement node `-X`, and the presence of edge
 `X -> Y` "implies" the existence of the reverse complement edge `-Y -> -X`.
+This is analogous to [how "double mode" works in Bandage](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style).
 
 #### Impacts of reverse-complement nodes / edges on the graph structure
 
