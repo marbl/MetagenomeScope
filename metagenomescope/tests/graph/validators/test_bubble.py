@@ -334,17 +334,20 @@ def test_bulge_linear_chain():
 
 
 def test_cyclic_bulge():
-    # We could highlight this, I guess, but then what do you do with its edges
-    # (i guess... you route the back-edge from the right split node to the left
-    # split node? but eesh.) What do you even tag this as, anyway? is it a
-    # bubble or a cyclic chain or both? what does this even represent?
-    # SO let's ignore this for now.
     g = nx.MultiDiGraph()
     g.add_edge(0, 1)
     g.add_edge(0, 1)
     g.add_edge(1, 0)
-    assert not validators.is_valid_bulge(g, 0)
+    assert validators.is_valid_bulge(g, 0)
     assert not validators.is_valid_bulge(g, 1)
+    # If we add another edge from 1 -> 0, then now all of a sudden we could
+    # use either node as the start of a bulge.
+    # You could argue that this should be tagged as something besides a bulge
+    # (e.g. should we make a new "cyclic bubble" pattern type...?), but that is
+    # a downstream problem.
+    g.add_edge(1, 0)
+    assert validators.is_valid_bulge(g, 0)
+    assert validators.is_valid_bulge(g, 1)
 
 
 def test_finding_bubble_containing_bulge():
