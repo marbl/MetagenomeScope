@@ -211,6 +211,43 @@ def test_cyclic_bubbles_ok():
     assert validators.is_valid_bubble(g, 0)
 
 
+def test_cyclic_bubble_in_bubble_chain():
+    r"""
+    Verifies that *just* node 3, in the diagram below, is a valid start node
+    for a bubble.
+
+    When we decompose this middle bubble into a single node, it should contain
+    the "back edge" from 6 to 3 -- this back edge is what prevents 0 and 6 from
+    being valid starting nodes of a bubble right now. This first decomposition
+    step will mean that the surrounding 0 and 6's bubbles will then be
+    detectable.
+
+               +-------+
+         /-1-\ | /-4-\ | /-7-\
+        /     \V/     \|/     \
+       0       3       6       9
+        \     / \     / \     /
+         \-2-/   \-5-/   \-8-/
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(0, 2)
+    g.add_edge(1, 3)
+    g.add_edge(2, 3)
+    g.add_edge(3, 4)
+    g.add_edge(3, 5)
+    g.add_edge(4, 6)
+    g.add_edge(5, 6)
+    g.add_edge(6, 3)
+    g.add_edge(6, 7)
+    g.add_edge(6, 8)
+    g.add_edge(7, 9)
+    g.add_edge(8, 9)
+    assert validators.is_valid_bubble(g, 3)
+    for i in (0, 1, 2, 4, 5, 6, 7, 8, 9):
+        assert not validators.is_valid_bubble(g, i)
+
+
 def test_converges_to_start():
     r"""Tests that the following graph (starting at 0) isn't identified as a
        bubble.
