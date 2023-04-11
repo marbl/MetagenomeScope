@@ -365,3 +365,50 @@ def test_finding_bubble_containing_bulge():
     assert vr.nodes == [0, 1, 2, 3]
     assert vr.starting_node == 0
     assert vr.ending_node == 3
+
+
+def test_finding_3node_bubble_containing_bulge_from_start_to_middle():
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(1, 2)
+    g.add_edge(0, 2)
+    # add a bulge between the start node and the middle node
+    g.add_edge(0, 1)
+    vr = validators.is_valid_3node_bubble(g, 0)
+    assert vr
+    assert vr.nodes == [0, 1, 2]
+    assert vr.starting_node == 0
+    assert vr.ending_node == 2
+
+
+def test_finding_3node_bubble_containing_bulge_from_middle_to_end():
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(1, 2)
+    g.add_edge(0, 2)
+    # add a bulge between the middle node and the end node
+    g.add_edge(1, 2)
+    vr = validators.is_valid_3node_bubble(g, 0)
+    assert vr
+    assert vr.nodes == [0, 1, 2]
+    assert vr.starting_node == 0
+    assert vr.ending_node == 2
+
+    assert not validators.is_valid_3node_bubble(g, 1)
+    assert not validators.is_valid_bulge(g, 1)
+
+
+def test_finding_3node_bubble_containing_bulge_from_start_to_end():
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(1, 2)
+    g.add_edge(0, 2)
+    # add a bulge between the start node and the end node
+    g.add_edge(0, 2)
+    vr = validators.is_valid_3node_bubble(g, 0)
+    assert vr
+    assert vr.nodes == [0, 1, 2]
+    assert vr.starting_node == 0
+    assert vr.ending_node == 2
+
+    assert not validators.is_valid_bulge(g, 0)
