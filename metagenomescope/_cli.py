@@ -133,21 +133,7 @@ def run_script(
     # save_no_backfill_dot_files: bool,
     # save_no_pattern_dot_files: bool,
 ) -> None:
-    """Creates a visualization of an assembly graph.
-
-    This creates a folder containing an interactive HTML/JS visualization of
-    the graph. The folder's index.html file can be opened in a web browser to
-    access the visualization.
-
-    There are many options available to customize the visualization / output,
-    but the two most important ones are the input file and output directory:
-    generating a visualization can be as simple as
-
-        mgsc -i graph.gfa -o viz
-
-    ...which will generate an output directory named "viz". (You'll need to
-    replace "graph.gfa" with whatever the path to your assembly graph is.)
-    """
+    """Creates a folder containing a visualization of an assembly graph."""
     make_viz(
         input_file,
         output_dir,

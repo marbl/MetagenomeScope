@@ -23,10 +23,10 @@ INPUT = (
 )
 
 OUTPUT_DIR = (
-    "Directory in which all output files will be stored. The index.html file "
-    "within this directory contains the graph visualization. "
-    "If this directory already exists, or it otherwise cannot be created, "
-    "an error will be raised."
+    "Directory in which all output files will be stored. This directory will "
+    "contain an index.html file; you can open this file in a web browser to "
+    "access the visualization. If we cannot create this directory for some "
+    "reason (i.e. it already exists), we will raise an error."
 )
 
 ASSUME_ORIENTED = (
