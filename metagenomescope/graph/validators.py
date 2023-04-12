@@ -598,7 +598,7 @@ def is_valid_superbubble(g, starting_node_id):
         if len(S) == 1 and len(seen_node_ids) == 1:
             t = S.pop()
             if t != seen_node_ids[0]:
-                raise ValueError("Something went really wrong...?")
+                raise WeirdError("Something went really wrong...?")
 
             # If there's an edge from t to the starting node, then this
             # superbubble is cyclic.

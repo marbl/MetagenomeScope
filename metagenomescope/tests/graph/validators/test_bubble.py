@@ -440,6 +440,7 @@ def test_superbubble_basic():
     for other_starting_node in [1, 2, 3]:
         assert not validators.is_valid_superbubble(g, other_starting_node)
 
+
 def test_superbubble_tip():
     r"""Tests that the following structure isn't a superbubble, due to the 2 ->
     4 tip:
