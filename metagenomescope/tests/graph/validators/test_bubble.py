@@ -87,7 +87,11 @@ def test_3node_bubble_func_doesnt_fail_on_cyclic():
     g.add_edge(2, 0)
     for s in [1, 2]:
         assert not validators.is_valid_3node_bubble(g, s)
-    assert validators.is_valid_3node_bubble(g, 0)
+    vr = validators.is_valid_3node_bubble(g, 0)
+    assert vr
+    assert vr.nodes == [0, 1, 2]
+    assert vr.starting_node == 0
+    assert vr.ending_node == 2
 
 
 def test_3node_bubble_func_fails_on_middle_spur():
@@ -334,20 +338,32 @@ def test_bulge_linear_chain():
 
 
 def test_cyclic_bulge():
+    def _test_validation_results(vr, nodes=[0, 1]):
+        # utility function because i don't wanna write this stuff out five
+        # gabillion (aka three) times
+        assert len(nodes) == 2
+        assert vr
+        assert vr.nodes == nodes
+        assert vr.starting_node == nodes[0]
+        assert vr.ending_node == nodes[1]
+
     g = nx.MultiDiGraph()
     g.add_edge(0, 1)
     g.add_edge(0, 1)
     g.add_edge(1, 0)
-    assert validators.is_valid_bulge(g, 0)
+    _test_validation_results(validators.is_valid_bulge(g, 0))
     assert not validators.is_valid_bulge(g, 1)
+
     # If we add another edge from 1 -> 0, then now all of a sudden we could
     # use either node as the start of a bulge.
     # You could argue that this should be tagged as something besides a bulge
     # (e.g. should we make a new "cyclic bubble" pattern type...?), but that is
     # a downstream problem.
     g.add_edge(1, 0)
-    assert validators.is_valid_bulge(g, 0)
-    assert validators.is_valid_bulge(g, 1)
+    _test_validation_results(validators.is_valid_bulge(g, 0))
+    # If we use 1 as the start of the bulge, then now 1 is the starting node
+    # and 0 is the ending node.
+    _test_validation_results(validators.is_valid_bulge(g, 1), nodes=[1, 0])
 
 
 def test_finding_bubble_containing_bulge():
