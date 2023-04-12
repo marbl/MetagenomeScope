@@ -9,7 +9,7 @@ def get_simple_fr_graph():
         2
     1 -/ \-> 4
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     g.add_edge(0, 2)
     g.add_edge(1, 2)
     g.add_edge(2, 3)
@@ -206,3 +206,30 @@ def test_self_loops_in_frayed_rope():
         g.add_edge(n, n)
         assert not validators.is_valid_frayed_rope(g, 0)
         assert not validators.is_valid_frayed_rope(g, 1)
+
+
+def test_parallel_edges_in_frayed_rope():
+    r"""Tests that parallel edges in a frayed rope do not prevent detection.
+
+    First, we'll take the below graph and add only one parallel edge at a time
+    (so, testing the normal graph but with two 0->2 edges, then with two 1->2
+    edges, etc.).
+
+    After that, we'll verify that the big chunky version of this graph, with
+    eight edges (one parallel edge for every original edge), is still valid.
+
+    0 -\ /-> 3
+        2
+    1 -/ \-> 4
+    """
+    big_chunky_graph = get_simple_fr_graph()
+
+    for e in ((0, 2), (1, 2), (2, 3), (2, 4)):
+        g = get_simple_fr_graph()
+        g.add_edge(*e)
+        assert validators.is_valid_frayed_rope(g, 0)
+        assert validators.is_valid_frayed_rope(g, 1)
+        big_chunky_graph.add_edge(*e)
+
+    assert validators.is_valid_frayed_rope(big_chunky_graph, 0)
+    assert validators.is_valid_frayed_rope(big_chunky_graph, 1)
