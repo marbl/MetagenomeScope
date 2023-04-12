@@ -111,7 +111,7 @@ def test_extraneous_incoming_node_to_end_nodes():
     assert not validators.is_valid_frayed_rope(g, 0)
 
 
-def test_cyclic_frayed_rope():
+def test_end_to_start_cyclic_frayed_rope():
     r"""Tests that a graph that looks like:
 
     +--------+
@@ -121,10 +121,46 @@ def test_cyclic_frayed_rope():
         2
     1 -/ \-> 4
 
-     ... is not a valid frayed rope.
+     ... is NOW a valid frayed rope. Wow, character development!
+     Note that we only allow cyclic edges from the end node(s) to the start
+     node(s): we disallow cyclic edges within the frayed rope, including
+     self-loops. Those are tested below.
     """
     g = get_simple_fr_graph()
     g.add_edge(3, 0)
+    assert validators.is_valid_frayed_rope(g, 0)
+    assert validators.is_valid_frayed_rope(g, 1)
+
+    # ... and if we add another cyclic edge, it's good also, right?
+    # (although in practice, we should detect a cyclic simple bubble of
+    # [2, 3, 4, 0] rather than detecting a frayed rope here, since the
+    # hierarchical decomposition process should afford bubbles higher priority
+    # than frayed ropes.)
+
+    g.add_edge(4, 0)
+    assert validators.is_valid_frayed_rope(g, 0)
+    assert validators.is_valid_frayed_rope(g, 1)
+
+
+def test_non_end_to_start_cyclic_frayed_rope():
+    r"""Tries to add non-end-to-start cyclic edges to a frayed rope, which
+    should prevent it from being highlighted as a frayed rope.
+    """
+    g = get_simple_fr_graph()
+    g.add_edge(2, 0)
+    assert not validators.is_valid_frayed_rope(g, 0)
+    assert not validators.is_valid_frayed_rope(g, 1)
+
+    g = get_simple_fr_graph()
+    g.add_edge(3, 2)
+    assert not validators.is_valid_frayed_rope(g, 0)
+    assert not validators.is_valid_frayed_rope(g, 1)
+    g.add_edge(4, 2)
+    assert not validators.is_valid_frayed_rope(g, 0)
+    assert not validators.is_valid_frayed_rope(g, 1)
+
+    g = get_simple_fr_graph()
+    g.add_edge(3, 4)
     assert not validators.is_valid_frayed_rope(g, 0)
     assert not validators.is_valid_frayed_rope(g, 1)
 
@@ -146,3 +182,27 @@ def test_diverges_to_start():
     g.add_edge(2, 0)
     assert not validators.is_valid_frayed_rope(g, 0)
     assert not validators.is_valid_frayed_rope(g, 1)
+
+
+def test_self_loops_in_frayed_rope():
+    r"""Try adding self-loops to any of the nodes in a valid frayed rope, and
+    verify that this prevents this structure from being tagged as a frayed
+    rope.
+    """
+    for n in (0, 1, 2, 3, 4):
+        g = get_simple_fr_graph()
+        g.add_edge(n, n)
+        assert not validators.is_valid_frayed_rope(g, 0)
+        assert not validators.is_valid_frayed_rope(g, 1)
+
+
+def test_self_loops_in_frayed_rope():
+    r"""Try adding self-loops to any of the nodes in a valid frayed rope, and
+    verify that this prevents this structure from being tagged as a frayed
+    rope.
+    """
+    for n in (0, 1, 2, 3, 4):
+        g = get_simple_fr_graph()
+        g.add_edge(n, n)
+        assert not validators.is_valid_frayed_rope(g, 0)
+        assert not validators.is_valid_frayed_rope(g, 1)
