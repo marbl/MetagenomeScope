@@ -202,16 +202,15 @@ as it is for other files.)
 
 #### Based on the FASTG specification, shouldn't FASTG be an "implicit" instead of an "explicit" filetype?
 
-It's complicated. The way I interpret the FASTG specification, edge sequences
-and their reverse complements should _not_ be listed separately -- so yes, we would
-need to create two "nodes" for each sequence in the FASTG file, if we would expect
-that our input FASTG files would conform to the FASTG specification.
+It's complicated. The way I interpret the FASTG specification, each declaration
+of an edge sequence implicitly also declares this edge sequence's reverse complement; however,
+this is not the case for "adjacencies" between edge sequences.
 
-However, the "dialect" of FASTG files produced by SPAdes and MEGAHIT lists edge sequences
-and their reverse complements separately: because of this, we handle FASTG as an "explicit"
-filetype.
-See [pyfastg's documentation](https://github.com/fedarko/pyfastg#about-reverse-complements))
-for details on how we parse FASTG files.
+In any case, the "dialect" of FASTG files produced by SPAdes and MEGAHIT lists edge sequences
+and their reverse complements (as well as adjacencies between edge sequences and their reverse complements)
+separately. Because of this, we consider FASTG to be an "explicit" filetype.
+(See [pyfastg's documentation](https://github.com/fedarko/pyfastg#about-reverse-complements)
+for details on how we parse FASTG files.)
 </details>
 
 <details>
