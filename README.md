@@ -210,7 +210,7 @@ In any case, the "dialect" of FASTG files produced by SPAdes and MEGAHIT lists e
 and their reverse complements (as well as adjacencies between edge sequences and their reverse complements)
 separately. Because of this, we consider FASTG to be an "explicit" filetype.
 (See [pyfastg's documentation](https://github.com/fedarko/pyfastg#about-reverse-complements)
-for details on how we parse FASTG files.)
+for details on how we handle reverse complements in FASTG files.)
 </details>
 
 <details>
