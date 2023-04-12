@@ -525,3 +525,95 @@ def test_nested_superbubble():
 
     for invalid_start in (1, 2, 3, 5, 6):
         assert not validators.is_valid_superbubble(g, invalid_start)
+
+
+def test_end_to_start_cyclic_superbubble():
+    r"""Tests that the following structure is a valid superbubble:
+
+    +-------+
+    |       |
+    | /-1-\ |
+    V/  |  \|
+    0   |   3
+     \  V  /
+      \-2-/
+    """
+    g = get_easy_bubble_graph()
+    g.add_edge(1, 2)
+    g.add_edge(3, 0)
+    assert not validators.is_valid_bulge(g, 0)
+    assert not validators.is_valid_3node_bubble(g, 0)
+    assert not validators.is_valid_bubble(g, 0)
+    vr = validators.is_valid_superbubble(g, 0)
+    assert vr
+    assert vr.nodes == [0, 1, 2, 3]
+    assert vr.starting_node == 0
+    assert vr.ending_node == 3
+
+
+def test_mid_to_start_cyclic_superbubble():
+    r"""Tests that the following structure is not a valid superbubble:
+
+      /-1-\
+     /  |  \
+    0   |   3
+     ^  V  /
+      \>2-/
+
+      ... wow, that doesn't look good. UH SO we're gonna add in extra "back
+      edges" from 1 to 0, and then from 2 to 0, and test that both of these
+      disqualify this from being tagged as a superbubble.
+    """
+    for mid_node in (1, 2):
+        g = get_easy_bubble_graph()
+        g.add_edge(1, 2)
+        g.add_edge(mid_node, 0)
+        assert not validators.is_valid_bulge(g, 0)
+        assert not validators.is_valid_3node_bubble(g, 0)
+        assert not validators.is_valid_bubble(g, 0)
+        assert not validators.is_valid_superbubble(g, 0)
+
+
+def test_non_end_to_start_cyclic_superbubble():
+    r"""Tests that the following structure is not a valid superbubble:
+
+         /-1-\
+        /  ^  \
+       0   |   3
+        \  V  /
+         \-2-/
+
+        This is because we only allow (super)bubbles to be cyclic, at least at
+        the moment, if the "cyclic" edge goes from the ending node to the
+        starting node. But having cycles *within* the bubble complicates
+        detection algorithms, and I don't wanna deal with that.
+    """
+    g = get_easy_bubble_graph()
+    g.add_edge(1, 2)
+    g.add_edge(2, 1)
+    assert not validators.is_valid_bulge(g, 0)
+    assert not validators.is_valid_3node_bubble(g, 0)
+    assert not validators.is_valid_bubble(g, 0)
+    assert not validators.is_valid_superbubble(g, 0)
+
+
+def test_bubble_with_self_loops():
+    r"""Tests that adding self-loops to an easy bubble disqualifies this
+    structure as being tagged as a bubble. For example, an "easy" bubble with a
+    self-loop on node 1:
+
+          ___
+          \ /
+         /-1-\
+        /     \
+       0       3
+        \     /
+         \-2-/
+    """
+    for loop_node in (0, 1, 2, 3):
+        g = get_easy_bubble_graph()
+        g.add_edge(loop_node, loop_node)
+        assert not validators.is_valid_bulge(g, 0)
+        assert not validators.is_valid_3node_bubble(g, 0)
+        assert not validators.is_valid_bubble(g, 0)
+        assert not validators.is_valid_superbubble(g, 0)

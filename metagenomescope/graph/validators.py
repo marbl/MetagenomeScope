@@ -575,7 +575,11 @@ def is_valid_superbubble(g, starting_node_id):
         for u in g.adj[v]:
             # if v points to the starting node then there is a cycle, and
             # per the definitions outlined Onodera 2013 superbubbles must
-            # be acyclic. So we abort.
+            # be acyclic. So we abort. (Although, that being said, we allow
+            # the "ending node" (or "exit node," or "sink node," or whatever
+            # you wanna call it... including all of that here for the sake of
+            # anyone grepping through this code) to have edge(s) to the
+            # starting node. (See below.)
             if u == starting_node_id:
                 return ValidationResults()
 
