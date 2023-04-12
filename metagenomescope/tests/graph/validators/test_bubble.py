@@ -414,7 +414,7 @@ def test_finding_3node_bubble_containing_bulge_from_start_to_end():
     assert not validators.is_valid_bulge(g, 0)
 
 
-def test_superbubble():
+def test_superbubble_basic():
     r"""Tests that the superbubble detection function, and not the other bubble
     detection functions, can identify the following structure as a bubble:
 
@@ -426,7 +426,36 @@ def test_superbubble():
     """
     g = get_easy_bubble_graph()
     g.add_edge(1, 2)
+
     assert not validators.is_valid_bulge(g, 0)
     assert not validators.is_valid_3node_bubble(g, 0)
     assert not validators.is_valid_bubble(g, 0)
-    assert validators.is_valid_superbubble(g, 0)
+
+    vr = validators.is_valid_superbubble(g, 0)
+    assert vr
+    assert vr.nodes == [0, 1, 2, 3]
+    assert vr.starting_node == 0
+    assert vr.ending_node == 3
+
+    for other_starting_node in [1, 2, 3]:
+        assert not validators.is_valid_superbubble(g, other_starting_node)
+
+def test_superbubble_tip():
+    r"""Tests that the following structure isn't a superbubble, due to the 2 ->
+    4 tip:
+
+         /-1-\
+        /  |  \
+       0   |   3
+        \  V  /
+         \-2-/
+           \
+            \->4
+    """
+    g = get_easy_bubble_graph()
+    g.add_edge(1, 2)
+    g.add_edge(2, 4)
+    assert not validators.is_valid_bulge(g, 0)
+    assert not validators.is_valid_3node_bubble(g, 0)
+    assert not validators.is_valid_bubble(g, 0)
+    assert not validators.is_valid_superbubble(g, 0)
