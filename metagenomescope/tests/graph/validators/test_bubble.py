@@ -136,13 +136,39 @@ def test_3node_bubble_func_fails_on_self_loops():
     assert not validators.is_valid_3node_bubble(big_chunky_graph, 0)
 
 
-def test_easy_3_node_bubble_fails_with_normal_simple_bubble_detection():
+def test_3node_bubble_func_fails_if_end_points_to_middle():
+    r"""Tests something looking like
+
+      1<---+
+     /     |
+    0---2<-+
+    """
+    g = get_3_node_bubble_graph()
+    g.add_edge(2, 1)
+    assert not validators.is_valid_3node_bubble(g, 0)
+
+
+def test_3node_bubble_func_fails_if_start_equals_end():
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(1, 0)
+    # This should fail due to the "if len(out_node_ids) != 2" check, early on
+    # in the validation function
+    assert not validators.is_valid_3node_bubble(g, 0)
+
+    g.add_edge(0, 0)
+    # This actually won't fail until the "if len(set(composite)) != 3" check
+    # wayyy later on in the validation function! That's cool.
+    assert not validators.is_valid_3node_bubble(g, 0)
+
+
+def test_easy_3_node_bubble_func_fails_with_normal_simple_bubble_detection():
     """Tests that is_valid_bubble() doesn't detect 3-node bubbles. Don't
     worry, though, because is_valid_3node_bubble() does!
     """
     g = get_3_node_bubble_graph()
     for s in [1, 2]:
-        assert not validators.is_valid_bubble(g, s)
+        assert not validators.is_valid_3node_bubble(g, s)
 
 
 def test_extra_nodes_on_middle():

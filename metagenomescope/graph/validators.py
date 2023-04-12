@@ -401,12 +401,10 @@ def is_valid_3node_bubble(g, starting_node_id):
     if len(g.adj[m]) != 1:
         return ValidationResults()
 
-    # Reject bubbles where the end node points to itself or to the middle node.
-    # NOTE that, for now, we allow the end node to point to the start node;
-    # this is also the case for the other bubble validation functions and for
-    # frayed rope validation functions.
-    if len(set([m, e]) & set(g.adj[e])) > 0:
-        return ValidationResults()
+    # We *could* check here if the end node points to itself or to the middle
+    # node, but both of these cases would have messed with the number of
+    # incoming nodes that these nodes have (g.pred, checked above), so there is
+    # provably no point to checking this here.
 
     # Ensure that all nodes in the bubble are distinct (protects against
     # weird cases like s -> m -> s where the starting node is the end node)
