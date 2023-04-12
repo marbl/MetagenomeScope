@@ -366,14 +366,17 @@ def is_valid_3node_bubble(g, starting_node_id):
     """
     verify_node_in_graph(g, starting_node_id)
 
-    # The starting node in a 3-node bubble must have exactly 2 out edges
+    # The starting node in a 3-node bubble must have out edges to exactly 2
+    # nodes. (It's cool if there are parallel edges here, though -- see
+    # test_finding_3node_bubble_containing_bulge_from_start_to_middle() in the
+    # test code for an example.)
     out_node_ids = list(g.adj[starting_node_id].keys())
     if len(out_node_ids) != 2:
         return ValidationResults()
 
-    # Of the two nodes the start node points to, one must have two incoming
-    # edges (this is the end node) and the other must have one incoming
-    # edge (this is the middle node)
+    # Of the two nodes the start node points to, one must have incoming edges
+    # from two nodes (this is the end node) and the other must have incoming
+    # edges from one node (this is the middle node).
     m = None
     e = None
     for out_node in out_node_ids:
@@ -392,15 +395,16 @@ def is_valid_3node_bubble(g, starting_node_id):
     if m not in g.pred[e]:
         return ValidationResults()
 
-    # Also, check that the middle node has exactly 1 outgoing edge (this
-    # would imply that it points outside of the bubble, which we don't
-    # allow)
+    # Also, check that the middle node has outgoing edges to exactly 1 node.
+    # (If not, this implies that it points outside of the bubble, which we
+    # don't allow.)
     if len(g.adj[m]) != 1:
         return ValidationResults()
 
-    # Reject cyclic bubbles and/or bubbles where the end node points to the
-    # starting node, the middle node, or itself
-    # NOTE: for now, allowing end node to point to start node.
+    # Reject bubbles where the end node points to itself or to the middle node.
+    # NOTE that, for now, we allow the end node to point to the start node;
+    # this is also the case for the other bubble validation functions and for
+    # frayed rope validation functions.
     if len(set([m, e]) & set(g.adj[e])) > 0:
         return ValidationResults()
 
