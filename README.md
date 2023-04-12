@@ -121,7 +121,7 @@ based on https://codedragontech.com/createwithcodedragon/how-to-style-html-detai
 
 To make a long story short: when MetagenomeScope reads in FASTG, DOT, and GML files,
 it assumes that _these files explicitly describe all of the nodes and edges in the graph_.
-So, let's say you give MetagenomeScope the following LJA-style DOT file:
+So, let's say you give MetagenomeScope the following DOT file:
 
 ```dot
 digraph g {
@@ -136,10 +136,10 @@ We will interpret this as a graph with **two nodes** (`1`, `2`) and **one edge**
 
 However, for GFA and LastGraph files, MetagenomeScope cannot make the
 assumption that these files explicitly describe all of the nodes and edges in
-the graph. When we read in these files, we assume that each node
-and edge (in GFA parlance, "segment" and "link"; in LastGraph parlance, "node"
-and "arc") has a reverse complement. So, let's say you give MetagenomeScope the
-following GFA file (based on
+the graph: in these files, each declaration of a node / edge
+(in GFA parlance, "segment" / "link"; in LastGraph parlance, "node"
+/ "arc") also declares this node / edge's reverse complement.
+So, let's say you give MetagenomeScope the following GFA file (based on
 [this example](https://github.com/sjackman/gfalint/blob/master/examples/sample1.gfa)):
 
 ```gfa
@@ -156,9 +156,9 @@ the existence of the reverse complement node `-X`, and the presence of edge
 `X -> Y` "implies" the existence of the reverse complement edge `-Y -> -X`.
 This is analogous to [how "double mode" works in Bandage](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style).
 
-#### Impacts of reverse-complement nodes / edges on the graph structure
+#### Impacts of reverse complement nodes / edges on the graph structure
 
-Often, the presence of reverse-complement nodes / edges (whether
+Often, the presence of reverse complement nodes / edges (whether
 they are explicitly described in a FASTG, DOT, or GML file, or are implicitly
 described in a GFA or LastGraph file) doesn't impact the graph structure much.
 
@@ -197,8 +197,21 @@ complement of the sequence represented by `-N`, since these sequences are slight
 shifted. See
 [the Bandage wiki](https://github.com/rrwick/Bandage/wiki/Assembler-differences#velvet)
 for a nice figure and explanation. (That being said, the intuition for
-"thinking about reverse-complement nodes / edges" here is pretty much the same
+"thinking about reverse complement nodes / edges" here is pretty much the same
 as it is for other files.)
+
+#### Based on the FASTG specification, shouldn't FASTG be an "implicit" instead of an "explicit" filetype?
+
+It's complicated. The way I interpret the FASTG specification, edge sequences
+and their reverse complements should _not_ be listed separately -- so yes, we would
+need to create two "nodes" for each sequence in the FASTG file, if we would expect
+that our input FASTG files would conform to the FASTG specification.
+
+However, the "dialect" of FASTG files produced by SPAdes and MEGAHIT lists edge sequences
+and their reverse complements separately: because of this, we handle FASTG as an "explicit"
+filetype.
+See [pyfastg's documentation](https://github.com/fedarko/pyfastg#about-reverse-complements))
+for details on how we parse FASTG files.
 </details>
 
 <details>
