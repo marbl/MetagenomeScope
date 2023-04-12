@@ -121,6 +121,21 @@ def test_3node_bubble_func_fails_on_middle_extra_branch():
         assert not validators.is_valid_3node_bubble(g, s)
 
 
+def test_3node_bubble_func_fails_on_self_loops():
+    r"""Adds loops to each of the three nodes in a simple 3-node bubble, and
+    verifies that any of these loops disqualifies this bubble.
+    """
+    big_chunky_graph = get_3_node_bubble_graph()
+
+    for n in [0, 1, 2]:
+        g = get_3_node_bubble_graph()
+        g.add_edge(n, n)
+        assert not validators.is_valid_3node_bubble(g, 0)
+        big_chunky_graph.add_edge(n, n)
+
+    assert not validators.is_valid_3node_bubble(big_chunky_graph, 0)
+
+
 def test_easy_3_node_bubble_fails_with_normal_simple_bubble_detection():
     """Tests that is_valid_bubble() doesn't detect 3-node bubbles. Don't
     worry, though, because is_valid_3node_bubble() does!
