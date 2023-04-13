@@ -3,10 +3,10 @@
 #
 # Note that a single type of pattern (e.g. a bubble) may correspond to more
 # one validation function here -- for example, we include functions for
-# validating bulges, "simple" bubbles, superbubbles, etc.
+# validating "bulges" as well as large bubbles, but both of them are (as of
+# writing) labelled as "bubbles" in the user interface.
 
 
-import networkx as nx
 from metagenomescope.errors import WeirdError
 
 
@@ -336,92 +336,8 @@ def is_valid_bulge(g, starting_node_id):
     return ValidationResults()
 
 
-def is_valid_3node_bubble(g, starting_node_id):
-    r"""Validates a 3-node bubble starting at a node in a graph.
-
-    Parameters
-    ----------
-    g: nx.MultiDiGraph
-    starting_node_id: str
-
-    Returns
-    -------
-    ValidationResults
-
-    Notes
-    -----
-    The bubbles we try to detect look like:
-
-      /-m-\
-     /     \
-    s-------e
-
-    Due to the nature of hierarchical pattern decomposition, we only
-    allow the middle "path" to be a single node. This is still broad
-    enough to allow for bubbles with a linear path of multiple nodes
-    in the middle, e.g.
-
-      /-m1-m2-m3-\
-     /            \
-    s--------------e
-
-    ... since we assume that this path has already been collapsed into a
-    chain.
-    """
-    verify_node_in_graph(g, starting_node_id)
-
-    # The starting node in a 3-node bubble must have out edges to exactly 2
-    # nodes. (It's cool if there are parallel edges here, though -- see
-    # test_finding_3node_bubble_containing_bulge_from_start_to_middle() in the
-    # test code for an example.)
-    out_node_ids = list(g.adj[starting_node_id].keys())
-    if len(out_node_ids) != 2:
-        return ValidationResults()
-
-    # Of the two nodes the start node points to, one must have incoming edges
-    # from two nodes (this is the end node) and the other must have incoming
-    # edges from one node (this is the middle node).
-    m = None
-    e = None
-    for out_node in out_node_ids:
-        if len(g.pred[out_node]) == 2 and e is None:
-            e = out_node
-        elif len(g.pred[out_node]) == 1 and m is None:
-            m = out_node
-        else:
-            return ValidationResults()
-
-    # We tentatively have a valid 3-node bubble, but we need to do some
-    # more verification.
-
-    # First, check that the middle node points to the end node: if not,
-    # then that's a problem!
-    if m not in g.pred[e]:
-        return ValidationResults()
-
-    # Also, check that the middle node has outgoing edges to exactly 1 node.
-    # (If not, this implies that it points outside of the bubble, which we
-    # don't allow.)
-    if len(g.adj[m]) != 1:
-        return ValidationResults()
-
-    # We *could* check here if the end node points to itself or to the middle
-    # node, but both of these cases would have messed with the number of
-    # incoming nodes that these nodes have (g.pred, checked above), so there is
-    # provably no point to checking this here.
-
-    # Ensure that all nodes in the bubble are distinct (protects against
-    # weird cases like s -> m -> s where the starting node is the end node)
-    composite = [starting_node_id, m, e]
-    if len(set(composite)) != 3:
-        return ValidationResults()
-
-    # If we've gotten here, then we know that this is a valid bubble.
-    return ValidationResults(True, composite, starting_node_id, e)
-
-
 def is_valid_bubble(g, starting_node_id):
-    r"""Validates a simple bubble starting at a node in a graph.
+    r"""Validates a (super)bubble starting at a node in a graph.
 
     Parameters
     ----------
@@ -434,108 +350,22 @@ def is_valid_bubble(g, starting_node_id):
 
     Notes
     -----
-    Here, we only consider "simple" bubbles that look like
+    - If there is a superbubble starting at the start node, but it
+      contains other superbubbles within it, then this'll just return a
+      minimal superbubble (not starting at starting_node_id). It's
+      expected that hierarchical decomposition will mean that we'll
+      revisit starting_node_id later.
 
-      /-m1-\        /-m1-\
-     /      \      /      \
-    s        e or s---m2---e  ..., etc.
-     \      /      \      /
-      \-m2-/        \-m3-/
-
-    That is, we expect that this each path between the start
-    node and the end node must only have one "middle" node, although
-    there can be an arbitrary (>= 2) amount of such paths.
-
-    This is because we assume that other complexities, such as
-    "chains" (e.g. a middle path actually contains n nodes where
-    m1 -> m2 -> ... mn), have already been collapsed.
-
-    Also, note that we don't detect 3-node bubbles here (those are
-    detected by is_valid_3node_bubble()).
-
-    Lastly, we don't currently detect bubbles where there's an edge
-    directly between the start and end node. ...but these should be
-    detected by is_valid_superbubble().
-    """
-    verify_node_in_graph(g, starting_node_id)
-
-    # The starting node in a bubble obviously must have at least 2 outgoing
-    # edges. If not, we can bail early on.
-    m_node_ids = list(g.adj[starting_node_id].keys())
-    if len(m_node_ids) <= 1:
-        return ValidationResults()
-
-    # Will be recorded here (if we get to it...)
-    ending_node_id = None
-
-    # Each outgoing node from the "starting node" represents a possible
-    # path through this bubble.
-    for m in m_node_ids:
-        # ... And of course, each node on this path can't have extra
-        # incoming nodes (which would be from outside of the bubble) or
-        # extra outgoing nodes (which would represent non-bubble-like
-        # branching behavior).
-        if len(g.pred[m]) != 1 or len(g.adj[m]) != 1:
-            return ValidationResults()
-
-        # Ok, so this tentatively seems like a valid path.
-        outgoing_node_id_from_m = list(g.adj[m].keys())[0]
-
-        # If this is the first "middle" node we're checking, then record
-        # its outgoing node as the tentative "ending" node
-        if ending_node_id is None:
-            ending_node_id = outgoing_node_id_from_m
-        # If we've already checked another middle node, verify that this
-        # middle node converges to the same "ending"
-        elif ending_node_id != outgoing_node_id_from_m:
-            return ValidationResults()
-
-    # Check that the ending node is reasonable
-
-    # If the ending node has any incoming nodes that aren't in m_node_ids,
-    # reject this bubble.
-    if set(g.pred[ending_node_id]) != set(m_node_ids):
-        return ValidationResults()
-
-    # Reject cyclic bubbles (although we could allow this if people want
-    # it, I guess?)
-    # if starting_node_id in list(g.adj[ending_node_id].keys()):
-    #     return ValidationResults()
-
-    # Ensure that all nodes in the bubble are distinct (protects against
-    # weird cases like
-    #
-    #   -> m1 ->
-    # s -> m2 -> s
-    #
-    # Where the starting node is the ending node, etc.)
-    composite = [starting_node_id] + m_node_ids + [ending_node_id]
-    if len(set(composite)) != len(composite):
-        return ValidationResults()
-
-    # If we've gotten here, then we know that this is a valid bubble.
-    return ValidationResults(True, composite, starting_node_id, ending_node_id)
-
-
-def is_valid_superbubble(g, starting_node_id):
-    r"""Validates a superbubble starting at a node in a graph.
-
-    Parameters
-    ----------
-    g: nx.MultiDiGraph
-    starting_node_id: str
-
-    Returns
-    -------
-    ValidationResults
-
-    Notes
-    -----
-    If there is a superbubble starting at the start node, but it
-    contains other superbubbles within it, then this'll just return a
-    minimal superbubble (not starting at starting_node_id). It's
-    expected that hierarchical decomposition will mean that we'll
-    revisit this question later.
+    - Previously, we used separate functions for validating 3-node bubbles
+      (e.g. 0 ---------> 2) and simple bubbles (e.g. 0 --> 1 ---> 3).
+             \          /                             \          /
+              \--> 1 --/                               \--> 2 --/
+      However, this is Kind Of Silly, because these types of structures would
+      both also be identified by the Onodera 2013 superbubble validation code.
+      To reduce code redundancy and probably save time, these two validation
+      functions are superseded by this function (which was previously named
+      is_valid_superbubble()). (Bulges still have their own validation function
+      because those are not identified by is_valid_bubble(), tho.)
 
     References
     ----------
@@ -646,7 +476,7 @@ def is_valid_superbubble(g, starting_node_id):
             # slow in theory but in practice are pretty fast.
             for c in composite:
                 if c != t and c != starting_node_id:
-                    out = is_valid_superbubble(g, c)
+                    out = is_valid_bubble(g, c)
                     if out:
                         return out
 

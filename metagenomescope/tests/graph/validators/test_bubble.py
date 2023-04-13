@@ -67,34 +67,27 @@ def test_easy_bubble_fails_when_starting_point_bad():
 
 def test_easy_3_node_bubble():
     g = get_3_node_bubble_graph()
-    results = validators.is_valid_3node_bubble(g, 0)
+    results = validators.is_valid_bubble(g, 0)
     assert results
     assert set(results.nodes) == set([0, 1, 2])
     assert results.starting_node == 0
     assert results.ending_node == 2
 
 
-def test_3node_bubble_func_fails_on_normal_bubble():
-    """(It should only detect 3-node bubbles, not normal bubbles.)"""
-    g = get_easy_bubble_graph()
-    for s in [0, 1, 2, 3]:
-        assert not validators.is_valid_3node_bubble(g, s)
-
-
-def test_3node_bubble_func_doesnt_fail_on_cyclic():
+def test_cyclic_3node_bubble():
     """As with other cyclic bubble test below, this is up for debate."""
     g = get_3_node_bubble_graph()
     g.add_edge(2, 0)
     for s in [1, 2]:
-        assert not validators.is_valid_3node_bubble(g, s)
-    vr = validators.is_valid_3node_bubble(g, 0)
+        assert not validators.is_valid_bubble(g, s)
+    vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2]
     assert vr.starting_node == 0
     assert vr.ending_node == 2
 
 
-def test_3node_bubble_func_fails_on_middle_spur():
+def test_3node_bubble_with_middle_spur():
     """Tests something looking like
 
       1----3
@@ -105,10 +98,10 @@ def test_3node_bubble_func_fails_on_middle_spur():
     g.add_edge(1, 3)
     g.remove_edge(1, 2)
     for s in [0, 1, 2, 3]:
-        assert not validators.is_valid_3node_bubble(g, s)
+        assert not validators.is_valid_bubble(g, s)
 
 
-def test_3node_bubble_func_fails_on_middle_extra_branch():
+def test_3node_bubble_with_middle_extra_branch():
     r"""Tests something looking like
 
       1----3
@@ -118,10 +111,10 @@ def test_3node_bubble_func_fails_on_middle_extra_branch():
     g = get_3_node_bubble_graph()
     g.add_edge(1, 3)
     for s in [0, 1, 2, 3]:
-        assert not validators.is_valid_3node_bubble(g, s)
+        assert not validators.is_valid_bubble(g, s)
 
 
-def test_3node_bubble_func_fails_on_self_loops():
+def test_3node_bubble_with_self_loops():
     r"""Adds loops to each of the three nodes in a simple 3-node bubble, and
     verifies that any of these loops disqualifies this bubble.
     """
@@ -130,13 +123,13 @@ def test_3node_bubble_func_fails_on_self_loops():
     for n in [0, 1, 2]:
         g = get_3_node_bubble_graph()
         g.add_edge(n, n)
-        assert not validators.is_valid_3node_bubble(g, 0)
+        assert not validators.is_valid_bubble(g, 0)
         big_chunky_graph.add_edge(n, n)
 
-    assert not validators.is_valid_3node_bubble(big_chunky_graph, 0)
+    assert not validators.is_valid_bubble(big_chunky_graph, 0)
 
 
-def test_3node_bubble_func_fails_if_end_points_to_middle():
+def test_3node_bubble_with_end_pointing_to_middle():
     r"""Tests something looking like
 
       1<---+
@@ -145,30 +138,33 @@ def test_3node_bubble_func_fails_if_end_points_to_middle():
     """
     g = get_3_node_bubble_graph()
     g.add_edge(2, 1)
-    assert not validators.is_valid_3node_bubble(g, 0)
+    assert not validators.is_valid_bubble(g, 0)
 
 
-def test_3node_bubble_func_fails_if_start_equals_end():
+def test_bubble_with_start_equals_end():
+    # (This test was originally added to reach some untested lines of a
+    # now-removed bubble detection function. I'm keeping it in just to verify
+    # we don't regress.)
     g = nx.MultiDiGraph()
     g.add_edge(0, 1)
     g.add_edge(1, 0)
-    # This should fail due to the "if len(out_node_ids) != 2" check, early on
-    # in the validation function
-    assert not validators.is_valid_3node_bubble(g, 0)
+    # In the old "is_valid_3node_bubble" function, this would fail
+    # due to the early "if len(out_node_ids) != 2" check
+    assert not validators.is_valid_bubble(g, 0)
 
     g.add_edge(0, 0)
-    # This actually won't fail until the "if len(set(composite)) != 3" check
-    # wayyy later on in the validation function! That's cool.
-    assert not validators.is_valid_3node_bubble(g, 0)
+    # In the old "is_valid_3node_bubble" function, this would not fail until
+    # the "if len(set(composite)) != 3" check wayyy later on
+    assert not validators.is_valid_bubble(g, 0)
 
 
-def test_easy_3_node_bubble_func_fails_with_normal_simple_bubble_detection():
-    """Tests that is_valid_bubble() doesn't detect 3-node bubbles. Don't
-    worry, though, because is_valid_3node_bubble() does!
+def test_easy_3_node_bubble_bad_starts():
+    """Honestly, I forget why this test is located so far down in this file.
+    UHHHHH I'm keeping it in anyway tho just because that seems safest lol
     """
     g = get_3_node_bubble_graph()
     for s in [1, 2]:
-        assert not validators.is_valid_3node_bubble(g, s)
+        assert not validators.is_valid_bubble(g, s)
 
 
 def test_extra_nodes_on_middle():
@@ -431,7 +427,7 @@ def test_finding_3node_bubble_containing_bulge_from_start_to_middle():
     g.add_edge(0, 2)
     # add a bulge between the start node and the middle node
     g.add_edge(0, 1)
-    vr = validators.is_valid_3node_bubble(g, 0)
+    vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2]
     assert vr.starting_node == 0
@@ -445,13 +441,13 @@ def test_finding_3node_bubble_containing_bulge_from_middle_to_end():
     g.add_edge(0, 2)
     # add a bulge between the middle node and the end node
     g.add_edge(1, 2)
-    vr = validators.is_valid_3node_bubble(g, 0)
+    vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2]
     assert vr.starting_node == 0
     assert vr.ending_node == 2
 
-    assert not validators.is_valid_3node_bubble(g, 1)
+    assert not validators.is_valid_bubble(g, 1)
     assert not validators.is_valid_bulge(g, 1)
 
 
@@ -462,7 +458,7 @@ def test_finding_3node_bubble_containing_bulge_from_start_to_end():
     g.add_edge(0, 2)
     # add a bulge between the start node and the end node
     g.add_edge(0, 2)
-    vr = validators.is_valid_3node_bubble(g, 0)
+    vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2]
     assert vr.starting_node == 0
@@ -472,8 +468,8 @@ def test_finding_3node_bubble_containing_bulge_from_start_to_end():
 
 
 def test_superbubble_down_edge():
-    r"""Tests that the superbubble detection function, and not the other bubble
-    detection functions, can identify the following structure as a bubble:
+    r"""Tests that the superbubble detection function can identify the
+    following structure as a bubble:
 
          /-1-\
         /  |  \
@@ -485,22 +481,20 @@ def test_superbubble_down_edge():
     g.add_edge(1, 2)
 
     assert not validators.is_valid_bulge(g, 0)
-    assert not validators.is_valid_3node_bubble(g, 0)
-    assert not validators.is_valid_bubble(g, 0)
 
-    vr = validators.is_valid_superbubble(g, 0)
+    vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2, 3]
     assert vr.starting_node == 0
     assert vr.ending_node == 3
 
     for other_starting_node in [1, 2, 3]:
-        assert not validators.is_valid_superbubble(g, other_starting_node)
+        assert not validators.is_valid_bubble(g, other_starting_node)
 
 
 def test_superbubble_right_edge():
-    r"""Tests that the superbubble detection function, and not the other bubble
-    detection functions, can identify the following structure as a bubble:
+    r"""Tests that the superbubble detection function can identify the
+    following structure as a bubble:
 
          /-1-\
         /     \
@@ -512,17 +506,15 @@ def test_superbubble_right_edge():
     g.add_edge(0, 3)
 
     assert not validators.is_valid_bulge(g, 0)
-    assert not validators.is_valid_3node_bubble(g, 0)
-    assert not validators.is_valid_bubble(g, 0)
 
-    vr = validators.is_valid_superbubble(g, 0)
+    vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2, 3]
     assert vr.starting_node == 0
     assert vr.ending_node == 3
 
     for other_starting_node in [1, 2, 3]:
-        assert not validators.is_valid_superbubble(g, other_starting_node)
+        assert not validators.is_valid_bubble(g, other_starting_node)
 
 
 def test_superbubble_tip():
@@ -541,9 +533,7 @@ def test_superbubble_tip():
     g.add_edge(1, 2)
     g.add_edge(2, 4)
     assert not validators.is_valid_bulge(g, 0)
-    assert not validators.is_valid_3node_bubble(g, 0)
     assert not validators.is_valid_bubble(g, 0)
-    assert not validators.is_valid_superbubble(g, 0)
 
 
 def test_nested_superbubble():
@@ -570,18 +560,16 @@ def test_nested_superbubble():
     g.add_edge(5, 6)
     g.add_edge(3, 6)
     assert not validators.is_valid_bulge(g, 0)
-    assert not validators.is_valid_3node_bubble(g, 0)
-    assert not validators.is_valid_bubble(g, 0)
 
     for valid_start in (0, 4):
-        vr = validators.is_valid_superbubble(g, valid_start)
+        vr = validators.is_valid_bubble(g, valid_start)
         assert vr
         assert vr.nodes == [0, 1, 2, 3]
         assert vr.starting_node == 0
         assert vr.ending_node == 3
 
     for invalid_start in (1, 2, 3, 5, 6):
-        assert not validators.is_valid_superbubble(g, invalid_start)
+        assert not validators.is_valid_bubble(g, invalid_start)
 
 
 def test_end_to_start_cyclic_superbubble():
@@ -599,9 +587,7 @@ def test_end_to_start_cyclic_superbubble():
     g.add_edge(1, 2)
     g.add_edge(3, 0)
     assert not validators.is_valid_bulge(g, 0)
-    assert not validators.is_valid_3node_bubble(g, 0)
-    assert not validators.is_valid_bubble(g, 0)
-    vr = validators.is_valid_superbubble(g, 0)
+    vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2, 3]
     assert vr.starting_node == 0
@@ -626,9 +612,7 @@ def test_mid_to_start_cyclic_superbubble():
         g.add_edge(1, 2)
         g.add_edge(mid_node, 0)
         assert not validators.is_valid_bulge(g, 0)
-        assert not validators.is_valid_3node_bubble(g, 0)
         assert not validators.is_valid_bubble(g, 0)
-        assert not validators.is_valid_superbubble(g, 0)
 
 
 def test_non_end_to_start_cyclic_superbubble():
@@ -649,9 +633,7 @@ def test_non_end_to_start_cyclic_superbubble():
     g.add_edge(1, 2)
     g.add_edge(2, 1)
     assert not validators.is_valid_bulge(g, 0)
-    assert not validators.is_valid_3node_bubble(g, 0)
     assert not validators.is_valid_bubble(g, 0)
-    assert not validators.is_valid_superbubble(g, 0)
 
 
 def test_bubble_with_self_loops():
@@ -671,6 +653,4 @@ def test_bubble_with_self_loops():
         g = get_easy_bubble_graph()
         g.add_edge(loop_node, loop_node)
         assert not validators.is_valid_bulge(g, 0)
-        assert not validators.is_valid_3node_bubble(g, 0)
         assert not validators.is_valid_bubble(g, 0)
-        assert not validators.is_valid_superbubble(g, 0)

@@ -550,9 +550,8 @@ class AssemblyGraph(object):
                     validators.is_valid_cyclic_chain,
                     "cyclicchain",
                 ),
-                (self.bubbles, validators.is_valid_3node_bubble, "bubble"),
+                (self.bubbles, validators.is_valid_bulge, "bubble"),
                 (self.bubbles, validators.is_valid_bubble, "bubble"),
-                (self.bubbles, validators.is_valid_superbubble, "bubble"),
             ):
                 # We sort the nodes in order to make this deterministic
                 # (I doubt the extra time cost from sorting will be a big deal)

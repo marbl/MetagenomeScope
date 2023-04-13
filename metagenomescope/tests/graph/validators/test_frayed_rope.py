@@ -196,18 +196,6 @@ def test_self_loops_in_frayed_rope():
         assert not validators.is_valid_frayed_rope(g, 1)
 
 
-def test_self_loops_in_frayed_rope():
-    r"""Try adding self-loops to any of the nodes in a valid frayed rope, and
-    verify that this prevents this structure from being tagged as a frayed
-    rope.
-    """
-    for n in (0, 1, 2, 3, 4):
-        g = get_simple_fr_graph()
-        g.add_edge(n, n)
-        assert not validators.is_valid_frayed_rope(g, 0)
-        assert not validators.is_valid_frayed_rope(g, 1)
-
-
 def test_parallel_edges_in_frayed_rope():
     r"""Tests that parallel edges in a frayed rope do not prevent detection.
 
