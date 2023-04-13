@@ -473,9 +473,8 @@ def is_valid_bubble(g, starting_node_id):
 
             # What if there are edge(s) from t to the starting node?
             # Onodera et al. explicitly do not identify bubbles where this is
-            # the case, but here we *do* identify these sorts of "start-to-end"
-            # bubbles. If you'd like to prevent this, you can comment out the
-            # block below.
+            # the case, but here we *do* identify these sorts of bubbles. If
+            # you'd like to prevent this, you can comment out the block below.
             # if starting_node_id in g.adj[t]:
             #     return ValidationResults()
 
