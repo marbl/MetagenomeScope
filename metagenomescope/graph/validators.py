@@ -313,7 +313,7 @@ def is_valid_bulge(g, starting_node_id):
     3. All of E's incoming edges come from S.
 
     We could relax conditions 2 and 3 if desired, although this may complicate
-    the pattern decomposition stuff. Notably, we allow bulges where there
+    the pattern decomposition stuff. Notably, we also allow bulges where there
     exist edge(s) from E to S, to be consistent with how we allow cyclic
     bubbles (see https://github.com/marbl/MetagenomeScope/issues/241 for
     discussion).
@@ -455,7 +455,7 @@ def is_valid_bubble(g, starting_node_id):
 
     Lastly, we don't currently detect bubbles where there's an edge
     directly between the start and end node. ...but these should be
-    possible to detect with more robust bubble-finding techniques.
+    detected by is_valid_superbubble().
     """
     verify_node_in_graph(g, starting_node_id)
 
