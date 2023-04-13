@@ -10,7 +10,7 @@ def get_simple_cyclic_chain_graph():
     V              |
     0 -> 1 -> 2 -> 3
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     g.add_edge(0, 1)
     g.add_edge(1, 2)
     g.add_edge(2, 3)
@@ -31,7 +31,7 @@ def test_isolated_start():
     """Tests that an isolated node and an isolated chain are both not detected
     as cylic chains.
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     g.add_node(0)
     assert not validators.is_valid_cyclic_chain(g, 0)
     g.add_edge(0, 1)
@@ -47,10 +47,13 @@ def test_selfloop():
        V   |
        0 --+
 
-       is a valid cyclic chain!
+       is *NOT* a valid cyclic chain. (We used to classify all nodes with
+       self-loop edges as cyclic chains, but now we don't because it requires
+       us to do some annoying special-casing during the decomposition process.
+       Maybe I'll revert this change later, but idk.)
 
        Also adds on incoming and outgoing nodes and checks that those don't
-       interfere with the detection of the 0 -> 0 cyclic chain:
+       interfere:
 
             +---+
             |   |
@@ -59,27 +62,22 @@ def test_selfloop():
              \
               2
     """
-    g = nx.DiGraph()
+    g = nx.MultiDiGraph()
     g.add_edge(0, 0)
 
-    results = validators.is_valid_cyclic_chain(g, 0)
-    assert results
-    assert results.nodes == [0]
-
+    assert not validators.is_valid_cyclic_chain(g, 0)
     g.add_edge(1, 0)
     g.add_edge(0, 2)
-
-    results = validators.is_valid_cyclic_chain(g, 0)
-    assert results
-    assert results.nodes == [0]
+    for s in (0, 1, 2):
+        assert not validators.is_valid_cyclic_chain(g, s)
 
 
 def test_funky_selfloop():
     """Tests the simple cyclic chain, but now with a self-loop from 0 -> 0.
 
-    The expected behavior in this case (at least at the top level) is that
-    we'll classify 0 -> 0 as a cyclic chain, but leave 1, 2, and 3 out of
-    this.
+    If we allowed self-loop cyclic chains, then we'd just classify 0 -> 0
+    as a cyclic chain but leave 1, 2, and 3 out of this. Now, since we disallow
+    self-loop cyclic chains, we don't classify anything here as a cyclic chain.
 
     The reason for this is that 0 has an extraneous incoming (and outgoing,
     technically) edge, so it doesn't really fit in in a cyclic chain
@@ -93,19 +91,11 @@ def test_funky_selfloop():
     V  |             |
     0 -+-> 1 -> 2 -> 3
     """
-
     g = get_simple_cyclic_chain_graph()
     g.add_edge(0, 0)
 
-    # 0 -> 0 is a cyclic chain
-    results = validators.is_valid_cyclic_chain(g, 0)
-    assert results
-    assert results.nodes == [0]
-
-    # However, with other starting nodes, you don't find anything -- 0 throws
-    # off the detection
-    for s in [1, 2, 3]:
-        assert not validators.is_valid_cyclic_chain(g, s)
+    for s in (0, 1, 2, 3):
+        assert not validators.is_valid_cyclic_chain(g, 0)
 
 
 def test_extraneous_outgoing_edge_from_start():
@@ -130,11 +120,37 @@ def test_extraneous_outgoing_edge_from_start():
     g = get_simple_cyclic_chain_graph()
     g.add_edge(0, 4)
     for s in [0, 1, 2, 3, 4]:
-        print(s)
         results = validators.is_valid_cyclic_chain(g, s)
         if s == 1:
             assert results
             assert results.nodes == [1, 2, 3, 0]
+            assert results.starting_node == 1
+            assert results.ending_node == 0
+        else:
+            assert not results
+
+
+def test_surrounded_cyclic_chain():
+    """Generalized version of test_extraneous_outgoing_edge_from_start():
+
+         +--------------+
+         |              |
+         V              |
+    5 -> 1 -> 2 -> 3 -> 0 -> 4
+
+    The only valid starting node for a cyclic chain here is node 1.
+    """
+
+    g = get_simple_cyclic_chain_graph()
+    g.add_edge(0, 4)
+    g.add_edge(5, 1)
+    for s in [0, 1, 2, 3, 4, 5]:
+        results = validators.is_valid_cyclic_chain(g, s)
+        if s == 1:
+            assert results
+            assert results.nodes == [1, 2, 3, 0]
+            assert results.starting_node == 1
+            assert results.ending_node == 0
         else:
             assert not results
 
