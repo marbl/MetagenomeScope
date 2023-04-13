@@ -238,18 +238,20 @@ def is_valid_cyclic_chain(g, starting_node_id):
 
     Notes
     -----
-    Note that "starting_node_id" is sort of a misnomer, since some cyclic
-    chains don't have a single starting node (e.g. isolated cycles, like
-    0 -> 1 -> 0). Either 0 or 1 would be considered "starting nodes" for a
-    valid cyclic chain in this example. However, in cases like...
+    - "starting_node_id" is sort of a misnomer, since some cyclic
+      chains don't have a single starting node (e.g. isolated cycles, like
+      0 -> 1 -> 0). Either 0 or 1 would be considered "starting nodes" for a
+      valid cyclic chain in this example. However, in cases like...
 
-         +---
-         V   \
-    2 -> 0 -> 1 -> 3
+           +---
+           V   \
+      2 -> 0 -> 1 -> 3
 
-    ... 0 would still be the starting node for a valid cyclic chain of 0
-    and 1, but 1 could not be the "starting node" (since it has two
-    separate outgoing nodes).
+      ... 0 would still be the starting node for a valid cyclic chain of 0
+      and 1, but 1 could not be the "starting node" (since it has two
+      separate outgoing nodes).
+
+    - As with is_valid_chain(), cyclic chains cannot contain parallel edges.
     """
     verify_node_in_graph(g, starting_node_id)
     s_outgoing_node_ct = len(g.adj[starting_node_id])

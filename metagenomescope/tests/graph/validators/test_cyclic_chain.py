@@ -184,9 +184,23 @@ def test_simple_whirl_intervening_edges():
     assert not validators.is_valid_cyclic_chain(g, 3)
 
 
-# def test_simple_fr_detection_failures():
-#     g = get_simple_fr_graph()
-#     for s in [2, 3, 4]:
-#         results = validators.is_valid_frayed_rope(g, s)
-#         assert not results[0]
-#         assert results[1] is None
+def test_chain_with_parallel_edges_is_not_cyclic_chain():
+    """Considers a graph that looks like 1 --> 2 ==> 3 --> 4 --> 5.
+
+    (==> indicates parallel edges in that "diagram.")
+
+    This test case is taken from the chain validator tests. I'm moving it over
+    here just to test that, for some perverse reason, the presence of parallel
+    edges in a non-cyclic chain doesn't screw things up and make the cyclic
+    chain validator think that this structure is a cyclic chain. (Like, I am
+    not even sure of how that would happen, but let's be paranoid.)
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(2, 3)
+    g.add_edge(2, 3)
+    g.add_edge(3, 4)
+    g.add_edge(4, 5)
+
+    for s in (1, 2, 3, 4, 5):
+        assert not validators.is_valid_cyclic_chain(g, s)
