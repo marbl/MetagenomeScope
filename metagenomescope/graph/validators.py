@@ -112,20 +112,27 @@ def is_valid_frayed_rope(g, starting_node_id):
 
     Notes
     -----
-    We only consider "simple" frayed ropes that look like
+    - We only consider "simple" frayed ropes that look like
 
-    s1 -\ /-> e1
-         m
-    s2 -/ \-> e2
+      s1 -\ /-> e1
+           m
+      s2 -/ \-> e2
 
-    ...that is, frayed ropes containing only one middle node. There can
-    be an arbitrary amount of start and end nodes defined (so long as
-    there are >= 2 start/end nodes), though. (Also, the number of start
-    and end nodes doesn't have to match up.)
+      ...that is, frayed ropes containing only one middle node. There can
+      be an arbitrary amount of start and end nodes defined (so long as
+      there are >= 2 start/end nodes), though. (Also, the number of start
+      and end nodes doesn't have to match up.)
 
-    (We could explicitly try to search for frayed ropes containing a chain of
-    middle nodes, but these chains should have already been collapsed by the
-    time we call this function.)
+      (We could explicitly try to search for frayed ropes containing a chain of
+      middle nodes, but these chains should have already been collapsed by the
+      time we call this function.)
+
+    - As long as the frayed rope follows the above structure, it is fine if it
+      includes parallel edges (from a start node to the middle node, or from
+      the middle node to the end node). These parallel edges should not be
+      classified as "bulges," because bulges from (X, Y) are only valid if all
+      of X's outgoing edges point to Y (and if all of Y's incoming edges come
+      from X).
     """
     verify_node_in_graph(g, starting_node_id)
 
@@ -203,12 +210,12 @@ def is_valid_cyclic_chain(g, starting_node_id):
     0 -> 1 -> 0). Either 0 or 1 would be considered "starting nodes" for a
     valid cyclic chain in this example. However, in cases like...
 
-          +--
-          V  \
+         +---
+         V   \
     2 -> 0 -> 1 -> 3
 
     ... 0 would still be the starting node for a valid cyclic chain of 0
-    and 1, but 1 would not be the "starting node" (since it has two
+    and 1, but 1 could not be the "starting node" (since it has two
     separate outgoing nodes).
     """
     verify_node_in_graph(g, starting_node_id)
@@ -350,14 +357,20 @@ def is_valid_bubble(g, starting_node_id):
 
     Notes
     -----
-    - If there is a superbubble starting at the start node, but it
-      contains other superbubbles within it, then this'll just return a
-      minimal superbubble (not starting at starting_node_id). It's
+    - If there is a bubble starting at the start node, but it
+      contains other bubbles within it, then this'll just return a
+      minimal bubble (not starting at starting_node_id). It's
       expected that hierarchical decomposition will mean that we'll
       revisit starting_node_id later.
 
+       - That being said, we do not check for the case where this bubble
+         contains a *bulge* that has not been detected and collapsed yet.
+         (Ditto for chains, etc.) By the time you call this function, you
+         should have already ran at least one round of bulge and chain
+         detection on the graph.
+
     - Previously, we used separate functions for validating 3-node bubbles
-      (e.g. 0 ---------> 2) and simple bubbles (e.g. 0 --> 1 ---> 3).
+      (e.g. 0 ---------> 2) and simple bubbles (e.g. 0 ---> 1 --> 3).
              \          /                             \          /
               \--> 1 --/                               \--> 2 --/
       However, this is Kind Of Silly, because these types of structures would
@@ -366,6 +379,15 @@ def is_valid_bubble(g, starting_node_id):
       functions are superseded by this function (which was previously named
       is_valid_superbubble()). (Bulges still have their own validation function
       because those are not identified by is_valid_bubble(), tho.)
+
+    - Similarly to how the frayed rope validation function allows for a frayed
+      rope to contain parallel edges, we also allow for bubbles to contain
+      parallel edges. (Although, as mentioned above, if this graph contains a
+      bulge -- i.e. it has parallel edges between two nodes, *and* these two
+      nodes actually are a bulge as defined by is_valid_bulge() -- then we
+      will ignore this bulge, and just return the larger bubble structure. You
+      can account for this by making sure that all possible bulges have been
+      identified in the graph by the time you call this function.)
 
     References
     ----------

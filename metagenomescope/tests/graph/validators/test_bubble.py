@@ -654,3 +654,39 @@ def test_bubble_with_self_loops():
         g.add_edge(loop_node, loop_node)
         assert not validators.is_valid_bulge(g, 0)
         assert not validators.is_valid_bubble(g, 0)
+
+
+def test_finding_bubble_containing_real_bulge():
+    r"""Tests that the following graph is detected, in its entirety, as a valid
+    bubble. See the is_valid_bubble() docs for details, but TLDR bulge
+    detection should already have been done by the time we call
+    is_valid_bubble() (so real bulges -- "real" as in is_valid_bulge() accepts
+    them) will get smushed into the larger bubble structure.
+
+            /---\
+         /-1     4-\
+        /   \---/   \
+       0             3
+        \           /
+         \----2----/
+    """
+    g = nx.MultiDiGraph()
+    # top half
+    g.add_edge(0, 1)
+    g.add_edge(1, 4)
+    g.add_edge(1, 4)
+    g.add_edge(4, 3)
+    # bottom half
+    g.add_edge(0, 2)
+    g.add_edge(2, 3)
+    vr = validators.is_valid_bubble(g, 0)
+    assert vr
+    assert vr.nodes == [0, 1, 2, 4, 3]
+    assert vr.starting_node == 0
+    assert vr.ending_node == 3
+
+    vr2 = validators.is_valid_bulge(g, 1)
+    assert vr2
+    assert vr2.nodes == [1, 4]
+    assert vr2.starting_node == 1
+    assert vr2.ending_node == 4
