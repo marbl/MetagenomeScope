@@ -95,6 +95,39 @@ def verify_node_in_graph(g, node_id):
         )
 
 
+def not_single_edge(g, adj_view):
+    """Returns True if an AdjacencyView doesn't describe exactly 1 edge.
+
+    This accounts for two cases:
+    - The case where there are != 1 adjacent nodes
+    - The case where there is just one adjacent node, but there are parallel
+      edges between this node and the node described by this AdjacencyView
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+
+    adj_view: nx.classes.coreviews.AdjacencyView
+        The result of g.pred[n] or g.adj[n], where n is a node in g.
+        g.pred refers to the incoming adjacencies of n; g.adj refers to the
+        outgoing adjacencies of n.
+
+    Returns
+    -------
+    bool
+    """
+    # Let's say that adj_view was given to us from g.pred[n].
+    # If len(adj_view) != 1, then n has incoming edges from multiple nodes.
+    # If len(adj_view) == 1 but the other gross condition is true, then n has
+    # parallel edges from a single node. (I don't think there can be 0 edges
+    # between this node and n, unless the AdjacencyView is malformed, but we
+    # detect this anyway I guess.)
+    # This explanation also works for g.adj[n]; just swap out "incoming" and
+    # "from" with "outgoing" and "to" in the above text.
+    return len(adj_view) != 1 or len(adj_view[list(adj_view)[0]]) != 1
+
+
+
 def is_valid_frayed_rope(g, starting_node_id):
     r"""Validates a frayed rope starting at a node in a graph.
 
@@ -512,38 +545,6 @@ def is_valid_bubble(g, starting_node_id):
             return ValidationResults(True, composite, starting_node_id, t)
 
     return ValidationResults()
-
-
-def not_single_edge(g, adj_view):
-    """Returns True if an AdjacencyView doesn't describe exactly 1 edge.
-
-    This accounts for two cases:
-    - The case where there are != 1 adjacent nodes
-    - The case where there is just one adjacent node, but there are parallel
-      edges between this node and the node described by this AdjacencyView
-
-    Parameters
-    ----------
-    g: nx.MultiDiGraph
-
-    adj_view: nx.classes.coreviews.AdjacencyView
-        The result of g.pred[n] or g.adj[n], where n is a node in g.
-        g.pred refers to the incoming adjacencies of n; g.adj refers to the
-        outgoing adjacencies of n.
-
-    Returns
-    -------
-    bool
-    """
-    # Let's say that adj_view was given to us from g.pred[n].
-    # If len(adj_view) != 1, then n has incoming edges from multiple nodes.
-    # If len(adj_view) == 1 but the other gross condition is true, then n has
-    # parallel edges from a single node. (I don't think there can be 0 edges
-    # between this node and n, unless the AdjacencyView is malformed, but we
-    # detect this anyway I guess.)
-    # This explanation also works for g.adj[n]; just swap out "incoming" and
-    # "from" with "outgoing" and "to" in the above text.
-    return len(adj_view) != 1 or len(adj_view[list(adj_view)[0]]) != 1
 
 
 def is_valid_chain(g, starting_node_id):
