@@ -1,5 +1,9 @@
-# Validation methods for potential patterns starting at a given node ID in an
-# assembly graph.
+# This file contains validation functions for potential patterns "starting"
+# at a given node ID in an assembly graph, in addition to related utilities.
+#
+# Note that a single type of pattern (e.g. a bubble) may correspond to more
+# one validation function here -- for example, we include functions for
+# validating bulges, "simple" bubbles, superbubbles, etc.
 
 
 import networkx as nx
