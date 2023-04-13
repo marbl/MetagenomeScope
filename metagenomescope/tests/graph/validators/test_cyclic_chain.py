@@ -204,3 +204,24 @@ def test_chain_with_parallel_edges_is_not_cyclic_chain():
 
     for s in (1, 2, 3, 4, 5):
         assert not validators.is_valid_cyclic_chain(g, s)
+
+
+def test_parallel_edges_in_cyclic_chain():
+    """Considers a graph that looks like 1 --> 2 ==> 3 --> 4 --> 5.
+                                      ^                       |
+                                      |                       |
+                                      +-----------------------+
+    The presence of the bulge from 2 to 3 should disqualify this from being
+    a cyclic chain. Collapse the bulge first, then we'll be good!
+    """
+
+    g = nx.MultiDiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(2, 3)
+    g.add_edge(2, 3)
+    g.add_edge(3, 4)
+    g.add_edge(4, 5)
+    g.add_edge(5, 1)
+
+    for s in (1, 2, 3, 4, 5):
+        assert not validators.is_valid_cyclic_chain(g, s)
