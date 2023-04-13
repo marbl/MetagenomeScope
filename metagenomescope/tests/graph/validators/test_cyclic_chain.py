@@ -25,6 +25,11 @@ def test_simple_cyclic_chain_detection():
         results = validators.is_valid_cyclic_chain(g, s)
         assert results
         assert set(results.nodes) == set([0, 1, 2, 3])
+        assert results.starting_node == s
+        if s == 0:
+            assert results.ending_node == 3
+        else:
+            assert results.ending_node == s - 1
 
 
 def test_isolated_start():
@@ -170,9 +175,13 @@ def test_simple_whirl():
     results0 = validators.is_valid_cyclic_chain(g, 0)
     assert results0
     assert results0.nodes == [0, 1]
+    assert results0.starting_node == 0
+    assert results0.ending_node == 1
     results1 = validators.is_valid_cyclic_chain(g, 1)
     assert results1
     assert results1.nodes == [1, 0]
+    assert results1.starting_node == 1
+    assert results1.ending_node == 0
 
 
 def test_simple_whirl_intervening_edges():
@@ -192,6 +201,8 @@ def test_simple_whirl_intervening_edges():
     results0 = validators.is_valid_cyclic_chain(g, 0)
     assert results0
     assert results0.nodes == [0, 1]
+    assert results0.starting_node == 0
+    assert results0.ending_node == 1
     # Now, 1 is no longer a valid start node for the [0, 1] cyclic chain. This
     # is because 1 has multiple outgoing nodes, so it can't be the "start" of a
     # cyclic chain. dems the breaks
@@ -240,4 +251,33 @@ def test_parallel_edges_in_cyclic_chain():
     g.add_edge(5, 1)
 
     for s in (1, 2, 3, 4, 5):
+        assert not validators.is_valid_cyclic_chain(g, s)
+
+
+def test_parallel_edge_selfloop():
+    """Tests that the presence of parallel edges in a self-loop does not
+    somehow make this into a valid cyclic chain."""
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 0)
+    g.add_edge(0, 0)
+    assert not validators.is_valid_cyclic_chain(g, 0)
+
+
+def test_parallel_edge_selfloop_surrounded():
+    """Like the above case, but with extra nodes added in."""
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 0)
+    g.add_edge(0, 0)
+    g.add_edge(1, 0)
+    g.add_edge(0, 2)
+    for s in (0, 1, 2):
+        assert not validators.is_valid_cyclic_chain(g, s)
+
+    # OK, now this actually would be a valid cyclic chain if not for the 0 -->
+    # 0 self-loop. (This is analogous to test_funky_selfloop() above, but the
+    # self loop there didn't have parallel edges.)
+    # IN ANY CASE the presence of the self-loop (with or without parallel
+    # edges) disqualifies there from being a cyclic chain here.
+    g.add_edge(2, 1)
+    for s in (0, 1, 2):
         assert not validators.is_valid_cyclic_chain(g, s)
