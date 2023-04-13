@@ -585,10 +585,17 @@ def is_valid_chain(g, starting_node_id):
       If you're aware of another library's implementation of this sort of
       thing, let me know! It'd be nice to avoid duplication of effort.
 
-    - Chains cannot contain parallel edges. If a region of the graph would be a
-      chain, but it just happens to contain some parallel edges, then these
-      parallel edges should first be collapsed into bulges -- the resulting
-      region should then be a chain.
+    - Chains cannot contain parallel edges. If the only reason that a region
+      of the graph is not a valid chain is that this region happens to contain
+      some parallel edges (e.g. 1 --> 2 ==> 3 --> 4), then these parallel edges
+      should first be collapsed into bulges -- the resulting region should then
+      be a chain when we revisit this region during hierarchical decomposition.
+      (If 1 --> 2 and/or 3 --> 4 are collapsed into individual chains before
+      the bulge is collapsed, then that's fine; this region will then get
+      merged into a big chain that contains the bulge pattern and the smaller
+      chain pattern(s). One of the hierarchical decomposition postprocessing
+      steps will remove chains whose parents are also chains, so the final
+      output in this particular case should be the same.)
     """
     verify_node_in_graph(g, starting_node_id)
     out_node_ids = list(g.adj[starting_node_id].keys())
