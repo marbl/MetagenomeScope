@@ -396,28 +396,35 @@ def is_valid_bubble(g, starting_node_id):
     """
     verify_node_in_graph(g, starting_node_id)
 
-    # MgSc-specific thing: if the starting node only has one outgoing
-    # edge, then it should be collapsed into a chain, not a bubble.
-    # There might be a bubble later on down from it, but it isn't the
-    # start of a bubble. (We don't guarantee that the graph is
-    # a unipath graph, which is an assumption of Onodera 2013's algorithm I
-    # think -- hence our need to impose this restriction. Otherwise, I
-    # found that weird stuff was getting called as a bubble in the test
-    # Velvet E. coli graph, and it was breaking my code, so I added this
-    # in.)
+    # MgSc-specific thing: if the starting node only has outgoing edge(s) to
+    # one node, then this starting node isn't the start of a bubble. (It could
+    # be the start of a chain or bulge, maybe, if its one outgoing node has no
+    # incoming edges from other nodes.)
+    #
+    # We don't guarantee that the graph is a unipath graph; I believe that this
+    # is an assumption of Onodera 2013's algorithm. This is why we impose this
+    # restriction. (Otherwise, I found that weird stuff was getting called
+    # as a bubble in the test Velvet E. coli graph.)
     if len(g.adj[starting_node_id]) < 2:
         return ValidationResults()
 
     # From section 3 of Onodera 2013:
-    # Nodes are visited if they have already been visited in the main
-    # portion of the while loop below.
-    # Nodes are seen if at least one of the node's parents has been
-    # visited.
+    #
+    # - Nodes are "visited" if they have already been visited in the main
+    #   portion of the while loop below.
+    #
+    # - Nodes are "seen" if at least one of the node's parents has been
+    #   visited.
+    #
     # (A node can only have one label at a time -- there are multiple ways
     # to set this up; what we do here is just enforce this by storing node
     # labels, both visited and seen, in a single structure. That way, if we
     # e.g. mark a node as visited, then that automatically overrides that
-    # node's previous label (e.g. seen).
+    # node's previous label [e.g. seen].)
+    #
+    # ALSO UHHHH coming back to this code much later: node X is a "parent" of
+    # node Y if there exist edge(s) X --> Y, right? (And Y is a "child" of X.)
+    # The Onodera 2013 paper uses this parent/child notation extensively.
     nodeid2label = {}
 
     S = set([starting_node_id])
@@ -434,12 +441,12 @@ def is_valid_bubble(g, starting_node_id):
         # Otherwise, let's go through v's "children".
         for u in g.adj[v]:
             # if v points to the starting node then there is a cycle, and
-            # per the definitions outlined Onodera 2013 superbubbles must
+            # per the definitions outlined in Onodera 2013 superbubbles must
             # be acyclic. So we abort. (Although, that being said, we allow
             # the "ending node" (or "exit node," or "sink node," or whatever
             # you wanna call it... including all of that here for the sake of
             # anyone grepping through this code) to have edge(s) to the
-            # starting node. (See below.)
+            # starting node. See below.)
             if u == starting_node_id:
                 return ValidationResults()
 
@@ -456,20 +463,19 @@ def is_valid_bubble(g, starting_node_id):
                 S.add(u)
 
         # If just one vertex (let's call it t) is left in S, and if t is
-        # the only vertex marked as seen, then it's the exit node of the
-        # bubble! (aka the "end node".)
+        # the only vertex marked as seen, then it's the exit (aka ending) node
+        # of the bubble!
         seen_node_ids = [n for n in nodeid2label if nodeid2label[n] == "seen"]
         if len(S) == 1 and len(seen_node_ids) == 1:
             t = S.pop()
             if t != seen_node_ids[0]:
                 raise WeirdError("Something went really wrong...?")
 
-            # If there's an edge from t to the starting node, then this
-            # superbubble is cyclic.
-            # We actually allow this, although Onodera et al. do not.
-            # Partially because this helps with hierarchical decomp stuff,
-            # and partially because I don't think there's a problem with
-            # this...? but idk. Up for debate.
+            # What if there are edge(s) from t to the starting node?
+            # Onodera et al. explicitly do not identify bubbles where this is
+            # the case, but here we *do* identify these sorts of "start-to-end"
+            # bubbles. If you'd like to prevent this, you can comment out the
+            # block below.
             # if starting_node_id in g.adj[t]:
             #     return ValidationResults()
 

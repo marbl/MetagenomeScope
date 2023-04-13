@@ -656,7 +656,7 @@ def test_bubble_with_self_loops():
         assert not validators.is_valid_bubble(g, 0)
 
 
-def test_finding_bubble_containing_real_bulge():
+def test_bubble_containing_real_bulge():
     r"""Tests that the following graph is detected, in its entirety, as a valid
     bubble. See the is_valid_bubble() docs for details, but TLDR bulge
     detection should already have been done by the time we call
@@ -690,3 +690,34 @@ def test_finding_bubble_containing_real_bulge():
     assert vr2.nodes == [1, 4]
     assert vr2.starting_node == 1
     assert vr2.ending_node == 4
+
+
+def test_nested_bubble_in_start_bad():
+    r"""Tests that the following graph is not a valid bubble.
+    I mean, it looks like it should be one bubble containing another, but the
+    smaller one (0, 1, 2, 3) isn't a valid bubble because of 1 and 2's outgoing
+    edges. And because of that, the larger bubble doesn't work -- I guess 0
+    could be the start node, but then you have multiple ending nodes (3, 6).
+
+            /--4--\
+           /       \
+        /-1-\       \
+       0     3       6
+        \-2-/       /
+           \       /
+            \--5--/
+    """
+    g = nx.MultiDiGraph()
+    # tiny "bubble"
+    g.add_edge(0, 1)
+    g.add_edge(0, 2)
+    g.add_edge(1, 3)
+    g.add_edge(2, 3)
+    # larger "bubble"
+    g.add_edge(1, 4)
+    g.add_edge(2, 5)
+    g.add_edge(4, 6)
+    g.add_edge(5, 6)
+    for n in (0, 1, 2, 3, 4, 5, 6):
+        assert not validators.is_valid_bulge(g, n)
+        assert not validators.is_valid_bubble(g, n)
