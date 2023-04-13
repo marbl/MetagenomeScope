@@ -514,6 +514,38 @@ def is_valid_bubble(g, starting_node_id):
     return ValidationResults()
 
 
+def not_single_edge(g, adj_view):
+    """Returns True if an AdjacencyView doesn't describe exactly 1 edge.
+
+    This accounts for two cases:
+    - The case where there are != 1 adjacent nodes
+    - The case where there is just one adjacent node, but there are parallel
+      edges between this node and the node described by this AdjacencyView
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+
+    adj_view: nx.classes.coreviews.AdjacencyView
+        The result of g.pred[n] or g.adj[n], where n is a node in g.
+        g.pred refers to the incoming adjacencies of n; g.adj refers to the
+        outgoing adjacencies of n.
+
+    Returns
+    -------
+    bool
+    """
+    # Let's say that adj_view was given to us from g.pred[n].
+    # If len(adj_view) != 1, then n has incoming edges from multiple nodes.
+    # If len(adj_view) == 1 but the other gross condition is true, then n has
+    # parallel edges from a single node. (I don't think there can be 0 edges
+    # between this node and n, unless the AdjacencyView is malformed, but we
+    # detect this anyway I guess.)
+    # This explanation also works for g.adj[n]; just swap out "incoming" and
+    # "from" with "outgoing" and "to" in the above text.
+    return len(adj_view) != 1 or len(adj_view[list(adj_view)[0]]) != 1
+
+
 def is_valid_chain(g, starting_node_id):
     r"""Validates a chain "starting at" a node in a graph.
 
@@ -528,27 +560,34 @@ def is_valid_chain(g, starting_node_id):
 
     Notes
     -----
-    THIS FINDS THE LONGEST POSSIBLE CHAIN that includes the starting node
-    (herein referred to as "s" for brevity), if a Chain exists beginning at s.
+    - THIS FINDS THE LONGEST POSSIBLE CHAIN that includes the starting node
+      (herein referred to as "s" for brevity), if a Chain exists beginning at
+      s.
 
-    In other words: if we find that no Chain exists starting at s then we do
-    not identify a valid Chain here, but if we do find that a Chain does
-    exist starting at s then we traverse "backwards" to find the longest
-    possible chain including s. (This way, if this function returns a chain,
-    it's guaranteed to be "maximal.")
+      In other words: if we find that no Chain exists starting at s then we do
+      not identify a valid Chain here, but if we do find that a Chain does
+      exist starting at s then we traverse "backwards" to find the longest
+      possible chain including s. (This way, if this function returns a chain,
+      it's guaranteed to be "maximal.")
 
-    If "s" is really present in a chain (as the final node), then that's fine
-    -- we should come back to this later when running this function on another
-    node earlier on in that chain.
+      If "s" is really present in a chain (as the final node), then that's fine
+      -- we should come back to this later when running this function on
+      another node earlier on in that chain.
 
-    IF THIS IS ACTUALLY A CYCLIC CHAIN (i.e. the end node of the chain has an
-    edge to the start node of the chain), we will not identify a valid Chain
-    here. These sorts of cases should be caught when looking for cyclic chains.
+      IF THIS IS ACTUALLY A CYCLIC CHAIN (i.e. the end node of the chain has an
+      edge to the start node of the chain), we will not identify a valid Chain
+      here. These sorts of cases should be caught when looking for cyclic
+      chains.
 
-    IDEALLY there would be a preexisting function in NetworkX that
-    computes this, but I wasn't able to find something that does this.
-    If you're aware of another library's implementation of this sort of
-    thing, let me know! It'd be nice to avoid duplication of effort.
+      IDEALLY there would be a preexisting function in NetworkX that
+      computes this, but I wasn't able to find something that does this.
+      If you're aware of another library's implementation of this sort of
+      thing, let me know! It'd be nice to avoid duplication of effort.
+
+    - Chains cannot contain parallel edges. If a region of the graph would be a
+      chain, but it just happens to contain some parallel edges, then these
+      parallel edges should first be collapsed into bulges -- the resulting
+      region should then be a chain.
     """
     verify_node_in_graph(g, starting_node_id)
     out_node_ids = list(g.adj[starting_node_id].keys())
@@ -563,14 +602,16 @@ def is_valid_chain(g, starting_node_id):
     chain_ends_cyclically = False
     # Iterate "down" through the chain
     while True:
-        if len(g.pred[curr_node_id]) != 1:
+        pred = g.pred[curr_node_id]
+        if not_single_edge(g, pred):
             # The chain has ended, and this can't be the last node in it
             # (The node before this node, if applicable, is the chain's
             # actual end.)
             break
 
-        out_curr_node_ids = list(g.adj[curr_node_id].keys())
-        if len(out_curr_node_ids) != 1:
+        adj = g.adj[curr_node_id]
+        out_curr_node_ids = list(adj.keys())
+        if not_single_edge(g, adj):
             # Like above, this means the end of the chain, but there are
             # multiple ways we can handle this.
             #
@@ -619,12 +660,17 @@ def is_valid_chain(g, starting_node_id):
         # specified node ID, but again we will Get To It Later (tm).
         return ValidationResults()
 
-    in_node_ids = list(g.pred[starting_node_id].keys())
-    if len(in_node_ids) != 1:
+    pred = g.pred[starting_node_id]
+    in_node_ids = list(pred.keys())
+    if not_single_edge(g, pred):
         # We can't extend the chain "backwards" from the start,
         # so just return what we have currently. This is an "optimal" chain
         # ("optimal" in the sense that, of all possible chains that include
-        # this starting node, this is the largest).
+        # this starting node, this is the largest; note that my definition of
+        # optimality ignores the whole hierarchical decomposition thing, and is
+        # just considering the graph as seen by this function, please don't sue
+        # me for messing this up, but I don't think I messed it up, why are you
+        # still reading this comment).
         return ValidationResults(
             True, chain_list, starting_node_id, chain_list[-1]
         )
@@ -636,20 +682,22 @@ def is_valid_chain(g, starting_node_id):
     backwards_chain_list = []
     curr_node_id = in_node_ids[0]
     while True:
-        if len(g.adj[curr_node_id]) != 1:
+        adj = g.adj[curr_node_id]
+        if not_single_edge(g, adj):
             # Since this node has multiple outgoing edges, it can't be the
             # start of the chain. Therefore the previous node we were
             # looking at is the optimal starting node.
             break
 
-        in_curr_node_ids = list(g.pred[curr_node_id].keys())
+        pred = g.pred[curr_node_id]
+        in_curr_node_ids = list(pred.keys())
 
         if len(set(in_curr_node_ids) & set(chain_list)) > 0:
             # The chain "begins" cyclically, so we'll tag it as a
             # cyclic chain later on.
             return ValidationResults()
 
-        if len(in_curr_node_ids) != 1:
+        if not_single_edge(g, pred):
             # This node has multiple (or 0) incoming edges, so it's
             # the optimal start of the chain.
             backwards_chain_list.append(curr_node_id)

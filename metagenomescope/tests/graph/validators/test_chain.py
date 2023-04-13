@@ -194,3 +194,37 @@ def test_cyclic_chain_found_to_be_cyclic_during_backwards_extension():
     # Regardless of picked starting node, this shouldn't work
     for s in [1, 2, 3, 4]:
         assert not validators.is_valid_chain(g, s)
+
+
+def test_chain_with_parallel_edges():
+    """Considers a graph that looks like 1 --> 2 ==> 3 --> 4 --> 5.
+
+    (==> indicates parallel edges in that "diagram.")
+
+    1 --> 2 should be a chain, as should 3 --> 4 --> 5. But 2 and 3 shouldn't
+    be located on the same chain.
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(2, 3)
+    g.add_edge(2, 3)
+    g.add_edge(3, 4)
+    g.add_edge(4, 5)
+
+    # 2 isn't the start of a chain due to the parallel edges from 2 to 3;
+    # 5 isn't the start of a chain b/c it has no outgoing edges at all.
+    for s in (2, 5):
+        assert not validators.is_valid_chain(g, s)
+
+    # right chain should be identified
+    for s in (3, 4):
+        vr = validators.is_valid_chain(g, s)
+        assert vr.nodes == [3, 4, 5]
+        assert vr.starting_node == 3
+        assert vr.ending_node == 5
+
+    # left chain should be identified
+    vr = validators.is_valid_chain(g, 1)
+    assert vr.nodes == [1, 2]
+    assert vr.starting_node == 1
+    assert vr.ending_node == 2
