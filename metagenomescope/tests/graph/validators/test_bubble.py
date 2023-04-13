@@ -467,6 +467,30 @@ def test_finding_3node_bubble_containing_bulge_from_start_to_end():
     assert not validators.is_valid_bulge(g, 0)
 
 
+def test_finding_3node_bubble_containing_bulge_from_end_to_start():
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(1, 2)
+    g.add_edge(0, 2)
+    # add a bulge between the end and start -- now it's cyclic!
+    g.add_edge(2, 0)
+    g.add_edge(2, 0)
+    # The bubble detection code guarantees minimality only for bubbles (not
+    # bulges). We assume that bulges should have already been collapsed when
+    # running is_valid_bubble(). (Soooo... this should never happen in
+    # practice. Well, unless (2, 0) isn't a valid bulge [e.g. 0 has extra
+    # incoming nodes or whatever]. But let's test it anyway.)
+    vr = validators.is_valid_bubble(g, 0)
+    assert vr
+    assert vr.nodes == [0, 1, 2]
+    assert vr.starting_node == 0
+    assert vr.ending_node == 2
+
+    assert validators.is_valid_bulge(g, 2)
+    assert not validators.is_valid_bulge(g, 0)
+    assert not validators.is_valid_bulge(g, 1)
+
+
 def test_superbubble_down_edge():
     r"""Tests that the superbubble detection function can identify the
     following structure as a bubble:
