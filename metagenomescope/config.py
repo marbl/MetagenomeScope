@@ -193,6 +193,7 @@ SEPARATOR_CHAR = "-"
 # human-readable names.
 # (As we add on more filetype parsers, feel free to extend these structures.)
 NODEATTR2HR = {
+    "name": "ID",
     "length": "Length",
     "orientation": "Orientation",
     "depth": "Coverage",

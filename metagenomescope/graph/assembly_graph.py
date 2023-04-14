@@ -267,6 +267,8 @@ class AssemblyGraph(object):
 
     def get_new_node_id(self):
         """Returns an int guaranteed to be usable as a unique new node ID."""
+        # this is what they pay me the big bucks for, folks. this is home-grown
+        # organic computer science right here
         new_id = self.num_nodes
         self.num_nodes += 1
         return new_id
