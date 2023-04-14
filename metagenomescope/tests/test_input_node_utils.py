@@ -25,33 +25,6 @@ from metagenomescope import input_node_utils, config
 from metagenomescope.tests import utils
 
 
-def test_reverse_complement():
-    assert input_node_utils.reverse_complement("") == ""
-    assert input_node_utils.reverse_complement("A") == "T"
-    assert input_node_utils.reverse_complement("C") == "G"
-    assert input_node_utils.reverse_complement("G") == "C"
-    assert input_node_utils.reverse_complement("T") == "A"
-    assert input_node_utils.reverse_complement("ACGT") == "ACGT"
-    assert input_node_utils.reverse_complement("ACCGT") == "ACGGT"
-    # This one's an example in the docstring of reverse_complement(), so of
-    # course we gotta test it :)
-    assert input_node_utils.reverse_complement("GCATATA") == "TATATGC"
-    # Generate 500 random DNA sequences with lengths in the range [1, 500], and
-    # validate their computed reverse complements.
-    for i in range(500):
-        seq = utils.gen_random_sequence(range(1, 501))
-        seq_rc = input_node_utils.reverse_complement(seq)
-        for b in range(len(seq)):
-            assert config.COMPLEMENT[seq[b]] == seq_rc[len(seq_rc) - b - 1]
-    # Non-ACGT
-    with pytest.raises(KeyError):
-        input_node_utils.reverse_complement("ACTMG")
-    with pytest.raises(KeyError):
-        input_node_utils.reverse_complement("AUCGT")
-    with pytest.raises(KeyError):
-        input_node_utils.reverse_complement("ZZZZZZZZ")
-
-
 def test_gc_content():
     with pytest.raises(ValueError) as ei:
         input_node_utils.gc_content("")

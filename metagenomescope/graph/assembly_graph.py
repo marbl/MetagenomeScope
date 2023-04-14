@@ -220,9 +220,9 @@ class AssemblyGraph(object):
                 self.num_too_large_components += 1
                 operation_msg(
                     (
-                        "Ignoring a component ({:,} nodes, {:,} "
-                        "edges): exceeds -maxn or -maxe."
-                    ).format(num_nodes, num_edges),
+                        f"Ignoring a component ({num_nodes:,} nodes, "
+                        f"{num_edges:,} edges): exceeds -maxn or -maxe."
+                    ),
                     True,
                 )
 

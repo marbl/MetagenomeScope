@@ -1,23 +1,6 @@
 from . import config
 
 
-def reverse_complement(dna_string):
-    """Returns the reverse complement of a string of DNA.
-
-    This is used when getting data from GFA files (which only include
-    positive DNA sequence information).
-
-    Note that this will break on invalid DNA input (so inputs like RNA
-    or protein sequences, or sequences that contain spaces, will cause
-    this to fail).
-    """
-    rc = ""
-    dna_last_char_index = len(dna_string) - 1
-    for nt in range(dna_last_char_index, -1, -1):
-        rc += config.COMPLEMENT[dna_string[nt]]
-    return rc
-
-
 def gc_content(dna_string):
     """Returns the GC content (as a float in the range [0, 1]) of a string of
     DNA, in a 2-tuple with the second element of the tuple being the

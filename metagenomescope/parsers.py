@@ -901,6 +901,9 @@ def parse_dot(filename):
     return g
 
 
+# Lowercase filetype suffixes, which we'll use to figure out which parser we
+# should use for a file.
+#
 # Multiple suffixes can point to the same parser -- for example, both .gv and
 # .dot are often used for Graphviz files. (See
 # https://en.wikipedia.org/wiki/DOT_(graph_description_language) and its

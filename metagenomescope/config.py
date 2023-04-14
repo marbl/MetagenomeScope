@@ -22,11 +22,6 @@
 
 import stat
 
-# This really shouldn't be messed with. Defines a dict of nucleotides to their
-# complements that we can use when getting the reverse complement of a sequence
-# from the GFA format.
-COMPLEMENT = {"A": "T", "T": "A", "C": "G", "G": "C"}
-
 # The conversion factor between points (in GraphViz output) and inches, as used
 # by GraphViz. GraphViz uses 72 points per inch, but here we use 63
 # points per inch -- this is kind of a compromise. In old versions of
@@ -208,11 +203,6 @@ BICOMPONENT_BUBBLE_SEARCH_MSG = (
 )
 DB_INIT_MSG = "Initializing output file "
 SAVE_AUX_FAIL_MSG = "Not saving "
-SPQR_COMPONENTS_MSG = " SPQR-integrated component "
-LARGE_COMPONENT_MSG = (
-    "Not laying out component {cr} ({nc} nodes, {ec} "
-    + "edges): exceeds -maxn or -maxe."
-)
 DB_SAVE_MSG = "Saving information to "
 DONE_MSG = "Done."
 # Error messages (and occasional "helper" messages for constructing error msgs)
@@ -241,18 +231,3 @@ CONTIGUOUS_ERR = '" is not contiguous'
 LABEL_EXISTENCE_ERR = (
     "Can't use -ubl or -upl options for a graph type with no node labels"
 )
-SPQR_MISC_ERR = """An error occurred while trying to run the SPQR script.
-Please check to make sure you've built the SPQR script for your system.
-See MetagenomeScope's wiki for instructions for installing the -spqr
-Requirements and building the SPQR script:
-https://github.com/marbl/MetagenomeScope/wiki/Installation-Instructions
-
-Please see below for more information about the error."""
-
-# The filename suffixes indicating a file is of a certain type.
-# Ideally, we should be able to detect what filetype an assembly file is by
-# just examining the file's contents, but for now this is an okay workaround.
-LASTGRAPH_SUFFIX = "lastgraph"
-GML_SUFFIX = "gml"
-GFA_SUFFIX = "gfa"
-FASTG_SUFFIX = "fastg"
