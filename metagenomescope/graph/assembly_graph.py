@@ -1483,7 +1483,6 @@ class AssemblyGraph(object):
         # be drawn as non-outlier edges with a special style.
         operation_msg("Scaling nodes based on lengths...")
         self.scale_nodes()
-        self.compute_node_dimensions()
         conclude_msg()
 
         self.scale_edges()
@@ -1499,6 +1498,14 @@ class AssemblyGraph(object):
             # since ideally we wouldn't need to store two copies of this graph
             # in memory... but it's likely not a big bottleneck for now.)
             self.init_decomposed_graph()
+
+        # Defer this until after we do pattern decomposition, to account for
+        # split nodes. (At this point we have already called scale_nodes() --
+        # so the presence of split nodes shouldn't change how other nodes in
+        # the graph are scaled.)
+        # TODO -- update compute_node_dimensions() to run on the decomposed
+        # graph, not the original graph
+        self.compute_node_dimensions()
 
         operation_msg("Laying out the graph...", True)
         self.layout()
