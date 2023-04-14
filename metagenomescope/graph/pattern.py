@@ -209,8 +209,10 @@ class Pattern(object):
 class StartEndPattern(Pattern):
     """A more specific Pattern with defined individual start/end nodes.
 
-    Mostly used for bubbles right now, but could be used with certain
-    additional types of Patterns too (e.g. chains).
+    As of writing, most types of patterns should be StartEndPatterns. The only
+    exception is frayed ropes, which by definition do not have single start/end
+    nodes. (I guess we could adjust this to work with multiple start/end nodes,
+    but that sounds unnecessarily complicated. Maybe if people ask for it.)
     """
 
     def __init__(
@@ -223,8 +225,6 @@ class StartEndPattern(Pattern):
         subgraph,
         asm_graph,
     ):
-        # NOTE: not recursive, but for now this is ok since at no point can
-        # another pattern be the "real" start/end node of a bubble.
         self.start_node_id = start_node_id
         self.end_node_id = end_node_id
         super().__init__(

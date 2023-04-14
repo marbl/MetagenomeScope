@@ -73,6 +73,7 @@ class AssemblyGraph(object):
         self.bubbles = []
         self.frayed_ropes = []
 
+        # Maps pattern IDs to the corresponding Pattern object.
         self.id2pattern = {}
 
         # Reserved attributes we use for nodes/edges -- see self.check_attrs().
