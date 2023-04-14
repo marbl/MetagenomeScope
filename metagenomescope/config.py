@@ -188,7 +188,39 @@ MAXE_DEFAULT = 7999
 # the last logging message.
 SEPARATOR_CHAR = "-"
 
-# Various status messages/message within the graph prefixes that are displayed to the user.
+# Maps "internal" names for node / edge properties to human-readable ones.
+# This is passed on to the JavaScript code, so that the UI there can use these
+# human-readable names.
+# (As we add on more filetype parsers, feel free to extend these structures.)
+NODEATTR2HR = {
+    "length": "Length",
+    "orientation": "Orientation",
+    "depth": "Coverage",
+    "cov": "Coverage",
+    "gc": "GC Content",
+    "gc_content": "GC Content",
+}
+EDGEATTR2HR = {
+    # Ideally we'd be more precise about what exactly these are the mean and
+    # standard deviation of, but i am not completely sure. I think they
+    # represent the "mean and standard deviation for the implied distance
+    # between a pair of contigs," to quote the MetaCarvel paper? But they could
+    # also represent "the library size (mean and standard deviation)," maybe,
+    # so for the sake of avoiding being wrong I am being conservative for now
+    "mean": "Mean",
+    "stdev": "Standard Deviation",
+    "bsize": "Bundle Size",
+    "multiplicity": "Multiplicity",
+    "id": "ID",
+    "approx_length": "Approximate Length",
+    "cov": "Coverage",
+    "color": "Color",
+    "first_nt": "First Nucleotide",
+    "kmer_cov": "k-mer Coverage",
+}
+
+# Various status messages/message within the graph prefixes that are displayed
+# to the user.
 USERBUBBLES_SEARCH_MSG = "Identifying user-specified bubbles in the graph..."
 USERPATTERNS_SEARCH_MSG = (
     "Identifying user-specified misc. patterns in " + "the graph..."
