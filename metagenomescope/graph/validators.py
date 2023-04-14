@@ -24,8 +24,8 @@ class ValidationResults(object):
         self,
         is_valid=False,
         nodes=[],
-        starting_node=None,
-        ending_node=None,
+        start_node=None,
+        end_node=None,
     ):
         """Initializes this object.
 
@@ -38,26 +38,25 @@ class ValidationResults(object):
             If is_valid is True, contains a list of the nodes in the pattern;
             otherwise, this should be an empty list.
 
-        starting_node: str or None
+        start_node: str or None
             If is_valid is True and if the pattern has a single defined start
             and end node (which is the case for all patterns except frayed
             ropes, at the moment), this should be the ID of the starting node
             in the pattern. Otherwise, this should be None.
 
-        ending_node: str or None
-            Like starting_node, but for the ending node of the pattern.
+        end_node: str or None
+            Like start_node, but for the ending node of the pattern.
         """
         self.is_valid = is_valid
         self.nodes = nodes
         # Both the starting and ending node should be defined or None. We can't
         # have only one of them be defined. (^ = XOR operator)
-        if (starting_node is None) ^ (ending_node is None):
+        if (start_node is None) ^ (end_node is None):
             raise WeirdError(
-                f"Starting node = {starting_node} but ending node = "
-                f"{ending_node}?"
+                f"Start node = {start_node} but end node = {end_node}?"
             )
-        self.starting_node = starting_node
-        self.ending_node = ending_node
+        self.start_node = start_node
+        self.end_node = end_node
 
     def __bool__(self):
         """Returns self.is_valid; useful for quick testing."""
@@ -76,10 +75,9 @@ class ValidationResults(object):
         """
         if self.is_valid:
             suffix = ""
-            if self.starting_node is not None:
+            if self.start_node is not None:
                 suffix = (
-                    f" from {repr(self.starting_node)} to "
-                    f"{repr(self.ending_node)}"
+                    f" from {repr(self.start_node)} to {repr(self.end_node)}"
                 )
             return f"Valid pattern of nodes {repr(self.nodes)}{suffix}"
         else:
@@ -127,7 +125,7 @@ def not_single_edge(g, adj_view):
     return len(adj_view) != 1 or len(adj_view[list(adj_view)[0]]) != 1
 
 
-def is_valid_frayed_rope(g, starting_node_id):
+def is_valid_frayed_rope(g, start_node_id):
     r"""Validates a frayed rope starting at a node in a graph.
 
     A frayed rope will have multiple starting nodes, of course -- this
@@ -136,7 +134,7 @@ def is_valid_frayed_rope(g, starting_node_id):
     Parameters
     ----------
     g: nx.MultiDiGraph
-    starting_node_id: str
+    start_node_id: str
 
     Returns
     -------
@@ -166,25 +164,25 @@ def is_valid_frayed_rope(g, starting_node_id):
       of X's outgoing edges point to Y (and if all of Y's incoming edges come
       from X).
     """
-    verify_node_in_graph(g, starting_node_id)
+    verify_node_in_graph(g, start_node_id)
 
     # If the starting node doesn't have exactly 1 outgoing node, fail
-    if len(g.adj[starting_node_id]) != 1:
+    if len(g.adj[start_node_id]) != 1:
         return ValidationResults()
 
     # Get the tentative "middle" node in the rope
-    middle_node_id = list(g.adj[starting_node_id].keys())[0]
+    middle_node_id = list(g.adj[start_node_id].keys())[0]
 
     # Now, get all "starting" nodes (the incoming nodes on the middle node)
-    starting_node_ids = list(g.pred[middle_node_id].keys())
+    start_node_ids = list(g.pred[middle_node_id].keys())
 
     # A frayed rope must have multiple paths from which to converge to
     # the "middle node" section
-    if len(starting_node_ids) < 2:
+    if len(start_node_ids) < 2:
         return ValidationResults()
 
     # Ensure none of the start nodes have extraneous outgoing nodes
-    for n in starting_node_ids:
+    for n in start_node_ids:
         if len(g.adj[n]) != 1:
             return ValidationResults()
 
@@ -193,13 +191,13 @@ def is_valid_frayed_rope(g, starting_node_id):
     # later on -- after we've identified all the nodes in the tentative
     # rope.
 
-    ending_node_ids = list(g.adj[middle_node_id].keys())
+    end_node_ids = list(g.adj[middle_node_id].keys())
 
     # The middle node has to diverge to something for this to be a frayed
     # rope.
-    if len(ending_node_ids) < 2:
+    if len(end_node_ids) < 2:
         return ValidationResults()
-    for n in ending_node_ids:
+    for n in end_node_ids:
         # Check for extraneous incoming edges
         if len(g.pred[n]) != 1:
             return ValidationResults()
@@ -209,11 +207,11 @@ def is_valid_frayed_rope(g, starting_node_id):
         #     # We know now that all of the ending nodes only have one
         #     # incoming node, but we don't know that about the starting
         #     # nodes. Make sure that this frayed rope isn't cyclical.
-        #     if o in starting_node_ids:
+        #     if o in start_node_ids:
         #         return ValidationResults()
 
     # Check the entire frayed rope's structure
-    composite = starting_node_ids + [middle_node_id] + ending_node_ids
+    composite = start_node_ids + [middle_node_id] + end_node_ids
 
     # Verify all nodes in the frayed rope are distinct
     if len(set(composite)) != len(composite):
@@ -223,13 +221,13 @@ def is_valid_frayed_rope(g, starting_node_id):
     return ValidationResults(True, composite)
 
 
-def is_valid_cyclic_chain(g, starting_node_id):
+def is_valid_cyclic_chain(g, start_node_id):
     r"""Validates a cyclic chain "starting at" a node in a graph.
 
     Parameters
     ----------
     g: nx.MultiDiGraph
-    starting_node_id: str
+    start_node_id: str
 
     Returns
     -------
@@ -237,7 +235,7 @@ def is_valid_cyclic_chain(g, starting_node_id):
 
     Notes
     -----
-    - "starting_node_id" is sort of a misnomer, since some cyclic
+    - "start_node_id" is sort of a misnomer, since some cyclic
       chains don't have a single starting node (e.g. isolated cycles, like
       0 -> 1 -> 0). Either 0 or 1 would be considered "starting nodes" for a
       valid cyclic chain in this example. However, in cases like...
@@ -256,15 +254,15 @@ def is_valid_cyclic_chain(g, starting_node_id):
       chains"; now, we require that all cyclic chains contain at least two
       nodes.
     """
-    verify_node_in_graph(g, starting_node_id)
-    adj = g.adj[starting_node_id]
-    if len(g.pred[starting_node_id]) == 0 or not_single_edge(g, adj):
+    verify_node_in_graph(g, start_node_id)
+    adj = g.adj[start_node_id]
+    if len(g.pred[start_node_id]) == 0 or not_single_edge(g, adj):
         # If the starting node has no incoming or no outgoing nodes, it
         # can't be in a cycle! Also, if it has > 1 outgoing edge, then it can't
         # be the starting node of a cyclic chain (it could be the end node of a
         # cyclic chain, though).
         #
-        # Note that we don't use not_single_edge() on g.pred[starting_node_id]
+        # Note that we don't use not_single_edge() on g.pred[start_node_id]
         # because it's ok if the incoming edge(s) to the starting node are
         # weird (e.g. they contain parallel edges, or come from outside the
         # cyclic chain). The only potential problem is if the connection from
@@ -274,7 +272,7 @@ def is_valid_cyclic_chain(g, starting_node_id):
 
     # (We know that adj describes just 1 outgoing edge from the starting node)
     curr = list(adj.keys())[0]
-    if curr == starting_node_id:
+    if curr == start_node_id:
         # If the only outgoing edge from the starting node is to itself, then
         # this isn't a cyclic chain. We used to accept these cases, but we
         # don't anymore.
@@ -282,7 +280,7 @@ def is_valid_cyclic_chain(g, starting_node_id):
 
     # Ok, things look promising. Now, we iterate "down" through the cyclic
     # chain to see what it's composed of.
-    cch_list = [starting_node_id]
+    cch_list = [start_node_id]
     while True:
         if not_single_edge(g, g.pred[curr]):
             # The cyclic chain has ended, and this can't be the last node
@@ -302,9 +300,9 @@ def is_valid_cyclic_chain(g, starting_node_id):
             # Check that we loop back to the starting node from here, and that
             # there is only 1 edge (not parallel edges) from this node to the
             # starting node.
-            if starting_node_id in adj and len(adj[starting_node_id]) == 1:
+            if start_node_id in adj and len(adj[start_node_id]) == 1:
                 return ValidationResults(
-                    True, cch_list + [curr], starting_node_id, curr
+                    True, cch_list + [curr], start_node_id, curr
                 )
             else:
                 # We didn't loop back to the starting node (or we looped back
@@ -314,9 +312,9 @@ def is_valid_cyclic_chain(g, starting_node_id):
         curr_outgoing_nodes = list(adj.keys())
         # We know curr has one incoming and one outgoing edge. If its
         # outgoing edge is to the starting node, then we've found a cycle.
-        if curr_outgoing_nodes[0] == starting_node_id:
+        if curr_outgoing_nodes[0] == start_node_id:
             return ValidationResults(
-                True, cch_list + [curr], starting_node_id, curr
+                True, cch_list + [curr], start_node_id, curr
             )
 
         # If we're here, the cyclic chain is still going on -- the next
@@ -327,19 +325,19 @@ def is_valid_cyclic_chain(g, starting_node_id):
     # If we're here then something went terribly wrong
     raise WeirdError(
         "Sorry! Something went terribly wrong during cyclic chain detection "
-        f"using a tentative starting node ID of {starting_node_id}. Please "
+        f"using a tentative starting node ID of {start_node_id}. Please "
         "an issue on the MetagenomeScope GitHub page, ideally including the "
         "assembly graph file you're using as input."
     )
 
 
-def is_valid_bulge(g, starting_node_id):
+def is_valid_bulge(g, start_node_id):
     r"""Validates a simple bulge starting at a node in a graph.
 
     Parameters
     ----------
     g: nx.MultiDiGraph
-    starting_node_id: str
+    start_node_id: str
 
     Returns
     -------
@@ -360,31 +358,31 @@ def is_valid_bulge(g, starting_node_id):
     bubbles (see https://github.com/marbl/MetagenomeScope/issues/241 for
     discussion).
     """
-    verify_node_in_graph(g, starting_node_id)
-    adj = g.adj[starting_node_id]
+    verify_node_in_graph(g, start_node_id)
+    adj = g.adj[start_node_id]
     if len(adj) == 1:
         # Condition 2 is met
-        ending_node_id = list(adj)[0]
-        if len(g.pred[ending_node_id]) == 1:
+        end_node_id = list(adj)[0]
+        if len(g.pred[end_node_id]) == 1:
             # Condition 3 is met
-            if len(adj[ending_node_id]) > 1:
+            if len(adj[end_node_id]) > 1:
                 # Condition 1 is met
                 return ValidationResults(
                     True,
-                    [starting_node_id, ending_node_id],
-                    starting_node_id,
-                    ending_node_id,
+                    [start_node_id, end_node_id],
+                    start_node_id,
+                    end_node_id,
                 )
     return ValidationResults()
 
 
-def is_valid_bubble(g, starting_node_id):
+def is_valid_bubble(g, start_node_id):
     r"""Validates a (super)bubble starting at a node in a graph.
 
     Parameters
     ----------
     g: nx.MultiDiGraph
-    starting_node_id: str
+    start_node_id: str
 
     Returns
     -------
@@ -394,9 +392,9 @@ def is_valid_bubble(g, starting_node_id):
     -----
     - If there is a bubble starting at the start node, but it
       contains other bubbles within it, then this'll just return a
-      minimal bubble (not starting at starting_node_id). It's
+      minimal bubble (not starting at start_node_id). It's
       expected that hierarchical decomposition will mean that we'll
-      revisit starting_node_id later.
+      revisit start_node_id later.
 
        - That being said, we do not check for the case where this bubble
          contains a *bulge* that has not been detected and collapsed yet.
@@ -429,7 +427,7 @@ def is_valid_bubble(g, starting_node_id):
     This algorithm is adapted from Onodera et al. 2013:
     https://arxiv.org/pdf/1307.7925.pdf
     """
-    verify_node_in_graph(g, starting_node_id)
+    verify_node_in_graph(g, start_node_id)
 
     # MgSc-specific thing: if the starting node only has outgoing edge(s) to
     # one node, then this starting node isn't the start of a bubble. (It could
@@ -440,7 +438,7 @@ def is_valid_bubble(g, starting_node_id):
     # is an assumption of Onodera 2013's algorithm. This is why we impose this
     # restriction. (Otherwise, I found that weird stuff was getting called
     # as a bubble in the test Velvet E. coli graph.)
-    if len(g.adj[starting_node_id]) < 2:
+    if len(g.adj[start_node_id]) < 2:
         return ValidationResults()
 
     # From section 3 of Onodera 2013:
@@ -462,7 +460,7 @@ def is_valid_bubble(g, starting_node_id):
     # The Onodera 2013 paper uses this parent/child notation extensively.
     nodeid2label = {}
 
-    S = set([starting_node_id])
+    S = set([start_node_id])
     while len(S) > 0:
         v = S.pop()
 
@@ -482,7 +480,7 @@ def is_valid_bubble(g, starting_node_id):
             # you wanna call it... including all of that here for the sake of
             # anyone grepping through this code) to have edge(s) to the
             # starting node. See below.)
-            if u == starting_node_id:
+            if u == start_node_id:
                 return ValidationResults()
 
             # Mark u as "seen"
@@ -510,7 +508,7 @@ def is_valid_bubble(g, starting_node_id):
             # Onodera et al. explicitly do not identify bubbles where this is
             # the case, but here we *do* identify these sorts of bubbles. If
             # you'd like to prevent this, you can comment out the block below.
-            # if starting_node_id in g.adj[t]:
+            # if start_node_id in g.adj[t]:
             #     return ValidationResults()
 
             composite = list(nodeid2label.keys())
@@ -537,25 +535,25 @@ def is_valid_bubble(g, starting_node_id):
             # to how the superbubble detection algorithms for metaFlye are
             # slow in theory but in practice are pretty fast.
             for c in composite:
-                if c != t and c != starting_node_id:
+                if c != t and c != start_node_id:
                     out = is_valid_bubble(g, c)
                     if out:
                         return out
 
             # If the checks above succeeded, this is a valid
             # superbubble! Nice.
-            return ValidationResults(True, composite, starting_node_id, t)
+            return ValidationResults(True, composite, start_node_id, t)
 
     return ValidationResults()
 
 
-def is_valid_chain(g, starting_node_id):
+def is_valid_chain(g, start_node_id):
     r"""Validates a chain "starting at" a node in a graph.
 
     Parameters
     ----------
     g: nx.MultiDiGraph
-    starting_node_id: str
+    start_node_id: str
 
     Returns
     -------
@@ -599,15 +597,15 @@ def is_valid_chain(g, starting_node_id):
       steps will remove chains whose parents are also chains, so the final
       output in this particular case should be the same.)
     """
-    verify_node_in_graph(g, starting_node_id)
-    out_node_ids = list(g.adj[starting_node_id].keys())
+    verify_node_in_graph(g, start_node_id)
+    out_node_ids = list(g.adj[start_node_id].keys())
     # If the starting node doesn't have an outgoing edge to exactly one
     # node -- or even if it does, but if that node is itself -- then this
     # isn't a valid chain
-    if len(out_node_ids) != 1 or out_node_ids[0] == starting_node_id:
+    if len(out_node_ids) != 1 or out_node_ids[0] == start_node_id:
         return ValidationResults()
 
-    chain_list = [starting_node_id]
+    chain_list = [start_node_id]
     curr_node_id = out_node_ids[0]
     chain_ends_cyclically = False
     # Iterate "down" through the chain
@@ -636,7 +634,7 @@ def is_valid_chain(g, starting_node_id):
             # only one incoming node, etc.
             if (
                 len(out_curr_node_ids) > 1
-                and starting_node_id in out_curr_node_ids
+                and start_node_id in out_curr_node_ids
             ):
                 chain_ends_cyclically = True
             else:
@@ -652,7 +650,7 @@ def is_valid_chain(g, starting_node_id):
 
         # See the above comment re: cyclic outgoing edges -- same thing
         # here, but in the case where len(out_curr_node_ids) == 1.
-        if out_curr_node_ids[0] == starting_node_id:
+        if out_curr_node_ids[0] == start_node_id:
             chain_ends_cyclically = True
             break
 
@@ -670,7 +668,7 @@ def is_valid_chain(g, starting_node_id):
         # specified node ID, but again we will Get To It Later (tm).
         return ValidationResults()
 
-    pred = g.pred[starting_node_id]
+    pred = g.pred[start_node_id]
     in_node_ids = list(pred.keys())
     if not_single_edge(g, pred):
         # We can't extend the chain "backwards" from the start,
@@ -682,12 +680,12 @@ def is_valid_chain(g, starting_node_id):
         # me for messing this up, but I don't think I messed it up, why are you
         # still reading this comment).
         return ValidationResults(
-            True, chain_list, starting_node_id, chain_list[-1]
+            True, chain_list, start_node_id, chain_list[-1]
         )
 
-    # If we're here, we know a Chain exists starting at starting_node_id.
+    # If we're here, we know a Chain exists starting at start_node_id.
     # The question is: can it be extended in the opposite direction to
-    # start at a node "before" starting_node_id? To figure that out, we
+    # start at a node "before" start_node_id? To figure that out, we
     # basically just repeat what we did above but in reverse.
     backwards_chain_list = []
     curr_node_id = in_node_ids[0]
@@ -722,7 +720,7 @@ def is_valid_chain(g, starting_node_id):
     if backwards_chain_list == []:
         # There wasn't a more optimal starting node. Oh well!
         return ValidationResults(
-            True, chain_list, starting_node_id, chain_list[-1]
+            True, chain_list, start_node_id, chain_list[-1]
         )
 
     # If we're here, we found a more optimal starting node. Nice!

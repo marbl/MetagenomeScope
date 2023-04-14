@@ -17,7 +17,7 @@ def test_verify_node_in_graph():
 def test_validation_results_bad_start_end():
     with pytest.raises(WeirdError) as ei:
         validators.ValidationResults(True, [1, 2, 3], 1, None)
-    assert "Starting node = 1 but ending node = None?" == str(ei.value)
+    assert "Start node = 1 but end node = None?" == str(ei.value)
 
 
 def test_validation_results_repr():

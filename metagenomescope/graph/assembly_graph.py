@@ -357,20 +357,20 @@ class AssemblyGraph(object):
         p = Pattern(pattern_id, pattern_type, member_node_ids, subgraph, self)
         return p
 
-    def add_bubble(self, member_node_ids, starting_node_id, ending_node_id):
+    def add_bubble(self, member_node_ids, start_node_id, end_node_id):
         """Adds a bubble composed of a list of node IDs to the decomposed
         DiGraph, and removes its children from the decomposed DiGraph.
 
         Additionally, this will check to see if the nodes corresponding to
-        starting_node_id and ending_node_id are themselves collapsed patterns
+        start_node_id and end_node_id are themselves collapsed patterns
         (for now they can only be other bubbles, but in theory any pattern with
         a single starting and end node is kosher -- e.g. chains, cyclic
         chains).
 
-        If the starting node is already a collapsed pattern, this will
-        duplicate the ending node of that pattern within this new bubble and
-        create a link accordingly. Similarly, if the ending node is already a
-        collapsed pattern, this'll duplicate the starting node of that bubble
+        If the start node is already a collapsed pattern, this will
+        duplicate the end node of that pattern within this new bubble and
+        create a link accordingly. Similarly, if the end node is already a
+        collapsed pattern, this'll duplicate the start node of that bubble
         in the new bubble.
 
         Returns a new StartEndPattern object.
@@ -378,15 +378,15 @@ class AssemblyGraph(object):
         pattern_id = self.get_new_node_id()
         self.decomposed_graph.add_node(pattern_id, pattern_type="bubble")
 
-        if "pattern_type" in self.decomposed_graph.nodes[starting_node_id]:
+        if "pattern_type" in self.decomposed_graph.nodes[start_node_id]:
             # In the actual graph, create a new node that'll serve as the
             # "duplicate" of this node within the new pattern we're creating.
             # Shares all data, and holds the outgoing edges of the original
             # node -- all of these outgoing edges should be _within_ this new
             # pattern.
 
-            # Get ending node of the starting pattern, and duplicate it
-            end_node_to_dup = self.id2pattern[starting_node_id].get_end_node()
+            # Get end node of the starting pattern, and duplicate it
+            end_node_to_dup = self.id2pattern[start_node_id].get_end_node()
             data = self.graph.nodes[end_node_to_dup]
             new_node_id = self.get_new_node_id()
             self.graph.add_node(new_node_id, is_dup=True, **data)
@@ -401,20 +401,18 @@ class AssemblyGraph(object):
 
             # Duplicate outgoing edges of the duplicated node in the decomposed
             # graph
-            for edge in list(
-                self.decomposed_graph.out_edges(starting_node_id)
-            ):
+            for edge in list(self.decomposed_graph.out_edges(start_node_id)):
                 edge_data = self.decomposed_graph.edges[edge]
                 edge_data["orig_src"] = new_node_id
                 self.decomposed_graph.add_edge(
                     new_node_id, edge[1], **edge_data
                 )
-                self.decomposed_graph.remove_edge(starting_node_id, edge[1])
+                self.decomposed_graph.remove_edge(start_node_id, edge[1])
                 # NOTE: Removing edges from the decomposed graph should be
                 # unnecessary, since edge[1] and all of the other nodes within
-                # this pattern (ignoring starting_node_id) will be removed from
+                # this pattern (ignoring start_node_id) will be removed from
                 # the decomposed graph at the end of this function
-                # self.decomposed_graph.remove_edge(starting_node_id, edge[1])
+                # self.decomposed_graph.remove_edge(start_node_id, edge[1])
 
             # In the normal graph, link the node and its duplicate
             self.graph.add_edge(
@@ -427,22 +425,20 @@ class AssemblyGraph(object):
             # In the decomposed graph, link the starting pattern with the
             # curr pattern.
             self.decomposed_graph.add_edge(
-                starting_node_id,
+                start_node_id,
                 pattern_id,
                 is_dup=True,
                 orig_src=end_node_to_dup,
                 orig_tgt=new_node_id,
             )
 
-            member_node_ids.remove(starting_node_id)
+            member_node_ids.remove(start_node_id)
             member_node_ids.append(new_node_id)
-            starting_node_id = new_node_id
+            start_node_id = new_node_id
 
-        if "pattern_type" in self.decomposed_graph.nodes[ending_node_id]:
-            # Get starting node of the ending pattern, and duplicate it
-            start_node_to_dup = self.id2pattern[
-                ending_node_id
-            ].get_start_node()
+        if "pattern_type" in self.decomposed_graph.nodes[end_node_id]:
+            # Get start node of the ending pattern, and duplicate it
+            start_node_to_dup = self.id2pattern[end_node_id].get_start_node()
             data = self.graph.nodes[start_node_to_dup]
             new_node_id = self.get_new_node_id()
             self.graph.add_node(new_node_id, is_dup=True, **data)
@@ -459,15 +455,15 @@ class AssemblyGraph(object):
                 self.graph.remove_edge(edge[0], start_node_to_dup)
                 # See comment in the above block (for replacing the start node)
                 # about this
-                # self.decomposed_graph.remove_edge(edge[0], ending_node_id)
+                # self.decomposed_graph.remove_edge(edge[0], end_node_id)
 
-            for edge in list(self.decomposed_graph.in_edges(ending_node_id)):
+            for edge in list(self.decomposed_graph.in_edges(end_node_id)):
                 edge_data = self.decomposed_graph.edges[edge]
                 edge_data["orig_tgt"] = new_node_id
                 self.decomposed_graph.add_edge(
                     edge[0], new_node_id, **edge_data
                 )
-                self.decomposed_graph.remove_edge(edge[0], ending_node_id)
+                self.decomposed_graph.remove_edge(edge[0], end_node_id)
 
             self.graph.add_edge(
                 new_node_id,
@@ -478,15 +474,15 @@ class AssemblyGraph(object):
             )
             self.decomposed_graph.add_edge(
                 pattern_id,
-                ending_node_id,
+                end_node_id,
                 is_dup=True,
                 orig_src=new_node_id,
                 orig_tgt=start_node_to_dup,
             )
 
-            member_node_ids.remove(ending_node_id)
+            member_node_ids.remove(end_node_id)
             member_node_ids.append(new_node_id)
-            ending_node_id = new_node_id
+            end_node_id = new_node_id
 
         # NOTE TODO abstract between this and prev func.
         # Get incoming edges to this pattern
@@ -515,8 +511,8 @@ class AssemblyGraph(object):
             pattern_id,
             "bubble",
             member_node_ids,
-            starting_node_id,
-            ending_node_id,
+            start_node_id,
+            end_node_id,
             subgraph,
             self,
         )
@@ -566,13 +562,13 @@ class AssemblyGraph(object):
                         # defined, not just bubbles. (Really, everything except
                         # for frayed ropes, which are top-level-only patterns.)
                         if ptype == "bubble":
-                            # There is a start and ending node in this pattern
+                            # There is a start and end node in this pattern
                             # that we may want to duplicate. See issue #84 on
                             # GitHub for lots and lots of details.
                             p = self.add_bubble(
                                 validator_results.nodes,
-                                validator_results.starting_node,
-                                validator_results.ending_node,
+                                validator_results.start_node,
+                                validator_results.end_node,
                             )
                         else:
                             p = self.add_pattern(

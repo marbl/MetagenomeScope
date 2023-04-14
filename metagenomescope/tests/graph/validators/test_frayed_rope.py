@@ -33,7 +33,7 @@ def test_simple_fr_detection_failures():
         assert results.nodes == []
 
 
-def test_only_1_starting_node():
+def test_only_1_start_node():
     r"""Tests that a graph that looks like:
 
          /-> 3

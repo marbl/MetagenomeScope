@@ -48,8 +48,8 @@ def test_easy_bubble():
     # it's kind of ambiguous which middle paths occur in what order.)
     assert set(results.nodes) == set([0, 1, 2, 3])
     # Check that start and ending nodes identified correctly
-    assert results.starting_node == 0
-    assert results.ending_node == 3
+    assert results.start_node == 0
+    assert results.end_node == 3
 
 
 def test_easy_bubble_fails_when_starting_point_bad():
@@ -61,8 +61,8 @@ def test_easy_bubble_fails_when_starting_point_bad():
         results = validators.is_valid_bubble(g, s)
         assert not results
         assert results.nodes == []
-        assert results.starting_node is None
-        assert results.ending_node is None
+        assert results.start_node is None
+        assert results.end_node is None
 
 
 def test_easy_3_node_bubble():
@@ -70,8 +70,8 @@ def test_easy_3_node_bubble():
     results = validators.is_valid_bubble(g, 0)
     assert results
     assert set(results.nodes) == set([0, 1, 2])
-    assert results.starting_node == 0
-    assert results.ending_node == 2
+    assert results.start_node == 0
+    assert results.end_node == 2
 
 
 def test_cyclic_3node_bubble():
@@ -83,8 +83,8 @@ def test_cyclic_3node_bubble():
     vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2]
-    assert vr.starting_node == 0
-    assert vr.ending_node == 2
+    assert vr.start_node == 0
+    assert vr.end_node == 2
 
 
 def test_3node_bubble_with_middle_spur():
@@ -381,8 +381,8 @@ def test_cyclic_bulge():
         assert len(nodes) == 2
         assert vr
         assert vr.nodes == nodes
-        assert vr.starting_node == nodes[0]
-        assert vr.ending_node == nodes[1]
+        assert vr.start_node == nodes[0]
+        assert vr.end_node == nodes[1]
 
     g = nx.MultiDiGraph()
     g.add_edge(0, 1)
@@ -416,8 +416,8 @@ def test_finding_bubble_containing_bulge():
     vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2, 3]
-    assert vr.starting_node == 0
-    assert vr.ending_node == 3
+    assert vr.start_node == 0
+    assert vr.end_node == 3
 
 
 def test_finding_3node_bubble_containing_bulge_from_start_to_middle():
@@ -430,8 +430,8 @@ def test_finding_3node_bubble_containing_bulge_from_start_to_middle():
     vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2]
-    assert vr.starting_node == 0
-    assert vr.ending_node == 2
+    assert vr.start_node == 0
+    assert vr.end_node == 2
 
 
 def test_finding_3node_bubble_containing_bulge_from_middle_to_end():
@@ -444,8 +444,8 @@ def test_finding_3node_bubble_containing_bulge_from_middle_to_end():
     vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2]
-    assert vr.starting_node == 0
-    assert vr.ending_node == 2
+    assert vr.start_node == 0
+    assert vr.end_node == 2
 
     assert not validators.is_valid_bubble(g, 1)
     assert not validators.is_valid_bulge(g, 1)
@@ -461,8 +461,8 @@ def test_finding_3node_bubble_containing_bulge_from_start_to_end():
     vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2]
-    assert vr.starting_node == 0
-    assert vr.ending_node == 2
+    assert vr.start_node == 0
+    assert vr.end_node == 2
 
     assert not validators.is_valid_bulge(g, 0)
 
@@ -483,8 +483,8 @@ def test_finding_3node_bubble_containing_bulge_from_end_to_start():
     vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2]
-    assert vr.starting_node == 0
-    assert vr.ending_node == 2
+    assert vr.start_node == 0
+    assert vr.end_node == 2
 
     assert validators.is_valid_bulge(g, 2)
     assert not validators.is_valid_bulge(g, 0)
@@ -509,11 +509,11 @@ def test_superbubble_down_edge():
     vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2, 3]
-    assert vr.starting_node == 0
-    assert vr.ending_node == 3
+    assert vr.start_node == 0
+    assert vr.end_node == 3
 
-    for other_starting_node in [1, 2, 3]:
-        assert not validators.is_valid_bubble(g, other_starting_node)
+    for other_start_node in [1, 2, 3]:
+        assert not validators.is_valid_bubble(g, other_start_node)
 
 
 def test_superbubble_right_edge():
@@ -534,11 +534,11 @@ def test_superbubble_right_edge():
     vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2, 3]
-    assert vr.starting_node == 0
-    assert vr.ending_node == 3
+    assert vr.start_node == 0
+    assert vr.end_node == 3
 
-    for other_starting_node in [1, 2, 3]:
-        assert not validators.is_valid_bubble(g, other_starting_node)
+    for other_start_node in [1, 2, 3]:
+        assert not validators.is_valid_bubble(g, other_start_node)
 
 
 def test_superbubble_tip():
@@ -589,8 +589,8 @@ def test_nested_superbubble():
         vr = validators.is_valid_bubble(g, valid_start)
         assert vr
         assert vr.nodes == [0, 1, 2, 3]
-        assert vr.starting_node == 0
-        assert vr.ending_node == 3
+        assert vr.start_node == 0
+        assert vr.end_node == 3
 
     for invalid_start in (1, 2, 3, 5, 6):
         assert not validators.is_valid_bubble(g, invalid_start)
@@ -614,8 +614,8 @@ def test_end_to_start_cyclic_superbubble():
     vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2, 3]
-    assert vr.starting_node == 0
-    assert vr.ending_node == 3
+    assert vr.start_node == 0
+    assert vr.end_node == 3
 
 
 def test_mid_to_start_cyclic_superbubble():
@@ -706,14 +706,14 @@ def test_bubble_containing_real_bulge():
     vr = validators.is_valid_bubble(g, 0)
     assert vr
     assert vr.nodes == [0, 1, 2, 4, 3]
-    assert vr.starting_node == 0
-    assert vr.ending_node == 3
+    assert vr.start_node == 0
+    assert vr.end_node == 3
 
     vr2 = validators.is_valid_bulge(g, 1)
     assert vr2
     assert vr2.nodes == [1, 4]
-    assert vr2.starting_node == 1
-    assert vr2.ending_node == 4
+    assert vr2.start_node == 1
+    assert vr2.end_node == 4
 
 
 def test_nested_bubble_in_start_bad():
