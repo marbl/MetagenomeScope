@@ -650,15 +650,24 @@ def parse_lastgraph(filename):
 def parse_dot(filename):
     """Returns a nx.MultiDiGraph representation of a DOT (Graphviz) file.
 
-    Like GML files, DOT is a file format for representing arbitrary graphs (not
-    just assembly graphs). Furthermore, multiple assemblers output DOT files
-    (and may encode biological information like sequence lengths in different
-    ways in this file).
+    Notes
+    -----
+    - Like GML, DOT is a file format for representing arbitrary graphs (not
+      just assembly graphs). Furthermore, multiple assemblers output DOT files
+      (and may encode biological information like sequence lengths in different
+      ways in this file).
 
-    Here, I limit our scope to visualizing DOT files produced by LJA / jumboDBG
-    or Flye. I'm sure there are other assemblers that can create DOT files,
-    but -- to keep the scope of this parser reasonable for the time being -- I
-    will just focus on these specific assemblers' output DOT files.
+      Here, I limit our scope to visualizing DOT files produced by LJA /
+      jumboDBG or Flye. I'm sure there are other assemblers that can create DOT
+      files, but -- to keep the scope of this parser reasonable for now -- I
+      will just focus on these specific assemblers' output DOT files.
+
+    - In Flye DOT files, nodes don't seem to have orientations but edges do.
+      In LJA DOT files, edges don't seem to have orientations but nodes do.
+      Since "orientation" arguably isn't important for the direct visualization
+      of de Bruijn graphs (I mean, we still keep the IDs that may or may not
+      include "-" around), I don't assign an "orientation" field to either
+      nodes or edges in DOT files. I can change this if desired.
     """
     # This function is recommended by NetworkX over the nx.nx_pydot version;
     # see https://networkx.org/documentation/stable/_modules/networkx/drawing/nx_pydot.html#read_dot

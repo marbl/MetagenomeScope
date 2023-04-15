@@ -13,6 +13,8 @@ from .. import parsers, config, layout_utils
 from ..msg_utils import operation_msg, conclude_msg
 from . import validators
 from .pattern import StartEndPattern, Pattern
+from .node import Node
+from .edge import Edge
 
 
 class AssemblyGraph(object):
