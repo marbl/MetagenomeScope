@@ -19,14 +19,16 @@
 
 from metagenomescope.errors import WeirdError
 
+
 class Node(object):
     """Represents a node in an assembly graph.
 
     Since the "type" of these assembly graphs is not strict (they can represent
     de Bruijn graphs, overlap graphs, ...), these nodes can have a lot of
     associated metadata (sequence information, coverage, ...), or barely any
-    any associated metadata.
+    associated metadata.
     """
+
     def __init__(
         self,
         unique_id,
@@ -35,7 +37,7 @@ class Node(object):
         longside_proportion=None,
         split=None,
     ):
-        """Initializes this node object.
+        """Initializes this Node object.
 
         Parameters
         ----------
@@ -59,7 +61,13 @@ class Node(object):
             If this is given, this should be either "L" or "R". "L" indicates
             that this is a "left split" node, "R" indicates that this is a
             "right split" node, and None indicates that this is not a split
-            node.
+            node (I'm going to label these non-split nodes as "full," just for
+            the sake of clarity -- see the Edge object docs for details).
+            Note that a Node that has a split value of None could, later
+            on in the decomposition process, be split up. Such a change should
+            be reflected in two new Nodes being created (rather than the
+            original Node being modified), although that sort of behavior is up
+            to the AssemblyGraph code.
         """
         self.unique_id = unique_id
         self.orientation = orientation
