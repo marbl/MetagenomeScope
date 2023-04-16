@@ -65,6 +65,41 @@ class AssemblyGraph(object):
         self.max_edge_count = max_edge_count
         self.find_patterns = patterns
 
+        self.basename = os.path.basename(self.filename)
+        # NOTE: Ideally we'd just return this along with the graph from
+        # parsers.parse(), but uhhhh that will make me refactor
+        # like 20 tests and I don't want to do that ._.
+        self.filetype = parsers.sniff_filetype(self.filename)
+        self.graph = parsers.parse(self.filename)
+
+        # Remove nodes/edges in components that are too large to lay out.
+        self.num_too_large_components = 0
+        self.remove_too_large_components()
+
+        self.nodeid2obj = {}
+        self.edgeid2obj = {}
+        self.pattid2obj = {}
+
+        # "Extra" data for nodes / edges -- e.g. GC content, coverage,
+        # multiplicity, ... -- will be updated based on what we see in
+        # self.init_graph_objs().
+        self.extra_node_attrs = set()
+        self.extra_edge_attrs = set()
+
+        # Populate self.nodeid2obj and self.edgeid2obj.
+        self.init_graph_objs()
+
+        # Number of nodes in the graph, including patterns and duplicate nodes.
+        # Used for assigning new unique node IDs.
+        self.num_nodes = len(self.graph)
+
+        # Records the bounding boxes of each component in the graph. Indexed by
+        # component number (1-indexed). (... We could also store this as an
+        # array, but due to the whole component skipping stuff that sounds like
+        # asking for trouble. Plus it's not like this will take up a ton of
+        # memory, I think.)
+        self.cc_num_to_bb = {}
+
         # Each entry in these structures will be a Pattern (or subclass).
         # NOTE that these patterns will only be "represented" in
         # self.decomposed_graph; self.graph represents the literal graph
@@ -75,136 +110,67 @@ class AssemblyGraph(object):
         self.bubbles = []
         self.frayed_ropes = []
 
-        # Maps pattern IDs to the corresponding Pattern object.
-        self.id2pattern = {}
-
-        # Reserved attributes we use for nodes/edges -- see self.check_attrs().
-        # These attributes correspond to properties that we may add to nodes /
-        # edges in the graph ourselves, so we can't accept any NetworkX graphs
-        # produced by the parsing module with any nodes / edges that contain
-        # these attributes.
-        #
-        # Most of these attributes are things we don't show to the user (and
-        # correspond to internal data sources), ... but this isn't a hard rule.
-        self.internal_node_attrs = set(
-            [
-                "relative_length",
-                "longside_proportion",
-                "width",
-                "height",
-                "x",
-                "y",
-                "relative_x",
-                "relative_y",
-                "parent_id",
-                "name",
-                "is_dup",
-                "cc_num",
-            ]
-        )
-
-        self.internal_edge_attrs = set(
-            [
-                "ctrl_pt_coords",
-                "relative_ctrl_pt_coords",
-                "parent_id",
-                "is_outlier",
-                "relative_weight",
-                "orig_src",
-                "orig_tgt",
-                "is_dup",
-                "cc_num",
-                # these are used in the JS, so we exclude them here out of an
-                # abundance of caution
-                "source",
-                "target",
-            ]
-        )
-
-        # "Extra" data for nodes/edges -- e.g. GC content, coverage,
-        # multiplicity, ... -- will vary based on the input graph.
-        self.extra_node_attrs = set()
-        self.extra_edge_attrs = set()
-
-        self.basename = os.path.basename(self.filename)
-        # NOTE: Ideally we'd just return this along with the graph from
-        # parsers.parse(), but uhhhh that will make me refactor
-        # like 20 tests and I don't want to do that ._.
-        self.filetype = parsers.sniff_filetype(self.filename)
-
-        self.graph = parsers.parse(self.filename)
-        self.check_attrs()
-
-        # Remove nodes/edges in components that are too large to lay out.
-        self.num_too_large_components = 0
-        self.remove_too_large_components()
-
-        self.reindex_graph()
-
-        # Initialize all edges with is_dup by default, so that in the future we
-        # can distinguish easily between duplicate and non-duplicate edges
-        for e in self.graph.edges:
-            self.graph.edges[e]["is_dup"] = False
-
-        # Number of nodes in the graph, including patterns and duplicate nodes.
-        # Used for assigning new unique node IDs.
-        self.num_nodes = len(self.graph)
-
         # Holds the top-level decomposed graph. All of the original nodes /
         # edges in the graph are accounted for within this graph in some way --
         # they're either present within the actual graph (i.e. they were not
         # collapsed into patterns), or they are present within the subgraph of
         # a pattern (which may in turn be a node in the top-level graph or
         # within the subgraph of another pattern, etc.)
-        self.decomposed_graph = None
+        self.decomposed_graph = deepcopy(self.graph)
 
-        # Records the bounding boxes of each component in the graph. Indexed by
-        # component number (1-indexed). (... We could also store this as an
-        # array, but due to the whole component skipping stuff that sounds like
-        # asking for trouble. Plus it's not like this will take up a ton of
-        # memory, I think.)
-        self.cc_num_to_bb = {}
+        # Node/edge scaling is done *before* pattern detection, so duplicate
+        # nodes/edges created during pattern detection shouldn't influence
+        # relative scaling stuff.
+        # TODO: During the April 2023 refactor, WE ARE HERE. Need to update
+        # these functions to set these internal attributes (width, height,
+        # relative_length, ...) as attributes of Node/Edge attributes --
+        # blessedly leaving user-provide Node/Edge data separate.
+        operation_msg("Scaling nodes based on lengths...")
+        self.scale_nodes()
+        conclude_msg()
 
-    def check_attrs(self):
-        """Verifies that nodes and edges in self.graph don't have attributes
-        that would conflict with built-in attributes we store here.
+        self.scale_edges()
 
-        The fact that we have to do this in the first place is an indication
-        that the code for storing this data should be improved; ideally, we'd
-        have two data sources for each node and edge ("user-provided" and
-        "internal", or something). This is a job for future Marcus; that said,
-        I doubt a lot of people are going to be coming at us with graphs that
-        have "longside_proportion" in their node attributes so I thiiiink we're
-        ok.
+        if self.find_patterns:
+            operation_msg("Running hierarchical pattern decomposition...")
+            self.hierarchically_identify_patterns()
+            conclude_msg()
 
-        Also, this updates self.extra_node_attrs and self.extra_edge_attrs with
-        information about the "extra" attributes that some (or all) nodes/edges
-        in self.graph have. Just so we know to pass this data over to the
-        visualization.
+        # Defer this until after we do pattern decomposition, to account for
+        # split nodes. (At this point we have already called scale_nodes() --
+        # so the presence of split nodes shouldn't change how other nodes in
+        # the graph are scaled.)
+        # TODO -- update compute_node_dimensions() to run on the decomposed
+        # graph, not the original graph
+        self.compute_node_dimensions()
+
+        operation_msg("Laying out the graph...", True)
+        self.layout()
+        operation_msg("...Finished laying out the graph.", True)
+
+        operation_msg("Rotating and scaling things as needed...")
+        self.rotate_from_TB_to_LR()
+        conclude_msg()
+
+    def init_graph_objs(self):
+        """Initializes Node and Edge objects for the original graph.
+
+        We may add more Node and Edge objects as we perform pattern detection
+        and node splitting. That will be done separately; this method just
+        establishes a "baseline."
         """
-        for node in self.graph.nodes:
-            data = self.graph.nodes[node]
-            fieldset = set(data.keys())
-            shared_attrs = fieldset & self.internal_node_attrs
-            if len(shared_attrs) > 0:
-                raise ValueError(
-                    "Sorry -- node {} has reserved attribute(s) {}. Please rename these.".format(
-                        node, shared_attrs
-                    )
-                )
-            self.extra_node_attrs |= fieldset - self.internal_node_attrs
+        for ni, n in enumerate(self.graph.nodes):
+            data = self.graph.nodes[n]
+            self.nodeid2obj[ni] = Node(ni, data)
+            self.extra_node_attrs |= set(data.keys())
 
-        for edge in self.graph.edges:
-            data = self.graph.edges[edge]
-            fieldset = set(data.keys())
-            shared_attrs = fieldset & self.internal_edge_attrs
-            if len(shared_attrs) > 0:
-                raise ValueError(
-                    "Sorry -- edge {} has reserved attribute(s) {}. Please rename these.".format(
-                        edge, shared_attrs
-                    )
-                )
-            self.extra_edge_attrs |= fieldset - self.internal_edge_attrs
+        # Worth noting: we don't pass keys=True to self.graph.edges(), because
+        # I don't think there is a need to store these key numbers in the Edge
+        # objects (we already have unique IDs there, anyway). That being said:
+        # if we need to change that, it should be pretty simple to do so later.
+        for ei, e in enumerate(self.graph.edges(data=True)):
+            self.edgeid2obj[ni] = Edge(ei, e[0], e[1], e[2])
+            self.extra_edge_attrs |= set(e[2].keys())
 
     def remove_too_large_components(self):
         # We convert the WCC collection to a list so that even if we alter the
@@ -234,38 +200,6 @@ class AssemblyGraph(object):
                 "All components were too large to lay out. Try increasing the "
                 "-maxn/-maxe parameters, or reducing the size of the graph."
             )
-
-    def reindex_graph(self):
-        """Assigns every node in the graph a unique integer ID, and adds a
-        "name" attribute containing the original ID. This unique integer ID
-        should never be shown to the user, but will be used for things like
-        layout and internal storage of nodes. This way, we can have multiple
-        nodes with the same name without causing a problem.
-
-        Also calls self.save_orig_src_and_tgt() on every edge in the graph
-        (critically, that's done *after* assigning nodes unique integer IDs).
-        """
-        self.graph = nx.convert_node_labels_to_integers(
-            self.graph, label_attribute="name"
-        )
-        for edge in self.graph.edges:
-            self.save_orig_src_and_tgt(edge)
-
-    def save_orig_src_and_tgt(self, e):
-        """Saves an edge's current source and target node ID in data fields.
-
-        Helps out with backfilling stuff during layout -- useful so we can keep
-        track of edges even as their source / target nodes may be modified as
-        patterns are collapsed, etc.
-        """
-        srcfield = "orig_src"
-        tgtfield = "orig_tgt"
-        if srcfield in self.graph.edges[e] or tgtfield in self.graph.edges[e]:
-            raise ValueError(
-                "Edge {} already has src/tgt orig field.".format(e)
-            )
-        self.graph.edges[e][srcfield] = e[0]
-        self.graph.edges[e][tgtfield] = e[1]
 
     def get_new_node_id(self):
         """Returns an int guaranteed to be usable as a unique new node ID."""
@@ -390,7 +324,7 @@ class AssemblyGraph(object):
             # pattern.
 
             # Get end node of the starting pattern, and duplicate it
-            end_node_to_dup = self.id2pattern[start_node_id].get_end_node()
+            end_node_to_dup = self.pattid2obj[start_node_id].get_end_node()
             data = self.graph.nodes[end_node_to_dup]
             new_node_id = self.get_new_node_id()
             self.graph.add_node(new_node_id, is_dup=True, **data)
@@ -442,7 +376,7 @@ class AssemblyGraph(object):
 
         if "pattern_type" in self.decomposed_graph.nodes[end_node_id]:
             # Get start node of the ending pattern, and duplicate it
-            start_node_to_dup = self.id2pattern[end_node_id].get_start_node()
+            start_node_to_dup = self.pattid2obj[end_node_id].get_start_node()
             data = self.graph.nodes[start_node_to_dup]
             new_node_id = self.get_new_node_id()
             self.graph.add_node(new_node_id, is_dup=True, **data)
@@ -524,7 +458,6 @@ class AssemblyGraph(object):
 
     def init_decomposed_graph(self):
         """Copies self.graph to self.decomposed_graph."""
-        self.decomposed_graph = deepcopy(self.graph)
 
     def hierarchically_identify_patterns(self):
         """Run all of our pattern detection algorithms on the graph repeatedly.
@@ -532,7 +465,6 @@ class AssemblyGraph(object):
         Notably, we do this repeatedly -- until the graph has been "fully"
         squished into patterns.
         """
-        self.init_decomposed_graph()
         while True:
             # Run through all of the pattern detection methods on all of the
             # top-level nodes (or node groups) in the decomposed DiGraph.
@@ -581,7 +513,7 @@ class AssemblyGraph(object):
 
                         collection.append(p)
                         candidate_nodes.append(p.pattern_id)
-                        self.id2pattern[p.pattern_id] = p
+                        self.pattid2obj[p.pattern_id] = p
                         for pn in p.node_ids:
                             # Remove nodes if they're in candidate nodes. There
                             # may be nodes in this pattern not in candidate
@@ -871,7 +803,7 @@ class AssemblyGraph(object):
         """
         if node_id >= self.num_nodes or node_id < 0:
             raise ValueError("Node ID {} seems out of range.".format(node_id))
-        return node_id in self.id2pattern
+        return node_id in self.pattid2obj
 
     def get_connected_components(self):
         """Returns a list of 3-tuples, where the first element in each tuple is
@@ -886,9 +818,6 @@ class AssemblyGraph(object):
         of highlighting the most "interesting" components -- e.g. a component
         with 1 node with an edge to itself is more "interesting" than a
         component with just 1 node and no edges.
-
-        Assumes that self.hierarchically_identify_patterns() has already been
-        called.
         """
         ccs = list(nx.weakly_connected_components(self.decomposed_graph))
         # Set up as [[zero-indexed cc pos, node ct, edge ct, pattern ct], ...]
@@ -901,7 +830,7 @@ class AssemblyGraph(object):
                 if self.is_pattern(node_id):
                     # Add the pattern's node, edge, and pattern counts to this
                     # component's node, edge, and pattern counts.
-                    counts = self.id2pattern[node_id].get_counts(self)
+                    counts = self.pattid2obj[node_id].get_counts(self)
                     indices_and_cts[i][1] += counts[0]
                     indices_and_cts[i][2] += counts[1]
                     # (Increase the pattern count by 1, to account for this
@@ -999,13 +928,13 @@ class AssemblyGraph(object):
             # easier later on.
             for node_id in cc_node_ids:
                 if self.is_pattern(node_id):
-                    self.id2pattern[node_id].set_cc_num(self, cc_i)
+                    self.pattid2obj[node_id].set_cc_num(self, cc_i)
                     # Lay out the pattern in isolation (could involve multiple
                     # layers, since patterns can contain other patterns).
-                    self.id2pattern[node_id].layout(self)
-                    height = self.id2pattern[node_id].height
-                    width = self.id2pattern[node_id].width
-                    shape = self.id2pattern[node_id].shape
+                    self.pattid2obj[node_id].layout(self)
+                    height = self.pattid2obj[node_id].height
+                    width = self.pattid2obj[node_id].width
+                    shape = self.pattid2obj[node_id].shape
                 else:
                     data = self.graph.nodes[node_id]
                     data["cc_num"] = cc_i
@@ -1050,7 +979,7 @@ class AssemblyGraph(object):
                 x, y = layout_utils.getxy(gv_node.attr["pos"])
 
                 if self.is_pattern(node_id):
-                    patt = self.id2pattern[node_id]
+                    patt = self.pattid2obj[node_id]
                     patt.set_bb(x, y)
 
                     # "Reconcile" child nodes, edges, and patterns' relative
@@ -1075,7 +1004,7 @@ class AssemblyGraph(object):
                         curr_patt = patt_queue.popleft()
                         for child_node_id in curr_patt.node_ids:
                             if self.is_pattern(child_node_id):
-                                new_patt = self.id2pattern[child_node_id]
+                                new_patt = self.pattid2obj[child_node_id]
                                 # Set pattern bounding box
                                 cx = curr_patt.left + new_patt.relative_x
                                 cy = curr_patt.bottom + new_patt.relative_y
@@ -1123,14 +1052,15 @@ class AssemblyGraph(object):
         # At this point, we are now done with layout. Coordinate information
         # for nodes and edges is stored in self.graph or in the
         # subgraphs of patterns; coordinate information for patterns is stored
-        # in the Pattern objects referenced in self.id2pattern. Now we should
+        # in the Pattern objects referenced in self.pattid2obj. Now we should
         # be able to make a JSON representation of this graph and move on to
         # visualizing it in the browser!
 
     def dot(self, output_filepath, component_number):
         """TODO. Visualizes a component of the laid out graph.
 
-        Intended for debugging.
+        Intended for debugging, but we could also use this to bring back a CLI
+        option for outputting DOT files.
 
         TODO -- use the components as ordered by get_connected_components(),
         and allow caller to specify which component to lay out. Also, include
@@ -1152,8 +1082,6 @@ class AssemblyGraph(object):
 
         This should be analogous to the SQLite3 database schema previously
         used for MgSc.
-
-        Should only be called after self.process() has already been called.
 
         Inspired by to_dict() in Empress.
         """
@@ -1339,7 +1267,7 @@ class AssemblyGraph(object):
                 if self.is_pattern(node_id):
                     # Add pattern data, and data for child + descendant
                     # nodes and edges
-                    patt = self.id2pattern[node_id]
+                    patt = self.pattid2obj[node_id]
                     patt_queue = deque([patt])
                     while len(patt_queue) > 0:
                         curr_patt = patt_queue.popleft()
@@ -1368,7 +1296,7 @@ class AssemblyGraph(object):
                         for child_node_id in curr_patt.node_ids:
                             if self.is_pattern(child_node_id):
                                 patt_queue.append(
-                                    self.id2pattern[child_node_id]
+                                    self.pattid2obj[child_node_id]
                                 )
                             else:
                                 # This is a normal node in a pattern. Add data.
@@ -1431,7 +1359,7 @@ class AssemblyGraph(object):
             ]
 
         # Rotate patterns
-        for patt in self.id2pattern.values():
+        for patt in self.pattid2obj.values():
             # Swap height and width
             patt.width, patt.height = patt.height, patt.width
             patt.width *= config.POINTS_PER_INCH
@@ -1472,46 +1400,3 @@ class AssemblyGraph(object):
             data["ctrl_pt_coords"] = layout_utils.rotate_ctrl_pt_coords(
                 data["ctrl_pt_coords"]
             )
-
-    def process(self):
-        """Basic pipeline for preparing a graph for visualization."""
-
-        # Node/edge scaling is done *before* pattern detection, so duplicate
-        # nodes/edges created during pattern detection shouldn't influence
-        # relative scaling stuff. (For what it's worth, duplicate nodes should
-        # be drawn with the same width/height/etc. as their original node, and
-        # duplicate edges (linking one duplicate node with another) should just
-        # be drawn as non-outlier edges with a special style.
-        operation_msg("Scaling nodes based on lengths...")
-        self.scale_nodes()
-        conclude_msg()
-
-        self.scale_edges()
-
-        if self.find_patterns:
-            operation_msg("Running hierarchical pattern decomposition...")
-            self.hierarchically_identify_patterns()
-            conclude_msg()
-        else:
-            # Just set self.decomposed_graph as a copy of self.graph, and leave
-            # it at that. From the perspective of the downstream code, we just
-            # didn't identify any patterns in the graph. (This is inefficient,
-            # since ideally we wouldn't need to store two copies of this graph
-            # in memory... but it's likely not a big bottleneck for now.)
-            self.init_decomposed_graph()
-
-        # Defer this until after we do pattern decomposition, to account for
-        # split nodes. (At this point we have already called scale_nodes() --
-        # so the presence of split nodes shouldn't change how other nodes in
-        # the graph are scaled.)
-        # TODO -- update compute_node_dimensions() to run on the decomposed
-        # graph, not the original graph
-        self.compute_node_dimensions()
-
-        operation_msg("Laying out the graph...", True)
-        self.layout()
-        operation_msg("...Finished laying out the graph.", True)
-
-        operation_msg("Rotating and scaling things as needed...")
-        self.rotate_from_TB_to_LR()
-        conclude_msg()

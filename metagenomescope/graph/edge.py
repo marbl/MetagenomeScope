@@ -78,13 +78,7 @@ class Edge(object):
     """
 
     def __init__(
-        self,
-        unique_id,
-        orig_src_id,
-        orig_tgt_id,
-        is_fake,
-        is_outlier=None,
-        relative_weight=None,
+        self, unique_id, orig_src_id, orig_tgt_id, data, is_fake=False
     ):
         """Initializes this Edge object.
 
@@ -104,28 +98,22 @@ class Edge(object):
             Unique ID parameter of the original target node of this edge. See
             the orig_src_id description.
 
+        data: dict
+            Maps field names (e.g. "length", "multiplicity", ...) to their
+            values for this edge. The amount of this data will vary based
+            on the input assembly graph's filetype (if no data is available for
+            this edge, this can be an empty dict).
+
         is_fake: bool
             If False, this indicates that this edge connects two distinct nodes.
             If True, this indicates that this edge connects a left and right
             split node (i.e. orig_src_id and orig_tgt_id are both split nodes).
-
-        is_outlier: int
-            One of {-1, 0, 1}. -1 indicates that this edge is a low outlier; 0
-            indicates that this edge is not an outlier (either because its
-            coverage is in the middle, or because the graph doesn't have edge
-            multiplicities); 1 indicates that this edge is a high outlier.
-
-        relative_weight: float
-            In the range [0, 1]. See AssemblyGraph.scale_edges() for details
-            (I'm probably gonna deprecate doing this in Python eventually
-            anyway)...
         """
         self.unique_id = unique_id
         self.orig_src_id = orig_src_id
         self.orig_tgt_id = orig_tgt_id
+        self.data = data
         self.is_fake = is_fake
-        self.is_outlier = is_outlier
-        self.relative_weight = relative_weight
 
         self.new_src_id = orig_src_id
         self.new_tgt_id = orig_tgt_id
@@ -135,42 +123,18 @@ class Edge(object):
 
         self.ctrl_pt_coords = None
         self.relative_ctrl_pt_coords = None
-        self.parent_id = None
+        self.is_outlier = None
+        self.relative_weight = None
 
-        # Relative position of this node within its parent pattern, if this
-        # node is located within a pattern. (None if this node exists in the
-        # top level of the graph.) Stored in points.
-        self.relative_x = None
-        self.relative_y = None
-
-        # Absolute position of this node within its connected component.
-        self.x = None
-        self.y = None
-
-        # ID of the pattern containing this node, or None if this node
+        # ID of the pattern containing this edge, or None if this edge
         # exists in the top level of the graph.
         self.parent_id = None
 
-        # Number (1-indexed) of the connected component containing this node.
+        # Number (1-indexed) of the connected component containing this edge.
         self.cc_num = None
 
-        # Extra data fields from the input -- can be located in the assembly
-        # graph file (e.g. GC content, if this node corresponds to a sequence
-        # and we have access to this sequence), and eventually should be
-        # generalized to other metadata files
-        # (https://github.com/marbl/MetagenomeScope/issues/243).
-        self.extra_data = {}
-
     def __repr__(self):
-        return f"Node {self.unique_id}"
-
-    def add_extra_data(self, key, value):
-        if key in self.extra_data:
-            raise WeirdError(
-                f"Key {key} is already present in the extra data for node "
-                f"{self.unique_id}?"
-            )
-        self.extra_data[key] = value
+        return f"Edge {self.unique_id}"
 
     def reroute_src(self, new_src_id):
         self.new_src_id = new_src_id

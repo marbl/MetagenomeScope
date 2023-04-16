@@ -29,14 +29,7 @@ class Node(object):
     associated metadata.
     """
 
-    def __init__(
-        self,
-        unique_id,
-        orientation=None,
-        relative_length=None,
-        longside_proportion=None,
-        split=None,
-    ):
+    def __init__(self, unique_id, data, split=None):
         """Initializes this Node object.
 
         Parameters
@@ -45,17 +38,11 @@ class Node(object):
             Unique (with respect to all other nodes in the assembly graph)
             integer ID of this node.
 
-        orientation: str or None
-            If this is given, it should be either "+" or "-". This can be None
-            if nodes in the input graph don't have orientations.
-
-        relative_length: float or None
-            If this is given, it should be in the inclusive range [0, 1]. This
-            can be None if nodes in the input graph don't have lengths.
-
-        longside_proportion: float or None
-            If this is given, it should be in the inclusive range [0, 1]. This
-            can be None if nodes in the input graph don't have lengths.
+        data: dict
+            Maps field names (e.g. "length", "orientation", "depth", ...) to
+            their values for this node. The amount of this data will vary based
+            on the input assembly graph's filetype (if no data is available for
+            this node, this can be an empty dict).
 
         split: str or None
             If this is given, this should be either "L" or "R". "L" indicates
@@ -70,14 +57,17 @@ class Node(object):
             to the AssemblyGraph code.
         """
         self.unique_id = unique_id
-        self.orientation = orientation
-        self.relative_length = relative_length
-        self.longside_proportion = longside_proportion
+        self.data = data
         self.split = split
 
         # Will be filled in after doing node scaling. Stored in points.
         self.width = None
         self.height = None
+
+        # Also will be filled in after node scaling. See
+        # AssemblyGraph.scale_nodes().
+        self.relative_length = None
+        self.longside_proportion = None
 
         # Relative position of this node within its parent pattern, if this
         # node is located within a pattern. (None if this node exists in the
@@ -96,20 +86,5 @@ class Node(object):
         # Number (1-indexed) of the connected component containing this node.
         self.cc_num = None
 
-        # Extra data fields from the input -- can be located in the assembly
-        # graph file (e.g. GC content, if this node corresponds to a sequence
-        # and we have access to this sequence), and eventually should be
-        # generalized to other metadata files
-        # (https://github.com/marbl/MetagenomeScope/issues/243).
-        self.extra_data = {}
-
     def __repr__(self):
         return f"Node {self.unique_id}"
-
-    def add_extra_data(self, key, value):
-        if key in self.extra_data:
-            raise WeirdError(
-                f"Key {key} is already present in the extra data for node "
-                f"{self.unique_id}?"
-            )
-        self.extra_data[key] = value

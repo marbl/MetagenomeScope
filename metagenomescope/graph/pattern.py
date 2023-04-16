@@ -58,7 +58,7 @@ class Pattern(object):
         # Update parent ID info for child nodes, patterns, and edges
         for node_id in self.node_ids:
             if asm_graph.is_pattern(node_id):
-                asm_graph.id2pattern[node_id].parent_id = self.pattern_id
+                asm_graph.pattid2obj[node_id].parent_id = self.pattern_id
             else:
                 asm_graph.graph.nodes[node_id]["parent_id"] = self.pattern_id
 
@@ -84,7 +84,7 @@ class Pattern(object):
         for node_id in self.node_ids:
             if asm_graph.is_pattern(node_id):
                 patt_ct += 1
-                counts = asm_graph.id2pattern[node_id].get_counts(asm_graph)
+                counts = asm_graph.pattid2obj[node_id].get_counts(asm_graph)
                 node_ct += counts[0]
                 edge_ct += counts[1]
                 patt_ct += counts[2]
@@ -103,7 +103,7 @@ class Pattern(object):
         self.cc_num = cc_num
         for node_id in self.node_ids:
             if asm_graph.is_pattern(node_id):
-                asm_graph.id2pattern[node_id].set_cc_num(asm_graph, cc_num)
+                asm_graph.pattid2obj[node_id].set_cc_num(asm_graph, cc_num)
             else:
                 asm_graph.graph.nodes[node_id]["cc_num"] = cc_num
         for edge in self.subgraph.edges:
@@ -113,11 +113,11 @@ class Pattern(object):
         # Recursively go through all of the nodes within this pattern. If any
         # of these isn't actually a node (and is actually a pattern), then lay
         # out that pattern!
-        id2pattern = {}
+        pattid2obj = {}
         for node_id in self.node_ids:
             if asm_graph.is_pattern(node_id):
-                asm_graph.id2pattern[node_id].layout(asm_graph)
-                id2pattern[node_id] = asm_graph.id2pattern[node_id]
+                asm_graph.pattid2obj[node_id].layout(asm_graph)
+                pattid2obj[node_id] = asm_graph.pattid2obj[node_id]
 
         # Now that all of the patterns (if present) within this pattern have
         # been laid out, lay out this pattern.
@@ -126,15 +126,15 @@ class Pattern(object):
 
         # Add node info
         for node_id in self.node_ids:
-            if node_id in id2pattern:
+            if node_id in pattid2obj:
                 # If this node is a collapsed pattern, get its dimensions from
-                # its Pattern object using id2pattern.
+                # its Pattern object using pattid2obj.
                 # This is a pretty roundabout way of doing this but it works
                 # and honestly that is all I can hope for right now. Out of all
                 # the years that have happened, 2020 certainly is one of them.
-                height = id2pattern[node_id].height
-                width = id2pattern[node_id].width
-                shape = id2pattern[node_id].shape
+                height = pattid2obj[node_id].height
+                width = pattid2obj[node_id].width
+                shape = pattid2obj[node_id].shape
             else:
                 # If this is a normal node, get its dimensions from the
                 # graph. Shape is based on the node's orientation, which should
@@ -170,7 +170,7 @@ class Pattern(object):
         for node_id in self.node_ids:
             node = cg.get_node(node_id)
             x, y = layout_utils.getxy(node.attr["pos"])
-            if node_id in id2pattern:
+            if node_id in pattid2obj:
                 # Assign x and y for this pattern.
                 #
                 # We should not need to _update_ the child node/edge positions
@@ -180,8 +180,8 @@ class Pattern(object):
                 # down through the patterns and update positions accordingly --
                 # no need to slow ourselves down by repeatedly updating this
                 # information throughout the layout process.
-                id2pattern[node_id].relative_x = x
-                id2pattern[node_id].relative_y = y
+                pattid2obj[node_id].relative_x = x
+                pattid2obj[node_id].relative_y = y
             else:
                 asm_graph.graph.nodes[node_id]["relative_x"] = x
                 asm_graph.graph.nodes[node_id]["relative_y"] = y

@@ -3,7 +3,6 @@ from metagenomescope.graph import AssemblyGraph
 
 def test_component_sorting_simple():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
-    ag.hierarchically_identify_patterns()
 
     wccs = ag.get_connected_components()
     # Four ccs:
@@ -39,7 +38,6 @@ def test_component_sorting_simple():
 
 def test_component_sorting_ecoli_graph():
     ag = AssemblyGraph("metagenomescope/tests/input/E_coli_LastGraph")
-    ag.hierarchically_identify_patterns()
     wccs = ag.get_connected_components()
 
     # Assert that the first component is the big ugly one that contains node 89

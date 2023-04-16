@@ -80,6 +80,8 @@ def make_viz(
     arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
     # Read the assembly graph file and create an object representing it.
+    # Creating the AssemblyGraph object will identify patterns, perform layout,
+    # etc.
     operation_msg("Loading the assembly graph...")
     asm_graph = graph.AssemblyGraph(
         input_file,
@@ -88,9 +90,6 @@ def make_viz(
         patterns=patterns,
     )
     conclude_msg()
-
-    # Identify patterns (if patterns is True), do layout, etc.
-    asm_graph.process()
 
     # Get JSON representation of the graph data.
     graph_data = asm_graph.to_json()

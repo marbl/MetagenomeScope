@@ -29,7 +29,6 @@ def test_simple_hierarch_decomp():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/hierarchical_test_graph.gml"
     )
-    ag.hierarchically_identify_patterns()
     # write_dot(ag.decomposed_graph, "dec.gv")
     # This is with the "maximum" decomposition settings for this test graph.
     assert len(ag.decomposed_graph.nodes) == 10
@@ -111,7 +110,6 @@ def test_bubble_chain_identification():
     resulting graph should be the same.
     """
     ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
-    ag.hierarchically_identify_patterns()
     # TODO: Fix, as described above!
     # assert len(ag.decomposed_graph.nodes) == 1
     # assert len(ag.decomposed_graph.edges) == 0
@@ -156,7 +154,6 @@ def test_bubble_cyclic_chain_identification():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
     )
-    ag.hierarchically_identify_patterns()
     # write_dot(ag.decomposed_graph, "dec.gv")
     # write_dot(ag.graph, "digraph.gv")
     # for bub in ag.bubbles:
