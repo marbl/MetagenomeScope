@@ -76,6 +76,11 @@ class AssemblyGraph(object):
         self.num_too_large_components = 0
         self.remove_too_large_components()
 
+        # These store Node, Edge, and Pattern objects. We still use the
+        # NetworkX graph objects to do things like identify connected
+        # components, find all edges incident on a node, etc., but data about
+        # these objects (both user-provided [e.g. "length"] and internal [e.g.
+        # "width"] data) will primarily be stored in these objects.
         self.nodeid2obj = {}
         self.edgeid2obj = {}
         self.pattid2obj = {}
