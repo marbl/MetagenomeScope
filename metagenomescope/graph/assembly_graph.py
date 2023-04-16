@@ -121,14 +121,14 @@ class AssemblyGraph(object):
         # Node/edge scaling is done *before* pattern detection, so duplicate
         # nodes/edges created during pattern detection shouldn't influence
         # relative scaling stuff.
-        # TODO: During the April 2023 refactor, WE ARE HERE. Need to update
-        # these functions to set these internal attributes (width, height,
-        # relative_length, ...) as attributes of Node/Edge attributes --
-        # blessedly leaving user-provide Node/Edge data separate.
         operation_msg("Scaling nodes based on lengths...")
         self.scale_nodes()
         conclude_msg()
 
+        # TODO: During the April 2023 refactor, WE ARE HERE. Need to update
+        # these functions to set these internal attributes (width, height,
+        # relative_length, ...) as attributes of Node/Edge attributes --
+        # blessedly, leaving user-provide Node/Edge data separate.
         self.scale_edges()
 
         if self.find_patterns:
@@ -158,6 +158,12 @@ class AssemblyGraph(object):
         We may add more Node and Edge objects as we perform pattern detection
         and node splitting. That will be done separately; this method just
         establishes a "baseline."
+
+        Note that we could try to remove node / edge data from self.graph (e.g.
+        using g.nodes[...].clear()) to save memory, but that seems to also
+        clear the data objects we extract, which we pass to the Node / Edge
+        constructors (I guess these dicts are the same object in memory?) So
+        we leave the original node / edge data in the graph.
         """
         for ni, n in enumerate(self.graph.nodes):
             data = self.graph.nodes[n]
@@ -543,6 +549,13 @@ class AssemblyGraph(object):
         for edge in self.decomposed_graph.edges:
             self.decomposed_graph.edges[edge]["parent_id"] = None
 
+    def get_node_lengths(self):
+        lengths = {}
+        for ni, n in self.nodeid2obj.items():
+            if n.split is None and "length" in n.data:
+                lengths[ni] = n.data["length"]
+        return lengths
+
     def scale_nodes_all_uniform(self):
         for node in self.graph.nodes:
             self.graph.nodes[node]["relative_length"] = 0.5
@@ -584,7 +597,7 @@ class AssemblyGraph(object):
         visualization filesize.)
         """
         # dict that maps node IDs --> lengths
-        node_lengths = nx.get_node_attributes(self.graph, "length")
+        node_lengths = self.get_node_lengths()
 
         # bail out if not all nodes have a length
         if len(node_lengths) < len(self.graph.nodes):
@@ -600,8 +613,8 @@ class AssemblyGraph(object):
             else:
                 # okay, if we've made it here we can actually do node scaling
                 node_log_lengths = {}
-                for node, length in node_lengths.items():
-                    node_log_lengths[node] = math.log(
+                for node_id, length in node_lengths.items():
+                    node_log_lengths[node_id] = math.log(
                         length, config.NODE_SCALING_LOG_BASE
                     )
                 min_log_len = min(node_log_lengths.values())
@@ -610,9 +623,9 @@ class AssemblyGraph(object):
                 q25, q75 = numpy.percentile(
                     list(node_log_lengths.values()), [25, 75]
                 )
-                for node in self.graph.nodes:
-                    node_log_len = node_log_lengths[node]
-                    self.graph.nodes[node]["relative_length"] = (
+                for node_id in self.nodeid2obj:
+                    node_log_len = node_log_lengths[node_id]
+                    self.nodeid2obj[node_id].relative_length = (
                         node_log_len - min_log_len
                     ) / log_len_range
                     if node_log_len < q25:
@@ -621,7 +634,7 @@ class AssemblyGraph(object):
                         lp = config.MID_LONGSIDE_PROPORTION
                     else:
                         lp = config.HIGH_LONGSIDE_PROPORTION
-                    self.graph.nodes[node]["longside_proportion"] = lp
+                    self.nodeid2obj[node_id].longside_proportion = lp
 
     def compute_node_dimensions(self):
         r"""Adds height and width attributes to each node in the graph.
