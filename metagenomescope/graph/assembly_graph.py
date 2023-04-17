@@ -11,7 +11,7 @@ import pygraphviz
 
 from .. import parsers, config, layout_utils
 from ..msg_utils import operation_msg, conclude_msg
-from ..errors import GraphParsingError, WeirdError
+from ..errors import GraphParsingError, GraphError, WeirdError
 from . import validators
 from .pattern import StartEndPattern, Pattern
 from .node import Node
@@ -161,6 +161,15 @@ class AssemblyGraph(object):
         # TODO -- update _compute_node_dimensions() to run on the decomposed
         # graph, not the original graph
         self._compute_node_dimensions()
+
+        # Since layout can take a while, we leave it to the creator of this
+        # object to call .layout() (if for example they don't actually need to
+        # layout the graph, and they just want to do pattern detection).
+        #
+        # Some functions require that layout has already been performed,
+        # though. These functions can just use this flag to figure out if they
+        # should immediately fail with an error.
+        self.layout_done = False
 
     def _init_graph_objs(self):
         """Initializes Node and Edge objects for the original graph.
@@ -664,15 +673,14 @@ class AssemblyGraph(object):
         MetagenomeScope users, the width and height of each node are really the
         opposite from what we store here.
         """
-        for node in self.graph.nodes:
-            data = self.graph.nodes[node]
+        for node in self.nodeid2obj.values():
             area = config.MIN_NODE_AREA + (
-                data["relative_length"] * config.NODE_AREA_RANGE
+                node.relative_length * config.NODE_AREA_RANGE
             )
             # Again, in the interface the height will be the width and the
             # width will be the height
-            data["height"] = area ** data["longside_proportion"]
-            data["width"] = area / data["height"]
+            node.height = area ** node.longside_proportion
+            node.width = area / node.height
 
     def get_edge_weight_field(
         self, field_names=["bsize", "multiplicity", "cov", "kmer_cov"]
@@ -927,6 +935,8 @@ class AssemblyGraph(object):
         self._rotate_from_TB_to_LR()
         conclude_msg()
 
+        self.layout_done = True
+
     def _layout(self):
         """Lays out the graph's components, handling patterns specially."""
         # Do layout one component at a time.
@@ -1119,7 +1129,7 @@ class AssemblyGraph(object):
         # be able to make a JSON representation of this graph and move on to
         # visualizing it in the browser!
 
-    def rotate_from_TB_to_LR(self):
+    def _rotate_from_TB_to_LR(self):
         """Rotates the graph so it flows from L -> R rather than T -> B."""
         # Rotate and scale bounding boxes
         for cc_num in self.cc_num_to_bb.keys():
@@ -1201,6 +1211,13 @@ class AssemblyGraph(object):
         """TODO."""
         raise NotImplementedError
 
+    def _fail_if_layout_not_done(self, fn_name):
+        if not self.layout_done:
+            raise GraphError(
+                "You need to call .layout() on this AssemblyGraph object "
+                f"before calling .{fn_name}()."
+            )
+
     def to_dict(self):
         """Returns a dict representation of the graph usable as JSON.
 
@@ -1213,6 +1230,7 @@ class AssemblyGraph(object):
 
         Inspired by to_dict() in Empress.
         """
+        self._fail_if_layout_not_done("to_dict")
         # Determine what data we'll export. Each node and edge should have a
         # set of "core attributes," defined in the three lists below, which
         # we'll need to draw the graph.
@@ -1474,4 +1492,5 @@ class AssemblyGraph(object):
         element, etc. than it would be if we had to go through the dict -> JSON
         str -> dict song and dance for every test.
         """
+        self._fail_if_layout_not_done("to_json")
         return json.dumps(self.to_dict())
