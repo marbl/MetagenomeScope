@@ -6,7 +6,7 @@
 
 ![Screenshot of MetagenomeScope's standard mode, showing an example assembly graph from Nijkamp et al. 2013](https://user-images.githubusercontent.com/4177727/100696036-6aa7ab80-3347-11eb-8017-f693aae08aa2.png "Screenshot of MetagenomeScope showing an example assembly graph from Nijkamp et al. 2013.")
 <div align="center">
-(Assembly graph based on Fig. 2(a) in [Nijkamp et al. 2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3916741/).)
+(Assembly graph based on Fig. 2(a) in <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3916741/">Nijkamp et al. 2013</a>.)
 </div>
 
 ## NOTE: MetagenomeScope is currently being refactored!
