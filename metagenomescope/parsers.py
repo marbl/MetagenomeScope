@@ -516,12 +516,19 @@ def parse_fastg(filename):
     # Add an "orientation" attribute for every node.
     # pyfastg guarantees that every node should have a +/- suffix assigned to
     # its name, so this should be safe.
+    #
+    # Also, rename nodes: from N+ / N- to N / -N. The distinction doesn't
+    # really matter much, but the other parsers name nodes in the latter way,
+    # so we can be consistent.
+    oldname2newname = {}
     for n in g.nodes:
         suffix = n[-1]
         if suffix == "+":
             g.nodes[n]["orientation"] = "+"
+            oldname2newname[n] = n[:-1]
         elif suffix == "-":
             g.nodes[n]["orientation"] = "-"
+            oldname2newname[n] = "-" + n[:-1]
         else:
             # shouldn't happen, unless pyfastg breaks or changes its behavior
             # (but it's useful to have this check anyway, just to make this
@@ -529,6 +536,7 @@ def parse_fastg(filename):
             raise WeirdError(
                 f"Node {n} in parsed FASTG file doesn't have an orientation?"
             )
+    g = nx.relabel_nodes(g, oldname2newname)
     return g
 
 

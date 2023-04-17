@@ -36,22 +36,25 @@ def test_good():
     i2gc = {1: 5 / 9.0, 2: 2 / 3.0, 3: 3 / 5.0}
     for i in range(1, 4):
         si = str(i)
-        for suffix in ("+", "-"):
-            name = si + suffix
+        for orientation in ("+", "-"):
+            if orientation == "+":
+                name = si
+            else:
+                name = orientation + si
             assert name in g.nodes
             assert g.nodes[name]["cov"] == i2cov[i]
             assert g.nodes[name]["length"] == i2length[i]
             assert g.nodes[name]["gc"] == i2gc[i]
 
     valid_edges = (
-        ("2+", "1+"),
-        ("2+", "3-"),
-        ("2+", "3+"),
-        ("1+", "3-"),
-        ("3-", "2-"),
-        ("3+", "1-"),
-        ("3+", "2-"),
-        ("1-", "2-"),
+        ("2", "1"),
+        ("2", "-3"),
+        ("2", "3"),
+        ("1", "-3"),
+        ("-3", "-2"),
+        ("3", "-1"),
+        ("3", "-2"),
+        ("-1", "-2"),
     )
     for e in valid_edges:
         assert e in g.edges
