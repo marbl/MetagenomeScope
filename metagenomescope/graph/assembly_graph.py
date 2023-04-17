@@ -131,12 +131,12 @@ class AssemblyGraph(object):
         self.scale_nodes()
         conclude_msg()
 
+        self.scale_edges()
+
         # TODO: During the April 2023 refactor, WE ARE HERE. Need to update
         # these functions to set these internal attributes (width, height,
         # relative_length, ...) as attributes of Node/Edge attributes --
         # blessedly, leaving user-provide Node/Edge data separate.
-        self.scale_edges()
-
         if self.find_patterns:
             operation_msg("Running hierarchical pattern decomposition...")
             self.hierarchically_identify_patterns()
@@ -486,9 +486,6 @@ class AssemblyGraph(object):
             self,
         )
         return p
-
-    def init_decomposed_graph(self):
-        """Copies self.graph to self.decomposed_graph."""
 
     def hierarchically_identify_patterns(self):
         """Run all of our pattern detection algorithms on the graph repeatedly.
