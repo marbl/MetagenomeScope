@@ -221,62 +221,6 @@ class AssemblyGraph(object):
         self.num_nodes += 1
         return new_id
 
-    def get_edge_weight_field(
-        self, field_names=["bsize", "multiplicity", "cov", "kmer_cov"]
-    ):
-        """Returns the name of the edge weight field this graph has.
-
-        If the graph does not have any edge weight fields, or if only some
-        edges have an edge weight field, returns None.
-
-        If there are multiple edge weight fields, this raises a
-        GraphParsingError.
-
-        The list of field names corresponding to "edge weights" is
-        configurable via the field_names parameter. You should verify (in the
-        assembly graph parsers) that these fields correspond to positive
-        numbers.
-
-        Notes
-        -----
-        - This entire function should be removed, eventually, in favor of
-          letting the user dynamically choose how to adjust edge weights in the
-          browser.
-
-        - It should be possible to merge this function with init_graph_objs();
-          this would speed things up, since we could avoid iterating through
-          the edges in the graph here. But not worth it right now.
-        """
-
-        def _check_edge_weight_fields(edge_data):
-            edge_fns = set(edge_data.keys()) & set(field_names)
-            if len(edge_fns) > 1:
-                raise GraphParsingError(
-                    f"Graph has multiple 'edge weight' fields ({edge_fns}). "
-                    "It's ambiguous which we should use for scaling."
-                )
-            elif len(edge_fns) == 1:
-                return list(edge_fns)[0]
-            else:
-                return None
-
-        chosen_fn = None
-        for e in self.edgeid2obj.values():
-            fn = _check_edge_weight_fields(e.data)
-            if fn is None:
-                return None
-            else:
-                if chosen_fn is None:
-                    chosen_fn = fn
-                else:
-                    if chosen_fn != fn:
-                        raise GraphParsingError(
-                            "One edge has only the 'edge weight' field "
-                            f"{chosen_fn}, while another has only {fn}. "
-                            "It's ambiguous how we should do scaling."
-                        )
-        return chosen_fn
-
     def add_pattern(self, member_node_ids, pattern_type):
         """Adds a pattern composed of a list of node IDs to the decomposed
         DiGraph, and removes its children from the decomposed DiGraph.
@@ -704,6 +648,62 @@ class AssemblyGraph(object):
             # width will be the height
             data["height"] = area ** data["longside_proportion"]
             data["width"] = area / data["height"]
+
+    def get_edge_weight_field(
+        self, field_names=["bsize", "multiplicity", "cov", "kmer_cov"]
+    ):
+        """Returns the name of the edge weight field this graph has.
+
+        If the graph does not have any edge weight fields, or if only some
+        edges have an edge weight field, returns None.
+
+        If there are multiple edge weight fields, this raises a
+        GraphParsingError.
+
+        The list of field names corresponding to "edge weights" is
+        configurable via the field_names parameter. You should verify (in the
+        assembly graph parsers) that these fields correspond to positive
+        numbers.
+
+        Notes
+        -----
+        - This entire function should be removed, eventually, in favor of
+          letting the user dynamically choose how to adjust edge weights in the
+          browser.
+
+        - It should be possible to merge this function with init_graph_objs();
+          this would speed things up, since we could avoid iterating through
+          the edges in the graph here. But not worth it right now.
+        """
+
+        def _check_edge_weight_fields(edge_data):
+            edge_fns = set(edge_data.keys()) & set(field_names)
+            if len(edge_fns) > 1:
+                raise GraphParsingError(
+                    f"Graph has multiple 'edge weight' fields ({edge_fns}). "
+                    "It's ambiguous which we should use for scaling."
+                )
+            elif len(edge_fns) == 1:
+                return list(edge_fns)[0]
+            else:
+                return None
+
+        chosen_fn = None
+        for e in self.edgeid2obj.values():
+            fn = _check_edge_weight_fields(e.data)
+            if fn is None:
+                return None
+            else:
+                if chosen_fn is None:
+                    chosen_fn = fn
+                else:
+                    if chosen_fn != fn:
+                        raise GraphParsingError(
+                            "One edge has only the 'edge weight' field "
+                            f"{chosen_fn}, while another has only {fn}. "
+                            "It's ambiguous how we should do scaling."
+                        )
+        return chosen_fn
 
     def scale_edges(self):
         """Scales edges in the graph based on their weights, if present.
