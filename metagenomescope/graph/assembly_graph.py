@@ -92,7 +92,10 @@ class AssemblyGraph(object):
         self.extra_node_attrs = set()
         self.extra_edge_attrs = set()
 
-        # Populate self.nodeid2obj and self.edgeid2obj.
+        # Populate self.nodeid2obj and self.edgeid2obj, and re-labels nodes in
+        # the graph (and adds an "id" attribute for edges in the graph). This
+        # way, we can easily associate nodes and edges with their corresponding
+        # objects' unique IDs.
         self.init_graph_objs()
 
         # Number of nodes in the graph, including patterns and duplicate nodes.
@@ -161,28 +164,44 @@ class AssemblyGraph(object):
     def init_graph_objs(self):
         """Initializes Node and Edge objects for the original graph.
 
+        Also, clears the NetworkX data stored for each node and edge in the
+        graph (don't worry, this data isn't lost -- it's saved in the
+        corresponding Node and Edge objects' .data attributes).
+
+        Finally, this relabels nodes in the graph to match their corresponding
+        Node object's unique_id; and adds an "id" attribute to edges' NetworkX
+        data that matches their corresponding Edge object's unique_id.
+
+        Notes
+        -----
         We may add more Node and Edge objects as we perform pattern detection
         and node splitting. That will be done separately; this method just
         establishes a "baseline."
-
-        Note that we could try to remove node / edge data from self.graph (e.g.
-        using g.nodes[...].clear()) to save memory --  however, doing so also
-        clears the data objects we extract, which we pass to the Node / Edge
-        constructors (I guess these dicts are the same object in memory?) So
-        we leave the original node / edge data in the graph.
         """
+        oldid2uniqueid = {}
         for ni, n in enumerate(self.graph.nodes):
-            data = self.graph.nodes[n]
+            data = copy.deepcopy(self.graph.nodes[n])
             self.nodeid2obj[ni] = Node(ni, data)
             self.extra_node_attrs |= set(data.keys())
+            # Remove node data from the graph (we've already saved it in the
+            # Node object's .data attribute).
+            self.graph.nodes[n].clear()
+            # We'll re-label nodes in the graph, to make it easy to associate
+            # them with their corresponding Node objects.
+            oldid2uniqueid[n] = ni
 
-        # Worth noting: we don't pass keys=True to self.graph.edges(), because
-        # I don't think there is a need to store these key numbers in the Edge
-        # objects (we already have unique IDs there, anyway). That being said:
-        # if we need to change that, it should be pretty simple to do so later.
-        for ei, e in enumerate(self.graph.edges(data=True)):
-            self.edgeid2obj[ni] = Edge(ei, e[0], e[1], e[2])
+        nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
+
+        for ei, e in enumerate(self.graph.edges(data=True, keys=True)):
+            # e is a 4-tuple of (source ID, sink ID, key, data dict)
+            self.edgeid2obj[ni] = Edge(ei, e[0], e[1], copy.deepcopy(e[3]))
             self.extra_edge_attrs |= set(e[2].keys())
+            # Remove edge data from the graph.
+            self.graph.edges[e[0], e[1], e[2]].clear()
+            # Edges in NetworkX don't really have "IDs," but we can use the
+            # (now-cleared) data dict in the graph to store their ID. This will
+            # make it easy to associate this edge with its Edge object.
+            self.graph.edges[e[0], e[1], e[2]]["id"] = ei
 
     def remove_too_large_components(self):
         # We convert the WCC collection to a list so that even if we alter the
@@ -434,29 +453,29 @@ class AssemblyGraph(object):
     def hierarchically_identify_patterns(self):
         """Run all of our pattern detection algorithms on the graph repeatedly.
 
-        Notably, we do this repeatedly -- until the graph has been "fully"
-        squished into patterns.
+        This is the main Fancy Thing we do, besides layout.
         """
         while True:
             # Run through all of the pattern detection methods on all of the
-            # top-level nodes (or node groups) in the decomposed DiGraph.
+            # top-level nodes (or node groups) in the decomposed graph.
             # Keep doing this until we get to a point where we've run every
             # pattern detection method on the graph, and nothing new has been
             # found.
             something_collapsed = False
 
-            # You could totally switch the order of this tuple up in order to
-            # change the "precedence" of pattern detection. I don't think that
-            # would make a huge difference, though...?
+            # You could switch the order of this tuple up in order to
+            # change the "precedence" of pattern detection, if desired.
+            # I think identifying bulges and chains first makes sense, if
+            # nothing else.
             for collection, validator, ptype in (
+                (self.bubbles, validators.is_valid_bulge, "bubble"),
                 (self.chains, validators.is_valid_chain, "chain"),
+                (self.bubbles, validators.is_valid_bubble, "bubble"),
                 (
                     self.cyclic_chains,
                     validators.is_valid_cyclic_chain,
                     "cyclicchain",
                 ),
-                (self.bubbles, validators.is_valid_bulge, "bubble"),
-                (self.bubbles, validators.is_valid_bubble, "bubble"),
             ):
                 # We sort the nodes in order to make this deterministic
                 # (I doubt the extra time cost from sorting will be a big deal)
@@ -506,6 +525,10 @@ class AssemblyGraph(object):
                 # We didn't collapse anything... so we're done here! We can't
                 # do any more.
                 break
+
+        # Now, identify frayed ropes (and other "top-level only" patterns, if
+        # desired). TODO.
+
         # Now that we're done here, go through all the nodes and edges in the
         # top level of the graph and record that they don't have a parent
         # pattern
@@ -1135,7 +1158,7 @@ class AssemblyGraph(object):
         # add on additional fields accordingly.
         #
         # These are keyed by integer ID (i.e. what was produced by
-        # self.reindex_graph())
+        # self.reindex_graph()) <-- TODO, key by nodeid2obj keys instead
         node_fields = [
             "name",
             "length",
@@ -1148,7 +1171,7 @@ class AssemblyGraph(object):
             "is_dup",
         ]
         # These are keyed by source ID and sink ID (both reindex_graph()
-        # integer IDs)
+        # integer IDs) <-- TODO, key by edgeid2obj keys instead
         edge_fields = [
             "ctrl_pt_coords",
             "is_outlier",
