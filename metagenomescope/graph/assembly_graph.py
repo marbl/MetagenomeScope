@@ -11,6 +11,7 @@ import pygraphviz
 
 from .. import parsers, config, layout_utils
 from ..msg_utils import operation_msg, conclude_msg
+from ..errors import GraphParsingError, WeirdError
 from . import validators
 from .pattern import StartEndPattern, Pattern
 from .node import Node
@@ -165,8 +166,8 @@ class AssemblyGraph(object):
         establishes a "baseline."
 
         Note that we could try to remove node / edge data from self.graph (e.g.
-        using g.nodes[...].clear()) to save memory, but that seems to also
-        clear the data objects we extract, which we pass to the Node / Edge
+        using g.nodes[...].clear()) to save memory --  however, doing so also
+        clears the data objects we extract, which we pass to the Node / Edge
         constructors (I guess these dicts are the same object in memory?) So
         we leave the original node / edge data in the graph.
         """
@@ -225,37 +226,56 @@ class AssemblyGraph(object):
     ):
         """Returns the name of the edge weight field this graph has.
 
-        If the graph does not have any edge weight fields, returns None.
+        If the graph does not have any edge weight fields, or if only some
+        edges have an edge weight field, returns None.
+
+        If there are multiple edge weight fields, this raises a
+        GraphParsingError.
 
         The list of field names corresponding to "edge weights" is
-        configurable via the field_names parameter. The two fields accepted
-        now (bsize and multiplicity) are both verified in the assembly graph
-        parser to correspond to positive integers, so future fields accepted
-        as edge weights should also be verified in this way.
+        configurable via the field_names parameter. You should verify (in the
+        assembly graph parsers) that these fields correspond to positive
+        numbers.
 
-        NOTE that this assumes that at least one edge having a weight
-        implies that the other edges in the graph have weights. This should
-        always be the case, but if there are graphs with partial edge weight
-        data then this may cause problems with scaling later on.
+        Notes
+        -----
+        - This entire function should be removed, eventually, in favor of
+          letting the user dynamically choose how to adjust edge weights in the
+          browser.
+
+        - It should be possible to merge this function with init_graph_objs();
+          this would speed things up, since we could avoid iterating through
+          the edges in the graph here. But not worth it right now.
         """
-        fn_had = None
-        for fn in field_names:
-            if len(nx.get_edge_attributes(self.graph, fn)) > 0:
-                if fn_had is None:
-                    fn_had = fn
-                else:
-                    raise ValueError(
-                        (
-                            "Graph has multiple 'edge weight' fields, "
-                            "including {} and {}. It's ambiguous which we "
-                            "should use for scaling."
-                        ).format(fn_had, fn)
-                    )
-        return fn_had
 
-    def has_edge_weights(self):
-        """Returns True if the graph has edge weight data, False otherwise."""
-        return self.get_edge_weight_field() is not None
+        def _check_edge_weight_fields(edge_data):
+            edge_fns = set(edge_data.keys()) & set(field_names)
+            if len(edge_fns) > 1:
+                raise GraphParsingError(
+                    f"Graph has multiple 'edge weight' fields ({edge_fns}). "
+                    "It's ambiguous which we should use for scaling."
+                )
+            elif len(edge_fns) == 1:
+                return list(edge_fns)[0]
+            else:
+                return None
+
+        chosen_fn = None
+        for e in self.edgeid2obj.values():
+            fn = _check_edge_weight_fields(e.data)
+            if fn is None:
+                return None
+            else:
+                if chosen_fn is None:
+                    chosen_fn = fn
+                else:
+                    if chosen_fn != fn:
+                        raise GraphParsingError(
+                            "One edge has only the 'edge weight' field "
+                            f"{chosen_fn}, while another has only {fn}. "
+                            "It's ambiguous how we should do scaling."
+                        )
+        return chosen_fn
 
     def add_pattern(self, member_node_ids, pattern_type):
         """Adds a pattern composed of a list of node IDs to the decomposed
@@ -562,11 +582,9 @@ class AssemblyGraph(object):
         return lengths
 
     def scale_nodes_all_uniform(self):
-        for node in self.graph.nodes:
-            self.graph.nodes[node]["relative_length"] = 0.5
-            self.graph.nodes[node][
-                "longside_proportion"
-            ] = config.MID_LONGSIDE_PROPORTION
+        for node in self.nodeid2obj.values():
+            node.relative_length = 0.5
+            node.longside_proportion = config.MID_LONGSIDE_PROPORTION
 
     def scale_nodes(self):
         """Scales nodes in the graph based on their lengths.
@@ -725,23 +743,22 @@ class AssemblyGraph(object):
         """
 
         def _assign_default_weight_attrs(edges):
-            """Assigns "normal" attributes to each edge in edges."""
+            """Assigns "normal" attributes to each Edge object in edges."""
             for edge in edges:
-                self.graph.edges[edge]["is_outlier"] = 0
-                self.graph.edges[edge]["relative_weight"] = 0.5
+                edge.is_outlier = 0
+                edge.relative_weight = 0.5
 
         ew_field = self.get_edge_weight_field()
         if ew_field is not None:
             operation_msg("Scaling edges based on weights...")
             real_edges = []
             weights = []
-            for edge in self.graph.edges:
-                data = self.graph.edges[edge]
-                if "is_dup" not in data or not data["is_dup"]:
+            for edge in self.edgeid2obj.values():
+                if not edge.is_fake:
                     real_edges.append(edge)
-                    weights.append(data[ew_field])
+                    weights.append(edge.data[ew_field])
                 else:
-                    raise ValueError(
+                    raise WeirdError(
                         "Duplicate edges shouldn't exist in the graph yet."
                     )
 
@@ -765,29 +782,27 @@ class AssemblyGraph(object):
                 # Non-outlier edges will be added to a list of edges that we'll
                 # scale relatively.
                 for edge in real_edges:
-                    data = self.graph.edges[edge]
-                    ew = data[ew_field]
+                    ew = edge.data[ew_field]
                     if ew > uf:
-                        data["is_outlier"] = 1
-                        data["relative_weight"] = 1
+                        edge.is_outlier = 1
+                        edge.relative_weight = 1
                     elif ew < lf:
-                        data["is_outlier"] = -1
-                        data["relative_weight"] = 0
+                        edge.is_outlier = -1
+                        edge.relative_weight = 0
                     else:
-                        data["is_outlier"] = 0
+                        edge.is_outlier = 0
                         non_outlier_edges.append(edge)
                         non_outlier_edge_weights.append(ew)
             else:
                 # There are < 4 edges, so consider all edges as "non-outliers."
                 for edge in real_edges:
-                    data = self.graph.edges[edge]
-                    if "is_dup" not in data or not data["is_dup"]:
-                        data["is_outlier"] = 0
+                    if not edge.is_fake:
+                        edge.is_outlier = 0
                         non_outlier_edges.append(edge)
-                        ew = data[ew_field]
+                        ew = edge.data[ew_field]
                         non_outlier_edge_weights.append(ew)
                     else:
-                        raise ValueError(
+                        raise WeirdError(
                             "Duplicate edges shouldn't exist in the graph yet."
                         )
 
@@ -798,10 +813,9 @@ class AssemblyGraph(object):
                 if min_ew != max_ew:
                     ew_range = max_ew - min_ew
                     for edge in non_outlier_edges:
-                        data = self.graph.edges[edge]
-                        ew = data[ew_field]
+                        ew = edge.data[ew_field]
                         rw = (ew - min_ew) / ew_range
-                        data["relative_weight"] = rw
+                        edge.relative_weight = rw
                 else:
                     # Can't do edge scaling, so just assign this list of edges
                     # (... which should in practice just be a list with one or
@@ -810,7 +824,7 @@ class AssemblyGraph(object):
             conclude_msg()
         else:
             # Can't do edge scaling, so just assign every edge "default" attrs
-            _assign_default_weight_attrs(self.graph.edges)
+            _assign_default_weight_attrs(self.edgeid2obj.values())
 
     def is_pattern(self, node_id):
         """Returns True if a node ID is for a pattern, False otherwise.
