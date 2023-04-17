@@ -66,11 +66,21 @@ class AssemblyGraph(object):
         self.find_patterns = patterns
 
         self.basename = os.path.basename(self.filename)
+        operation_msg(f"Loading the assembly graph, {self.basename}...")
         # NOTE: Ideally we'd just return this along with the graph from
         # parsers.parse(), but uhhhh that will make me refactor
         # like 20 tests and I don't want to do that ._.
         self.filetype = parsers.sniff_filetype(self.filename)
         self.graph = parsers.parse(self.filename)
+        conclude_msg()
+
+        operation_msg(
+            (
+                f"Graph contains {len(self.graph.nodes):,} node(s) and "
+                f"{len(self.graph.edges):,} edge(s)."
+            ),
+            newline=True,
+        )
 
         # Remove nodes/edges in components that are too large to lay out.
         self.num_too_large_components = 0

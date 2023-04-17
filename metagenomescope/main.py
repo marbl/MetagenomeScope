@@ -82,14 +82,12 @@ def make_viz(
     # Read the assembly graph file and create an object representing it.
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
     # edges, etc.
-    operation_msg("Loading the assembly graph...")
     asm_graph = graph.AssemblyGraph(
         input_file,
         max_node_count=max_node_count,
         max_edge_count=max_edge_count,
         patterns=patterns,
     )
-    conclude_msg()
 
     # We also need to lay out the graph. This can be a time-consuming process,
     # which is why it isn't automatically done when we create an AssemblyGraph
