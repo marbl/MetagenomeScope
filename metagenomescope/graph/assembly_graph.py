@@ -481,46 +481,41 @@ class AssemblyGraph(object):
                 # (I doubt the extra time cost from sorting will be a big deal)
                 candidate_nodes = sorted(list(self.decomposed_graph.nodes))
                 while len(candidate_nodes) > 0:
+                    # Does this type of pattern start at this node?
                     n = candidate_nodes[0]
                     validator_results = validator(self.decomposed_graph, n)
                     if validator_results:
-
-                        # TODO do this for all patterns that have these attrs
-                        # defined, not just bubbles. (Really, everything except
-                        # for frayed ropes, which are top-level-only patterns.)
-                        if ptype == "bubble":
-                            # There is a start and end node in this pattern
-                            # that we may want to duplicate. See issue #84 on
-                            # GitHub for lots and lots of details.
-                            p = self.add_bubble(
-                                validator_results.nodes,
-                                validator_results.start_node,
-                                validator_results.end_node,
-                            )
-                        else:
-                            p = self.add_pattern(
-                                validator_results.nodes, ptype
-                            )
-
-                        collection.append(p)
-                        candidate_nodes.append(p.pattern_id)
-                        self.pattid2obj[p.pattern_id] = p
-                        for pn in p.node_ids:
-                            # Remove nodes if they're in candidate nodes. There
-                            # may be nodes in this pattern not in candidate
-                            # nodes, e.g. if duplication was done. In that case
-                            # no need to do anything for those nodes.
-                            # This should perform decently; see
-                            # https://stackoverflow.com/a/4915964/10730311.
-                            try:
-                                candidate_nodes.remove(pn)
-                            except ValueError:
-                                continue
+                        # Yes, it does!
+                        # TODO add this (merge from add_bubble / add_pattern
+                        # funcs): do splitting on start and end.
+                        pobj = self.add_start_end_pattern(validator_results)
+                        collection.append(pobj)
+                        candidate_nodes.append(pobj.pattern_id)
+                        self.pattid2obj[pobj.pattern_id] = pobj
+                        for pn in pobj.node_ids:
+                            # Remove child nodes of this pattern from
+                            # consideration as future start nodes of other
+                            # patterns.
+                            candidate_nodes.remove(pn)
+                        # TODO: add split node(s) back to candidate_nodes here!
+                        # And the node(s) that they are adjacent to i guess
+                        # (but not including this particular pattern,
+                        # right...? I don't think so, but I'm not 100% sure.)
                         something_collapsed = True
                     else:
                         # If the pattern was invalid, we still need to
                         # remove n
                         candidate_nodes.remove(n)
+                # At this point, we've considered all possible start nodes --
+                # we're done identifying patterns of this type, at least for
+                # now. (Oh, TODO -- I guess we need to adjust this to reflect
+                # the plans I had written down -- when we return to a node,
+                # check it for *all* types of patterns (bulge, chain, bubble,
+                # cyclic chain), rather than only checking it once. I guess
+                # we'd switch the loop so that the while len(candidate...)
+                # thing is the outermost one, and then we just go through the
+                # validators for each node? Yeah, and then we can remove the
+                # outermost "while True", I guess.
             if not something_collapsed:
                 # We didn't collapse anything... so we're done here! We can't
                 # do any more.
