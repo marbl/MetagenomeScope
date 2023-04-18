@@ -21,7 +21,7 @@
 from collections import Counter
 import pytest
 
-from metagenomescope import input_node_utils, config
+from metagenomescope import input_node_utils
 from metagenomescope.tests import utils
 
 

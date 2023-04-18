@@ -17,9 +17,6 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from metagenomescope.errors import WeirdError
-
-
 class Edge(object):
     """Represents an edge in an assembly graph.
 

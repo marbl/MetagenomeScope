@@ -3,9 +3,7 @@ from metagenomescope.graph import AssemblyGraph
 
 
 def test_ccs_avoided_due_to_max_node_ct(capsys):
-    ag = AssemblyGraph(
-        "metagenomescope/tests/input/sample1.gfa", max_node_count=2
-    )
+    AssemblyGraph("metagenomescope/tests/input/sample1.gfa", max_node_count=2)
     # For now, just check the print messages.
     # https://docs.pytest.org/en/stable/capture.html
     captured = capsys.readouterr()

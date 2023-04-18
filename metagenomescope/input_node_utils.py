@@ -1,6 +1,3 @@
-from . import config
-
-
 def gc_content(dna_string):
     """Returns the GC content (as a float in the range [0, 1]) of a string of
     DNA, in a 2-tuple with the second element of the tuple being the

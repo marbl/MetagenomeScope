@@ -9,7 +9,6 @@
 # refactor this codebase one more time I think my brain is going to leap out of
 # my head and punch me in the face.
 from metagenomescope.graph import AssemblyGraph
-import pytest
 
 
 def test_check_attrs_node():

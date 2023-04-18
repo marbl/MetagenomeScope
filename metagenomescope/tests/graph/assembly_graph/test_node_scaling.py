@@ -1,7 +1,7 @@
 from metagenomescope.graph import AssemblyGraph
 from metagenomescope.input_node_utils import negate_node_id
 from metagenomescope import config
-from pytest import approx, raises
+from pytest import approx
 
 
 def test_scale_nodes():
