@@ -55,6 +55,7 @@ class ValidationResults(object):
             raise WeirdError(
                 f"Start node = {start_node} but end node = {end_node}?"
             )
+        self.has_start_end = start_node is not None
         self.start_node = start_node
         self.end_node = end_node
 

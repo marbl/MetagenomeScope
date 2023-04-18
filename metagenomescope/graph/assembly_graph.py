@@ -107,9 +107,11 @@ class AssemblyGraph(object):
         # objects' unique IDs.
         self._init_graph_objs()
 
-        # Number of nodes in the graph, including patterns and duplicate nodes.
-        # Used for assigning new unique node IDs.
-        self.num_nodes = len(self.graph)
+        # Number of nodes, edges, and patterns in the graph, including things
+        # like fake edges and split nodes. (This will actually count both the
+        # "original" node before splitting and its left and right split; that's
+        # fine.) This number is used when generating new unique node IDs.
+        self.num_objs = len(self.nodeid2obj) + len(self.edgeid2obj)
 
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
@@ -204,7 +206,9 @@ class AssemblyGraph(object):
 
         nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
 
-        for ei, e in enumerate(self.graph.edges(data=True, keys=True)):
+        # Start edge IDs at ni + 1. This ensures that node and edge IDs are
+        # completely separate: node IDs span [0, ni]; edge IDs begin at ni + 1.
+        for ei, e in enumerate(self.graph.edges(data=True, keys=True), ni + 1):
             # e is a 4-tuple of (source ID, sink ID, key, data dict)
             self.edgeid2obj[ei] = Edge(ei, e[0], e[1], deepcopy(e[3]))
             self.extra_edge_attrs |= set(e[3].keys())
@@ -244,83 +248,28 @@ class AssemblyGraph(object):
                 "-maxn/-maxe parameters, or reducing the size of the graph."
             )
 
-    def _get_new_node_id(self):
-        """Returns an int guaranteed to be usable as a unique new node ID."""
+    def _get_new_unique_id(self):
+        """Returns an int guaranteed to be usable as a unique new ID.
+
+        We assign these unique IDs to nodes, edges, and patterns. We could
+        probably get away with letting there be some overlap between node and
+        edge IDs, but I don't want to even think about that stuff. So we ensure
+        that ANY two nodes, edges, or patterns (or one node and one edge, etc.)
+        have different unique IDs.
+        """
         # this is what they pay me the big bucks for, folks. this is home-grown
         # organic computer science right here
-        new_id = self.num_nodes
-        self.num_nodes += 1
+        new_id = self.num_objs
+        self.num_objs += 1
         return new_id
 
-    def _add_pattern(self, member_node_ids, pattern_type):
-        """Adds a pattern composed of a list of node IDs to the decomposed
-        DiGraph, and removes its children from the decomposed DiGraph.
-
-        Routes incoming edges to nodes within this pattern (from outside of the
-        pattern) to point to the pattern node, and routes outgoing edges from
-        nodes within this pattern (to outside of the pattern) to originate from
-        the pattern node.
-
-        Returns a new Pattern object.
-        """
-        pattern_id = self._get_new_node_id()
-
-        # Get incoming edges to this pattern
-        in_edges = self.decomposed_graph.in_edges(member_node_ids)
-        p_in_edges = list(
-            filter(lambda e: e[0] not in member_node_ids, in_edges)
-        )
-        # Get outgoing edges from this pattern
-        out_edges = self.decomposed_graph.out_edges(member_node_ids)
-        p_out_edges = list(
-            filter(lambda e: e[1] not in member_node_ids, out_edges)
-        )
-        # Add this pattern to the decomposed graph, with the same in/out
-        # nodes as in the subgraph of this pattern's nodes
-        self.decomposed_graph.add_node(pattern_id, pattern_type=pattern_type)
-        for e in p_in_edges:
-            edge_data = self.decomposed_graph.edges[e]
-            self.decomposed_graph.add_edge(e[0], pattern_id, **edge_data)
-        for e in p_out_edges:
-            edge_data = self.decomposed_graph.edges[e]
-            self.decomposed_graph.add_edge(pattern_id, e[1], **edge_data)
-
-        # Get the "induced subgraph" of just the first-level child nodes. Used
-        # for layout. We call .copy() because otherwise the node removal stuff
-        # from self.decomposed_graph will also remove nodes from subgraph.
-        subgraph = self.decomposed_graph.subgraph(member_node_ids).copy()
-
-        # Remove the children of this pattern from the decomposed DiGraph
-        # (they're not gone forever, of course! -- we should hold on a
-        # reference to everything, albeit sort of circuitously -- so the
-        # topmost pattern has a reference to its child nodes' and patterns'
-        # IDs, and these child pattern(s) will have references to their
-        # children node/pattern IDs, etc.)
-        self.decomposed_graph.remove_nodes_from(member_node_ids)
-
-        p = Pattern(pattern_id, pattern_type, member_node_ids, subgraph, self)
-        return p
-
-    def _add_bubble(self, member_node_ids, start_node_id, end_node_id):
-        """Adds a bubble composed of a list of node IDs to the decomposed
-        DiGraph, and removes its children from the decomposed DiGraph.
-
-        Additionally, this will check to see if the nodes corresponding to
-        start_node_id and end_node_id are themselves collapsed patterns
-        (for now they can only be other bubbles, but in theory any pattern with
-        a single starting and end node is kosher -- e.g. chains, cyclic
-        chains).
-
-        If the start node is already a collapsed pattern, this will
-        duplicate the end node of that pattern within this new bubble and
-        create a link accordingly. Similarly, if the end node is already a
-        collapsed pattern, this'll duplicate the start node of that bubble
-        in the new bubble.
+    def _add_start_end_pattern(self, validator_results, pattern_type):
+        """Adds a pattern (with start and end nodes) to the decomposed graph.
 
         Returns a new StartEndPattern object.
         """
-        pattern_id = self._get_new_node_id()
-        self.decomposed_graph.add_node(pattern_id, pattern_type="bubble")
+        pattern_id = self._get_new_unique_id()
+        self.decomposed_graph.add_node(pattern_id, pattern_type=pattern_type)
 
         if "pattern_type" in self.decomposed_graph.nodes[start_node_id]:
             # In the actual graph, create a new node that'll serve as the
@@ -332,7 +281,7 @@ class AssemblyGraph(object):
             # Get end node of the starting pattern, and duplicate it
             end_node_to_dup = self.pattid2obj[start_node_id].get_end_node()
             data = self.graph.nodes[end_node_to_dup]
-            new_node_id = self._get_new_node_id()
+            new_node_id = self._get_new_unique_id()
             self.graph.add_node(new_node_id, is_dup=True, **data)
 
             # Duplicate outgoing edges of the duplicated node in the original
@@ -384,7 +333,7 @@ class AssemblyGraph(object):
             # Get start node of the ending pattern, and duplicate it
             start_node_to_dup = self.pattid2obj[end_node_id].get_start_node()
             data = self.graph.nodes[start_node_to_dup]
-            new_node_id = self._get_new_node_id()
+            new_node_id = self._get_new_unique_id()
             self.graph.add_node(new_node_id, is_dup=True, **data)
 
             # Duplicate incoming edges of the duplicated node
@@ -451,9 +400,9 @@ class AssemblyGraph(object):
         # Remove the children of this pattern from the decomposed DiGraph.
         self.decomposed_graph.remove_nodes_from(member_node_ids)
 
-        p = StartEndPattern(
+        p = Pattern(
             pattern_id,
-            "bubble",
+            pattern_type,
             member_node_ids,
             start_node_id,
             end_node_id,
@@ -480,13 +429,13 @@ class AssemblyGraph(object):
             # I think identifying bulges and chains first makes sense, if
             # nothing else.
             for collection, validator, ptype in (
-                (self.bubbles, validators.is_valid_bulge, "bubble"),
-                (self.chains, validators.is_valid_chain, "chain"),
-                (self.bubbles, validators.is_valid_bubble, "bubble"),
+                (self.bubbles, validators.is_valid_bulge, config.PT_BUBBLE),
+                (self.chains, validators.is_valid_chain, config.PT_CHAIN),
+                (self.bubbles, validators.is_valid_bubble, config.PT_BUBBLE),
                 (
                     self.cyclic_chains,
                     validators.is_valid_cyclic_chain,
-                    "cyclicchain",
+                    config.PT_CYCLICCHAIN,
                 ),
             ):
                 # We sort the nodes in order to make this deterministic
@@ -500,7 +449,9 @@ class AssemblyGraph(object):
                         # Yes, it does!
                         # TODO add this (merge from _add_bubble / _add_pattern
                         # funcs): do splitting on start and end.
-                        pobj = self.add_start_end_pattern(validator_results)
+                        pobj = self._add_start_end_pattern(
+                            validator_results, ptype
+                        )
                         collection.append(pobj)
                         candidate_nodes.append(pobj.pattern_id)
                         self.pattid2obj[pobj.pattern_id] = pobj
@@ -865,8 +816,8 @@ class AssemblyGraph(object):
         this'll throw an error -- mostly to prevent me from messing things
         up and this silently returning False or whatever. Programming is hard!
         """
-        if node_id >= self.num_nodes or node_id < 0:
-            raise ValueError("Node ID {} seems out of range.".format(node_id))
+        if node_id >= self.num_objs or node_id < 0:
+            raise WeirdError(f"Node ID {node_id} seems out of range.")
         return node_id in self.pattid2obj
 
     def get_connected_components(self):

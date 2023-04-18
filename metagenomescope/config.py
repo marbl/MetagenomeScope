@@ -225,6 +225,20 @@ SPLIT_SEP = "-"
 SPLIT_LEFT = "L"
 SPLIT_RIGHT = "R"
 
+# Pattern types -- used internally.
+PT_BUBBLE = 0
+PT_ROPE = 1
+PT_CHAIN = 2
+PT_CYCLICCHAIN = 3
+
+# Maps pattern types to human-readable names.
+PT2HR = {
+    PT_BUBBLE: "Bubble",
+    PT_ROPE: "Frayed Rope",
+    PT_CHAIN: "Chain",
+    PT_CYCLICCHAIN: "Cyclic Chain",
+}
+
 # Various status messages/message within the graph prefixes that are displayed
 # to the user.
 USERBUBBLES_SEARCH_MSG = "Identifying user-specified bubbles in the graph..."

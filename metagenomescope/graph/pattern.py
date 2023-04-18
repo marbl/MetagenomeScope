@@ -18,27 +18,69 @@
 
 
 import pygraphviz
+import networkx as nx
+from .node import Node
+from . import validators, assembly_graph
 from metagenomescope import config, layout_utils
+from metagenomescope.errors import WeirdError
 
 
-class Pattern(object):
+def check_vr(vr):
+    if not vr:
+        raise WeirdError(
+            "Can't create a Pattern from False ValidationResults?"
+        )
+
+
+class Pattern(Node):
+    """Represents a pattern in an assembly graph."""
+
     def __init__(
-        self, pattern_id, pattern_type, node_ids, subgraph, asm_graph
+        self,
+        unique_id: int,
+        pattern_type: str,
+        validation_results: validators.ValidationResults,
+        subgraph: nx.MultiDiGraph,
+        asm_graph: assembly_graph.AssemblyGraph,
     ):
-        self.pattern_id = pattern_id
+        """Initializes this Pattern object.
+
+        Parameters
+        ----------
+        unique_id: int
+            Unique (with respect to all other nodes, edges, and patterns in
+            the assembly graph) integer ID of this pattern.
+
+        pattern_type: str
+            Type of this pattern. Should be one of the config.PT_* variables
+            (e.g. config.PT_BUBBLE) -- at the very least, this should have an
+            entry in PT2HR.
+
+        validation_results: validators.ValidationResults
+            Results from successfully validating this pattern in the assembly
+            graph.
+
+        subgraph: nx.MultiDiGraph
+            Induced subgraph of the nodes (including collapsed patterns) and
+            edges in this pattern. TODO: do we need to have this here...?
+            Couldn't we just save the reference to the AssemblyGraph?
+
+        asm_graph: assembly_graph.AssemblyGraph
+            Reference to the assembly graph to which this pattern is being
+            added.
+        """
+        self.unique_id = unique_id
         self.pattern_type = pattern_type
-        self.node_ids = node_ids
         self.subgraph = subgraph
 
-        # Will be filled in after calling self.layout(). Stored in points.
-        self.width = None
-        self.height = None
-
-        # Will be filled in after either the parent pattern of this pattern is
-        # laid out, or the entire graph is laid out (if this pattern has no
-        # parent). Stored in points.
-        self.relative_x = None
-        self.relative_y = None
+        check_vr(validation_results)
+        if validation_results.has_start_end:
+            self.start_node = validation_results.start_node
+            self.end_node = validation_results.end_node
+        else:
+            self.start_node = None
+            self.end_node = None
+        self.node_ids = validation_results.nodes
 
         # Will be filled in after performing top-level AssemblyGraph layout,
         # when self.set_bb() is called. Stored in points.
@@ -47,23 +89,14 @@ class Pattern(object):
         self.right = None
         self.top = None
 
-        # ID of the pattern containing this pattern, or None if this pattern
-        # exists in the top level of the graph.
-        self.parent_id = None
-
-        # Number (1-indexed) of the connected component containing this pattern
-        # and its child nodes/edges. Will be set in layout().
-        self.cc_num = None
-
-        # Update parent ID info for child nodes, patterns, and edges
+        # Update parent ID info for child patterns, nodes, and edges
         for node_id in self.node_ids:
             if asm_graph.is_pattern(node_id):
-                asm_graph.pattid2obj[node_id].parent_id = self.pattern_id
+                asm_graph.pattid2obj[node_id].parent_id = self.unique_id
             else:
-                asm_graph.graph.nodes[node_id]["parent_id"] = self.pattern_id
-
+                asm_graph.nodeid2obj[node_id].parent_id = self.unique_id
         for edge in self.subgraph.edges:
-            self.subgraph.edges[edge]["parent_id"] = self.pattern_id
+            asm_graph.edgeid2obj[edge["id"]].parent_id = self.unique_id
 
         # This is the shape used for this pattern during layout. In the actual
         # end visualization we might use different shapes for collapsed
@@ -72,9 +105,18 @@ class Pattern(object):
         # by the rectangle, so just using a rectangle for layout should be ok.
         self.shape = "rectangle"
 
+        # Use the Node constructor to initialize the rest of the stuff we need
+        # for this pattern (width, height, etc.)
+        #
+        # For now, we just set this pattern's "name" as a string version of its
+        # unique ID. I don't think we'll pass this on to the visualization
+        # interface for patterns, so it doesn't really matter -- but maybe we
+        # can eventually make these names fancy (e.g. "Bubble #50").
+        super().__init__(unique_id, str(unique_id), {})
+
     def __repr__(self):
         return "{} (ID {}) of nodes {}".format(
-            self.pattern_type, self.pattern_id, self.node_ids
+            self.pattern_type, self.unique_id, self.node_ids
         )
 
     def get_counts(self, asm_graph):
@@ -105,9 +147,9 @@ class Pattern(object):
             if asm_graph.is_pattern(node_id):
                 asm_graph.pattid2obj[node_id].set_cc_num(asm_graph, cc_num)
             else:
-                asm_graph.graph.nodes[node_id]["cc_num"] = cc_num
+                asm_graph.nodeid2obj[node_id].cc_num = cc_num
         for edge in self.subgraph.edges:
-            self.subgraph.edges[edge]["cc_num"] = cc_num
+            asm_graph.edgeid2obj[edge["id"]].cc_num = cc_num
 
     def layout(self, asm_graph):
         # Recursively go through all of the nodes within this pattern. If any
@@ -190,7 +232,7 @@ class Pattern(object):
         for edge in self.subgraph.edges:
             cg_edge = cg.get_edge(*edge)
             coords = layout_utils.get_control_points(cg_edge.attr["pos"])
-            self.subgraph.edges[edge]["relative_ctrl_pt_coords"] = coords
+            asm_graph.edgeid2obj[edge["id"]].relative_ctrl_pt_coords = coords
 
     def set_bb(self, x, y):
         """Given a center position of this Pattern, sets its bounding box.
@@ -204,35 +246,3 @@ class Pattern(object):
         self.right = x + half_w
         self.bottom = y - half_h
         self.top = y + half_h
-
-
-class StartEndPattern(Pattern):
-    """A more specific Pattern with defined individual start/end nodes.
-
-    As of writing, most types of patterns should be StartEndPatterns. The only
-    exception is frayed ropes, which by definition do not have single start/end
-    nodes. (I guess we could adjust this to work with multiple start/end nodes,
-    but that sounds unnecessarily complicated. Maybe if people ask for it.)
-    """
-
-    def __init__(
-        self,
-        pattern_id,
-        pattern_type,
-        node_ids,
-        start_node_id,
-        end_node_id,
-        subgraph,
-        asm_graph,
-    ):
-        self.start_node_id = start_node_id
-        self.end_node_id = end_node_id
-        super().__init__(
-            pattern_id, pattern_type, node_ids, subgraph, asm_graph
-        )
-
-    def get_start_node(self):
-        return self.start_node_id
-
-    def get_end_node(self):
-        return self.end_node_id
