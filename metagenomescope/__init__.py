@@ -19,24 +19,28 @@
 # Import submodules so they're easy to see from REPL
 from . import (
     arg_utils,
-    parsers,
     config,
+    errors,
     file_utils,
+    graph,
     input_node_utils,
     layout_utils,
     msg_utils,
+    parsers,
 )
 
 # ... And explicitly declare them in __all__. This will stop flake8 from
 # yelling at us about these imports being unused.
 __all__ = [
     "arg_utils",
-    "parsers",
     "config",
+    "errors",
     "file_utils",
+    "graph",
     "input_node_utils",
     "layout_utils",
     "msg_utils",
+    "parsers",
 ]
 
 __version__ = "0.1.0-dev"

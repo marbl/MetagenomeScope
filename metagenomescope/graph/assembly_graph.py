@@ -927,6 +927,7 @@ class AssemblyGraph(object):
         return [(ccs[t[0]], t[1], t[2]) for t in sorted_indices_and_cts]
 
     def layout(self):
+        """Lays out the assembly graph."""
         operation_msg("Laying out the graph...", True)
         self._layout()
         operation_msg("...Finished laying out the graph.", True)
