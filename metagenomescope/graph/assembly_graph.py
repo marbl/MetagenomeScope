@@ -29,11 +29,10 @@ class AssemblyGraph(object):
 
     The .graph object describes the input assembly graph structure. As we split
     the boundary nodes of certain patterns (replacing a node N with the "fake
-    edge" N-L ==> N-R), we will update the .graph object to remove the old node
-    and add in the new nodes and edge. However, the .graph object will only
-    include nodes and edges -- it will not include pattern nodes. The .graph
-    object, after decomposition is done, thus represents the "fully
-    uncollapsed" graph.
+    edge" N-L ==> N-R), we will update the .graph object to add in the new node
+    and edge. However, the .graph object will only include nodes and edges --
+    it will not include pattern nodes. The .graph object, after decomposition
+    is done, thus represents the "fully uncollapsed" graph.
 
     The .decomposed_graph object describes the "top-level" assembly graph
     structure. As we identify patterns in the graph, we will remove these nodes
@@ -116,13 +115,12 @@ class AssemblyGraph(object):
         self.extra_edge_attrs = set()
 
         # Number of nodes, edges, and patterns in the graph, including things
-        # like fake edges and split nodes. (This will actually count both the
-        # "original" node before splitting and its left and right split; that's
-        # fine.) This number is used when generating new unique node IDs.
+        # like fake edges and split nodes. This number is used when generating
+        # new unique node IDs.
         self.num_objs = 0
 
         # Populate self.nodeid2obj and self.edgeid2obj, re-label nodes in
-        # the graph, and add an "id" attribute for edges in the graph. This
+        # the graph, and add an "uid" attribute for edges in the graph. This
         # way, we can easily associate nodes and edges with their corresponding
         # objects' unique IDs.
         self._init_graph_objs()
@@ -200,7 +198,7 @@ class AssemblyGraph(object):
         corresponding Node and Edge objects' .data attributes).
 
         Finally, this relabels nodes in the graph to match their corresponding
-        Node object's unique_id; and adds an "id" attribute to edges' NetworkX
+        Node object's unique_id; and adds an "uid" attribute to edges' NetworkX
         data that matches their corresponding Edge object's unique_id.
 
         Notes
@@ -211,7 +209,7 @@ class AssemblyGraph(object):
         """
         oldid2uniqueid = {}
         for node_name in self.graph.nodes:
-            node_id = self._get_new_unique_id()
+            node_id = self._get_unique_id()
             data = deepcopy(self.graph.nodes[node_name])
             self.nodeid2obj[node_id] = Node(node_id, node_name, data)
             self.extra_node_attrs |= set(data.keys())
@@ -227,7 +225,7 @@ class AssemblyGraph(object):
         nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
 
         for e in self.graph.edges(data=True, keys=True):
-            edge_id = self._get_new_unique_id()
+            edge_id = self._get_unique_id()
             # e is a 4-tuple of (source ID, sink ID, key, data dict)
             self.edgeid2obj[edge_id] = Edge(
                 edge_id, e[0], e[1], deepcopy(e[3])
@@ -238,7 +236,7 @@ class AssemblyGraph(object):
             # Edges in NetworkX don't really have "IDs," but we can use the
             # (now-cleared) data dict in the graph to store their ID. This will
             # make it easy to associate this edge with its Edge object.
-            self.graph.edges[e[0], e[1], e[2]]["id"] = edge_id
+            self.graph.edges[e[0], e[1], e[2]]["uid"] = edge_id
 
     def _remove_too_large_components(self):
         """Removes too-large components from the graph early on.
@@ -278,7 +276,7 @@ class AssemblyGraph(object):
                 "-maxn/-maxe parameters, or reducing the size of the graph."
             )
 
-    def _get_new_unique_id(self):
+    def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.
 
         We assign these unique IDs to nodes, edges, and patterns. We could
@@ -302,183 +300,197 @@ class AssemblyGraph(object):
             Results from validating this pattern in the assembly graph. We
             assume that this is the result of a *successful* validation, i.e.
             the is_valid attribute of this is True. This may or may not have
-            start/end nodes defined (both work).
+            start/end nodes defined.
 
         pattern_type: int
             The type of this pattern -- should have an entry in config.PT2HR.
 
         Returns
         -------
-        pattern.Pattern
+        (Pattern, int or None, int or None): (pattern, left ID, right ID)
         """
-        pattern_id = self._get_new_unique_id()
+        pattern_id = self._get_unique_id()
         self.decomposed_graph.add_node(pattern_id)
+        patt_nodes = set(validation_results.nodes)
+
+        # We may need to create new Nodes (one if we split the start node of
+        # the pattern, and one if we split the end node of the pattern --
+        # assuming that the pattern has individual start/end nodes). We'll
+        # store these new Nodes' IDs in these variables, and return them.
+        left_node_id = None
+        right_node_id = None
 
         if validation_results.has_start_end:
-            # Do we need to split the left node of this pattern?
-            start_incoming_nodes_from_outside_pattern = set(
-                self.decomposed_graph.pred[validation_results.start_node]
-            ) - set(validation_results.nodes)
-            if len(start_incoming_nodes_from_outside_pattern) > 0:
-                # yeah
-                new_node = self._get_unique_id()
-                # TODO DO SPLITTING HERE
 
-            # Split the left node of this pattern
-            # Split the right node of this pattern
+            # Do we need to split the start node of this pattern?
+            start_id = validation_results.start_node
+            start_pred = self.decomposed_graph.pred[start_id]
+            start_incoming_nodes_outside_pattern = set(start_pred) - patt_nodes
 
-            # Do splitting: left, right (only if needed, i.e. has incoming/outgoing
-            # edges outside the pattern)
+            if len(start_incoming_nodes_outside_pattern) > 0:
+                # Since this start node has incoming edge(s) from outside the
+                # pattern, we need to split it.
+                # We'll create a new Node for the left split (in the diagram
+                # below, "1-L"), and change the existing Node into the right
+                # split (in the diagram below, "1-R").
 
-            # Add split nodes to the original graph, and remove "full" nodes
-
-            # Reroute edges (both in graph, and in edge objects)
-
-        # for the love of god, see if we can avoid passing subgraphs to pattern
-        # objects
-
-        if "pattern_type" in self.decomposed_graph.nodes[start_node_id]:
-            # In the actual graph, create a new node that'll serve as the
-            # "duplicate" of this node within the new pattern we're creating.
-            # Shares all data, and holds the outgoing edges of the original
-            # node -- all of these outgoing edges should be _within_ this new
-            # pattern.
-
-            # Get end node of the starting pattern, and duplicate it
-            end_node_to_dup = self.pattid2obj[start_node_id].get_end_node()
-            data = self.graph.nodes[end_node_to_dup]
-            new_node_id = self._get_new_unique_id()
-            self.graph.add_node(new_node_id, is_dup=True, **data)
-
-            # Duplicate outgoing edges of the duplicated node in the original
-            # graph
-            for edge in list(self.graph.out_edges(end_node_to_dup)):
-                edge_data = self.graph.edges[edge]
-                edge_data["orig_src"] = new_node_id
-                self.graph.add_edge(new_node_id, edge[1], **edge_data)
-                self.graph.remove_edge(end_node_to_dup, edge[1])
-
-            # Duplicate outgoing edges of the duplicated node in the decomposed
-            # graph
-            for edge in list(self.decomposed_graph.out_edges(start_node_id)):
-                edge_data = self.decomposed_graph.edges[edge]
-                edge_data["orig_src"] = new_node_id
-                self.decomposed_graph.add_edge(
-                    new_node_id, edge[1], **edge_data
+                #    BEFORE     |          AFTER
+                #         2     |                     2
+                #        / \    |                    / \
+                # 0 --> 1   4   |   0 --> 1-L ==> 1-R   4
+                #        \ /    |                    \ /
+                #         3     |                     3
+                # NOTE: Deep copying the data here is probably unnecessary,
+                # since I don't think we'll ever *want* it to be different
+                # between a node and its split copy. But whatever.
+                start_node = self.nodeid2obj[start_id]
+                left_node_id = self._get_unique_id()
+                self.nodeid2obj[left_node_id] = Node(
+                    left_node_id,
+                    start_node.name,
+                    deepcopy(self.nodeid2obj[start_id].data),
+                    split=config.SPLIT_LEFT,
                 )
-                self.decomposed_graph.remove_edge(start_node_id, edge[1])
-                # NOTE: Removing edges from the decomposed graph should be
-                # unnecessary, since edge[1] and all of the other nodes within
-                # this pattern (ignoring start_node_id) will be removed from
-                # the decomposed graph at the end of this function
-                # self.decomposed_graph.remove_edge(start_node_id, edge[1])
+                # TODO: This is hacky. Ideally, add a new __init__() method to
+                # Node that takes as input an existing Node and copies its
+                # internal data over. Or, just add a helper function that does
+                # this. Also see below.
+                self.nodeid2obj[
+                    left_node_id
+                ].relative_length = start_node.relative_length
+                self.nodeid2obj[
+                    left_node_id
+                ].longside_proportion = start_node.longside_proportion
+                self.graph.add_node(left_node_id)
+                self.nodeid2obj[start_id].make_into_right_split()
+                # Route edges from start_incoming_nodes_outside_pattern to
+                # the left node
+                for incoming_node_id in start_incoming_nodes_outside_pattern:
+                    for edge_key in start_pred[incoming_node_id]:
+                        e_uid = self.graph.edges[
+                            incoming_node_id, start_id, edge_key
+                        ]["uid"]
+                        self.edgeid2obj[e_uid].reroute_tgt(left_node_id)
+                        self.edgeid2obj[e_uid].reroute_dec_tgt(pattern_id)
+                        # We keep the edge ID the same, so ... even though we
+                        # reroute it in self.graph, this is still the same edge.
+                        self.graph.add_edge(
+                            incoming_node_id, left_node_id, uid=e_uid
+                        )
+                        self.graph.remove_edge(
+                            incoming_node_id, start_id, edge_key
+                        )
 
-            # In the normal graph, link the node and its duplicate
-            self.graph.add_edge(
-                end_node_to_dup,
-                new_node_id,
-                is_dup=True,
-                orig_src=end_node_to_dup,
-                orig_tgt=new_node_id,
-            )
-            # In the decomposed graph, link the starting pattern with the
-            # curr pattern.
-            self.decomposed_graph.add_edge(
-                start_node_id,
-                pattern_id,
-                is_dup=True,
-                orig_src=end_node_to_dup,
-                orig_tgt=new_node_id,
-            )
+                # All other edges (mostly outgoing edges, but maybe incoming
+                # edges from within the pattern) will be routed by default to
+                # the right node. Because... the right node is just the
+                # original node, but renamed! Cool.
 
-            member_node_ids.remove(start_node_id)
-            member_node_ids.append(new_node_id)
-            start_node_id = new_node_id
-
-        if "pattern_type" in self.decomposed_graph.nodes[end_node_id]:
-            # Get start node of the ending pattern, and duplicate it
-            start_node_to_dup = self.pattid2obj[end_node_id].get_start_node()
-            data = self.graph.nodes[start_node_to_dup]
-            new_node_id = self._get_new_unique_id()
-            self.graph.add_node(new_node_id, is_dup=True, **data)
-
-            # Duplicate incoming edges of the duplicated node
-            for edge in list(self.graph.in_edges(start_node_to_dup)):
-                edge_data = self.graph.edges[edge]
-                edge_data["orig_tgt"] = new_node_id
-                # Update the original nodes in the plain graph to point to
-                # the new duplicate. And update the nodes in the decomposed
-                # graph -- they'll be removed soon anyway, but we do this
-                # so that the subgraph is accurate)
-                self.graph.add_edge(edge[0], new_node_id, **edge_data)
-                self.graph.remove_edge(edge[0], start_node_to_dup)
-                # See comment in the above block (for replacing the start node)
-                # about this
-                # self.decomposed_graph.remove_edge(edge[0], end_node_id)
-
-            for edge in list(self.decomposed_graph.in_edges(end_node_id)):
-                edge_data = self.decomposed_graph.edges[edge]
-                edge_data["orig_tgt"] = new_node_id
-                self.decomposed_graph.add_edge(
-                    edge[0], new_node_id, **edge_data
+                # Add a fake edge between the left and right node
+                fake_edge_id = self._get_unique_id()
+                fake_edge = Edge(
+                    fake_edge_id, left_node_id, start_id, {}, is_fake=True
                 )
-                self.decomposed_graph.remove_edge(edge[0], end_node_id)
+                self.edgeid2obj[fake_edge_id] = fake_edge
+                self.graph.add_edge(left_node_id, start_id, uid=fake_edge_id)
+                self.decomposed_graph.add_edge(
+                    left_node_id, pattern_id, uid=fake_edge_id
+                )
 
-            self.graph.add_edge(
-                new_node_id,
-                start_node_to_dup,
-                is_dup=True,
-                orig_src=new_node_id,
-                orig_tgt=start_node_to_dup,
-            )
-            self.decomposed_graph.add_edge(
-                pattern_id,
-                end_node_id,
-                is_dup=True,
-                orig_src=new_node_id,
-                orig_tgt=start_node_to_dup,
-            )
+            # Do we need to split the end node of this pattern?
+            end_id = validation_results.end_node
+            end_adj = self.decomposed_graph.adj[end_id]
+            end_outgoing_nodes_outside_pattern = set(end_adj) - patt_nodes
 
-            member_node_ids.remove(end_node_id)
-            member_node_ids.append(new_node_id)
-            end_node_id = new_node_id
+            if len(end_outgoing_nodes_outside_pattern) > 0:
+                # Since this end node has outgoing edge(s) to outside the
+                # pattern, we need to split it.
+                # We'll create a new Node for the right split (in the diagram
+                # below, "4-R"), and change the existing Node into the left
+                # split (in the diagram below, "4-L").
 
-        # NOTE TODO abstract between this and prev func.
-        # Get incoming edges to this pattern
-        in_edges = self.decomposed_graph.in_edges(member_node_ids)
-        p_in_edges = list(
-            filter(lambda e: e[0] not in member_node_ids, in_edges)
-        )
-        # Get outgoing edges from this pattern
-        out_edges = self.decomposed_graph.out_edges(member_node_ids)
-        p_out_edges = list(
-            filter(lambda e: e[1] not in member_node_ids, out_edges)
-        )
+                #     BEFORE    |          AFTER
+                #   2           |     2
+                #  / \          |    / \
+                # 1   4 --> 5   |   1   4-L ==> 4-R --> 5
+                #  \ /          |    \ /
+                #   3           |     3
+                end_node = self.nodeid2obj[end_id]
+                right_node_id = self._get_unique_id()
+                self.nodeid2obj[right_node_id] = Node(
+                    right_node_id,
+                    end_node.name,
+                    deepcopy(self.nodeid2obj[end_id].data),
+                    split=config.SPLIT_RIGHT,
+                )
+                self.nodeid2obj[
+                    right_node_id
+                ].relative_length = end_node.relative_length
+                self.nodeid2obj[
+                    right_node_id
+                ].longside_proportion = end_node.longside_proportion
+                self.graph.add_node(right_node_id)
+                self.nodeid2obj[end_id].make_into_left_split()
+                # Route edges from the right node to
+                # end_outgoing_nodes_outside_pattern
+                for outgoing_node_id in end_outgoing_nodes_outside_pattern:
+                    for edge_key in end_adj[outgoing_node_id]:
+                        e_uid = self.graph.edges[
+                            end_id, outgoing_node_id, edge_key
+                        ]["uid"]
+                        self.edgeid2obj[e_uid].reroute_src(right_node_id)
+                        self.edgeid2obj[e_uid].reroute_dec_src(pattern_id)
+                        self.graph.add_edge(
+                            right_node_id, outgoing_node_id, uid=e_uid
+                        )
+                        self.graph.remove_edge(
+                            end_id, outgoing_node_id, edge_key
+                        )
+
+                # Add a fake edge between the left and right node
+                fake_edge_id = self._get_unique_id()
+                fake_edge = Edge(
+                    fake_edge_id, end_id, right_node_id, {}, is_fake=True
+                )
+                self.edgeid2obj[fake_edge_id] = fake_edge
+                self.graph.add_edge(end_id, right_node_id, uid=fake_edge_id)
+                self.decomposed_graph.add_edge(
+                    pattern_id, right_node_id, uid=fake_edge_id
+                )
+
+        # Route incoming edges to nodes in this pattern to this pattern, in the
+        # decomposed graph. I'm not sure this is necessary unless we didn't do
+        # splitting, or unless the pattern has weird incoming edges from
+        # outside nodes into its middle nodes or something. But let's be safe.
+        in_edges = self.decomposed_graph.in_edges(patt_nodes, keys=True)
+        p_in_edges = list(filter(lambda e: e[0] not in patt_nodes, in_edges))
         for e in p_in_edges:
-            edge_data = self.decomposed_graph.edges[e]
-            self.decomposed_graph.add_edge(e[0], pattern_id, **edge_data)
+            e_uid = self.decomposed_graph.edges[e]["uid"]
+            self.edgeid2obj[e_uid].reroute_dec_tgt(pattern_id)
+            self.decomposed_graph.add_edge(e[0], pattern_id, uid=e_uid)
+
+        # Route outgoing edges from nodes in this pattern to come from this
+        # pattern, in the decomposed graph
+        out_edges = self.decomposed_graph.out_edges(patt_nodes, keys=True)
+        p_out_edges = list(filter(lambda e: e[1] not in patt_nodes, out_edges))
         for e in p_out_edges:
-            edge_data = self.decomposed_graph.edges[e]
-            self.decomposed_graph.add_edge(pattern_id, e[1], **edge_data)
+            e_uid = self.decomposed_graph.edges[e]["uid"]
+            self.edgeid2obj[e_uid].reroute_dec_src(pattern_id)
+            self.decomposed_graph.add_edge(pattern_id, e[1], uid=e_uid)
 
-        subgraph = self.decomposed_graph.subgraph(member_node_ids).copy()
+        subgraph = self.decomposed_graph.subgraph(patt_nodes).copy()
 
-        # Remove the children of this pattern from the decomposed DiGraph.
-        self.decomposed_graph.remove_nodes_from(member_node_ids)
+        # Remove the children of this pattern (and any edges incident on them)
+        # from the decomposed DiGraph.
+        self.decomposed_graph.remove_nodes_from(patt_nodes)
 
+        # TODO: for the love of god, see if we can avoid passing subgraphs to
+        # pattern objects
         p = Pattern(
-            pattern_id,
-            pattern_type,
-            member_node_ids,
-            start_node_id,
-            end_node_id,
-            subgraph,
-            self,
+            pattern_id, pattern_type, validation_results, subgraph, self
         )
         self.pattid2obj[pattern_id] = p
-        # TODO return left/right split node IDs; replace with Nones if not
-        # created
-        return p
+        return p, left_node_id, right_node_id
 
     def _hierarchically_identify_patterns(self):
         """Run all of our pattern detection algorithms on the graph repeatedly.
@@ -526,7 +538,7 @@ class AssemblyGraph(object):
 
                     # Update AssemblyGraph-wide information about this new pattern
                     self.ptype2collection[ptype].append(pobj)
-                    self.pattid2obj[pobj.pattern_id] = pobj
+                    self.pattid2obj[pobj.unique_id] = pobj
 
                     # Remove child nodes of this pattern from consideration as
                     # future start nodes of other patterns. (Don't worry,
@@ -555,7 +567,7 @@ class AssemblyGraph(object):
                     # structures that starts at another node, though, which is
                     # why we add ls' predecessors.
                     if rs is not None:
-                        candidate_nodes.append(rs)
+                        candidate_nodes.add(rs)
                     if ls is not None:
                         for incoming_node in self.decomposed_graph.pred[ls]:
                             if incoming_node not in pobj.node_ids:
@@ -582,11 +594,13 @@ class AssemblyGraph(object):
                 # after finding a frayed rope, because we don't perform node
                 # splitting on frayed rope boundaries (at least, as of writing)
                 # and because frayed ropes can't be contained in other patterns
-                pobj, ls, rs = self._add_pattern(validation_results, config.PT_FRAYEDROPE)
+                pobj, ls, rs = self._add_pattern(
+                    validation_results, config.PT_FRAYEDROPE
+                )
                 pcollection.append(pobj)
 
-                self.ptype2collection[ptype].append(pobj)
-                self.pattid2obj[pobj.pattern_id] = pobj
+                self.frayed_ropes.append(pobj)
+                self.pattid2obj[pobj.unique_id] = pobj
 
                 for pn in pobj.node_ids:
                     candidate_nodes.discard(pn)
@@ -598,13 +612,20 @@ class AssemblyGraph(object):
     def get_node_lengths(self):
         """Returns a dict mapping node IDs to lengths.
 
-        If a node does not have a corresponding length available (or if it is
-        marked as a split node), then this node will not be represented in the
-        returned dict. If no nodes have lengths, this will return {}.
+        If a node does not have a corresponding length available, then this
+        node will not be represented in the returned dict. If no nodes have
+        lengths, this will return {}.
+
+        This will raise a WeirdError if we see any split nodes in the graph.
+        You should call this before doing the pattern decomposition stuff!
         """
         lengths = {}
         for ni, n in self.nodeid2obj.items():
-            if n.split is None and "length" in n.data:
+            if n.split is not None:
+                raise WeirdError(
+                    "Split nodes shouldn't exist in the graph yet."
+                )
+            if "length" in n.data:
                 lengths[ni] = n.data["length"]
         return lengths
 

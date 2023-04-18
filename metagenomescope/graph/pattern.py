@@ -92,8 +92,8 @@ class Pattern(Node):
                 asm_graph.pattid2obj[node_id].parent_id = self.unique_id
             else:
                 asm_graph.nodeid2obj[node_id].parent_id = self.unique_id
-        for edge in self.subgraph.edges:
-            asm_graph.edgeid2obj[edge["id"]].parent_id = self.unique_id
+        for edge in self.subgraph.edges(data=True):
+            asm_graph.edgeid2obj[edge[2]["uid"]].parent_id = self.unique_id
 
         # This is the shape used for this pattern during layout. In the actual
         # end visualization we might use different shapes for collapsed

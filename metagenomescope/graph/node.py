@@ -68,13 +68,12 @@ class Node(object):
             If this is given, this should be either SPLIT_LEFT or SPLIT_RIGHT.
             SPLIT_LEFT indicates that this is a "left split" node, SPLIT_RIGHT
             indicates that this is a "right split" node, and None indicates
-            that this is not a split node (I'm going to label these non-split
-            nodes as "full," just for the sake of clarity -- see the Edge
+            that this is not a split node yet (I'm going to label these non-
+            split nodes as "full," just for the sake of clarity -- see the Edge
             object docs for details). Note that a Node that has a split value
             of None could, later on in the decomposition process, be split up.
-            Such a change should be reflected in two new Nodes being created
-            (rather than the original Node being modified), although that sort
-            of behavior is up to the AssemblyGraph code.
+            You should do this by calling the .make_into_left_split() /
+            .make_into_right_split() functions on this Node.
         """
         self.unique_id = unique_id
         self.name = get_node_name(name, split)
@@ -109,3 +108,17 @@ class Node(object):
 
     def __repr__(self):
         return f"Node {self.unique_id}"
+
+    def _make_into_split(self, split_type):
+        if self.split is not None:
+            raise WeirdError(
+                f"This Node's .split attr is already {self.split}?"
+            )
+        self.split = split_type
+        self.name = get_node_name(self.name, self.split)
+
+    def make_into_left_split(self):
+        self._make_into_split(SPLIT_LEFT)
+
+    def make_into_right_split(self):
+        self._make_into_split(SPLIT_RIGHT)

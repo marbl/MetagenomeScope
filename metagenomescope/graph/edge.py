@@ -34,9 +34,9 @@ class Edge(object):
 
     1. The original source and target ID of an edge. Usually, these should
        correspond to the IDs of full nodes in the input assembly graph,
-       but -- if this edge is fake -- then both of these IDs should
-       correspond to split nodes (the source should be the left split node,
-       and the target should be the right split node).
+       but -- if this edge is fake -- then these IDs should correspond to
+       split nodes (the source should be the left split node, and the target
+       should be the right split node).
 
        These attributes are controlled by the orig_src_id and orig_tgt_id
        parameters of this function, and will be stored in the identically-
@@ -46,15 +46,16 @@ class Edge(object):
     2. The rerouted source and target ID of an edge. These should still
        correspond to node IDs (either full nodes or split nodes); however,
        they should be changed as we perform node splitting. For example, if
-       an edge points from node 1 to node 2, but node 2 gets split into
-       nodes 3 and 4, then the edge should be rerouted to point from node
-       1 to node 3.
+       an edge points from node 1 to node 2, and we determine that node 2 is
+       the starting node of a pattern (so it gets split into 2-L ==> 2-R),
+       then the edge should be rerouted to point from node 1 to node 2-L. (This
+       is assuming that node 2's pattern doesn't contain node 1. If it did,
+       then we'd route the edge from node 1 to node 2-R.)
 
        Note that we still don't have any conception of "patterns" at this
        level. If you draw out all the edges in the graph at this level
        (and just the nodes that they are incident on), then you'd see the
-       original graph -- albeit with some nodes replaced by their two split
-       nodes.
+       original graph -- albeit with some split nodes and fake edges.
 
        These attributes are controlled by the new_src_id and new_tgt_id
        parameters of this function. You can update them using the
@@ -98,8 +99,8 @@ class Edge(object):
         data: dict
             Maps field names (e.g. "length", "multiplicity", ...) to their
             values for this edge. The amount of this data will vary based
-            on the input assembly graph's filetype (if no data is available for
-            this edge, this can be an empty dict).
+            on the input assembly graph's filetype and if this edge is fake
+            (if no data is available for this edge, this can be an empty dict).
 
         is_fake: bool
             If False, this indicates that this edge connects two distinct nodes.
