@@ -242,7 +242,7 @@ def is_valid_frayed_rope(g, start_node_id):
         return ValidationResults()
 
     # If we've made it here, this frayed rope is valid!
-    return ValidationResults(config.PT_ROPE, True, composite)
+    return ValidationResults(config.PT_FRAYEDROPE, True, composite)
 
 
 def is_valid_cyclic_chain(g, start_node_id):
