@@ -480,111 +480,120 @@ class AssemblyGraph(object):
         # created
         return p
 
-    def _search_for_pattern_type(self, candidate_nodes, validator, ptype):
-        while len(candidate_nodes) > 0:
-            # Check to see if a bulge starts at n.
-            n = candidate_nodes[0]
-            validation_results = validator(self.decomposed_graph, n)
-            if validation_results:
-                pobj, ls, rs = self._add_pattern(validation_results, ptype)
-
-                # Update AssemblyGraph-wide information about this new pattern
-                self.ptype2collection[ptype].append(pobj)
-                self.pattid2obj[pobj.pattern_id] = pobj
-
-                # Remove child nodes of this pattern from consideration as
-                # future start nodes of other patterns. (Don't worry,
-                # self._add_pattern() already takes care of removing them
-                # from the decomposed graph.)
-                for pn in pobj.node_ids:
-                    candidate_nodes.remove(pn)
-
-                # We don't need to add the new pattern object itself (or the
-                # left split node, ls) to candidate_nodes, but we should add
-                # the right split node, rs, if present. The reason for this:
-                # we know that the left split node and pattern node can't be
-                # the start of a chain, cyclic chain, bulge, bubble, or frayed
-                # rope. They could be located *within* one of these structures
-                # that starts at another node, but I don't think that is
-                # necessary here...? HMMMMMMMMMMMMMMMMMMmmmmmmmmmmmmmmm ugh idk
-                # OK maybe add the predecessors of ls also????? TODO TODO idk
-                candidate_nodes.append(rs)
-            else:
-                # If the pattern was invalid, we still need to remove n
-                candidate_nodes.remove(n)
-
     def _hierarchically_identify_patterns(self):
         """Run all of our pattern detection algorithms on the graph repeatedly.
 
         This is the main Fancy Thing we do, besides layout.
         """
-        # We sort the nodes in order to make this deterministic
-        # (I doubt the extra time cost from sorting will be a big deal)
-        candidate_nodes = sorted(list(self.decomposed_graph.nodes))
+        # The use of set here means that the order in which we go through nodes
+        # is technically arbitrary. However, I don't think this makes a big
+        # difference, if any...?
+        candidate_nodes = set(self.decomposed_graph.nodes)
+        while len(candidate_nodes) > 0:
+            n = candidate_nodes.pop()
+            # You could switch the order of this tuple up in order to
+            # change the "precedence" of pattern detection, if desired.
+            # I don't thiiiiink this should make a difference, due to (1)
+            # automatic boundary duplication for all non-frayed rope patterns
+            # and (2) the guarantee of minimality (each bulge, chain, bubble,
+            # and cyclic chain are guaranteed to not accidentally contain any
+            # not-detected smaller patterns within them).
+            #
+            # However, maybe the order could matter in a way that I'm not
+            # thinking of right now -- I mean, I haven't written out a formal
+            # proof or anything. Leave a comment at
+            # https://github.com/marbl/MetagenomeScope/issues/13 if you have
+            # opinions. If you don't have opinions but you're reading this
+            # anyway, please react to issue 13 with the :eyes: emoji because I
+            # think that would be funny.
+            for pcollection, validator, ptype in (
+                (self.bubbles, validators.is_valid_bulge, config.PT_BUBBLE),
+                (self.chains, validators.is_valid_chain, config.PT_CHAIN),
+                (self.bubbles, validators.is_valid_bubble, config.PT_BUBBLE),
+                (
+                    self.cyclic_chains,
+                    validators.is_valid_cyclic_chain,
+                    config.PT_CYCLICCHAIN,
+                ),
+            ):
+                # Does this type of pattern start at this node?
+                validation_results = validator(self.decomposed_graph, n)
+                if validation_results:
 
-        self._search_for_pattern_type(
-            candidate_nodes, validators.is_valid_bulge, config.PT_BUBBLE
-        )
-        self._search_for_pattern_type(
-            candidate_nodes, validators.is_valid_chain, config.PT_CHAIN
-        )
+                    # Yes, it does!
+                    pobj, ls, rs = self._add_pattern(validation_results, ptype)
+                    pcollection.append(pobj)
 
-        # TODO -- urk, should we instead try to detect ALL bulges, etc.? I
-        # think the only risk here is that bulges or chains get merged into
-        # bubbles. Hmmm.
-        # You could switch the order of this tuple up in order to
-        # change the "precedence" of pattern detection, if desired.
-        # I think identifying bulges and chains first makes sense, if
-        # nothing else. See github.com/marbl/MetagenomeScope/issues/13.
-        for pcollection, validator, ptype in (
-            (self.bubbles, validators.is_valid_bulge, config.PT_BUBBLE),
-            (self.chains, validators.is_valid_chain, config.PT_CHAIN),
-            (self.bubbles, validators.is_valid_bubble, config.PT_BUBBLE),
-            (
-                self.cyclic_chains,
-                validators.is_valid_cyclic_chain,
-                config.PT_CYCLICCHAIN,
-            ),
-        ):
-            # Does this type of pattern start at this node?
-            validation_results = validator(self.decomposed_graph, n)
-            if validation_results:
-                # Yes, it does!
-                pobj = self._add_pattern(validation_results, ptype)
-                pcollection.append(pobj)
-                candidate_nodes.append(pobj.pattern_id)
-                self.pattid2obj[pobj.pattern_id] = pobj
-                # Remove child nodes of this pattern from consideration as
-                # future start nodes of other patterns. (Don't worry,
-                # self._add_pattern() already takes care of removing them
-                # from the decomposed graph.)
-                for pn in pobj.node_ids:
-                    candidate_nodes.remove(pn)
-                # TODO: add split node(s) back to candidate_nodes here!
-                # And the node(s) that they are adjacent to i guess
-                # (but not including this particular pattern,
-                # right...? I don't think so, but I'm not 100% sure.)
-                something_collapsed = True
-            else:
-                # If the pattern was invalid, we still need to
-                # remove n
-                candidate_nodes.remove(n)
+                    # Update AssemblyGraph-wide information about this new pattern
+                    self.ptype2collection[ptype].append(pobj)
+                    self.pattid2obj[pobj.pattern_id] = pobj
 
-        top_level_candidate_nodes = sorted(list(self.decomposed_graph.nodes))
+                    # Remove child nodes of this pattern from consideration as
+                    # future start nodes of other patterns. (Don't worry,
+                    # self._add_pattern() already takes care of removing them
+                    # from the decomposed graph.)
+                    for pn in pobj.node_ids:
+                        # We use .discard() rather than .remove() since we
+                        # already popped n from candidate_nodes (and .remove()
+                        # throws an error if we try to remove an element that
+                        # isn't present in the set)
+                        candidate_nodes.discard(pn)
+
+                    # We don't need to add the new pattern object itself (or the
+                    # left split node, ls) to candidate_nodes, but we add
+                    #
+                    # (1) the right split node, rs, if present, and
+                    # (2) the incoming nodes [located outside of the newly-
+                    #     identified pattern] of the left split node, ls, if
+                    #     present
+                    #
+                    # The reason for only adding these nodes: we know that ls
+                    # and the new pattern node can't be the start of a chain,
+                    # cyclic chain, bulge, bubble, or frayed rope. (My proof of
+                    # this: I thought about it for a while and now my head
+                    # hurts.) They could be located *within* one of these
+                    # structures that starts at another node, though, which is
+                    # why we add ls' predecessors.
+                    if rs is not None:
+                        candidate_nodes.append(rs)
+                    if ls is not None:
+                        for incoming_node in self.decomposed_graph.pred[ls]:
+                            if incoming_node not in pobj.node_ids:
+                                candidate_nodes.add(incoming_node)
+                    # Don't bother trying to identify the start of any other
+                    # patterns at n, since n is no longer present in the
+                    # decomposed graph.
+                    break
+
         # Now, identify frayed ropes, which are a "top-level only" pattern.
         # There aren't any other "top-level only" patterns as of writing, but I
         # guess you could add them here if you wanted.
-        # TODO -- modify the frayed rope validator to allow chains in the
-        # middle
+        # TODO -- modify the frayed rope validator to allow uncollapsed trivial
+        # chains in the middle
+        top_level_candidate_nodes = sorted(list(self.decomposed_graph.nodes))
+        while len(top_level_candidate_nodes) > 0:
+            n = top_level_candidate_nodes.pop()
+            validation_results = validators.is_valid_frayed_rope(
+                self.decomposed_graph, n
+            )
+            if validation_results:
+                # Mostly the same logic as for when we found a pattern above --
+                # but here, we don't bother adding anything to the "candidates"
+                # after finding a frayed rope, because we don't perform node
+                # splitting on frayed rope boundaries (at least, as of writing)
+                # and because frayed ropes can't be contained in other patterns
+                pobj, ls, rs = self._add_pattern(validation_results, config.PT_FRAYEDROPE)
+                pcollection.append(pobj)
 
-        # Now that we're done here, go through all the nodes and edges in the
-        # top level of the graph and record that they don't have a parent
-        # pattern
-        for node_id in self.decomposed_graph.nodes:
-            if not self.is_pattern(node_id):
-                self.graph.nodes[node_id]["parent_id"] = None
-        for edge in self.decomposed_graph.edges:
-            self.decomposed_graph.edges[edge]["parent_id"] = None
+                self.ptype2collection[ptype].append(pobj)
+                self.pattid2obj[pobj.pattern_id] = pobj
+
+                for pn in pobj.node_ids:
+                    candidate_nodes.discard(pn)
+
+        # No need to go through the nodes and edges in the top level of the
+        # graph and record that they don't have a parent pattern -- their
+        # parent_id attrs default to None
 
     def get_node_lengths(self):
         """Returns a dict mapping node IDs to lengths.
