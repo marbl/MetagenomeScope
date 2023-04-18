@@ -72,12 +72,11 @@ class Pattern(Node):
         self.subgraph = subgraph
 
         check_vr(validation_results)
+        self.start_node = None
+        self.end_node = None
         if validation_results.has_start_end:
             self.start_node = validation_results.start_node
             self.end_node = validation_results.end_node
-        else:
-            self.start_node = None
-            self.end_node = None
         self.node_ids = validation_results.nodes
 
         # Will be filled in after performing top-level AssemblyGraph layout,
