@@ -20,6 +20,18 @@
 from metagenomescope.errors import WeirdError
 
 
+def get_node_name(basename, split):
+    if split is None:
+        return basename
+    elif split == "L" or split == "R":
+        return f"{basename}-{split}"
+    else:
+        raise WeirdError(
+            f'"split" is {split}, but it should be one of '
+            '{None, "L", "R"}.'
+        )
+
+
 class Node(object):
     """Represents a node in an assembly graph.
 
@@ -29,7 +41,7 @@ class Node(object):
     associated metadata.
     """
 
-    def __init__(self, unique_id, data, split=None):
+    def __init__(self, unique_id, name, data, split=None):
         """Initializes this Node object.
 
         Parameters
@@ -37,6 +49,13 @@ class Node(object):
         unique_id: int
             Unique (with respect to all other nodes in the assembly graph)
             integer ID of this node.
+
+        name: str
+            Name of this node, to be displayed in the visualization interface.
+            (If split is not None, then the name of this node will be extended
+            to "[node name]-[split]" -- for example, a node named "123" with a
+            split value of "L" will be named "123-L" in the visualization
+            interface, to make it easier to search for this node vs. "123-R".
 
         data: dict
             Maps field names (e.g. "length", "orientation", "depth", ...) to
@@ -57,6 +76,7 @@ class Node(object):
             to the AssemblyGraph code.
         """
         self.unique_id = unique_id
+        self.name = get_node_name(name, split)
         self.data = data
         self.split = split
 

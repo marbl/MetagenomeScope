@@ -189,22 +189,24 @@ class AssemblyGraph(object):
         establishes a "baseline."
         """
         oldid2uniqueid = {}
-        for ni, n in enumerate(self.graph.nodes):
-            data = deepcopy(self.graph.nodes[n])
-            self.nodeid2obj[ni] = Node(ni, data)
+        for ni, node_name in enumerate(self.graph.nodes):
+            data = deepcopy(self.graph.nodes[node_name])
+            self.nodeid2obj[ni] = Node(ni, node_name, data)
             self.extra_node_attrs |= set(data.keys())
             # Remove node data from the graph (we've already saved it in the
             # Node object's .data attribute).
-            self.graph.nodes[n].clear()
+            self.graph.nodes[node_name].clear()
             # We'll re-label nodes in the graph, to make it easy to associate
-            # them with their corresponding Node objects.
-            oldid2uniqueid[n] = ni
+            # them with their corresponding Node objects. (Don't worry -- we
+            # already passed node_name to the corresponding Node object for
+            # this node, so the user will still see it in the visualization.)
+            oldid2uniqueid[node_name] = ni
 
         nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
 
         for ei, e in enumerate(self.graph.edges(data=True, keys=True)):
             # e is a 4-tuple of (source ID, sink ID, key, data dict)
-            self.edgeid2obj[ni] = Edge(ei, e[0], e[1], deepcopy(e[3]))
+            self.edgeid2obj[ei] = Edge(ei, e[0], e[1], deepcopy(e[3]))
             self.extra_edge_attrs |= set(e[3].keys())
             # Remove edge data from the graph.
             self.graph.edges[e[0], e[1], e[2]].clear()
