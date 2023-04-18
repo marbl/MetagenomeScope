@@ -19,16 +19,30 @@ from .edge import Edge
 
 
 class AssemblyGraph(object):
-    """Representation of an input assembly graph.
-
-    This contains information about the top-level structure of the graph:
-    including nodes, edges, and connected components.
+    """Representation of an assembly graph.
 
     In fancy object-oriented programming terminology, this class is a
     "composition" with a NetworkX MultiDiGraph. This really just means that,
-    rather than subclassing nx.MultiDiGraph, this class just contains an
-    instance of nx.MultiDiGraph (self.graph) of which we make use.
+    rather than subclassing nx.MultiDiGraph, this class just contains two
+    main instances of nx.MultiDiGraph (.graph and .decomposed_graph) of which
+    which we make use.
 
+    The .graph object describes the input assembly graph structure. As we split
+    the boundary nodes of certain patterns (replacing a node N with the "fake
+    edge" N-L ==> N-R), we will update the .graph object to remove the old node
+    and add in the new nodes and edge. However, the .graph object will only
+    include nodes and edges -- it will not include pattern nodes. The .graph
+    object, after decomposition is done, thus represents the "fully
+    uncollapsed" graph.
+
+    The .decomposed_graph object describes the "top-level" assembly graph
+    structure. As we identify patterns in the graph, we will remove these nodes
+    and edges from the .decomposed_graph object, replacing them with their
+    parent pattern node. After decomposition is done, this object thus
+    represents the "fully collapsed" graph.
+
+    References
+    ----------
     CODELINK: This "composition" paradigm was based on this post:
     https://www.thedigitalcatonline.com/blog/2014/08/20/python-3-oop-part-3-delegation-composition-and-inheritance/
     """
@@ -134,12 +148,7 @@ class AssemblyGraph(object):
         self.bubbles = []
         self.frayed_ropes = []
 
-        # Holds the top-level decomposed graph. All of the original nodes /
-        # edges in the graph are accounted for within this graph in some way --
-        # they're either present within the actual graph (i.e. they were not
-        # collapsed into patterns), or they are present within the subgraph of
-        # a pattern (which may in turn be a node in the top-level graph or
-        # within the subgraph of another pattern, etc.)
+        # Holds the top-level decomposed graph.
         self.decomposed_graph = deepcopy(self.graph)
 
         # Node/edge scaling is done *before* pattern detection, so duplicate
@@ -278,13 +287,49 @@ class AssemblyGraph(object):
         self.num_objs += 1
         return new_id
 
-    def _add_start_end_pattern(self, validator_results, pattern_type):
-        """Adds a pattern (with start and end nodes) to the decomposed graph.
+    def _add_pattern(self, validation_results, pattern_type):
+        """Adds a pattern to the decomposed graph.
 
-        Returns a new StartEndPattern object.
+        Parameters
+        ----------
+        validation_results: validators.ValidationResults
+            Results from validating this pattern in the assembly graph. We
+            assume that this is the result of a *successful* validation, i.e.
+            the is_valid attribute of this is True. This may or may not have
+            start/end nodes defined (both work).
+
+        pattern_type: int
+            The type of this pattern -- should have an entry in config.PT2HR.
+
+        Returns
+        -------
+        pattern.Pattern
         """
         pattern_id = self._get_new_unique_id()
-        self.decomposed_graph.add_node(pattern_id, pattern_type=pattern_type)
+        self.decomposed_graph.add_node(pattern_id)
+
+        if validation_results.has_start_end:
+            # Do we need to split the left node of this pattern?
+            start_incoming_nodes_from_outside_pattern = set(
+                self.decomposed_graph.pred[validation_results.start_node]
+            ) - set(validation_results.nodes)
+            if len(start_incoming_nodes_from_outside_pattern) > 0:
+                # yeah
+                new_node = self._get_unique_id()
+                self.
+
+            # Split the left node of this pattern
+            # Split the right node of this pattern
+
+            # Do splitting: left, right (only if needed, i.e. has incoming/outgoing
+            # edges outside the pattern)
+
+            # Add split nodes to the original graph, and remove "full" nodes
+
+            # Reroute edges (both in graph, and in edge objects)
+
+        # for the love of god, see if we can avoid passing subgraphs to pattern
+        # objects
 
         if "pattern_type" in self.decomposed_graph.nodes[start_node_id]:
             # In the actual graph, create a new node that'll serve as the
@@ -424,6 +469,7 @@ class AssemblyGraph(object):
             subgraph,
             self,
         )
+        self.pattid2obj[pattern_id] = p
         return p
 
     def _hierarchically_identify_patterns(self):
@@ -459,14 +505,10 @@ class AssemblyGraph(object):
                 while len(candidate_nodes) > 0:
                     # Does this type of pattern start at this node?
                     n = candidate_nodes[0]
-                    validator_results = validator(self.decomposed_graph, n)
-                    if validator_results:
+                    validation_results = validator(self.decomposed_graph, n)
+                    if validation_results:
                         # Yes, it does!
-                        # TODO add this (merge from _add_bubble / _add_pattern
-                        # funcs): do splitting on start and end.
-                        pobj = self._add_start_end_pattern(
-                            validator_results, ptype
-                        )
+                        pobj = self._add_pattern(validation_results, ptype)
                         collection.append(pobj)
                         candidate_nodes.append(pobj.pattern_id)
                         self.pattid2obj[pobj.pattern_id] = pobj
