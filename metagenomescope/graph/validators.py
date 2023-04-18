@@ -7,6 +7,7 @@
 # writing) labelled as "bubbles" in the user interface.
 
 
+from metagenomescope import config
 from metagenomescope.errors import WeirdError
 
 
@@ -22,6 +23,7 @@ class ValidationResults(object):
 
     def __init__(
         self,
+        pattern_type=None,
         is_valid=False,
         nodes=[],
         start_node=None,
@@ -29,8 +31,18 @@ class ValidationResults(object):
     ):
         """Initializes this object.
 
+        Pro tip: if you just want to indicate that you failed to identify a
+        pattern, you can just call ValidationResults() (with no parameters
+        set). You only need to set the parameters here if you successfully
+        identified a pattern.
+
         Parameters
         ----------
+        pattern_type: int
+            The type of pattern that has been identified (or, if is_valid is
+            False, this can just be None). If is_valid is True, this should
+            correspond to a key in config.PT2HR.
+
         is_valid: bool
             True if the proposed pattern was valid; False otherwise.
 
@@ -47,6 +59,9 @@ class ValidationResults(object):
         end_node: str or None
             Like start_node, but for the ending node of the pattern.
         """
+        if is_valid and pattern_type not in config.PT2HR:
+            raise WeirdError(f"Invalid pattern type: {pattern_type}")
+        self.pattern_type = pattern_type
         self.is_valid = is_valid
         self.nodes = nodes
         # Both the starting and ending node should be defined or None. We can't
@@ -76,11 +91,14 @@ class ValidationResults(object):
         """
         if self.is_valid:
             suffix = ""
-            if self.start_node is not None:
+            if self.has_start_end:
                 suffix = (
                     f" from {repr(self.start_node)} to {repr(self.end_node)}"
                 )
-            return f"Valid pattern of nodes {repr(self.nodes)}{suffix}"
+            return (
+                f"Valid pattern (type {self.pattern_type}) of nodes "
+                f"{repr(self.nodes)}{suffix}"
+            )
         else:
             return "Not a valid pattern"
 
@@ -158,6 +176,11 @@ def is_valid_frayed_rope(g, start_node_id):
       middle nodes, but these chains should have already been collapsed by the
       time we call this function.)
 
+      TODO: FIX THIS!!!!!! Since we won't identify trivial chains involving
+      (left split of P) --> pattern P --> (right split of P), these will go
+      un-collapsed. In these cases we need to identify frayed ropes that
+      contain these chains in the middle anyway.
+
     - As long as the frayed rope follows the above structure, it is fine if it
       includes parallel edges (from a start node to the middle node, or from
       the middle node to the end node). These parallel edges should not be
@@ -219,7 +242,7 @@ def is_valid_frayed_rope(g, start_node_id):
         return ValidationResults()
 
     # If we've made it here, this frayed rope is valid!
-    return ValidationResults(True, composite)
+    return ValidationResults(config.PT_ROPE, True, composite)
 
 
 def is_valid_cyclic_chain(g, start_node_id):
@@ -303,7 +326,11 @@ def is_valid_cyclic_chain(g, start_node_id):
             # starting node.
             if start_node_id in adj and len(adj[start_node_id]) == 1:
                 return ValidationResults(
-                    True, cch_list + [curr], start_node_id, curr
+                    config.PT_CYCLICCHAIN,
+                    True,
+                    cch_list + [curr],
+                    start_node_id,
+                    curr,
                 )
             else:
                 # We didn't loop back to the starting node (or we looped back
@@ -315,7 +342,11 @@ def is_valid_cyclic_chain(g, start_node_id):
         # outgoing edge is to the starting node, then we've found a cycle.
         if curr_outgoing_nodes[0] == start_node_id:
             return ValidationResults(
-                True, cch_list + [curr], start_node_id, curr
+                config.PT_CYCLICCHAIN,
+                True,
+                cch_list + [curr],
+                start_node_id,
+                curr,
             )
 
         # If we're here, the cyclic chain is still going on -- the next
@@ -369,6 +400,7 @@ def is_valid_bulge(g, start_node_id):
             if len(adj[end_node_id]) > 1:
                 # Condition 1 is met
                 return ValidationResults(
+                    config.PT_BUBBLE,
                     True,
                     [start_node_id, end_node_id],
                     start_node_id,
@@ -515,35 +547,46 @@ def is_valid_bubble(g, start_node_id):
             composite = list(nodeid2label.keys())
 
             # This part was not present in Onodera 2013. They make the
-            # claim of "minimality," but only with respect to superbubbles
+            # claim of "minimality," but only with respect to bubbles
             # that begin at a specific starting node -- as far as I can
-            # tell they don't account for the case when one superbubble
+            # tell they don't account for the case when one bubble
             # completely contains another (see for example Fig. 2a of
-            # Nijkamp et al. 2013). To account for this, we just rerun the
-            # superbubble detection algorithm on all non-start/end nodes
-            # within a superbubble, and if we find a hit we just return
-            # THAT superbubble. (Since we use recursion, the superbubble
-            # returned here should be guaranteed to not contain any other
-            # ones.)
+            # Nijkamp et al. 2013). Furthermore, what if a bubble contains
+            # a bulge or a chain? We should have already identified the
+            # low-level bulges / chains earlier on in the decomposition, but
+            # we haven't *guaranteed* that we've identified all bulges / chains
+            # that get introduced as we decompose the graph.
             #
-            # This does not mean we're abandoning this superbubble - due
-            # to the hierarchical decomp stuff, we'll come back to it
-            # later!
+            # To ensure that we don't accidentally create a bubble that
+            # includes bulges, chains, or other bubbles, we just rerun these
+            # detection algorithms on all non-start/end nodes within a bubble,
+            # and if we find a hit we just return THAT pattern. (We don't
+            # bother checking for cyclic chains: a bubble, as defined here, can
+            # never contain a valid cyclic chain since we detect and prevent
+            # all cycles except end-to-start cycles above.)
             #
-            # This is of course super inefficient in theory. However, since
-            # this repeated check only gets run once we DO find a
-            # superbubble, I don't think it will be too slow. Sorta similar
-            # to how the superbubble detection algorithms for metaFlye are
-            # slow in theory but in practice are pretty fast.
+            # This does not mean we're abandoning this bubble: due to the
+            # hierarchical decomp stuff, we'll come back to it later!
+            #
+            # This is of course obscenely inefficient in theory. However, since
+            # this repeated check only gets run once we DO find a bubble, I
+            # don't think it will be too slow.
             for c in composite:
                 if c != t and c != start_node_id:
-                    out = is_valid_bubble(g, c)
-                    if out:
-                        return out
+                    for validator in (
+                        is_valid_bulge,
+                        is_valid_chain,
+                        is_valid_bubble,
+                    ):
+                        out = validator(g, c)
+                        if out:
+                            return out
 
-            # If the checks above succeeded, this is a valid
-            # superbubble! Nice.
-            return ValidationResults(True, composite, start_node_id, t)
+            # If the checks above succeeded, this is a valid and minimal
+            # bubble! Nice.
+            return ValidationResults(
+                config.PT_BUBBLE, True, composite, start_node_id, t
+            )
 
     return ValidationResults()
 
@@ -681,7 +724,7 @@ def is_valid_chain(g, start_node_id):
         # me for messing this up, but I don't think I messed it up, why are you
         # still reading this comment).
         return ValidationResults(
-            True, chain_list, start_node_id, chain_list[-1]
+            config.PT_CHAIN, True, chain_list, start_node_id, chain_list[-1]
         )
 
     # If we're here, we know a Chain exists starting at start_node_id.
@@ -721,12 +764,13 @@ def is_valid_chain(g, start_node_id):
     if backwards_chain_list == []:
         # There wasn't a more optimal starting node. Oh well!
         return ValidationResults(
-            True, chain_list, start_node_id, chain_list[-1]
+            config.PT_CHAIN, True, chain_list, start_node_id, chain_list[-1]
         )
 
     # If we're here, we found a more optimal starting node. Nice!
     backwards_chain_list.reverse()
     return ValidationResults(
+        config.PT_CHAIN,
         True,
         backwards_chain_list + chain_list,
         backwards_chain_list[0],

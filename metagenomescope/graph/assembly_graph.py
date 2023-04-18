@@ -529,46 +529,46 @@ class AssemblyGraph(object):
             candidate_nodes, validators.is_valid_chain, config.PT_CHAIN
         )
 
-            # TODO -- urk, should we instead try to detect ALL bulges, etc.? I
-            # think the only risk here is that bulges or chains get merged into
-            # bubbles. Hmmm.
-            # You could switch the order of this tuple up in order to
-            # change the "precedence" of pattern detection, if desired.
-            # I think identifying bulges and chains first makes sense, if
-            # nothing else. See github.com/marbl/MetagenomeScope/issues/13.
-            for pcollection, validator, ptype in (
-                (self.bubbles, validators.is_valid_bulge, config.PT_BUBBLE),
-                (self.chains, validators.is_valid_chain, config.PT_CHAIN),
-                (self.bubbles, validators.is_valid_bubble, config.PT_BUBBLE),
-                (
-                    self.cyclic_chains,
-                    validators.is_valid_cyclic_chain,
-                    config.PT_CYCLICCHAIN,
-                ),
-            ):
-                # Does this type of pattern start at this node?
-                validation_results = validator(self.decomposed_graph, n)
-                if validation_results:
-                    # Yes, it does!
-                    pobj = self._add_pattern(validation_results, ptype)
-                    pcollection.append(pobj)
-                    candidate_nodes.append(pobj.pattern_id)
-                    self.pattid2obj[pobj.pattern_id] = pobj
-                    # Remove child nodes of this pattern from consideration as
-                    # future start nodes of other patterns. (Don't worry,
-                    # self._add_pattern() already takes care of removing them
-                    # from the decomposed graph.)
-                    for pn in pobj.node_ids:
-                        candidate_nodes.remove(pn)
-                    # TODO: add split node(s) back to candidate_nodes here!
-                    # And the node(s) that they are adjacent to i guess
-                    # (but not including this particular pattern,
-                    # right...? I don't think so, but I'm not 100% sure.)
-                    something_collapsed = True
-                else:
-                    # If the pattern was invalid, we still need to
-                    # remove n
-                    candidate_nodes.remove(n)
+        # TODO -- urk, should we instead try to detect ALL bulges, etc.? I
+        # think the only risk here is that bulges or chains get merged into
+        # bubbles. Hmmm.
+        # You could switch the order of this tuple up in order to
+        # change the "precedence" of pattern detection, if desired.
+        # I think identifying bulges and chains first makes sense, if
+        # nothing else. See github.com/marbl/MetagenomeScope/issues/13.
+        for pcollection, validator, ptype in (
+            (self.bubbles, validators.is_valid_bulge, config.PT_BUBBLE),
+            (self.chains, validators.is_valid_chain, config.PT_CHAIN),
+            (self.bubbles, validators.is_valid_bubble, config.PT_BUBBLE),
+            (
+                self.cyclic_chains,
+                validators.is_valid_cyclic_chain,
+                config.PT_CYCLICCHAIN,
+            ),
+        ):
+            # Does this type of pattern start at this node?
+            validation_results = validator(self.decomposed_graph, n)
+            if validation_results:
+                # Yes, it does!
+                pobj = self._add_pattern(validation_results, ptype)
+                pcollection.append(pobj)
+                candidate_nodes.append(pobj.pattern_id)
+                self.pattid2obj[pobj.pattern_id] = pobj
+                # Remove child nodes of this pattern from consideration as
+                # future start nodes of other patterns. (Don't worry,
+                # self._add_pattern() already takes care of removing them
+                # from the decomposed graph.)
+                for pn in pobj.node_ids:
+                    candidate_nodes.remove(pn)
+                # TODO: add split node(s) back to candidate_nodes here!
+                # And the node(s) that they are adjacent to i guess
+                # (but not including this particular pattern,
+                # right...? I don't think so, but I'm not 100% sure.)
+                something_collapsed = True
+            else:
+                # If the pattern was invalid, we still need to
+                # remove n
+                candidate_nodes.remove(n)
 
         top_level_candidate_nodes = sorted(list(self.decomposed_graph.nodes))
         # Now, identify frayed ropes, which are a "top-level only" pattern.

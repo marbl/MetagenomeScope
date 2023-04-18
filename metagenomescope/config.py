@@ -229,7 +229,7 @@ SPLIT_RIGHT = "R"
 PT_BUBBLE = 0
 PT_CHAIN = 1
 PT_CYCLICCHAIN = 2
-PT_ROPE = 3
+PT_FRAYEDROPE = 3
 
 # Maps pattern types to human-readable names.
 PT2HR = {
