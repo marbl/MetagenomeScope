@@ -17,18 +17,19 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from metagenomescope.config import SPLIT_SEP, SPLIT_LEFT, SPLIT_RIGHT
 from metagenomescope.errors import WeirdError
 
 
 def get_node_name(basename, split):
     if split is None:
         return basename
-    elif split == "L" or split == "R":
-        return f"{basename}-{split}"
+    elif split == SPLIT_LEFT or split == SPLIT_RIGHT:
+        return f"{basename}{SPLIT_SEP}{split}"
     else:
         raise WeirdError(
             f'"split" is {split}, but it should be one of '
-            '{None, "L", "R"}.'
+            f'{{None, "{SPLIT_LEFT}", "{SPLIT_RIGHT}"}}.'
         )
 
 
@@ -53,9 +54,9 @@ class Node(object):
         name: str
             Name of this node, to be displayed in the visualization interface.
             (If split is not None, then the name of this node will be extended
-            to "[node name]-[split]" -- for example, a node named "123" with a
-            split value of "L" will be named "123-L" in the visualization
-            interface, to make it easier to search for this node vs. "123-R".
+            to "[node name][SPLIT_SEP][split]" -- for example, a left split
+            node named "123" will be renamed to "123-L", if SPLIT_SEP and
+            SPLIT_LEFT remain their current defaults.
 
         data: dict
             Maps field names (e.g. "length", "orientation", "depth", ...) to
@@ -64,16 +65,16 @@ class Node(object):
             this node, this can be an empty dict).
 
         split: str or None
-            If this is given, this should be either "L" or "R". "L" indicates
-            that this is a "left split" node, "R" indicates that this is a
-            "right split" node, and None indicates that this is not a split
-            node (I'm going to label these non-split nodes as "full," just for
-            the sake of clarity -- see the Edge object docs for details).
-            Note that a Node that has a split value of None could, later
-            on in the decomposition process, be split up. Such a change should
-            be reflected in two new Nodes being created (rather than the
-            original Node being modified), although that sort of behavior is up
-            to the AssemblyGraph code.
+            If this is given, this should be either SPLIT_LEFT or SPLIT_RIGHT.
+            SPLIT_LEFT indicates that this is a "left split" node, SPLIT_RIGHT
+            indicates that this is a "right split" node, and None indicates
+            that this is not a split node (I'm going to label these non-split
+            nodes as "full," just for the sake of clarity -- see the Edge
+            object docs for details). Note that a Node that has a split value
+            of None could, later on in the decomposition process, be split up.
+            Such a change should be reflected in two new Nodes being created
+            (rather than the original Node being modified), although that sort
+            of behavior is up to the AssemblyGraph code.
         """
         self.unique_id = unique_id
         self.name = get_node_name(name, split)

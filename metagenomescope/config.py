@@ -220,6 +220,11 @@ EDGEATTR2HR = {
     "kmer_cov": "k-mer Coverage",
 }
 
+# Used as the suffixes of split nodes.
+SPLIT_SEP = "-"
+SPLIT_LEFT = "L"
+SPLIT_RIGHT = "R"
+
 # Various status messages/message within the graph prefixes that are displayed
 # to the user.
 USERBUBBLES_SEARCH_MSG = "Identifying user-specified bubbles in the graph..."
