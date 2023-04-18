@@ -226,6 +226,15 @@ class AssemblyGraph(object):
             self.graph.edges[e[0], e[1], e[2]]["id"] = edge_id
 
     def _remove_too_large_components(self):
+        """Removes too-large components from the graph early on.
+
+        Notes
+        -----
+        Maybe we should save information about *which* nodes and edges exist in
+        these components, so that -- if users search for these nodes / edges --
+        we could inform the user "hey, this object is in a component that
+        didn't get laid out." Buuuuut that's a problem for another day.
+        """
         # We convert the WCC collection to a list so that even if we alter the
         # graph in the middle of the loop we don't risk the collection being
         # messed up
