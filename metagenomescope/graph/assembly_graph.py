@@ -101,17 +101,17 @@ class AssemblyGraph(object):
         self.extra_node_attrs = set()
         self.extra_edge_attrs = set()
 
-        # Populate self.nodeid2obj and self.edgeid2obj, and re-labels nodes in
-        # the graph (and adds an "id" attribute for edges in the graph). This
-        # way, we can easily associate nodes and edges with their corresponding
-        # objects' unique IDs.
-        self._init_graph_objs()
-
         # Number of nodes, edges, and patterns in the graph, including things
         # like fake edges and split nodes. (This will actually count both the
         # "original" node before splitting and its left and right split; that's
         # fine.) This number is used when generating new unique node IDs.
-        self.num_objs = len(self.nodeid2obj) + len(self.edgeid2obj)
+        self.num_objs = 0
+
+        # Populate self.nodeid2obj and self.edgeid2obj, re-label nodes in
+        # the graph, and add an "id" attribute for edges in the graph. This
+        # way, we can easily associate nodes and edges with their corresponding
+        # objects' unique IDs.
+        self._init_graph_objs()
 
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
@@ -123,8 +123,12 @@ class AssemblyGraph(object):
         # Each entry in these structures will be a Pattern (or subclass).
         # NOTE that these patterns will only be "represented" in
         # self.decomposed_graph; self.graph represents the literal graph
-        # structure as initially parsed (albeit with some duplicate nodes added
+        # structure as initially parsed (albeit with some split nodes added
         # in for convenience's sake, maybe).
+        # NOTE 2: do we need to keep these lists around? Couldn't we just save
+        # the numbers of each type of pattern? (We don't even need to do that
+        # -- we could just traverse self.pattid2obj to figure it out -- but
+        # storing the numbers here would save us some time.)
         self.chains = []
         self.cyclic_chains = []
         self.bubbles = []
@@ -191,9 +195,10 @@ class AssemblyGraph(object):
         establishes a "baseline."
         """
         oldid2uniqueid = {}
-        for ni, node_name in enumerate(self.graph.nodes):
+        for node_name in self.graph.nodes:
+            node_id = self._get_new_unique_id()
             data = deepcopy(self.graph.nodes[node_name])
-            self.nodeid2obj[ni] = Node(ni, node_name, data)
+            self.nodeid2obj[node_id] = Node(node_id, node_name, data)
             self.extra_node_attrs |= set(data.keys())
             # Remove node data from the graph (we've already saved it in the
             # Node object's .data attribute).
@@ -202,22 +207,23 @@ class AssemblyGraph(object):
             # them with their corresponding Node objects. (Don't worry -- we
             # already passed node_name to the corresponding Node object for
             # this node, so the user will still see it in the visualization.)
-            oldid2uniqueid[node_name] = ni
+            oldid2uniqueid[node_name] = node_id
 
         nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
 
-        # Start edge IDs at ni + 1. This ensures that node and edge IDs are
-        # completely separate: node IDs span [0, ni]; edge IDs begin at ni + 1.
-        for ei, e in enumerate(self.graph.edges(data=True, keys=True), ni + 1):
+        for e in self.graph.edges(data=True, keys=True):
+            edge_id = self._get_new_unique_id()
             # e is a 4-tuple of (source ID, sink ID, key, data dict)
-            self.edgeid2obj[ei] = Edge(ei, e[0], e[1], deepcopy(e[3]))
+            self.edgeid2obj[edge_id] = Edge(
+                edge_id, e[0], e[1], deepcopy(e[3])
+            )
             self.extra_edge_attrs |= set(e[3].keys())
             # Remove edge data from the graph.
             self.graph.edges[e[0], e[1], e[2]].clear()
             # Edges in NetworkX don't really have "IDs," but we can use the
             # (now-cleared) data dict in the graph to store their ID. This will
             # make it easy to associate this edge with its Edge object.
-            self.graph.edges[e[0], e[1], e[2]]["id"] = ei
+            self.graph.edges[e[0], e[1], e[2]]["id"] = edge_id
 
     def _remove_too_large_components(self):
         # We convert the WCC collection to a list so that even if we alter the
