@@ -679,7 +679,7 @@ class AssemblyGraph(object):
             )
             # Again, in the interface the height will be the width and the
             # width will be the height
-            node.height = area ** node.longside_proportion
+            node.height = area**node.longside_proportion
             node.width = area / node.height
 
     def get_edge_weight_field(
