@@ -522,6 +522,12 @@ class AssemblyGraph(object):
            edges it contains -- maybe just pass the edge IDs to the pattern,
            then have it refer back to this AssemblyGraph when it needs to
            update them? yeah, that makes sense.
+        8. Add back the outer "while True:" to this function? I think we might
+           need to keep re-considering the entire top-level decomposed graph,
+           because a pattern getting collapsed could mean that now a valid
+           pattern could be started some distance away in the graph. We could
+           try to iteratively do this, but it's easier to just do the "while
+           True" thing here.
         """
         # The use of set here means that the order in which we go through nodes
         # is technically arbitrary. However, I don't think this makes a big
