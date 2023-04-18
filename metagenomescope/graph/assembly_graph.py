@@ -13,7 +13,7 @@ from .. import parsers, config, layout_utils
 from ..msg_utils import operation_msg, conclude_msg
 from ..errors import GraphParsingError, GraphError, WeirdError
 from . import validators
-from .pattern import StartEndPattern, Pattern
+from .pattern import Pattern
 from .node import Node
 from .edge import Edge
 

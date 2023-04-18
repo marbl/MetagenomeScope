@@ -18,9 +18,7 @@
 
 
 import pygraphviz
-import networkx as nx
 from .node import Node
-from . import validators, assembly_graph
 from metagenomescope import config, layout_utils
 from metagenomescope.errors import WeirdError
 
@@ -37,11 +35,11 @@ class Pattern(Node):
 
     def __init__(
         self,
-        unique_id: int,
-        pattern_type: str,
-        validation_results: validators.ValidationResults,
-        subgraph: nx.MultiDiGraph,
-        asm_graph: assembly_graph.AssemblyGraph,
+        unique_id,
+        pattern_type,
+        validation_results,
+        subgraph,
+        asm_graph,
     ):
         """Initializes this Pattern object.
 
