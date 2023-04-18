@@ -1,4 +1,5 @@
 import networkx as nx
+from metagenomescope import config
 from metagenomescope.graph import validators
 
 
@@ -681,11 +682,8 @@ def test_bubble_with_self_loops():
 
 
 def test_bubble_containing_real_bulge():
-    r"""Tests that the following graph is detected, in its entirety, as a valid
-    bubble. See the is_valid_bubble() docs for details, but TLDR bulge
-    detection should already have been done by the time we call
-    is_valid_bubble() (so real bulges -- "real" as in is_valid_bulge() accepts
-    them) will get smushed into the larger bubble structure.
+    r"""Tests that running bubble detection on the following graph (starting at
+    0) JUST identifies the bulge. See is_valid_bubble() docs for details.
 
             /---\
          /-1     4-\
@@ -705,15 +703,43 @@ def test_bubble_containing_real_bulge():
     g.add_edge(2, 3)
     vr = validators.is_valid_bubble(g, 0)
     assert vr
-    assert vr.nodes == [0, 1, 2, 4, 3]
-    assert vr.start_node == 0
-    assert vr.end_node == 3
+    assert vr.pattern_type == config.PT_BUBBLE
+    assert vr.nodes == [1, 4]
+    assert vr.start_node == 1
+    assert vr.end_node == 4
 
     vr2 = validators.is_valid_bulge(g, 1)
     assert vr2
+    assert vr.pattern_type == config.PT_BUBBLE
     assert vr2.nodes == [1, 4]
     assert vr2.start_node == 1
     assert vr2.end_node == 4
+
+
+def test_bubble_containing_chain():
+    r"""Tests that running bubble detection on the following graph (starting at
+    0) JUST identifies the chain. See is_valid_bubble() docs for details.
+
+         /-1-----4-\
+        /           \
+       0             3
+        \           /
+         \----2----/
+    """
+    g = nx.MultiDiGraph()
+    # top half
+    g.add_edge(0, 1)
+    g.add_edge(1, 4)
+    g.add_edge(4, 3)
+    # bottom half
+    g.add_edge(0, 2)
+    g.add_edge(2, 3)
+    vr = validators.is_valid_bubble(g, 0)
+    assert vr
+    assert vr.pattern_type == config.PT_CHAIN
+    assert vr.nodes == [1, 4]
+    assert vr.start_node == 1
+    assert vr.end_node == 4
 
 
 def test_nested_bubble_in_start_bad():

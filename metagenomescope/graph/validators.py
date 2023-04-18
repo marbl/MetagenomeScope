@@ -424,16 +424,10 @@ def is_valid_bubble(g, start_node_id):
     Notes
     -----
     - If there is a bubble starting at the start node, but it
-      contains other bubbles within it, then this'll just return a
-      minimal bubble (not starting at start_node_id). It's
-      expected that hierarchical decomposition will mean that we'll
+      contains any bulges, chains, or other bubbles within it, then this will
+      this'll just return a minimal pattern (not starting at start_node_id).
+      It's expected that hierarchical decomposition will mean that we'll
       revisit start_node_id later.
-
-       - That being said, we do not check for the case where this bubble
-         contains a *bulge* that has not been detected and collapsed yet.
-         (Ditto for chains, etc.) By the time you call this function, you
-         should have already ran at least one round of bulge and chain
-         detection on the graph.
 
     - Previously, we used separate functions for validating 3-node bubbles
       (e.g. 0 ---------> 2) and simple bubbles (e.g. 0 ---> 1 --> 3).
@@ -451,9 +445,7 @@ def is_valid_bubble(g, start_node_id):
       parallel edges. (Although, as mentioned above, if this graph contains a
       bulge -- i.e. it has parallel edges between two nodes, *and* these two
       nodes actually are a bulge as defined by is_valid_bulge() -- then we
-      will ignore this bulge, and just return the larger bubble structure. You
-      can account for this by making sure that all possible bulges have been
-      identified in the graph by the time you call this function.)
+      will return this bulge.)
 
     References
     ----------
