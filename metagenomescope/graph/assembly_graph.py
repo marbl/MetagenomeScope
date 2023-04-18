@@ -496,6 +496,32 @@ class AssemblyGraph(object):
         """Run all of our pattern detection algorithms on the graph repeatedly.
 
         This is the main Fancy Thing we do, besides layout.
+
+        TODOs: behavior
+        ---------------
+        1. Disallow the identification of "trivial" chains.
+        2. Disallow the presence of frayed ropes within frayed ropes, even in
+           the middle.
+        3. If we find a chain located in another chain (or located within a
+           cyclic chain), merge it into its parent.
+        4. Allow frayed ropes to contain an uncollapsed trivial chain in their
+           middle nodes.
+        5. After we find frayed ropes, identify cases where splitting wasn't
+           necessary (where there exist "trivial" chains from a left node -->
+           the pattern it was created for, or the pattern --> its right node)
+           and merge the split node(s) back in with the pattern.
+
+        TODOs: code
+        -----------
+        6. See if we can move the splitting code in _add_pattern() to another
+           helper function (that takes as input the graph and decomposed
+           graph?), or something? if feasible.
+        7. Try to remove the subgraph argument from Pattern...? I'd prefer if
+           it just keeps a reference to this AssemblyGraph object. It looks
+           like Pattern only needs the subgraph in order to figure out what
+           edges it contains -- maybe just pass the edge IDs to the pattern,
+           then have it refer back to this AssemblyGraph when it needs to
+           update them? yeah, that makes sense.
         """
         # The use of set here means that the order in which we go through nodes
         # is technically arbitrary. However, I don't think this makes a big

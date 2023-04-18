@@ -112,8 +112,9 @@ class Pattern(Node):
         super().__init__(unique_id, str(unique_id), {})
 
     def __repr__(self):
-        return "{} (ID {}) of nodes {}".format(
-            self.pattern_type, self.unique_id, self.node_ids
+        return (
+            f"{config.PT2HR[self.pattern_type]} (ID {self.unique_id}) of "
+            f"nodes {self.node_ids}"
         )
 
     def get_counts(self, asm_graph):
