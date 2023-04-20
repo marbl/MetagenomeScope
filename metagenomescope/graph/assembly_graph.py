@@ -509,17 +509,35 @@ class AssemblyGraph(object):
 
         TODOs: behavior
         ---------------
-        1. Disallow the identification of "trivial" chains.
+        1. Disallow the identification of "trivial" chains. (This should impact
+           both the chain-search here, and the do-we-contain-a-real-chain check
+           in the bubble search function. One way to do this: make a new
+           function that takes as input [stuff from this AG obj, idk what
+           exactly], runs the chain checking validator, and then fails if the
+           chain is trivial.
         2. Disallow the presence of frayed ropes within frayed ropes, even in
-           the middle.
+           the middle. (Again, I think the way to do this is to wrap the
+           validator in another function that figures out if any of the nodes
+           in a tentative FR are also FRs, and fails if so.)
         3. If we find a chain located in another chain (or located within a
            cyclic chain), merge it into its parent.
+            - How do we do this? I guess we'd move all of the nodes and edges
+              in the smaller chain into the parent chain, and update
+              pattid2obj. Not sure if anything else.
         4. Allow frayed ropes to contain an uncollapsed trivial chain in their
-           middle nodes.
+           middle nodes. (Doable by just modifying the frayed rope code to
+           allow for any sort of chains -- doesn't have to be specific. Unlike
+           the bubble code, we don't need to worry about first detecting the
+           real chains in the frayed rope, because by the time we identify
+           frayed ropes we've already identified all real chains in the graph.
+           (And we can't have frayed ropes within chains.)
         5. After we find frayed ropes, identify cases where splitting wasn't
            necessary (where there exist "trivial" chains from a left node -->
            the pattern it was created for, or the pattern --> its right node)
-           and merge the split node(s) back in with the pattern.
+           and merge the split node(s) back in with the pattern. This will
+           require a traversal of all nodes in the graph, I think (not just the
+           top level of the decomposed graph), since trivial chains can be
+           located in bubbles / frayed ropes.
 
         TODOs: code
         -----------
@@ -641,7 +659,7 @@ class AssemblyGraph(object):
         # guess you could add them here if you wanted.
         # TODO -- modify the frayed rope validator to allow uncollapsed trivial
         # chains in the middle
-        top_level_candidate_nodes = sorted(list(self.decomposed_graph.nodes))
+        top_level_candidate_nodes = set(self.decomposed_graph.nodes)
         while len(top_level_candidate_nodes) > 0:
             n = top_level_candidate_nodes.pop()
             validation_results = validators.is_valid_frayed_rope(
@@ -662,7 +680,7 @@ class AssemblyGraph(object):
                 self.pattid2obj[pobj.unique_id] = pobj
 
                 for pn in pobj.node_ids:
-                    candidate_nodes.discard(pn)
+                    top_level_candidate_nodes.discard(pn)
 
         # No need to go through the nodes and edges in the top level of the
         # graph and record that they don't have a parent pattern -- their

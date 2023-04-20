@@ -134,7 +134,9 @@ class Edge(object):
     def __repr__(self):
         return (
             f"Edge {self.unique_id} (orig: {self.orig_src_id} -> "
-            f"{self.orig_tgt_id})"
+            f"{self.orig_tgt_id}; new: {self.new_src_id} -> "
+            f"{self.new_tgt_id}; dec: {self.dec_src_id} -> "
+            f"{self.dec_tgt_id})"
         )
 
     def reroute_src(self, new_src_id):
