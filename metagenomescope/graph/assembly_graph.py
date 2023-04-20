@@ -567,7 +567,19 @@ class AssemblyGraph(object):
             # a big difference, if any...?
             candidate_nodes = set(self.decomposed_graph.nodes)
             while len(candidate_nodes) > 0:
+                # NOTE that, in uncommon cases, we could -- while using n as
+                # the starting node -- identify a pattern that does not include
+                # n (for example, if n is the start of a bubble that contains
+                # another bubble within it). In this case, we will still pop n
+                # from the set of candidate nodes here; n will remain in the
+                # decomposed graph, so we'll still revisit it in the next
+                # iteration of the outer while loop. (We could avoid popping
+                # and keep n in candidate_nodes just so we can revisit it
+                # within this iteration of the outer while loop, but that makes
+                # this code uglier for maaaaybe a rare slight performance
+                # benefit.)
                 n = candidate_nodes.pop()
+
                 # You could switch the order of this tuple up in order to
                 # change the "precedence" of pattern detection, if desired.
                 # I don't thiiiiink this should make a difference, due to (1)
