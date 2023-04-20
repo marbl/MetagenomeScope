@@ -854,11 +854,15 @@ def is_valid_chain_no_etfes(g, start_node_id, edgeid2obj):
     ValidationResults
     """
     validation_results = is_valid_chain(g, start_node_id)
+
+    # If we didn't find a valid chain at the start node, we can bail out here.
     if not validation_results:
         return validation_results
 
-    # OK, if we've made it here, then is_valid_chain() found something. We need
-    # to remove external trivial fake edges.
+    # If we've made it here, then is_valid_chain() found something. We need
+    # to remove external trivial fake edges, which may or may not mean that
+    # some sort of chain will persist.
+    #
     # We can safely assume that the start node only has one outgoing edge,
     # since we've already validated this chain.
     second_from_the_left_node = list(g.adj[start_node_id])[0]
