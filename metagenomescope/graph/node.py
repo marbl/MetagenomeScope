@@ -109,6 +109,10 @@ class Node(object):
     def __repr__(self):
         return f"Node {self.unique_id}"
 
+    def set_scale_vals_from_other_node(self, other_node):
+        self.relative_length = other_node.relative_length
+        self.longside_proportion = other_node.longside_proportion
+
     def _make_into_split(self, split_type):
         if self.split is not None:
             raise WeirdError(

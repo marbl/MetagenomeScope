@@ -291,6 +291,40 @@ class AssemblyGraph(object):
         self.num_objs += 1
         return new_id
 
+    def _make_new_split_node(self, original_node_id, split):
+        """Creates a new "split" node based on another node.
+
+        Parameters
+        ----------
+        original_node_id: int
+            ID of the original node from which we'll create this split node.
+            This should correspond to an entry in self.nodeid2obj.
+
+        split: str
+            Should be either config.SPLIT_LEFT or config.SPLIT_RIGHT.
+
+        Returns
+        -------
+        new_node_id: int
+            The ID of the split node we created.
+        """
+        if split != config.SPLIT_LEFT and split != config.SPLIT_RIGHT:
+            raise WeirdError(f"Unrecognized split value: {split}")
+        new_node_id = self._get_unique_id()
+        other_node = self.nodeid2obj[original_node_id]
+        # NOTE: Deep copying the data here is probably unnecessary,
+        # since I don't think we'll ever *want* it to be different
+        # between a node and its split copy. But whatever.
+        new_node = Node(
+            new_node_id,
+            other_node.name,
+            deepcopy(other_node.data),
+            split=split,
+        )
+        new_node.set_scale_vals_from_other_node(other_node)
+        self.nodeid2obj[new_node_id] = new_node
+        return new_node_id
+
     def _add_pattern(self, validation_results, pattern_type):
         """Adds a pattern to the decomposed graph.
 
@@ -340,27 +374,9 @@ class AssemblyGraph(object):
                 # 0 --> 1   4   |   0 --> 1-L ==> 1-R   4
                 #        \ /    |                    \ /
                 #         3     |                     3
-                # NOTE: Deep copying the data here is probably unnecessary,
-                # since I don't think we'll ever *want* it to be different
-                # between a node and its split copy. But whatever.
-                start_node = self.nodeid2obj[start_id]
-                left_node_id = self._get_unique_id()
-                self.nodeid2obj[left_node_id] = Node(
-                    left_node_id,
-                    start_node.name,
-                    deepcopy(self.nodeid2obj[start_id].data),
-                    split=config.SPLIT_LEFT,
+                left_node_id = self._make_new_split_node(
+                    start_id, config.SPLIT_LEFT
                 )
-                # TODO: This is hacky. Ideally, add a new __init__() method to
-                # Node that takes as input an existing Node and copies its
-                # internal data over. Or, just add a helper function that does
-                # this. Also see below.
-                self.nodeid2obj[
-                    left_node_id
-                ].relative_length = start_node.relative_length
-                self.nodeid2obj[
-                    left_node_id
-                ].longside_proportion = start_node.longside_proportion
                 self.graph.add_node(left_node_id)
                 self.nodeid2obj[start_id].make_into_right_split()
                 # Route edges from start_incoming_nodes_outside_pattern to
@@ -415,20 +431,9 @@ class AssemblyGraph(object):
                 # 1   4 --> 5   |   1   4-L ==> 4-R --> 5
                 #  \ /          |    \ /
                 #   3           |     3
-                end_node = self.nodeid2obj[end_id]
-                right_node_id = self._get_unique_id()
-                self.nodeid2obj[right_node_id] = Node(
-                    right_node_id,
-                    end_node.name,
-                    deepcopy(self.nodeid2obj[end_id].data),
-                    split=config.SPLIT_RIGHT,
+                right_node_id = self._make_new_split_node(
+                    end_id, config.SPLIT_RIGHT
                 )
-                self.nodeid2obj[
-                    right_node_id
-                ].relative_length = end_node.relative_length
-                self.nodeid2obj[
-                    right_node_id
-                ].longside_proportion = end_node.longside_proportion
                 self.graph.add_node(right_node_id)
                 self.nodeid2obj[end_id].make_into_left_split()
                 # Route edges from the right node to
@@ -480,8 +485,9 @@ class AssemblyGraph(object):
 
         subgraph = self.decomposed_graph.subgraph(patt_nodes).copy()
 
-        # Remove the children of this pattern (and any edges incident on them)
-        # from the decomposed DiGraph.
+        # Remove the children of this pattern (and any edges incident on them,
+        # which should be limited -- at this point -- to edges inside the
+        # pattern) from the decomposed DiGraph.
         self.decomposed_graph.remove_nodes_from(patt_nodes)
 
         # TODO: for the love of god, see if we can avoid passing subgraphs to
