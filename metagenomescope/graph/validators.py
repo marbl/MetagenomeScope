@@ -769,3 +769,105 @@ def is_valid_chain(g, start_node_id):
         backwards_chain_list[0],
         chain_list[-1],
     )
+
+
+def is_valid_chain_no_etfes(g, start_node_id, edgeid2obj):
+    r"""Validates a chain without external trivial fake edges (ETFEs).
+
+    We create fake edges between the two splits of a node during pattern
+    decomposition (see AssemblyGraph._add_pattern()). Although fake edges are
+    useful for representing the graph after splitting, they don't represent
+    meaningful connections. We define a "trivial" fake edge (because there
+    wasn't enough made-up terminology here already) as a fake edge between a
+    split node (that is not located in a pattern) and the pattern from which
+    this split node was created.
+
+    "Trivial" fake edges should should not be considered to be, by themselves,
+    justification for creating a chain.
+
+    For example, consider the following partially-decomposed graph:
+
+                 +---------------+
+                 |  /--> A -->\  |       /--> C -->\
+          XL ==> |XR           YL| ==> YR           E
+                 |  \--> B -->/  |       \--> D -->/
+                 +---------------+
+
+    (Real edges are represented by -->, fake edges are represented by ==>, and
+    the box represents a collapsed bubble pattern.)
+
+    Both XL ==> XR and YL ==> YR are fake edges, created when we identified and
+    collapsed the bubble of [X, A, B, Y]. There is technically a chain
+    from XL ==> [the collapsed bubble pattern] ==> YR (is_valid_chain() will
+    classify this as a chain, because it doesn't know what these nodes / edges
+    mean), but this is not a meaningful chain because all of its (top-level)
+    edges, XL ==> XR and YL ==> YR, are both *trivial* fake edges. These edges
+    just occured as an artifact of the splitting process that happened when we
+    identified the bubble.
+
+    The ideal resolution for this example graph is that we avoid identifying
+    any chains in it right now. Later on, we'll identify and collapse the
+    other bubble pattern of [YR, C, D, E], and then we'll create a chain of
+    this and the other bubble -- the YL ==> YR edge is OK to use as the basis
+    for creating a chain once YL and YR are located in different patterns (at
+    this point, the edge will no longer be trivial).
+
+    Note that real chains may contain trivial fake edges if a fake edge is
+    "surrounded" by a real one. For example:
+
+                 +---------------+
+                 |  /--> A -->\  |             /--> C -->\
+    W --> XL ==> |XR           YL| ==> YR --> Z           E
+                 |  \--> B -->/  |             \--> D -->/
+                 +---------------+
+
+    We actually should identify a chain from W --> XL ==> [bubble] ==> YR --> Z
+    because this chain's "external" edges (W --> XL and YR --> Z) are real.
+
+    Finally, note that we iteratively remove external trivial fake edges when
+    trying to identify a chain:
+
+                 +---------------+
+                 |  /--> A -->\  |       /--> C -->\
+    W --> XL ==> |XR           YL| ==> YR           E
+                 |  \--> B -->/  |       \--> D -->/
+                 +---------------+
+
+    We would at first identify a chain from W --> XL ==> [bubble] ==> YR. The
+    left external edge is good (it's a real edge); however, the right external
+    edge (YL ==> YR) is a trivial fake edge. So we'd remove this right edge,
+    and then we'd remove the next right edge also (XL ==> XR is also a trivial
+    fake edge). We are left with a chain of just W --> XL.
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+
+    start_node_id: str
+
+    edgeid2obj: dict
+        Maps edge IDs (stored in the "uid" attribute of edges in g) to Edge
+        objects.
+
+    Returns
+    -------
+    ValidationResults
+    """
+    validation_results = is_valid_chain(g, start_node_id)
+    if not validation_results:
+        return validation_results
+
+    # OK, if we've made it here, then is_valid_chain() found something. We need
+    # to remove external trivial fake edges.
+    # We can safely assume that the start node only has one outgoing edge,
+    # since we've already validated this chain.
+    second_from_the_left_node = list(g.adj[start_node_id])[0]
+    leftmost_edge = g.edges[start_node_id, second_from_the_left_node, 0]
+    if edgeid2obj[leftmost_edge["uid"]].is_fake:
+        # Figure out if this is a *trivial* edge. We can do this by looking at
+        # the start node and 2nd-from-the-left node: if both are patterns, then
+        # this is nontrivial. If one is a pattern and one is not, then this is
+        # trivial. If neither are patterns, then... we should throw an error
+        # because that should never happen.
+        # We can figure this out by looking at pattid2obj i guess? or just
+        # check for not being in nodeid2obj.
