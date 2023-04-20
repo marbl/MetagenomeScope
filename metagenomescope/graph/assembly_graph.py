@@ -361,9 +361,13 @@ class AssemblyGraph(object):
             start_pred = self.decomposed_graph.pred[start_id]
             start_incoming_nodes_outside_pattern = set(start_pred) - patt_nodes
 
-            if len(start_incoming_nodes_outside_pattern) > 0:
+            if (
+                len(start_incoming_nodes_outside_pattern) > 0
+                and self.nodeid2obj[start_id].is_not_split()
+            ):
                 # Since this start node has incoming edge(s) from outside the
-                # pattern, we need to split it.
+                # pattern, and since it already isn't a split node, we need to
+                # split it.
                 # We'll create a new Node for the left split (in the diagram
                 # below, "1-L"), and change the existing Node into the right
                 # split (in the diagram below, "1-R").
@@ -377,25 +381,27 @@ class AssemblyGraph(object):
                 left_node_id = self._make_new_split_node(
                     start_id, config.SPLIT_LEFT
                 )
-                self.graph.add_node(left_node_id)
+                for g in (self.graph, self.decomposed_graph):
+                    g.add_node(left_node_id)
                 self.nodeid2obj[start_id].make_into_right_split()
                 # Route edges from start_incoming_nodes_outside_pattern to
                 # the left node
                 for incoming_node_id in start_incoming_nodes_outside_pattern:
-                    for edge_key in start_pred[incoming_node_id]:
+                    # We convert the start_pred object to a list, because when
+                    # we re-route edges here then it adjusts the dictionary
+                    for edge_key in list(start_pred[incoming_node_id]):
                         e_uid = self.graph.edges[
                             incoming_node_id, start_id, edge_key
                         ]["uid"]
                         self.edgeid2obj[e_uid].reroute_tgt(left_node_id)
                         self.edgeid2obj[e_uid].reroute_dec_tgt(pattern_id)
                         # We keep the edge ID the same, so ... even though we
-                        # reroute it in self.graph, this is still the same edge.
-                        self.graph.add_edge(
-                            incoming_node_id, left_node_id, uid=e_uid
-                        )
-                        self.graph.remove_edge(
-                            incoming_node_id, start_id, edge_key
-                        )
+                        # reroute it in the graphs, this is still the same edge.
+                        for g in (self.graph, self.decomposed_graph):
+                            g.add_edge(
+                                incoming_node_id, left_node_id, uid=e_uid
+                            )
+                            g.remove_edge(incoming_node_id, start_id, edge_key)
 
                 # All other edges (mostly outgoing edges, but maybe incoming
                 # edges from within the pattern) will be routed by default to
@@ -418,7 +424,10 @@ class AssemblyGraph(object):
             end_adj = self.decomposed_graph.adj[end_id]
             end_outgoing_nodes_outside_pattern = set(end_adj) - patt_nodes
 
-            if len(end_outgoing_nodes_outside_pattern) > 0:
+            if (
+                len(end_outgoing_nodes_outside_pattern) > 0
+                and self.nodeid2obj[end_id].is_not_split()
+            ):
                 # Since this end node has outgoing edge(s) to outside the
                 # pattern, we need to split it.
                 # We'll create a new Node for the right split (in the diagram
@@ -434,23 +443,23 @@ class AssemblyGraph(object):
                 right_node_id = self._make_new_split_node(
                     end_id, config.SPLIT_RIGHT
                 )
-                self.graph.add_node(right_node_id)
+                for g in (self.graph, self.decomposed_graph):
+                    g.add_node(right_node_id)
                 self.nodeid2obj[end_id].make_into_left_split()
                 # Route edges from the right node to
                 # end_outgoing_nodes_outside_pattern
                 for outgoing_node_id in end_outgoing_nodes_outside_pattern:
-                    for edge_key in end_adj[outgoing_node_id]:
+                    for edge_key in list(end_adj[outgoing_node_id]):
                         e_uid = self.graph.edges[
                             end_id, outgoing_node_id, edge_key
                         ]["uid"]
                         self.edgeid2obj[e_uid].reroute_src(right_node_id)
                         self.edgeid2obj[e_uid].reroute_dec_src(pattern_id)
-                        self.graph.add_edge(
-                            right_node_id, outgoing_node_id, uid=e_uid
-                        )
-                        self.graph.remove_edge(
-                            end_id, outgoing_node_id, edge_key
-                        )
+                        for g in (self.graph, self.decomposed_graph):
+                            g.add_edge(
+                                right_node_id, outgoing_node_id, uid=e_uid
+                            )
+                            g.remove_edge(end_id, outgoing_node_id, edge_key)
 
                 # Add a fake edge between the left and right node
                 fake_edge_id = self._get_unique_id()
@@ -653,6 +662,8 @@ class AssemblyGraph(object):
                 # graph and didn't collapse anything -- we can exit the outer
                 # while loop.
                 break
+
+        self.pfg = deepcopy(self.decomposed_graph)
 
         # Now, identify frayed ropes, which are a "top-level only" pattern.
         # There aren't any other "top-level only" patterns as of writing, but I

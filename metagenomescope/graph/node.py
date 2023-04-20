@@ -113,8 +113,14 @@ class Node(object):
         self.relative_length = other_node.relative_length
         self.longside_proportion = other_node.longside_proportion
 
+    def is_split(self):
+        return self.split is not None
+
+    def is_not_split(self):
+        return not self.is_split()
+
     def _make_into_split(self, split_type):
-        if self.split is not None:
+        if self.is_split():
             raise WeirdError(
                 f"This Node's .split attr is already {self.split}?"
             )
