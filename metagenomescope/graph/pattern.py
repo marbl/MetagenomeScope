@@ -244,3 +244,9 @@ class Pattern(Node):
         self.right = x + half_w
         self.bottom = y - half_h
         self.top = y + half_h
+
+    def make_into_left_split(self):
+        raise WeirdError("Attempted to left-split pattern {self}.")
+
+    def make_into_right_split(self):
+        raise WeirdError("Attempted to right-split pattern {self}.")

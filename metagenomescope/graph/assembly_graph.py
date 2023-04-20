@@ -463,10 +463,13 @@ class AssemblyGraph(object):
                     pattern_id, right_node_id, uid=fake_edge_id
                 )
 
-        # Route incoming edges to nodes in this pattern to this pattern, in the
-        # decomposed graph. I'm not sure this is necessary unless we didn't do
-        # splitting, or unless the pattern has weird incoming edges from
-        # outside nodes into its middle nodes or something. But let's be safe.
+        # For every incoming edge from outside this pattern to a node within
+        # this pattern: route this edge to just point (in the decomposed graph)
+        # to the new pattern node. This should only actually change the graph
+        # if (1) we didn't do splitting, or (2) the pattern has weird incoming
+        # edges from outside nodes into its middle nodes or something (this
+        # shouldn't happen in practice, but maybe when we add back support for
+        # arbitrary user-defined patterns it could happen).
         in_edges = self.decomposed_graph.in_edges(patt_nodes, keys=True)
         p_in_edges = list(filter(lambda e: e[0] not in patt_nodes, in_edges))
         for e in p_in_edges:
@@ -474,8 +477,9 @@ class AssemblyGraph(object):
             self.edgeid2obj[e_uid].reroute_dec_tgt(pattern_id)
             self.decomposed_graph.add_edge(e[0], pattern_id, uid=e_uid)
 
-        # Route outgoing edges from nodes in this pattern to come from this
-        # pattern, in the decomposed graph
+        # For every outgoing edge from inside this pattern to a node outside
+        # this pattern: route this edge to originate from (in the decomposed
+        # graph) the new pattern node. Like above.
         out_edges = self.decomposed_graph.out_edges(patt_nodes, keys=True)
         p_out_edges = list(filter(lambda e: e[1] not in patt_nodes, out_edges))
         for e in p_out_edges:

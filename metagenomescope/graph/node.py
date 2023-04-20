@@ -107,7 +107,7 @@ class Node(object):
         self.cc_num = None
 
     def __repr__(self):
-        return f"Node {self.unique_id}"
+        return f"Node {self.unique_id} (name: {self.name})"
 
     def set_scale_vals_from_other_node(self, other_node):
         self.relative_length = other_node.relative_length

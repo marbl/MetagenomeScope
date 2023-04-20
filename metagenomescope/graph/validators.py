@@ -48,7 +48,8 @@ class ValidationResults(object):
 
         nodes: list
             If is_valid is True, contains a list of the nodes in the pattern;
-            otherwise, this should be an empty list.
+            otherwise, this should be an empty list. The order of nodes in this
+            list doesn't matter.
 
         start_node: str or None
             If is_valid is True and if the pattern has a single defined start
