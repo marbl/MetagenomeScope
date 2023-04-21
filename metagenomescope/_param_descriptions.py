@@ -52,7 +52,7 @@ MAXE = (
 PATTERNS_FLAG = (
     "If --patterns is set, we'll identify structural patterns (e.g. bubbles) "
     "in the graph and highlight these in the visualization. If --no-patterns "
-    'is set, we won\'t do this (and will just display the "original" graph '
+    'is set, we won\'t do this (and will just visualize the "original" graph '
     "structure)."
 )
 
