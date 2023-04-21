@@ -145,6 +145,36 @@ def not_single_edge(g, adj_view):
     return len(adj_view) != 1 or len(adj_view[list(adj_view)[0]]) != 1
 
 
+def fail_if_not_single_edge(g, adj_view, node_id, edge_descriptor):
+    if not_single_edge(g, adj_view):
+        raise WeirdError(
+            f"Node ID {node_id} doesn't have 1 {edge_descriptor} edge?"
+        )
+
+
+def is_edge_fake_and_trivial(g, n0, n1, nodeid2obj, edgeid2obj):
+    curr_edge = g.edges[n0, n1, 0]
+    if edgeid2obj[curr_edge["uid"]].is_fake:
+        # Figure out if this is a *trivial* edge.
+        n0_is_node = start_node_id in nodeid2obj
+        n1_is_node = next_node_id in nodeid2obj
+        if n0_is_node and n1_is_node:
+            # The decomposed graph should never have a *fake* edge between
+            # two (non-pattern) nodes. Something's up.
+            raise WeirdError(
+                f"Nodes with IDs {n0} and {n1} are both not patterns?"
+            )
+        elif not n0_is_node and not n1_is_node:
+            # This fake edge connects two separate pattern nodes. We're
+            # good -- this is a nontrivial edge.
+            return False
+        else:
+            # Exactly one of (n0, n1) is a pattern node, meaning that this
+            # is a trivial fake edge. Shift the new "starting node"
+            # position over to the right by 1.
+            return True
+
+
 def is_valid_frayed_rope(g, start_node_id):
     r"""Validates a frayed rope starting at a node in a graph.
 
@@ -771,7 +801,7 @@ def is_valid_chain(g, start_node_id):
     )
 
 
-def is_valid_chain_no_etfes(g, start_node_id, edgeid2obj):
+def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     r"""Validates a chain without external trivial fake edges (ETFEs).
 
     We create fake edges between the two splits of a node during pattern
@@ -845,6 +875,9 @@ def is_valid_chain_no_etfes(g, start_node_id, edgeid2obj):
 
     start_node_id: str
 
+    nodeid2obj: dict
+        Maps node IDs in g to Node objects.
+
     edgeid2obj: dict
         Maps edge IDs (stored in the "uid" attribute of edges in g) to Edge
         objects.
@@ -859,19 +892,66 @@ def is_valid_chain_no_etfes(g, start_node_id, edgeid2obj):
     if not validation_results:
         return validation_results
 
+    node_ids_to_remove = set()
+    end_node_id = validation_results.end_node
     # If we've made it here, then is_valid_chain() found something. We need
     # to remove external trivial fake edges, which may or may not mean that
     # some sort of chain will persist.
     #
     # We can safely assume that the start node only has one outgoing edge,
     # since we've already validated this chain.
-    second_from_the_left_node = list(g.adj[start_node_id])[0]
-    leftmost_edge = g.edges[start_node_id, second_from_the_left_node, 0]
-    if edgeid2obj[leftmost_edge["uid"]].is_fake:
-        # Figure out if this is a *trivial* edge. We can do this by looking at
-        # the start node and 2nd-from-the-left node: if both are patterns, then
-        # this is nontrivial. If one is a pattern and one is not, then this is
-        # trivial. If neither are patterns, then... we should throw an error
-        # because that should never happen.
-        # We can figure this out by looking at pattid2obj i guess? or just
-        # check for not being in nodeid2obj.
+    curr_start_node_id = start_node_id
+    while curr_start_node_id != end_node_id:
+        # As long as we are moving the "current start node" from the start node
+        # to just before the end node within this chain, we can safely assume
+        # that the current start node has exactly 1 outgoing edge (since
+        # otherwise this wouldn't be a valid chain in the first place).
+        #
+        # ... Butttt I don't trust myself that much, so we include a sanity
+        # check here -- if this is *not* the case, then we fail loudly.
+        cs_adj = g.adj[curr_start_node_id]
+        fail_if_not_single_edge(g, cs_adj, curr_start_node_id, "outgoing")
+        next_node_id = list(cs_adj)[0]
+        if is_edge_fake_and_trivial(
+            g, curr_start_node_id, next_node_id, nodeid2obj, edgeid2obj
+        ):
+            node_ids_to_remove.add(curr_start_node_id)
+            curr_start_node_id = next_node_id
+        else:
+            break
+
+    if curr_start_node_id == validation_results.end_node:
+        # This chain was comprised entirely of trivial fake edges; bail out.
+        return ValidationResults()
+
+    # If we've made it here, then we know that this chain contains at least one
+    # "good" edge and that we've trimmed all ETFEs from the left side. Let's
+    # also do this trimming on the right side.
+    curr_end_node_id = end_node_id
+    while curr_end_node_id != curr_start_node_id:
+        ce_pred = g.pred[curr_end_node_id]
+        fail_if_not_single_edge(g, ce_pred, curr_end_node_id, "incoming")
+        prev_node_id = list(ce_pred)[0]
+        if is_edge_fake_and_trivial(
+            g, prev_node_id, curr_end_node_id, nodeid2obj, edgeid2obj
+        ):
+            node_ids_to_remove.add(curr_end_node_id)
+            curr_end_node_id = prev_node_id
+        else:
+            break
+
+    # We've finished trimming, and (since we didn't bail out after the left -->
+    # right while loop) we know that this chain contains at least one "good"
+    # edge.
+    #
+    # We could probably make this operation more efficient by avoiding the
+    # construction of sets, but I don't want to rely on
+    # validation_results.nodes being sorted in any particular order.
+    chain_nodes = list(set(validation_results.nodes) - node_ids_to_remove)
+    return ValidationResults(
+        config.PT_CHAIN,
+        True,
+        chain_nodes,
+        curr_start_node_id,
+        curr_end_node_id,
+    )
