@@ -109,14 +109,15 @@ def test_bubble_chain_identification():
     the overall chain. So even if 0 -> 1 or 7 -> 8 is created first, the
     resulting graph should be the same.
     """
-    AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
-    # TODO: Fix, as described above!
-    # assert len(ag.decomposed_graph.nodes) == 1
-    # assert len(ag.decomposed_graph.edges) == 0
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
+    assert len(ag.decomposed_graph.nodes) == 1
+    assert len(ag.decomposed_graph.edges) == 0
+    # TODO: Fix, as described above (everything should be in 1 chain, which
+    # contains the two bubbles)
     # assert len(ag.chains) == 3
-    # assert len(ag.cyclic_chains) == 0
-    # assert len(ag.frayed_ropes) == 1
-    # assert len(ag.bubbles) == 0
+    assert len(ag.cyclic_chains) == 0
+    assert len(ag.frayed_ropes) == 0
+    assert len(ag.bubbles) == 2
 
 
 def test_bubble_cyclic_chain_identification():

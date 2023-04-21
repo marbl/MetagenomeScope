@@ -74,7 +74,8 @@ class Pattern(Node):
         check_vr(validation_results)
         self.start_node = None
         self.end_node = None
-        if validation_results.has_start_end:
+        self.has_start_end = validation_results.has_start_end
+        if self.has_start_end:
             self.start_node = validation_results.start_node
             self.end_node = validation_results.end_node
         self.node_ids = validation_results.nodes
@@ -112,9 +113,12 @@ class Pattern(Node):
         super().__init__(unique_id, str(unique_id), {})
 
     def __repr__(self):
+        suffix = ""
+        if self.has_start_end:
+            suffix = f" from {self.start_node} to {self.end_node}"
         return (
             f"{config.PT2HR[self.pattern_type]} (ID {self.unique_id}) of "
-            f"nodes {self.node_ids}"
+            f"nodes {self.node_ids}{suffix}"
         )
 
     def get_counts(self, asm_graph):

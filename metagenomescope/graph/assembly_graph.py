@@ -616,6 +616,9 @@ class AssemblyGraph(object):
                     if validation_results:
                         # Yes, it does!
                         pobj, ls, rs = self._add_pattern(validation_results)
+                        print(
+                            f"Found pattern {pobj} from {validation_results.start_node} to {validation_results.end_node}"
+                        )
                         self.ptype2collection[
                             validation_results.pattern_type
                         ].append(pobj)
@@ -656,12 +659,16 @@ class AssemblyGraph(object):
                                 if incoming_node not in pobj.node_ids:
                                     candidate_nodes.add(incoming_node)
 
-                        something_collapsed_in_this_iteration = False
+                        something_collapsed_in_this_iteration = True
 
                         # Don't bother trying to identify the start of any other
                         # patterns at n, since n is no longer present in the
                         # decomposed graph.
                         break
+                    else:
+                        print(
+                            f"Didn't find a pattern starting at {n}: {repr(validator)}"
+                        )
 
             if not something_collapsed_in_this_iteration:
                 # We just went through every top-level node in the decomposed
