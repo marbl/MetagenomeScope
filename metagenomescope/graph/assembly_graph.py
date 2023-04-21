@@ -97,8 +97,17 @@ class AssemblyGraph(object):
         )
 
         # Remove nodes/edges in components that are too large to lay out.
+        operation_msg(
+            f"Removing components with > {self.max_node_count:,} nodes and/or "
+            f"> {self.max_edge_count:,} edges..."
+        )
         self.num_too_large_components = 0
         self._remove_too_large_components()
+        conclude_msg()
+        operation_msg(
+            f"Removed {self.num_too_large_components:,} such component(s).",
+            newline=True
+        )
 
         # These store Node, Edge, and Pattern objects. We still use the
         # NetworkX graph objects to do things like identify connected
@@ -124,7 +133,9 @@ class AssemblyGraph(object):
         # the graph, and add an "uid" attribute for edges in the graph. This
         # way, we can easily associate nodes and edges with their corresponding
         # objects' unique IDs.
+        operation_msg("Initializing node and edge graph objects...")
         self._init_graph_objs()
+        conclude_msg()
 
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
@@ -154,7 +165,11 @@ class AssemblyGraph(object):
         }
 
         # Holds the top-level decomposed graph.
+        # PERF / NOTE: Ideally we'd avoid creating this completely if
+        # --patterns is False (this way we avoid the extra memory usage).
+        operation_msg("Creating a copy of the graph for decomposition...")
         self.decomposed_graph = deepcopy(self.graph)
+        conclude_msg()
 
         # Node/edge scaling is done *before* pattern detection, so duplicate
         # nodes/edges created during pattern detection shouldn't influence
@@ -170,9 +185,15 @@ class AssemblyGraph(object):
         # relative_length, ...) as attributes of Node/Edge attributes --
         # blessedly, leaving user-provide Node/Edge data separate.
         if self.find_patterns:
-            operation_msg("Running hierarchical pattern decomposition...")
+            operation_msg("Decomposing the graph into patterns...")
             self._hierarchically_identify_patterns()
             conclude_msg()
+            operation_msg(
+                f"Found {len(self.bubbles):,} bubble(s), "
+                f"{len(self.chains):,} chain(s), "
+                f"{len(self.cyclic_chains):,} cyclic chain(s), and "
+                f"{len(self.frayed_ropes):,} frayed rope(s)."
+            )
 
         # Defer this until after we do pattern decomposition, to account for
         # split nodes. (At this point we have already called _scale_nodes() --
