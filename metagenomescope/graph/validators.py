@@ -156,8 +156,8 @@ def is_edge_fake_and_trivial(g, n0, n1, nodeid2obj, edgeid2obj):
     curr_edge = g.edges[n0, n1, 0]
     if edgeid2obj[curr_edge["uid"]].is_fake:
         # Figure out if this is a *trivial* edge.
-        n0_is_node = start_node_id in nodeid2obj
-        n1_is_node = next_node_id in nodeid2obj
+        n0_is_node = n0 in nodeid2obj
+        n1_is_node = n1 in nodeid2obj
         if n0_is_node and n1_is_node:
             # The decomposed graph should never have a *fake* edge between
             # two (non-pattern) nodes. Something's up.
@@ -926,15 +926,21 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     if not validation_results:
         return validation_results
 
-    node_ids_to_remove = set()
-    end_node_id = validation_results.end_node
     # If we've made it here, then is_valid_chain() found something. We need
     # to remove external trivial fake edges, which may or may not mean that
     # some sort of chain will persist.
-    #
-    # We can safely assume that the start node only has one outgoing edge,
-    # since we've already validated this chain.
-    curr_start_node_id = start_node_id
+
+    node_ids_to_remove = set()
+    # NOTE: we don't use start_node_id (the parameter to this function) for
+    # anything but passing it to is_valid_chain() -- here, we use
+    # validation_results.start_node as the "true" start node (at least before
+    # removing ETFEs) of this chain. The reason for this is that
+    # is_valid_chain() will try to extend the chain it identifies backwards,
+    # which will change the true start node from start_node_id.
+    curr_start_node_id = validation_results.start_node
+    end_node_id = validation_results.end_node
+
+    # First "sweep": trim off ETFEs from the start (left side) of this chain.
     while curr_start_node_id != end_node_id:
         # As long as we are moving the "current start node" from the start node
         # to just before the end node within this chain, we can safely assume
@@ -949,6 +955,7 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
         if is_edge_fake_and_trivial(
             g, curr_start_node_id, next_node_id, nodeid2obj, edgeid2obj
         ):
+            print(f"sweep 0: Edge from {curr_start_node_id} to {next_node_id} is fake&trivial")
             node_ids_to_remove.add(curr_start_node_id)
             curr_start_node_id = next_node_id
         else:
@@ -960,7 +967,7 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
 
     # If we've made it here, then we know that this chain contains at least one
     # "good" edge and that we've trimmed all ETFEs from the left side. Let's
-    # also do this trimming on the right side.
+    # also trim off ETFEs from the end (right side) of this chain.
     curr_end_node_id = end_node_id
     while curr_end_node_id != curr_start_node_id:
         ce_pred = g.pred[curr_end_node_id]
@@ -969,6 +976,7 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
         if is_edge_fake_and_trivial(
             g, prev_node_id, curr_end_node_id, nodeid2obj, edgeid2obj
         ):
+            print(f"sweep 1: Edge from {prev_node_id} to {curr_end_node_id} is fake&trivial")
             node_ids_to_remove.add(curr_end_node_id)
             curr_end_node_id = prev_node_id
         else:
@@ -982,6 +990,10 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     # construction of sets, but I don't want to rely on
     # validation_results.nodes being sorted in any particular order.
     chain_nodes = list(set(validation_results.nodes) - node_ids_to_remove)
+    print("original VR: ", validation_results)
+    print("VR nodes: ", validation_results.nodes)
+    print("node ids to remove: ", node_ids_to_remove)
+    print("curr start & end:", curr_start_node_id, curr_end_node_id)
     return ValidationResults(
         config.PT_CHAIN,
         True,
