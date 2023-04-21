@@ -1,6 +1,7 @@
 import math
 import json
 import os
+import subprocess
 from copy import deepcopy
 from operator import itemgetter
 from collections import deque
@@ -325,6 +326,13 @@ class AssemblyGraph(object):
         self.nodeid2obj[new_node_id] = new_node
         return new_node_id
 
+    def _should_split(self, boundary_node_id, exterior_nodes):
+        return (
+            len(exterior_nodes) > 0
+            and boundary_node_id in self.nodeid2obj
+            and self.nodeid2obj[boundary_node_id].is_not_split()
+        )
+
     def _add_pattern(self, validation_results):
         """Adds a pattern to the decomposed graph.
 
@@ -358,9 +366,8 @@ class AssemblyGraph(object):
             start_pred = self.decomposed_graph.pred[start_id]
             start_incoming_nodes_outside_pattern = set(start_pred) - patt_nodes
 
-            if (
-                len(start_incoming_nodes_outside_pattern) > 0
-                and self.nodeid2obj[start_id].is_not_split()
+            if self._should_split(
+                start_id, start_incoming_nodes_outside_pattern
             ):
                 # Since this start node has incoming edge(s) from outside the
                 # pattern, and since it already isn't a split node, we need to
@@ -421,10 +428,7 @@ class AssemblyGraph(object):
             end_adj = self.decomposed_graph.adj[end_id]
             end_outgoing_nodes_outside_pattern = set(end_adj) - patt_nodes
 
-            if (
-                len(end_outgoing_nodes_outside_pattern) > 0
-                and self.nodeid2obj[end_id].is_not_split()
-            ):
+            if self._should_split(end_id, end_outgoing_nodes_outside_pattern):
                 # Since this end node has outgoing edge(s) to outside the
                 # pattern, we need to split it.
                 # We'll create a new Node for the right split (in the diagram
@@ -616,9 +620,6 @@ class AssemblyGraph(object):
                     if validation_results:
                         # Yes, it does!
                         pobj, ls, rs = self._add_pattern(validation_results)
-                        print(
-                            f"Found pattern {pobj} from {validation_results.start_node} to {validation_results.end_node}"
-                        )
                         self.ptype2collection[
                             validation_results.pattern_type
                         ].append(pobj)
@@ -665,18 +666,12 @@ class AssemblyGraph(object):
                         # patterns at n, since n is no longer present in the
                         # decomposed graph.
                         break
-                    else:
-                        print(
-                            f"Didn't find a pattern starting at {n}: {repr(validator)}"
-                        )
 
             if not something_collapsed_in_this_iteration:
                 # We just went through every top-level node in the decomposed
                 # graph and didn't collapse anything -- we can exit the outer
                 # while loop.
                 break
-
-        self.pfg = deepcopy(self.decomposed_graph)
 
         # Now, identify frayed ropes, which are a "top-level only" pattern.
         # There aren't any other "top-level only" patterns as of writing, but I
@@ -1351,6 +1346,45 @@ class AssemblyGraph(object):
             data = self.decomposed_graph.edges[edge]
             data["ctrl_pt_coords"] = layout_utils.rotate_ctrl_pt_coords(
                 data["ctrl_pt_coords"]
+            )
+
+    def dump_dots(self, output_dir, make_pngs=True):
+        """Writes out and visualizes the (un)collapsed and collapsed graphs.
+
+        Notes
+        -----
+        This is a quick-and-dirty function designed for debugging. Notably, it
+        uses shell=True when drawing PNGs of these graphs -- this is a security
+        problem if you are running this on arbitrary user input (since
+        shell=True is vulnerable to code injection). This is probably only an
+        issue if you are running this on a server, and even then you can
+        just... not call this function.
+        """
+        os.makedirs(output_dir, exist_ok=True)
+
+        g_to_write = deepcopy(self.graph)
+        for n in g_to_write.nodes:
+            g_to_write.nodes[n]["label"] = repr(self.nodeid2obj[n])
+        gfp = os.path.join(output_dir, "graph.gv")
+        nx.drawing.nx_pydot.write_dot(g_to_write, gfp)
+
+        d_to_write = deepcopy(self.decomposed_graph)
+        for n in d_to_write.nodes:
+            if n in self.nodeid2obj:
+                d_to_write.nodes[n]["label"] = repr(self.nodeid2obj[n])
+            else:
+                d_to_write.nodes[n]["label"] = repr(self.pattid2obj[n])
+        dfp = os.path.join(output_dir, "dec-graph.gv")
+        nx.drawing.nx_pydot.write_dot(d_to_write, dfp)
+
+        if make_pngs:
+            subprocess.run(
+                f"dot -Tpng {gfp} > {os.path.join(output_dir, 'graph.png')}",
+                shell=True,
+            )
+            subprocess.run(
+                f"dot -Tpng {dfp} > {os.path.join(output_dir, 'dec-graph.png')}",
+                shell=True,
             )
 
     def to_dot(self, output_filepath, component_number=None):
