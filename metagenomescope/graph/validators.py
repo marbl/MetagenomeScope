@@ -955,7 +955,6 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
         if is_edge_fake_and_trivial(
             g, curr_start_node_id, next_node_id, nodeid2obj, edgeid2obj
         ):
-            print(f"sweep 0: Edge from {curr_start_node_id} to {next_node_id} is fake&trivial")
             node_ids_to_remove.add(curr_start_node_id)
             curr_start_node_id = next_node_id
         else:
@@ -976,7 +975,6 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
         if is_edge_fake_and_trivial(
             g, prev_node_id, curr_end_node_id, nodeid2obj, edgeid2obj
         ):
-            print(f"sweep 1: Edge from {prev_node_id} to {curr_end_node_id} is fake&trivial")
             node_ids_to_remove.add(curr_end_node_id)
             curr_end_node_id = prev_node_id
         else:
@@ -990,10 +988,6 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     # construction of sets, but I don't want to rely on
     # validation_results.nodes being sorted in any particular order.
     chain_nodes = list(set(validation_results.nodes) - node_ids_to_remove)
-    print("original VR: ", validation_results)
-    print("VR nodes: ", validation_results.nodes)
-    print("node ids to remove: ", node_ids_to_remove)
-    print("curr start & end:", curr_start_node_id, curr_end_node_id)
     return ValidationResults(
         config.PT_CHAIN,
         True,
