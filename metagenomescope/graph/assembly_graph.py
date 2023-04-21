@@ -597,9 +597,16 @@ class AssemblyGraph(object):
                     (False, validators.is_valid_cyclic_chain),
                 ):
                     # Does this type of pattern start at this node?
+                    # (pass_objs just controls whether or not we need to pass
+                    # the nodeid2obj and edgeid2obj variables to the validator;
+                    # mainly need as of writing due to the ETFE-trimming stuff
+                    # with chains)
                     if pass_objs:
                         validation_results = validator(
-                            self.decomposed_graph, n, self.nodeid2obj, self.edgeid2obj
+                            self.decomposed_graph,
+                            n,
+                            self.nodeid2obj,
+                            self.edgeid2obj,
                         )
                     else:
                         validation_results = validator(
