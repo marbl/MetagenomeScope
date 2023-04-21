@@ -440,13 +440,26 @@ def is_valid_bulge(g, start_node_id):
     return ValidationResults()
 
 
-def is_valid_bubble(g, start_node_id):
+def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
     r"""Validates a (super)bubble starting at a node in a graph.
 
     Parameters
     ----------
     g: nx.MultiDiGraph
+        Graph containing start_node_id.
+
     start_node_id: str
+        Start node to use when searching for a bubble.
+
+    nodeid2obj: dict or None
+        Maps node IDs in g to Node objects. If this is not None and edgeid2obj
+        is not None, then -- when we search for chains within this bubble -- we
+        will use is_valid_chain_no_etfes() instead of is_valid_chain(). (This
+        lets us avoid identifying trivial chains.)
+
+    edgeid2obj: dict or None
+        Maps edge IDs in g (stored in the "uid" data attribute of each edge in
+        the graph) to Edge objects. See the nodeid2obj description above.
 
     Returns
     -------
@@ -594,16 +607,37 @@ def is_valid_bubble(g, start_node_id):
             # This is of course obscenely inefficient in theory. However, since
             # this repeated check only gets run once we DO find a bubble, I
             # don't think it will be too slow.
+
+            # Figure out if we want to do the fancy no-ETFE chain search (if we
+            # have Node and Edge object information) or if we just care about
+            # the graph's topology.
+            no_etfe_chains = nodeid2obj is not None and edgeid2obj is not None
             for c in composite:
                 if c != t and c != start_node_id:
-                    for validator in (
-                        is_valid_bulge,
-                        is_valid_chain,
-                        is_valid_bubble,
-                    ):
-                        out = validator(g, c)
+                    if no_etfe_chains:
+                        # The fancy route. (Bulge detection doesn't require any
+                        # extra information, but we have to pass nodeid2obj and
+                        # edgeid2obj to the other two validator functions.)
+                        out = is_valid_bulge(g, c)
                         if out:
                             return out
+                        for validator in (
+                            is_valid_chain_no_etfes,
+                            is_valid_bubble,
+                        ):
+                            out = validator(g, c, nodeid2obj, edgeid2obj)
+                            if out:
+                                return out
+                    else:
+                        # The less-fancy route -- just consider topology
+                        for validator in (
+                            is_valid_bulge,
+                            is_valid_chain,
+                            is_valid_bubble,
+                        ):
+                            out = validator(g, c)
+                            if out:
+                                return out
 
             # If the checks above succeeded, this is a valid and minimal
             # bubble! Nice.

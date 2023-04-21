@@ -325,7 +325,7 @@ class AssemblyGraph(object):
         self.nodeid2obj[new_node_id] = new_node
         return new_node_id
 
-    def _add_pattern(self, validation_results, pattern_type):
+    def _add_pattern(self, validation_results):
         """Adds a pattern to the decomposed graph.
 
         Parameters
@@ -335,9 +335,6 @@ class AssemblyGraph(object):
             assume that this is the result of a *successful* validation, i.e.
             the is_valid attribute of this is True. This may or may not have
             start/end nodes defined.
-
-        pattern_type: int
-            The type of this pattern -- should have an entry in config.PT2HR.
 
         Returns
         -------
@@ -506,7 +503,11 @@ class AssemblyGraph(object):
         # TODO: for the love of god, see if we can avoid passing subgraphs to
         # pattern objects
         p = Pattern(
-            pattern_id, pattern_type, validation_results, subgraph, self
+            pattern_id,
+            validation_results.pattern_type,
+            validation_results,
+            subgraph,
+            self,
         )
         self.pattid2obj[pattern_id] = p
         return p, left_node_id, right_node_id
@@ -518,12 +519,6 @@ class AssemblyGraph(object):
 
         TODOs: behavior
         ---------------
-        1. Disallow the identification of "trivial" chains. (This should impact
-           both the chain-search here, and the do-we-contain-a-real-chain check
-           in the bubble search function. One way to do this: make a new
-           function that takes as input [stuff from this AG obj, idk what
-           exactly], runs the chain checking validator, and then fails if the
-           chain is trivial.
         2. Disallow the presence of frayed ropes within frayed ropes, even in
            the middle. (Again, I think the way to do this is to wrap the
            validator in another function that figures out if any of the nodes
@@ -595,36 +590,28 @@ class AssemblyGraph(object):
                 # have opinions. If you don't have opinions but you're reading
                 # this anyway, please react to issue 13 with the :eyes: emoji
                 # because I think that would be funny.
-                for pcollection, validator, ptype in (
-                    (
-                        self.bubbles,
-                        validators.is_valid_bulge,
-                        config.PT_BUBBLE,
-                    ),
-                    (self.chains, validators.is_valid_chain, config.PT_CHAIN),
-                    (
-                        self.bubbles,
-                        validators.is_valid_bubble,
-                        config.PT_BUBBLE,
-                    ),
-                    (
-                        self.cyclic_chains,
-                        validators.is_valid_cyclic_chain,
-                        config.PT_CYCLICCHAIN,
-                    ),
+                for pass_objs, validator in (
+                    (False, validators.is_valid_bulge),
+                    (True, validators.is_valid_chain_no_etfes),
+                    (True, validators.is_valid_bubble),
+                    (False, validators.is_valid_cyclic_chain),
                 ):
                     # Does this type of pattern start at this node?
-                    validation_results = validator(self.decomposed_graph, n)
-                    if validation_results:
-
-                        # Yes, it does!
-                        pobj, ls, rs = self._add_pattern(
-                            validation_results, ptype
+                    if pass_objs:
+                        validation_results = validator(
+                            self.decomposed_graph, n, self.nodeid2obj, self.edgeid2obj
                         )
-                        pcollection.append(pobj)
+                    else:
+                        validation_results = validator(
+                            self.decomposed_graph, n
+                        )
 
-                        # Update AssemblyGraph-wide information about this new pattern
-                        self.ptype2collection[ptype].append(pobj)
+                    if validation_results:
+                        # Yes, it does!
+                        pobj, ls, rs = self._add_pattern(validation_results)
+                        self.ptype2collection[
+                            validation_results.pattern_type
+                        ].append(pobj)
                         self.pattid2obj[pobj.unique_id] = pobj
 
                         # Remove child nodes of this pattern from consideration as
@@ -694,11 +681,7 @@ class AssemblyGraph(object):
                 # after finding a frayed rope, because we don't perform node
                 # splitting on frayed rope boundaries (at least, as of writing)
                 # and because frayed ropes can't be contained in other patterns
-                pobj, ls, rs = self._add_pattern(
-                    validation_results, config.PT_FRAYEDROPE
-                )
-                pcollection.append(pobj)
-
+                pobj, ls, rs = self._add_pattern(validation_results)
                 self.frayed_ropes.append(pobj)
                 self.pattid2obj[pobj.unique_id] = pobj
 
