@@ -13,7 +13,9 @@ def test_simple_hierarch_decomp():
      \            /           /
       8 -> 9 -> 10 -> 12 -> 13
 
-    ...and the following simplifications should happen:
+    ...and the following simplifications should happen (not writing every step
+    out because that'd take forever, also these drawings ignore node
+    splitting):
 
         3
        / \
@@ -23,20 +25,28 @@ def test_simple_hierarch_decomp():
      \            /          /
       \--> [Chain] -> [Chain]
 
-    Eventually, the 1-2-3-chain thing should turn into a bubble.
-    But for now this isn't happening.
+      [Bubble] -----> 6 ------> [Chain]
+     /               /         /
+    0              11         /
+     \            /          /
+      \--> [Chain] -> [Chain]
+
+    [Bubble] --> [Chain]
+
+    [Chain]
     """
     ag = AssemblyGraph(
         "metagenomescope/tests/input/hierarchical_test_graph.gml"
     )
-    # write_dot(ag.decomposed_graph, "dec.gv")
     # This is with the "maximum" decomposition settings for this test graph.
-    assert len(ag.decomposed_graph.nodes) == 10
-    assert len(ag.decomposed_graph.edges) == 12
-    assert len(ag.chains) == 4
+    assert len(ag.decomposed_graph.nodes) == 1
+    assert len(ag.decomposed_graph.edges) == 0
+    # TODO -- this is an overestimate, because we haven't implemented chain
+    # merging yet. DO THAT!
+    assert len(ag.chains) == 6
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
-    assert len(ag.bubbles) == 0
+    assert len(ag.bubbles) == 2
 
 
 def test_bubble_chain_identification():
