@@ -106,7 +106,7 @@ class AssemblyGraph(object):
         conclude_msg()
         operation_msg(
             f"Removed {self.num_too_large_components:,} such component(s).",
-            newline=True
+            newline=True,
         )
 
         # These store Node, Edge, and Pattern objects. We still use the
