@@ -617,7 +617,7 @@ class AssemblyGraph(object):
                 # because I think that would be funny.
                 for pass_objs, validator in (
                     (False, validators.is_valid_bulge),
-                    (True, validators.is_valid_chain_no_etfes),
+                    (True, validators.is_valid_chain_trimmed_etfes),
                     (True, validators.is_valid_bubble),
                     (False, validators.is_valid_cyclic_chain),
                 ):

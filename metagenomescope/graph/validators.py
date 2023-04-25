@@ -454,8 +454,8 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
     nodeid2obj: dict or None
         Maps node IDs in g to Node objects. If this is not None and edgeid2obj
         is not None, then -- when we search for chains within this bubble -- we
-        will use is_valid_chain_no_etfes() instead of is_valid_chain(). (This
-        lets us avoid identifying trivial chains.)
+        will use is_valid_chain_trimmed_etfes() instead of is_valid_chain().
+        (This lets us avoid identifying trivial chains.)
 
     edgeid2obj: dict or None
         Maps edge IDs in g (stored in the "uid" data attribute of each edge in
@@ -622,7 +622,7 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
                         if out:
                             return out
                         for validator in (
-                            is_valid_chain_no_etfes,
+                            is_valid_chain_trimmed_etfes,
                             is_valid_bubble,
                         ):
                             out = validator(g, c, nodeid2obj, edgeid2obj)
@@ -835,9 +835,33 @@ def is_valid_chain(g, start_node_id):
     )
 
 
-def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
-    r"""Validates a chain without external trivial fake edges (ETFEs).
+def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
+    r"""Validates a chain and trims its external trivial fake edges (ETFEs).
 
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+
+    start_node_id: str
+
+    nodeid2obj: dict
+        Maps node IDs in g to Node objects.
+
+    edgeid2obj: dict
+        Maps edge IDs (stored in the "uid" attribute of edges in g) to Edge
+        objects.
+
+    Returns
+    -------
+    ValidationResults
+
+    Notes
+    -----
+    Sorry, this is a gross function with some context. Sit down and grab a
+    beverage.
+
+    Background information
+    ----------------------
     We create fake edges between the two splits of a node during pattern
     decomposition (see AssemblyGraph._add_pattern()). Although fake edges are
     useful for representing the graph after splitting, they don't represent
@@ -850,9 +874,11 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     justification for creating a chain. This function checks the leftmost and
     rightmost edge in a chain to see if they are trivial; if either is trivial,
     this function removes this edge from the chain. If the remaining chain
-    still includes any edges, then we return this inner structure (which is
-    still a valid chain); otherwise, we have failed to identify a chain here.
+    still includes any edges, then it is a valid chain; otherwise, we just
+    record this as a failure to identify a chain.
 
+    Example 1: a chain consisting solely of two ETFEs
+    -------------------------------------------------
     For example, consider the following partially-decomposed graph:
 
                  +---------------+
@@ -880,6 +906,8 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     for creating a chain once YL and YR are located in different patterns (at
     this point, the edge will no longer be trivial).
 
+    Example 2: trivial fake edges surrounded by real edges
+    ------------------------------------------------------
     Note that real chains may contain trivial fake edges if a fake edge is
     "surrounded" by a real one. For example:
 
@@ -894,6 +922,8 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     Later on, after we identify the [Z, C, D, E] bubble and merge "unused"
     split nodes, this should turn into W --> [bubble] ==> [bubble].
 
+    Example 3: multiple layers of trivial fake edges
+    ------------------------------------------------
     Finally, note that we only remove one layer of external trivial fake edges
     when trying to identify a chain:
 
@@ -911,24 +941,11 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     We are left with a chain of W --> XL ==> [bubble]. Later, after we identify
     the [YR, C, D, E] bubble, we'll identify a new chain of [chain 1] ==> [YR
     bubble], and then merge the chains (and merge "unused" split nodes) to get
-    W --> [XR bubble] ==> [YR bubble]. PHEW
+    W --> [XR bubble] ==> [YR bubble].
 
-    Parameters
-    ----------
-    g: nx.MultiDiGraph
-
-    start_node_id: str
-
-    nodeid2obj: dict
-        Maps node IDs in g to Node objects.
-
-    edgeid2obj: dict
-        Maps edge IDs (stored in the "uid" attribute of edges in g) to Edge
-        objects.
-
-    Returns
-    -------
-    ValidationResults
+    What's your problem??? Reading all of that documentation gave me depression
+    ---------------------------------------------------------------------------
+    my b
     """
     validation_results = is_valid_chain(g, start_node_id)
 
