@@ -1369,8 +1369,32 @@ class AssemblyGraph(object):
                 data["ctrl_pt_coords"]
             )
 
-    def dump_dots(self, output_dir, make_pngs=True):
-        """Writes out and visualizes the (un)collapsed and collapsed graphs.
+    def dump_dots(
+        self,
+        output_dir,
+        graph_fn="graph.gv",
+        decomposed_graph_fn="dec-graph.gv",
+        make_pngs=True,
+    ):
+        """Writes out the (un)collapsed and collapsed graphs in DOT format.
+
+        Parameters
+        ----------
+        output_dir: str
+            The output directory to which we will write these graphs.
+
+        graph_fn: str or None
+            Filename to give the DOT output for the uncollapsed graph. If this
+            is None, we won't write out the uncollapsed graph.
+
+        decomposed_graph_fn: str or None
+            Filename to give the DOT output for the collapsed graph. If this
+            is None, we won't write out the collapsed graph.
+
+        make_pngs: bool
+            If True, convert all of the DOT files we wrote out to PNGs; if
+            False, don't. The PNG files for the uncollapsed and collapsed graph
+            will be named "graph.png" and "dec-graph.png", respectively.
 
         Notes
         -----
@@ -1383,30 +1407,36 @@ class AssemblyGraph(object):
         """
         os.makedirs(output_dir, exist_ok=True)
 
-        g_to_write = deepcopy(self.graph)
-        for n in g_to_write.nodes:
-            g_to_write.nodes[n]["label"] = repr(self.nodeid2obj[n])
-        gfp = os.path.join(output_dir, "graph.gv")
-        nx.drawing.nx_pydot.write_dot(g_to_write, gfp)
+        if graph_fn is not None:
+            operation_msg("Writing out the uncollapsed graph...")
+            g_to_write = deepcopy(self.graph)
+            for n in g_to_write.nodes:
+                g_to_write.nodes[n]["label"] = repr(self.nodeid2obj[n])
+            gfp = os.path.join(output_dir, graph_fn)
+            nx.drawing.nx_pydot.write_dot(g_to_write, gfp)
+            conclude_msg()
+            if make_pngs:
+                operation_msg("Visualizing uncollapsed graph as a PNG...")
+                png_fp = os.path.join(output_dir, "graph.png")
+                subprocess.run(f"dot -Tpng {gfp} > {png_fp}", shell=True)
+                conclude_msg()
 
-        d_to_write = deepcopy(self.decomposed_graph)
-        for n in d_to_write.nodes:
-            if n in self.nodeid2obj:
-                d_to_write.nodes[n]["label"] = repr(self.nodeid2obj[n])
-            else:
-                d_to_write.nodes[n]["label"] = repr(self.pattid2obj[n])
-        dfp = os.path.join(output_dir, "dec-graph.gv")
-        nx.drawing.nx_pydot.write_dot(d_to_write, dfp)
-
-        if make_pngs:
-            subprocess.run(
-                f"dot -Tpng {gfp} > {os.path.join(output_dir, 'graph.png')}",
-                shell=True,
-            )
-            subprocess.run(
-                f"dot -Tpng {dfp} > {os.path.join(output_dir, 'dec-graph.png')}",
-                shell=True,
-            )
+        if decomposed_graph_fn is not None:
+            operation_msg("Writing out the collapsed graph...")
+            d_to_write = deepcopy(self.decomposed_graph)
+            for n in d_to_write.nodes:
+                if n in self.nodeid2obj:
+                    d_to_write.nodes[n]["label"] = repr(self.nodeid2obj[n])
+                else:
+                    d_to_write.nodes[n]["label"] = repr(self.pattid2obj[n])
+            dfp = os.path.join(output_dir, decomposed_graph_fn)
+            nx.drawing.nx_pydot.write_dot(d_to_write, dfp)
+            conclude_msg()
+            if make_pngs:
+                operation_msg("Visualizing collapsed graph as a PNG...")
+                png_fp = os.path.join(output_dir, "dec-graph.png")
+                subprocess.run(f"dot -Tpng {dfp} > {png_fp}", shell=True)
+                conclude_msg()
 
     def to_dot(self, output_filepath, component_number=None):
         """TODO. Outputs a DOT (and/or XDOT?) representation of the graph.
