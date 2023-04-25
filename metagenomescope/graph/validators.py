@@ -847,7 +847,11 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     this split node was created.
 
     "Trivial" fake edges should should not be considered to be, by themselves,
-    justification for creating a chain.
+    justification for creating a chain. This function checks the leftmost and
+    rightmost edge in a chain to see if they are trivial; if either is trivial,
+    this function removes this edge from the chain. If the remaining chain
+    still includes any edges, then we return this inner structure (which is
+    still a valid chain); otherwise, we have failed to identify a chain here.
 
     For example, consider the following partially-decomposed graph:
 
@@ -887,9 +891,11 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
 
     We actually should identify a chain from W --> XL ==> [bubble] ==> YR --> Z
     because this chain's "external" edges (W --> XL and YR --> Z) are real.
+    Later on, after we identify the [Z, C, D, E] bubble and merge "unused"
+    split nodes, this should turn into W --> [bubble] ==> [bubble].
 
-    Finally, note that we iteratively remove external trivial fake edges when
-    trying to identify a chain:
+    Finally, note that we only remove one layer of external trivial fake edges
+    when trying to identify a chain:
 
                  +---------------+
                  |  /--> A -->\  |       /--> C -->\
@@ -899,9 +905,13 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
 
     We would at first identify a chain from W --> XL ==> [bubble] ==> YR. The
     left external edge is good (it's a real edge); however, the right external
-    edge (YL ==> YR) is a trivial fake edge. So we'd remove this right edge,
-    and then we'd remove the next right edge also (XL ==> XR is also a trivial
-    fake edge). We are left with a chain of just W --> XL.
+    edge (YL ==> YR) is a trivial fake edge. So we'd remove this right edge.
+    The next right edge is also a trivial fake edge (XL ==> XR), but we leave
+    it here because we only remove one layer of trivial fake edges.
+    We are left with a chain of W --> XL ==> [bubble]. Later, after we identify
+    the [YR, C, D, E] bubble, we'll identify a new chain of [chain 1] ==> [YR
+    bubble], and then merge the chains (and merge "unused" split nodes) to get
+    W --> [XR bubble] ==> [YR bubble]. PHEW
 
     Parameters
     ----------
@@ -931,67 +941,58 @@ def is_valid_chain_no_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     # some sort of chain will persist.
 
     node_ids_to_remove = set()
+
     # NOTE: we don't use start_node_id (the parameter to this function) for
     # anything but passing it to is_valid_chain() -- here, we use
     # validation_results.start_node as the "true" start node (at least before
     # removing ETFEs) of this chain. The reason for this is that
     # is_valid_chain() will try to extend the chain it identifies backwards,
     # which will change the true start node from start_node_id.
-    curr_start_node_id = validation_results.start_node
+    start_node_id = validation_results.start_node
     end_node_id = validation_results.end_node
 
-    # First "sweep": trim off ETFEs from the start (left side) of this chain.
-    while curr_start_node_id != end_node_id:
-        # As long as we are moving the "current start node" from the start node
-        # to just before the end node within this chain, we can safely assume
-        # that the current start node has exactly 1 outgoing edge (since
-        # otherwise this wouldn't be a valid chain in the first place).
-        #
-        # ... Butttt I don't trust myself that much, so we include a sanity
-        # check here -- if this is *not* the case, then we fail loudly.
-        cs_adj = g.adj[curr_start_node_id]
-        fail_if_not_single_edge(g, cs_adj, curr_start_node_id, "outgoing")
-        next_node_id = list(cs_adj)[0]
-        if is_edge_fake_and_trivial(
-            g, curr_start_node_id, next_node_id, nodeid2obj, edgeid2obj
-        ):
-            node_ids_to_remove.add(curr_start_node_id)
-            curr_start_node_id = next_node_id
-        else:
-            break
-
-    if curr_start_node_id == validation_results.end_node:
-        # This chain was comprised entirely of trivial fake edges; bail out.
-        return ValidationResults()
-
-    # If we've made it here, then we know that this chain contains at least one
-    # "good" edge and that we've trimmed all ETFEs from the left side. Let's
-    # also trim off ETFEs from the end (right side) of this chain.
-    curr_end_node_id = end_node_id
-    while curr_end_node_id != curr_start_node_id:
-        ce_pred = g.pred[curr_end_node_id]
-        fail_if_not_single_edge(g, ce_pred, curr_end_node_id, "incoming")
-        prev_node_id = list(ce_pred)[0]
-        if is_edge_fake_and_trivial(
-            g, prev_node_id, curr_end_node_id, nodeid2obj, edgeid2obj
-        ):
-            node_ids_to_remove.add(curr_end_node_id)
-            curr_end_node_id = prev_node_id
-        else:
-            break
-
-    # We've finished trimming, and (since we didn't bail out after the left -->
-    # right while loop) we know that this chain contains at least one "good"
-    # edge.
+    # Trim off the ETFE from the start (left side) of this chain, if present.
     #
-    # We could probably make this operation more efficient by avoiding the
-    # construction of sets, but I don't want to rely on
-    # validation_results.nodes being sorted in any particular order.
+    # We can safely assume that the current start node has exactly 1 outgoing
+    # edge (since otherwise this wouldn't be a valid chain in the first place).
+    # ... Butttt I don't trust myself that much, so we include a sanity
+    # check here -- if this is *not* the case, then we fail loudly.
+    cs_adj = g.adj[start_node_id]
+    fail_if_not_single_edge(g, cs_adj, start_node_id, "outgoing")
+    next_node_id = list(cs_adj)[0]
+    if is_edge_fake_and_trivial(
+        g, start_node_id, next_node_id, nodeid2obj, edgeid2obj
+    ):
+        node_ids_to_remove.add(start_node_id)
+        # Shift the starting node to the right by one.
+        start_node_id = next_node_id
+
+        if start_node_id == end_node_id:
+            # This chain was comprised entirely of one trivial fake edge; bail
+            # out. (I am not sure if this will happen in practice -- if we
+            # identify chains of only external trivial fake edges, usually they
+            # should have two such fake edges -- but let's be safe.)
+            return ValidationResults()
+
+    # Trim off the ETFE from the end (right side) of this chain, if present.
+    ce_pred = g.pred[end_node_id]
+    fail_if_not_single_edge(g, ce_pred, end_node_id, "incoming")
+    prev_node_id = list(ce_pred)[0]
+    if is_edge_fake_and_trivial(
+        g, prev_node_id, end_node_id, nodeid2obj, edgeid2obj
+    ):
+        node_ids_to_remove.add(end_node_id)
+        # Shift the ending node to the left by one.
+        end_node_id = prev_node_id
+        if start_node_id == end_node_id:
+            return ValidationResults()
+
+    # We've finished trimming, and this chain still exists! Yay.
     chain_nodes = list(set(validation_results.nodes) - node_ids_to_remove)
     return ValidationResults(
         config.PT_CHAIN,
         True,
         chain_nodes,
-        curr_start_node_id,
-        curr_end_node_id,
+        start_node_id,
+        end_node_id,
     )

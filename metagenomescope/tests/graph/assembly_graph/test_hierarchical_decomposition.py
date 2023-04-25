@@ -25,7 +25,7 @@ def test_simple_hierarch_decomp():
      \            /          /
       \--> [Chain] -> [Chain]
 
-      [Bubble] -----> 6 ------> [Chain]
+      [Bub]->[Chain]->6 ------> [Chain]
      /               /         /
     0              11         /
      \            /          /
@@ -41,9 +41,11 @@ def test_simple_hierarch_decomp():
     # This is with the "maximum" decomposition settings for this test graph.
     assert len(ag.decomposed_graph.nodes) == 1
     assert len(ag.decomposed_graph.edges) == 0
-    # TODO -- this is an overestimate, because we haven't implemented chain
-    # merging yet. DO THAT!
-    assert len(ag.chains) == 6
+    # TODO: this is currently 5 instead of 4. This is because the rightmost
+    # chain (7R -> 14 -> 15 -> 16) is just treated as a child of the top-level
+    # chain; when we support chain merging, this rightmost chain should just
+    # get merged into the top-level chain, keeping the number of chains at 4.
+    # assert len(ag.chains) == 4
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 2
@@ -124,7 +126,7 @@ def test_bubble_chain_identification():
     assert len(ag.decomposed_graph.edges) == 0
     # TODO: Fix, as described above (everything should be in 1 chain, which
     # contains the two bubbles)
-    # assert len(ag.chains) == 3
+    # assert len(ag.chains) == 1
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 2
