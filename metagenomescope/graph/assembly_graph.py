@@ -535,6 +535,7 @@ class AssemblyGraph(object):
             self,
         )
         self.pattid2obj[pattern_id] = p
+        self.ptype2collection[validation_results.pattern_type].append(p)
         return p, left_node_id, right_node_id
 
     def _hierarchically_identify_patterns(self):
@@ -641,10 +642,6 @@ class AssemblyGraph(object):
                     if validation_results:
                         # Yes, it does!
                         pobj, ls, rs = self._add_pattern(validation_results)
-                        self.ptype2collection[
-                            validation_results.pattern_type
-                        ].append(pobj)
-                        self.pattid2obj[pobj.unique_id] = pobj
 
                         # Remove child nodes of this pattern from consideration as
                         # future start nodes of other patterns. (Don't worry,
@@ -712,9 +709,6 @@ class AssemblyGraph(object):
                 # splitting on frayed rope boundaries (at least, as of writing)
                 # and because frayed ropes can't be contained in other patterns
                 pobj, ls, rs = self._add_pattern(validation_results)
-                self.frayed_ropes.append(pobj)
-                self.pattid2obj[pobj.unique_id] = pobj
-
                 for pn in pobj.node_ids:
                     top_level_candidate_nodes.discard(pn)
 
