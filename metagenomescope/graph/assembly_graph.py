@@ -506,6 +506,8 @@ class AssemblyGraph(object):
         for e in p_in_edges:
             e_uid = self.decomposed_graph.edges[e]["uid"]
             self.edgeid2obj[e_uid].reroute_dec_tgt(pattern_id)
+            # We will remove the edge that this is replacing (e) soon, when we
+            # call self.decomposed_graph.remove_nodes_from(patt_nodes).
             self.decomposed_graph.add_edge(e[0], pattern_id, uid=e_uid)
 
         # For every outgoing edge from inside this pattern to a node outside
@@ -516,6 +518,7 @@ class AssemblyGraph(object):
         for e in p_out_edges:
             e_uid = self.decomposed_graph.edges[e]["uid"]
             self.edgeid2obj[e_uid].reroute_dec_src(pattern_id)
+            # again, don't worry, we'll remove the edge this is replacing soon
             self.decomposed_graph.add_edge(pattern_id, e[1], uid=e_uid)
 
         subgraph = self.decomposed_graph.subgraph(patt_nodes).copy()
