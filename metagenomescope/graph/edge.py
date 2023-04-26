@@ -125,7 +125,12 @@ class Edge(object):
         self.relative_weight = None
 
         # ID of the pattern containing this edge, or None if this edge
-        # exists in the top level of the graph.
+        # exists in the top level of the graph. Note that some edges may
+        # connect nodes that are in different patterns (in the uncollapsed
+        # graph), or -- in the collapsed graph -- different pattern nodes.
+        # You can thus think of the parent pattern of an edge as the "least
+        # common ancestor" pattern that contains both of an edge's nodes (or
+        # None if at least one of this edge's nodes is not in a pattern).
         self.parent_id = None
 
         # Number (1-indexed) of the connected component containing this edge.
