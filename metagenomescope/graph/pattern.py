@@ -30,6 +30,14 @@ def check_vr(vr):
         )
 
 
+def check_edges_in_induced_subgraph(edges, node_ids):
+    for e in edges:
+        if e.dec_src_id not in node_ids or e.dec_tgt_id not in node_ids:
+            raise WeirdError(
+                f"{e} not in induced subgraph of node IDs {node_ids}"
+            )
+
+
 class Pattern(Node):
     """Represents a pattern in an assembly graph."""
 
@@ -38,7 +46,7 @@ class Pattern(Node):
         unique_id,
         pattern_type,
         validation_results,
-        subgraph,
+        edges,
         asm_graph,
     ):
         """Initializes this Pattern object.
@@ -58,10 +66,11 @@ class Pattern(Node):
             Results from successfully validating this pattern in the assembly
             graph.
 
-        subgraph: nx.MultiDiGraph
-            Induced subgraph of the nodes (including collapsed patterns) and
-            edges in this pattern. TODO: do we need to have this here...?
-            Couldn't we just save the reference to the AssemblyGraph?
+        edges: list
+            List of all child Edge objects of this pattern. We define an edge
+            as a child of a pattern P if it connects two nodes N1 and N2 (which
+            can be full or split nodes, or collapsed patterns), where both N1
+            and N2 are children of P.
 
         asm_graph: assembly_graph.AssemblyGraph
             Reference to the assembly graph to which this pattern is being
@@ -69,7 +78,6 @@ class Pattern(Node):
         """
         self.unique_id = unique_id
         self.pattern_type = pattern_type
-        self.subgraph = subgraph
 
         check_vr(validation_results)
         self.start_node = None
@@ -79,6 +87,11 @@ class Pattern(Node):
             self.start_node = validation_results.start_node
             self.end_node = validation_results.end_node
         self.node_ids = validation_results.nodes
+
+        # TODO: for some reason, this check is failing for the hierarch. decomp
+        # tests -- are we not updating edge routings properly? look into it
+        # check_edges_in_induced_subgraph(edges, self.node_ids)
+        self.edges = edges
 
         # Will be filled in after performing top-level AssemblyGraph layout,
         # when self.set_bb() is called. Stored in points.
@@ -93,8 +106,8 @@ class Pattern(Node):
                 asm_graph.pattid2obj[node_id].parent_id = self.unique_id
             else:
                 asm_graph.nodeid2obj[node_id].parent_id = self.unique_id
-        for edge in self.subgraph.edges(data=True):
-            asm_graph.edgeid2obj[edge[2]["uid"]].parent_id = self.unique_id
+        for edge in self.edges:
+            edge.parent_id = self.unique_id
 
         # This is the shape used for this pattern during layout. In the actual
         # end visualization we might use different shapes for collapsed
@@ -123,7 +136,7 @@ class Pattern(Node):
 
     def get_counts(self, asm_graph):
         node_ct = 0
-        edge_ct = len(self.subgraph.edges)
+        edge_ct = len(self.edges)
         patt_ct = 0
         for node_id in self.node_ids:
             if asm_graph.is_pattern(node_id):
@@ -150,8 +163,8 @@ class Pattern(Node):
                 asm_graph.pattid2obj[node_id].set_cc_num(asm_graph, cc_num)
             else:
                 asm_graph.nodeid2obj[node_id].cc_num = cc_num
-        for edge in self.subgraph.edges:
-            asm_graph.edgeid2obj[edge["id"]].cc_num = cc_num
+        for edge in self.edges:
+            edge.cc_num = cc_num
 
     def layout(self, asm_graph):
         # Recursively go through all of the nodes within this pattern. If any
@@ -193,8 +206,8 @@ class Pattern(Node):
 
         # Add edge info. Note that we don't bother passing thickness info to
         # dot, since (at least to my knowledge) it doesn't impact the layout.
-        for edge in self.subgraph.edges:
-            gv_input += "\t{} -> {};\n".format(edge[0], edge[1])
+        for edge in self.edges:
+            gv_input += f"\t{edge.dec_src_id} -> {edge.dec_tgt_id};\n"
 
         gv_input += "}"
 
@@ -231,8 +244,13 @@ class Pattern(Node):
                 asm_graph.graph.nodes[node_id]["relative_y"] = y
 
         # Extract (relative) edge control points
-        for edge in self.subgraph.edges:
-            cg_edge = cg.get_edge(*edge)
+        for edge in self.edges:
+            # TODO: This is gonna cause problems when we have parallel edges.
+            # Modify the pygraphviz stuff to explicitly create nodes and edges,
+            # rather than passing in a string of graphviz input -- this way we
+            # can define edge keys explicitly (which prooobably won't be
+            # necessary but whatevs).
+            cg_edge = cg.get_edge(edge.dec_src_id, edge.dec_tgt_id)
             coords = layout_utils.get_control_points(cg_edge.attr["pos"])
             asm_graph.edgeid2obj[edge["id"]].relative_ctrl_pt_coords = coords
 

@@ -522,19 +522,20 @@ class AssemblyGraph(object):
             self.decomposed_graph.add_edge(pattern_id, e[1], uid=e_uid)
 
         subgraph = self.decomposed_graph.subgraph(patt_nodes).copy()
+        child_edges = [
+            self.edgeid2obj[uid] for _, _, uid in subgraph.edges(data="uid")
+        ]
 
         # Remove the children of this pattern (and any edges incident on them,
-        # which should be limited -- at this point -- to edges inside the
-        # pattern) from the decomposed DiGraph.
+        # which should be limited -- after the splitting and rerouting steps
+        # above -- to edges in child_edges) from the decomposed DiGraph.
         self.decomposed_graph.remove_nodes_from(patt_nodes)
 
-        # TODO: for the love of god, see if we can avoid passing subgraphs to
-        # pattern objects
         p = Pattern(
             pattern_id,
             validation_results.pattern_type,
             validation_results,
-            subgraph,
+            child_edges,
             self,
         )
         self.pattid2obj[pattern_id] = p
