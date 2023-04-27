@@ -8,7 +8,7 @@ def test_get_counts_bubble():
     assert len(ag.bubbles) == 1
     p = ag.bubbles[0]
 
-    assert p.get_counts(ag) == [4, 4, 0]
+    assert p.get_counts() == [4, 4, 0]
 
 
 def test_get_counts_chains():
@@ -17,4 +17,4 @@ def test_get_counts_chains():
     # This graph should contain two chains, each with 2 nodes and 1 edge
     assert len(ag.chains) == 2
     for c in ag.chains:
-        assert c.get_counts(ag) == [2, 1, 0]
+        assert c.get_counts() == [2, 1, 0]

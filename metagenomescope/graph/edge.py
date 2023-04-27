@@ -166,3 +166,6 @@ class Edge(object):
 
     def reroute_dec_tgt(self, dec_tgt_id):
         self.dec_tgt_id = dec_tgt_id
+
+    def set_cc_num(self, cc_num):
+        self.cc_num = cc_num

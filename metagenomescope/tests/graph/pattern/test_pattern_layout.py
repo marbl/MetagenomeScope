@@ -12,7 +12,7 @@ def test_simple_pattern_layout():
     # p.layout()
     assert len(ag.bubbles) == 1
     p = ag.bubbles[0]
-    p.layout(ag)
+    p.layout()
 
     # Verify that the layout looks reasonable
     # w, h = p.width, p.height

@@ -99,6 +99,12 @@ class Node(object):
         self.x = None
         self.y = None
 
+        # TODO: set this based on the data? Like, if the data has "orientation"
+        # given, then set this to a house or invhouse; otherwise, set it to a
+        # circle. and I guess update this if this node is split, also (taking
+        # into account the previous shape).
+        self.shape = "circle"
+
         # ID of the pattern containing this node, or None if this node
         # exists in the top level of the graph.
         self.parent_id = None
@@ -132,3 +138,6 @@ class Node(object):
 
     def make_into_right_split(self):
         self._make_into_split(SPLIT_RIGHT)
+
+    def set_cc_num(self, cc_num):
+        self.cc_num = cc_num

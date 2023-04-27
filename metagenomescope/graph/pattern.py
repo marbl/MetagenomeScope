@@ -19,22 +19,45 @@
 
 import pygraphviz
 from .node import Node
-from metagenomescope import config, layout_utils
+from metagenomescope import config, layout_utils, misc_utils
 from metagenomescope.errors import WeirdError
 
 
-def check_vr(vr):
+def get_ids_of_nodes(nodes):
+    return [n.unique_id for n in nodes]
+
+
+def verify_vr_and_nodes_good(vr, nodes):
+    """Checks a Pattern's ValidationResults object and Node objects.
+
+    Verifies that (1) the ValidationResults describes a valid pattern,
+    (2) all Nodes in "nodes" have unique IDs (at least compared to each other),
+    and (3) vr.nodes exactly matches "nodes".
+
+    Returns a list of the node IDs described by these objects.
+    """
     if not vr:
         raise WeirdError(
-            "Can't create a Pattern from False ValidationResults?"
+            "Can't create a Pattern from an invalid ValidationResults?"
         )
 
+    # We only verify that the IDs described by the Nodes in "nodes" are unique
+    # -- the ValidationResults constructor should have already verified that
+    # its .nodes are unique.
+    node_ids = get_ids_of_nodes(nodes)
+    misc_utils.verify_unique(node_ids)
 
-def check_edges_in_induced_subgraph(edges, node_ids):
+    if set(node_ids) != set(vr.nodes):
+        raise WeirdError(f"Different node IDs: {node_ids} vs. {vr.nodes}")
+
+    return node_ids
+
+
+def verify_edges_in_induced_subgraph(edges, node_ids):
     for e in edges:
         if e.dec_src_id not in node_ids or e.dec_tgt_id not in node_ids:
             raise WeirdError(
-                f"{e} not in induced subgraph of node IDs {node_ids}"
+                f"{e} not in induced subgraph of node IDs {node_ids}?"
             )
 
 
@@ -46,8 +69,8 @@ class Pattern(Node):
         unique_id,
         pattern_type,
         validation_results,
+        nodes,
         edges,
-        asm_graph,
     ):
         """Initializes this Pattern object.
 
@@ -66,29 +89,34 @@ class Pattern(Node):
             Results from successfully validating this pattern in the assembly
             graph.
 
+        nodes: list
+            List of all child Node objects of this pattern (including collapsed
+            Patterns -- note that Pattern is a subclass of Node!). These IDs
+            should exactly match those in validation_results.nodes.
+
         edges: list
             List of all child Edge objects of this pattern. We define an edge
-            as a child of a pattern P if it connects two nodes N1 and N2 (which
-            can be full or split nodes, or collapsed patterns), where both N1
-            and N2 are children of P.
-
-        asm_graph: assembly_graph.AssemblyGraph
-            Reference to the assembly graph to which this pattern is being
-            added.
+            as a child of a pattern P if both its source and target node are
+            contained in "nodes". (You can therefore think of "edges" as the
+            edges of the "induced subgraph" of "nodes".)
         """
         self.unique_id = unique_id
         self.pattern_type = pattern_type
 
-        check_vr(validation_results)
-        self.start_node = None
-        self.end_node = None
+        self.node_ids = verify_vr_and_nodes_good(validation_results, nodes)
+        self.start_node_id = None
+        self.end_node_id = None
         self.has_start_end = validation_results.has_start_end
         if self.has_start_end:
-            self.start_node = validation_results.start_node
-            self.end_node = validation_results.end_node
-        self.node_ids = validation_results.nodes
+            self.start_node_id = validation_results.start_node
+            self.end_node_id = validation_results.end_node
 
-        check_edges_in_induced_subgraph(edges, self.node_ids)
+        self.nodes = nodes
+        # self.nodes stores the child Node objects of this Pattern, while
+        # validation_results.nodes stores these Nodes' IDs. For checking that
+        # the edges are "valid", we need the Node IDs, so it's easiest to just
+        # pass validation_results.nodes to check_edges_in_induced_subgraph().
+        verify_edges_in_induced_subgraph(edges, validation_results.nodes)
         self.edges = edges
 
         # Will be filled in after performing top-level AssemblyGraph layout,
@@ -98,14 +126,10 @@ class Pattern(Node):
         self.right = None
         self.top = None
 
-        # Update parent ID info for child patterns, nodes, and edges
-        for node_id in self.node_ids:
-            if asm_graph.is_pattern(node_id):
-                asm_graph.pattid2obj[node_id].parent_id = self.unique_id
-            else:
-                asm_graph.nodeid2obj[node_id].parent_id = self.unique_id
-        for edge in self.edges:
-            edge.parent_id = self.unique_id
+        # Update parent ID info for child nodes (including patterns) and edges
+        for coll in (self.nodes, self.edges):
+            for obj in coll:
+                obj.parent_id = self.unique_id
 
         # This is the shape used for this pattern during layout. In the actual
         # end visualization we might use different shapes for collapsed
@@ -126,87 +150,62 @@ class Pattern(Node):
     def __repr__(self):
         suffix = ""
         if self.has_start_end:
-            suffix = f" from {self.start_node} to {self.end_node}"
+            suffix = f" from {self.start_node_id} to {self.end_node_id}"
         return (
             f"{config.PT2HR[self.pattern_type]} (ID {self.unique_id}) of "
             f"nodes {self.node_ids}{suffix}"
         )
 
-    def get_counts(self, asm_graph):
+    def get_counts(self):
         node_ct = 0
         edge_ct = len(self.edges)
         patt_ct = 0
-        for node_id in self.node_ids:
-            if asm_graph.is_pattern(node_id):
+        for node in self.nodes:
+            if type(node) == Pattern:
                 patt_ct += 1
-                counts = asm_graph.pattid2obj[node_id].get_counts(asm_graph)
-                node_ct += counts[0]
-                edge_ct += counts[1]
-                patt_ct += counts[2]
+                child_pattern_counts = node.get_counts()
+                node_ct += child_pattern_counts[0]
+                edge_ct += child_pattern_counts[1]
+                patt_ct += child_pattern_counts[2]
             else:
                 node_ct += 1
 
         return [node_ct, edge_ct, patt_ct]
 
-    def set_cc_num(self, asm_graph, cc_num):
+    def set_cc_num(self, cc_num):
         """Updates the component number attribute of all Patterns, nodes, and
         edges in this Pattern.
 
         This is really important to keep around for later -- it allows us to
         traverse nodes/edges/etc. in the graph more easily later on.
         """
-        self.cc_num = cc_num
-        for node_id in self.node_ids:
-            if asm_graph.is_pattern(node_id):
-                asm_graph.pattid2obj[node_id].set_cc_num(asm_graph, cc_num)
-            else:
-                asm_graph.nodeid2obj[node_id].cc_num = cc_num
-        for edge in self.edges:
-            edge.cc_num = cc_num
+        for coll in (self.nodes, self.edges):
+            for obj in coll:
+                obj.set_cc_num(cc_num)
+        super().set_cc_num(cc_num)
 
-    def layout(self, asm_graph):
+    def layout(self):
         # Recursively go through all of the nodes within this pattern. If any
         # of these isn't actually a node (and is actually a pattern), then lay
         # out that pattern!
-        pattid2obj = {}
-        for node_id in self.node_ids:
-            if asm_graph.is_pattern(node_id):
-                asm_graph.pattid2obj[node_id].layout(asm_graph)
-                pattid2obj[node_id] = asm_graph.pattid2obj[node_id]
+        for node in self.nodes:
+            if type(node) == Pattern:
+                node.layout()
 
         # Now that all of the patterns (if present) within this pattern have
         # been laid out, lay out this pattern.
 
         gv_input = layout_utils.get_gv_header()
-
         # Add node info
-        for node_id in self.node_ids:
-            if node_id in pattid2obj:
-                # If this node is a collapsed pattern, get its dimensions from
-                # its Pattern object using pattid2obj.
-                # This is a pretty roundabout way of doing this but it works
-                # and honestly that is all I can hope for right now. Out of all
-                # the years that have happened, 2020 certainly is one of them.
-                height = pattid2obj[node_id].height
-                width = pattid2obj[node_id].width
-                shape = pattid2obj[node_id].shape
-            else:
-                # If this is a normal node, get its dimensions from the
-                # graph. Shape is based on the node's orientation, which should
-                # also be stored in the graph.
-                data = asm_graph.graph.nodes[node_id]
-                height = data["height"]
-                width = data["width"]
-                shape = config.NODE_ORIENTATION_TO_SHAPE[data["orientation"]]
-            gv_input += "\t{} [height={},width={},shape={}];\n".format(
-                node_id, height, width, shape
+        for node in self.nodes:
+            gv_input += (
+                f"\t{node.unique_id} [height={node.height},width={node.width},"
+                "shape={node.shape}];\n"
             )
-
         # Add edge info. Note that we don't bother passing thickness info to
         # dot, since (at least to my knowledge) it doesn't impact the layout.
         for edge in self.edges:
             gv_input += f"\t{edge.dec_src_id} -> {edge.dec_tgt_id};\n"
-
         gv_input += "}"
 
         # Now, we can lay out this pattern's graph! Yay.
@@ -222,24 +221,18 @@ class Pattern(Node):
         )
 
         # Extract relative node coordinates (x and y)
-        for node_id in self.node_ids:
-            node = cg.get_node(node_id)
+        # NOTE: for child patterns of this pattern, we don't need to update the
+        # child node/edge positions within this sub-pattern just yet: we only
+        # need to worry about having stuff be relative to the immediate parent
+        # pattern. When the top level of each component is laid out, we can go
+        # down through the patterns and update positions accordingly --
+        # no need to slow ourselves down by repeatedly updating this
+        # information throughout the layout process.
+        for node in self.nodes:
+            node = cg.get_node(node.unique_id)
             x, y = layout_utils.getxy(node.attr["pos"])
-            if node_id in pattid2obj:
-                # Assign x and y for this pattern.
-                #
-                # We should not need to _update_ the child node/edge positions
-                # within this sub-pattern just yet: we only need to worry about
-                # having stuff be relative to the immediate parent pattern.
-                # When the top level of each component is laid out, we can go
-                # down through the patterns and update positions accordingly --
-                # no need to slow ourselves down by repeatedly updating this
-                # information throughout the layout process.
-                pattid2obj[node_id].relative_x = x
-                pattid2obj[node_id].relative_y = y
-            else:
-                asm_graph.graph.nodes[node_id]["relative_x"] = x
-                asm_graph.graph.nodes[node_id]["relative_y"] = y
+            node.relative_x = x
+            node.relative_y = y
 
         # Extract (relative) edge control points
         for edge in self.edges:
@@ -249,8 +242,9 @@ class Pattern(Node):
             # can define edge keys explicitly (which prooobably won't be
             # necessary but whatevs).
             cg_edge = cg.get_edge(edge.dec_src_id, edge.dec_tgt_id)
-            coords = layout_utils.get_control_points(cg_edge.attr["pos"])
-            asm_graph.edgeid2obj[edge["id"]].relative_ctrl_pt_coords = coords
+            edge.relative_ctrl_pt_coords = layout_utils.get_control_points(
+                cg_edge.attr["pos"]
+            )
 
     def set_bb(self, x, y):
         """Given a center position of this Pattern, sets its bounding box.

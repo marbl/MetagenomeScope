@@ -556,6 +556,16 @@ class AssemblyGraph(object):
             # again, don't worry, we'll remove the edge this is replacing soon
             self.decomposed_graph.add_edge(pattern_id, e[1], uid=e_uid)
 
+        # Extract the actual Node and Edge objects in this Pattern, so we can
+        # pass references to these objects to the Pattern
+        child_nodes = []
+        for uid in patt_nodes:
+            if uid in self.nodeid2obj:
+                child_nodes.append(self.nodeid2obj[uid])
+            else:
+                # Implicitly, this will cause an error if uid is not a Node
+                # *or* Pattern ID.
+                child_nodes.append(self.pattid2obj[uid])
         subgraph = self.decomposed_graph.subgraph(patt_nodes).copy()
         child_edges = [
             self.edgeid2obj[uid] for _, _, uid in subgraph.edges(data="uid")
@@ -570,8 +580,8 @@ class AssemblyGraph(object):
             pattern_id,
             validation_results.pattern_type,
             validation_results,
+            child_nodes,
             child_edges,
-            self,
         )
         self.pattid2obj[pattern_id] = p
         self.ptype2collection[validation_results.pattern_type].append(p)

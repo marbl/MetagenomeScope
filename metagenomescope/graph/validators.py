@@ -7,7 +7,7 @@
 # writing) labelled as "bubbles" in the user interface.
 
 
-from metagenomescope import config
+from metagenomescope import config, misc_utils
 from metagenomescope.errors import WeirdError
 
 
@@ -64,7 +64,10 @@ class ValidationResults(object):
             raise WeirdError(f"Invalid pattern type: {pattern_type}")
         self.pattern_type = pattern_type
         self.is_valid = is_valid
+
+        misc_utils.verify_unique(nodes)
         self.nodes = nodes
+
         # Both the starting and ending node should be defined or None. We can't
         # have only one of them be defined. (^ = XOR operator)
         if (start_node is None) ^ (end_node is None):
@@ -101,7 +104,7 @@ class ValidationResults(object):
                 f"nodes {repr(self.nodes)}{suffix}"
             )
         else:
-            return "Not a valid pattern"
+            return "Invalid pattern"
 
 
 def verify_node_in_graph(g, node_id):
