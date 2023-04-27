@@ -578,7 +578,6 @@ class AssemblyGraph(object):
 
         p = Pattern(
             pattern_id,
-            validation_results.pattern_type,
             validation_results,
             child_nodes,
             child_edges,

@@ -67,7 +67,6 @@ class Pattern(Node):
     def __init__(
         self,
         unique_id,
-        pattern_type,
         validation_results,
         nodes,
         edges,
@@ -79,11 +78,6 @@ class Pattern(Node):
         unique_id: int
             Unique (with respect to all other nodes, edges, and patterns in
             the assembly graph) integer ID of this pattern.
-
-        pattern_type: str
-            Type of this pattern. Should be one of the config.PT_* variables
-            (e.g. config.PT_BUBBLE) -- at the very least, this should have an
-            entry in PT2HR.
 
         validation_results: validators.ValidationResults
             Results from successfully validating this pattern in the assembly
@@ -101,9 +95,9 @@ class Pattern(Node):
             edges of the "induced subgraph" of "nodes".)
         """
         self.unique_id = unique_id
-        self.pattern_type = pattern_type
 
         self.node_ids = verify_vr_and_nodes_good(validation_results, nodes)
+        self.pattern_type = validation_results.pattern_type
         self.start_node_id = None
         self.end_node_id = None
         self.has_start_end = validation_results.has_start_end
