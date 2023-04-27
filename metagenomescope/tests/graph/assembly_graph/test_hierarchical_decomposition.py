@@ -51,9 +51,37 @@ def test_simple_hierarch_decomp():
     assert len(ag.bubbles) == 2
 
 
-def test_bubble_chain_identification():
+def test_bubble_with_1_in_node():
     r"""The input graph looks like
 
+           2
+          / \
+    0 -> 1   4
+          \ /
+           3
+
+    The final decomposition of this should be a chain containing 0 -> [bubble].
+    First, we should identify either the bubble ([1,2,3,4]) or the chain ([0,
+    1]), and then split 1. Then we identify the chain (if we just identified
+    bubble) or the bubble (if we just identified the chain). Then we should
+    identify a chain containing the collapsed chain and bubble, at which point
+    we should merge "0 -> 1L" into this new top-level chain. Finally, when we
+    remove "unneeded" split nodes, we should notice that 1L is at the same
+    level as the parent of 1R, so we should merge 1L back into 1R.
+    """
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_test_1_in.gml")
+    assert len(ag.decomposed_graph.nodes) == 1
+    assert len(ag.decomposed_graph.edges) == 0
+    # TODO: uncomment when chain merging and unneeded split node merging are
+    # added in
+    # assert len(ag.chains) == 1
+    assert len(ag.cyclic_chains) == 0
+    assert len(ag.frayed_ropes) == 0
+    assert len(ag.bubbles) == 1
+
+
+def test_bubble_chain_identification():
+    r"""The input graph looks like
 
            2   5
           / \ / \
