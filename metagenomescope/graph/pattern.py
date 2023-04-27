@@ -89,12 +89,12 @@ class Pattern(Node):
             Results from successfully validating this pattern in the assembly
             graph.
 
-        nodes: list
+        nodes: list of Nodes
             List of all child Node objects of this pattern (including collapsed
             Patterns -- note that Pattern is a subclass of Node!). These IDs
             should exactly match those in validation_results.nodes.
 
-        edges: list
+        edges: list of Edges
             List of all child Edge objects of this pattern. We define an edge
             as a child of a pattern P if both its source and target node are
             contained in "nodes". (You can therefore think of "edges" as the
