@@ -200,7 +200,7 @@ class Pattern(Node):
         for node in self.nodes:
             gv_input += (
                 f"\t{node.unique_id} [height={node.height},width={node.width},"
-                "shape={node.shape}];\n"
+                f"shape={node.shape}];\n"
             )
         # Add edge info. Note that we don't bother passing thickness info to
         # dot, since (at least to my knowledge) it doesn't impact the layout.

@@ -14,7 +14,7 @@ def get_gv_header(graphname="thing"):
     ... It's expected that the caller will, you know, add some actual
     node/edge/subgraph data and close out the graph declaration with a }.
     """
-    gv_input = "digraph " + graphname + "{\n"
+    gv_input = "digraph " + graphname + " {\n"
     if config.GRAPH_STYLE != "":
         gv_input += "\t{};\n".format(config.GRAPH_STYLE)
     if config.GLOBALNODE_STYLE != "":
