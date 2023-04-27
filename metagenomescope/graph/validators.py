@@ -97,8 +97,8 @@ class ValidationResults(object):
                     f" from {repr(self.start_node)} to {repr(self.end_node)}"
                 )
             return (
-                f"Valid pattern (type {self.pattern_type}) of nodes "
-                f"{repr(self.nodes)}{suffix}"
+                f"Valid pattern ({config.PT2HR[self.pattern_type]}) of "
+                f"nodes {repr(self.nodes)}{suffix}"
             )
         else:
             return "Not a valid pattern"
