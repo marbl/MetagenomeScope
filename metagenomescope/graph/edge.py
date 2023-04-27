@@ -32,7 +32,7 @@ class Edge(object):
     re-route edges. What two nodes does an edge actually connect?
     You can think of three "levels" of this:
 
-    1. The original source and target ID of an edge. Usually, these should
+    1. The original source and target ID of an edge. Usually these should
        correspond to the IDs of full nodes in the input assembly graph,
        but -- if this edge is fake -- then these IDs should correspond to
        split nodes (the source should be the left split node, and the target
@@ -46,16 +46,23 @@ class Edge(object):
     2. The rerouted source and target ID of an edge. These should still
        correspond to node IDs (either full nodes or split nodes); however,
        they should be changed as we perform node splitting. For example, if
-       an edge points from node 1 to node 2, and we determine that node 2 is
+       an edge E points from node 1 to node 2, and we determine that node 2 is
        the starting node of a pattern (so it gets split into 2-L ==> 2-R),
-       then the edge should be rerouted to point from node 1 to node 2-L. (This
-       is assuming that node 2's pattern doesn't contain node 1. If it did,
-       then we'd route the edge from node 1 to node 2-R.)
+       then E should be rerouted to point from node 1 to node 2-L.
+
+       (This is assuming that node 2's pattern doesn't contain node 1. If it
+       did, then we'd route the edge from node 1 to node 2-R. Although it's
+       worth keeping in mind that currently, node splitting is lazy and only
+       creates one "real" node [for the external half of the split], so node 2
+       should just be renamed to 2-R -- it'll keep the same ID. Node 2-L would
+       have a new ID, though.)
 
        Note that we still don't have any conception of "patterns" at this
        level. If you draw out all the edges in the graph at this level
        (and just the nodes that they are incident on), then you'd see the
-       original graph -- albeit with some split nodes and fake edges.
+       original graph -- albeit with some split nodes and fake edges. This
+       should match the topology of the .graph attribute of the AssemblyGraph
+       object containing this Edge.
 
        These attributes are controlled by the new_src_id and new_tgt_id
        parameters of this function. You can update them using the
@@ -66,9 +73,13 @@ class Edge(object):
        children of any patterns -- or, if the source and target node are
        children of the same pattern -- then these IDs should be identical
        to the previous level's IDs. However, if neither of these conditions
-       holds, then at least one of these attributes should be updated to a
-       pattern "node"'s ID as we collapse patterns in the graph. (These
-       attributes represent the topology of the decomposed graph.)
+       hold, then at least one of these attributes should have been updated
+       to a pattern "node"'s ID as we collapse patterns in the graph.
+
+       This should match the topology of the .decomposed_graph attribute of the
+       AssemblyGraph object containing this Edge, although you might need to
+       search through the colllapsed pattern nodes in that graph to reach
+       this particular edge.
 
        These attributes are controlled by the dec_src_id and dec_tgt_id
        parameters of this function. You can update them using the
