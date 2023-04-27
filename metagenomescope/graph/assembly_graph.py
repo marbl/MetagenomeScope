@@ -622,12 +622,6 @@ class AssemblyGraph(object):
         6. See if we can move the splitting code in _add_pattern() to another
            helper function (that takes as input the graph and decomposed
            graph?), or something? if feasible.
-        7. Try to remove the subgraph argument from Pattern...? I'd prefer if
-           it just keeps a reference to this AssemblyGraph object. It looks
-           like Pattern only needs the subgraph in order to figure out what
-           edges it contains -- maybe just pass the edge IDs to the pattern,
-           then have it refer back to this AssemblyGraph when it needs to
-           update them? yeah, that makes sense.
         """
         while True:
             something_collapsed_in_this_iteration = False
