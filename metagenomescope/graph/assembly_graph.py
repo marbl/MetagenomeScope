@@ -39,7 +39,10 @@ class AssemblyGraph(object):
     structure. As we identify patterns in the graph, we will remove these nodes
     and edges from the .decomposed_graph object, replacing them with their
     parent pattern node. After decomposition is done, this object thus
-    represents the "fully collapsed" graph.
+    represents the "fully collapsed" graph. (Or, phrased differently: if you
+    recursively replace all pattern nodes in the decomposed graph with their
+    child nodes and edges, then the resulting graph should be equivalent to
+    the uncollapsed graph stored in .graph.)
 
     References
     ----------
