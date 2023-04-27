@@ -90,7 +90,7 @@ class Pattern(Node):
 
         # TODO: for some reason, this check is failing for the hierarch. decomp
         # tests -- are we not updating edge routings properly? look into it
-        # check_edges_in_induced_subgraph(edges, self.node_ids)
+        check_edges_in_induced_subgraph(edges, self.node_ids)
         self.edges = edges
 
         # Will be filled in after performing top-level AssemblyGraph layout,

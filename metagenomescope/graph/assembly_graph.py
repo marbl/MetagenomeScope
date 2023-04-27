@@ -439,8 +439,15 @@ class AssemblyGraph(object):
                         e_uid = self.graph.edges[
                             incoming_node_id, start_id, edge_key
                         ]["uid"]
+                        # When we collapse this pattern into a single node in
+                        # the decomposed graph, the new split node will still
+                        # be located outside of the pattern. Therefore, the
+                        # incoming edges of the start node should be rerouted
+                        # (in both the uncollapsed and collapsed graph) to
+                        # point to the new split node, *not* the collapsed
+                        # pattern.
                         self.edgeid2obj[e_uid].reroute_tgt(left_node_id)
-                        self.edgeid2obj[e_uid].reroute_dec_tgt(pattern_id)
+                        self.edgeid2obj[e_uid].reroute_dec_tgt(left_node_id)
                         # We keep the edge ID the same, so ... even though we
                         # reroute it in the graphs, this is still the same edge.
                         for g in (self.graph, self.decomposed_graph):
@@ -459,6 +466,12 @@ class AssemblyGraph(object):
                 fake_edge = Edge(
                     fake_edge_id, left_node_id, start_id, {}, is_fake=True
                 )
+                # If we collapse the pattern we just identified, then the edge
+                # points from the new left node (outside of the pattern) to the
+                # pattern itself. (If the left node gets added to another
+                # pattern later, then we will call reroute_dec_src() on this
+                # edge.)
+                fake_edge.reroute_dec_tgt(pattern_id)
                 self.edgeid2obj[fake_edge_id] = fake_edge
                 self.graph.add_edge(left_node_id, start_id, uid=fake_edge_id)
                 self.decomposed_graph.add_edge(
@@ -497,7 +510,7 @@ class AssemblyGraph(object):
                             end_id, outgoing_node_id, edge_key
                         ]["uid"]
                         self.edgeid2obj[e_uid].reroute_src(right_node_id)
-                        self.edgeid2obj[e_uid].reroute_dec_src(pattern_id)
+                        self.edgeid2obj[e_uid].reroute_dec_src(right_node_id)
                         for g in (self.graph, self.decomposed_graph):
                             g.add_edge(
                                 right_node_id, outgoing_node_id, uid=e_uid
@@ -509,14 +522,15 @@ class AssemblyGraph(object):
                 fake_edge = Edge(
                     fake_edge_id, end_id, right_node_id, {}, is_fake=True
                 )
+                fake_edge.reroute_dec_src(pattern_id)
                 self.edgeid2obj[fake_edge_id] = fake_edge
                 self.graph.add_edge(end_id, right_node_id, uid=fake_edge_id)
                 self.decomposed_graph.add_edge(
                     pattern_id, right_node_id, uid=fake_edge_id
                 )
 
-        # For every incoming edge from outside this pattern to a node within
-        # this pattern: route this edge to just point (in the decomposed graph)
+        # For every edge from outside this pattern to a node within this
+        # pattern: route this edge to just point (in the decomposed graph)
         # to the new pattern node. This should only actually change the graph
         # if (1) we didn't do splitting, or (2) the pattern has weird incoming
         # edges from outside nodes into its middle nodes or something (this
@@ -531,8 +545,8 @@ class AssemblyGraph(object):
             # call self.decomposed_graph.remove_nodes_from(patt_nodes).
             self.decomposed_graph.add_edge(e[0], pattern_id, uid=e_uid)
 
-        # For every outgoing edge from inside this pattern to a node outside
-        # this pattern: route this edge to originate from (in the decomposed
+        # For every edge from inside this pattern to a node outside this
+        # pattern: route this edge to originate from (in the decomposed
         # graph) the new pattern node. Like above.
         out_edges = self.decomposed_graph.out_edges(patt_nodes, keys=True)
         p_out_edges = list(filter(lambda e: e[1] not in patt_nodes, out_edges))
