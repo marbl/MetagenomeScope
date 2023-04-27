@@ -1121,7 +1121,7 @@ class AssemblyGraph(object):
                 if self.is_pattern(node_id):
                     # Add the pattern's node, edge, and pattern counts to this
                     # component's node, edge, and pattern counts.
-                    counts = self.pattid2obj[node_id].get_counts(self)
+                    counts = self.pattid2obj[node_id].get_counts()
                     indices_and_cts[i][1] += counts[0]
                     indices_and_cts[i][2] += counts[1]
                     # (Increase the pattern count by 1, to account for this
@@ -1231,10 +1231,10 @@ class AssemblyGraph(object):
             # easier later on.
             for node_id in cc_node_ids:
                 if self.is_pattern(node_id):
-                    self.pattid2obj[node_id].set_cc_num(self, cc_i)
+                    self.pattid2obj[node_id].set_cc_num(cc_i)
                     # Lay out the pattern in isolation (could involve multiple
                     # layers, since patterns can contain other patterns).
-                    self.pattid2obj[node_id].layout(self)
+                    self.pattid2obj[node_id].layout()
                     height = self.pattid2obj[node_id].height
                     width = self.pattid2obj[node_id].width
                     shape = self.pattid2obj[node_id].shape
