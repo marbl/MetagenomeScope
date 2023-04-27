@@ -56,7 +56,7 @@ class Node(object):
             (If split is not None, then the name of this node will be extended
             to "[node name][SPLIT_SEP][split]" -- for example, a left split
             node named "123" will be renamed to "123-L", if SPLIT_SEP and
-            SPLIT_LEFT remain their current defaults.
+            SPLIT_LEFT remain their current defaults.)
 
         data: dict
             Maps field names (e.g. "length", "orientation", "depth", ...) to
