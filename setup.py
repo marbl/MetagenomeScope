@@ -19,7 +19,7 @@
 ####
 # NOTE: This file is derived from Qurro's setup.py file.
 
-from metagenomescope import __version__
+import os
 from setuptools import find_packages, setup
 
 classes = """
@@ -43,6 +43,21 @@ long_description = (
     "a semilinear layout of the graph that highlights "
     "common structural patterns."
 )
+
+# Adapted from technique #1 at
+# https://packaging.python.org/en/latest/guides/single-sourcing-package-version/
+# -- we can't just import __version__ from metagenomescope, because our
+# top-level __init__.py imports other modules that depend on packages that
+# probably haven't been installed yet at this point in setup (see technique #6
+# at the aforementioned website).
+__version__ = None
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, "metagenomescope", "__init__.py"), "r") as fp:
+    for line in fp.readlines():
+        if line.startswith('__version__ = "'):
+            __version__ = line.split('"')[1]
+if __version__ is None:
+    raise RuntimeError("Couldn't find version string?")
 
 setup(
     name="metagenomescope",
