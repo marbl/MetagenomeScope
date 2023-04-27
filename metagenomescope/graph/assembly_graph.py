@@ -366,20 +366,38 @@ class AssemblyGraph(object):
             Results from validating this pattern in the assembly graph. We
             assume that this is the result of a *successful* validation, i.e.
             the is_valid attribute of this is True. This may or may not have
-            start/end nodes defined.
+            individual start/end nodes defined.
 
         Returns
         -------
         (Pattern, int or None, int or None): (pattern, left ID, right ID)
+            pattern: object describing the newly created pattern.
+
+            left ID: If validation_results.has_start_end is True and we
+            split the start Node of the pattern, then this will be the ID
+            of the new Node we created (located just outside this pattern,
+            with an outgoing edge to the start Node). If we did not split the
+            start Node of the pattern, then this will be None.
+
+            right ID: If validation_results.has_start_end is True and we
+            split the end Node of the pattern, then this will be the ID
+            of the new Node we created (located just outside this pattern,
+            with an incoming edge from the end Node). If we did not split the
+            end Node of the pattern, then this will be None.
         """
         pattern_id = self._get_unique_id()
         self.decomposed_graph.add_node(pattern_id)
         patt_nodes = set(validation_results.nodes)
 
-        # We may need to create new Nodes (one if we split the start node of
-        # the pattern, and one if we split the end node of the pattern --
-        # assuming that the pattern has individual start/end nodes). We'll
-        # store these new Nodes' IDs in these variables, and return them.
+        # We will need to create new Node(s) if we split the start and/or end
+        # Node of the pattern. If we create any new Nodes, we'll store their
+        # IDs in these variables.
+        #
+        # NOTE that these new Nodes, if created, will be located OUTSIDE of
+        # this pattern (see the diagrams below). The Node IDs in
+        # validation_results.nodes (aka patt_nodes) will thus remain a
+        # "complete" description of all Nodes in this pattern, even if we do
+        # splitting.
         left_node_id = None
         right_node_id = None
 
