@@ -25,17 +25,12 @@ def test_validation_results_bad_start_end():
 
 def test_validation_results_repr():
     vr = validators.ValidationResults(config.PT_BUBBLE, True, [1, 2, 3], 1, 3)
-    assert repr(vr) == (
-        f"Valid pattern (type {config.PT_BUBBLE}) of nodes "
-        "[1, 2, 3] from 1 to 3"
-    )
+    assert repr(vr) == f"Valid pattern (Bubble) of nodes [1, 2, 3] from 1 to 3"
 
     vr_fr = validators.ValidationResults(
         config.PT_FRAYEDROPE, True, [1, "a", 3]
     )
-    assert repr(vr_fr) == (
-        f"Valid pattern (type {config.PT_FRAYEDROPE}) of nodes [1, 'a', 3]"
-    )
+    assert repr(vr_fr) == f"Valid pattern (Frayed Rope) of nodes [1, 'a', 3]"
 
     vr_invalid = validators.ValidationResults()
     assert repr(vr_invalid) == "Not a valid pattern"
