@@ -166,7 +166,7 @@ class Pattern(Node):
             suffix = f" from {self.start_node_id} to {self.end_node_id}"
         return (
             f"{config.PT2HR[self.pattern_type]} (ID {self.unique_id}) of "
-            f"nodes {self.nodes}{suffix}"
+            f"nodes {self.get_node_ids()}{suffix}"
         )
 
     def _absorb_child_pattern(self, child_pattern):
