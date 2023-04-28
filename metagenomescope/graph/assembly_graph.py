@@ -716,12 +716,12 @@ class AssemblyGraph(object):
                         # future start nodes of other patterns. (Don't worry,
                         # self._add_pattern() already takes care of removing them
                         # from the decomposed graph.)
-                        for pn in pobj.node_ids:
+                        for pn in pobj.nodes:
                             # We use .discard() rather than .remove() since we
                             # already popped n from candidate_nodes (and .remove()
                             # throws an error if we try to remove an element that
                             # isn't present in the set)
-                            candidate_nodes.discard(pn)
+                            candidate_nodes.discard(pn.unique_id)
 
                         # We don't need to add the new pattern object itself (or the
                         # left split node, ls) to candidate_nodes, but we add
@@ -744,7 +744,7 @@ class AssemblyGraph(object):
                             for incoming_node in self.decomposed_graph.pred[
                                 ls
                             ]:
-                                if incoming_node not in pobj.node_ids:
+                                if incoming_node not in pobj.get_node_ids():
                                     candidate_nodes.add(incoming_node)
 
                         something_collapsed_in_this_iteration = True
@@ -778,8 +778,8 @@ class AssemblyGraph(object):
                 # splitting on frayed rope boundaries (at least, as of writing)
                 # and because frayed ropes can't be contained in other patterns
                 pobj, ls, rs = self._add_pattern(validation_results)
-                for pn in pobj.node_ids:
-                    top_level_candidate_nodes.discard(pn)
+                for pn in pobj.nodes:
+                    top_level_candidate_nodes.discard(pn.unique_id)
 
         # No need to go through the nodes and edges in the top level of the
         # graph and record that they don't have a parent pattern -- their
