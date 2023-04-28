@@ -128,22 +128,28 @@ class Pattern(Node):
 
         # Update parent ID info for child nodes (including patterns) and edges
         self.merged_child_chains = []
+        is_chain_ish = (
+            self.pattern_type == config.PT_CHAIN
+            or self.pattern_type == config.PT_CYCLICCHAIN
+        )
         for coll in (self.nodes, self.edges):
             for obj in coll:
                 obj.parent_id = self.unique_id
-                if self.pattern_type == config.PT_CHAIN or self.pattern_type == config.PT_CYCLICCHAIN:
-                    if is_pattern(obj) and obj.pattern_type == config.PT_CHAIN:
-                        obj.merge_into_parent_pattern(self)
-                        # there should never be a case where this chain is
-                        # both the start and end of a new pattern, but let's be
-                        # safe anyway
-                        if self.start_node_id == obj.unique_id:
-                            self.start_node_id = obj.start_node_id
-                        if self.end_node_id == obj.unique_id:
-                            self.end_node_id = obj.end_node_id
-                        self.nodes.remove(obj)
-                        self.node_ids.remove(obj.unique_id)
-                        self.merged_child_chains.append(obj)
+                if (
+                    is_chain_ish
+                    and is_pattern(obj)
+                    and obj.pattern_type == config.PT_CHAIN
+                ):
+                    self.absorb_child_pattern(obj)
+                    # there should never be a case where obj is both the start
+                    # and end of this new pattern, but let's be safe anyway
+                    if self.start_node_id == obj.unique_id:
+                        self.start_node_id = obj.start_node_id
+                    if self.end_node_id == obj.unique_id:
+                        self.end_node_id = obj.end_node_id
+                    self.nodes.remove(obj)
+                    self.node_ids.remove(obj.unique_id)
+                    self.merged_child_chains.append(obj)
 
         # This is the shape used for this pattern during layout. In the actual
         # end visualization we might use different shapes for collapsed
@@ -170,26 +176,25 @@ class Pattern(Node):
             f"nodes {self.node_ids}{suffix}"
         )
 
-    def merge_into_parent_pattern(self, parent_pattern):
-        """Merges this Pattern's contents into a parent Pattern.
+    def absorb_child_pattern(self, child_pattern):
+        """Merges a child Pattern's contents into this Pattern.
 
-        As of writing, this should only be applied if this Pattern is a chain
-        (and parent_pattern is a chain or cyclic chain).
+        As of writing, this should only be applied if child_pattern is a chain
+        (and this Pattern, i.e. "self," is a chain or cyclic chain).
 
         Note that this method has no conception of the AssemblyGraph in which
         these Patterns are contained: you'll need to reroute edges that point
         to parts of this child pattern manually.
         """
         # (This attr is set to False by default in the Node constructor)
-        self.removed = True
-        # TODO THIS IS SO GROSS flip this and have the parent do this stuff
-        for node in self.nodes:
-            node.parent_id = parent_pattern.unique_id
-            parent_pattern.nodes.append(node)
-            parent_pattern.node_ids.append(node.unique_id)
-        for edge in self.edges:
-            edge.parent_id = parent_pattern.unique_id
-            parent_pattern.edges.append(edge)
+        child_pattern.removed = True
+        for node in child_pattern.nodes:
+            node.parent_id = self.unique_id
+            self.nodes.append(node)
+            self.node_ids.append(node.unique_id)
+        for edge in child_pattern.edges:
+            edge.parent_id = self.unique_id
+            self.edges.append(edge)
 
     def get_counts(self):
         node_ct = 0
