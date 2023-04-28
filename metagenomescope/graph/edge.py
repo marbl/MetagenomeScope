@@ -130,6 +130,9 @@ class Edge(object):
         self.dec_src_id = orig_src_id
         self.dec_tgt_id = orig_tgt_id
 
+        self.prev_dec_src_id = orig_src_id
+        self.prev_dec_tgt_id = orig_tgt_id
+
         self.ctrl_pt_coords = None
         self.relative_ctrl_pt_coords = None
         self.is_outlier = None
@@ -162,10 +165,28 @@ class Edge(object):
         self.new_tgt_id = new_tgt_id
 
     def reroute_dec_src(self, dec_src_id):
+        self.prev_dec_src_id = self.dec_src_id
         self.dec_src_id = dec_src_id
 
     def reroute_dec_tgt(self, dec_tgt_id):
+        self.prev_dec_tgt_id = self.dec_tgt_id
         self.dec_tgt_id = dec_tgt_id
+
+    def revert_dec_src(self):
+        if self.prev_dec_src_id is not None:
+            self.dec_src_id = self.prev_dec_src_id
+            self.prev_dec_src_id = None
+        else:
+            # we can support this if needed but i don't thiiiink it should ever
+            # happen
+            raise WeirdError(f"Tried to revert dec. src. twice for {self}?")
+
+    def revert_dec_tgt(self):
+        if self.prev_dec_tgt_id is not None:
+            self.dec_tgt_id = self.prev_dec_tgt_id
+            self.prev_dec_tgt_id = None
+        else:
+            raise WeirdError(f"Tried to revert dec. tgt. twice for {self}?")
 
     def set_cc_num(self, cc_num):
         self.cc_num = cc_num

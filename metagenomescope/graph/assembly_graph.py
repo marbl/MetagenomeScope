@@ -571,17 +571,44 @@ class AssemblyGraph(object):
             self.edgeid2obj[uid] for _, _, uid in subgraph.edges(data="uid")
         ]
 
-        # Remove the children of this pattern (and any edges incident on them,
-        # which should be limited -- after the splitting and rerouting steps
-        # above -- to edges in child_edges) from the decomposed DiGraph.
-        self.decomposed_graph.remove_nodes_from(patt_nodes)
-
         p = Pattern(
             pattern_id,
             validation_results,
             child_nodes,
             child_edges,
         )
+
+        # TODO i think this isn't working -- see bubble test w/ 1-in; has dec
+        # of 10 -> 13 for the fake edge? it should be 1 -> 13. debug this --
+        # maybe there's weird copy stuff going on, or we're not setting the
+        # prev dec src/tgt IDs properly (or maybe it's something with the new_*
+        # labels, idk)
+        for mcc in p.merged_child_chains:
+            pred = self.decomposed_graph.pred[mcc.unique_id]
+            for incoming_node in pred:
+                if incoming_node in child_nodes:
+                    for e in pred[incoming_node]:
+                        self.edgeid2obj[e["uid"]].revert_dec_tgt()
+                else:
+                    for e in pred[incoming_node]:
+                        self.edgeid2obj[e["uid"]].reroute_dec_tgt(pattern_id)
+
+            adj = self.decomposed_graph.adj[mcc.unique_id]
+            for outgoing_node in pred:
+                if outgoing_node in child_nodes:
+                    for e in adj[outgoing_node]:
+                        self.edgeid2obj[e["uid"]].revert_dec_src()
+                else:
+                    for e in adj[outgoing_node]:
+                        self.edgeid2obj[e["uid"]].reroute_dec_src(pattern_id)
+            self.chains.remove(mcc)
+            del self.pattid2obj[mcc.unique_id]
+
+        # Remove the children of this pattern (and any edges incident on them,
+        # which should be limited -- after the splitting and rerouting steps
+        # above -- to edges in child_edges) from the decomposed DiGraph.
+        self.decomposed_graph.remove_nodes_from(patt_nodes)
+
         self.pattid2obj[pattern_id] = p
         self.ptype2collection[validation_results.pattern_type].append(p)
         return p, left_node_id, right_node_id

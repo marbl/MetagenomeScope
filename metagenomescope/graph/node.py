@@ -112,6 +112,12 @@ class Node(object):
         # Number (1-indexed) of the connected component containing this node.
         self.cc_num = None
 
+        # Certain nodes may be "removed" from the graph -- for example, if we
+        # perform splitting but then realize that splitting was not needed for
+        # a node, then we'll merge its left and right split nodes back into a
+        # single node. This flag is a simple way of tracking this.
+        self.removed = False
+
     def __repr__(self):
         return f"Node {self.unique_id} (name: {self.name})"
 
