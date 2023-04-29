@@ -647,11 +647,6 @@ class AssemblyGraph(object):
            the middle. (Again, I think the way to do this is to wrap the
            validator in another function that figures out if any of the nodes
            in a tentative FR are also FRs, and fails if so.)
-        3. If we find a chain located in another chain (or located within a
-           cyclic chain), merge it into its parent.
-            - How do we do this? I guess we'd move all of the nodes and edges
-              in the smaller chain into the parent chain, and update
-              pattid2obj. Not sure if anything else.
         4. Allow frayed ropes to contain an uncollapsed trivial chain in their
            middle nodes. (Doable by just modifying the frayed rope code to
            allow for any sort of chains -- doesn't have to be specific. Unlike
