@@ -746,6 +746,12 @@ class AssemblyGraph(object):
                             # isn't present in the set)
                             candidate_nodes.discard(pn.unique_id)
 
+                        # If the creation of pobj involved merging child
+                        # chain(s) into it, we should remove these child chains
+                        # from consideration as candidate nodes.
+                        for pn in pobj.merged_child_chains:
+                            candidate_nodes.discard(pn.unique_id)
+
                         # We don't need to add the new pattern object itself (or the
                         # left split node, ls) to candidate_nodes, but we add
                         #
@@ -803,6 +809,10 @@ class AssemblyGraph(object):
                 pobj, ls, rs = self._add_pattern(validation_results)
                 for pn in pobj.nodes:
                     top_level_candidate_nodes.discard(pn.unique_id)
+                if len(pobj.merged_child_chains) > 0:
+                    raise WeirdError(
+                        "Shouldn't have done chain merging on {pobj}?"
+                    )
 
         # No need to go through the nodes and edges in the top level of the
         # graph and record that they don't have a parent pattern -- their
