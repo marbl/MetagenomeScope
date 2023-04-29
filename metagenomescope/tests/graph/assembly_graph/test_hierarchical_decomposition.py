@@ -41,14 +41,13 @@ def test_simple_hierarch_decomp():
     # This is with the "maximum" decomposition settings for this test graph.
     assert len(ag.decomposed_graph.nodes) == 1
     assert len(ag.decomposed_graph.edges) == 0
-    # TODO: this is currently 5 instead of 4. This is because the rightmost
-    # chain (7R -> 14 -> 15 -> 16) is just treated as a child of the top-level
-    # chain; when we support chain merging, this rightmost chain should just
-    # get merged into the top-level chain, keeping the number of chains at 4.
-    # assert len(ag.chains) == 4
+    assert len(ag.chains) == 4
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 2
+    # no split nodes or fake edges should be left
+    assert len(ag.graph.nodes) == 17
+    assert len(ag.graph.edges) == 19
 
 
 def test_bubble_with_1_in_node():

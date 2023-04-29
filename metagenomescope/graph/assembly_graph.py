@@ -815,11 +815,13 @@ class AssemblyGraph(object):
         The purpose of creating split nodes is to allow the same node to
         serve as the start and end of two separate patterns, but this will
         not be the fate of all split nodes. After we have finished pattern
-        identification, we say that a split node S (created from an original
-        node O) is "unnecessary" if S is located at the same level in the
-        hierarchy as the parent pattern of O. (This could mean that S is not in
-        a pattern at all, or it could mean that both S and the parent of O are
-        children of another pattern.)
+        identification, we say that a split node S (with a counterpart node of
+        C) is "unnecessary" if S is a sibling in the hierarchy of any ancestor
+        pattern of C.
+
+        In practice, we can just look at the fake edge between S and C in the
+        decomposed graph to figure out what this potential sibling ancestor of
+        C is.
 
         Here, we identify and remove unnecessary split nodes in order to
         simplify the visualization.
@@ -833,24 +835,51 @@ class AssemblyGraph(object):
                 # unnecessary. We'll get to it later.
                 if counterpart.parent_id is None:
                     continue
-                counterpart_parent = self.pattid2obj[counterpart.parent_id]
-                # Figure out if this split node is unnecessary. Note that this
-                # conditional is True even if both parent_ids are None.
-                if node.parent_id == counterpart_parent.parent_id:
+
+                # Figure out where the other end of this node's fake edge
+                # points in the decomposed graph.
+                if node.split == config.SPLIT_LEFT:
+                    fake_edge_uid = self.graph.edges[
+                        node_id, counterpart.unique_id, 0
+                    ]["uid"]
+                    counterpart_fe_id = self.edgeid2obj[
+                        fake_edge_uid
+                    ].dec_tgt_id
+                else:
+                    fake_edge_uid = self.graph.edges[
+                        counterpart.unique_id, node_id, 0
+                    ]["uid"]
+                    counterpart_fe_id = self.edgeid2obj[
+                        fake_edge_uid
+                    ].dec_src_id
+
+                # If this fake edge points to the counterpart node directly,
+                # then -- like above -- we should be trying to deem *that* node
+                # as unnecessary, and we'll get to it later.
+                if counterpart_fe_id not in self.pattid2obj:
+                    continue
+
+                # Otherwise, this fake edge points to an ancestor of this
+                # node's counterpart. Figure out what the parent (if any) of
+                # *that* ancestor is.
+                counterpart_ancestor_parent_id = self.pattid2obj[
+                    counterpart_fe_id
+                ].parent_id
+
+                # If this node is a sibling of the counterpart ancestor, then
+                # this node is unnecessary. Note that this conditional is True
+                # even if both parent_ids are None.
+                if node.parent_id == counterpart_ancestor_parent_id:
                     # ok yep it's unnecessary, remove it
 
                     if node.split == config.SPLIT_LEFT:
-                        # remove the fake edge from L ==> R, but also record
-                        # its unique ID for later
-                        fake_edge_uid = self.graph.edges[
-                            node_id, counterpart.unique_id, 0
-                        ]["uid"]
+                        # remove the fake edge from L ==> R
                         self.graph.remove_edge(
                             node_id, counterpart.unique_id, 0
                         )
                         if node.parent_id is None:
                             self.decomposed_graph.remove_edge(
-                                node_id, counterpart.parent_id, 0
+                                node_id, counterpart_fe_id, 0
                             )
 
                         # In the uncollapsed graph, route incoming edges to now
@@ -865,7 +894,7 @@ class AssemblyGraph(object):
                                 ]["uid"]
                                 edge = self.edgeid2obj[e_uid]
                                 edge.reroute_tgt(counterpart.unique_id)
-                                edge.reroute_dec_tgt(counterpart.parent_id)
+                                edge.reroute_dec_tgt(counterpart_fe_id)
                                 self.graph.add_edge(
                                     incoming_node_id,
                                     counterpart.unique_id,
@@ -877,7 +906,7 @@ class AssemblyGraph(object):
                                 if node.parent_id is None:
                                     self.decomposed_graph.add_edge(
                                         edge.dec_src_id,
-                                        counterpart.parent_id,
+                                        counterpart_fe_id,
                                         uid=e_uid,
                                     )
                                     self.decomposed_graph.remove_edge(
@@ -885,15 +914,13 @@ class AssemblyGraph(object):
                                     )
 
                     elif node.split == config.SPLIT_RIGHT:
-                        fake_edge_uid = self.graph.edges[
-                            counterpart.unique_id, node_id, 0
-                        ]["uid"]
+                        # again, rm the fake edge
                         self.graph.remove_edge(
                             counterpart.unique_id, node_id, 0
                         )
                         if node.parent_id is None:
                             self.decomposed_graph.remove_edge(
-                                counterpart.parent_id, node_id, 0
+                                counterpart_fe_id, node_id, 0
                             )
 
                         adj = self.graph.adj[node_id]
@@ -904,7 +931,7 @@ class AssemblyGraph(object):
                                 ]["uid"]
                                 edge = self.edgeid2obj[e_uid]
                                 edge.reroute_src(counterpart.unique_id)
-                                edge.reroute_dec_src(counterpart.parent_id)
+                                edge.reroute_dec_src(counterpart_fe_id)
                                 self.graph.add_edge(
                                     counterpart.unique_id,
                                     outgoing_node_id,
@@ -915,7 +942,7 @@ class AssemblyGraph(object):
                                 )
                                 if node.parent_id is None:
                                     self.decomposed_graph.add_edge(
-                                        counterpart.parent_id,
+                                        counterpart_fe_id,
                                         edge.dec_tgt_id,
                                         uid=e_uid,
                                     )
@@ -936,9 +963,9 @@ class AssemblyGraph(object):
                         # As of writing a single node should not be the start
                         # AND end of a pattern, but we may as well play it safe
                         if pp.start_node_id == node_id:
-                            pp.start_node_id = counterpart.parent_id
+                            pp.start_node_id = counterpart_fe_id
                         if pp.end_node_id == node_id:
-                            pp.end_node_id = counterpart.parent_id
+                            pp.end_node_id = counterpart_fe_id
                         pp.nodes.remove(node)
                         pp.edges.remove(self.edgeid2obj[fake_edge_uid])
                     else:
