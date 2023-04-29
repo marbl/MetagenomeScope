@@ -599,12 +599,12 @@ class AssemblyGraph(object):
                 if incoming_node in patt_node_ids_post_merging:
                     for e in pred[incoming_node]:
                         self.edgeid2obj[
-                            adj[incoming_node][e]["uid"]
+                            pred[incoming_node][e]["uid"]
                         ].revert_dec_tgt()
                 else:
                     for e in pred[incoming_node]:
                         self.edgeid2obj[
-                            adj[incoming_node][e]["uid"]
+                            pred[incoming_node][e]["uid"]
                         ].reroute_dec_tgt(pattern_id)
 
             adj = self.decomposed_graph.adj[mcc.unique_id]
