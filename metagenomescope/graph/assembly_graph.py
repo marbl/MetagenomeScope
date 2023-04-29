@@ -945,18 +945,13 @@ class AssemblyGraph(object):
                         # remove this node, and the associated fake edge, from
                         # the children of this parent pattern (pp).
                         pp = self.pattid2obj[node.parent_id]
-                        # If a split node is unnecessary, it shouldn't be the
-                        # start or end of a pattern (because that would imply
-                        # that it would not be unnecessary). Let's catch this
-                        # just in case I messed something up.
-                        if (
-                            pp.start_node_id == node_id
-                            or pp.end_node_id == node_id
-                        ):
-                            raise WeirdError(
-                                f"{node}, an unnecessary split node, is the "
-                                f"start/end of {pp}?"
-                            )
+
+                        # As of writing a single node should not be the start
+                        # AND end of a pattern, but we may as well play it safe
+                        if pp.start_node_id == node_id:
+                            pp.start_node_id = counterpart_parent.unique_id
+                        if pp.end_node_id == node_id:
+                            pp.end_node_id = counterpart_parent.unique_id
                         pp.nodes.remove(node)
                         pp.edges.remove(self.edgeid2obj[fake_edge_uid])
                     else:
