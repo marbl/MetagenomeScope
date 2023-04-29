@@ -594,6 +594,7 @@ class AssemblyGraph(object):
         for mcc in p.merged_child_chains:
             if mcc.pattern_type != config.PT_CHAIN:
                 raise WeirdError(f"Can't merge {mcc} into {p}?")
+            # print(f"Merging {mcc} into {p}...")
             pred = self.decomposed_graph.pred[mcc.unique_id]
             for incoming_node in pred:
                 if incoming_node in patt_node_ids_post_merging:

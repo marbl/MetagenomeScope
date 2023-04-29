@@ -157,3 +157,32 @@ def test_bubble_cyclic_chain_identification():
     assert len(ag.cyclic_chains) == 1
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 4
+
+
+def test_chain_into_cyclic_chain_merging():
+    r"""The input graph looks like
+
+    +------------------+
+    |      2           |
+    V     / \          |
+    0 -> 1   4 -> 5 -> 6
+          \ /
+           3
+
+    This should turn into a cyclic chain containing a bubble. Nodes 0, 5, and 6
+    should just be children of the top-level cyclic chain; we should at first
+    identify a chain of 5 -> 6 -> 0, but this chain will then form a cyclic
+    chain with the bubble. Creating this cyclic chain will merge the chain's
+    contents into the cyclic chain.
+    """
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/chain_into_cyclic_chain_merging.gml"
+    )
+    # TODO: when we remove "unnecessary" split nodes, nodes 1 and 4 should be
+    # merged back
+    assert len(ag.decomposed_graph.nodes) == 1
+    assert len(ag.decomposed_graph.edges) == 0
+    assert len(ag.chains) == 0
+    assert len(ag.cyclic_chains) == 1
+    assert len(ag.frayed_ropes) == 0
+    assert len(ag.bubbles) == 1
