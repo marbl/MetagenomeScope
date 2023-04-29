@@ -584,13 +584,16 @@ class AssemblyGraph(object):
             child_edges,
         )
 
-        # TODO i think this isn't working -- see bubble test w/ 1-in; has dec
-        # of 10 -> 13 for the fake edge? it should be 1 -> 13. debug this --
-        # maybe there's weird copy stuff going on, or we're not setting the
-        # prev dec src/tgt IDs properly (or maybe it's something with the new_*
-        # labels, idk)
+        # If this Pattern was a chain or cyclic chain, and any of its child
+        # nodes were collapsed chains, then these child chains will be merged
+        # into this Pattern when we call Pattern(). Although the Pattern
+        # constructor updates the nodes and edges that this new Pattern has
+        # accordingly, we still need to re-route edges and update the
+        # decomposed assembly graph's topology here.
         patt_node_ids_post_merging = p.get_node_ids()
         for mcc in p.merged_child_chains:
+            if type(mcc) != config.PT_CHAIN:
+                raise WeirdError(f"Can't merge {mcc} into {p}?")
             pred = self.decomposed_graph.pred[mcc.unique_id]
             for incoming_node in pred:
                 if incoming_node in patt_node_ids_post_merging:
@@ -622,6 +625,12 @@ class AssemblyGraph(object):
         # Remove the children of this pattern (and any edges incident on them,
         # which should be limited -- after the splitting and rerouting steps
         # above -- to edges in child_edges) from the decomposed DiGraph.
+        #
+        # There shouldn't be a difference between using patt_node_ids and
+        # patt_node_ids_post_merging here (since the nodes that we merged from
+        # a child chain into this new Parent should already be absent from the
+        # decomposed graph); I guess it's slightly safer to use the
+        # post_merging list, though.
         self.decomposed_graph.remove_nodes_from(patt_node_ids_post_merging)
 
         self.pattid2obj[pattern_id] = p
