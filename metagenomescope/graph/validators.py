@@ -151,7 +151,7 @@ def not_single_edge(g, adj_view):
 def fail_if_not_single_edge(g, adj_view, node_id, edge_descriptor):
     if not_single_edge(g, adj_view):
         raise WeirdError(
-            f"Node ID {node_id} doesn't have 1 {edge_descriptor} edge?"
+            f"Node ID {node_id} doesn't have exactly 1 {edge_descriptor} edge?"
         )
 
 
