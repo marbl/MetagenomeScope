@@ -387,7 +387,7 @@ class AssemblyGraph(object):
         """
         pattern_id = self._get_unique_id()
         self.decomposed_graph.add_node(pattern_id)
-        patt_nodes = set(validation_results.nodes)
+        patt_node_ids = set(validation_results.nodes)
 
         # We will need to create new Node(s) if we split the start and/or end
         # Node of the pattern. If we create any new Nodes, we'll store their
@@ -395,7 +395,7 @@ class AssemblyGraph(object):
         #
         # NOTE that these new Nodes, if created, will be located OUTSIDE of
         # this pattern (see the diagrams below). The Node IDs in
-        # validation_results.nodes (aka patt_nodes) will thus remain a
+        # validation_results.nodes (aka patt_node_ids) will thus remain a
         # "complete" description of all Nodes in this pattern, even if we do
         # splitting.
         left_node_id = None
@@ -406,7 +406,9 @@ class AssemblyGraph(object):
             # Do we need to split the start node of this pattern?
             start_id = validation_results.start_node
             start_pred = self.decomposed_graph.pred[start_id]
-            start_incoming_nodes_outside_pattern = set(start_pred) - patt_nodes
+            start_incoming_nodes_outside_pattern = (
+                set(start_pred) - patt_node_ids
+            )
 
             if self._should_split(
                 start_id, start_incoming_nodes_outside_pattern
@@ -481,7 +483,7 @@ class AssemblyGraph(object):
             # Do we need to split the end node of this pattern?
             end_id = validation_results.end_node
             end_adj = self.decomposed_graph.adj[end_id]
-            end_outgoing_nodes_outside_pattern = set(end_adj) - patt_nodes
+            end_outgoing_nodes_outside_pattern = set(end_adj) - patt_node_ids
 
             if self._should_split(end_id, end_outgoing_nodes_outside_pattern):
                 # Since this end node has outgoing edge(s) to outside the
@@ -536,20 +538,24 @@ class AssemblyGraph(object):
         # edges from outside nodes into its middle nodes or something (this
         # shouldn't happen in practice, but maybe when we add back support for
         # arbitrary user-defined patterns it could happen).
-        in_edges = self.decomposed_graph.in_edges(patt_nodes, keys=True)
-        p_in_edges = list(filter(lambda e: e[0] not in patt_nodes, in_edges))
+        in_edges = self.decomposed_graph.in_edges(patt_node_ids, keys=True)
+        p_in_edges = list(
+            filter(lambda e: e[0] not in patt_node_ids, in_edges)
+        )
         for e in p_in_edges:
             e_uid = self.decomposed_graph.edges[e]["uid"]
             self.edgeid2obj[e_uid].reroute_dec_tgt(pattern_id)
             # We will remove the edge that this is replacing (e) soon, when we
-            # call self.decomposed_graph.remove_nodes_from(patt_nodes).
+            # call self.decomposed_graph.remove_nodes_from(patt_node_ids).
             self.decomposed_graph.add_edge(e[0], pattern_id, uid=e_uid)
 
         # For every edge from inside this pattern to a node outside this
         # pattern: route this edge to originate from (in the decomposed
         # graph) the new pattern node. Like above.
-        out_edges = self.decomposed_graph.out_edges(patt_nodes, keys=True)
-        p_out_edges = list(filter(lambda e: e[1] not in patt_nodes, out_edges))
+        out_edges = self.decomposed_graph.out_edges(patt_node_ids, keys=True)
+        p_out_edges = list(
+            filter(lambda e: e[1] not in patt_node_ids, out_edges)
+        )
         for e in p_out_edges:
             e_uid = self.decomposed_graph.edges[e]["uid"]
             self.edgeid2obj[e_uid].reroute_dec_src(pattern_id)
@@ -559,14 +565,14 @@ class AssemblyGraph(object):
         # Extract the actual Node and Edge objects in this Pattern, so we can
         # pass references to these objects to the Pattern
         child_nodes = []
-        for uid in patt_nodes:
+        for uid in patt_node_ids:
             if uid in self.nodeid2obj:
                 child_nodes.append(self.nodeid2obj[uid])
             else:
                 # Implicitly, this will cause an error if uid is not a Node
                 # *or* Pattern ID.
                 child_nodes.append(self.pattid2obj[uid])
-        subgraph = self.decomposed_graph.subgraph(patt_nodes).copy()
+        subgraph = self.decomposed_graph.subgraph(patt_node_ids).copy()
         child_edges = [
             self.edgeid2obj[uid] for _, _, uid in subgraph.edges(data="uid")
         ]
@@ -583,31 +589,40 @@ class AssemblyGraph(object):
         # maybe there's weird copy stuff going on, or we're not setting the
         # prev dec src/tgt IDs properly (or maybe it's something with the new_*
         # labels, idk)
+        patt_node_ids_post_merging = p.get_node_ids()
         for mcc in p.merged_child_chains:
             pred = self.decomposed_graph.pred[mcc.unique_id]
             for incoming_node in pred:
-                if incoming_node in child_nodes:
+                if incoming_node in patt_node_ids_post_merging:
                     for e in pred[incoming_node]:
-                        self.edgeid2obj[e["uid"]].revert_dec_tgt()
+                        self.edgeid2obj[
+                            adj[incoming_node][e]["uid"]
+                        ].revert_dec_tgt()
                 else:
                     for e in pred[incoming_node]:
-                        self.edgeid2obj[e["uid"]].reroute_dec_tgt(pattern_id)
+                        self.edgeid2obj[
+                            adj[incoming_node][e]["uid"]
+                        ].reroute_dec_tgt(pattern_id)
 
             adj = self.decomposed_graph.adj[mcc.unique_id]
-            for outgoing_node in pred:
-                if outgoing_node in child_nodes:
+            for outgoing_node in adj:
+                if outgoing_node in patt_node_ids_post_merging:
                     for e in adj[outgoing_node]:
-                        self.edgeid2obj[e["uid"]].revert_dec_src()
+                        self.edgeid2obj[
+                            adj[outgoing_node][e]["uid"]
+                        ].revert_dec_src()
                 else:
                     for e in adj[outgoing_node]:
-                        self.edgeid2obj[e["uid"]].reroute_dec_src(pattern_id)
+                        self.edgeid2obj[
+                            adj[outgoing_node][e]["uid"]
+                        ].reroute_dec_src(pattern_id)
             self.chains.remove(mcc)
             del self.pattid2obj[mcc.unique_id]
 
         # Remove the children of this pattern (and any edges incident on them,
         # which should be limited -- after the splitting and rerouting steps
         # above -- to edges in child_edges) from the decomposed DiGraph.
-        self.decomposed_graph.remove_nodes_from(patt_nodes)
+        self.decomposed_graph.remove_nodes_from(patt_node_ids_post_merging)
 
         self.pattid2obj[pattern_id] = p
         self.ptype2collection[validation_results.pattern_type].append(p)
