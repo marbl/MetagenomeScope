@@ -43,6 +43,11 @@ class Edge(object):
        named attributes of this Edge object. These attributes should never
        be modified in an already-created Edge object.
 
+       Minor note: when we remove "unnecessary" split nodes, these might become
+       outdated (if the split node that gets removed corresponds to the
+       "original" version of the split node). The second level of info should
+       be sufficient, tho...?
+
     2. The rerouted source and target ID of an edge. These should still
        correspond to node IDs (either full nodes or split nodes); however,
        they should be changed as we perform node splitting. For example, if

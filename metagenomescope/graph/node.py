@@ -42,7 +42,9 @@ class Node(object):
     associated metadata.
     """
 
-    def __init__(self, unique_id, name, data, split=None):
+    def __init__(
+        self, unique_id, name, data, split=None, counterpart_node=None
+    ):
         """Initializes this Node object.
 
         Parameters
@@ -74,6 +76,16 @@ class Node(object):
             of None could, later on in the decomposition process, be split up.
             You should do this by calling the .make_into_left_split() /
             .make_into_right_split() functions on this Node.
+
+        counterpart_node: Node or None
+            Node object that represents a "counterpart" Node from which we
+            should copy this new Node's relative_length and longside_proportion
+            attributes. We'll also set the counterpart_node_id attribute
+            of this new Node to the ID of the counterpart Node, and set
+            counterpart_node.counterpart_node_id to this new Node's ID. (This
+            will be useful later when we detect/remove "unnecessary" split
+            nodes.) If split is None or if counterpart_node.counterpart_node_id
+            is not None, then we'll raise an error.
         """
         self.unique_id = unique_id
         self.name = get_node_name(name, split)
@@ -84,10 +96,29 @@ class Node(object):
         self.width = None
         self.height = None
 
-        # Also will be filled in after node scaling. See
-        # AssemblyGraph.scale_nodes().
-        self.relative_length = None
-        self.longside_proportion = None
+        if counterpart_node is not None:
+            if self.split is None:
+                raise WeirdError(
+                    f"Node {self.unique_id}: counterpart_node is not None, but "
+                    "split is None?"
+                )
+            if counterpart_node.counterpart_node_id is None:
+                counterpart_node.counterpart_node_id = self.unique_id
+            else:
+                raise WeirdError(
+                    f"Creating split Node {self.unique_id}: {counterpart_node} "
+                    "already has counterpart "
+                    f"{counterpart_node.counterpart_node_id}?"
+                )
+            self.counterpart_node_id = counterpart_node.unique_id
+            self.relative_length = counterpart_node.relative_length
+            self.longside_proportion = counterpart_node.longside_proportion
+        else:
+            self.counterpart_node_id = None
+            # Also will be filled in after node scaling. See
+            # AssemblyGraph.scale_nodes().
+            self.relative_length = None
+            self.longside_proportion = None
 
         # Relative position of this node within its parent pattern, if this
         # node is located within a pattern. (None if this node exists in the
@@ -120,10 +151,6 @@ class Node(object):
 
     def __repr__(self):
         return f"Node {self.unique_id} (name: {self.name})"
-
-    def set_scale_vals_from_other_node(self, other_node):
-        self.relative_length = other_node.relative_length
-        self.longside_proportion = other_node.longside_proportion
 
     def is_split(self):
         return self.split is not None

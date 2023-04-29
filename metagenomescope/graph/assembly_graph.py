@@ -316,12 +316,12 @@ class AssemblyGraph(object):
         self.num_objs += 1
         return new_id
 
-    def _make_new_split_node(self, original_node_id, split):
+    def _make_new_split_node(self, counterpart_node_id, split):
         """Creates a new "split" node based on another node.
 
         Parameters
         ----------
-        original_node_id: int
+        counterpart_node_id: int
             ID of the original node from which we'll create this split node.
             This should correspond to an entry in self.nodeid2obj.
 
@@ -336,17 +336,17 @@ class AssemblyGraph(object):
         if split != config.SPLIT_LEFT and split != config.SPLIT_RIGHT:
             raise WeirdError(f"Unrecognized split value: {split}")
         new_node_id = self._get_unique_id()
-        other_node = self.nodeid2obj[original_node_id]
+        counterpart_node = self.nodeid2obj[counterpart_node_id]
         # NOTE: Deep copying the data here is probably unnecessary,
         # since I don't think we'll ever *want* it to be different
         # between a node and its split copy. But whatever.
         new_node = Node(
             new_node_id,
-            other_node.name,
-            deepcopy(other_node.data),
+            counterpart_node.name,
+            deepcopy(counterpart_node.data),
             split=split,
+            counterpart_node=counterpart_node,
         )
-        new_node.set_scale_vals_from_other_node(other_node)
         self.nodeid2obj[new_node_id] = new_node
         return new_node_id
 
@@ -810,9 +810,142 @@ class AssemblyGraph(object):
                         "Shouldn't have done chain merging on {pobj}?"
                     )
 
+        self._remove_unnecessary_split_nodes()
+
         # No need to go through the nodes and edges in the top level of the
         # graph and record that they don't have a parent pattern -- their
         # parent_id attrs default to None
+
+    def _remove_unnecessary_split_nodes(self):
+        """Removes "unnecessary" split nodes from the graph.
+
+        The purpose of creating split nodes is to allow the same node to
+        serve as the start and end of two separate patterns, but this will
+        not be the fate of all split nodes. After we have finished pattern
+        identification, we say that a split node S (created from an original
+        node O) is "unnecessary" if S is located at the same level in the
+        hierarchy as the parent pattern of O. (This could mean that S is not in
+        a pattern at all, or it could mean that both S and the parent of O are
+        children of another pattern.)
+
+        Here, we identify and remove unnecessary split nodes in order to
+        simplify the visualization.
+        """
+        for node in list(self.nodeid2obj.values()):
+            node_id = node.unique_id
+            if node.counterpart_node_id is not None:
+                counterpart_node_parent = self.pattid2obj[
+                    self.nodeid2obj[node.counterpart_node_id].parent_id
+                ]
+                # Figure out if this split node is unnecessary. Note that this
+                # conditional is True even if both parent_ids are None.
+                if node.parent_id == counterpart_node_parent.parent_id:
+                    # ok yep it's unnecessary, remove it
+
+                    # If this split node is present in the top level of the
+                    # decomposed graph, then we need to actually update
+                    # self.decomposed_graph object (alongside self.graph).
+                    if node.parent_id is None:
+                        graphs_to_update = (self.graph, self.decomposed_graph)
+                    else:
+                        graphs_to_update = (self.graph,)
+
+                    if node.split == config.SPLIT_LEFT:
+                        # remove the fake edge from L ==> R, but also record
+                        # its unique ID for later
+                        fake_edge_uid = self.graph.edges[
+                            node_id, node.counterpart_node_id, 0
+                        ]["uid"]
+                        for g in graphs_to_update:
+                            g.remove_edge(node_id, node.counterpart_node_id, 0)
+
+                        # In the uncollapsed graph, route incoming edges to now
+                        # have a target of the original node (in the graph). In
+                        # the decomposed graph, route incoming edges to now
+                        # have a target of the original node's parent pattern.
+                        pred = self.graph.pred[node_id]
+                        for incoming_node_id in list(pred):
+                            for edge_key in list(pred[incoming_node_id]):
+                                e_uid = self.graph.edges[
+                                    incoming_node_id, node_id, edge_key
+                                ]["uid"]
+                                self.edgeid2obj[e_uid].reroute_tgt(
+                                    node.counterpart_node_id
+                                )
+                                self.edgeid2obj[e_uid].reroute_dec_tgt(
+                                    counterpart_node_parent.unique_id
+                                )
+                                for g in graphs_to_update:
+                                    g.add_edge(
+                                        incoming_node_id,
+                                        node.counterpart_node_id,
+                                        uid=e_uid,
+                                    )
+                                    g.remove_edge(
+                                        incoming_node_id, node_id, edge_key
+                                    )
+
+                    elif node.split == config.SPLIT_RIGHT:
+                        fake_edge_uid = self.graph.edges[
+                            node.counterpart_node_id, node_id, 0
+                        ]["uid"]
+                        for g in graphs_to_update:
+                            g.remove_edge(node.counterpart_node_id, node_id, 0)
+
+                        adj = self.graph.adj[node_id]
+                        for outgoing_node_id in list(adj):
+                            for edge_key in list(adj[outgoing_node_id]):
+                                e_uid = self.graph.edges[
+                                    node_id, outgoing_node_id, edge_key
+                                ]["uid"]
+                                self.edgeid2obj[e_uid].reroute_src(
+                                    node.counterpart_node_id
+                                )
+                                self.edgeid2obj[e_uid].reroute_dec_src(
+                                    counterpart_node_parent.unique_id
+                                )
+                                for g in graphs_to_update:
+                                    g.add_edge(
+                                        node.counterpart_node_id,
+                                        outgoing_node_id,
+                                        uid=e_uid,
+                                    )
+                                    g.remove_edge(
+                                        node_id,
+                                        outgoing_node_id,
+                                        node_id,
+                                        edge_key,
+                                    )
+                    else:
+                        raise WeirdError(
+                            f"{node} has an original node ID, but a split "
+                            f"attribute of {node.split}?"
+                        )
+                    for g in graphs_to_update:
+                        g.remove_node(node.unique_id)
+                    if node.parent_id is not None:
+                        # remove this node, and the associated fake edge, from
+                        # the children of this parent pattern (pp).
+                        pp = self.pattid2obj[node.parent_id]
+                        # If a split node is unnecessary, it shouldn't be the
+                        # start or end of a pattern (because that would imply
+                        # that it would not be unnecessary). Let's catch this
+                        # just in case I messed something up.
+                        if (
+                            pp.start_node_id == node_id
+                            or pp.end_node_id == node_id
+                        ):
+                            raise WeirdError(
+                                f"{node}, an unnecessary split node, is the "
+                                f"start/end of {pp}?"
+                            )
+                        pp.nodes.remove(node)
+                        pp.edges.remove(self.edgeid2obj[fake_edge_uid])
+                    self.nodeid2obj[
+                        node.counterpart_node_id
+                    ].counterpart_node_id = None
+                    del self.nodeid2obj[node_id]
+                    del self.edgeid2obj[fake_edge_uid]
 
     def get_node_lengths(self):
         """Returns a dict mapping node IDs to lengths.

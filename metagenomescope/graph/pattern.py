@@ -106,6 +106,7 @@ class Pattern(Node):
             self.end_node_id = validation_results.end_node
 
         self.nodes = nodes
+        print(f"{self}: nodes = {self.nodes}, vr = {validation_results}")
         # self.nodes stores the child Node objects of this Pattern, while
         # validation_results.nodes stores these Nodes' IDs. For checking that
         # the edges are "valid", we need the Node IDs, so it's easiest to just
@@ -126,23 +127,27 @@ class Pattern(Node):
             self.pattern_type == config.PT_CHAIN
             or self.pattern_type == config.PT_CYCLICCHAIN
         )
-        for coll in (self.nodes, self.edges):
-            for obj in coll:
-                obj.parent_id = self.unique_id
-                if (
-                    is_chain_ish
-                    and is_pattern(obj)
-                    and obj.pattern_type == config.PT_CHAIN
-                ):
-                    self._absorb_child_pattern(obj)
-                    # there should never be a case where obj is both the start
-                    # and end of this new pattern, but let's be safe anyway
-                    if self.start_node_id == obj.unique_id:
-                        self.start_node_id = obj.start_node_id
-                    if self.end_node_id == obj.unique_id:
-                        self.end_node_id = obj.end_node_id
-                    self.nodes.remove(obj)
-                    self.merged_child_chains.append(obj)
+        # Iterate through a copy of self.nodes, since we may remove merged
+        # chain nodes from self.nodes (and removing from a list while iterating
+        # through it will cause weird behavior).
+        for node in self.nodes[:]:
+            node.parent_id = self.unique_id
+            if (
+                is_chain_ish
+                and is_pattern(node)
+                and node.pattern_type == config.PT_CHAIN
+            ):
+                self._absorb_child_pattern(node)
+                # there should never be a case where node is both the start
+                # and end of this new pattern, but let's be safe anyway
+                if self.start_node_id == node.unique_id:
+                    self.start_node_id = node.start_node_id
+                if self.end_node_id == node.unique_id:
+                    self.end_node_id = node.end_node_id
+                self.nodes.remove(node)
+                self.merged_child_chains.append(node)
+        for edge in self.edges:
+            edge.parent_id = self.unique_id
 
         # This is the shape used for this pattern during layout. In the actual
         # end visualization we might use different shapes for collapsed
