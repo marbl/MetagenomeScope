@@ -592,7 +592,7 @@ class AssemblyGraph(object):
         # decomposed assembly graph's topology here.
         patt_node_ids_post_merging = p.get_node_ids()
         for mcc in p.merged_child_chains:
-            if type(mcc) != config.PT_CHAIN:
+            if mcc.pattern_type != config.PT_CHAIN:
                 raise WeirdError(f"Can't merge {mcc} into {p}?")
             pred = self.decomposed_graph.pred[mcc.unique_id]
             for incoming_node in pred:
@@ -626,12 +626,11 @@ class AssemblyGraph(object):
         # which should be limited -- after the splitting and rerouting steps
         # above -- to edges in child_edges) from the decomposed DiGraph.
         #
-        # There shouldn't be a difference between using patt_node_ids and
-        # patt_node_ids_post_merging here (since the nodes that we merged from
-        # a child chain into this new Parent should already be absent from the
-        # decomposed graph); I guess it's slightly safer to use the
-        # post_merging list, though.
-        self.decomposed_graph.remove_nodes_from(patt_node_ids_post_merging)
+        # NOTE that we use patt_node_ids instead of patt_node_ids_post_merging
+        # because, although the contents of the merged chain(s) (if any) have
+        # already been removed from the decomposed graph, these merged chain(s)
+        # themselves have not.
+        self.decomposed_graph.remove_nodes_from(patt_node_ids)
 
         self.pattid2obj[pattern_id] = p
         self.ptype2collection[validation_results.pattern_type].append(p)

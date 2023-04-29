@@ -89,11 +89,6 @@ def test_bubble_chain_identification():
           \ / \ /
            3   6
 
-    NOTE: currently a suboptimal decomposition is done here, since bubbles
-    can't work with chains as start/end nodes. this should be fixed so this
-    looks like follows, but for now it's a weird chain->frayedrope->chain chain
-    thing.
-
     First, we should collapse one of the bubbles (order shouldn't impact
     result). Let's say the leftmost bubble is collapsed first.
 
