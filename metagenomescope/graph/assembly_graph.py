@@ -655,13 +655,6 @@ class AssemblyGraph(object):
            real chains in the frayed rope, because by the time we identify
            frayed ropes we've already identified all real chains in the graph.
            (And we can't have frayed ropes within chains.)
-        5. After we find frayed ropes, identify cases where splitting wasn't
-           necessary (where there exist "trivial" chains from a left node -->
-           the pattern it was created for, or the pattern --> its right node)
-           and merge the split node(s) back in with the pattern. This will
-           require a traversal of all nodes in the graph, I think (not just the
-           top level of the decomposed graph), since trivial chains can be
-           located in bubbles / frayed ropes.
 
         TODOs: code
         -----------
