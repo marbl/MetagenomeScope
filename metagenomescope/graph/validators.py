@@ -165,7 +165,7 @@ def is_edge_fake_and_trivial(g, n0, n1, nodeid2obj, edgeid2obj):
             # The decomposed graph should never have a *fake* edge between
             # two (non-pattern) nodes. Something's up.
             raise WeirdError(
-                f"Nodes with IDs {n0} and {n1} are both not patterns?"
+                f"Non-pattern nodes ({n0}, {n1}) connected by fake edge?"
             )
         elif not n0_is_node and not n1_is_node:
             # This fake edge connects two separate pattern nodes. We're
