@@ -850,14 +850,14 @@ class AssemblyGraph(object):
                         # remove the fake edge from L ==> R, but also record
                         # its unique ID for later
                         fake_edge_uid = self.graph.edges[
-                            node_id, node.counterpart_node_id, 0
+                            node_id, counterpart.unique_id, 0
                         ]["uid"]
                         self.graph.remove_edge(
-                            node_id, node.counterpart_node_id, 0
+                            node_id, counterpart.unique_id, 0
                         )
                         if node.parent_id is None:
                             self.decomposed_graph.remove_edge(
-                                node_id, counterpart_parent.unique_id, 0
+                                node_id, counterpart.parent_id, 0
                             )
 
                         # In the uncollapsed graph, route incoming edges to now
@@ -870,15 +870,12 @@ class AssemblyGraph(object):
                                 e_uid = self.graph.edges[
                                     incoming_node_id, node_id, edge_key
                                 ]["uid"]
-                                self.edgeid2obj[e_uid].reroute_tgt(
-                                    node.counterpart_node_id
-                                )
-                                self.edgeid2obj[e_uid].reroute_dec_tgt(
-                                    counterpart_parent.unique_id
-                                )
+                                edge = self.edgeid2obj[e_uid]
+                                edge.reroute_tgt(counterpart.unique_id)
+                                edge.reroute_dec_tgt(counterpart.parent_id)
                                 self.graph.add_edge(
                                     incoming_node_id,
-                                    node.counterpart_node_id,
+                                    counterpart.unique_id,
                                     uid=e_uid,
                                 )
                                 self.graph.remove_edge(
@@ -886,24 +883,24 @@ class AssemblyGraph(object):
                                 )
                                 if node.parent_id is None:
                                     self.decomposed_graph.add_edge(
-                                        incoming_node_id,
-                                        counterpart_parent.unique_id,
+                                        edge.dec_src_id,
+                                        counterpart.parent_id,
                                         uid=e_uid,
                                     )
                                     self.decomposed_graph.remove_edge(
-                                        incoming_node_id, node_id, edge_key
+                                        edge.dec_src_id, node_id, edge_key
                                     )
 
                     elif node.split == config.SPLIT_RIGHT:
                         fake_edge_uid = self.graph.edges[
-                            node.counterpart_node_id, node_id, 0
+                            counterpart.unique_id, node_id, 0
                         ]["uid"]
                         self.graph.remove_edge(
-                            node.counterpart_node_id, node_id, 0
+                            counterpart.unique_id, node_id, 0
                         )
                         if node.parent_id is None:
                             self.decomposed_graph.remove_edge(
-                                counterpart_parent.unique_id, node_id, 0
+                                counterpart.parent_id, node_id, 0
                             )
 
                         adj = self.graph.adj[node_id]
@@ -912,14 +909,11 @@ class AssemblyGraph(object):
                                 e_uid = self.graph.edges[
                                     node_id, outgoing_node_id, edge_key
                                 ]["uid"]
-                                self.edgeid2obj[e_uid].reroute_src(
-                                    node.counterpart_node_id
-                                )
-                                self.edgeid2obj[e_uid].reroute_dec_src(
-                                    counterpart_parent.unique_id
-                                )
+                                edge = self.edgeid2obj[e_uid]
+                                edge.reroute_src(counterpart.unique_id)
+                                edge.reroute_dec_src(counterpart.parent_id)
                                 self.graph.add_edge(
-                                    node.counterpart_node_id,
+                                    counterpart.unique_id,
                                     outgoing_node_id,
                                     uid=e_uid,
                                 )
@@ -928,12 +922,12 @@ class AssemblyGraph(object):
                                 )
                                 if node.parent_id is None:
                                     self.decomposed_graph.add_edge(
-                                        counterpart_parent.unique_id,
-                                        outgoing_node_id,
+                                        counterpart.parent_id,
+                                        edge.dec_tgt_id,
                                         uid=e_uid,
                                     )
                                     self.decomposed_graph.remove_edge(
-                                        node_id, outgoing_node_id, edge_key
+                                        node_id, edge.dec_tgt_id, edge_key
                                     )
                     else:
                         raise WeirdError(
@@ -949,9 +943,9 @@ class AssemblyGraph(object):
                         # As of writing a single node should not be the start
                         # AND end of a pattern, but we may as well play it safe
                         if pp.start_node_id == node_id:
-                            pp.start_node_id = counterpart_parent.unique_id
+                            pp.start_node_id = counterpart.parent_id
                         if pp.end_node_id == node_id:
-                            pp.end_node_id = counterpart_parent.unique_id
+                            pp.end_node_id = counterpart.parent_id
                         pp.nodes.remove(node)
                         pp.edges.remove(self.edgeid2obj[fake_edge_uid])
                     else:
