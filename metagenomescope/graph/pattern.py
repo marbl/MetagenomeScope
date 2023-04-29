@@ -106,7 +106,6 @@ class Pattern(Node):
             self.end_node_id = validation_results.end_node
 
         self.nodes = nodes
-        print(f"{self}: nodes = {self.nodes}, vr = {validation_results}")
         # self.nodes stores the child Node objects of this Pattern, while
         # validation_results.nodes stores these Nodes' IDs. For checking that
         # the edges are "valid", we need the Node IDs, so it's easiest to just

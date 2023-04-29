@@ -941,9 +941,8 @@ class AssemblyGraph(object):
                             )
                         pp.nodes.remove(node)
                         pp.edges.remove(self.edgeid2obj[fake_edge_uid])
-                    self.nodeid2obj[
-                        node.counterpart_node_id
-                    ].counterpart_node_id = None
+                    counterpart = self.nodeid2obj[node.counterpart_node_id]
+                    counterpart.unsplit()
                     del self.nodeid2obj[node_id]
                     del self.edgeid2obj[fake_edge_uid]
 

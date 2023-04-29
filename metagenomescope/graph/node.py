@@ -88,7 +88,8 @@ class Node(object):
             is not None, then we'll raise an error.
         """
         self.unique_id = unique_id
-        self.name = get_node_name(name, split)
+        self.basename = name
+        self.name = get_node_name(self.basename, split)
         self.data = data
         self.split = split
 
@@ -164,7 +165,19 @@ class Node(object):
                 f"This Node's .split attr is already {self.split}?"
             )
         self.split = split_type
-        self.name = get_node_name(self.name, self.split)
+        self.name = get_node_name(self.basename, self.split)
+
+    def unsplit(self):
+        if self.is_not_split():
+            raise WeirdError("Can't unsplit an already-not-split Node?")
+        self.split = None
+        self.name = get_node_name(self.basename, self.split)
+
+        if self.counterpart_node_id is None:
+            raise WeirdError(
+                f"Shouldn't {self} already have a counterpart node ID?"
+            )
+        self.counterpart_node_id = None
 
     def make_into_left_split(self):
         self._make_into_split(SPLIT_LEFT)
