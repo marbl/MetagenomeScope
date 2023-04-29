@@ -886,32 +886,37 @@ class AssemblyGraph(object):
                         # have a target of the original node (in the graph). In
                         # the decomposed graph, route incoming edges to now
                         # have a target of the original node's parent pattern.
-                        pred = self.graph.pred[node_id]
-                        for incoming_node_id in list(pred):
-                            for edge_key in list(pred[incoming_node_id]):
-                                e_uid = self.graph.edges[
-                                    incoming_node_id, node_id, edge_key
-                                ]["uid"]
+                        for in_edge in list(
+                            self.graph.in_edges(node_id, keys=True, data=True)
+                        ):
+                            e_uid = in_edge[3]["uid"]
+                            edge = self.edgeid2obj[e_uid]
+                            edge.reroute_tgt(counterpart.unique_id)
+                            edge.reroute_dec_tgt(counterpart_fe_id)
+                            self.graph.add_edge(
+                                in_edge[0],
+                                counterpart.unique_id,
+                                uid=e_uid,
+                            )
+                            self.graph.remove_edge(
+                                in_edge[0], node_id, in_edge[2]
+                            )
+                        if node.parent_id is None:
+                            for in_edge in list(
+                                self.decomposed_graph.in_edges(
+                                    node_id, keys=True, data=True
+                                )
+                            ):
+                                e_uid = in_edge[3]["uid"]
                                 edge = self.edgeid2obj[e_uid]
-                                edge.reroute_tgt(counterpart.unique_id)
-                                edge.reroute_dec_tgt(counterpart_fe_id)
-                                self.graph.add_edge(
-                                    incoming_node_id,
-                                    counterpart.unique_id,
+                                self.decomposed_graph.add_edge(
+                                    edge.dec_src_id,
+                                    counterpart_fe_id,
                                     uid=e_uid,
                                 )
-                                self.graph.remove_edge(
-                                    incoming_node_id, node_id, edge_key
+                                self.decomposed_graph.remove_edge(
+                                    edge.dec_src_id, node_id, in_edge[2]
                                 )
-                                if node.parent_id is None:
-                                    self.decomposed_graph.add_edge(
-                                        edge.dec_src_id,
-                                        counterpart_fe_id,
-                                        uid=e_uid,
-                                    )
-                                    self.decomposed_graph.remove_edge(
-                                        edge.dec_src_id, node_id, edge_key
-                                    )
 
                     elif node.split == config.SPLIT_RIGHT:
                         # again, rm the fake edge
@@ -923,32 +928,37 @@ class AssemblyGraph(object):
                                 counterpart_fe_id, node_id, 0
                             )
 
-                        adj = self.graph.adj[node_id]
-                        for outgoing_node_id in list(adj):
-                            for edge_key in list(adj[outgoing_node_id]):
-                                e_uid = self.graph.edges[
-                                    node_id, outgoing_node_id, edge_key
-                                ]["uid"]
+                        for out_edge in list(
+                            self.graph.out_edges(node_id, keys=True, data=True)
+                        ):
+                            e_uid = out_edge[3]["uid"]
+                            edge = self.edgeid2obj[e_uid]
+                            edge.reroute_src(counterpart.unique_id)
+                            edge.reroute_dec_src(counterpart_fe_id)
+                            self.graph.add_edge(
+                                counterpart.unique_id,
+                                out_edge[1],
+                                uid=e_uid,
+                            )
+                            self.graph.remove_edge(
+                                node_id, out_edge[1], out_edge[2]
+                            )
+                        if node.parent_id is None:
+                            for out_edge in list(
+                                self.decomposed_graph.out_edges(
+                                    node_id, keys=True, data=True
+                                )
+                            ):
+                                e_uid = out_edge[3]["uid"]
                                 edge = self.edgeid2obj[e_uid]
-                                edge.reroute_src(counterpart.unique_id)
-                                edge.reroute_dec_src(counterpart_fe_id)
-                                self.graph.add_edge(
-                                    counterpart.unique_id,
-                                    outgoing_node_id,
+                                self.decomposed_graph.add_edge(
+                                    counterpart_fe_id,
+                                    edge.dec_tgt_id,
                                     uid=e_uid,
                                 )
-                                self.graph.remove_edge(
-                                    node_id, outgoing_node_id, edge_key
+                                self.decomposed_graph.remove_edge(
+                                    node_id, edge.dec_tgt_id, out_edge[2]
                                 )
-                                if node.parent_id is None:
-                                    self.decomposed_graph.add_edge(
-                                        counterpart_fe_id,
-                                        edge.dec_tgt_id,
-                                        uid=e_uid,
-                                    )
-                                    self.decomposed_graph.remove_edge(
-                                        node_id, edge.dec_tgt_id, edge_key
-                                    )
                     else:
                         raise WeirdError(
                             f"{node} has an original node ID, but a split "
