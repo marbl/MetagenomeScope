@@ -959,9 +959,6 @@ class AssemblyGraph(object):
                         # remove this node, and the associated fake edge, from
                         # the children of this parent pattern (pp).
                         pp = self.pattid2obj[node.parent_id]
-
-                        # As of writing a single node should not be the start
-                        # AND end of a pattern, but we may as well play it safe
                         if pp.start_node_id == node_id:
                             pp.start_node_id = counterpart_fe_id
                         if pp.end_node_id == node_id:
