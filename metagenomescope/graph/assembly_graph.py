@@ -852,9 +852,13 @@ class AssemblyGraph(object):
                         fake_edge_uid = self.graph.edges[
                             node_id, node.counterpart_node_id, 0
                         ]["uid"]
-                        self.graph.remove_edge(node_id, node.counterpart_node_id, 0)
+                        self.graph.remove_edge(
+                            node_id, node.counterpart_node_id, 0
+                        )
                         if node.parent_id is None:
-                            self.decomposed_graph.remove_edge(node_id, counterpart_parent.unique_id, 0)
+                            self.decomposed_graph.remove_edge(
+                                node_id, counterpart_parent.unique_id, 0
+                            )
 
                         # In the uncollapsed graph, route incoming edges to now
                         # have a target of the original node (in the graph). In
@@ -894,9 +898,13 @@ class AssemblyGraph(object):
                         fake_edge_uid = self.graph.edges[
                             node.counterpart_node_id, node_id, 0
                         ]["uid"]
-                        self.graph.remove_edge(node.counterpart_node_id, node_id, 0)
+                        self.graph.remove_edge(
+                            node.counterpart_node_id, node_id, 0
+                        )
                         if node.parent_id is None:
-                            self.decomposed_graph.remove_edge(counterpart_parent.unique_id, node_id, 0)
+                            self.decomposed_graph.remove_edge(
+                                counterpart_parent.unique_id, node_id, 0
+                            )
 
                         adj = self.graph.adj[node_id]
                         for outgoing_node_id in list(adj):
