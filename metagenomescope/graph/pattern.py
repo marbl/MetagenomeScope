@@ -169,7 +169,7 @@ class Pattern(Node):
         if self.has_start_end:
             suffix = f" from {self.start_node_id} to {self.end_node_id}"
         return (
-            f"{config.PT2HR[self.pattern_type]} (ID {self.unique_id}) of "
+            f"{config.PT2HR[self.pattern_type]} {self.unique_id} of "
             f"nodes {self.get_node_ids()}{suffix}"
         )
 
