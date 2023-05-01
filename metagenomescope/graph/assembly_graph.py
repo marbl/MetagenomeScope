@@ -803,11 +803,11 @@ class AssemblyGraph(object):
                 for pn in pobj.nodes:
                     top_level_candidate_nodes.discard(pn.unique_id)
                 for rs in right_splits:
-                    candidate_nodes.add(rs)
+                    top_level_candidate_nodes.add(rs)
                 for ls in left_splits:
                     for incoming_node in self.decomposed_graph.pred[ls]:
                         if incoming_node not in pobj.get_node_ids():
-                            candidate_nodes.add(incoming_node)
+                            top_level_candidate_nodes.add(incoming_node)
                 if len(pobj.merged_child_chains) > 0:
                     raise WeirdError(
                         "Shouldn't have done chain merging on {pobj}?"
