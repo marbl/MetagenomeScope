@@ -912,11 +912,6 @@ class AssemblyGraph(object):
                 if counterpart_fe_id not in self.pattid2obj:
                     continue
 
-                print("----------------")
-                print("Found unnec split node", node)
-                print("counterpart", counterpart)
-                print(self.edgeid2obj[fake_edge_uid])
-
                 # Otherwise, this fake edge points to an ancestor of this
                 # node's counterpart. Figure out what the parent (if any) of
                 # *that* ancestor is.
@@ -964,7 +959,6 @@ class AssemblyGraph(object):
                         # to update the topology of the decomposed graph if
                         # "node" is present in its top level.)
                         if node.parent_id is None:
-                            print(self.decomposed_graph.pred[node_id])
                             for in_edge in list(
                                 self.decomposed_graph.in_edges(
                                     node_id, keys=True, data=True
@@ -972,21 +966,6 @@ class AssemblyGraph(object):
                             ):
                                 e_uid = in_edge[3]["uid"]
                                 edge = self.edgeid2obj[e_uid]
-                                print(in_edge)
-                                print(edge)
-                                print(
-                                    edge.orig_src_id in self.decomposed_graph
-                                )
-                                print(edge.new_src_id in self.decomposed_graph)
-                                print(edge.dec_src_id in self.decomposed_graph)
-                                print(
-                                    edge.prev_dec_src_id
-                                    in self.decomposed_graph
-                                )
-                                print(edge.prev_dec_src_id)
-                                print(
-                                    self.decomposed_graph.adj[edge.dec_src_id]
-                                )
                                 self.decomposed_graph.add_edge(
                                     edge.dec_src_id,
                                     counterpart_fe_id,
