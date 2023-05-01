@@ -254,7 +254,7 @@ def test_multiple_frayed_ropes():
         os.unlink(fn)
 
 
-def test_aug1_subgraph():
+def test_chain_Y_aug1_subgraph():
     r"""The input graph looks like
 
                                              /-> 9 -> 10
@@ -275,3 +275,41 @@ def test_aug1_subgraph():
     # no split nodes or fake edges should be left
     assert len(ag.graph.nodes) == 16
     assert len(ag.graph.edges) == 15
+
+
+def test_chain_backwards_Y():
+    r"""The input graph looks like
+
+    0 -> 1 -> 2\
+                3 -> 4 -> 5 -> 6
+    7 -> 8 -> 9/
+
+    The opposite of the test_chain_Y...() test.
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(1, 2)
+    g.add_edge(2, 3)
+
+    g.add_edge(7, 8)
+    g.add_edge(8, 9)
+    g.add_edge(9, 3)
+
+    g.add_edge(3, 4)
+    g.add_edge(4, 5)
+    g.add_edge(5, 6)
+
+    fh, fn = nx2gml(g)
+    try:
+        ag = AssemblyGraph(fn)
+        assert len(ag.decomposed_graph.nodes) == 3
+        assert len(ag.decomposed_graph.edges) == 2
+        assert len(ag.chains) == 3
+        assert len(ag.cyclic_chains) == 0
+        assert len(ag.frayed_ropes) == 0
+        assert len(ag.bubbles) == 0
+        assert len(ag.graph.nodes) == 10
+        assert len(ag.graph.edges) == 9
+    finally:
+        os.close(fh)
+        os.unlink(fn)
