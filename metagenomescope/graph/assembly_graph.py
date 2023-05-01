@@ -535,7 +535,7 @@ class AssemblyGraph(object):
                             right_node_id, outgoing_node_id, uid=uid
                         )
                         self.decomposed_graph.remove_edge(
-                            end_id, outgoing_node_id, edge_key
+                            end_id, outgoing_node_id, key
                         )
 
                 for outgoing_node_id, _, key, data in list(
@@ -546,9 +546,7 @@ class AssemblyGraph(object):
                         self.graph.add_edge(
                             right_node_id, outgoing_node_id, uid=uid
                         )
-                        self.graph.remove_edge(
-                            end_id, outgoing_node_id, edge_key
-                        )
+                        self.graph.remove_edge(end_id, outgoing_node_id, key)
 
                 # Add a fake edge between the left and right node
                 fake_edge_id = self._get_unique_id()
