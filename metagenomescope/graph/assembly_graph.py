@@ -398,9 +398,8 @@ class AssemblyGraph(object):
 
         # Do we need to split the start nodes of this pattern?
         for start_id in validation_results.start_node_ids:
-            start_pred = self.decomposed_graph.pred[start_id]
             start_incoming_nodes_outside_pattern = (
-                set(start_pred) - patt_node_ids
+                set(self.decomposed_graph.pred[start_id]) - patt_node_ids
             )
 
             if self._should_split(
@@ -425,15 +424,26 @@ class AssemblyGraph(object):
                 for g in (self.graph, self.decomposed_graph):
                     g.add_node(left_node_id)
                 self.nodeid2obj[start_id].make_into_right_split()
+
                 # Route edges from start_incoming_nodes_outside_pattern to
-                # the left node
-                for incoming_node_id in start_incoming_nodes_outside_pattern:
-                    # We convert the start_pred object to a list, because when
-                    # we re-route edges here then it adjusts the dictionary
-                    for edge_key in list(start_pred[incoming_node_id]):
-                        e_uid = self.graph.edges[
-                            incoming_node_id, start_id, edge_key
-                        ]["uid"]
+                # the left node.
+                #
+                # We go through self.graph and self.decomposed_graph separately
+                # -- this way we don't have to worry about edge keys matching
+                # up between the graphs.
+                for (
+                    incoming_node_id,
+                    _,
+                    key,
+                    data,
+                ) in list(self.decomposed_graph.in_edges(
+                    start_id, keys=True, data=True
+                )):
+                    if (
+                        incoming_node_id
+                        in start_incoming_nodes_outside_pattern
+                    ):
+                        uid = data["uid"]
                         # When we collapse this pattern into a single node in
                         # the decomposed graph, the new split node will still
                         # be located outside of the pattern. Therefore, the
@@ -441,15 +451,29 @@ class AssemblyGraph(object):
                         # (in both the uncollapsed and collapsed graph) to
                         # point to the new split node, *not* the collapsed
                         # pattern.
-                        self.edgeid2obj[e_uid].reroute_tgt(left_node_id)
-                        self.edgeid2obj[e_uid].reroute_dec_tgt(left_node_id)
+                        self.edgeid2obj[uid].reroute_tgt(left_node_id)
+                        self.edgeid2obj[uid].reroute_dec_tgt(left_node_id)
                         # We keep the edge ID the same, so ... even though we
                         # reroute it in the graphs, this is still the same edge.
-                        for g in (self.graph, self.decomposed_graph):
-                            g.add_edge(
-                                incoming_node_id, left_node_id, uid=e_uid
-                            )
-                            g.remove_edge(incoming_node_id, start_id, edge_key)
+                        self.decomposed_graph.add_edge(
+                            incoming_node_id, left_node_id, uid=uid
+                        )
+                        self.decomposed_graph.remove_edge(
+                            incoming_node_id, start_id, key
+                        )
+
+                for incoming_node_id, _, key, data in list(self.graph.in_edges(
+                    start_id, keys=True, data=True
+                )):
+                    if (
+                        incoming_node_id
+                        in start_incoming_nodes_outside_pattern
+                    ):
+                        uid = data["uid"]
+                        self.graph.add_edge(
+                            incoming_node_id, left_node_id, uid=uid
+                        )
+                        self.graph.remove_edge(incoming_node_id, start_id, key)
 
                 # All other edges (mostly outgoing edges, but maybe incoming
                 # edges from within the pattern) will be routed by default to
@@ -476,8 +500,9 @@ class AssemblyGraph(object):
 
         # Do we need to split the end nodes of this pattern?
         for end_id in validation_results.end_node_ids:
-            end_adj = self.decomposed_graph.adj[end_id]
-            end_outgoing_nodes_outside_pattern = set(end_adj) - patt_node_ids
+            end_outgoing_nodes_outside_pattern = (
+                set(self.decomposed_graph.adj[end_id]) - patt_node_ids
+            )
 
             if self._should_split(end_id, end_outgoing_nodes_outside_pattern):
                 # Since this end node has outgoing edge(s) to outside the
@@ -500,18 +525,36 @@ class AssemblyGraph(object):
                 self.nodeid2obj[end_id].make_into_left_split()
                 # Route edges from the right node to
                 # end_outgoing_nodes_outside_pattern
-                for outgoing_node_id in end_outgoing_nodes_outside_pattern:
-                    for edge_key in list(end_adj[outgoing_node_id]):
-                        e_uid = self.graph.edges[
+                for (
+                    outgoing_node_id,
+                    _,
+                    key,
+                    data,
+                ) in list(self.decomposed_graph.out_edges(
+                    end_id, keys=True, data=True
+                )):
+                    if outgoing_node_id in end_outgoing_nodes_outside_pattern:
+                        uid = data["uid"]
+                        self.edgeid2obj[uid].reroute_src(right_node_id)
+                        self.edgeid2obj[uid].reroute_dec_src(right_node_id)
+                        self.decomposed_graph.add_edge(
+                            right_node_id, outgoing_node_id, uid=uid
+                        )
+                        self.decomposed_graph.remove_edge(
                             end_id, outgoing_node_id, edge_key
-                        ]["uid"]
-                        self.edgeid2obj[e_uid].reroute_src(right_node_id)
-                        self.edgeid2obj[e_uid].reroute_dec_src(right_node_id)
-                        for g in (self.graph, self.decomposed_graph):
-                            g.add_edge(
-                                right_node_id, outgoing_node_id, uid=e_uid
-                            )
-                            g.remove_edge(end_id, outgoing_node_id, edge_key)
+                        )
+
+                for outgoing_node_id, _, key, data in list(self.graph.out_edges(
+                    end_id, keys=True, data=True
+                )):
+                    if outgoing_node_id in end_outgoing_nodes_outside_pattern:
+                        uid = data["uid"]
+                        self.graph.add_edge(
+                            right_node_id, outgoing_node_id, uid=uid
+                        )
+                        self.graph.remove_edge(
+                            end_id, outgoing_node_id, edge_key
+                        )
 
                 # Add a fake edge between the left and right node
                 fake_edge_id = self._get_unique_id()
@@ -869,6 +912,11 @@ class AssemblyGraph(object):
                 if counterpart_fe_id not in self.pattid2obj:
                     continue
 
+                print("----------------")
+                print("Found unnec split node", node)
+                print("counterpart", counterpart)
+                print(self.edgeid2obj[fake_edge_uid])
+
                 # Otherwise, this fake edge points to an ancestor of this
                 # node's counterpart. Figure out what the parent (if any) of
                 # *that* ancestor is.
@@ -916,6 +964,7 @@ class AssemblyGraph(object):
                         # to update the topology of the decomposed graph if
                         # "node" is present in its top level.)
                         if node.parent_id is None:
+                            print(self.decomposed_graph.pred[node_id])
                             for in_edge in list(
                                 self.decomposed_graph.in_edges(
                                     node_id, keys=True, data=True
@@ -923,6 +972,21 @@ class AssemblyGraph(object):
                             ):
                                 e_uid = in_edge[3]["uid"]
                                 edge = self.edgeid2obj[e_uid]
+                                print(in_edge)
+                                print(edge)
+                                print(
+                                    edge.orig_src_id in self.decomposed_graph
+                                )
+                                print(edge.new_src_id in self.decomposed_graph)
+                                print(edge.dec_src_id in self.decomposed_graph)
+                                print(
+                                    edge.prev_dec_src_id
+                                    in self.decomposed_graph
+                                )
+                                print(edge.prev_dec_src_id)
+                                print(
+                                    self.decomposed_graph.adj[edge.dec_src_id]
+                                )
                                 self.decomposed_graph.add_edge(
                                     edge.dec_src_id,
                                     counterpart_fe_id,
