@@ -17,12 +17,18 @@ def get_simple_fr_graph():
     return g
 
 
+def check_simple_fr_graph_valid(g, start_node):
+    results = validators.is_valid_frayed_rope(g, start_node)
+    assert results
+    assert set(results.nodes) == set([0, 1, 2, 3, 4])
+    assert set(results.start_nodes) == set([0, 1])
+    assert set(results.end_nodes) == set([3, 4])
+
+
 def test_simple_fr_detection():
     g = get_simple_fr_graph()
     for s in [0, 1]:
-        results = validators.is_valid_frayed_rope(g, s)
-        assert results
-        assert set(results.nodes) == set([0, 1, 2, 3, 4])
+        check_simple_fr_graph_valid(g, s)
 
 
 def test_simple_fr_detection_failures():
@@ -31,6 +37,8 @@ def test_simple_fr_detection_failures():
         results = validators.is_valid_frayed_rope(g, s)
         assert not results
         assert results.nodes == []
+        assert results.start_nodes == []
+        assert results.start_nodes == []
 
 
 def test_only_1_start_node():
@@ -121,15 +129,18 @@ def test_end_to_start_cyclic_frayed_rope():
         2
     1 -/ \-> 4
 
-     ... is NOW a valid frayed rope. Wow, character development!
+     ... is a valid frayed rope. Wow, character development! This test used to
+     check that this *wasn't* a valid frayed rope.
+
      Note that we only allow cyclic edges from the end node(s) to the start
      node(s): we disallow cyclic edges within the frayed rope, including
      self-loops. Those are tested below.
     """
     g = get_simple_fr_graph()
     g.add_edge(3, 0)
-    assert validators.is_valid_frayed_rope(g, 0)
-    assert validators.is_valid_frayed_rope(g, 1)
+
+    check_simple_fr_graph_valid(g, 0)
+    check_simple_fr_graph_valid(g, 1)
 
     # ... and if we add another cyclic edge, it's good also, right?
     # (although in practice, we should detect a cyclic simple bubble of
@@ -138,8 +149,8 @@ def test_end_to_start_cyclic_frayed_rope():
     # than frayed ropes.)
 
     g.add_edge(4, 0)
-    assert validators.is_valid_frayed_rope(g, 0)
-    assert validators.is_valid_frayed_rope(g, 1)
+    check_simple_fr_graph_valid(g, 0)
+    check_simple_fr_graph_valid(g, 1)
 
 
 def test_non_end_to_start_cyclic_frayed_rope():
@@ -215,9 +226,9 @@ def test_parallel_edges_in_frayed_rope():
     for e in ((0, 2), (1, 2), (2, 3), (2, 4)):
         g = get_simple_fr_graph()
         g.add_edge(*e)
-        assert validators.is_valid_frayed_rope(g, 0)
-        assert validators.is_valid_frayed_rope(g, 1)
+        check_simple_fr_graph_valid(g, 0)
+        check_simple_fr_graph_valid(g, 1)
         big_chunky_graph.add_edge(*e)
 
-    assert validators.is_valid_frayed_rope(big_chunky_graph, 0)
-    assert validators.is_valid_frayed_rope(big_chunky_graph, 1)
+    check_simple_fr_graph_valid(big_chunky_graph, 0)
+    check_simple_fr_graph_valid(big_chunky_graph, 1)
