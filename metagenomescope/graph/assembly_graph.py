@@ -522,7 +522,7 @@ class AssemblyGraph(object):
                 self.nodeid2obj[end_id].make_into_left_split()
                 # Route edges from the right node to
                 # end_outgoing_nodes_outside_pattern
-                for (outgoing_node_id, _, key, data) in list(
+                for (_, outgoing_node_id, key, data) in list(
                     self.decomposed_graph.out_edges(
                         end_id, keys=True, data=True
                     )
