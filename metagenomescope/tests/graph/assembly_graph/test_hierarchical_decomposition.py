@@ -252,3 +252,26 @@ def test_multiple_frayed_ropes():
     finally:
         os.close(fh)
         os.unlink(fn)
+
+
+def test_aug1_subgraph():
+    r"""The input graph looks like
+
+                                             /-> 9 -> 10
+    0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8
+                                             \-> 11 -> 12 -> 13 -> 14 -> 15
+
+    There was previously a bug that messed up how edges were routed during node
+    splitting (that would break graphs like this). This test ensures that this
+    bug doesn't pop up again.
+    """
+    ag = AssemblyGraph("metagenomescope/tests/input/aug1_subgraph.gml")
+    assert len(ag.decomposed_graph.nodes) == 3
+    assert len(ag.decomposed_graph.edges) == 2
+    assert len(ag.chains) == 3
+    assert len(ag.cyclic_chains) == 0
+    assert len(ag.frayed_ropes) == 0
+    assert len(ag.bubbles) == 0
+    # no split nodes or fake edges should be left
+    assert len(ag.graph.nodes) == 16
+    assert len(ag.graph.edges) == 15
