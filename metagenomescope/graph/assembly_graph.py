@@ -365,32 +365,27 @@ class AssemblyGraph(object):
         validation_results: validators.ValidationResults
             Results from validating this pattern in the assembly graph. We
             assume that this is the result of a *successful* validation, i.e.
-            the is_valid attribute of this is True. This may or may not have
-            individual start/end nodes defined.
+            the is_valid attribute of this is True.
 
         Returns
         -------
-        (Pattern, int or None, int or None): (pattern, left ID, right ID)
+        (Pattern, list, list): (pattern, left split IDs, right split IDs)
             pattern: object describing the newly created pattern.
 
-            left ID: If validation_results.has_start_end is True and we
-            split the start Node of the pattern, then this will be the ID
-            of the new Node we created (located just outside this pattern,
-            with an outgoing edge to the start Node). If we did not split the
-            start Node of the pattern, then this will be None.
+            left split IDs: list of IDs of new left split nodes created
+            (located just outside this pattern, each with an outgoing edge to
+            their corresponding start Node).
 
-            right ID: If validation_results.has_start_end is True and we
-            split the end Node of the pattern, then this will be the ID
-            of the new Node we created (located just outside this pattern,
-            with an incoming edge from the end Node). If we did not split the
-            end Node of the pattern, then this will be None.
+            right split IDs: list of IDs of new right split nodes created
+            (located just outside this pattern, each with an incoming edge from
+            their corresponding end Node).
         """
         pattern_id = self._get_unique_id()
         self.decomposed_graph.add_node(pattern_id)
         patt_node_ids = set(validation_results.nodes)
 
         # We will need to create new Node(s) if we split the start and/or end
-        # Node of the pattern. If we create any new Nodes, we'll store their
+        # Node(s) of the pattern. If we create any new Nodes, we'll store their
         # IDs in these variables.
         #
         # NOTE that these new Nodes, if created, will be located OUTSIDE of
@@ -398,13 +393,11 @@ class AssemblyGraph(object):
         # validation_results.nodes (aka patt_node_ids) will thus remain a
         # "complete" description of all Nodes in this pattern, even if we do
         # splitting.
-        left_node_id = None
-        right_node_id = None
+        left_split_ids = []
+        right_split_ids = []
 
-        if validation_results.has_start_end:
-
-            # Do we need to split the start node of this pattern?
-            start_id = validation_results.start_node
+        # Do we need to split the start nodes of this pattern?
+        for start_id in validation_results.start_nodes:
             start_pred = self.decomposed_graph.pred[start_id]
             start_incoming_nodes_outside_pattern = (
                 set(start_pred) - patt_node_ids
@@ -479,9 +472,10 @@ class AssemblyGraph(object):
                 self.decomposed_graph.add_edge(
                     left_node_id, pattern_id, uid=fake_edge_id
                 )
+                left_split_ids.append(left_node_id)
 
-            # Do we need to split the end node of this pattern?
-            end_id = validation_results.end_node
+        # Do we need to split the end nodes of this pattern?
+        for end_id in validation_results.end_nodes:
             end_adj = self.decomposed_graph.adj[end_id]
             end_outgoing_nodes_outside_pattern = set(end_adj) - patt_node_ids
 
@@ -530,6 +524,7 @@ class AssemblyGraph(object):
                 self.decomposed_graph.add_edge(
                     pattern_id, right_node_id, uid=fake_edge_id
                 )
+                right_split_ids.append(right_node_id)
 
         # For every edge from outside this pattern to a node within this
         # pattern: route this edge to just point (in the decomposed graph)
@@ -635,7 +630,7 @@ class AssemblyGraph(object):
 
         self.pattid2obj[pattern_id] = p
         self.ptype2collection[validation_results.pattern_type].append(p)
-        return p, left_node_id, right_node_id
+        return p, left_split_ids, right_split_ids
 
     def _hierarchically_identify_patterns(self):
         """Run all of our pattern detection algorithms on the graph repeatedly.
@@ -722,7 +717,7 @@ class AssemblyGraph(object):
 
                     if validation_results:
                         # Yes, it does!
-                        pobj, ls, rs = self._add_pattern(validation_results)
+                        pobj, left_splits, right_splits = self._add_pattern(validation_results)
 
                         # Remove child nodes of this pattern from consideration as
                         # future start nodes of other patterns. (Don't worry,
@@ -742,26 +737,29 @@ class AssemblyGraph(object):
                             candidate_nodes.discard(pn.unique_id)
 
                         # We don't need to add the new pattern object itself (or the
-                        # left split node, ls) to candidate_nodes, but we add
+                        # left split nodes) to candidate_nodes, but we add
                         #
-                        # (1) the right split node, rs, if present, and
+                        # (1) the right split nodes, and
                         # (2) the incoming nodes [located outside of the newly-
-                        #     identified pattern] of the left split node, ls, if
-                        #     present
+                        #     identified pattern] of the left split nodes
                         #
-                        # The reason for only adding these nodes: we know that ls
-                        # and the new pattern node can't be the start of a chain,
-                        # cyclic chain, bulge, bubble, or frayed rope. (My proof of
-                        # this: I thought about it for a while and now my head
-                        # hurts.) They could be located *within* one of these
-                        # structures that starts at another node, though, which is
-                        # why we add ls' predecessors.
-                        if rs is not None:
+                        # The reason for only adding these nodes: we know that
+                        # the left split nodes and the new pattern node can't
+                        # be the start of a chain, cyclic chain, bulge, bubble,
+                        # or frayed rope. (The use of
+                        # is_valid_chain_trimmed_etfes() prevents us from
+                        # identifying these as the start of "chains.") They
+                        # could be located *within* a pattern that starts at
+                        # another node, though, which is why we add the
+                        # incoming nodes of the left splits.
+                        for rs in right_splits:
                             candidate_nodes.add(rs)
-                        if ls is not None:
-                            for incoming_node in self.decomposed_graph.pred[
-                                ls
-                            ]:
+                        for ls in left_splits:
+                            for incoming_node in self.decomposed_graph.pred[ls]:
+                                # thinking about this later, I'm not sure any
+                                # of the patterns we identify will have
+                                # outgoing edges to a left split node at this
+                                # point. may as well be safe tho
                                 if incoming_node not in pobj.get_node_ids():
                                     candidate_nodes.add(incoming_node)
 
@@ -795,9 +793,15 @@ class AssemblyGraph(object):
                 # after finding a frayed rope, because we don't perform node
                 # splitting on frayed rope boundaries (at least, as of writing)
                 # and because frayed ropes can't be contained in other patterns
-                pobj, ls, rs = self._add_pattern(validation_results)
+                pobj, left_splits, right_splits = self._add_pattern(validation_results)
                 for pn in pobj.nodes:
                     top_level_candidate_nodes.discard(pn.unique_id)
+                for rs in right_splits:
+                    candidate_nodes.add(rs)
+                for ls in left_splits:
+                    for incoming_node in self.decomposed_graph.pred[ls]:
+                        if incoming_node not in pobj.get_node_ids():
+                            candidate_nodes.add(incoming_node)
                 if len(pobj.merged_child_chains) > 0:
                     raise WeirdError(
                         "Shouldn't have done chain merging on {pobj}?"
@@ -969,10 +973,14 @@ class AssemblyGraph(object):
                         # remove this node, and the associated fake edge, from
                         # the children of this parent pattern (pp).
                         pp = self.pattid2obj[node.parent_id]
-                        if pp.start_node_id == node_id:
-                            pp.start_node_id = counterpart_fe_id
-                        if pp.end_node_id == node_id:
-                            pp.end_node_id = counterpart_fe_id
+                        # This removal may require that we re-assign the start
+                        # and/or end node of this parent pattern
+                        if node_id in pp.start_node_ids:
+                            pp.start_node_ids.remove(node_id)
+                            pp.start_node_ids.append(counterpart_fe_id)
+                        if node_id in pp.end_node_ids:
+                            pp.end_node_ids.remove(node_id)
+                            pp.end_node_ids.append(counterpart_fe_id)
                         pp.nodes.remove(node)
                         pp.edges.remove(self.edgeid2obj[fake_edge_uid])
                     else:

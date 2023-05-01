@@ -60,6 +60,10 @@ def verify_edges_in_induced_subgraph(edges, node_ids):
                 f"{e} not in induced subgraph of node IDs {node_ids}?"
             )
 
+def verify_1_node(node_ids, node_type):
+    if len(node_ids) != 1:
+        raise WeirdError(f"Not exactly 1 {node_type} node: {node_ids}?")
+
 
 class Pattern(Node):
     """Represents a pattern in an assembly graph."""
@@ -98,12 +102,8 @@ class Pattern(Node):
 
         verify_vr_and_nodes_good(validation_results, nodes)
         self.pattern_type = validation_results.pattern_type
-        self.start_node_id = None
-        self.end_node_id = None
-        self.has_start_end = validation_results.has_start_end
-        if self.has_start_end:
-            self.start_node_id = validation_results.start_node
-            self.end_node_id = validation_results.end_node
+        self.start_node_ids = validation_results.start_nodes
+        self.end_node_ids = validation_results.end_nodes
 
         self.nodes = nodes
         # self.nodes stores the child Node objects of this Pattern, while
@@ -137,14 +137,6 @@ class Pattern(Node):
                 and node.pattern_type == config.PT_CHAIN
             ):
                 self._absorb_child_pattern(node)
-                # there should never be a case where node is both the start
-                # and end of this new pattern, but let's be safe anyway
-                if self.start_node_id == node.unique_id:
-                    self.start_node_id = node.start_node_id
-                if self.end_node_id == node.unique_id:
-                    self.end_node_id = node.end_node_id
-                self.nodes.remove(node)
-                self.merged_child_chains.append(node)
         for edge in self.edges:
             edge.parent_id = self.unique_id
 
@@ -165,12 +157,10 @@ class Pattern(Node):
         super().__init__(unique_id, str(unique_id), {})
 
     def __repr__(self):
-        suffix = ""
-        if self.has_start_end:
-            suffix = f" from {self.start_node_id} to {self.end_node_id}"
         return (
             f"{config.PT2HR[self.pattern_type]} {self.unique_id} of "
-            f"nodes {self.get_node_ids()}{suffix}"
+            f"nodes {self.get_node_ids()} from {self.start_node_ids} to "
+            f"{self.end_node_ids}"
         )
 
     def _absorb_child_pattern(self, child_pattern):
@@ -191,6 +181,20 @@ class Pattern(Node):
         for edge in child_pattern.edges:
             edge.parent_id = self.unique_id
             self.edges.append(edge)
+
+        # there should never be a case where node is both the start
+        # and end of this new pattern, but let's be safe anyway
+        verify_1_node(self.start_node_ids, "start")
+        verify_1_node(self.end_node_ids, "end")
+        verify_1_node(child_pattern.start_node_ids, "start")
+        verify_1_node(child_pattern.end_node_ids, "end")
+        if self.start_node_ids[0] == child_pattern.unique_id:
+            self.start_node_ids = [child_pattern.start_node_ids[0]]
+        if self.end_node_ids[0] == child_pattern.unique_id:
+            self.end_node_ids = [child_pattern.end_node_ids[0]]
+
+        self.nodes.remove(child_pattern)
+        self.merged_child_chains.append(child_pattern)
 
     def get_node_ids(self):
         return get_ids_of_nodes(self.nodes)

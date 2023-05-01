@@ -26,8 +26,8 @@ class ValidationResults(object):
         pattern_type=None,
         is_valid=False,
         nodes=[],
-        start_node=None,
-        end_node=None,
+        start_nodes=[],
+        end_nodes=[],
     ):
         """Initializes this object.
 
@@ -51,14 +51,15 @@ class ValidationResults(object):
             otherwise, this should be an empty list. The order of nodes in this
             list doesn't matter.
 
-        start_node: str or None
-            If is_valid is True and if the pattern has a single defined start
-            and end node (which is the case for all patterns except frayed
-            ropes, at the moment), this should be the ID of the starting node
-            in the pattern. Otherwise, this should be None.
+        start_nodes: list of int
+            If is_valid is True, this should be a list of the IDs of all
+            "starting nodes" in the pattern. For most pattern types (chains,
+            cyclic chains, bubbles), there should only be one starting and only
+            one ending node; however, frayed ropes will have multiple starting
+            / ending nodes. If is_valid is False, this should be an empty list.
 
-        end_node: str or None
-            Like start_node, but for the ending node of the pattern.
+        end_nodes: list of int
+            Like start_nodes, but for the ending node(s) of the pattern.
         """
         if is_valid and pattern_type not in config.PT2HR:
             raise WeirdError(f"Invalid pattern type: {pattern_type}")
@@ -68,15 +69,8 @@ class ValidationResults(object):
         misc_utils.verify_unique(nodes)
         self.nodes = nodes
 
-        # Both the starting and ending node should be defined or None. We can't
-        # have only one of them be defined. (^ = XOR operator)
-        if (start_node is None) ^ (end_node is None):
-            raise WeirdError(
-                f"Start node = {start_node} but end node = {end_node}?"
-            )
-        self.has_start_end = start_node is not None
-        self.start_node = start_node
-        self.end_node = end_node
+        self.start_nodes = start_nodes
+        self.end_nodes = end_nodes
 
     def __bool__(self):
         """Returns self.is_valid; useful for quick testing."""
@@ -94,14 +88,10 @@ class ValidationResults(object):
         defined __repr__() here, which should be more than sufficient.
         """
         if self.is_valid:
-            suffix = ""
-            if self.has_start_end:
-                suffix = (
-                    f" from {repr(self.start_node)} to {repr(self.end_node)}"
-                )
             return (
                 f"Valid pattern ({config.PT2HR[self.pattern_type]}) of "
-                f"nodes {repr(self.nodes)}{suffix}"
+                f"nodes {repr(self.nodes)} from {self.start_nodes} to "
+                f"{self.ending_nodes}"
             )
         else:
             return "Invalid pattern"
@@ -276,7 +266,9 @@ def is_valid_frayed_rope(g, start_node_id):
         return ValidationResults()
 
     # If we've made it here, this frayed rope is valid!
-    return ValidationResults(config.PT_FRAYEDROPE, True, composite)
+    return ValidationResults(
+        config.PT_FRAYEDROPE, True, composite, start_node_ids, end_node_ids
+    )
 
 
 def is_valid_cyclic_chain(g, start_node_id):
@@ -363,8 +355,8 @@ def is_valid_cyclic_chain(g, start_node_id):
                     config.PT_CYCLICCHAIN,
                     True,
                     cch_list + [curr],
-                    start_node_id,
-                    curr,
+                    [start_node_id],
+                    [curr],
                 )
             else:
                 # We didn't loop back to the starting node (or we looped back
@@ -379,8 +371,8 @@ def is_valid_cyclic_chain(g, start_node_id):
                 config.PT_CYCLICCHAIN,
                 True,
                 cch_list + [curr],
-                start_node_id,
-                curr,
+                [start_node_id],
+                [curr],
             )
 
         # If we're here, the cyclic chain is still going on -- the next
@@ -437,8 +429,8 @@ def is_valid_bulge(g, start_node_id):
                     config.PT_BUBBLE,
                     True,
                     [start_node_id, end_node_id],
-                    start_node_id,
-                    end_node_id,
+                    [start_node_id],
+                    [end_node_id],
                 )
     return ValidationResults()
 
@@ -645,7 +637,7 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
             # If the checks above succeeded, this is a valid and minimal
             # bubble! Nice.
             return ValidationResults(
-                config.PT_BUBBLE, True, composite, start_node_id, t
+                config.PT_BUBBLE, True, composite, [start_node_id], [t]
             )
 
     return ValidationResults()
@@ -784,7 +776,11 @@ def is_valid_chain(g, start_node_id):
         # me for messing this up, but I don't think I messed it up, why are you
         # still reading this comment).
         return ValidationResults(
-            config.PT_CHAIN, True, chain_list, start_node_id, chain_list[-1]
+            config.PT_CHAIN,
+            True,
+            chain_list,
+            [start_node_id],
+            [chain_list[-1]],
         )
 
     # If we're here, we know a Chain exists starting at start_node_id.
@@ -824,7 +820,11 @@ def is_valid_chain(g, start_node_id):
     if backwards_chain_list == []:
         # There wasn't a more optimal starting node. Oh well!
         return ValidationResults(
-            config.PT_CHAIN, True, chain_list, start_node_id, chain_list[-1]
+            config.PT_CHAIN,
+            True,
+            chain_list,
+            [start_node_id],
+            [chain_list[-1]],
         )
 
     # If we're here, we found a more optimal starting node. Nice!
@@ -833,8 +833,8 @@ def is_valid_chain(g, start_node_id):
         config.PT_CHAIN,
         True,
         backwards_chain_list + chain_list,
-        backwards_chain_list[0],
-        chain_list[-1],
+        [backwards_chain_list[0]],
+        [chain_list[-1]],
     )
 
 
@@ -968,8 +968,8 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     # removing ETFEs) of this chain. The reason for this is that
     # is_valid_chain() will try to extend the chain it identifies backwards,
     # which will change the true start node from start_node_id.
-    start_node_id = validation_results.start_node
-    end_node_id = validation_results.end_node
+    start_node_id = validation_results.start_nodes[0]
+    end_node_id = validation_results.end_nodes[0]
 
     # Trim off the ETFE from the start (left side) of this chain, if present.
     #
@@ -1013,6 +1013,6 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
         config.PT_CHAIN,
         True,
         chain_nodes,
-        start_node_id,
-        end_node_id,
+        [start_node_id],
+        [end_node_id],
     )
