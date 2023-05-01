@@ -717,7 +717,9 @@ class AssemblyGraph(object):
 
                     if validation_results:
                         # Yes, it does!
-                        pobj, left_splits, right_splits = self._add_pattern(validation_results)
+                        pobj, left_splits, right_splits = self._add_pattern(
+                            validation_results
+                        )
 
                         # Remove child nodes of this pattern from consideration as
                         # future start nodes of other patterns. (Don't worry,
@@ -755,7 +757,9 @@ class AssemblyGraph(object):
                         for rs in right_splits:
                             candidate_nodes.add(rs)
                         for ls in left_splits:
-                            for incoming_node in self.decomposed_graph.pred[ls]:
+                            for incoming_node in self.decomposed_graph.pred[
+                                ls
+                            ]:
                                 # thinking about this later, I'm not sure any
                                 # of the patterns we identify will have
                                 # outgoing edges to a left split node at this
@@ -793,7 +797,9 @@ class AssemblyGraph(object):
                 # after finding a frayed rope, because we don't perform node
                 # splitting on frayed rope boundaries (at least, as of writing)
                 # and because frayed ropes can't be contained in other patterns
-                pobj, left_splits, right_splits = self._add_pattern(validation_results)
+                pobj, left_splits, right_splits = self._add_pattern(
+                    validation_results
+                )
                 for pn in pobj.nodes:
                     top_level_candidate_nodes.discard(pn.unique_id)
                 for rs in right_splits:

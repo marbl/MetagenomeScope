@@ -60,6 +60,7 @@ def verify_edges_in_induced_subgraph(edges, node_ids):
                 f"{e} not in induced subgraph of node IDs {node_ids}?"
             )
 
+
 def verify_1_node(node_ids, node_type):
     if len(node_ids) != 1:
         raise WeirdError(f"Not exactly 1 {node_type} node: {node_ids}?")
