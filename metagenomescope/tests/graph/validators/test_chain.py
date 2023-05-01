@@ -37,8 +37,8 @@ def test_easiest_possible_case():
 
     assert results
     assert results.nodes == [0, 1, 2]
-    assert results.start_nodes == [0]
-    assert results.end_nodes == [2]
+    assert results.start_node_ids == [0]
+    assert results.end_node_ids == [2]
 
 
 def test_backwards_extension():
@@ -53,8 +53,8 @@ def test_backwards_extension():
 
     assert results
     assert results.nodes == [0, 1, 2]
-    assert results.start_nodes == [0]
-    assert results.end_nodes == [2]
+    assert results.start_node_ids == [0]
+    assert results.end_node_ids == [2]
 
 
 def test_easy_no_chain():
@@ -67,8 +67,8 @@ def test_easy_no_chain():
 
     assert not results
     assert results.nodes == []
-    assert results.start_nodes == []
-    assert results.end_nodes == []
+    assert results.start_node_ids == []
+    assert results.end_node_ids == []
 
 
 def test_intervening_paths_harder():
@@ -116,8 +116,8 @@ def test_intervening_paths_easier():
         results = validators.is_valid_chain(g, i)
         assert results
         assert results.nodes == [1, 2, 3]
-        assert results.start_nodes == [1]
-        assert results.end_nodes == [3]
+        assert results.start_node_ids == [1]
+        assert results.end_node_ids == [3]
 
     # Of course, the other nodes in the graph won't result in chains being
     # detected (3 and 4 have no outgoing nodes, 5 is an "island", 0 has an
@@ -220,11 +220,11 @@ def test_chain_with_parallel_edges():
     for s in (3, 4):
         vr = validators.is_valid_chain(g, s)
         assert vr.nodes == [3, 4, 5]
-        assert vr.start_nodes == [3]
-        assert vr.end_nodes == [5]
+        assert vr.start_node_ids == [3]
+        assert vr.end_node_ids == [5]
 
     # left chain should be identified
     vr = validators.is_valid_chain(g, 1)
     assert vr.nodes == [1, 2]
-    assert vr.start_nodes == [1]
-    assert vr.end_nodes == [2]
+    assert vr.start_node_ids == [1]
+    assert vr.end_node_ids == [2]

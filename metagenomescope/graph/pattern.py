@@ -103,8 +103,8 @@ class Pattern(Node):
 
         verify_vr_and_nodes_good(validation_results, nodes)
         self.pattern_type = validation_results.pattern_type
-        self.start_node_ids = validation_results.start_nodes
-        self.end_node_ids = validation_results.end_nodes
+        self.start_node_ids = validation_results.start_node_ids
+        self.end_node_ids = validation_results.end_node_ids
 
         self.nodes = nodes
         # self.nodes stores the child Node objects of this Pattern, while

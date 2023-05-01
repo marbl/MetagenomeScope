@@ -26,8 +26,8 @@ class ValidationResults(object):
         pattern_type=None,
         is_valid=False,
         nodes=[],
-        start_nodes=[],
-        end_nodes=[],
+        start_node_ids=[],
+        end_node_ids=[],
     ):
         """Initializes this object.
 
@@ -51,15 +51,15 @@ class ValidationResults(object):
             otherwise, this should be an empty list. The order of nodes in this
             list doesn't matter.
 
-        start_nodes: list of int
+        start_node_ids: list of int
             If is_valid is True, this should be a list of the IDs of all
             "starting nodes" in the pattern. For most pattern types (chains,
             cyclic chains, bubbles), there should only be one starting and only
             one ending node; however, frayed ropes will have multiple starting
             / ending nodes. If is_valid is False, this should be an empty list.
 
-        end_nodes: list of int
-            Like start_nodes, but for the ending node(s) of the pattern.
+        end_node_ids: list of int
+            Like start_node_ids, but for the ending node(s) of the pattern.
         """
         if is_valid and pattern_type not in config.PT2HR:
             raise WeirdError(f"Invalid pattern type: {pattern_type}")
@@ -69,13 +69,13 @@ class ValidationResults(object):
         misc_utils.verify_unique(nodes)
         self.nodes = nodes
 
-        misc_utils.verify_unique(start_nodes)
-        misc_utils.verify_subset(start_nodes, nodes)
-        self.start_nodes = start_nodes
+        misc_utils.verify_unique(start_node_ids)
+        misc_utils.verify_subset(start_node_ids, nodes)
+        self.start_node_ids = start_node_ids
 
-        misc_utils.verify_unique(end_nodes)
-        misc_utils.verify_subset(end_nodes, nodes)
-        self.end_nodes = end_nodes
+        misc_utils.verify_unique(end_node_ids)
+        misc_utils.verify_subset(end_node_ids, nodes)
+        self.end_node_ids = end_node_ids
 
     def __bool__(self):
         """Returns self.is_valid; useful for quick testing."""
@@ -95,8 +95,8 @@ class ValidationResults(object):
         if self.is_valid:
             return (
                 f"Valid {config.PT2HR[self.pattern_type]} of nodes "
-                f"{repr(self.nodes)} from {self.start_nodes} to "
-                f"{self.end_nodes}"
+                f"{repr(self.nodes)} from {self.start_node_ids} to "
+                f"{self.end_node_ids}"
             )
         else:
             return "Invalid pattern"
@@ -973,8 +973,8 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     # removing ETFEs) of this chain. The reason for this is that
     # is_valid_chain() will try to extend the chain it identifies backwards,
     # which will change the true start node from start_node_id.
-    start_node_id = validation_results.start_nodes[0]
-    end_node_id = validation_results.end_nodes[0]
+    start_node_id = validation_results.start_node_ids[0]
+    end_node_id = validation_results.end_node_ids[0]
 
     # Trim off the ETFE from the start (left side) of this chain, if present.
     #

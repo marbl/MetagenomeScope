@@ -397,7 +397,7 @@ class AssemblyGraph(object):
         right_split_ids = []
 
         # Do we need to split the start nodes of this pattern?
-        for start_id in validation_results.start_nodes:
+        for start_id in validation_results.start_node_ids:
             start_pred = self.decomposed_graph.pred[start_id]
             start_incoming_nodes_outside_pattern = (
                 set(start_pred) - patt_node_ids
@@ -475,7 +475,7 @@ class AssemblyGraph(object):
                 left_split_ids.append(left_node_id)
 
         # Do we need to split the end nodes of this pattern?
-        for end_id in validation_results.end_nodes:
+        for end_id in validation_results.end_node_ids:
             end_adj = self.decomposed_graph.adj[end_id]
             end_outgoing_nodes_outside_pattern = set(end_adj) - patt_node_ids
 

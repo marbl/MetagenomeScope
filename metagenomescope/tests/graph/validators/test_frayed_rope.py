@@ -21,8 +21,8 @@ def check_simple_fr_graph_valid(g, start_node):
     results = validators.is_valid_frayed_rope(g, start_node)
     assert results
     assert set(results.nodes) == set([0, 1, 2, 3, 4])
-    assert set(results.start_nodes) == set([0, 1])
-    assert set(results.end_nodes) == set([3, 4])
+    assert set(results.start_node_ids) == set([0, 1])
+    assert set(results.end_node_ids) == set([3, 4])
 
 
 def test_simple_fr_detection():
@@ -37,8 +37,8 @@ def test_simple_fr_detection_failures():
         results = validators.is_valid_frayed_rope(g, s)
         assert not results
         assert results.nodes == []
-        assert results.start_nodes == []
-        assert results.start_nodes == []
+        assert results.start_node_ids == []
+        assert results.start_node_ids == []
 
 
 def test_only_1_start_node():
@@ -56,7 +56,7 @@ def test_only_1_start_node():
     assert not validators.is_valid_frayed_rope(g, 0)
 
 
-def test_extraneous_outgoing_node_from_start_nodes():
+def test_extraneous_outgoing_node_from_start_node_ids():
     r"""Tests that a graph that looks like:
 
       5
@@ -103,7 +103,7 @@ def test_no_outgoing_edges_middle_node():
     assert not validators.is_valid_frayed_rope(g, 0)
 
 
-def test_extraneous_incoming_node_to_end_nodes():
+def test_extraneous_incoming_node_to_end_node_ids():
     r"""Tests that a graph that looks like:
 
               5
