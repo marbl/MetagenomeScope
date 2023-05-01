@@ -538,7 +538,7 @@ class AssemblyGraph(object):
                             end_id, outgoing_node_id, key
                         )
 
-                for outgoing_node_id, _, key, data in list(
+                for _, outgoing_node_id, key, data in list(
                     self.graph.out_edges(end_id, keys=True, data=True)
                 ):
                     if outgoing_node_id in end_outgoing_nodes_outside_pattern:
@@ -871,6 +871,13 @@ class AssemblyGraph(object):
         Here, we identify and remove unnecessary split nodes in order to
         simplify the visualization.
         """
+        print(self.nodeid2obj)
+        print('d;;;;;')
+        print(self.decomposed_graph.nodes)
+        print(self.decomposed_graph.edges)
+        print('g;;;;;')
+        print(self.graph.nodes)
+        print(self.graph.edges)
         for node in list(self.nodeid2obj.values()):
             node_id = node.unique_id
             if node.counterpart_node_id is not None:
@@ -917,7 +924,9 @@ class AssemblyGraph(object):
                 if node.parent_id == counterpart_ancestor_parent_id:
                     # ok yep it's unnecessary, remove it
 
+                    print('rming unnec', node, counterpart, counterpart_fe_id)
                     if node.split == config.SPLIT_LEFT:
+                        print('we there')
                         # remove the fake edge from L ==> R
                         self.graph.remove_edge(
                             node_id, counterpart.unique_id, 0
@@ -958,6 +967,10 @@ class AssemblyGraph(object):
                             ):
                                 e_uid = in_edge[3]["uid"]
                                 edge = self.edgeid2obj[e_uid]
+                                print(node)
+                                print(edge)
+                                for n in (edge.orig_src_id, edge.new_src_id, edge.dec_src_id, edge.prev_dec_src_id):
+                                    print(n in self.decomposed_graph.nodes)
                                 self.decomposed_graph.add_edge(
                                     edge.dec_src_id,
                                     counterpart_fe_id,
@@ -968,6 +981,10 @@ class AssemblyGraph(object):
                                 )
 
                     elif node.split == config.SPLIT_RIGHT:
+                        print('we here', node_id)
+                        print(self.graph.nodes)
+                        print(self.graph.edges)
+                        print('o0 = ', self.graph.out_edges(node_id, keys=True, data=True))
                         # again, rm the fake edge
                         self.graph.remove_edge(
                             counterpart.unique_id, node_id, 0
@@ -976,14 +993,17 @@ class AssemblyGraph(object):
                             self.decomposed_graph.remove_edge(
                                 counterpart_fe_id, node_id, 0
                             )
+                        print('o = ', self.graph.out_edges(node_id, keys=True, data=True))
 
                         for out_edge in list(
                             self.graph.out_edges(node_id, keys=True, data=True)
                         ):
                             e_uid = out_edge[3]["uid"]
                             edge = self.edgeid2obj[e_uid]
+                            print("now", edge)
                             edge.reroute_src(counterpart.unique_id)
                             edge.reroute_dec_src(counterpart_fe_id)
+                            print('then', edge)
                             self.graph.add_edge(
                                 counterpart.unique_id,
                                 out_edge[1],
@@ -1010,8 +1030,7 @@ class AssemblyGraph(object):
                                 )
                     else:
                         raise WeirdError(
-                            f"{node} has an original node ID, but a split "
-                            f"attribute of {node.split}?"
+                            f"{node} has a split attribute of {node.split}?"
                         )
                     self.graph.remove_node(node_id)
                     if node.parent_id is not None:
