@@ -893,9 +893,7 @@ class AssemblyGraph(object):
                             )
 
                         # In the uncollapsed graph, route incoming edges to now
-                        # have a target of the original node (in the graph). In
-                        # the decomposed graph, route incoming edges to now
-                        # have a target of the original node's parent pattern.
+                        # have a target of the original node (in the graph).
                         for in_edge in list(
                             self.graph.in_edges(node_id, keys=True, data=True)
                         ):
@@ -911,6 +909,12 @@ class AssemblyGraph(object):
                             self.graph.remove_edge(
                                 in_edge[0], node_id, in_edge[2]
                             )
+                        # In the decomposed graph, route incoming edges to now
+                        # have a target of the original node's parent pattern.
+                        # (Calling edge.reroute_dec_tgt() above took care of
+                        # updating the actual Edge objects, but we still need
+                        # to update the topology of the decomposed graph if
+                        # "node" is present in its top level.)
                         if node.parent_id is None:
                             for in_edge in list(
                                 self.decomposed_graph.in_edges(
