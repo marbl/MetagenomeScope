@@ -25,11 +25,11 @@ def test_simple_cyclic_chain_detection():
         results = validators.is_valid_cyclic_chain(g, s)
         assert results
         assert set(results.nodes) == set([0, 1, 2, 3])
-        assert results.start_node == s
+        assert results.start_nodes == [s]
         if s == 0:
-            assert results.end_node == 3
+            assert results.end_nodes == [3]
         else:
-            assert results.end_node == s - 1
+            assert results.end_nodes == [s - 1]
 
 
 def test_isolated_start():
@@ -129,8 +129,8 @@ def test_extraneous_outgoing_edge_from_start():
         if s == 1:
             assert results
             assert results.nodes == [1, 2, 3, 0]
-            assert results.start_node == 1
-            assert results.end_node == 0
+            assert results.start_nodes == [1]
+            assert results.end_nodes == [0]
         else:
             assert not results
 
@@ -154,8 +154,8 @@ def test_surrounded_cyclic_chain():
         if s == 1:
             assert results
             assert results.nodes == [1, 2, 3, 0]
-            assert results.start_node == 1
-            assert results.end_node == 0
+            assert results.start_nodes == [1]
+            assert results.end_nodes == [0]
         else:
             assert not results
 
@@ -175,13 +175,13 @@ def test_simple_whirl():
     results0 = validators.is_valid_cyclic_chain(g, 0)
     assert results0
     assert results0.nodes == [0, 1]
-    assert results0.start_node == 0
-    assert results0.end_node == 1
+    assert results0.start_nodes == [0]
+    assert results0.end_nodes == [1]
     results1 = validators.is_valid_cyclic_chain(g, 1)
     assert results1
     assert results1.nodes == [1, 0]
-    assert results1.start_node == 1
-    assert results1.end_node == 0
+    assert results1.start_nodes == [1]
+    assert results1.end_nodes == [0]
 
 
 def test_simple_whirl_intervening_edges():
@@ -201,8 +201,8 @@ def test_simple_whirl_intervening_edges():
     results0 = validators.is_valid_cyclic_chain(g, 0)
     assert results0
     assert results0.nodes == [0, 1]
-    assert results0.start_node == 0
-    assert results0.end_node == 1
+    assert results0.start_nodes == [0]
+    assert results0.end_nodes == [1]
     # Now, 1 is no longer a valid start node for the [0, 1] cyclic chain. This
     # is because 1 has multiple outgoing nodes, so it can't be the "start" of a
     # cyclic chain. dems the breaks
