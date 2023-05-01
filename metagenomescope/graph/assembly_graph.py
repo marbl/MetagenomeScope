@@ -528,11 +528,11 @@ class AssemblyGraph(object):
 
         # For every edge from outside this pattern to a node within this
         # pattern: route this edge to just point (in the decomposed graph)
-        # to the new pattern node. This should only actually change the graph
-        # if (1) we didn't do splitting, or (2) the pattern has weird incoming
-        # edges from outside nodes into its middle nodes or something (this
-        # shouldn't happen in practice, but maybe when we add back support for
-        # arbitrary user-defined patterns it could happen).
+        # to the new pattern node. I think this should only actually change
+        # the graph if the pattern has weird incoming edges from outside nodes
+        # into its middle nodes or something (this shouldn't happen in
+        # practice, but maybe when we add back support for arbitrary user-
+        # defined patterns it could happen).
         in_edges = self.decomposed_graph.in_edges(patt_node_ids, keys=True)
         p_in_edges = list(
             filter(lambda e: e[0] not in patt_node_ids, in_edges)
