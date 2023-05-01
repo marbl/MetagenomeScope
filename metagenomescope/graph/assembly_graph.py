@@ -431,14 +431,11 @@ class AssemblyGraph(object):
                 # We go through self.graph and self.decomposed_graph separately
                 # -- this way we don't have to worry about edge keys matching
                 # up between the graphs.
-                for (
-                    incoming_node_id,
-                    _,
-                    key,
-                    data,
-                ) in list(self.decomposed_graph.in_edges(
-                    start_id, keys=True, data=True
-                )):
+                for (incoming_node_id, _, key, data) in list(
+                    self.decomposed_graph.in_edges(
+                        start_id, keys=True, data=True
+                    )
+                ):
                     if (
                         incoming_node_id
                         in start_incoming_nodes_outside_pattern
@@ -462,9 +459,9 @@ class AssemblyGraph(object):
                             incoming_node_id, start_id, key
                         )
 
-                for incoming_node_id, _, key, data in list(self.graph.in_edges(
-                    start_id, keys=True, data=True
-                )):
+                for incoming_node_id, _, key, data in list(
+                    self.graph.in_edges(start_id, keys=True, data=True)
+                ):
                     if (
                         incoming_node_id
                         in start_incoming_nodes_outside_pattern
@@ -525,14 +522,11 @@ class AssemblyGraph(object):
                 self.nodeid2obj[end_id].make_into_left_split()
                 # Route edges from the right node to
                 # end_outgoing_nodes_outside_pattern
-                for (
-                    outgoing_node_id,
-                    _,
-                    key,
-                    data,
-                ) in list(self.decomposed_graph.out_edges(
-                    end_id, keys=True, data=True
-                )):
+                for (outgoing_node_id, _, key, data) in list(
+                    self.decomposed_graph.out_edges(
+                        end_id, keys=True, data=True
+                    )
+                ):
                     if outgoing_node_id in end_outgoing_nodes_outside_pattern:
                         uid = data["uid"]
                         self.edgeid2obj[uid].reroute_src(right_node_id)
@@ -544,9 +538,9 @@ class AssemblyGraph(object):
                             end_id, outgoing_node_id, edge_key
                         )
 
-                for outgoing_node_id, _, key, data in list(self.graph.out_edges(
-                    end_id, keys=True, data=True
-                )):
+                for outgoing_node_id, _, key, data in list(
+                    self.graph.out_edges(end_id, keys=True, data=True)
+                ):
                     if outgoing_node_id in end_outgoing_nodes_outside_pattern:
                         uid = data["uid"]
                         self.graph.add_edge(
