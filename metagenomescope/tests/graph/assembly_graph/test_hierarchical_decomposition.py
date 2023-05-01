@@ -213,7 +213,7 @@ def test_chain_into_cyclic_chain_merging():
 def test_multiple_frayed_ropes():
     r"""The input graph looks like
 
-    0   2
+    0   3
      \ /
       1
      / \
@@ -310,6 +310,93 @@ def test_chain_backwards_Y():
         assert len(ag.bubbles) == 0
         assert len(ag.graph.nodes) == 10
         assert len(ag.graph.edges) == 9
+    finally:
+        os.close(fh)
+        os.unlink(fn)
+
+
+def test_multiedges_between_frayed_ropes():
+    r"""The input graph looks like
+
+    0   3 --> 5   8
+     \ /  \ /  \ /
+      2    /    7
+     / \  / \  / \
+    1   4 --> 6   9
+         \
+          10
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 2)
+    g.add_edge(1, 2)
+    g.add_edge(2, 3)
+    g.add_edge(2, 4)
+
+    g.add_edge(3, 5)
+    g.add_edge(3, 6)
+    g.add_edge(4, 5)
+    g.add_edge(4, 6)
+
+    g.add_edge(5, 7)
+    g.add_edge(6, 7)
+    g.add_edge(7, 8)
+    g.add_edge(7, 9)
+
+    # this edge is just here to prevent us identifying a big bubble between 2
+    # and 7
+    g.add_edge(4, 10)
+
+    fh, fn = nx2gml(g)
+    try:
+        ag = AssemblyGraph(fn)
+        assert len(ag.decomposed_graph.nodes) == 3
+        assert len(ag.decomposed_graph.edges) == 5
+        assert len(ag.chains) == 0
+        assert len(ag.cyclic_chains) == 0
+        assert len(ag.frayed_ropes) == 2
+        assert len(ag.bubbles) == 0
+    finally:
+        os.close(fh)
+        os.unlink(fn)
+
+
+def test_multiple_shared_boundaries_frayed_ropes():
+    r"""The input graph looks like
+
+    +---+
+    |   |
+    V   |
+    0   3   8
+     \ / \ /
+      2   7
+     / \ / \
+    1   4   9
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 2)
+    g.add_edge(1, 2)
+    g.add_edge(2, 3)
+    g.add_edge(2, 4)
+
+    g.add_edge(3, 7)
+    g.add_edge(4, 7)
+    # again, this edge (now cyclic) just makes sure we identify this as 2
+    # frayed ropes, not a bubble
+    g.add_edge(3, 0)
+
+    g.add_edge(7, 8)
+    g.add_edge(7, 9)
+
+    fh, fn = nx2gml(g)
+    try:
+        ag = AssemblyGraph(fn)
+        ag.dump_dots("butt2")
+        assert len(ag.decomposed_graph.nodes) == 2
+        assert len(ag.decomposed_graph.edges) == 2
+        assert len(ag.chains) == 0
+        assert len(ag.cyclic_chains) == 0
+        assert len(ag.frayed_ropes) == 2
+        assert len(ag.bubbles) == 0
     finally:
         os.close(fh)
         os.unlink(fn)
