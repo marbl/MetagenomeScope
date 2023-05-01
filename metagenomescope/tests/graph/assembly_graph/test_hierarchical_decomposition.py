@@ -1,4 +1,27 @@
+import os
+import tempfile
+import networkx as nx
+from copy import deepcopy
 from metagenomescope.graph import AssemblyGraph
+
+
+def nx2gml(g):
+    """Writes a nx.MultiDiGraph to a MetaCarvel-style GML file.
+
+    ... because making a separate GML file for every one of these tests is
+    getting kind of annoying"""
+    gc = deepcopy(g)
+    for n in gc.nodes:
+        gc.nodes[n]["orientation"] = "FOW"
+        gc.nodes[n]["length"] = 100
+    for e in gc.edges(keys=True):
+        gc.edges[e]["orientation"] = "EB"
+        gc.edges[e]["mean"] = 100
+        gc.edges[e]["stdev"] = 50
+        gc.edges[e]["bsize"] = 5
+    filehandle, filename = tempfile.mkstemp(suffix=".gml")
+    nx.write_gml(gc, filename)
+    return filehandle, filename
 
 
 def test_simple_hierarch_decomp():
@@ -185,3 +208,47 @@ def test_chain_into_cyclic_chain_merging():
     assert len(ag.cyclic_chains) == 1
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 1
+
+
+def test_multiple_frayed_ropes():
+    r"""The input graph looks like
+
+    0   2
+     \ /
+      1
+     / \
+    2   4   7
+         \ /
+          5
+         / \
+        6   8
+
+    ... We should see both of these frayed ropes identified, but -- due to our
+    use of frayed rope border splitting -- these frayed ropes should be
+    separate structures.
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(2, 1)
+    g.add_edge(1, 3)
+    g.add_edge(1, 4)
+
+    g.add_edge(4, 5)
+    g.add_edge(6, 5)
+    g.add_edge(5, 7)
+    g.add_edge(5, 8)
+
+    fh, fn = nx2gml(g)
+    # doing the gist of what run_tempfile_test() does -- avoids cluttering
+    # filesystem with test GMLs
+    try:
+        ag = AssemblyGraph(fn)
+        assert len(ag.decomposed_graph.nodes) == 2
+        assert len(ag.decomposed_graph.edges) == 1
+        assert len(ag.chains) == 0
+        assert len(ag.cyclic_chains) == 0
+        assert len(ag.frayed_ropes) == 2
+        assert len(ag.bubbles) == 0
+    finally:
+        os.close(fh)
+        os.unlink(fn)
