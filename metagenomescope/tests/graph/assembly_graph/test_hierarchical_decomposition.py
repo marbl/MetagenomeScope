@@ -390,7 +390,6 @@ def test_multiple_shared_boundaries_frayed_ropes():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        ag.dump_dots("butt2")
         assert len(ag.decomposed_graph.nodes) == 2
         assert len(ag.decomposed_graph.edges) == 2
         assert len(ag.chains) == 0
