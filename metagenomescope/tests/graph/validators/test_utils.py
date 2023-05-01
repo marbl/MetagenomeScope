@@ -18,25 +18,29 @@ def test_verify_node_in_graph():
 def test_validation_results_bad_start_end():
     with pytest.raises(WeirdError) as ei:
         validators.ValidationResults(
-            config.PT_BUBBLE, True, [1, 2, 3], 1, None
+            config.PT_BUBBLE, True, [1, 2, 3], [1], [4]
         )
-    assert str(ei.value) == "Start node = 1 but end node = None?"
+    assert str(ei.value) == "[4] is not a subset of [1, 2, 3]"
 
 
 def test_validation_results_bad_pattern_type():
     with pytest.raises(WeirdError) as ei:
-        validators.ValidationResults("bubble???", True, [1, 2, 3], 1, 3)
+        validators.ValidationResults("bubble???", True, [1, 2, 3], [1], [3])
     assert str(ei.value) == "Invalid pattern type: bubble???"
 
 
 def test_validation_results_repr():
-    vr = validators.ValidationResults(config.PT_BUBBLE, True, [1, 2, 3], 1, 3)
-    assert repr(vr) == "Valid pattern (Bubble) of nodes [1, 2, 3] from 1 to 3"
+    vr = validators.ValidationResults(
+        config.PT_BUBBLE, True, [1, 2, 3], [1], [3]
+    )
+    assert repr(vr) == "Valid Bubble of nodes [1, 2, 3] from [1] to [3]"
 
     vr_fr = validators.ValidationResults(
-        config.PT_FRAYEDROPE, True, [1, "a", 3]
+        config.PT_FRAYEDROPE, True, [1, "a", 2, 3, 4], [1, "a"], [3]
     )
-    assert repr(vr_fr) == "Valid pattern (Frayed Rope) of nodes [1, 'a', 3]"
+    assert repr(vr_fr) == (
+        "Valid Frayed Rope of nodes [1, 'a', 2, 3, 4] from [1, 'a'] to [3]"
+    )
 
     vr_invalid = validators.ValidationResults()
     assert repr(vr_invalid) == "Invalid pattern"

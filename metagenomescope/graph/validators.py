@@ -69,7 +69,12 @@ class ValidationResults(object):
         misc_utils.verify_unique(nodes)
         self.nodes = nodes
 
+        misc_utils.verify_unique(start_nodes)
+        misc_utils.verify_subset(start_nodes, nodes)
         self.start_nodes = start_nodes
+
+        misc_utils.verify_unique(end_nodes)
+        misc_utils.verify_subset(end_nodes, nodes)
         self.end_nodes = end_nodes
 
     def __bool__(self):
@@ -89,9 +94,9 @@ class ValidationResults(object):
         """
         if self.is_valid:
             return (
-                f"Valid pattern ({config.PT2HR[self.pattern_type]}) of "
-                f"nodes {repr(self.nodes)} from {self.start_nodes} to "
-                f"{self.ending_nodes}"
+                f"Valid {config.PT2HR[self.pattern_type]} of nodes "
+                f"{repr(self.nodes)} from {self.start_nodes} to "
+                f"{self.end_nodes}"
             )
         else:
             return "Invalid pattern"
