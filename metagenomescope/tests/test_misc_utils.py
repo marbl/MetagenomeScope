@@ -21,6 +21,24 @@ from metagenomescope import misc_utils as mu
 from metagenomescope.errors import WeirdError
 
 
+def test_verify_single():
+    mu.verify_single([1])
+    mu.verify_single([None])
+    mu.verify_single([10000])
+
+    with pytest.raises(WeirdError) as ei:
+        mu.verify_single([1, 2])
+    assert str(ei.value) == "[1, 2] contains 2 items, instead of 1"
+
+    with pytest.raises(WeirdError) as ei:
+        mu.verify_single([1, 1])
+    assert str(ei.value) == "[1, 1] contains 2 items, instead of 1"
+
+    with pytest.raises(WeirdError) as ei:
+        mu.verify_single([1, 1, 100])
+    assert str(ei.value) == "[1, 1, 100] contains 3 items, instead of 1"
+
+
 def test_verify_unique():
     mu.verify_unique([1, 2, 3])
     with pytest.raises(WeirdError) as ei:

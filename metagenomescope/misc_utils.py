@@ -3,6 +3,8 @@ from .errors import WeirdError
 
 def verify_single(objs):
     if len(objs) != 1:
+        # We can say "items" here because you say "0 items", "2 items", etc...
+        # The only reason to say "item" is if there is "1 item" >:3
         raise WeirdError(f"{objs} contains {len(objs):,} items, instead of 1")
 
 
