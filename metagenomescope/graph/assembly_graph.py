@@ -887,19 +887,15 @@ class AssemblyGraph(object):
                 # Figure out where the other end of this node's fake edge
                 # points in the decomposed graph.
                 if node.split == config.SPLIT_LEFT:
-                    fake_edge_uid = graph_utils.get_only_connecting_edge_uid(
+                    fe_id = graph_utils.get_only_connecting_edge_uid(
                         self.graph, node_id, counterpart.unique_id
                     )
-                    counterpart_fe_id = self.edgeid2obj[
-                        fake_edge_uid
-                    ].dec_tgt_id
+                    counterpart_fe_id = self.edgeid2obj[fe_id].dec_tgt_id
                 else:
-                    fake_edge_uid = graph_utils.get_only_connecting_edge_uid(
+                    fe_id = graph_utils.get_only_connecting_edge_uid(
                         self.graph, counterpart.unique_id, node_id
                     )
-                    counterpart_fe_id = self.edgeid2obj[
-                        fake_edge_uid
-                    ].dec_src_id
+                    counterpart_fe_id = self.edgeid2obj[fe_id].dec_src_id
 
                 # If this fake edge points to the counterpart node directly,
                 # then -- like above -- we should be trying to deem *that* node
@@ -1029,12 +1025,12 @@ class AssemblyGraph(object):
                             pp.end_node_ids.remove(node_id)
                             pp.end_node_ids.append(counterpart_fe_id)
                         pp.nodes.remove(node)
-                        pp.edges.remove(self.edgeid2obj[fake_edge_uid])
+                        pp.edges.remove(self.edgeid2obj[fe_id])
                     else:
                         self.decomposed_graph.remove_node(node_id)
                     counterpart.unsplit()
                     del self.nodeid2obj[node_id]
-                    del self.edgeid2obj[fake_edge_uid]
+                    del self.edgeid2obj[fe_id]
 
     def get_node_lengths(self):
         """Returns a dict mapping node IDs to lengths.

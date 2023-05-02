@@ -1,3 +1,6 @@
+from metagenomescope.errors import WeirdError
+
+
 def get_only_connecting_edge_uid(g, src_id, tgt_id):
     """Gets the "uid" attribute of the only edge between two nodes.
 
