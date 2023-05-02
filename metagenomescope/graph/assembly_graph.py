@@ -192,10 +192,13 @@ class AssemblyGraph(object):
             self._hierarchically_identify_patterns()
             conclude_msg()
             operation_msg(
-                f"Found {len(self.bubbles):,} bubble(s), "
-                f"{len(self.chains):,} chain(s), "
-                f"{len(self.cyclic_chains):,} cyclic chain(s), and "
-                f"{len(self.frayed_ropes):,} frayed rope(s)."
+                (
+                    f"Found {len(self.bubbles):,} bubble(s), "
+                    f"{len(self.chains):,} chain(s), "
+                    f"{len(self.cyclic_chains):,} cyclic chain(s), and "
+                    f"{len(self.frayed_ropes):,} frayed rope(s)."
+                ),
+                newline=True,
             )
 
         # Defer this until after we do pattern decomposition, to account for
