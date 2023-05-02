@@ -13,7 +13,7 @@ import pygraphviz
 from .. import parsers, config, layout_utils
 from ..msg_utils import operation_msg, conclude_msg
 from ..errors import GraphParsingError, GraphError, WeirdError
-from . import validators
+from . import validators, graph_utils
 from .pattern import Pattern
 from .node import Node
 from .edge import Edge
@@ -887,22 +887,16 @@ class AssemblyGraph(object):
                 # Figure out where the other end of this node's fake edge
                 # points in the decomposed graph.
                 if node.split == config.SPLIT_LEFT:
-                    validators.fail_if_not_single_edge(
-                        self.graph.adj[node_id], node_id, "outgoing fake"
+                    fake_edge_uid = graph_utils.get_only_connecting_edge_uid(
+                        self.graph, node_id, counterpart.unique_id
                     )
-                    fake_edge_uid = self.graph.edges[
-                        node_id, counterpart.unique_id, 0
-                    ]["uid"]
                     counterpart_fe_id = self.edgeid2obj[
                         fake_edge_uid
                     ].dec_tgt_id
                 else:
-                    validators.fail_if_not_single_edge(
-                        self.graph.pred[node_id], node_id, "incoming fake"
+                    fake_edge_uid = graph_utils.get_only_connecting_edge_uid(
+                        self.graph, counterpart.unique_id, node_id
                     )
-                    fake_edge_uid = self.graph.edges[
-                        counterpart.unique_id, node_id, 0
-                    ]["uid"]
                     counterpart_fe_id = self.edgeid2obj[
                         fake_edge_uid
                     ].dec_src_id
