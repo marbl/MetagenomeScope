@@ -59,17 +59,17 @@ def test_fail_if_not_single_edge():
 
     # bad case -- parallel outgoing edges
     with pytest.raises(WeirdError) as ei:
-        validators.fail_if_not_single_edge(g, g.adj[0], "sus", "outgoing")
+        validators.fail_if_not_single_edge(g.adj[0], "sus", "outgoing")
     assert str(ei.value) == "Node ID sus doesn't have exactly 1 outgoing edge?"
 
     # bad case -- 0 incoming edges
     with pytest.raises(WeirdError) as ei:
-        validators.fail_if_not_single_edge(g, g.pred[0], "sus", "incoming")
+        validators.fail_if_not_single_edge(g.pred[0], "sus", "incoming")
     assert str(ei.value) == "Node ID sus doesn't have exactly 1 incoming edge?"
 
     # good cases
-    validators.fail_if_not_single_edge(g, g.adj[1], "sus1", "outgoing")
-    validators.fail_if_not_single_edge(g, g.pred[2], "sus2", "incoming")
+    validators.fail_if_not_single_edge(g.adj[1], "sus1", "outgoing")
+    validators.fail_if_not_single_edge(g.pred[2], "sus2", "incoming")
 
 
 def test_is_edge_fake_and_trivial_bad():

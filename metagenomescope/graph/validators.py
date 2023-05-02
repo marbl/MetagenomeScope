@@ -111,7 +111,7 @@ def verify_node_in_graph(g, node_id):
         )
 
 
-def not_single_edge(g, adj_view):
+def not_single_edge(adj_view):
     """Returns True if an AdjacencyView doesn't describe exactly 1 edge.
 
     This accounts for two cases:
@@ -121,12 +121,10 @@ def not_single_edge(g, adj_view):
 
     Parameters
     ----------
-    g: nx.MultiDiGraph
-
     adj_view: nx.classes.coreviews.AdjacencyView
-        The result of g.pred[n] or g.adj[n], where n is a node in g.
-        g.pred refers to the incoming adjacencies of n; g.adj refers to the
-        outgoing adjacencies of n.
+        The result of g.pred[n] or g.adj[n], where n is a node in g (and g is a
+        nx.MultiDiGraph). g.pred refers to the incoming adjacencies of n; g.adj
+        refers to the outgoing adjacencies of n.
 
     Returns
     -------
@@ -143,8 +141,8 @@ def not_single_edge(g, adj_view):
     return len(adj_view) != 1 or len(adj_view[list(adj_view)[0]]) != 1
 
 
-def fail_if_not_single_edge(g, adj_view, node_id, edge_descriptor):
-    if not_single_edge(g, adj_view):
+def fail_if_not_single_edge(adj_view, node_id, edge_descriptor):
+    if not_single_edge(adj_view):
         raise WeirdError(
             f"Node ID {node_id} doesn't have exactly 1 {edge_descriptor} edge?"
         )
@@ -311,7 +309,7 @@ def is_valid_cyclic_chain(g, start_node_id):
     """
     verify_node_in_graph(g, start_node_id)
     adj = g.adj[start_node_id]
-    if len(g.pred[start_node_id]) == 0 or not_single_edge(g, adj):
+    if len(g.pred[start_node_id]) == 0 or not_single_edge(adj):
         # If the starting node has no incoming or no outgoing nodes, it
         # can't be in a cycle! Also, if it has > 1 outgoing edge, then it can't
         # be the starting node of a cyclic chain (it could be the end node of a
@@ -337,13 +335,13 @@ def is_valid_cyclic_chain(g, start_node_id):
     # chain to see what it's composed of.
     cch_list = [start_node_id]
     while True:
-        if not_single_edge(g, g.pred[curr]):
+        if not_single_edge(g.pred[curr]):
             # The cyclic chain has ended, and this can't be the last node
             # in it -- but since the cyclic chain didn't "loop back" yet,
             # we weren't able to identify an applicable cyclic chain
             return ValidationResults()
         adj = g.adj[curr]
-        if not_single_edge(g, adj):
+        if not_single_edge(adj):
             # Like above, this means the "end" of the cyclic chain, but it
             # could mean the cyclic chain is valid.
             # NOTE that at this point, if curr has an outgoing edge to a
@@ -712,7 +710,7 @@ def is_valid_chain(g, start_node_id):
     # Iterate "down" through the chain
     while True:
         pred = g.pred[curr_node_id]
-        if not_single_edge(g, pred):
+        if not_single_edge(pred):
             # The chain has ended, and this can't be the last node in it
             # (The node before this node, if applicable, is the chain's
             # actual end.)
@@ -720,7 +718,7 @@ def is_valid_chain(g, start_node_id):
 
         adj = g.adj[curr_node_id]
         out_curr_node_ids = list(adj.keys())
-        if not_single_edge(g, adj):
+        if not_single_edge(adj):
             # Like above, this means the end of the chain, but there are
             # multiple ways we can handle this.
             #
@@ -771,7 +769,7 @@ def is_valid_chain(g, start_node_id):
 
     pred = g.pred[start_node_id]
     in_node_ids = list(pred.keys())
-    if not_single_edge(g, pred):
+    if not_single_edge(pred):
         # We can't extend the chain "backwards" from the start,
         # so just return what we have currently. This is an "optimal" chain
         # ("optimal" in the sense that, of all possible chains that include
@@ -796,7 +794,7 @@ def is_valid_chain(g, start_node_id):
     curr_node_id = in_node_ids[0]
     while True:
         adj = g.adj[curr_node_id]
-        if not_single_edge(g, adj):
+        if not_single_edge(adj):
             # Since this node has multiple outgoing edges, it can't be the
             # start of the chain. Therefore the previous node we were
             # looking at is the optimal starting node.
@@ -810,7 +808,7 @@ def is_valid_chain(g, start_node_id):
             # cyclic chain later on.
             return ValidationResults()
 
-        if not_single_edge(g, pred):
+        if not_single_edge(pred):
             # This node has multiple (or 0) incoming edges, so it's
             # the optimal start of the chain.
             backwards_chain_list.append(curr_node_id)
@@ -983,7 +981,7 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     # ... Butttt I don't trust myself that much, so we include a sanity
     # check here -- if this is *not* the case, then we fail loudly.
     cs_adj = g.adj[start_node_id]
-    fail_if_not_single_edge(g, cs_adj, start_node_id, "outgoing")
+    fail_if_not_single_edge(cs_adj, start_node_id, "outgoing")
     next_node_id = list(cs_adj)[0]
     if is_edge_fake_and_trivial(
         g, start_node_id, next_node_id, nodeid2obj, edgeid2obj
@@ -1001,7 +999,7 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
 
     # Trim off the ETFE from the end (right side) of this chain, if present.
     ce_pred = g.pred[end_node_id]
-    fail_if_not_single_edge(g, ce_pred, end_node_id, "incoming")
+    fail_if_not_single_edge(ce_pred, end_node_id, "incoming")
     prev_node_id = list(ce_pred)[0]
     if is_edge_fake_and_trivial(
         g, prev_node_id, end_node_id, nodeid2obj, edgeid2obj

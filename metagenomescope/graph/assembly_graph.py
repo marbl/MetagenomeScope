@@ -845,7 +845,7 @@ class AssemblyGraph(object):
                             top_level_candidate_nodes.add(incoming_node)
                 if len(pobj.merged_child_chains) > 0:
                     raise WeirdError(
-                        "Shouldn't have done chain merging on {pobj}?"
+                        f"Shouldn't have done chain merging on {pobj}?"
                     )
 
         self._remove_unnecessary_split_nodes()
@@ -884,6 +884,9 @@ class AssemblyGraph(object):
                 # Figure out where the other end of this node's fake edge
                 # points in the decomposed graph.
                 if node.split == config.SPLIT_LEFT:
+                    validators.fail_if_not_single_edge(
+                        self.graph.adj[node_id], node_id, "outgoing fake"
+                    )
                     fake_edge_uid = self.graph.edges[
                         node_id, counterpart.unique_id, 0
                     ]["uid"]
@@ -891,6 +894,9 @@ class AssemblyGraph(object):
                         fake_edge_uid
                     ].dec_tgt_id
                 else:
+                    validators.fail_if_not_single_edge(
+                        self.graph.pred[node_id], node_id, "incoming fake"
+                    )
                     fake_edge_uid = self.graph.edges[
                         counterpart.unique_id, node_id, 0
                     ]["uid"]
