@@ -206,7 +206,7 @@ def test_self_loops_in_frayed_rope():
 
 
 def test_parallel_edges_in_frayed_rope():
-    r"""Tests that parallel edges in a frayed rope do not prevent detection.
+    r"""Tests that certain parallel edges in a frayed rope are allowed.
 
     First, we'll take the below graph and add only one parallel edge at a time
     (so, testing the normal graph but with two 0->2 edges, then with two 1->2
@@ -218,6 +218,9 @@ def test_parallel_edges_in_frayed_rope():
     0 -\ /-> 3
         2
     1 -/ \-> 4
+
+    NOTE: we don't allow parallel edges in the middle chain of a frayed rope --
+    see test_parallel_edges_in_frayed_rope_middle().
     """
     big_chunky_graph = get_simple_fr_graph()
 
@@ -319,3 +322,25 @@ def test_long_chain_in_frayed_rope():
     g.add_edge(9, 3)
     g.add_edge(9, 4)
     check_simple_fr_graph_valid(g, exp_nodes=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+
+
+def test_parallel_edges_in_frayed_rope_middle():
+    r"""Tests that bulges in a frayed rope's middle chain aren't allowed.
+
+    The graph we test here:
+
+    0 -\ /---\       /-> 3
+        2     5 --> 6
+    1 -/ \---/       \-> 4
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 2)
+    g.add_edge(1, 2)
+    g.add_edge(2, 5)
+    g.add_edge(2, 5)
+    g.add_edge(5, 6)
+    g.add_edge(6, 3)
+    g.add_edge(6, 4)
+
+    for s in (0, 1):
+        assert not validators.is_valid_frayed_rope(g, s)

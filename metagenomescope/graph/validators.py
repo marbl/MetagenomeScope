@@ -188,32 +188,44 @@ def is_valid_frayed_rope(g, start_node_id):
 
     Notes
     -----
-    - We only consider "simple" frayed ropes that look like
+    - The simplest possible frayed rope consists of five nodes:
 
       s1 -\ /-> e1
            m
       s2 -/ \-> e2
 
-      ...that is, frayed ropes containing only one middle node. There can
-      be an arbitrary amount of start and end nodes defined (so long as
-      there are >= 2 start/end nodes), though. (Also, the number of start
-      and end nodes doesn't have to match up.)
+      The number of start and end nodes is arbitrary, so long as it's > 1.
+      (Note that there can be an uneven number of start and end nodes, e.g. 2
+      start nodes and 3 end nodes.)
 
-      (We could explicitly try to search for frayed ropes containing a chain of
-      middle nodes, but these chains should have already been collapsed by the
-      time we call this function.)
+    - Also, there can be a chain of middle nodes:
 
-      TODO: FIX THIS!!!!!! Since we won't identify trivial chains involving
-      (left split of P) --> pattern P --> (right split of P), these will go
-      un-collapsed. In these cases we need to identify frayed ropes that
-      contain these chains in the middle anyway.
+      s1 -\                     /-> e1
+           m1 -> m2 -> ... -> mM
+      s2 -/                     \-> e2
+
+      The reason for allowing this is that we avoid detecting "trivial chains"
+      (of e.g. Left Split Node ==> Pattern ==> Right Split Node), so there's no
+      guarantee that every non-branching path will be collapsed into a single
+      chain node. In theory, I think we should only need to allow chains with
+      length up to 3 here, but we allow arbitrarily-long chains anyway.
 
     - As long as the frayed rope follows the above structure, it is fine if it
-      includes parallel edges (from a start node to the middle node, or from
-      the middle node to the end node). These parallel edges should not be
+      includes parallel edges from a start node to a middle node, or from
+      a middle node to an end node. These parallel edges should not be
       classified as "bulges," because bulges from (X, Y) are only valid if all
       of X's outgoing edges point to Y (and if all of Y's incoming edges come
       from X).
+
+      I guess there is some ambiguity in how we should handle parallel edges
+      in the middle chain (e.g. from m1 to m2). We do not allow for parallel
+      edges in the middle chain; this is an artifact of the behavior of
+      is_valid_chain(), which we use here. (Also, I don't think there should
+      ever be parallel edges in the middle chain in practice, because these
+      should have already been identified as real bulges. Maaybe the
+      identification of other frayed ropes could lead to these bulges popping
+      up...? But we will later disallow frayed ropes containing other frayed
+      ropes, so this shouldn't make a difference.)
     """
     verify_node_in_graph(g, start_node_id)
 
@@ -221,11 +233,11 @@ def is_valid_frayed_rope(g, start_node_id):
     if len(g.adj[start_node_id]) != 1:
         return ValidationResults()
 
-    # Get the tentative "middle" node in the rope
-    middle_node_id = list(g.adj[start_node_id].keys())[0]
+    # Get the tentative "first middle" node in the rope
+    m1 = list(g.adj[start_node_id].keys())[0]
 
-    # Now, get all "starting" nodes (the incoming nodes on the middle node)
-    start_node_ids = list(g.pred[middle_node_id].keys())
+    # Now, get all "starting" nodes (the incoming nodes on m1)
+    start_node_ids = list(g.pred[m1].keys())
 
     # A frayed rope must have multiple paths from which to converge to
     # the "middle node" section
@@ -237,12 +249,29 @@ def is_valid_frayed_rope(g, start_node_id):
         if len(g.adj[n]) != 1:
             return ValidationResults()
 
-    # Now we know the start nodes are mostly valid. We'll still need to
+    # Since we know that m1 has >= 2 incoming nodes, we know that no chain can
+    # exist involving m1 that does not start AT m1.
+    #
+    # Also, now we know the start nodes are mostly valid. We'll still need to
     # check that each node in the rope is distinct, but that is done
     # later on -- after we've identified all the nodes in the tentative
     # rope.
 
-    end_node_ids = list(g.adj[middle_node_id].keys())
+    # Check the middle nodes
+    # We don't use the _trimmed_etfes() version of is_valid_chain() because we
+    # *want* to identify chains with trivial fake edges here.
+    m1_chain_vr = is_valid_chain(g, m1)
+    if m1_chain_vr:
+        # We found a chain in the middle nodes.
+        middle_node_ids = m1_chain_vr.nodes
+        misc_utils.verify_single(m1_chain_vr.end_node_ids)
+        last_middle_node = m1_chain_vr.end_node_ids[0]
+    else:
+        # There's only 1 middle node.
+        middle_node_ids = [m1]
+        last_middle_node = m1
+
+    end_node_ids = list(g.adj[last_middle_node].keys())
 
     # The middle node has to diverge to something for this to be a frayed
     # rope.
@@ -262,7 +291,7 @@ def is_valid_frayed_rope(g, start_node_id):
         #         return ValidationResults()
 
     # Check the entire frayed rope's structure
-    composite = start_node_ids + [middle_node_id] + end_node_ids
+    composite = start_node_ids + middle_node_ids + end_node_ids
 
     # Verify all nodes in the frayed rope are distinct
     if len(set(composite)) != len(composite):

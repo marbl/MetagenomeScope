@@ -1,6 +1,11 @@
 from .errors import WeirdError
 
 
+def verify_single(objs):
+    if len(objs) != 1:
+        raise WeirdError(f"{objs} contains {len(objs):,} items, instead of 1")
+
+
 def verify_unique(objs, obj_type="IDs"):
     if len(set(objs)) < len(objs):
         raise WeirdError(f"Duplicate {obj_type}: {objs}")

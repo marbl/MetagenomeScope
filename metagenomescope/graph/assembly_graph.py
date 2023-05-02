@@ -681,13 +681,6 @@ class AssemblyGraph(object):
            the middle. (Again, I think the way to do this is to wrap the
            validator in another function that figures out if any of the nodes
            in a tentative FR are also FRs, and fails if so.)
-        4. Allow frayed ropes to contain an uncollapsed trivial chain in their
-           middle nodes. (Doable by just modifying the frayed rope code to
-           allow for any sort of chains -- doesn't have to be specific. Unlike
-           the bubble code, we don't need to worry about first detecting the
-           real chains in the frayed rope, because by the time we identify
-           frayed ropes we've already identified all real chains in the graph.
-           (And we can't have frayed ropes within chains.)
 
         TODOs: code
         -----------
@@ -821,8 +814,6 @@ class AssemblyGraph(object):
         # Now, identify frayed ropes, which are a "top-level only" pattern.
         # There aren't any other "top-level only" patterns as of writing, but I
         # guess you could add them here if you wanted.
-        # TODO -- modify the frayed rope validator to allow uncollapsed trivial
-        # chains in the middle
         top_level_candidate_nodes = set(self.decomposed_graph.nodes)
         while len(top_level_candidate_nodes) > 0:
             n = top_level_candidate_nodes.pop()
