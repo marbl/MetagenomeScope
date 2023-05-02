@@ -21,7 +21,7 @@ def check_simple_fr_graph_valid(g, exp_nodes=[0, 1, 2, 3, 4]):
     for s in (0, 1):
         results = validators.is_valid_frayed_rope(g, s)
         assert results
-        assert set(results.nodes) == set(exp_nodes)
+        assert set(results.node_ids) == set(exp_nodes)
         assert set(results.start_node_ids) == set([0, 1])
         assert set(results.end_node_ids) == set([3, 4])
 
@@ -36,7 +36,7 @@ def test_simple_fr_detection_failures():
     for s in [2, 3, 4]:
         results = validators.is_valid_frayed_rope(g, s)
         assert not results
-        assert results.nodes == []
+        assert results.node_ids == []
         assert results.start_node_ids == []
         assert results.start_node_ids == []
 

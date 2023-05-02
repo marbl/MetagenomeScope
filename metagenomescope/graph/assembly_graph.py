@@ -385,7 +385,7 @@ class AssemblyGraph(object):
         """
         pattern_id = self._get_unique_id()
         self.decomposed_graph.add_node(pattern_id)
-        patt_node_ids = set(validation_results.nodes)
+        patt_node_ids = set(validation_results.node_ids)
 
         # We will need to create new Node(s) if we split the start and/or end
         # Node(s) of the pattern. If we create any new Nodes, we'll store their
@@ -393,7 +393,7 @@ class AssemblyGraph(object):
         #
         # NOTE that these new Nodes, if created, will be located OUTSIDE of
         # this pattern (see the diagrams below). The Node IDs in
-        # validation_results.nodes (aka patt_node_ids) will thus remain a
+        # validation_results.node_ids (aka patt_node_ids) will thus remain a
         # "complete" description of all Nodes in this pattern, even if we do
         # splitting.
         left_split_ids = []

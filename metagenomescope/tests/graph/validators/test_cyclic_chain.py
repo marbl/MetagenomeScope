@@ -24,7 +24,7 @@ def test_simple_cyclic_chain_detection():
     for s in [0, 1, 2, 3]:
         results = validators.is_valid_cyclic_chain(g, s)
         assert results
-        assert set(results.nodes) == set([0, 1, 2, 3])
+        assert set(results.node_ids) == set([0, 1, 2, 3])
         assert results.start_node_ids == [s]
         if s == 0:
             assert results.end_node_ids == [3]
@@ -128,7 +128,7 @@ def test_extraneous_outgoing_edge_from_start():
         results = validators.is_valid_cyclic_chain(g, s)
         if s == 1:
             assert results
-            assert results.nodes == [1, 2, 3, 0]
+            assert results.node_ids == [1, 2, 3, 0]
             assert results.start_node_ids == [1]
             assert results.end_node_ids == [0]
         else:
@@ -153,7 +153,7 @@ def test_surrounded_cyclic_chain():
         results = validators.is_valid_cyclic_chain(g, s)
         if s == 1:
             assert results
-            assert results.nodes == [1, 2, 3, 0]
+            assert results.node_ids == [1, 2, 3, 0]
             assert results.start_node_ids == [1]
             assert results.end_node_ids == [0]
         else:
@@ -174,12 +174,12 @@ def test_simple_whirl():
     g.add_edge(1, 0)
     results0 = validators.is_valid_cyclic_chain(g, 0)
     assert results0
-    assert results0.nodes == [0, 1]
+    assert results0.node_ids == [0, 1]
     assert results0.start_node_ids == [0]
     assert results0.end_node_ids == [1]
     results1 = validators.is_valid_cyclic_chain(g, 1)
     assert results1
-    assert results1.nodes == [1, 0]
+    assert results1.node_ids == [1, 0]
     assert results1.start_node_ids == [1]
     assert results1.end_node_ids == [0]
 
@@ -200,7 +200,7 @@ def test_simple_whirl_intervening_edges():
     g.add_edge(1, 3)
     results0 = validators.is_valid_cyclic_chain(g, 0)
     assert results0
-    assert results0.nodes == [0, 1]
+    assert results0.node_ids == [0, 1]
     assert results0.start_node_ids == [0]
     assert results0.end_node_ids == [1]
     # Now, 1 is no longer a valid start node for the [0, 1] cyclic chain. This

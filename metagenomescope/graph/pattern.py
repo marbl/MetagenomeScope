@@ -49,8 +49,8 @@ def verify_vr_and_nodes_good(vr, nodes):
     node_ids = get_ids_of_nodes(nodes)
     misc_utils.verify_unique(node_ids)
 
-    if set(node_ids) != set(vr.nodes):
-        raise WeirdError(f"Different node IDs: {node_ids} vs. {vr.nodes}")
+    if set(node_ids) != set(vr.node_ids):
+        raise WeirdError(f"Different node IDs: {node_ids} vs. {vr.node_ids}")
 
 
 def verify_edges_in_induced_subgraph(edges, node_ids):
@@ -90,8 +90,9 @@ class Pattern(Node):
 
         nodes: list of Nodes
             List of all child Node objects of this pattern (including collapsed
-            Patterns -- note that Pattern is a subclass of Node!). These IDs
-            should exactly match those in validation_results.nodes.
+            Patterns -- note that Pattern is a subclass of Node!). The IDs of
+            these Nodes should exactly match those in
+            validation_results.node_ids.
 
         edges: list of Edges
             List of all child Edge objects of this pattern. We define an edge
@@ -107,11 +108,7 @@ class Pattern(Node):
         self.end_node_ids = validation_results.end_node_ids
 
         self.nodes = nodes
-        # self.nodes stores the child Node objects of this Pattern, while
-        # validation_results.nodes stores these Nodes' IDs. For checking that
-        # the edges are "valid", we need the Node IDs, so it's easiest to just
-        # pass validation_results.nodes to check_edges_in_induced_subgraph().
-        verify_edges_in_induced_subgraph(edges, validation_results.nodes)
+        verify_edges_in_induced_subgraph(edges, validation_results.node_ids)
         self.edges = edges
 
         # Will be filled in after performing top-level AssemblyGraph layout,

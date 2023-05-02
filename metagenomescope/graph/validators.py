@@ -25,7 +25,7 @@ class ValidationResults(object):
         self,
         pattern_type=None,
         is_valid=False,
-        nodes=[],
+        node_ids=[],
         start_node_ids=[],
         end_node_ids=[],
     ):
@@ -46,10 +46,10 @@ class ValidationResults(object):
         is_valid: bool
             True if the proposed pattern was valid; False otherwise.
 
-        nodes: list
-            If is_valid is True, contains a list of the nodes in the pattern;
-            otherwise, this should be an empty list. The order of nodes in this
-            list doesn't matter.
+        node_ids: list
+            If is_valid is True, contains a list of the IDs of all nodes in the
+            pattern; otherwise, this should be an empty list. The order of
+            node IDs in this list doesn't matter.
 
         start_node_ids: list of int
             If is_valid is True, this should be a list of the IDs of all
@@ -66,15 +66,15 @@ class ValidationResults(object):
         self.pattern_type = pattern_type
         self.is_valid = is_valid
 
-        misc_utils.verify_unique(nodes)
-        self.nodes = nodes
+        misc_utils.verify_unique(node_ids)
+        self.node_ids = node_ids
 
         misc_utils.verify_unique(start_node_ids)
-        misc_utils.verify_subset(start_node_ids, nodes)
+        misc_utils.verify_subset(start_node_ids, node_ids)
         self.start_node_ids = start_node_ids
 
         misc_utils.verify_unique(end_node_ids)
-        misc_utils.verify_subset(end_node_ids, nodes)
+        misc_utils.verify_subset(end_node_ids, node_ids)
         self.end_node_ids = end_node_ids
 
     def __bool__(self):
@@ -95,7 +95,7 @@ class ValidationResults(object):
         if self.is_valid:
             return (
                 f"Valid {config.PT2HR[self.pattern_type]} of nodes "
-                f"{repr(self.nodes)} from {self.start_node_ids} to "
+                f"{repr(self.node_ids)} from {self.start_node_ids} to "
                 f"{self.end_node_ids}"
             )
         else:
@@ -263,7 +263,7 @@ def is_valid_frayed_rope(g, start_node_id):
     m1_chain_vr = is_valid_chain(g, m1)
     if m1_chain_vr:
         # We found a chain in the middle nodes.
-        middle_node_ids = m1_chain_vr.nodes
+        middle_node_ids = m1_chain_vr.node_ids
         misc_utils.verify_single(m1_chain_vr.end_node_ids)
         last_middle_node = m1_chain_vr.end_node_ids[0]
     else:
@@ -1040,7 +1040,7 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
             return ValidationResults()
 
     # We've finished trimming, and this chain still exists! Yay.
-    chain_nodes = list(set(validation_results.nodes) - node_ids_to_remove)
+    chain_nodes = list(set(validation_results.node_ids) - node_ids_to_remove)
     return ValidationResults(
         config.PT_CHAIN,
         True,
