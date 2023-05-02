@@ -17,18 +17,18 @@ def get_simple_fr_graph():
     return g
 
 
-def check_simple_fr_graph_valid(g, start_node):
-    results = validators.is_valid_frayed_rope(g, start_node)
-    assert results
-    assert set(results.nodes) == set([0, 1, 2, 3, 4])
-    assert set(results.start_node_ids) == set([0, 1])
-    assert set(results.end_node_ids) == set([3, 4])
+def check_simple_fr_graph_valid(g, exp_nodes=[0, 1, 2, 3, 4]):
+    for s in (0, 1):
+        results = validators.is_valid_frayed_rope(g, s)
+        assert results
+        assert set(results.nodes) == set(exp_nodes)
+        assert set(results.start_node_ids) == set([0, 1])
+        assert set(results.end_node_ids) == set([3, 4])
 
 
 def test_simple_fr_detection():
     g = get_simple_fr_graph()
-    for s in [0, 1]:
-        check_simple_fr_graph_valid(g, s)
+    check_simple_fr_graph_valid(g)
 
 
 def test_simple_fr_detection_failures():
@@ -139,8 +139,7 @@ def test_end_to_start_cyclic_frayed_rope():
     g = get_simple_fr_graph()
     g.add_edge(3, 0)
 
-    check_simple_fr_graph_valid(g, 0)
-    check_simple_fr_graph_valid(g, 1)
+    check_simple_fr_graph_valid(g)
 
     # ... and if we add another cyclic edge, it's good also, right?
     # (although in practice, we should detect a cyclic simple bubble of
@@ -149,8 +148,7 @@ def test_end_to_start_cyclic_frayed_rope():
     # than frayed ropes.)
 
     g.add_edge(4, 0)
-    check_simple_fr_graph_valid(g, 0)
-    check_simple_fr_graph_valid(g, 1)
+    check_simple_fr_graph_valid(g)
 
 
 def test_non_end_to_start_cyclic_frayed_rope():
@@ -226,9 +224,98 @@ def test_parallel_edges_in_frayed_rope():
     for e in ((0, 2), (1, 2), (2, 3), (2, 4)):
         g = get_simple_fr_graph()
         g.add_edge(*e)
-        check_simple_fr_graph_valid(g, 0)
-        check_simple_fr_graph_valid(g, 1)
+        check_simple_fr_graph_valid(g)
         big_chunky_graph.add_edge(*e)
 
-    check_simple_fr_graph_valid(big_chunky_graph, 0)
-    check_simple_fr_graph_valid(big_chunky_graph, 1)
+    check_simple_fr_graph_valid(big_chunky_graph)
+    check_simple_fr_graph_valid(big_chunky_graph)
+
+
+def test_2_chain_in_frayed_rope():
+    r"""Tests that we can detect frayed ropes with long middle paths.
+
+    This graph looks like:
+
+    0 -\       /-> 3
+        2 --> 5
+    1 -/       \-> 4
+
+    We used to detect this back in the earlier versions of MetagenomeScope;
+    then I removed that check, with the rationale that we should automatically
+    detect these chains (so then we'd automatically detect these frayed ropes);
+    and then I added in the ETFE trimming on chains (which means that we can
+    actually have cases where the middle non-branching path of a frayed rope
+    won't get collapsed). So, we need to add back support for this, and this
+    test verifies that we do actually have this support. Sheesh.
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 2)
+    g.add_edge(1, 2)
+    g.add_edge(2, 5)
+    g.add_edge(5, 3)
+    g.add_edge(5, 4)
+
+    check_simple_fr_graph_valid(g, exp_nodes=[0, 1, 2, 3, 4, 5])
+
+
+def test_long_chain_in_frayed_rope():
+    r"""Tests that we can detect frayed ropes with longer middle paths!
+
+    The graphs we test here look like:
+
+    0 -\             /-> 3                0 -\                   /-> 3
+        2 --> 5 --> 6            and          2 --> 5 --> 6 --> 7
+    1 -/             \-> 4                1 -/                   \-> 4
+
+    ... and so on, extending the middle path for a while just to check that
+    this works.
+
+    NOTE -- the code here is janky, sorry -- I should ideally make a utility
+    function for this, but it's easier and less error-prone to just write it
+    out manually.
+    """
+    # 3 middle nodes
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 2)
+    g.add_edge(1, 2)
+    g.add_edge(2, 5)
+    g.add_edge(5, 6)
+    g.add_edge(6, 3)
+    g.add_edge(6, 4)
+    check_simple_fr_graph_valid(g, exp_nodes=[0, 1, 2, 3, 4, 5, 6])
+
+    # 4 middle nodes
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 2)
+    g.add_edge(1, 2)
+    g.add_edge(2, 5)
+    g.add_edge(5, 6)
+    g.add_edge(6, 7)
+    g.add_edge(7, 3)
+    g.add_edge(7, 4)
+    check_simple_fr_graph_valid(g, exp_nodes=[0, 1, 2, 3, 4, 5, 6, 7])
+
+    # 5 middle nodes
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 2)
+    g.add_edge(1, 2)
+    g.add_edge(2, 5)
+    g.add_edge(5, 6)
+    g.add_edge(6, 7)
+    g.add_edge(7, 8)
+    g.add_edge(8, 3)
+    g.add_edge(8, 4)
+    check_simple_fr_graph_valid(g, exp_nodes=[0, 1, 2, 3, 4, 5, 6, 7, 8])
+
+    # 6 middle nodes
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 2)
+    g.add_edge(1, 2)
+    g.add_edge(2, 5)
+    g.add_edge(5, 6)
+    g.add_edge(6, 7)
+    g.add_edge(7, 8)
+    g.add_edge(8, 9)
+    g.add_edge(9, 3)
+    g.add_edge(9, 4)
+    check_simple_fr_graph_valid(g, exp_nodes=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
