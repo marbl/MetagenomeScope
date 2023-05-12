@@ -1,5 +1,5 @@
 import networkx as nx
-from metagenomescope.graph import validators
+from metagenomescope.graph import validators, Node, Edge, Pattern
 
 
 def get_simple_fr_graph():
@@ -344,3 +344,99 @@ def test_parallel_edges_in_frayed_rope_middle():
 
     for s in (0, 1):
         assert not validators.is_valid_frayed_rope(g, s)
+
+
+def test_is_valid_frayed_rope_tl_only():
+    """Tests that this function properly disallows FRs inside other FRs.
+
+    We test this here in a slightly lazy way -- here we don't actually split
+    the left and right boundary nodes of the child frayed rope.
+
+    Graph we test:
+
+                9
+          +------------+
+    5 --> | 0 -\ /-> 3 | --> 7
+          |     2      |
+    6 --> | 1 -/ \-> 4 | --> 8
+          +------------+
+    """
+    # set up the child pattern
+    child_fr_graph = get_simple_fr_graph()
+    child_vr = validators.is_valid_frayed_rope(child_fr_graph, 0)
+    child_nodes = []
+    child_edges = []
+    # (this test depends on the normal FR validator working -- if that is
+    # broken, bail out immediately)
+    assert child_vr
+    for n in child_fr_graph.nodes:
+        child_nodes.append(Node(n, str(n), {}))
+    for i, (n1, n2, key) in enumerate(child_fr_graph.edges, 10):
+        child_edges.append(Edge(i, n1, n2, {}))
+
+    child_fr_pattern = Pattern(9, child_vr, child_nodes, child_edges)
+
+    # set up the surrounding graph (after "collapsing" the child frayed
+    # rope into a single node)
+    g = nx.MultiDiGraph()
+    g.add_edge(5, 9)
+    g.add_edge(6, 9)
+    g.add_edge(9, 7)
+    g.add_edge(9, 8)
+
+    assert validators.is_valid_frayed_rope(g, 5)
+    assert validators.is_valid_frayed_rope(g, 6)
+
+    # This is still a valid frayed rope if we don't register node 9 as a
+    # Pattern
+    assert validators.is_valid_frayed_rope_tl_only(g, 5, {})
+    assert validators.is_valid_frayed_rope_tl_only(g, 6, {})
+
+    # ... But now it isn't
+    assert not validators.is_valid_frayed_rope_tl_only(
+        g, 5, {9: child_fr_pattern}
+    )
+
+
+def test_is_valid_frayed_rope_tl_only_other_patterns_ok():
+    r"""Tests that other patterns inside frayed ropes (e.g. bulges) are allowed.
+
+    Again, we don't do splitting on the child pattern here for simplicity's
+    sake.
+
+    Graph we test:
+
+                9
+          +----------+
+    5 --> |  /----\  | --> 7
+          | 0      1 |
+    6 --> |  \----/  | --> 8
+          +--------- +
+    """
+    # set up the bulge graph
+    child_bulge_graph = nx.MultiDiGraph()
+    child_bulge_graph.add_edge(0, 1)
+    child_bulge_graph.add_edge(0, 1)
+    child_vr = validators.is_valid_bulge(child_bulge_graph, 0)
+    child_nodes = [Node(0, "0", {}), Node(1, "1", {})]
+    child_edges = [Edge(2, 0, 1, {}), Edge(3, 0, 1, {})]
+    assert child_vr
+
+    bulge_pattern = Pattern(9, child_vr, child_nodes, child_edges)
+
+    # set up the surrounding graph after "collapsing"
+    g = nx.MultiDiGraph()
+    g.add_edge(5, 9)
+    g.add_edge(6, 9)
+    g.add_edge(9, 7)
+    g.add_edge(9, 8)
+
+    assert validators.is_valid_frayed_rope(g, 5)
+    assert validators.is_valid_frayed_rope(g, 6)
+
+    # This is still a valid frayed rope whether or not we register node 9 as a
+    # Pattern
+    assert validators.is_valid_frayed_rope_tl_only(g, 5, {})
+    assert validators.is_valid_frayed_rope_tl_only(g, 6, {})
+    assert validators.is_valid_frayed_rope_tl_only(g, 5, {9: bulge_pattern})
+    assert validators.is_valid_frayed_rope_tl_only(g, 6, {9: bulge_pattern})

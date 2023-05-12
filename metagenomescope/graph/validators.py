@@ -1048,3 +1048,48 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
         [start_node_id],
         [end_node_id],
     )
+
+
+def is_valid_frayed_rope_tl_only(g, start_node_id, pattid2obj):
+    r"""Validates a frayed rope (FR), rejecting FRs containing other FRs.
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+
+    start_node_id: str
+
+    pattid2obj: dict
+        Maps (some) node IDs in g to Pattern objects. We can assume that nodes
+        present in g without IDs in pattid2obj refer to non-pattern nodes,
+        whereas nodes in g with IDs in pattid2obj refer to collapsed patterns.
+
+    Returns
+    -------
+    ValidationResults
+
+    Notes
+    -----
+    You can think of this as something analogous to
+    is_valid_chain_trimmed_etfes(), in that this function "wraps" another
+    validator function. This is nice, because we can keep the original
+    "topology-only" function around in case we want to undo this later (also
+    this way I don't break a million tests lol).
+    """
+    validation_results = is_valid_frayed_rope(g, start_node_id)
+
+    # If we didn't find a valid frayed rope with this start node, bail out here
+    if not validation_results:
+        return validation_results
+
+    # If we've made it here, then we found a valid frayed rope. Check to see if
+    # it contains any other frayed ropes.
+    for node_id in validation_results.node_ids:
+        if node_id in pattid2obj:
+            if pattid2obj[node_id].pattern_type == config.PT_FRAYEDROPE:
+                # This frayed rope contains at least one other frayed rope;
+                # reject it.
+                return ValidationResults()
+
+    # Nope, this frayed rope doesn't contain any other frayed ropes!
+    return validation_results

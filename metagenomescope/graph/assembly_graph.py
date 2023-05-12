@@ -675,13 +675,6 @@ class AssemblyGraph(object):
 
         This is the main Fancy Thing we do, besides layout.
 
-        TODOs: behavior
-        ---------------
-        2. Disallow the presence of frayed ropes within frayed ropes, even in
-           the middle. (Again, I think the way to do this is to wrap the
-           validator in another function that figures out if any of the nodes
-           in a tentative FR are also FRs, and fails if so.)
-
         TODOs: code
         -----------
         6. See if we can move the splitting code in _add_pattern() to another
@@ -817,8 +810,8 @@ class AssemblyGraph(object):
         top_level_candidate_nodes = set(self.decomposed_graph.nodes)
         while len(top_level_candidate_nodes) > 0:
             n = top_level_candidate_nodes.pop()
-            validation_results = validators.is_valid_frayed_rope(
-                self.decomposed_graph, n
+            validation_results = validators.is_valid_frayed_rope_tl_only(
+                self.decomposed_graph, n, self.pattid2obj
             )
             if validation_results:
                 # Mostly the same logic as for when we found a pattern above --
