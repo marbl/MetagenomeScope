@@ -347,7 +347,7 @@ def test_parallel_edges_in_frayed_rope_middle():
 
 
 def test_is_valid_frayed_rope_tl_only():
-    """Tests that this function properly disallows FRs inside other FRs.
+    r"""Tests that this function properly disallows FRs inside other FRs.
 
     We test this here in a slightly lazy way -- here we don't actually split
     the left and right boundary nodes of the child frayed rope.

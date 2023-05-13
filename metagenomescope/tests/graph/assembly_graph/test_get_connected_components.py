@@ -86,7 +86,6 @@ def test_component_sorting_ecoli_graph():
         assert wcc_tuple[1] == 1
         # ... and just 1 edge
         assert wcc_tuple[2] == 1
-        cyc_id = list(wcc)[0]
 
 
 # TODO: Add more comprehensive tests that things like number of nodes within
