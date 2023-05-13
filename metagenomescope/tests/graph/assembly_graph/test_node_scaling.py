@@ -25,8 +25,8 @@ def test_scale_nodes():
         "6": config.LOW_LONGSIDE_PROPORTION,
     }
     seen_nodenames = []
-    for node in ag.nodeid2obj:
-        name = node.data["name"]
+    for node in ag.nodeid2obj.values():
+        name = node.name
         rl = node.relative_length
         lp = node.longside_proportion
         if name in nodename2rl:
@@ -43,7 +43,7 @@ def test_scale_nodes():
 def test_scale_nodes_all_lengths_equal():
     ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
     # all of the nodes in this graph have length 3
-    for node in ag.nodeid2obj:
+    for node in ag.nodeid2obj.values():
         assert node.relative_length == 0.5
         assert node.longside_proportion == config.MID_LONGSIDE_PROPORTION
 
@@ -70,8 +70,8 @@ def test_compute_node_dimensions():
     }
 
     seen_nodenames = []
-    for node in ag.nodeid2obj:
-        name = node.data["name"]
+    for node in ag.nodeid2obj.values():
+        name = node.name
         w = node.width
         h = node.height
         exp_data = ()
@@ -100,6 +100,6 @@ def test_compute_node_dimensions_all_lengths_equal():
     assert default_height == approx(3.115839)
     assert default_width == approx(1.765174)
 
-    for node in ag.nodeid2obj:
+    for node in ag.nodeid2obj.values():
         assert node.height == default_height
         assert node.width == default_width
