@@ -1169,7 +1169,8 @@ class AssemblyGraph(object):
         edges have an edge weight field, returns None.
 
         If there are multiple edge weight fields, this raises a
-        GraphParsingError.
+        GraphParsingError. If any of the edges in the graph are fake, this
+        raises a WeirdError.
 
         The list of field names corresponding to "edge weights" is
         configurable via the field_names parameter. You should verify (in the
@@ -1201,6 +1202,10 @@ class AssemblyGraph(object):
 
         chosen_fn = None
         for e in self.edgeid2obj.values():
+            if e.is_fake:
+                raise WeirdError(
+                    "Fake edges shouldn't exist in the graph yet."
+                )
             fn = _check_edge_weight_fields(e.data)
             if fn is None:
                 return None
@@ -1256,19 +1261,16 @@ class AssemblyGraph(object):
                 edge.is_outlier = 0
                 edge.relative_weight = 0.5
 
+        # self.get_edge_weight_field() will throw an error if any of the
+        # current edges in the graph are fake (we should not have done
+        # hierarchical decomposition yet!) -- this way, we can assume for the
+        # rest of this function that all edges in the graph are real
         ew_field = self.get_edge_weight_field()
         if ew_field is not None:
             operation_msg("Scaling edges based on weights...")
-            real_edges = []
             weights = []
             for edge in self.edgeid2obj.values():
-                if not edge.is_fake:
-                    real_edges.append(edge)
-                    weights.append(edge.data[ew_field])
-                else:
-                    raise WeirdError(
-                        "Fake edges shouldn't exist in the graph yet."
-                    )
+                weights.append(edge.data[ew_field])
 
             non_outlier_edges = []
             non_outlier_edge_weights = []
@@ -1289,7 +1291,7 @@ class AssemblyGraph(object):
                 # Now, iterate through every edge and flag outliers.
                 # Non-outlier edges will be added to a list of edges that we'll
                 # scale relatively.
-                for edge in real_edges:
+                for edge in self.edgeid2obj.values():
                     ew = edge.data[ew_field]
                     if ew > uf:
                         edge.is_outlier = 1
@@ -1303,16 +1305,11 @@ class AssemblyGraph(object):
                         non_outlier_edge_weights.append(ew)
             else:
                 # There are < 4 edges, so consider all edges as "non-outliers."
-                for edge in real_edges:
-                    if not edge.is_fake:
-                        edge.is_outlier = 0
-                        non_outlier_edges.append(edge)
-                        ew = edge.data[ew_field]
-                        non_outlier_edge_weights.append(ew)
-                    else:
-                        raise WeirdError(
-                            "Duplicate edges shouldn't exist in the graph yet."
-                        )
+                for edge in self.edgeid2obj.values():
+                    edge.is_outlier = 0
+                    non_outlier_edges.append(edge)
+                    ew = edge.data[ew_field]
+                    non_outlier_edge_weights.append(ew)
 
             # Perform relative scaling for non-outlier edges, if possible.
             if len(non_outlier_edges) >= 2:

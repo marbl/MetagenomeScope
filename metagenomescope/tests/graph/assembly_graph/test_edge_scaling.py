@@ -1,5 +1,6 @@
 from metagenomescope.graph import AssemblyGraph
-from pytest import approx
+from metagenomescope.errors import WeirdError
+from pytest import approx, raises
 
 
 def test_get_edge_weight_field():
@@ -143,3 +144,24 @@ def test_scale_edges_low_and_high_outliers():
             assert edge.relative_weight == 1
         else:
             _raise_mult_error(mult)
+
+
+def test_scale_edges_fakes_not_expected():
+    """Test that edges marked as fake cause an error.
+
+    These particular edges are only used (as of writing, at least) to connect a
+    node that has been split with its counterpart node. Scaling these edges
+    doesn't make sense, since they don't have any weight or anything (they're
+    not "real" edges). They shouldn't even exist in the graph, yet! So if they
+    exist, we raise an error.
+
+    It's kinda hard to test this because AssemblyGraph._scale_edges() is called
+    from the AssemblyGraph constructor (__init__()) -- we cheat by calling
+    _scale_edges() for a second time here after creating a graph. This should
+    trigger an error if the graph in question contains any fake edges (which is
+    the case for the bubble chain test graph).
+    """
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
+    with raises(WeirdError) as ei:
+        ag._scale_edges()
+    assert str(ei.value) == "Fake edges shouldn't exist in the graph yet."
