@@ -1036,8 +1036,9 @@ class AssemblyGraph(object):
 
     def _scale_nodes_all_uniform(self):
         for node in self.nodeid2obj.values():
-            node.relative_length = 0.5
-            node.longside_proportion = config.MID_LONGSIDE_PROPORTION
+            if "orientation" in node.data:
+                node.relative_length = 0.5
+                node.longside_proportion = config.MID_LONGSIDE_PROPORTION
 
     def _scale_nodes(self):
         """Scales nodes in the graph based on their lengths.
@@ -1152,13 +1153,18 @@ class AssemblyGraph(object):
         opposite from what we store here.
         """
         for node in self.nodeid2obj.values():
-            area = config.MIN_NODE_AREA + (
-                node.relative_length * config.NODE_AREA_RANGE
-            )
-            # Again, in the interface the height will be the width and the
-            # width will be the height
-            node.height = area**node.longside_proportion
-            node.width = area / node.height
+            if node.relative_length is not None:
+                area = config.MIN_NODE_AREA + (
+                    node.relative_length * config.NODE_AREA_RANGE
+                )
+                # Again, in the interface the height will be the width and the
+                # width will be the height
+                node.height = area**node.longside_proportion
+                node.width = area / node.height
+            else:
+                # TODO make into a config variable
+                # matches flye's graphs' node sizes
+                node.height = node.width = 0.3
 
     def get_edge_weight_field(
         self, field_names=["bsize", "multiplicity", "cov", "kmer_cov"]
