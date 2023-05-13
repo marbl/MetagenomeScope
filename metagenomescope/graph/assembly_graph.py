@@ -202,16 +202,14 @@ class AssemblyGraph(object):
             )
 
         # Defer this until after we do pattern decomposition, to account for
-        # split nodes. (At this point we have already called _scale_nodes() --
-        # so the presence of split nodes shouldn't change how other nodes in
-        # the graph are scaled.)
-        # TODO -- update _compute_node_dimensions() to run on the decomposed
-        # graph, not the original graph
+        # split nodes. (At this point we have already called
+        # self._scale_nodes() -- so the presence of split nodes shouldn't
+        # change how other nodes in the graph are scaled.)
         self._compute_node_dimensions()
 
         # Since layout can take a while, we leave it to the creator of this
         # object to call .layout() (if for example they don't actually need to
-        # layout the graph, and they just want to do pattern detection).
+        # lay out the graph, and they just want to do pattern detection).
         #
         # Some functions require that layout has already been performed,
         # though. These functions can just use this flag to figure out if they
@@ -1788,7 +1786,8 @@ class AssemblyGraph(object):
         # add on additional fields accordingly.
         #
         # These are keyed by integer ID (i.e. what was produced by
-        # self.reindex_graph()) <-- TODO, key by nodeid2obj keys instead
+        # self.reindex_graph()) <-- TODO, key by nodeid2obj keys instead [and
+        # also remove length/etc since not guaranteed for all graphs]
         node_fields = [
             "name",
             "length",
