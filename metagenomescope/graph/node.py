@@ -233,7 +233,7 @@ class Node(object):
 
     def to_dot(self, label=True, lr=True):
         if label:
-            labelstr = f',label="{repr(self)}",fixedsize=true'
+            labelstr = f',label="{self.name}",fixedsize=true'
         else:
             labelstr = ""
 
