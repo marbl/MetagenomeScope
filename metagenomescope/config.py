@@ -148,7 +148,7 @@ if COLOR_NODES:
 # NOTE: "dir=none" gives "undirected" edges
 # Keeping headport=n,tailport=s is strongly recommended, since that impacts how
 # edges are positioned and drawn in the graph (and the viewer interface code
-# expects # edges to originate from nodes' "headports" and end at nodes'
+# expects edges to originate from nodes' "headports" and end at nodes'
 # "tailports").
 GLOBALEDGE_STYLE = "headport=n,tailport=s"
 
