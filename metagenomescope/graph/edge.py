@@ -198,3 +198,32 @@ class Edge(object):
 
     def set_cc_num(self, cc_num):
         self.cc_num = cc_num
+
+    def to_dot(self, level="new"):
+        # TODO make all of these constants (dashed, colors, penwidth min/max)
+        # into config/parameters...
+        attrs = []
+        if self.is_fake:
+            attrs.append('style="dashed"')
+
+        MIN_PW = 0.5
+        MAX_PW = 1.5
+        if self.is_outlier == -1:
+            attrs.append('color="blue"')
+        elif self.is_outlier == 1:
+            attrs.append('color="red"')
+
+        if self.relative_weight is not None:
+            pw = MIN_PW + (self.relative_weight * (MAX_PW - MIN_PW))
+            attrs.append(f"penwidth={pw}")
+
+        attrs_str = ",".join(attrs)
+
+        if level == "dec":
+            decl = f"{self.dec_src_id} -> {self.dec_tgt_id}"
+        elif level == "new":
+            decl = f"{self.new_src_id} -> {self.new_tgt_id}"
+        else:
+            raise WeirdError(f"Unrecognized edge level: {level}")
+
+        return f"\t{decl} [{attrs_str}];\n"

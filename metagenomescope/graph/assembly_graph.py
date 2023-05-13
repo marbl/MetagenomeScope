@@ -1502,9 +1502,7 @@ class AssemblyGraph(object):
                     data["cc_num"] = cc_i
                     height = data["height"]
                     width = data["width"]
-                    shape = config.NODE_ORIENTATION_TO_SHAPE[
-                        data["orientation"]
-                    ]
+                    shape = data["shape"]
                 gv_input += "\t{} [height={},width={},shape={}];\n".format(
                     node_id, height, width, shape
                 )
@@ -1738,30 +1736,29 @@ class AssemblyGraph(object):
                 subprocess.run(f"dot -Tpng {dfp} > {png_fp}", shell=True)
                 conclude_msg()
 
-    def to_dot(self, output_filepath, component_number=None):
-        """TODO. Outputs a DOT (and/or XDOT?) representation of the graph.
+    def to_dot(self, output_fp):
+        """Outputs a DOT representation of the assembly graph.
 
-        Intended for debugging, but we could also use this to bring back a CLI
-        option for outputting DOT files.
+        We represent patterns as Graphviz "clusters" in the DOT file; this
+        means that the DOT representation will bear similarity to the fully
+        uncollapsed view you'd see in MetagenomeScope.
 
-        Notes
-        -----
-        Not sure how exactly this should work. Some plans:
-
-        - If component_number is None, then output info for the whole graph; if
-          it's not None, output info for just that component (as ordered by
-          get_connected_components()).
-
-        - Include all nodes/edges/patterns in the layout? (I guess we could
-          uhhh just overlay the nodes onto the patterns? Or we could label the
-          patterns as "clusters" in the graph? Or just draw the top-level
-          decomposed graph. IDK.)
-
-        - Do we want to include coordinate info from layout()? We can do that
-          (with XDOT files), but we can always instead output the graph in
-          DOT format.
+        Parameters
+        ----------
+        output_fp: str
+            The filepath to which this DOT file will be written.
         """
-        raise NotImplementedError
+        gv = layout_utils.get_gv_header()
+        # we only need to bother including patterns, nodes, and edges in the
+        # top level of the graph; stuff inside patterns will be included as
+        # part of the top-level pattern's to_dot() :)
+        for obj_coll in (self.pattid2obj, self.nodeid2obj, self.edgeid2obj):
+            for obj in obj_coll.values():
+                if obj.parent_id is None:
+                    gv += obj.to_dot()
+        gv += "}"
+        with open(output_fp, "w") as fh:
+            fh.write(gv)
 
     def to_cytoscape_compatible_format(self):
         """TODO."""

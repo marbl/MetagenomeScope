@@ -18,7 +18,7 @@
 
 
 from metagenomescope.config import SPLIT_SEP, SPLIT_LEFT, SPLIT_RIGHT
-from metagenomescope.errors import WeirdError
+from metagenomescope.errors import WeirdError, GraphParsingError
 
 
 def get_node_name(basename, split):
@@ -131,11 +131,7 @@ class Node(object):
         self.x = None
         self.y = None
 
-        # TODO: set this based on the data? Like, if the data has "orientation"
-        # given, then set this to a house or invhouse; otherwise, set it to a
-        # circle. and I guess update this if this node is split, also (taking
-        # into account the previous shape).
-        self.shape = "circle"
+        self._set_shape()
 
         # ID of the pattern containing this node, or None if this node
         # exists in the top level of the graph.
@@ -166,6 +162,7 @@ class Node(object):
             )
         self.split = split_type
         self.name = get_node_name(self.basename, self.split)
+        self._set_shape()
 
     def unsplit(self):
         if self.is_not_split():
@@ -178,6 +175,7 @@ class Node(object):
                 f"Shouldn't {self} already have a counterpart node ID?"
             )
         self.counterpart_node_id = None
+        self._set_shape()
 
     def make_into_left_split(self):
         self._make_into_split(SPLIT_LEFT)
@@ -187,3 +185,63 @@ class Node(object):
 
     def set_cc_num(self, cc_num):
         self.cc_num = cc_num
+
+    def _set_shape(self):
+        if self.split not in (SPLIT_LEFT, SPLIT_RIGHT, None):
+            raise WeirdError(f"Unrecognized split value: {self.split}")
+
+        if "orientation" in self.data:
+            orientation = self.data["orientation"]
+            # If a node has a weird messed-up orientation, we can also just
+            # make it a circle shape or something -- but it's safer to loudly
+            # throw an error, esp since i don't think this should normally
+            # happen
+            if orientation not in ("+", "-"):
+                raise GraphParsingError(
+                    f"Unsupported node orientation: {orientation}. Should be "
+                    '"+" or "-". If this is not the result of an error '
+                    "somewhere and is actually a real orientation in your "
+                    "graph, please open an issue on GitHub so we can add "
+                    "support for it!"
+                )
+
+            if orientation == "+":
+                if self.split == SPLIT_LEFT:
+                    self.shape = "rect"
+                elif self.split == SPLIT_RIGHT:
+                    self.shape = "invtriangle"
+                else:
+                    self.shape = "invhouse"
+            else:
+                if self.split == SPLIT_LEFT:
+                    self.shape = "triangle"
+                elif self.split == SPLIT_RIGHT:
+                    self.shape = "rect"
+                else:
+                    self.shape = "house"
+        else:
+            # NOTE: Graphviz doesn't support semicircles (as of writing). We
+            # should be able to get around this by using custom shapes
+            # (https://graphviz.org/faq/#FaqCustShape), but for now we just use
+            # (inv)triangles as a hacky workaround.
+            if self.split == SPLIT_LEFT:
+                self.shape = "triangle"
+            elif self.split == SPLIT_RIGHT:
+                self.shape = "invtriangle"
+            else:
+                self.shape = "circle"
+
+    def to_dot(self, label=True):
+        if label:
+            labelstr = f',label="{repr(self)}",fixedsize=true'
+        else:
+            labelstr = ""
+
+        if self.split is not None:
+            hgt = self.height / 2
+        else:
+            hgt = self.height
+        return (
+            f"\t{self.unique_id} [height={hgt},width={self.width},"
+            f"shape={self.shape}{labelstr}];\n"
+        )

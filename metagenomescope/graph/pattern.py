@@ -225,6 +225,19 @@ class Pattern(Node):
                 obj.set_cc_num(cc_num)
         super().set_cc_num(cc_num)
 
+    def to_dot(self):
+        gv = f"subgraph cluster_{self.unique_id} {{\n"
+        gv += '\tstyle="filled";\n'
+        gv += f'\tfillcolor="{config.PT2COLOR[self.pattern_type]}";\n'
+        for node in self.nodes:
+            # Since both Nodes and Patterns have their own to_dot() methods, we
+            # actually don't need to distinguish between them here :D
+            gv += node.to_dot()
+        for edge in self.edges:
+            gv += edge.to_dot()
+        gv += "}\n"
+        return gv
+
     def layout(self):
         # Recursively go through all of the nodes within this pattern. If any
         # of these isn't actually a node (and is actually a pattern), then lay
@@ -237,16 +250,10 @@ class Pattern(Node):
         # been laid out, lay out this pattern.
 
         gv_input = layout_utils.get_gv_header()
-        # Add node info
         for node in self.nodes:
-            gv_input += (
-                f"\t{node.unique_id} [height={node.height},width={node.width},"
-                f"shape={node.shape}];\n"
-            )
-        # Add edge info. Note that we don't bother passing thickness info to
-        # dot, since (at least to my knowledge) it doesn't impact the layout.
+            gv_input += node.to_dot(label=False)
         for edge in self.edges:
-            gv_input += f"\t{edge.dec_src_id} -> {edge.dec_tgt_id};\n"
+            gv_input += edge.to_dot(level="dec")
         gv_input += "}"
 
         # Now, we can lay out this pattern's graph! Yay.

@@ -98,8 +98,6 @@ COLL_CL_H_FAC = 1.0 / 2.0
 ### Frequently-used GraphViz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html
 
-NODE_ORIENTATION_TO_SHAPE = {"+": "invhouse", "-": "house"}
-
 ### Global graph settings (applied to every node/edge/etc. in the graph) ###
 #
 # NOTE that most of the current settings here are important for keeping the
@@ -162,24 +160,6 @@ GLOBALEDGE_STYLE = "headport=n,tailport=s"
 GLOBALCLUSTER_STYLE = "margin=0"
 
 ### Other misc. config variables ###
-# Whether or not to specify colors for node groups in .gv/.xdot files. If this
-# is True, then PATTERN2COLOR is used to set the colors.
-COLOR_PATTERNS = True
-# All of these colors are based on the default pattern colors in the viewer
-# interface as of June 20, 2018.
-# The exception to this is "other_structural_patterns", which shouldn't ever
-# be a pattern object's plural_name attribute (NodeGroups should never be
-# directly created). If this ever happens, though, the resulting pattern will
-# be colored black.
-PATTERN2COLOR = {
-    "bubbles": "#9abaf3",
-    "frayed_ropes": "#59f459",
-    "chains": "#eedddd",
-    "cyclic_chains": "#ffd163",
-    "misc_patterns": "#c398eb",
-    "other_structural_patterns": "#000000",
-}
-
 # The default values for -maxn and -maxe in the collate script.
 MAXN_DEFAULT = 7999
 MAXE_DEFAULT = 7999
@@ -238,6 +218,19 @@ PT2HR = {
     PT_CYCLICCHAIN: "Cyclic Chain",
     PT_FRAYEDROPE: "Frayed Rope",
 }
+
+# Whether or not to specify colors for node groups in .gv/.xdot files. If this
+# is True, then PT2COLOR is used to set the colors.
+COLOR_PATTERNS = True
+
+# Maps pattern types to colors.
+PT2COLOR = {
+    PT_BUBBLE: "#9abaf3",
+    PT_FRAYEDROPE: "#59f459",
+    PT_CHAIN: "#eedddd",
+    PT_CYCLICCHAIN: "#ffd163",
+}
+
 
 # Various status messages/message within the graph prefixes that are displayed
 # to the user.
