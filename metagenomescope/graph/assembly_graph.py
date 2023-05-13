@@ -1267,7 +1267,7 @@ class AssemblyGraph(object):
                     weights.append(edge.data[ew_field])
                 else:
                     raise WeirdError(
-                        "Duplicate edges shouldn't exist in the graph yet."
+                        "Fake edges shouldn't exist in the graph yet."
                     )
 
             non_outlier_edges = []
