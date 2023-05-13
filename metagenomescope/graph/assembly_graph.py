@@ -1667,14 +1667,39 @@ class AssemblyGraph(object):
                 data["ctrl_pt_coords"]
             )
 
+    def to_dot(self, output_fp):
+        """Outputs a DOT representation of the assembly graph.
+
+        We represent patterns as Graphviz "clusters" in the DOT file; this
+        means that the DOT representation will bear similarity to the fully
+        uncollapsed view you'd see in MetagenomeScope.
+
+        Parameters
+        ----------
+        output_fp: str
+            The filepath to which this DOT file will be written.
+        """
+        gv = layout_utils.get_gv_header()
+        # we only need to bother including patterns, nodes, and edges in the
+        # top level of the graph; stuff inside patterns will be included as
+        # part of the top-level pattern's to_dot() :)
+        for obj_coll in (self.pattid2obj, self.nodeid2obj, self.edgeid2obj):
+            for obj in obj_coll.values():
+                if obj.parent_id is None:
+                    gv += obj.to_dot()
+        gv += "}"
+        with open(output_fp, "w") as fh:
+            fh.write(gv)
+
     def dump_dots(
         self,
         output_dir,
         graph_fn="graph.gv",
         decomposed_graph_fn="dec-graph.gv",
+        full_graph_fn="full-graph.gv",
         make_pngs=True,
     ):
-        """Writes out the (un)collapsed and collapsed graphs in DOT format.
+        """Writes out multiple versions of the graph in DOT format.
 
         Parameters
         ----------
@@ -1689,10 +1714,16 @@ class AssemblyGraph(object):
             Filename to give the DOT output for the collapsed graph. If this
             is None, we won't write out the collapsed graph.
 
+        full_graph_fn: str or None
+            Filename to give the DOT output for the full graph (including all
+            nodes and edges, and representing patterns as clusters). If this
+            is None, we won't write out the full graph.
+
         make_pngs: bool
             If True, convert all of the DOT files we wrote out to PNGs; if
-            False, don't. The PNG files for the uncollapsed and collapsed graph
-            will be named "graph.png" and "dec-graph.png", respectively.
+            False, don't. The PNG files for the uncollapsed, collapsed, and
+            full graph will be named "graph.png", "dec-graph.png", and
+            "full-graph.png", respectively.
 
         Notes
         -----
@@ -1736,29 +1767,16 @@ class AssemblyGraph(object):
                 subprocess.run(f"dot -Tpng {dfp} > {png_fp}", shell=True)
                 conclude_msg()
 
-    def to_dot(self, output_fp):
-        """Outputs a DOT representation of the assembly graph.
-
-        We represent patterns as Graphviz "clusters" in the DOT file; this
-        means that the DOT representation will bear similarity to the fully
-        uncollapsed view you'd see in MetagenomeScope.
-
-        Parameters
-        ----------
-        output_fp: str
-            The filepath to which this DOT file will be written.
-        """
-        gv = layout_utils.get_gv_header()
-        # we only need to bother including patterns, nodes, and edges in the
-        # top level of the graph; stuff inside patterns will be included as
-        # part of the top-level pattern's to_dot() :)
-        for obj_coll in (self.pattid2obj, self.nodeid2obj, self.edgeid2obj):
-            for obj in obj_coll.values():
-                if obj.parent_id is None:
-                    gv += obj.to_dot()
-        gv += "}"
-        with open(output_fp, "w") as fh:
-            fh.write(gv)
+        if full_graph_fn is not None:
+            operation_msg("Writing out the full graph...")
+            ffp = os.path.join(output_dir, full_graph_fn)
+            self.to_dot(ffp)
+            conclude_msg()
+            if make_pngs:
+                operation_msg("Visualizing full graph as a PNG...")
+                png_fp = os.path.join(output_dir, "full-graph.png")
+                subprocess.run(f"dot -Tpng {ffp} > {png_fp}", shell=True)
+                conclude_msg()
 
     def to_cytoscape_compatible_format(self):
         """TODO."""
