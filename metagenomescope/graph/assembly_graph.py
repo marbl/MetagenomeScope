@@ -1346,18 +1346,29 @@ class AssemblyGraph(object):
         return node_id in self.pattid2obj
 
     def get_connected_components(self):
-        """Returns a list of 3-tuples, where the first element in each tuple is
-        a set of (top-level) node IDs within this component in the decomposed
-        graph, the second element is the total number of nodes (not
-        counting collapsed patterns, but including nodes within patterns and
-        also including duplicate nodes) within this component, and the third
-        element is the total number of edges within this component.
+        """Returns a list of 3-tuples containing component information.
 
-        Components are sorted in descending order by number of nodes first,
-        then number of edges, then number of patterns. This is a simple-ish way
-        of highlighting the most "interesting" components -- e.g. a component
-        with 1 node with an edge to itself is more "interesting" than a
-        component with just 1 node and no edges.
+        Returns
+        -------
+        list of 3-tuples
+            Each 3-tuple describes a (weakly) connected component in the
+            decomposed graph.
+
+            1. The first element in a tuple is a set of (top-level) node IDs
+               within this component in the decomposed graph.
+
+            2. The second element is the total number of nodes (not counting
+               collapsed patterns, but including nodes within patterns and
+               also including split nodes) within this component.
+
+            3. The third element is the total number of edges within this
+               component.
+
+            Components are sorted in descending order by number of nodes first,
+            then number of edges, then number of patterns. This is a simple-ish
+            way of highlighting the most "interesting" components -- e.g. a
+            component with 1 node with an edge to itself is more "interesting"
+            than a component with just 1 node and no edges.
         """
         ccs = list(nx.weakly_connected_components(self.decomposed_graph))
         # Set up as [[zero-indexed cc pos, node ct, edge ct, pattern ct], ...]
@@ -1380,12 +1391,14 @@ class AssemblyGraph(object):
                     indices_and_cts[i][1] += 1
                 # Record all of the top-level edges in this component by
                 # looking at the outgoing edges of each "node", whether it's a
-                # real or collapsed-pattern node.
+                # real or collapsed-pattern node. (Don't worry, this counts
+                # parallel edges.)
+                #
                 # We could also create the induced subgraph of this component's
                 # nodes (in "cc") and then count the number of edges there, but
                 # I think this is more efficient.
                 indices_and_cts[i][2] += len(
-                    self.decomposed_graph.edges(node_id)
+                    self.decomposed_graph.out_edges(node_id)
                 )
 
         sorted_indices_and_cts = sorted(
