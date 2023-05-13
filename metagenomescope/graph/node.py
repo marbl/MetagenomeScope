@@ -231,7 +231,7 @@ class Node(object):
             else:
                 self.shape = "circle"
 
-    def to_dot(self, label=True):
+    def to_dot(self, label=True, lr=True):
         if label:
             labelstr = f',label="{repr(self)}",fixedsize=true'
         else:
@@ -241,7 +241,25 @@ class Node(object):
             hgt = self.height / 2
         else:
             hgt = self.height
+        # NOTE: orientation=90 means that this rotates nodes to point in the
+        # left --> right direction, which is useful when drawing DOT files for
+        # debugging when using rankdir=LR. orientation=0 doesn't rotate nodes,
+        # and should be used if the graph points from top to bottom (which is
+        # the case for layout right now, and the reason for that is... i didn't
+        # realize that the orientation attr existed before, welp).
+        #
+        # Shoutouts to https://stackoverflow.com/a/45431027 for the wisdom that
+        # the node "orientation" attr existed.
+        if lr:
+            width = hgt
+            height = self.width
+            orientation = 90
+        else:
+            width = self.width
+            height = hgt
+            orientation = 0
+
         return (
-            f"\t{self.unique_id} [height={hgt},width={self.width},"
-            f"shape={self.shape}{labelstr}];\n"
+            f"\t{self.unique_id} [height={height},width={width},"
+            f"shape={self.shape}{labelstr},orientation={orientation}];\n"
         )

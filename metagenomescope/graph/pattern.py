@@ -251,7 +251,7 @@ class Pattern(Node):
 
         gv_input = layout_utils.get_gv_header()
         for node in self.nodes:
-            gv_input += node.to_dot(label=False)
+            gv_input += node.to_dot(label=False, lr=False)
         for edge in self.edges:
             gv_input += edge.to_dot(level="dec")
         gv_input += "}"
