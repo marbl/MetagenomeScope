@@ -26,8 +26,8 @@ Some of the features MetagenomeScope includes:
 
 - Identifies and visually highlights "structural patterns" in the graph
   (bubbles, chains, cyclic chains, frayed ropes)
-  - Repeats these identifications iteratively in order to simplify the display
-    of complex regions of the graph
+  - Repeats these identifications iteratively in order to support the
+    decomposition of complex regions of the graph
   - Allows users to interactively collapse or uncollapse these patterns, in
     order to display the graph at different levels of detail
 
@@ -118,6 +118,59 @@ future.
 - [Velvet E. coli graph](https://marbl.github.io/MetagenomeScope/demos/bandage-ecoli-example/index.html)
   - This graph is example data from the website of [Bandage](http://rrwick.github.io/Bandage/)
     (which is another great tool for visualizing assembly graphs :)
+
+## Vignettes
+
+<details>
+  <summary><strong>I want to visualize an assembly graph.</strong></summary>
+
+Let's say the assembly graph is located in a file named `graph.gfa`. We can use
+the following command:
+
+```
+mgsc -i graph.gfa -o viz
+```
+
+This will create a visualization in the directory `viz/` of this assembly
+graph.
+</details>
+
+<details>
+  <summary><strong>I want to visualize an assembly graph, and I don't care
+about the "pattern identification" stuff. Can you just show me the raw
+structure of the graph?</strong></summary>
+
+Sure! The `--no-patterns` flag will disable pattern identification.
+
+```
+mgsc -i graph.gfa -o vizraw --no-patterns
+```
+</details>
+
+<details>
+  <summary><strong>I've got a really big graph, and I don't want to visualize
+it -- I just want to get a summary of how many nodes, edges, bubbles, etc. are
+present in each component of the graph.</strong></summary>
+
+The `-os` / `--output-ccstats` option will write out a
+[TSV file](https://en.wikipedia.org/wiki/Tab-separated_values)
+describing all components in the assembly graph.
+
+MetagenomeScope will still apply the `-maxn` and `-maxe` options to ignore very
+large connected components of the graph; you can turn off these settings (and
+thus tell MetagenomeScope to look at _all_ components of the graph) by setting
+them to `0`.
+
+So, the following command will work:
+
+```
+mgsc -i graph.gfa -os stats.tsv -maxn 0 -maxe 0
+```
+
+(**NOTE**: I need to make `-o` optional -- this command will currently fail
+since `-o` is not set. This should be fixed soon.)
+</details>
+
 
 ## Details
 
