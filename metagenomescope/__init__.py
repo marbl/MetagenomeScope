@@ -18,7 +18,6 @@
 
 # Import submodules so they're easy to see from REPL
 from . import (
-    arg_utils,
     config,
     errors,
     file_utils,
@@ -33,7 +32,6 @@ from . import (
 # ... And explicitly declare them in __all__. This will stop flake8 from
 # yelling at us about these imports being unused.
 __all__ = [
-    "arg_utils",
     "config",
     "errors",
     "file_utils",

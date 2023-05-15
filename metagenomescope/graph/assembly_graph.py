@@ -309,7 +309,7 @@ class AssemblyGraph(object):
                         prefix = "\n"
                     operation_msg(
                         (
-                            f"{prefix}Ignoring a component wtih {num_nodes:,} "
+                            f"{prefix}Ignoring a component with {num_nodes:,} "
                             f"nodes and {num_edges:,} edges."
                         ),
                         True,

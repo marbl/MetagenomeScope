@@ -23,6 +23,7 @@ from distutils.dir_util import copy_tree
 import jinja2
 from . import graph, __version__
 from .msg_utils import operation_msg, conclude_msg
+from .file_utils import create_output_dir
 from .config import SEPARATOR_CHAR
 
 
@@ -97,8 +98,7 @@ def make_viz(
         f"Writing the visualization to the output directory, {output_dir}..."
     )
 
-    # Make the output directory.
-    arg_utils.create_output_dir(output_dir)
+    create_output_dir(output_dir)
 
     # Copy "support files" to output directory. (This part of code taken from
     # https://github.com/biocore/qurro/blob/master/qurro/generate.py, in the

@@ -15,19 +15,17 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
-####
-# Tests the various (very simple) functions in arg_utils.py.
 
 import os
 import tempfile
 import pytest
-from metagenomescope import arg_utils
+from metagenomescope import file_utils
 
 
 def test_create_output_dir():
     # Test creating multiple dirs at once using makedirs
     with tempfile.TemporaryDirectory() as tmpdir:
-        arg_utils.create_output_dir("{}/mgsc-def/mgsc-ghi".format(tmpdir))
+        file_utils.create_output_dir("{}/mgsc-def/mgsc-ghi".format(tmpdir))
         assert os.listdir(tmpdir) == ["mgsc-def"]
         assert os.listdir("{}/mgsc-def".format(tmpdir)) == ["mgsc-ghi"]
         assert os.listdir("{}/mgsc-def/mgsc-ghi".format(tmpdir)) == []
@@ -35,7 +33,7 @@ def test_create_output_dir():
         # Test error raised if directory exists (this functionality actually
         # doesn't come from our code, it's just a freebie thanks to python)
         with pytest.raises(FileExistsError) as e:
-            arg_utils.create_output_dir(tmpdir)
+            file_utils.create_output_dir(tmpdir)
         # the actual error message includes some extra text (e.g. "[Errno 17]")
         # so we get around this by just checking part of the message looks ok
         assert "File exists: '{}'".format(tmpdir) in str(e.value)

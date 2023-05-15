@@ -10,7 +10,7 @@ def test_ccs_avoided_due_to_max_node_ct(capsys):
     # (the first message about not laying out a cmp with 5 nodes and 4 edges
     # occurs twice)
     exp_msgs = (
-        "Ignoring a component (5 nodes, 4 edges): exceeds -maxn or -maxe.",
+        "Ignoring a component with 5 nodes and 4 edges.",
         "Laying out small (each containing < 5 nodes) remaining component(s)...",
     )
     for m in exp_msgs:
@@ -20,6 +20,7 @@ def test_ccs_avoided_due_to_max_node_ct(capsys):
 def test_error_if_all_ccs_avoided():
     with pytest.raises(ValueError) as ei:
         AssemblyGraph(
-            "metagenomescope/tests/input/sample1.gfa", max_node_count=0
+            "metagenomescope/tests/input/bubble_chain_test.gml",
+            max_node_count=3,
         )
     assert "All components were too large to lay out." in str(ei.value)
