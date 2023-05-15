@@ -16,25 +16,34 @@ as I work on improving this, and please let me know if you have any questions.
 
 ## Summary
 
-MetagenomeScope is an interactive visualization tool designed for metagenomic
+MetagenomeScope is an interactive visualization tool designed for (meta)genomic
 sequence assembly graphs. The tool aims to display a [hierarchical
 layout](https://en.wikipedia.org/wiki/Layered_graph_drawing) of the input graph
 while emphasizing the presence of small-scale details that can correspond to
-interesting biological features in the data.
+interesting biological properties of the assembly.
 
-To this end, MetagenomeScope
-highlights certain "structural patterns" of contigs in the graph (repeating the
-pattern identification hierarchically),
-splits the graph into its connected components (by default only displaying one
-connected component at a time),
-and uses [Graphviz](https://www.graphviz.org/)'
-[`dot`](https://www.graphviz.org/pdf/dotguide.pdf) tool to hierarchically
-lay out each connected component of the graph.
+Some of the features MetagenomeScope includes:
 
-MetagenomeScope also contains many other features intended to simplify
-exploratory analysis of assembly graphs, including tools for scaffold
-visualization, path finishing, and coloring nodes by biological metadata (e.g.
-GC content). (As mentioned above, many of these features are not available in
+- Identifies and visually highlights "structural patterns" in the graph
+  (bubbles, chains, cyclic chains, frayed ropes)
+  - Repeats these identifications iteratively in order to simplify the display
+    of complex regions of the graph
+  - Allows users to interactively collapse or uncollapse these patterns, in
+    order to display the graph at different levels of detail
+
+- Uses [Graphviz](https://www.graphviz.org/)'
+  [`dot`](https://www.graphviz.org/pdf/dotguide.pdf) tool to hierarchically
+  lay out each connected component of the graph
+
+- Given an [AGP file](https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/)
+   describing, for example, scaffolds consisting of multiple contigs, supports
+   visualization of these as paths through the graph
+
+- Interactive path finishing
+
+- Coloring nodes and edges by arbitrary metadata (e.g. GC content, coverage)
+
+(As mentioned above, many of these features are not available in
 the current version yet.)
 
 ## Installation
@@ -68,7 +77,7 @@ me](#contact) and I'll try to help out.
 
 ## Visualizing an assembly graph
 
-Assuming you are currently in the conda environment we just created,
+Assuming you've activated the conda environment we just created,
 visualizing an assembly graph can be done in one command:
 
 ```
@@ -76,8 +85,8 @@ mgsc -i [path to your assembly graph] -o [output directory name]
 ```
 
 The output directory will contain an `index.html` file that can be opened in
-most modern web browsers. (The file points to other resources within the
-directory, so please don't move it out of the directory.)
+most modern web browsers. (The `index.html` file points to other resources
+located within the directory, so please don't move it out of the directory.)
 
 ### What types of assembly graphs can this tool visualize?
 
