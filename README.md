@@ -86,7 +86,7 @@ mgsc -i [path to your assembly graph] -o [output directory name]
 
 The output directory will contain an `index.html` file that can be opened in
 most modern web browsers. (The `index.html` file points to other resources
-located within the directory, so please don't move it out of the directory.)
+located withnn the directory, so please don't move it out of the directory.)
 
 ### What types of assembly graphs can this tool visualize?
 
@@ -131,8 +131,8 @@ the following command:
 mgsc -i graph.gfa -o viz
 ```
 
-This will create a visualization in the directory `viz/` of this assembly
-graph.
+This will create a visualization of this assembly graph in the directory
+`viz/`.
 </details>
 
 <details>
@@ -145,6 +145,8 @@ Sure! The `--no-patterns` flag will disable pattern identification.
 ```
 mgsc -i graph.gfa -o vizraw --no-patterns
 ```
+This will create a visualization of this assembly graph, without any patterns
+identified, in the directory `vizraw/`.
 </details>
 
 <details>
@@ -154,14 +156,18 @@ present in each component of the graph.</strong></summary>
 
 The `-os` / `--output-ccstats` option will write out a
 [TSV file](https://en.wikipedia.org/wiki/Tab-separated_values)
-describing all components in the assembly graph.
+describing all components in the assembly graph in this way. This is a simple
+way to summarize even massive graphs; it can be useful if you're working, for
+example, on a remote server (and you just want an overview of the basic
+structure of a graph's components).
 
-MetagenomeScope will still apply the `-maxn` and `-maxe` options to ignore very
-large connected components of the graph; you can turn off these settings (and
-thus tell MetagenomeScope to look at _all_ components of the graph) by setting
-them to `0`.
+If your graph is large enough, and if you don't intend to visualize it anyway,
+then you will probably also want to disable the `-maxn` and `-maxe` options
+(and thus tell MetagenomeScope to consider all components, no matter how large
+they are).
 
-So, the following command will work:
+The following command produces a TSV file named `stats.tsv` summarizing all
+components of an assembly graph:
 
 ```
 mgsc -i graph.gfa -os stats.tsv -maxn 0 -maxe 0
@@ -332,6 +338,19 @@ parsers MetagenomeScope uses for GFA and FASTG files
 means that, at the moment, trying to use MetagenomeScope to visualize a GFA or
 FASTG file containing parallel edges will cause an error. I hope to address
 this (at least for GFA files) soon.
+</details>
+
+<details>
+  <summary><strong>What's the deal with the `-maxn` / `-maxe` options?</strong></summary>
+
+By default, MetagenomeScope will apply these options to ignore large connected
+components of the graph -- this is because performing hierarchical layout of
+very large components can be computationally intensive.
+
+You can turn off these settings (and
+thus tell MetagenomeScope to look at _all_ components of the graph) by setting
+both `-maxn` and `-maxe` to `0`.
+
 </details>
 
 ## License
