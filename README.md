@@ -341,7 +341,7 @@ this (at least for GFA files) soon.
 </details>
 
 <details>
-  <summary><strong>What's the deal with the `-maxn` / `-maxe` options?</strong></summary>
+  <summary><strong>What's the deal with the <code>-maxn</code> / <code>-maxe</code> options?</strong></summary>
 
 By default, MetagenomeScope will apply these options to ignore large connected
 components of the graph -- this is because performing hierarchical layout of
