@@ -21,7 +21,7 @@ import os
 import time
 from distutils.dir_util import copy_tree
 import jinja2
-from . import graph, arg_utils, __version__
+from . import graph, __version__
 from .msg_utils import operation_msg, conclude_msg
 from .config import SEPARATOR_CHAR
 
@@ -29,18 +29,10 @@ from .config import SEPARATOR_CHAR
 def make_viz(
     input_file: str,
     output_dir: str,
-    # assume_oriented: bool,
     max_node_count: int,
     max_edge_count: int,
     patterns: bool,
-    # metacarvel_bubble_file: str,
-    # user_pattern_file: str,
-    # spqr: bool,
-    # sp: bool,
-    # pg: bool,
-    # px: bool,
-    # nbdf: bool,
-    # npdf: bool,
+    ccstats: str,
 ):
     """Creates a visualization.
 
@@ -66,6 +58,9 @@ def make_viz(
     patterns: bool
         If True, identify and highlight structural patterns; if False, don't.
 
+    ccstats: str or None
+        If passed, we'll write out cc stats to this filepath.
+
     Returns
     -------
     None
@@ -76,8 +71,6 @@ def make_viz(
     first_line = f"Running MetagenomeScope (version {__version__})..."
     second_line = SEPARATOR_CHAR * len(first_line)
     operation_msg(f"{first_line}\n{second_line}", newline=True)
-    arg_utils.check_dir_existence(output_dir)
-    arg_utils.validate_max_counts(max_node_count, max_edge_count)
 
     # Read the assembly graph file and create an object representing it.
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
@@ -88,6 +81,9 @@ def make_viz(
         max_edge_count=max_edge_count,
         patterns=patterns,
     )
+
+    if ccstats is not None:
+        asm_graph.to_tsv(ccstats)
 
     # We also need to lay out the graph. This can be a time-consuming process,
     # which is why it isn't automatically done when we create an AssemblyGraph

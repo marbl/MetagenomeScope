@@ -19,6 +19,7 @@
 
 import pygraphviz
 from .node import Node
+from .pattern_stats import PatternStats
 from metagenomescope import config, layout_utils, misc_utils
 from metagenomescope.errors import WeirdError
 
@@ -312,3 +313,32 @@ class Pattern(Node):
 
     def make_into_right_split(self):
         raise WeirdError(f"Attempted to right-split pattern {self}.")
+
+    def get_pattern_stats(self):
+        """Gets stats about how many types of each pattern are contained here.
+
+        Note that these include this pattern (i.e. calling this method on a
+        "bottom-level" bubble pattern will indicate that there is 1 bubble
+        here).
+
+        Returns
+        -------
+        PatternStats
+        """
+        stats = PatternStats()
+        if self.pattern_type == config.PT_BUBBLE:
+            stats.num_bubbles += 1
+        elif self.pattern_type == config.PT_CHAIN:
+            stats.num_chains += 1
+        elif self.pattern_type == config.PT_CYCLICCHAIN:
+            stats.num_cyclicchains += 1
+        elif self.pattern_type == config.PT_FRAYEDROPE:
+            stats.num_frayedropes += 1
+        else:
+            raise WeirdError(f"Unrecognized pattern type: {self.pattern_type}")
+
+        for node in self.nodes:
+            if is_pattern(node):
+                stats += node.get_pattern_stats()
+
+        return stats

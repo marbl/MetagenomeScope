@@ -23,7 +23,14 @@
 import click
 from .config import MAXN_DEFAULT, MAXE_DEFAULT
 from .main import make_viz
-from ._param_descriptions import INPUT, OUTPUT_DIR, MAXN, MAXE, PATTERNS_FLAG
+from ._param_descriptions import (
+    INPUT,
+    OUTPUT_DIR,
+    MAXN,
+    MAXE,
+    PATTERNS_FLAG,
+    CCSTATS,
+)
 
 
 # Make mgsc -h (or just mgsc by itself) show the help text
@@ -31,30 +38,37 @@ from ._param_descriptions import INPUT, OUTPUT_DIR, MAXN, MAXE, PATTERNS_FLAG
     context_settings={"help_option_names": ["-h", "--help"]},
     no_args_is_help=True,
 )
-@click.option("-i", "--input-file", required=True, help=INPUT)
-@click.option("-o", "--output-dir", required=True, help=OUTPUT_DIR)
-# @click.option(
-#    "-ao",
-#    "--assume-oriented",
-#    required=False,
-#    default=False,
-#    help=ASSUME_ORIENTED,
-# )
+@click.option(
+    "-i",
+    "--input-file",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    required=True,
+    help=INPUT,
+)
+@click.option(
+    "-o",
+    "--output-dir",
+    type=click.Path(exists=False),
+    required=True,
+    help=OUTPUT_DIR,
+)
 @click.option(
     "-maxn",
     "--max-node-count",
+    type=click.IntRange(min=0),
     required=False,
     default=MAXN_DEFAULT,
-    help=MAXN,
     show_default=True,
+    help=MAXN,
 )
 @click.option(
     "-maxe",
     "--max-edge-count",
+    type=click.IntRange(min=0),
     required=False,
     default=MAXE_DEFAULT,
-    help=MAXE,
     show_default=True,
+    help=MAXE,
 )
 @click.option(
     "--patterns/--no-patterns",
@@ -63,92 +77,30 @@ from ._param_descriptions import INPUT, OUTPUT_DIR, MAXN, MAXE, PATTERNS_FLAG
     show_default=True,
     help=PATTERNS_FLAG,
 )
-# @click.option(
-#    "-mbf", "--metacarvel-bubble-file", required=False, default=None, help=MBF
-# )
-# @click.option(
-#    "-up", "--user-pattern-file", required=False, default=None, help=UP
-# )
-# @click.option(
-#    "-spqr",
-#    "--compute-spqr-data",
-#    required=False,
-#    is_flag=True,
-#    default=False,
-#    help=SPQR,
-# )
-# @click.option(
-#    "-sp",
-#    "--save-structural-patterns",
-#    is_flag=True,
-#    required=False,
-#    default=False,
-#    help=STRUCTPATT,
-# )
-# @click.option(
-#    "-pg",
-#    "--preserve-gv",
-#    is_flag=True,
-#    required=False,
-#    default=False,
-#    help=PG,
-# )
-# @click.option(
-#    "-px",
-#    "--preserve-xdot",
-#    required=False,
-#    is_flag=True,
-#    default=False,
-#    help=PX,
-# )
-# @click.option(
-#    "-nbdf",
-#    "--save-no-backfill-dot-files",
-#    is_flag=True,
-#    required=False,
-#    default=False,
-#    help=NBDF,
-# )
-# @click.option(
-#    "-npdf",
-#    "--save-no-pattern-dot-files",
-#    is_flag=True,
-#    required=False,
-#    default=False,
-#    help=NPDF,
-# )
+@click.option(
+    "-os",
+    "--output-ccstats",
+    type=click.Path(dir_okay=False, writable=True),
+    default=None,
+    show_default=True,
+    help=CCSTATS,
+)
 def run_script(
     input_file: str,
     output_dir: str,
-    # assume_oriented: bool,
     max_node_count: int,
     max_edge_count: int,
     patterns: bool,
-    # metacarvel_bubble_file: str,
-    # user_pattern_file: str,
-    # compute_spqr_data: bool,
-    # save_structural_patterns: bool,
-    # preserve_gv: bool,
-    # preserve_xdot: bool,
-    # save_no_backfill_dot_files: bool,
-    # save_no_pattern_dot_files: bool,
+    output_ccstats: str,
 ) -> None:
     """Creates a folder containing a visualization of an assembly graph."""
     make_viz(
         input_file,
         output_dir,
-        # assume_oriented,
         max_node_count,
         max_edge_count,
         patterns,
-        # metacarvel_bubble_file,
-        # user_pattern_file,
-        # compute_spqr_data,
-        # save_structural_patterns,
-        # preserve_gv,
-        # preserve_xdot,
-        # save_no_backfill_dot_files,
-        # save_no_pattern_dot_files,
+        output_ccstats,
     )
 
 

@@ -180,7 +180,7 @@ def is_valid_frayed_rope(g, start_node_id):
     Parameters
     ----------
     g: nx.MultiDiGraph
-    start_node_id: str
+    start_node_id: int
 
     Returns
     -------
@@ -309,7 +309,7 @@ def is_valid_cyclic_chain(g, start_node_id):
     Parameters
     ----------
     g: nx.MultiDiGraph
-    start_node_id: str
+    start_node_id: int
 
     Returns
     -------
@@ -427,7 +427,7 @@ def is_valid_bulge(g, start_node_id):
     Parameters
     ----------
     g: nx.MultiDiGraph
-    start_node_id: str
+    start_node_id: int
 
     Returns
     -------
@@ -475,7 +475,7 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
     g: nx.MultiDiGraph
         Graph containing start_node_id.
 
-    start_node_id: str
+    start_node_id: int
         Start node to use when searching for a bubble.
 
     nodeid2obj: dict or None
@@ -681,7 +681,7 @@ def is_valid_chain(g, start_node_id):
     Parameters
     ----------
     g: nx.MultiDiGraph
-    start_node_id: str
+    start_node_id: int
 
     Returns
     -------
@@ -877,7 +877,7 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     ----------
     g: nx.MultiDiGraph
 
-    start_node_id: str
+    start_node_id: int
 
     nodeid2obj: dict
         Maps node IDs in g to Node objects.
@@ -1057,7 +1057,7 @@ def is_valid_frayed_rope_tl_only(g, start_node_id, pattid2obj):
     ----------
     g: nx.MultiDiGraph
 
-    start_node_id: str
+    start_node_id: int
 
     pattid2obj: dict
         Maps (some) node IDs in g to Pattern objects. We can assume that nodes

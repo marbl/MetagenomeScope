@@ -41,12 +41,14 @@ MAXN = (
     "We will not visualize connected components containing more nodes than "
     "this. This option is given here because hierarchical graph layout is "
     "relatively slow for large/tangled components, and because our "
-    "visualization interface becomes slow when drawing lots of nodes / edges."
+    "visualization interface becomes slow when drawing lots of nodes / edges. "
+    "Setting this to 0 removes this limit."
 )
 
 MAXE = (
     "We will not visualize connected components containing more edges than "
-    "this. Functions analogously to --max-node-count."
+    "this. Functions analogously to --max-node-count. Setting this to 0 "
+    "removes this limit."
 )
 
 PATTERNS_FLAG = (
@@ -54,6 +56,13 @@ PATTERNS_FLAG = (
     "in the graph and highlight these in the visualization. If --no-patterns "
     'is set, we won\'t do this (and will just visualize the "original" graph '
     "structure)."
+)
+
+CCSTATS = (
+    "If provided, we'll save a tab-separated values (TSV) file to this "
+    "filepath describing the numbers of nodes, edges, and structural patterns "
+    "in each connected component of the graph (ignoring components that are "
+    "removed due to the -maxn/-maxe parameters)."
 )
 
 # TODO: actually change way this works so that -ubl always true
@@ -84,11 +93,6 @@ SPQR = (
     "installation instructions wiki page for details."
 )
 
-
-STRUCTPATT = (
-    "Save .txt files containing node information for all structural patterns "
-    "identified in the graph."
-)
 
 PG = (
     "Save all .gv (DOT) files generated for nontrivial (i.e. containing > 1 "

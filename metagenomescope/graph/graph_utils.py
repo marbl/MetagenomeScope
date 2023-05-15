@@ -5,6 +5,12 @@ def get_only_connecting_edge_uid(g, src_id, tgt_id):
     """Gets the "uid" attribute of the only edge between two nodes.
 
     Raises an error if there is not exactly one edge between these two nodes.
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    src_id: int
+    tgt_id: int
     """
     adj = g.adj[src_id]
     suffix = f"from node ID {src_id} to node ID {tgt_id}"

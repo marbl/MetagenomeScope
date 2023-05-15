@@ -17,6 +17,7 @@ from . import validators, graph_utils
 from .pattern import Pattern
 from .node import Node
 from .edge import Edge
+from .pattern_stats import PatternStats
 
 
 class AssemblyGraph(object):
@@ -100,17 +101,9 @@ class AssemblyGraph(object):
         )
 
         # Remove nodes/edges in components that are too large to lay out.
-        operation_msg(
-            f"Removing components with > {self.max_node_count:,} nodes and/or "
-            f"> {self.max_edge_count:,} edges..."
-        )
+        # (if both -maxn and -maxe are 0, then this won't do anything.)
         self.num_too_large_components = 0
         self._remove_too_large_components()
-        conclude_msg()
-        operation_msg(
-            f"Removed {self.num_too_large_components:,} such component(s).",
-            newline=True,
-        )
 
         # These store Node, Edge, and Pattern objects. We still use the
         # NetworkX graph objects to do things like identify connected
@@ -274,32 +267,64 @@ class AssemblyGraph(object):
         we could inform the user "hey, this object is in a component that
         didn't get laid out." Buuuuut that's a problem for another day.
         """
-        # We convert the WCC collection to a list so that even if we alter the
-        # graph in the middle of the loop we don't risk the collection being
-        # messed up
-        wccs = list(nx.weakly_connected_components(self.graph))
-        num_wccs = len(wccs)
-        for cc_node_ids in wccs:
-            num_nodes = len(cc_node_ids)
-            num_edges = len(self.graph.subgraph(cc_node_ids).edges)
-            if (
-                num_nodes > self.max_node_count
-                or num_edges > self.max_edge_count
-            ):
-                self.graph.remove_nodes_from(cc_node_ids)
-                self.num_too_large_components += 1
-                operation_msg(
-                    (
-                        f"Ignoring a component ({num_nodes:,} nodes, "
-                        f"{num_edges:,} edges): exceeds -maxn or -maxe."
-                    ),
-                    True,
+        # if the user disabled both maxn and maxe, we can skip all of the work
+        # done in this function
+        node_chk = self.max_node_count > 0
+        edge_chk = self.max_edge_count > 0
+        criteria = ""
+        if node_chk:
+            if edge_chk:
+                criteria = (
+                    f"> {self.max_node_count:,} nodes and/or "
+                    f"> {self.max_edge_count:,} edges"
+                )
+            else:
+                criteria = f"> {self.max_node_count:,} nodes"
+        else:
+            if edge_chk:
+                criteria = f"> {self.max_edge_count:,} edges"
+
+        if node_chk or edge_chk:
+            operation_msg(f"Removing components with {criteria}...")
+            # We convert the WCC collection to a list so that even if we alter the
+            # graph in the middle of the loop we don't risk the collection being
+            # messed up
+            wccs = list(nx.weakly_connected_components(self.graph))
+            num_wccs = len(wccs)
+            for cc_node_ids in wccs:
+                num_nodes = len(cc_node_ids)
+                num_edges = len(self.graph.subgraph(cc_node_ids).edges)
+                node_bad = (
+                    self.max_node_count > 0 and num_nodes > self.max_node_count
+                )
+                edge_bad = (
+                    self.max_edge_count > 0 and num_edges > self.max_edge_count
+                )
+                if node_bad or edge_bad:
+                    self.graph.remove_nodes_from(cc_node_ids)
+                    self.num_too_large_components += 1
+                    # just a little hack to make the logging look nice
+                    prefix = ""
+                    if self.num_too_large_components == 1:
+                        prefix = "\n"
+                    operation_msg(
+                        (
+                            f"{prefix}Ignoring a component wtih {num_nodes:,} "
+                            f"nodes and {num_edges:,} edges."
+                        ),
+                        True,
+                    )
+
+            if self.num_too_large_components == num_wccs:
+                raise ValueError(
+                    "All components were too large to lay out. Try increasing "
+                    "or disabling the -maxn/-maxe parameters."
                 )
 
-        if self.num_too_large_components == num_wccs:
-            raise ValueError(
-                "All components were too large to lay out. Try increasing the "
-                "-maxn/-maxe parameters, or reducing the size of the graph."
+            conclude_msg()
+            operation_msg(
+                f"Removed {self.num_too_large_components:,} such component(s).",
+                newline=True,
             )
 
     def _get_unique_id(self):
@@ -2075,3 +2100,42 @@ class AssemblyGraph(object):
         """
         self._fail_if_layout_not_done("to_json")
         return json.dumps(self.to_dict())
+
+    def to_tsv(self, output_fp):
+        """Writes out a TSV of component statistics.
+
+        Parameters
+        ----------
+        output_fp: str
+            Filepath to which we'll write out this TSV file.
+
+        Notes
+        -----
+        We get the numbers of nodes and edges from
+        self.get_connected_components(), which means that we will currently
+        include split nodes and fake edges in these stats.
+        """
+        operation_msg(f"Writing out graph cc stats to filepath {output_fp}...")
+        output_stats = (
+            "ComponentID\tNodes\tEdges\tBubbles\tChains\tCyclicChains\t"
+            "FrayedRopes\n"
+        )
+        for cc_i, cc_tuple in enumerate(
+            self.get_connected_components(), self.num_too_large_components + 1
+        ):
+            cc_node_ids = cc_tuple[0]
+            cc_full_node_ct = cc_tuple[1]
+            cc_full_edge_ct = cc_tuple[2]
+            # figure out numbers of each type of pattern
+            pstats = PatternStats()
+            for node_id in cc_node_ids:
+                if self.is_pattern(node_id):
+                    pstats += self.pattid2obj[node_id].get_pattern_stats()
+            output_stats += (
+                f"{cc_i}\t{cc_full_node_ct}\t{cc_full_edge_ct}\t"
+                f"{pstats.num_bubbles}\t{pstats.num_chains}\t"
+                f"{pstats.num_cyclicchains}\t{pstats.num_frayedropes}\n"
+            )
+        with open(output_fp, "w") as fh:
+            fh.write(output_stats)
+        conclude_msg()
