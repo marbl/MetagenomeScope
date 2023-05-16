@@ -26,10 +26,11 @@ from .main import make_viz
 from ._param_descriptions import (
     INPUT,
     OUTPUT_DIR,
+    OUTPUT_CCSTATS,
+    OUTPUT_DOT,
     MAXN,
     MAXE,
     PATTERNS_FLAG,
-    CCSTATS,
 )
 
 
@@ -47,10 +48,27 @@ from ._param_descriptions import (
 )
 @click.option(
     "-o",
-    "--output-dir",
+    "--output-viz-dir",
     type=click.Path(exists=False),
-    required=True,
+    default=None,
+    show_default=True,
     help=OUTPUT_DIR,
+)
+@click.option(
+    "-od",
+    "--output-dot",
+    type=click.Path(dir_okay=False, writable=True),
+    default=None,
+    show_default=True,
+    help=OUTPUT_DOT,
+)
+@click.option(
+    "-os",
+    "--output-ccstats",
+    type=click.Path(dir_okay=False, writable=True),
+    default=None,
+    show_default=True,
+    help=OUTPUT_CCSTATS,
 )
 @click.option(
     "-maxn",
@@ -77,21 +95,14 @@ from ._param_descriptions import (
     show_default=True,
     help=PATTERNS_FLAG,
 )
-@click.option(
-    "-os",
-    "--output-ccstats",
-    type=click.Path(dir_okay=False, writable=True),
-    default=None,
-    show_default=True,
-    help=CCSTATS,
-)
 def run_script(
     input_file: str,
     output_dir: str,
+    output_dot: str,
+    output_ccstats: str,
     max_node_count: int,
     max_edge_count: int,
     patterns: bool,
-    output_ccstats: str,
 ) -> None:
     """Creates a folder containing a visualization of an assembly graph."""
     make_viz(
@@ -100,6 +111,7 @@ def run_script(
         max_node_count,
         max_edge_count,
         patterns,
+        output_dot,
         output_ccstats,
     )
 

@@ -22,11 +22,28 @@ INPUT = (
     "and LastGraph files."
 )
 
+RMD = (
+    "(ignoring components that are removed due to the -maxn/-maxe parameters)"
+)
+
 OUTPUT_DIR = (
-    "Directory in which all output files will be stored. This directory will "
-    "contain an index.html file; you can open this file in a web browser to "
-    "access the visualization. If we cannot create this directory for some "
-    "reason (i.e. it already exists), we will raise an error."
+    f"If provided, we'll create a visualization of the assembly graph {RMD} "
+    "in this directory. This "
+    "directory will contain an index.html file; you can open this file in a "
+    "web browser to access the visualization. If we cannot create this "
+    "directory for some reason (i.e. it already exists), we'll raise an error."
+)
+
+OUTPUT_CCSTATS = (
+    "If provided, we'll save a tab-separated values (TSV) file to this "
+    "filepath describing the numbers of nodes, edges, and structural patterns "
+    f"in each connected component of the graph {RMD}."
+)
+
+OUTPUT_DOT = (
+    "If provided, we'll save a DOT file to this filepath describing the "
+    f"assembly graph {RMD}. Identified patterns will be represented in the "
+    'DOT file as "cluster" subgraphs.'
 )
 
 ASSUME_ORIENTED = (
@@ -56,13 +73,6 @@ PATTERNS_FLAG = (
     "in the graph and highlight these in the visualization. If --no-patterns "
     'is set, we won\'t do this (and will just visualize the "original" graph '
     "structure)."
-)
-
-CCSTATS = (
-    "If provided, we'll save a tab-separated values (TSV) file to this "
-    "filepath describing the numbers of nodes, edges, and structural patterns "
-    "in each connected component of the graph (ignoring components that are "
-    "removed due to the -maxn/-maxe parameters)."
 )
 
 # TODO: actually change way this works so that -ubl always true
