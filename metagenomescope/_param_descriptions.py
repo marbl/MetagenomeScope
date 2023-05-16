@@ -49,30 +49,26 @@ ASSUME_ORIENTED = (
     "raised. THIS OPTION ISN'T FINISHED YET!"
 )
 
-MAX_DEETS = (
-    "Impacts all output options (-o, -od, -os). Setting this to 0 removes "
-    "this limit."
-)
+IMPACTS = "Impacts all output options (-o, -od, -os)."
+
+MAX_DEETS = f"{IMPACTS} Setting this to 0 removes this limit."
 
 MAXN = (
-    "We will not consider connected components containing more nodes than "
-    "this. This option is given here because hierarchical graph layout is "
-    "relatively slow for large/tangled components, and because our "
-    "visualization interface becomes slow when drawing lots of nodes / edges. "
-    f"{MAX_DEETS}"
+    "We will not consider connected components containing more than this many "
+    "nodes. This option is provided because hierarchical graph layout is "
+    "relatively slow for large / tangled components, and because the "
+    f"interactive visualization can be slow for large graphs. {MAX_DEETS}"
 )
 
 MAXE = (
-    "We will not visualize connected components containing more edges than "
-    "this. Functions analogously to --max-node-count. Setting this to 0 "
-    f"removes this limit. {MAX_DEETS}"
+    "We will not visualize connected components containing more than this "
+    f"many edges. {MAX_DEETS}"
 )
 
 PATTERNS_FLAG = (
     "If --patterns is set, we'll identify structural patterns (e.g. bubbles) "
-    "in the graph and highlight these in the visualization. If --no-patterns "
-    'is set, we won\'t do this (and will just visualize the "original" graph '
-    "structure)."
+    "in the graph; if --no-patterns is set, we won't identify any patterns. "
+    f"{IMPACTS}"
 )
 
 # TODO: actually change way this works so that -ubl always true
