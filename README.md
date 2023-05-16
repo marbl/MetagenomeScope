@@ -90,7 +90,7 @@ The output directory will contain an `index.html` file that can be opened in
 most modern web browsers. (The `index.html` file points to other resources
 located within the directory, so please don't move it out of the directory.)
 
-#### What types of assembly graphs can this tool visualize?
+### What types of assembly graphs can this tool visualize?
 
 Currently, MetagenomeScope supports the following filetypes:
 
@@ -343,6 +343,68 @@ thus tell MetagenomeScope to look at _all_ components of the graph) by setting
 both `-maxn` and `-maxe` to `0`.
 
 </details>
+
+### Full command-line usage
+
+```
+Usage: mgsc [OPTIONS]
+
+  Visualizes and/or summarizes an assembly graph.
+
+  MetagenomeScope supports multiple types of output (-o, -od, -os); you will
+  probably want to start with -o.
+
+  Please check out https://github.com/marbl/MetagenomeScope if you have any
+  questions, suggestions, etc. about this tool.
+
+Options:
+  -i, --input-file FILE           Assembly graph file. We accept GFA, FASTG,
+                                  DOT, GML, and LastGraph files.  [required]
+  -o, --output-viz-dir PATH       If provided, we'll save an interactive
+                                  visualization of the graph to this
+                                  directory. The directory will contain an
+                                  index.html file; you can open this file in a
+                                  web browser to access the visualization. If
+                                  we cannot create this directory for some
+                                  reason (e.g. it already exists), we'll raise
+                                  an error.
+  -od, --output-dot FILE          If provided, we'll save a DOT file
+                                  describing the graph to this filepath.
+                                  Identified patterns will be represented in
+                                  this DOT file as "cluster" subgraphs.
+  -os, --output-ccstats FILE      If provided, we'll save a tab-separated
+                                  values (TSV) file describing the numbers of
+                                  nodes, edges, and structural patterns in
+                                  each connected component of the graph to
+                                  this filepath.
+  -maxn, --max-node-count INTEGER RANGE
+                                  We will not consider connected components
+                                  containing more nodes than this. This option
+                                  is given here because hierarchical graph
+                                  layout is relatively slow for large/tangled
+                                  components, and because our visualization
+                                  interface becomes slow when drawing lots of
+                                  nodes / edges. Impacts all output options
+                                  (-o, -od, -os). setting this to 0 removes
+                                  this limit.  [default: 7999; x>=0]
+  -maxe, --max-edge-count INTEGER RANGE
+                                  We will not visualize connected components
+                                  containing more edges than this. Functions
+                                  analogously to --max-node-count. Setting
+                                  this to 0 removes this limit. Impacts all
+                                  output options (-o, -od, -os). setting this
+                                  to 0 removes this limit.  [default: 7999;
+                                  x>=0]
+  --patterns / --no-patterns      If --patterns is set, we'll identify
+                                  structural patterns (e.g. bubbles) in the
+                                  graph and highlight these in the
+                                  visualization. If --no-patterns is set, we
+                                  won't do this (and will just visualize the
+                                  "original" graph structure).  [default:
+                                  patterns]
+  -v, --version                   Show the version and exit.
+  -h, --help                      Show this message and exit.
+```
 
 ## Demo visualizations
 
