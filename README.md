@@ -122,7 +122,7 @@ future.
 ## Vignettes
 
 <details>
-  <summary><strong>I want to visualize an assembly graph.</strong></summary>
+  <summary><strong>I just want to visualize an assembly graph.</strong></summary>
 
 Let's say the assembly graph is located in a file named `graph.gfa`. We can use
 the following command:
@@ -136,7 +136,7 @@ This will create a visualization of this assembly graph in the directory
 </details>
 
 <details>
-  <summary><strong>I want to visualize an assembly graph, and I don't care
+  <summary><strong>I want to visualize an assembly graph, but I don't care
 about the "pattern identification" stuff. Can you just show me the raw
 structure of the graph?</strong></summary>
 
@@ -156,10 +156,12 @@ present in each component of the graph.</strong></summary>
 
 The `-os` / `--output-ccstats` option will write out a
 [TSV file](https://en.wikipedia.org/wiki/Tab-separated_values)
-describing all components in the assembly graph in this way. This is a simple
-way to summarize even massive graphs; it can be useful if you're working, for
-example, on a remote server (and you just want an overview of the basic
-structure of a graph's components).
+describing the numbers of nodes, edges, and each type of identified pattern in
+all components in the assembly graph.
+
+This option is a simple way to summarize even massive graphs; it can be useful
+if you're working, for example, on a remote server (and you just want an
+overview of the basic structure of a graph's components).
 
 If your graph is large enough, and if you don't intend to visualize it anyway,
 then you will probably also want to disable the `-maxn` and `-maxe` options
@@ -167,13 +169,12 @@ then you will probably also want to disable the `-maxn` and `-maxe` options
 they are).
 
 The following command produces a TSV file named `stats.tsv` summarizing all
-components of an assembly graph:
+components (no matter how large) of an assembly graph:
 
 ```
 mgsc -i graph.gfa -os stats.tsv -maxn 0 -maxe 0
 ```
 </details>
-
 
 ## Details
 
