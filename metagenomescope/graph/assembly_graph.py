@@ -2104,7 +2104,7 @@ class AssemblyGraph(object):
         return json.dumps(self.to_dict())
 
     def to_tsv(self, output_fp):
-        """Writes out a TSV of component statistics.
+        """Writes out a TSV file describing connected component statistics.
 
         Parameters
         ----------
