@@ -86,7 +86,7 @@ mgsc -i [path to your assembly graph] -o [output directory name]
 
 The output directory will contain an `index.html` file that can be opened in
 most modern web browsers. (The `index.html` file points to other resources
-located withnn the directory, so please don't move it out of the directory.)
+located within the directory, so please don't move it out of the directory.)
 
 ### What types of assembly graphs can this tool visualize?
 
