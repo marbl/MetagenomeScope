@@ -240,19 +240,20 @@ class Pattern(Node):
         return gv
 
     def layout(self):
+        gv_input = layout_utils.get_gv_header()
         # Recursively go through all of the nodes within this pattern. If any
         # of these isn't actually a node (and is actually a pattern), then lay
         # out that pattern!
         for node in self.nodes:
             if is_pattern(node):
                 node.layout()
-
-        # Now that all of the patterns (if present) within this pattern have
-        # been laid out, lay out this pattern.
-
-        gv_input = layout_utils.get_gv_header()
-        for node in self.nodes:
-            gv_input += node.to_dot(label=False, lr=False)
+                # TODO: add a "solid" parameter to Pattern.to_dot() or
+                # something that just converts this child pattern to a
+                # rectangle here (rather than representing it as a subgraph) --
+                # then use this.
+                gv_input += node.to_dot()
+            else:
+                gv_input += node.to_dot(label=False, lr=False)
         for edge in self.edges:
             gv_input += edge.to_dot(level="dec")
         gv_input += "}"
