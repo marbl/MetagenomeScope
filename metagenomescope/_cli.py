@@ -21,6 +21,7 @@
 # https://github.com/biocore/qurro/blob/master/qurro/scripts/_plot.py.
 
 import click
+from . import __version__
 from .config import MAXN_DEFAULT, MAXE_DEFAULT
 from .main import make_viz
 from ._param_descriptions import (
@@ -95,6 +96,7 @@ from ._param_descriptions import (
     show_default=True,
     help=PATTERNS_FLAG,
 )
+@click.version_option(__version__, "-v", "--version")
 def run_script(
     input_file: str,
     output_viz_dir: str,
@@ -106,8 +108,11 @@ def run_script(
 ) -> None:
     """Visualizes and/or summarizes an assembly graph.
 
-    MetagenomeScope supports multiple types of output (-o, -od, -os); you
-    will probably want to start with -o.
+    MetagenomeScope supports multiple types of output (-o, -od, -os);
+    you will probably want to start with -o.
+
+    Please check out https://github.com/marbl/MetagenomeScope if you have any
+    questions, suggestions, etc. about this tool.
     """
     make_viz(
         input_file,

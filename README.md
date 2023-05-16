@@ -75,7 +75,9 @@ with each other -- can be tricky. I'm looking into ways of making this less
 painful; for now, if you run into problems, please feel free to [contact
 me](#contact) and I'll try to help out.
 
-## Visualizing an assembly graph
+## Documentation
+
+### Visualizing an assembly graph
 
 Assuming you've activated the conda environment we just created,
 visualizing an assembly graph can be done in one command:
@@ -88,7 +90,7 @@ The output directory will contain an `index.html` file that can be opened in
 most modern web browsers. (The `index.html` file points to other resources
 located within the directory, so please don't move it out of the directory.)
 
-### What types of assembly graphs can this tool visualize?
+#### What types of assembly graphs can this tool visualize?
 
 Currently, MetagenomeScope supports the following filetypes:
 
@@ -106,20 +108,7 @@ should do that to verify that their graphs work ok -->
 If you run into any additional assembly graph filetypes you'd like us to
 support ([...and/or if any more of these filetypes get created in the next few years](https://xkcd.com/927/)), please [let us know](#contact)!
 
-## Demos
-
-Some early demos are available online. We'll probably add more of these in the
-future.
-
-- [Marygold Fig. 2(a) graph](https://marbl.github.io/MetagenomeScope/demos/marygold/index.html)
-  - See [Nijkamp et al. 2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3916741/) for details.
-    This graph was based on the topology shown in Fig. 2(a) of this paper.
-
-- [Velvet E. coli graph](https://marbl.github.io/MetagenomeScope/demos/bandage-ecoli-example/index.html)
-  - This graph is example data from the website of [Bandage](http://rrwick.github.io/Bandage/)
-    (which is another great tool for visualizing assembly graphs :)
-
-## Vignettes
+### Vignettes
 
 <details>
   <summary><strong>I just want to visualize an assembly graph.</strong></summary>
@@ -176,7 +165,11 @@ mgsc -i graph.gfa -os stats.tsv -maxn 0 -maxe 0
 ```
 </details>
 
-## Details
+### FAQs
+
+(The title "FAQ" is kind of a lie because I don't think anyone has asked me any
+of these questions yet. Maybe we can just act like the "F" in "FAQ" stands for
+"future"?)
 
 <!-- use of <strong> here was stolen from strainflye's readme, which in turn is
 based on https://codedragontech.com/createwithcodedragon/how-to-style-html-details-and-summary-tags/ -->
@@ -350,6 +343,19 @@ thus tell MetagenomeScope to look at _all_ components of the graph) by setting
 both `-maxn` and `-maxe` to `0`.
 
 </details>
+
+## Demo visualizations
+
+Some early demos are available online. We'll probably add more of these in the
+future.
+
+- [Marygold Fig. 2(a) graph](https://marbl.github.io/MetagenomeScope/demos/marygold/index.html)
+  - See [Nijkamp et al. 2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3916741/) for details.
+    This graph was based on the topology shown in Fig. 2(a) of this paper.
+
+- [Velvet E. coli graph](https://marbl.github.io/MetagenomeScope/demos/bandage-ecoli-example/index.html)
+  - This graph is example data from the website of [Bandage](http://rrwick.github.io/Bandage/)
+    (which is another great tool for visualizing assembly graphs :)
 
 ## License
 
