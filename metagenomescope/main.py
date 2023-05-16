@@ -29,11 +29,12 @@ from .config import SEPARATOR_CHAR
 
 def make_viz(
     input_file: str,
-    output_dir: str,
     max_node_count: int,
     max_edge_count: int,
     patterns: bool,
-    ccstats: str,
+    output_viz_dir: str,
+    output_dot: str,
+    output_ccstats: str,
 ):
     """Creates a visualization.
 
@@ -46,9 +47,6 @@ def make_viz(
     input_file: str
         Path to the assembly graph to be visualized.
 
-    output_dir: str
-        Output directory to which the visualization will be written.
-
     max_node_count: int
         We won't visualize connected components containing more nodes than
         this.
@@ -59,7 +57,13 @@ def make_viz(
     patterns: bool
         If True, identify and highlight structural patterns; if False, don't.
 
-    ccstats: str or None
+    output_viz_dir: str or None
+        If passed, we'll write the visualization to this output directory.
+
+    output_dot: str or None
+        If passed, we'll write out a DOT file to this filepath.
+
+    output_ccstats: str or None
         If passed, we'll write out cc stats to this filepath.
 
     Returns
@@ -83,65 +87,88 @@ def make_viz(
         patterns=patterns,
     )
 
-    if ccstats is not None:
-        asm_graph.to_tsv(ccstats)
+    outputs = []
 
-    # We also need to lay out the graph. This can be a time-consuming process,
-    # which is why it isn't automatically done when we create an AssemblyGraph
-    # object.
-    asm_graph.layout()
+    if output_dot is not None:
+        asm_graph.to_dot(output_dot)
+        outputs.append("a DOT file")
 
-    # Get JSON representation of the graph data.
-    graph_data = asm_graph.to_json()
+    if output_ccstats is not None:
+        asm_graph.to_tsv(output_ccstats)
+        outputs.append("a TSV file")
 
-    operation_msg(
-        f"Writing the visualization to the output directory, {output_dir}..."
-    )
+    if output_viz_dir is not None:
+        # We need to lay out the graph. This can be a time-consuming process,
+        # which is why it isn't automatically done when we create an
+        # AssemblyGraph object.
+        asm_graph.layout()
 
-    create_output_dir(output_dir)
+        # Get JSON representation of the graph data.
+        graph_data = asm_graph.to_json()
 
-    # Copy "support files" to output directory. (This part of code taken from
-    # https://github.com/biocore/qurro/blob/master/qurro/generate.py, in the
-    # gen_visualization() function.)
-    #
-    # First, figure out where this file (main.py) is, since support_files/ is
-    # located alongside it.
-    curr_loc = os.path.dirname(os.path.realpath(__file__))
-    support_files_loc = os.path.join(curr_loc, "support_files")
-    copy_tree(support_files_loc, output_dir)
-
-    # Using Jinja2, populate the {{ dataJSON }} tag in the main.js file with
-    # the JSON representation of the graph data.
-    #
-    # Also, populate the {{ graphFilename }} tag in the index.html file, so we
-    # can show the filename in the application title (this way the title is
-    # shown immediately, rather than flickering when the page is loaded).
-    # (... This is obviously much less important than the first thing, but it's
-    # a nice little detail that should help users if they have many MgSc tabs
-    # open at once.)
-    #
-    # This part of code taken from
-    # https://github.com/biocore/empress/blob/master/empress/core.py, in
-    # particular _get_template() and make_empress(), and
-    # https://github.com/biocore/empress/blob/master/tests/python/make-dev-page.py.
-    env = jinja2.Environment(loader=jinja2.FileSystemLoader(output_dir))
-
-    mainjs_template = env.get_template("main.js")
-    with open(os.path.join(output_dir, "main.js"), "w") as mainjs_file:
-        mainjs_file.write(mainjs_template.render({"dataJSON": graph_data}))
-
-    index_template = env.get_template("index.html")
-    with open(os.path.join(output_dir, "index.html"), "w") as index_file:
-        index_file.write(
-            index_template.render({"graphFilename": asm_graph.basename})
+        operation_msg(
+            "Writing the visualization to the output directory, "
+            f'"{output_viz_dir}"...'
         )
 
-    conclude_msg()
+        create_output_dir(output_viz_dir)
+
+        # Copy "support files" to output directory. (This part of code taken from
+        # https://github.com/biocore/qurro/blob/master/qurro/generate.py, in the
+        # gen_visualization() function.)
+        #
+        # First, figure out where this file (main.py) is, since support_files/ is
+        # located alongside it.
+        curr_loc = os.path.dirname(os.path.realpath(__file__))
+        support_files_loc = os.path.join(curr_loc, "support_files")
+        copy_tree(support_files_loc, output_viz_dir)
+
+        # Using Jinja2, populate the {{ dataJSON }} tag in the main.js file with
+        # the JSON representation of the graph data.
+        #
+        # Also, populate the {{ graphFilename }} tag in the index.html file, so we
+        # can show the filename in the application title (this way the title is
+        # shown immediately, rather than flickering when the page is loaded).
+        # (... This is obviously much less important than the first thing, but it's
+        # a nice little detail that should help users if they have many MgSc tabs
+        # open at once.)
+        #
+        # This part of code taken from
+        # https://github.com/biocore/empress/blob/master/empress/core.py, in
+        # particular _get_template() and make_empress(), and
+        # https://github.com/biocore/empress/blob/master/tests/python/make-dev-page.py.
+        env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader(output_viz_dir)
+        )
+
+        mainjs_template = env.get_template("main.js")
+        with open(os.path.join(output_viz_dir, "main.js"), "w") as mainjs_file:
+            mainjs_file.write(mainjs_template.render({"dataJSON": graph_data}))
+
+        index_template = env.get_template("index.html")
+        with open(
+            os.path.join(output_viz_dir, "index.html"), "w"
+        ) as index_file:
+            index_file.write(
+                index_template.render({"graphFilename": asm_graph.basename})
+            )
+
+        outputs.append("an interactive visualization")
+        conclude_msg()
+
     t1 = time.time()
     duration = t1 - t0
-    last_line = (
-        "MetagenomeScope successfully created a visualization in "
-        f"{duration:,.2f} seconds."
-    )
+    llprefix = "MetagenomeScope "
+    if len(outputs) == 0:
+        llprefix += "didn't create anything (no output options were specified)"
+    else:
+        if len(outputs) == 1:
+            output_str = outputs[0]
+        elif len(outputs) == 2:
+            output_str = f"{outputs[0]} and {outputs[1]}"
+        else:
+            output_str = ", ".join(outputs[:-1]) + f", and {outputs[-1]}"
+        llprefix += f"successfully created {output_str}"
+    last_line = f"{llprefix}, and ran for {duration:,.2f} seconds."
     penultimate_line = SEPARATOR_CHAR * len(last_line)
     operation_msg(f"{penultimate_line}\n{last_line}", newline=True)

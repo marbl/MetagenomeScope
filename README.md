@@ -172,9 +172,6 @@ components of an assembly graph:
 ```
 mgsc -i graph.gfa -os stats.tsv -maxn 0 -maxe 0
 ```
-
-(**NOTE**: I need to make `-o` optional -- this command will currently fail
-since `-o` is not set. This should be fixed soon.)
 </details>
 
 

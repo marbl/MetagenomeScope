@@ -18,32 +18,27 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 INPUT = (
-    "Assembly graph file to be visualized. We accept GFA, FASTG, DOT, GML, "
-    "and LastGraph files."
-)
-
-RMD = (
-    "(ignoring components that are removed due to the -maxn/-maxe parameters)"
+    "Assembly graph file. We accept GFA, FASTG, DOT, GML, and LastGraph files."
 )
 
 OUTPUT_DIR = (
-    f"If provided, we'll create a visualization of the assembly graph {RMD} "
-    "in this directory. This "
-    "directory will contain an index.html file; you can open this file in a "
-    "web browser to access the visualization. If we cannot create this "
-    "directory for some reason (i.e. it already exists), we'll raise an error."
-)
-
-OUTPUT_CCSTATS = (
-    "If provided, we'll save a tab-separated values (TSV) file to this "
-    "filepath describing the numbers of nodes, edges, and structural patterns "
-    f"in each connected component of the graph {RMD}."
+    "If provided, we'll save an interactive visualization of the graph to "
+    "this directory. The directory will contain an index.html file; you can "
+    "open this file in a web browser to access the visualization. If we "
+    "cannot create this directory for some reason (e.g. it already exists), "
+    "we'll raise an error."
 )
 
 OUTPUT_DOT = (
-    "If provided, we'll save a DOT file to this filepath describing the "
-    f"assembly graph {RMD}. Identified patterns will be represented in the "
-    'DOT file as "cluster" subgraphs.'
+    "If provided, we'll save a DOT file describing the graph to this "
+    "filepath. Identified patterns will be represented in this DOT file as "
+    '"cluster" subgraphs.'
+)
+
+OUTPUT_CCSTATS = (
+    "If provided, we'll save a tab-separated values (TSV) file describing the "
+    "numbers of nodes, edges, and structural patterns in each connected "
+    "component of the graph to this filepath."
 )
 
 ASSUME_ORIENTED = (
@@ -54,18 +49,23 @@ ASSUME_ORIENTED = (
     "raised. THIS OPTION ISN'T FINISHED YET!"
 )
 
+MAX_DEETS = (
+    "Impacts all output options (-o, -od, -os). setting this to 0 removes "
+    "this limit."
+)
+
 MAXN = (
-    "We will not visualize connected components containing more nodes than "
+    "We will not consider connected components containing more nodes than "
     "this. This option is given here because hierarchical graph layout is "
     "relatively slow for large/tangled components, and because our "
     "visualization interface becomes slow when drawing lots of nodes / edges. "
-    "Setting this to 0 removes this limit."
+    f"{MAX_DEETS}"
 )
 
 MAXE = (
     "We will not visualize connected components containing more edges than "
     "this. Functions analogously to --max-node-count. Setting this to 0 "
-    "removes this limit."
+    f"removes this limit. {MAX_DEETS}"
 )
 
 PATTERNS_FLAG = (

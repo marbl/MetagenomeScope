@@ -97,20 +97,24 @@ from ._param_descriptions import (
 )
 def run_script(
     input_file: str,
-    output_dir: str,
+    output_viz_dir: str,
     output_dot: str,
     output_ccstats: str,
     max_node_count: int,
     max_edge_count: int,
     patterns: bool,
 ) -> None:
-    """Creates a folder containing a visualization of an assembly graph."""
+    """Visualizes and/or summarizes an assembly graph.
+
+    MetagenomeScope supports multiple types of output (-o, -od, -os); you
+    will probably want to start with -o.
+    """
     make_viz(
         input_file,
-        output_dir,
         max_node_count,
         max_edge_count,
         patterns,
+        output_viz_dir,
         output_dot,
         output_ccstats,
     )

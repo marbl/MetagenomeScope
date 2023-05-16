@@ -84,7 +84,7 @@ class AssemblyGraph(object):
         self.find_patterns = patterns
 
         self.basename = os.path.basename(self.filename)
-        operation_msg(f"Loading the assembly graph, {self.basename}...")
+        operation_msg(f'Loading the assembly graph "{self.basename}"...')
         # NOTE: Ideally we'd just return this along with the graph from
         # parsers.parse(), but uhhhh that will make me refactor
         # like 20 tests and I don't want to do that ._.
@@ -1710,6 +1710,7 @@ class AssemblyGraph(object):
         output_fp: str
             The filepath to which this DOT file will be written.
         """
+        operation_msg(f'Writing out DOT to filepath "{output_fp}"...')
         gv = layout_utils.get_gv_header()
         # TODO eventually, incorporate this into the gv header and use it in
         # layout (since laying out from left to right is easiest)
@@ -1724,6 +1725,7 @@ class AssemblyGraph(object):
         gv += "}"
         with open(output_fp, "w") as fh:
             fh.write(gv)
+        conclude_msg()
 
     def dump_dots(
         self,
@@ -2115,7 +2117,10 @@ class AssemblyGraph(object):
         self.get_connected_components(), which means that we will currently
         include split nodes and fake edges in these stats.
         """
-        operation_msg(f"Writing out graph cc stats to filepath {output_fp}...")
+        operation_msg(
+            "Writing out graph component statistics to filepath "
+            f'"{output_fp}"...'
+        )
         output_stats = (
             "ComponentID\tNodes\tEdges\tBubbles\tChains\tCyclicChains\t"
             "FrayedRopes\n"
