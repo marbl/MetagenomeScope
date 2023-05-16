@@ -50,7 +50,7 @@ ASSUME_ORIENTED = (
 )
 
 MAX_DEETS = (
-    "Impacts all output options (-o, -od, -os). setting this to 0 removes "
+    "Impacts all output options (-o, -od, -os). Setting this to 0 removes "
     "this limit."
 )
 
