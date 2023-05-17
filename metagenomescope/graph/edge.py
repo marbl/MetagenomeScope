@@ -17,6 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from metagenomescope.config import INDENT
 from metagenomescope.errors import WeirdError
 
 
@@ -199,7 +200,7 @@ class Edge(object):
     def set_cc_num(self, cc_num):
         self.cc_num = cc_num
 
-    def to_dot(self, level="new"):
+    def to_dot(self, level="new", indentation_level=1):
         # TODO make all of these constants (dashed, colors, penwidth min/max)
         # into config/parameters...
         attrs = []
@@ -226,4 +227,5 @@ class Edge(object):
         else:
             raise WeirdError(f"Unrecognized edge level: {level}")
 
-        return f"\t{decl} [{attrs_str}];\n"
+        indent = indentation_level * INDENT
+        return f"{indent}{decl} [{attrs_str}];\n"

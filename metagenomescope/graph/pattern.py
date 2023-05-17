@@ -226,20 +226,23 @@ class Pattern(Node):
                 obj.set_cc_num(cc_num)
         super().set_cc_num(cc_num)
 
-    def to_dot(self):
+    def to_dot(self, indentation_level=1):
+        # outer and inner indentation levels
+        io = indentation_level * config.INDENT
+        ii = io + config.INDENT
         gv = (
-            f"subgraph cluster_{config.PT2HR[self.pattern_type]}_"
+            f"{io}subgraph cluster_{config.PT2HR[self.pattern_type]}_"
             f"{self.unique_id} {{\n"
         )
-        gv += '\tstyle="filled";\n'
-        gv += f'\tfillcolor="{config.PT2COLOR[self.pattern_type]}";\n'
+        gv += f'{ii}style="filled";\n'
+        gv += f'{ii}fillcolor="{config.PT2COLOR[self.pattern_type]}";\n'
         for node in self.nodes:
             # Since both Nodes and Patterns have their own to_dot() methods, we
             # actually don't need to distinguish between them here :D
-            gv += node.to_dot()
+            gv += node.to_dot(indentation_level=indentation_level + 1)
         for edge in self.edges:
-            gv += edge.to_dot()
-        gv += "}\n"
+            gv += edge.to_dot(indentation_level=indentation_level + 1)
+        gv += f"{io}}}\n"
         return gv
 
     def layout(self):

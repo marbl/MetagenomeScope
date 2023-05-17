@@ -95,7 +95,7 @@ HIGH_LONGSIDE_PROPORTION = 5.0 / 6.0
 COLL_CL_W_FAC = 1.0 / 2.0
 COLL_CL_H_FAC = 1.0 / 2.0
 
-### Frequently-used GraphViz settings ###
+### Frequently-used Graphviz settings ###
 # More info on these available at www.graphviz.org/doc/info/attrs.html
 
 ### Global graph settings (applied to every node/edge/etc. in the graph) ###
@@ -167,6 +167,10 @@ MAXE_DEFAULT = 7999
 # Used to add an extra line below the first logging message, and just before
 # the last logging message.
 SEPARATOR_CHAR = "-"
+
+# The amount of indentation to use for each level in DOT files. You could also
+# use a \t character here, if you prefer that.
+INDENT = "  "
 
 # Maps "internal" names for node / edge properties to human-readable ones.
 # This is passed on to the JavaScript code, so that the UI there can use these

@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from metagenomescope.config import SPLIT_SEP, SPLIT_LEFT, SPLIT_RIGHT
+from metagenomescope.config import SPLIT_SEP, SPLIT_LEFT, SPLIT_RIGHT, INDENT
 from metagenomescope.errors import WeirdError, GraphParsingError
 
 
@@ -231,7 +231,7 @@ class Node(object):
             else:
                 self.shape = "circle"
 
-    def to_dot(self, label=True, lr=True):
+    def to_dot(self, label=True, lr=True, indentation_level=1):
         if label:
             labelstr = f',label="{self.name}",fixedsize=true'
         else:
@@ -259,7 +259,8 @@ class Node(object):
             height = hgt
             orientation = 0
 
+        indent = indentation_level * INDENT
         return (
-            f"\t{self.unique_id} [height={height},width={width},"
+            f"{indent}{self.unique_id} [height={height},width={width},"
             f"shape={self.shape}{labelstr},orientation={orientation}];\n"
         )
