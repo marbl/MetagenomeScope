@@ -227,7 +227,10 @@ class Pattern(Node):
         super().set_cc_num(cc_num)
 
     def to_dot(self):
-        gv = f"subgraph cluster_{self.unique_id} {{\n"
+        gv = (
+            f"subgraph cluster_{config.PT2HR[self.pattern_type]}_"
+            f"{self.unique_id} {{\n"
+        )
         gv += '\tstyle="filled";\n'
         gv += f'\tfillcolor="{config.PT2COLOR[self.pattern_type]}";\n'
         for node in self.nodes:
