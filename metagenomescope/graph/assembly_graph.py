@@ -6,11 +6,12 @@ from copy import deepcopy
 from operator import itemgetter
 from collections import deque
 import numpy
+import pandas as pd
 import networkx as nx
 import pygraphviz
 
 
-from .. import parsers, config, layout_utils
+from .. import parsers, config, layout_utils, misc_utils
 from ..msg_utils import operation_msg, conclude_msg
 from ..errors import GraphParsingError, GraphError, WeirdError
 from . import validators, graph_utils
@@ -57,6 +58,8 @@ class AssemblyGraph(object):
         max_node_count=config.MAXN_DEFAULT,
         max_edge_count=config.MAXE_DEFAULT,
         patterns=True,
+        node_metadata=None,
+        edge_metadata=None,
     ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
@@ -77,6 +80,12 @@ class AssemblyGraph(object):
 
         patterns: bool
             If True, identify & highlight structural patterns; if False, don't.
+
+        node_metadata: str or None
+            Optional path to a TSV file describing node metadata.
+
+        edge_metadata: str or None
+            Optional path to a TSV file describing edge metadata.
         """
         self.filename = filename
         self.max_node_count = max_node_count
@@ -131,6 +140,7 @@ class AssemblyGraph(object):
         # objects' unique IDs.
         operation_msg("Initializing node and edge graph objects...")
         self._init_graph_objs()
+        self._integrate_metadata(node_metadata, edge_metadata)
         conclude_msg()
 
         # Records the bounding boxes of each component in the graph. Indexed by
@@ -256,6 +266,44 @@ class AssemblyGraph(object):
             # (now-cleared) data dict in the graph to store their ID. This will
             # make it easy to associate this edge with its Edge object.
             self.graph.edges[e[0], e[1], e[2]]["uid"] = edge_id
+
+    def _integrate_metadata(self, node_metadata, edge_metadata):
+        """Reads, sanity checks, and integrates node/edge metadata.
+
+        Parameters
+        ----------
+        node_metadata: str or None
+            If this isn't None, we assume it's a path to a TSV file.
+
+        edge_metadata: str or None
+            If this isn't None, we assume it's a path to a TSV file.
+
+        Notes
+        -----
+        We load these TSV files as pandas DataFrames using pd.read_csv(). We
+        could add a lot more details to how we load these DataFrames to, for
+        example, account for missing values nicely (see read_metadata_file() in
+        https://github.com/biocore/qurro/blob/master/qurro/_metadata_utils.py),
+        but I think keeping things simple should be sufficient for now.
+        """
+        if node_metadata is not None:
+            nm = pd.read_csv(node_metadata, sep="\t", index_col=0)
+            node_names = [n.name for n in self.nodeid2obj]
+            misc_utils.verify_subset(
+                nm.index,
+                node_names,
+                custom_message=(
+                    "There exist node IDs in the metadata that are not "
+                    "present in the graph."
+                ),
+            )
+            # TODO do this nicely
+            raise NotImplementedError
+        if edge_metadata is not None:
+            # em = pd.read_csv(edge_metadata, sep="\t", index_col=[0, 1])
+            # Again, check that all source and sink nodes' IDs are in the graph
+            # TODO
+            raise NotImplementedError
 
     def _remove_too_large_components(self):
         """Removes too-large components from the graph early on.

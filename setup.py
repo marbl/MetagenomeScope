@@ -77,9 +77,11 @@ setup(
     # Sanity check before trying to install -- these should be installed with
     # the parent conda environment
     setup_requires=["numpy", "pygraphviz"],
+    # NOTE I don't impose minimum versions here yet, but I probably should
     install_requires=[
         "click",
         "numpy",
+        "pandas",
         "networkx",
         "gfapy",
         "pyfastg",

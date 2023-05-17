@@ -27,8 +27,10 @@ from .main import make_viz
 from ._param_descriptions import (
     INPUT,
     OUTPUT_DIR,
-    OUTPUT_CCSTATS,
     OUTPUT_DOT,
+    OUTPUT_CCSTATS,
+    NODE_METADATA,
+    EDGE_METADATA,
     MAXN,
     MAXE,
     PATTERNS_FLAG,
@@ -72,6 +74,24 @@ from ._param_descriptions import (
     help=OUTPUT_CCSTATS,
 )
 @click.option(
+    "-n",
+    "--node-metadata",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    required=False,
+    default=None,
+    show_default=True,
+    help=NODE_METADATA,
+)
+@click.option(
+    "-e",
+    "--edge-metadata",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    required=False,
+    default=None,
+    show_default=True,
+    help=EDGE_METADATA,
+)
+@click.option(
     "-maxn",
     "--max-node-count",
     type=click.IntRange(min=0),
@@ -102,6 +122,8 @@ def run_script(
     output_viz_dir: str,
     output_dot: str,
     output_ccstats: str,
+    node_metadata: str,
+    edge_metadata: str,
     max_node_count: int,
     max_edge_count: int,
     patterns: bool,
@@ -122,6 +144,8 @@ def run_script(
         output_viz_dir,
         output_dot,
         output_ccstats,
+        node_metadata,
+        edge_metadata,
     )
 
 

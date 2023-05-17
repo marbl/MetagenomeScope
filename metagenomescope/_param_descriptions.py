@@ -49,6 +49,20 @@ ASSUME_ORIENTED = (
     "raised. THIS OPTION ISN'T FINISHED YET!"
 )
 
+NODE_METADATA = (
+    "TSV file mapping some or all of the graph's node IDs (rows) to arbitrary "
+    "metadata fields (columns)."
+)
+
+EDGE_METADATA = (
+    "TSV file mapping some or all of the graph's edges (rows) to arbitrary "
+    "metadata fields (columns). The leftmost two columns in this file should "
+    "contain the source and sink node ID of the edge being described in a "
+    "row; if there exist parallel edges in the graph between a given source "
+    "and sink node, then that row's metadata will be applied to all such "
+    "edges."
+)
+
 IMPACTS = "Impacts all output options (-o, -od, -os)."
 
 MAX_DEETS = f"{IMPACTS} Setting this to 0 removes this limit."

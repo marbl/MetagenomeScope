@@ -35,6 +35,8 @@ def make_viz(
     output_viz_dir: str,
     output_dot: str,
     output_ccstats: str,
+    node_metadata: str,
+    edge_metadata: str,
 ):
     """Creates a visualization.
 
@@ -66,6 +68,12 @@ def make_viz(
     output_ccstats: str or None
         If passed, we'll write out cc stats to this filepath.
 
+    node_metadata: str or None
+        Optional path to a TSV file describing node metadata.
+
+    edge_metadata: str or None
+        Optional path to a TSV file describing edge metadata.
+
     Returns
     -------
     None
@@ -85,6 +93,8 @@ def make_viz(
         max_node_count=max_node_count,
         max_edge_count=max_edge_count,
         patterns=patterns,
+        node_metadata=node_metadata,
+        edge_metadata=edge_metadata,
     )
 
     outputs = []
