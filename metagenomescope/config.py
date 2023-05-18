@@ -110,10 +110,7 @@ COLL_CL_H_FAC = 1.0 / 2.0
 # in order to facilitate rotation in the .xdot viewer. (So I'd recommend not
 # changing that unless you have a good reason.)
 # Any text here must end without a semicolon.
-GRAPH_STYLE = "xdotversion=1.7"
-# Useful for visualizing .gv files. Shouldn't impact the viewer interface's
-# visualization -- only impacts dot's drawings.
-# GRAPH_STYLE = "xdotversion=1.7;\n\toverlap=false;\n\tdpi=30;\n\trotate=90"
+GRAPH_STYLE = "rankdir=LR"
 
 # Style applied to every node in the graph.
 #
@@ -121,12 +118,17 @@ GRAPH_STYLE = "xdotversion=1.7"
 # generated using -pg or -px, since node groups are temporarily represented as
 # nodes.
 #
-# Keeping label="" is strongly recommended -- otherwise, node sizes will change
-# to accommodate labels, which throws off the usefulness of scaling to indicate
-# contig/scaffold length. You could set fixedsize=true to allow for labels
-# within the .gv/.xdot output, but that can cause warnings due to the resulting
-# labels not having enough room for certain nodes.
-GLOBALNODE_STYLE = 'label=""'
+# "fixedsize=true" is needed in order to prevent node labels from causing nodes
+# to be resized. Might trigger some warnings from Graphviz but oh well, better
+# that than nodes getting assigned the wrong sizes.
+#
+# "orientation=90" is needed in order to get nodes to be correctly
+# rotated (to point in the left --> right direction), which makes the graph
+# look as intended when rankdir=LR. Shoutouts to
+# https://stackoverflow.com/a/45431027 for the wisdom that the node
+# "orientation" attr existed.
+GLOBALNODE_STYLE = "fixedsize=true,orientation=90"
+
 # Whether or not to color in nodes in the drawings produced by dot (without
 # having an effect on the viewer interface, since it doesn't care what colors
 # dot says a node/node group is).
@@ -145,12 +147,11 @@ if COLOR_NODES:
     GLOBALNODE_STYLE += ',style=filled,fillcolor="#888888"'
 
 # Style applied to every edge in the graph.
-# NOTE: "dir=none" gives "undirected" edges
-# Keeping headport=n,tailport=s is strongly recommended, since that impacts how
-# edges are positioned and drawn in the graph (and the viewer interface code
-# expects edges to originate from nodes' "headports" and end at nodes'
-# "tailports").
-GLOBALEDGE_STYLE = "headport=n,tailport=s"
+# Keeping headport=w,tailport=e is strongly recommended (assuming we keep
+# rankdir=LR), since that impacts how edges are positioned and drawn in the
+# graph (and the JS code expects edges to originate from nodes' "headports"
+# and end at nodes' "tailports").
+GLOBALEDGE_STYLE = "headport=w,tailport=e"
 
 # Style applied (directly) to every cluster in the graph.
 # Keeping margin=0 is strongly recommended, since otherwise cluster bounding
@@ -221,6 +222,16 @@ PT2HR = {
     PT_CHAIN: "Chain",
     PT_CYCLICCHAIN: "Cyclic Chain",
     PT_FRAYEDROPE: "Frayed Rope",
+}
+
+# Maps pattern types to human-readable names without spaces. For those silly
+# cases where we want to include pattern names in other IDs (e.g. in the names
+# of clusters in exported DOT files)...
+PT2HR_NOSPACE = {
+    PT_BUBBLE: "Bubble",
+    PT_CHAIN: "Chain",
+    PT_CYCLICCHAIN: "CyclicChain",
+    PT_FRAYEDROPE: "FrayedRope",
 }
 
 # Whether or not to specify colors for node groups in .gv/.xdot files. If this

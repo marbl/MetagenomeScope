@@ -216,6 +216,18 @@ class Edge(object):
 
         if self.relative_weight is not None:
             pw = MIN_PW + (self.relative_weight * (MAX_PW - MIN_PW))
+            # NOTE: If desired, we could detect if pw == 1 and then not include
+            # "penwidth={pw}" if so -- this is because graphviz' default
+            # penwidth is 1, so "penwidth=1" doesn't tell us any new
+            # information. That being said, I'm leery of doing this because it
+            # means that this will break if graphviz changes its default
+            # penwidth, and I don't think the space savings justifies the risk.
+            # Sooooooooooooo I'm just gonna leave this here.
+            #
+            # NOTE, however, that we could also design this more intelligently
+            # by having some check in the AssemblyGraph code if the edges even
+            # have weights -- if not, we could disable this branch entirely I
+            # think, which would solve the problem. but ugh that's more wooork
             attrs.append(f"penwidth={pw}")
 
         attrs_str = ",".join(attrs)

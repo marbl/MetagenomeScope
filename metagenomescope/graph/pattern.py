@@ -231,7 +231,7 @@ class Pattern(Node):
         io = indentation_level * config.INDENT
         ii = io + config.INDENT
         gv = (
-            f"{io}subgraph cluster_{config.PT2HR[self.pattern_type]}_"
+            f"{io}subgraph cluster_{config.PT2HR_NOSPACE[self.pattern_type]}_"
             f"{self.unique_id} {{\n"
         )
         gv += f'{ii}style="filled";\n'
@@ -253,13 +253,11 @@ class Pattern(Node):
         for node in self.nodes:
             if is_pattern(node):
                 node.layout()
-                # TODO: add a "solid" parameter to Pattern.to_dot() or
-                # something that just converts this child pattern to a
-                # rectangle here (rather than representing it as a subgraph) --
-                # then use this.
-                gv_input += node.to_dot()
-            else:
-                gv_input += node.to_dot(label=False, lr=False)
+            # TODO: add a "solid" parameter to Pattern.to_dot() or
+            # something that just converts this child pattern to a
+            # rectangle here (rather than representing it as a subgraph) --
+            # then use this.
+            gv_input += node.to_dot()
         for edge in self.edges:
             gv_input += edge.to_dot(level="dec")
         gv_input += "}"

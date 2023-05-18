@@ -1756,12 +1756,6 @@ class AssemblyGraph(object):
         """
         operation_msg(f'Writing out DOT to filepath "{output_fp}"...')
         gv = layout_utils.get_gv_header()
-        # TODO eventually, incorporate this into the gv header and use it in
-        # layout (since laying out from left to right is easiest)
-        gv += (
-            f"{config.INDENT}rankdir=LR;\n"
-            f"{config.INDENT}edge [headport=w,tailport=e];\n"
-        )
         # we only need to bother including patterns, nodes, and edges in the
         # top level of the graph; stuff inside patterns will be included as
         # part of the top-level pattern's to_dot() :)
