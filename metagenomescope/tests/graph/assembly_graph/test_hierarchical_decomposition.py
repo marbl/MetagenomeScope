@@ -92,14 +92,15 @@ def test_bubble_with_1_in_node():
     level as the parent of 1R, so we should merge 1L back into 1R.
     """
     ag = AssemblyGraph("metagenomescope/tests/input/bubble_test_1_in.gml")
-    # TODO: when we remove "unnecessary" split nodes, node 1 should be merged
-    # back.
     assert len(ag.decomposed_graph.nodes) == 1
     assert len(ag.decomposed_graph.edges) == 0
     assert len(ag.chains) == 1
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 1
+    # no split nodes or fake edges should be left
+    assert len(ag.graph.nodes) == 5
+    assert len(ag.graph.edges) == 5
 
 
 def test_bubble_chain_identification():
@@ -130,8 +131,44 @@ def test_bubble_chain_identification():
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 2
-    # TODO: when we remove "unnecessary" split nodes, the splits of nodes 1 and
-    # 7 should be merged back together. Right now, they are still split up.
+    # when we remove "unnecessary" split nodes, the splits of nodes 1 and
+    # 7 should be merged back together.
+    node_names = []
+    for ni in ag.graph.nodes:
+        node_names.append(ag.nodeid2obj[ni].name)
+    assert set(node_names) == set(
+        ["0", "1", "2", "3", "4-L", "4-R", "5", "6", "7", "8"]
+    )
+    edges = []
+    fake4_seen = False
+    for src, tgt, d in ag.graph.edges(data=True):
+        obj = ag.edgeid2obj[d["uid"]]
+        assert src == obj.new_src_id
+        assert tgt == obj.new_tgt_id
+        sn = ag.nodeid2obj[src].name
+        tn = ag.nodeid2obj[tgt].name
+        edges.append((sn, tn))
+        if sn == "4-L" and tn == "4-R":
+            fake4_seen = True
+            assert obj.is_fake
+        else:
+            assert not obj.is_fake
+    assert fake4_seen
+    assert set(edges) == set(
+        [
+            ("0", "1"),
+            ("1", "2"),
+            ("1", "3"),
+            ("2", "4-L"),
+            ("3", "4-L"),
+            ("4-L", "4-R"),
+            ("4-R", "5"),
+            ("4-R", "6"),
+            ("5", "7"),
+            ("6", "7"),
+            ("7", "8"),
+        ]
+    )
 
 
 def test_bubble_cyclic_chain_identification():
