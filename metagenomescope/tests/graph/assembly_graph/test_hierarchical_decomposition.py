@@ -206,16 +206,14 @@ def test_bubble_cyclic_chain_identification():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
     )
-    # write_dot(ag.decomposed_graph, "dec.gv")
-    # write_dot(ag.graph, "digraph.gv")
-    # for bub in ag.bubbles:
-    #     print(bub)
     assert len(ag.decomposed_graph.nodes) == 1
     assert len(ag.decomposed_graph.edges) == 0
     assert len(ag.chains) == 0
     assert len(ag.cyclic_chains) == 1
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 4
+    assert len(ag.graph.nodes) == 16
+    assert len(ag.graph.edges) == 20
 
 
 def test_chain_into_cyclic_chain_merging():
@@ -237,14 +235,16 @@ def test_chain_into_cyclic_chain_merging():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/chain_into_cyclic_chain_merging.gml"
     )
-    # TODO: when we remove "unnecessary" split nodes, nodes 1 and 4 should be
-    # merged back
     assert len(ag.decomposed_graph.nodes) == 1
     assert len(ag.decomposed_graph.edges) == 0
     assert len(ag.chains) == 0
     assert len(ag.cyclic_chains) == 1
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 1
+    # when we remove "unnecessary" split nodes, nodes 1 and 4 should no longer
+    # be split
+    assert len(ag.graph.nodes) == 7
+    assert len(ag.graph.edges) == 8
 
 
 def test_multiple_frayed_ropes():
@@ -286,6 +286,8 @@ def test_multiple_frayed_ropes():
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 2
         assert len(ag.bubbles) == 0
+        assert len(ag.graph.nodes) == 10
+        assert len(ag.graph.edges) == 9
     finally:
         os.close(fh)
         os.unlink(fn)
@@ -392,6 +394,10 @@ def test_multiedges_between_frayed_ropes():
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 2
         assert len(ag.bubbles) == 0
+        # the boundary nodes of both frayed ropes should not be split after
+        # decomposition is finished
+        assert len(ag.graph.nodes) == 11
+        assert len(ag.graph.edges) == 13
     finally:
         os.close(fh)
         os.unlink(fn)
@@ -433,6 +439,9 @@ def test_multiple_shared_boundaries_frayed_ropes():
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 2
         assert len(ag.bubbles) == 0
+        # Nodes 3 and 4 should both be split
+        assert len(ag.graph.nodes) == 10
+        assert len(ag.graph.edges) == 11
     finally:
         os.close(fh)
         os.unlink(fn)
@@ -459,3 +468,5 @@ def test_no_patterns():
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 0
+    assert set(ag.graph.nodes) == set([0, 1, 2, 3, 4])
+    assert len(ag.graph.edges) == 5
