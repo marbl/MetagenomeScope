@@ -1,5 +1,4 @@
 import sys
-from .config import DONE_MSG
 
 
 def operation_msg(message, newline=False):
@@ -17,7 +16,7 @@ def operation_msg(message, newline=False):
     sys.stdout.flush()
 
 
-def conclude_msg(message=DONE_MSG):
+def conclude_msg(message="Done."):
     """Prints a message indicating that a long operation was just finished.
 
     This message will usually be appended on to the end of the previous
