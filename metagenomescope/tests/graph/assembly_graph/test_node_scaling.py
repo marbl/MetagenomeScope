@@ -79,8 +79,8 @@ def test_compute_node_dimensions():
             exp_data = nodename2dims[name]
         else:
             exp_data = nodename2dims[negate_node_id(name)]
-        assert w == approx(exp_data[0])
-        assert h == approx(exp_data[1])
+        assert w == approx(exp_data[1])
+        assert h == approx(exp_data[0])
         seen_nodenames.append(name)
     assert len(seen_nodenames) == 12
 
@@ -90,15 +90,15 @@ def test_compute_node_dimensions_all_lengths_equal():
     default_area = config.MIN_NODE_AREA + (
         0.5 * (config.MAX_NODE_AREA - config.MIN_NODE_AREA)
     )
-    default_height = default_area**config.MID_LONGSIDE_PROPORTION
-    default_width = default_area / default_height
+    default_width = default_area**config.MID_LONGSIDE_PROPORTION
+    default_height = default_area / default_width
 
     # This double-checks that the defaults we expect here are computed
     # properly. If the config values are updated that may break this, so feel
     # free to comment this out if that happens to you.
     assert default_area == 5.5
-    assert default_height == approx(3.115839)
-    assert default_width == approx(1.765174)
+    assert default_width == approx(3.115839)
+    assert default_height == approx(1.765174)
 
     for node in ag.nodeid2obj.values():
         assert node.height == default_height
