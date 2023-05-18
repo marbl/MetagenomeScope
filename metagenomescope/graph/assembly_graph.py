@@ -186,10 +186,6 @@ class AssemblyGraph(object):
 
         self._scale_edges()
 
-        # TODO: During the April 2023 refactor, WE ARE HERE. Need to update
-        # these functions to set these internal attributes (width, height,
-        # relative_length, ...) as attributes of Node/Edge attributes --
-        # blessedly, leaving user-provide Node/Edge data separate.
         if self.find_patterns:
             operation_msg("Decomposing the graph into patterns...")
             self._hierarchically_identify_patterns()
