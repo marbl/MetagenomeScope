@@ -234,6 +234,12 @@ class Pattern(Node):
         indent: str
             "Outer indentation" to use in the DOT output. We'll increment the
             indentation for child nodes/edges/patterns of this pattern as well.
+
+        Returns
+        -------
+        str
+            DOT representation of this Pattern, in which the Pattern is
+            represented as a "cluster" subgraph.
         """
         # inner indentation level
         ii = indent + config.INDENT
