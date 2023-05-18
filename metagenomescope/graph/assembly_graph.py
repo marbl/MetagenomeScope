@@ -1197,43 +1197,23 @@ class AssemblyGraph(object):
         duplicating data for these nodes after doing scaling, etc., but I doubt
         that the time savings there will be that useful in most cases.)
 
-        It is very important to understand that here, "height" and "width"
-        refer to nodes' positions in the graph when laid out from top to
-        bottom:
-         __
-        |  |
-        |  |
-         \/
-
-         |                  ___         ___
-         |           , not |   \       |   \    :(
-         V                 |___/  ---> |___/
-         __
-        |  |
-        |  |
-         \/
-
-        Although Graphviz does accept a "rankdir" graph attribute that can be
-        used to make graph drawings flow from left to right, rather than from
-        top to bottom, this attribute is not respected when *just* laying out
-        the graph. At least to my knowledge. So unfortunately we have to do the
-        rotation ourselves. Therefore, in the visualization interface shown to
-        MetagenomeScope users, the width and height of each node are really the
-        opposite from what we store here.
+        In previous versions of MetagenomeScope (that laid out the graph using
+        the default top --> bottom "rankdir"), the width and height of nodes
+        were flipped. Now that we lay out the graph from left to right, the
+        width and height are no longer flipped, so this code should be way less
+        confusing.
         """
         for node in self.nodeid2obj.values():
             if node.relative_length is not None:
                 area = config.MIN_NODE_AREA + (
                     node.relative_length * config.NODE_AREA_RANGE
                 )
-                # Again, in the interface the height will be the width and the
-                # width will be the height
-                node.height = area**node.longside_proportion
-                node.width = area / node.height
+                node.width = area**node.longside_proportion
+                node.height = area / node.width
             else:
                 # TODO make into a config variable
                 # matches flye's graphs' node sizes
-                node.height = node.width = 0.3
+                node.width = node.height = 0.3
 
     def get_edge_weight_field(
         self, field_names=["bsize", "multiplicity", "cov", "kmer_cov"]

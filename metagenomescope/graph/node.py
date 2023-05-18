@@ -93,10 +93,6 @@ class Node(object):
         self.data = data
         self.split = split
 
-        # Will be filled in after doing node scaling. Stored in points.
-        self.width = None
-        self.height = None
-
         if counterpart_node is not None:
             if self.split is None:
                 raise WeirdError(
@@ -120,6 +116,10 @@ class Node(object):
             # AssemblyGraph.scale_nodes().
             self.relative_length = None
             self.longside_proportion = None
+
+        # Will be filled in after doing node scaling. Stored in points.
+        self.width = None
+        self.height = None
 
         # Relative position of this node within its parent pattern, if this
         # node is located within a pattern. (None if this node exists in the
@@ -233,13 +233,12 @@ class Node(object):
 
     def to_dot(self, indentation_level=1):
         if self.split is not None:
-            hgt = self.height / 2
+            dotwidth = self.width / 2
         else:
-            hgt = self.height
+            dotwidth = self.width
 
         indent = indentation_level * INDENT
-        # TODO rename so that width and height are actually the same as L --> R
         return (
-            f"{indent}{self.unique_id} [height={self.width},width={hgt},"
+            f"{indent}{self.unique_id} [width={dotwidth},height={self.height},"
             f'shape={self.shape},label="{self.name}"];\n'
         )
