@@ -226,23 +226,27 @@ class Pattern(Node):
                 obj.set_cc_num(cc_num)
         super().set_cc_num(cc_num)
 
-    def to_dot(self, indentation_level=1):
-        # outer and inner indentation levels
-        io = indentation_level * config.INDENT
-        ii = io + config.INDENT
+    def to_dot(self, indent=config.INDENT):
+        """Returns a DOT representation of this Pattern and its descendants.
+
+        Parameters
+        ----------
+        indent: str
+            "Outer indentation" to use in the DOT output. We'll increment the
+            indentation for child nodes/edges/patterns of this pattern as well.
+        """
+        # inner indentation level
+        ii = indent + config.INDENT
         gv = (
-            f"{io}subgraph cluster_{config.PT2HR_NOSPACE[self.pattern_type]}_"
-            f"{self.unique_id} {{\n"
+            f"{indent}subgraph cluster_"
+            f"{config.PT2HR_NOSPACE[self.pattern_type]}_{self.unique_id} {{\n"
         )
         gv += f'{ii}style="filled";\n'
         gv += f'{ii}fillcolor="{config.PT2COLOR[self.pattern_type]}";\n'
-        for node in self.nodes:
-            # Since both Nodes and Patterns have their own to_dot() methods, we
-            # actually don't need to distinguish between them here :D
-            gv += node.to_dot(indentation_level=indentation_level + 1)
-        for edge in self.edges:
-            gv += edge.to_dot(indentation_level=indentation_level + 1)
-        gv += f"{io}}}\n"
+        for obj_coll in (self.nodes, self.edges):
+            for obj in obj_coll:
+                gv += obj.to_dot(indent=ii)
+        gv += f"{indent}}}\n"
         return gv
 
     def layout(self):

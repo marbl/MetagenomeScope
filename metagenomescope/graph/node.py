@@ -231,13 +231,14 @@ class Node(object):
             else:
                 self.shape = "circle"
 
-    def to_dot(self, indentation_level=1):
+    def to_dot(self, indent=INDENT):
+        # If a node is split, it's drawn with half its width. This way, the two
+        # split nodes of an original node N have the same total area as N would
+        # were it an un-split node. Sorry if that explanation sucks.
         if self.split is not None:
             dotwidth = self.width / 2
         else:
             dotwidth = self.width
-
-        indent = indentation_level * INDENT
         return (
             f"{indent}{self.unique_id} [width={dotwidth},height={self.height},"
             f'shape={self.shape},label="{self.name}"];\n'

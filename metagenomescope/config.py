@@ -170,7 +170,7 @@ MAXE_DEFAULT = 7999
 SEPARATOR_CHAR = "-"
 
 # The amount of indentation to use for each level in DOT files. You could also
-# use a \t character here, if you prefer that.
+# use a \t character here, if you're the sort of person who prefers tabs ._.
 INDENT = "  "
 
 # Maps "internal" names for node / edge properties to human-readable ones.

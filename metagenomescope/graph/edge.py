@@ -200,7 +200,7 @@ class Edge(object):
     def set_cc_num(self, cc_num):
         self.cc_num = cc_num
 
-    def to_dot(self, level="new", indentation_level=1):
+    def to_dot(self, level="new", indent=INDENT):
         # TODO make all of these constants (dashed, colors, penwidth min/max)
         # into config/parameters...
         attrs = []
@@ -239,5 +239,4 @@ class Edge(object):
         else:
             raise WeirdError(f"Unrecognized edge level: {level}")
 
-        indent = indentation_level * INDENT
         return f"{indent}{decl} [{attrs_str}];\n"
