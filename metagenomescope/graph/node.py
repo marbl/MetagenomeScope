@@ -88,7 +88,7 @@ class Node(object):
             of None could, later on in the decomposition process, be split up
             (if this happens, it will be done when a counterpart Node of this
             node is added -- the counterpart Node's constructor will call
-            .make_into_left_split() or .make_into_right_split() accordingly).
+            .make_into_split() accordingly).
 
         counterpart_node: Node or None
             Node object that represents a "counterpart" Node from which we
@@ -136,17 +136,7 @@ class Node(object):
                     f"({counterpart_node.counterpart_node_id})?"
                 )
             counterpart_node.counterpart_node_id = self.unique_id
-            if self.split == SPLIT_LEFT:
-                counterpart_node.make_into_right_split()
-            elif self.split == SPLIT_RIGHT:
-                counterpart_node.make_into_left_split()
-            else:
-                # This should absolutely never happen, because get_node_name()
-                # already checked that self.split was LEFT or RIGHT or None
-                # (and we know by now that self.split is not None). But let's
-                # check for it anyway, just in case get_node_name() becomes
-                # broken. I guess.
-                raise WeirdError(f"Unrecognized split value: {self.split}")
+            counterpart_node.make_into_split(get_opposite_split(self.split))
             self.counterpart_node_id = counterpart_node.unique_id
             self.relative_length = counterpart_node.relative_length
             self.longside_proportion = counterpart_node.longside_proportion
@@ -200,7 +190,7 @@ class Node(object):
     def is_not_split(self):
         return not self.is_split()
 
-    def _make_into_split(self, split_type):
+    def make_into_split(self, split_type):
         if self.is_split():
             raise WeirdError(
                 f"This Node's .split attr is already {self.split}?"
@@ -221,12 +211,6 @@ class Node(object):
             )
         self.counterpart_node_id = None
         self._set_shape()
-
-    def make_into_left_split(self):
-        self._make_into_split(SPLIT_LEFT)
-
-    def make_into_right_split(self):
-        self._make_into_split(SPLIT_RIGHT)
 
     def set_cc_num(self, cc_num):
         self.cc_num = cc_num
