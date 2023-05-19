@@ -116,23 +116,9 @@ class Node(object):
                     f"Creating Node {self.unique_id}: counterpart_node is not "
                     "None, but split is None?"
                 )
-            if counterpart_node.counterpart_node_id is None:
-                if counterpart_node.split is not None:
-                    # This should *definitely* never happen in practice, since
-                    # trying to create a Node with a split but no counterpart
-                    # should ordinarily raise an error (in this constructor
-                    # lol). But let's be paranoid anyway.
-                    raise WeirdError(
-                        f"Creating split Node {self.unique_id} with split of "
-                        f"{self.split}: counterpart {counterpart_node} "
-                        f"already has a split of {counterpart_node.split}?"
-                    )
-            else:
-                raise WeirdError(
-                    f"Creating split Node {self.unique_id}: counterpart "
-                    f"{counterpart_node} already has a counterpart Node "
-                    f"({counterpart_node.counterpart_node_id})?"
-                )
+            # If the counterpart node already has split or counterpart_node_id
+            # attrs defined, then its make_into_split() method will raise an
+            # error
             counterpart_node.make_into_split(self.unique_id, self.split)
             self.counterpart_node_id = counterpart_node.unique_id
             self.relative_length = counterpart_node.relative_length
@@ -201,10 +187,10 @@ class Node(object):
             SPLIT_LEFT, then this Node will have a split type of SPLIT_RIGHT).
         """
         if self.is_split():
-            raise WeirdError(f"{self}: .split attr is already {self.split}?")
+            raise WeirdError(f"{self}: split attr is already {self.split}?")
         if self.counterpart_node_id is not None:
             raise WeirdError(
-                f"{self}: .counterpart_node_id attr is already "
+                f"{self}: counterpart_node_id attr is already "
                 f"{self.counterpart_node_id}?"
             )
         self.counterpart_node_id = counterpart_id
@@ -214,13 +200,15 @@ class Node(object):
 
     def unsplit(self):
         if self.is_not_split():
-            raise WeirdError("Can't unsplit an already-not-split Node?")
+            raise WeirdError(
+                f"{self} can't be unsplit; it's already not split?"
+            )
         self.split = None
         self.name = get_node_name(self.basename, self.split)
 
         if self.counterpart_node_id is None:
             raise WeirdError(
-                f"Shouldn't {self} already have a counterpart node ID?"
+                f"{self} can't be unsplit; doesn't have a counterpart node ID?"
             )
         self.counterpart_node_id = None
         self._set_shape()
