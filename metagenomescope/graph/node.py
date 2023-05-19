@@ -124,6 +124,10 @@ class Node(object):
                 )
             if counterpart_node.counterpart_node_id is None:
                 if counterpart_node.split is not None:
+                    # This should *definitely* never happen in practice, since
+                    # trying to create a Node with a split but no counterpart
+                    # should ordinarily raise an error (in this constructor
+                    # lol). But let's be paranoid anyway.
                     raise WeirdError(
                         f"Creating split Node {self.unique_id} with split of "
                         f'"{self.split}": counterpart {counterpart_node} '

@@ -31,3 +31,18 @@ def test_constructor_counterpart_already_taken():
         "Creating split Node 2: counterpart Node 1 (name: C-L) already has a "
         "counterpart Node (0)?"
     )
+
+
+def test_constructor_counterpart_already_split():
+    b = Node(0, "B", {})
+    # Trying to create a Node with a split but no counterpart (the only way to
+    # trigger the particular error we're trying to test here) will cause the
+    # Node constructor to fail with an error about *that*. To trigger our
+    # desired error, we can modify b.split after its creation.
+    b.make_into_split(SPLIT_LEFT)
+    with pytest.raises(WeirdError) as ei:
+        Node(1, "C", {}, counterpart_node=b, split=SPLIT_RIGHT)
+    assert str(ei.value) == (
+        f'Creating split Node 1 with split of "{SPLIT_RIGHT}": counterpart '
+        f'{b} already has a split of "{SPLIT_LEFT}"?'
+    )
