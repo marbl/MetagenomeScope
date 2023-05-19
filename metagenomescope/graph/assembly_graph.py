@@ -410,9 +410,12 @@ class AssemblyGraph(object):
         """
         counterpart_node = self.nodeid2obj[counterpart_node_id]
         new_node_id = self._get_unique_id()
-        # NOTE: Deep copying the data here is probably unnecessary,
-        # since I don't think we'll ever *want* it to be different
-        # between a node and its split copy. But whatever.
+        # NOTE: Deep copying the data here is probably unnecessary, since I
+        # don't think we'll ever *want* it to be different between a node and
+        # its split copy. Ideally we'd restructure things so that we could
+        # just pass the new node ID, the split, and just the counterpart Node
+        # to the Node constructor, and the constructor would extract the name
+        # and data accordingly. But whatever, this approach is simple.
         new_node = Node(
             new_node_id,
             counterpart_node.name,
