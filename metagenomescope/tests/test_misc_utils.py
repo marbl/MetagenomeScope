@@ -56,3 +56,11 @@ def test_verify_subset():
     with pytest.raises(WeirdError) as ei:
         mu.verify_subset([1, 2, 3], [1, 2])
     assert str(ei.value) == "[1, 2, 3] is not a subset of [1, 2]"
+
+
+def test_verify_subset_custom_message():
+    mu.verify_subset([1, 2, 3], [1, 2, 3], custom_message="bloobity")
+    mu.verify_subset([1, 2, 3], [1, 2, 3, 4], custom_message="scrimblo")
+    with pytest.raises(WeirdError) as ei:
+        mu.verify_subset([1, 2, 3], [1, 2], custom_message="floompty")
+    assert str(ei.value) == "floompty"
