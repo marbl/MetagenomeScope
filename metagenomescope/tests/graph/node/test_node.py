@@ -1,7 +1,7 @@
 import pytest
 from metagenomescope.graph.node import Node
 from metagenomescope.config import SPLIT_LEFT, SPLIT_RIGHT
-from metagenomescope.errors import WeirdError
+from metagenomescope.errors import WeirdError, GraphParsingError
 
 
 def test_constructor_counterpart_but_no_split():
@@ -78,7 +78,7 @@ def test_set_cc_num():
     b = Node(0, "B", {})
     assert b.cc_num is None
     b.set_cc_num(1)
-    assert b.cc_num is 1
+    assert b.cc_num == 1
     # AND THE CROWD GOES WILD
 
 
@@ -88,3 +88,63 @@ def test__set_shape_bad_split():
     with pytest.raises(WeirdError) as ei:
         b._set_shape()
     assert str(ei.value) == "Unrecognized split value: filasdf"
+
+
+def test__set_shape_bad_orientation():
+    with pytest.raises(GraphParsingError) as ei:
+        Node(0, "B", {"orientation": "FOW"})
+    assert 'Unsupported node orientation: FOW. Should be "+" or "-".' in str(
+        ei.value
+    )
+
+
+def test_to_dot_unset_dims():
+    def check_exception(e):
+        assert str(e.value) == (
+            "Can't call to_dot() on a Node with unset width and/or height"
+        )
+
+    with pytest.raises(WeirdError) as ei:
+        b = Node(0, "B", {})
+        b.to_dot()
+    check_exception(ei)
+
+    with pytest.raises(WeirdError) as ei:
+        b = Node(0, "B", {})
+        b.height = 5
+        # ... but the width is still unset!
+        b.to_dot()
+    check_exception(ei)
+
+    with pytest.raises(WeirdError) as ei:
+        b = Node(0, "B", {})
+        b.width = 5
+        # ... but the height is still unset!
+        b.to_dot()
+    check_exception(ei)
+
+
+def test_to_dot_non_split():
+    b = Node(0, "B", {})
+    b.width = b.height = 3
+    assert (
+        b.to_dot(indent=" ")
+        == ' 0 [width=3,height=3,shape=circle,label="B"];\n'
+    )
+
+
+def test_to_dot_split():
+    b = Node(0, "B", {"orientation": "+"})
+    c = Node(
+        1, "C", {"orientation": "+"}, counterpart_node=b, split=SPLIT_LEFT
+    )
+    b.width = b.height = 3
+    c.width = c.height = 3
+    assert (
+        c.to_dot(indent=" ")
+        == ' 1 [width=1.5,height=3,shape=rect,label="C-L"];\n'
+    )
+    assert (
+        b.to_dot(indent=" ")
+        == ' 0 [width=1.5,height=3,shape=invtriangle,label="B-R"];\n'
+    )

@@ -262,6 +262,10 @@ class Node(object):
                 self.shape = "circle"
 
     def to_dot(self, indent=INDENT):
+        if self.width is None or self.height is None:
+            raise WeirdError(
+                "Can't call to_dot() on a Node with unset width and/or height"
+            )
         # If a node is split, it's drawn with half its width. This way, the two
         # split nodes of an original node N have the same total area as N would
         # were it an un-split node, because hw = h*(w/2) + h*(w/2).
