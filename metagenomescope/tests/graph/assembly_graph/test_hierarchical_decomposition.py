@@ -136,9 +136,18 @@ def test_bubble_chain_identification():
     node_names = []
     for ni in ag.graph.nodes:
         node_names.append(ag.nodeid2obj[ni].name)
-    assert set(node_names) == set(
-        ["0", "1", "2", "3", "4-L", "4-R", "5", "6", "7", "8"]
-    )
+    assert sorted(node_names) == [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4-L",
+        "4-R",
+        "5",
+        "6",
+        "7",
+        "8",
+    ]
     edges = []
     fake4_seen = False
     for src, tgt, d in ag.graph.edges(data=True):
@@ -154,21 +163,19 @@ def test_bubble_chain_identification():
         else:
             assert not obj.is_fake
     assert fake4_seen
-    assert set(edges) == set(
-        [
-            ("0", "1"),
-            ("1", "2"),
-            ("1", "3"),
-            ("2", "4-L"),
-            ("3", "4-L"),
-            ("4-L", "4-R"),
-            ("4-R", "5"),
-            ("4-R", "6"),
-            ("5", "7"),
-            ("6", "7"),
-            ("7", "8"),
-        ]
-    )
+    assert sorted(edges) == [
+        ("0", "1"),
+        ("1", "2"),
+        ("1", "3"),
+        ("2", "4-L"),
+        ("3", "4-L"),
+        ("4-L", "4-R"),
+        ("4-R", "5"),
+        ("4-R", "6"),
+        ("5", "7"),
+        ("6", "7"),
+        ("7", "8"),
+    ]
 
 
 def test_bubble_cyclic_chain_identification():
@@ -462,11 +469,11 @@ def test_no_patterns():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/bubble_test_1_in.gml", patterns=False
     )
-    assert set(ag.decomposed_graph.nodes) == set([0, 1, 2, 3, 4])
+    assert sorted(ag.decomposed_graph.nodes) == sorted([0, 1, 2, 3, 4])
     assert len(ag.decomposed_graph.edges) == 5
     assert len(ag.chains) == 0
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
     assert len(ag.bubbles) == 0
-    assert set(ag.graph.nodes) == set([0, 1, 2, 3, 4])
+    assert sorted(ag.graph.nodes) == sorted([0, 1, 2, 3, 4])
     assert len(ag.graph.edges) == 5
