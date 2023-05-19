@@ -20,6 +20,6 @@ def test_constructor_counterpart_already_taken():
     with pytest.raises(WeirdError) as ei:
         Node(2, "D", {}, counterpart_node=c, split=SPLIT_RIGHT)
     assert str(ei.value) == (
-        "Creating split Node 2: Node 1 (name: C-L) already has counterpart "
-        "Node 0?"
+        "Creating split Node 2: counterpart Node 1 (name: C-L) already has a "
+        "counterpart Node (0)?"
     )

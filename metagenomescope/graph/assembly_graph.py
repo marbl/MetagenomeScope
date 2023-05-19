@@ -393,7 +393,10 @@ class AssemblyGraph(object):
         ----------
         counterpart_node_id: int
             ID of the original node from which we'll create this split node.
-            This should correspond to an entry in self.nodeid2obj.
+            This should correspond to an entry in self.nodeid2obj. We'll also
+            take care here of converting this node to the opposite split type
+            as "split" (so, if split is LEFT, then we'll make the counterpart a
+            RIGHT split node, and vice versa).
 
         split: str
             Should be either config.SPLIT_LEFT or config.SPLIT_RIGHT.
@@ -403,16 +406,20 @@ class AssemblyGraph(object):
         new_node_id: int
             The ID of the split node we created.
         """
-        if split != config.SPLIT_LEFT and split != config.SPLIT_RIGHT:
+        counterpart_node = self.nodeid2obj[counterpart_node_id]
+        if split == config.SPLIT_LEFT:
+            counterpart_node.make_into_right_split()
+        elif split == config.SPLIT_RIGHT:
+            counterpart_node.make_into_left_split()
+        else:
             raise WeirdError(f"Unrecognized split value: {split}")
         new_node_id = self._get_unique_id()
-        counterpart_node = self.nodeid2obj[counterpart_node_id]
         # NOTE: Deep copying the data here is probably unnecessary,
         # since I don't think we'll ever *want* it to be different
         # between a node and its split copy. But whatever.
         new_node = Node(
             new_node_id,
-            counterpart_node.name,
+            counterpart_node.basename,
             deepcopy(counterpart_node.data),
             split=split,
             counterpart_node=counterpart_node,
@@ -493,7 +500,6 @@ class AssemblyGraph(object):
                 )
                 for g in (self.graph, self.decomposed_graph):
                     g.add_node(left_node_id)
-                self.nodeid2obj[start_id].make_into_right_split()
 
                 # Route edges from start_incoming_nodes_outside_pattern to
                 # the left node.
@@ -589,7 +595,6 @@ class AssemblyGraph(object):
                 )
                 for g in (self.graph, self.decomposed_graph):
                     g.add_node(right_node_id)
-                self.nodeid2obj[end_id].make_into_left_split()
                 # Route edges from the right node to
                 # end_outgoing_nodes_outside_pattern
                 for (_, outgoing_node_id, key, data) in list(

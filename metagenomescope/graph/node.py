@@ -33,6 +33,18 @@ def get_node_name(basename, split):
         )
 
 
+def get_opposite_split(split):
+    if split == SPLIT_LEFT:
+        return SPLIT_RIGHT
+    elif split == SPLIT_RIGHT:
+        return SPLIT_LEFT
+    else:
+        raise WeirdError(
+            f'"split" is {split}, but it should be "{SPLIT_LEFT}" or '
+            f'"{SPLIT_RIGHT}"?'
+        )
+
+
 class Node(object):
     """Represents a node in an assembly graph.
 
@@ -100,12 +112,18 @@ class Node(object):
                     "split is None?"
                 )
             if counterpart_node.counterpart_node_id is None:
+                if counterpart_node.split != get_opposite_split(self.split):
+                    raise WeirdError(
+                        f"Creating split Node {self.unique_id} with split of "
+                        f'"{self.split}": counterpart {counterpart_node} has '
+                        f'a split of "{counterpart_node.split}"?'
+                    )
                 counterpart_node.counterpart_node_id = self.unique_id
             else:
                 raise WeirdError(
-                    f"Creating split Node {self.unique_id}: {counterpart_node} "
-                    "already has counterpart Node "
-                    f"{counterpart_node.counterpart_node_id}?"
+                    f"Creating split Node {self.unique_id}: counterpart "
+                    f"{counterpart_node} already has a counterpart Node "
+                    f"({counterpart_node.counterpart_node_id})?"
                 )
             self.counterpart_node_id = counterpart_node.unique_id
             self.relative_length = counterpart_node.relative_length
