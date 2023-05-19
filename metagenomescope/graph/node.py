@@ -104,7 +104,7 @@ class Node(object):
             else:
                 raise WeirdError(
                     f"Creating split Node {self.unique_id}: {counterpart_node} "
-                    "already has counterpart "
+                    "already has counterpart Node "
                     f"{counterpart_node.counterpart_node_id}?"
                 )
             self.counterpart_node_id = counterpart_node.unique_id
