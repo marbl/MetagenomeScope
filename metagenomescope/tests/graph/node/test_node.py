@@ -9,7 +9,7 @@ def test_constructor_counterpart_but_no_split():
     with pytest.raises(WeirdError) as ei:
         Node(1, "CoolNode", {}, counterpart_node=c)
     assert str(ei.value) == (
-        "Node 1: counterpart_node is not None, but split is None?"
+        "Creating Node 1: counterpart_node is not None, but split is None?"
     )
 
 
@@ -17,7 +17,8 @@ def test_constructor_split_but_no_counterpart():
     with pytest.raises(WeirdError) as ei:
         Node(0, "B", {}, split=SPLIT_LEFT)
     assert str(ei.value) == (
-        f'Node 0: split is "{SPLIT_LEFT}", but no counterpart Node specified?'
+        f'Creating Node 0: split is "{SPLIT_LEFT}", but no counterpart '
+        "Node specified?"
     )
 
 

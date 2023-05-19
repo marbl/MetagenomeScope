@@ -119,8 +119,8 @@ class Node(object):
         if counterpart_node is not None:
             if self.split is None:
                 raise WeirdError(
-                    f"Node {self.unique_id}: counterpart_node is not None, but "
-                    "split is None?"
+                    f"Creating Node {self.unique_id}: counterpart_node is not "
+                    "None, but split is None?"
                 )
             if counterpart_node.counterpart_node_id is None:
                 if counterpart_node.split is not None:
@@ -143,8 +143,8 @@ class Node(object):
         else:
             if self.split is not None:
                 raise WeirdError(
-                    f'Node {self.unique_id}: split is "{self.split}", but no '
-                    "counterpart Node specified?"
+                    f"Creating Node {self.unique_id}: split is "
+                    f'"{self.split}", but no counterpart Node specified?'
                 )
             self.counterpart_node_id = None
             # Also will be filled in after node scaling. See
