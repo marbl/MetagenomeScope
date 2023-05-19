@@ -234,7 +234,7 @@ class Node(object):
     def to_dot(self, indent=INDENT):
         # If a node is split, it's drawn with half its width. This way, the two
         # split nodes of an original node N have the same total area as N would
-        # were it an un-split node. Sorry if that explanation sucks.
+        # were it an un-split node, because hw = h*(w/2) + h*(w/2).
         if self.split is not None:
             dotwidth = self.width / 2
         else:
