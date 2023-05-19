@@ -1861,6 +1861,11 @@ class AssemblyGraph(object):
         used for MgSc.
 
         Inspired by to_dict() in Empress.
+
+        Notes
+        -----
+        You need to have already called .layout() on this AssemblyGraph before
+        calling this function.
         """
         self._fail_if_layout_not_done("to_dict")
         # Determine what data we'll export. Each node and edge should have a
@@ -2124,6 +2129,11 @@ class AssemblyGraph(object):
         testing, mostly -- it's easier to test that a dict contains a certain
         element, etc. than it would be if we had to go through the dict -> JSON
         str -> dict song and dance for every test.
+
+        Notes
+        -----
+        You need to have already called .layout() on this AssemblyGraph before
+        calling this function.
         """
         self._fail_if_layout_not_done("to_json")
         return json.dumps(self.to_dict())
