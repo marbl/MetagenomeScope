@@ -39,7 +39,7 @@ def test_constructor_counterpart_already_split():
     # trigger the particular error we're trying to test here) will cause the
     # Node constructor to fail with an error about *that*. To trigger our
     # desired error, we can modify b.split after its creation.
-    b.make_into_split(SPLIT_LEFT)
+    b.split = SPLIT_LEFT
     with pytest.raises(WeirdError) as ei:
         Node(1, "C", {}, counterpart_node=b, split=SPLIT_RIGHT)
     assert str(ei.value) == (

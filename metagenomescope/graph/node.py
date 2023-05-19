@@ -88,18 +88,13 @@ class Node(object):
             of None could, later on in the decomposition process, be split up
             (if this happens, it will be done when a counterpart Node of this
             node is added -- the counterpart Node's constructor will call
-            .make_into_split() accordingly).
+            .make_into_split() on this Node).
 
         counterpart_node: Node or None
             Node object that represents a "counterpart" Node from which we
             should copy this new Node's relative_length and longside_proportion
-            attributes. We'll also set the counterpart_node_id attribute
-            of this new Node to the ID of the counterpart Node, set
-            counterpart_node.counterpart_node_id to this new Node's ID, and
-            update counterpart_node.split to be the "opposite" of "split".
-            (This will all be useful later when we detect/remove "unnecessary"
-            split nodes.) If you specify a Node's "split" when you call this
-            constructor, you must also specify this Node's counterpart Node.
+            attributes. We'll also call counterpart_node.make_into_split() to
+            update it.
 
         Raises
         ------
@@ -108,7 +103,6 @@ class Node(object):
             - If split is None and counterpart_node is not None, or vice versa
             - If counterpart_node already has a split that is not None
             - If counterpart_node already has another counterpart node
-
         """
         self.unique_id = unique_id
         self.basename = name
@@ -139,8 +133,7 @@ class Node(object):
                     f"{counterpart_node} already has a counterpart Node "
                     f"({counterpart_node.counterpart_node_id})?"
                 )
-            counterpart_node.counterpart_node_id = self.unique_id
-            counterpart_node.make_into_split(get_opposite_split(self.split))
+            counterpart_node.make_into_split(self.unique_id, self.split)
             self.counterpart_node_id = counterpart_node.unique_id
             self.relative_length = counterpart_node.relative_length
             self.longside_proportion = counterpart_node.longside_proportion
@@ -194,12 +187,30 @@ class Node(object):
     def is_not_split(self):
         return not self.is_split()
 
-    def make_into_split(self, split_type):
+    def make_into_split(self, counterpart_id, counterpart_split_type):
+        """Makes this Node into the split Node of a counterpart Node.
+
+        Parameters
+        ----------
+        counterpart_id: int
+            The unique ID of the counterpart Node.
+
+        counterpart_split_type: str
+            The split type of the counterpart Node. We'll set the split type of
+            this Node to the opposite of this (so, if counterpart_split_type is
+            SPLIT_LEFT, then this Node will have a split type of SPLIT_RIGHT).
+        """
         if self.is_split():
             raise WeirdError(
                 f"This Node's .split attr is already {self.split}?"
             )
-        self.split = split_type
+        if self.counterpart_node_id is not None:
+            raise WeirdError(
+                "This Node's .counterpart_node_id attr is already "
+                f"{self.counterpart_node_id}?"
+            )
+        self.counterpart_node_id = counterpart_id
+        self.split = get_opposite_split(counterpart_split_type)
         self.name = get_node_name(self.basename, self.split)
         self._set_shape()
 
