@@ -13,6 +13,14 @@ def test_constructor_counterpart_but_no_split():
     )
 
 
+def test_constructor_split_but_no_counterpart():
+    with pytest.raises(WeirdError) as ei:
+        Node(0, "B", {}, split=SPLIT_LEFT)
+    assert str(ei.value) == (
+        f'Node 0: split is "{SPLIT_LEFT}", but no counterpart Node specified?'
+    )
+
+
 def test_constructor_counterpart_already_taken():
     b = Node(0, "B", {})
     c = Node(1, "C", {}, counterpart_node=b, split=SPLIT_LEFT)
