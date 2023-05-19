@@ -28,8 +28,8 @@ def get_node_name(basename, split):
         return f"{basename}{SPLIT_SEP}{split}"
     else:
         raise WeirdError(
-            f'"split" is {split}, but it should be one of '
-            f'{{None, "{SPLIT_LEFT}", "{SPLIT_RIGHT}"}}.'
+            f"split is {split}, but it should be one of "
+            f"{{None, {SPLIT_LEFT}, {SPLIT_RIGHT}}}."
         )
 
 
@@ -40,8 +40,8 @@ def get_opposite_split(split):
         return SPLIT_LEFT
     else:
         raise WeirdError(
-            f'"split" is {split}, but it should be "{SPLIT_LEFT}" or '
-            f'"{SPLIT_RIGHT}"?'
+            f"split is {split}, but it should be {SPLIT_LEFT} or "
+            f"{SPLIT_RIGHT}?"
         )
 
 
@@ -124,8 +124,8 @@ class Node(object):
                     # lol). But let's be paranoid anyway.
                     raise WeirdError(
                         f"Creating split Node {self.unique_id} with split of "
-                        f'"{self.split}": counterpart {counterpart_node} '
-                        f'already has a split of "{counterpart_node.split}"?'
+                        f"{self.split}: counterpart {counterpart_node} "
+                        f"already has a split of {counterpart_node.split}?"
                     )
             else:
                 raise WeirdError(
@@ -140,8 +140,8 @@ class Node(object):
         else:
             if self.split is not None:
                 raise WeirdError(
-                    f"Creating Node {self.unique_id}: split is "
-                    f'"{self.split}", but no counterpart Node specified?'
+                    f"Creating Node {self.unique_id}: split is {self.split}, "
+                    "but no counterpart Node specified?"
                 )
             self.counterpart_node_id = None
             # Also will be filled in after node scaling. See

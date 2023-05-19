@@ -17,7 +17,7 @@ def test_constructor_split_but_no_counterpart():
     with pytest.raises(WeirdError) as ei:
         Node(0, "B", {}, split=SPLIT_LEFT)
     assert str(ei.value) == (
-        f'Creating Node 0: split is "{SPLIT_LEFT}", but no counterpart '
+        f"Creating Node 0: split is {SPLIT_LEFT}, but no counterpart "
         "Node specified?"
     )
 
@@ -43,8 +43,8 @@ def test_constructor_counterpart_already_split():
     with pytest.raises(WeirdError) as ei:
         Node(1, "C", {}, counterpart_node=b, split=SPLIT_RIGHT)
     assert str(ei.value) == (
-        f'Creating split Node 1 with split of "{SPLIT_RIGHT}": counterpart '
-        f'{b} already has a split of "{SPLIT_LEFT}"?'
+        f"Creating split Node 1 with split of {SPLIT_RIGHT}: counterpart "
+        f"{b} already has a split of {SPLIT_LEFT}?"
     )
 
 

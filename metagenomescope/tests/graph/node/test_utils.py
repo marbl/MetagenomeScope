@@ -13,8 +13,8 @@ def test_get_node_name():
     with pytest.raises(WeirdError) as ei:
         get_node_name("1234", SPLIT_SEP)
     assert str(ei.value) == (
-        f'"split" is {SPLIT_SEP}, but it should be one of {{None, '
-        f'"{SPLIT_LEFT}", "{SPLIT_RIGHT}"}}.'
+        f"split is {SPLIT_SEP}, but it should be one of {{None, "
+        f"{SPLIT_LEFT}, {SPLIT_RIGHT}}}."
     )
 
 
@@ -25,12 +25,11 @@ def test_get_opposite_split():
     with pytest.raises(WeirdError) as ei:
         get_opposite_split(None)
     assert str(ei.value) == (
-        f'"split" is None, but it should be "{SPLIT_LEFT}" or "{SPLIT_RIGHT}"?'
+        f"split is None, but it should be {SPLIT_LEFT} or {SPLIT_RIGHT}?"
     )
 
     with pytest.raises(WeirdError) as ei:
         get_opposite_split("floobity")
     assert str(ei.value) == (
-        f'"split" is floobity, but it should be "{SPLIT_LEFT}" or '
-        f'"{SPLIT_RIGHT}"?'
+        f"split is floobity, but it should be {SPLIT_LEFT} or {SPLIT_RIGHT}?"
     )
