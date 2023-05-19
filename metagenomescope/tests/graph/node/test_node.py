@@ -72,3 +72,19 @@ def test_unsplit_on_node_without_counterpart():
         "Node 0 (name: B) can't be unsplit; doesn't have a counterpart node "
         "ID?"
     )
+
+
+def test_set_cc_num():
+    b = Node(0, "B", {})
+    assert b.cc_num is None
+    b.set_cc_num(1)
+    assert b.cc_num is 1
+    # AND THE CROWD GOES WILD
+
+
+def test__set_shape_bad_split():
+    b = Node(0, "B", {})
+    b.split = "filasdf"
+    with pytest.raises(WeirdError) as ei:
+        b._set_shape()
+    assert str(ei.value) == "Unrecognized split value: filasdf"
