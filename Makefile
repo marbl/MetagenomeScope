@@ -31,7 +31,6 @@ pytest:
 		--cov-report term \
 		--cov-report html \
 		--cov metagenomescope
-	rm -f metagenomescope/tests/output/*
 
 jstest:
 	nyc instrument metagenomescope/support_files/js/ metagenomescope/tests/js_tests/instrumented_js/
