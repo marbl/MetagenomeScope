@@ -15,7 +15,6 @@ def test_constructor_counterpart_but_no_split():
 
 def test_constructor_counterpart_already_taken():
     b = Node(0, "B", {})
-    b.make_into_right_split()
     c = Node(1, "C", {}, counterpart_node=b, split=SPLIT_LEFT)
     with pytest.raises(WeirdError) as ei:
         Node(2, "D", {}, counterpart_node=c, split=SPLIT_RIGHT)

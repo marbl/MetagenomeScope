@@ -393,10 +393,12 @@ class AssemblyGraph(object):
         ----------
         counterpart_node_id: int
             ID of the original node from which we'll create this split node.
-            This should correspond to an entry in self.nodeid2obj. We'll also
-            take care here of converting this node to the opposite split type
-            as "split" (so, if split is LEFT, then we'll make the counterpart a
-            RIGHT split node, and vice versa).
+            This should correspond to an entry in self.nodeid2obj. When we
+            create the new Node, its constructor will take care to convert this
+            node to the opposite split type as "split" (so, if split is LEFT,
+            then the counterpart will become a RIGHT split node, and vice
+            versa). (Of course, if the counterpart node is already split for
+            some perverse reason, the Node constructor will throw an error.)
 
         split: str
             Should be either config.SPLIT_LEFT or config.SPLIT_RIGHT.
@@ -407,19 +409,13 @@ class AssemblyGraph(object):
             The ID of the split node we created.
         """
         counterpart_node = self.nodeid2obj[counterpart_node_id]
-        if split == config.SPLIT_LEFT:
-            counterpart_node.make_into_right_split()
-        elif split == config.SPLIT_RIGHT:
-            counterpart_node.make_into_left_split()
-        else:
-            raise WeirdError(f"Unrecognized split value: {split}")
         new_node_id = self._get_unique_id()
         # NOTE: Deep copying the data here is probably unnecessary,
         # since I don't think we'll ever *want* it to be different
         # between a node and its split copy. But whatever.
         new_node = Node(
             new_node_id,
-            counterpart_node.basename,
+            counterpart_node.name,
             deepcopy(counterpart_node.data),
             split=split,
             counterpart_node=counterpart_node,

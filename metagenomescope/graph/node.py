@@ -85,19 +85,30 @@ class Node(object):
             that this is not a split node yet (I'm going to label these non-
             split nodes as "full," just for the sake of clarity -- see the Edge
             object docs for details). Note that a Node that has a split value
-            of None could, later on in the decomposition process, be split up.
-            You should do this by calling the .make_into_left_split() /
-            .make_into_right_split() functions on this Node.
+            of None could, later on in the decomposition process, be split up
+            (if this happens, it will be done when a counterpart Node of this
+            node is added -- the counterpart Node's constructor will call
+            .make_into_left_split() or .make_into_right_split() accordingly).
 
         counterpart_node: Node or None
             Node object that represents a "counterpart" Node from which we
             should copy this new Node's relative_length and longside_proportion
             attributes. We'll also set the counterpart_node_id attribute
-            of this new Node to the ID of the counterpart Node, and set
-            counterpart_node.counterpart_node_id to this new Node's ID. (This
-            will be useful later when we detect/remove "unnecessary" split
-            nodes.) If split is None or if counterpart_node.counterpart_node_id
-            is not None, then we'll raise an error.
+            of this new Node to the ID of the counterpart Node, set
+            counterpart_node.counterpart_node_id to this new Node's ID, and
+            update counterpart_node.split to be the "opposite" of "split".
+            (This will all be useful later when we detect/remove "unnecessary"
+            split nodes.) If you specify a Node's "split" when you call this
+            constructor, you must also specify this Node's counterpart Node.
+
+        Raises
+        ------
+        WeirdError
+            - If split is not one of {None, SPLIT_LEFT, SPLIT_RIGHT}
+            - If split is None and counterpart_node is not None, or vice versa
+            - If counterpart_node already has a split that is not None
+            - If counterpart_node already has another counterpart node
+
         """
         self.unique_id = unique_id
         self.basename = name
@@ -112,23 +123,39 @@ class Node(object):
                     "split is None?"
                 )
             if counterpart_node.counterpart_node_id is None:
-                if counterpart_node.split != get_opposite_split(self.split):
+                if counterpart_node.split is not None:
                     raise WeirdError(
                         f"Creating split Node {self.unique_id} with split of "
-                        f'"{self.split}": counterpart {counterpart_node} has '
-                        f'a split of "{counterpart_node.split}"?'
+                        f'"{self.split}": counterpart {counterpart_node} '
+                        f'already has a split of "{counterpart_node.split}"?'
                     )
-                counterpart_node.counterpart_node_id = self.unique_id
             else:
                 raise WeirdError(
                     f"Creating split Node {self.unique_id}: counterpart "
                     f"{counterpart_node} already has a counterpart Node "
                     f"({counterpart_node.counterpart_node_id})?"
                 )
+            counterpart_node.counterpart_node_id = self.unique_id
+            if self.split == SPLIT_LEFT:
+                counterpart_node.make_into_right_split()
+            elif self.split == SPLIT_RIGHT:
+                counterpart_node.make_into_left_split()
+            else:
+                # This should absolutely never happen, because get_node_name()
+                # already checked that self.split was LEFT or RIGHT or None
+                # (and we know by now that self.split is not None). But let's
+                # check for it anyway, just in case get_node_name() becomes
+                # broken. I guess.
+                raise WeirdError(f"Unrecognized split value: {self.split}")
             self.counterpart_node_id = counterpart_node.unique_id
             self.relative_length = counterpart_node.relative_length
             self.longside_proportion = counterpart_node.longside_proportion
         else:
+            if self.split is not None:
+                raise WeirdError(
+                    f'Node {self.unique_id}: split is "{self.split}", but no '
+                    "counterpart Node specified?"
+                )
             self.counterpart_node_id = None
             # Also will be filled in after node scaling. See
             # AssemblyGraph.scale_nodes().
