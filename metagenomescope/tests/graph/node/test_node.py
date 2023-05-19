@@ -57,3 +57,14 @@ def test_make_into_split_already_split():
     assert str(ei.value) == (
         f"Node 0 (name: B): .split attr is already {SPLIT_LEFT}?"
     )
+
+
+def test_make_into_split_already_has_counterpart():
+    b = Node(0, "B", {})
+    # again, kind of cheating
+    b.counterpart_node_id = 1
+    with pytest.raises(WeirdError) as ei:
+        b.make_into_split(1, SPLIT_RIGHT)
+    assert str(ei.value) == (
+        f"Node 0 (name: B): .counterpart_node_id attr is already 1?"
+    )

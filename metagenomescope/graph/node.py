@@ -204,7 +204,7 @@ class Node(object):
             raise WeirdError(f"{self}: .split attr is already {self.split}?")
         if self.counterpart_node_id is not None:
             raise WeirdError(
-                "{self}: .counterpart_node_id attr is already "
+                f"{self}: .counterpart_node_id attr is already "
                 f"{self.counterpart_node_id}?"
             )
         self.counterpart_node_id = counterpart_id
