@@ -46,3 +46,14 @@ def test_constructor_counterpart_already_split():
         f'Creating split Node 1 with split of "{SPLIT_RIGHT}": counterpart '
         f'{b} already has a split of "{SPLIT_LEFT}"?'
     )
+
+
+def test_make_into_split_already_split():
+    b = Node(0, "B", {})
+    # again, we can "cheat" to make this work
+    b.split = SPLIT_LEFT
+    with pytest.raises(WeirdError) as ei:
+        b.make_into_split(1, SPLIT_RIGHT)
+    assert str(ei.value) == (
+        f"Node 0 (name: B): .split attr is already {SPLIT_LEFT}?"
+    )

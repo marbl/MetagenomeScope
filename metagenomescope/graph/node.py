@@ -201,12 +201,10 @@ class Node(object):
             SPLIT_LEFT, then this Node will have a split type of SPLIT_RIGHT).
         """
         if self.is_split():
-            raise WeirdError(
-                f"This Node's .split attr is already {self.split}?"
-            )
+            raise WeirdError(f"{self}: .split attr is already {self.split}?")
         if self.counterpart_node_id is not None:
             raise WeirdError(
-                "This Node's .counterpart_node_id attr is already "
+                "{self}: .counterpart_node_id attr is already "
                 f"{self.counterpart_node_id}?"
             )
         self.counterpart_node_id = counterpart_id
