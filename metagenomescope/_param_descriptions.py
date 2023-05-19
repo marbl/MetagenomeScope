@@ -38,7 +38,8 @@ OUTPUT_DOT = (
 OUTPUT_CCSTATS = (
     "If provided, we'll save a tab-separated values (TSV) file describing the "
     "numbers of nodes, edges, and structural patterns in each connected "
-    "component of the graph to this filepath."
+    "component of the graph to this filepath. Note that these counts include "
+    "split nodes and fake edges created during pattern decomposition."
 )
 
 ASSUME_ORIENTED = (
