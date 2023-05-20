@@ -198,22 +198,6 @@ class Pattern(Node):
     def get_node_ids(self):
         return get_ids_of_nodes(self.nodes)
 
-    def get_counts(self):
-        node_ct = 0
-        edge_ct = len(self.edges)
-        patt_ct = 0
-        for node in self.nodes:
-            if is_pattern(node):
-                patt_ct += 1
-                child_pattern_counts = node.get_counts()
-                node_ct += child_pattern_counts[0]
-                edge_ct += child_pattern_counts[1]
-                patt_ct += child_pattern_counts[2]
-            else:
-                node_ct += 1
-
-        return [node_ct, edge_ct, patt_ct]
-
     def set_cc_num(self, cc_num):
         """Updates the component number attribute of all Patterns, nodes, and
         edges in this Pattern.
@@ -330,6 +314,15 @@ class Pattern(Node):
         raise WeirdError(f"Attempted to right-split pattern {self}.")
 
     def get_descendant_info(self):
+        """Returns descendant Node, Edge, and Pattern objs (and PatternStats).
+
+        Note that we include this object in the returned list of Pattern
+        objects, and in the returned PatternStats.
+
+        Returns
+        -------
+        list of Nodes, list of Edges, list of Patterns, PatternStats
+        """
         nodes = []
         edges = []
         patts = [self]
