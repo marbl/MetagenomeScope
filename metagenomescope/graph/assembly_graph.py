@@ -3,7 +3,6 @@ import json
 import os
 import subprocess
 from copy import deepcopy
-from operator import itemgetter
 from collections import deque
 import numpy
 import pandas as pd
@@ -19,7 +18,6 @@ from .component import Component
 from .pattern import Pattern
 from .node import Node
 from .edge import Edge
-from .pattern_stats import PatternStats
 
 
 class AssemblyGraph(object):

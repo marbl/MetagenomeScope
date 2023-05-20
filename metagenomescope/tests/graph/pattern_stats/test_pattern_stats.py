@@ -63,6 +63,7 @@ def test_update_good():
     assert ps.num_cyclicchains == 0
     assert ps.num_frayedropes == 2
 
+
 def test_update_bad_type():
     ps = PatternStats()
     with pytest.raises(WeirdError) as ei:

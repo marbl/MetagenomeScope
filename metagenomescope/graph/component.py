@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
-from metagenomescope.config import SPLIT_LEFT
 from .pattern_stats import PatternStats
 
 
