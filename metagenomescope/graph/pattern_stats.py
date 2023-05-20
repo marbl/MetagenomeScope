@@ -1,4 +1,5 @@
 from metagenomescope import config
+from metagenomescope.errors import WeirdError
 
 
 class PatternStats(object):
@@ -51,16 +52,14 @@ class PatternStats(object):
             + self.num_frayedropes
         )
 
-    def update(self, pattern):
-        if pattern.pattern_type == config.PT_BUBBLE:
+    def update(self, pattern_type):
+        if pattern_type == config.PT_BUBBLE:
             self.num_bubbles += 1
-        elif pattern.pattern_type == config.PT_CHAIN:
+        elif pattern_type == config.PT_CHAIN:
             self.num_chains += 1
-        elif pattern.pattern_type == config.PT_CYCLICCHAIN:
+        elif pattern_type == config.PT_CYCLICCHAIN:
             self.num_cyclicchains += 1
-        elif pattern.pattern_type == config.PT_FRAYEDROPE:
+        elif pattern_type == config.PT_FRAYEDROPE:
             self.num_frayedropes += 1
         else:
-            raise WeirdError(
-                f"Unrecognized pattern type: {pattern.pattern_type}"
-            )
+            raise WeirdError(f"Unrecognized pattern type: {pattern_type}")

@@ -334,7 +334,7 @@ class Pattern(Node):
         edges = []
         patts = [self]
         patt_stats = PatternStats()
-        patt_stats.update(self)
+        patt_stats.update(self.pattern_type)
         for node in self.nodes:
             if is_pattern(node):
                 pn, pe, pp, ps = node.get_descendant_info()
