@@ -46,7 +46,7 @@ def test_to_tsv_bt1():
                     "CyclicChains": [0],
                     "FrayedRopes": [0],
                 },
-                index=pd.Index([1], name="ComponentSizeRank"),
+                index=pd.Index([1], name="ComponentNumber"),
             ),
         )
     finally:
@@ -102,7 +102,7 @@ def test_to_tsv_bubble_cyclic_chain():
                     "CyclicChains": [1],
                     "FrayedRopes": [0],
                 },
-                index=pd.Index([1], name="ComponentSizeRank"),
+                index=pd.Index([1], name="ComponentNumber"),
             ),
         )
     finally:

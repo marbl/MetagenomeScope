@@ -2125,7 +2125,7 @@ class AssemblyGraph(object):
             f'"{output_fp}"...'
         )
         output_stats = (
-            "ComponentSizeRank\tTotalNodes\tUnsplitNodes\tSplitNodes\t"
+            "ComponentNumber\tTotalNodes\tUnsplitNodes\tSplitNodes\t"
             "TotalEdges\tRealEdges\tFakeEdges\tBubbles\tChains\tCyclicChains\t"
             "FrayedRopes\n"
         )
