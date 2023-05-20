@@ -377,31 +377,39 @@ Options:
                                   nodes, edges, and structural patterns in
                                   each connected component of the graph to
                                   this filepath.
+  -n, --node-metadata FILE        TSV file mapping some or all of the graph's
+                                  node IDs (rows) to arbitrary metadata fields
+                                  (columns).
+  -e, --edge-metadata FILE        TSV file mapping some or all of the graph's
+                                  edges (rows) to arbitrary metadata fields
+                                  (columns). The leftmost two columns in this
+                                  file should contain the source and sink node
+                                  ID of the edge being described in a row; if
+                                  there exist parallel edges in the graph
+                                  between a given source and sink node, then
+                                  that row's metadata will be applied to all
+                                  such edges.
   -maxn, --max-node-count INTEGER RANGE
                                   We will not consider connected components
-                                  containing more nodes than this. This option
-                                  is given here because hierarchical graph
-                                  layout is relatively slow for large/tangled
-                                  components, and because our visualization
-                                  interface becomes slow when drawing lots of
-                                  nodes / edges. Impacts all output options
-                                  (-o, -od, -os). setting this to 0 removes
+                                  containing more than this many nodes. This
+                                  option is provided because hierarchical
+                                  graph layout is relatively slow for large /
+                                  tangled components, and because the
+                                  interactive visualization can be slow for
+                                  large graphs. Impacts all output options
+                                  (-o, -od, -os). Setting this to 0 removes
                                   this limit.  [default: 7999; x>=0]
   -maxe, --max-edge-count INTEGER RANGE
                                   We will not visualize connected components
-                                  containing more edges than this. Functions
-                                  analogously to --max-node-count. Setting
-                                  this to 0 removes this limit. Impacts all
-                                  output options (-o, -od, -os). setting this
-                                  to 0 removes this limit.  [default: 7999;
-                                  x>=0]
+                                  containing more than this many edges.
+                                  Impacts all output options (-o, -od, -os).
+                                  Setting this to 0 removes this limit.
+                                  [default: 7999; x>=0]
   --patterns / --no-patterns      If --patterns is set, we'll identify
                                   structural patterns (e.g. bubbles) in the
-                                  graph and highlight these in the
-                                  visualization. If --no-patterns is set, we
-                                  won't do this (and will just visualize the
-                                  "original" graph structure).  [default:
-                                  patterns]
+                                  graph; if --no-patterns is set, we won't
+                                  identify any patterns. Impacts all output
+                                  options (-o, -od, -os).  [default: patterns]
   -v, --version                   Show the version and exit.
   -h, --help                      Show this message and exit.
 ```
