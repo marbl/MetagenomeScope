@@ -128,7 +128,7 @@ def run_script(
     max_edge_count: int,
     patterns: bool,
 ) -> None:
-    """Visualizes and/or summarizes an assembly graph.
+    """Visualizes an assembly graph.
 
     MetagenomeScope supports multiple types of output (-o, -od, -os);
     you will probably want to start with -o.
