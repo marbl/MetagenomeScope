@@ -307,11 +307,8 @@ class Pattern(Node):
         self.bottom = y - half_h
         self.top = y + half_h
 
-    def make_into_left_split(self):
-        raise WeirdError(f"Attempted to left-split pattern {self}.")
-
-    def make_into_right_split(self):
-        raise WeirdError(f"Attempted to right-split pattern {self}.")
+    def make_into_split(self):
+        raise WeirdError(f"Attempted to split Pattern {self}.")
 
     def get_descendant_info(self):
         """Returns descendant Node, Edge, and Pattern objs (and PatternStats).
