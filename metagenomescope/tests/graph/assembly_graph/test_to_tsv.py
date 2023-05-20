@@ -108,3 +108,33 @@ def test_to_tsv_bubble_cyclic_chain():
     finally:
         os.close(fh)
         os.unlink(fn)
+
+
+def test_to_tsv_bubble_sample1gfa():
+    """sample1.gfa has multiple components, which is why we use it here."""
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    try:
+        fh, fn = tempfile.mkstemp(suffix=".tsv")
+        ag.to_tsv(fn)
+        df = pd.read_csv(fn, sep="\t", index_col=0)
+        pd.testing.assert_frame_equal(
+            df,
+            pd.DataFrame(
+                {
+                    "TotalNodes": [5, 5, 1, 1],
+                    "UnsplitNodes": [5, 5, 1, 1],
+                    "SplitNodes": [0, 0, 0, 0],
+                    "TotalEdges": [4, 4, 0, 0],
+                    "RealEdges": [4, 4, 0, 0],
+                    "FakeEdges": [0, 0, 0, 0],
+                    "Bubbles": [0, 0, 0, 0],
+                    "Chains": [1, 1, 0, 0],
+                    "CyclicChains": [0, 0, 0, 0],
+                    "FrayedRopes": [0, 0, 0, 0],
+                },
+                index=pd.Index([1, 2, 3, 4], name="ComponentNumber"),
+            ),
+        )
+    finally:
+        os.close(fh)
+        os.unlink(fn)
