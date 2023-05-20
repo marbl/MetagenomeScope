@@ -29,5 +29,5 @@ class PatternStats(object):
             f"PatternStats({self.num_bubbles:,} bubble(s), "
             f"{self.num_chains:,} chain(s), "
             f"{self.num_cyclicchains:,} cyclic chain(s), "
-            f"{self.num_frayedropes:,} frayed rope(s)."
+            f"{self.num_frayedropes:,} frayed rope(s))"
         )
