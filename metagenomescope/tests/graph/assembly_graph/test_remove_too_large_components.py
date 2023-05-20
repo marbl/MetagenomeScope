@@ -17,7 +17,7 @@ def test_ccs_avoided_due_to_max_node_ct(capsys):
         assert em in captured.out
     # there should just be two ccs left, each containing a single node
     assert sorted([n.name for n in ag.nodeid2obj.values()]) == ["-6", "6"]
-    assert len(ag.get_connected_components()) == 2
+    assert len(ag.components) == 2
 
 
 def test_error_if_all_ccs_avoided():
@@ -39,7 +39,7 @@ def test_no_max_node_or_edge_count(capsys):
     assert "Removing components with" not in captured.out
     assert "Ignoring a component" not in captured.out
     assert len(ag.nodeid2obj) == 12
-    assert len(ag.get_connected_components()) == 4
+    assert len(ag.components) == 4
 
 
 def test_no_max_edge_count(capsys):
@@ -56,7 +56,7 @@ def test_no_max_edge_count(capsys):
     for em in msgs:
         assert em in captured.out
     assert len(ag.nodeid2obj) == 2
-    assert len(ag.get_connected_components()) == 2
+    assert len(ag.components) == 2
 
 
 def test_no_max_node_count(capsys):
@@ -73,7 +73,7 @@ def test_no_max_node_count(capsys):
     for em in msgs:
         assert em in captured.out
     assert len(ag.nodeid2obj) == 2
-    assert len(ag.get_connected_components()) == 2
+    assert len(ag.components) == 2
 
 
 def test_exactly_equal_to_max_node_ct(capsys):
@@ -89,7 +89,7 @@ def test_exactly_equal_to_max_node_ct(capsys):
     )
     assert "Ignoring a component" not in captured.out
     assert len(ag.nodeid2obj) == 12
-    assert len(ag.get_connected_components()) == 4
+    assert len(ag.components) == 4
 
 
 def test_exactly_equal_to_max_edge_ct(capsys):
@@ -105,4 +105,4 @@ def test_exactly_equal_to_max_edge_ct(capsys):
     )
     assert "Ignoring a component" not in captured.out
     assert len(ag.nodeid2obj) == 12
-    assert len(ag.get_connected_components()) == 4
+    assert len(ag.components) == 4

@@ -1,3 +1,6 @@
+from metagenomescope import config
+
+
 class PatternStats(object):
     """Statistics about how many of each type of pattern are present somewhere.
 
@@ -24,6 +27,14 @@ class PatternStats(object):
             self.num_frayedropes + other_pattern_stats.num_frayedropes,
         )
 
+    def __eq__(self, other_pattern_stats):
+        return (
+            self.num_bubbles == other_pattern_stats.num_bubbles
+            and self.num_chains == other_pattern_stats.num_chains
+            and self.num_cyclicchains == other_pattern_stats.num_cyclicchains
+            and self.num_frayedropes == other_pattern_stats.num_frayedropes
+        )
+
     def __repr__(self):
         return (
             f"PatternStats({self.num_bubbles:,} bubble(s), "
@@ -31,3 +42,25 @@ class PatternStats(object):
             f"{self.num_cyclicchains:,} cyclic chain(s), "
             f"{self.num_frayedropes:,} frayed rope(s))"
         )
+
+    def sum(self):
+        return (
+            self.num_bubbles
+            + self.num_chains
+            + self.num_cyclicchains
+            + self.num_frayedropes
+        )
+
+    def update(self, pattern):
+        if pattern.pattern_type == config.PT_BUBBLE:
+            self.num_bubbles += 1
+        elif pattern.pattern_type == config.PT_CHAIN:
+            self.num_chains += 1
+        elif pattern.pattern_type == config.PT_CYCLICCHAIN:
+            self.num_cyclicchains += 1
+        elif pattern.pattern_type == config.PT_FRAYEDROPE:
+            self.num_frayedropes += 1
+        else:
+            raise WeirdError(
+                f"Unrecognized pattern type: {pattern.pattern_type}"
+            )

@@ -35,14 +35,18 @@ def test_to_tsv_bt1():
             df,
             pd.DataFrame(
                 {
-                    "Nodes": [5],
-                    "Edges": [5],
+                    "TotalNodes": [5],
+                    "UnsplitNodes": [5],
+                    "SplitNodes": [0],
+                    "TotalEdges": [5],
+                    "RealEdges": [5],
+                    "FakeEdges": [0],
                     "Bubbles": [1],
                     "Chains": [1],
                     "CyclicChains": [0],
                     "FrayedRopes": [0],
                 },
-                index=pd.Index([1], name="ComponentID"),
+                index=pd.Index([1], name="ComponentSizeRank"),
             ),
         )
     finally:
@@ -87,14 +91,18 @@ def test_to_tsv_bubble_cyclic_chain():
             df,
             pd.DataFrame(
                 {
-                    "Nodes": [16],
-                    "Edges": [20],
+                    "TotalNodes": [16],
+                    "UnsplitNodes": [8],
+                    "SplitNodes": [8],
+                    "TotalEdges": [20],
+                    "RealEdges": [16],
+                    "FakeEdges": [4],
                     "Bubbles": [4],
                     "Chains": [0],
                     "CyclicChains": [1],
                     "FrayedRopes": [0],
                 },
-                index=pd.Index([1], name="ComponentID"),
+                index=pd.Index([1], name="ComponentSizeRank"),
             ),
         )
     finally:

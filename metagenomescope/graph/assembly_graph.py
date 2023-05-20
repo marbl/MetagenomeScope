@@ -15,6 +15,7 @@ from .. import parsers, config, layout_utils, misc_utils
 from ..msg_utils import operation_msg, conclude_msg
 from ..errors import GraphParsingError, GraphError, WeirdError
 from . import validators, graph_utils
+from .component import Component
 from .pattern import Pattern
 from .node import Node
 from .edge import Edge
@@ -206,6 +207,10 @@ class AssemblyGraph(object):
         # change how other nodes in the graph are scaled.)
         self._compute_node_dimensions()
 
+        # Initialize self.components, a sorted list of Component objects. See
+        # this method's docstring for details.
+        self._record_connected_components()
+
         # Since layout can take a while, we leave it to the creator of this
         # object to call .layout() (if for example they don't actually need to
         # lay out the graph, and they just want to do pattern detection).
@@ -374,11 +379,10 @@ class AssemblyGraph(object):
     def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.
 
-        We assign these unique IDs to nodes, edges, and patterns. We could
-        probably get away with letting there be some overlap between node and
-        edge IDs, but I don't want to even think about that stuff. So we ensure
-        that ANY two nodes, edges, or patterns (or one node and one edge, etc.)
-        have different unique IDs.
+        We assign these unique IDs to nodes, edges, patterns, and components.
+        We could probably get away with letting there be some overlap between
+        node and edge IDs, or between component IDs and other IDs, but it's
+        easiest to just give all of these objects unique IDs.
         """
         # this is what they pay me the big bucks for, folks. this is home-grown
         # organic computer science right here
@@ -1401,77 +1405,47 @@ class AssemblyGraph(object):
             raise WeirdError(f"Node ID {node_id} seems out of range.")
         return node_id in self.pattid2obj
 
-    def get_connected_components(self):
-        """Returns a list of 3-tuples containing component information.
+    def _record_connected_components(self):
+        """Stores information about weakly connected components in the graph.
 
-        Returns
-        -------
-        list of 3-tuples
-            Each 3-tuple describes a (weakly) connected component in the
-            decomposed graph.
-
-            1. The first element in a tuple is a set of (top-level) node IDs
-               within this component in the decomposed graph.
-
-            2. The second element is the total number of nodes (not counting
-               collapsed patterns, but including nodes within patterns and
-               also including split nodes) within this component.
-
-            3. The third element is the total number of edges within this
-               component.
-
-            Components are sorted in descending order by number of nodes first,
-            then number of edges, then number of patterns. This is a simple-ish
-            way of highlighting the most "interesting" components -- e.g. a
-            component with 1 node with an edge to itself is more "interesting"
-            than a component with just 1 node and no edges.
+        This initializes self.components, a list of Components that is sorted
+        in descending order by three criteria: number of nodes, number of
+        edges, and number of patterns.
         """
-        ccs = list(nx.weakly_connected_components(self.decomposed_graph))
-        # Set up as [[zero-indexed cc pos, node ct, edge ct, pattern ct], ...]
-        # Done this way to make sorting components easier.
-        # This paradigm based roughly on what's done here:
-        # https://docs.python.org/3.3/howto/sorting.html#operator-module-functions
-        indices_and_cts = [[n, 0, 0, 0] for n in range(len(ccs))]
-        for i, cc in enumerate(ccs):
+        components = []
+        for cc in nx.weakly_connected_components(self.decomposed_graph):
+            cobj = Component(self._get_unique_id())
             for node_id in cc:
                 if self.is_pattern(node_id):
-                    # Add the pattern's node, edge, and pattern counts to this
-                    # component's node, edge, and pattern counts.
-                    counts = self.pattid2obj[node_id].get_counts()
-                    indices_and_cts[i][1] += counts[0]
-                    indices_and_cts[i][2] += counts[1]
-                    # (Increase the pattern count by 1, to account for this
-                    # pattern itself.)
-                    indices_and_cts[i][3] += counts[2] + 1
+                    # Component.add_pattern() will take care of adding
+                    # information about all descendant nodes/edges/patterns of
+                    # this pattern
+                    cobj.add_pattern(self.pattid2obj[node_id])
                 else:
-                    indices_and_cts[i][1] += 1
+                    cobj.add_node(self.nodeid2obj[node_id])
                 # Record all of the top-level edges in this component by
                 # looking at the outgoing edges of each "node", whether it's a
-                # real or collapsed-pattern node. (Don't worry, this counts
+                # real or collapsed-pattern node. (Don't worry, this includes
                 # parallel edges.)
                 #
                 # We could also create the induced subgraph of this component's
                 # nodes (in "cc") and then count the number of edges there, but
                 # I think this is more efficient.
-                indices_and_cts[i][2] += len(
-                    self.decomposed_graph.out_edges(node_id)
-                )
+                for (src_id, tgt_id, data) in self.decomposed_graph.out_edges(
+                    node_id, data=True
+                ):
+                    cobj.add_edge(self.edgeid2obj[data["uid"]])
+            components.append(cobj)
 
-        sorted_indices_and_cts = sorted(
-            indices_and_cts, key=itemgetter(1, 2, 3), reverse=True
+        self.components = sorted(
+            components,
+            key=lambda cobj: (
+                cobj.num_total_nodes,
+                cobj.num_total_edges,
+                cobj.pattern_stats.sum(),
+            ),
+            reverse=True,
         )
-        # Use the first item within sorted_indices_and_cts (representing the
-        # zero-indexed position of that component in the "ccs" list defined at
-        # the start of this function) to produce a list containing the node IDs
-        # in each component, sorted in the order used in
-        # sorted_indices_and_cts.
-        #
-        # I can't help but think this approach is overly complicated, but also
-        # christ I am so tired. If you're reading this comment in 2021 then
-        # friend I am so jealous of you for not being in 2020 any more. If you
-        # wanna use all the free time you have in 2021 to submit a PR and make
-        # this function prettier, us 2020 denizens would welcome that.
-        return [(ccs[t[0]], t[1], t[2]) for t in sorted_indices_and_cts]
 
     def layout(self):
         """Lays out the assembly graph."""
@@ -1492,7 +1466,7 @@ class AssemblyGraph(object):
         # have already called self._remove_too_large_components().)
         first_small_component = False
         for cc_i, cc_tuple in enumerate(
-            self.get_connected_components(), self.num_too_large_components + 1
+            self.components, self.num_too_large_components + 1
         ):
             cc_node_ids = cc_tuple[0]
             cc_full_node_ct = cc_tuple[1]
@@ -1677,6 +1651,8 @@ class AssemblyGraph(object):
 
     def _rotate_from_TB_to_LR(self):
         """Rotates the graph so it flows from L -> R rather than T -> B."""
+        # TODO: THIS FUNCTION IS NOW UNNECESSARY since we can now just lay out
+        # the graph from L -> R from the get-go
         # Rotate and scale bounding boxes
         for cc_num in self.cc_num_to_bb.keys():
             bb = self.cc_num_to_bb[cc_num]
@@ -2037,7 +2013,7 @@ class AssemblyGraph(object):
         # (This is the same general strategy for iterating through the graph as
         # self._layout() uses.)
         for cc_i, cc_tuple in enumerate(
-            self.get_connected_components(), self.num_too_large_components + 1
+            self.components, self.num_too_large_components + 1
         ):
             this_component = {
                 "nodes": {},
@@ -2117,7 +2093,7 @@ class AssemblyGraph(object):
                 add_edge(this_component, [os, ot], data)
 
             # Since we're going through components in the order dictated by
-            # self.get_connected_components() we can just add component JSONs
+            # self.components, we can just add component JSONs
             # to out["components"] as we go through things.
             out["components"].append(this_component)
         return out
@@ -2145,36 +2121,27 @@ class AssemblyGraph(object):
         ----------
         output_fp: str
             Filepath to which we'll write out this TSV file.
-
-        Notes
-        -----
-        We get the numbers of nodes and edges from
-        self.get_connected_components(), which means that we will currently
-        include split nodes and fake edges in these stats.
         """
         operation_msg(
             "Writing out graph component statistics to filepath "
             f'"{output_fp}"...'
         )
         output_stats = (
-            "ComponentID\tNodes\tEdges\tBubbles\tChains\tCyclicChains\t"
+            "ComponentSizeRank\tTotalNodes\tUnsplitNodes\tSplitNodes\t"
+            "TotalEdges\tRealEdges\tFakeEdges\tBubbles\tChains\tCyclicChains\t"
             "FrayedRopes\n"
         )
-        for cc_i, cc_tuple in enumerate(
-            self.get_connected_components(), self.num_too_large_components + 1
+        for cc_i, cc in enumerate(
+            self.components, self.num_too_large_components + 1
         ):
-            cc_node_ids = cc_tuple[0]
-            cc_full_node_ct = cc_tuple[1]
-            cc_full_edge_ct = cc_tuple[2]
-            # figure out numbers of each type of pattern
-            pstats = PatternStats()
-            for node_id in cc_node_ids:
-                if self.is_pattern(node_id):
-                    pstats += self.pattid2obj[node_id].get_pattern_stats()
             output_stats += (
-                f"{cc_i}\t{cc_full_node_ct}\t{cc_full_edge_ct}\t"
-                f"{pstats.num_bubbles}\t{pstats.num_chains}\t"
-                f"{pstats.num_cyclicchains}\t{pstats.num_frayedropes}\n"
+                f"{cc_i}\t{cc.num_total_nodes}\t{cc.num_unsplit_nodes}\t"
+                f"{cc.num_split_nodes}\t{cc.num_total_edges}\t"
+                f"{cc.num_real_edges}\t{cc.num_fake_edges}\t"
+                f"{cc.pattern_stats.num_bubbles}\t"
+                f"{cc.pattern_stats.num_chains}\t"
+                f"{cc.pattern_stats.num_cyclicchains}\t"
+                f"{cc.pattern_stats.num_frayedropes}\n"
             )
         with open(output_fp, "w") as fh:
             fh.write(output_stats)
