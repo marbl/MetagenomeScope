@@ -3,6 +3,7 @@ from .node import Node
 from .edge import Edge
 from .pattern import Pattern
 from .pattern_stats import PatternStats
+from .component import Component
 from . import validators
 
 __all__ = [
@@ -11,5 +12,6 @@ __all__ = [
     "Edge",
     "Pattern",
     "PatternStats",
+    "Component",
     "validators",
 ]

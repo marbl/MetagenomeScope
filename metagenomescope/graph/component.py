@@ -65,6 +65,13 @@ class Component(object):
         # PatternStats for this Component.
         self.pattern_stats = PatternStats()
 
+    def __repr__(self):
+        return (
+            f"Component {self.unique_id}: {self.num_total_nodes:,} node(s), "
+            f"{self.num_total_edges:,} edge(s), {self.pattern_stats.sum():,} "
+            "pattern(s)"
+        )
+
     def add_node(self, node):
         self.nodes.append(node)
         if node.is_split():
