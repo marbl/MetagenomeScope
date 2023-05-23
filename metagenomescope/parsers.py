@@ -683,6 +683,21 @@ def parse_dot(filename):
     # already have installed.)
     g = nx.nx_agraph.read_dot(filename)
 
+    # Silly corner-case: giving NX's read_dot() a DOT file that starts with
+    # "strict" will result in us getting a NetworkX DiGraph (not a
+    # MultiDiGraph) object. We *could* just cast the graph to a MultiDiGraph,
+    # but I worry about potential data loss in this way (e.g. NX silently
+    # removing multi-edges); so, we force the user to give us good graphs.
+    if type(g) != nx.MultiDiGraph:
+        raise GraphParsingError(
+            "It looks like the input DOT file isn't a multi-digraph. This is "
+            "probably due to one or both of the following: (1) the DOT file "
+            'labels the graph as a "graph" instead of a "digraph," thus '
+            "making it undirected; and/or (2) the DOT file starts with the "
+            '"strict" keyword, which disallows parallel edges. Please adjust '
+            "your DOT file accordingly."
+        )
+
     # For both LJA and Flye DOT files, the main attributes we care about are
     # stored in the edge labels.
     #
