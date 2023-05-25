@@ -477,3 +477,33 @@ def test_no_patterns():
     assert len(ag.bubbles) == 0
     assert sorted(ag.graph.nodes) == sorted([0, 1, 2, 3, 4])
     assert len(ag.graph.edges) == 5
+
+
+def test_chr21mat_complex_region():
+    r"""The input graph looks like
+
+
+    +------------------------------------------------------------+
+    |                                                            |
+    V                 /--\                   /--\                |
+    2213790 -> 5308795    -1005641 -> 2387648    248316 -> 6585325 -> -3300458
+                      \--/                   \--/
+
+    We should ideally identify this as a chain (containing a cyclic chain (from
+    2213790 to 6585325, containing two bulges) and -3300458. Additionally, *no
+    nodes should be split after decomposition finishes* -- however, a bug in
+    MetagenomeScope right now is causing 6585325 and 2213790 to remain split,
+    even though they shouldn't be.
+    """
+    ag = AssemblyGraph("metagenomescope/tests/input/chr21mat_subgraph.gv")
+    # outermost node is a chain
+    assert len(ag.decomposed_graph.nodes) == 1
+    assert len(ag.decomposed_graph.edges) == 0
+    assert len(ag.chains) == 1
+    assert len(ag.cyclic_chains) == 1
+    assert len(ag.frayed_ropes) == 0
+    assert len(ag.bubbles) == 2
+
+    # Nodes should not be split
+    assert len(ag.graph.nodes) == 7
+    assert len(ag.graph.edges) == 9
