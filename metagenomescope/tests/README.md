@@ -50,5 +50,11 @@ downloaded it [from AGB's GitHub repository](https://github.com/almiheenko/AGB/t
 This MAG (and the process of read smoothing) is discussed in
 [Fedarko et al. 2022](https://genome.cshlp.org/content/32/11-12/2119).
 
-`aug1_subgraph.gml` is a small subgraph of a stool sample (SRS049959),
-scaffolded with MetaCarvel.
+`aug1_subgraph.gml` is a small subgraph of a stool sample (SRS049959)'s
+assembly graph, which was scaffolded with MetaCarvel.
+
+`chr21mat-region.gv` is a small subgraph of a de Bruijn graph produced by
+[jumboDBG](https://github.com/AntonBankevich/LJA/) from the maternal haplotype of
+chromosome 21 (from
+[Jarvis & Formenti et al. 2022](https://www.nature.com/articles/s41586-022-05325-5)).
+Thank you to Zhenmiao Zhang for downloading the haplotype to our server :)
