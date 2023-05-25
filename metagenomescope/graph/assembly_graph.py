@@ -1445,6 +1445,14 @@ class AssemblyGraph(object):
             reverse=True,
         )
 
+    def __repr__(self):
+        return (
+            f"AssemblyGraph: {len(self.nodeid2obj):,} Node(s), "
+            f"{len(self.edgeid2obj):,} Edge(s), "
+            f"{len(self.pattid2obj):,} Pattern(s), "
+            f"{len(self.components):,} Component(s)"
+        )
+
     def layout(self):
         """Lays out the assembly graph."""
         operation_msg("Laying out the graph...", True)
