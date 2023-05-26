@@ -696,12 +696,25 @@ class AssemblyGraph(object):
         # constructor updates the nodes and edges that this new Pattern has
         # accordingly, we still need to re-route edges and update the
         # decomposed assembly graph's topology here.
-        patt_node_ids_post_merging = p.get_node_ids()
+        #
+        # NOTE: there is the rare chance that we might need to merge multiple
+        # child chains in at once. In this case, there may be edges between
+        # these child chains -- so, we include the IDs of these child chains in
+        # patt_node_ids_post_merging. (if we don't do this, it screws with the
+        # edge dec src/tgt IDs, which then screws with unnecessary split node
+        # removal.) See test_chr1mat_minus653300458_splits_merged() in the
+        # hierarchical decomposition test.
+        patt_node_ids_post_merging = p.get_node_ids() + [t.unique_id for t in p.merged_child_chains]
         for mcc in p.merged_child_chains:
             if mcc.pattern_type != config.PT_CHAIN:
                 raise WeirdError(f"Can't merge {mcc} into {p}?")
-            # print(f"Merging {mcc} into {p}...")
             pred = self.decomposed_graph.pred[mcc.unique_id]
+            # TODO: check for cascading effects, or lack thereof? and see WHERE
+            # the src/tgt rerouting of edge 336 is being done. if here, then
+            # i'd bet it should be reverting instead. how can we make that
+            # change? oh, maybe it's because none of the src/tgt of this edge
+            # is in patt_node_ids_post_merging; check if src/tgt are in
+            # p.merged_Child_chains, maybe, and handle specially? or something
             for incoming_node in pred:
                 if incoming_node in patt_node_ids_post_merging:
                     for e in pred[incoming_node]:

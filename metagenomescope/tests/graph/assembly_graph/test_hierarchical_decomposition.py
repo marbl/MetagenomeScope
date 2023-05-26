@@ -557,8 +557,11 @@ def test_chr21mat_minus653300458_splits_merged():
     order in which nodes are traversed.
 
     Anyway this is similar to the test above -- node -653300458 is being split
-    in a bug currently impacting MetagenomeScope, even though it shouldn't be.
-    Test that the bug is fixed.
+    in a bug that used to impact MetagenomeScope, even though it shouldn't be.
+    This verifies that the bug is fixed.
+
+    For future reference, this problem was caused by trying to merge two chains
+    (with an edge between them) into a parent chain both at once.
     """
     ag = AssemblyGraph("metagenomescope/tests/input/chr21mat_subgraph_2.gv")
     for n in ag.nodeid2obj.values():

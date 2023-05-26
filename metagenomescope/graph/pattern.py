@@ -169,11 +169,16 @@ class Pattern(Node):
         (and this Pattern, i.e. "self," is a chain or cyclic chain).
 
         Note that this method has no conception of the AssemblyGraph in which
-        these Patterns are contained: you'll need to reroute edges that point
-        to parts of this child pattern manually.
+        these Patterns are contained: we leave it up to the caller to reroute
+        edges.
         """
         # (This attr is set to False by default in the Node constructor)
         child_pattern.removed = True
+        # Note that we should only need to go one level down -- this is because
+        # the "absorption" process, if applicable, is done as soon as we create
+        # a new Pattern. So we don't have to check e.g. the grandchildren, if
+        # present, of this pattern. (I guess we could do this all at once at
+        # the end of pattern detection, maybe? might be problematic tho.)
         for node in child_pattern.nodes:
             node.parent_id = self.unique_id
             self.nodes.append(node)
@@ -181,7 +186,7 @@ class Pattern(Node):
             edge.parent_id = self.unique_id
             self.edges.append(edge)
 
-        # there should never be a case where node is both the start
+        # there should never be a case where a node is both the start
         # and end of this new pattern, but let's be safe anyway
         verify_1_node(self.start_node_ids, "start")
         verify_1_node(self.end_node_ids, "end")
