@@ -704,7 +704,9 @@ class AssemblyGraph(object):
         # edge dec src/tgt IDs, which then screws with unnecessary split node
         # removal.) See test_chr1mat_minus653300458_splits_merged() in the
         # hierarchical decomposition test.
-        patt_node_ids_post_merging = p.get_node_ids() + [t.unique_id for t in p.merged_child_chains]
+        patt_node_ids_post_merging = p.get_node_ids() + [
+            t.unique_id for t in p.merged_child_chains
+        ]
         for mcc in p.merged_child_chains:
             if mcc.pattern_type != config.PT_CHAIN:
                 raise WeirdError(f"Can't merge {mcc} into {p}?")
