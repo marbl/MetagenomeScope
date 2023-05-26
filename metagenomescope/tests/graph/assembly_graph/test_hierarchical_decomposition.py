@@ -479,7 +479,7 @@ def test_no_patterns():
     assert len(ag.graph.edges) == 5
 
 
-def test_chr21mat_complex_region():
+def test_chr21mat_split_siblings_merged():
     r"""The input graph looks like
 
 
@@ -491,9 +491,14 @@ def test_chr21mat_complex_region():
 
     We should ideally identify this as a chain (containing a cyclic chain (from
     2213790 to 6585325, containing two bulges) and -3300458. Additionally, *no
-    nodes should be split after decomposition finishes* -- however, a bug in
-    MetagenomeScope right now is causing 6585325 and 2213790 to remain split,
-    even though they shouldn't be.
+    nodes should be split after decomposition finishes* -- a bug in
+    MetagenomeScope right was causing 6585325 and 2213790 to remain split,
+    even though they shouldn't be. (This was due to both of these nodes' splits
+    (658-L and 658-R, and 221-L and 221-R, being siblings -- which my code
+    initially didn't expect.)
+
+    So this is what they call a "regression test," as i understand it. now i
+    don't know much in this crazy world, but uhhh let's avoid this recurring :P
     """
     ag = AssemblyGraph("metagenomescope/tests/input/chr21mat_subgraph.gv")
     # outermost node is a chain
