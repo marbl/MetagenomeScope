@@ -53,8 +53,10 @@ This MAG (and the process of read smoothing) is discussed in
 `aug1_subgraph.gml` is a small subgraph of a stool sample (SRS049959)'s
 assembly graph, which was scaffolded with MetaCarvel.
 
-`chr21mat_subgraph.gv` is a small subgraph of a de Bruijn graph produced by
-[jumboDBG](https://github.com/AntonBankevich/LJA/) from the maternal haplotype of
-chromosome 21 (from
+`chr21mat_subgraph_1.gv` and `chr21mat_subgraph_2.gv` are small subgraphs (with
+some slight modifications) of de Bruijn graphs produced by
+[jumboDBG](https://github.com/AntonBankevich/LJA/)
+from the maternal haplotype of chromosome 21 (from
 [Jarvis & Formenti et al. 2022](https://www.nature.com/articles/s41586-022-05325-5)).
-Thank you to Zhenmiao Zhang for downloading the haplotype to our server :)
+Technically these two files are derived from different jumboDBG de Bruijn graphs (I used two different versions to create them), but the details aren't very relevant for these files' test purposes.
+(Thank you to Zhenmiao Zhang for downloading the chromosome 21 haplotype to our server :)

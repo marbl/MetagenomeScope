@@ -500,7 +500,7 @@ def test_chr21mat_split_siblings_merged():
     So this is what they call a "regression test," as i understand it. now i
     don't know much in this crazy world, but uhhh let's avoid this recurring :P
     """
-    ag = AssemblyGraph("metagenomescope/tests/input/chr21mat_subgraph.gv")
+    ag = AssemblyGraph("metagenomescope/tests/input/chr21mat_subgraph_1.gv")
     # outermost node is a chain
     assert len(ag.decomposed_graph.nodes) == 1
     assert len(ag.decomposed_graph.edges) == 0
@@ -548,3 +548,18 @@ def test_chr21mat_split_siblings_merged():
         ("6585325", "2213790", 0),
         ("6585325", "-3300458", 0),
     }
+
+
+def test_chr21mat_minus653300458_splits_merged():
+    r"""This is a pretty large graph, because for some reason trying to limit
+    the graph to just the surrounding region of the impacted region prevents
+    the problem from being reproduced -- probably some weird issue with the
+    order in which nodes are traversed.
+
+    Anyway this is similar to the test above -- node -653300458 is being split
+    in a bug currently impacting MetagenomeScope, even though it shouldn't be.
+    Test that the bug is fixed.
+    """
+    ag = AssemblyGraph("metagenomescope/tests/input/chr21mat_subgraph_2.gv")
+    for n in ag.nodeid2obj.values():
+        assert n.is_not_split()
