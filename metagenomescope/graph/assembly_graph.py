@@ -939,7 +939,26 @@ class AssemblyGraph(object):
                 # pattern, then we should be trying to deem *that* node as
                 # unnecessary. We'll get to it later.
                 if counterpart.parent_id is None:
+                    # This should never happen: at least one of the split nodes
+                    # must be located within a pattern. Due to chain merging
+                    # stuff, they might actually be siblings within a pattern
+                    # (see below), but if splitting has done then they should
+                    # always be children of SOME pattern. (If this case
+                    # happens, bail out with an error so we can debug it.)
+                    if node.parent_id is None:
+                        raise WeirdError(
+                            f"Split node {node} and counterpart {counterpart} "
+                            "both have no parent pattern?"
+                        )
+                    # Okay, assuming that "node" is actually the child of a
+                    # pattern and the above horrible WeirdError didn't trigger,
+                    # we'll leave "node" around and remove "counterpart" later.
                     continue
+
+                # If we've made it here, then we have to do some extra work to
+                # figure out if we should remove this node. (If the answer is
+                # "yes, we should remove it," then we'll set do_removal = True)
+                do_removal = False
 
                 # Figure out where the other end of this node's fake edge
                 # points in the decomposed graph.
@@ -954,25 +973,41 @@ class AssemblyGraph(object):
                     )
                     counterpart_fe_id = self.edgeid2obj[fe_id].dec_src_id
 
-                # If this fake edge points to the counterpart node directly,
-                # then -- like above -- we should be trying to deem *that* node
-                # as unnecessary, and we'll get to it later.
-                if counterpart_fe_id not in self.pattid2obj:
-                    continue
+                # In strange cases (due to chain merging, I think), a split
+                # node and its counterpart can be children of the same parent
+                # pattern. In this case, they should obviously be merged back
+                # together (it doesn't really matter if we remove "node" or
+                # "counterpart" in this case).
+                if node.parent_id == counterpart.parent_id:
+                    do_removal = True
+                else:
+                    # Okay, we're still not sure if we need to remove "node".
+                    #
+                    # If we see here that the fake edge points to the
+                    # counterpart node directly, we know that "node" is located
+                    # "further down" the hierarchy than "counterpart".
+                    #
+                    # Like the "if counterpart.parent_id is None" check above,
+                    # we should be trying to deem *that* node as unnecessary,
+                    # and we'll get to it later.
+                    if counterpart_fe_id not in self.pattid2obj:
+                        continue
 
-                # Otherwise, this fake edge points to an ancestor of this
-                # node's counterpart. Figure out what the parent (if any) of
-                # *that* ancestor is.
-                counterpart_ancestor_parent_id = self.pattid2obj[
-                    counterpart_fe_id
-                ].parent_id
+                    # If we've made it here, this fake edge points to an
+                    # ancestor of this node's counterpart. Figure out what the
+                    # parent (if any) of *that* ancestor is.
+                    counterpart_ancestor_parent_id = self.pattid2obj[
+                        counterpart_fe_id
+                    ].parent_id
 
-                # If this node is a sibling of the counterpart ancestor, then
-                # this node is unnecessary. Note that this conditional is True
-                # even if both parent_ids are None.
-                if node.parent_id == counterpart_ancestor_parent_id:
-                    # ok yep it's unnecessary, remove it
+                    # If this node is a sibling of the counterpart ancestor, then
+                    # this node is unnecessary. Note that this conditional is True
+                    # even if both parent_ids are None.
+                    if node.parent_id == counterpart_ancestor_parent_id:
+                        # ok yep it's unnecessary, remove it
+                        do_removal = True
 
+                if do_removal:
                     if node.split == config.SPLIT_LEFT:
                         # remove the fake edge from L ==> R
                         self.graph.remove_edge(
