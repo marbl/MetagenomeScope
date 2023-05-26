@@ -506,4 +506,40 @@ def test_chr21mat_complex_region():
 
     # Nodes should not be split
     assert len(ag.graph.nodes) == 7
+    assert set([n.name for n in ag.nodeid2obj.values()]) == {
+        "2213790",
+        "5308795",
+        "-1005641",
+        "2387648",
+        "248316",
+        "6585325",
+        "-3300458",
+    }
+    for n in ag.nodeid2obj.values():
+        assert n.is_not_split()
+
     assert len(ag.graph.edges) == 9
+    # extremely lazy way to check that the edges in the graph are what we
+    # expect. tbh i forgot that the edges in ag.graph would use node unique ids
+    # so that's why this ugly list comprehension that converts ids to names
+    # exists, sorry for inflicting it upon your eyes
+    #
+    # e[2] is the edge key in networkx when you use ag.graph.edges btw (i am a
+    # very cool person who will definitely remember how nx multidigraphs work
+    # two weeks from now when i have to look at this code again)
+    assert set(
+        [
+            (ag.nodeid2obj[e[0]].name, ag.nodeid2obj[e[1]].name, e[2])
+            for e in ag.graph.edges
+        ]
+    ) == {
+        ("2213790", "5308795", 0),
+        ("5308795", "-1005641", 0),
+        ("5308795", "-1005641", 1),
+        ("-1005641", "2387648", 0),
+        ("2387648", "248316", 0),
+        ("2387648", "248316", 1),
+        ("248316", "6585325", 0),
+        ("6585325", "2213790", 0),
+        ("6585325", "-3300458", 0),
+    }
