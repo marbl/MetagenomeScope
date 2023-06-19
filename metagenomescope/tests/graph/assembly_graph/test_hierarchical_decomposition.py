@@ -581,6 +581,8 @@ def test_chr21mat_minus653300458_splits_merged():
     for n in ag.graph:
         n_name = ag.nodeid2obj[n].name
         assert n_name in correct_graph.nodes
-        ag_targets = [ag.nodeid2obj[oe[1]].name for oe in ag.graph.out_edges(n)]
+        ag_targets = [
+            ag.nodeid2obj[oe[1]].name for oe in ag.graph.out_edges(n)
+        ]
         cg_targets = [oe[1] for oe in correct_graph.out_edges(n_name)]
         assert set(ag_targets) == set(cg_targets)
