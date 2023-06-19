@@ -58,5 +58,12 @@ some slight modifications) of de Bruijn graphs produced by
 [jumboDBG](https://github.com/AntonBankevich/LJA/)
 from the maternal haplotype of chromosome 21 (from
 [Jarvis & Formenti et al. 2022](https://www.nature.com/articles/s41586-022-05325-5)).
-Technically these two files are derived from different jumboDBG de Bruijn graphs (I used two different versions to create them), but the details aren't very relevant for these files' test purposes.
+Technically these two files are derived from different de Bruijn graphs (I used two different versions of jumboDBG to create them, if I remember correctly?),
+but the details aren't very relevant for these files' test purposes. The main
+reason I use these small graphs is that they triggered bugs in MetagenomeScope, so
+now they're immortalized here as regression tests.
 (Thank you to Zhenmiao Zhang for downloading the chromosome 21 haplotype to our server :)
+
+Similarly, `chr15_subgraph.gv` is a subgraph of a de Bruijn graph produced by
+jumboDBG from the chromosome 15 haplome from version 2.0 of the
+[CHM13](https://github.com/marbl/CHM13) assembly.

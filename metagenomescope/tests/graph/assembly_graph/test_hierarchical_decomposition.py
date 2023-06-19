@@ -25,6 +25,44 @@ def nx2gml(g):
     return filehandle, filename
 
 
+def _check_ag_topology_matches_gv(ag, gv_fn):
+    """This assumes that all nodes in the AssemblyGraph are not split."""
+    for n in ag.nodeid2obj.values():
+        assert n.is_not_split()
+
+    # Verify that the topology of ag.graph matches the input (it should be an
+    # exact match -- no split nodes or fake edges should remain after
+    # hierarchical decomposition in this graph)
+    correct_graph = parse_dot(gv_fn)
+    assert len(correct_graph.nodes) == len(ag.graph.nodes)
+    assert len(correct_graph.nodes) == len(ag.nodeid2obj)
+    assert len(correct_graph.edges) == len(ag.graph.edges)
+    assert len(correct_graph.edges) == len(ag.edgeid2obj)
+    # Verify that the out edges of each node in ag.graph match the
+    # corresponding out edges in correct_graph. Note that
+    # nx.MultiDiGraph.out_edges() includes multi-edges, so this is safe.
+    for n in ag.graph:
+        n_name = ag.nodeid2obj[n].name
+        assert n_name in correct_graph.nodes
+        ag_targets = [
+            ag.nodeid2obj[oe[1]].name for oe in ag.graph.out_edges(n)
+        ]
+        cg_targets = [oe[1] for oe in correct_graph.out_edges(n_name)]
+        assert set(ag_targets) == set(cg_targets)
+
+    # Verify that the Edge objects in this graph also match the input perfectly
+    cg_edges = list(correct_graph.edges(data=True))
+    for e in ag.edgeid2obj.values():
+        src_name = ag.nodeid2obj[e.new_src_id].name
+        tgt_name = ag.nodeid2obj[e.new_tgt_id].name
+        e_tuple = (src_name, tgt_name, e.data)
+        # This is inefficient and gross but cg_edges should be a small list so
+        # this works well enough
+        assert cg_edges.count(e_tuple) == 1
+        cg_edges.remove(e_tuple)
+    assert len(cg_edges) == 0
+
+
 def test_simple_hierarch_decomp():
     r"""I don't know why I called this test "simple", but whatever. The input
         graph looks like
@@ -566,23 +604,15 @@ def test_chr21mat_minus653300458_splits_merged():
     """
     gv_fn = "metagenomescope/tests/input/chr21mat_subgraph_2.gv"
     ag = AssemblyGraph(gv_fn)
-    for n in ag.nodeid2obj.values():
-        assert n.is_not_split()
+    _check_ag_topology_matches_gv(ag, gv_fn)
 
-    # Verify that the topology of ag.graph matches the input (it should be an
-    # exact match -- no split nodes or fake edges should remain after
-    # hierarchical decomposition in this particular example)
-    correct_graph = parse_dot(gv_fn)
-    assert len(correct_graph.nodes) == len(ag.graph.nodes)
-    assert len(correct_graph.edges) == len(ag.graph.edges)
-    # Verify that the out edges of each node in ag.graph match the
-    # corresponding out edges in correct_graph. Note that
-    # nx.MultiDiGraph.out_edges() includes multi-edges, so this is safe.
-    for n in ag.graph:
-        n_name = ag.nodeid2obj[n].name
-        assert n_name in correct_graph.nodes
-        ag_targets = [
-            ag.nodeid2obj[oe[1]].name for oe in ag.graph.out_edges(n)
-        ]
-        cg_targets = [oe[1] for oe in correct_graph.out_edges(n_name)]
-        assert set(ag_targets) == set(cg_targets)
+
+def test_chr15_pattern_resolution_fixed():
+    """There's a weird bug with this graph where one of the nodes (686645112)
+    has an outgoing edge to a "node" with the ID 99 that doesn't exist in the
+    graph after decomposition is done.
+
+    This test makes sure this bug has been fixed."""
+    gv_fn = "metagenomescope/tests/input/chr15_subgraph.gv"
+    ag = AssemblyGraph(gv_fn)
+    _check_ag_topology_matches_gv(ag, gv_fn)
