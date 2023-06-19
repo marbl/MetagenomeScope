@@ -160,8 +160,14 @@ class Edge(object):
         self.cc_num = None
 
     def __repr__(self):
+        # Add on a little symbol to let us know that an edge is fake. Useful in
+        # debugging.
+        if self.is_fake:
+            suffix = "*"
+        else:
+            suffix = " "
         return (
-            f"Edge {self.unique_id} (orig: {self.orig_src_id} -> "
+            f"Edge{suffix}{self.unique_id} (orig: {self.orig_src_id} -> "
             f"{self.orig_tgt_id}; new: {self.new_src_id} -> "
             f"{self.new_tgt_id}; dec: {self.dec_src_id} -> "
             f"{self.dec_tgt_id})"
