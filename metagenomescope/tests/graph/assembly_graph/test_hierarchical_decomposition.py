@@ -3,6 +3,7 @@ import tempfile
 import networkx as nx
 from copy import deepcopy
 from metagenomescope.graph import AssemblyGraph
+from metagenomescope.parsers import parse_dot
 
 
 def nx2gml(g):
@@ -563,6 +564,23 @@ def test_chr21mat_minus653300458_splits_merged():
     For future reference, this problem was caused by trying to merge two chains
     (with an edge between them) into a parent chain both at once.
     """
-    ag = AssemblyGraph("metagenomescope/tests/input/chr21mat_subgraph_2.gv")
+    gv_fn = "metagenomescope/tests/input/chr21mat_subgraph_2.gv"
+    ag = AssemblyGraph(gv_fn)
     for n in ag.nodeid2obj.values():
         assert n.is_not_split()
+
+    # Verify that the topology of ag.graph matches the input (it should be an
+    # exact match -- no split nodes or fake edges should remain after
+    # hierarchical decomposition in this particular example)
+    correct_graph = parse_dot(gv_fn)
+    assert len(correct_graph.nodes) == len(ag.graph.nodes)
+    assert len(correct_graph.edges) == len(ag.graph.edges)
+    # Verify that the out edges of each node in ag.graph match the
+    # corresponding out edges in correct_graph. Note that
+    # nx.MultiDiGraph.out_edges() includes multi-edges, so this is safe.
+    for n in ag.graph:
+        n_name = ag.nodeid2obj[n].name
+        assert n_name in correct_graph.nodes
+        ag_targets = [ag.nodeid2obj[oe[1]].name for oe in ag.graph.out_edges(n)]
+        cg_targets = [oe[1] for oe in correct_graph.out_edges(n_name)]
+        assert set(ag_targets) == set(cg_targets)
