@@ -936,8 +936,8 @@ class AssemblyGraph(object):
         serve as the start and end of two separate patterns, but this will
         not be the fate of all split nodes. After we have finished pattern
         identification, we say that a split node S (with a counterpart node of
-        C) is "unnecessary" if S is a sibling in the hierarchy of any ancestor
-        pattern of C.
+        C) is "unnecessary" if, in the hierarchical decomposition, S is a
+        sibling of any ancestor pattern of C.
 
         In practice, we can just look at the fake edge between S and C in the
         decomposed graph to figure out what this potential sibling ancestor of
@@ -950,29 +950,31 @@ class AssemblyGraph(object):
             node_id = node.unique_id
             if node.counterpart_node_id is not None:
                 counterpart = self.nodeid2obj[node.counterpart_node_id]
-                # If the counterpart of this node is not located within a
-                # pattern, then we should be trying to deem *that* node as
-                # unnecessary. We'll get to it later.
                 if counterpart.parent_id is None:
-                    # This should never happen: at least one of the split nodes
-                    # must be located within a pattern. Due to chain merging
-                    # stuff, they might actually be siblings within a pattern
-                    # (see below), but if splitting has done then they should
-                    # always be children of SOME pattern. (If this case
-                    # happens, bail out with an error so we can debug it.)
+                    # If "counterpart" is not located within a pattern, then we
+                    # should be trying to deem "counterpart" as unnecessary
+                    # (rather than trying to deem "node" as unnecessary). We'll
+                    # get to it later.
                     if node.parent_id is None:
+                        # This should never happen: at least one of (node,
+                        # counterpart) must be located within a pattern. Due to
+                        # chain merging stuff, they might actually be siblings
+                        # within a pattern (see below), but if splitting has
+                        # been done then at least one of them must be a child
+                        # of SOME pattern. (If this case happens, bail out with
+                        # an error so we can debug it.)
                         raise WeirdError(
                             f"Split node {node} and counterpart {counterpart} "
                             "both have no parent pattern?"
                         )
-                    # Okay, assuming that "node" is actually the child of a
-                    # pattern and the above horrible WeirdError didn't trigger,
-                    # we'll leave "node" around and remove "counterpart" later.
+                    # Okay, since the above horrible WeirdError didn't trigger,
+                    # we know that "node" is actually the child of a pattern.
+                    # We'll leave "node" around and remove "counterpart" later.
                     continue
 
                 # If we've made it here, then we have to do some extra work to
-                # figure out if we should remove this node. (If the answer is
-                # "yes, we should remove it," then we'll set do_removal = True)
+                # figure out if we should remove "node". (If the answer is
+                # "yes, we should remove it," then we'll set do_removal=True.)
                 do_removal = False
 
                 # Figure out where the other end of this node's fake edge
