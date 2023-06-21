@@ -902,11 +902,7 @@ class AssemblyGraph(object):
                 self.decomposed_graph, n, self.pattid2obj
             )
             if validation_results:
-                # Mostly the same logic as for when we found a pattern above --
-                # but here, we don't bother adding anything to the "candidates"
-                # after finding a frayed rope, because we don't perform node
-                # splitting on frayed rope boundaries (at least, as of writing)
-                # and because frayed ropes can't be contained in other patterns
+                # Mostly the same logic as for when we found a pattern above.
                 pobj, left_splits, right_splits = self._add_pattern(
                     validation_results
                 )
