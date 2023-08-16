@@ -676,6 +676,15 @@ def parse_dot(filename):
       of de Bruijn graphs (I mean, we still keep the IDs that may or may not
       include "-" around), I don't assign an "orientation" field to either
       nodes or edges in DOT files. I can change this if desired.
+
+    - In the pathological case where the same node is defined twice (this can
+      happen in LJA / jumboDBG outputs, as of writing, due to node IDs in the
+      visualizations being truncations of longer IDs), then we won't actually
+      notice this here -- since we defer to nx.nx_agraph.read_dot() to process
+      the graph. It's important for the user to provide a graph where nodes
+      all have unique IDs. (You can check LJA / jumboDBG graphs for this
+      using https://gist.github.com/fedarko/dffb649120dbb2040da502cc5a4eb566,
+      at least as of writing.)
     """
     # This function is recommended by NetworkX over the nx.nx_pydot version;
     # see https://networkx.org/documentation/stable/_modules/networkx/drawing/nx_pydot.html#read_dot
