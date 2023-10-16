@@ -496,7 +496,7 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
     -----
     - If there is a bubble starting at the start node, but it
       contains any bulges, chains, or other bubbles within it, then this will
-      this'll just return a minimal pattern (not starting at start_node_id).
+      just return a minimal pattern (not starting at start_node_id).
       It's expected that hierarchical decomposition will mean that we'll
       revisit start_node_id later.
 
