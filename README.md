@@ -213,13 +213,14 @@ and **two edges** (`1 -> 2`, `-2 -> -1`). The presence of node `X`
 ["implies"](https://github.com/bcgsc/abyss/wiki/ABySS-File-Formats#reverse-complement)
 the existence of the reverse complement node `-X`, and the presence of edge
 `X -> Y` "implies" the existence of the reverse complement edge `-Y -> -X`.
-This is analogous to [how "double mode" works in Bandage](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style).
+Interpreting the graph file in this way is analogous to
+[how "double mode" works in Bandage](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style).
 
 #### Impacts of reverse complement nodes / edges on the graph structure
 
 Often, the presence of reverse complement nodes / edges (whether
 they are explicitly described in a FASTG, DOT, or GML file, or are implicitly
-described in a GFA or LastGraph file) doesn't impact the graph structure much.
+described in a GFA or LastGraph file) **doesn't impact the graph structure much**.
 
 What does this mean? Consider the GFA example above. There are four nodes and
 two edges in this graph, but they form two
@@ -275,7 +276,7 @@ for details on how we handle reverse complements in FASTG files.)
 <details>
   <summary><strong>What happens if an edge is its own reverse complement?</strong></summary>
 
-You really like asking hard questions, don't you? ;)
+You really like asking hard questions, don't you?
 
 This can happen if an edge exists from `X -> -X` or from `-X -> X` in an
 "implicit" graph file (GFA / LastGraph). Consider
@@ -320,10 +321,10 @@ then that's also fine.)
 Yes! MetagenomeScope now supports
 [multigraphs](https://en.wikipedia.org/wiki/Multigraph). If your assembly graph
 file describes more than one edge from `X -> Y`, then MetagenomeScope will
-visualize all of these "parallel" edges. (This situation often occurs when
-visualizing de Bruijn graphs stored in DOT files.)
+visualize all of these "parallel" edges. (Parallel edges often occur in de
+Bruijn graphs.)
 
-Notably, this is only supported right now for some filetypes. The
+Notably, parallel edges are only supported right now for some filetypes. The
 parsers MetagenomeScope uses for GFA and FASTG files
 [do not allow multigraphs](https://github.com/marbl/MetagenomeScope/issues/239) -- this
 means that, at the moment, trying to use MetagenomeScope to visualize a GFA or
