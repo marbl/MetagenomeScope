@@ -44,43 +44,43 @@ graph [
   ]
   node [
     id 7
-    label "13"
-    orientation "FOW"
-    length "100"
-  ]
-  node [
-    id 8
     label "7"
     orientation "FOW"
     length "100"
   ]
   node [
-    id 9
+    id 8
     label "8"
     orientation "FOW"
     length "100"
   ]
   node [
-    id 10
+    id 9
     label "9"
     orientation "FOW"
     length "100"
   ]
   node [
-    id 11
+    id 10
     label "10"
     orientation "FOW"
     length "100"
   ]
   node [
-    id 12
+    id 11
     label "11"
     orientation "FOW"
     length "100"
   ]
   node [
-    id 13
+    id 12
     label "12"
+    orientation "FOW"
+    length "100"
+  ]
+  node [
+    id 13
+    label "13"
     orientation "FOW"
     length "100"
   ]

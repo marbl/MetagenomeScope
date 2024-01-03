@@ -1,12 +1,12 @@
 from . import config
 
 
-def get_gv_header(graphname="thing"):
+def get_gv_header():
     """Returns the header of a DOT language file.
 
     This will look something like
 
-    "digraph [graphname] {
+    "digraph {
         [top-level graph attributes];
         [top-level node attributes];
         [top-level edge attributes];"
@@ -14,13 +14,13 @@ def get_gv_header(graphname="thing"):
     ... It's expected that the caller will, you know, add some actual
     node/edge/subgraph data and close out the graph declaration with a }.
     """
-    gv_input = "digraph " + graphname + "{\n"
+    gv_input = "digraph {\n"
     if config.GRAPH_STYLE != "":
-        gv_input += "\t{};\n".format(config.GRAPH_STYLE)
+        gv_input += f"{config.INDENT}{config.GRAPH_STYLE};\n"
     if config.GLOBALNODE_STYLE != "":
-        gv_input += "\tnode [{}];\n".format(config.GLOBALNODE_STYLE)
+        gv_input += f"{config.INDENT}node [{config.GLOBALNODE_STYLE}];\n"
     if config.GLOBALEDGE_STYLE != "":
-        gv_input += "\tedge [{}];\n".format(config.GLOBALEDGE_STYLE)
+        gv_input += f"{config.INDENT}edge [{config.GLOBALEDGE_STYLE}];\n"
     return gv_input
 
 

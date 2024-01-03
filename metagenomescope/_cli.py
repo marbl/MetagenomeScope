@@ -21,13 +21,19 @@
 # https://github.com/biocore/qurro/blob/master/qurro/scripts/_plot.py.
 
 import click
+from . import __version__
 from .config import MAXN_DEFAULT, MAXE_DEFAULT
 from .main import make_viz
 from ._param_descriptions import (
     INPUT,
     OUTPUT_DIR,
+    OUTPUT_DOT,
+    OUTPUT_CCSTATS,
+    NODE_METADATA,
+    EDGE_METADATA,
     MAXN,
     MAXE,
+    PATTERNS_FLAG,
 )
 
 
@@ -36,129 +42,110 @@ from ._param_descriptions import (
     context_settings={"help_option_names": ["-h", "--help"]},
     no_args_is_help=True,
 )
-@click.option("-i", "--input-file", required=True, help=INPUT)
-@click.option("-o", "--output-dir", required=True, help=OUTPUT_DIR)
-# @click.option(
-#    "-ao",
-#    "--assume-oriented",
-#    required=False,
-#    default=False,
-#    help=ASSUME_ORIENTED,
-# )
+@click.option(
+    "-i",
+    "--input-file",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    required=True,
+    help=INPUT,
+)
+@click.option(
+    "-o",
+    "--output-viz-dir",
+    type=click.Path(exists=False),
+    default=None,
+    show_default=True,
+    help=OUTPUT_DIR,
+)
+@click.option(
+    "-od",
+    "--output-dot",
+    type=click.Path(dir_okay=False, writable=True),
+    default=None,
+    show_default=True,
+    help=OUTPUT_DOT,
+)
+@click.option(
+    "-os",
+    "--output-ccstats",
+    type=click.Path(dir_okay=False, writable=True),
+    default=None,
+    show_default=True,
+    help=OUTPUT_CCSTATS,
+)
+@click.option(
+    "-n",
+    "--node-metadata",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    required=False,
+    default=None,
+    show_default=True,
+    help=NODE_METADATA,
+)
+@click.option(
+    "-e",
+    "--edge-metadata",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    required=False,
+    default=None,
+    show_default=True,
+    help=EDGE_METADATA,
+)
 @click.option(
     "-maxn",
     "--max-node-count",
+    type=click.IntRange(min=0),
     required=False,
     default=MAXN_DEFAULT,
-    help=MAXN,
     show_default=True,
+    help=MAXN,
 )
 @click.option(
     "-maxe",
     "--max-edge-count",
+    type=click.IntRange(min=0),
     required=False,
     default=MAXE_DEFAULT,
-    help=MAXE,
     show_default=True,
+    help=MAXE,
 )
-# @click.option(
-#    "-mbf", "--metacarvel-bubble-file", required=False, default=None, help=MBF
-# )
-# @click.option(
-#    "-up", "--user-pattern-file", required=False, default=None, help=UP
-# )
-# @click.option(
-#    "-spqr",
-#    "--compute-spqr-data",
-#    required=False,
-#    is_flag=True,
-#    default=False,
-#    help=SPQR,
-# )
-# @click.option(
-#    "-sp",
-#    "--save-structural-patterns",
-#    is_flag=True,
-#    required=False,
-#    default=False,
-#    help=STRUCTPATT,
-# )
-# @click.option(
-#    "-pg",
-#    "--preserve-gv",
-#    is_flag=True,
-#    required=False,
-#    default=False,
-#    help=PG,
-# )
-# @click.option(
-#    "-px",
-#    "--preserve-xdot",
-#    required=False,
-#    is_flag=True,
-#    default=False,
-#    help=PX,
-# )
-# @click.option(
-#    "-nbdf",
-#    "--save-no-backfill-dot-files",
-#    is_flag=True,
-#    required=False,
-#    default=False,
-#    help=NBDF,
-# )
-# @click.option(
-#    "-npdf",
-#    "--save-no-pattern-dot-files",
-#    is_flag=True,
-#    required=False,
-#    default=False,
-#    help=NPDF,
-# )
+@click.option(
+    "--patterns/--no-patterns",
+    is_flag=True,
+    default=True,
+    show_default=True,
+    help=PATTERNS_FLAG,
+)
+@click.version_option(__version__, "-v", "--version")
 def run_script(
     input_file: str,
-    output_dir: str,
-    # assume_oriented: bool,
+    output_viz_dir: str,
+    output_dot: str,
+    output_ccstats: str,
+    node_metadata: str,
+    edge_metadata: str,
     max_node_count: int,
     max_edge_count: int,
-    # metacarvel_bubble_file: str,
-    # user_pattern_file: str,
-    # compute_spqr_data: bool,
-    # save_structural_patterns: bool,
-    # preserve_gv: bool,
-    # preserve_xdot: bool,
-    # save_no_backfill_dot_files: bool,
-    # save_no_pattern_dot_files: bool,
+    patterns: bool,
 ) -> None:
-    """Visualizes an assembly graph and the structural patterns in it.
+    """Visualizes an assembly graph.
 
-    This generates a folder containing an interactive HTML/JS visualization of
-    the graph. The folder's index.html file can be opened in a web browser to
-    access the visualization.
+    MetagenomeScope supports multiple types of output (-o, -od, -os);
+    you will probably want to start with -o.
 
-    There are many options available to customize the visualization / output,
-    but the only two you probably need to worry about are the input file and
-    output directory: generating a visualization can be as simple as
-
-        mgsc -i graph.gfa -o viz
-
-    ...which will generate an output directory named "viz". (You'll need to
-    replace "graph.gfa" with whatever the path to your assembly graph is.)
+    Please check out https://github.com/marbl/MetagenomeScope if you have any
+    questions, suggestions, etc. about this tool.
     """
     make_viz(
         input_file,
-        output_dir,
-        # assume_oriented,
         max_node_count,
         max_edge_count,
-        # metacarvel_bubble_file,
-        # user_pattern_file,
-        # compute_spqr_data,
-        # save_structural_patterns,
-        # preserve_gv,
-        # preserve_xdot,
-        # save_no_backfill_dot_files,
-        # save_no_pattern_dot_files,
+        patterns,
+        output_viz_dir,
+        output_dot,
+        output_ccstats,
+        node_metadata,
+        edge_metadata,
     )
 
 

@@ -18,15 +18,27 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 INPUT = (
-    "Assembly graph file to be visualized. GFA, FASTG, LastGraph (Velvet), "
-    "and GML (MetaCarvel) file formats are accepted."
+    "Assembly graph file. We accept GFA, FASTG, DOT, GML, and LastGraph files."
 )
 
 OUTPUT_DIR = (
-    "Directory in which all output files will be stored. The index.html file "
-    "within this directory contains the graph visualization. "
-    "If this directory already exists, or it otherwise cannot be created, "
-    "an error will be raised."
+    "If provided, we'll save an interactive visualization of the graph to "
+    "this directory. The directory will contain an index.html file; you can "
+    "open this file in a web browser to access the visualization. If we "
+    "cannot create this directory for some reason (e.g. it already exists), "
+    "we'll raise an error."
+)
+
+OUTPUT_DOT = (
+    "If provided, we'll save a DOT file describing the graph to this "
+    "filepath. Identified patterns will be represented in this DOT file as "
+    '"cluster" subgraphs.'
+)
+
+OUTPUT_CCSTATS = (
+    "If provided, we'll save a tab-separated values (TSV) file describing the "
+    "numbers of nodes, edges, and structural patterns in each connected "
+    "component of the graph to this filepath."
 )
 
 ASSUME_ORIENTED = (
@@ -37,21 +49,40 @@ ASSUME_ORIENTED = (
     "raised. THIS OPTION ISN'T FINISHED YET!"
 )
 
+NODE_METADATA = (
+    "TSV file mapping some or all of the graph's node IDs (rows) to arbitrary "
+    "metadata fields (columns)."
+)
+
+EDGE_METADATA = (
+    "TSV file mapping some or all of the graph's edges (rows) to arbitrary "
+    "metadata fields (columns). The leftmost two columns in this file should "
+    "contain the source and sink node ID of the edge being described in a "
+    "row; if there exist parallel edges in the graph between a given source "
+    "and sink node, then that row's metadata will be applied to all such "
+    "edges."
+)
+
+IMPACTS = "Impacts all output options (-o, -od, -os)."
+
+MAX_DEETS = f"{IMPACTS} Setting this to 0 removes this limit."
+
 MAXN = (
-    "Connected components with more nodes than this value will not be "
-    "laid out or available for display in the visualization. Since "
-    "hierarchical graph layout is relatively slow for large or tangled "
-    "connected components, this is a heuristic to enable visualization "
-    "of the less messy regions of graphs with a few 'hairball' components. "
-    "(Note that certain patterns might result in nodes being duplicated in "
-    "the display so that they can be present in multiple patterns; these "
-    '"duplicate" nodes will not count against this number.)'
+    "We will not consider connected components containing more than this many "
+    "nodes. This option is provided because hierarchical graph layout is "
+    "relatively slow for large / tangled components, and because the "
+    f"interactive visualization can be slow for large graphs. {MAX_DEETS}"
 )
 
 MAXE = (
-    "Connected components with more edges than this value will not be "
-    "laid out or available for display in the visualization. Functions "
-    "analogously to --max-node-count."
+    "We will not visualize connected components containing more than this "
+    f"many edges. {MAX_DEETS}"
+)
+
+PATTERNS_FLAG = (
+    "If --patterns is set, we'll identify structural patterns (e.g. bubbles) "
+    "in the graph; if --no-patterns is set, we won't identify any patterns. "
+    f"{IMPACTS}"
 )
 
 # TODO: actually change way this works so that -ubl always true
@@ -82,11 +113,6 @@ SPQR = (
     "installation instructions wiki page for details."
 )
 
-
-STRUCTPATT = (
-    "Save .txt files containing node information for all structural patterns "
-    "identified in the graph."
-)
 
 PG = (
     "Save all .gv (DOT) files generated for nontrivial (i.e. containing > 1 "

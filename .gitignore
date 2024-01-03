@@ -145,7 +145,6 @@ js_coverage.json
 metagenomescope/tests/js_tests/instrumented_js/*
 dist/
 big-list-of-naughty-strings/
-*.gv
 *.xdot
 *.db
 mg2/

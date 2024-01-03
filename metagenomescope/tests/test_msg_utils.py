@@ -23,7 +23,6 @@
 # output from a test function").
 
 from metagenomescope import msg_utils
-from metagenomescope.config import DONE_MSG
 
 
 def test_operation_msg(capsys):
@@ -47,7 +46,7 @@ def test_operation_msg(capsys):
 def test_conclude_msg(capsys):
     msg_utils.conclude_msg()
     captured = capsys.readouterr()
-    assert captured.out == (DONE_MSG + "\n")
+    assert captured.out == ("Done.\n")
 
     msg_utils.conclude_msg("Just prints arbitrary stuff. This is simple.")
     captured = capsys.readouterr()
