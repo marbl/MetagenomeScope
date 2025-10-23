@@ -1,10 +1,11 @@
-from flask import Flask
+import os
+from flask import Flask, render_template
 
 app = Flask("MgSc")
 
 @app.route("/")
 def main():
-    return "<b>oaisdfijowiw</b"
+    return render_template("index.html")
 
 @app.route("/viz")
 def cwhoiviz():
