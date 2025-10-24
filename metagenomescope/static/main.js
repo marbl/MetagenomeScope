@@ -32,9 +32,6 @@ requirejs(
         "cytoscape-expand-collapse",
     ],
     function (AppManager, DataHolder, Drawer, Utils, DomUtils, $, _, bootstrap, bootstrapColorpicker, cy, cyEC) {
-        // Get the graph data JSON from the preprocessing script.
-        var dataJSON = {"test": 1234};
-        var dh = new DataHolder.DataHolder(dataJSON);
-        new AppManager.AppManager(dh);
+        new AppManager.AppManager();
     }
 );

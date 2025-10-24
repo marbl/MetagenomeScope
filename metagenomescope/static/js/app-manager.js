@@ -8,9 +8,10 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
     class AppManager {
         constructor(dataHolder) {
             // Holds all of the actual graph data (nodes, edges, etc.)
-            this.dataHolder = dataHolder;
-
-            this.numComponents = this.dataHolder.numComponents();
+            // TODO REVERT THESE TO BEING REAL BASED ON DATAHOLDER OR SOMETHING
+            // WHEN WE LOAD THE GRAPH
+            this.dataHolder = {};
+            this.numComponents = 1;
 
             // Set up the Drawer, which'll interface with Cytoscape.js.
             // We pass a few callbacks to the Drawer so that the Drawer can let
@@ -28,6 +29,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             this.currentlyDrawnComponents = [];
 
             this.controlsDiv = $("#controls");
+            this.controlsToggler = $("#controlsToggler");
 
             $(this.doThingsWhenDOMReady.bind(this));
 
@@ -118,17 +120,17 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
 
             // Set up the component selector
             // TODO: set enter bindings for the <input>s here
-            var svc = this.dataHolder.smallestViewableComponent();
-            $("#componentselector").prop("value", svc);
-            // TODO?: May be ok to always allow this to go down to 1 if we
-            // have very explicit error messages about cmps not having been
-            // laid out, and update domUtils.compRankValidity() to not rely on
-            // the "min" property of this ._.
-            $("#componentselector").prop("min", svc);
-            $("#componentselector").prop("max", this.numComponents);
-            $("#decrCompRankButton").click(domUtils.decrCompRank);
-            $("#incrCompRankButton").click(domUtils.incrCompRank);
-            $("#drawButton").click(this.draw.bind(this));
+            //var svc = this.dataHolder.smallestViewableComponent();
+            //$("#componentselector").prop("value", svc);
+            //// TODO?: May be ok to always allow this to go down to 1 if we
+            //// have very explicit error messages about cmps not having been
+            //// laid out, and update domUtils.compRankValidity() to not rely on
+            //// the "min" property of this ._.
+            //$("#componentselector").prop("min", svc);
+            //$("#componentselector").prop("max", this.numComponents);
+            //$("#decrCompRankButton").click(domUtils.decrCompRank);
+            //$("#incrCompRankButton").click(domUtils.incrCompRank);
+            //$("#drawButton").click(this.draw.bind(this));
 
             // On a new component selection method being, well, selected,
             // update this.cmpSelectionMethod.
@@ -138,58 +140,62 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
 
             domUtils.enablePersistentControls(this.numComponents);
 
-            this.populateGraphInfoMain();
+            // Workaround to get custom styling for file selectors:
+            // https://developer.mozilla.org/en-US/docs/Learn/Forms/Advanced_form_styling#file_input_types
+            $("#loadButton").click(() => $("#graphFileSelector").click());
 
-            this.initSelectedEleInfoTables();
+            // this.populateGraphInfoMain();
 
-            _.each(["node", "edge", "pattern"], function (eleType) {
-                $("#" + eleType + "Header").click(function () {
-                    scope.toggleEleInfo(eleType);
-                });
-            });
+            // this.initSelectedEleInfoTables();
 
-            // Set up colorpickers
-            $(".colorpicker-component").colorpicker({ format: "hex" });
+            // _.each(["node", "edge", "pattern"], function (eleType) {
+            //     $("#" + eleType + "Header").click(function () {
+            //         scope.toggleEleInfo(eleType);
+            //     });
+            // });
 
-            // Set up "fit" buttons
-            $("#fitButton").click(function () {
-                scope.drawer.fit(false);
-            });
-            $("#fitSelectedButton").click(function () {
-                scope.drawer.fit(true);
-            });
+            // // Set up colorpickers
+            // $(".colorpicker-component").colorpicker({ format: "hex" });
 
-            // When the node search button is clicked, or when Enter is
-            // pressed in the node search input, start a search
-            var searchFunc = this.searchForNodes.bind(this);
-            $("#searchButton").click(searchFunc);
-            domUtils.setEnterBinding("searchInput", searchFunc);
+            // // Set up "fit" buttons
+            // $("#fitButton").click(function () {
+            //     scope.drawer.fit(false);
+            // });
+            // $("#fitSelectedButton").click(function () {
+            //     scope.drawer.fit(true);
+            // });
 
-            // Viewing scaffolds / AGP files
-            // Clicking on the "select a file" button should trigger a click
-            // event on the actual <input> element, which will prompt the user
-            // to select a file. This lets us use a visually consistent style
-            // for the file selection interface. Web dev is weird!
-            // For more details on why these sorts of solutions are needed, see
-            // e.g. https://developer.mozilla.org/en-US/docs/Learn/Forms/Advanced_form_styling#file_input_types
-            $("#scaffoldFileSelectButton").click(function () {
-                $("#scaffoldFileSelector").click();
-            });
-            var loadAGP = this.beginLoadAGPFile.bind(this);
-            $("#scaffoldFileSelector").change(loadAGP);
-            var cycleLeft = this.cycleScaffoldsLeft.bind(this);
-            $("#scaffoldCyclerLeft").click(cycleLeft);
-            var cycleRight = this.cycleScaffoldsRight.bind(this);
-            $("#scaffoldCyclerRight").click(cycleRight);
-            var drawScaffold = this.drawSelectedScaffold.bind(this);
-            $("#drawScaffoldButton").click(drawScaffold);
+            // // When the node search button is clicked, or when Enter is
+            // // pressed in the node search input, start a search
+            // var searchFunc = this.searchForNodes.bind(this);
+            // $("#searchButton").click(searchFunc);
+            // domUtils.setEnterBinding("searchInput", searchFunc);
 
-            // Graph image export buttons
-            // (one is in the top-right of the graph display, another is in the
-            // node selection menu)
-            var exportFunc = this.exportGraphView.bind(this);
-            $("#floatingExportButton").click(exportFunc);
-            $("#exportImageButton").click(exportFunc);
+            // // Viewing scaffolds / AGP files
+            // // Clicking on the "select a file" button should trigger a click
+            // // event on the actual <input> element, which will prompt the user
+            // // to select a file. This lets us use a visually consistent style
+            // // for the file selection interface. Web dev is weird!
+            // // For more details on why these sorts of solutions are needed, see
+            // // e.g. https://developer.mozilla.org/en-US/docs/Learn/Forms/Advanced_form_styling#file_input_types
+            // $("#scaffoldFileSelectButton").click(function () {
+            //     $("#scaffoldFileSelector").click();
+            // });
+            // var loadAGP = this.beginLoadAGPFile.bind(this);
+            // $("#scaffoldFileSelector").change(loadAGP);
+            // var cycleLeft = this.cycleScaffoldsLeft.bind(this);
+            // $("#scaffoldCyclerLeft").click(cycleLeft);
+            // var cycleRight = this.cycleScaffoldsRight.bind(this);
+            // $("#scaffoldCyclerRight").click(cycleRight);
+            // var drawScaffold = this.drawSelectedScaffold.bind(this);
+            // $("#drawScaffoldButton").click(drawScaffold);
+
+            // // Graph image export buttons
+            // // (one is in the top-right of the graph display, another is in the
+            // // node selection menu)
+            // var exportFunc = this.exportGraphView.bind(this);
+            // $("#floatingExportButton").click(exportFunc);
+            // $("#exportImageButton").click(exportFunc);
         }
 
         /**
@@ -197,6 +203,13 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          * size of the Cytoscape.js div if applicable.
          */
         toggleControls() {
+            // Make the toggler (roughly, maybe) match the color of its
+            // current background: either the control panel or the white
+            // background of the graph. This will stand out against the new
+            // background. (We apparently have to style the span with the
+            // glyphicon instead of the parent div to change the color.)
+            this.controlsToggler.children().first().toggleClass("darkToggler");
+            // Then either hide or remove the control panel.
             this.controlsDiv.toggleClass("notviewable");
             this.drawer.toggleSize();
         }

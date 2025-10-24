@@ -66,26 +66,26 @@ setup(
     description=description,
     long_description=long_description,
     author="MetagenomeScope Development Team",
-    author_email="mfedarko@ucsd.edu",
+    author_email="mfedarko@umd.edu",
     maintainer="Marcus Fedarko",
     maintainer_email="mfedarko@ucsd.edu",
     url="https://github.com/marbl/MetagenomeScope",
     classifiers=classifiers,
     packages=find_packages(),
-    package_data={"metagenomescope": ["support_files"]},
+    package_data={"metagenomescope": ["static", "templates"]},
     include_package_data=True,
     # Sanity check before trying to install -- these should be installed with
     # the parent conda environment
     setup_requires=["numpy", "pygraphviz"],
     # NOTE I don't impose minimum versions here yet, but I probably should
     install_requires=[
+        "flask",
         "click",
         "numpy",
         "pandas",
         "networkx",
         "gfapy",
         "pyfastg",
-        "jinja2",
     ],
     # The reason I pin the black version to at least 22.1.0 is that this
     # version changes how the ** operator is formatted (no surrounding spaces,

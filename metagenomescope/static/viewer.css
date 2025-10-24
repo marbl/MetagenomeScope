@@ -30,12 +30,17 @@ body {
  */
 #controlsToggler {
     position: absolute;
-    left: 0em;
-    top: 0em;
+    left: 1em;
+    top: 1em;
     z-index: 2;
     cursor: pointer;
-    color: #777;
+    color: #ddd;
 }
+
+.darkToggler {
+    color: #123;
+}
+
 #floatingExportButton {
     position: absolute;
     right: 0em;
@@ -84,10 +89,13 @@ button {
     top: 0em;
     bottom: 0em;
     background-color: #123;
-    overflow-y: scroll;
+    /* only show the scrollbar when needed. firefox doesn't seem to need
+     * this, but chrome does. */
+    overflow-y: auto;
     text-align: center;
     z-index: 1;
     color: #ccc;
+    border-right: 0.5em solid #002;
 }
 #controls p {
     /* not the greatest solution. work on something better-looking */
