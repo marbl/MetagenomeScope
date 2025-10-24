@@ -104,3 +104,5 @@ NPDF = (
     "Saves .gv (DOT) files without any structural pattern information "
     "embedded."
 )
+
+VERBOSE = "Log extra details."

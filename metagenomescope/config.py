@@ -135,9 +135,9 @@ GLOBALCLUSTER_STYLE = "margin=0"
 MAXN_DEFAULT = 7999
 MAXE_DEFAULT = 7999
 
-# Used to add an extra line below the first logging message, and just before
-# the last logging message.
-SEPARATOR_CHAR = "-"
+# Used to create lines in logging output like =====
+SEPBIG = "="
+SEPSML = "-"
 
 # The amount of indentation to use for each level in DOT files. You could also
 # use a \t character here, if you're the sort of person who prefers tabs ._.

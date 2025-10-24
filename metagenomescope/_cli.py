@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
 
 import click
-from . import __version__
-from ._param_descriptions import (
-    GRAPH,
-)
+from . import __version__, defaults, descs
 from .main import run
 
 
@@ -18,7 +15,7 @@ from .main import run
     "--graph",
     type=click.Path(exists=True, dir_okay=False, readable=True),
     required=True,
-    help=GRAPH,
+    help=descs.GRAPH,
 )
 # @click.option(
 #     "-f",
@@ -52,9 +49,17 @@ from .main import run
 #     show_default=True,
 #     help=EDGE_METADATA,
 # )
+@click.option(
+    "--verbose/--no-verbose",
+    is_flag=True,
+    default=defaults.VERBOSE,
+    show_default=True,
+    help=descs.VERBOSE,
+)
 @click.version_option(__version__, "-v", "--version")
 def run_script(
     graph: str,
+    verbose: bool,
 ) -> None:
     """Visualizes an assembly graph.
 
@@ -62,7 +67,8 @@ def run_script(
     questions, suggestions, etc. about this tool.
     """
     run(
-        graph,
+        graph=graph,
+        verbose=verbose,
     )
 
 

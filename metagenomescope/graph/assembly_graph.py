@@ -1,6 +1,7 @@
 import math
 import json
 import os
+import logging
 import subprocess
 from copy import deepcopy
 from collections import deque
@@ -11,7 +12,6 @@ import pygraphviz
 
 
 from .. import parsers, config, layout_utils, misc_utils
-from ..msg_utils import operation_msg, conclude_msg
 from ..errors import GraphParsingError, GraphError, WeirdError
 from . import validators, graph_utils
 from .component import Component
@@ -54,11 +54,6 @@ class AssemblyGraph(object):
     def __init__(
         self,
         filename,
-        max_node_count=config.MAXN_DEFAULT,
-        max_edge_count=config.MAXE_DEFAULT,
-        patterns=True,
-        node_metadata=None,
-        edge_metadata=None,
     ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
@@ -69,49 +64,23 @@ class AssemblyGraph(object):
         ----------
         filename: str
             Path to the assembly graph to be visualized.
-
-        max_node_count: int
-            We won't visualize connected components containing more nodes than
-            this.
-
-        max_edge_count: int
-            Like max_node_count, but for edges.
-
-        patterns: bool
-            If True, identify & highlight structural patterns; if False, don't.
-
-        node_metadata: str or None
-            Optional path to a TSV file describing node metadata.
-
-        edge_metadata: str or None
-            Optional path to a TSV file describing edge metadata.
         """
+        logger = logging.getLogger(__name__)
         self.filename = filename
-        self.max_node_count = max_node_count
-        self.max_edge_count = max_edge_count
-        self.find_patterns = patterns
 
         self.basename = os.path.basename(self.filename)
-        operation_msg(f'Loading the assembly graph "{self.basename}"...')
+        logger.info(f'Loading input graph "{self.basename}"...')
         # NOTE: Ideally we'd just return this along with the graph from
         # parsers.parse(), but uhhhh that will make me refactor
         # like 20 tests and I don't want to do that ._.
         self.filetype = parsers.sniff_filetype(self.filename)
         self.graph = parsers.parse(self.filename)
-        conclude_msg()
+        logger.info(f'Loaded graph. Filetype: "{self.filetype}".')
 
-        operation_msg(
-            (
-                f"Graph contains {len(self.graph.nodes):,} node(s) and "
-                f"{len(self.graph.edges):,} edge(s)."
-            ),
-            newline=True,
+        logger.info(
+            f"Graph contains {len(self.graph.nodes):,} node(s) and "
+            f"{len(self.graph.edges):,} edge(s)."
         )
-
-        # Remove nodes/edges in components that are too large to lay out.
-        # (if both -maxn and -maxe are 0, then this won't do anything.)
-        self.num_too_large_components = 0
-        self._remove_too_large_components()
 
         # These store Node, Edge, and Pattern objects. We still use the
         # NetworkX graph objects to do things like identify connected
@@ -137,10 +106,10 @@ class AssemblyGraph(object):
         # the graph, and add an "uid" attribute for edges in the graph. This
         # way, we can easily associate nodes and edges with their corresponding
         # objects' unique IDs.
-        operation_msg("Initializing node and edge graph objects...")
+        logger.debug("Initializing node and edge graph objects...")
         self._init_graph_objs()
-        self._integrate_metadata(node_metadata, edge_metadata)
-        conclude_msg()
+        # self._integrate_metadata(node_metadata, edge_metadata)
+        logger.debug("Done.")
 
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
@@ -169,45 +138,46 @@ class AssemblyGraph(object):
             config.PT_FRAYEDROPE: self.frayed_ropes,
         }
 
-        # Holds the top-level decomposed graph.
-        # PERF / NOTE: Ideally we'd avoid creating this completely if
-        # --patterns is False (this way we avoid the extra memory usage).
-        operation_msg("Creating a copy of the graph for decomposition...")
-        self.decomposed_graph = deepcopy(self.graph)
-        conclude_msg()
+        # # Holds the top-level decomposed graph.
+        # # PERF / NOTE: Ideally we'd avoid creating this completely if
+        # # --patterns is False (this way we avoid the extra memory usage).
+        # operation_msg("Creating a copy of the graph for decomposition...")
+        # self.decomposed_graph = deepcopy(self.graph)
+        # conclude_msg()
 
-        # Node/edge scaling is done *before* pattern detection, so duplicate
-        # nodes/edges created during pattern detection shouldn't influence
-        # relative scaling stuff.
-        operation_msg("Scaling nodes based on lengths...")
-        self._scale_nodes()
-        conclude_msg()
+        # # Node/edge scaling is done *before* pattern detection, so duplicate
+        # # nodes/edges created during pattern detection shouldn't influence
+        # # relative scaling stuff.
+        # operation_msg("Scaling nodes based on lengths...")
+        # self._scale_nodes()
+        # conclude_msg()
 
-        self._scale_edges()
+        # self._scale_edges()
 
-        if self.find_patterns:
-            operation_msg("Decomposing the graph into patterns...")
-            self._hierarchically_identify_patterns()
-            conclude_msg()
-            operation_msg(
-                (
-                    f"Found {len(self.bubbles):,} bubble(s), "
-                    f"{len(self.chains):,} chain(s), "
-                    f"{len(self.cyclic_chains):,} cyclic chain(s), and "
-                    f"{len(self.frayed_ropes):,} frayed rope(s)."
-                ),
-                newline=True,
-            )
+        # if self.find_patterns:
+        #    operation_msg("Decomposing the graph into patterns...")
+        #    self._hierarchically_identify_patterns()
+        #    conclude_msg()
+        #    operation_msg(
+        #        (
+        #            f"Found {len(self.bubbles):,} bubble(s), "
+        #            f"{len(self.chains):,} chain(s), "
+        #            f"{len(self.cyclic_chains):,} cyclic chain(s), and "
+        #            f"{len(self.frayed_ropes):,} frayed rope(s)."
+        #        ),
+        #        newline=True,
+        #    )
 
         # Defer this until after we do pattern decomposition, to account for
         # split nodes. (At this point we have already called
         # self._scale_nodes() -- so the presence of split nodes shouldn't
         # change how other nodes in the graph are scaled.)
-        self._compute_node_dimensions()
+        # self._compute_node_dimensions()
 
         # Initialize self.components, a sorted list of Component objects. See
         # this method's docstring for details.
-        self._record_connected_components()
+        # TODO make this work on just the raw graph, at first
+        # self._record_connected_components()
 
         # Since layout can take a while, we leave it to the creator of this
         # object to call .layout() (if for example they don't actually need to
@@ -508,7 +478,7 @@ class AssemblyGraph(object):
                 # We go through self.graph and self.decomposed_graph separately
                 # -- this way we don't have to worry about edge keys matching
                 # up between the graphs.
-                for (incoming_node_id, _, key, data) in list(
+                for incoming_node_id, _, key, data in list(
                     self.decomposed_graph.in_edges(
                         start_id, keys=True, data=True
                     )
@@ -598,7 +568,7 @@ class AssemblyGraph(object):
                     g.add_node(right_node_id)
                 # Route edges from the right node to
                 # end_outgoing_nodes_outside_pattern
-                for (_, outgoing_node_id, key, data) in list(
+                for _, outgoing_node_id, key, data in list(
                     self.decomposed_graph.out_edges(
                         end_id, keys=True, data=True
                     )
@@ -1477,7 +1447,7 @@ class AssemblyGraph(object):
                 # We could also create the induced subgraph of this component's
                 # nodes (in "cc") and then count the number of edges there, but
                 # I think this is more efficient.
-                for (src_id, tgt_id, data) in self.decomposed_graph.out_edges(
+                for src_id, tgt_id, data in self.decomposed_graph.out_edges(
                     node_id, data=True
                 ):
                     cobj.add_edge(self.edgeid2obj[data["uid"]])
@@ -1516,6 +1486,7 @@ class AssemblyGraph(object):
     def _layout(self):
         """Lays out the graph's components, handling patterns specially."""
         # Do layout one component at a time.
+        # TODO REVERT REMOVE TOO LARGE COMPONENTS TO BE DONE HERE AND DYNAMICALLY
         # (We don't bother checking for skipped components, since we should
         # have already called self._remove_too_large_components().)
         first_small_component = False
@@ -1670,12 +1641,12 @@ class AssemblyGraph(object):
 
                         for edge in curr_patt.subgraph.edges:
                             data = curr_patt.subgraph.edges[edge]
-                            data[
-                                "ctrl_pt_coords"
-                            ] = layout_utils.shift_control_points(
-                                data["relative_ctrl_pt_coords"],
-                                curr_patt.left,
-                                curr_patt.bottom,
+                            data["ctrl_pt_coords"] = (
+                                layout_utils.shift_control_points(
+                                    data["relative_ctrl_pt_coords"],
+                                    curr_patt.left,
+                                    curr_patt.bottom,
+                                )
                             )
 
                 else:
