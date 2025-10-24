@@ -98,7 +98,7 @@ define(["underscore", "utils"], function (_, utils) {
                 }
             }
             throw new Error(
-                "No components were laid out -- python script broken."
+                "No components were laid out -- python script broken.",
             );
         }
 
@@ -125,19 +125,20 @@ define(["underscore", "utils"], function (_, utils) {
             // Part 1: run the  search (_.findIndex() and _.some() should both
             // use short circuiting, so potentially these won't involve
             // searching every node in the graph)
-            var matchingCmpIdx = _.findIndex(this.data.components, function (
-                cmp
-            ) {
-                if (!cmp.skipped) {
-                    // Return true if any of the values in cmp.nodes (the
-                    // values in this Object are Arrays of node data) has the
-                    // "name" property that matches the query name
-                    return _.some(cmp.nodes, function (nodeData) {
-                        return nodeData[nodeNamePos] === queryName;
-                    });
-                }
-                return false;
-            });
+            var matchingCmpIdx = _.findIndex(
+                this.data.components,
+                function (cmp) {
+                    if (!cmp.skipped) {
+                        // Return true if any of the values in cmp.nodes (the
+                        // values in this Object are Arrays of node data) has the
+                        // "name" property that matches the query name
+                        return _.some(cmp.nodes, function (nodeData) {
+                            return nodeData[nodeNamePos] === queryName;
+                        });
+                    }
+                    return false;
+                },
+            );
             // Part 2: figure out if the search failed or succeeded
             if (matchingCmpIdx === -1) {
                 // No components contained this node name. Sometimes it be like
@@ -200,12 +201,12 @@ define(["underscore", "utils"], function (_, utils) {
                             sizeRank +
                             " is too large: only " +
                             this.data.components.length +
-                            " components in the graph"
+                            " components in the graph",
                     );
                 }
             } else {
                 throw new Error(
-                    "Size rank of " + sizeRank + " isn't a positive integer"
+                    "Size rank of " + sizeRank + " isn't a positive integer",
                 );
             }
         }
@@ -322,14 +323,14 @@ define(["underscore", "utils"], function (_, utils) {
                                     " but couldn't " +
                                     "find an edge from it to the target node " +
                                     tgtID +
-                                    "."
+                                    ".",
                             );
                         }
                     }
                 }
             }
             throw new Error(
-                "Edge from " + srcID + " to " + tgtID + " not found in data."
+                "Edge from " + srcID + " to " + tgtID + " not found in data.",
             );
         }
 
@@ -345,7 +346,7 @@ define(["underscore", "utils"], function (_, utils) {
                 intID = parseInt(pattID);
             } else {
                 throw new Error(
-                    "Pattern ID " + pattID + " is not a nonnegative integer."
+                    "Pattern ID " + pattID + " is not a nonnegative integer.",
                 );
             }
             for (var i = 0; i < this.data.components.length; i++) {

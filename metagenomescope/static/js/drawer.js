@@ -39,7 +39,7 @@ define([
             onSelect,
             onUnselect,
             onTogglePatternCollapse,
-            onDestroy
+            onDestroy,
         ) {
             this.cyDivID = cyDivID;
             this.cyDiv = $("#" + cyDivID);
@@ -175,9 +175,8 @@ define([
                             // default color matches 'green2' in graphviz
                             // (but honestly I just picked what I considered to be
                             // the least visually offensive shade of green)
-                            "background-color": $("#fropecp").colorpicker(
-                                "getValue"
-                            ),
+                            "background-color":
+                                $("#fropecp").colorpicker("getValue"),
                             shape: "polygon",
                             // Defines a "sideways hourglass" pattern.
                             // This is intended to be used when the graph is
@@ -199,9 +198,8 @@ define([
                         selector: "node.B",
                         style: {
                             // default color matches 'cornflowerblue' in graphviz
-                            "background-color": $("#bubblecp").colorpicker(
-                                "getValue"
-                            ),
+                            "background-color":
+                                $("#bubblecp").colorpicker("getValue"),
                             shape: "polygon",
                             // Defines a hexagon pattern. Notes about the
                             // polygon points for frayed ropes above apply.
@@ -216,27 +214,24 @@ define([
                         selector: "node.C",
                         style: {
                             // default color matches 'salmon' in graphviz
-                            "background-color": $("#chaincp").colorpicker(
-                                "getValue"
-                            ),
+                            "background-color":
+                                $("#chaincp").colorpicker("getValue"),
                         },
                     },
                     {
                         selector: "node.Y",
                         style: {
                             // default color matches 'darkgoldenrod1' in graphviz
-                            "background-color": $("#ychaincp").colorpicker(
-                                "getValue"
-                            ),
+                            "background-color":
+                                $("#ychaincp").colorpicker("getValue"),
                             shape: "ellipse",
                         },
                     },
                     {
                         selector: "node.M",
                         style: {
-                            "background-color": $("#miscpatterncp").colorpicker(
-                                "getValue"
-                            ),
+                            "background-color":
+                                $("#miscpatterncp").colorpicker("getValue"),
                         },
                     },
                     {
@@ -265,9 +260,8 @@ define([
                             // render the text.
                             "min-zoomed-font-size": 12,
                             "z-index": 2,
-                            "background-color": $("#usncp").colorpicker(
-                                "getValue"
-                            ),
+                            "background-color":
+                                $("#usncp").colorpicker("getValue"),
                             // Uncomment this (and comment out the entry above)
                             // to use a random color for each node, provided
                             // these random color is generated in renderNode().
@@ -323,25 +317,22 @@ define([
                         selector: "node.pattern.tentative",
                         style: {
                             "border-width": 5,
-                            "border-color": $("#tngbcp").colorpicker(
-                                "getValue"
-                            ),
+                            "border-color":
+                                $("#tngbcp").colorpicker("getValue"),
                         },
                     },
                     {
                         selector: "node.currpath",
                         style: {
-                            "background-color": $("#cpcp").colorpicker(
-                                "getValue"
-                            ),
+                            "background-color":
+                                $("#cpcp").colorpicker("getValue"),
                         },
                     },
                     {
                         selector: "node.basic:selected",
                         style: {
-                            "background-color": $("#sncp").colorpicker(
-                                "getValue"
-                            ),
+                            "background-color":
+                                $("#sncp").colorpicker("getValue"),
                         },
                     },
                     {
@@ -360,9 +351,8 @@ define([
                         selector: "node.pattern:selected",
                         style: {
                             "border-width": 5,
-                            "border-color": $("#sngbcp").colorpicker(
-                                "getValue"
-                            ),
+                            "border-color":
+                                $("#sngbcp").colorpicker("getValue"),
                         },
                     },
                     {
@@ -370,9 +360,8 @@ define([
                         style: {
                             width: "data(thickness)",
                             "line-color": $("#usecp").colorpicker("getValue"),
-                            "target-arrow-color": $("#usecp").colorpicker(
-                                "getValue"
-                            ),
+                            "target-arrow-color":
+                                $("#usecp").colorpicker("getValue"),
                             "loop-direction": "30deg",
                             "z-index": 1,
                             "z-index-compare": "manual",
@@ -385,9 +374,8 @@ define([
                         selector: "edge:selected",
                         style: {
                             "line-color": $("#secp").colorpicker("getValue"),
-                            "target-arrow-color": $("#secp").colorpicker(
-                                "getValue"
-                            ),
+                            "target-arrow-color":
+                                $("#secp").colorpicker("getValue"),
                         },
                     },
                     {
@@ -447,36 +435,32 @@ define([
                         selector: "edge.high_outlier",
                         style: {
                             "line-color": $("#hoecp").colorpicker("getValue"),
-                            "target-arrow-color": $("#hoecp").colorpicker(
-                                "getValue"
-                            ),
+                            "target-arrow-color":
+                                $("#hoecp").colorpicker("getValue"),
                         },
                     },
                     {
                         selector: "edge.high_outlier:selected",
                         style: {
                             "line-color": $("#hosecp").colorpicker("getValue"),
-                            "target-arrow-color": $("#hosecp").colorpicker(
-                                "getValue"
-                            ),
+                            "target-arrow-color":
+                                $("#hosecp").colorpicker("getValue"),
                         },
                     },
                     {
                         selector: "edge.low_outlier",
                         style: {
                             "line-color": $("#loecp").colorpicker("getValue"),
-                            "target-arrow-color": $("#loecp").colorpicker(
-                                "getValue"
-                            ),
+                            "target-arrow-color":
+                                $("#loecp").colorpicker("getValue"),
                         },
                     },
                     {
                         selector: "edge.low_outlier:selected",
                         style: {
                             "line-color": $("#losecp").colorpicker("getValue"),
-                            "target-arrow-color": $("#losecp").colorpicker(
-                                "getValue"
-                            ),
+                            "target-arrow-color":
+                                $("#losecp").colorpicker("getValue"),
                         },
                     },
                 ],
@@ -568,7 +552,7 @@ define([
             });
             if (this.VERBOSE) {
                 console.log(
-                    "Rendered pattern " + pattID + " at (" + x + ", " + y + ")"
+                    "Rendered pattern " + pattID + " at (" + x + ", " + y + ")",
                 );
             }
             this.numDrawnPatterns++;
@@ -666,7 +650,7 @@ define([
                         x +
                         ", " +
                         y +
-                        ")"
+                        ")",
                 );
             }
             this.numDrawnNodes++;
@@ -834,7 +818,7 @@ define([
                     tgtPos,
                     ctrlPts,
                     dx,
-                    dy
+                    dy,
                 );
                 if (ctrlPtData.complex) {
                     // Control points are valid
@@ -870,12 +854,12 @@ define([
             this.cy.on(
                 "select",
                 "node.basic, edge, node.pattern",
-                this.onSelect
+                this.onSelect,
             );
             this.cy.on(
                 "unselect",
                 "node.basic, edge, node.pattern",
-                this.onUnselect
+                this.onUnselect,
             );
             this.cy.on("cxttap", "node.pattern", this.onTogglePatternCollapse);
         }
@@ -911,56 +895,56 @@ define([
             _.each(componentsToDraw, function (sizeRank) {
                 // Draw patterns
                 var pattAttrs = dataHolder.getPattAttrs();
-                _.each(dataHolder.getPatternsInComponent(sizeRank), function (
-                    pattVals
-                ) {
-                    scope.renderPattern(pattAttrs, pattVals, dx, dy);
-                });
+                _.each(
+                    dataHolder.getPatternsInComponent(sizeRank),
+                    function (pattVals) {
+                        scope.renderPattern(pattAttrs, pattVals, dx, dy);
+                    },
+                );
 
                 // Draw nodes
                 var node2pos = {};
                 var nodeAttrs = dataHolder.getNodeAttrs();
-                _.each(dataHolder.getNodesInComponent(sizeRank), function (
-                    nodeVals,
-                    nodeID
-                ) {
-                    var pos = scope.renderNode(
-                        nodeAttrs,
-                        nodeVals,
-                        nodeID,
-                        dx,
-                        dy
-                    );
-                    node2pos[nodeID] = pos;
-                });
+                _.each(
+                    dataHolder.getNodesInComponent(sizeRank),
+                    function (nodeVals, nodeID) {
+                        var pos = scope.renderNode(
+                            nodeAttrs,
+                            nodeVals,
+                            nodeID,
+                            dx,
+                            dy,
+                        );
+                        node2pos[nodeID] = pos;
+                    },
+                );
 
                 // Draw edges
                 var edgeAttrs = dataHolder.getEdgeAttrs();
                 // Edges are a bit different: they're structured as
                 // {srcID: {tgtID: edgeVals, tgtID2: edgeVals}, ...}
-                _.each(dataHolder.getEdgesInComponent(sizeRank), function (
-                    edgesFromSrcID,
-                    srcID
-                ) {
-                    _.each(edgesFromSrcID, function (edgeVals, tgtID) {
-                        scope.renderEdge(
-                            edgeAttrs,
-                            edgeVals,
-                            node2pos,
-                            srcID,
-                            tgtID,
-                            dx,
-                            dy
-                        );
-                    });
-                });
+                _.each(
+                    dataHolder.getEdgesInComponent(sizeRank),
+                    function (edgesFromSrcID, srcID) {
+                        _.each(edgesFromSrcID, function (edgeVals, tgtID) {
+                            scope.renderEdge(
+                                edgeAttrs,
+                                edgeVals,
+                                node2pos,
+                                srcID,
+                                tgtID,
+                                dx,
+                                dy,
+                            );
+                        });
+                    },
+                );
 
                 // If we're drawing multiple components at once, let's update
                 // dx and dy so that we can place other components somewhere
                 // that doesn't interfere with previously-drawn components.
-                var componentBoundingBox = dataHolder.getComponentBoundingBox(
-                    sizeRank
-                );
+                var componentBoundingBox =
+                    dataHolder.getComponentBoundingBox(sizeRank);
                 // The way component tiling works right now is: we draw the
                 // first component (assumed to be the largest, of those being
                 // drawn), which has width W and height H. We then draw the

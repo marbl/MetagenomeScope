@@ -57,7 +57,7 @@ define(["underscore"], function (_) {
     function distance(point1, point2) {
         return Math.sqrt(
             Math.pow(point2[0] - point1[0], 2) +
-                Math.pow(point2[1] - point1[1], 2)
+                Math.pow(point2[1] - point1[1], 2),
         );
     }
 
@@ -103,7 +103,7 @@ define(["underscore"], function (_) {
         var lineDistance = distance(linePoint1, linePoint2);
         if (lineDistance === 0) {
             throw new Error(
-                "pointToLineDistance() given a line of the same point twice"
+                "pointToLineDistance() given a line of the same point twice",
             );
         }
         var ydelta = linePoint2[1] - linePoint1[1];
@@ -159,7 +159,7 @@ define(["underscore"], function (_) {
         if (text.trim() === "") {
             if (text.length > 0) {
                 throw new Error(
-                    "Only whitespace characters entered in the search text."
+                    "Only whitespace characters entered in the search text.",
                 );
             } else {
                 throw new Error("Nothing entered in the search text.");
@@ -218,7 +218,7 @@ define(["underscore"], function (_) {
     function arrToHumanReadableString(arr) {
         if (arr.length === 0) {
             throw new Error(
-                "Passed an empty array to arrToHumanReadableString()."
+                "Passed an empty array to arrToHumanReadableString().",
             );
         }
         var s = '"';
@@ -249,7 +249,7 @@ define(["underscore"], function (_) {
                 return String(x).padStart(2, 0);
             } else {
                 throw new Error(
-                    "Argument to leftPad() not in the range [0, 99]: " + x
+                    "Argument to leftPad() not in the range [0, 99]: " + x,
                 );
             }
         } else {

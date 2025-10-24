@@ -1,40 +1,11 @@
-#!/usr/bin/env python3.6
-# Copyright (C) 2016-- Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop
-# Authored by Marcus Fedarko
-#
-# This file is part of MetagenomeScope.
-#
-# MetagenomeScope is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# MetagenomeScope is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
-####
-# Structure of this file adapted roughly from
-# https://github.com/biocore/qurro/blob/master/qurro/scripts/_plot.py.
+#!/usr/bin/env python3
 
 import click
 from . import __version__
-from .config import MAXN_DEFAULT, MAXE_DEFAULT
-from .main import make_viz
 from ._param_descriptions import (
-    INPUT,
-    OUTPUT_DIR,
-    OUTPUT_DOT,
-    OUTPUT_CCSTATS,
-    NODE_METADATA,
-    EDGE_METADATA,
-    MAXN,
-    MAXE,
-    PATTERNS_FLAG,
+    GRAPH,
 )
+from .main import run
 
 
 # Make mgsc -h (or just mgsc by itself) show the help text
@@ -43,109 +14,55 @@ from ._param_descriptions import (
     no_args_is_help=True,
 )
 @click.option(
-    "-i",
-    "--input-file",
+    "-g",
+    "--graph",
     type=click.Path(exists=True, dir_okay=False, readable=True),
     required=True,
-    help=INPUT,
+    help=GRAPH,
 )
-@click.option(
-    "-o",
-    "--output-viz-dir",
-    type=click.Path(exists=False),
-    default=None,
-    show_default=True,
-    help=OUTPUT_DIR,
-)
-@click.option(
-    "-od",
-    "--output-dot",
-    type=click.Path(dir_okay=False, writable=True),
-    default=None,
-    show_default=True,
-    help=OUTPUT_DOT,
-)
-@click.option(
-    "-os",
-    "--output-ccstats",
-    type=click.Path(dir_okay=False, writable=True),
-    default=None,
-    show_default=True,
-    help=OUTPUT_CCSTATS,
-)
-@click.option(
-    "-n",
-    "--node-metadata",
-    type=click.Path(exists=True, dir_okay=False, readable=True),
-    required=False,
-    default=None,
-    show_default=True,
-    help=NODE_METADATA,
-)
-@click.option(
-    "-e",
-    "--edge-metadata",
-    type=click.Path(exists=True, dir_okay=False, readable=True),
-    required=False,
-    default=None,
-    show_default=True,
-    help=EDGE_METADATA,
-)
-@click.option(
-    "-maxn",
-    "--max-node-count",
-    type=click.IntRange(min=0),
-    required=False,
-    default=MAXN_DEFAULT,
-    show_default=True,
-    help=MAXN,
-)
-@click.option(
-    "-maxe",
-    "--max-edge-count",
-    type=click.IntRange(min=0),
-    required=False,
-    default=MAXE_DEFAULT,
-    show_default=True,
-    help=MAXE,
-)
-@click.option(
-    "--patterns/--no-patterns",
-    is_flag=True,
-    default=True,
-    show_default=True,
-    help=PATTERNS_FLAG,
-)
+# @click.option(
+#     "-f",
+#     "--fasta",
+#     type=click.Path(exists=True, dir_okay=False, readable=True),
+#     required=False,
+#     help=FASTA,
+# )
+# @click.option(
+#     "-a",
+#     "--agp",
+#     type=click.Path(exists=True, dir_okay=False, readable=True),
+#     required=False,
+#     help=AGP,
+# )
+# @click.option(
+#     "-n",
+#     "--node-metadata",
+#     type=click.Path(exists=True, dir_okay=False, readable=True),
+#     required=False,
+#     default=None,
+#     show_default=True,
+#     help=NODE_METADATA,
+# )
+# @click.option(
+#     "-e",
+#     "--edge-metadata",
+#     type=click.Path(exists=True, dir_okay=False, readable=True),
+#     required=False,
+#     default=None,
+#     show_default=True,
+#     help=EDGE_METADATA,
+# )
 @click.version_option(__version__, "-v", "--version")
 def run_script(
-    input_file: str,
-    output_viz_dir: str,
-    output_dot: str,
-    output_ccstats: str,
-    node_metadata: str,
-    edge_metadata: str,
-    max_node_count: int,
-    max_edge_count: int,
-    patterns: bool,
+    graph: str,
 ) -> None:
     """Visualizes an assembly graph.
-
-    MetagenomeScope supports multiple types of output (-o, -od, -os);
-    you will probably want to start with -o.
 
     Please check out https://github.com/marbl/MetagenomeScope if you have any
     questions, suggestions, etc. about this tool.
     """
-    make_viz(
-        input_file,
-        max_node_count,
-        max_edge_count,
-        patterns,
-        output_viz_dir,
-        output_dot,
-        output_ccstats,
-        node_metadata,
-        edge_metadata,
+    run(
+        graph,
     )
 
 

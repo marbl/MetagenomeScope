@@ -20,7 +20,7 @@
 .PHONY: pytest jstest test pystylecheck jsstylecheck stylecheck pystyle jsstyle style demo
 
 PYLOCS = metagenomescope/ setup.py
-JSLOCS = metagenomescope/support_files/js/*.js metagenomescope/tests/js_tests/*.js docs/js/extra_functionality.js .jshintrc
+JSLOCS = metagenomescope/static/js/*.js metagenomescope/tests/js_tests/*.js docs/js/extra_functionality.js .jshintrc
 HTMLCSSLOCS = metagenomescope/support_files/index.html metagenomescope/tests/js_tests/*.html metagenomescope/support_files/css/viewer_style.css docs/404.html docs/index.html docs/css/mgsc_docs_style.css
 
 # -B: don't create __pycache__/ directories
@@ -33,7 +33,7 @@ pytest:
 		--cov metagenomescope
 
 jstest:
-	nyc instrument metagenomescope/support_files/js/ metagenomescope/tests/js_tests/instrumented_js/
+	nyc instrument metagenomescope/static/js/ metagenomescope/tests/js_tests/instrumented_js/
 	mocha-headless-chrome -f metagenomescope/tests/js_tests/index.html -c js_coverage.json
 
 test: pytest jstest

@@ -392,9 +392,8 @@ function initGraph(viewType) {
             {
                 selector: "node.M",
                 style: {
-                    "background-color": $("#miscpatterncp").colorpicker(
-                        "getValue"
-                    ),
+                    "background-color":
+                        $("#miscpatterncp").colorpicker("getValue"),
                 },
             },
             {
@@ -947,7 +946,7 @@ function addSelectedClusterInfo(ele) {
             clustType +
             "</td><td>" +
             clustSize +
-            "</td></tr>"
+            "</td></tr>",
     );
 }
 
@@ -1264,7 +1263,7 @@ function loadLocalDB() {
         $("#selectedClusterBadge").text(0);
         disableButton("infoButton");
         $("#currComponentInfo").html(
-            "No connected component has been drawn yet."
+            "No connected component has been drawn yet.",
         );
         fr.onload = function (e) {
             if (e.target.readyState === FileReader.DONE) {
@@ -1370,7 +1369,7 @@ function parseDBcomponents() {
     // mgsc.SPQR_INFO_AVAILABLE to that
     var spqrInfoStmt = mgsc.CURR_DB.prepare(
         "SELECT name FROM sqlite_master WHERE type='table' AND name=" +
-            "'singlecomponents';"
+            "'singlecomponents';",
     );
     spqrInfoStmt.step();
     var spqrTableExistence = spqrInfoStmt.getAsObject();
@@ -1682,7 +1681,7 @@ function startDrawComponent(mode) {
                     "). It is not " +
                     "drawable using the current .db file. You can control this " +
                     "behavior through the -maxn and -maxe MetagenomeScope " +
-                    "preprocessing script command-line arguments, if desired."
+                    "preprocessing script command-line arguments, if desired.",
             );
             return;
         }
@@ -1705,7 +1704,7 @@ function isComponentDrawable(cmpRank) {
         isTooLargeStmt = mgsc.CURR_DB.prepare(
             "SELECT node_count, edge_count, too_large FROM components WHERE " +
                 "size_rank = ? LIMIT 1",
-            [cmpRank]
+            [cmpRank],
         );
     } catch (error) {
         // The error here is almost certainly due to an old .db file that
@@ -1801,7 +1800,7 @@ function drawComponent(cmpRank) {
     var bbStmt = mgsc.CURR_DB.prepare(
         "SELECT boundingbox_x, boundingbox_y, node_count, edge_count FROM components WHERE " +
             "size_rank = ? LIMIT 1",
-        [cmpRank]
+        [cmpRank],
     );
     bbStmt.step();
     var fullObj = bbStmt.getAsObject();
@@ -1816,7 +1815,7 @@ function drawComponent(cmpRank) {
     // As we draw other components later within the same session of the viewer
     // application, mgsc.PROGRESSBAR_FREQ will be updated accordingly
     mgsc.PROGRESSBAR_FREQ = Math.floor(
-        mgsc.PROGRESSBAR_FREQ_PERCENT * totalElementCount
+        mgsc.PROGRESSBAR_FREQ_PERCENT * totalElementCount,
     );
     // We need a fast way to associate node IDs with their x/y positions.
     // This is for calculating edge control point weight/distance.
@@ -1832,7 +1831,7 @@ function drawComponent(cmpRank) {
     cy.startBatch();
     var clustersStmt = mgsc.CURR_DB.prepare(
         "SELECT * FROM clusters WHERE component_rank = ?",
-        [cmpRank]
+        [cmpRank],
     );
     while (clustersStmt.step()) {
         clustersInComponent = true;
@@ -1856,7 +1855,7 @@ function drawComponent(cmpRank) {
         cy.startBatch();
         var nodesStmt = mgsc.CURR_DB.prepare(
             "SELECT * FROM nodes WHERE component_rank = ?",
-            [cmpRank]
+            [cmpRank],
         );
         mgsc.CURR_NE = 0;
         drawComponentNodes(
@@ -1871,7 +1870,7 @@ function drawComponent(cmpRank) {
             "double",
             "",
             [],
-            []
+            [],
         );
     }, 0);
 }
@@ -1902,7 +1901,7 @@ function drawComponentNodes(
     mode,
     spqrSpecs,
     metanodeParams,
-    counts
+    counts,
 ) {
     "use strict";
     if (nodesStmt.step()) {
@@ -1935,7 +1934,7 @@ function drawComponentNodes(
                     mode,
                     spqrSpecs,
                     metanodeParams,
-                    counts
+                    counts,
                 );
             }, 0);
         } else {
@@ -1951,7 +1950,7 @@ function drawComponentNodes(
                 mode,
                 spqrSpecs,
                 metanodeParams,
-                counts
+                counts,
             );
         }
     } else {
@@ -1969,7 +1968,7 @@ function drawComponentNodes(
         if (mode !== "SPQR") {
             edgesStmt = mgsc.CURR_DB.prepare(
                 "SELECT * FROM edges WHERE component_rank = ?",
-                [cmpRank]
+                [cmpRank],
             );
         } else {
             // Our use of spqrSpecs and metanodeParams in constructing this
@@ -1980,7 +1979,7 @@ function drawComponentNodes(
             edgeType = "singleedge";
             edgesStmt = mgsc.CURR_DB.prepare(
                 "SELECT * FROM singleedges " + spqrSpecs,
-                metanodeParams
+                metanodeParams,
             );
             // NOTE don't draw metanodeedges by default due to autocollapsing
         }
@@ -1995,7 +1994,7 @@ function drawComponentNodes(
             totalElementCount,
             edgeType,
             mode,
-            counts
+            counts,
         );
     }
 }
@@ -2014,7 +2013,7 @@ function drawComponentEdges(
     totalElementCount,
     edgeType,
     mode,
-    counts
+    counts,
 ) {
     "use strict";
     if (edgesStmt.step()) {
@@ -2024,7 +2023,7 @@ function drawComponentEdges(
             bb,
             edgeType,
             mode,
-            {}
+            {},
         );
         componentEdgeCount += 1;
         mgsc.CURR_NE += 0.5;
@@ -2042,7 +2041,7 @@ function drawComponentEdges(
                     totalElementCount,
                     edgeType,
                     mode,
-                    counts
+                    counts,
                 );
             }, 0);
         } else {
@@ -2057,7 +2056,7 @@ function drawComponentEdges(
                 totalElementCount,
                 edgeType,
                 mode,
-                counts
+                counts,
             );
         }
     } else {
@@ -2069,7 +2068,7 @@ function drawComponentEdges(
             componentEdgeCount,
             clustersInComponent,
             mode,
-            counts
+            counts,
         );
     }
 }
@@ -2081,7 +2080,7 @@ function updateCurrCompInfo(
     componentNodeCount,
     componentEdgeCount,
     mode,
-    counts
+    counts,
 ) {
     "use strict";
     var intro = "The ";
@@ -2185,7 +2184,7 @@ function finishDrawComponent(
     componentEdgeCount,
     clustersInComponent,
     mode,
-    counts
+    counts,
 ) {
     "use strict";
     updateCurrCompInfo(
@@ -2193,7 +2192,7 @@ function finishDrawComponent(
         componentNodeCount,
         componentEdgeCount,
         mode,
-        counts
+        counts,
     );
     // NOTE modified initClusters() to do cluster height after the fact.
     // This represents an inefficiency when parsing xdot files, although it
@@ -2548,7 +2547,7 @@ function drawEdgeWeightHistogram() {
         .rangeRound([0, width]);
     var bin_count = +$("#binCountInput").val();
     var bins = d3.histogram().domain(x.domain()).thresholds(x.ticks(bin_count))(
-        mgsc.COMPONENT_EDGE_WEIGHTS
+        mgsc.COMPONENT_EDGE_WEIGHTS,
     );
     var y = d3
         .scaleLinear()
@@ -2588,7 +2587,7 @@ function drawEdgeWeightHistogram() {
     g.append("text")
         .attr(
             "transform",
-            "translate(" + width / 2 + "," + (height + margin.top + 30) + ")"
+            "translate(" + width / 2 + "," + (height + margin.top + 30) + ")",
         )
         .style("text-anchor", "middle")
         .text("Edge multiplicity");
@@ -2618,7 +2617,7 @@ function cullEdges() {
     if (strVal.match(mgsc.INTEGER_RE) === null) {
         alert(
             "Please enter a valid minimum edge weight (a nonnegative " +
-                "integer) using the input field."
+                "integer) using the input field.",
         );
         return;
     }
@@ -2860,13 +2859,13 @@ function togglePauseFinishingButtonStyle(pauseOrFinish) {
         $("#pauseFinishingButtonIconSpan").addClass("glyphicon-pause");
         $("#pauseFinishingButtonIconSpan").removeClass("glyphicon-play");
         $("#pauseFinishingButton").html(
-            $("#pauseFinishingButton").html().replace("Resume", "Pause")
+            $("#pauseFinishingButton").html().replace("Resume", "Pause"),
         );
     } else {
         $("#pauseFinishingButtonIconSpan").removeClass("glyphicon-pause");
         $("#pauseFinishingButtonIconSpan").addClass("glyphicon-play");
         $("#pauseFinishingButton").html(
-            $("#pauseFinishingButton").html().replace("Pause", "Resume")
+            $("#pauseFinishingButton").html().replace("Pause", "Resume"),
         );
     }
 }
@@ -2977,7 +2976,7 @@ function exportPath() {
 function startChangeNodeColorization() {
     "use strict";
     var newColorization = $(
-        "#nodeColorizationRadioButtonGroup input:checked"
+        "#nodeColorizationRadioButtonGroup input:checked",
     ).attr("value");
     // We check to ensure the new colorization would be different from the
     // current one -- if not, we don't bother doing anything
@@ -3155,7 +3154,7 @@ function initNodeAdjacents() {
     cy.filter("node.noncluster").each(function (node, i) {
         node.data(
             "adjacentEdges",
-            node.incomers("edge").union(node.outgoers("edge"))
+            node.incomers("edge").union(node.outgoers("edge")),
         );
     });
 }

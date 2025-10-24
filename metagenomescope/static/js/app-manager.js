@@ -3,7 +3,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
     _,
     Drawer,
     utils,
-    domUtils
+    domUtils,
 ) {
     class AppManager {
         constructor(dataHolder) {
@@ -21,7 +21,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 this.onSelect.bind(this),
                 this.onUnselect.bind(this),
                 this.onTogglePatternCollapse.bind(this),
-                this.onDestroy.bind(this)
+                this.onDestroy.bind(this),
             );
 
             // Array of the size ranks of the currently drawn components.
@@ -114,7 +114,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             $("#helpButton").click(function () {
                 window.open(
                     "https://github.com/marbl/MetagenomeScope/wiki",
-                    "_blank"
+                    "_blank",
                 );
             });
 
@@ -135,7 +135,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // On a new component selection method being, well, selected,
             // update this.cmpSelectionMethod.
             $("#cmpSelectionMethod").change(
-                this.updateCmpSelectionMethod.bind(this)
+                this.updateCmpSelectionMethod.bind(this),
             );
 
             domUtils.enablePersistentControls(this.numComponents);
@@ -264,7 +264,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                     } else {
                         // Show the now-selected component selection UI
                         $("#" + newMethod + "-draw-eles").removeClass(
-                            "notviewable"
+                            "notviewable",
                         );
                     }
                 });
@@ -305,7 +305,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // https://stackoverflow.com/a/1294964
             $("#nodeTH").attr(
                 "colspan",
-                $("#nodeTH").attr("colspan") + extraNodeAttrs.length
+                $("#nodeTH").attr("colspan") + extraNodeAttrs.length,
             );
             // Add as many header columns as needed
             // Note that each <th> id is of the format "nodeInfoTable-attrname"
@@ -313,7 +313,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             // practices, but sometimes it be like that.)
             _.each(extraNodeAttrs, function (attr) {
                 $("#nodeInfoTable tr:nth-child(2)").append(
-                    '<th id="nodeInfoTable-' + attr + '">' + attr + "</th>"
+                    '<th id="nodeInfoTable-' + attr + '">' + attr + "</th>",
                 );
             });
             // Update an internal array of attributes in the same order as
@@ -334,7 +334,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             var extraEdgeAttrs = this.dataHolder.getExtraEdgeAttrs();
             $("#edgeTH").attr(
                 "colspan",
-                $("#edgeTH").attr("colspan") + extraEdgeAttrs.length
+                $("#edgeTH").attr("colspan") + extraEdgeAttrs.length,
             );
             _.times(extraEdgeAttrs.length, function (i) {
                 $("#edgeInfoTable tr:nth-child(2)").append(
@@ -342,7 +342,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                         extraEdgeAttrs[i] +
                         '">' +
                         extraEdgeAttrs[i] +
-                        "</th>"
+                        "</th>",
                 );
             });
             $("#edgeInfoTable tr:nth-child(2) > th").each(function (i, th) {
@@ -419,7 +419,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 var edgeData = ele.data();
                 var edgeInfo = this.dataHolder.getEdgeInfo(
                     edgeData.origSrcID,
-                    edgeData.origTgtID
+                    edgeData.origTgtID,
                 );
                 var edgeAttrs = this.dataHolder.getEdgeAttrs();
                 var rowHTML =
@@ -456,14 +456,14 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             if (selectOrUnselect === "select") {
                 var pattInfo = this.dataHolder.getPatternInfo(eleID);
                 var pattType = utils.getHumanReadablePatternType(
-                    pattInfo[this.dataHolder.getPattAttrs().pattern_type]
+                    pattInfo[this.dataHolder.getPattAttrs().pattern_type],
                 );
                 $("#patternInfoTable").append(
                     '<tr class="selectedEleRow" id="selectedEleRow' +
                         eleID +
                         '"><td>' +
                         pattType +
-                        "</td></tr>"
+                        "</td></tr>",
                 );
             } else {
                 this.removeSelectedEleInfo(eleID);
@@ -560,7 +560,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                     alert(
                         'No laid-out components contain a node with the name "' +
                             name +
-                            '".'
+                            '".',
                     );
                     throw new Error("Invalid node name.");
                 } else {
@@ -571,7 +571,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             } else {
                 throw new Error(
                     "Invalid cmp selection method set: " +
-                        this.cmpSelectionMethod
+                        this.cmpSelectionMethod,
                 );
             }
         }
@@ -618,7 +618,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                 setFunc = "delete";
             } else {
                 throw new Error(
-                    "Invalid selectOrUnselect value: " + selectOrUnselect
+                    "Invalid selectOrUnselect value: " + selectOrUnselect,
                 );
             }
 
@@ -637,7 +637,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                     this.updateSelectedPatternInfo(xID, selectOrUnselect);
                 } else {
                     throw new Error(
-                        "Unrecognized node type of target element: " + x
+                        "Unrecognized node type of target element: " + x,
                     );
                 }
             } else if (x.isEdge()) {
@@ -741,15 +741,14 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             });
             var notFoundNames = this.drawer.searchForNodes(nodeNames);
             if (notFoundNames.length > 0) {
-                var notFoundNamesReadable = utils.arrToHumanReadableString(
-                    notFoundNames
-                );
+                var notFoundNamesReadable =
+                    utils.arrToHumanReadableString(notFoundNames);
                 alert(
                     "Node name(s) " +
                         notFoundNamesReadable +
                         " were not found in the currently-drawn component. They may " +
                         "be within collapsed patterns or in another component " +
-                        "of the graph, though."
+                        "of the graph, though.",
                 );
             }
         }
@@ -891,7 +890,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                             // sfr.partialLine's contents (sfr.partialLine may
                             // be "", or blobLines[0] may be "").
                             c = scope.integrateAGPLine(
-                                sfr.partialLine + blobLines[0]
+                                sfr.partialLine + blobLines[0],
                             );
                             if (c !== 0) {
                                 scope.clearScaffoldFS(true);
@@ -912,7 +911,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                             // we just store it in sfr.partialLine.
                             if (sfr.readingFinalBlob) {
                                 c = scope.integrateAGPLine(
-                                    blobLines[blobLines.length - 1]
+                                    blobLines[blobLines.length - 1],
                                 );
                                 if (c !== 0) {
                                     scope.clearScaffoldFS(true);
@@ -926,7 +925,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
                             // blobText doesn't contain any newlines
                             if (sfr.readingFinalBlob) {
                                 c = scope.integrateAGPLine(
-                                    sfr.partialLine + blobText
+                                    sfr.partialLine + blobText,
                                 );
                                 if (c !== 0) {
                                     scope.clearScaffoldFS(true);
@@ -1019,7 +1018,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
         updateAvailableScaffolds(agpFileJustLoaded) {
             var scope = this;
             var availScaffs = this.drawer.getAvailableScaffolds(
-                this.scaffoldID2NodeNames
+                this.scaffoldID2NodeNames,
             );
             _.each(availScaffs, function (s) {
                 scope.addAvailableScaffold(s);
@@ -1076,12 +1075,12 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             if (this.currComponentsHaveScaffolds) {
                 $("#scaffoldInfoHeader").html(
                     "<strong>Scaffolds in Connected Component</strong><br/>" +
-                        "(Click to highlight in graph)"
+                        "(Click to highlight in graph)",
                 );
             } else {
                 $("#scaffoldInfoHeader").html(
                     "No scaffolds apply to the nodes " +
-                        "in the currently drawn connected component(s)."
+                        "in the currently drawn connected component(s).",
                 );
             }
             $("#scaffoldInfoHeader").removeClass("notviewable");
@@ -1092,7 +1091,7 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
             if (agpFileJustLoaded) {
                 $("#agpLoadedFileName").html(
                     document.getElementById("scaffoldFileSelector").files[0]
-                        .name
+                        .name,
                 );
                 $("#agpLoadedFileName").removeClass("notviewable");
                 this.clearScaffoldFS(false);
@@ -1156,9 +1155,8 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          * Intended to be used after clicking the cycle left / right button.
          */
         cycleToAndDrawScaffold() {
-            var newScaffoldID = this.currComponentsScaffolds[
-                this.scaffoldCyclerCurrIndex
-            ];
+            var newScaffoldID =
+                this.currComponentsScaffolds[this.scaffoldCyclerCurrIndex];
             $("#drawScaffoldButton").text(newScaffoldID);
             this.drawSelectedScaffold();
         }
@@ -1169,9 +1167,8 @@ define(["jquery", "underscore", "drawer", "utils", "dom-utils"], function (
          * Currently, this works by just selecting these nodes.
          */
         drawSelectedScaffold() {
-            var scaffoldID = this.currComponentsScaffolds[
-                this.scaffoldCyclerCurrIndex
-            ];
+            var scaffoldID =
+                this.currComponentsScaffolds[this.scaffoldCyclerCurrIndex];
             var nodeNames = this.scaffoldID2NodeNames[scaffoldID];
             this.drawer.highlightNodesInScaffold(nodeNames);
         }
