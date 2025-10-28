@@ -54,7 +54,7 @@ def run(
     for e in ag.graph.edges:
         edges.append({"data": {"source": str(e[0]), "target": str(e[1])}})
 
-    # for dagre. remove when we get graphviz layouts back in
+    # NOTE: for dagre. remove below line when we get graphviz layouts back in.
     cyto.load_extra_layouts()
     app = dash.Dash(__name__, title="MgSc")
     app.layout = html.Div(
@@ -67,6 +67,26 @@ def run(
                         style={"font-family": "monospace"},
                     ),
                     html.P([f"{len(nodes):,} nodes, {len(edges):,} edges."]),
+                    html.P([f"{ag.num_ccs:,} components."]),
+                    html.P(
+                        [
+                            html.Button(
+                                [
+                                    html.Span(
+                                        className="glyphicon glyphicon-pencil"
+                                    ),
+                                    # the old way of having a &nbsp; between the
+                                    # icon and the label doesn't seem to be
+                                    # supported in Dash. Can recreate with padding:
+                                    # https://community.plotly.com/t/how-to-leave-some-space-on-the-page-between-graphs-and-drop-down-menus/6234/2
+                                    html.Span(
+                                        "Draw", style={"padding-left": "0.7em"}
+                                    ),
+                                ],
+                                className="btn btn-default drawCtrl",
+                            )
+                        ]
+                    ),
                 ],
                 style={
                     "position": "absolute",
@@ -79,20 +99,6 @@ def run(
                     "background-color": "#123",
                     "color": "#ccc",
                     "border-right": "0.5em solid #002",
-                },
-            ),
-            # cy
-            cyto.Cytoscape(
-                id="cy",
-                elements=nodes + edges,
-                layout={"name": "dagre"},
-                style={
-                    "position": "absolute",
-                    "left": "20em",
-                    "right": "0em",
-                    "top": "0em",
-                    "bottom": "0em",
-                    "border": "1px solid black",
                 },
             ),
         ],

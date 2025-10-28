@@ -111,6 +111,10 @@ class AssemblyGraph(object):
         # self._integrate_metadata(node_metadata, edge_metadata)
         logger.debug("Done.")
 
+        logger.debug("Counting (weakly) connected components...")
+        self.num_ccs = len(list(nx.weakly_connected_components(self.graph)))
+        logger.debug("Done.")
+
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
         # array, but due to the whole component skipping stuff that sounds like
