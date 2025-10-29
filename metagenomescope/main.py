@@ -121,6 +121,7 @@ def run(
                                 ],
                                 id="drawButton",
                                 className="btn btn-light drawCtrl",
+                                type="button",
                             )
                         ]
                     ),
