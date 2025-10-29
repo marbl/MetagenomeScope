@@ -62,8 +62,21 @@ body {
     bottom: 35px;
     z-index: 2;
 }
-/* the !important seems to be necessary to get this to override the default
- * #controls styling */
+/* the !important is necessary to get this to override the default #controls
+ * styling, since the inline "left" takes precedence over this one (at least
+ * I think that's why -- https://stackoverflow.com/a/25105841).
+ *
+ * We could rewrite the code to not use this class and instead adjust the
+ * styling of #controls manually in Python, but I think just using the class
+ * to mark the controls as offscreen or not is more elegant & easier to read.
+ * Even if it involves a stray !important.
+ */
+.offscreen-controls {
+    left: max(-20em, -50%) !important;
+    pointer-events: none;
+}
+
+
 .offscreen-controls {
     left: max(-20em, -50%) !important;
     pointer-events: none;
