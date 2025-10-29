@@ -63,7 +63,8 @@ body {
     z-index: 2;
 }
 /* Might want to consider adding some sort of transition on going to
- * .notviewable, but not necessary */
+ * .notviewable, but not necessary. also NOTE i think this is redundant;
+ * we probably don't need all three of these. */
 .notviewable {
     visibility: hidden;
     opacity: 0;
