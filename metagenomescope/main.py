@@ -8,6 +8,7 @@ import dash_cytoscape as cyto
 from dash import html, callback, Input, Output, State
 from . import defaults
 from .log_utils import start_log, log_lines_with_sep
+from .misc_utils import pluralize
 from .config import (
     SEPBIG,
     SEPSML,
@@ -91,8 +92,13 @@ def run(
                             "margin-top": "2em",
                         },
                     ),
-                    html.P([f"{len(nodes):,} nodes, {len(edges):,} edges."]),
-                    html.P([f"{ag.num_ccs:,} components."]),
+                    html.P(
+                        [
+                            f"{pluralize(len(nodes), 'node')}, "
+                            f"{pluralize(len(edges), 'edge')}."
+                        ]
+                    ),
+                    html.P([f"{pluralize(ag.num_ccs, 'component')}."]),
                     ctrl_sep,
                     html.H4("Draw"),
                     html.P(
