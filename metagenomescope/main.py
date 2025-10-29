@@ -5,7 +5,7 @@ import time
 import logging
 import dash
 import dash_cytoscape as cyto
-from dash import html
+from dash import html, callback, Input, Output
 from . import defaults
 from .log_utils import start_log, log_lines_with_sep
 from .config import SEPBIG, SEPSML
@@ -54,8 +54,6 @@ def run(
     for e in ag.graph.edges:
         edges.append({"data": {"source": str(e[0]), "target": str(e[1])}})
 
-    # NOTE: for dagre. remove below line when we get graphviz layouts back in.
-    cyto.load_extra_layouts()
     app = dash.Dash(__name__, title="MgSc")
     app.layout = html.Div(
         [
@@ -83,6 +81,7 @@ def run(
                                         "Draw", style={"padding-left": "0.7em"}
                                     ),
                                 ],
+                                id="drawButton",
                                 className="btn btn-default drawCtrl",
                             )
                         ]
@@ -101,6 +100,31 @@ def run(
                     "border-right": "0.5em solid #002",
                 },
             ),
+            html.Div(
+                id="cyDiv",
+            ),
         ],
     )
+
+    @callback(
+        Output("cyDiv", "children"),
+        Input("drawButton", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def draw(n_clicks):
+        return cyto.Cytoscape(
+            id="cy",
+            elements=nodes + edges,
+            layout={"name": "circle"},
+            style={
+                "position": "absolute",
+                "left": "20em",
+                "right": "0em",
+                "top": "0em",
+                "bottom": "0em",
+                "border": "1px solid black",
+            },
+            responsive=True,
+        )
+
     app.run(debug=True)
