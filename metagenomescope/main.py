@@ -8,7 +8,12 @@ import dash_cytoscape as cyto
 from dash import html, callback, Input, Output, State
 from . import defaults
 from .log_utils import start_log, log_lines_with_sep
-from .config import SEPBIG, SEPSML, CONTROLS_BORDER_THICKNESS
+from .config import (
+    SEPBIG,
+    SEPSML,
+    CONTROLS_BORDER_THICKNESS,
+    CONTROLS_TRANSITION_DURATION,
+)
 from .graph import AssemblyGraph
 
 
@@ -55,11 +60,13 @@ def run(
         edges.append({"data": {"source": str(e[0]), "target": str(e[1])}})
 
     ctrl_sep = html.Div(
-                        style={
-                            "width": "100%", "height": CONTROLS_BORDER_THICKNESS, "background-color": "#002",
-                            "margin": "1.25em 0",
-                        }
-                    )
+        style={
+            "width": "100%",
+            "height": CONTROLS_BORDER_THICKNESS,
+            "background-color": "#002",
+            "margin": "1.25em 0",
+        }
+    )
 
     # update_title=None prevents Dash's default "Updating..." page title change
     app = dash.Dash(__name__, title="MgSc", update_title=None)
@@ -79,7 +86,10 @@ def run(
                 [
                     html.H4(
                         [ag.basename],
-                        style={"font-family": "monospace", "margin-top": "2em"},
+                        style={
+                            "font-family": "monospace",
+                            "margin-top": "2em",
+                        },
                     ),
                     html.P([f"{len(nodes):,} nodes, {len(edges):,} edges."]),
                     html.P([f"{ag.num_ccs:,} components."]),
@@ -122,7 +132,8 @@ def run(
                     "z-index": "1",
                     "background-color": "#123",
                     "color": "#ccc",
-                    "border-right": CONTROLS_BORDER_THICKNESS + " solid #002",
+                    "border-right": f"{CONTROLS_BORDER_THICKNESS} solid #002",
+                    "transition": f"left {CONTROLS_TRANSITION_DURATION}",
                 },
                 className="",
             ),
@@ -149,7 +160,7 @@ def run(
                     # unsuccessful -- I think it might be something to do with
                     # how HTML canvases work under the hood. idk. anyway this
                     # at least adds a smooth transition.
-                    "transition": "left 0.2s",
+                    "transition": f"left {CONTROLS_TRANSITION_DURATION}",
                 },
             ),
         ],
@@ -172,7 +183,7 @@ def run(
         visible. (We may want to adjust this in a fancier way if/when the user
         can control the background color of the graph, but it's ok for now.)
         """
-        if "notviewable" in controls_classes:
+        if "hidden-by-smooshing" in controls_classes:
             # Make the control panel visible again
             cy_div_style["left"] = "20em"
             return ("", CONTROLS_TOGGLER_ICON_CLASSES, cy_div_style)
@@ -180,7 +191,7 @@ def run(
             # Hide the control panel
             cy_div_style["left"] = "0em"
             return (
-                "notviewable",
+                "hidden-by-smooshing",
                 CONTROLS_TOGGLER_ICON_CLASSES + " darkToggler",
                 cy_div_style,
             )

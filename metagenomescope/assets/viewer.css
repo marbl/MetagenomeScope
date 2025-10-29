@@ -62,14 +62,13 @@ body {
     bottom: 35px;
     z-index: 2;
 }
-/* Might want to consider adding some sort of transition on going to
- * .notviewable, but not necessary. also NOTE i think this is redundant;
- * we probably don't need all three of these. */
-.notviewable {
-    visibility: hidden;
-    opacity: 0;
-    display: none;
+/* the !important seems to be necessary to get this to override the default
+ * #controls styling */
+.hidden-by-smooshing {
+    left: -20em !important;
+    pointer-events: none;
 }
+
 /* Add smooth transitions on enabling/disabling for buttons.
  * Note that the (animatable) CSS properties changed on enabling/disabling
  * a button in Bootstrap 3.3 are opacity (it's 0.65 for disabled and 1 for
