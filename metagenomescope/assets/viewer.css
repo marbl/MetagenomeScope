@@ -18,7 +18,6 @@
  */
 
 /* The margin and padding of 0 prevent default Dash styling */
-html,
 body {
     height: 100%;
     width: 100%;
@@ -86,20 +85,6 @@ button {
     transition-property: opacity, box-shadow;
     outline: none !important;
 }
-#controls {
-    position: absolute;
-    width: 20em;
-    top: 0em;
-    bottom: 0em;
-    background-color: #123;
-    /* only show the scrollbar when needed. firefox doesn't seem to need
-     * this, but chrome does. */
-    overflow-y: auto;
-    text-align: center;
-    z-index: 1;
-    color: #ccc;
-    border-right: 0.5em solid #002;
-}
 #controls p {
     /* not the greatest solution. work on something better-looking */
     margin: 0.1em;
@@ -125,16 +110,6 @@ button {
 #scaffoldCycler * {
     display: inline-block;
     vertical-align: middle;
-}
-/* TODO in the future it might be nice to keep the graph view in place when
- * uncollapsing or collapsing the controls div -- however, for now, this
- * behavior is fine. */
-#cy {
-    position: absolute;
-    right: 0em;
-    top: 0em;
-    bottom: 0em;
-    z-index: 0;
 }
 .nosubsume {
     left: 20em;
