@@ -1,25 +1,16 @@
 #!/usr/bin/env python3
 
-import os
-import time
 import logging
 import dash
 import dash_cytoscape as cyto
 from dash import html, callback, Input, Output, State
-from . import defaults
+from . import defaults, cy_config
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
-from .config import (
-    SEPBIG,
-    SEPSML,
-)
 from .css_config import (
     CONTROLS_WIDTH,
     CONTROLS_BORDER_THICKNESS,
     CONTROLS_TRANSITION_DURATION,
-)
-from .cy_config import (
-    NODE_COLOR,
 )
 from .graph import AssemblyGraph
 
@@ -243,7 +234,8 @@ def run(
                 {
                     "selector": "node",
                     "style": {
-                        "background-color": NODE_COLOR,
+                        "background-color": cy_config.NODE_COLOR,
+                        "color": cy_config.UNSELECTED_NODE_FONT_COLOR,
                         "label": "data(label)",
                         "text-valign": "center",
                         "min-zoomed-font-size": "12",
@@ -253,27 +245,28 @@ def run(
                 {
                     "selector": "node:selected",
                     "style": {
-                        "background-blacken": "0.5",
+                        "color": cy_config.SELECTED_NODE_FONT_COLOR,
+                        "background-blacken": cy_config.SELECTED_NODE_BLACKEN,
                     },
                 },
                 {
                     "selector": "node.fwd",
                     "style": {
                         "shape": "polygon",
-                        "shape-polygon-points": "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1",
+                        "shape-polygon-points": cy_config.FWD_NODE_POLYGON_PTS,
                     },
                 },
                 {
                     "selector": "node.rev",
                     "style": {
                         "shape": "polygon",
-                        "shape-polygon-points": "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1",
+                        "shape-polygon-points": cy_config.REV_NODE_POLYGON_PTS,
                     },
                 },
                 {
                     "selector": "node.unoriented",
                     "style": {
-                        "shape": "circle",
+                        "shape": cy_config.UNORIENTED_NODE_SHAPE,
                     },
                 },
             ],
