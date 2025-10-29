@@ -75,12 +75,13 @@ class AssemblyGraph(object):
         # like 20 tests and I don't want to do that ._.
         self.filetype = parsers.sniff_filetype(self.filename)
         self.graph = parsers.parse(self.filename)
-        logger.info(f'Loaded graph. Filetype: "{self.filetype}".')
+        logger.info(f'...Loaded graph. Filetype: "{self.filetype}".')
 
         logger.info(
             f"Graph contains {len(self.graph.nodes):,} node(s) and "
             f"{len(self.graph.edges):,} edge(s)."
         )
+        logger.info("Processing the graph.")
 
         # These store Node, Edge, and Pattern objects. We still use the
         # NetworkX graph objects to do things like identify connected
@@ -109,11 +110,11 @@ class AssemblyGraph(object):
         logger.debug("Initializing node and edge graph objects...")
         self._init_graph_objs()
         # self._integrate_metadata(node_metadata, edge_metadata)
-        logger.debug("Done.")
+        logger.debug("...Done.")
 
         logger.debug("Counting (weakly) connected components...")
         self.num_ccs = len(list(nx.weakly_connected_components(self.graph)))
-        logger.debug("Done.")
+        logger.debug("...Done.")
 
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
@@ -142,16 +143,14 @@ class AssemblyGraph(object):
             config.PT_FRAYEDROPE: self.frayed_ropes,
         }
 
-        # # Holds the top-level decomposed graph.
-        # # PERF / NOTE: Ideally we'd avoid creating this completely if
-        # # --patterns is False (this way we avoid the extra memory usage).
-        # operation_msg("Creating a copy of the graph for decomposition...")
-        # self.decomposed_graph = deepcopy(self.graph)
-        # conclude_msg()
+        # Holds the top-level decomposed graph.
+        # PERF / NOTE: Ideally we'd avoid creating this completely if
+        # --patterns is False (this way we avoid the extra memory usage).
+        logger.debug("Creating a copy of the graph for decomposition...")
+        self.decomposed_graph = deepcopy(self.graph)
+        logger.debug("...Done.")
 
-        # # Node/edge scaling is done *before* pattern detection, so duplicate
-        # # nodes/edges created during pattern detection shouldn't influence
-        # # relative scaling stuff.
+        # TODO: do node / edge scaling on demand before layout, right?
         # operation_msg("Scaling nodes based on lengths...")
         # self._scale_nodes()
         # conclude_msg()

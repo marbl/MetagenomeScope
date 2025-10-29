@@ -18,6 +18,9 @@ from .css_config import (
     CONTROLS_BORDER_THICKNESS,
     CONTROLS_TRANSITION_DURATION,
 )
+from .cy_config import (
+    NODE_COLOR,
+)
 from .graph import AssemblyGraph
 
 
@@ -59,7 +62,20 @@ def run(
     nodes = []
     edges = []
     for n in ag.graph.nodes:
-        nodes.append({"data": {"id": str(n), "label": ag.nodeid2obj[n].name}})
+        nobj = ag.nodeid2obj[n]
+        if "orientation" in nobj.data:
+            if nobj.data["orientation"] == "+":
+                ndir = "fwd"
+            else:
+                ndir = "rev"
+        else:
+            ndir = "unoriented"
+        nodes.append(
+            {
+                "data": {"id": str(n), "label": nobj.name},
+                "classes": ndir,
+            }
+        )
     for e in ag.graph.edges:
         edges.append({"data": {"source": str(e[0]), "target": str(e[1])}})
 
@@ -108,9 +124,7 @@ def run(
                         [
                             html.Button(
                                 [
-                                    html.I(
-                                        className="bi bi-brush"
-                                    ),
+                                    html.I(className="bi bi-brush"),
                                     # the old way of having a &nbsp; between the
                                     # icon and the label doesn't seem to be
                                     # supported in Dash. Can recreate with padding:
@@ -223,6 +237,46 @@ def run(
                 "width": "100%",
                 "height": "100%",
             },
+            boxSelectionEnabled=True,
+            maxZoom=9,
+            stylesheet=[
+                {
+                    "selector": "node",
+                    "style": {
+                        "background-color": NODE_COLOR,
+                        "label": "data(label)",
+                        "text-valign": "center",
+                        "min-zoomed-font-size": "12",
+                        "z-index": "2",
+                    },
+                },
+                {
+                    "selector": "node:selected",
+                    "style": {
+                        "background-blacken": "0.5",
+                    },
+                },
+                {
+                    "selector": "node.fwd",
+                    "style": {
+                        "shape": "polygon",
+                        "shape-polygon-points": "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1",
+                    },
+                },
+                {
+                    "selector": "node.rev",
+                    "style": {
+                        "shape": "polygon",
+                        "shape-polygon-points": "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1",
+                    },
+                },
+                {
+                    "selector": "node.unoriented",
+                    "style": {
+                        "shape": "circle",
+                    },
+                },
+            ],
         )
 
     app.run(debug=True)
