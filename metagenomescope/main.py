@@ -5,7 +5,7 @@ import time
 import logging
 import dash
 import dash_cytoscape as cyto
-from dash import html, callback, Input, Output
+from dash import html, callback, Input, Output, State
 from . import defaults
 from .log_utils import start_log, log_lines_with_sep
 from .config import SEPBIG, SEPSML
@@ -55,8 +55,17 @@ def run(
         edges.append({"data": {"source": str(e[0]), "target": str(e[1])}})
 
     app = dash.Dash(__name__, title="MgSc")
+    CONTROLS_TOGGLER_ICON_CLASSES = "glyphicon glyphicon-menu-hamburger"
     app.layout = html.Div(
         [
+            # controls toggler (hamburger button)
+            html.Div(
+                html.Span(
+                    id="controlsTogglerIcon",
+                    className=CONTROLS_TOGGLER_ICON_CLASSES,
+                ),
+                id="controlsToggler",
+            ),
             # controls
             html.Div(
                 [
@@ -87,6 +96,7 @@ def run(
                         ]
                     ),
                 ],
+                id="controls",
                 style={
                     "position": "absolute",
                     "width": "20em",
@@ -99,12 +109,37 @@ def run(
                     "color": "#ccc",
                     "border-right": "0.5em solid #002",
                 },
+                className="",
             ),
+            # cy
             html.Div(
                 id="cyDiv",
             ),
         ],
     )
+
+    @callback(
+        Output("controls", "className"),
+        Output("controlsTogglerIcon", "className"),
+        State("controls", "className"),
+        Input("controlsToggler", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def toggle_controls(controls_classes, n_clicks):
+        """Toggles visibility of the controls div.
+
+        Also toggles the color of the toggler hamburger icon -- it is colored
+        light when the controls are visible, and dark when the controls are not
+        visible. (We may want to adjust this in a fancier way if/when the user
+        can control the background color of the graph, but it's ok for now.)
+        """
+        if "notviewable" in controls_classes:
+            return ("", CONTROLS_TOGGLER_ICON_CLASSES)
+        else:
+            return (
+                "notviewable",
+                CONTROLS_TOGGLER_ICON_CLASSES + " darkToggler",
+            )
 
     @callback(
         Output("cyDiv", "children"),
