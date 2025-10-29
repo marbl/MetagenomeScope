@@ -43,6 +43,15 @@ body {
     color: #123;
 }
 
+.bi-list {
+    font-size: 1.3em;
+    /* hack to make the bi-list (hamburger) element's lines look thicker --
+     * closer to fontawesome (in bootstrap 3.3)'s "glyphicon-menu-hamburger".
+     * https://stackoverflow.com/a/71702371
+     */
+    -webkit-text-stroke: 1px;
+}
+
 #floatingExportButton {
     position: absolute;
     right: 0em;

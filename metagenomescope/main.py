@@ -74,12 +74,12 @@ def run(
 
     # update_title=None prevents Dash's default "Updating..." page title change
     app = dash.Dash(__name__, title="MgSc", update_title=None)
-    CONTROLS_TOGGLER_ICON_CLASSES = "glyphicon glyphicon-menu-hamburger"
+    CONTROLS_TOGGLER_ICON_CLASSES = "bi bi-list"
     app.layout = html.Div(
         [
             # controls toggler (hamburger button)
             html.Div(
-                html.Span(
+                html.I(
                     id="controlsTogglerIcon",
                     className=CONTROLS_TOGGLER_ICON_CLASSES,
                 ),
@@ -108,8 +108,8 @@ def run(
                         [
                             html.Button(
                                 [
-                                    html.Span(
-                                        className="glyphicon glyphicon-pencil"
+                                    html.I(
+                                        className="bi bi-brush"
                                     ),
                                     # the old way of having a &nbsp; between the
                                     # icon and the label doesn't seem to be
@@ -120,7 +120,7 @@ def run(
                                     ),
                                 ],
                                 id="drawButton",
-                                className="btn btn-default drawCtrl",
+                                className="btn btn-light drawCtrl",
                             )
                         ]
                     ),
