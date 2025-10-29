@@ -196,6 +196,9 @@ def run(
                 cy_div_style,
             )
 
+    # TODO remove when we do layout using Graphviz manually
+    cyto.load_extra_layouts()
+
     @callback(
         Output("cyDiv", "children"),
         Input("drawButton", "n_clicks"),
@@ -205,7 +208,7 @@ def run(
         return cyto.Cytoscape(
             id="cy",
             elements=nodes + edges,
-            layout={"name": "circle"},
+            layout={"name": "dagre"},
             style={
                 "width": "100%",
                 "height": "100%",
