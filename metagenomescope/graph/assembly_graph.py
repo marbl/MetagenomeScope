@@ -81,7 +81,7 @@ class AssemblyGraph(object):
             f"Graph contains {len(self.graph.nodes):,} node(s) and "
             f"{len(self.graph.edges):,} edge(s)."
         )
-        logger.info("Processing the graph.")
+        logger.info("Processing the graph to prep for visualization...")
 
         # These store Node, Edge, and Pattern objects. We still use the
         # NetworkX graph objects to do things like identify connected
@@ -107,14 +107,14 @@ class AssemblyGraph(object):
         # the graph, and add an "uid" attribute for edges in the graph. This
         # way, we can easily associate nodes and edges with their corresponding
         # objects' unique IDs.
-        logger.debug("Initializing node and edge graph objects...")
+        logger.debug("  Initializing node and edge graph objects...")
         self._init_graph_objs()
         # self._integrate_metadata(node_metadata, edge_metadata)
-        logger.debug("...Done.")
+        logger.debug("  ...Done.")
 
-        logger.debug("Counting (weakly) connected components...")
+        logger.debug("  Counting (weakly) connected components...")
         self.num_ccs = len(list(nx.weakly_connected_components(self.graph)))
-        logger.debug("...Done.")
+        logger.debug("  ...Done.")
 
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
@@ -146,9 +146,9 @@ class AssemblyGraph(object):
         # Holds the top-level decomposed graph.
         # PERF / NOTE: Ideally we'd avoid creating this completely if
         # --patterns is False (this way we avoid the extra memory usage).
-        logger.debug("Creating a copy of the graph for decomposition...")
+        logger.debug("  Creating a copy of the graph for decomposition...")
         self.decomposed_graph = deepcopy(self.graph)
-        logger.debug("...Done.")
+        logger.debug("  ...Done.")
 
         # TODO: do node / edge scaling on demand before layout, right?
         # operation_msg("Scaling nodes based on lengths...")
@@ -190,6 +190,7 @@ class AssemblyGraph(object):
         # though. These functions can just use this flag to figure out if they
         # should immediately fail with an error.
         self.layout_done = False
+        logger.debug("...Done.")
 
     def _init_graph_objs(self):
         """Initializes Node and Edge objects for the original graph.
