@@ -23,6 +23,11 @@ body {
     width: 100%;
     margin: 0;
     padding: 0;
+    /* Hides a horizontal scrollbar that temporarily pops up during the
+     * animation of moving the control panel offscreen.
+     * https://stackoverflow.com/a/22879146
+     */
+    overflow: hidden;
 }
 /* CODELINK: The toggling mechanism for the control panel was inspired by a
  * similar mechanism in the following Cytoscape.js demo:
