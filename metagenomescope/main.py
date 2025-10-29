@@ -79,12 +79,7 @@ def run(
                 [
                     html.H4(
                         [ag.basename],
-                        # at least on my laptop, this margin looks nice -- it
-                        # roughly aligns the top of the text here with the top
-                        # of the controls toggler hamburger icon. i am aware
-                        # this will probs not look quite as prety on other
-                        # computers but it's fine for now
-                        style={"font-family": "monospace", "margin-top": "0.7em"},
+                        style={"font-family": "monospace", "margin-top": "2em"},
                     ),
                     html.P([f"{len(nodes):,} nodes, {len(edges):,} edges."]),
                     html.P([f"{ag.num_ccs:,} components."]),
