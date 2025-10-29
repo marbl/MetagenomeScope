@@ -8,7 +8,7 @@ import dash_cytoscape as cyto
 from dash import html, callback, Input, Output, State
 from . import defaults
 from .log_utils import start_log, log_lines_with_sep
-from .config import SEPBIG, SEPSML
+from .config import SEPBIG, SEPSML, CONTROLS_BORDER_THICKNESS
 from .graph import AssemblyGraph
 
 
@@ -54,6 +54,13 @@ def run(
     for e in ag.graph.edges:
         edges.append({"data": {"source": str(e[0]), "target": str(e[1])}})
 
+    ctrl_sep = html.Div(
+                        style={
+                            "width": "100%", "height": CONTROLS_BORDER_THICKNESS, "background-color": "#002",
+                            "margin": "1.25em 0",
+                        }
+                    )
+
     # update_title=None prevents Dash's default "Updating..." page title change
     app = dash.Dash(__name__, title="MgSc", update_title=None)
     CONTROLS_TOGGLER_ICON_CLASSES = "glyphicon glyphicon-menu-hamburger"
@@ -72,10 +79,16 @@ def run(
                 [
                     html.H4(
                         [ag.basename],
-                        style={"font-family": "monospace"},
+                        # at least on my laptop, this margin looks nice -- it
+                        # roughly aligns the top of the text here with the top
+                        # of the controls toggler hamburger icon. i am aware
+                        # this will probs not look quite as prety on other
+                        # computers but it's fine for now
+                        style={"font-family": "monospace", "margin-top": "0.7em"},
                     ),
                     html.P([f"{len(nodes):,} nodes, {len(edges):,} edges."]),
                     html.P([f"{ag.num_ccs:,} components."]),
+                    ctrl_sep,
                     html.P(
                         [
                             html.Button(
@@ -111,7 +124,7 @@ def run(
                     "z-index": "1",
                     "background-color": "#123",
                     "color": "#ccc",
-                    "border-right": "0.5em solid #002",
+                    "border-right": CONTROLS_BORDER_THICKNESS + " solid #002",
                 },
                 className="",
             ),

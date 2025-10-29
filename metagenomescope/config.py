@@ -215,3 +215,6 @@ PT2COLOR = {
     PT_CHAIN: "#eedddd",
     PT_CYCLICCHAIN: "#ffd163",
 }
+
+# thickness of borders throughout the viz interface's control panel
+CONTROLS_BORDER_THICKNESS = "1em"
