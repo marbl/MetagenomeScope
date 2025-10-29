@@ -89,6 +89,7 @@ def run(
                     html.P([f"{len(nodes):,} nodes, {len(edges):,} edges."]),
                     html.P([f"{ag.num_ccs:,} components."]),
                     ctrl_sep,
+                    html.H4("Draw"),
                     html.P(
                         [
                             html.Button(
@@ -109,6 +110,8 @@ def run(
                             )
                         ]
                     ),
+                    ctrl_sep,
+                    html.H4("Selected"),
                 ],
                 id="controls",
                 style={
