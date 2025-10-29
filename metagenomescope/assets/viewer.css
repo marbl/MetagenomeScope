@@ -17,6 +17,7 @@
  * along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/* The margin and padding of 0 prevent default Dash styling */
 html,
 body {
     height: 100%;
