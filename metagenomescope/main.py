@@ -12,6 +12,9 @@ from .misc_utils import pluralize
 from .config import (
     SEPBIG,
     SEPSML,
+)
+from .css_config import (
+    CONTROLS_WIDTH,
     CONTROLS_BORDER_THICKNESS,
     CONTROLS_TRANSITION_DURATION,
 )
@@ -130,7 +133,7 @@ def run(
                     "top": "0em",
                     "bottom": "0em",
                     "left": "0em",
-                    "width": "20em",
+                    "width": CONTROLS_WIDTH,
                     "text-align": "center",
                     # only show the scrollbar when needed - firefox doesn't
                     # seem to need this, but chrome does
@@ -148,7 +151,7 @@ def run(
                 id="cyDiv",
                 style={
                     "position": "absolute",
-                    "left": "20em",
+                    "left": CONTROLS_WIDTH,
                     "top": "0em",
                     "bottom": "0em",
                     "right": "0em",
@@ -189,15 +192,15 @@ def run(
         visible. (We may want to adjust this in a fancier way if/when the user
         can control the background color of the graph, but it's ok for now.)
         """
-        if "hidden-by-smooshing" in controls_classes:
+        if "offscreen-controls" in controls_classes:
             # Make the control panel visible again
-            cy_div_style["left"] = "20em"
+            cy_div_style["left"] = CONTROLS_WIDTH
             return ("", CONTROLS_TOGGLER_ICON_CLASSES, cy_div_style)
         else:
             # Hide the control panel
             cy_div_style["left"] = "0em"
             return (
-                "hidden-by-smooshing",
+                "offscreen-controls",
                 CONTROLS_TOGGLER_ICON_CLASSES + " darkToggler",
                 cy_div_style,
             )

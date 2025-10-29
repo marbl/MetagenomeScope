@@ -64,8 +64,8 @@ body {
 }
 /* the !important seems to be necessary to get this to override the default
  * #controls styling */
-.hidden-by-smooshing {
-    left: -20em !important;
+.offscreen-controls {
+    left: max(-20em, -50%) !important;
     pointer-events: none;
 }
 
@@ -110,12 +110,6 @@ button {
 #scaffoldCycler * {
     display: inline-block;
     vertical-align: middle;
-}
-.nosubsume {
-    left: 20em;
-}
-.subsume {
-    left: 0em;
 }
 .table-bordered * {
     border: 2px solid #555 !important;

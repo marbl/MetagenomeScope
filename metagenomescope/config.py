@@ -215,9 +215,3 @@ PT2COLOR = {
     PT_CHAIN: "#eedddd",
     PT_CYCLICCHAIN: "#ffd163",
 }
-
-# thickness of borders throughout the viz interface's control panel
-CONTROLS_BORDER_THICKNESS = "1em"
-
-# length taken to hide/show the ctrl panel, moving it and the graph accordingly
-CONTROLS_TRANSITION_DURATION = "0.2s"
