@@ -108,7 +108,7 @@ def run(
                             f"{pluralize(len(edges), 'edge')}."
                         ]
                     ),
-                    html.P([f"{pluralize(ag.num_ccs, 'component')}."]),
+                    html.P([f"{pluralize(len(ag.components), 'component')}."]),
                     ctrl_sep,
                     html.H4("Draw"),
                     html.P(
