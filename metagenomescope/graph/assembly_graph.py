@@ -112,10 +112,6 @@ class AssemblyGraph(object):
         # self._integrate_metadata(node_metadata, edge_metadata)
         logger.debug("  ...Done.")
 
-        logger.debug("  Counting (weakly) connected components...")
-        self.num_ccs = len(list(nx.weakly_connected_components(self.graph)))
-        logger.debug("  ...Done.")
-
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
         # array, but due to the whole component skipping stuff that sounds like
@@ -143,12 +139,20 @@ class AssemblyGraph(object):
             config.PT_FRAYEDROPE: self.frayed_ropes,
         }
 
-        # Holds the top-level decomposed graph.
-        # PERF / NOTE: Ideally we'd avoid creating this completely if
-        # --patterns is False (this way we avoid the extra memory usage).
-        logger.debug("  Creating a copy of the graph for decomposition...")
+        logger.debug("  Decomposing the assembly graph...")
+        logger.debug("    Creating a copy of the graph...")
         self.decomposed_graph = deepcopy(self.graph)
-        logger.debug("  ...Done.")
+        logger.debug("    ...Done.")
+
+        logger.debug("    Hierarchically identifying patterns in the graph...")
+        self._hierarchically_identify_patterns()
+        logger.debug(
+            "    ...Done. Found "
+            f"{misc_utils.pluralize(len(self.bubbles), 'bubble')}, "
+            f"{misc_utils.pluralize(len(self.chains), 'chain')}, "
+            f"{misc_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, and "
+            f"{misc_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}, "
+        )
 
         # TODO: do node / edge scaling on demand before layout, right?
         # operation_msg("Scaling nodes based on lengths...")
@@ -156,20 +160,6 @@ class AssemblyGraph(object):
         # conclude_msg()
 
         # self._scale_edges()
-
-        # if self.find_patterns:
-        #    operation_msg("Decomposing the graph into patterns...")
-        #    self._hierarchically_identify_patterns()
-        #    conclude_msg()
-        #    operation_msg(
-        #        (
-        #            f"Found {len(self.bubbles):,} bubble(s), "
-        #            f"{len(self.chains):,} chain(s), "
-        #            f"{len(self.cyclic_chains):,} cyclic chain(s), and "
-        #            f"{len(self.frayed_ropes):,} frayed rope(s)."
-        #        ),
-        #        newline=True,
-        #    )
 
         # Defer this until after we do pattern decomposition, to account for
         # split nodes. (At this point we have already called
@@ -179,8 +169,12 @@ class AssemblyGraph(object):
 
         # Initialize self.components, a sorted list of Component objects. See
         # this method's docstring for details.
-        # TODO make this work on just the raw graph, at first
-        # self._record_connected_components()
+        logger.debug("  Recording information about the graph's components...")
+        self._record_connected_components()
+        logger.debug(
+            "  ...Done. The graph has "
+            f"{misc_utils.pluralize(len(self.components), 'component')}."
+        )
 
         # Since layout can take a while, we leave it to the creator of this
         # object to call .layout() (if for example they don't actually need to
