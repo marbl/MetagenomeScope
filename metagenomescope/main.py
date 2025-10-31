@@ -50,10 +50,12 @@ def run(
     # edges, etc.
     ag = AssemblyGraph(graph)
 
+    # TODO have AssemblyGraph produce dict with elements incl decomposed nodes and edges
+
     nodes = []
     edges = []
-    for n in ag.graph.nodes:
-        nobj = ag.nodeid2obj[n]
+    # TODO this is just getting the first (biggest) cc. make user selectable ofc
+    for nobj in ag.components[0].nodes:
         if "orientation" in nobj.data:
             if nobj.data["orientation"] == "+":
                 ndir = "fwd"
@@ -63,12 +65,12 @@ def run(
             ndir = "unoriented"
         nodes.append(
             {
-                "data": {"id": str(n), "label": nobj.name},
+                "data": {"id": str(nobj.unique_id), "label": nobj.name},
                 "classes": ndir,
             }
         )
-    for e in ag.graph.edges:
-        edges.append({"data": {"source": str(e[0]), "target": str(e[1])}})
+    for e in ag.components[0].edges:
+        edges.append({"data": {"source": str(e.new_src_id), "target": str(e.new_tgt_id)}})
 
     ctrl_sep = html.Div(
         style={
@@ -223,7 +225,7 @@ def run(
         return cyto.Cytoscape(
             id="cy",
             elements=nodes + edges,
-            layout={"name": "dagre"},
+            layout={"name": "cose"},
             style={
                 "width": "100%",
                 "height": "100%",
