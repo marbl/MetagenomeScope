@@ -70,7 +70,14 @@ def run(
             }
         )
     for e in ag.components[0].edges:
-        edges.append({"data": {"source": str(e.new_src_id), "target": str(e.new_tgt_id)}})
+        edges.append(
+            {
+                "data": {
+                    "source": str(e.new_src_id),
+                    "target": str(e.new_tgt_id),
+                }
+            }
+        )
 
     ctrl_sep = html.Div(
         style={
@@ -117,19 +124,32 @@ def run(
                         ]
                     ),
                     html.P([f"{pluralize(len(ag.components), 'component')}."]),
+                    html.P(
+                        [
+                            html.Button(
+                                [
+                                    html.I(className="bi bi-grid-1x2-fill"),
+                                    html.Span(
+                                        "Graph info", className="iconbtnlbl"
+                                    ),
+                                ],
+                                id="infoButton",
+                                className="btn btn-light",
+                                type="button",
+                            )
+                        ],
+                        style={"margin-top": "0.7em"},
+                    ),
                     ctrl_sep,
                     html.H4("Draw"),
                     html.P(
                         [
                             html.Button(
                                 [
-                                    html.I(className="bi bi-brush"),
-                                    # the old way of having a &nbsp; between the
-                                    # icon and the label doesn't seem to be
-                                    # supported in Dash. Can recreate with padding:
-                                    # https://community.plotly.com/t/how-to-leave-some-space-on-the-page-between-graphs-and-drop-down-menus/6234/2
+                                    html.I(className="bi bi-brush-fill"),
                                     html.Span(
-                                        "Draw", style={"padding-left": "0.7em"}
+                                        "Draw",
+                                        className="iconbtnlbl",
                                     ),
                                 ],
                                 id="drawButton",

@@ -57,6 +57,14 @@ body {
     -webkit-text-stroke: 1px;
 }
 
+.iconbtnlbl {
+    /* the old way of having a &nbsp; between the icon and the label doesn't
+     * seem to be supported in Dash. Can recreate with padding:
+     * https://community.plotly.com/t/how-to-leave-some-space-on-the-page-between-graphs-and-drop-down-menus/6234/2
+     */
+    padding-left: 0.7em;
+}
+
 #floatingExportButton {
     position: absolute;
     right: 0em;
