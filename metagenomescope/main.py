@@ -19,7 +19,7 @@ def run(
     graph: str = None,
     verbose: bool = defaults.VERBOSE,
 ):
-    """Reads the graph and starts a Flask server for visualizing it.
+    """Reads the graph and starts a Dash app for visualizing it.
 
     Parameters
     ----------
