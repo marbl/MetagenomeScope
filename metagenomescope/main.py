@@ -102,6 +102,12 @@ def run(
                         style={
                             "font-family": "monospace",
                             "margin-top": "2em",
+                            # If the user passes in a graph with a really
+                            # long filename, split it over multiple lines.
+                            # There are multiple ways to do this in CSS but
+                            # this seems best for this purpose:
+                            # https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_text/Wrapping_breaking_text
+                            "word-break": "break-all",
                         },
                     ),
                     html.P(
@@ -143,6 +149,10 @@ def run(
                     "left": "0em",
                     "width": CONTROLS_WIDTH,
                     "text-align": "center",
+                    # Add some space between elements in the controls div and
+                    # the horizontal boundaries of the controls div.
+                    "padding-left": "0.5em",
+                    "padding-right": "0.5em",
                     # only show the scrollbar when needed - firefox doesn't
                     # seem to need this, but chrome does
                     "overflow-y": "auto",
@@ -225,7 +235,7 @@ def run(
         return cyto.Cytoscape(
             id="cy",
             elements=nodes + edges,
-            layout={"name": "cose"},
+            layout={"name": "breadthfirst"},
             style={
                 "width": "100%",
                 "height": "100%",
