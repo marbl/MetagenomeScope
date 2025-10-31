@@ -57,12 +57,36 @@ body {
     -webkit-text-stroke: 1px;
 }
 
-.iconbtnlbl {
+.iconlbl {
     /* the old way of having a &nbsp; between the icon and the label doesn't
      * seem to be supported in Dash. Can recreate with padding:
      * https://community.plotly.com/t/how-to-leave-some-space-on-the-page-between-graphs-and-drop-down-menus/6234/2
      */
     padding-left: 0.7em;
+}
+
+.btn-close {
+    /* make the "X" button red instead of grayish by default. this is just
+     * copied from bootstrap's code but i changed the "fill" value to a
+     * reddish hex color. (Note that the "%23" stands in for a "#" due to
+     * URL jank: https://stackoverflow.com/a/61099329)
+     *
+     * in the windows xp days, we used to have close buttons that were chunky red
+     * red rectangles, but now we don't have that any more, because of woke
+     */
+    --bs-btn-close-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ff2222'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414'/%3e%3c/svg%3e") !important;
+    /* yeah i feel like these should be bigger also */
+    font-size: 1.3em;
+    /* by default, the button starts off kind of transparent and becomes less
+     * so when you hover over it (i think). let's instead make it fully opaque
+     * from the start, and just make it get darker when you hover over it
+     */
+    opacity: 1 !important;
+}
+
+.btn-close:hover {
+    /* (this does the darkening) */
+    filter: brightness(85%);
 }
 
 #floatingExportButton {

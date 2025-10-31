@@ -130,12 +130,16 @@ def run(
                                 [
                                     html.I(className="bi bi-grid-1x2-fill"),
                                     html.Span(
-                                        "Graph info", className="iconbtnlbl"
+                                        "Graph info", className="iconlbl"
                                     ),
                                 ],
                                 id="infoButton",
                                 className="btn btn-light",
                                 type="button",
+                                **{
+                                    "data-bs-toggle": "modal",
+                                    "data-bs-target": "#infoDialog",
+                                },
                             )
                         ],
                         style={"margin-top": "0.7em"},
@@ -149,7 +153,7 @@ def run(
                                     html.I(className="bi bi-brush-fill"),
                                     html.Span(
                                         "Draw",
-                                        className="iconbtnlbl",
+                                        className="iconlbl",
                                     ),
                                 ],
                                 id="drawButton",
@@ -208,6 +212,58 @@ def run(
                     # how HTML canvases work under the hood. idk. anyway this
                     # at least adds a smooth transition.
                     "transition": f"left {CONTROLS_TRANSITION_DURATION}",
+                },
+            ),
+            # Graph info modal dialog
+            # https://getbootstrap.com/docs/5.3/components/modal/#live-demo
+            html.Div(
+                html.Div(
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    html.H1(
+                                        [
+                                            html.I(
+                                                className="bi bi-grid-1x2-fill"
+                                            ),
+                                            html.Span(
+                                                "Graph information",
+                                                className="iconlbl",
+                                            ),
+                                        ],
+                                        className="modal-title fs-5",
+                                        id="infoDialogLabel",
+                                    ),
+                                    html.Button(
+                                        className="btn-close",
+                                        **{
+                                            "data-bs-dismiss": "modal",
+                                            "aria-label": "Close",
+                                        },
+                                    ),
+                                ],
+                                className="modal-header",
+                            ),
+                            html.Div(
+                                [
+                                    html.P("gaming!!!!"),
+                                ],
+                                className="modal-body",
+                            ),
+                        ],
+                        className="modal-content",
+                    ),
+                    className="modal-dialog",
+                ),
+                id="infoDialog",
+                className="modal fade",
+                # additional accessibility things from bootstrap examples that
+                # may not be necessary for a visualization tool like this atm
+                **{
+                    "aria-hidden": "true",
+                    "aria-labelledby": "infoDialogLabel",
+                    "tabIndex": "-1",
                 },
             ),
         ],
