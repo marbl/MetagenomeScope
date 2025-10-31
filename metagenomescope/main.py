@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 
 import logging
+import base64
+import matplotlib
+# account for tkinter crashing: https://stackoverflow.com/a/51178529
+matplotlib.use("Agg")
 import dash
 import dash_cytoscape as cyto
 import plotly.express as px
 from dash import html, callback, dcc, Input, Output, State
+from io import BytesIO
+from matplotlib import pyplot
 from . import defaults, cy_config
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
@@ -297,8 +303,15 @@ def run(
                                                     html.H5(
                                                         "Components in the graph, by node count"
                                                     ),
-                                                    html.Div(
+                                                    html.P(
+                                                        "(This is rendered as an image using matplotlib.)"
+                                                    ),
+                                                    html.Img(
                                                         id="histContainer",
+                                                        # needed to center horizontally
+                                                        # https://stackoverflow.com/a/45439817
+                                                        style={"margin": "0 auto",
+                                                            "display": "block"},
                                                     ),
                                                 ],
                                                 id="histTabPane",
@@ -313,6 +326,9 @@ def run(
                                                 [
                                                     html.H5(
                                                         "Components in the graph, by node count"
+                                                    ),
+                                                    html.P(
+                                                        "(This is rendered dynamically using Plotly.)"
                                                     ),
                                                     html.Div(
                                                         id="treemapContainer",
@@ -336,7 +352,7 @@ def run(
                         ],
                         className="modal-content",
                     ),
-                    className="modal-dialog",
+                    className="modal-dialog modal-xl",
                 ),
                 id="infoDialog",
                 className="modal fade",
@@ -382,7 +398,7 @@ def run(
             )
 
     @callback(
-        Output("histContainer", "children"),
+        Output("histContainer", "src"),
         Input("infoButton", "n_clicks"),
         prevent_initial_call=True,
     )
@@ -390,11 +406,24 @@ def run(
         cc_sizes = [0]
         for cc in ag.components:
             cc_sizes.append(cc.num_total_nodes)
-        fig = px.histogram(cc_sizes, nbins=20)
-        fig.update_layout(
-            margin=dict(l=0, r=0, t=0, b=0),
-        )
-        return dcc.Graph(figure=fig)
+        # encode a static matplotlib image: https://stackoverflow.com/a/56932297
+        # and https://matplotlib.org/stable/gallery/user_interfaces/web_application_server_sgskip.html
+        with pyplot.style.context("ggplot"):
+            fig, ax = pyplot.subplots(2, 1)
+            ax[0].hist(cc_sizes, bins=range(0, 500, 10), color="#0a0", edgecolor="#030", lw=1)
+            ax[1].hist(cc_sizes, bins=range(0, 51, 1), color="#0a0", edgecolor="#030", lw=1)
+            ax[0].set_title("All components (bin size = 10)")
+            ax[1].set_title("Just components with < 50 nodes")
+            buf = BytesIO()
+            ax[0].set_ylabel("# components")
+            ax[1].set_ylabel("# components")
+            ax[1].set_xlabel("# nodes in a component")
+            fig.set_size_inches(10, 8)
+            fig.savefig(buf, format="png", bbox_inches="tight")
+            data = base64.b64encode(buf.getbuffer()).decode("ascii")
+            buf.close()
+        pyplot.close()
+        return f"data:image/png;base64,{data}"
 
     @callback(
         Output("treemapContainer", "children"),
