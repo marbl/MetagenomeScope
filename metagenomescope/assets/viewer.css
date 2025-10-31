@@ -29,6 +29,17 @@ body {
      */
     overflow: hidden;
 }
+
+#controls *:not(.ctrlSep) {
+ /* Add some space between elements in the control panel and the horizontal
+  * boundaries of the panel. (Don't capture .ctrlSep things, though,
+  * which should span the entire horizontal width of the panel.)
+  */
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+}
+
+
 /* CODELINK: The toggling mechanism for the control panel was inspired by a
  * similar mechanism in the following Cytoscape.js demo:
  * http://js.cytoscape.org/demos/2ebdc40f1c2540de6cf0/

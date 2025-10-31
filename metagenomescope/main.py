@@ -3,7 +3,8 @@
 import logging
 import dash
 import dash_cytoscape as cyto
-from dash import html, callback, Input, Output, State
+import plotly.express as px
+from dash import html, callback, dcc, Input, Output, State
 from . import defaults, cy_config
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
@@ -55,7 +56,8 @@ def run(
     nodes = []
     edges = []
     # TODO this is just getting the first (biggest) cc. make user selectable ofc
-    for nobj in ag.components[0].nodes:
+    for n in ag.graph.nodes:
+        nobj = ag.nodeid2obj[n]
         if "orientation" in nobj.data:
             if nobj.data["orientation"] == "+":
                 ndir = "fwd"
@@ -69,12 +71,12 @@ def run(
                 "classes": ndir,
             }
         )
-    for e in ag.components[0].edges:
+    for e in ag.graph.edges:
         edges.append(
             {
                 "data": {
-                    "source": str(e.new_src_id),
-                    "target": str(e.new_tgt_id),
+                    "source": str(e[0]),
+                    "target": str(e[1]),
                 }
             }
         )
@@ -85,7 +87,8 @@ def run(
             "height": CONTROLS_BORDER_THICKNESS,
             "background-color": "#002",
             "margin": "1.25em 0",
-        }
+        },
+        className="ctrlSep"
     )
 
     # update_title=None prevents Dash's default "Updating..." page title change
@@ -163,7 +166,7 @@ def run(
                         ]
                     ),
                     ctrl_sep,
-                    html.H4("Selected"),
+                    # html.H4("Selected"),
                 ],
                 id="controls",
                 style={
@@ -173,10 +176,6 @@ def run(
                     "left": "0em",
                     "width": CONTROLS_WIDTH,
                     "text-align": "center",
-                    # Add some space between elements in the controls div and
-                    # the horizontal boundaries of the controls div.
-                    "padding-left": "0.5em",
-                    "padding-right": "0.5em",
                     # only show the scrollbar when needed - firefox doesn't
                     # seem to need this, but chrome does
                     "overflow-y": "auto",
@@ -237,6 +236,7 @@ def run(
                                     ),
                                     html.Button(
                                         className="btn-close",
+                                        type="button",
                                         **{
                                             "data-bs-dismiss": "modal",
                                             "aria-label": "Close",
@@ -247,7 +247,12 @@ def run(
                             ),
                             html.Div(
                                 [
-                                    html.P("gaming!!!!"),
+                                    html.H5(
+                                        "Components in the graph, by node count"
+                                    ),
+                                    html.Div(
+                                        id="treemapContainer",
+                                    ),
                                 ],
                                 className="modal-body",
                             ),
@@ -299,6 +304,28 @@ def run(
                 cy_div_style,
             )
 
+    @callback(
+        Output("treemapContainer", "children"),
+        Input("infoButton", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def plot_treemap(n_clicks):
+        cc_names = ["Root"]
+        cc_sizes = [0]
+        cc_parents = [""] + (["Root"] * (len(ag.components)))
+        for cci, cc in enumerate(ag.components, 1):
+            cc_names.append(str(cci))
+            cc_sizes.append(cc.num_total_nodes)
+        fig = px.treemap(
+            names=cc_names,
+            values=cc_sizes,
+            parents=cc_parents,
+        )
+        fig.update_layout(
+            margin=dict(l=0, r=0, t=0, b=0),
+        )
+        return dcc.Graph(figure=fig)
+
     # TODO remove when we do layout using Graphviz manually
     cyto.load_extra_layouts()
 
@@ -311,7 +338,7 @@ def run(
         return cyto.Cytoscape(
             id="cy",
             elements=nodes + edges,
-            layout={"name": "breadthfirst"},
+            layout={"name": "dagre"},
             style={
                 "width": "100%",
                 "height": "100%",
