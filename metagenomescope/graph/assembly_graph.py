@@ -729,8 +729,6 @@ class AssemblyGraph(object):
     def _hierarchically_identify_patterns(self):
         """Run all of our pattern detection algorithms on the graph repeatedly.
 
-        This is the main Fancy Thing we do, besides layout.
-
         TODOs: code
         -----------
         6. See if we can move the splitting code in _add_pattern() to another
