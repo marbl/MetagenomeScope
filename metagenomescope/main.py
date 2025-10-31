@@ -88,7 +88,7 @@ def run(
             "background-color": "#002",
             "margin": "1.25em 0",
         },
-        className="ctrlSep"
+        className="ctrlSep",
     )
 
     # update_title=None prevents Dash's default "Updating..." page title change
@@ -247,11 +247,88 @@ def run(
                             ),
                             html.Div(
                                 [
-                                    html.H5(
-                                        "Components in the graph, by node count"
+                                    # navigation adapted from
+                                    # https://getbootstrap.com/docs/5.3/components/navs-tabs/#javascript-behavior
+                                    html.Ul(
+                                        [
+                                            html.Li(
+                                                html.Button(
+                                                    "Histograms",
+                                                    className="nav-link active",
+                                                    id="histTab",
+                                                    type="button",
+                                                    role="tab",
+                                                    **{
+                                                        "data-bs-toggle": "tab",
+                                                        "data-bs-target": "#histTabPane",
+                                                        "aria-controls": "histTabPane",
+                                                        "aria-selected": "true",
+                                                    },
+                                                ),
+                                                className="nav-item",
+                                                role="presentation",
+                                            ),
+                                            html.Li(
+                                                html.Button(
+                                                    "Treemaps",
+                                                    className="nav-link",
+                                                    id="treemapTab",
+                                                    type="button",
+                                                    role="tab",
+                                                    **{
+                                                        "data-bs-toggle": "tab",
+                                                        "data-bs-target": "#treemapTabPane",
+                                                        "aria-controls": "treemapTabPane",
+                                                        "aria-selected": "false",
+                                                    },
+                                                ),
+                                                className="nav-item",
+                                                role="presentation",
+                                            ),
+                                        ],
+                                        id="infoDialogTabs",
+                                        role="tablist",
+                                        className="nav nav-tabs",
                                     ),
                                     html.Div(
-                                        id="treemapContainer",
+                                        [
+                                            html.Div(
+                                                [
+                                                    html.H5(
+                                                        "Components in the graph, by node count"
+                                                    ),
+                                                    html.Div(
+                                                        id="histContainer",
+                                                    ),
+                                                ],
+                                                id="histTabPane",
+                                                className="tab-pane fade show active",
+                                                role="tabpanel",
+                                                tabIndex="0",
+                                                **{
+                                                    "aria-labelledby": "histTab"
+                                                },
+                                            ),
+                                            html.Div(
+                                                [
+                                                    html.H5(
+                                                        "Components in the graph, by node count"
+                                                    ),
+                                                    html.Div(
+                                                        id="treemapContainer",
+                                                    ),
+                                                ],
+                                                id="treemapTabPane",
+                                                className="tab-pane fade",
+                                                role="tabpanel",
+                                                tabIndex="0",
+                                                **{
+                                                    "aria-labelledby": "treemapTab"
+                                                },
+                                            ),
+                                        ],
+                                        className="tab-content",
+                                        id="infoDialogTabContent",
                                     ),
                                 ],
                                 className="modal-body",
@@ -305,8 +382,23 @@ def run(
             )
 
     @callback(
-        Output("treemapContainer", "children"),
+        Output("histContainer", "children"),
         Input("infoButton", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def plot_hist(n_clicks):
+        cc_sizes = [0]
+        for cc in ag.components:
+            cc_sizes.append(cc.num_total_nodes)
+        fig = px.histogram(cc_sizes, nbins=20)
+        fig.update_layout(
+            margin=dict(l=0, r=0, t=0, b=0),
+        )
+        return dcc.Graph(figure=fig)
+
+    @callback(
+        Output("treemapContainer", "children"),
+        Input("treemapTab", "n_clicks"),
         prevent_initial_call=True,
     )
     def plot_treemap(n_clicks):
