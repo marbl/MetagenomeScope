@@ -34,16 +34,16 @@ class AssemblyGraph(object):
     edge" N-L ==> N-R), we will update the .graph object to add in the new node
     and edge. However, the .graph object will only include nodes and edges --
     it will not include pattern nodes. The .graph object, after decomposition
-    is done, thus represents the "fully uncollapsed" graph.
+    is done, thus represents the "original" / "fully uncollapsed" graph.
 
-    The .decomposed_graph object describes the "top-level" assembly graph
-    structure. As we identify patterns in the graph, we will remove these nodes
-    and edges from the .decomposed_graph object, replacing them with their
-    parent pattern node. After decomposition is done, this object thus
-    represents the "fully collapsed" graph. (Or, phrased differently: if you
-    recursively replace all pattern nodes in the decomposed graph with their
-    child nodes and edges, then the resulting graph should be equivalent to
-    the uncollapsed graph stored in .graph.)
+    The .decomposed_graph object describes the "top-level" / "fully collapsed"
+    assembly graph structure. As we identify patterns in the graph, we will
+    remove these nodes and edges from the .decomposed_graph object, replacing
+    them with their parent pattern node.
+
+    (Or, phrased differently: if you recursively replace all pattern nodes in
+    the decomposed graph with their child nodes and edges, then the resulting
+    graph should be equivalent to the uncollapsed graph stored in .graph.)
 
     References
     ----------
