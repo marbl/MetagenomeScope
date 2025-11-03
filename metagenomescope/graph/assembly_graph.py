@@ -116,17 +116,12 @@ class AssemblyGraph(object):
         # self._integrate_metadata(node_metadata, edge_metadata)
         logger.debug("  ...Done.")
 
-        if seq_lengths is not None:
-            logger.debug(
-                f"  Since all {self.seq_noun}s have defined lengths, "
-                "computing some statistics about them..."
-            )
-            self.n50 = seq_utils.n50(seq_lengths)
-            self.total_seq_len = sum(seq_lengths)
-            logger.debug(f"  ...Done. N50 is {self.n50:,} bp.")
-        else:
-            self.n50 = None
-            self.total_seq_len = None
+        logger.debug(
+            f"  Computing some stats about {self.seq_noun} sequence lengths..."
+        )
+        self.n50 = seq_utils.n50(seq_lengths)
+        self.total_seq_len = sum(seq_lengths)
+        logger.debug(f"  ...Done. N50 is {self.n50:,} bp.")
 
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
@@ -215,12 +210,20 @@ class AssemblyGraph(object):
 
         Returns
         -------
-        (list of int) or None
+        list of int
            The lengths of all Nodes (if self.node_centric) or Edges (if not
-           self.node_centric) in the graph. If not all Nodes or Edges (for
-           a given definition of self.node_centric) have a defined length,
-           then this will just be None, indicating that we shouldn't bother
-           doing things like computing the graph's N50.
+           self.node_centric) in the graph. We'll already be iterating through
+           these in this function, so we might as well save time and compile
+           this list here anyway to save us another iteration...
+
+        Raises
+        ------
+        WeirdError
+            If not all Nodes or Edges (for a given definition of
+            self.node_centric) have a defined length. This should already have
+            been validated by the graph parser, so we should never encounter
+            this situation. (I mean EVENTUALLY we could support graphs without
+            defined lengths but that doesn't really sound all that useful...?)
 
         Notes
         -----
@@ -274,10 +277,10 @@ class AssemblyGraph(object):
                     # at least one edge doesn't have a length given, bail out
                     lengths_completely_defined = False
 
-        if lengths_completely_defined:
-            return seq_lengths
-        else:
-            return None
+        if not lengths_completely_defined:
+            raise WeirdError(f"Not all {self.seq_noun}s have defined lengths?")
+
+        return seq_lengths
 
     def _integrate_metadata(self, node_metadata, edge_metadata):
         """Reads, sanity checks, and integrates node/edge metadata.

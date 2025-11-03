@@ -71,7 +71,7 @@ def verify_subset(s1, s2, custom_message=None):
         raise WeirdError(msg)
 
 
-def get_qty_if_defined(quantity, unit="bp", na="N/A"):
+def fmt_qty(quantity, unit="bp", na="N/A"):
     if quantity is not None:
         return f"{quantity:,} {unit}"
     else:

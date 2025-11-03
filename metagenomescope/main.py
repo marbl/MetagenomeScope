@@ -9,14 +9,9 @@ import plotly.express as px
 from dash import html, callback, dcc, Input, Output, State
 from io import BytesIO
 from matplotlib import pyplot
-from . import defaults, cy_config
+from . import defaults, cy_config, css_config, ui_utils
 from .log_utils import start_log, log_lines_with_sep
-from .misc_utils import pluralize, get_qty_if_defined
-from .css_config import (
-    CONTROLS_WIDTH,
-    CONTROLS_BORDER_THICKNESS,
-    CONTROLS_TRANSITION_DURATION,
-)
+from .misc_utils import pluralize
 from .graph import AssemblyGraph
 
 # account for tkinter crashing: https://stackoverflow.com/a/51178529
@@ -97,7 +92,7 @@ def run(
     ctrl_sep = html.Div(
         style={
             "width": "100%",
-            "height": CONTROLS_BORDER_THICKNESS,
+            "height": css_config.CONTROLS_BORDER_THICKNESS,
             "background-color": "#002",
             "margin": "1.25em 0",
         },
@@ -187,7 +182,7 @@ def run(
                     "top": "0em",
                     "bottom": "0em",
                     "left": "0em",
-                    "width": CONTROLS_WIDTH,
+                    "width": css_config.CONTROLS_WIDTH,
                     "text-align": "center",
                     # only show the scrollbar when needed - firefox doesn't
                     # seem to need this, but chrome does
@@ -195,8 +190,8 @@ def run(
                     "z-index": "1",
                     "background-color": "#123",
                     "color": "#ccc",
-                    "border-right": f"{CONTROLS_BORDER_THICKNESS} solid #002",
-                    "transition": f"left {CONTROLS_TRANSITION_DURATION}",
+                    "border-right": f"{css_config.CONTROLS_BORDER_THICKNESS} solid #002",
+                    "transition": f"left {css_config.CONTROLS_TRANSITION_DURATION}",
                 },
                 className="",
             ),
@@ -205,7 +200,7 @@ def run(
                 id="cyDiv",
                 style={
                     "position": "absolute",
-                    "left": CONTROLS_WIDTH,
+                    "left": css_config.CONTROLS_WIDTH,
                     "top": "0em",
                     "bottom": "0em",
                     "right": "0em",
@@ -223,7 +218,7 @@ def run(
                     # unsuccessful -- I think it might be something to do with
                     # how HTML canvases work under the hood. idk. anyway this
                     # at least adds a smooth transition.
-                    "transition": f"left {CONTROLS_TRANSITION_DURATION}",
+                    "transition": f"left {css_config.CONTROLS_TRANSITION_DURATION}",
                 },
             ),
             # Graph info modal dialog
@@ -373,45 +368,26 @@ def run(
                                                                 ),
                                                             ]
                                                         ),
-                                                        className="table table-striped-columns",
-                                                    ),
-                                                    html.Table(
-                                                        html.Tbody(
-                                                            [
-                                                                html.Tr(
-                                                                    [
-                                                                        html.Th(
-                                                                            f"N50 of {ag.seq_noun} sequences"
-                                                                        ),
-                                                                        html.Th(
-                                                                            f"Total {ag.seq_noun} sequence length"
-                                                                        ),
-                                                                    ]
-                                                                ),
-                                                                html.Tr(
-                                                                    [
-                                                                        html.Td(
-                                                                            get_qty_if_defined(
-                                                                                ag.n50
-                                                                            )
-                                                                        ),
-                                                                        html.Td(
-                                                                            get_qty_if_defined(
-                                                                                ag.total_seq_len
-                                                                            )
-                                                                        ),
-                                                                    ]
-                                                                ),
-                                                            ]
-                                                        ),
-                                                        className="table table-striped-columns",
+                                                        className=css_config.INFO_DIALOG_TABLE_CLASSES,
                                                     ),
                                                     html.P(
                                                         "Note that, as of writing, these counts include "
                                                         "both + and - copies of nodes / edges / components."
                                                     ),
                                                     html.P(
-                                                        "This is subject to change in the future."
+                                                        [
+                                                            "Based on the input graph's filetype, we "
+                                                            "assume its sequences are stored on its ",
+                                                            html.Span(
+                                                                ag.seq_noun
+                                                                + "s",
+                                                                className="fw-bold",
+                                                            ),
+                                                            ".",
+                                                        ]
+                                                    ),
+                                                    ui_utils.get_length_info(
+                                                        ag
                                                     ),
                                                 ],
                                                 id="statsTabPane",
@@ -512,7 +488,7 @@ def run(
         """
         if "offscreen-controls" in controls_classes:
             # Make the control panel visible again
-            cy_div_style["left"] = CONTROLS_WIDTH
+            cy_div_style["left"] = css_config.CONTROLS_WIDTH
             return ("", CONTROLS_TOGGLER_ICON_CLASSES, cy_div_style)
         else:
             # Hide the control panel

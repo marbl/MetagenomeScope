@@ -18,3 +18,6 @@ CONTROLS_BORDER_THICKNESS = "1em"
 
 # duration for hiding/showing ctrl panel, moving it and the graph accordingly
 CONTROLS_TRANSITION_DURATION = "0.2s"
+
+# classes on the info dialog's tables
+INFO_DIALOG_TABLE_CLASSES = "table table-striped-columns"
