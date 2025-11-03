@@ -115,9 +115,9 @@ def run(
             html.Div(
                 [
                     html.H4(
-                        [ag.basename],
+                        ag.basename,
+                        className="font-monospace",
                         style={
-                            "font-family": "monospace",
                             "margin-top": "2em",
                             # If the user passes in a graph with a really
                             # long filename, split it over multiple lines.
@@ -260,7 +260,7 @@ def run(
                                         [
                                             html.Li(
                                                 html.Button(
-                                                    "Stats",
+                                                    "Overview",
                                                     className="nav-link active",
                                                     id="statsTab",
                                                     type="button",
@@ -319,47 +319,62 @@ def run(
                                             html.Div(
                                                 [
                                                     html.Table(
-                                                        [
-                                                            html.Tr(
-                                                                [
-                                                                    html.Th(
-                                                                        "Filename"
-                                                                    ),
-                                                                    html.Th(
-                                                                        "Filetype",
-                                                                    ),
-                                                                    html.Th(
-                                                                        "# nodes"
-                                                                    ),
-                                                                    html.Th(
-                                                                        "# edges"
-                                                                    ),
-                                                                    html.Th(
-                                                                        "# components"
-                                                                    ),
-                                                                ]
-                                                            ),
-                                                            html.Tr(
-                                                                [
-                                                                    html.Td(
-                                                                        id="idTblFilename"
-                                                                    ),
-                                                                    html.Td(
-                                                                        id="idTblFiletype"
-                                                                    ),
-                                                                    html.Td(
-                                                                        id="idTblNodeCt"
-                                                                    ),
-                                                                    html.Td(
-                                                                        id="idTblEdgeCt"
-                                                                    ),
-                                                                    html.Td(
-                                                                        id="idTblCompCt"
-                                                                    ),
-                                                                ]
-                                                            ),
-                                                        ],
-                                                        className="table",
+                                                        html.Tbody(
+                                                            [
+                                                                html.Tr(
+                                                                    [
+                                                                        html.Th(
+                                                                            "Filename"
+                                                                        ),
+                                                                        html.Th(
+                                                                            "Filetype",
+                                                                        ),
+                                                                        html.Th(
+                                                                            "# nodes"
+                                                                        ),
+                                                                        html.Th(
+                                                                            "# edges"
+                                                                        ),
+                                                                        html.Th(
+                                                                            "# components"
+                                                                        ),
+                                                                    ]
+                                                                ),
+                                                                html.Tr(
+                                                                    [
+                                                                        html.Td(
+                                                                            ag.basename,
+                                                                            className="font-monospace",
+                                                                        ),
+                                                                        html.Td(
+                                                                            ag.filetype,
+                                                                            className="font-monospace",
+                                                                        ),
+                                                                        html.Td(
+                                                                            f"{len(nodes):,}",
+                                                                        ),
+                                                                        html.Td(
+                                                                            f"{len(edges):,}",
+                                                                        ),
+                                                                        html.Td(
+                                                                            str(
+                                                                                len(
+                                                                                    ag.components
+                                                                                )
+                                                                            ),
+                                                                        ),
+                                                                    ]
+                                                                ),
+                                                            ]
+                                                        ),
+                                                        className="table table-striped-columns",
+                                                    ),
+                                                    html.P(
+                                                        "Note that, as of writing, these counts include "
+                                                        "both + and - copies of nodes / edges / components."
+                                                    ),
+                                                    html.P(
+                                                        "This is subject to change in the future."
                                                     ),
                                                 ],
                                                 id="statsTabPane",
