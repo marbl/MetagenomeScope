@@ -11,7 +11,7 @@ from io import BytesIO
 from matplotlib import pyplot
 from . import defaults, cy_config
 from .log_utils import start_log, log_lines_with_sep
-from .misc_utils import pluralize
+from .misc_utils import pluralize, get_qty_if_defined
 from .css_config import (
     CONTROLS_WIDTH,
     CONTROLS_BORDER_THICKNESS,
@@ -52,6 +52,12 @@ def run(
         logger.info,
         endsepline=True,
     )
+    # By default, matplotlib spits out a ton of debug log messages. Normally
+    # these go unseen, but since we use debug mode for our verbose settings,
+    # using --verbose will mean that all of these messages get shown to the
+    # unsuspecting user. I think these messages can be safely hidden, so
+    # let's do so. (https://stackoverflow.com/a/58393562)
+    logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 
     # Read the assembly graph file and create an object representing it.
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
@@ -362,6 +368,37 @@ def run(
                                                                                     ag.components
                                                                                 )
                                                                             ),
+                                                                        ),
+                                                                    ]
+                                                                ),
+                                                            ]
+                                                        ),
+                                                        className="table table-striped-columns",
+                                                    ),
+                                                    html.Table(
+                                                        html.Tbody(
+                                                            [
+                                                                html.Tr(
+                                                                    [
+                                                                        html.Th(
+                                                                            f"N50 of {ag.seq_noun} sequences"
+                                                                        ),
+                                                                        html.Th(
+                                                                            f"Total {ag.seq_noun} sequence length"
+                                                                        ),
+                                                                    ]
+                                                                ),
+                                                                html.Tr(
+                                                                    [
+                                                                        html.Td(
+                                                                            get_qty_if_defined(
+                                                                                ag.n50
+                                                                            )
+                                                                        ),
+                                                                        html.Td(
+                                                                            get_qty_if_defined(
+                                                                                ag.total_seq_len
+                                                                            )
                                                                         ),
                                                                     ]
                                                                 ),

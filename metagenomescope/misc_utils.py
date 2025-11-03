@@ -69,3 +69,10 @@ def verify_subset(s1, s2, custom_message=None):
         else:
             msg = custom_message
         raise WeirdError(msg)
+
+
+def get_qty_if_defined(quantity, unit="bp", na="N/A"):
+    if quantity is not None:
+        return f"{quantity:,} {unit}"
+    else:
+        return na

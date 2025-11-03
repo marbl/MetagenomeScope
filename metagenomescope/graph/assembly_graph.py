@@ -11,7 +11,7 @@ import networkx as nx
 import pygraphviz
 
 
-from .. import parsers, config, layout_utils, misc_utils
+from .. import parsers, config, layout_utils, misc_utils, seq_utils
 from ..errors import GraphParsingError, GraphError, WeirdError
 from . import validators, graph_utils
 from .component import Component
@@ -70,11 +70,15 @@ class AssemblyGraph(object):
 
         self.basename = os.path.basename(self.filename)
         logger.info(f'Loading input graph "{self.basename}"...')
-        # NOTE: Ideally we'd just return this along with the graph from
-        # parsers.parse(), but uhhhh that will make me refactor
-        # like 20 tests and I don't want to do that ._.
-        self.filetype = parsers.sniff_filetype(self.filename)
+        self.filetype = parsers.FILETYPE2HR[
+            parsers.sniff_filetype(self.filename)
+        ]
         self.graph = parsers.parse(self.filename)
+        self.node_centric = parsers.HRFILETYPE2NODECENTRIC[self.filetype]
+        if self.node_centric:
+            self.seq_noun = "node"
+        else:
+            self.seq_noun = "edge"
         logger.info(f'...Loaded graph. Filetype: "{self.filetype}".')
 
         logger.info(
@@ -108,9 +112,21 @@ class AssemblyGraph(object):
         # way, we can easily associate nodes and edges with their corresponding
         # objects' unique IDs.
         logger.debug("  Initializing node and edge graph objects...")
-        self._init_graph_objs()
+        seq_lengths = self._init_graph_objs()
         # self._integrate_metadata(node_metadata, edge_metadata)
         logger.debug("  ...Done.")
+
+        if seq_lengths is not None:
+            logger.debug(
+                f"  Since all {self.seq_noun}s have defined lengths, "
+                "computing some statistics about them..."
+            )
+            self.n50 = seq_utils.n50(seq_lengths)
+            self.total_seq_len = sum(seq_lengths)
+            logger.debug(f"  ...Done. N50 is {self.n50:,} bp.")
+        else:
+            self.n50 = None
+            self.total_seq_len = None
 
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an
@@ -197,6 +213,15 @@ class AssemblyGraph(object):
         Node object's unique_id; and adds an "uid" attribute to edges' NetworkX
         data that matches their corresponding Edge object's unique_id.
 
+        Returns
+        -------
+        (list of int) or None
+           The lengths of all Nodes (if self.node_centric) or Edges (if not
+           self.node_centric) in the graph. If not all Nodes or Edges (for
+           a given definition of self.node_centric) have a defined length,
+           then this will just be None, indicating that we shouldn't bother
+           doing things like computing the graph's N50.
+
         Notes
         -----
         We may add more Node and Edge objects as we perform pattern detection
@@ -204,6 +229,8 @@ class AssemblyGraph(object):
         establishes a "baseline."
         """
         oldid2uniqueid = {}
+        seq_lengths = []
+        lengths_completely_defined = True
         for node_name in self.graph.nodes:
             node_id = self._get_unique_id()
             data = deepcopy(self.graph.nodes[node_name])
@@ -218,21 +245,39 @@ class AssemblyGraph(object):
             # this node, so the user will still see it in the visualization.)
             oldid2uniqueid[node_name] = node_id
 
+            if lengths_completely_defined and self.node_centric:
+                if "length" in data:
+                    seq_lengths.append(data["length"])
+                else:
+                    # at least one node doesn't have a length given, bail out
+                    lengths_completely_defined = False
+
         nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
 
         for e in self.graph.edges(data=True, keys=True):
             edge_id = self._get_unique_id()
             # e is a 4-tuple of (source ID, sink ID, key, data dict)
-            self.edgeid2obj[edge_id] = Edge(
-                edge_id, e[0], e[1], deepcopy(e[3])
-            )
-            self.extra_edge_attrs |= set(e[3].keys())
+            data = deepcopy(e[3])
+            self.edgeid2obj[edge_id] = Edge(edge_id, e[0], e[1], data)
+            self.extra_edge_attrs |= set(data.keys())
             # Remove edge data from the graph.
             self.graph.edges[e[0], e[1], e[2]].clear()
             # Edges in NetworkX don't really have "IDs," but we can use the
             # (now-cleared) data dict in the graph to store their ID. This will
             # make it easy to associate this edge with its Edge object.
             self.graph.edges[e[0], e[1], e[2]]["uid"] = edge_id
+
+            if lengths_completely_defined and not self.node_centric:
+                if "length" in data:
+                    seq_lengths.append(data["length"])
+                else:
+                    # at least one edge doesn't have a length given, bail out
+                    lengths_completely_defined = False
+
+        if lengths_completely_defined:
+            return seq_lengths
+        else:
+            return None
 
     def _integrate_metadata(self, node_metadata, edge_metadata):
         """Reads, sanity checks, and integrates node/edge metadata.

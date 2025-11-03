@@ -4,8 +4,7 @@
 # input file is "valid."
 #
 # You can also just call parse(), which will attempt to determine which parser
-# should be used for an assembly graph file. (This is what is done in
-# MetagenomeScope normally.)
+# to use on your file based on its extension.
 #
 ###############################################################################
 # ADDING SUPPORT FOR MORE ASSEMBLY GRAPH FILETYPES
@@ -20,7 +19,11 @@
 #  2. Add the lowercase file extension as a key in SUPPORTED_FILETYPE_TO_PARSER
 #  that maps to your new function.
 #
-#  3. Add tests for your parser in metagenomescope/tests/parsers/
+#  3. Update FILETYPE2HR and HRFILETYPE2NODECENTRIC in order to make clear what
+#  a human-readable version of your filetype is, and whether or not the
+#  "important" sequences are stored on the nodes or edges for this filetype.
+#
+#  4. Add tests for your parser in metagenomescope/tests/parsers/
 
 import re
 import networkx as nx
@@ -941,18 +944,41 @@ SUPPORTED_FILETYPE_TO_PARSER = {
     "dot": parse_dot,
 }
 
+FILETYPE2HR = {
+    "lastgraph": "LastGraph",
+    "gml": "GML",
+    "gfa": "GFA",
+    "fastg": "FASTG",
+    "gv": "DOT",
+    "dot": "DOT",
+}
+
+HRFILETYPE2NODECENTRIC = {
+    "LastGraph": True,
+    "GML": True,
+    "GFA": True,
+    "FASTG": True,
+    "DOT": False,
+}
+
 
 def sniff_filetype(filename):
     """Attempts to determine the filetype of the file specified by a filename.
 
-    Currently, this just returns the extension of the filename (after
-    converting the filename to lowercase). If the lowercase'd extension isn't
-    listed as a key in SUPPORTED_FILETYPE_TO_PARSER, then this will throw a
-    NotImplementedError.
-
     It might be worth extending this in the future to try sniffing via more
     sophisticated methods (i.e. actually checking the first few characters in
-    these files), but this is a fine (albeit inelegant) solution for now.
+    these files), but this is an okay solution for now.
+
+    Returns
+    -------
+    filetype: str
+        The filename's extension.
+
+    Raises
+    ------
+    NotImplementedError
+        If the filename doesn't end with one of the supperted input filetype
+        suffixes.
     """
     lowercase_fn = filename.lower()
     for suffix in SUPPORTED_FILETYPE_TO_PARSER:
