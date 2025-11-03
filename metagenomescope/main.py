@@ -3,8 +3,6 @@
 import logging
 import base64
 import matplotlib
-# account for tkinter crashing: https://stackoverflow.com/a/51178529
-matplotlib.use("Agg")
 import dash
 import dash_cytoscape as cyto
 import plotly.express as px
@@ -20,6 +18,9 @@ from .css_config import (
     CONTROLS_TRANSITION_DURATION,
 )
 from .graph import AssemblyGraph
+
+# account for tkinter crashing: https://stackoverflow.com/a/51178529
+matplotlib.use("Agg")
 
 
 def run(
@@ -259,8 +260,25 @@ def run(
                                         [
                                             html.Li(
                                                 html.Button(
-                                                    "Histograms",
+                                                    "Stats",
                                                     className="nav-link active",
+                                                    id="statsTab",
+                                                    type="button",
+                                                    role="tab",
+                                                    **{
+                                                        "data-bs-toggle": "tab",
+                                                        "data-bs-target": "#statsTabPane",
+                                                        "aria-controls": "statsTabPane",
+                                                        "aria-selected": "true",
+                                                    },
+                                                ),
+                                                className="nav-item",
+                                                role="presentation",
+                                            ),
+                                            html.Li(
+                                                html.Button(
+                                                    "Histograms",
+                                                    className="nav-link",
                                                     id="histTab",
                                                     type="button",
                                                     role="tab",
@@ -268,7 +286,7 @@ def run(
                                                         "data-bs-toggle": "tab",
                                                         "data-bs-target": "#histTabPane",
                                                         "aria-controls": "histTabPane",
-                                                        "aria-selected": "true",
+                                                        "aria-selected": "false",
                                                     },
                                                 ),
                                                 className="nav-item",
@@ -300,6 +318,60 @@ def run(
                                         [
                                             html.Div(
                                                 [
+                                                    html.Table(
+                                                        [
+                                                            html.Tr(
+                                                                [
+                                                                    html.Th(
+                                                                        "Filename"
+                                                                    ),
+                                                                    html.Th(
+                                                                        "Filetype",
+                                                                    ),
+                                                                    html.Th(
+                                                                        "# nodes"
+                                                                    ),
+                                                                    html.Th(
+                                                                        "# edges"
+                                                                    ),
+                                                                    html.Th(
+                                                                        "# components"
+                                                                    ),
+                                                                ]
+                                                            ),
+                                                            html.Tr(
+                                                                [
+                                                                    html.Td(
+                                                                        id="idTblFilename"
+                                                                    ),
+                                                                    html.Td(
+                                                                        id="idTblFiletype"
+                                                                    ),
+                                                                    html.Td(
+                                                                        id="idTblNodeCt"
+                                                                    ),
+                                                                    html.Td(
+                                                                        id="idTblEdgeCt"
+                                                                    ),
+                                                                    html.Td(
+                                                                        id="idTblCompCt"
+                                                                    ),
+                                                                ]
+                                                            ),
+                                                        ],
+                                                        className="table",
+                                                    ),
+                                                ],
+                                                id="statsTabPane",
+                                                className="tab-pane fade show active",
+                                                role="tabpanel",
+                                                tabIndex="0",
+                                                **{
+                                                    "aria-labelledby": "statsTab"
+                                                },
+                                            ),
+                                            html.Div(
+                                                [
                                                     html.H5(
                                                         "Components in the graph, by node count"
                                                     ),
@@ -310,12 +382,14 @@ def run(
                                                         id="histContainer",
                                                         # needed to center horizontally
                                                         # https://stackoverflow.com/a/45439817
-                                                        style={"margin": "0 auto",
-                                                            "display": "block"},
+                                                        style={
+                                                            "margin": "0 auto",
+                                                            "display": "block",
+                                                        },
                                                     ),
                                                 ],
                                                 id="histTabPane",
-                                                className="tab-pane fade show active",
+                                                className="tab-pane fade show",
                                                 role="tabpanel",
                                                 tabIndex="0",
                                                 **{
@@ -410,8 +484,20 @@ def run(
         # and https://matplotlib.org/stable/gallery/user_interfaces/web_application_server_sgskip.html
         with pyplot.style.context("ggplot"):
             fig, ax = pyplot.subplots(2, 1)
-            ax[0].hist(cc_sizes, bins=range(0, 500, 10), color="#0a0", edgecolor="#030", lw=1)
-            ax[1].hist(cc_sizes, bins=range(0, 51, 1), color="#0a0", edgecolor="#030", lw=1)
+            ax[0].hist(
+                cc_sizes,
+                bins=range(0, 500, 10),
+                color="#0a0",
+                edgecolor="#030",
+                lw=1,
+            )
+            ax[1].hist(
+                cc_sizes,
+                bins=range(0, 51, 1),
+                color="#0a0",
+                edgecolor="#030",
+                lw=1,
+            )
             ax[0].set_title("All components (bin size = 10)")
             ax[1].set_title("Just components with < 50 nodes")
             buf = BytesIO()
