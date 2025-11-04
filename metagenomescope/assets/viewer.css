@@ -287,3 +287,28 @@ button {
 .has-border-radius {
     border-radius: 4px !important;
 }
+
+/* By default, the positions of the icon (on the left) and bootstrap-generated
+ * caret (the downward triangle pointing thing) shift based on the length of
+ * the selected option. I don't like this! So we use absolute positioning to
+ * shove the icon and caret into fixed positions, even when the length of the
+ * selected option changes. (https://stackoverflow.com/a/68357738)
+ *
+ * Note that, when you zoom in SUPER far, this can look janky -- the selected
+ * text's length can begin to overlap with the icon / caret. But... I think it
+ * is okay in > 99% of cases. Can add some fancy media queries or something
+ * eventually if needed.
+ */
+.dropdown-toggle::after {
+    position: absolute;
+    right: 1em;
+    margin-top: 0.7em;
+}
+
+.dropdown-toggle i {
+    position: absolute;
+    left: 1em;
+    /* for reasons that elude me, setting margin-top here is not needed to get
+     * the icon to be vertically centered
+     */
+}
