@@ -12,6 +12,7 @@ from . import defaults, cy_config, css_config, ui_utils
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
 from .graph import AssemblyGraph
+from .errors import WeirdError
 
 # account for tkinter crashing: https://stackoverflow.com/a/51178529
 matplotlib.use("Agg")
@@ -539,9 +540,13 @@ def run(
         prevent_initial_call=True,
     )
     def plot_cc_hist(n_clicks):
-        cc_sizes = [0]
+        cc_sizes = []
         for cc in ag.components:
             cc_sizes.append(cc.num_total_nodes)
+        if len(cc_sizes) < 1:
+            raise WeirdError("How are you going to have a graph with 0 ccs???")
+        elif len(cc_sizes) == 1:
+            return f"hey fyi this is just 1 cc with {cc_sizes[0]:,} nodes"
         # encode a static matplotlib image: https://stackoverflow.com/a/56932297
         # and https://matplotlib.org/stable/gallery/user_interfaces/web_application_server_sgskip.html
         with pyplot.style.context("ggplot"):
