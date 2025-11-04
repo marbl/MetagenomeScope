@@ -59,36 +59,6 @@ def run(
     # edges, etc.
     ag = AssemblyGraph(graph)
 
-    # TODO have AssemblyGraph produce dict with elements incl decomposed nodes and edges
-
-    nodes = []
-    edges = []
-    # TODO this is just getting the first (biggest) cc. make user selectable ofc
-    for n in ag.graph.nodes:
-        nobj = ag.nodeid2obj[n]
-        if "orientation" in nobj.data:
-            if nobj.data["orientation"] == "+":
-                ndir = "fwd"
-            else:
-                ndir = "rev"
-        else:
-            ndir = "unoriented"
-        nodes.append(
-            {
-                "data": {"id": str(nobj.unique_id), "label": str(nobj.name)},
-                "classes": ndir,
-            }
-        )
-    for e in ag.graph.edges:
-        edges.append(
-            {
-                "data": {
-                    "source": str(e[0]),
-                    "target": str(e[1]),
-                }
-            }
-        )
-
     ctrl_sep = html.Div(
         style={
             "width": "100%",
@@ -130,8 +100,8 @@ def run(
                     ),
                     html.P(
                         [
-                            f"{pluralize(len(nodes), 'node')}, "
-                            f"{pluralize(len(edges), 'edge')}."
+                            f"{pluralize(ag.node_ct, 'node')}, "
+                            f"{pluralize(ag.edge_ct, 'edge')}."
                         ]
                     ),
                     html.P([f"{pluralize(len(ag.components), 'component')}."]),
@@ -352,10 +322,10 @@ def run(
                                                                             className="font-monospace",
                                                                         ),
                                                                         html.Td(
-                                                                            f"{len(nodes):,}",
+                                                                            f"{ag.node_ct:,}",
                                                                         ),
                                                                         html.Td(
-                                                                            f"{len(edges):,}",
+                                                                            f"{ag.edge_ct:,}",
                                                                         ),
                                                                         html.Td(
                                                                             str(
@@ -585,19 +555,27 @@ def run(
         pyplot.close()
         return f"data:image/png;base64,{data}"
 
-    # TODO remove when we do layout using Graphviz manually
-    cyto.load_extra_layouts()
-
     @callback(
         Output("cyDiv", "children"),
         Input("drawButton", "n_clicks"),
         prevent_initial_call=True,
     )
     def draw(n_clicks):
+        # TODO store info in AsmGraph? about which ccs have been laid out.
+        # For now, we can assume that the scaling stuff is not configurable,
+        # so there is only a binary of "laid out" or "not laid out". Set up
+        # UI elements in the viz to - like before - let user select one cc,
+        # all ccs, or cc containing a given node to lay out. These will update
+        # the layout status for either 1 or all ccs. Then, here, when we go
+        # to draw some portion of the graph, we can figure out what parts of
+        # layout we may have to redo if necessary. Eventually we can add
+        # progress bars here or something to the viz but for now nbd
+        # if not ag.layout_done:
+        #     ag.layout()
         return cyto.Cytoscape(
             id="cy",
-            elements=nodes + edges,
-            layout={"name": "dagre"},
+            elements=ag.to_cyjs_elements(),
+            layout={"name": "cose"},
             style={
                 "width": "100%",
                 "height": "100%",

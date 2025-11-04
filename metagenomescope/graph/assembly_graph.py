@@ -81,9 +81,14 @@ class AssemblyGraph(object):
             self.seq_noun = "edge"
         logger.info(f'...Loaded graph. Filetype: "{self.filetype}".')
 
+        # These are the "raw" counts, before adding split nodes / fake edges
+        # / etc during decomposition
+        self.node_ct = len(self.graph.nodes)
+        self.edge_ct = len(self.graph.edges)
+
         logger.info(
-            f"Graph contains {len(self.graph.nodes):,} node(s) and "
-            f"{len(self.graph.edges):,} edge(s)."
+            f"Graph contains {self.node_ct:,} node(s) and {self.edge_ct:,} "
+            "edge(s)."
         )
         logger.info("Processing the graph to prep for visualization...")
 
@@ -1510,26 +1515,21 @@ class AssemblyGraph(object):
 
     def layout(self):
         """Lays out the assembly graph."""
-        operation_msg("Laying out the graph...", True)
+        logging.info("Laying out the graph...")
         self._layout()
-        operation_msg("...Finished laying out the graph.", True)
+        logging.info("...Finished laying out the graph.")
 
-        operation_msg("Rotating and scaling things as needed...")
+        logging.info("Rotating and scaling things as needed...")
         self._rotate_from_TB_to_LR()
-        conclude_msg()
+        logging.info("...Done.")
 
         self.layout_done = True
 
     def _layout(self):
         """Lays out the graph's components, handling patterns specially."""
         # Do layout one component at a time.
-        # TODO REVERT REMOVE TOO LARGE COMPONENTS TO BE DONE HERE AND DYNAMICALLY
-        # (We don't bother checking for skipped components, since we should
-        # have already called self._remove_too_large_components().)
         first_small_component = False
-        for cc_i, cc_tuple in enumerate(
-            self.components, self.num_too_large_components + 1
-        ):
+        for cc_i, cc_tuple in enumerate(self.components):
             cc_node_ids = cc_tuple[0]
             cc_full_node_ct = cc_tuple[1]
             cc_full_edge_ct = cc_tuple[2]
@@ -2208,3 +2208,35 @@ class AssemblyGraph(object):
         with open(output_fp, "w") as fh:
             fh.write(output_stats)
         conclude_msg()
+
+
+    def to_cyjs_elements(self):
+        nodes = []
+        edges = []
+        # TODO this is just getting the first (biggest) cc. make user selectable ofc
+        # i guess make cc index a parameter of this func, right? which will make testing easyish
+        for n in self.graph.nodes:
+            nobj = self.nodeid2obj[n]
+            if "orientation" in nobj.data:
+                if nobj.data["orientation"] == "+":
+                    ndir = "fwd"
+                else:
+                    ndir = "rev"
+            else:
+                ndir = "unoriented"
+            nodes.append(
+                {
+                    "data": {"id": str(nobj.unique_id), "label": str(nobj.name)},
+                    "classes": ndir,
+                }
+            )
+        for e in self.graph.edges:
+            edges.append(
+                {
+                    "data": {
+                        "source": str(e[0]),
+                        "target": str(e[1]),
+                    }
+                }
+            )
+        return nodes + edges
