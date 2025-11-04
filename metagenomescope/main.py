@@ -5,7 +5,6 @@ import base64
 import matplotlib
 import dash
 import dash_cytoscape as cyto
-import plotly.express as px
 from dash import html, callback, ctx, Input, Output, State
 from io import BytesIO
 from matplotlib import pyplot

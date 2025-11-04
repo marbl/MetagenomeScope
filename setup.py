@@ -86,6 +86,7 @@ setup(
         "gfapy",
         "pyfastg",
         "dash-cytoscape",
+        "matplotlib",
     ],
     # The reason I pin the black version to at least 22.1.0 is that this
     # version changes how the ** operator is formatted (no surrounding spaces,
