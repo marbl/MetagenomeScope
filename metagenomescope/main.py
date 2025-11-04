@@ -6,7 +6,7 @@ import matplotlib
 import dash
 import dash_cytoscape as cyto
 import plotly.express as px
-from dash import html, callback, dcc, Input, Output, State
+from dash import html, callback, ctx, Input, Output, State
 from io import BytesIO
 from matplotlib import pyplot
 from . import defaults, cy_config, css_config, ui_utils
@@ -69,6 +69,27 @@ def run(
         className="ctrlSep",
     )
 
+    cc_selection_options = {
+        "ccDrawingSizeRank": [
+            html.I(className="bi bi-sort-down"),
+            html.Span(
+                "One component (by size rank)",
+            ),
+        ],
+        "ccDrawingWithNode": [
+            html.I(className="bi bi-search"),
+            html.Span(
+                "One component (with a node)",
+            ),
+        ],
+        "ccDrawingAll": [
+            html.I(className="bi bi-asterisk"),
+            html.Span(
+                "All components",
+            ),
+        ],
+    }
+
     # update_title=None prevents Dash's default "Updating..." page title change
     app = dash.Dash(__name__, title="MgSc", update_title=None)
     CONTROLS_TOGGLER_ICON_CLASSES = "bi bi-list"
@@ -127,6 +148,68 @@ def run(
                     ),
                     ctrl_sep,
                     html.H4("Draw"),
+                    html.P(
+                        [
+                            # https://getbootstrap.com/docs/5.3/components/dropdowns/#single-button
+                            html.Div(
+                                [
+                                    html.Button(
+                                        cc_selection_options[
+                                            "ccDrawingSizeRank"
+                                        ],
+                                        className="btn btn-sm btn-light dropdown-toggle",
+                                        id="ccDrawingSelect",
+                                        type="button",
+                                        style={"width": "100%"},
+                                        # We'll update the button's value along with its
+                                        # children when the user selects a drawing method.
+                                        # The value is used by our code to determine the
+                                        # currently-selected drawing method.
+                                        value="ccDrawingSizeRank",
+                                        **{
+                                            "data-bs-toggle": "dropdown",
+                                            "aria-expanded": "false",
+                                        },
+                                    ),
+                                    html.Ul(
+                                        [
+                                            html.Li(
+                                                html.A(
+                                                    cc_selection_options[
+                                                        "ccDrawingSizeRank"
+                                                    ]
+                                                ),
+                                                className="dropdown-item",
+                                                id="ccDrawingSizeRank",
+                                            ),
+                                            html.Li(
+                                                html.A(
+                                                    cc_selection_options[
+                                                        "ccDrawingWithNode"
+                                                    ]
+                                                ),
+                                                className="dropdown-item",
+                                                id="ccDrawingWithNode",
+                                            ),
+                                            html.Li(
+                                                html.A(
+                                                    cc_selection_options[
+                                                        "ccDrawingAll"
+                                                    ]
+                                                ),
+                                                className="dropdown-item",
+                                                id="ccDrawingAll",
+                                            ),
+                                        ],
+                                        id="ccDrawingUl",
+                                        className="dropdown-menu dropdown-menu-sm",
+                                        style={"font-size": "0.85em"},
+                                    ),
+                                ],
+                                className="dropdown",
+                            )
+                        ]
+                    ),
                     html.P(
                         [
                             html.Button(
@@ -554,6 +637,30 @@ def run(
             buf.close()
         pyplot.close()
         return f"data:image/png;base64,{data}"
+
+    # By default, bootstrap's dropdowns don't change the button element (i.e.
+    # the thing showing the name of the dropdown), as an ordinary HTML <select>
+    # would. You can use <select>s with bootstrap, but the styling is limited
+    # and you can't (easily?) show icons :( You can also use Dash's
+    # dcc.Dropdown objects, which DO allow icons and also allow mutating the
+    # dropdown name on selecting something, but bootstrap's styling apparently
+    # clobbers Dash's and the result looks kind of gross.
+    #
+    # So! A reasonable option, I think, is using Bootstrap icons but just
+    # adding some custom code here to change the dropdown's button based on
+    # what gets selected. The "children" output changes the contents of the
+    # dropdown button to use the fancy icon and label, and the "value" is an
+    # easy-to-read label for what drawing method is currently selected.
+    @callback(
+        Output("ccDrawingSelect", "children"),
+        Output("ccDrawingSelect", "value"),
+        Input("ccDrawingSizeRank", "n_clicks"),
+        Input("ccDrawingWithNode", "n_clicks"),
+        Input("ccDrawingAll", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def change_drawing_method(c0, c1, c2):
+        return cc_selection_options[ctx.triggered_id], ctx.triggered_id
 
     @callback(
         Output("cyDiv", "children"),
