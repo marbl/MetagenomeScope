@@ -278,15 +278,15 @@ def run(
                                             ),
                                             html.Li(
                                                 html.Button(
-                                                    "Histograms",
+                                                    "Components",
                                                     className="nav-link",
-                                                    id="histTab",
+                                                    id="ccTab",
                                                     type="button",
                                                     role="tab",
                                                     **{
                                                         "data-bs-toggle": "tab",
-                                                        "data-bs-target": "#histTabPane",
-                                                        "aria-controls": "histTabPane",
+                                                        "data-bs-target": "#ccTabPane",
+                                                        "aria-controls": "ccTabPane",
                                                         "aria-selected": "false",
                                                     },
                                                 ),
@@ -295,15 +295,15 @@ def run(
                                             ),
                                             html.Li(
                                                 html.Button(
-                                                    "Treemaps",
+                                                    f"{ag.seq_noun.title()} sequence lengths",
                                                     className="nav-link",
-                                                    id="treemapTab",
+                                                    id="seqLenTab",
                                                     type="button",
                                                     role="tab",
                                                     **{
                                                         "data-bs-toggle": "tab",
-                                                        "data-bs-target": "#treemapTabPane",
-                                                        "aria-controls": "treemapTabPane",
+                                                        "data-bs-target": "#seqLenTabPane",
+                                                        "aria-controls": "seqLenTabPane",
                                                         "aria-selected": "false",
                                                     },
                                                 ),
@@ -400,48 +400,30 @@ def run(
                                             ),
                                             html.Div(
                                                 [
-                                                    html.H5(
-                                                        "Components in the graph, by node count"
-                                                    ),
-                                                    html.P(
-                                                        "(This is rendered as an image using matplotlib.)"
-                                                    ),
                                                     html.Img(
-                                                        id="histContainer",
-                                                        # needed to center horizontally
-                                                        # https://stackoverflow.com/a/45439817
-                                                        style={
-                                                            "margin": "0 auto",
-                                                            "display": "block",
-                                                        },
+                                                        id="ccHistContainer",
+                                                        className="centered-img",
                                                     ),
                                                 ],
-                                                id="histTabPane",
+                                                id="ccTabPane",
                                                 className="tab-pane fade show",
                                                 role="tabpanel",
                                                 tabIndex="0",
-                                                **{
-                                                    "aria-labelledby": "histTab"
-                                                },
+                                                **{"aria-labelledby": "ccTab"},
                                             ),
                                             html.Div(
                                                 [
-                                                    html.H5(
-                                                        "Components in the graph, by node count"
-                                                    ),
-                                                    html.P(
-                                                        "(This is rendered dynamically using Plotly.)"
-                                                    ),
-                                                    html.Div(
-                                                        id="treemapContainer",
+                                                    html.Img(
+                                                        id="seqLenHistContainer",
+                                                        className="centered-img",
                                                     ),
                                                 ],
-                                                id="treemapTabPane",
+                                                id="seqLenTabPane",
                                                 className="tab-pane fade",
                                                 role="tabpanel",
                                                 tabIndex="0",
                                                 **{
-                                                    "aria-labelledby": "treemapTab"
+                                                    "aria-labelledby": "seqLenTab"
                                                 },
                                             ),
                                         ],
@@ -500,39 +482,54 @@ def run(
             )
 
     @callback(
-        Output("histContainer", "src"),
-        Input("infoButton", "n_clicks"),
+        Output("ccHistContainer", "src"),
+        Input("ccTab", "n_clicks"),
         prevent_initial_call=True,
     )
-    def plot_hist(n_clicks):
+    def plot_cc_hist(n_clicks):
         cc_sizes = [0]
         for cc in ag.components:
             cc_sizes.append(cc.num_total_nodes)
         # encode a static matplotlib image: https://stackoverflow.com/a/56932297
         # and https://matplotlib.org/stable/gallery/user_interfaces/web_application_server_sgskip.html
         with pyplot.style.context("ggplot"):
-            fig, ax = pyplot.subplots(2, 1)
-            ax[0].hist(
+            fig, axes = pyplot.subplots(2, 1)
+            fig.suptitle(
+                "Nodes per component",
+                fontsize=18,
+            )
+            axes[0].hist(
                 cc_sizes,
-                bins=range(0, 500, 10),
                 color="#0a0",
                 edgecolor="#030",
                 lw=1,
             )
-            ax[1].hist(
+            axes[1].hist(
                 cc_sizes,
                 bins=range(0, 51, 1),
                 color="#0a0",
                 edgecolor="#030",
                 lw=1,
             )
-            ax[0].set_title("All components (bin size = 10)")
-            ax[1].set_title("Just components with < 50 nodes")
-            buf = BytesIO()
-            ax[0].set_ylabel("# components")
-            ax[1].set_ylabel("# components")
-            ax[1].set_xlabel("# nodes in a component")
+            ui_utils.use_thousands_sep(axes[0].xaxis)
+            ui_utils.use_thousands_sep(axes[0].yaxis)
+            # i know we shouldn't need a thousands sep when the bottom plot's
+            # x-axis limit is at 50, but maybe we'll change that in the future
+            ui_utils.use_thousands_sep(axes[1].xaxis)
+            ui_utils.use_thousands_sep(axes[1].yaxis)
+            axes[0].set_title("All components")
+            axes[1].set_title("Just components with < 50 nodes (bin size: 1)")
+            fig.text(
+                0.07,
+                0.42,
+                "# components",
+                rotation=90,
+                fontsize=13,
+                color="#666",
+            )
+            axes[1].set_xlabel("# nodes in a component")
             fig.set_size_inches(10, 8)
+            buf = BytesIO()
             fig.savefig(buf, format="png", bbox_inches="tight")
             data = base64.b64encode(buf.getbuffer()).decode("ascii")
             buf.close()
@@ -540,26 +537,53 @@ def run(
         return f"data:image/png;base64,{data}"
 
     @callback(
-        Output("treemapContainer", "children"),
-        Input("treemapTab", "n_clicks"),
+        Output("seqLenHistContainer", "src"),
+        Input("seqLenTab", "n_clicks"),
         prevent_initial_call=True,
     )
-    def plot_treemap(n_clicks):
-        cc_names = ["Root"]
-        cc_sizes = [0]
-        cc_parents = [""] + (["Root"] * (len(ag.components)))
-        for cci, cc in enumerate(ag.components, 1):
-            cc_names.append(str(cci))
-            cc_sizes.append(cc.num_total_nodes)
-        fig = px.treemap(
-            names=cc_names,
-            values=cc_sizes,
-            parents=cc_parents,
-        )
-        fig.update_layout(
-            margin=dict(l=0, r=0, t=0, b=0),
-        )
-        return dcc.Graph(figure=fig)
+    def plot_seqlen_hist(n_clicks):
+        with pyplot.style.context("ggplot"):
+            fig, axes = pyplot.subplots(2, 1)
+            fig.suptitle(
+                f"{ag.seq_noun.title()} sequence lengths", fontsize=18
+            )
+            axes[0].hist(
+                ag.seq_lengths,
+                color="#700",
+                edgecolor="#100",
+                lw=1,
+            )
+            axes[1].hist(
+                ag.seq_lengths,
+                bins=range(0, 10001, 100),
+                color="#700",
+                edgecolor="#100",
+                lw=1,
+            )
+            ui_utils.use_thousands_sep(axes[0].xaxis)
+            ui_utils.use_thousands_sep(axes[0].yaxis)
+            ui_utils.use_thousands_sep(axes[1].xaxis)
+            ui_utils.use_thousands_sep(axes[1].yaxis)
+            axes[0].set_title(f"All {ag.seq_noun}s")
+            axes[1].set_title(
+                f"Just {ag.seq_noun}s with lengths < 10 kbp (bin size: 100 bp)"
+            )
+            fig.text(
+                0.07,
+                0.45,
+                f"# {ag.seq_noun}s",
+                rotation=90,
+                fontsize=13,
+                color="#666",
+            )
+            axes[1].set_xlabel("Length (bp)")
+            fig.set_size_inches(10, 8)
+            buf = BytesIO()
+            fig.savefig(buf, format="png", bbox_inches="tight")
+            data = base64.b64encode(buf.getbuffer()).decode("ascii")
+            buf.close()
+        pyplot.close()
+        return f"data:image/png;base64,{data}"
 
     # TODO remove when we do layout using Graphviz manually
     cyto.load_extra_layouts()

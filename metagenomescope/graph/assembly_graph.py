@@ -112,15 +112,15 @@ class AssemblyGraph(object):
         # way, we can easily associate nodes and edges with their corresponding
         # objects' unique IDs.
         logger.debug("  Initializing node and edge graph objects...")
-        seq_lengths = self._init_graph_objs()
+        self._init_graph_objs()
         # self._integrate_metadata(node_metadata, edge_metadata)
         logger.debug("  ...Done.")
 
         logger.debug(
             f"  Computing some stats about {self.seq_noun} sequence lengths..."
         )
-        self.n50 = seq_utils.n50(seq_lengths)
-        self.total_seq_len = sum(seq_lengths)
+        self.n50 = seq_utils.n50(self.seq_lengths)
+        self.total_seq_len = sum(self.seq_lengths)
         logger.debug(f"  ...Done. N50 is {self.n50:,} bp.")
 
         # Records the bounding boxes of each component in the graph. Indexed by
@@ -204,17 +204,12 @@ class AssemblyGraph(object):
         graph (don't worry, this data isn't lost -- it's saved in the
         corresponding Node and Edge objects' .data attributes).
 
+        Also populates self.seq_lengths with the observed Node or Edge sequence
+        lengths, depending on if self.node_centric is True or False.
+
         Finally, this relabels nodes in the graph to match their corresponding
         Node object's unique_id; and adds an "uid" attribute to edges' NetworkX
         data that matches their corresponding Edge object's unique_id.
-
-        Returns
-        -------
-        list of int
-           The lengths of all Nodes (if self.node_centric) or Edges (if not
-           self.node_centric) in the graph. We'll already be iterating through
-           these in this function, so we might as well save time and compile
-           this list here anyway to save us another iteration...
 
         Raises
         ------
@@ -232,7 +227,7 @@ class AssemblyGraph(object):
         establishes a "baseline."
         """
         oldid2uniqueid = {}
-        seq_lengths = []
+        self.seq_lengths = []
         lengths_completely_defined = True
         for node_name in self.graph.nodes:
             node_id = self._get_unique_id()
@@ -250,7 +245,7 @@ class AssemblyGraph(object):
 
             if lengths_completely_defined and self.node_centric:
                 if "length" in data:
-                    seq_lengths.append(data["length"])
+                    self.seq_lengths.append(data["length"])
                 else:
                     # at least one node doesn't have a length given, bail out
                     lengths_completely_defined = False
@@ -272,15 +267,13 @@ class AssemblyGraph(object):
 
             if lengths_completely_defined and not self.node_centric:
                 if "length" in data:
-                    seq_lengths.append(data["length"])
+                    self.seq_lengths.append(data["length"])
                 else:
                     # at least one edge doesn't have a length given, bail out
                     lengths_completely_defined = False
 
         if not lengths_completely_defined:
             raise WeirdError(f"Not all {self.seq_noun}s have defined lengths?")
-
-        return seq_lengths
 
     def _integrate_metadata(self, node_metadata, edge_metadata):
         """Reads, sanity checks, and integrates node/edge metadata.

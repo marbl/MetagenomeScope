@@ -262,8 +262,13 @@ button {
 .full-width-dropdown-menu {
     width: 100%;
 }
-.edge_chart_bar rect {
-    fill: maroon;
+
+/* For horizontally centering matplotlib output images:
+ * https://stackoverflow.com/a/45439817
+ */
+.centered-img {
+    margin: 0 auto;
+    display: block;
 }
 
 .dropdown-menu a {
