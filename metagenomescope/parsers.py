@@ -33,7 +33,9 @@ from .input_node_utils import gc_content, negate_node_id
 from .errors import GraphParsingError, WeirdError
 
 
-LJA_LFL_PATT = re.compile(r"([ACGT]) ?([0-9]+)\(([0-9\.]+)\)")
+LJA_LFL_PATT = re.compile(
+    r"([\-_a-zA-Z\d\.]+) ([ACGT]) ?([0-9]+)\(([0-9\.]+)\)"
+)
 
 
 def is_not_pos_int(number_string):
@@ -871,9 +873,10 @@ def parse_dot(filename):
             # The length and kmer-cov lines could cause errors if these aren't
             # valid numbers. That's fine -- like in the Flye parser, let the
             # errors propagate up to the user.
-            g.edges[e[:3]]["first_nt"] = groups[0]
-            g.edges[e[:3]]["length"] = int(groups[1])
-            g.edges[e[:3]]["kmer_cov"] = float(groups[2])
+            g.edges[e[:3]]["id"] = groups[0]
+            g.edges[e[:3]]["first_nt"] = groups[1]
+            g.edges[e[:3]]["length"] = int(groups[2])
+            g.edges[e[:3]]["kmer_cov"] = float(groups[3])
 
             # Both Flye and LJA give all edges "color" attributes in these DOT
             # files. As far as I can tell, Flye will color edges if they are
