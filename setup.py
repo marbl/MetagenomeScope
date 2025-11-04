@@ -68,11 +68,11 @@ setup(
     author="MetagenomeScope Development Team",
     author_email="mfedarko@umd.edu",
     maintainer="Marcus Fedarko",
-    maintainer_email="mfedarko@ucsd.edu",
+    maintainer_email="mfedarko@umd.edu",
     url="https://github.com/marbl/MetagenomeScope",
     classifiers=classifiers,
     packages=find_packages(),
-    package_data={"metagenomescope": ["static", "templates"]},
+    package_data={"metagenomescope": ["assets"]},
     include_package_data=True,
     # Sanity check before trying to install -- these should be installed with
     # the parent conda environment
