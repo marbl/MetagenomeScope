@@ -293,11 +293,6 @@ button {
  * the selected option. I don't like this! So we use absolute positioning to
  * shove the icon and caret into fixed positions, even when the length of the
  * selected option changes. (https://stackoverflow.com/a/68357738)
- *
- * Note that, when you zoom in SUPER far, this can look janky -- the selected
- * text's length can begin to overlap with the icon / caret. But... I think it
- * is okay in > 99% of cases. Can add some fancy media queries or something
- * eventually if needed.
  */
 .dropdown-toggle::after {
     position: absolute;
@@ -311,4 +306,26 @@ button {
     /* for reasons that elude me, setting margin-top here is not needed to get
      * the icon to be vertically centered
      */
+}
+
+/* When you zoom in SUPER far, the above absolutely positioned icon / caret can
+ * look janky -- the text inside the <span> (actually describing the option on
+ * the button) can begin to overlap with the icon / caret. This fixes this
+ * problem. (We need to set white-space to allow the text to take up multiple
+ * lines; see https://stackoverflow.com/a/66894397.)
+ */
+.dropdown-toggle span {
+    /* The usual .iconlbl padding of (as of writing) 0.7em doesn't seem
+     * sufficient to prevent slight overlap with the left icon, when zoomed in
+     * super far. This seems to fix things. (The !importants override the
+     * control panel's default padding imposed on its children.) Not very
+     * elegant, maybe, but this works.
+     */
+    padding-left: 1em !important;
+    padding-right: 1em !important;
+    /* if you don't set this, then some long words can escape the side of
+     * the button
+     */
+    word-break: break-all;
+    white-space: normal;
 }
