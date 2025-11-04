@@ -195,7 +195,7 @@ class AssemblyGraph(object):
         # though. These functions can just use this flag to figure out if they
         # should immediately fail with an error.
         self.layout_done = False
-        logger.debug("...Done.")
+        logger.info("...Done.")
 
     def _init_graph_objs(self):
         """Initializes Node and Edge objects for the original graph.
