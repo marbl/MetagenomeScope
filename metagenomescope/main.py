@@ -5,7 +5,7 @@ import base64
 import matplotlib
 import dash
 import dash_cytoscape as cyto
-from dash import html, callback, ctx, Input, Output, State
+from dash import html, callback, ctx, dcc, Input, Output, State
 from io import BytesIO
 from matplotlib import pyplot
 from . import defaults, cy_config, css_config, ui_utils
@@ -159,83 +159,102 @@ def run(
                     ),
                     ctrl_sep,
                     html.H4("Draw"),
-                    html.P(
-                        [
-                            # https://getbootstrap.com/docs/5.3/components/dropdowns/#single-button
-                            html.Div(
-                                [
-                                    html.Button(
-                                        cc_selection_options[
-                                            "ccDrawingSizeRank"
-                                        ],
-                                        className="btn btn-sm btn-light dropdown-toggle",
-                                        id="ccDrawingSelect",
-                                        type="button",
-                                        style={"width": "100%"},
-                                        # We'll update the button's value along with its
-                                        # children when the user selects a drawing method.
-                                        # The value is used by our code to determine the
-                                        # currently-selected drawing method.
-                                        value="ccDrawingSizeRank",
-                                        **{
-                                            "data-bs-toggle": "dropdown",
-                                            "aria-expanded": "false",
-                                        },
-                                    ),
-                                    html.Ul(
-                                        [
-                                            html.Li(
-                                                html.A(
-                                                    cc_selection_options[
-                                                        "ccDrawingSizeRank"
-                                                    ]
-                                                ),
-                                                className="dropdown-item",
-                                                id="ccDrawingSizeRank",
-                                            ),
-                                            html.Li(
-                                                html.A(
-                                                    cc_selection_options[
-                                                        "ccDrawingWithNode"
-                                                    ]
-                                                ),
-                                                className="dropdown-item",
-                                                id="ccDrawingWithNode",
-                                            ),
-                                            html.Li(
-                                                html.A(
-                                                    cc_selection_options[
-                                                        "ccDrawingAll"
-                                                    ]
-                                                ),
-                                                className="dropdown-item",
-                                                id="ccDrawingAll",
-                                            ),
-                                        ],
-                                        id="ccDrawingUl",
-                                        className="dropdown-menu dropdown-menu-sm",
-                                        style={"font-size": "0.85em"},
-                                    ),
-                                ],
-                                className="dropdown",
-                            )
-                        ]
-                    ),
-                    html.P(
+                    # https://getbootstrap.com/docs/5.3/components/dropdowns/#single-button
+                    html.Div(
                         [
                             html.Button(
+                                cc_selection_options["ccDrawingSizeRank"],
+                                className="btn btn-sm btn-light dropdown-toggle",
+                                id="ccDrawingSelect",
+                                type="button",
+                                style={"width": "100%"},
+                                # We'll update the button's value along with its
+                                # children when the user selects a drawing method.
+                                # The value is used by our code to determine the
+                                # currently-selected drawing method.
+                                value="ccDrawingSizeRank",
+                                **{
+                                    "data-bs-toggle": "dropdown",
+                                    "aria-expanded": "false",
+                                },
+                            ),
+                            html.Ul(
                                 [
-                                    html.I(className="bi bi-brush-fill"),
-                                    html.Span(
-                                        "Draw",
-                                        className="iconlbl",
+                                    html.Li(
+                                        html.A(
+                                            cc_selection_options[
+                                                "ccDrawingSizeRank"
+                                            ]
+                                        ),
+                                        className="dropdown-item",
+                                        id="ccDrawingSizeRank",
+                                    ),
+                                    html.Li(
+                                        html.A(
+                                            cc_selection_options[
+                                                "ccDrawingWithNode"
+                                            ]
+                                        ),
+                                        className="dropdown-item",
+                                        id="ccDrawingWithNode",
+                                    ),
+                                    html.Li(
+                                        html.A(
+                                            cc_selection_options[
+                                                "ccDrawingAll"
+                                            ]
+                                        ),
+                                        className="dropdown-item",
+                                        id="ccDrawingAll",
                                     ),
                                 ],
-                                id="drawButton",
-                                className="btn btn-light drawCtrl",
+                                id="ccDrawingUl",
+                                className="dropdown-menu dropdown-menu-sm",
+                                style={"font-size": "0.85em"},
+                            ),
+                        ],
+                        className="dropdown",
+                    ),
+                    html.Div(
+                        [
+                            html.Button(
+                                html.I(className="bi bi-dash-lg"),
+                                # might add borders to the sides of these later
+                                className="btn btn-light cc-size-rank-adj",
                                 type="button",
-                            )
-                        ]
+                            ),
+                            # dash doesn't have a html.Input thing like it
+                            # does for other HTML tags, so we use dcc.Input
+                            # which apparently is close enough
+                            # (https://github.com/plotly/dash/issues/2791)
+                            dcc.Input(
+                                type="number",
+                                id="ccSizeRankSelector",
+                                className="form-control",
+                                placeholder="Size rank",
+                                value="1",
+                                min="1",
+                            ),
+                            html.Button(
+                                html.I(className="bi bi-plus-lg"),
+                                className="btn btn-light cc-size-rank-adj",
+                                type="button",
+                            ),
+                        ],
+                        id="sizeRankDrawEles",
+                        className="input-group mb-3",
+                    ),
+                    html.Button(
+                        [
+                            html.I(className="bi bi-brush-fill"),
+                            html.Span(
+                                "Draw",
+                                className="iconlbl",
+                            ),
+                        ],
+                        id="drawButton",
+                        className="btn btn-light drawCtrl",
+                        type="button",
                     ),
                     ctrl_sep,
                     # html.H4("Selected"),
@@ -340,23 +359,27 @@ def run(
                                                 className="nav-item",
                                                 role="presentation",
                                             ),
-                                            html.Li(
-                                                html.Button(
-                                                    "Components",
-                                                    className="nav-link",
-                                                    id="ccTab",
-                                                    type="button",
-                                                    role="tab",
-                                                    **{
-                                                        "data-bs-toggle": "tab",
-                                                        "data-bs-target": "#ccTabPane",
-                                                        "aria-controls": "ccTabPane",
-                                                        "aria-selected": "false",
-                                                    },
-                                                ),
-                                                className="nav-item",
-                                                role="presentation",
-                                            ) if multiple_ccs else None,
+                                            (
+                                                html.Li(
+                                                    html.Button(
+                                                        "Components",
+                                                        className="nav-link",
+                                                        id="ccTab",
+                                                        type="button",
+                                                        role="tab",
+                                                        **{
+                                                            "data-bs-toggle": "tab",
+                                                            "data-bs-target": "#ccTabPane",
+                                                            "aria-controls": "ccTabPane",
+                                                            "aria-selected": "false",
+                                                        },
+                                                    ),
+                                                    className="nav-item",
+                                                    role="presentation",
+                                                )
+                                                if multiple_ccs
+                                                else None
+                                            ),
                                             html.Li(
                                                 html.Button(
                                                     f"{ag.seq_noun.title()} sequence lengths",
@@ -462,19 +485,25 @@ def run(
                                                     "aria-labelledby": "statsTab"
                                                 },
                                             ),
-                                            html.Div(
-                                                [
-                                                    html.Img(
-                                                        id="ccHistContainer",
-                                                        className="centered-img",
-                                                    ),
-                                                ],
-                                                id="ccTabPane",
-                                                className="tab-pane fade show",
-                                                role="tabpanel",
-                                                tabIndex="0",
-                                                **{"aria-labelledby": "ccTab"},
-                                            ) if multiple_ccs else None,
+                                            (
+                                                html.Div(
+                                                    [
+                                                        html.Img(
+                                                            id="ccHistContainer",
+                                                            className="centered-img",
+                                                        ),
+                                                    ],
+                                                    id="ccTabPane",
+                                                    className="tab-pane fade show",
+                                                    role="tabpanel",
+                                                    tabIndex="0",
+                                                    **{
+                                                        "aria-labelledby": "ccTab"
+                                                    },
+                                                )
+                                                if multiple_ccs
+                                                else None
+                                            ),
                                             html.Div(
                                                 [
                                                     html.Img(
@@ -533,11 +562,13 @@ def run(
         can control the background color of the graph, but it's ok for now.)
         """
         if "offscreen-controls" in controls_classes:
-            # Make the control panel visible again
+            # Make the control panel visible again, and make the cytoscape.js
+            # div occupy only part of the screen
             cy_div_style["left"] = css_config.CONTROLS_WIDTH
             return ("", CONTROLS_TOGGLER_ICON_CLASSES, cy_div_style)
         else:
-            # Hide the control panel
+            # Hide the control panel, and make the cytoscape.js div occupy the
+            # whole screen
             cy_div_style["left"] = "0em"
             return (
                 "offscreen-controls",
@@ -546,6 +577,7 @@ def run(
             )
 
     if multiple_ccs:
+
         @callback(
             Output("ccHistContainer", "src"),
             Input("ccTab", "n_clicks"),
@@ -556,7 +588,9 @@ def run(
             for cc in ag.components:
                 cc_sizes.append(cc.num_total_nodes)
             if len(cc_sizes) < 1:
-                raise WeirdError("How are you going to have a graph with 0 ccs???")
+                raise WeirdError(
+                    "How are you going to have a graph with 0 ccs???"
+                )
             elif len(cc_sizes) == 1:
                 return f"hey fyi this is just 1 cc with {cc_sizes[0]:,} nodes"
             # encode a static matplotlib image: https://stackoverflow.com/a/56932297
@@ -587,7 +621,9 @@ def run(
                 ui_utils.use_thousands_sep(axes[1].xaxis)
                 ui_utils.use_thousands_sep(axes[1].yaxis)
                 axes[0].set_title("All components")
-                axes[1].set_title("Just components with < 50 nodes (bin size: 1)")
+                axes[1].set_title(
+                    "Just components with < 50 nodes (bin size: 1)"
+                )
                 fig.text(
                     0.07,
                     0.42,

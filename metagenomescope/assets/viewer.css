@@ -68,6 +68,11 @@ body {
     -webkit-text-stroke: 1px;
 }
 
+/* let's make the cc size rank controls thicker but not, like, bigger */
+.bi-dash-lg, .bi-plus-lg {
+    -webkit-text-stroke: 2px;
+}
+
 .iconlbl {
     /* the old way of having a &nbsp; between the icon and the label doesn't
      * seem to be supported in Dash. Can recreate with padding:
@@ -98,6 +103,11 @@ body {
 .btn-close:hover {
     /* (this does the darkening) */
     filter: brightness(85%);
+}
+
+#ccDrawingSelect {
+    /* matches (ish) old bootstrap btn:hover border color */
+    border-bottom: 2px solid #adadad;
 }
 
 #floatingExportButton {
