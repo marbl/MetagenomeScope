@@ -2209,7 +2209,6 @@ class AssemblyGraph(object):
             fh.write(output_stats)
         conclude_msg()
 
-
     def to_cyjs_elements(self):
         nodes = []
         edges = []
@@ -2226,7 +2225,10 @@ class AssemblyGraph(object):
                 ndir = "unoriented"
             nodes.append(
                 {
-                    "data": {"id": str(nobj.unique_id), "label": str(nobj.name)},
+                    "data": {
+                        "id": str(nobj.unique_id),
+                        "label": str(nobj.name),
+                    },
                     "classes": ndir,
                 }
             )
