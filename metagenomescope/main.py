@@ -75,7 +75,7 @@ def run(
             ndir = "unoriented"
         nodes.append(
             {
-                "data": {"id": str(nobj.unique_id), "label": nobj.name},
+                "data": {"id": str(nobj.unique_id), "label": str(nobj.name)},
                 "classes": ndir,
             }
         )
