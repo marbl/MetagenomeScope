@@ -59,6 +59,10 @@ def run(
     # edges, etc.
     ag = AssemblyGraph(graph)
 
+    # Prepare some of the UI components in advance. A nice thing about Dash
+    # (which I guess comes from it being built on top of React) is that we can
+    # define these kinds of components and reuse them without having to rewrite
+    # a bunch of code.
     ctrl_sep = html.Div(
         style={
             "width": "100%",
@@ -89,6 +93,13 @@ def run(
             ),
         ],
     }
+
+    # If there are multiple components, show a "Components" tab in the info
+    # dialog with information about these components -- as of writing, just
+    # some histograms about how many nodes are in each component. Since this
+    # is essentially useless if there is only one component, we use this flag
+    # variable to figure out if we should even show this tab in the first place.
+    multiple_ccs = len(ag.components) > 1
 
     # update_title=None prevents Dash's default "Updating..." page title change
     app = dash.Dash(__name__, title="MgSc", update_title=None)
@@ -345,7 +356,7 @@ def run(
                                                 ),
                                                 className="nav-item",
                                                 role="presentation",
-                                            ),
+                                            ) if multiple_ccs else None,
                                             html.Li(
                                                 html.Button(
                                                     f"{ag.seq_noun.title()} sequence lengths",
@@ -463,7 +474,7 @@ def run(
                                                 role="tabpanel",
                                                 tabIndex="0",
                                                 **{"aria-labelledby": "ccTab"},
-                                            ),
+                                            ) if multiple_ccs else None,
                                             html.Div(
                                                 [
                                                     html.Img(
@@ -534,64 +545,65 @@ def run(
                 cy_div_style,
             )
 
-    @callback(
-        Output("ccHistContainer", "src"),
-        Input("ccTab", "n_clicks"),
-        prevent_initial_call=True,
-    )
-    def plot_cc_hist(n_clicks):
-        cc_sizes = []
-        for cc in ag.components:
-            cc_sizes.append(cc.num_total_nodes)
-        if len(cc_sizes) < 1:
-            raise WeirdError("How are you going to have a graph with 0 ccs???")
-        elif len(cc_sizes) == 1:
-            return f"hey fyi this is just 1 cc with {cc_sizes[0]:,} nodes"
-        # encode a static matplotlib image: https://stackoverflow.com/a/56932297
-        # and https://matplotlib.org/stable/gallery/user_interfaces/web_application_server_sgskip.html
-        with pyplot.style.context("ggplot"):
-            fig, axes = pyplot.subplots(2, 1)
-            fig.suptitle(
-                "Nodes per component",
-                fontsize=18,
-            )
-            axes[0].hist(
-                cc_sizes,
-                color="#0a0",
-                edgecolor="#030",
-                lw=1,
-            )
-            axes[1].hist(
-                cc_sizes,
-                bins=range(0, 51, 1),
-                color="#0a0",
-                edgecolor="#030",
-                lw=1,
-            )
-            ui_utils.use_thousands_sep(axes[0].xaxis)
-            ui_utils.use_thousands_sep(axes[0].yaxis)
-            # i know we shouldn't need a thousands sep when the bottom plot's
-            # x-axis limit is at 50, but maybe we'll change that in the future
-            ui_utils.use_thousands_sep(axes[1].xaxis)
-            ui_utils.use_thousands_sep(axes[1].yaxis)
-            axes[0].set_title("All components")
-            axes[1].set_title("Just components with < 50 nodes (bin size: 1)")
-            fig.text(
-                0.07,
-                0.42,
-                "# components",
-                rotation=90,
-                fontsize=13,
-                color="#666",
-            )
-            axes[1].set_xlabel("# nodes in a component")
-            fig.set_size_inches(10, 8)
-            buf = BytesIO()
-            fig.savefig(buf, format="png", bbox_inches="tight")
-            data = base64.b64encode(buf.getbuffer()).decode("ascii")
-            buf.close()
-        pyplot.close()
-        return f"data:image/png;base64,{data}"
+    if multiple_ccs:
+        @callback(
+            Output("ccHistContainer", "src"),
+            Input("ccTab", "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def plot_cc_hist(n_clicks):
+            cc_sizes = []
+            for cc in ag.components:
+                cc_sizes.append(cc.num_total_nodes)
+            if len(cc_sizes) < 1:
+                raise WeirdError("How are you going to have a graph with 0 ccs???")
+            elif len(cc_sizes) == 1:
+                return f"hey fyi this is just 1 cc with {cc_sizes[0]:,} nodes"
+            # encode a static matplotlib image: https://stackoverflow.com/a/56932297
+            # and https://matplotlib.org/stable/gallery/user_interfaces/web_application_server_sgskip.html
+            with pyplot.style.context("ggplot"):
+                fig, axes = pyplot.subplots(2, 1)
+                fig.suptitle(
+                    "Nodes per component",
+                    fontsize=18,
+                )
+                axes[0].hist(
+                    cc_sizes,
+                    color="#0a0",
+                    edgecolor="#030",
+                    lw=1,
+                )
+                axes[1].hist(
+                    cc_sizes,
+                    bins=range(0, 51, 1),
+                    color="#0a0",
+                    edgecolor="#030",
+                    lw=1,
+                )
+                ui_utils.use_thousands_sep(axes[0].xaxis)
+                ui_utils.use_thousands_sep(axes[0].yaxis)
+                # i know we shouldn't need a thousands sep when the bottom plot's
+                # x-axis limit is at 50, but maybe we'll change that in the future
+                ui_utils.use_thousands_sep(axes[1].xaxis)
+                ui_utils.use_thousands_sep(axes[1].yaxis)
+                axes[0].set_title("All components")
+                axes[1].set_title("Just components with < 50 nodes (bin size: 1)")
+                fig.text(
+                    0.07,
+                    0.42,
+                    "# components",
+                    rotation=90,
+                    fontsize=13,
+                    color="#666",
+                )
+                axes[1].set_xlabel("# nodes in a component")
+                fig.set_size_inches(10, 8)
+                buf = BytesIO()
+                fig.savefig(buf, format="png", bbox_inches="tight")
+                data = base64.b64encode(buf.getbuffer()).decode("ascii")
+                buf.close()
+            pyplot.close()
+            return f"data:image/png;base64,{data}"
 
     @callback(
         Output("seqLenHistContainer", "src"),
