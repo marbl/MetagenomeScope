@@ -231,7 +231,6 @@ def run(
                                 type="number",
                                 id="ccSizeRankSelector",
                                 className="form-control",
-                                placeholder="Size rank",
                                 value="1",
                                 min="1",
                             ),
@@ -241,8 +240,21 @@ def run(
                                 type="button",
                             ),
                         ],
-                        id="sizeRankDrawEles",
-                        className="input-group mb-3",
+                        id="ccSizeRankSelectorEles",
+                        className=css_config.CC_SELECTOR_ELES_CLASSES,
+                    ),
+                    html.Div(
+                        [
+                            dcc.Input(
+                                type="text",
+                                id="ccNodeNameSelector",
+                                className="form-control",
+                                placeholder="Node name",
+                            ),
+                        ],
+                        id="ccNodeNameSelectorEles",
+                        className=css_config.CC_SELECTOR_ELES_CLASSES
+                        + " hidden",
                     ),
                     html.Button(
                         [
@@ -544,38 +556,6 @@ def run(
         ],
     )
 
-    @callback(
-        Output("controls", "className"),
-        Output("controlsTogglerIcon", "className"),
-        Output("cyDiv", "style"),
-        State("controls", "className"),
-        State("cyDiv", "style"),
-        Input("controlsToggler", "n_clicks"),
-        prevent_initial_call=True,
-    )
-    def toggle_controls(controls_classes, cy_div_style, n_clicks):
-        """Toggles visibility of the control panel's div.
-
-        Also toggles the color of the toggler hamburger icon -- it is colored
-        light when the controls are visible, and dark when the controls are not
-        visible. (We may want to adjust this in a fancier way if/when the user
-        can control the background color of the graph, but it's ok for now.)
-        """
-        if "offscreen-controls" in controls_classes:
-            # Make the control panel visible again, and make the cytoscape.js
-            # div occupy only part of the screen
-            cy_div_style["left"] = css_config.CONTROLS_WIDTH
-            return ("", CONTROLS_TOGGLER_ICON_CLASSES, cy_div_style)
-        else:
-            # Hide the control panel, and make the cytoscape.js div occupy the
-            # whole screen
-            cy_div_style["left"] = "0em"
-            return (
-                "offscreen-controls",
-                CONTROLS_TOGGLER_ICON_CLASSES + " darkToggler",
-                cy_div_style,
-            )
-
     if multiple_ccs:
 
         @callback(
@@ -690,6 +670,38 @@ def run(
         pyplot.close()
         return f"data:image/png;base64,{data}"
 
+    @callback(
+        Output("controls", "className"),
+        Output("controlsTogglerIcon", "className"),
+        Output("cyDiv", "style"),
+        State("controls", "className"),
+        State("cyDiv", "style"),
+        Input("controlsToggler", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def toggle_controls(controls_classes, cy_div_style, n_clicks):
+        """Toggles visibility of the control panel's div.
+
+        Also toggles the color of the toggler hamburger icon -- it is colored
+        light when the controls are visible, and dark when the controls are not
+        visible. (We may want to adjust this in a fancier way if/when the user
+        can control the background color of the graph, but it's ok for now.)
+        """
+        if "offscreen-controls" in controls_classes:
+            # Make the control panel visible again, and make the cytoscape.js
+            # div occupy only part of the screen
+            cy_div_style["left"] = css_config.CONTROLS_WIDTH
+            return ("", CONTROLS_TOGGLER_ICON_CLASSES, cy_div_style)
+        else:
+            # Hide the control panel, and make the cytoscape.js div occupy the
+            # whole screen
+            cy_div_style["left"] = "0em"
+            return (
+                "offscreen-controls",
+                CONTROLS_TOGGLER_ICON_CLASSES + " darkToggler",
+                cy_div_style,
+            )
+
     # By default, bootstrap's dropdowns don't change the button element (i.e.
     # the thing showing the name of the dropdown), as an ordinary HTML <select>
     # would. You can use <select>s with bootstrap, but the styling is limited
@@ -706,13 +718,46 @@ def run(
     @callback(
         Output("ccDrawingSelect", "children"),
         Output("ccDrawingSelect", "value"),
+        Output("ccSizeRankSelectorEles", "className"),
+        Output("ccNodeNameSelectorEles", "className"),
+        State("ccSizeRankSelectorEles", "className"),
+        State("ccNodeNameSelectorEles", "className"),
         Input("ccDrawingSizeRank", "n_clicks"),
         Input("ccDrawingWithNode", "n_clicks"),
         Input("ccDrawingAll", "n_clicks"),
         prevent_initial_call=True,
     )
-    def change_drawing_method(c0, c1, c2):
-        return cc_selection_options[ctx.triggered_id], ctx.triggered_id
+    def change_drawing_method(
+        cc_sr_eles_classes,
+        cc_nn_eles_classes,
+        cc_sr_clicks,
+        cc_nn_clicks,
+        cc_all_clicks,
+    ):
+        if ctx.triggered_id == "ccDrawingSizeRank":
+            cc_sr_eles_classes = css_config.CC_SELECTOR_ELES_CLASSES
+            cc_nn_eles_classes = (
+                css_config.CC_SELECTOR_ELES_CLASSES + " hidden"
+            )
+        elif ctx.triggered_id == "ccDrawingWithNode":
+            cc_sr_eles_classes = (
+                css_config.CC_SELECTOR_ELES_CLASSES + " hidden"
+            )
+            cc_nn_eles_classes = css_config.CC_SELECTOR_ELES_CLASSES
+        else:
+            # draw all components, so hide both size rank and node name eles
+            cc_sr_eles_classes = (
+                css_config.CC_SELECTOR_ELES_CLASSES + " hidden"
+            )
+            cc_nn_eles_classes = (
+                css_config.CC_SELECTOR_ELES_CLASSES + " hidden"
+            )
+        return (
+            cc_selection_options[ctx.triggered_id],
+            ctx.triggered_id,
+            cc_sr_eles_classes,
+            cc_nn_eles_classes,
+        )
 
     @callback(
         Output("cyDiv", "children"),

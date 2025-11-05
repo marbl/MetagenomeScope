@@ -110,6 +110,14 @@ body {
     border-bottom: 2px solid #adadad;
 }
 
+#drawButton {
+    border-top: 2px solid #adadad;
+}
+
+.hidden {
+    display: none !important;
+}
+
 #floatingExportButton {
     position: absolute;
     right: 0em;

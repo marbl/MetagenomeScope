@@ -21,3 +21,7 @@ CONTROLS_TRANSITION_DURATION = "0.2s"
 
 # classes on the info dialog's tables
 INFO_DIALOG_TABLE_CLASSES = "table table-striped-columns"
+
+# default classes on the input groups used for selecting components to draw
+# by size rank or node name
+CC_SELECTOR_ELES_CLASSES = "input-group"
