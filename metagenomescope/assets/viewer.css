@@ -110,12 +110,21 @@ body {
     border-bottom: 2px solid #adadad;
 }
 
-#drawButton {
-    border-top: 2px solid #adadad;
-}
-
 .hidden {
     display: none !important;
+}
+
+/* dash's checklists nest the <input> inside the <label>, which is insane to
+ * me but apparently that's what people are doing nowadays in html. okay.
+ * (oh and apparently it is even good practice? see
+ * https://stackoverflow.com/a/24596641. huh.)
+ *
+ * anyway usually i would set up the <input> and <label> as sibling elements
+ * and i'd add a margin to the <label>, but since this isn't feasible anymore
+ * (i think) i guess we can apply the margin to the <input>.
+ */
+.form-check input {
+    margin-right: 0.5em;
 }
 
 #floatingExportButton {

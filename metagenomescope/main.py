@@ -256,6 +256,18 @@ def run(
                         className=css_config.CC_SELECTOR_ELES_CLASSES
                         + " hidden",
                     ),
+                    html.Div(
+                        [
+                            dcc.Checklist(
+                                # the first arg lists the options,
+                                # the second arg lists the ones that are
+                                # by default selected
+                                ["Show patterns"],
+                                ["Show patterns"],
+                            ),
+                        ],
+                        className="form-check",
+                    ),
                     html.Button(
                         [
                             html.I(className="bi bi-brush-fill"),
