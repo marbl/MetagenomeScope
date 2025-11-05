@@ -12,7 +12,7 @@ import pygraphviz
 
 
 from .. import parsers, config, layout_utils, misc_utils, seq_utils
-from ..errors import GraphParsingError, GraphError, WeirdError
+from ..errors import GraphParsingError, GraphError, WeirdError, UIError
 from . import validators, graph_utils
 from .component import Component
 from .pattern import Pattern
@@ -1504,6 +1504,10 @@ class AssemblyGraph(object):
             ),
             reverse=True,
         )
+        # Label each component with a "cc_num" indicating how relatively large
+        # it is. Useful for searching later on.
+        for i, cc in enumerate(self.components, 1):
+            cc.set_cc_num(i)
 
     def __repr__(self):
         return (
@@ -1585,7 +1589,12 @@ class AssemblyGraph(object):
             # easier later on.
             for node_id in cc_node_ids:
                 if self.is_pattern(node_id):
-                    self.pattid2obj[node_id].set_cc_num(cc_i)
+                    raise NotImplemented(
+                        "hey future me, set cc num based on child nodes' cc "
+                        "nums which are now set earlier"
+                    )
+                    # (TODO replace the line below)
+                    # self.pattid2obj[node_id].set_cc_num(cc_i)
                     # Lay out the pattern in isolation (could involve multiple
                     # layers, since patterns can contain other patterns).
                     self.pattid2obj[node_id].layout()
@@ -2209,36 +2218,68 @@ class AssemblyGraph(object):
             fh.write(output_stats)
         conclude_msg()
 
-    def to_cyjs_elements(self):
+    def to_cyjs_elements(self, cc_size_rank=None, cc_node_name=None):
+        if cc_size_rank is None:
+            if cc_node_name is None:
+                # Select all ccs
+                ccs = self.components
+            else:
+                # Select a single cc, as the one that contains a node
+                # TODO this is kind of slow b/c it searches through the
+                # entire graph. If it becomes a bottleneck, we could start
+                # saving a mapping of node name -> cc num or something?
+                cc_num = None
+                for n in self.nodeid2obj.values():
+                    if n.basename == cc_node_name:
+                        cc_num = n.cc_num
+                        break
+                if cc_num is None:
+                    raise UIError(
+                        f"Can't find a node with name {cc_node_name} in the "
+                        "graph."
+                    )
+                ccs = [self.components[cc_num - 1]]
+        else:
+            if cc_node_name is None:
+                # Select a single cc, by (1-indexed) size rank
+                if cc_size_rank > 0 and cc_size_rank <= len(self.components):
+                    ccs = [self.components[cc_size_rank - 1]]
+                else:
+                    raise UIError(
+                        "Graph has "
+                        f"{pluralize(len(self.components), 'component')}. "
+                        f'Invalid size rank of "{cc_size_rank}".'
+                    )
+            else:
+                raise WeirdError("Both size rank and node name specified?")
+
         nodes = []
         edges = []
-        # TODO this is just getting the first (biggest) cc. make user selectable ofc
-        # i guess make cc index a parameter of this func, right? which will make testing easyish
-        for n in self.graph.nodes:
-            nobj = self.nodeid2obj[n]
-            if "orientation" in nobj.data:
-                if nobj.data["orientation"] == "+":
-                    ndir = "fwd"
+        for cc in ccs:
+            for nobj in cc.nodes:
+                if "orientation" in nobj.data:
+                    if nobj.data["orientation"] == "+":
+                        ndir = "fwd"
+                    else:
+                        ndir = "rev"
                 else:
-                    ndir = "rev"
-            else:
-                ndir = "unoriented"
-            nodes.append(
-                {
-                    "data": {
-                        "id": str(nobj.unique_id),
-                        "label": str(nobj.name),
-                    },
-                    "classes": ndir,
-                }
-            )
-        for e in self.graph.edges:
-            edges.append(
-                {
-                    "data": {
-                        "source": str(e[0]),
-                        "target": str(e[1]),
+                    ndir = "unoriented"
+                nodes.append(
+                    {
+                        "data": {
+                            "id": str(nobj.unique_id),
+                            "label": str(nobj.name),
+                        },
+                        "classes": ndir,
                     }
-                }
-            )
+                )
+            for eobj in cc.edges:
+                edges.append(
+                    {
+                        "data": {
+                            "source": str(eobj.new_src_id),
+                            "target": str(eobj.new_tgt_id),
+                        }
+                    }
+                )
         return nodes + edges

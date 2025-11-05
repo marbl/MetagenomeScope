@@ -203,18 +203,6 @@ class Pattern(Node):
     def get_node_ids(self):
         return get_ids_of_nodes(self.nodes)
 
-    def set_cc_num(self, cc_num):
-        """Updates the component number attribute of all Patterns, nodes, and
-        edges in this Pattern.
-
-        This is really important to keep around for later -- it allows us to
-        traverse nodes/edges/etc. in the graph more easily later on.
-        """
-        for coll in (self.nodes, self.edges):
-            for obj in coll:
-                obj.set_cc_num(cc_num)
-        super().set_cc_num(cc_num)
-
     def to_dot(self, indent=config.INDENT):
         """Returns a DOT representation of this Pattern and its descendants.
 

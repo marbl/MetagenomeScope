@@ -8,3 +8,7 @@ class GraphError(Exception):
 
 class WeirdError(Exception):
     pass
+
+
+class UIError(Exception):
+    pass

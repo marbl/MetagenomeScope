@@ -773,10 +773,21 @@ def run(
 
     @callback(
         Output("cyDiv", "children"),
+        State("ccDrawingSelect", "value"),
+        State("ccSizeRankSelector", "value"),
+        State("ccNodeNameSelector", "value"),
         Input("drawButton", "n_clicks"),
         prevent_initial_call=True,
     )
-    def draw(n_clicks):
+    def draw(cc_drawing_selection_type, size_rank, node_name, n_clicks):
+        ag_selection_params = {}
+        if cc_drawing_selection_type == "ccDrawingSizeRank":
+            ag_selection_params = {"cc_size_rank": size_rank}
+        elif cc_drawing_selection_type == "ccDrawingWithNode":
+            ag_selection_params = {"cc_node_name": node_name}
+
+        elements = ag.to_cyjs_elements(**ag_selection_params)
+
         # TODO store info in AsmGraph? about which ccs have been laid out.
         # For now, we can assume that the scaling stuff is not configurable,
         # so there is only a binary of "laid out" or "not laid out". Set up
@@ -790,7 +801,7 @@ def run(
         #     ag.layout()
         return cyto.Cytoscape(
             id="cy",
-            elements=ag.to_cyjs_elements(),
+            elements=elements,
             layout={"name": "cose"},
             style={
                 "width": "100%",

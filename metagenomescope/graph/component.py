@@ -65,6 +65,11 @@ class Component(object):
         # PatternStats for this Component.
         self.pattern_stats = PatternStats()
 
+        # unique size rank index of this component (the cc in the graph with
+        # the most nodes has size rank 1, the next biggest one has size rank 2,
+        # etc). We store this to make searching through the graph easier.
+        self.cc_num = None
+
     def __repr__(self):
         return (
             f"Component {self.unique_id}: {self.num_total_nodes:,} node(s), "
@@ -97,3 +102,10 @@ class Component(object):
         for p in patts:
             self.patterns.append(p)
         self.pattern_stats += patt_stats
+
+    def set_cc_num(self, cc_num):
+        """Updates the component number of this component and its children."""
+        self.cc_num = cc_num
+        for coll in (self.nodes, self.edges):
+            for obj in coll:
+                obj.set_cc_num(cc_num)
