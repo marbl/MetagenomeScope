@@ -282,11 +282,6 @@ def run(
                     ),
                     ctrl_sep,
                     # html.H4("Selected"),
-                    html.Button(
-                        "click me",
-                        id="susButton",
-                        className="btn btn-danger",
-                    ),
                 ],
                 id="controls",
                 style={
