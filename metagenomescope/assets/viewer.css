@@ -110,8 +110,15 @@ body {
     border-bottom: 2px solid #adadad;
 }
 
+#ccSizeRankSelectorEles, #ccNodeNameSelectorEles {
+    transition-duration: 0.25s;
+    transition-timing-function: ease-in-out;
+    transition-property: opacity;
+}
+
 .hidden {
-    display: none !important;
+    opacity: 0;
+    pointer-events: none;
 }
 
 /* dash's checklists nest the <input> inside the <label>, which is insane to
