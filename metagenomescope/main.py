@@ -233,6 +233,8 @@ def run(
                                 className="form-control",
                                 value=1,
                                 min=1,
+                                max=len(ag.components),
+                                step=1,
                             ),
                             html.Button(
                                 html.I(className="bi bi-plus-lg"),
@@ -800,12 +802,23 @@ def run(
         ag_selection_params = {}
 
         if cc_drawing_selection_type == "ccDrawingSizeRank":
+            # Invalid numbers will apparently be passed to this function as
+            # None, which is nice but does make it tough to distinguish btwn
+            # "the <input> is empty" and "the user entered a bad number".
+            # Anyway we just handle both cases with the same message.
             if size_rank is None:
                 return (
                     ui_utils.add_error_toast(
                         curr_toasts,
                         "Draw Error",
-                        "No component size rank specified.",
+                        # yeah yeah i know including an en dash literally in
+                        # the code is sloppy but stuff like &ndash; doesn't
+                        # work because we're not updating the source of the
+                        # <div> directly i think so whatever
+                        (
+                            "Invalid component size rank specified. Must be "
+                            f"in the range 1 – {len(ag.components)}."
+                        ),
                     ),
                     curr_cy,
                 )
