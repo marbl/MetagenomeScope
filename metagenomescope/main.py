@@ -80,7 +80,7 @@ def run(
                 "One component (by size rank)",
             ),
         ],
-        "ccDrawingWithNode": [
+        "ccDrawingNodeName": [
             html.I(className="bi bi-search"),
             html.Span(
                 "One component (with a node)",
@@ -192,11 +192,11 @@ def run(
                                     html.Li(
                                         html.A(
                                             cc_selection_options[
-                                                "ccDrawingWithNode"
+                                                "ccDrawingNodeName"
                                             ]
                                         ),
                                         className="dropdown-item",
-                                        id="ccDrawingWithNode",
+                                        id="ccDrawingNodeName",
                                     ),
                                     html.Li(
                                         html.A(
@@ -735,7 +735,7 @@ def run(
         State("ccSizeRankSelectorEles", "className"),
         State("ccNodeNameSelectorEles", "className"),
         Input("ccDrawingSizeRank", "n_clicks"),
-        Input("ccDrawingWithNode", "n_clicks"),
+        Input("ccDrawingNodeName", "n_clicks"),
         Input("ccDrawingAll", "n_clicks"),
         prevent_initial_call=True,
     )
@@ -751,7 +751,7 @@ def run(
             cc_nn_eles_classes = (
                 css_config.CC_SELECTOR_ELES_CLASSES + " hidden"
             )
-        elif ctx.triggered_id == "ccDrawingWithNode":
+        elif ctx.triggered_id == "ccDrawingNodeName":
             cc_sr_eles_classes = (
                 css_config.CC_SELECTOR_ELES_CLASSES + " hidden"
             )
@@ -783,7 +783,7 @@ def run(
         ag_selection_params = {}
         if cc_drawing_selection_type == "ccDrawingSizeRank":
             ag_selection_params = {"cc_size_rank": size_rank}
-        elif cc_drawing_selection_type == "ccDrawingWithNode":
+        elif cc_drawing_selection_type == "ccDrawingNodeName":
             ag_selection_params = {"cc_node_name": node_name}
 
         elements = ag.to_cyjs_elements(**ag_selection_params)
