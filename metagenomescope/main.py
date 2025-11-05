@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import math
 import base64
 import matplotlib
 import dash
@@ -219,6 +220,7 @@ def run(
                         [
                             html.Button(
                                 html.I(className="bi bi-dash-lg"),
+                                id="ccSizeRankDecrBtn",
                                 # might add borders to the sides of these later
                                 className="btn btn-light cc-size-rank-adj",
                                 type="button",
@@ -234,10 +236,10 @@ def run(
                                 value=1,
                                 min=1,
                                 max=len(ag.components),
-                                step=1,
                             ),
                             html.Button(
                                 html.I(className="bi bi-plus-lg"),
+                                id="ccSizeRankIncrBtn",
                                 className="btn btn-light cc-size-rank-adj",
                                 type="button",
                             ),
@@ -781,6 +783,36 @@ def run(
         )
 
     @callback(
+        Output("ccSizeRankSelector", "value"),
+        State("ccSizeRankSelector", "value"),
+        Input("ccSizeRankDecrBtn", "n_clicks"),
+        Input("ccSizeRankIncrBtn", "n_clicks"),
+        prevent_initial_call=True,
+        allow_duplicate=True,
+    )
+    def update_cc_size_rank(size_rank, decr_n_clicks, incr_n_clicks):
+        if size_rank is None:
+            return 1
+        if ctx.triggered_id == "ccSizeRankDecrBtn":
+            if type(size_rank) is not int:
+                return max(math.floor(size_rank), 1)
+            if size_rank <= 1:
+                return 1
+            elif size_rank > len(ag.components):
+                return len(ag.components)
+            else:
+                return size_rank - 1
+        else:
+            if type(size_rank) is not int:
+                return min(math.ceil(size_rank), len(ag.components))
+            if size_rank < 1:
+                return 1
+            elif size_rank >= len(ag.components):
+                return len(ag.components)
+            else:
+                return size_rank + 1
+
+    @callback(
         Output("toastHolder", "children"),
         Output("cyDiv", "children"),
         State("toastHolder", "children"),
@@ -802,11 +834,17 @@ def run(
         ag_selection_params = {}
 
         if cc_drawing_selection_type == "ccDrawingSizeRank":
-            # Invalid numbers will apparently be passed to this function as
-            # None, which is nice but does make it tough to distinguish btwn
-            # "the <input> is empty" and "the user entered a bad number".
-            # Anyway we just handle both cases with the same message.
-            if size_rank is None:
+            # Invalid numbers (with respect to any set min / max values) will
+            # be passed here as None, which is nice but does make it tough to
+            # distinguish btwn "the <input> is empty" and "the user entered a
+            # bad number". Anyway we just handle both cases with the same
+            # message.
+            #
+            # (Note that floats may end up here, because I deliberately did not
+            # set step=1 on the size rank selector. This allows the -/+ buttons
+            # to actually see the current value and do intelligent rounding in
+            # the update_cc_size_rank() callback.)
+            if type(size_rank) is not int:
                 return (
                     ui_utils.add_error_toast(
                         curr_toasts,
