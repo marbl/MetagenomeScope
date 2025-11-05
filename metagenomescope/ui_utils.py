@@ -58,6 +58,7 @@ def add_error_toast(toasts, title_text="Error", body_text=None):
 
 
 def get_error_toast(title_text="Error", body_text=None):
+    # https://getbootstrap.com/docs/5.3/components/toasts/#live-example
     toast = html.Div(
         [
             # toast header

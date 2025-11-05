@@ -565,7 +565,9 @@ def run(
                     "tabIndex": "-1",
                 },
             ),
-            # toasts
+            # toast messages will go here. you can change top-0 to bottom-0 to
+            # position these in the bottom right of the window; see
+            # https://getbootstrap.com/docs/5.3/components/toasts/#live-example
             html.Div(
                 id="toastHolder",
                 className="toast-container position-fixed top-0 end-0 p-3",
