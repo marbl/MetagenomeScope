@@ -2247,7 +2247,7 @@ class AssemblyGraph(object):
                 else:
                     raise UIError(
                         "Graph has "
-                        f"{pluralize(len(self.components), 'component')}. "
+                        f"{misc_utils.pluralize(len(self.components), 'component')}. "
                         f'Invalid size rank of "{cc_size_rank}".'
                     )
             else:
