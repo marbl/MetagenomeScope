@@ -1,7 +1,7 @@
 import matplotlib
 from dash import html
 from . import css_config
-from .misc_utils import fmt_qty
+from .misc_utils import fmt_qty, get_toast_timestamp
 
 
 def get_length_info(ag):
@@ -48,3 +48,47 @@ def use_thousands_sep(mpl_axis):
             )
         )
     )
+
+
+def add_error_toast(toasts, title_text="Error", body_text=None):
+    if toasts is None:
+        toasts = []
+    new_toast = get_error_toast(title_text=title_text, body_text=body_text)
+    return [new_toast] + toasts
+
+
+def get_error_toast(title_text="Error", body_text=None):
+    toast = html.Div(
+        [
+            # toast header
+            html.Div(
+                [
+                    html.I(className="bi bi-exclamation-lg"),
+                    html.Span(
+                        title_text,
+                        className="iconlbl me-auto",
+                    ),
+                    html.Small(get_toast_timestamp()),
+                    html.Button(
+                        className="btn-close",
+                        type="button",
+                        **{
+                            "data-bs-dismiss": "toast",
+                            "aria-label": "Close",
+                        },
+                    ),
+                ],
+                className="toast-header",
+            ),
+        ],
+        className="toast fade show",
+        role="alert",
+        **{
+            "aria-live": "assertive",
+            "aria-atomic": "true",
+            "data-bs-delay": "5000",
+        },
+    )
+    if body_text is not None:
+        toast.children.append(html.Div(body_text, className="toast-body"))
+    return toast

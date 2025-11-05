@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-import time
 import logging
 import base64
 import matplotlib
@@ -783,30 +782,49 @@ def run(
         )
 
     @callback(
+        Output("toastHolder", "children"),
         Output("cyDiv", "children"),
+        State("toastHolder", "children"),
+        State("cyDiv", "children"),
         State("ccDrawingSelect", "value"),
         State("ccSizeRankSelector", "value"),
         State("ccNodeNameSelector", "value"),
         Input("drawButton", "n_clicks"),
         prevent_initial_call=True,
     )
-    def draw(cc_drawing_selection_type, size_rank, node_name, n_clicks):
+    def draw(
+        curr_toasts,
+        curr_cy,
+        cc_drawing_selection_type,
+        size_rank,
+        node_name,
+        n_clicks,
+    ):
         ag_selection_params = {}
 
         if cc_drawing_selection_type == "ccDrawingSizeRank":
-            # with how numeric dcc.Inputs work, i am not sure this can happen,
-            # but let's be paranoid anyway
             if size_rank is None:
-                raise UIError("Specify a size rank of the component to draw.")
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts,
+                        "Draw Error",
+                        "No component size rank specified.",
+                    ),
+                    curr_cy,
+                )
             ag_selection_params = {"cc_size_rank": size_rank}
 
         elif cc_drawing_selection_type == "ccDrawingNodeName":
             if node_name is None:
-                raise UIError(
-                    "Specify a node name within the component to draw."
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts, "Draw Error", "No node name specified."
+                    ),
+                    curr_cy,
                 )
             ag_selection_params = {"cc_node_name": node_name}
 
+        # TODO try/catch and if ui error pass msg on to toast
         elements = ag.to_cyjs_elements(**ag_selection_params)
 
         # TODO store info in AsmGraph? about which ccs have been laid out.
@@ -820,7 +838,7 @@ def run(
         # progress bars here or something to the viz but for now nbd
         # if not ag.layout_done:
         #     ag.layout()
-        return cyto.Cytoscape(
+        return curr_toasts, cyto.Cytoscape(
             id="cy",
             elements=elements,
             layout={"name": "cose"},
@@ -871,52 +889,5 @@ def run(
                 },
             ],
         )
-
-    @callback(
-        Output("toastHolder", "children"),
-        State("toastHolder", "children"),
-        Input("susButton", "n_clicks"),
-        prevent_initial_call=True,
-    )
-    def show_ui_error_message(toasts, n_clicks):
-        if toasts is None:
-            toasts = []
-        return [
-            # toast
-            html.Div(
-                [
-                    # toast header
-                    html.Div(
-                        [
-                            html.I(className="bi bi-exclamation-lg"),
-                            html.Span(
-                                "Error",
-                                className="iconlbl me-auto",
-                            ),
-                            html.Small(time.strftime("%Y-%m-%d %H:%M:%S")),
-                            html.Button(
-                                className="btn-close",
-                                type="button",
-                                **{
-                                    "data-bs-dismiss": "toast",
-                                    "aria-label": "Close",
-                                },
-                            ),
-                        ],
-                        className="toast-header",
-                    ),
-                    # toast body
-                    html.Div(
-                        [
-                            "im gaming",
-                        ],
-                        className="toast-body",
-                    ),
-                ],
-                className="toast fade show",
-                role="alert",
-                **{"aria-live": "assertive", "aria-atomic": "true"},
-            ),
-        ] + toasts
 
     app.run(debug=True)

@@ -1,3 +1,4 @@
+import time
 from .errors import WeirdError
 
 
@@ -76,3 +77,12 @@ def fmt_qty(quantity, unit="bp", na="N/A"):
         return f"{quantity:,} {unit}"
     else:
         return na
+
+
+def get_toast_timestamp():
+    t = time.strftime("%I:%M:%S %p").lower()
+    # trim off leading "0" for the hour (e.g. "05:40:10 pm" -> "5:40:10 pm")
+    # this isnt really standard practice or anything i just think it looks nice
+    if t[0] == "0":
+        t = t[1:]
+    return t
