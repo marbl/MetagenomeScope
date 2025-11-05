@@ -849,14 +849,7 @@ def run(
                     ui_utils.add_error_toast(
                         curr_toasts,
                         "Draw Error",
-                        # yeah yeah i know including an en dash literally in
-                        # the code is sloppy but stuff like &ndash; doesn't
-                        # work because we're not updating the source of the
-                        # <div> directly i think so whatever
-                        (
-                            "Invalid component size rank specified. Must be "
-                            f"in the range 1 – {len(ag.components)}."
-                        ),
+                        ui_utils.get_cc_size_rank_error_msg(ag),
                     ),
                     curr_cy,
                 )

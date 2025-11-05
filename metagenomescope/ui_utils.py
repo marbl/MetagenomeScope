@@ -93,3 +93,18 @@ def get_error_toast(title_text="Error", body_text=None):
     if body_text is not None:
         toast.children.append(html.Div(body_text, className="toast-body"))
     return toast
+
+
+def get_cc_size_rank_error_msg(ag):
+    msg = "Invalid component size rank specified. "
+    if len(ag.components) > 1:
+        # yeah yeah i know including an en dash literally in the code is sloppy
+        # but stuff like &ndash; doesn't work unless we update HTML source
+        # directly and that seems more jank than this
+        msg += f"Must be in the range 1 – {len(ag.components)}."
+    else:
+        msg += (
+            f"I mean, like, your graph only has one component, so... "
+            'this should always be a "1"...'
+        )
+    return msg
