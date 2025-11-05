@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import time
 import logging
 import base64
 import matplotlib
@@ -12,7 +13,7 @@ from . import defaults, cy_config, css_config, ui_utils
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
 from .graph import AssemblyGraph
-from .errors import WeirdError
+from .errors import WeirdError, UIError
 
 # account for tkinter crashing: https://stackoverflow.com/a/51178529
 matplotlib.use("Agg")
@@ -231,8 +232,8 @@ def run(
                                 type="number",
                                 id="ccSizeRankSelector",
                                 className="form-control",
-                                value="1",
-                                min="1",
+                                value=1,
+                                min=1,
                             ),
                             html.Button(
                                 html.I(className="bi bi-plus-lg"),
@@ -282,6 +283,11 @@ def run(
                     ),
                     ctrl_sep,
                     # html.H4("Selected"),
+                    html.Button(
+                        "click me",
+                        id="susButton",
+                        className="btn btn-danger",
+                    ),
                 ],
                 id="controls",
                 style={
@@ -565,6 +571,11 @@ def run(
                     "tabIndex": "-1",
                 },
             ),
+            # toasts
+            html.Div(
+                id="toastHolder",
+                className="toast-container position-fixed top-0 end-0 p-3",
+            ),
         ],
     )
 
@@ -781,9 +792,19 @@ def run(
     )
     def draw(cc_drawing_selection_type, size_rank, node_name, n_clicks):
         ag_selection_params = {}
+
         if cc_drawing_selection_type == "ccDrawingSizeRank":
+            # with how numeric dcc.Inputs work, i am not sure this can happen,
+            # but let's be paranoid anyway
+            if size_rank is None:
+                raise UIError("Specify a size rank of the component to draw.")
             ag_selection_params = {"cc_size_rank": size_rank}
+
         elif cc_drawing_selection_type == "ccDrawingNodeName":
+            if node_name is None:
+                raise UIError(
+                    "Specify a node name within the component to draw."
+                )
             ag_selection_params = {"cc_node_name": node_name}
 
         elements = ag.to_cyjs_elements(**ag_selection_params)
@@ -850,5 +871,52 @@ def run(
                 },
             ],
         )
+
+    @callback(
+        Output("toastHolder", "children"),
+        State("toastHolder", "children"),
+        Input("susButton", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def show_ui_error_message(toasts, n_clicks):
+        if toasts is None:
+            toasts = []
+        return [
+            # toast
+            html.Div(
+                [
+                    # toast header
+                    html.Div(
+                        [
+                            html.I(className="bi bi-exclamation-lg"),
+                            html.Span(
+                                "Error",
+                                className="iconlbl me-auto",
+                            ),
+                            html.Small(time.strftime("%Y-%m-%d %H:%M:%S")),
+                            html.Button(
+                                className="btn-close",
+                                type="button",
+                                **{
+                                    "data-bs-dismiss": "toast",
+                                    "aria-label": "Close",
+                                },
+                            ),
+                        ],
+                        className="toast-header",
+                    ),
+                    # toast body
+                    html.Div(
+                        [
+                            "im gaming",
+                        ],
+                        className="toast-body",
+                    ),
+                ],
+                className="toast fade show",
+                role="alert",
+                **{"aria-live": "assertive", "aria-atomic": "true"},
+            ),
+        ] + toasts
 
     app.run(debug=True)
