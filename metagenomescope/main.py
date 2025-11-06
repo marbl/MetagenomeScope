@@ -115,11 +115,17 @@ def run(
         "ccDrawingAll": [
             html.I(className="bi bi-asterisk"),
             html.Span(
-                "All components" if multiple_ccs else "Only component in the graph",
+                (
+                    "All components"
+                    if multiple_ccs
+                    else "Only component in the graph"
+                ),
             ),
         ],
     }
-    DEFAULT_CC_SELECTION_METHOD = "ccDrawingSizeRank" if multiple_ccs else "ccDrawingAll"
+    DEFAULT_CC_SELECTION_METHOD = (
+        "ccDrawingSizeRank" if multiple_ccs else "ccDrawingAll"
+    )
     CC_SELECTION_A_CLASSES_MULTIPLE_CCS = "dropdown-item"
     CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {}
     if not multiple_ccs:
@@ -191,7 +197,9 @@ def run(
                     html.Div(
                         [
                             html.Button(
-                                cc_selection_options[DEFAULT_CC_SELECTION_METHOD],
+                                cc_selection_options[
+                                    DEFAULT_CC_SELECTION_METHOD
+                                ],
                                 className="btn btn-sm btn-light dropdown-toggle",
                                 id="ccDrawingSelect",
                                 type="button",
@@ -279,7 +287,8 @@ def run(
                         # "draw all components" aka "draw only component" is
                         # the default -- meaning that we should hide the cc
                         # size rank selection elements by default.
-                        className=css_config.CC_SELECTOR_ELES_CLASSES + (" hidden" if not multiple_ccs else ""),
+                        className=css_config.CC_SELECTOR_ELES_CLASSES
+                        + (" hidden" if not multiple_ccs else ""),
                     ),
                     html.Div(
                         [
