@@ -877,8 +877,17 @@ def run(
                 )
             ag_selection_params = {"cc_node_name": node_name}
 
-        # TODO try/catch and if ui error pass msg on to toast
-        elements = ag.to_cyjs_elements(**ag_selection_params)
+        try:
+            elements = ag.to_cyjs_elements(**ag_selection_params)
+        except UIError as err:
+            return (
+                ui_utils.add_error_toast(
+                    curr_toasts,
+                    "Draw Error",
+                    str(err)
+                ),
+                curr_cy,
+            )
 
         # TODO store info in AsmGraph? about which ccs have been laid out.
         # For now, we can assume that the scaling stuff is not configurable,

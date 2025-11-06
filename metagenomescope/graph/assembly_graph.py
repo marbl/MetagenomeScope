@@ -2234,9 +2234,13 @@ class AssemblyGraph(object):
                         cc_num = n.cc_num
                         break
                 if cc_num is None:
+                    # TODO: it might be nice in the future to put the node
+                    # name in monospace, since it looks like bootstrap (?)'s
+                    # formatting is collapsing spaces. but it's nbd (if your
+                    # node names have spaces something is already horrible)
                     raise UIError(
-                        f"Can't find a node with name {cc_node_name} in the "
-                        "graph."
+                        f'Can\'t find a node with name "{cc_node_name}" in '
+                        'the graph.'
                     )
                 ccs = [self.components[cc_num - 1]]
         else:
@@ -2245,7 +2249,11 @@ class AssemblyGraph(object):
                 if cc_size_rank > 0 and cc_size_rank <= len(self.components):
                     ccs = [self.components[cc_size_rank - 1]]
                 else:
-                    raise UIError(
+                    # Due to the relatively strict <input> filtering that dash
+                    # does, and the errors we already catch in the draw()
+                    # callback, we PROBABLY won't see this error message. But
+                    # let's be careful.
+                    raise UIGrror(
                         "Graph has "
                         f"{misc_utils.pluralize(len(self.components), 'component')}. "
                         f'Invalid size rank of "{cc_size_rank}".'
