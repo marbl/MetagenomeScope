@@ -877,6 +877,8 @@ def run(
                 )
             ag_selection_params = {"cc_node_name": node_name}
 
+        # if something goes wrong during drawing, propagate the result to
+        # a toast message in the browser without changing the cytoscape div
         try:
             elements = ag.to_cyjs_elements(**ag_selection_params)
         except UIError as err:
