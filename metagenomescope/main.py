@@ -282,13 +282,13 @@ def run(
                             ),
                         ],
                         id="ccSizeRankSelectorEles",
-                        # The default cc selection option is "draw cc by size
-                        # rank". However, if the graph only has one cc, then
-                        # "draw all components" aka "draw only component" is
-                        # the default -- meaning that we should hide the cc
-                        # size rank selection elements by default.
                         className=css_config.CC_SELECTOR_ELES_CLASSES
-                        + (" hidden" if not multiple_ccs else ""),
+                        + (
+                            " hidden"
+                            if "ccDrawingSizeRank"
+                            != DEFAULT_CC_SELECTION_METHOD
+                            else ""
+                        ),
                     ),
                     html.Div(
                         [
@@ -300,11 +300,13 @@ def run(
                             ),
                         ],
                         id="ccNodeNameSelectorEles",
-                        # The select-cc-by-node-name stuff is always hidden at
-                        # first, since the default cc selection option is
-                        # either "by size rank" or "only cc".
                         className=css_config.CC_SELECTOR_ELES_CLASSES
-                        + " hidden",
+                        + (
+                            " hidden"
+                            if "ccDrawingNodeName"
+                            != DEFAULT_CC_SELECTION_METHOD
+                            else ""
+                        ),
                     ),
                     html.Div(
                         [
