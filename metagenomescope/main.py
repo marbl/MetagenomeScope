@@ -881,11 +881,7 @@ def run(
             elements = ag.to_cyjs_elements(**ag_selection_params)
         except UIError as err:
             return (
-                ui_utils.add_error_toast(
-                    curr_toasts,
-                    "Draw Error",
-                    str(err)
-                ),
+                ui_utils.add_error_toast(curr_toasts, "Draw Error", str(err)),
                 curr_cy,
             )
 

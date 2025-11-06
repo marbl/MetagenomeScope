@@ -2240,7 +2240,7 @@ class AssemblyGraph(object):
                     # node names have spaces something is already horrible)
                     raise UIError(
                         f'Can\'t find a node with name "{cc_node_name}" in '
-                        'the graph.'
+                        "the graph."
                     )
                 ccs = [self.components[cc_num - 1]]
         else:
