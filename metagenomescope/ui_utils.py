@@ -54,7 +54,12 @@ def add_error_toast(toasts, title_text="Error", body_text=None):
     if toasts is None:
         toasts = []
     new_toast = get_error_toast(title_text=title_text, body_text=body_text)
-    return [new_toast] + toasts
+    # adding the new toast BEFORE the other toasts does put it on top if any
+    # others are still on the screen, but it causes weird behavior if any
+    # other toasts have been hidden (probably due to bootstrap css/js details).
+    # easier to just put the newest toast at the bottom. probably there will
+    # only be like 1-2 of these visible at a time for most users anyway
+    return toasts + [new_toast]
 
 
 def get_error_toast(title_text="Error", body_text=None):
@@ -87,7 +92,6 @@ def get_error_toast(title_text="Error", body_text=None):
         **{
             "aria-live": "assertive",
             "aria-atomic": "true",
-            "data-bs-delay": "5000",
         },
     )
     if body_text is not None:
