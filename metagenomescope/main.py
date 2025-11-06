@@ -6,7 +6,16 @@ import base64
 import matplotlib
 import dash
 import dash_cytoscape as cyto
-from dash import html, callback, ctx, dcc, Input, Output, State
+from dash import (
+    html,
+    callback,
+    clientside_callback,
+    ctx,
+    dcc,
+    Input,
+    Output,
+    State,
+)
 from io import BytesIO
 from matplotlib import pyplot
 from . import defaults, cy_config, css_config, ui_utils
@@ -930,5 +939,29 @@ def run(
                 },
             ],
         )
+
+    # It looks like Bootstrap requires us to use JS to show the toast. If we
+    # try to show it ourselves (by just adding the "show" class when creating
+    # the toast) then the toast never goes away and also doesn't have smooth
+    # animation when appearing. As far as I can tell, using a clientside
+    # callback (https://dash.plotly.com/clientside-callbacks) is the smoothest
+    # way to do this.
+    #
+    # (The "data-mgsc-shown" attribute makes sure that we don't re-show a toast
+    # that has already been shown.)
+    clientside_callback(
+        """
+        function(toasts) {
+            var tele = document.getElementById("toastHolder").lastChild;
+            if (tele !== null && tele.getAttribute("data-mgsc-shown") === "false") {
+                var toast = bootstrap.Toast.getOrCreateInstance(tele);
+                toast.show();
+                tele.setAttribute("data-mgsc-shown", "true");
+            }
+        }
+        """,
+        Input("toastHolder", "children"),
+        prevent_initial_call=True,
+    )
 
     app.run(debug=True)

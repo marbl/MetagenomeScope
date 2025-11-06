@@ -87,11 +87,17 @@ def get_error_toast(title_text="Error", body_text=None):
                 className="toast-header",
             ),
         ],
-        className="toast fade show",
+        # Hide toasts by default. We will use Bootstrap through JS to
+        # show them later. See the client-side callback in the main app code.
+        className="toast",
         role="alert",
         **{
             "aria-live": "assertive",
             "aria-atomic": "true",
+            # Custom data attribute used to ensure that we only show each
+            # toast message once. Apparently making up HTML attributes is ok,
+            # per https://stackoverflow.com/a/432201
+            "data-mgsc-shown": "false",
         },
     )
     if body_text is not None:
