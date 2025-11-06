@@ -83,6 +83,22 @@ def run(
         className="ctrlSep",
     )
 
+    # If there are multiple components, show a "Components" tab in the info
+    # dialog with information about these components. Also show various options
+    # for selecting which component(s) to draw.
+    #
+    # This is all useless and confusing if the graph only has one component, so
+    # this flag lets us figure out if we should show or hide this kinda stuff
+    multiple_ccs = len(ag.components) > 1
+
+    # Options for drawing components
+    # If there is only one cc in the graph, we'll disable the "one component"
+    # options. We'll make the "all components" option the default, and rename
+    # it to be clearer. (Um, we could also change its icon from an asterisk to
+    # something else if desired, but I actually think keeping the asterisk
+    # makes sense. This way people don't worry that they are somehow seeing
+    # "less" of the graph than they would otherwise. Like this is still the
+    # "draw everything" option, if that makes sense.)
     cc_selection_options = {
         "ccDrawingSizeRank": [
             html.I(className="bi bi-sort-down"),
@@ -99,17 +115,19 @@ def run(
         "ccDrawingAll": [
             html.I(className="bi bi-asterisk"),
             html.Span(
-                "All components",
+                "All components" if multiple_ccs else "Only component in the graph",
             ),
         ],
     }
-
-    # If there are multiple components, show a "Components" tab in the info
-    # dialog with information about these components -- as of writing, just
-    # some histograms about how many nodes are in each component. Since this
-    # is essentially useless if there is only one component, we use this flag
-    # variable to figure out if we should even show this tab in the first place.
-    multiple_ccs = len(ag.components) > 1
+    DEFAULT_CC_SELECTION_METHOD = "ccDrawingSizeRank" if multiple_ccs else "ccDrawingAll"
+    CC_SELECTION_A_CLASSES_MULTIPLE_CCS = "dropdown-item"
+    CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {}
+    if not multiple_ccs:
+        # https://getbootstrap.com/docs/5.3/components/dropdowns/#disabled
+        # thankfully this seems to prevent dash from noticing click events on
+        # the disabled <a>s in question :)
+        CC_SELECTION_A_CLASSES_MULTIPLE_CCS += " disabled"
+        CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {"aria-disabled": "true"}
 
     # update_title=None prevents Dash's default "Updating..." page title change
     app = dash.Dash(__name__, title="MgSc", update_title=None)
@@ -173,7 +191,7 @@ def run(
                     html.Div(
                         [
                             html.Button(
-                                cc_selection_options["ccDrawingSizeRank"],
+                                cc_selection_options[DEFAULT_CC_SELECTION_METHOD],
                                 className="btn btn-sm btn-light dropdown-toggle",
                                 id="ccDrawingSelect",
                                 type="button",
@@ -182,7 +200,7 @@ def run(
                                 # children when the user selects a drawing method.
                                 # The value is used by our code to determine the
                                 # currently-selected drawing method.
-                                value="ccDrawingSizeRank",
+                                value=DEFAULT_CC_SELECTION_METHOD,
                                 **{
                                     "data-bs-toggle": "dropdown",
                                     "aria-expanded": "false",
@@ -194,28 +212,30 @@ def run(
                                         html.A(
                                             cc_selection_options[
                                                 "ccDrawingSizeRank"
-                                            ]
+                                            ],
+                                            className=CC_SELECTION_A_CLASSES_MULTIPLE_CCS,
+                                            id="ccDrawingSizeRank",
+                                            **CC_SELECTION_A_ATTRS_MULTIPLE_CCS,
                                         ),
-                                        className="dropdown-item",
-                                        id="ccDrawingSizeRank",
                                     ),
                                     html.Li(
                                         html.A(
                                             cc_selection_options[
                                                 "ccDrawingNodeName"
-                                            ]
+                                            ],
+                                            className=CC_SELECTION_A_CLASSES_MULTIPLE_CCS,
+                                            id="ccDrawingNodeName",
+                                            **CC_SELECTION_A_ATTRS_MULTIPLE_CCS,
                                         ),
-                                        className="dropdown-item",
-                                        id="ccDrawingNodeName",
                                     ),
                                     html.Li(
                                         html.A(
                                             cc_selection_options[
                                                 "ccDrawingAll"
-                                            ]
+                                            ],
+                                            className="dropdown-item",
+                                            id="ccDrawingAll",
                                         ),
-                                        className="dropdown-item",
-                                        id="ccDrawingAll",
                                     ),
                                 ],
                                 id="ccDrawingUl",
@@ -254,7 +274,12 @@ def run(
                             ),
                         ],
                         id="ccSizeRankSelectorEles",
-                        className=css_config.CC_SELECTOR_ELES_CLASSES,
+                        # The default cc selection option is "draw cc by size
+                        # rank". However, if the graph only has one cc, then
+                        # "draw all components" aka "draw only component" is
+                        # the default -- meaning that we should hide the cc
+                        # size rank selection elements by default.
+                        className=css_config.CC_SELECTOR_ELES_CLASSES + (" hidden" if not multiple_ccs else ""),
                     ),
                     html.Div(
                         [
@@ -266,6 +291,9 @@ def run(
                             ),
                         ],
                         id="ccNodeNameSelectorEles",
+                        # The select-cc-by-node-name stuff is always hidden at
+                        # first, since the default cc selection option is
+                        # either "by size rank" or "only cc".
                         className=css_config.CC_SELECTOR_ELES_CLASSES
                         + " hidden",
                     ),
