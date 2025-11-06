@@ -879,6 +879,7 @@ def run(
         node_name,
         n_clicks,
     ):
+        logging.debug("Received request to draw the graph.")
         ag_selection_params = {}
 
         if cc_drawing_selection_type == "ccDrawingSizeRank":
@@ -919,8 +920,16 @@ def run(
         # if something goes wrong during drawing, propagate the result to
         # a toast message in the browser without changing the cytoscape div
         try:
+            logging.debug(
+                "Converting graph to Cytoscape.js-compatible elements "
+                f"using {ag_selection_params}..."
+            )
             elements = ag.to_cyjs_elements(**ag_selection_params)
+            logging.debug("...Done.")
         except UIError as err:
+            logging.debug(
+                "...Something went wrong; propagating error message to user."
+            )
             return (
                 ui_utils.add_error_toast(curr_toasts, "Draw Error", str(err)),
                 curr_cy,
