@@ -921,8 +921,8 @@ def run(
         # a toast message in the browser without changing the cytoscape div
         try:
             logging.debug(
-                "Converting graph to Cytoscape.js-compatible elements "
-                f"using {ag_selection_params}..."
+                "Converting graph to Cytoscape.js-compatible elements ("
+                f"parameters {ag_selection_params})..."
             )
             elements = ag.to_cyjs_elements(**ag_selection_params)
             logging.debug("...Done.")
