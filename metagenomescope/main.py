@@ -865,7 +865,10 @@ def run(
             ag_selection_params = {"cc_size_rank": size_rank}
 
         elif cc_drawing_selection_type == "ccDrawingNodeName":
-            if node_name is None:
+            # looks like not typing in the node name field at all results
+            # in node_name being None. However, if we type something in and
+            # then fully delete it, then node_name becomes "". Eesh!
+            if node_name is None or node_name == "":
                 return (
                     ui_utils.add_error_toast(
                         curr_toasts, "Draw Error", "No node name specified."
