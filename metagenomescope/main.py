@@ -948,7 +948,10 @@ def run(
     # way to do this.
     #
     # (The "data-mgsc-shown" attribute makes sure that we don't re-show a toast
-    # that has already been shown.)
+    # that has already been shown. This is because one of the draw() callback's
+    # outputs is the toastHolder's children, so even if we just draw the graph
+    # successfully without triggering any new toasts then this clientside
+    # callback will still be triggered. Oh no! "data-mgsc-shown" fixes things.)
     clientside_callback(
         """
         function(toasts) {
