@@ -25,9 +25,7 @@ pip install git+https://github.com/fedarko/MetagenomeScope-1.git@desk
 
 ... Eventually we'll put this on bioconda or something.
 
-## Documentation
-
-### Visualizing an assembly graph
+## Usage
 
 Activate the mamba environment we just created and run:
 
@@ -38,9 +36,7 @@ mgsc -i [path to your assembly graph]
 This will start a server using Dash. Navigate to `localhost:8050` in
 a web browser to access the visualization.
 
-### What types of assembly graphs do you support?
-
-Currently:
+## Supported filetypes
 
 <!-- TODO: I haven't tested miniasm, hifiasm(-meta), and MEGAHIT output graphs here;
 should do that to verify that their graphs work ok -->
@@ -56,7 +52,7 @@ should do that to verify that their graphs work ok -->
 If you run into any additional assembly graph filetypes you'd like us to
 support ([...and/or if any more of these filetypes get created in the next few years](https://xkcd.com/927/)), please [let us know](#contact)!
 
-### FAQs
+## FAQs
 
 (The title "FAQ" is kind of a lie because I don't think anyone has asked me any
 of these questions yet. Maybe we can just act like the "F" in "FAQ" stands for
