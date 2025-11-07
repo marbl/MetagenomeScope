@@ -49,8 +49,8 @@ should do that to verify that their graphs work ok -->
 | [GML](https://networkx.org/documentation/stable/reference/readwrite/gml.html) (`.gml`) | [MetaCarvel](https://github.com/marbl/MetaCarvel) | Expects MetaCarvel-"dialect" GML files. |
 | [LastGraph](https://github.com/dzerbino/velvet/blob/master/Manual.pdf) (`.LastGraph`) | [Velvet](https://github.com/dzerbino/velvet) | Only the raw structure (nodes and arcs) are included. |
 
-If you run into any additional assembly graph filetypes you'd like us to
-support ([...and/or if any more of these filetypes get created in the next few years](https://xkcd.com/927/)), please [let us know](#contact)!
+If there are [additional](https://xkcd.com/927/) assembly graph filetypes you'd like us to
+support, feel free to open a GitHub issue.
 
 ## FAQs
 
@@ -241,4 +241,4 @@ Thanks to various people in the Pop, Knight, and Pevzner Labs over the years for
 
 ## Contact
 
-Please [open an issue](https://github.com/marbl/MetagenomeScope/issues) if you have any questions or suggestions.
+Please [open a GitHub issue](https://github.com/marbl/MetagenomeScope/issues) if you have any questions or suggestions.
