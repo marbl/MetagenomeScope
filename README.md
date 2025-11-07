@@ -1,14 +1,17 @@
 # MetagenomeScope
 
-[![icon](https://raw.githubusercontent.com/fedarko/MetagenomeScope-1/refs/heads/desk/metagenomescope/assets/favicon.ico)](https://marbl.github.io/MetagenomeScope/)
-[![CI](https://github.com/marbl/Metagenomescope/actions/workflows/python.yml/badge.svg)](https://github.com/marbl/MetagenomeScope/actions/workflows/python.yml)
-[![Code Coverage](https://codecov.io/gh/marbl/MetagenomeScope/branch/master/graph/badge.svg)](https://codecov.io/gh/marbl/MetagenomeScope)
+<div align="center">
+<a href="https://github.com/marbl/MetagenomeScope/actions/workflows/python.yml"><img src="https://github.com/marbl/Metagenomescope/actions/workflows/python.yml/badge.svg" alt="CI" /></a>
+<a href="https://codecov.io/gh/marbl/MetagenomeScope"><img src="https://codecov.io/gh/marbl/MetagenomeScope/branch/master/graph/badge.svg" alt="Code Coverage" /></a>
+<a href="https://marbl.github.io/MetagenomeScope/"><img src="https://raw.githubusercontent.com/fedarko/MetagenomeScope-1/refs/heads/desk/metagenomescope/assets/favicon.ico" alt="Icon" /></a>
+</div>
 
-MetagenomeScope is an interactive visualization tool designed for (meta)genomic
-sequence assembly graphs.
+MetagenomeScope is an interactive visualization tool designed for (meta)genome
+assembly graphs.
 
-Something something [hierarchical layout](https://en.wikipedia.org/wiki/Layered_graph_drawing),
-small details, etc.
+MetagenomeScope iteratively decomposes the graph into interpretable structural patterns,
+visualizes the graph using [hierarchical layout](https://en.wikipedia.org/wiki/Layered_graph_drawing),
+and includes many helpful features for analyzing the graph at both large and small scales.
 
 ## Installation
 
@@ -33,7 +36,7 @@ mgsc -i [path to your assembly graph]
 ```
 
 This will start a server using Dash. Navigate to `localhost:8050` in
-your browser to access the visualization.
+a web browser to access the visualization.
 
 ### What types of assembly graphs do you support?
 
@@ -210,15 +213,15 @@ then that's also fine, and we'll visualize all of them.)
 Yes! MetagenomeScope supports
 [multigraphs](https://en.wikipedia.org/wiki/Multigraph). If your assembly graph
 file describes more than one edge from `X -> Y`, then MetagenomeScope will
-visualize all of these "parallel" edges. (Parallel edges often occur in de
-Bruijn graphs.)
+visualize all of these "parallel" edges. (This is mostly useful when visualizing
+de Bruijn graphs.)
 
 Notably, parallel edges are only supported right now for some filetypes. The
 parsers MetagenomeScope uses for GFA and FASTG files
 [do not allow multigraphs](https://github.com/marbl/MetagenomeScope/issues/239) -- this
 means that, at the moment, trying to use MetagenomeScope to visualize a GFA or
 FASTG file containing parallel edges will cause an error. I would like to address
-this (at least for GFA files) at some point.
+this (at least for GFA files) at some point, but it doesn't seem like a very important issue.
 </details>
 
 ## License
@@ -234,4 +237,4 @@ Thanks to various people in the Pop, Knight, and Pevzner Labs over the years for
 
 ## Contact
 
-Please [open an issue](https://github.com/marbl/MetagenomeScope/issues) if you have any questions, suggestions, etc.
+Please [open an issue](https://github.com/marbl/MetagenomeScope/issues) if you have any questions or suggestions.
