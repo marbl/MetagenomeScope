@@ -1,98 +1,42 @@
 # MetagenomeScope
 
-[![MgSc Python CI](https://github.com/marbl/Metagenomescope/actions/workflows/python.yml/badge.svg)](https://github.com/marbl/MetagenomeScope/actions/workflows/python.yml)
-[![MgSc JavaScript CI](https://github.com/marbl/Metagenomescope/actions/workflows/js.yml/badge.svg)](https://github.com/marbl/MetagenomeScope/actions/workflows/js.yml)
+[![CI](https://github.com/marbl/Metagenomescope/actions/workflows/python.yml/badge.svg)](https://github.com/marbl/MetagenomeScope/actions/workflows/python.yml)
 [![Code Coverage](https://codecov.io/gh/marbl/MetagenomeScope/branch/master/graph/badge.svg)](https://codecov.io/gh/marbl/MetagenomeScope)
 
-![Screenshot of MetagenomeScope's standard mode, showing an example assembly graph from Nijkamp et al. 2013](https://user-images.githubusercontent.com/4177727/100696036-6aa7ab80-3347-11eb-8017-f693aae08aa2.png "Screenshot of MetagenomeScope showing an example assembly graph from Nijkamp et al. 2013.")
-<div align="center">
-(Assembly graph based on Fig. 2(a) in <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3916741/">Nijkamp et al. 2013</a>.)
-</div>
-
-## NOTE: MetagenomeScope is currently being refactored!
-Some features that were previously in MetagenomeScope are not currently
-re-implemented yet -- this should be changed soon. Thanks for bearing with me
-as I work on improving this, and please let me know if you have any questions.
-
-## Summary
-
 MetagenomeScope is an interactive visualization tool designed for (meta)genomic
-sequence assembly graphs. The tool aims to display a [hierarchical
-layout](https://en.wikipedia.org/wiki/Layered_graph_drawing) of the input graph
-while emphasizing the presence of small-scale details that can correspond to
-interesting biological properties of the assembly.
+sequence assembly graphs.
 
-Some of the features MetagenomeScope includes:
-
-- Identifies and visually highlights "structural patterns" in the graph
-  (bubbles, chains, cyclic chains, frayed ropes)
-  - Repeats these identifications iteratively in order to support the
-    decomposition of complex regions of the graph
-  - Allows users to interactively collapse or uncollapse these patterns, in
-    order to display the graph at different levels of detail
-
-- Uses [Graphviz](https://www.graphviz.org/)'
-  [`dot`](https://www.graphviz.org/pdf/dotguide.pdf) tool to hierarchically
-  lay out each connected component of the graph
-
-- Given an [AGP file](https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/)
-   describing, for example, scaffolds consisting of multiple contigs, supports
-   visualization of these as paths through the graph
-
-- Interactive path finishing
-
-- Coloring nodes and edges by arbitrary metadata (e.g. GC content, coverage)
-
-(As mentioned above, many of these features are not available in
-the current version yet.)
+Something something [hierarchical layout](https://en.wikipedia.org/wiki/Layered_graph_drawing),
+small details, etc.
 
 ## Installation
 
-Probably the easiest way to install MetagenomeScope is using a
-[conda](https://docs.conda.io/en/latest/) environment. Eventually we'll put
-this up on bioconda or something, but until then you can use the following
-steps:
+Using [mamba](https://mamba.readthedocs.io/):
 
 ```bash
-# Download the YAML file describing the conda packages we'll install
-wget https://raw.githubusercontent.com/marbl/MetagenomeScope/main/environment.yml
-
-# Create a new conda environment based on this YAML file
-# (by default, it'll be named "mgsc")
-conda env create -f environment.yml
-
-# Activate this conda environment
-conda activate mgsc
-
-# Install the actual MetagenomeScope software
-pip install git+https://github.com/marbl/MetagenomeScope.git
+mamba create -n mgsc "python >= 3.8" numpy pygraphviz
+mamba activate mgsc
+pip install git+https://github.com/fedarko/MetagenomeScope-1.git@desk
 ```
 
-### Troubleshooting your installation
-
-Getting Graphviz and PyGraphviz installed -- and getting them to communicate
-with each other -- can be tricky. I'm looking into ways of making this less
-painful; for now, if you run into problems, please feel free to [contact
-me](#contact) and I'll try to help out.
+... Eventually we'll put this on bioconda or something.
 
 ## Documentation
 
 ### Visualizing an assembly graph
 
-Assuming you've activated the conda environment we just created,
-visualizing an assembly graph can be done in one command:
+Activate the mamba environment we just created and run:
 
 ```
-mgsc -i [path to your assembly graph] -o [output directory name]
+mgsc -i [path to your assembly graph]
 ```
 
-The output directory will contain an `index.html` file that can be opened in
-most modern web browsers. (The `index.html` file points to other resources
-located within the directory, so please don't move it out of the directory.)
+This will start a server using Dash. Navigate to `localhost:8050` in
+your browser to access the visualization.
 
-### What types of assembly graphs can this tool visualize?
+### What types of assembly graphs do you support?
 
-Currently, MetagenomeScope supports the following filetypes:
+Currently:
 
 <!-- TODO: I haven't tested miniasm, hifiasm(-meta), and MEGAHIT output graphs here;
 should do that to verify that their graphs work ok -->
@@ -108,63 +52,6 @@ should do that to verify that their graphs work ok -->
 If you run into any additional assembly graph filetypes you'd like us to
 support ([...and/or if any more of these filetypes get created in the next few years](https://xkcd.com/927/)), please [let us know](#contact)!
 
-### Vignettes
-
-<details>
-  <summary><strong>I just want to visualize an assembly graph.</strong></summary>
-
-Let's say the assembly graph is located in a file named `graph.gfa`. We can use
-the following command:
-
-```
-mgsc -i graph.gfa -o viz
-```
-
-This will create a visualization of this assembly graph in the directory
-`viz/`.
-</details>
-
-<details>
-  <summary><strong>I want to visualize an assembly graph, but I don't care
-about the "pattern identification" stuff. Can you just show me the raw
-structure of the graph?</strong></summary>
-
-Sure! The `--no-patterns` flag will disable pattern identification.
-
-```
-mgsc -i graph.gfa -o vizraw --no-patterns
-```
-This will create a visualization of this assembly graph, without any patterns
-identified, in the directory `vizraw/`.
-</details>
-
-<details>
-  <summary><strong>I've got a really big graph, and I don't want to visualize
-it -- I just want to get a summary of how many nodes, edges, bubbles, etc. are
-present in each component of the graph.</strong></summary>
-
-The `-os` / `--output-ccstats` option will write out a
-[TSV file](https://en.wikipedia.org/wiki/Tab-separated_values)
-describing the numbers of nodes, edges, and each type of identified pattern in
-all components in the assembly graph.
-
-This option is a simple way to summarize even massive graphs; it can be useful
-if you're working, for example, on a remote server (and you just want an
-overview of the basic structure of a graph's components).
-
-If your graph is large enough, and if you don't intend to visualize it anyway,
-then you will probably also want to disable the `-maxn` and `-maxe` options
-(and thus tell MetagenomeScope to consider all components, no matter how large
-they are).
-
-The following command produces a TSV file named `stats.tsv` summarizing all
-components (no matter how large) of an assembly graph:
-
-```
-mgsc -i graph.gfa -os stats.tsv -maxn 0 -maxe 0
-```
-</details>
-
 ### FAQs
 
 (The title "FAQ" is kind of a lie because I don't think anyone has asked me any
@@ -174,7 +61,9 @@ of these questions yet. Maybe we can just act like the "F" in "FAQ" stands for
 <!-- use of <strong> here was stolen from strainflye's readme, which in turn is
 based on https://codedragontech.com/createwithcodedragon/how-to-style-html-details-and-summary-tags/ -->
 <details>
-  <summary><strong>What's the deal with "reverse complement" nodes/edges?</strong></summary>
+  <summary><strong>How do you handle reverse complement nodes/edges?</strong></summary>
+
+It's a bit involved. Let's go on a journey.
 
 #### "Explicit" graph filetypes (FASTG, DOT, GML)
 
@@ -250,15 +139,14 @@ This graph (still containing **four nodes** [`1`, `-1`, `2`, `-2`], but now
 containing **four edges** [`1 -> 2`, `-2 -> -1`, `1 -> -2`, `2 -> -1`]) takes up only a single
 weakly connected component.
 
-\* The statement that reverse complements "describe the same sequences, just in
-different directions" is technically not true for LastGraph files. Consider a node `N` in a
-LastGraph file: the sequence represented by `N` will not be exactly equal to the reverse
+\* There may be some slight differences, depending on your assembler's behavior.
+For example, in Velvet's output LastGraph files:
+the sequence represented by a node `N` will not be exactly equal to the reverse
 complement of the sequence represented by `-N`, since these sequences are slightly
 shifted. See
 [the Bandage wiki](https://github.com/rrwick/Bandage/wiki/Assembler-differences#velvet)
-for a nice figure and explanation. (That being said, the intuition for
-"thinking about reverse complement nodes / edges" here is pretty much the same
-as it is for other files.)
+for a nice figure and explanation. (That being said, I think the intuition for
+"thinking about reverse complement nodes / edges" here should be similar.)
 
 #### Based on the FASTG specification, shouldn't FASTG be an "implicit" instead of an "explicit" filetype?
 
@@ -276,7 +164,7 @@ for details on how we handle reverse complements in FASTG files.)
 <details>
   <summary><strong>What happens if an edge is its own reverse complement?</strong></summary>
 
-You really like asking hard questions, don't you?
+(This FAQ assumes that you read the one above it.)
 
 This can happen if an edge exists from `X -> -X` or from `-X -> X` in an
 "implicit" graph file (GFA / LastGraph). Consider
@@ -312,13 +200,13 @@ Notably, since we assume that "explicit" graph files (FASTG / DOT / GML)
 explicitly define all of the nodes and edges in their graph, MetagenomeScope doesn't do anything
 special for this case for these files. (If your DOT file describes one edge
 from `X -> -X`, then that's fine; if it describes two or more edges from `X -> -X`,
-then that's also fine.)
+then that's also fine, and we'll visualize all of them.)
 </details>
 
 <details>
   <summary><strong>Can my graphs have parallel edges?</strong></summary>
 
-Yes! MetagenomeScope now supports
+Yes! MetagenomeScope supports
 [multigraphs](https://en.wikipedia.org/wiki/Multigraph). If your assembly graph
 file describes more than one edge from `X -> Y`, then MetagenomeScope will
 visualize all of these "parallel" edges. (Parallel edges often occur in de
@@ -328,105 +216,9 @@ Notably, parallel edges are only supported right now for some filetypes. The
 parsers MetagenomeScope uses for GFA and FASTG files
 [do not allow multigraphs](https://github.com/marbl/MetagenomeScope/issues/239) -- this
 means that, at the moment, trying to use MetagenomeScope to visualize a GFA or
-FASTG file containing parallel edges will cause an error. I hope to address
-this (at least for GFA files) soon.
+FASTG file containing parallel edges will cause an error. I would like to address
+this (at least for GFA files) at some point.
 </details>
-
-<details>
-  <summary><strong>What's the deal with the <code>-maxn</code> / <code>-maxe</code> options?</strong></summary>
-
-By default, MetagenomeScope will apply these options to ignore large connected
-components of the graph -- this is because performing hierarchical layout of
-very large components can be computationally intensive.
-
-You can turn off these settings (and
-thus tell MetagenomeScope to look at _all_ components of the graph) by setting
-both `-maxn` and `-maxe` to `0`.
-
-</details>
-
-### Full command-line usage
-
-```
-Usage: mgsc [OPTIONS]
-
-  Visualizes and/or summarizes an assembly graph.
-
-  MetagenomeScope supports multiple types of output (-o, -od, -os); you will
-  probably want to start with -o.
-
-  Please check out https://github.com/marbl/MetagenomeScope if you have any
-  questions, suggestions, etc. about this tool.
-
-Options:
-  -i, --input-file FILE           Assembly graph file. We accept GFA, FASTG,
-                                  DOT, GML, and LastGraph files.  [required]
-  -o, --output-viz-dir PATH       If provided, we'll save an interactive
-                                  visualization of the graph to this
-                                  directory. The directory will contain an
-                                  index.html file; you can open this file in a
-                                  web browser to access the visualization. If
-                                  we cannot create this directory for some
-                                  reason (e.g. it already exists), we'll raise
-                                  an error.
-  -od, --output-dot FILE          If provided, we'll save a DOT file
-                                  describing the graph to this filepath.
-                                  Identified patterns will be represented in
-                                  this DOT file as "cluster" subgraphs.
-  -os, --output-ccstats FILE      If provided, we'll save a tab-separated
-                                  values (TSV) file describing the numbers of
-                                  nodes, edges, and structural patterns in
-                                  each connected component of the graph to
-                                  this filepath.
-  -n, --node-metadata FILE        TSV file mapping some or all of the graph's
-                                  node IDs (rows) to arbitrary metadata fields
-                                  (columns).
-  -e, --edge-metadata FILE        TSV file mapping some or all of the graph's
-                                  edges (rows) to arbitrary metadata fields
-                                  (columns). The leftmost two columns in this
-                                  file should contain the source and sink node
-                                  ID of the edge being described in a row; if
-                                  there exist parallel edges in the graph
-                                  between a given source and sink node, then
-                                  that row's metadata will be applied to all
-                                  such edges.
-  -maxn, --max-node-count INTEGER RANGE
-                                  We will not consider connected components
-                                  containing more than this many nodes. This
-                                  option is provided because hierarchical
-                                  graph layout is relatively slow for large /
-                                  tangled components, and because the
-                                  interactive visualization can be slow for
-                                  large graphs. Impacts all output options
-                                  (-o, -od, -os). Setting this to 0 removes
-                                  this limit.  [default: 7999; x>=0]
-  -maxe, --max-edge-count INTEGER RANGE
-                                  We will not visualize connected components
-                                  containing more than this many edges.
-                                  Impacts all output options (-o, -od, -os).
-                                  Setting this to 0 removes this limit.
-                                  [default: 7999; x>=0]
-  --patterns / --no-patterns      If --patterns is set, we'll identify
-                                  structural patterns (e.g. bubbles) in the
-                                  graph; if --no-patterns is set, we won't
-                                  identify any patterns. Impacts all output
-                                  options (-o, -od, -os).  [default: patterns]
-  -v, --version                   Show the version and exit.
-  -h, --help                      Show this message and exit.
-```
-
-## Demo visualizations
-
-Some early demos are available online. We'll probably add more of these in the
-future.
-
-- [Marygold Fig. 2(a) graph](https://marbl.github.io/MetagenomeScope/demos/marygold/index.html)
-  - See [Nijkamp et al. 2013](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3916741/) for details.
-    This graph was based on the topology shown in Fig. 2(a) of this paper.
-
-- [Velvet E. coli graph](https://marbl.github.io/MetagenomeScope/demos/bandage-ecoli-example/index.html)
-  - This graph is example data from the website of [Bandage](http://rrwick.github.io/Bandage/)
-    (which is another great tool for visualizing assembly graphs :)
 
 ## License
 
@@ -437,11 +229,8 @@ License information for MetagenomeScope's dependencies is included in the root d
 
 ## Acknowledgements
 
-See the [acknowledgements page](https://github.com/marbl/MetagenomeScope/wiki/Acknowledgements) on the wiki for a list of acknowledgements
-for MetagenomeScope's codebase.
+Thanks to various people in the Pop, Knight, and Pevzner Labs over the years for feedback and suggestions on the tool.
 
 ## Contact
 
-MetagenomeScope was created by members of the [Pop Lab](https://sites.google.com/a/cs.umd.edu/poplab/) in the [Center for Bioinformatics and Computational Biology](https://cbcb.umd.edu/) at the [University of Maryland, College Park](https://umd.edu/).
-
-Feel free to email `mfedarko (at) ucsd (dot) edu` with any questions, suggestions, comments, concerns, etc. regarding the tool. You can also [open an issue](https://github.com/marbl/MetagenomeScope/issues) in this repository, if you'd like.
+Please [open an issue](https://github.com/marbl/MetagenomeScope/issues) if you have any questions, suggestions, etc.
