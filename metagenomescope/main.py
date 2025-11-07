@@ -20,7 +20,7 @@ from io import BytesIO
 from . import defaults, cy_config, css_config, ui_utils
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
-from .graph import AssemblyGraph
+from .graph import AssemblyGraph, graph_utils
 from .errors import WeirdError, UIError
 
 
@@ -448,7 +448,7 @@ def run(
                                             ),
                                             html.Li(
                                                 html.Button(
-                                                    f"Sequences",
+                                                    "Sequences",
                                                     className="nav-link",
                                                     id="seqLenTab",
                                                     type="button",
@@ -554,8 +554,76 @@ def run(
                                             (
                                                 html.Div(
                                                     [
+                                                        html.Ul(
+                                                            [
+                                                                html.Li(
+                                                                    html.Button(
+                                                                        "Histogram of nodes/edges",
+                                                                        className="nav-link active",
+                                                                        id="ccNestHistTab",
+                                                                        type="button",
+                                                                        role="tab",
+                                                                        **{
+                                                                            "data-bs-toggle": "tab",
+                                                                            "data-bs-target": "#ccNestHistTabPane",
+                                                                            "aria-controls": "ccNestHistTabPane",
+                                                                            "aria-selected": "true",
+                                                                        },
+                                                                    ),
+                                                                    className="nav-item",
+                                                                    role="presentation",
+                                                                ),
+                                                                html.Li(
+                                                                    html.Button(
+                                                                        "Scatterplot of nodes/edges",
+                                                                        className="nav-link",
+                                                                        id="ccNestScatterTab",
+                                                                        type="button",
+                                                                        role="tab",
+                                                                        **{
+                                                                            "data-bs-toggle": "tab",
+                                                                            "data-bs-target": "#ccNestScatterTabPane",
+                                                                            "aria-controls": "ccNestScatterTabPane",
+                                                                            "aria-selected": "false",
+                                                                        },
+                                                                    ),
+                                                                    className="nav-item",
+                                                                    role="presentation",
+                                                                ),
+                                                            ],
+                                                            className="nav nav-tabs",
+                                                            id="ccTabs",
+                                                            role="tablist",
+                                                        ),
                                                         html.Div(
-                                                            id="ccHistContainer",
+                                                            [
+                                                                html.Div(
+                                                                    html.Div(
+                                                                        id="ccHistContainer",
+                                                                    ),
+                                                                    className="tab-pane fade show active",
+                                                                    id="ccNestHistTabPane",
+                                                                    role="tabpanel",
+                                                                    tabIndex="0",
+                                                                    **{
+                                                                        "aria-labelledby": "ccNestHistTab"
+                                                                    },
+                                                                ),
+                                                                html.Div(
+                                                                    html.Div(
+                                                                        id="ccScatterContainer",
+                                                                    ),
+                                                                    className="tab-pane fade",
+                                                                    id="ccNestScatterTabPane",
+                                                                    role="tabpanel",
+                                                                    tabIndex="0",
+                                                                    **{
+                                                                        "aria-labelledby": "ccNestScatterTab"
+                                                                    },
+                                                                ),
+                                                            ],
+                                                            className="tab-content",
+                                                            id="ccNestTabContent",
                                                         ),
                                                     ],
                                                     id="ccTabPane",
@@ -623,21 +691,8 @@ def run(
             prevent_initial_call=True,
         )
         def plot_cc_hist(n_clicks):
-
-            # neither of the following cases should ever happen, since this
-            # callback should only be triggered on graphs with > 1 components
-            if len(ag.components) < 1:
-                raise WeirdError(
-                    "How are you going to have a graph with 0 ccs???"
-                )
-            elif len(ag.components) == 1:
-                return f"hey fyi this is just 1 cc with {cc_sizes[0]:,} nodes"
-
-            cc_node_cts = []
-            cc_edge_cts = []
-            for cc in ag.components:
-                cc_node_cts.append(cc.num_full_nodes)
-                cc_edge_cts.append(cc.num_real_edges)
+            graph_utils.validate_multiple_ccs(ag)
+            cc_node_cts, cc_edge_cts = ag.get_component_node_and_edge_cts()
 
             fig = go.Figure()
             fig.add_trace(
@@ -665,9 +720,7 @@ def run(
                 title_text="Numbers of nodes and edges per component",
                 xaxis_title_text="# nodes or # edges",
                 yaxis_title_text="# components",
-                font=dict(
-                    size=16
-                ),
+                font=dict(size=16),
                 # By default the title is shoved up really high above
                 # the figure; this repositions it to be closer, while
                 # still keeping a bit of padding. From
@@ -689,6 +742,60 @@ def run(
             fig.update_yaxes(ticksuffix=" ")
             return dcc.Graph(figure=fig)
 
+        @callback(
+            Output("ccScatterContainer", "children"),
+            Input("ccNestScatterTab", "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def plot_cc_scatter(n_clicks):
+            graph_utils.validate_multiple_ccs(ag)
+            cc_node_cts, cc_edge_cts = ag.get_component_node_and_edge_cts()
+
+            fig = go.Figure()
+            # Scattergl should hold up well for big datasets:
+            # https://plotly.com/python/performance/
+            fig.add_trace(
+                go.Scattergl(
+                    x=cc_node_cts,
+                    y=cc_edge_cts,
+                    mode="markers",
+                    marker_size=20,
+                    marker_opacity=0.4,
+                    marker_color="#16a",
+                    marker_line_width=2,
+                    marker_line_color="#003",
+                )
+            )
+            fig.update_layout(
+                title_text="Numbers of nodes and edges per component",
+                xaxis_title_text="# nodes",
+                yaxis_title_text="# edges",
+                font=dict(size=16),
+                # By default the title is shoved up really high above
+                # the figure; this repositions it to be closer, while
+                # still keeping a bit of padding. From
+                # https://community.plotly.com/t/margins-around-graphs/11550/6
+                title=dict(
+                    yanchor="bottom",
+                    y=1,
+                    yref="paper",
+                ),
+                title_pad=dict(
+                    b=30,
+                ),
+                margin=dict(
+                    t=75,
+                ),
+            )
+            # Hack to add padding to the right of the y-axis tick labels:
+            # https://stackoverflow.com/a/66736119
+            fig.update_yaxes(ticksuffix=" ")
+            # On interactive scatterplots, I think it is natural to expect that
+            # zooming the mouse wheel will also zoom in/out of the graph. This
+            # can be enabled using this config setting. From
+            # https://community.plotly.com/t/zoom-on-mouse-wheel/477/9
+            return dcc.Graph(figure=fig, config={"scrollZoom": True})
+
     @callback(
         Output("seqLenHistContainer", "children"),
         Input("seqLenTab", "n_clicks"),
@@ -709,9 +816,7 @@ def run(
             title_text=f"{ag.seq_noun.title()} sequence lengths",
             xaxis_title_text="Length (bp)",
             yaxis_title_text=f"# {ag.seq_noun}s",
-            font=dict(
-                size=16
-            ),
+            font=dict(size=16),
             title=dict(
                 yanchor="bottom",
                 y=1,

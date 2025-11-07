@@ -1149,6 +1149,20 @@ class AssemblyGraph(object):
                     del self.nodeid2obj[node_id]
                     del self.edgeid2obj[fe_id]
 
+    def get_component_node_and_edge_cts(self):
+        """Returns lists of node and edge counts for each component.
+
+        These lists are guaranteed to have the same lengths. Furthermore,
+        they are in the same order -- so the same component is described
+        by position 0 in the node list and the edge list, etc.
+        """
+        cc_node_cts = []
+        cc_edge_cts = []
+        for cc in self.components:
+            cc_node_cts.append(cc.num_full_nodes)
+            cc_edge_cts.append(cc.num_real_edges)
+        return cc_node_cts, cc_edge_cts
+
     def get_node_lengths(self):
         """Returns a dict mapping node IDs to lengths.
 
