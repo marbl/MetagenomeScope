@@ -725,17 +725,9 @@ def run(
                 # the figure; this repositions it to be closer, while
                 # still keeping a bit of padding. From
                 # https://community.plotly.com/t/margins-around-graphs/11550/6
-                title=dict(
-                    yanchor="bottom",
-                    y=1,
-                    yref="paper",
-                ),
-                title_pad=dict(
-                    b=30,
-                ),
-                margin=dict(
-                    t=75,
-                ),
+                title=dict(yanchor="bottom", y=1, yref="paper"),
+                title_pad=dict(b=30),
+                margin=dict(t=75),
             )
             # Hack to add padding to the right of the y-axis tick labels:
             # https://stackoverflow.com/a/66736119
@@ -771,24 +763,10 @@ def run(
                 xaxis_title_text="# nodes",
                 yaxis_title_text="# edges",
                 font=dict(size=16),
-                # By default the title is shoved up really high above
-                # the figure; this repositions it to be closer, while
-                # still keeping a bit of padding. From
-                # https://community.plotly.com/t/margins-around-graphs/11550/6
-                title=dict(
-                    yanchor="bottom",
-                    y=1,
-                    yref="paper",
-                ),
-                title_pad=dict(
-                    b=30,
-                ),
-                margin=dict(
-                    t=75,
-                ),
+                title=dict(yanchor="bottom", y=1, yref="paper"),
+                title_pad=dict(b=30),
+                margin=dict(t=75),
             )
-            # Hack to add padding to the right of the y-axis tick labels:
-            # https://stackoverflow.com/a/66736119
             fig.update_yaxes(ticksuffix=" ")
             # On interactive scatterplots, I think it is natural to expect that
             # zooming the mouse wheel will also zoom in/out of the graph. This
@@ -817,17 +795,9 @@ def run(
             xaxis_title_text="Length (bp)",
             yaxis_title_text=f"# {ag.seq_noun}s",
             font=dict(size=16),
-            title=dict(
-                yanchor="bottom",
-                y=1,
-                yref="paper",
-            ),
-            title_pad=dict(
-                b=30,
-            ),
-            margin=dict(
-                t=75,
-            ),
+            title=dict(yanchor="bottom", y=1, yref="paper"),
+            title_pad=dict(b=30),
+            margin=dict(t=75),
         )
         fig.update_yaxes(ticksuffix=" ")
         return dcc.Graph(figure=fig)
