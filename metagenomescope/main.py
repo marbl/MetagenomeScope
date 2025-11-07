@@ -685,6 +685,9 @@ def run(
                     t=75,
                 ),
             )
+            # Hack to add padding to the right of the y-axis tick labels:
+            # https://stackoverflow.com/a/66736119
+            fig.update_yaxes(ticksuffix=" ")
             return dcc.Graph(figure=fig)
 
     @callback(
