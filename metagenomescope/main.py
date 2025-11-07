@@ -6,6 +6,7 @@ import base64
 import dash
 import dash_cytoscape as cyto
 import plotly.graph_objects as go
+import plotly.express as px
 from dash import (
     html,
     callback,
@@ -743,21 +744,33 @@ def run(
             graph_utils.validate_multiple_ccs(ag)
             cc_node_cts, cc_edge_cts = ag.get_component_node_and_edge_cts()
 
-            fig = go.Figure()
-            # Scattergl should hold up well for big datasets:
+            # Plotly's WebGL rendering should hold up well for big datasets:
             # https://plotly.com/python/performance/
-            fig.add_trace(
-                go.Scattergl(
-                    x=cc_node_cts,
-                    y=cc_edge_cts,
-                    mode="markers",
-                    marker_size=20,
-                    marker_opacity=0.4,
-                    marker_color="#16a",
-                    marker_line_width=2,
-                    marker_line_color="#003",
-                )
+            fig = px.scatter(
+                x=cc_node_cts,
+                y=cc_edge_cts,
+                marginal_x="histogram",
+                marginal_y="histogram",
+                render_mode="webgl",
             )
+            # The scatterplot is the 0-th plot, and the two marginal histograms
+            # are the remaining plots in indices 1 and 2. We don't want to
+            # apply all the styling of the scatterplot to the histograms (which
+            # is what happens if we call fig.update_traces()), so we can index
+            # fig.data to selectively do styling stuff per
+            # https://community.plotly.com/t/getting-trace-from-figure/68708/6
+            #
+            # I am SURE there is a less jank way to do this but idk what
+            for i in (0, 1, 2):
+                fig.data[i].marker.color = "#16a"
+                fig.data[i].marker.line.width = 2
+                fig.data[i].marker.line.color = "#003"
+            # (If we try to set the marker size of the histograms then Plotly
+            # raises an error)
+            fig.data[0].marker.size = 20
+            # (Setting the opacity on the histograms actually works, it just
+            # looks too faint compared to the default opacity imo)
+            fig.data[0].marker.opacity = 0.4
             fig.update_layout(
                 title_text="Numbers of nodes and edges per component",
                 xaxis_title_text="# nodes",
