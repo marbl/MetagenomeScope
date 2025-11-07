@@ -1,7 +1,0 @@
-{
-    "browser": true,
-    "jquery": true,
-    "devel": true,
-    "esversion": 6,
-    "globals": { "cytoscape": true, "d3": true, "SQL": true }
-}

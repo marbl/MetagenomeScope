@@ -1,4 +1,2 @@
-metagenomescope/support_files/vendor/* linguist-vendored=true
-metagenomescope/tests/js_tests/vendor/* linguist-vendored=true
-metagenomescope/tests/js_tests/index.html linguist-generated=true
+metagenomescope/assets/vendor/* linguist-vendored=true
 docs/demos/* linguist-generated=true
