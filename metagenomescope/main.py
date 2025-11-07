@@ -448,7 +448,7 @@ def run(
                                             ),
                                             html.Li(
                                                 html.Button(
-                                                    f"{ag.seq_noun.title()} sequence lengths",
+                                                    f"Sequences",
                                                     className="nav-link",
                                                     id="seqLenTab",
                                                     type="button",
@@ -571,9 +571,8 @@ def run(
                                             ),
                                             html.Div(
                                                 [
-                                                    html.Img(
+                                                    html.Div(
                                                         id="seqLenHistContainer",
-                                                        className="centered-img",
                                                     ),
                                                 ],
                                                 id="seqLenTabPane",
@@ -679,7 +678,7 @@ def run(
                     yref="paper",
                 ),
                 title_pad=dict(
-                    b=20,
+                    b=30,
                 ),
                 margin=dict(
                     t=75,
@@ -691,53 +690,42 @@ def run(
             return dcc.Graph(figure=fig)
 
     @callback(
-        Output("seqLenHistContainer", "src"),
+        Output("seqLenHistContainer", "children"),
         Input("seqLenTab", "n_clicks"),
         prevent_initial_call=True,
     )
     def plot_seqlen_hist(n_clicks):
-        with pyplot.style.context("ggplot"):
-            fig, axes = pyplot.subplots(2, 1)
-            fig.suptitle(
-                f"{ag.seq_noun.title()} sequence lengths", fontsize=18
+        fig = go.Figure()
+        fig.add_trace(
+            go.Histogram(
+                x=ag.seq_lengths,
+                marker_color="#811",
+                marker_line_width=2,
+                marker_line_color="#100",
+                name="Sequence lengths",
             )
-            axes[0].hist(
-                ag.seq_lengths,
-                color="#700",
-                edgecolor="#100",
-                lw=1,
-            )
-            axes[1].hist(
-                ag.seq_lengths,
-                bins=range(0, 10001, 100),
-                color="#700",
-                edgecolor="#100",
-                lw=1,
-            )
-            ui_utils.use_thousands_sep(axes[0].xaxis)
-            ui_utils.use_thousands_sep(axes[0].yaxis)
-            ui_utils.use_thousands_sep(axes[1].xaxis)
-            ui_utils.use_thousands_sep(axes[1].yaxis)
-            axes[0].set_title(f"All {ag.seq_noun}s")
-            axes[1].set_title(
-                f"Just {ag.seq_noun}s with lengths < 10 kbp (bin size: 100 bp)"
-            )
-            fig.text(
-                0.07,
-                0.45,
-                f"# {ag.seq_noun}s",
-                rotation=90,
-                fontsize=13,
-                color="#666",
-            )
-            axes[1].set_xlabel("Length (bp)")
-            fig.set_size_inches(10, 8)
-            buf = BytesIO()
-            fig.savefig(buf, format="png", bbox_inches="tight")
-            data = base64.b64encode(buf.getbuffer()).decode("ascii")
-            buf.close()
-        pyplot.close()
-        return f"data:image/png;base64,{data}"
+        )
+        fig.update_layout(
+            title_text=f"{ag.seq_noun.title()} sequence lengths",
+            xaxis_title_text="Length (bp)",
+            yaxis_title_text=f"# {ag.seq_noun}s",
+            font=dict(
+                size=16
+            ),
+            title=dict(
+                yanchor="bottom",
+                y=1,
+                yref="paper",
+            ),
+            title_pad=dict(
+                b=30,
+            ),
+            margin=dict(
+                t=75,
+            ),
+        )
+        fig.update_yaxes(ticksuffix=" ")
+        return dcc.Graph(figure=fig)
 
     @callback(
         Output("controls", "className"),
