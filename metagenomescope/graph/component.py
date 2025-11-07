@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
+from .. import config
 from .pattern_stats import PatternStats
 
 
@@ -45,11 +46,13 @@ class Component(object):
         self.num_split_nodes = 0
 
         # Number of total nodes in this Component (should be equal to
-        # num_unsplit_nodes + num_split_nodes). Note that if you'd like,
-        # instead, to have the total number of "full" nodes (treating the left
-        # and right split of a node as one "full" node), then that is equal to
-        # num_unsplit_nodes + (num_split_nodes / 2).
+        # num_unsplit_nodes + num_split_nodes).
         self.num_total_nodes = 0
+
+        # Total number of "full" nodes (treating the left and right part of a
+        # split node as one "full" node). Should be equal to
+        # num_unsplit_nodes + (num_split_nodes / 2).
+        self.num_full_nodes = 0
 
         # Number of edges in this Component, not including fake edges from a
         # left split node to a right split node.
@@ -81,8 +84,16 @@ class Component(object):
         self.nodes.append(node)
         if node.is_split():
             self.num_split_nodes += 1
+            # Both the left and right part of a split node count as 1 "full"
+            # node. We could add 0.5 for each split node, but we can avoid
+            # float jank by just counting left-split nodes (since we know that
+            # if node N is split then there must be both N-L and N-R in this
+            # cc)
+            if node.split == config.SPLIT_LEFT:
+                self.num_full_nodes += 1
         else:
             self.num_unsplit_nodes += 1
+            self.num_full_nodes += 1
         self.num_total_nodes += 1
 
     def add_edge(self, edge):

@@ -3,9 +3,9 @@
 import logging
 import math
 import base64
-import matplotlib
 import dash
 import dash_cytoscape as cyto
+import plotly.graph_objects as go
 from dash import (
     html,
     callback,
@@ -17,15 +17,11 @@ from dash import (
     State,
 )
 from io import BytesIO
-from matplotlib import pyplot
 from . import defaults, cy_config, css_config, ui_utils
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
 from .graph import AssemblyGraph
 from .errors import WeirdError, UIError
-
-# account for tkinter crashing: https://stackoverflow.com/a/51178529
-matplotlib.use("Agg")
 
 
 def run(
@@ -57,12 +53,6 @@ def run(
         logger.info,
         endsepline=True,
     )
-    # By default, matplotlib spits out a ton of debug log messages. Normally
-    # these go unseen, but since we use debug mode for our verbose settings,
-    # using --verbose will mean that all of these messages get shown to the
-    # unsuspecting user. I think these messages can be safely hidden, so
-    # let's do so. (https://stackoverflow.com/a/58393562)
-    logging.getLogger("matplotlib.font_manager").setLevel(logging.ERROR)
 
     # Read the assembly graph file and create an object representing it.
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
@@ -564,9 +554,8 @@ def run(
                                             (
                                                 html.Div(
                                                     [
-                                                        html.Img(
+                                                        html.Div(
                                                             id="ccHistContainer",
-                                                            className="centered-img",
                                                         ),
                                                     ],
                                                     id="ccTabPane",
@@ -630,67 +619,73 @@ def run(
     if multiple_ccs:
 
         @callback(
-            Output("ccHistContainer", "src"),
+            Output("ccHistContainer", "children"),
             Input("ccTab", "n_clicks"),
             prevent_initial_call=True,
         )
         def plot_cc_hist(n_clicks):
-            cc_sizes = []
-            for cc in ag.components:
-                cc_sizes.append(cc.num_total_nodes)
-            if len(cc_sizes) < 1:
+
+            # neither of the following cases should ever happen, since this
+            # callback should only be triggered on graphs with > 1 components
+            if len(ag.components) < 1:
                 raise WeirdError(
                     "How are you going to have a graph with 0 ccs???"
                 )
-            elif len(cc_sizes) == 1:
+            elif len(ag.components) == 1:
                 return f"hey fyi this is just 1 cc with {cc_sizes[0]:,} nodes"
-            # encode a static matplotlib image: https://stackoverflow.com/a/56932297
-            # and https://matplotlib.org/stable/gallery/user_interfaces/web_application_server_sgskip.html
-            with pyplot.style.context("ggplot"):
-                fig, axes = pyplot.subplots(2, 1)
-                fig.suptitle(
-                    "Nodes per component",
-                    fontsize=18,
+
+            cc_node_cts = []
+            cc_edge_cts = []
+            for cc in ag.components:
+                cc_node_cts.append(cc.num_full_nodes)
+                cc_edge_cts.append(cc.num_real_edges)
+
+            fig = go.Figure()
+            fig.add_trace(
+                go.Histogram(
+                    x=cc_node_cts,
+                    marker_color="#0a0",
+                    marker_line_width=2,
+                    marker_line_color="#030",
+                    name="# nodes",
                 )
-                axes[0].hist(
-                    cc_sizes,
-                    color="#0a0",
-                    edgecolor="#030",
-                    lw=1,
+            )
+            fig.add_trace(
+                go.Histogram(
+                    x=cc_edge_cts,
+                    marker_color="#447",
+                    marker_line_width=2,
+                    marker_line_color="#005",
+                    marker_pattern_shape="x",
+                    marker_pattern_fgcolor="#fff",
+                    name="# edges",
                 )
-                axes[1].hist(
-                    cc_sizes,
-                    bins=range(0, 51, 1),
-                    color="#0a0",
-                    edgecolor="#030",
-                    lw=1,
-                )
-                ui_utils.use_thousands_sep(axes[0].xaxis)
-                ui_utils.use_thousands_sep(axes[0].yaxis)
-                # i know we shouldn't need a thousands sep when the bottom plot's
-                # x-axis limit is at 50, but maybe we'll change that in the future
-                ui_utils.use_thousands_sep(axes[1].xaxis)
-                ui_utils.use_thousands_sep(axes[1].yaxis)
-                axes[0].set_title("All components")
-                axes[1].set_title(
-                    "Just components with < 50 nodes (bin size: 1)"
-                )
-                fig.text(
-                    0.07,
-                    0.42,
-                    "# components",
-                    rotation=90,
-                    fontsize=13,
-                    color="#666",
-                )
-                axes[1].set_xlabel("# nodes in a component")
-                fig.set_size_inches(10, 8)
-                buf = BytesIO()
-                fig.savefig(buf, format="png", bbox_inches="tight")
-                data = base64.b64encode(buf.getbuffer()).decode("ascii")
-                buf.close()
-            pyplot.close()
-            return f"data:image/png;base64,{data}"
+            )
+            fig.update_layout(
+                barmode="stack",
+                title_text="Numbers of nodes and edges per component",
+                xaxis_title_text="# nodes or # edges",
+                yaxis_title_text="# components",
+                font=dict(
+                    size=16
+                ),
+                # By default the title is shoved up really high above
+                # the figure; this repositions it to be closer, while
+                # still keeping a bit of padding. From
+                # https://community.plotly.com/t/margins-around-graphs/11550/6
+                title=dict(
+                    yanchor="bottom",
+                    y=1,
+                    yref="paper",
+                ),
+                title_pad=dict(
+                    b=20,
+                ),
+                margin=dict(
+                    t=75,
+                ),
+            )
+            return dcc.Graph(figure=fig)
 
     @callback(
         Output("seqLenHistContainer", "src"),
