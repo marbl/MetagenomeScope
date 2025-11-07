@@ -1,5 +1,4 @@
-graft metagenomescope/support_files
+graft metagenomescope/assets
 graft dependency_licenses
 include README.md
 include COPYING.txt
-include DEPENDENCY_LICENSES.txt
