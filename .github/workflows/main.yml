@@ -33,10 +33,13 @@ jobs:
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-name: mgscenv
+          condarc: |
+            channels:
+              - conda-forge
           create-args: >-
             python=${{ matrix.python-version}}
             numpy
-            graphviz
+            pygraphviz
 
       - name: Sanity check echo python version
         run: python --version

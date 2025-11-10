@@ -17,7 +17,7 @@ algorithm, and includes many helpful features for analyzing the graph at both la
 Using [mamba](https://mamba.readthedocs.io/):
 
 ```bash
-mamba create -n mgsc "python >= 3.8" numpy pygraphviz
+mamba create -n mgsc -c conda-forge "python >= 3.8" numpy pygraphviz
 mamba activate mgsc
 pip install git+https://github.com/fedarko/MetagenomeScope-1.git@desk
 ```
