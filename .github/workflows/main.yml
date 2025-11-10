@@ -54,10 +54,10 @@ jobs:
         run: pip install -e .[dev]
 
       - name: Lint and stylecheck
-        run: make pystylecheck
+        run: make stylecheck
 
       - name: Run tests
-        run: make pytest
+        run: make test
 
       - name: Upload code coverage information to Codecov
         uses: codecov/codecov-action@v2
