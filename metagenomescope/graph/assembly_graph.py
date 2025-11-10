@@ -20,6 +20,18 @@ from .node import Node
 from .edge import Edge
 
 
+# a lot of this code still relies on the old logging system. i want to
+# add stuff back piece by piece, so for now here are clunky placeholder
+# functions to prevent flake8 errors -- gradually i will remove references
+# to these functions in favor of just using the new logging stuff
+def operation_msg(*args):
+    print("TEMP OM", args)
+
+
+def conclude_msg(*args):
+    print("TEMP CM", args)
+
+
 class AssemblyGraph(object):
     """Representation of an assembly graph.
 
