@@ -32,7 +32,7 @@ jobs:
       - name: Install conda dependencies with mamba
         uses: mamba-org/setup-micromamba@v2
         with:
-          activate-environment: mgsc
+          environment-name: mgscenv
           create-args: >-
             python=${{ matrix.python-version}}
             numpy
