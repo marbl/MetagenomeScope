@@ -29,7 +29,7 @@ def get_ids_of_nodes(nodes):
 
 
 def is_pattern(obj):
-    return type(obj) == Pattern
+    return type(obj) is Pattern
 
 
 def verify_vr_and_nodes_good(vr, nodes):

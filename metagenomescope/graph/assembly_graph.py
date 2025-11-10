@@ -1603,7 +1603,7 @@ class AssemblyGraph(object):
             # easier later on.
             for node_id in cc_node_ids:
                 if self.is_pattern(node_id):
-                    raise NotImplemented(
+                    raise NotImplementedError(
                         "hey future me, set cc num based on child nodes' cc "
                         "nums which are now set earlier"
                     )
@@ -2265,12 +2265,13 @@ class AssemblyGraph(object):
                 else:
                     # Due to the relatively strict <input> filtering that dash
                     # does, and the errors we already catch in the draw()
-                    # callback, we PROBABLY won't see this error message. But
-                    # let's be careful.
-                    raise UIGrror(
+                    # callback, we PROBABLY won't ever reach this error
+                    # message. But let's be careful.
+                    raise UIError(
                         "Graph has "
                         f"{misc_utils.pluralize(len(self.components), 'component')}. "
-                        f'Invalid size rank of "{cc_size_rank}".'
+                        f'Invalid size rank of "{cc_size_rank}". '
+                        "Also wait how did you even trigger this error???"
                     )
             else:
                 raise WeirdError("Both size rank and node name specified?")

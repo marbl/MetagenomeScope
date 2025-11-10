@@ -2,7 +2,6 @@
 
 import logging
 import math
-import base64
 import dash
 import dash_cytoscape as cyto
 import plotly.graph_objects as go
@@ -17,12 +16,11 @@ from dash import (
     Output,
     State,
 )
-from io import BytesIO
 from . import defaults, cy_config, css_config, ui_utils
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
 from .graph import AssemblyGraph, graph_utils
-from .errors import WeirdError, UIError
+from .errors import UIError
 
 
 def run(

@@ -57,11 +57,11 @@ def is_not_pos_int(number_string):
     https://github.com/rrwick/Bandage/blob/1fccd83c072f1e2b47191d144a6d38fdb69126d9/graph/assemblygraph.cpp)
     -- thanks to Torsten Seemann for the suggestion to look over that code.
     """
-    if type(number_string) == int:
+    if type(number_string) is int:
         return number_string <= 0
-    elif type(number_string) == float:
+    elif type(number_string) is float:
         return True
-    elif type(number_string) == str:
+    elif type(number_string) is str:
         # Due to boolean short-circuiting, the int() call won't happen if
         # not number_string.isdigit() is True
         return not number_string.isdigit() or int(number_string) <= 0
@@ -351,7 +351,7 @@ def parse_metacarvel_gml(filename):
     # lengths from strings to integers.
     for n in g.nodes:
         orientation = g.nodes[n]["orientation"]
-        if type(orientation) != str or orientation not in ("FOW", "REV"):
+        if type(orientation) is not str or orientation not in ("FOW", "REV"):
             raise GraphParsingError(
                 'Node {} has unsupported orientation "{}". Should be either '
                 '"FOW" or "REV".'.format(n, orientation)
@@ -686,7 +686,7 @@ def parse_dot(filename):
     # MultiDiGraph) object. We *could* just cast the graph to a MultiDiGraph,
     # but I worry about potential data loss in this way (e.g. NX silently
     # removing multi-edges); so, we force the user to give us good graphs.
-    if type(g) != nx.MultiDiGraph:
+    if type(g) is not nx.MultiDiGraph:
         raise GraphParsingError(
             "It looks like the input DOT file isn't a multi-digraph. This is "
             "probably due to one or both of the following: (1) the DOT file "

@@ -114,7 +114,7 @@ def get_cc_size_rank_error_msg(ag):
         msg += f"Must be in the range 1 – {len(ag.components)}."
     else:
         msg += (
-            f"I mean, like, your graph only has one component, so... "
+            "I mean, like, your graph only has one component, so... "
             'this should always be a "1"...'
         )
     return msg
