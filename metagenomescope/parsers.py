@@ -29,7 +29,8 @@ import re
 import networkx as nx
 import gfapy
 import pyfastg
-from .input_node_utils import gc_content, negate_node_id
+from .input_node_utils import negate_node_id
+from .seq_utils import gc_content
 from .errors import GraphParsingError, WeirdError
 
 
