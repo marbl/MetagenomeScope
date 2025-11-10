@@ -1,7 +1,7 @@
 # <a href="https://marbl.github.io/MetagenomeScope/"><img src="https://raw.githubusercontent.com/fedarko/MetagenomeScope-1/refs/heads/desk/metagenomescope/assets/favicon.ico" alt="Icon" /></a> MetagenomeScope
 
 <div align="center">
-<a href="https://github.com/marbl/MetagenomeScope/actions/workflows/python.yml"><img src="https://github.com/marbl/Metagenomescope/actions/workflows/python.yml/badge.svg" alt="CI" /></a>
+<a href="https://github.com/marbl/MetagenomeScope/actions/workflows/main.yml"><img src="https://github.com/marbl/Metagenomescope/actions/workflows/main.yml/badge.svg" alt="CI" /></a>
 <a href="https://codecov.io/gh/marbl/MetagenomeScope"><img src="https://codecov.io/gh/marbl/MetagenomeScope/branch/master/graph/badge.svg" alt="Code Coverage" /></a>
 </div>
 
