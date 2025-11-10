@@ -11,7 +11,10 @@ def log_lines_with_sep(lines, logfunc, sepchar=SEPSML, endsepline=False):
     sepline = sepchar * seplen
     out = f"{lines[0]}\n{sepline}"
     if len(lines) > 1:
-        out += f"\n{'\n'.join(lines[1:])}"
+        # in older python versions, backslashes (like that in "\n") inside
+        # f-string {}s are not supported; this prevents that
+        linelist = '\n'.join(lines[1:])
+        out += f"\n{linelist}"
     if endsepline:
         out += f"\n{sepline}"
     logfunc(out)
