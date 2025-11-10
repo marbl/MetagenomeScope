@@ -109,7 +109,7 @@ def test_parse_mixed_edge_type():
         [
             "digraph g {",
             '1 -> 2 [label = "id -5\\l6k 777x", color = "red", penwidth = 3];',
-            '2 -> 3 [color = "black", label="A99(2)"];',
+            '2 -> 3 [color = "black", label="2.12345 A99(2)"];',
             "}",
         ],
         GraphParsingError,
@@ -124,7 +124,7 @@ def test_parse_mixed_edge_type():
         "gv",
         [
             "digraph g {",
-            '2 -> 3 [color = "black", label="A99(2)"];',
+            '2 -> 3 [color = "black", label="2.12345 A99(2)"];',
             '1 -> 2 [label = "id -5\\l6k 777x", color = "red", penwidth = 3];',
             "}",
         ],
@@ -140,8 +140,8 @@ def test_parse_mixed_edge_type():
         "gv",
         [
             "digraph g {",
-            '3 -> 4 [color = "black", label="C99(2)"];',
-            '2 -> 3 [color = "black", label="A99(2)"];',
+            '3 -> 4 [color = "black", label="3.111 C99(2)"];',
+            '2 -> 3 [color = "black", label="2.12345 A99(2)"];',
             '1 -> 2 [label = "id -5\\l6k 777x", color = "red", penwidth = 3];',
             "}",
         ],
@@ -419,8 +419,8 @@ def test_parse_lja_complicatedlabels_nocolor():
         "gv",
         [
             "digraph g {",
-            '1 -> 2 [color="black", label="A99(2.4)"];',
-            '1 -> 2 [label="C 850(3)\nOtherStuffLol"];',
+            '1 -> 2 [color="black", label="1.23456 A99(2.4)"];',
+            '1 -> 2 [label="1.34567 C 850(3)\nOtherStuffLol"];',
             "}",
         ],
         None,
@@ -433,13 +433,15 @@ def test_parse_lja_complicatedlabels_nocolor():
     # so is that Flye can assign special colors to its edges, but LJA doesn't
     # seem to do this.)
     assert g.edges["1", "2", 0] == {
-        "label": "A99(2.4)",
+        "id": "1.23456",
+        "label": "1.23456 A99(2.4)",
         "first_nt": "A",
         "length": 99,
         "kmer_cov": 2.4,
     }
     assert g.edges["1", "2", 1] == {
-        "label": "C 850(3)\nOtherStuffLol",
+        "id": "1.34567",
+        "label": "1.34567 C 850(3)\nOtherStuffLol",
         "first_nt": "C",
         "length": 850,
         "kmer_cov": 3,
