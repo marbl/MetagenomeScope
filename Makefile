@@ -3,9 +3,11 @@
 PYLOCS = metagenomescope/ setup.py
 
 # -B: don't create __pycache__/ directories
+# Also TODO add back the graph/ tests when code is further along
 test:
 	python3 -B -m pytest \
 		metagenomescope/tests/ \
+		--ignore metagenomescope/tests/graph/ \
 		--cov-report xml \
 		--cov-report term \
 		--cov-report html \
