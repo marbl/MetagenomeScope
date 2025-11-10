@@ -29,12 +29,14 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      # https://github.com/conda-incubator/setup-miniconda#example-3-other-options
-      - name: Install conda dependencies
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Install conda dependencies with mamba
+        uses: conda-incubator/setup-micromamba@v2
         with:
           activate-environment: mgsc
-          python-version: ${{ matrix.python-version }}
+          create-args: >-
+            python=${{ matrix.python-version}
+            numpy
+            graphviz
 
       - name: Sanity check echo python version
         run: python --version
