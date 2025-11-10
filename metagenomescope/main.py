@@ -771,6 +771,12 @@ def run(
             # (Setting the opacity on the histograms actually works, it just
             # looks too faint compared to the default opacity imo)
             fig.data[0].marker.opacity = 0.4
+            # Make hovering over points in the scatterplot say "# nodes"
+            # instead of "x". We could also update hover templates for the
+            # marginal histograms but there is some jank about WHICH of {1,2}
+            # corresponds to which histogram and I don't want to worry about
+            # testing that now so I'm gonna leave it as is
+            fig.data[0].hovertemplate="# nodes: %{x}<br># edges: %{y}"
             fig.update_layout(
                 title_text="Numbers of nodes and edges per component",
                 xaxis_title_text="# nodes",
