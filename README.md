@@ -9,8 +9,8 @@ MetagenomeScope is an interactive visualization tool designed for (meta)genome
 assembly graphs.
 
 MetagenomeScope iteratively decomposes the graph into interpretable structural patterns,
-visualizes the graph using [hierarchical layout](https://en.wikipedia.org/wiki/Layered_graph_drawing),
-and includes many helpful features for analyzing the graph at both large and small scales.
+visualizes the graph using a [hierarchical layout](https://en.wikipedia.org/wiki/Layered_graph_drawing)
+algorithm, and includes many helpful features for analyzing the graph at both large and small scales.
 
 ## Installation
 
@@ -22,20 +22,23 @@ mamba activate mgsc
 pip install git+https://github.com/fedarko/MetagenomeScope-1.git@desk
 ```
 
-... Eventually we'll put this on bioconda or something.
+(... Eventually we'll put this on bioconda or something.)
 
 ## Usage
 
 Activate the mamba environment we just created and run:
 
 ```
-mgsc -i [path to your assembly graph]
+mgsc -g graph.gfa
 ```
 
-This will start a server using Dash. Navigate to `localhost:8050` in
-a web browser to access the visualization.
+... where `graph.gfa` is a path to the assembly graph you want to visualize
+(see information below on supported graph filetypes).
 
-## Supported filetypes
+This will start a server using Dash that you can use to analyze the graph.
+Navigate to `localhost:8050` in a web browser to access the visualization.
+
+## Supported assembly graph filetypes
 
 <!-- TODO: I haven't tested miniasm, hifiasm(-meta), and MEGAHIT output graphs here;
 should do that to verify that their graphs work ok -->
