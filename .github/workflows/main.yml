@@ -34,7 +34,7 @@ jobs:
         with:
           activate-environment: mgsc
           create-args: >-
-            python=${{ matrix.python-version}
+            python=${{ matrix.python-version}}
             numpy
             graphviz
 
