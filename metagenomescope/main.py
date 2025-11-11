@@ -16,7 +16,7 @@ from dash import (
     Output,
     State,
 )
-from . import defaults, cy_config, css_config, ui_config, ui_utils
+from . import defaults, css_config, ui_config, ui_utils
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
 from .graph import AssemblyGraph, graph_utils
@@ -66,16 +66,6 @@ def run(
         style={
             "width": "100%",
             "height": css_config.CONTROLS_BORDER_THICKNESS,
-            "background-color": "#002",
-            "margin": "1.25em 0",
-        },
-        className="ctrlSep",
-    )
-
-    ctrl_sep_minor = html.Div(
-        style={
-            "width": "100%",
-            "height": css_config.CONTROLS_SUB_BORDER_THICKNESS,
             "background-color": "#002",
             "margin": "1.25em 0",
         },
