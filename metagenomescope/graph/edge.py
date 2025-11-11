@@ -147,6 +147,9 @@ class Edge(object):
         self.is_outlier = None
         self.relative_weight = None
 
+        # for random coloring
+        self.rand_idx = None
+
         # ID of the pattern containing this edge, or None if this edge
         # exists in the top level of the graph. Note that some edges may
         # connect nodes that are in different patterns (in the uncollapsed

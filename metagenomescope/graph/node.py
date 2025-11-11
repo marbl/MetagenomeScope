@@ -135,6 +135,16 @@ class Node(object):
             self.relative_length = None
             self.longside_proportion = None
 
+        # Should be filled in with something later on to simplify random
+        # coloring of nodes. See AssemblyGraph._init_graph_objs().
+        self.rand_idx = None
+
+        # We may fill this in with a reference to another Node object if we
+        # notice another node that is the RC of this one. Note that this is
+        # not guaranteed, since some filetypes (e.g. MetaCarvel GML) may not
+        # describe two copies of each node.
+        self.rc_node = None
+
         # Will be filled in after doing node scaling. Stored in points.
         self.width = None
         self.height = None

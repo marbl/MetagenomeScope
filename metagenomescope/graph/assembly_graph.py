@@ -12,7 +12,15 @@ import networkx as nx
 import pygraphviz
 
 
-from .. import parsers, config, cy_config, layout_utils, misc_utils, seq_utils
+from .. import (
+    parsers,
+    config,
+    cy_config,
+    layout_utils,
+    misc_utils,
+    seq_utils,
+    input_node_utils,
+)
 from ..errors import GraphParsingError, GraphError, WeirdError, UIError
 from . import validators, graph_utils
 from .component import Component
@@ -218,12 +226,17 @@ class AssemblyGraph(object):
     def _init_graph_objs(self):
         """Initializes Node and Edge objects for the original graph.
 
-        Also, clears the NetworkX data stored for each node and edge in the
+        This clears the NetworkX data stored for each node and edge in the
         graph (don't worry, this data isn't lost -- it's saved in the
         corresponding Node and Edge objects' .data attributes).
 
         Also populates self.seq_lengths with the observed Node or Edge sequence
         lengths, depending on if self.node_centric is True or False.
+
+        And assigns each node and edge a random integer in the range
+        [0, |cy_config.RANDOM_COLORS| - 1]. This makes it simpler to assign
+        consistent random colors later on (also, it makes it simpler to ensure
+        that +/- copies of nodes have the same or similar random colors).
 
         Finally, this relabels nodes in the graph to match their corresponding
         Node object's unique_id; and adds an "uid" attribute to edges' NetworkX
@@ -244,13 +257,21 @@ class AssemblyGraph(object):
         and node splitting. That will be done separately; this method just
         establishes a "baseline."
         """
+        # Ensure consistent random color choices
+        random.seed(333)
+        num_random_colors = len(cy_config.RANDOM_COLORS)
+
+        def get_rand_idx():
+            return random.randrange(0, num_random_colors)
+
         oldid2uniqueid = {}
         self.seq_lengths = []
         lengths_completely_defined = True
         for node_name in self.graph.nodes:
             node_id = self._get_unique_id()
             data = deepcopy(self.graph.nodes[node_name])
-            self.nodeid2obj[node_id] = Node(node_id, node_name, data)
+            new_node = Node(node_id, node_name, data)
+            self.nodeid2obj[node_id] = new_node
             self.extra_node_attrs |= set(data.keys())
             # Remove node data from the graph (we've already saved it in the
             # Node object's .data attribute).
@@ -268,13 +289,26 @@ class AssemblyGraph(object):
                     # at least one node doesn't have a length given, bail out
                     lengths_completely_defined = False
 
+            # If we have not seen the RC of this node yet (or if that RC does
+            # not exist in this graph), then assign this node a new random
+            # index for coloring. However, if we HAVE already seen the RC of
+            # this node, then just copy that random index to this node.
+            rc_name = input_node_utils.negate_node_id(node_name)
+            if rc_name in oldid2uniqueid:
+                new_node.rand_idx = self.nodeid2obj[
+                    oldid2uniqueid[rc_name]
+                ].rand_idx
+            else:
+                new_node.rand_idx = get_rand_idx()
+
         nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
 
         for e in self.graph.edges(data=True, keys=True):
             edge_id = self._get_unique_id()
             # e is a 4-tuple of (source ID, sink ID, key, data dict)
             data = deepcopy(e[3])
-            self.edgeid2obj[edge_id] = Edge(edge_id, e[0], e[1], data)
+            new_edge = Edge(edge_id, e[0], e[1], data)
+            self.edgeid2obj[edge_id] = new_edge
             self.extra_edge_attrs |= set(data.keys())
             # Remove edge data from the graph.
             self.graph.edges[e[0], e[1], e[2]].clear()
@@ -289,6 +323,8 @@ class AssemblyGraph(object):
                 else:
                     # at least one edge doesn't have a length given, bail out
                     lengths_completely_defined = False
+
+            new_edge.rand_idx = get_rand_idx()
 
         if not lengths_completely_defined:
             raise WeirdError(f"Not all {self.seq_noun}s have defined lengths?")
@@ -452,6 +488,7 @@ class AssemblyGraph(object):
             split=split,
             counterpart_node=counterpart_node,
         )
+        new_node.rand_idx = counterpart_node.rand_idx
         self.nodeid2obj[new_node_id] = new_node
         return new_node_id
 
@@ -586,6 +623,10 @@ class AssemblyGraph(object):
                 fake_edge = Edge(
                     fake_edge_id, left_node_id, start_id, {}, is_fake=True
                 )
+                # if we color nodes/edges random colors, then the color of the
+                # fake edge should match that of the nodes it is sandwiched
+                # between
+                fake_edge.rand_idx = self.nodeid2obj[left_node_id].rand_idx
                 # If we collapse the pattern we just identified, then the edge
                 # points from the new left node (outside of the pattern) to the
                 # pattern itself. (If the left node gets added to another
@@ -656,6 +697,7 @@ class AssemblyGraph(object):
                 fake_edge = Edge(
                     fake_edge_id, end_id, right_node_id, {}, is_fake=True
                 )
+                fake_edge.rand_idx = self.nodeid2obj[right_node_id].rand_idx
                 fake_edge.reroute_dec_src(pattern_id)
                 self.edgeid2obj[fake_edge_id] = fake_edge
                 self.graph.add_edge(end_id, right_node_id, uid=fake_edge_id)
@@ -2292,18 +2334,6 @@ class AssemblyGraph(object):
         nodes = []
         edges = []
 
-        # ensure consistent random color choices
-        random.seed(333)
-
-        # assign each node and edge a random integer in the range
-        # [0, |cy_config.RANDOM_COLORS| - 1]. If the user selects random
-        # node or edge coloring, we will use these pre-computed random numbers
-        # to assign them colors.
-        num_random_colors = len(cy_config.RANDOM_COLORS)
-
-        def get_rand_idx():
-            return random.randrange(0, num_random_colors)
-
         for cc in ccs:
             for nobj in cc.nodes:
                 if "orientation" in nobj.data:
@@ -2313,23 +2343,26 @@ class AssemblyGraph(object):
                         ndir = "rev"
                 else:
                     ndir = "unoriented"
+
                 nodes.append(
                     {
                         "data": {
                             "id": str(nobj.unique_id),
                             "label": str(nobj.name),
                         },
-                        "classes": ndir + f" noderand{get_rand_idx()}",
+                        "classes": ndir + f" noderand{nobj.rand_idx}",
                     }
                 )
+
             for eobj in cc.edges:
+                print(eobj, eobj.rand_idx)
                 edges.append(
                     {
                         "data": {
                             "source": str(eobj.new_src_id),
                             "target": str(eobj.new_tgt_id),
                         },
-                        "classes": f"edgerand{get_rand_idx()}",
+                        "classes": f"edgerand{eobj.rand_idx}",
                     }
                 )
         return nodes + edges
