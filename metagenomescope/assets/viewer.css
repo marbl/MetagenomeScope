@@ -84,6 +84,10 @@ body {
     -webkit-text-stroke: 2px;
 }
 
+.bi-check2-square {
+    -webkit-text-stroke: 1px;
+}
+
 .iconlbl {
     /* the old way of having a &nbsp; between the icon and the label doesn't
      * seem to be supported in Dash. Can recreate with padding:
@@ -242,9 +246,8 @@ button {
     border: 1px solid #555 !important;
 }
 .modal-body {
-    /* TODO: come up with a cleaner way of representing the table on small
-     * screens?
-     */
+    /* ensures that modal dialogs have a horizontal scrollbar if needed
+     * for long things like the info table */
     overflow-x: auto;
 }
 .progress {

@@ -16,6 +16,9 @@ CONTROLS_WIDTH = "min(20em, 50%)"
 # thickness of borders throughout the control panel
 CONTROLS_BORDER_THICKNESS = "1em"
 
+# "sub-header" thickness
+CONTROLS_SUB_BORDER_THICKNESS = "0.25em"
+
 # duration for hiding/showing ctrl panel, moving it and the graph accordingly
 CONTROLS_TRANSITION_DURATION = "0.2s"
 

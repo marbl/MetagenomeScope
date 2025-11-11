@@ -1,6 +1,7 @@
 import math
 import json
 import os
+import random
 import logging
 import subprocess
 from copy import deepcopy
@@ -11,7 +12,7 @@ import networkx as nx
 import pygraphviz
 
 
-from .. import parsers, config, layout_utils, misc_utils, seq_utils
+from .. import parsers, config, cy_config, layout_utils, misc_utils, seq_utils
 from ..errors import GraphParsingError, GraphError, WeirdError, UIError
 from . import validators, graph_utils
 from .component import Component
@@ -2290,6 +2291,19 @@ class AssemblyGraph(object):
 
         nodes = []
         edges = []
+
+        # ensure consistent random color choices
+        random.seed(333)
+
+        # assign each node and edge a random integer in the range
+        # [0, |cy_config.RANDOM_COLORS| - 1]. If the user selects random
+        # node or edge coloring, we will use these pre-computed random numbers
+        # to assign them colors.
+        num_random_colors = len(cy_config.RANDOM_COLORS)
+
+        def get_rand_idx():
+            return random.randrange(0, num_random_colors)
+
         for cc in ccs:
             for nobj in cc.nodes:
                 if "orientation" in nobj.data:
@@ -2305,7 +2319,7 @@ class AssemblyGraph(object):
                             "id": str(nobj.unique_id),
                             "label": str(nobj.name),
                         },
-                        "classes": ndir,
+                        "classes": ndir + f" noderand{get_rand_idx()}",
                     }
                 )
             for eobj in cc.edges:
@@ -2314,7 +2328,8 @@ class AssemblyGraph(object):
                         "data": {
                             "source": str(eobj.new_src_id),
                             "target": str(eobj.new_tgt_id),
-                        }
+                        },
+                        "classes": f"edgerand{get_rand_idx()}",
                     }
                 )
         return nodes + edges

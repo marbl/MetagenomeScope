@@ -16,7 +16,7 @@ from dash import (
     Output,
     State,
 )
-from . import defaults, cy_config, css_config, ui_utils
+from . import defaults, cy_config, css_config, ui_config, ui_utils
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
 from .graph import AssemblyGraph, graph_utils
@@ -68,6 +68,26 @@ def run(
             "height": css_config.CONTROLS_BORDER_THICKNESS,
             "background-color": "#002",
             "margin": "1.25em 0",
+        },
+        className="ctrlSep",
+    )
+
+    ctrl_sep_minor = html.Div(
+        style={
+            "width": "100%",
+            "height": css_config.CONTROLS_SUB_BORDER_THICKNESS,
+            "background-color": "#002",
+            "margin": "1.25em 0",
+        },
+        className="ctrlSep",
+    )
+
+    ctrl_sep_invis = html.Div(
+        style={
+            "width": "100%",
+            "height": "0",
+            "background-color": "#002",
+            "margin": "0.7em 0",
         },
         className="ctrlSep",
     )
@@ -160,6 +180,7 @@ def run(
                         ]
                     ),
                     html.P([f"{pluralize(len(ag.components), 'component')}."]),
+                    ctrl_sep_invis,
                     html.P(
                         [
                             html.Button(
@@ -178,7 +199,6 @@ def run(
                                 },
                             )
                         ],
-                        style={"margin-top": "0.7em"},
                     ),
                     ctrl_sep,
                     html.H4("Draw"),
@@ -300,12 +320,15 @@ def run(
                     html.Div(
                         [
                             dcc.Checklist(
-                                # the first arg lists the options,
-                                # the second arg lists the ones that are
-                                # by default selected
-                                ["Show patterns"],
-                                ["Show patterns"],
-                            ),
+                                options=[
+                                    {
+                                        "label": "Show patterns",
+                                        "value": "patterns",
+                                        "disabled": True,
+                                    },
+                                ],
+                                value=[],
+                            )
                         ],
                         className="form-check",
                     ),
@@ -318,6 +341,71 @@ def run(
                             ),
                         ],
                         id="drawButton",
+                        className="btn btn-light drawCtrl",
+                        type="button",
+                    ),
+                    ctrl_sep,
+                    html.H4(
+                        "Colors",
+                    ),
+                    ctrl_sep_invis,
+                    html.H5(
+                        "Nodes",
+                    ),
+                    html.Div(
+                        [
+                            dcc.RadioItems(
+                                options=[
+                                    {
+                                        "label": "Random",
+                                        "value": ui_config.COLORING_RANDOM,
+                                    },
+                                    {
+                                        "label": "Uniform",
+                                        "value": ui_config.COLORING_UNIFORM,
+                                    },
+                                ],
+                                value=ui_config.DEFAULT_NODE_COLORING,
+                                inline=True,
+                                id="nodeColorRadio",
+                            ),
+                        ],
+                        className="form-check",
+                    ),
+                    ctrl_sep_invis,
+                    html.H5(
+                        "Edges",
+                    ),
+                    html.Div(
+                        [
+                            dcc.RadioItems(
+                                options=[
+                                    {
+                                        "label": "Random",
+                                        "value": ui_config.COLORING_RANDOM,
+                                    },
+                                    {
+                                        "label": "Uniform",
+                                        "value": ui_config.COLORING_UNIFORM,
+                                    },
+                                ],
+                                value=ui_config.DEFAULT_EDGE_COLORING,
+                                inline=True,
+                                id="edgeColorRadio",
+                            ),
+                        ],
+                        className="form-check",
+                    ),
+                    ctrl_sep_invis,
+                    html.Button(
+                        [
+                            html.I(className="bi bi-check2-square"),
+                            html.Span(
+                                "Apply",
+                                className="iconlbl",
+                            ),
+                        ],
+                        id="applyColorsButton",
                         className="btn btn-light drawCtrl",
                         type="button",
                     ),
@@ -946,7 +1034,10 @@ def run(
         State("ccDrawingSelect", "value"),
         State("ccSizeRankSelector", "value"),
         State("ccNodeNameSelector", "value"),
+        State("nodeColorRadio", "value"),
+        State("edgeColorRadio", "value"),
         Input("drawButton", "n_clicks"),
+        Input("applyColorsButton", "n_clicks"),
         prevent_initial_call=True,
     )
     def draw(
@@ -955,9 +1046,31 @@ def run(
         cc_drawing_selection_type,
         size_rank,
         node_name,
-        n_clicks,
+        node_color_radio,
+        edge_color_radio,
+        draw_btn_n_clicks,
+        apply_colors_btn_n_clicks,
     ):
+        if ctx.triggered_id == "applyColorsButton":
+            logging.debug("Received request to update colors in the graph.")
+            if curr_cy is None:
+                logging.debug(
+                    "Um, okay. No graph is currently drawn, so we're not "
+                    "going to do anything right now."
+                )
+            else:
+                # this seems mildly jank and undocumented. if this ends
+                # up breaking in the future, the solution is just having the
+                # Cytoscape.js instance be "always on" and just updating it
+                # piecemeal (rather than full on creating it here)
+                curr_cy["props"]["stylesheet"] = ui_utils.get_cyjs_stylesheet(
+                    node_coloring=node_color_radio,
+                    edge_coloring=edge_color_radio,
+                )
+            return curr_toasts, curr_cy
+
         logging.debug("Received request to draw the graph.")
+
         ag_selection_params = {}
 
         if cc_drawing_selection_type == "ccDrawingSizeRank":
@@ -1034,46 +1147,9 @@ def run(
             },
             boxSelectionEnabled=True,
             maxZoom=9,
-            stylesheet=[
-                {
-                    "selector": "node",
-                    "style": {
-                        "background-color": cy_config.NODE_COLOR,
-                        "color": cy_config.UNSELECTED_NODE_FONT_COLOR,
-                        "label": "data(label)",
-                        "text-valign": "center",
-                        "min-zoomed-font-size": "12",
-                        "z-index": "2",
-                    },
-                },
-                {
-                    "selector": "node:selected",
-                    "style": {
-                        "color": cy_config.SELECTED_NODE_FONT_COLOR,
-                        "background-blacken": cy_config.SELECTED_NODE_BLACKEN,
-                    },
-                },
-                {
-                    "selector": "node.fwd",
-                    "style": {
-                        "shape": "polygon",
-                        "shape-polygon-points": cy_config.FWD_NODE_POLYGON_PTS,
-                    },
-                },
-                {
-                    "selector": "node.rev",
-                    "style": {
-                        "shape": "polygon",
-                        "shape-polygon-points": cy_config.REV_NODE_POLYGON_PTS,
-                    },
-                },
-                {
-                    "selector": "node.unoriented",
-                    "style": {
-                        "shape": cy_config.UNORIENTED_NODE_SHAPE,
-                    },
-                },
-            ],
+            stylesheet=ui_utils.get_cyjs_stylesheet(
+                node_coloring=node_color_radio, edge_coloring=edge_color_radio
+            ),
         )
 
     # It looks like Bootstrap requires us to use JS to show the toast. If we
