@@ -289,10 +289,13 @@ class AssemblyGraph(object):
                     # at least one node doesn't have a length given, bail out
                     lengths_completely_defined = False
 
+            # If we've already seen the RC of this node, then we'll just copy
+            # its random index to this node (in order to assign it the same
+            # random color as its RC).
+            #
             # If we have not seen the RC of this node yet (or if that RC does
-            # not exist in this graph), then assign this node a new random
-            # index for coloring. However, if we HAVE already seen the RC of
-            # this node, then just copy that random index to this node.
+            # not exist in this graph at all), then assign this node a new
+            # random index for coloring.
             rc_name = input_node_utils.negate_node_id(node_name)
             if rc_name in oldid2uniqueid:
                 new_node.rand_idx = self.nodeid2obj[
@@ -302,6 +305,8 @@ class AssemblyGraph(object):
                 new_node.rand_idx = get_rand_idx()
 
         nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
+
+        edgenamepair2rand_idx = {}
 
         for e in self.graph.edges(data=True, keys=True):
             edge_id = self._get_unique_id()
@@ -324,7 +329,27 @@ class AssemblyGraph(object):
                     # at least one edge doesn't have a length given, bail out
                     lengths_completely_defined = False
 
-            new_edge.rand_idx = get_rand_idx()
+            src = self.nodeid2obj[e[0]]
+            tgt = self.nodeid2obj[e[1]]
+            namepair = (src.name, tgt.name)
+            rcnamepair = (
+                input_node_utils.negate_node_id(tgt.name),
+                input_node_utils.negate_node_id(src.name),
+            )
+
+            # If we have already seen the RC of this edge, or if we have
+            # already seen a parallel edge to this one, then copy that other
+            # edge's random index to this one (so that they are assigned the
+            # same random color). (We check the RC case first since parallel
+            # edges are relatively rare -- I expect the average graph to have
+            # many more RC edges than parallel edges.)
+            if rcnamepair in edgenamepair2rand_idx:
+                new_edge.rand_idx = edgenamepair2rand_idx[rcnamepair]
+            elif namepair in edgenamepair2rand_idx:
+                new_edge.rand_idx = edgenamepair2rand_idx[namepair]
+            else:
+                new_edge.rand_idx = get_rand_idx()
+                edgenamepair2rand_idx[namepair] = new_edge.rand_idx
 
         if not lengths_completely_defined:
             raise WeirdError(f"Not all {self.seq_noun}s have defined lengths?")
