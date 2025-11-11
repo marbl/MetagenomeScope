@@ -4,7 +4,7 @@
 
 # I just manually picked these from a hex color picker
 RANDOM_COLORS = [
-    "#880000",  # red
+    "#880000",  # dark red
     "#aa5522",  # orange
     "#aa8822",  # gold
     "#99aa22",  # lemon-lime
@@ -14,7 +14,7 @@ RANDOM_COLORS = [
     "#111177",  # dark blue
     "#4411aa",  # royal purple. is that a color? yeah i think so
     "#661199",  # magenta
-    "#770033",  # kinda pinkish red
+    "#c71461",  # kinda pinkish red
     "#a30f9e",  # fuschia
     "#826a5b",  # light brown
     "#382403",  # deep brown
