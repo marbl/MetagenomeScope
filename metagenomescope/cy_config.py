@@ -10,7 +10,7 @@ RANDOM_COLORS = [
     "#99aa22",  # lemon-lime
     "#227711",  # forest green
     "#587562",  # olive drab, kinda
-    "#117f7f",  # turquoise
+    "#119f9f",  # turquoise
     "#111177",  # dark blue
     "#4411aa",  # royal purple. is that a color? yeah i think so
     "#661199",  # magenta
