@@ -2355,7 +2355,6 @@ class AssemblyGraph(object):
                 )
 
             for eobj in cc.edges:
-                print(eobj, eobj.rand_idx)
                 edges.append(
                     {
                         "data": {
