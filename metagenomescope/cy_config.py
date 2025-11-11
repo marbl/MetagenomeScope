@@ -4,19 +4,20 @@
 
 # I just manually picked these from a hex color picker
 RANDOM_COLORS = [
-    "#880000",
-    "#aa5522",
-    "#aa8822",
-    "#99aa22",
-    "#227711",
-    "#117733",
-    "#117777",
-    "#111177",
-    "#220077",
-    "#441177",
-    "#771166",
-    "#771144",
-    "#771122",
+    "#880000",  # red
+    "#aa5522",  # orange
+    "#aa8822",  # gold
+    "#99aa22",  # lemon-lime
+    "#227711",  # forest green
+    "#587562",  # olive drab, kinda
+    "#117f7f",  # turquoise
+    "#111177",  # dark blue
+    "#4411aa",  # royal purple. is that a color? yeah i think so
+    "#661199",  # magenta
+    "#770033",  # kinda pinkish red
+    "#a30f9e",  # fuschia
+    "#826a5b",  # light brown
+    "#382403",  # deep brown
 ]
 
 NODE_COLOR = "#888888"
