@@ -1,3 +1,6 @@
+from .errors import WeirdError
+
+
 def negate_node_id(id_string):
     """Negates a node ID. Literally, this just adds or removes a starting "-".
 
@@ -9,9 +12,18 @@ def negate_node_id(id_string):
     """
     # account for integer IDs. Can be the case in some GML files, at least.
     if type(id_string) is not str:
-        id_string = str(id_string)
+        if id_string == 0:
+            raise WeirdError(
+                "If you are using numeric IDs and ALSO if one of your IDs is "
+                "0, something is going to go wrong. This probably shouldn't "
+                "happen, so please file an issue on GitHub if you see this."
+            )
+        else:
+            id_string = str(id_string)
+
     if len(id_string) == 0:
-        raise ValueError("Can't negate an empty node ID")
+        raise WeirdError("Can't negate an empty node ID?")
+
     if id_string[0] == "-":
         return id_string[1:]
     else:
