@@ -12,6 +12,8 @@ MetagenomeScope iteratively decomposes the graph into interpretable structural p
 visualizes the graph using a [hierarchical layout](https://en.wikipedia.org/wiki/Layered_graph_drawing)
 algorithm, and includes many helpful features for analyzing the graph at both large and small scales.
 
+This version of the tool is still a work in progress. More to come soon.
+
 ## Installation
 
 Using [mamba](https://mamba.readthedocs.io/):
