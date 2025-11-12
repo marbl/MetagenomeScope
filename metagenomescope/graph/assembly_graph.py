@@ -274,7 +274,9 @@ class AssemblyGraph(object):
         # This approach works but it is too "consistent," in my opinion --
         # something about starting with red every time seems boring. Also
         # it's not even random??? So, we do this approach but we shuffle the
-        # order of the indices in advance of every "cycle."
+        # order of the indices in advance of every "cycle." (Arguably this
+        # is still a bit too consistent, but that could be addressed by
+        # exposing the random seed as a CLI parameter.)
         def get_all_possible_rand_indices():
             available_indices = list(range(len(cy_config.RANDOM_COLORS)))
             random.shuffle(available_indices)
