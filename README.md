@@ -67,7 +67,7 @@ The answer to this depends on the filetype of the graph you are using.
 
 ##### "Explicit" graph filetypes (FASTG, DOT, GML)
 
-To make a long story short: when MetagenomeScope reads in FASTG, DOT, and GML files,
+When MetagenomeScope reads in FASTG, DOT, and GML files,
 it assumes that _these files explicitly describe all of the nodes and edges in the graph_.
 So, let's say you give MetagenomeScope the following DOT file:
 
@@ -84,9 +84,10 @@ We will interpret this as a graph with **two nodes** (`1`, `2`) and **one edge**
 
 However, for GFA and LastGraph files, MetagenomeScope cannot make the
 assumption that these files explicitly describe all of the nodes and edges in
-the graph: in these files, each declaration of a node / edge
+the graph. In these files, each declaration of a node / edge
 (in GFA parlance, "segment" / "link"; in LastGraph parlance, "node"
 / "arc") also declares this node / edge's reverse complement.
+
 So, let's say you give MetagenomeScope the following GFA file (based on
 [this example](https://github.com/sjackman/gfalint/blob/master/examples/sample1.gfa)):
 
@@ -119,7 +120,7 @@ for details on how we handle reverse complements in FASTG files.)
 </details>
 
 <details>
-  <summary><strong>FAQ 2. Why does my graph have node `A` and `-A` in the same component?</strong></summary>
+  <summary><strong>FAQ 2. Why does my graph have node <code>X</code> and <code>-X</code> in the same component?</strong></summary>
 
 The short answer is "probably palindromes." Below is a more detailed answer.
 
@@ -147,7 +148,7 @@ sequences, just in different directions.
 being in the same component,
 due to things like [palindromic](https://en.wikipedia.org/wiki/Palindromic_sequence) sequences
 gluing them together. The following GFA file is the same as the one we just saw,
-but it now contains an extra "link" line from `1` to `2-`:
+but it now contains an extra "link" line from `1` to `-2`:
 
 ```gfa
 H	VN:Z:1.0
@@ -160,7 +161,7 @@ L	1	+	2	-	0M
 This graph contains four edges: `1 -> 2` and `-2 -> -1` (which we've already seen),
 and `1 -> -2` and `2 -> -1`. The introduction of these last two edges has caused
 the graph to become a single "strand-mixed" component, containing both
-a node `N` and its reverse-complementary node `-N`.
+a node `X` and its reverse-complementary node `-X`.
 
 This often happens with the big ("hairball") component in an assembly graph.
 </details>
@@ -168,7 +169,7 @@ This often happens with the big ("hairball") component in an assembly graph.
 <details>
   <summary><strong>FAQ 3. What happens if an edge is its own reverse complement?</strong></summary>
 
-(This FAQ assumes that you have read FAQ 1.)
+(This assumes that you have read FAQ 1.)
 
 This can happen if an edge exists from `X -> -X` or from `-X -> X` in an
 "implicit" graph file (GFA / LastGraph). Consider
