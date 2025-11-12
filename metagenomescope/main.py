@@ -423,6 +423,31 @@ def run(
             ),
             # cy
             html.Div(
+                [
+                    # In previous versions of MetagenomeScope, we would destroy
+                    # and create a Cytoscape.js instance every time the user
+                    # would draw a new section of the graph. Here, though, it
+                    # is more natural to have a single persistent instance of
+                    # Cytoscape.js -- and just add elements, adjust its
+                    # stylesheet, etc. as requested. This both works better
+                    # with Dash and is recommended by Cytoscape.js' docs
+                    # ("Optimisations" > "Recycle large instances").
+                    cyto.Cytoscape(
+                        id="cy",
+                        elements=[],
+                        layout={"name": "cose"},
+                        style={
+                            "width": "100%",
+                            "height": "100%",
+                        },
+                        boxSelectionEnabled=True,
+                        maxZoom=9,
+                        stylesheet=ui_utils.get_cyjs_stylesheet(
+                            node_coloring=ui_config.DEFAULT_NODE_COLORING,
+                            edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
+                        ),
+                    )
+                ],
                 id="cyDiv",
                 style={
                     "position": "absolute",
@@ -1017,48 +1042,36 @@ def run(
                 return size_rank + 1
 
     @callback(
+        Output("cy", "stylesheet"),
+        State("nodeColorRadio", "value"),
+        State("edgeColorRadio", "value"),
+        Input("applyColorsButton", "n_clicks"),
+    )
+    def apply_colors(node_color_radio, edge_color_radio, apply_btn_n_clicks):
+        return ui_utils.get_cyjs_stylesheet(
+            node_coloring=node_color_radio,
+            edge_coloring=edge_color_radio,
+        )
+
+    @callback(
         Output("toastHolder", "children"),
-        Output("cyDiv", "children"),
+        Output("cy", "elements"),
         State("toastHolder", "children"),
-        State("cyDiv", "children"),
+        State("cy", "elements"),
         State("ccDrawingSelect", "value"),
         State("ccSizeRankSelector", "value"),
         State("ccNodeNameSelector", "value"),
-        State("nodeColorRadio", "value"),
-        State("edgeColorRadio", "value"),
         Input("drawButton", "n_clicks"),
-        Input("applyColorsButton", "n_clicks"),
         prevent_initial_call=True,
     )
     def draw(
         curr_toasts,
-        curr_cy,
+        curr_cy_eles,
         cc_drawing_selection_type,
         size_rank,
         node_name,
-        node_color_radio,
-        edge_color_radio,
         draw_btn_n_clicks,
-        apply_colors_btn_n_clicks,
     ):
-        if ctx.triggered_id == "applyColorsButton":
-            logging.debug("Received request to update colors in the graph.")
-            if curr_cy is None:
-                logging.debug(
-                    "Um, okay. No graph is currently drawn, so we're not "
-                    "going to do anything right now."
-                )
-            else:
-                # this seems mildly jank and undocumented. if this ends
-                # up breaking in the future, the solution is just having the
-                # Cytoscape.js instance be "always on" and just updating it
-                # piecemeal (rather than full on creating it here)
-                curr_cy["props"]["stylesheet"] = ui_utils.get_cyjs_stylesheet(
-                    node_coloring=node_color_radio,
-                    edge_coloring=edge_color_radio,
-                )
-            return curr_toasts, curr_cy
-
         logging.debug("Received request to draw the graph.")
 
         ag_selection_params = {}
@@ -1081,7 +1094,7 @@ def run(
                         "Draw Error",
                         ui_utils.get_cc_size_rank_error_msg(ag),
                     ),
-                    curr_cy,
+                    curr_cy_eles,
                 )
             ag_selection_params = {"cc_size_rank": size_rank}
 
@@ -1094,7 +1107,7 @@ def run(
                     ui_utils.add_error_toast(
                         curr_toasts, "Draw Error", "No node name specified."
                     ),
-                    curr_cy,
+                    curr_cy_eles,
                 )
             ag_selection_params = {"cc_node_name": node_name}
 
@@ -1105,7 +1118,7 @@ def run(
                 "Converting graph to Cytoscape.js-compatible elements ("
                 f"parameters {ag_selection_params})..."
             )
-            elements = ag.to_cyjs_elements(**ag_selection_params)
+            new_cy_eles = ag.to_cyjs_elements(**ag_selection_params)
             logging.debug("...Done.")
         except UIError as err:
             logging.debug(
@@ -1113,7 +1126,7 @@ def run(
             )
             return (
                 ui_utils.add_error_toast(curr_toasts, "Draw Error", str(err)),
-                curr_cy,
+                curr_cy_eles,
             )
 
         # TODO store info in AsmGraph? about which ccs have been laid out.
@@ -1127,20 +1140,7 @@ def run(
         # progress bars here or something to the viz but for now nbd
         # if not ag.layout_done:
         #     ag.layout()
-        return curr_toasts, cyto.Cytoscape(
-            id="cy",
-            elements=elements,
-            layout={"name": "cose"},
-            style={
-                "width": "100%",
-                "height": "100%",
-            },
-            boxSelectionEnabled=True,
-            maxZoom=9,
-            stylesheet=ui_utils.get_cyjs_stylesheet(
-                node_coloring=node_color_radio, edge_coloring=edge_color_radio
-            ),
-        )
+        return (curr_toasts, new_cy_eles)
 
     # It looks like Bootstrap requires us to use JS to show the toast. If we
     # try to show it ourselves (by just adding the "show" class when creating
