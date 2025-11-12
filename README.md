@@ -124,7 +124,9 @@ for details on how we handle reverse complements in FASTG files.)
 
 The short answer is "probably palindromes." Below is a more detailed answer.
 
-**Strand-separated components.** Consider the following example GFA file from FAQ 1:
+##### Strand-separated components
+
+Consider the following example GFA file from FAQ 1:
 
 ```gfa
 H	VN:Z:1.0
@@ -132,6 +134,7 @@ S	1	CGATGCAA
 S	2	TGCAAAGTAC
 L	1	+	2	+	5M
 ```
+
 There are four nodes and two edges in this graph, but they form two
 [(weakly) connected components](https://en.wikipedia.org/wiki/Component_(graph_theory)) --
 that is, the graph contains one "island" of `1` and `2` (which are connected to
@@ -144,7 +147,9 @@ These "**strand-separated**" components describe the same
 (or [mostly the same](https://github.com/rrwick/Bandage/wiki/Assembler-differences#velvet))
 sequences, just in different directions.
 
-**Strand-mixed components.** Sometimes a node and its reverse complement will end up
+##### Strand-mixed components
+
+Sometimes a node and its reverse complement will end up
 being in the same component,
 due to things like [palindromic](https://en.wikipedia.org/wiki/Palindromic_sequence) sequences
 gluing them together. The following GFA file is the same as the one we just saw,
