@@ -243,6 +243,10 @@ For example, [Flye's GFA and DOT files can have slightly different coverages](ht
 since Flye produces them at different times in its pipeline.
 </details>
 
+## Development documentation
+
+See [`CONTRIBUTING.md`](https://github.com/marbl/MetagenomeScope/blob/main/CONTRIBUTING.md).
+
 ## License
 
 MetagenomeScope is licensed under the
