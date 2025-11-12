@@ -600,11 +600,7 @@ def run(
                                                                             f"{ag.edge_ct:,}",
                                                                         ),
                                                                         html.Td(
-                                                                            str(
-                                                                                len(
-                                                                                    ag.components
-                                                                                )
-                                                                            ),
+                                                                            f"{len(ag.components):,}"
                                                                         ),
                                                                     ]
                                                                 ),
