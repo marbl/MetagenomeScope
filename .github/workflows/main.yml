@@ -1,0 +1,66 @@
+# Adapted from strainFlye/pyfastg/wotplot's GH Actions workflows
+name: MgSc CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        # Gotta specify 3.10 as a string to avoid it being converted to 3.1:
+        # https://github.com/actions/setup-python/issues/160,
+        # https://github.com/fedarko/pyfastg/blob/master/.github/workflows/main.yml
+        python-version: [3.8, 3.9, "3.10", "3.11", "3.12", "3.13", "3.14"]
+
+    # https://github.com/conda-incubator/setup-miniconda#use-a-default-shell
+    # Use the same shell for all commands here, preserving the "context" of the
+    # conda environment we set up. (This is a lot nicer-looking than prefixing
+    # all of these commands with "conda run -n menv".)
+    #
+    # See https://stackoverflow.com/q/69070754 and 'bash -c "help set"' for details
+    # about what the "-el {0}" means here.
+    defaults:
+      run:
+        shell: bash -el {0}
+
+    steps:
+
+      # https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Install conda dependencies with mamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-name: mgscenv
+          condarc: |
+            channels:
+              - conda-forge
+          create-args: >-
+            python=${{ matrix.python-version}}
+            numpy
+            pygraphviz
+
+      - name: Sanity check echo python version
+        run: python --version
+
+      - name: Sanity check echo python location
+        run: which python
+
+      - name: Sanity check echo pip version
+        run: pip --version
+
+      - name: Sanity check echo pip location
+        run: which pip
+
+      - name: Install MetagenomeScope (and its pip dependencies)
+        run: pip install -e .[dev]
+
+      - name: Lint and stylecheck
+        run: make stylecheck
+
+      - name: Run tests
+        run: make test
+
+      - name: Upload code coverage information to Codecov
+        uses: codecov/codecov-action@v2

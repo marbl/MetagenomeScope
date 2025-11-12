@@ -19,16 +19,15 @@
 ####
 # NOTE: This file is derived from Qurro's setup.py file.
 
+import os
 from setuptools import find_packages, setup
 
 classes = """
     Development Status :: 3 - Alpha
     License :: OSI Approved :: GNU GPL 3 License
-    Topic :: Software Development :: Libraries
     Topic :: Scientific/Engineering
     Topic :: Scientific/Engineering :: Bio-Informatics
     Topic :: Scientific/Engineering :: Visualization
-    Programming Language :: Python :: 3
     Programming Language :: Python :: 3 :: Only
     Operating System :: Unix
     Operating System :: POSIX
@@ -36,43 +35,57 @@ classes = """
 """
 classifiers = [s.strip() for s in classes.split("\n") if s]
 
-description = "Visualization tool for metagenomic assembly graphs"
+description = "Visualization tool for (meta)genome assembly graphs"
 
 long_description = (
     "MetagenomeScope is a web-based visualization tool for "
-    "metagenomic assembly graphs. It focuses on presenting "
-    "a hierarchical layout of the graph that emphasizes "
-    "a semilinear display alongside highlighting various "
-    "structural patterns within the graph."
+    "metagenome assembly graphs. It focuses on presenting "
+    "a semilinear layout of the graph that highlights "
+    "common structural patterns."
 )
 
-version = "0.1.0-dev"
+# Adapted from technique #1 at
+# https://packaging.python.org/en/latest/guides/single-sourcing-package-version/
+# -- we can't just import __version__ from metagenomescope, because our
+# top-level __init__.py imports other modules that depend on packages that
+# probably haven't been installed yet at this point in setup (see technique #6
+# at the aforementioned website).
+__version__ = None
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, "metagenomescope", "__init__.py"), "r") as fp:
+    for line in fp.readlines():
+        if line.startswith('__version__ = "'):
+            __version__ = line.split('"')[1]
+if __version__ is None:
+    raise RuntimeError("Couldn't find version string?")
 
 setup(
     name="metagenomescope",
-    version=version,
+    version=__version__,
     license="GPL3",
     description=description,
     long_description=long_description,
-    author="Marcus Fedarko, Jay Ghurye, Todd Treangen, Mihai Pop",
-    author_email="mfedarko@ucsd.edu",
+    author="MetagenomeScope Development Team",
+    author_email="mfedarko@umd.edu",
     maintainer="Marcus Fedarko",
-    maintainer_email="mfedarko@ucsd.edu",
+    maintainer_email="mfedarko@umd.edu",
     url="https://github.com/marbl/MetagenomeScope",
     classifiers=classifiers,
     packages=find_packages(),
-    package_data={"metagenomescope": ["support_files"]},
+    package_data={"metagenomescope": ["assets"]},
     include_package_data=True,
     # Sanity check before trying to install -- these should be installed with
     # the parent conda environment
     setup_requires=["numpy", "pygraphviz"],
+    # NOTE I don't impose minimum versions here yet, but I probably should
     install_requires=[
         "click",
         "numpy",
+        "pandas",
         "networkx",
         "gfapy",
         "pyfastg",
-        "jinja2",
+        "dash-cytoscape",
     ],
     # The reason I pin the black version to at least 22.1.0 is that this
     # version changes how the ** operator is formatted (no surrounding spaces,
@@ -81,5 +94,6 @@ setup(
         "dev": ["pytest", "pytest-cov", "flake8", "black>=22.1.0"]
     },
     entry_points={"console_scripts": ["mgsc=metagenomescope._cli:run_script"]},
-    zip_safe=False,
+    # Based on dash-cytoscape's min python version.
+    python_requires=">=3.8",
 )
