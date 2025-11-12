@@ -190,6 +190,7 @@ class AssemblyGraph(object):
             f"{misc_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, and "
             f"{misc_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}, "
         )
+        logger.debug("  ...Done.")
 
         # TODO: do node / edge scaling on demand before layout, right?
         # operation_msg("Scaling nodes based on lengths...")
