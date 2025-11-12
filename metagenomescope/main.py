@@ -386,19 +386,6 @@ def run(
                         ],
                         className="form-check",
                     ),
-                    ctrl_sep_invis,
-                    html.Button(
-                        [
-                            html.I(className="bi bi-check2-square"),
-                            html.Span(
-                                "Apply",
-                                className="iconlbl",
-                            ),
-                        ],
-                        id="applyColorsButton",
-                        className="btn btn-light drawCtrl",
-                        type="button",
-                    ),
                     ctrl_sep,
                     # html.H4("Selected"),
                 ],
@@ -1043,11 +1030,12 @@ def run(
 
     @callback(
         Output("cy", "stylesheet"),
-        State("nodeColorRadio", "value"),
-        State("edgeColorRadio", "value"),
-        Input("applyColorsButton", "n_clicks"),
+        Input("nodeColorRadio", "value"),
+        Input("edgeColorRadio", "value"),
+        prevent_initial_call=True,
+        allow_duplicate=True,
     )
-    def apply_colors(node_color_radio, edge_color_radio, apply_btn_n_clicks):
+    def update_colorings(node_color_radio, edge_color_radio):
         return ui_utils.get_cyjs_stylesheet(
             node_coloring=node_color_radio,
             edge_coloring=edge_color_radio,
