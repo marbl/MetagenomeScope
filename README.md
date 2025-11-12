@@ -33,8 +33,8 @@ mgsc -g graph.gfa
 ... where `graph.gfa` is a path to the assembly graph you want to visualize
 (see information below on supported graph filetypes).
 
-This will start a server using Dash that you can use to analyze the graph.
-Navigate to `localhost:8050` in a web browser to access the visualization.
+This will start a server using Dash.
+Navigate to `localhost:8050` in a web browser to access the interactive visualization.
 
 ## Supported assembly graph filetypes
 
