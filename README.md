@@ -8,11 +8,7 @@
 MetagenomeScope is an interactive visualization tool designed for (meta)genome
 assembly graphs.
 
-MetagenomeScope iteratively decomposes the graph into interpretable structural patterns,
-visualizes the graph using a [hierarchical layout](https://en.wikipedia.org/wiki/Layered_graph_drawing)
-algorithm, and includes many helpful features for analyzing the graph at both large and small scales.
-
-This version of the tool is still a work in progress. More to come soon.
+This version of the tool is still a work in progress; more to come soon.
 
 ## Installation
 
