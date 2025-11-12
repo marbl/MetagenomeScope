@@ -1,4 +1,4 @@
-# MetagenomeScope development documentation
+# <a href="https://marbl.github.io/MetagenomeScope/"><img src="https://raw.githubusercontent.com/fedarko/MetagenomeScope-1/refs/heads/desk/metagenomescope/assets/favicon.ico" alt="Icon" /></a> MetagenomeScope development documentation
 
 ## Setting up a development environment
 
@@ -21,17 +21,39 @@ mamba activate mgscdev
 pip install -e .[dev]
 ```
 
-## Helpful development commands
+At this point, run `mgsc` and `which mgsc` to test that things are installed
+correctly.
+
+## Some commands to help with development
 
 (You should run these from the root directory of the repository.)
 
+### Run a simple demo
+
 ```bash
-# Run tests
-make test
+make demo
+```
 
-# Run linting / stylechecking
+The `metagenomescope/tests/input/` directory contains some other
+example graph files that may be helpful in testing out your changes.
+
+### Linting and stylechecking
+
+```bash
 make stylecheck
+```
 
-# Autoformat code
+### Autoformat the code
+
+```bash
 make style
 ```
+
+### Run tests
+
+```bash
+make test
+```
+
+This command will create a `htmlcov` directory in the root of MetagenomeScope's
+code, containing a nice interactive coverage report.
