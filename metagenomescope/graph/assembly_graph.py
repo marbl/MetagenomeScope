@@ -260,10 +260,37 @@ class AssemblyGraph(object):
         """
         # Ensure consistent random color choices
         random.seed(333)
-        num_random_colors = len(cy_config.RANDOM_COLORS)
+
+        # For tiny graphs, there is the risk that we select the same color
+        # a bunch of times. This can look a bit gross.
+        #
+        # One way to accommodate this is to force the selection of random
+        # indices to be "cyclic": once we assign an index, we should then
+        # not assign it again until we've assigned all other possible indices.
+        # We could easily do this by just, like, maintaining a counter
+        # variable and then computing that mod the number of possible indices
+        # to figure out what index to assign an arbitrary node/edge.
+        #
+        # This approach works but it is too "consistent," in my opinion --
+        # something about starting with red every time seems boring. Also
+        # it's not even random??? So, we do this approach but we shuffle the
+        # order of the indices in advance of every "cycle."
+        def get_all_possible_rand_indices():
+            available_indices = list(range(len(cy_config.RANDOM_COLORS)))
+            random.shuffle(available_indices)
+            return available_indices
 
         def get_rand_idx():
-            return random.randrange(0, num_random_colors)
+            # I was originally going to use a counter variable for this,
+            # but I guess we can use a generator instead of having to mess
+            # around with "nonlocal". https://stackoverflow.com/a/1261952
+            available_indices = get_all_possible_rand_indices()
+            while True:
+                if len(available_indices) == 0:
+                    available_indices = get_all_possible_rand_indices()
+                yield available_indices.pop()
+
+        rand_idx_generator = get_rand_idx()
 
         oldid2uniqueid = {}
         self.seq_lengths = []
@@ -303,7 +330,7 @@ class AssemblyGraph(object):
                     oldid2uniqueid[rc_name]
                 ].rand_idx
             else:
-                new_node.rand_idx = get_rand_idx()
+                new_node.rand_idx = next(rand_idx_generator)
 
         nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
 
@@ -349,7 +376,7 @@ class AssemblyGraph(object):
             elif namepair in edgenamepair2rand_idx:
                 new_edge.rand_idx = edgenamepair2rand_idx[namepair]
             else:
-                new_edge.rand_idx = get_rand_idx()
+                new_edge.rand_idx = next(rand_idx_generator)
                 edgenamepair2rand_idx[namepair] = new_edge.rand_idx
 
         if not lengths_completely_defined:
