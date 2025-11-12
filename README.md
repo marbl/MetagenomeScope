@@ -34,7 +34,7 @@ mgsc -g graph.gfa
 (see information below on supported graph filetypes).
 
 This will start a server using Dash.
-Navigate to `localhost:8050` in a web browser to access the interactive visualization.
+Navigate to `localhost:8050` in a web browser to access the visualization.
 
 ## Supported assembly graph filetypes
 
@@ -49,7 +49,7 @@ should do that to verify that their graphs work ok -->
 | [GML](https://networkx.org/documentation/stable/reference/readwrite/gml.html) (`.gml`) | [MetaCarvel](https://github.com/marbl/MetaCarvel) | Expects MetaCarvel-"dialect" GML files. |
 | [LastGraph](https://github.com/dzerbino/velvet/blob/master/Manual.pdf) (`.LastGraph`) | [Velvet](https://github.com/dzerbino/velvet) | Only the raw structure (nodes and arcs) are included. |
 
-If there are [additional](https://xkcd.com/927/) assembly graph filetypes you'd like us to
+Should you run into [additional](https://xkcd.com/927/) assembly graph filetypes you'd like us to
 support, feel free to open a GitHub issue.
 
 ## FAQs
@@ -61,11 +61,11 @@ of these questions yet. Maybe we can just act like the "F" in "FAQ" stands for
 <!-- use of <strong> here was stolen from strainflye's readme, which in turn is
 based on https://codedragontech.com/createwithcodedragon/how-to-style-html-details-and-summary-tags/ -->
 <details>
-  <summary><strong>How do you handle reverse complement nodes/edges?</strong></summary>
+  <summary><strong>FAQ 1. How do you handle reverse complement nodes/edges?</strong></summary>
 
-It's a bit involved. Let's go on a journey.
+The answer to this depends on the filetype of the graph you are using.
 
-#### "Explicit" graph filetypes (FASTG, DOT, GML)
+##### "Explicit" graph filetypes (FASTG, DOT, GML)
 
 To make a long story short: when MetagenomeScope reads in FASTG, DOT, and GML files,
 it assumes that _these files explicitly describe all of the nodes and edges in the graph_.
@@ -80,7 +80,7 @@ digraph g {
 We will interpret this as a graph with **two nodes** (`1`, `2`) and **one edge**
 (`1 -> 2`).
 
-#### "Implicit" graph filetypes (GFA, LastGraph)
+##### "Implicit" graph filetypes (GFA, LastGraph)
 
 However, for GFA and LastGraph files, MetagenomeScope cannot make the
 assumption that these files explicitly describe all of the nodes and edges in
@@ -105,50 +105,7 @@ the existence of the reverse complement node `-X`, and the presence of edge
 Interpreting the graph file in this way is analogous to
 [how "double mode" works in Bandage](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style).
 
-#### Impacts of reverse complement nodes / edges on the graph structure
-
-Often, the presence of reverse complement nodes / edges (whether
-they are explicitly described in a FASTG, DOT, or GML file, or are implicitly
-described in a GFA or LastGraph file) **doesn't impact the graph structure much**.
-
-What does this mean? Consider the GFA example above. There are four nodes and
-two edges in this graph, but they form two
-[(weakly) connected components](https://en.wikipedia.org/wiki/Component_(graph_theory)) --
-that is, the graph contains one "island" of `1` and `2` (which are connected to
-each other), and another "island" of `-1` and `-2` (which are also connected to each other).
-You can think of these entire components as "reverse complements" of each other:
-although MetagenomeScope will visualize both of them
-([at least right now](https://github.com/marbl/MetagenomeScope/issues/67)),
-you don't really need to analyze them separately. They describe the same
-sequences, just in different directions.\*
-
-_This is not always the case_, though. Sometimes a node and its reverse
-complement may wind up in the same component, for example in the following GFA
-file (which contains an extra "link" line relative to the GFA file we
-considered above):
-
-```gfa
-H	VN:Z:1.0
-S	1	CGATGCAA
-S	2	TGCAAAGTAC
-L	1	+	2	+	5M
-L	1	+	2	-	2D1M
-```
-
-This graph (still containing **four nodes** [`1`, `-1`, `2`, `-2`], but now
-containing **four edges** [`1 -> 2`, `-2 -> -1`, `1 -> -2`, `2 -> -1`]) takes up only a single
-weakly connected component.
-
-\* There may be some slight differences, depending on your assembler's behavior.
-For example, in Velvet's output LastGraph files:
-the sequence represented by a node `N` will not be exactly equal to the reverse
-complement of the sequence represented by `-N`, since these sequences are slightly
-shifted. See
-[the Bandage wiki](https://github.com/rrwick/Bandage/wiki/Assembler-differences#velvet)
-for a nice figure and explanation. (That being said, I think the intuition for
-"thinking about reverse complement nodes / edges" here should be similar.)
-
-#### Based on the FASTG specification, shouldn't FASTG be an "implicit" instead of an "explicit" filetype?
+##### Based on the FASTG specification, shouldn't FASTG be an "implicit" instead of an "explicit" filetype?
 
 It's complicated. The way I interpret the FASTG specification, each declaration
 of an edge sequence implicitly also declares this edge sequence's reverse complement; however,
@@ -162,9 +119,56 @@ for details on how we handle reverse complements in FASTG files.)
 </details>
 
 <details>
-  <summary><strong>What happens if an edge is its own reverse complement?</strong></summary>
+  <summary><strong>FAQ 2. Why does my graph have node `A` and `-A` in the same component?</strong></summary>
 
-(This FAQ assumes that you read the one above it.)
+The short answer is "probably palindromes." Below is a more detailed answer.
+
+**Strand-separated components.** Consider the following example GFA file from FAQ 1:
+
+```gfa
+H	VN:Z:1.0
+S	1	CGATGCAA
+S	2	TGCAAAGTAC
+L	1	+	2	+	5M
+```
+There are four nodes and two edges in this graph, but they form two
+[(weakly) connected components](https://en.wikipedia.org/wiki/Component_(graph_theory)) --
+that is, the graph contains one "island" of `1` and `2` (which are connected to
+each other), and another "island" of `-1` and `-2` (which are also connected to each other).
+You can think of these entire components as "reverse complements" of each other:
+although MetagenomeScope will visualize both of them
+([at least right now](https://github.com/marbl/MetagenomeScope/issues/67)),
+you don't really need to analyze them separately.
+These "**strand-separated**" components describe the same
+(or [mostly the same](https://github.com/rrwick/Bandage/wiki/Assembler-differences#velvet))
+sequences, just in different directions.
+
+**Strand-mixed components.** Sometimes a node and its reverse complement will end up
+being in the same component,
+due to things like [palindromic](https://en.wikipedia.org/wiki/Palindromic_sequence) sequences
+gluing them together. The following GFA file is the same as the one we just saw,
+but it now contains an extra "link" line from `1` to `2-`:
+
+```gfa
+H	VN:Z:1.0
+S	1	CGATGCAA
+S	2	TGCAAAGTAC
+L	1	+	2	+	5M
+L	1	+	2	-	0M
+```
+
+This graph contains four edges: `1 -> 2` and `-2 -> -1` (which we've already seen),
+and `1 -> -2` and `2 -> -1`. The introduction of these last two edges has caused
+the graph to become a single "strand-mixed" component, containing both
+a node `N` and its reverse-complementary node `-N`.
+
+This often happens with the big ("hairball") component in an assembly graph.
+</details>
+
+<details>
+  <summary><strong>FAQ 3. What happens if an edge is its own reverse complement?</strong></summary>
+
+(This FAQ assumes that you have read FAQ 1.)
 
 This can happen if an edge exists from `X -> -X` or from `-X -> X` in an
 "implicit" graph file (GFA / LastGraph). Consider
@@ -204,7 +208,7 @@ then that's also fine, and we'll visualize all of them.)
 </details>
 
 <details>
-  <summary><strong>Can my graphs have parallel edges?</strong></summary>
+  <summary><strong>FAQ 4. Can my graphs have parallel edges?</strong></summary>
 
 Yes! MetagenomeScope supports
 [multigraphs](https://en.wikipedia.org/wiki/Multigraph). If your assembly graph
@@ -221,11 +225,15 @@ this (at least for GFA files) at some point, but it doesn't seem like a very imp
 </details>
 
 <details>
-  <summary><strong>What file format should I use for de Bruijn graphs?</strong></summary>
+  <summary><strong>FAQ 5. What file format should I use for de Bruijn graphs?</strong></summary>
 
 If you are using LJA (and probably also if you are using Flye), you may want to use a DOT file instead of a GFA / FASTG file as input.
 
-This is because GFA and FASTG [are not ideal](https://github.com/AntonBankevich/LJA/blob/main/docs/jumbodbg_manual.md#output-of-de-bruijn-graph-construction) for representing graphs in which sequences are stored on edges rather than nodes (i.e. de Bruijn / repeat graphs). The DOT files output by Flye and LJA should contain the _original_ structure of these graphs (in which edges and nodes in the visualization actually correspond to edges and nodes in the original graph, respectively); the GFA / FASTG files usually represent mutated versions in which nodes and edges have been swapped, which is not always a perfect representation.
+This is because GFA and FASTG [are not ideal](https://github.com/AntonBankevich/LJA/blob/main/docs/jumbodbg_manual.md#output-of-de-bruijn-graph-construction) for representing graphs in which sequences are stored on edges rather than nodes (i.e. de Bruijn / repeat graphs). The DOT files output by Flye and LJA should contain the _original_ structure of these graphs (in which edges and nodes in the visualization actually correspond to edges and nodes in the original graph, respectively); the GFA / FASTG files usually represent altered versions in which nodes and edges have been swapped, which is not always an ideal representation.
+
+That being said, please note that -- if you are using an assembler that outputs graphs in different
+file formats -- these file formats may have additional differences.
+For example, [Flye's GFA and DOT files have slightly different coverages](https://github.com/mikolmogorov/Flye/issues/597).
 </details>
 
 ## License
