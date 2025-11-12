@@ -45,7 +45,7 @@ should do that to verify that their graphs work ok -->
 | -------- | ------------------------------- | ----- |
 | [GFA](https://gfa-spec.github.io/GFA-spec/) (`.gfa`) | [(meta)Flye](https://github.com/mikolmogorov/Flye), [LJA](https://github.com/AntonBankevich/LJA), [miniasm](https://github.com/lh3/miniasm), [hifiasm](https://github.com/chhylp123/hifiasm), [hifiasm-meta](https://github.com/xfengnefx/hifiasm-meta), ... | Both GFA v1 and GFA v2 files are accepted, but [currently](https://github.com/marbl/MetagenomeScope/issues/147) only the raw structure (segments and links) are included. |
 | [FASTG](https://github.com/fedarko/pyfastg#the-fastg-file-format) (`.fastg`) | [SPAdes](https://cab.spbu.ru/software/spades/), [MEGAHIT](https://github.com/voutcn/megahit) | Expects SPAdes-"dialect" FASTG files. See [pyfastg's documentation](https://github.com/fedarko/pyfastg) for details. |
-| [DOT](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) (`.dot`, `.gv`) | [(meta)Flye](https://github.com/mikolmogorov/Flye), [LJA](https://github.com/AntonBankevich/LJA) | Expects DOT files produced by Flye or LJA. See "What file format should I use for de Bruijn graphs?" in the FAQs below. |
+| [DOT](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) (`.dot`, `.gv`) | [(meta)Flye](https://github.com/mikolmogorov/Flye), [LJA](https://github.com/AntonBankevich/LJA) | Expects DOT files produced by Flye or LJA. See "What filetype should I use for de Bruijn graphs?" in the FAQs below. |
 | [GML](https://networkx.org/documentation/stable/reference/readwrite/gml.html) (`.gml`) | [MetaCarvel](https://github.com/marbl/MetaCarvel) | Expects MetaCarvel-"dialect" GML files. |
 | [LastGraph](https://github.com/dzerbino/velvet/blob/master/Manual.pdf) (`.LastGraph`) | [Velvet](https://github.com/dzerbino/velvet) | Only the raw structure (nodes and arcs) are included. |
 
@@ -225,15 +225,16 @@ this (at least for GFA files) at some point, but it doesn't seem like a very imp
 </details>
 
 <details>
-  <summary><strong>FAQ 5. What file format should I use for de Bruijn graphs?</strong></summary>
+  <summary><strong>FAQ 5. What filetype should I use for de Bruijn graphs?</strong></summary>
 
 If you are using LJA (and probably also if you are using Flye), you may want to use a DOT file instead of a GFA / FASTG file as input.
 
 This is because GFA and FASTG [are not ideal](https://github.com/AntonBankevich/LJA/blob/main/docs/jumbodbg_manual.md#output-of-de-bruijn-graph-construction) for representing graphs in which sequences are stored on edges rather than nodes (i.e. de Bruijn / repeat graphs). The DOT files output by Flye and LJA should contain the _original_ structure of these graphs (in which edges and nodes in the visualization actually correspond to edges and nodes in the original graph, respectively); the GFA / FASTG files usually represent altered versions in which nodes and edges have been swapped, which is not always an ideal representation.
 
 That being said, please note that -- if you are using an assembler that outputs graphs in different
-file formats -- these file formats may have additional differences.
-For example, [Flye's GFA and DOT files have slightly different coverages](https://github.com/mikolmogorov/Flye/issues/597).
+filetypes -- these files may have additional differences beyond the usual filetype differences.
+For example, [Flye's GFA and DOT files can have slightly different coverages](https://github.com/mikolmogorov/Flye/issues/597),
+since Flye produces them at different times in its pipeline.
 </details>
 
 ## License
