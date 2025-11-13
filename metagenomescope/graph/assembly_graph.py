@@ -17,6 +17,7 @@ from .. import (
     config,
     cy_config,
     layout_utils,
+    color_utils,
     misc_utils,
     seq_utils,
     input_node_utils,
@@ -261,38 +262,9 @@ class AssemblyGraph(object):
         # Ensure consistent random color choices
         random.seed(333)
 
-        # For tiny graphs, there is the risk that we select the same color
-        # a bunch of times. This can look a bit gross.
-        #
-        # One way to accommodate this is to force the selection of random
-        # indices to be "cyclic": once we assign an index, we should then
-        # not assign it again until we've assigned all other possible indices.
-        # We could easily do this by just, like, maintaining a counter
-        # variable and then computing that mod the number of possible indices
-        # to figure out what index to assign an arbitrary node/edge.
-        #
-        # This approach works but it is too "consistent," in my opinion --
-        # something about starting with red every time seems boring. Also
-        # it's not even random??? So, we do this approach but we shuffle the
-        # order of the indices in advance of every "cycle." (Arguably this
-        # is still a bit too consistent, but that could be addressed by
-        # exposing the random seed as a CLI parameter.)
-        def get_all_possible_rand_indices():
-            available_indices = list(range(len(cy_config.RANDOM_COLORS)))
-            random.shuffle(available_indices)
-            return available_indices
-
-        def get_rand_idx():
-            # I was originally going to use a counter variable for this,
-            # but I guess we can use a generator instead of having to mess
-            # around with "nonlocal". https://stackoverflow.com/a/1261952
-            available_indices = get_all_possible_rand_indices()
-            while True:
-                if len(available_indices) == 0:
-                    available_indices = get_all_possible_rand_indices()
-                yield available_indices.pop()
-
-        rand_idx_generator = get_rand_idx()
+        rand_idx_generator = color_utils.get_rand_idx(
+            len(cy_config.RANDOM_COLORS)
+        )
 
         oldid2uniqueid = {}
         self.seq_lengths = []
