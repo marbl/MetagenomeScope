@@ -1,8 +1,11 @@
 import random
+from .errors import WeirdError
 
 
 def get_rand_idx_list(n):
     """Given an int n > 0, returns a random list of all ints in [0, n)."""
+    if n < 1:
+        raise WeirdError("n must be > 0")
     available_indices = list(range(n))
     random.shuffle(available_indices)
     return available_indices
