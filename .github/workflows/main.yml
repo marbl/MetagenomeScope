@@ -64,3 +64,5 @@ jobs:
 
       - name: Upload code coverage information to Codecov
         uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
