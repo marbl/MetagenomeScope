@@ -238,7 +238,7 @@ class AssemblyGraph(object):
         And assigns each node and edge a random integer in the range
         [0, |cy_config.RANDOM_COLORS| - 1]. This makes it simpler to assign
         consistent random colors later on (also, it makes it simpler to ensure
-        that +/- copies of nodes have the same or similar random colors).
+        that +/- copies of nodes/edges have the same or similar random colors).
 
         Finally, this relabels nodes in the graph to match their corresponding
         Node object's unique_id; and adds an "uid" attribute to edges' NetworkX
