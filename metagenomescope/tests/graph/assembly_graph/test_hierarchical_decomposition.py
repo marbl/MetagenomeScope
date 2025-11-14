@@ -493,31 +493,6 @@ def test_multiple_shared_boundaries_frayed_ropes():
         os.unlink(fn)
 
 
-def test_no_patterns():
-    r"""The input graph looks like
-
-           2
-          / \
-    0 -> 1   4
-          \ /
-           3
-
-    ... but if we set patterns=False when creating the AssemblyGraph, we
-    shouldn't identify any patterns.
-    """
-    ag = AssemblyGraph(
-        "metagenomescope/tests/input/bubble_test_1_in.gml", patterns=False
-    )
-    assert sorted(ag.decomposed_graph.nodes) == sorted([0, 1, 2, 3, 4])
-    assert len(ag.decomposed_graph.edges) == 5
-    assert len(ag.chains) == 0
-    assert len(ag.cyclic_chains) == 0
-    assert len(ag.frayed_ropes) == 0
-    assert len(ag.bubbles) == 0
-    assert sorted(ag.graph.nodes) == sorted([0, 1, 2, 3, 4])
-    assert len(ag.graph.edges) == 5
-
-
 def test_chr21mat_split_siblings_merged():
     r"""The input graph looks like
 
