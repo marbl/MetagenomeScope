@@ -22,6 +22,11 @@ from .misc_utils import pluralize
 from .graph import AssemblyGraph, graph_utils
 from .errors import UIError
 
+# Needed for layout extensions. Probably comment this out when we get
+# actual Graphviz layouts back in (or maybe keep this in if people want
+# to try out fcose / dagre / etc)
+cyto.load_extra_layouts()
+
 
 def run(
     graph: str = None,
@@ -422,7 +427,7 @@ def run(
                     cyto.Cytoscape(
                         id="cy",
                         elements=[],
-                        layout={"name": "cose"},
+                        layout={"name": "dagre"},
                         style={
                             "width": "100%",
                             "height": "100%",
