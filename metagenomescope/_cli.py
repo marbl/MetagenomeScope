@@ -31,24 +31,6 @@ from .main import run
 #     required=False,
 #     help=AGP,
 # )
-# @click.option(
-#     "-n",
-#     "--node-metadata",
-#     type=click.Path(exists=True, dir_okay=False, readable=True),
-#     required=False,
-#     default=None,
-#     show_default=True,
-#     help=NODE_METADATA,
-# )
-# @click.option(
-#     "-e",
-#     "--edge-metadata",
-#     type=click.Path(exists=True, dir_okay=False, readable=True),
-#     required=False,
-#     default=None,
-#     show_default=True,
-#     help=EDGE_METADATA,
-# )
 @click.option(
     "--verbose/--no-verbose",
     is_flag=True,

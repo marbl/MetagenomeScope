@@ -7,7 +7,6 @@ import subprocess
 from copy import deepcopy
 from collections import deque
 import numpy
-import pandas as pd
 import networkx as nx
 import pygraphviz
 
@@ -75,7 +74,7 @@ class AssemblyGraph(object):
 
     def __init__(
         self,
-        filename,
+        graph_fp,
     ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
@@ -84,11 +83,11 @@ class AssemblyGraph(object):
 
         Parameters
         ----------
-        filename: str
+        graph_fp: str
             Path to the assembly graph to be visualized.
         """
         logger = logging.getLogger(__name__)
-        self.filename = filename
+        self.filename = graph_fp
 
         self.basename = os.path.basename(self.filename)
         logger.info(f'Loading input graph "{self.basename}"...')
@@ -140,7 +139,6 @@ class AssemblyGraph(object):
         # objects' unique IDs.
         logger.debug("  Initializing node and edge graph objects...")
         self._init_graph_objs()
-        # self._integrate_metadata(node_metadata, edge_metadata)
         logger.debug("  ...Done.")
 
         logger.debug(
@@ -192,19 +190,6 @@ class AssemblyGraph(object):
             f"{misc_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}, "
         )
         logger.debug("  ...Done.")
-
-        # TODO: do node / edge scaling on demand before layout, right?
-        # operation_msg("Scaling nodes based on lengths...")
-        # self._scale_nodes()
-        # conclude_msg()
-
-        # self._scale_edges()
-
-        # Defer this until after we do pattern decomposition, to account for
-        # split nodes. (At this point we have already called
-        # self._scale_nodes() -- so the presence of split nodes shouldn't
-        # change how other nodes in the graph are scaled.)
-        # self._compute_node_dimensions()
 
         # Initialize self.components, a sorted list of Component objects. See
         # this method's docstring for details.
@@ -355,114 +340,6 @@ class AssemblyGraph(object):
 
         if not lengths_completely_defined:
             raise WeirdError(f"Not all {self.seq_noun}s have defined lengths?")
-
-    def _integrate_metadata(self, node_metadata, edge_metadata):
-        """Reads, sanity checks, and integrates node/edge metadata.
-
-        Parameters
-        ----------
-        node_metadata: str or None
-            If this isn't None, we assume it's a path to a TSV file.
-
-        edge_metadata: str or None
-            If this isn't None, we assume it's a path to a TSV file.
-
-        Notes
-        -----
-        We load these TSV files as pandas DataFrames using pd.read_csv(). We
-        could add a lot more details to how we load these DataFrames to, for
-        example, account for missing values nicely (see read_metadata_file() in
-        https://github.com/biocore/qurro/blob/master/qurro/_metadata_utils.py),
-        but I think keeping things simple should be sufficient for now.
-        """
-        if node_metadata is not None:
-            nm = pd.read_csv(node_metadata, sep="\t", index_col=0)
-            node_names = [n.name for n in self.nodeid2obj]
-            misc_utils.verify_subset(
-                nm.index,
-                node_names,
-                custom_message=(
-                    "There exist node IDs in the metadata that are not "
-                    "present in the graph."
-                ),
-            )
-            # TODO do this nicely
-            raise NotImplementedError
-        if edge_metadata is not None:
-            # em = pd.read_csv(edge_metadata, sep="\t", index_col=[0, 1])
-            # Again, check that all source and sink nodes' IDs are in the graph
-            # TODO
-            raise NotImplementedError
-
-    def _remove_too_large_components(self):
-        """Removes too-large components from the graph early on.
-
-        Notes
-        -----
-        Maybe we should save information about *which* nodes and edges exist in
-        these components, so that -- if users search for these nodes / edges --
-        we could inform the user "hey, this object is in a component that
-        didn't get laid out." Buuuuut that's a problem for another day.
-        """
-        # if the user disabled both maxn and maxe, we can skip all of the work
-        # done in this function
-        node_chk = self.max_node_count > 0
-        edge_chk = self.max_edge_count > 0
-        criteria = ""
-        if node_chk:
-            if edge_chk:
-                criteria = (
-                    f"> {self.max_node_count:,} nodes and/or "
-                    f"> {self.max_edge_count:,} edges"
-                )
-            else:
-                criteria = f"> {self.max_node_count:,} nodes"
-        else:
-            if edge_chk:
-                criteria = f"> {self.max_edge_count:,} edges"
-
-        if node_chk or edge_chk:
-            operation_msg(f"Removing components with {criteria}...")
-            # We convert the WCC collection to a list so that even if we alter the
-            # graph in the middle of the loop we don't risk the collection being
-            # messed up
-            wccs = list(nx.weakly_connected_components(self.graph))
-            num_wccs = len(wccs)
-            for cc_node_ids in wccs:
-                num_nodes = len(cc_node_ids)
-                num_edges = len(self.graph.subgraph(cc_node_ids).edges)
-                node_bad = (
-                    self.max_node_count > 0 and num_nodes > self.max_node_count
-                )
-                edge_bad = (
-                    self.max_edge_count > 0 and num_edges > self.max_edge_count
-                )
-                if node_bad or edge_bad:
-                    self.graph.remove_nodes_from(cc_node_ids)
-                    self.num_too_large_components += 1
-                    # just a little hack to make the logging look nice
-                    prefix = ""
-                    if self.num_too_large_components == 1:
-                        prefix = "\n"
-                    operation_msg(
-                        (
-                            f"{prefix}Ignoring a component with {num_nodes:,} "
-                            f"nodes and {num_edges:,} edges."
-                        ),
-                        True,
-                    )
-
-            if self.num_too_large_components == num_wccs:
-                raise ValueError(
-                    "All components were too large to lay out. Try increasing "
-                    "or disabling the -maxn/-maxe parameters."
-                )
-
-            conclude_msg()
-            operation_msg(
-                f"Removed {self.num_too_large_components:,} such component(s).",
-                newline=True,
-            )
 
     def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.
@@ -1234,9 +1111,24 @@ class AssemblyGraph(object):
     def get_component_node_and_edge_cts(self):
         """Returns lists of node and edge counts for each component.
 
-        These lists are guaranteed to have the same lengths. Furthermore,
-        they are in the same order -- so the same component is described
-        by position 0 in the node list and the edge list, etc.
+        Currently, this returns counts of "full" nodes -- treating each split
+        node A-L and A-R as a single node, but also treating
+        reverse-complementary nodes separately (so, if a component contains
+        both node A and node -A, then this will count as two nodes).
+
+        And it returns counts of "real" edges, ignoring the fake ones created
+        by node splitting.
+
+        So like the takeaway here is that this is the kind of helpful
+        information we want to actually SHOW to the user lol
+
+        Returns
+        -------
+        (node_cts, edge_cts): (list of int, list of int)
+            Lists of counts of nodes and edges in each component. These lists
+            are guaranteed to have the same lengths. Furthermore, they are in
+            the same order -- so the same component is described by position X
+            in node_cts and by position X in edge_cts.
         """
         cc_node_cts = []
         cc_edge_cts = []
@@ -1259,7 +1151,7 @@ class AssemblyGraph(object):
         for ni, n in self.nodeid2obj.items():
             if n.split is not None:
                 raise WeirdError(
-                    "Split nodes shouldn't exist in the graph yet."
+                    f"Split nodes shouldn't exist in the graph yet: {n}"
                 )
             if "length" in n.data:
                 lengths[ni] = n.data["length"]

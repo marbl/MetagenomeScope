@@ -81,7 +81,6 @@ setup(
     install_requires=[
         "click",
         "numpy",
-        "pandas",
         "networkx",
         "gfapy",
         "pyfastg",
