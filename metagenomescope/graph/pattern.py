@@ -203,35 +203,6 @@ class Pattern(Node):
     def get_node_ids(self):
         return get_ids_of_nodes(self.nodes)
 
-    def to_dot(self, indent=config.INDENT):
-        """Returns a DOT representation of this Pattern and its descendants.
-
-        Parameters
-        ----------
-        indent: str
-            "Outer indentation" to use in the DOT output. We'll increment the
-            indentation for child nodes/edges/patterns of this pattern as well.
-
-        Returns
-        -------
-        str
-            DOT representation of this Pattern, in which the Pattern is
-            represented as a "cluster" subgraph.
-        """
-        # inner indentation level
-        ii = indent + config.INDENT
-        gv = (
-            f"{indent}subgraph cluster_"
-            f"{config.PT2HR_NOSPACE[self.pattern_type]}_{self.unique_id} {{\n"
-        )
-        gv += f'{ii}style="filled";\n'
-        gv += f'{ii}fillcolor="{config.PT2COLOR[self.pattern_type]}";\n'
-        for obj_coll in (self.nodes, self.edges):
-            for obj in obj_coll:
-                gv += obj.to_dot(indent=ii)
-        gv += f"{indent}}}\n"
-        return gv
-
     def layout(self):
         gv_input = layout_utils.get_gv_header()
         # Recursively go through all of the nodes within this pattern. If any
@@ -330,3 +301,32 @@ class Pattern(Node):
         for edge in self.edges:
             edges.append(edge)
         return nodes, edges, patts, patt_stats
+
+    def to_dot(self, indent=config.INDENT):
+        """Returns a DOT representation of this Pattern and its descendants.
+
+        Parameters
+        ----------
+        indent: str
+            "Outer indentation" to use in the DOT output. We'll increment the
+            indentation for child nodes/edges/patterns of this pattern as well.
+
+        Returns
+        -------
+        str
+            DOT representation of this Pattern, in which the Pattern is
+            represented as a "cluster" subgraph.
+        """
+        # inner indentation level
+        ii = indent + config.INDENT
+        gv = (
+            f"{indent}subgraph cluster_"
+            f"{config.PT2HR_NOSPACE[self.pattern_type]}_{self.unique_id} {{\n"
+        )
+        gv += f'{ii}style="filled";\n'
+        gv += f'{ii}fillcolor="{config.PT2COLOR[self.pattern_type]}";\n'
+        for obj_coll in (self.nodes, self.edges):
+            for obj in obj_coll:
+                gv += obj.to_dot(indent=ii)
+        gv += f"{indent}}}\n"
+        return gv
