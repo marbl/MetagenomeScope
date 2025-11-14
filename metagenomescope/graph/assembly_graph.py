@@ -2206,7 +2206,7 @@ class AssemblyGraph(object):
             fh.write(output_stats)
         conclude_msg()
 
-    def to_cyjs_elements(self, cc_size_rank=None, cc_node_name=None):
+    def to_cyjs(self, cc_size_rank=None, cc_node_name=None):
         if cc_size_rank is None:
             if cc_node_name is None:
                 # Select all ccs
@@ -2254,33 +2254,6 @@ class AssemblyGraph(object):
         edges = []
 
         for cc in ccs:
-            for nobj in cc.nodes:
-                if "orientation" in nobj.data:
-                    if nobj.data["orientation"] == "+":
-                        ndir = "fwd"
-                    else:
-                        ndir = "rev"
-                else:
-                    ndir = "unoriented"
-
-                nodes.append(
-                    {
-                        "data": {
-                            "id": str(nobj.unique_id),
-                            "label": str(nobj.name),
-                        },
-                        "classes": ndir + f" noderand{nobj.rand_idx}",
-                    }
-                )
-
-            for eobj in cc.edges:
-                edges.append(
-                    {
-                        "data": {
-                            "source": str(eobj.new_src_id),
-                            "target": str(eobj.new_tgt_id),
-                        },
-                        "classes": f"edgerand{eobj.rand_idx}",
-                    }
-                )
+            nodes.extend(nobj.to_cyjs() for nobj in cc.nodes)
+            edges.extend(eobj.to_cyjs() for eobj in cc.edges)
         return nodes + edges

@@ -287,3 +287,20 @@ class Node(object):
             f"{indent}{self.unique_id} [width={dotwidth},height={self.height},"
             f'shape={self.shape},label="{self.name}"];\n'
         )
+
+    def to_cyjs(self):
+        if "orientation" in self.data:
+            if self.data["orientation"] == "+":
+                ndir = "fwd"
+            else:
+                ndir = "rev"
+        else:
+            ndir = "unoriented"
+
+        return {
+            "data": {
+                "id": str(self.unique_id),
+                "label": str(self.name),
+            },
+            "classes": ndir + f" noderand{self.rand_idx}",
+        }

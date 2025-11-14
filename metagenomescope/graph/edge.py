@@ -249,3 +249,12 @@ class Edge(object):
             raise WeirdError(f"Unrecognized edge level: {level}")
 
         return f"{indent}{decl} [{attrs_str}];\n"
+
+    def to_cyjs(self):
+        return {
+            "data": {
+                "source": str(self.new_src_id),
+                "target": str(self.new_tgt_id),
+            },
+            "classes": f"edgerand{self.rand_idx}",
+        }

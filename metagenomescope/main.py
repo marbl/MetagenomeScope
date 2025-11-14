@@ -1102,7 +1102,7 @@ def run(
                 "Converting graph to Cytoscape.js-compatible elements ("
                 f"parameters {ag_selection_params})..."
             )
-            new_cy_eles = ag.to_cyjs_elements(**ag_selection_params)
+            new_cy_eles = ag.to_cyjs(**ag_selection_params)
             logging.debug(f"...Done. {len(new_cy_eles):,} ele(s) total.")
         except UIError as err:
             logging.debug(
