@@ -1,5 +1,5 @@
 ###############################################################################
-# Cytoscape.js configuration stuff
+# Nodes
 ###############################################################################
 
 # I just manually picked these from a hex color picker
@@ -25,6 +25,14 @@ UNSELECTED_NODE_FONT_COLOR = "#eeeeee"
 SELECTED_NODE_BLACKEN = "0.5"
 SELECTED_NODE_FONT_COLOR = "#eeeeee"
 
+FWD_NODE_POLYGON_PTS = "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1"
+REV_NODE_POLYGON_PTS = "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1"
+UNORIENTED_NODE_SHAPE = "ellipse"
+
+###############################################################################
+# Edges
+###############################################################################
+
 EDGE_COLOR = "#555555"
 # ideally we would use something like background-blacken to just darken
 # edges by some amount regardless of what color they are, but cy.js does
@@ -33,9 +41,12 @@ EDGE_COLOR = "#555555"
 # (maybe we can make this fancier later)
 SELECTED_EDGE_COLOR = "#000000"
 
-FWD_NODE_POLYGON_PTS = "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1"
-REV_NODE_POLYGON_PTS = "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1"
-UNORIENTED_NODE_SHAPE = "ellipse"
+FAKE_EDGE_LINE_STYLE = "dashed"
+FAKE_EDGE_DASH_PATTERN = ["5", "9"]
+
+###############################################################################
+# Patterns
+###############################################################################
 
 # matches "cornflowerblue" in graphviz
 BUBBLE_COLOR = "#9abaf3"
@@ -47,3 +58,6 @@ FRAYEDROPE_COLOR = "#59f459"
 CHAIN_COLOR = "#eedddd"
 # matches "darkgoldenrod1" in graphviz
 CYCLICCHAIN_COLOR = "#ffd163"
+
+SELECTED_PATTERN_BORDER_WIDTH = "5"
+SELECTED_PATTERN_BORDER_COLOR = "#000000"

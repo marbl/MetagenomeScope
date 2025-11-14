@@ -261,4 +261,6 @@ class Edge(object):
 
         if self.parent_id is not None:
             ele["data"]["parent"] = str(self.parent_id)
+        if self.is_fake:
+            ele["classes"] += " fake"
         return ele

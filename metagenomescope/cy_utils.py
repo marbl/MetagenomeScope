@@ -6,23 +6,15 @@ def get_cyjs_stylesheet(
     edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
 ):
     stylesheet = [
+        # nodes
         {
-            "selector": "node.noncluster",
+            "selector": "node.nonpattern",
             "style": {
                 "background-color": cy_config.NODE_COLOR,
                 "color": cy_config.UNSELECTED_NODE_FONT_COLOR,
                 "label": "data(label)",
                 "text-valign": "center",
                 "min-zoomed-font-size": "12",
-            },
-        },
-        {
-            "selector": "edge",
-            "style": {
-                "curve-style": "bezier",
-                "target-arrow-shape": "triangle",
-                "line-color": cy_config.EDGE_COLOR,
-                "target-arrow-color": cy_config.EDGE_COLOR,
             },
         },
         {
@@ -52,6 +44,7 @@ def get_cyjs_stylesheet(
                 "shape": cy_config.UNORIENTED_NODE_SHAPE,
             },
         },
+        # patterns
         {
             "selector": "node.pattern",
             "style": {
@@ -68,8 +61,8 @@ def get_cyjs_stylesheet(
         {
             "selector": "node.pattern:selected",
             "style": {
-                'border-width': "5",
-                'border-color': "#000000",
+                "border-width": cy_config.SELECTED_PATTERN_BORDER_WIDTH,
+                "border-color": cy_config.SELECTED_PATTERN_BORDER_COLOR,
             },
         },
         {
@@ -94,6 +87,23 @@ def get_cyjs_stylesheet(
             "selector": "node.cyclicchain",
             "style": {
                 "background-color": cy_config.CYCLICCHAIN_COLOR,
+            },
+        },
+        # edges
+        {
+            "selector": "edge",
+            "style": {
+                "curve-style": "bezier",
+                "target-arrow-shape": "triangle",
+                "line-color": cy_config.EDGE_COLOR,
+                "target-arrow-color": cy_config.EDGE_COLOR,
+            },
+        },
+        {
+            "selector": "edge.fake",
+            "style": {
+                "line-style": cy_config.FAKE_EDGE_LINE_STYLE,
+                "line-dash-pattern": cy_config.FAKE_EDGE_DASH_PATTERN,
             },
         },
     ]
