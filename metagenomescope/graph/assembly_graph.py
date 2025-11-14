@@ -2206,7 +2206,7 @@ class AssemblyGraph(object):
             fh.write(output_stats)
         conclude_msg()
 
-    def to_cyjs(self, cc_size_rank=None, cc_node_name=None):
+    def select_ccs(self, cc_size_rank=None, cc_node_name=None):
         if cc_size_rank is None:
             if cc_node_name is None:
                 # Select all ccs
@@ -2249,7 +2249,10 @@ class AssemblyGraph(object):
                     )
             else:
                 raise WeirdError("Both size rank and node name specified?")
+        return ccs
 
+    def to_cyjs(self, **cc_selection_parameters):
+        ccs = self.select_ccs(**cc_selection_parameters)
         nodes = []
         edges = []
 
