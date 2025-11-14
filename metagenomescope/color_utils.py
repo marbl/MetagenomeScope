@@ -32,9 +32,8 @@ def get_rand_idx(n):
     Motivation
     ~~~~~~~~~~
     For tiny graphs, there is the risk that we select the same color a bunch of
-    times. This can look a bit gross, and it is very obvious if we are working
-    with a graph with like 10 nodes (because then any repeated colors become
-    super obvious).
+    times. This can look a bit gross, and it is super obvious when many nodes
+    and edges in the graph are drawn at once.
 
     One way to accommodate this is to force the selection of random
     indices to be "cyclic": once we assign an index, we should then
