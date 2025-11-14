@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
+import itertools
 from .. import config
 from .pattern_stats import PatternStats
 
@@ -114,9 +115,14 @@ class Component(object):
             self.patterns.append(p)
         self.pattern_stats += patt_stats
 
+    def get_objs(self):
+        return itertools.chain(self.nodes, self.edges, self.patterns)
+
     def set_cc_num(self, cc_num):
         """Updates the component number of this component and its children."""
         self.cc_num = cc_num
-        for coll in (self.nodes, self.edges):
-            for obj in coll:
-                obj.set_cc_num(cc_num)
+        for obj in self.get_objs():
+            obj.set_cc_num(cc_num)
+
+    def to_cyjs(self):
+        return [obj.to_cyjs() for obj in self.get_objs()]

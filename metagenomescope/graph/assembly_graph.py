@@ -1577,12 +1577,8 @@ class AssemblyGraph(object):
             # easier later on.
             for node_id in cc_node_ids:
                 if self.is_pattern(node_id):
-                    raise NotImplementedError(
-                        "hey future me, set cc num based on child nodes' cc "
-                        "nums which are now set earlier"
-                    )
-                    # (TODO replace the line below)
-                    # self.pattid2obj[node_id].set_cc_num(cc_i)
+                    # TODO i forget what the cc_num stuff is doing here ???
+                    # it should already now be set for all nodes,edges,& patts.
                     # Lay out the pattern in isolation (could involve multiple
                     # layers, since patterns can contain other patterns).
                     self.pattid2obj[node_id].layout()
@@ -2253,10 +2249,7 @@ class AssemblyGraph(object):
 
     def to_cyjs(self, **cc_selection_parameters):
         ccs = self.select_ccs(**cc_selection_parameters)
-        nodes = []
-        edges = []
-
+        eles = []
         for cc in ccs:
-            nodes.extend(nobj.to_cyjs() for nobj in cc.nodes)
-            edges.extend(eobj.to_cyjs() for eobj in cc.edges)
-        return nodes + edges
+            eles.extend(cc.to_cyjs())
+        return eles

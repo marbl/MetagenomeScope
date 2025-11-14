@@ -166,6 +166,8 @@ class Node(object):
         self.parent_id = None
 
         # Number (1-indexed) of the connected component containing this node.
+        # This will be set later on, after we are finished with pattern
+        # detection (and thus with splitting nodes, etc).
         self.cc_num = None
 
         # Certain nodes may be "removed" from the graph -- for example, if we
@@ -297,10 +299,15 @@ class Node(object):
         else:
             ndir = "unoriented"
 
-        return {
+        ele = {
             "data": {
                 "id": str(self.unique_id),
-                "label": str(self.name),
+                "label": self.name,
             },
             "classes": ndir + f" noderand{self.rand_idx}",
         }
+
+        if self.parent_id is not None:
+            ele["data"]["parent"] = str(self.parent_id)
+
+        return ele

@@ -35,9 +35,11 @@ def is_pattern(obj):
 def verify_vr_and_nodes_good(vr, nodes):
     """Checks a Pattern's ValidationResults object and Node objects.
 
-    Verifies that (1) the ValidationResults describes a valid pattern,
+    Verifies that:
+    (1) the ValidationResults describes a valid pattern,
     (2) all Nodes in "nodes" have unique IDs (at least compared to each other),
-    and (3) vr.nodes exactly matches "nodes".
+    and
+    (3) vr.nodes exactly matches "nodes".
     """
     if not vr:
         raise WeirdError(
@@ -139,6 +141,9 @@ class Pattern(Node):
         for edge in self.edges:
             edge.parent_id = self.unique_id
 
+        # we'll set this later, after pattern detection
+        self.cc_num = None
+
         # This is the shape used for this pattern during layout. In the actual
         # end visualization we might use different shapes for collapsed
         # patterns (e.g. hexagons for bubbles, hourglasses for frayed ropes),
@@ -146,18 +151,13 @@ class Pattern(Node):
         # by the rectangle, so just using a rectangle for layout should be ok.
         self.shape = "rectangle"
 
+        name = f"{config.PT2HR_NOSPACE[self.pattern_type]}{self.unique_id}"
         # Use the Node constructor to initialize the rest of the stuff we need
-        # for this pattern (width, height, etc.)
-        #
-        # For now, we just set this pattern's "name" as a string version of its
-        # unique ID. I don't think we'll pass this on to the visualization
-        # interface for patterns, so it doesn't really matter -- but maybe we
-        # can eventually make these names fancy (e.g. "Bubble #50").
-        super().__init__(unique_id, str(unique_id), {})
+        super().__init__(unique_id, name, {})
 
     def __repr__(self):
         return (
-            f"{config.PT2HR[self.pattern_type]} {self.unique_id} of "
+            f"{self.name} containing "
             f"nodes {self.get_node_ids()} from {self.start_node_ids} to "
             f"{self.end_node_ids}"
         )
@@ -319,10 +319,7 @@ class Pattern(Node):
         """
         # inner indentation level
         ii = indent + config.INDENT
-        gv = (
-            f"{indent}subgraph cluster_"
-            f"{config.PT2HR_NOSPACE[self.pattern_type]}_{self.unique_id} {{\n"
-        )
+        gv = f"{indent}subgraph cluster_" f"{self.name} {{\n"
         gv += f'{ii}style="filled";\n'
         gv += f'{ii}fillcolor="{config.PT2COLOR[self.pattern_type]}";\n'
         for obj_coll in (self.nodes, self.edges):
@@ -330,3 +327,21 @@ class Pattern(Node):
                 gv += obj.to_dot(indent=ii)
         gv += f"{indent}}}\n"
         return gv
+
+    def to_cyjs(self):
+        # unlike to_dot(), we don't bother doing this recursively. we assume
+        # the caller already knows about all nodes and edges in this pattern.
+        # since this is called by a Component object that should be fine
+        ele = {
+            "data": {
+                "id": str(self.unique_id),
+                # as of writing this is redundant b/c name contains the ID,
+                # and also probably we don't even want to label these. but
+                # let's be careful for now
+                "label": self.name,
+            },
+            "classes": config.PT2HR_NOSPACE[self.pattern_type],
+        }
+        if self.parent_id is not None:
+            ele["data"]["parent"] = str(self.parent_id)
+        return ele

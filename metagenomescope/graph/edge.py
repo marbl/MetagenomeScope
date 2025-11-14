@@ -251,10 +251,14 @@ class Edge(object):
         return f"{indent}{decl} [{attrs_str}];\n"
 
     def to_cyjs(self):
-        return {
+        ele = {
             "data": {
                 "source": str(self.new_src_id),
                 "target": str(self.new_tgt_id),
             },
             "classes": f"edgerand{self.rand_idx}",
         }
+
+        if self.parent_id is not None:
+            ele["data"]["parent"] = str(self.parent_id)
+        return ele
