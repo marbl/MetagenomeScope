@@ -302,7 +302,8 @@ class Node(object):
         ele = {
             "data": {
                 "id": str(self.unique_id),
-                "label": self.name,
+                # str() is apparently needed here for some GML graphs
+                "label": str(self.name),
             },
             "classes": f"nonpattern {ndir} noderand{self.rand_idx}",
         }
