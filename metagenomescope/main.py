@@ -427,7 +427,7 @@ def run(
                     cyto.Cytoscape(
                         id="cy",
                         elements=[],
-                        layout={"name": "dagre"},
+                        layout={"name": "dagre", "rankDir": "LR"},
                         style={
                             "width": "100%",
                             "height": "100%",
