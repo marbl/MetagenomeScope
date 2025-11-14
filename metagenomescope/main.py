@@ -16,7 +16,7 @@ from dash import (
     Output,
     State,
 )
-from . import defaults, css_config, ui_config, ui_utils
+from . import defaults, css_config, ui_config, ui_utils, cy_utils
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
 from .graph import AssemblyGraph, graph_utils
@@ -434,7 +434,7 @@ def run(
                         },
                         boxSelectionEnabled=True,
                         maxZoom=9,
-                        stylesheet=ui_utils.get_cyjs_stylesheet(
+                        stylesheet=cy_utils.get_cyjs_stylesheet(
                             node_coloring=ui_config.DEFAULT_NODE_COLORING,
                             edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
                         ),
@@ -1037,7 +1037,7 @@ def run(
         allow_duplicate=True,
     )
     def update_colorings(node_color_radio, edge_color_radio):
-        return ui_utils.get_cyjs_stylesheet(
+        return cy_utils.get_cyjs_stylesheet(
             node_coloring=node_color_radio,
             edge_coloring=edge_color_radio,
         )

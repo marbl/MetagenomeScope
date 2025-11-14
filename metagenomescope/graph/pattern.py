@@ -340,7 +340,7 @@ class Pattern(Node):
                 # let's be careful for now
                 "label": self.name,
             },
-            "classes": config.PT2HR_NOSPACE[self.pattern_type],
+            "classes": f"pattern {config.PT2HR_NOSPACE[self.pattern_type]}",
         }
         if self.parent_id is not None:
             ele["data"]["parent"] = str(self.parent_id)

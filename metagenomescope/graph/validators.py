@@ -273,8 +273,7 @@ def is_valid_frayed_rope(g, start_node_id):
 
     end_node_ids = list(g.adj[last_middle_node].keys())
 
-    # The middle node has to diverge to something for this to be a frayed
-    # rope.
+    # The middle node has to diverge to something for this to be a frayed rope.
     if len(end_node_ids) < 2:
         return ValidationResults()
     for n in end_node_ids:

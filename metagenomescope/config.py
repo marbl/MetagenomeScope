@@ -198,10 +198,10 @@ PT2HR = {
 # cases where we want to include pattern names in other IDs (e.g. in the names
 # of clusters in exported DOT files)...
 PT2HR_NOSPACE = {
-    PT_BUBBLE: "Bubble",
-    PT_CHAIN: "Chain",
-    PT_CYCLICCHAIN: "CyclicChain",
-    PT_FRAYEDROPE: "FrayedRope",
+    PT_BUBBLE: "bubble",
+    PT_CHAIN: "chain",
+    PT_CYCLICCHAIN: "cyclicchain",
+    PT_FRAYEDROPE: "frayedrope",
 }
 
 # Whether or not to specify colors for node groups in .gv/.xdot files. If this

@@ -1,6 +1,6 @@
 import matplotlib
 from dash import html
-from . import css_config, cy_config, ui_config
+from . import css_config
 from .misc_utils import fmt_qty, get_toast_timestamp
 
 
@@ -118,97 +118,3 @@ def get_cc_size_rank_error_msg(ag):
             'this should always be a "1"...'
         )
     return msg
-
-
-def get_cyjs_stylesheet(
-    node_coloring=ui_config.DEFAULT_NODE_COLORING,
-    edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
-):
-    stylesheet = [
-        {
-            "selector": "node",
-            "style": {
-                "background-color": cy_config.NODE_COLOR,
-                "color": cy_config.UNSELECTED_NODE_FONT_COLOR,
-                "label": "data(label)",
-                "text-valign": "center",
-                "min-zoomed-font-size": "12",
-                "z-index": "2",
-            },
-        },
-        {
-            "selector": "edge",
-            "style": {
-                "curve-style": "bezier",
-                "target-arrow-shape": "triangle",
-                "line-color": cy_config.EDGE_COLOR,
-                "target-arrow-color": cy_config.EDGE_COLOR,
-            },
-        },
-        {
-            "selector": "node:selected",
-            "style": {
-                "color": cy_config.SELECTED_NODE_FONT_COLOR,
-                "background-blacken": cy_config.SELECTED_NODE_BLACKEN,
-            },
-        },
-        {
-            "selector": "node.fwd",
-            "style": {
-                "shape": "polygon",
-                "shape-polygon-points": cy_config.FWD_NODE_POLYGON_PTS,
-            },
-        },
-        {
-            "selector": "node.rev",
-            "style": {
-                "shape": "polygon",
-                "shape-polygon-points": cy_config.REV_NODE_POLYGON_PTS,
-            },
-        },
-        {
-            "selector": "node.unoriented",
-            "style": {
-                "shape": cy_config.UNORIENTED_NODE_SHAPE,
-            },
-        },
-    ]
-
-    if node_coloring == ui_config.COLORING_RANDOM:
-        for i, c in enumerate(cy_config.RANDOM_COLORS):
-            stylesheet.append(
-                {
-                    "selector": f"node.noderand{i}",
-                    "style": {
-                        "background-color": c,
-                    },
-                }
-            )
-    # yeah yeah yeah this is slightly inefficient if both nodes and edges have
-    # random coloring because then we're iterating through
-    # cy_config.RANDOM_COLORS twice instead of once. there is no way that will
-    # ever be a bottleneck.
-    if edge_coloring == ui_config.COLORING_RANDOM:
-        for i, c in enumerate(cy_config.RANDOM_COLORS):
-            stylesheet.append(
-                {
-                    "selector": f"edge.edgerand{i}",
-                    "style": {
-                        "line-color": c,
-                        "target-arrow-color": c,
-                    },
-                }
-            )
-
-    # Apply a unique color to selected edges. Do this last so it takes
-    # precedence over even random edge colorings.
-    stylesheet.append(
-        {
-            "selector": "edge:selected",
-            "style": {
-                "line-color": cy_config.SELECTED_EDGE_COLOR,
-                "target-arrow-color": cy_config.SELECTED_EDGE_COLOR,
-            },
-        }
-    )
-    return stylesheet

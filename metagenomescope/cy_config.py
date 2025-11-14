@@ -36,3 +36,14 @@ SELECTED_EDGE_COLOR = "#000000"
 FWD_NODE_POLYGON_PTS = "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1"
 REV_NODE_POLYGON_PTS = "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1"
 UNORIENTED_NODE_SHAPE = "circle"
+
+# matches "cornflowerblue" in graphviz
+BUBBLE_COLOR = "#9abaf3"
+# matches "green2" in graphviz
+FRAYEDROPE_COLOR = "#59f459"
+# this one used to match "salmon" in graphviz (#fcaca3 i think?) and then i
+# changed it to be less flashy since there are a lot of chains involved
+# in hierarchical decomp stuff and i want people to take this seriously
+CHAIN_COLOR = "#eedddd"
+# matches "darkgoldenrod1" in graphviz
+CYCLICCHAIN_COLOR = "#ffd163"
