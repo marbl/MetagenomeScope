@@ -319,7 +319,7 @@ class Pattern(Node):
         """
         # inner indentation level
         ii = indent + config.INDENT
-        gv = f"{indent}subgraph cluster_" f"{self.name} {{\n"
+        gv = f"{indent}subgraph cluster_{self.name} {{\n"
         gv += f'{ii}style="filled";\n'
         gv += f'{ii}fillcolor="{config.PT2COLOR[self.pattern_type]}";\n'
         for obj_coll in (self.nodes, self.edges):
