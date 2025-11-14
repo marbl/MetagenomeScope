@@ -90,7 +90,7 @@ setup(
     # version changes how the ** operator is formatted (no surrounding spaces,
     # usually). Not being consistent causes the build to fail, hence the pin.
     extras_require={
-        "dev": ["pytest", "pytest-cov", "flake8", "black>=22.1.0"]
+        "dev": ["pytest", "pytest-cov", "flake8", "black>=22.1.0", "pandas"]
     },
     entry_points={"console_scripts": ["mgsc=metagenomescope._cli:run_script"]},
     # Based on dash-cytoscape's min python version.
