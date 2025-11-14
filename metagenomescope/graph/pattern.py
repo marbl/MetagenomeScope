@@ -335,10 +335,6 @@ class Pattern(Node):
         ele = {
             "data": {
                 "id": str(self.unique_id),
-                # as of writing this is redundant b/c name contains the ID,
-                # and also probably we don't even want to label these. but
-                # let's be careful for now
-                "label": self.name,
             },
             "classes": f"pattern {config.PT2HR_NOSPACE[self.pattern_type]}",
         }

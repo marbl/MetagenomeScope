@@ -57,12 +57,13 @@ def get_cyjs_stylesheet(
             "selector": "node.pattern",
             "style": {
                 "shape": "rectangle",
+                # NOTE: if desired we can set padding attrs here to 0 to force
+                # node boundaries to be flush with the sides of the pattern -
+                # it might help with accuracy stuff when we use graphviz edge
+                # ctrl pts. however, i think having some padding is helpful
+                # when we are working with patterns containing patterns (esp
+                # like a chain of two bubbles)
                 "border-width": "0",
-                "border-color": "#000000",
-                "padding-top": "0",
-                "padding-right": "0",
-                "padding-left": "0",
-                "padding-bottom": "0",
             },
         },
         {
