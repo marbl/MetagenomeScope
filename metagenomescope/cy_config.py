@@ -35,7 +35,7 @@ SELECTED_EDGE_COLOR = "#000000"
 
 FWD_NODE_POLYGON_PTS = "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1"
 REV_NODE_POLYGON_PTS = "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1"
-UNORIENTED_NODE_SHAPE = "circle"
+UNORIENTED_NODE_SHAPE = "ellipse"
 
 # matches "cornflowerblue" in graphviz
 BUBBLE_COLOR = "#9abaf3"

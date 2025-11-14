@@ -7,14 +7,13 @@ def get_cyjs_stylesheet(
 ):
     stylesheet = [
         {
-            "selector": "node",
+            "selector": "node.noncluster",
             "style": {
                 "background-color": cy_config.NODE_COLOR,
                 "color": cy_config.UNSELECTED_NODE_FONT_COLOR,
                 "label": "data(label)",
                 "text-valign": "center",
                 "min-zoomed-font-size": "12",
-                "z-index": "2",
             },
         },
         {
@@ -27,7 +26,7 @@ def get_cyjs_stylesheet(
             },
         },
         {
-            "selector": "node:selected",
+            "selector": "node.nonpattern:selected",
             "style": {
                 "color": cy_config.SELECTED_NODE_FONT_COLOR,
                 "background-blacken": cy_config.SELECTED_NODE_BLACKEN,
@@ -64,6 +63,13 @@ def get_cyjs_stylesheet(
                 # when we are working with patterns containing patterns (esp
                 # like a chain of two bubbles)
                 "border-width": "0",
+            },
+        },
+        {
+            "selector": "node.pattern:selected",
+            "style": {
+                'border-width': "5",
+                'border-color': "#000000",
             },
         },
         {

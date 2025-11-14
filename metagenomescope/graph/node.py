@@ -304,7 +304,7 @@ class Node(object):
                 "id": str(self.unique_id),
                 "label": self.name,
             },
-            "classes": ndir + f" noderand{self.rand_idx}",
+            "classes": f"nonpattern {ndir} noderand{self.rand_idx}",
         }
 
         if self.parent_id is not None:
