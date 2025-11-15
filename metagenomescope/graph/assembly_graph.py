@@ -312,6 +312,9 @@ class AssemblyGraph(object):
             if lengths_completely_defined and not self.node_centric:
                 if "length" in data:
                     self.seq_lengths.append(data["length"])
+                elif "approx_length" in data:
+                    # for flye graphs that write edge lengths as e.g. "720k"
+                    self.seq_lengths.append(data["approx_length"])
                 else:
                     # at least one edge doesn't have a length given, bail out
                     lengths_completely_defined = False
