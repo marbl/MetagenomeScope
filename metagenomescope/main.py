@@ -318,11 +318,11 @@ def run(
                                 options=[
                                     {
                                         "label": "Show patterns",
-                                        "value": "patterns",
-                                        "disabled": True,
+                                        "value": ui_config.SHOW_PATTERNS,
                                     },
                                 ],
-                                value=[],
+                                value=ui_config.DEFAULT_DRAW_SETTINGS,
+                                id="drawSettingsChecklist",
                             )
                         ],
                         className="form-check",
@@ -1050,6 +1050,7 @@ def run(
         State("ccDrawingSelect", "value"),
         State("ccSizeRankSelector", "value"),
         State("ccNodeNameSelector", "value"),
+        State("drawSettingsChecklist", "value"),
         Input("drawButton", "n_clicks"),
         prevent_initial_call=True,
     )
@@ -1059,11 +1060,12 @@ def run(
         cc_drawing_selection_type,
         size_rank,
         node_name,
+        draw_settings,
         draw_btn_n_clicks,
     ):
         logging.debug("Received request to draw the graph.")
 
-        ag_selection_params = {}
+        cc_selection_params = {}
 
         if cc_drawing_selection_type == "ccDrawingSizeRank":
             # Invalid numbers (with respect to any set min / max values) will
@@ -1085,7 +1087,7 @@ def run(
                     ),
                     curr_cy_eles,
                 )
-            ag_selection_params = {"cc_size_rank": size_rank}
+            cc_selection_params = {"cc_size_rank": size_rank}
 
         elif cc_drawing_selection_type == "ccDrawingNodeName":
             # looks like not typing in the node name field at all results
@@ -1098,16 +1100,25 @@ def run(
                     ),
                     curr_cy_eles,
                 )
-            ag_selection_params = {"cc_node_name": node_name}
+            cc_selection_params = {"cc_node_name": node_name}
+
+        # Parse other drawing options
+        show_patterns = False
+        for val in draw_settings:
+            if val == ui_config.SHOW_PATTERNS:
+                show_patterns = True
 
         # if something goes wrong during drawing, propagate the result to
         # a toast message in the browser without changing the cytoscape div
         try:
             logging.debug(
-                "Converting graph to Cytoscape.js-compatible elements ("
-                f"parameters {ag_selection_params})..."
+                "Converting graph to Cytoscape.js elements (cc "
+                f"selection params {cc_selection_params}, show patterns = "
+                f"{show_patterns})..."
             )
-            new_cy_eles = ag.to_cyjs(**ag_selection_params)
+            new_cy_eles = ag.to_cyjs(
+                incl_patterns=show_patterns, **cc_selection_params
+            )
             logging.debug(f"...Done. {len(new_cy_eles):,} ele(s) total.")
         except UIError as err:
             logging.debug(

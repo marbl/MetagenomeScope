@@ -2245,9 +2245,9 @@ class AssemblyGraph(object):
                 raise WeirdError("Both size rank and node name specified?")
         return ccs
 
-    def to_cyjs(self, **cc_selection_parameters):
-        ccs = self.select_ccs(**cc_selection_parameters)
+    def to_cyjs(self, incl_patterns=True, **cc_selection_params):
+        ccs = self.select_ccs(**cc_selection_params)
         eles = []
         for cc in ccs:
-            eles.extend(cc.to_cyjs())
+            eles.extend(cc.to_cyjs(incl_patterns=incl_patterns))
         return eles

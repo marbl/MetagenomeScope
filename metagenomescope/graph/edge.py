@@ -250,7 +250,7 @@ class Edge(object):
 
         return f"{indent}{decl} [{attrs_str}];\n"
 
-    def to_cyjs(self):
+    def to_cyjs(self, incl_patterns=True):
         ele = {
             "data": {
                 "source": str(self.new_src_id),
@@ -259,7 +259,7 @@ class Edge(object):
             "classes": f"edgerand{self.rand_idx}",
         }
 
-        if self.parent_id is not None:
+        if incl_patterns and self.parent_id is not None:
             ele["data"]["parent"] = str(self.parent_id)
         if self.is_fake:
             ele["classes"] += " fake"

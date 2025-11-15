@@ -118,11 +118,17 @@ class Component(object):
     def get_objs(self):
         return itertools.chain(self.nodes, self.edges, self.patterns)
 
+    def get_nonpattern_objs(self):
+        return itertools.chain(self.nodes, self.edges)
+
     def set_cc_num(self, cc_num):
         """Updates the component number of this component and its children."""
         self.cc_num = cc_num
         for obj in self.get_objs():
             obj.set_cc_num(cc_num)
 
-    def to_cyjs(self):
-        return [obj.to_cyjs() for obj in self.get_objs()]
+    def to_cyjs(self, incl_patterns=True):
+        eles = [obj.to_cyjs(incl_patterns=incl_patterns) for obj in self.get_nonpattern_objs()]
+        if incl_patterns:
+            eles.extend(obj.to_cyjs() for obj in self.patterns)
+        return eles

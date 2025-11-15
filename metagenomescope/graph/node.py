@@ -290,7 +290,7 @@ class Node(object):
             f'shape={self.shape},label="{self.name}"];\n'
         )
 
-    def to_cyjs(self):
+    def to_cyjs(self, incl_patterns=True):
         if "orientation" in self.data:
             if self.data["orientation"] == "+":
                 ndir = "fwd"
@@ -308,7 +308,7 @@ class Node(object):
             "classes": f"nonpattern {ndir} noderand{self.rand_idx}",
         }
 
-        if self.parent_id is not None:
+        if incl_patterns and self.parent_id is not None:
             ele["data"]["parent"] = str(self.parent_id)
 
         return ele
