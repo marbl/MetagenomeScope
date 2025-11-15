@@ -1157,7 +1157,7 @@ def run(
     def draw(curr_cy_eles, curr_done_flushing):
         if curr_done_flushing["requestGood"]:
             logging.debug(
-                f"Request good, so flushing should be done. Beginning drawing."
+                "Request good, so flushing should be done. Beginning drawing."
             )
             cc_nums = curr_done_flushing["cc_nums"]
             incl_patterns = curr_done_flushing["patterns"]
