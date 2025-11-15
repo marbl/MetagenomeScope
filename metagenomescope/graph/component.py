@@ -128,7 +128,10 @@ class Component(object):
             obj.set_cc_num(cc_num)
 
     def to_cyjs(self, incl_patterns=True):
-        eles = [obj.to_cyjs(incl_patterns=incl_patterns) for obj in self.get_nonpattern_objs()]
+        eles = [
+            obj.to_cyjs(incl_patterns=incl_patterns)
+            for obj in self.get_nonpattern_objs()
+        ]
         if incl_patterns:
             eles.extend(obj.to_cyjs() for obj in self.patterns)
         return eles
