@@ -2200,7 +2200,7 @@ class AssemblyGraph(object):
             fh.write(output_stats)
         conclude_msg()
 
-    def select_ccs(self, cc_size_rank=None, cc_node_name=None):
+    def select_cc_nums(self, cc_size_rank=None, cc_node_name=None):
         if cc_size_rank is None:
             if cc_node_name is None:
                 # Select all ccs
@@ -2243,11 +2243,15 @@ class AssemblyGraph(object):
                     )
             else:
                 raise WeirdError("Both size rank and node name specified?")
-        return ccs
 
-    def to_cyjs(self, incl_patterns=True, **cc_selection_params):
-        ccs = self.select_ccs(**cc_selection_params)
+        # Because we separate the graph flushing from the graph drawing, we
+        # need JSON-serializable way to pass information about components to
+        # be drawn from one callback to another. So, let's extra
+        return [cc.cc_num for cc in ccs]
+
+    def to_cyjs(self, cc_nums, incl_patterns=True):
         eles = []
-        for cc in ccs:
+        for n in cc_nums:
+            cc = self.components[n - 1]
             eles.extend(cc.to_cyjs(incl_patterns=incl_patterns))
         return eles

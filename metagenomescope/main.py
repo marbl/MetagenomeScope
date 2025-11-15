@@ -770,6 +770,13 @@ def run(
                 id="toastHolder",
                 className="toast-container position-fixed top-0 end-0 p-3",
             ),
+            # we'll update this when it's time to draw the graph -- after
+            # we flush it (removing all currently present elements) and
+            # before we redraw it (based on updating this data).
+            # See https://github.com/plotly/dash-cytoscape/issues/106#issuecomment-3535358135
+            dcc.Store(
+                id="doneFlushing",
+            ),
         ],
     )
 
@@ -1044,9 +1051,11 @@ def run(
 
     @callback(
         Output("toastHolder", "children"),
-        Output("cy", "elements"),
+        Output("cy", "elements", allow_duplicate=True),
+        Output("doneFlushing", "data"),
         State("toastHolder", "children"),
         State("cy", "elements"),
+        State("doneFlushing", "data"),
         State("ccDrawingSelect", "value"),
         State("ccSizeRankSelector", "value"),
         State("ccNodeNameSelector", "value"),
@@ -1054,16 +1063,19 @@ def run(
         Input("drawButton", "n_clicks"),
         prevent_initial_call=True,
     )
-    def draw(
+    def flush(
         curr_toasts,
         curr_cy_eles,
+        curr_done_flushing,
         cc_drawing_selection_type,
         size_rank,
         node_name,
         draw_settings,
         draw_btn_n_clicks,
     ):
-        logging.debug("Received request to draw the graph.")
+        logging.debug(
+            "Received request to draw the graph. Validating request."
+        )
 
         cc_selection_params = {}
 
@@ -1086,6 +1098,7 @@ def run(
                         ui_utils.get_cc_size_rank_error_msg(ag),
                     ),
                     curr_cy_eles,
+                    {"requestGood": False},
                 )
             cc_selection_params = {"cc_size_rank": size_rank}
 
@@ -1099,48 +1112,67 @@ def run(
                         curr_toasts, "Draw Error", "No node name specified."
                     ),
                     curr_cy_eles,
+                    {"requestGood": False},
                 )
             cc_selection_params = {"cc_node_name": node_name}
-
-        # Parse other drawing options
-        show_patterns = False
-        for val in draw_settings:
-            if val == ui_config.SHOW_PATTERNS:
-                show_patterns = True
 
         # if something goes wrong during drawing, propagate the result to
         # a toast message in the browser without changing the cytoscape div
         try:
-            logging.debug(
-                "Converting graph to Cytoscape.js elements (cc "
-                f"selection params {cc_selection_params}, show patterns = "
-                f"{show_patterns})..."
-            )
-            new_cy_eles = ag.to_cyjs(
-                incl_patterns=show_patterns, **cc_selection_params
-            )
-            logging.debug(f"...Done. {len(new_cy_eles):,} ele(s) total.")
+            cc_nums = ag.select_cc_nums(**cc_selection_params)
         except UIError as err:
-            logging.debug(
-                "...Something went wrong; propagating error message to user."
-            )
             return (
                 ui_utils.add_error_toast(curr_toasts, "Draw Error", str(err)),
                 curr_cy_eles,
+                {"requestGood": False},
             )
 
-        # TODO store info in AsmGraph? about which ccs have been laid out.
-        # For now, we can assume that the scaling stuff is not configurable,
-        # so there is only a binary of "laid out" or "not laid out". Set up
-        # UI elements in the viz to - like before - let user select one cc,
-        # all ccs, or cc containing a given node to lay out. These will update
-        # the layout status for either 1 or all ccs. Then, here, when we go
-        # to draw some portion of the graph, we can figure out what parts of
-        # layout we may have to redo if necessary. Eventually we can add
-        # progress bars here or something to the viz but for now nbd
-        # if not ag.layout_done:
-        #     ag.layout()
-        return (curr_toasts, new_cy_eles)
+        # Parse other (less easy to mess up) drawing options
+        incl_patterns = False
+        for val in draw_settings:
+            if val == ui_config.SHOW_PATTERNS:
+                incl_patterns = True
+
+        # Okay, now we've done enough checks that this request to draw the
+        # graph seems good. Let's clear all elements in the graph and trigger
+        # draw(), which will actually add new elements to the graph.
+        logging.debug("Drawing request seems good. Flushing the graph.")
+
+        return (
+            curr_toasts,
+            [],
+            {
+                "requestGood": True,
+                "cc_nums": cc_nums,
+                "patterns": incl_patterns,
+            },
+        )
+
+    @callback(
+        Output("cy", "elements", allow_duplicate=True),
+        State("cy", "elements"),
+        Input("doneFlushing", "data"),
+        prevent_initial_call=True,
+    )
+    def draw(curr_cy_eles, curr_done_flushing):
+        if curr_done_flushing["requestGood"]:
+            logging.debug(
+                f"Request good, so flushing should be done. Beginning drawing."
+            )
+            cc_nums = curr_done_flushing["cc_nums"]
+            incl_patterns = curr_done_flushing["patterns"]
+            logging.debug(
+                "Converting graph to Cytoscape.js elements ("
+                f"{pluralize(len(cc_nums), 'cc')}, "
+                f"show patterns = {incl_patterns}"
+                ")..."
+            )
+            new_cy_eles = ag.to_cyjs(cc_nums, incl_patterns=incl_patterns)
+            logging.debug(f"...Done. {len(new_cy_eles):,} ele(s) total.")
+            return new_cy_eles
+        else:
+            logging.debug("Caught a bad drawing request. Not redrawing.")
+            return curr_cy_eles
 
     # It looks like Bootstrap requires us to use JS to show the toast. If we
     # try to show it ourselves (by just adding the "show" class when creating
