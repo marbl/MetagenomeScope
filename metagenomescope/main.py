@@ -1155,6 +1155,12 @@ def run(
         prevent_initial_call=True,
     )
     def draw(curr_cy_eles, curr_done_flushing):
+        # as far as I can tell, this gets triggered whenever doneFlushing is
+        # updated -- even if it is updated to the exact same thing as it was
+        # before. To avoid making us redraw the entire graph if the user just
+        # like specified a node name that didn't exist when searching for a cc,
+        # we use the "requestGood" key in doneFlushing to let us know when we
+        # ACTUALLY want to redraw the graph.
         if curr_done_flushing["requestGood"]:
             logging.debug(
                 "Request good, so flushing should be done. Beginning drawing."
