@@ -3,4 +3,4 @@ source = metagenomescope/
 branch = True
 omit =
     metagenomescope/tests/*
-    metagenomescope/config.py
+    metagenomescope/*config.py
