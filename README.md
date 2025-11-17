@@ -252,7 +252,7 @@ See [`CONTRIBUTING.md`](https://github.com/marbl/MetagenomeScope/blob/main/CONTR
 MetagenomeScope is licensed under the
 [GNU GPL, version 3](https://www.gnu.org/copyleft/gpl.html).
 
-License information for MetagenomeScope's dependencies is included in the root directory of this repository, in `DEPENDENCY_LICENSES.txt`. License copies for dependencies distributed/linked with MetagenomeScope -- when not included with their corresponding source code -- are available in the `dependency_licenses/` directory.
+MetagenomeScope's code is distributed with [Bootstrap](https://getbootstrap.com/) and [Bootstrap Icons](https://icons.getbootstrap.com/). Copies of these tools' licenses are located in the `dependency_licenses/` directory.
 
 ## Acknowledgements
 
