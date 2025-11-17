@@ -37,12 +37,8 @@ classifiers = [s.strip() for s in classes.split("\n") if s]
 
 description = "Visualization tool for (meta)genome assembly graphs"
 
-long_description = (
-    "MetagenomeScope is a web-based visualization tool for "
-    "metagenome assembly graphs. It focuses on presenting "
-    "a semilinear layout of the graph that highlights "
-    "common structural patterns."
-)
+with open("README.md", "r") as f:
+    long_description = f.read()
 
 # Adapted from technique #1 at
 # https://packaging.python.org/en/latest/guides/single-sourcing-package-version/
