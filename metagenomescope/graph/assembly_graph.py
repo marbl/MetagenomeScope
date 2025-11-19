@@ -1486,12 +1486,15 @@ class AssemblyGraph(object):
                     cobj.add_edge(self.edgeid2obj[data["uid"]])
             components.append(cobj)
 
-        # The number of nodes MUST be the highest-priority sorting criterion.
-        # Otherwise some stuff with the treemap that assigns labels to
-        # aggregated components will throw a WeirdError.
+        # The number of "full" nodes (i.e. ignoring node splitting) MUST be the
+        # highest-priority sorting criterion. Otherwise, we will be unable to
+        # say that an aggregated group of components with the exact same
+        # amount of nodes represents a continuous range of component size
+        # ranks. See the treemap plot code.
         self.components = sorted(
             components,
             key=lambda cobj: (
+                cobj.num_full_nodes,
                 cobj.num_total_nodes,
                 cobj.num_total_edges,
                 cobj.pattern_stats.sum(),

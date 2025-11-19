@@ -20,7 +20,7 @@ from . import defaults, css_config, ui_config, ui_utils, cy_utils
 from .log_utils import start_log, log_lines_with_sep
 from .misc_utils import pluralize
 from .graph import AssemblyGraph, graph_utils
-from .errors import UIError
+from .errors import UIError, WeirdError
 
 # Needed for layout extensions. Probably comment this out when we get
 # actual Graphviz layouts back in (or maybe keep this in if people want
