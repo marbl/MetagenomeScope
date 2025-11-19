@@ -1234,4 +1234,4 @@ def run(
         prevent_initial_call=True,
     )
 
-    app.run(debug=False)
+    app.run(debug=True)
