@@ -845,7 +845,8 @@ def run(
                 node_ct2cc_nums = defaultdict(list)
                 for cc in ag.components:
                     node_ct2cc_nums[cc.num_full_nodes].append(cc.cc_num)
-                for node_ct, cc_nums in node_ct2cc_nums.items():
+                for node_ct in sorted(node_ct2cc_nums.keys(), reverse=True):
+                    cc_nums = node_ct2cc_nums[node_ct]
                     cc_ct = len(cc_nums)
                     if cc_ct >= ui_config.MIN_SAME_SIZE_CC_COUNT:
                         # Enough ccs have the same exact amount of nodes that
@@ -896,6 +897,10 @@ def run(
                     # "trace 0" next to it and that looks gross
                     name="",
                     root_color="#ddd",
+                    # Don't re-sort rectangles by size -- preserve their order
+                    # based on their underlying component size ranks, which
+                    # I think makes navigation easier for users
+                    sort=False,
                 )
             )
             fig.update_layout(
@@ -903,7 +908,10 @@ def run(
                 title=dict(yanchor="bottom", y=1, yref="paper"),
                 font=dict(size=16),
                 title_pad=dict(b=30),
-                margin=dict(l=0, r=0, b=0, t=75),
+                # Use a bit of extra bottom margin in order to make sure
+                # that hover tooltips for rectangles at the bottom of the
+                # plot don't get chopped off by the figure border
+                margin=dict(l=0, r=0, b=30, t=75),
                 # This will hide too-small labels (yay!), at the cost of
                 # forcing all other labels to consistently be the same
                 # size and disabling transition animations when you
