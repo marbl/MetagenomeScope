@@ -1,4 +1,3 @@
-import pytest
 from metagenomescope import ui_utils as uu
 
 

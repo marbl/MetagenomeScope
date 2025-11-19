@@ -18,7 +18,6 @@ from dash import (
 )
 from . import defaults, css_config, ui_config, ui_utils, cy_utils
 from .log_utils import start_log, log_lines_with_sep
-from .misc_utils import pluralize
 from .graph import AssemblyGraph, graph_utils
 from .errors import UIError, WeirdError
 
@@ -170,11 +169,13 @@ def run(
                     ),
                     html.P(
                         [
-                            f"{pluralize(ag.node_ct, 'node')}, "
-                            f"{pluralize(ag.edge_ct, 'edge')}."
+                            f"{ui_utils.pluralize(ag.node_ct, 'node')}, "
+                            f"{ui_utils.pluralize(ag.edge_ct, 'edge')}."
                         ]
                     ),
-                    html.P([f"{pluralize(len(ag.components), 'component')}."]),
+                    html.P(
+                        f"{ui_utils.pluralize(len(ag.components), 'component')}."
+                    ),
                     html.P(
                         html.Span(
                             "Nothing currently drawn.", id="currDrawnText"
@@ -1211,7 +1212,7 @@ def run(
             incl_patterns = curr_done_flushing["patterns"]
             logging.debug(
                 "Converting graph to Cytoscape.js elements ("
-                f"{pluralize(len(cc_nums), 'cc')}, "
+                f"{ui_utils.pluralize(len(cc_nums), 'cc')}, "
                 f"show patterns = {incl_patterns}"
                 ")..."
             )

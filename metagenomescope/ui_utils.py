@@ -4,6 +4,38 @@ from dash import html
 from . import css_config
 
 
+def pluralize(num, thing="edge"):
+    """Pluralizes an integer number of things.
+
+    Parameters
+    ----------
+    num: int
+        Number of things.
+
+    thing: str
+        Singular name of the thing.
+
+    Returns
+    -------
+    str
+        If num == 1, then this will be "1 [thing]."
+        Otherwise, this will be "[num] [things]."
+
+    Notes
+    -----
+    Yeah, if you have a thing that has a weird irregular plural (e.g. "beef",
+    lol -- https://www.rd.com/list/irregular-plurals/) then this will produce
+    something that looks grammatically wonky.
+
+    References
+    ----------
+    yanked from metaLJA's codebase (... i wrote this)
+    """
+    if num == 1:
+        return f"1 {thing}"
+    return f"{num:,} {thing}s"
+
+
 def fmt_qty(quantity, unit="bp", na="N/A"):
     if quantity is not None:
         return f"{quantity:,} {unit}"

@@ -17,7 +17,7 @@ from .. import (
     cy_config,
     layout_utils,
     color_utils,
-    misc_utils,
+    ui_utils,
     seq_utils,
     input_node_utils,
 )
@@ -184,10 +184,10 @@ class AssemblyGraph(object):
         self._hierarchically_identify_patterns()
         logger.debug(
             "    ...Done. Found "
-            f"{misc_utils.pluralize(len(self.bubbles), 'bubble')}, "
-            f"{misc_utils.pluralize(len(self.chains), 'chain')}, "
-            f"{misc_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, and "
-            f"{misc_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}."
+            f"{ui_utils.pluralize(len(self.bubbles), 'bubble')}, "
+            f"{ui_utils.pluralize(len(self.chains), 'chain')}, "
+            f"{ui_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, and "
+            f"{ui_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}."
         )
         logger.debug("  ...Done.")
 
@@ -197,7 +197,7 @@ class AssemblyGraph(object):
         self._record_connected_components()
         logger.debug(
             "  ...Done. The graph has "
-            f"{misc_utils.pluralize(len(self.components), 'component')}."
+            f"{ui_utils.pluralize(len(self.components), 'component')}."
         )
 
         # Since layout can take a while, we leave it to the creator of this
@@ -2246,7 +2246,7 @@ class AssemblyGraph(object):
                     # message. But let's be careful.
                     raise UIError(
                         "Graph has "
-                        f"{misc_utils.pluralize(len(self.components), 'component')}. "
+                        f"{ui_utils.pluralize(len(self.components), 'component')}. "
                         f'Invalid size rank of "{cc_size_rank}". '
                         "Also wait how did you even trigger this error???"
                     )
