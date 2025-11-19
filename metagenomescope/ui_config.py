@@ -25,4 +25,4 @@ MIN_LARGE_CC_COUNT = 100
 
 # If at least this many components in a graph have exactly this many nodes,
 # then aggregate them together into a single rectangle in the treemap
-MIN_SAME_SIZE_CC_COUNT = 50
+MIN_SAME_SIZE_CC_COUNT = 25

@@ -842,10 +842,10 @@ def run(
             cc_sizes = [ag.node_ct]
             cc_parents = [""]
             if len(ag.components) >= ui_config.MIN_LARGE_CC_COUNT:
-                node_ct2cc_nums = defauldict(list)
+                node_ct2cc_nums = defaultdict(list)
                 for cc in ag.components:
                     node_ct2cc_nums[cc.num_full_nodes].append(cc.cc_num)
-                for node_ct, cc_nums in node_ct2cc_ct.items():
+                for node_ct, cc_nums in node_ct2cc_nums.items():
                     cc_ct = len(cc_nums)
                     if cc_ct >= ui_config.MIN_SAME_SIZE_CC_COUNT:
                         # Enough ccs have the same exact amount of nodes that
@@ -859,7 +859,7 @@ def run(
                                 f"{len(cc_nums):,}"
                             )
                         cc_names.append(
-                            f"#{min_cc_num:,} -- #{max_cc_num:,} "
+                            f"#{min_cc_num:,} - #{max_cc_num:,} "
                             f"({node_ct:,}-node components)"
                         )
                         # If we have let's say 5 components that each contain
@@ -890,7 +890,7 @@ def run(
                     branchvalues="total",
                     hovertemplate=(
                         "<b>%{label}</b><br>"
-                        "<b>Nodes:</b> %{value} (%{percentRoot:.2%})"
+                        "<b>Nodes:</b> %{value:,} (%{percentRoot:.2%})"
                     ),
                     # If we don't set name="", then the hover popup shows
                     # "trace 0" next to it and that looks gross
@@ -1234,4 +1234,4 @@ def run(
         prevent_initial_call=True,
     )
 
-    app.run(debug=True)
+    app.run(debug=False)
