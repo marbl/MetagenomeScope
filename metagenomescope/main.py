@@ -105,7 +105,7 @@ def run(
     # "draw everything" option, if that makes sense.)
     cc_selection_options = {
         "ccDrawingSizeRank": [
-            html.I(className="bi bi-sort-down"),
+            html.I(className="bi bi-hash"),
             html.Span(
                 "One component (by size rank)",
             ),
