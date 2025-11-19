@@ -1,4 +1,3 @@
-import time
 from .errors import WeirdError
 
 
@@ -70,47 +69,3 @@ def verify_subset(s1, s2, custom_message=None):
         else:
             msg = custom_message
         raise WeirdError(msg)
-
-
-def fmt_qty(quantity, unit="bp", na="N/A"):
-    if quantity is not None:
-        return f"{quantity:,} {unit}"
-    else:
-        return na
-
-
-def get_toast_timestamp():
-    t = time.strftime("%I:%M:%S %p").lower()
-    # trim off leading "0" for the hour (e.g. "05:40:10 pm" -> "5:40:10 pm")
-    # this isnt really standard practice or anything i just think it looks nice
-    if t[0] == "0":
-        t = t[1:]
-    return t
-
-
-def _get_range_text(r):
-    first_ele = f"#{r[0]:,}"
-    if len(r) == 1:
-        return first_ele
-    else:
-        return f"{first_ele} \u2013 #{r[-1]:,}"
-
-
-def fmt_num_ranges(nums):
-    if len(nums) == 1:
-        return f"#{nums[0]:,}"
-    # we MIGHT be able to assume that the input cc nums list is sorted but
-    # whatever it's safer to just be paranoid and sort anyway
-    nums = sorted(nums)
-    i = 0
-    curr_range = []
-    range_texts = []
-    while i < len(nums):
-        if len(curr_range) == 0 or curr_range[-1] + 1 == nums[i]:
-            curr_range.append(nums[i])
-        else:
-            range_texts.append(_get_range_text(curr_range))
-            curr_range = [nums[i]]
-        i += 1
-    range_texts.append(_get_range_text(curr_range))
-    return ", ".join(range_texts)

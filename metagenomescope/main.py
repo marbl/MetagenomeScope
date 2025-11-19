@@ -18,7 +18,7 @@ from dash import (
 )
 from . import defaults, css_config, ui_config, ui_utils, cy_utils
 from .log_utils import start_log, log_lines_with_sep
-from .misc_utils import pluralize, fmt_num_ranges
+from .misc_utils import pluralize
 from .graph import AssemblyGraph, graph_utils
 from .errors import UIError, WeirdError
 
@@ -1217,7 +1217,10 @@ def run(
             )
             new_cy_eles = ag.to_cyjs(cc_nums, incl_patterns=incl_patterns)
             logging.debug(f"...Done. {len(new_cy_eles):,} ele(s) total.")
-            return new_cy_eles, f"Currently drawn: {fmt_num_ranges(cc_nums)}"
+            return (
+                new_cy_eles,
+                f"Currently drawn: {ui_utils.fmt_num_ranges(cc_nums)}",
+            )
         else:
             logging.debug("Caught a bad drawing request. Not redrawing.")
             return curr_cy_eles, curr_curr_drawn_text

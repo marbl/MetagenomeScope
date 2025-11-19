@@ -1,7 +1,14 @@
+import time
 import matplotlib
 from dash import html
 from . import css_config
-from .misc_utils import fmt_qty, get_toast_timestamp
+
+
+def fmt_qty(quantity, unit="bp", na="N/A"):
+    if quantity is not None:
+        return f"{quantity:,} {unit}"
+    else:
+        return na
 
 
 def get_length_info(ag):
@@ -62,6 +69,15 @@ def add_error_toast(toasts, title_text="Error", body_text=None):
     return toasts + [new_toast]
 
 
+def get_toast_timestamp():
+    t = time.strftime("%I:%M:%S %p").lower()
+    # trim off leading "0" for the hour (e.g. "05:40:10 pm" -> "5:40:10 pm")
+    # this isnt really standard practice or anything i just think it looks nice
+    if t[0] == "0":
+        t = t[1:]
+    return t
+
+
 def get_error_toast(title_text="Error", body_text=None):
     # https://getbootstrap.com/docs/5.3/components/toasts/#live-example
     toast = html.Div(
@@ -108,13 +124,38 @@ def get_error_toast(title_text="Error", body_text=None):
 def get_cc_size_rank_error_msg(ag):
     msg = "Invalid component size rank specified. "
     if len(ag.components) > 1:
-        # yeah yeah i know including an en dash literally in the code is sloppy
-        # but stuff like &ndash; doesn't work unless we update HTML source
-        # directly and that seems more jank than this
-        msg += f"Must be in the range 1 – {len(ag.components)}."
+        msg += f"Must be in the range 1 \u2013 {len(ag.components)}."
     else:
         msg += (
             "I mean, like, your graph only has one component, so... "
             'this should always be a "1"...'
         )
     return msg
+
+
+def _get_range_text(r):
+    first_ele = f"#{r[0]:,}"
+    if len(r) == 1:
+        return first_ele
+    else:
+        return f"{first_ele} \u2013 #{r[-1]:,}"
+
+
+def fmt_num_ranges(nums):
+    if len(nums) == 1:
+        return f"#{nums[0]:,}"
+    # we MIGHT be able to assume that the input cc nums list is sorted but
+    # whatever it's safer to just be paranoid and sort anyway
+    nums = sorted(nums)
+    i = 0
+    curr_range = []
+    range_texts = []
+    while i < len(nums):
+        if len(curr_range) == 0 or curr_range[-1] + 1 == nums[i]:
+            curr_range.append(nums[i])
+        else:
+            range_texts.append(_get_range_text(curr_range))
+            curr_range = [nums[i]]
+        i += 1
+    range_texts.append(_get_range_text(curr_range))
+    return ", ".join(range_texts)
