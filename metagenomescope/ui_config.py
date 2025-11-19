@@ -14,3 +14,15 @@ COLORING_UNIFORM = "uniform"
 
 DEFAULT_NODE_COLORING = COLORING_RANDOM
 DEFAULT_EDGE_COLORING = COLORING_UNIFORM
+
+###############################################################################
+# Graph info dialog
+###############################################################################
+
+# if a graph has < this many components, then don't bother aggregating its
+# components in the treemap
+MIN_LARGE_CC_COUNT = 100
+
+# If at least this many components in a graph have exactly this many nodes,
+# then aggregate them together into a single rectangle in the treemap
+MIN_SAME_SIZE_CC_COUNT = 50

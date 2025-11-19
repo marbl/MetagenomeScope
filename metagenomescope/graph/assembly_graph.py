@@ -1486,6 +1486,9 @@ class AssemblyGraph(object):
                     cobj.add_edge(self.edgeid2obj[data["uid"]])
             components.append(cobj)
 
+        # The number of nodes MUST be the highest-priority sorting criterion.
+        # Otherwise some stuff with the treemap that assigns labels to
+        # aggregated components will throw a WeirdError.
         self.components = sorted(
             components,
             key=lambda cobj: (

@@ -679,7 +679,7 @@ def run(
                                                                     ),
                                                                     className="nav-item",
                                                                     role="presentation",
-                                                                )
+                                                                ),
                                                             ],
                                                             className="nav nav-tabs",
                                                             id="ccTabs",
@@ -838,32 +838,81 @@ def run(
         )
         def plot_cc_treemap(n_clicks):
             graph_utils.validate_multiple_ccs(ag)
-            cc_names = [""]
-            cc_sizes = [0]
-            cc_parents = [""]  # + (["Root"] * (len(ag.components)))
-            if len(ag.components) < 100:
-                aggregate_thresh = float("-inf")
+            cc_names = ["Components"]
+            cc_sizes = [ag.node_ct]
+            cc_parents = [""]
+            if len(ag.components) >= ui_config.MIN_LARGE_CC_COUNT:
+                node_ct2cc_nums = defauldict(list)
+                for cc in ag.components:
+                    node_ct2cc_nums[cc.num_full_nodes].append(cc.cc_num)
+                for node_ct, cc_nums in node_ct2cc_ct.items():
+                    cc_ct = len(cc_nums)
+                    if cc_ct >= ui_config.MIN_SAME_SIZE_CC_COUNT:
+                        # Enough ccs have the same exact amount of nodes that
+                        # we should collapse them in the treemap
+                        min_cc_num = min(cc_nums)
+                        max_cc_num = max(cc_nums)
+                        if max_cc_num - min_cc_num + 1 != len(cc_nums):
+                            raise WeirdError(
+                                "Something weird is up with the size ranks? "
+                                f"|{min_cc_num:,} to {max_cc_num:,}| != "
+                                f"{len(cc_nums):,}"
+                            )
+                        cc_names.append(
+                            f"#{min_cc_num:,} -- #{max_cc_num:,} "
+                            f"({node_ct:,}-node components)"
+                        )
+                        # If we have let's say 5 components that each contain
+                        # exactly 3 nodes, then they represent 15 nodes total.
+                        cc_sizes.append(node_ct * cc_ct)
+                        cc_parents.append("Components")
+                    else:
+                        for cc_num in cc_nums:
+                            cc_names.append(f"#{cc_num:,}")
+                            cc_sizes.append(node_ct)
+                            cc_parents.append("Components")
             else:
-                aggregate_thresh = 10
-            aggnodect2cc_ct = defaultdict(int)
-            for cci, cc in enumerate(ag.components, 1):
-                if cc.num_full_nodes <= aggregate_thresh:
-                    aggnodect2cc_ct[cc.num_full_nodes] += 1
-                else:
-                    cc_names.append(f"#{cci:,}")
+                for cc in ag.components:
+                    cc_names.append(f"#{cc.cc_num:,}")
                     cc_sizes.append(cc.num_full_nodes)
-                    cc_parents.append("")
-            for aggct, num_ccs in aggnodect2cc_ct.items():
-                cc_names.append(f"{aggct:,}-node components")
-                cc_sizes.append(aggct * num_ccs)
-                cc_parents.append("")
+                    cc_parents.append("Components")
             fig = go.Figure(
                 go.Treemap(
-                    labels=cc_names, parents=cc_parents, values=cc_sizes
+                    labels=cc_names,
+                    parents=cc_parents,
+                    values=cc_sizes,
+                    # Need to set "total" here so that the size of the top-
+                    # level element is treated as the sum of its children,
+                    # rather than as an extra size in addition to the sum
+                    # of its children. (And we want to set a size of the
+                    # top-level element in order to show that in the
+                    # hover template, etc.)
+                    branchvalues="total",
+                    hovertemplate=(
+                        "<b>%{label}</b><br>"
+                        "<b>Nodes:</b> %{value} (%{percentRoot:.2%})"
+                    ),
+                    # If we don't set name="", then the hover popup shows
+                    # "trace 0" next to it and that looks gross
+                    name="",
+                    root_color="#ddd",
                 )
             )
             fig.update_layout(
-                margin=dict(l=0, r=0, t=0, b=0),
+                title_text="Number of nodes per component",
+                title=dict(yanchor="bottom", y=1, yref="paper"),
+                font=dict(size=16),
+                title_pad=dict(b=30),
+                margin=dict(l=0, r=0, b=0, t=75),
+                # This will hide too-small labels (yay!), at the cost of
+                # forcing all other labels to consistently be the same
+                # size and disabling transition animations when you
+                # like click to expand a box or something (???). Let's
+                # see if we can do without it for now.
+                # uniformtext=dict(
+                #     minsize=12,
+                #     mode="show",
+                # )
             )
             return dcc.Graph(figure=fig)
 
