@@ -187,7 +187,7 @@ class AssemblyGraph(object):
             f"{misc_utils.pluralize(len(self.bubbles), 'bubble')}, "
             f"{misc_utils.pluralize(len(self.chains), 'chain')}, "
             f"{misc_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, and "
-            f"{misc_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}, "
+            f"{misc_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}."
         )
         logger.debug("  ...Done.")
 
