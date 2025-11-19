@@ -147,7 +147,7 @@ def _get_range_text(r):
     if len(r) == 1:
         return first_ele
     else:
-        return f"{first_ele} \u2013 #{r[-1]:,}"
+        return f"{first_ele} \u2013 {r[-1]:,}"
 
 
 def fmt_num_ranges(nums):
@@ -167,4 +167,4 @@ def fmt_num_ranges(nums):
             curr_range = [nums[i]]
         i += 1
     range_texts.append(_get_range_text(curr_range))
-    return " / ".join(range_texts)
+    return "; ".join(range_texts)
