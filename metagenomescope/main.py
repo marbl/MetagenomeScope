@@ -1060,6 +1060,12 @@ def run(
         if size_rank is None or size_rank == "":
             return "1"
         try:
+            # just in case the user gets confused and types in "#2"
+            # or something, let's be okay with that. we will update
+            # the number correctly, but without the "#", which should
+            # be a nice sort of cue that "you don't need the #"
+            if size_rank[0] == "#":
+                size_rank = size_rank[1:]
             num_size_rank = int(size_rank)
             if ctx.triggered_id == "ccSizeRankDecrBtn":
                 adjfunc = ui_utils.decr_size_rank
@@ -1121,7 +1127,7 @@ def run(
             except UIError as err:
                 return (
                     ui_utils.add_error_toast(
-                        curr_toasts, "Invalid components", str(err)
+                        curr_toasts, "Size ranks", str(err)
                     ),
                     curr_cy_eles,
                     {"requestGood": False},

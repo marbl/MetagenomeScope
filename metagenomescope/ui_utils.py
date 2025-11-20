@@ -172,8 +172,10 @@ def get_size_ranks_from_input(val, ag):
     #   indicating that we should select all size ranks <= or >= some value
     for e in entries:
         e = e.strip()
-        if re.match("^[0-9]+$", e):
+        if re.match("^#?[0-9]+$", e):
             # e is a single size rank
+            if e[0] == "#":
+                e = e[1:]
             sr = int(e)
             if sr >= 1 and sr <= len(ag.components):
                 srs.add(int(e))
@@ -187,7 +189,13 @@ def get_size_ranks_from_input(val, ag):
             r0 = None
             r1 = None
             for d in ui_config.RANGE_DASHES:
-                if e.count(d) == 1:
+                ct = e.count(d)
+                if ct == 1:
+                    if r0 is not None:
+                        raise UIError(
+                            f'Invalid component size rank range "{e}" '
+                            "specified. Multiple dash characters present?"
+                        )
                     parts = e.split(d)
                     r0 = parts[0].strip()
                     r1 = parts[1].strip()
@@ -202,7 +210,12 @@ def get_size_ranks_from_input(val, ag):
                             "specified. Please give a start and/or an end for "
                             "the range."
                         )
-                    break
+                elif ct > 1:
+                    raise UIError(
+                        f'Invalid component size rank range "{e}" '
+                        f'specified. The "{d}" occurs multiple times?'
+                    )
+
             # If none of the acceptable dash characters were present in e,
             # we will end up here -- with r0 and r1 both set to None.
             if r0 is None:
@@ -219,11 +232,15 @@ def get_size_ranks_from_input(val, ag):
             # already checked above for this specific case.
             i0 = 1 if len(r0) == 0 else None
             i1 = len(ag.components) if len(r1) == 0 else None
-            if re.match("^[0-9]+$", r0):
+            if re.match("^#?[0-9]+$", r0):
+                if r0[0] == "#":
+                    r0 = r0[1:]
                 i0 = int(r0)
                 if i0 < 1 or i0 > len(ag.components):
                     i0 = None
-            if re.match("^[0-9]+$", r1):
+            if re.match("^#?[0-9]+$", r1):
+                if r1[0] == "#":
+                    r1 = r1[1:]
                 i1 = int(r1)
                 if i1 < 1 or i1 > len(ag.components):
                     i1 = None
@@ -245,6 +262,13 @@ def get_size_ranks_from_input(val, ag):
                     f'Invalid component size rank "{r1}" '
                     f'in the range "{e}" specified. Must be a number in '
                     f"the range 1 \u2013 {len(ag.components)}."
+                )
+
+            if i1 <= i0:
+                raise UIError(
+                    f'Invalid component size rank range "{e}" '
+                    "specified. The end point should be bigger than the "
+                    "start point."
                 )
             # add all cc nums in the inclusive interval [i0, i1] to
             # srs. you could make a reasonable point here about how it
