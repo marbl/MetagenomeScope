@@ -16,6 +16,14 @@ DEFAULT_NODE_COLORING = COLORING_RANDOM
 DEFAULT_EDGE_COLORING = COLORING_UNIFORM
 
 ###############################################################################
+# Component size rank selection
+###############################################################################
+
+# In theory we could support "--" without too much work, but ... that gives
+# me the heebie jeebies
+RANGE_DASHES = ("-", "\u2013", "\u2014")
+
+###############################################################################
 # Graph info dialog
 ###############################################################################
 

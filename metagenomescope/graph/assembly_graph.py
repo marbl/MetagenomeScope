@@ -2209,14 +2209,14 @@ class AssemblyGraph(object):
             fh.write(output_stats)
         conclude_msg()
 
-    def select_cc_nums(self, cc_size_rank=None, cc_node_name=None):
-        if cc_size_rank is None:
+    def select_cc_nums(self, cc_size_ranks=None, cc_node_name=None):
+        if cc_size_ranks is None:
             if cc_node_name is None:
                 # Select all ccs
-                ccs = self.components
+                cc_nums = [cc.num for cc in self.components]
             else:
                 # Select a single cc, as the one that contains a node
-                # TODO this is kind of slow b/c it searches through the
+                # TODO this is inefficient b/c it searches through the
                 # entire graph. If it becomes a bottleneck, we could start
                 # saving a mapping of node name -> cc num or something?
                 cc_num = None
@@ -2233,30 +2233,14 @@ class AssemblyGraph(object):
                         f'Can\'t find a node with name "{cc_node_name}" in '
                         "the graph."
                     )
-                ccs = [self.components[cc_num - 1]]
+                cc_nums = [cc_num]
         else:
             if cc_node_name is None:
-                # Select a single cc, by (1-indexed) size rank
-                if cc_size_rank > 0 and cc_size_rank <= len(self.components):
-                    ccs = [self.components[cc_size_rank - 1]]
-                else:
-                    # Due to the relatively strict <input> filtering that dash
-                    # does, and the errors we already catch in the draw()
-                    # callback, we PROBABLY won't ever reach this error
-                    # message. But let's be careful.
-                    raise UIError(
-                        "Graph has "
-                        f"{ui_utils.pluralize(len(self.components), 'component')}. "
-                        f'Invalid size rank of "{cc_size_rank}". '
-                        "Also wait how did you even trigger this error???"
-                    )
+                cc_nums = list(cc_size_ranks)
             else:
                 raise WeirdError("Both size rank and node name specified?")
 
-        # Because we separate the graph flushing from the graph drawing, we
-        # need JSON-serializable way to pass information about components to
-        # be drawn from one callback to another. So, let's extra
-        return [cc.cc_num for cc in ccs]
+        return cc_nums
 
     def to_cyjs(self, cc_nums, incl_patterns=True):
         eles = []

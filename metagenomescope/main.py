@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import logging
-import math
 import dash
 import dash_cytoscape as cyto
 import plotly.graph_objects as go
@@ -105,14 +104,12 @@ def run(
     cc_selection_options = {
         "ccDrawingSizeRank": [
             html.I(className="bi bi-hash"),
-            html.Span(
-                "One component (by size rank)",
-            ),
+            html.Span("Component(s), by size rank"),
         ],
         "ccDrawingNodeName": [
             html.I(className="bi bi-search"),
             html.Span(
-                "One component (with a node)",
+                "Component containing a node",
             ),
         ],
         "ccDrawingAll": [
@@ -277,12 +274,10 @@ def run(
                             # which apparently is close enough
                             # (https://github.com/plotly/dash/issues/2791)
                             dcc.Input(
-                                type="number",
+                                type="text",
                                 id="ccSizeRankSelector",
                                 className="form-control",
-                                value=1,
-                                min=1,
-                                max=len(ag.components),
+                                value="1",
                             ),
                             html.Button(
                                 html.I(className="bi bi-plus-lg"),
@@ -1062,26 +1057,20 @@ def run(
         allow_duplicate=True,
     )
     def update_cc_size_rank(size_rank, decr_n_clicks, incr_n_clicks):
-        if size_rank is None:
-            return 1
-        if ctx.triggered_id == "ccSizeRankDecrBtn":
-            if type(size_rank) is not int:
-                return max(math.floor(size_rank), 1)
-            if size_rank <= 1:
-                return 1
-            elif size_rank > len(ag.components):
-                return len(ag.components)
+        if size_rank is None or size_rank == "":
+            return "1"
+        try:
+            num_size_rank = int(size_rank)
+            if ctx.triggered_id == "ccSizeRankDecrBtn":
+                adjfunc = ui_utils.decr_size_rank
             else:
-                return size_rank - 1
-        else:
-            if type(size_rank) is not int:
-                return min(math.ceil(size_rank), len(ag.components))
-            if size_rank < 1:
-                return 1
-            elif size_rank >= len(ag.components):
-                return len(ag.components)
-            else:
-                return size_rank + 1
+                adjfunc = ui_utils.incr_size_rank
+            return str(adjfunc(num_size_rank, 1, len(ag.components)))
+        except ValueError:
+            # TODO: maybe update in the future to parse ranges, etc.,
+            # and adjust accordingly? but that would require a lot of
+            # effort for minimal benefit
+            return size_rank
 
     @callback(
         Output("cy", "stylesheet"),
@@ -1115,7 +1104,7 @@ def run(
         curr_cy_eles,
         curr_done_flushing,
         cc_drawing_selection_type,
-        size_rank,
+        size_ranks,
         node_name,
         draw_settings,
         draw_btn_n_clicks,
@@ -1127,27 +1116,17 @@ def run(
         cc_selection_params = {}
 
         if cc_drawing_selection_type == "ccDrawingSizeRank":
-            # Invalid numbers (with respect to any set min / max values) will
-            # be passed here as None, which is nice but does make it tough to
-            # distinguish btwn "the <input> is empty" and "the user entered a
-            # bad number". Anyway we just handle both cases with the same
-            # message.
-            #
-            # (Note that floats may end up here, because I deliberately did not
-            # set step=1 on the size rank selector. This allows the -/+ buttons
-            # to actually see the current value and do intelligent rounding in
-            # the update_cc_size_rank() callback.)
-            if type(size_rank) is not int:
+            try:
+                srs = ui_utils.get_size_ranks_from_input(size_ranks, ag)
+            except UIError as err:
                 return (
                     ui_utils.add_error_toast(
-                        curr_toasts,
-                        "Draw Error",
-                        ui_utils.get_cc_size_rank_error_msg(ag),
+                        curr_toasts, "Invalid components", str(err)
                     ),
                     curr_cy_eles,
                     {"requestGood": False},
                 )
-            cc_selection_params = {"cc_size_rank": size_rank}
+            cc_selection_params = {"cc_size_ranks": srs}
 
         elif cc_drawing_selection_type == "ccDrawingNodeName":
             # looks like not typing in the node name field at all results
@@ -1156,20 +1135,25 @@ def run(
             if node_name is None or node_name == "":
                 return (
                     ui_utils.add_error_toast(
-                        curr_toasts, "Draw Error", "No node name specified."
+                        curr_toasts,
+                        "Empty node name",
+                        "No node name specified.",
                     ),
                     curr_cy_eles,
                     {"requestGood": False},
                 )
             cc_selection_params = {"cc_node_name": node_name}
 
-        # if something goes wrong during drawing, propagate the result to
-        # a toast message in the browser without changing the cytoscape div
+        # if something goes wrong during cc selection, propagate the result to
+        # a toast message in the browser without changing the cytoscape div.
+        # Same idea as the calls to ui_utils.add_error_toast() above.
         try:
             cc_nums = ag.select_cc_nums(**cc_selection_params)
         except UIError as err:
             return (
-                ui_utils.add_error_toast(curr_toasts, "Draw Error", str(err)),
+                ui_utils.add_error_toast(
+                    curr_toasts, "Node search error", str(err)
+                ),
                 curr_cy_eles,
                 {"requestGood": False},
             )
