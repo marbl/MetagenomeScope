@@ -261,6 +261,7 @@ def get_size_ranks(val, maxcc):
                         )
                     )
                 else:
+                    uppercc = maxcc - 1 if maxcc > 2 else maxcc
                     raise UIError(
                         get_sr_errmsg(
                             e,
@@ -268,7 +269,7 @@ def get_size_ranks(val, maxcc):
                             (
                                 "Must be either a single number "
                                 '(e.g. "1"), a range of numbers (e.g. '
-                                f'"1 - {maxcc}"), or a half-open range of '
+                                f'"1 - {uppercc}"), or a half-open range of '
                                 'numbers (e.g. "1-").'
                             ),
                         )

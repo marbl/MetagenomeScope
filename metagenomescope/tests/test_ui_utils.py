@@ -227,7 +227,34 @@ def test_get_size_ranks_gibberish():
     assert str(ei.value) == (
         'Invalid component size rank "asodfiasodfijasdoifj adfpqow" '
         'specified. Must be either a single number (e.g. "1"), a range of '
-        'numbers (e.g. "1 - 3"), or a half-open range of numbers (e.g. "1-").'
+        'numbers (e.g. "1 - 2"), or a half-open range of numbers (e.g. "1-").'
+    )
+
+
+def test_get_size_ranks_gibberish_uppercc_varieswithnumccs():
+    # as of writing it should be num ccs - 1, unless the graph has exactly
+    # two components, in which case it is just 2 (aka num ccs).
+    #
+    # I guess the idea is we wanna like illustrate why ranges are useful
+    # and to show that we can use something that ISN'T the number of ccs
+    # since the range of 1 to num ccs is equivalent to just drawing all
+    # ccs at once
+    #
+    # idk i'm probably overthinking this
+    with pytest.raises(UIError) as ei:
+        uu.get_size_ranks("asodfiasodfijasdoifj adfpqow", 2)
+    assert str(ei.value) == (
+        'Invalid component size rank "asodfiasodfijasdoifj adfpqow" '
+        'specified. Must be either a single number (e.g. "1"), a range of '
+        'numbers (e.g. "1 - 2"), or a half-open range of numbers (e.g. "1-").'
+    )
+
+    with pytest.raises(UIError) as ei:
+        uu.get_size_ranks("asodfiasodfijasdoifj adfpqow", 20)
+    assert str(ei.value) == (
+        'Invalid component size rank "asodfiasodfijasdoifj adfpqow" '
+        'specified. Must be either a single number (e.g. "1"), a range of '
+        'numbers (e.g. "1 - 19"), or a half-open range of numbers (e.g. "1-").'
     )
 
 
