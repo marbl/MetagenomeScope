@@ -130,18 +130,6 @@ def get_error_toast(title_text="Error", body_text=None):
     return toast
 
 
-def get_size_rank_error_msg(ag):
-    msg = "Invalid component size rank specified. "
-    if len(ag.components) > 1:
-        msg += f"Must be in the range 1 \u2013 {len(ag.components)}."
-    else:
-        msg += (
-            "I mean, like, your graph only has one component, so... "
-            'this should always be a "1"...'
-        )
-    return msg
-
-
 def decr_size_rank(size_rank, minval, maxval):
     if size_rank <= minval:
         return minval
@@ -158,6 +146,10 @@ def incr_size_rank(size_rank, minval, maxval):
         return maxval
     else:
         return size_rank + 1
+
+
+def say_goodrange(maxcc):
+    return f"Must be in the range 1 \u2013 {maxcc}."
 
 
 def get_size_ranks(val, maxcc):
@@ -181,8 +173,8 @@ def get_size_ranks(val, maxcc):
                 srs.add(int(e))
             else:
                 raise UIError(
-                    f'Out-of-range component size rank "{e}" specified. Must be in '
-                    f"the range 1 \u2013 {maxcc}."
+                    f'Out-of-range component size rank "{e}" specified. '
+                    f"{say_goodrange(maxcc)}"
                 )
         else:
             # e is a range? hopefully???
@@ -254,14 +246,12 @@ def get_size_ranks(val, maxcc):
                     )
                 raise UIError(
                     f'Invalid component size rank "{r0}" '
-                    f'in the range "{e}" specified. Must be a number in '
-                    f"the range 1 \u2013 {maxcc}."
+                    f'in the range "{e}" specified. {say_goodrange(maxcc)}'
                 )
             elif i1 is None:
                 raise UIError(
                     f'Invalid component size rank "{r1}" '
-                    f'in the range "{e}" specified. Must be a number in '
-                    f"the range 1 \u2013 {maxcc}."
+                    f'in the range "{e}" specified. {say_goodrange(maxcc)}'
                 )
 
             if i1 <= i0:
