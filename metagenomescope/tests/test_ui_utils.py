@@ -158,6 +158,16 @@ def test_get_size_ranks_range_halfopen():
     assert uu.get_size_ranks("-1", 5) == {1}
 
 
+def test_get_size_ranks_range_trivial():
+    # supporting these isn't all that important, but i guess they make
+    # some stuff with half-open ranges (e.g. "-1") work more naturally so sure
+    assert uu.get_size_ranks("1-1", 5) == {1}
+    assert uu.get_size_ranks("2-2", 5) == {2}
+    assert uu.get_size_ranks("3-3", 5) == {3}
+    assert uu.get_size_ranks("4-4", 5) == {4}
+    assert uu.get_size_ranks("5-5", 5) == {5}
+
+
 def test_get_size_ranks_range_outofbounds_high():
     with pytest.raises(UIError) as ei:
         uu.get_size_ranks("1-5", 3)
@@ -324,6 +334,10 @@ def test_get_size_ranks_repeated_stuff_okay():
         12,
         15,
     }
+
+
+def test_get_size_ranks_singlerank_repeats():
+    assert uu.get_size_ranks("6, 6,    6, 6, 2, 6, 10", 11) == {2, 6, 10}
 
 
 def test_get_range_text():
