@@ -17,6 +17,52 @@ def test_fmt_qty():
     assert uu.fmt_qty(None, "bushels", na="lmao") == "lmao"
 
 
+def test_decr_size_rank_simple():
+    assert uu.decr_size_rank(-2, 1, 5) == 1
+    assert uu.decr_size_rank(-1, 1, 5) == 1
+    assert uu.decr_size_rank(0, 1, 5) == 1
+    # begin "valid" current size ranks
+    assert uu.decr_size_rank(1, 1, 5) == 1
+    assert uu.decr_size_rank(2, 1, 5) == 1
+    assert uu.decr_size_rank(3, 1, 5) == 2
+    assert uu.decr_size_rank(4, 1, 5) == 3
+    assert uu.decr_size_rank(5, 1, 5) == 4
+    # end "valid" current size ranks
+    assert uu.decr_size_rank(6, 1, 5) == 5
+    assert uu.decr_size_rank(7, 1, 5) == 5
+    assert uu.decr_size_rank(8, 1, 5) == 5
+
+
+def test_decr_size_rank_only1():
+    assert uu.decr_size_rank(-2, 1, 1) == 1
+    assert uu.decr_size_rank(-1, 1, 1) == 1
+    assert uu.decr_size_rank(0, 1, 1) == 1
+    assert uu.decr_size_rank(1, 1, 1) == 1
+    assert uu.decr_size_rank(5, 1, 1) == 1
+
+
+def test_incr_size_rank_simple():
+    assert uu.incr_size_rank(0, 1, 5) == 1
+    # begin "valid" current size ranks
+    assert uu.incr_size_rank(1, 1, 5) == 2
+    assert uu.incr_size_rank(2, 1, 5) == 3
+    assert uu.incr_size_rank(3, 1, 5) == 4
+    assert uu.incr_size_rank(4, 1, 5) == 5
+    assert uu.incr_size_rank(5, 1, 5) == 5
+    # end "valid" current size ranks
+    assert uu.incr_size_rank(6, 1, 5) == 5
+    assert uu.incr_size_rank(7, 1, 5) == 5
+    assert uu.incr_size_rank(8, 1, 5) == 5
+
+
+def test_incr_size_rank_only1():
+    assert uu.incr_size_rank(-2, 1, 1) == 1
+    assert uu.incr_size_rank(-1, 1, 1) == 1
+    assert uu.incr_size_rank(0, 1, 1) == 1
+    assert uu.incr_size_rank(1, 1, 1) == 1
+    assert uu.incr_size_rank(5, 1, 1) == 1
+
+
 def test_get_range_text():
     assert uu._get_range_text([3]) == "#3"
     assert uu._get_range_text([1234]) == "#1,234"
