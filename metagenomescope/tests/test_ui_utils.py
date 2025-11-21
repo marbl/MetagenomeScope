@@ -340,6 +340,21 @@ def test_get_size_ranks_singlerank_repeats():
     assert uu.get_size_ranks("6, 6,    6, 6, 2, 6, 10", 11) == {2, 6, 10}
 
 
+def test_get_size_ranks_empty_entries_ok():
+    assert uu.get_size_ranks("6,6,,2,,,,,10", 11) == {2, 6, 10}
+    assert uu.get_size_ranks(",,,,,, ,,,    ,,,,  1", 11) == {1}
+
+
+def test_get_size_ranks_just_empty_entries_fails():
+    with pytest.raises(UIError) as ei:
+        uu.get_size_ranks(",,,,,, ,,,    ,,,, ", 11)
+    assert str(ei.value) == (
+        "No component size ranks specified. Each entry must be either a "
+        'single number (e.g. "1"), a range of numbers (e.g. "1 - 10"), or a '
+        'half-open range of numbers (e.g. "1-").'
+    )
+
+
 def test_get_range_text():
     assert uu._get_range_text([3]) == "#3"
     assert uu._get_range_text([1234]) == "#1,234"

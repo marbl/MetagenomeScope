@@ -161,6 +161,20 @@ def say_goodrange(maxcc, both=False):
         return "The graph only has 1 component. How did you even get here?"
 
 
+def say_gibberish_msg(maxcc, for_single_entry=True):
+    uppercc = maxcc - 1 if maxcc > 2 else maxcc
+    suffix = (
+        "be either a single number "
+        '(e.g. "1"), a range of numbers (e.g. '
+        f'"1 - {uppercc}"), or a half-open range of '
+        'numbers (e.g. "1-").'
+    )
+    if for_single_entry:
+        return "Must " + suffix
+    else:
+        return "Each entry must " + suffix
+
+
 def get_sr_errmsg(e, for_range, explanation):
     out = "Invalid component size rank"
     if type(for_range) is bool:
@@ -174,7 +188,9 @@ def get_sr_errmsg(e, for_range, explanation):
     return out + f' "{e}" specified. {explanation}'
 
 
-def get_single_sr_num_if_valid(text, maxcc, default_if_empty):
+def get_single_sr_num_if_valid(
+    text, maxcc, default_if_empty, fail_if_out_of_range=False
+):
     if len(text) == 0:
         # support half-open ranges
         return default_if_empty
@@ -184,11 +200,13 @@ def get_single_sr_num_if_valid(text, maxcc, default_if_empty):
         i = int(text)
         if i >= 1 and i <= maxcc:
             return i
+        elif fail_if_out_of_range:
+            raise UIError(get_sr_errmsg(text, False, say_goodrange(maxcc)))
     return None
 
 
 def get_size_ranks(val, maxcc):
-    if val is None or len(val) == 0:
+    if val is None or len(val.strip()) == 0:
         raise UIError("No component size rank(s) specified.")
     srs = set()
     entries = val.split(",")
@@ -199,15 +217,16 @@ def get_size_ranks(val, maxcc):
     #   indicating that we should select all size ranks <= or >= some value
     for e in entries:
         e = e.strip()
-        if re.match("^#?[0-9]+$", e):
+        i = get_single_sr_num_if_valid(e, maxcc, "", fail_if_out_of_range=True)
+        if type(i) is int:
             # e is a single size rank
-            if e[0] == "#":
-                e = e[1:]
-            sr = int(e)
-            if sr >= 1 and sr <= maxcc:
-                srs.add(int(e))
-            else:
-                raise UIError(get_sr_errmsg(e, False, say_goodrange(maxcc)))
+            srs.add(i)
+        elif i == "":
+            # if the user accidentally includes an empty entry (e.g.
+            # they typed "1,2,3,,4") then just be polite and ignore this.
+            # later we'll check to make sure that we catch diabolical cases
+            # like ",,,,"
+            continue
         else:
             # e is a range? hopefully???
             r0 = None
@@ -267,17 +286,11 @@ def get_size_ranks(val, maxcc):
                         )
                     )
                 else:
-                    uppercc = maxcc - 1 if maxcc > 2 else maxcc
                     raise UIError(
                         get_sr_errmsg(
                             e,
                             False,
-                            (
-                                "Must be either a single number "
-                                '(e.g. "1"), a range of numbers (e.g. '
-                                f'"1 - {uppercc}"), or a half-open range of '
-                                'numbers (e.g. "1-").'
-                            ),
+                            say_gibberish_msg(maxcc),
                         )
                     )
             # The defaults for half-open ranges are 1 (for i0) and maxcc
@@ -317,6 +330,12 @@ def get_size_ranks(val, maxcc):
             # points... hmm, maybe we could switch to that eventually,
             # i guess that would actually be doable
             srs.update(range(i0, i1 + 1))
+    if len(srs) == 0:
+        raise UIError(
+            "No component size ranks specified. "
+            f"{say_gibberish_msg(maxcc, for_single_entry=False)}"
+        )
+
     return srs
 
 
