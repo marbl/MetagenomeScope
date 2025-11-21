@@ -155,6 +155,52 @@ def test_get_size_ranks_range_outofbounds_both():
     )
 
 
+def test_get_size_ranks_range_backwards():
+    with pytest.raises(UIError) as ei:
+        assert uu.get_size_ranks("3-1", 3)
+    assert str(ei.value) == (
+        'Invalid component size rank range "3-1" specified. The end should be '
+        "bigger than the start."
+    )
+
+
+def test_get_size_ranks_repeated_dashes():
+    with pytest.raises(UIError) as ei:
+        assert uu.get_size_ranks("1--3", 3)
+    assert str(ei.value) == (
+        'Invalid component size rank range "1--3" specified. The "-" occurs '
+        "multiple times?"
+    )
+
+
+def test_get_size_ranks_multiple_dashes():
+    with pytest.raises(UIError) as ei:
+        assert uu.get_size_ranks("1\u2013-3", 3)
+    assert str(ei.value) == (
+        'Invalid component size rank range "1\u2013-3" specified. Multiple '
+        "dash characters present?"
+    )
+
+
+def test_get_size_ranks_just_a_dash():
+    with pytest.raises(UIError) as ei:
+        assert uu.get_size_ranks("-", 3)
+    assert str(ei.value) == (
+        'Invalid component size rank range "-" specified. Please give a '
+        "start and/or an end for the range."
+    )
+
+
+def test_get_size_ranks_gibberish():
+    with pytest.raises(UIError) as ei:
+        assert uu.get_size_ranks("asodfiasodfijasdoifj adfpqow", 3)
+    assert str(ei.value) == (
+        'Invalid component size rank "asodfiasodfijasdoifj adfpqow" '
+        'specified. Must be either a single number (e.g. "1"), a range of '
+        'numbers (e.g. "2-5"), or a half-open range of numbers (e.g. "2-").'
+    )
+
+
 def test_get_range_text():
     assert uu._get_range_text([3]) == "#3"
     assert uu._get_range_text([1234]) == "#1,234"

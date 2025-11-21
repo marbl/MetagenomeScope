@@ -215,7 +215,7 @@ def get_size_ranks(val, maxcc):
                 elif ct > 1:
                     raise UIError(
                         get_sr_errmsg(
-                            e, True, 'The "{d}" occurs multiple times?'
+                            e, True, f'The "{d}" occurs multiple times?'
                         )
                     )
 
@@ -225,7 +225,7 @@ def get_size_ranks(val, maxcc):
                 raise UIError(
                     get_sr_errmsg(
                         e,
-                        True,
+                        False,
                         (
                             "Must be either a single number "
                             '(e.g. "1"), a range of numbers (e.g. "2-5"), or a '
@@ -271,9 +271,9 @@ def get_size_ranks(val, maxcc):
 
             if i1 <= i0:
                 raise UIError(
-                    f'Invalid component size rank range "{e}" '
-                    "specified. The end point should be bigger than the "
-                    "start point."
+                    get_sr_errmsg(
+                        e, True, "The end should be bigger than the start."
+                    )
                 )
             # add all cc nums in the inclusive interval [i0, i1] to
             # srs. you could make a reasonable point here about how it
