@@ -152,6 +152,13 @@ def say_goodrange(maxcc):
     return f"Must be in the range 1 \u2013 {maxcc}."
 
 
+def get_sr_errmsg(e, for_range, explanation):
+    out = "Invalid component size rank"
+    if for_range:
+        out += " range"
+    return out + f' "{e}" specified. {explanation}'
+
+
 def get_size_ranks(val, maxcc):
     if val is None or len(val) == 0:
         raise UIError("No component size rank(s) specified.")
@@ -172,10 +179,7 @@ def get_size_ranks(val, maxcc):
             if sr >= 1 and sr <= maxcc:
                 srs.add(int(e))
             else:
-                raise UIError(
-                    f'Out-of-range component size rank "{e}" specified. '
-                    f"{say_goodrange(maxcc)}"
-                )
+                raise UIError(get_sr_errmsg(e, False, say_goodrange(maxcc)))
         else:
             # e is a range? hopefully???
             r0 = None
@@ -185,8 +189,9 @@ def get_size_ranks(val, maxcc):
                 if ct == 1:
                     if r0 is not None:
                         raise UIError(
-                            f'Invalid component size rank range "{e}" '
-                            "specified. Multiple dash characters present?"
+                            get_sr_errmsg(
+                                e, True, "Multiple dash characters present?"
+                            )
                         )
                     parts = e.split(d)
                     r0 = parts[0].strip()
@@ -198,24 +203,35 @@ def get_size_ranks(val, maxcc):
                         # idea (i expect most times people hit this it will be
                         # in error)
                         raise UIError(
-                            f'Invalid component size rank range "{e}" '
-                            "specified. Please give a start and/or an end for "
-                            "the range."
+                            get_sr_errmsg(
+                                e,
+                                True,
+                                (
+                                    "Please give a start and/or an end for the "
+                                    "range."
+                                ),
+                            )
                         )
                 elif ct > 1:
                     raise UIError(
-                        f'Invalid component size rank range "{e}" '
-                        f'specified. The "{d}" occurs multiple times?'
+                        get_sr_errmsg(
+                            e, True, 'The "{d}" occurs multiple times?'
+                        )
                     )
 
             # If none of the acceptable dash characters were present in e,
             # we will end up here -- with r0 and r1 both set to None.
             if r0 is None:
                 raise UIError(
-                    f'Invalid component size rank or size rank range "{e}" '
-                    'specified. Must be either a single number (e.g. "1"), '
-                    'a range of numbers (e.g. "2-5"), or a half-open range '
-                    'of numbers (e.g. "2-").'
+                    get_sr_errmsg(
+                        e,
+                        True,
+                        (
+                            "Must be either a single number "
+                            '(e.g. "1"), a range of numbers (e.g. "2-5"), or a '
+                            'half-open range of numbers (e.g. "2-").'
+                        ),
+                    )
                 )
             # Defaults for half-open ranges. "-5" represents [1, 2, 3, 4, 5],
             # and "5-" represents [5, 6, 7, 8, ... maxcc].
@@ -236,13 +252,12 @@ def get_size_ranks(val, maxcc):
                 i1 = int(r1)
                 if i1 < 1 or i1 > maxcc:
                     i1 = None
-            # TODO obvs this is sloppy, abstract shared text
             if i0 is None:
                 if i1 is None:
                     raise UIError(
-                        f'Invalid component size ranks "{r0}" and "{r1}" '
-                        f'in the range "{e}" specified. Must be numbers in '
-                        f"the range 1 \u2013 {maxcc}."
+                        f'Invalid component size ranks "{r0}" and "{r1}" in '
+                        f'the range "{e}" specified. '
+                        f"Both must be in the range 1 \u2013 {maxcc}."
                     )
                 raise UIError(
                     f'Invalid component size rank "{r0}" '

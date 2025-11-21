@@ -117,8 +117,41 @@ def test_get_size_ranks_outofrange():
     with pytest.raises(UIError) as ei:
         uu.get_size_ranks("1, 3, 5, 9, 10, 11, 12, 15", 14)
     assert str(ei.value) == (
-        'Out-of-range component size rank "15" specified. Must be in the '
+        'Invalid component size rank "15" specified. Must be in the '
         "range 1 \u2013 14."
+    )
+
+
+def test_get_size_ranks_range_simple():
+    assert uu.get_size_ranks("1-3", 5) == {1, 2, 3}
+    assert uu.get_size_ranks("1-5", 5) == {1, 2, 3, 4, 5}
+    assert uu.get_size_ranks("2, 4-5", 5) == {2, 4, 5}
+
+
+def test_get_size_ranks_range_outofbounds_high():
+    with pytest.raises(UIError) as ei:
+        assert uu.get_size_ranks("1-5", 3)
+    assert str(ei.value) == (
+        'Invalid component size rank "5" in the range "1-5" specified. Must '
+        "be in the range 1 \u2013 3."
+    )
+
+
+def test_get_size_ranks_range_outofbounds_low():
+    with pytest.raises(UIError) as ei:
+        assert uu.get_size_ranks("0-3", 3)
+    assert str(ei.value) == (
+        'Invalid component size rank "0" in the range "0-3" specified. Must '
+        "be in the range 1 \u2013 3."
+    )
+
+
+def test_get_size_ranks_range_outofbounds_both():
+    with pytest.raises(UIError) as ei:
+        assert uu.get_size_ranks("0-5", 3)
+    assert str(ei.value) == (
+        'Invalid component size ranks "0" and "5" in the range "0-5" '
+        "specified. Both must be in the range 1 \u2013 3."
     )
 
 
