@@ -159,6 +159,18 @@ def get_sr_errmsg(e, for_range, explanation):
     return out + f' "{e}" specified. {explanation}'
 
 
+def get_single_sr_num_if_valid(text, maxcc, default_if_empty):
+    if len(text) == 0:
+        return default_if_empty
+    if re.match("^#?[0-9]+$", text):
+        if text[0] == "#":
+            text = text[1:]
+        i = int(text)
+        if i >= 1 and i <= maxcc:
+            return i
+    return None
+
+
 def get_size_ranks(val, maxcc):
     if val is None or len(val) == 0:
         raise UIError("No component size rank(s) specified.")
@@ -233,25 +245,15 @@ def get_size_ranks(val, maxcc):
                         ),
                     )
                 )
-            # Defaults for half-open ranges. "-5" represents [1, 2, 3, 4, 5],
+            # The defaults for half-open ranges are 1 (for i0) and maxcc
+            # (for i1). So, for example: "-5" represents [1, 2, 3, 4, 5],
             # and "5-" represents [5, 6, 7, 8, ... maxcc].
+            #
             # Thankfully we don't have to worry about the case where both r0
-            # and r1 are empty (causing us to draw all ccs), becuase we have
+            # and r1 are empty (causing us to draw all ccs), because we have
             # already checked above for this specific case.
-            i0 = 1 if len(r0) == 0 else None
-            i1 = maxcc if len(r1) == 0 else None
-            if re.match("^#?[0-9]+$", r0):
-                if r0[0] == "#":
-                    r0 = r0[1:]
-                i0 = int(r0)
-                if i0 < 1 or i0 > maxcc:
-                    i0 = None
-            if re.match("^#?[0-9]+$", r1):
-                if r1[0] == "#":
-                    r1 = r1[1:]
-                i1 = int(r1)
-                if i1 < 1 or i1 > maxcc:
-                    i1 = None
+            i0 = get_single_sr_num_if_valid(r0, maxcc, 1)
+            i1 = get_single_sr_num_if_valid(r1, maxcc, maxcc)
             if i0 is None:
                 if i1 is None:
                     raise UIError(
