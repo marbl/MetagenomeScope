@@ -1057,8 +1057,17 @@ def run(
         allow_duplicate=True,
     )
     def update_cc_size_rank(size_rank, decr_n_clicks, incr_n_clicks):
+        # reset to something sane if empty
         if size_rank is None or size_rank == "":
             return "1"
+
+        # If the text is something like "-5", this is probably the
+        # user specifying a half-open range {1,2,3,4,5} rather then
+        # them trying to access component negative five. seriously
+        # how would that even work. so anyway let's avoid false alarms
+        if size_rank[0] == "-":
+            return size_rank
+
         try:
             # just in case the user gets confused and types in "#2"
             # or something, let's be okay with that. we will update
