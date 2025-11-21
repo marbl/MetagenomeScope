@@ -161,6 +161,7 @@ def get_sr_errmsg(e, for_range, explanation):
 
 def get_single_sr_num_if_valid(text, maxcc, default_if_empty):
     if len(text) == 0:
+        # support half-open ranges
         return default_if_empty
     if re.match("^#?[0-9]+$", text):
         if text[0] == "#":
@@ -271,7 +272,12 @@ def get_size_ranks(val, maxcc):
                     f'in the range "{e}" specified. {say_goodrange(maxcc)}'
                 )
 
-            if i1 <= i0:
+            # I GUESS we can allow useless ranges of the form n-n, which
+            # means "draw all components from n to n", aka "just draw
+            # component n". idk probs doesn't matter. allowing this has the
+            # nice? side effect of making silly half-open ranges like "-1"
+            # and "C-" (where C = the largest size rank in a graph) work.
+            if i1 < i0:
                 raise UIError(
                     get_sr_errmsg(
                         e, True, "The end should be bigger than the start."
