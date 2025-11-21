@@ -148,8 +148,17 @@ def incr_size_rank(size_rank, minval, maxval):
         return size_rank + 1
 
 
-def say_goodrange(maxcc):
-    return f"Must be in the range 1 \u2013 {maxcc}."
+def say_goodrange(maxcc, both=False):
+    if maxcc > 1:
+        if both:
+            out = "Both must"
+        else:
+            out = "Must"
+        return out + f" be in the range 1 \u2013 {maxcc}."
+    else:
+        # should never happen, since the UI should hide the
+        # cc selector in this case
+        return "The graph only has 1 component. How did you even get here?"
 
 
 def get_sr_errmsg(e, for_range, explanation):
@@ -260,7 +269,7 @@ def get_size_ranks(val, maxcc):
                     raise UIError(
                         f'Invalid component size ranks "{r0}" and "{r1}" in '
                         f'the range "{e}" specified. '
-                        f"Both must be in the range 1 \u2013 {maxcc}."
+                        f"{say_goodrange(maxcc, both=True)}"
                     )
                 raise UIError(
                     f'Invalid component size rank "{r0}" '

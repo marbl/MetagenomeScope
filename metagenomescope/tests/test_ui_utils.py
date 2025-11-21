@@ -76,6 +76,22 @@ def test_get_size_ranks_empty():
     assert str(ei.value) == exp_msg
 
 
+def test_get_size_ranks_justone():
+    assert uu.get_size_ranks("1", 1) == {1}
+    assert uu.get_size_ranks("1", 2) == {1}
+    assert uu.get_size_ranks("5", 10) == {5}
+
+
+def test_get_size_ranks_justone_outofrange():
+    with pytest.raises(UIError) as ei:
+        uu.get_size_ranks("2", 1)
+    # test the untestable... rah rah fight the power
+    assert str(ei.value) == (
+        'Invalid component size rank "2" specified. The graph only '
+        "has 1 component. How did you even get here?"
+    )
+
+
 def test_get_size_ranks_simple():
     assert uu.get_size_ranks("1, 3, 5, 9, 10, 11, 12, 15", 20) == {
         1,
