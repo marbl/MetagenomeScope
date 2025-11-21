@@ -273,6 +273,23 @@ def test_get_size_ranks_range_gibberish():
     )
 
 
+def test_get_size_ranks_repeated_stuff_okay():
+    # shoutout to python sets
+    assert uu.get_size_ranks("1-5,3-9,12,15,4,5", 15) == {
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        12,
+        15,
+    }
+
+
 def test_get_range_text():
     assert uu._get_range_text([3]) == "#3"
     assert uu._get_range_text([1234]) == "#1,234"
