@@ -160,7 +160,7 @@ def incr_size_rank(size_rank, minval, maxval):
         return size_rank + 1
 
 
-def get_size_ranks_from_input(val, ag):
+def get_size_ranks(val, ag):
     if val is None or len(val) == 0:
         raise UIError("No component size rank(s) specified.")
     srs = set()

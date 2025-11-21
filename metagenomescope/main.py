@@ -1123,7 +1123,7 @@ def run(
 
         if cc_drawing_selection_type == "ccDrawingSizeRank":
             try:
-                srs = ui_utils.get_size_ranks_from_input(size_ranks, ag)
+                srs = ui_utils.get_size_ranks(size_ranks, ag)
             except UIError as err:
                 return (
                     ui_utils.add_error_toast(
