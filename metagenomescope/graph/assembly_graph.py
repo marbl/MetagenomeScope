@@ -2213,7 +2213,7 @@ class AssemblyGraph(object):
         if cc_size_ranks is None:
             if cc_node_name is None:
                 # Select all ccs
-                cc_nums = [cc.num for cc in self.components]
+                cc_nums = [cc.cc_num for cc in self.components]
             else:
                 # Select a single cc, as the one that contains a node
                 # TODO this is inefficient b/c it searches through the
