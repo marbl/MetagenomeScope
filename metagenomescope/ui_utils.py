@@ -163,8 +163,14 @@ def say_goodrange(maxcc, both=False):
 
 def get_sr_errmsg(e, for_range, explanation):
     out = "Invalid component size rank"
-    if for_range:
-        out += " range"
+    if type(for_range) is bool:
+        if for_range:
+            out += " range"
+    else:
+        if len(for_range) == 2:
+            out += f's "{for_range[0]}" and "{for_range[1]}" in the range'
+        else:
+            out += f' "{for_range[0]}" in the range'
     return out + f' "{e}" specified. {explanation}'
 
 
@@ -286,19 +292,13 @@ def get_size_ranks(val, maxcc):
             if i0 is None:
                 if i1 is None:
                     raise UIError(
-                        f'Invalid component size ranks "{r0}" and "{r1}" in '
-                        f'the range "{e}" specified. '
-                        f"{say_goodrange(maxcc, both=True)}"
+                        get_sr_errmsg(
+                            e, (r0, r1), say_goodrange(maxcc, both=True)
+                        )
                     )
-                raise UIError(
-                    f'Invalid component size rank "{r0}" '
-                    f'in the range "{e}" specified. {say_goodrange(maxcc)}'
-                )
+                raise UIError(get_sr_errmsg(e, (r0,), say_goodrange(maxcc)))
             elif i1 is None:
-                raise UIError(
-                    f'Invalid component size rank "{r1}" '
-                    f'in the range "{e}" specified. {say_goodrange(maxcc)}'
-                )
+                raise UIError(get_sr_errmsg(e, (r1,), say_goodrange(maxcc)))
 
             # I GUESS we can allow useless ranges of the form n-n, which
             # means "draw all components from n to n", aka "just draw
