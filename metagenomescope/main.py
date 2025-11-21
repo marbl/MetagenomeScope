@@ -278,6 +278,7 @@ def run(
                                 id="ccSizeRankSelector",
                                 className="form-control",
                                 value="1",
+                                placeholder="Size rank(s)",
                             ),
                             html.Button(
                                 html.I(className="bi bi-plus-lg"),
