@@ -160,7 +160,7 @@ def incr_size_rank(size_rank, minval, maxval):
         return size_rank + 1
 
 
-def get_size_ranks(val, ag):
+def get_size_ranks(val, maxcc):
     if val is None or len(val) == 0:
         raise UIError("No component size rank(s) specified.")
     srs = set()
@@ -177,12 +177,12 @@ def get_size_ranks(val, ag):
             if e[0] == "#":
                 e = e[1:]
             sr = int(e)
-            if sr >= 1 and sr <= len(ag.components):
+            if sr >= 1 and sr <= maxcc:
                 srs.add(int(e))
             else:
                 raise UIError(
                     f'Out-of-range component size rank "{e}" specified. Must be in '
-                    f"the range 1 \u2013 {len(ag.components)}."
+                    f"the range 1 \u2013 {maxcc}."
                 )
         else:
             # e is a range? hopefully???
@@ -226,23 +226,23 @@ def get_size_ranks(val, ag):
                     'of numbers (e.g. "2-").'
                 )
             # Defaults for half-open ranges. "-5" represents [1, 2, 3, 4, 5],
-            # and "5-" represents [5, 6, 7, 8, ... len(ag.components)].
+            # and "5-" represents [5, 6, 7, 8, ... maxcc].
             # Thankfully we don't have to worry about the case where both r0
             # and r1 are empty (causing us to draw all ccs), becuase we have
             # already checked above for this specific case.
             i0 = 1 if len(r0) == 0 else None
-            i1 = len(ag.components) if len(r1) == 0 else None
+            i1 = maxcc if len(r1) == 0 else None
             if re.match("^#?[0-9]+$", r0):
                 if r0[0] == "#":
                     r0 = r0[1:]
                 i0 = int(r0)
-                if i0 < 1 or i0 > len(ag.components):
+                if i0 < 1 or i0 > maxcc:
                     i0 = None
             if re.match("^#?[0-9]+$", r1):
                 if r1[0] == "#":
                     r1 = r1[1:]
                 i1 = int(r1)
-                if i1 < 1 or i1 > len(ag.components):
+                if i1 < 1 or i1 > maxcc:
                     i1 = None
             # TODO obvs this is sloppy, abstract shared text
             if i0 is None:
@@ -250,18 +250,18 @@ def get_size_ranks(val, ag):
                     raise UIError(
                         f'Invalid component size ranks "{r0}" and "{r1}" '
                         f'in the range "{e}" specified. Must be numbers in '
-                        f"the range 1 \u2013 {len(ag.components)}."
+                        f"the range 1 \u2013 {maxcc}."
                     )
                 raise UIError(
                     f'Invalid component size rank "{r0}" '
                     f'in the range "{e}" specified. Must be a number in '
-                    f"the range 1 \u2013 {len(ag.components)}."
+                    f"the range 1 \u2013 {maxcc}."
                 )
             elif i1 is None:
                 raise UIError(
                     f'Invalid component size rank "{r1}" '
                     f'in the range "{e}" specified. Must be a number in '
-                    f"the range 1 \u2013 {len(ag.components)}."
+                    f"the range 1 \u2013 {maxcc}."
                 )
 
             if i1 <= i0:

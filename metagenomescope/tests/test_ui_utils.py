@@ -1,4 +1,6 @@
+import pytest
 from metagenomescope import ui_utils as uu
+from metagenomescope.errors import UIError
 
 
 def test_pluralize():
@@ -61,6 +63,63 @@ def test_incr_size_rank_only1():
     assert uu.incr_size_rank(0, 1, 1) == 1
     assert uu.incr_size_rank(1, 1, 1) == 1
     assert uu.incr_size_rank(5, 1, 1) == 1
+
+
+def test_get_size_ranks_empty():
+    exp_msg = "No component size rank(s) specified."
+    with pytest.raises(UIError) as ei:
+        assert uu.get_size_ranks("", 5)
+    assert str(ei.value) == exp_msg
+
+    with pytest.raises(UIError) as ei:
+        assert uu.get_size_ranks(None, 5)
+    assert str(ei.value) == exp_msg
+
+
+def test_get_size_ranks_simple():
+    assert uu.get_size_ranks("1, 3, 5, 9, 10, 11, 12, 15", 20) == {
+        1,
+        3,
+        5,
+        9,
+        10,
+        11,
+        12,
+        15,
+    }
+
+
+def test_get_size_ranks_poundsigns():
+    assert uu.get_size_ranks("1, 3, #5, 9, 10, 11, #12, 15", 20) == {
+        1,
+        3,
+        5,
+        9,
+        10,
+        11,
+        12,
+        15,
+    }
+
+
+def test_get_size_ranks_outofrange():
+    assert uu.get_size_ranks("1, 3, 5, 9, 10, 11, 12, 15", 15) == {
+        1,
+        3,
+        5,
+        9,
+        10,
+        11,
+        12,
+        15,
+    }
+
+    with pytest.raises(UIError) as ei:
+        uu.get_size_ranks("1, 3, 5, 9, 10, 11, 12, 15", 14)
+    assert str(ei.value) == (
+        'Out-of-range component size rank "15" specified. Must be in the '
+        "range 1 \u2013 14."
+    )
 
 
 def test_get_range_text():
