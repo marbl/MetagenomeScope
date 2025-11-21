@@ -201,6 +201,25 @@ def test_get_size_ranks_gibberish():
     )
 
 
+def test_get_size_ranks_poundsign_in_ranges():
+    assert uu.get_size_ranks("#1-#9", 30) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
+    assert uu.get_size_ranks("1-#9", 30) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
+    assert uu.get_size_ranks("#1-9", 30) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
+    assert uu.get_size_ranks("#1 - 9", 30) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
+    assert uu.get_size_ranks("#1 - #9", 30) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+
+def test_get_size_ranks_fancydashes_ok():
+    # currently controlled by ui_config.RANGE_DASHES. that being said i doubt
+    # there are a lot of other people out there who bust out the
+    # ctrl-shift-U + 2013 when they want to write numeric ranges so PROBABLY
+    # nobody else will use this (unless we implement the whole copying-labels-
+    # from-treemap thing)
+    assert uu.get_size_ranks("1 - 9", 30) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
+    assert uu.get_size_ranks("1 \u2013 9", 30) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
+    assert uu.get_size_ranks("1 \u2014 9", 30) == {1, 2, 3, 4, 5, 6, 7, 8, 9}
+
+
 def test_get_range_text():
     assert uu._get_range_text([3]) == "#3"
     assert uu._get_range_text([1234]) == "#1,234"
