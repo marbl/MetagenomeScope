@@ -244,17 +244,35 @@ def get_size_ranks(val, maxcc):
             # If none of the acceptable dash characters were present in e,
             # we will end up here -- with r0 and r1 both set to None.
             if r0 is None:
-                raise UIError(
-                    get_sr_errmsg(
-                        e,
-                        False,
-                        (
-                            "Must be either a single number "
-                            '(e.g. "1"), a range of numbers (e.g. "2-5"), or a '
-                            'half-open range of numbers (e.g. "2-").'
-                        ),
+                # The error message we use at this point shows an example
+                # range "1 - maxcc". If maxcc == 1, this will not make
+                # sense to the user. Um... we should never get here if
+                # maxcc == 1 because the cc size rank selection UI should
+                # be hidden, but just in case I GUESS we can handle this ok.
+                if maxcc == 1:
+                    raise UIError(
+                        get_sr_errmsg(
+                            e,
+                            False,
+                            (
+                                "Literally it can only be 1. How did you get "
+                                "here lol"
+                            ),
+                        )
                     )
-                )
+                else:
+                    raise UIError(
+                        get_sr_errmsg(
+                            e,
+                            False,
+                            (
+                                "Must be either a single number "
+                                '(e.g. "1"), a range of numbers (e.g. '
+                                f'"1 - {maxcc}"), or a half-open range of '
+                                'numbers (e.g. "1-").'
+                            ),
+                        )
+                    )
             # The defaults for half-open ranges are 1 (for i0) and maxcc
             # (for i1). So, for example: "-5" represents [1, 2, 3, 4, 5],
             # and "5-" represents [5, 6, 7, 8, ... maxcc].

@@ -227,7 +227,16 @@ def test_get_size_ranks_gibberish():
     assert str(ei.value) == (
         'Invalid component size rank "asodfiasodfijasdoifj adfpqow" '
         'specified. Must be either a single number (e.g. "1"), a range of '
-        'numbers (e.g. "2-5"), or a half-open range of numbers (e.g. "2-").'
+        'numbers (e.g. "1 - 3"), or a half-open range of numbers (e.g. "1-").'
+    )
+
+
+def test_get_size_ranks_gibberish_justone():
+    with pytest.raises(UIError) as ei:
+        uu.get_size_ranks("asodfiasodfijasdoifj adfpqow", 1)
+    assert str(ei.value) == (
+        'Invalid component size rank "asodfiasodfijasdoifj adfpqow" '
+        "specified. Literally it can only be 1. How did you get here lol"
     )
 
 
