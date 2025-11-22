@@ -162,12 +162,22 @@ def say_goodrange(maxcc, both=False):
 
 
 def say_gibberish_msg(maxcc, for_single_entry=True):
-    uppercc = maxcc - 1 if maxcc > 2 else maxcc
+    # show useful examples of ranges. If there are just 2 components, though,
+    # then show more boring ranges.
+    # Note that we should never get here if maxcc == 1. (Um, if we do, though,
+    # it's not the end of the world. The user will just see an error message
+    # that includes "1 - 2". It will be okay.)
+    if maxcc > 2:
+        examplerange = f"2 - {maxcc}"
+        examplehrange = "2 -"
+    else:
+        examplerange = "1 - 2"
+        examplehrange = "1 -"
     suffix = (
         "be either a single number "
         '(e.g. "1"), a range of numbers (e.g. '
-        f'"1 - {uppercc}"), or a half-open range of '
-        'numbers (e.g. "1-").'
+        f'"{examplerange}"), or a half-open range of '
+        f'numbers (e.g. "{examplehrange}").'
     )
     if for_single_entry:
         return "Must " + suffix
@@ -332,7 +342,7 @@ def get_size_ranks(val, maxcc):
             srs.update(range(i0, i1 + 1))
     if len(srs) == 0:
         raise UIError(
-            "No component size ranks specified. "
+            "No component size rank(s) specified. "
             f"{say_gibberish_msg(maxcc, for_single_entry=False)}"
         )
 

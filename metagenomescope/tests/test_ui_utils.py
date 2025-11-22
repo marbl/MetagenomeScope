@@ -237,7 +237,7 @@ def test_get_size_ranks_gibberish():
     assert str(ei.value) == (
         'Invalid component size rank "asodfiasodfijasdoifj adfpqow" '
         'specified. Must be either a single number (e.g. "1"), a range of '
-        'numbers (e.g. "1 - 2"), or a half-open range of numbers (e.g. "1-").'
+        'numbers (e.g. "2 - 3"), or a half-open range of numbers (e.g. "2 -").'
     )
 
 
@@ -256,7 +256,7 @@ def test_get_size_ranks_gibberish_uppercc_varieswithnumccs():
     assert str(ei.value) == (
         'Invalid component size rank "asodfiasodfijasdoifj adfpqow" '
         'specified. Must be either a single number (e.g. "1"), a range of '
-        'numbers (e.g. "1 - 2"), or a half-open range of numbers (e.g. "1-").'
+        'numbers (e.g. "1 - 2"), or a half-open range of numbers (e.g. "1 -").'
     )
 
     with pytest.raises(UIError) as ei:
@@ -264,7 +264,8 @@ def test_get_size_ranks_gibberish_uppercc_varieswithnumccs():
     assert str(ei.value) == (
         'Invalid component size rank "asodfiasodfijasdoifj adfpqow" '
         'specified. Must be either a single number (e.g. "1"), a range of '
-        'numbers (e.g. "1 - 19"), or a half-open range of numbers (e.g. "1-").'
+        'numbers (e.g. "2 - 20"), or a half-open range of numbers '
+        '(e.g. "2 -").'
     )
 
 
@@ -349,9 +350,9 @@ def test_get_size_ranks_just_empty_entries_fails():
     with pytest.raises(UIError) as ei:
         uu.get_size_ranks(",,,,,, ,,,    ,,,, ", 11)
     assert str(ei.value) == (
-        "No component size ranks specified. Each entry must be either a "
-        'single number (e.g. "1"), a range of numbers (e.g. "1 - 10"), or a '
-        'half-open range of numbers (e.g. "1-").'
+        "No component size rank(s) specified. Each entry must be either a "
+        'single number (e.g. "1"), a range of numbers (e.g. "2 - 11"), or a '
+        'half-open range of numbers (e.g. "2 -").'
     )
 
 
