@@ -182,7 +182,7 @@ def say_gibberish_msg(maxcc, for_single_entry=True):
     if for_single_entry:
         return "Must " + suffix
     else:
-        return "Each entry must " + suffix
+        return "No component size rank(s) specified. Each entry must " + suffix
 
 
 def get_sr_errmsg(e, for_range, explanation):
@@ -217,7 +217,7 @@ def get_single_sr_num_if_valid(
 
 def get_size_ranks(val, maxcc):
     if val is None or len(val.strip()) == 0:
-        raise UIError("No component size rank(s) specified.")
+        raise UIError(say_gibberish_msg(maxcc, for_single_entry=False))
     srs = set()
     entries = val.split(",")
     # Each entry e in "entries" can be one of:
@@ -340,11 +340,10 @@ def get_size_ranks(val, maxcc):
             # points... hmm, maybe we could switch to that eventually,
             # i guess that would actually be doable
             srs.update(range(i0, i1 + 1))
+
+    # catch cases where the input was something like ",,,,"
     if len(srs) == 0:
-        raise UIError(
-            "No component size rank(s) specified. "
-            f"{say_gibberish_msg(maxcc, for_single_entry=False)}"
-        )
+        raise UIError(say_gibberish_msg(maxcc, for_single_entry=False))
 
     return srs
 

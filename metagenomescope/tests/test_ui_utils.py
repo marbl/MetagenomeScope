@@ -66,7 +66,11 @@ def test_incr_size_rank_only1():
 
 
 def test_get_size_ranks_empty():
-    exp_msg = "No component size rank(s) specified."
+    exp_msg = (
+        "No component size rank(s) specified. Each entry must be either a "
+        'single number (e.g. "1"), a range of numbers (e.g. "2 - 5"), or a '
+        'half-open range of numbers (e.g. "2 -").'
+    )
     with pytest.raises(UIError) as ei:
         uu.get_size_ranks("", 5)
     assert str(ei.value) == exp_msg
