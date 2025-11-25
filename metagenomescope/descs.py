@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-GRAPH = "GFA, FASTG, DOT, GML, or LastGraph."
+GRAPH = "In GFA, FASTG, DOT, GML, or LastGraph format."
 
 FASTA = (
     "FASTA file describing the sequences of the nodes (GFA, FASTG, GML, "

@@ -10,9 +10,9 @@ from . import __version__, defaults, descs, config, main
         "help_option_names": ["-h", "--help"],
         # I'm extremely petty and I want the CLI options to take up at most
         # one line each if possible, and this is necessary to get the --port
-        # option to take up just one line. Click's default of 80 is probably
-        # way too short for most modern displays anyway.
-        "max_content_width": 82,
+        # and --graph options to take up just one line. Click's default of
+        # 80 is probably way too short for most modern displays anyway.
+        "max_content_width": 87,
     },
     no_args_is_help=True,
 )
