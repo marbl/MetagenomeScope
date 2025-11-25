@@ -216,6 +216,39 @@ def get_single_sr_num_if_valid(
 
 
 def get_size_ranks(val, maxcc):
+    """Returns a set of component size ranks based on user input.
+
+    Parameters
+    ----------
+    val: str
+        Text input by the user. This should be a a comma-separated
+        list of component size ranks to draw: each entry can be something
+        like "3" (draw cc #3), "3-5" (draw ccs 3-5), "-3" (draw ccs 1-3),
+        or "3-" (draw all ccs with size ranks >= 3).
+
+    maxcc: int
+        The number of components in the graph. Or, equivalently, the largest
+        "valid" component size rank is maxcc.
+
+    Returns
+    -------
+    set of int
+        Selected component size ranks.
+
+    Raises
+    ------
+    UIError
+        If the input text is malformed in some way. There are a lot of ways
+        for this to go wrong.
+
+    Notes
+    -----
+    I tested this function pretty thoroughly; you may want to see those tests
+    for some examples of how this works. (Like, I COULD document every possible
+    thing this function accounts for here, but that would probably become out-
+    of-date like immediately so it doesn't seem very useful. Hopefully this
+    code isn't that hard to read...)
+    """
     if val is None or len(val.strip()) == 0:
         raise UIError(say_gibberish_msg(maxcc, for_single_entry=False))
     srs = set()
