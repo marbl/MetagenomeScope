@@ -4,9 +4,16 @@ import click
 from . import __version__, defaults, descs, config, main
 
 
-# Make mgsc -h (or just mgsc by itself) show the help text
 @click.command(
-    context_settings={"help_option_names": ["-h", "--help"]},
+    context_settings={
+        # Make mgsc -h (or just mgsc by itself) show the help text
+        "help_option_names": ["-h", "--help"],
+        # I'm extremely petty and I want the CLI options to take up at most
+        # one line each if possible, and this is necessary to get the --port
+        # option to take up just one line. Click's default of 80 is probably
+        # way too short for most modern displays anyway.
+        "max_content_width": 82,
+    },
     no_args_is_help=True,
 )
 @click.option(
@@ -33,7 +40,7 @@ from . import __version__, defaults, descs, config, main
 @click.option(
     "-p",
     "--port",
-    type=click.IntRange(min=config.MIN_PORT),
+    type=click.IntRange(min=config.MIN_PORT, max=config.MAX_PORT),
     default=defaults.PORT,
     show_default=True,
     help=descs.PORT,

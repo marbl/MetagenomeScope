@@ -237,7 +237,12 @@ PT2COLOR = {
 #   about not having permission. However, using a port number of 1024 works!
 #
 # So ... this all seems to suggest to me that a minimum of >= 1024 should be
-# okay. I am sure this will not be perfect but it doesn't have to be -- this is
+# okay. And I guess we should impose a maximum of 65535 in order to
+# "fail fast," rather than waiting for Dash to throw the error (after we
+# spend a bunch of time processing the graph).
+#
+# I am sure this will not be perfect but it doesn't have to be -- this is
 # gonna have to be up to the user to figure out if they don't want to use 8050
 # (or whatever the default is).
 MIN_PORT = 1024
+MAX_PORT = 65535
