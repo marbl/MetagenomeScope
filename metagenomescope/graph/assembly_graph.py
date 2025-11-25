@@ -2210,6 +2210,48 @@ class AssemblyGraph(object):
         conclude_msg()
 
     def select_cc_nums(self, cc_size_ranks=None, cc_node_name=None):
+        """Given some criteria, outputs a list of matching component numbers.
+
+        Parameters
+        ----------
+        cc_size_ranks: collection of int or None
+            List of component number(s) to select. Um, since this function's
+            purpose is to output the numbers of selected components, we don't
+            do all that much if you pass this here besides converting it to
+            a list that can be easily JSON-ified for passing to the
+            doneFlushing dcc.Store.
+
+        cc_node_name: str or None
+            Node name to search for in the graph. We'll select the component
+            that contains a node with this name. (Nodes really should not have
+            duplicate names, but in the freak event that this is the case,
+            we will break as soon as we find the first component containing a
+            node with this name.)
+
+        Returns
+        -------
+        list of int
+            Matching component .cc_num attributes. This will be selected based
+            on one of three methods:
+
+            1. If cc_size_ranks is not None, this will be a list containing the
+               entries of cc_size_ranks.
+
+            2. If cc_node_names is not None, this will be just a list
+               containing the .cc_num of the component containing a node with
+               this name.
+
+            3. If cc_size_ranks and cc_node_names are both None, this will be
+               a list containing all components' .cc_num attributes.
+
+        Raises
+        ------
+        UIError
+            If the node specified by cc_node_name does not exist in the graph.
+
+        WeirdError
+            If both cc_size_ranks and cc_node_name are not None.
+        """
         if cc_size_ranks is None:
             if cc_node_name is None:
                 # Select all ccs
@@ -2238,7 +2280,7 @@ class AssemblyGraph(object):
             if cc_node_name is None:
                 cc_nums = list(cc_size_ranks)
             else:
-                raise WeirdError("Both size rank and node name specified?")
+                raise WeirdError("Both size rank(s) and node name specified?")
 
         return cc_nums
 
