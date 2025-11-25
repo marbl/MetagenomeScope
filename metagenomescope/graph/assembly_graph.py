@@ -2243,6 +2243,32 @@ class AssemblyGraph(object):
         return cc_nums
 
     def to_cyjs(self, cc_nums, incl_patterns=True):
+        """Converts the graph's elements to a Cytoscape.js-compatible format.
+
+        Parameters
+        ----------
+        cc_nums: list of int
+            List of Component .cc_num attributes, indicating the components
+            whose elements we should include in the output here. (So, [1]
+            indicates that we should just draw the largest component; [3, 4]
+            indicates that we should draw the third and fourth largest
+            components; and so on.)
+
+        incl_patterns: bool
+            If True, include patterns in the output. If False, don't.
+
+        Returns
+        -------
+        list of dict
+            Each entry corresponds to a dictionary describing an element
+            (a node, edge, or pattern) in the graph. See the references
+            below for examples on what this format looks like.
+
+        References
+        ----------
+        https://dash.plotly.com/cytoscape/elements
+        https://js.cytoscape.org/#notation/elements-json
+        """
         eles = []
         for n in cc_nums:
             cc = self.components[n - 1]
