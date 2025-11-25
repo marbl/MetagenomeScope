@@ -215,3 +215,29 @@ PT2COLOR = {
     PT_CHAIN: "#eedddd",
     PT_CYCLICCHAIN: "#ffd163",
 }
+
+# Some context on port numbers, for anyone who stumbles upon this in the future
+# (including future me):
+#
+# - ModDotPlot, another bio tool that is set up as a Dash app, does not
+#   explicitly set a min/max port number --
+#   https://github.com/marbl/ModDotPlot/blob/d7675f99536df74b95efcca56e20b09bf42e432d/src/moddotplot/moddotplot.py#L144-L149
+#
+# - Dash itself requires that the port is an int in the range [1, 65535] --
+#   https://github.com/plotly/dash/blob/30afe785c26c2bb6f4dc56efd0c9001d4384acfc/dash/dash.py#L2428
+#
+# - https://linux.die.net/man/5/services says that 'Port numbers below 1024
+#   (so-called "low numbered" ports) can only be bound to by root'.
+#
+# - https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers lists a
+#   bunch of stuff about port numbers, and is how I ran into the "services" man
+#   page cited above.
+#
+# - If you try running dash with a port number of 1023, my system complains
+#   about not having permission. However, using a port number of 1024 works!
+#
+# So ... this all seems to suggest to me that a minimum of >= 1024 should be
+# okay. I am sure this will not be perfect but it doesn't have to be -- this is
+# gonna have to be up to the user to figure out if they don't want to use 8050
+# (or whatever the default is).
+MIN_PORT = 1024

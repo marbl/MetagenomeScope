@@ -35,6 +35,8 @@ mgsc -g graph.gfa
 
 This will start a server using Dash.
 Navigate to `localhost:8050` in a web browser to access the visualization.
+(If you want to use a different port number than `8050`, you can use the
+`-p`/`--port` parameter of `mgsc`.)
 
 ## Supported assembly graph filetypes
 

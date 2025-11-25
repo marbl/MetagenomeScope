@@ -1,1 +1,2 @@
+PORT = 8050
 VERBOSE = False

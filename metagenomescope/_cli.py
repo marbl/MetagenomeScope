@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import click
-from . import __version__, defaults, descs
-from .main import run
+from . import __version__, defaults, descs, config, main
 
 
 # Make mgsc -h (or just mgsc by itself) show the help text
@@ -32,6 +31,14 @@ from .main import run
 #     help=AGP,
 # )
 @click.option(
+    "-p",
+    "--port",
+    type=click.IntRange(min=config.MIN_PORT),
+    default=defaults.PORT,
+    show_default=True,
+    help=descs.PORT,
+)
+@click.option(
     "--verbose/--no-verbose",
     is_flag=True,
     default=defaults.VERBOSE,
@@ -41,6 +48,7 @@ from .main import run
 @click.version_option(__version__, "-v", "--version")
 def run_script(
     graph: str,
+    port: int,
     verbose: bool,
 ) -> None:
     """Visualizes an assembly graph.
@@ -48,8 +56,9 @@ def run_script(
     Please check out https://github.com/marbl/MetagenomeScope if you have any
     questions, suggestions, etc. about this tool.
     """
-    run(
+    main.run(
         graph=graph,
+        port=port,
         verbose=verbose,
     )
 

@@ -9,4 +9,6 @@ FASTA = (
 
 AGP = "AGP file describing paths of nodes."
 
+PORT = "Server port number."
+
 VERBOSE = "Log extra details."

@@ -28,6 +28,7 @@ cyto.load_extra_layouts()
 
 def run(
     graph: str = None,
+    port: int = defaults.PORT,
     verbose: bool = defaults.VERBOSE,
 ):
     """Reads the graph and starts a Dash app for visualizing it.
@@ -36,6 +37,9 @@ def run(
     ----------
     graph: str
         Path to the assembly graph to be visualized.
+
+    port: int
+        Port number to run the server on. We'll just pass this to Dash.
 
     verbose: bool
         If True, include DEBUG messages in the log output.
@@ -50,6 +54,7 @@ def run(
         [
             "Settings:",
             f"Graph: {graph}",
+            f"Port: {port}",
             f"Verbose?: {verbose}",
         ],
         logger.info,
@@ -1259,4 +1264,4 @@ def run(
         prevent_initial_call=True,
     )
 
-    app.run(debug=True)
+    app.run(debug=True, port=port)
