@@ -1,6 +1,6 @@
 .PHONY: test stylecheck style demo
 
-PYLOCS = metagenomescope/ setup.py
+PYLOCS = metagenomescope/
 
 # -B: don't create __pycache__/ directories
 # Also TODO add back the graph/ tests when code is further along
