@@ -41,9 +41,12 @@ classifiers = [
     "Operating System :: POSIX",
     "Operating System :: MacOS :: MacOS X",
 ]
-# NOTE: I am testing out if setting numpy and pygraphviz as during-install deps
-# (rather than before-setup deps) still works. I think it should be okay but we
-# can move these to build-system.requires if needed to match the old behavior
+# NOTE: Previously, I had numpy and pygraphviz listed as "setup_requires"
+# dependencies (in the old setup.py version of this file). As of December 2025
+# it seems like both of these packages can be installed as ordinary
+# dependencies here without problems, so now I am just including them here.
+# However, we can move these to build-system.requires if needed to match the
+# old behavior.
 dependencies = [
     "click",
     "numpy",
