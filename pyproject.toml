@@ -21,7 +21,7 @@ version = {attr = "metagenomescope.__version__"}
 [project]
 name = "metagenomescope"
 dynamic = ["version"]
-license = "GPL-3.0-only"
+license = {file = "COPYING.txt"}
 description = "Visualization tool for (meta)genome assembly graphs"
 readme = "README.md"
 authors = [
