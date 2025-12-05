@@ -15,7 +15,7 @@ This version of the tool is still a work in progress; more to come soon.
 Using [mamba](https://mamba.readthedocs.io/):
 
 ```bash
-mamba create -n mgsc -c conda-forge "python >= 3.8" numpy pygraphviz
+mamba create -n mgsc -c conda-forge "python >= 3.8" pygraphviz
 mamba activate mgsc
 pip install git+https://github.com/marbl/MetagenomeScope.git
 ```
