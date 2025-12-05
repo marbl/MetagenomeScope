@@ -29,7 +29,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
-      - name: Install conda dependencies with mamba
+      - name: Set up a Python ${{ matrix.python-version }} env using mamba
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-name: mgscenv
@@ -38,8 +38,6 @@ jobs:
               - conda-forge
           create-args: >-
             python=${{ matrix.python-version}}
-            numpy
-            pygraphviz
 
       - name: Sanity check echo python version
         run: python --version
