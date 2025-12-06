@@ -485,6 +485,5 @@ def test_parse_already_set_key():
             "}",
         ],
         GraphParsingError,
-        "Edge 1 -> 2 has a non-int key"
+        "Edge 1 -> 2 has a non-int key",
     )
-
