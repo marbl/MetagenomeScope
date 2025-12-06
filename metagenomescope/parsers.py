@@ -728,6 +728,27 @@ def parse_dot(filename):
                 "accept DOT files from Flye or LJA."
             )
 
+        # if you import a graph using nx and then write it out then it
+        # will include key attributes -- which will be set to strings
+        # of '0' or something when reading this back in using nx. yuck.
+        # maybe we should just silently ignore these keys in the future?
+        # (or issue a warning?) but i feel more comfortable just loudly
+        # crashing. if this actually impacts anyone in the future we can
+        # handle it specially.
+        #
+        # (there are a couple places in the code that assume that keys
+        # are 0-based integers, and i don't think it is worth updating
+        # all of those right now to satisfy a corner case that will probs
+        # never happen in practice)
+        if type(e[2]) is not int:
+            raise GraphParsingError(
+                f"{err_prefix} has a non-int key (probably it is already "
+                "set in the file -- did you export this graph using nx?) "
+                "This will cause problems. We can support this case if "
+                "needed, but for now I suggest removing explicitly-set "
+                "keys from your graph."
+            )
+
         # Both Flye and LJA DOT files have edge labels. Use this label to
         # figure out which type of graph this is.
         label = e[3]["label"]

@@ -1,33 +1,41 @@
-digraph {
+digraph "" {
 	graph [nodesep=0.5];
-    -3300458;
-    6585325 -> -3300458 [label="C 10007(1)"];
-	2213790	[fillcolor=white,
-		style=filled];
-	5308795	[fillcolor=white,
-		style=filled];
-	2213790 -> 5308795	[color=black,
-		label="A 414(2)"];
-	-1005641	[fillcolor=white,
-		style=filled];
-	2387648	[fillcolor=white,
-		style=filled];
-	-1005641 -> 2387648	[color=black,
-		label="T 4787(2)"];
-	5308795 -> -1005641	[color=black,
-		label="G 12474(1)"];
-	5308795 -> -1005641	[color=black,
-		label="C 12470(1)"];
-	248316	[fillcolor=white,
-		style=filled];
 	6585325	[fillcolor=white,
 		style=filled];
-	248316 -> 6585325	[color=black,
-		label="G 355(2)"];
-	6585325 -> 2213790	[color=black,
-		label="A 19542(1)"];
-	2387648 -> 248316	[color=black,
-		label="G 6876(1)"];
-	2387648 -> 248316	[color=black,
-		label="C 6869(1)"];
+	6585325 -> -3300458	[
+		label="6585325.00 C 10007(1)"];
+	2213790	[fillcolor=white,
+		style=filled];
+	6585325 -> 2213790	[
+		color=black,
+		label="6585325.01 A 19542(1)"];
+	5308795	[fillcolor=white,
+		style=filled];
+	2213790 -> 5308795	[
+		color=black,
+		label="2213790.00 A 414(2)"];
+	-1005641	[fillcolor=white,
+		style=filled];
+	5308795 -> -1005641	[
+		color=black,
+		label="5308795.00 G 12474(1)"];
+	5308795 -> -1005641	[
+		color=black,
+		label="5308795.01 C 12470(1)"];
+	2387648	[fillcolor=white,
+		style=filled];
+	-1005641 -> 2387648	[
+		color=black,
+		label="-1005641.00 T 4787(2)"];
+	248316	[fillcolor=white,
+		style=filled];
+	2387648 -> 248316	[
+		color=black,
+		label="2387648.00 G 6876(1)"];
+	2387648 -> 248316	[
+		color=black,
+		label="2387648.01 C 6869(1)"];
+	248316 -> 6585325	[
+		color=black,
+		label="248316.00 G 355(2)"];
 }

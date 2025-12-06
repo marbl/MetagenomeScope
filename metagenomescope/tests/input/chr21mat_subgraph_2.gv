@@ -1,363 +1,470 @@
-digraph {
+digraph "" {
 	graph [nodesep=0.5];
-		746086305	[fillcolor=white,
-			style=filled];
-		-101541350	[fillcolor=white,
-			style=filled];
-		746086305 -> -101541350	[color=black,
-			label="A 3467(2)"];
-		32026061	[fillcolor=white,
-			style=filled];
-		186473127	[fillcolor=white,
-			style=filled];
-		-420371601	[fillcolor=white,
-			style=filled];
-		186473127 -> -420371601	[color=black,
-			label="A 921716(1)"];
-		202929063	[fillcolor=white,
-			style=filled];
-		186473127 -> 202929063	[color=black,
-			label="G 4887(1)"];
-		-519275437	[fillcolor=white,
-			style=filled];
-		-375011590	[fillcolor=white,
-			style=filled];
-		-519275437 -> -375011590	[color=black,
-			label="C 146329(1)"];
-		340348001	[fillcolor=white,
-			style=filled];
-		-519275437 -> 340348001	[color=black,
-			label="T 11962(1)"];
-		-711286772	[fillcolor=white,
-			style=filled];
-		980904169	[fillcolor=white,
-			style=filled];
-		-711286772 -> 980904169	[color=black,
-			label="T 271(2)"];
-		301869833	[fillcolor=white,
-			style=filled];
-		301869833 -> -711286772	[color=black,
-			label="C 5828(1)"];
-		-217497382	[fillcolor=white,
-			style=filled];
-		301869833 -> -217497382	[color=black,
-			label="G 9551(1)"];
-		241593617	[fillcolor=white,
-			style=filled];
-		988881314	[fillcolor=white,
-			style=filled];
-		241593617 -> 988881314	[color=black,
-			label="G 6789(2)"];
-		-505223801	[fillcolor=white,
-			style=filled];
-		-217497382 -> -505223801	[color=black,
-			label="A 1592(2)"];
-		-18718373	[fillcolor=white,
-			style=filled];
-		-358451932	[fillcolor=white,
-			style=filled];
-		-18718373 -> -358451932	[color=black,
-			label="G 724(2)"];
-		-39318947	[fillcolor=white,
-			style=filled];
-		634990971	[fillcolor=white,
-			style=filled];
-		-39318947 -> 634990971	[color=black,
-			label="A 4093(2)"];
-		-750821132	[fillcolor=white,
-			style=filled];
-		-750821132 -> -39318947	[color=black,
-			label="G 34925(1)"];
-		51088411	[fillcolor=white,
-			style=filled];
-		-750821132 -> 51088411	[color=black,
-			label="C 24865(1)"];
-		892213790	[fillcolor=white,
-			style=filled];
-		795308795	[fillcolor=white,
-			style=filled];
-		892213790 -> 795308795	[color=black,
-			label="A 414(2)"];
-		-0	[fillcolor=white,
-			style=filled];
-		-0 -> 892213790	[color=black,
-			label="C 68804(1)"];
-		-0 -> -0	[color=black,
-			label="T 1(94843)"];
-		468424100	[fillcolor=white,
-			style=filled];
-		468424100 -> -750821132	[color=black,
-			label="A 146(2)"];
-		99471603	[fillcolor=white,
-			style=filled];
-		99471603 -> 468424100	[color=black,
-			label="A 5681(1)"];
-		99471603 -> 468424100	[color=black,
-			label="G 72(1)"];
-		-621005641	[fillcolor=white,
-			style=filled];
-		902387648	[fillcolor=white,
-			style=filled];
-		-621005641 -> 902387648	[color=black,
-			label="T 4787(2)"];
-		795308795 -> -621005641	[color=black,
-			label="G 12474(1)"];
-		795308795 -> -621005641	[color=black,
-			label="C 12470(1)"];
-		405802888	[fillcolor=white,
-			style=filled];
-		-192393234	[fillcolor=white,
-			style=filled];
-		405802888 -> -192393234	[color=black,
-			label="T 155883(1)"];
-		44959969	[fillcolor=white,
-			style=filled];
-		405802888 -> 44959969	[color=black,
-			label="C 3548(1)"];
-		988881314 -> 241593617	[color=black,
-			label="T 4954(1)"];
-		-282608636	[fillcolor=white,
-			style=filled];
-		988881314 -> -282608636	[color=black,
-			label="G 6186(1)"];
-		373716531	[fillcolor=white,
-			style=filled];
-		230780553	[fillcolor=white,
-			style=filled];
-		373716531 -> 230780553	[color=black,
-			label="G 4927(1)"];
-		-612800755	[fillcolor=white,
-			style=filled];
-		373716531 -> -612800755	[color=black,
-			label="C 19167(1)"];
-		721470384	[fillcolor=white,
-			style=filled];
-		-375011590 -> 721470384	[color=black,
-			label="T 2880(2)"];
-		-915104133	[fillcolor=white,
-			style=filled];
-		721470384 -> -915104133	[color=black,
-			label="T 9389(1)"];
-		-661333670	[fillcolor=white,
-			style=filled];
-		721470384 -> -661333670	[color=black,
-			label="C 9670(1)"];
-		634990971 -> -39318947	[color=black,
-			label="C 5250(1)"];
-		634990971 -> 44959969	[color=black,
-			label="G 65810(1)"];
-		542707816	[fillcolor=white,
-			style=filled];
-		-282608636 -> 542707816	[color=black,
-			label="C 3833(2)"];
-		-489928993	[fillcolor=white,
-			style=filled];
-		-250759993	[fillcolor=white,
-			style=filled];
-		-489928993 -> -250759993	[color=black,
-			label="A 4604(1)"];
-		907210474	[fillcolor=white,
-			style=filled];
-		-156588396	[fillcolor=white,
-			style=filled];
-		-156588396 -> -420371601	[color=black,
-			label="C 74051(1)"];
-		756820012	[fillcolor=white,
-			style=filled];
-		-156588396 -> 756820012	[color=black,
-			label="T 129411(1)"];
-		520342595	[fillcolor=white,
-			style=filled];
-		520342595 -> -711286772	[color=black,
-			label="A 75532(1)"];
-		-247648234	[fillcolor=white,
-			style=filled];
-		520342595 -> -247648234	[color=black,
-			label="C 127(2)"];
-		-192393234 -> 520342595	[color=black,
-			label="T 88(3)"];
-		-101541350 -> 230780553	[color=black,
-			label="A 15215(1)"];
-		-101541350 -> -612800755	[color=black,
-			label="G 24353(1)"];
-		759924832	[fillcolor=white,
-			style=filled];
-		-250759993 -> 759924832	[color=black,
-			label="A 566(2)"];
-		-979005895	[fillcolor=white,
-			style=filled];
-		257647844	[fillcolor=white,
-			style=filled];
-		-979005895 -> 257647844	[color=black,
-			label="A 1488(2)"];
-		-420371601 -> -156588396	[color=black,
-			label="A 4899(2)"];
-		982769173	[fillcolor=white,
-			style=filled];
-		-358451932 -> 982769173	[color=black,
-			label="C 6626(1)"];
-		-358451932 -> 980904169	[color=black,
-			label="G 4596(1)"];
-		825588267	[fillcolor=white,
-			style=filled];
-		-505734544	[fillcolor=white,
-			style=filled];
-		825588267 -> -505734544	[color=black,
-			label="A 1235(2)"];
-		-762517642	[fillcolor=white,
-			style=filled];
-		415419954	[fillcolor=white,
-			style=filled];
-		-762517642 -> 415419954	[color=black,
-			label="G 686(2)"];
-		230780553 -> 373716531	[color=black,
-			label="T 3061(2)"];
-		44959969 -> 405802888	[color=black,
-			label="T 3587(2)"];
-		759924832 -> -18718373	[color=black,
-			label="G 2876(1)"];
-		759924832 -> 51088411	[color=black,
-			label="T 9998(1)"];
-		22940450	[fillcolor=white,
-			style=filled];
-		22940450 -> -979005895	[color=black,
-			label="C 5002(1)"];
-		354595296	[fillcolor=white,
-			style=filled];
-		22940450 -> 354595296	[color=black,
-			label="G 178(2)"];
-		115328403	[fillcolor=white,
-			style=filled];
-		115328403 -> 99471603	[color=black,
-			label="A 248(2)"];
-		-505223801 -> -217497382	[color=black,
-			label="A 9624(1)"];
-		-505223801 -> -18718373	[color=black,
-			label="G 128628(1)"];
-		263875289	[fillcolor=white,
-			style=filled];
-		736082656	[fillcolor=white,
-			style=filled];
-		263875289 -> 736082656	[color=black,
-			label="G 6369(2)"];
-		982769173 -> 301869833	[color=black,
-			label="G 202(2)"];
-		553963905	[fillcolor=white,
-			style=filled];
-		340348001 -> 553963905	[color=black,
-			label="G 1343(2)"];
-		51088411 -> -192393234	[color=black,
-			label="C 507(2)"];
-		548876151	[fillcolor=white,
-			style=filled];
-		548876151 -> 982769173	[color=black,
-			label="G 10226(1)"];
-		24269427	[fillcolor=white,
-			style=filled];
-		548876151 -> 24269427	[color=black,
-			label="C 1794(1)"];
-		80248316	[fillcolor=white,
-			style=filled];
-		506585325	[fillcolor=white,
-			style=filled];
-		80248316 -> 506585325	[color=black,
-			label="G 355(2)"];
-		-98720021	[fillcolor=white,
-			style=filled];
-		-98720021 -> 263875289	[color=black,
-			label="A 23802(1)"];
-		-653300458	[fillcolor=white,
-			style=filled];
-		-98720021 -> -653300458	[color=black,
-			label="C 86401(1)"];
-		553963905 -> 746086305	[color=black,
-			label="C 5002(1)"];
-		553963905 -> 746086305	[color=black,
-			label="T 5001(1)"];
-		-915104133 -> -661333670	[color=black,
-			label="T 281(2)"];
-		-281404771	[fillcolor=white,
-			style=filled];
-		-281404771 -> 115328403	[color=black,
-			label="G 72500(1)"];
-		-281404771 -> -915104133	[color=black,
-			label="T 1226(1)"];
-		-612800755 -> -519275437	[color=black,
-			label="C 443(2)"];
-		834164660	[fillcolor=white,
-			style=filled];
-		834164660 -> 241593617	[color=black,
-			label="G 1201091(1)"];
-		834164660 -> 907210474	[color=black,
-			label="T 7564(1)"];
-		907210474 -> 834164660	[color=black,
-			label="T 85(2)"];
-		-653300458 -> -98720021	[color=black,
-			label="T 12274(2)"];
-		126974806	[fillcolor=white,
-			style=filled];
-		126974806 -> -489928993	[color=black,
-			label="G 272(2)"];
-		126974806 -> 24269427	[color=black,
-			label="C 1794(1)"];
-		354595296 -> 126974806	[color=black,
-			label="T 65(3)"];
-		980904169 -> 22940450	[color=black,
-			label="A 59(3)"];
-		-374071799	[fillcolor=white,
-			style=filled];
-		-661333670 -> -374071799	[color=black,
-			label="A 814(3)"];
-		302231149	[fillcolor=white,
-			style=filled];
-		302231149 -> -0	[color=black,
-			label="T 916737(1)"];
-		302231149 -> 756820012	[color=black,
-			label="A 1010(1)"];
-		756820012 -> 302231149	[color=black,
-			label="A 3795(2)"];
-		-505734544 -> 825588267	[color=black,
-			label="T 4374(1)"];
-		-505734544 -> 115328403	[color=black,
-			label="C 19261(1)"];
-		415419954 -> 32026061	[color=black,
-			label="G 83747(1)"];
-		415419954 -> 263875289	[color=black,
-			label="C 33926(1)"];
-		542707816 -> -282608636	[color=black,
-			label="T 82(1)"];
-		542707816 -> 202929063	[color=black,
-			label="G 25338(1)"];
-		202929063 -> 186473127	[color=black,
-			label="A 3275(2)"];
-		736082656 -> -762517642	[color=black,
-			label="C 5002(1)"];
-		736082656 -> -762517642	[color=black,
-			label="T 5000(1)"];
-		506585325 -> 892213790	[color=black,
-			label="A 19542(1)"];
-		506585325 -> -653300458	[color=black,
-			label="C 10007(1)"];
-		-247648234 -> -979005895	[color=black,
-			label="A 32449(1)"];
-		-247648234 -> 825588267	[color=black,
-			label="G 11583(1)"];
-		328315391	[fillcolor=white,
-			style=filled];
-		328315391 -> 340348001	[color=black,
-			label="C 33870625(1)"];
-		257647844 -> -250759993	[color=black,
-			label="A 6108(1)"];
-		257647844 -> 354595296	[color=black,
-			label="G 1167(1)"];
-		902387648 -> 80248316	[color=black,
-			label="G 6876(1)"];
-		902387648 -> 80248316	[color=black,
-			label="C 6869(1)"];
-		-374071799 -> -375011590	[color=black,
-			label="A 10083(1)"];
-		-374071799 -> -281404771	[color=black,
-			label="T 1077(2)"];
-		24269427 -> 548876151	[color=black,
-			label="G 1946(2)"];
+	746086305	[fillcolor=white,
+		style=filled];
+	-101541350	[fillcolor=white,
+		style=filled];
+	746086305 -> -101541350	[
+		color=black,
+		label="746086305.00 A 3467(2)"];
+	230780553	[fillcolor=white,
+		style=filled];
+	-101541350 -> 230780553	[
+		color=black,
+		label="-101541350.00 A 15215(1)"];
+	-612800755	[fillcolor=white,
+		style=filled];
+	-101541350 -> -612800755	[
+		color=black,
+		label="-101541350.01 G 24353(1)"];
+	32026061	[fillcolor=white,
+		style=filled];
+	186473127	[fillcolor=white,
+		style=filled];
+	-420371601	[fillcolor=white,
+		style=filled];
+	186473127 -> -420371601	[
+		color=black,
+		label="186473127.00 A 921716(1)"];
+	202929063	[fillcolor=white,
+		style=filled];
+	186473127 -> 202929063	[
+		color=black,
+		label="186473127.01 G 4887(1)"];
+	-156588396	[fillcolor=white,
+		style=filled];
+	-420371601 -> -156588396	[
+		color=black,
+		label="-420371601.00 A 4899(2)"];
+	202929063 -> 186473127	[
+		color=black,
+		label="202929063.00 A 3275(2)"];
+	-519275437	[fillcolor=white,
+		style=filled];
+	-375011590	[fillcolor=white,
+		style=filled];
+	-519275437 -> -375011590	[
+		color=black,
+		label="-519275437.00 C 146329(1)"];
+	340348001	[fillcolor=white,
+		style=filled];
+	-519275437 -> 340348001	[
+		color=black,
+		label="-519275437.01 T 11962(1)"];
+	721470384	[fillcolor=white,
+		style=filled];
+	-375011590 -> 721470384	[
+		color=black,
+		label="-375011590.00 T 2880(2)"];
+	553963905	[fillcolor=white,
+		style=filled];
+	340348001 -> 553963905	[
+		color=black,
+		label="340348001.00 G 1343(2)"];
+	-711286772	[fillcolor=white,
+		style=filled];
+	980904169	[fillcolor=white,
+		style=filled];
+	-711286772 -> 980904169	[
+		color=black,
+		label="-711286772.00 T 271(2)"];
+	22940450	[fillcolor=white,
+		style=filled];
+	980904169 -> 22940450	[
+		color=black,
+		label="980904169.00 A 59(3)"];
+	301869833	[fillcolor=white,
+		style=filled];
+	301869833 -> -711286772	[
+		color=black,
+		label="301869833.00 C 5828(1)"];
+	-217497382	[fillcolor=white,
+		style=filled];
+	301869833 -> -217497382	[
+		color=black,
+		label="301869833.01 G 9551(1)"];
+	-505223801	[fillcolor=white,
+		style=filled];
+	-217497382 -> -505223801	[
+		color=black,
+		label="-217497382.00 A 1592(2)"];
+	241593617	[fillcolor=white,
+		style=filled];
+	988881314	[fillcolor=white,
+		style=filled];
+	241593617 -> 988881314	[
+		color=black,
+		label="241593617.00 G 6789(2)"];
+	988881314 -> 241593617	[
+		color=black,
+		label="988881314.00 T 4954(1)"];
+	-282608636	[fillcolor=white,
+		style=filled];
+	988881314 -> -282608636	[
+		color=black,
+		label="988881314.01 G 6186(1)"];
+	-505223801 -> -217497382	[
+		color=black,
+		label="-505223801.00 A 9624(1)"];
+	-18718373	[fillcolor=white,
+		style=filled];
+	-505223801 -> -18718373	[
+		color=black,
+		label="-505223801.01 G 128628(1)"];
+	-358451932	[fillcolor=white,
+		style=filled];
+	-18718373 -> -358451932	[
+		color=black,
+		label="-18718373.00 G 724(2)"];
+	-358451932 -> 980904169	[
+		color=black,
+		label="-358451932.00 G 4596(1)"];
+	982769173	[fillcolor=white,
+		style=filled];
+	-358451932 -> 982769173	[
+		color=black,
+		label="-358451932.01 C 6626(1)"];
+	-39318947	[fillcolor=white,
+		style=filled];
+	634990971	[fillcolor=white,
+		style=filled];
+	-39318947 -> 634990971	[
+		color=black,
+		label="-39318947.00 A 4093(2)"];
+	634990971 -> -39318947	[
+		color=black,
+		label="634990971.00 C 5250(1)"];
+	44959969	[fillcolor=white,
+		style=filled];
+	634990971 -> 44959969	[
+		color=black,
+		label="634990971.01 G 65810(1)"];
+	-750821132	[fillcolor=white,
+		style=filled];
+	-750821132 -> -39318947	[
+		color=black,
+		label="-750821132.00 G 34925(1)"];
+	51088411	[fillcolor=white,
+		style=filled];
+	-750821132 -> 51088411	[
+		color=black,
+		label="-750821132.01 C 24865(1)"];
+	-192393234	[fillcolor=white,
+		style=filled];
+	51088411 -> -192393234	[
+		color=black,
+		label="51088411.00 C 507(2)"];
+	892213790	[fillcolor=white,
+		style=filled];
+	795308795	[fillcolor=white,
+		style=filled];
+	892213790 -> 795308795	[
+		color=black,
+		label="892213790.00 A 414(2)"];
+	-621005641	[fillcolor=white,
+		style=filled];
+	795308795 -> -621005641	[
+		color=black,
+		label="795308795.00 G 12474(1)"];
+	795308795 -> -621005641	[
+		color=black,
+		label="795308795.01 C 12470(1)"];
+	-0	[fillcolor=white,
+		style=filled];
+	-0 -> 892213790	[
+		color=black,
+		label="-0.00 C 68804(1)"];
+	-0 -> -0	[
+		color=black,
+		label="-0.01 T 1(94843)"];
+	468424100	[fillcolor=white,
+		style=filled];
+	468424100 -> -750821132	[
+		color=black,
+		label="468424100.00 A 146(2)"];
+	99471603	[fillcolor=white,
+		style=filled];
+	99471603 -> 468424100	[
+		color=black,
+		label="99471603.00 A 5681(1)"];
+	99471603 -> 468424100	[
+		color=black,
+		label="99471603.01 G 72(1)"];
+	902387648	[fillcolor=white,
+		style=filled];
+	-621005641 -> 902387648	[
+		color=black,
+		label="-621005641.00 T 4787(2)"];
+	80248316	[fillcolor=white,
+		style=filled];
+	902387648 -> 80248316	[
+		color=black,
+		label="902387648.00 G 6876(1)"];
+	902387648 -> 80248316	[
+		color=black,
+		label="902387648.01 C 6869(1)"];
+	405802888	[fillcolor=white,
+		style=filled];
+	405802888 -> -192393234	[
+		color=black,
+		label="405802888.00 T 155883(1)"];
+	405802888 -> 44959969	[
+		color=black,
+		label="405802888.01 C 3548(1)"];
+	520342595	[fillcolor=white,
+		style=filled];
+	-192393234 -> 520342595	[
+		color=black,
+		label="-192393234.00 T 88(3)"];
+	44959969 -> 405802888	[
+		color=black,
+		label="44959969.00 T 3587(2)"];
+	542707816	[fillcolor=white,
+		style=filled];
+	-282608636 -> 542707816	[
+		color=black,
+		label="-282608636.00 C 3833(2)"];
+	373716531	[fillcolor=white,
+		style=filled];
+	373716531 -> 230780553	[
+		color=black,
+		label="373716531.00 G 4927(1)"];
+	373716531 -> -612800755	[
+		color=black,
+		label="373716531.01 C 19167(1)"];
+	230780553 -> 373716531	[
+		color=black,
+		label="230780553.00 T 3061(2)"];
+	-612800755 -> -519275437	[
+		color=black,
+		label="-612800755.00 C 443(2)"];
+	-915104133	[fillcolor=white,
+		style=filled];
+	721470384 -> -915104133	[
+		color=black,
+		label="721470384.00 T 9389(1)"];
+	-661333670	[fillcolor=white,
+		style=filled];
+	721470384 -> -661333670	[
+		color=black,
+		label="721470384.01 C 9670(1)"];
+	-915104133 -> -661333670	[
+		color=black,
+		label="-915104133.00 T 281(2)"];
+	-374071799	[fillcolor=white,
+		style=filled];
+	-661333670 -> -374071799	[
+		color=black,
+		label="-661333670.00 A 814(3)"];
+	542707816 -> 202929063	[
+		color=black,
+		label="542707816.00 G 25338(1)"];
+	542707816 -> -282608636	[
+		color=black,
+		label="542707816.01 T 82(1)"];
+	-489928993	[fillcolor=white,
+		style=filled];
+	-250759993	[fillcolor=white,
+		style=filled];
+	-489928993 -> -250759993	[
+		color=black,
+		label="-489928993.00 A 4604(1)"];
+	759924832	[fillcolor=white,
+		style=filled];
+	-250759993 -> 759924832	[
+		color=black,
+		label="-250759993.00 A 566(2)"];
+	907210474	[fillcolor=white,
+		style=filled];
+	834164660	[fillcolor=white,
+		style=filled];
+	907210474 -> 834164660	[
+		color=black,
+		label="907210474.00 T 85(2)"];
+	-156588396 -> -420371601	[
+		color=black,
+		label="-156588396.00 C 74051(1)"];
+	756820012	[fillcolor=white,
+		style=filled];
+	-156588396 -> 756820012	[
+		color=black,
+		label="-156588396.01 T 129411(1)"];
+	302231149	[fillcolor=white,
+		style=filled];
+	756820012 -> 302231149	[
+		color=black,
+		label="756820012.00 A 3795(2)"];
+	520342595 -> -711286772	[
+		color=black,
+		label="520342595.00 A 75532(1)"];
+	-247648234	[fillcolor=white,
+		style=filled];
+	520342595 -> -247648234	[
+		color=black,
+		label="520342595.01 C 127(2)"];
+	-979005895	[fillcolor=white,
+		style=filled];
+	-247648234 -> -979005895	[
+		color=black,
+		label="-247648234.00 A 32449(1)"];
+	825588267	[fillcolor=white,
+		style=filled];
+	-247648234 -> 825588267	[
+		color=black,
+		label="-247648234.01 G 11583(1)"];
+	759924832 -> -18718373	[
+		color=black,
+		label="759924832.00 G 2876(1)"];
+	759924832 -> 51088411	[
+		color=black,
+		label="759924832.01 T 9998(1)"];
+	257647844	[fillcolor=white,
+		style=filled];
+	-979005895 -> 257647844	[
+		color=black,
+		label="-979005895.00 A 1488(2)"];
+	257647844 -> -250759993	[
+		color=black,
+		label="257647844.00 A 6108(1)"];
+	354595296	[fillcolor=white,
+		style=filled];
+	257647844 -> 354595296	[
+		color=black,
+		label="257647844.01 G 1167(1)"];
+	982769173 -> 301869833	[
+		color=black,
+		label="982769173.00 G 202(2)"];
+	-505734544	[fillcolor=white,
+		style=filled];
+	825588267 -> -505734544	[
+		color=black,
+		label="825588267.00 A 1235(2)"];
+	-505734544 -> 825588267	[
+		color=black,
+		label="-505734544.00 T 4374(1)"];
+	115328403	[fillcolor=white,
+		style=filled];
+	-505734544 -> 115328403	[
+		color=black,
+		label="-505734544.01 C 19261(1)"];
+	-762517642	[fillcolor=white,
+		style=filled];
+	415419954	[fillcolor=white,
+		style=filled];
+	-762517642 -> 415419954	[
+		color=black,
+		label="-762517642.00 G 686(2)"];
+	415419954 -> 32026061	[
+		color=black,
+		label="415419954.00 G 83747(1)"];
+	263875289	[fillcolor=white,
+		style=filled];
+	415419954 -> 263875289	[
+		color=black,
+		label="415419954.01 C 33926(1)"];
+	22940450 -> -979005895	[
+		color=black,
+		label="22940450.00 C 5002(1)"];
+	22940450 -> 354595296	[
+		color=black,
+		label="22940450.01 G 178(2)"];
+	126974806	[fillcolor=white,
+		style=filled];
+	354595296 -> 126974806	[
+		color=black,
+		label="354595296.00 T 65(3)"];
+	115328403 -> 99471603	[
+		color=black,
+		label="115328403.00 A 248(2)"];
+	736082656	[fillcolor=white,
+		style=filled];
+	263875289 -> 736082656	[
+		color=black,
+		label="263875289.00 G 6369(2)"];
+	736082656 -> -762517642	[
+		color=black,
+		label="736082656.00 C 5002(1)"];
+	736082656 -> -762517642	[
+		color=black,
+		label="736082656.01 T 5000(1)"];
+	553963905 -> 746086305	[
+		color=black,
+		label="553963905.00 C 5002(1)"];
+	553963905 -> 746086305	[
+		color=black,
+		label="553963905.01 T 5001(1)"];
+	548876151	[fillcolor=white,
+		style=filled];
+	548876151 -> 982769173	[
+		color=black,
+		label="548876151.00 G 10226(1)"];
+	24269427	[fillcolor=white,
+		style=filled];
+	548876151 -> 24269427	[
+		color=black,
+		label="548876151.01 C 1794(1)"];
+	24269427 -> 548876151	[
+		color=black,
+		label="24269427.00 G 1946(2)"];
+	506585325	[fillcolor=white,
+		style=filled];
+	80248316 -> 506585325	[
+		color=black,
+		label="80248316.00 G 355(2)"];
+	506585325 -> 892213790	[
+		color=black,
+		label="506585325.00 A 19542(1)"];
+	-653300458	[fillcolor=white,
+		style=filled];
+	506585325 -> -653300458	[
+		color=black,
+		label="506585325.01 C 10007(1)"];
+	-98720021	[fillcolor=white,
+		style=filled];
+	-98720021 -> 263875289	[
+		color=black,
+		label="-98720021.00 A 23802(1)"];
+	-98720021 -> -653300458	[
+		color=black,
+		label="-98720021.01 C 86401(1)"];
+	-653300458 -> -98720021	[
+		color=black,
+		label="-653300458.00 T 12274(2)"];
+	-281404771	[fillcolor=white,
+		style=filled];
+	-281404771 -> -915104133	[
+		color=black,
+		label="-281404771.00 T 1226(1)"];
+	-281404771 -> 115328403	[
+		color=black,
+		label="-281404771.01 G 72500(1)"];
+	834164660 -> 241593617	[
+		color=black,
+		label="834164660.00 G 1201091(1)"];
+	834164660 -> 907210474	[
+		color=black,
+		label="834164660.01 T 7564(1)"];
+	126974806 -> -489928993	[
+		color=black,
+		label="126974806.00 G 272(2)"];
+	126974806 -> 24269427	[
+		color=black,
+		label="126974806.01 C 1794(1)"];
+	-374071799 -> -375011590	[
+		color=black,
+		label="-374071799.00 A 10083(1)"];
+	-374071799 -> -281404771	[
+		color=black,
+		label="-374071799.01 T 1077(2)"];
+	302231149 -> -0	[
+		color=black,
+		label="302231149.00 T 916737(1)"];
+	302231149 -> 756820012	[
+		color=black,
+		label="302231149.01 A 1010(1)"];
+	328315391	[fillcolor=white,
+		style=filled];
+	328315391 -> 340348001	[
+		color=black,
+		label="328315391.00 C 33870625(1)"];
 }

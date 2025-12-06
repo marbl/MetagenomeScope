@@ -460,3 +460,31 @@ def test_parse_no_edges():
         GraphParsingError,
         "DOT-format graph contains 0 edges.",
     )
+
+
+def test_parse_already_set_key():
+    # There is some jank where if you round-trip a DOT file through NetworkX
+    # (reading then writing then reading), each edge suddenly gains a key
+    # which is set to 0 when written out but set to '0' when read back in
+    # again. (Or presumably set to '1', etc if there are parallel edges.)
+    # Anyway these keys are actually RESPECTED when you read the graph in
+    # the second time, and they break a few parts of mgsc's code that assume
+    # that keys are 0-indexed ints (which is almost always the case when
+    # working with nx graphs, at least ones that have not been mutated in
+    # weird ways).
+    #
+    # ANYWAY for now we proactively catch cases with suspicious non-integer
+    # keys -- probably we could just ignore these entirely, but maybe it
+    # would be better UX eventually to treat them as data or something. idk.
+    # this will probs never ever happen
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [color = "black", key=0, label="1.23 A99(2)"];',
+            "}",
+        ],
+        GraphParsingError,
+        "Edge 1 -> 2 has a non-int key"
+    )
+

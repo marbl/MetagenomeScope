@@ -12,7 +12,6 @@ test:
 		--ignore metagenomescope/tests/graph/assembly_graph/test_to_dict.py \
 		--ignore metagenomescope/tests/graph/assembly_graph/test_to_dot.py \
 		--ignore metagenomescope/tests/graph/pattern/test_layout.py \
-		-k "not chr21 and not chr15" \
 		--cov-report xml \
 		--cov-report term \
 		--cov-report html \
