@@ -887,7 +887,9 @@ def parse_dot(filename):
                 raise GraphParsingError(
                     f"{err_prefix} looks like it came from LJA, but its label "
                     f'has an invalid first line of "{label_first_line}". LJA '
-                    'labels should have a first line formatted like "A99(2)".'
+                    "labels should have a first line formatted like "
+                    '"1234.56 A 99(2)" (corresponding to '
+                    '"[ID] [first nt] [length]([coverage])").'
                 )
 
             groups = lfl_match.groups()
