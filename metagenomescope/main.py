@@ -343,7 +343,7 @@ def run(
                             ),
                         ],
                         id="drawButton",
-                        className="btn btn-light drawCtrl",
+                        className="btn btn-light",
                         type="button",
                     ),
                     ctrl_sep,
@@ -470,6 +470,15 @@ def run(
                     # at least adds a smooth transition.
                     "transition": f"left {css_config.CONTROLS_TRANSITION_DURATION}",
                 },
+            ),
+            # floating buttons on top of the Cytoscape.js graph
+            html.Button(
+                [
+                    html.I(className="bi bi-arrows-angle-expand"),
+                ],
+                id="fitButton",
+                className="btn btn-light floatingButton",
+                type="button",
             ),
             # Graph info modal dialog
             # https://getbootstrap.com/docs/5.3/components/modal/#live-demo
@@ -1265,6 +1274,40 @@ def run(
         }
         """,
         Input("toastHolder", "children"),
+        prevent_initial_call=True,
+    )
+
+    # Fits the display to everything in the graph using cy.fit().
+    # It looks like this is the sort of thing that can't be adjusted by
+    # Dash-Cytoscape (since we don't really have a Cytoscape.js "instance"
+    # lying around like we did in the JS implementation)...
+    #
+    # We can work around this by extracting the existing Cytoscape.js instance
+    # after-the-fact and then using it to do stuff. There appears to be no
+    # official, well-documented way to do this, but the secret evil way of
+    # doing this is accessing the _cyreg.cy attribute of the DOM element
+    # containing the Cytoscape.js instance (which we've named "cy" above).
+    # This is from https://stackoverflow.com/a/52603597.
+    #
+    # I am hesitant to rely on such a silly hack for this, but it appears that
+    # this has remained unbroken for 7+ years now -- and it looks like lots of
+    # other Dash-Cytoscape projects use this same workaround, judging by
+    # https://github.com/search?q=_cyreg.cy+dash&type=code
+    #
+    # So I guess we can keep this workaround for now. In the future, if this
+    # suddenly breaks, maybe we can just rip out Dash-Cytoscape entirely in
+    # favor of handling all of the Cytoscape.js stuff ourself in clientside
+    # callbacks / etc. Or we can access the underlying cy instance in a
+    # different way (e.g. https://github.com/plotly/dash-cytoscape/issues/187#issuecomment-1924583683
+    # which I don't really understand -- where is the "cy" variable coming from
+    # there?).
+    clientside_callback(
+        """
+        function(nClicks) {
+            document.getElementById("cy")._cyreg.cy.fit();
+        }
+        """,
+        Input("fitButton", "n_clicks"),
         prevent_initial_call=True,
     )
 

@@ -59,6 +59,34 @@ body {
     color: #123;
 }
 
+.floatingButton {
+    position: absolute;
+    z-index: 2;
+    /* roughly try to match border color from floating buttons in old MgSc
+     * versions, using bootstrap 3.3 */
+    --bs-btn-border-color: #bbb !important;
+    --bs-btn-hover-border-color: #888 !important;
+    --bs-btn-active-border-color: #666 !important;
+}
+
+#fitButton {
+    right: 0em;
+    bottom: 0em;
+}
+
+/* position the dash dev tools UI a bit higher than the bottom of the
+ * screen, to avoid covering the fit button. Note that:
+ * (1) we may need to adjust this spacing as we add in more floating buttons
+ * in the corners of the screen,
+ * (2) this element can be hidden entirely by setting dev_tools_ui=False
+ * when calling app.run() (https://dash.plotly.com/devtools), and
+ * (3) this element shouldn't show up when we set debug=False in app.run(),
+ * which should be the case most of the time for "released" versions of mgsc.
+ */
+.dash-debug-menu__outer {
+    bottom: 10% !important;
+}
+
 .bi-list {
     font-size: 1.3em;
     /* hack to make the bi-list (hamburger) element's lines look thicker --
@@ -147,26 +175,6 @@ body {
  */
 .form-check input {
     margin-right: 0.5em;
-}
-
-#floatingExportButton {
-    position: absolute;
-    right: 0em;
-    top: 0em;
-    z-index: 2;
-}
-#fitButton {
-    position: absolute;
-    right: 0em;
-    bottom: 0em;
-    z-index: 2;
-}
-#fitSelectedButton {
-    position: absolute;
-    right: 0em;
-    /* Should work as long as fitButton has the btn-sm class. TODO, test tho */
-    bottom: 35px;
-    z-index: 2;
 }
 /* the !important is necessary to get this to override the default #controls
  * styling, since the inline "left" takes precedence over this one (at least
