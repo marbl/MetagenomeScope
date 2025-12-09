@@ -60,8 +60,6 @@ body {
 }
 
 .floatingButton {
-    position: absolute;
-    z-index: 2;
     /* roughly try to match border color from floating buttons in old MgSc
      * versions, using bootstrap 3.3. See
      * https://getbootstrap.com/docs/5.3/components/buttons/#sass-mixins
@@ -73,9 +71,29 @@ body {
     --bs-btn-active-border-color: #666 !important;
 }
 
-#fitButton {
+#floatingButtonsBottomRight {
+    position: absolute;
     right: 0em;
     bottom: 0em;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* We set pointer-events: none on #floatingButtonsBottomRight because I want
+ * the gap between these buttons to still count as the "graph" -- the user
+ * should still be able to click within this gap and pan the graph, etc, even
+ * though probably nobody but me cares about this. However! We obviously don't
+ * want to apply pointer-events: none to the child buttons of this div (they're
+ * buttons!!! you click on them!!!), so we reset their pointer-events values
+ * back to auto (the default value, per MDN:
+ * https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/pointer-events)
+ */
+#floatingButtonsBottomRight > button {
+    pointer-events: auto;
+}
+
+#fitButton {
+    margin-top: 7px;
 }
 
 /* position the dash dev tools UI a bit higher than the bottom of the
@@ -88,7 +106,7 @@ body {
  * which should be the case most of the time for "released" versions of mgsc.
  */
 .dash-debug-menu__outer {
-    bottom: 10% !important;
+    bottom: 20% !important;
 }
 
 .bi-list {

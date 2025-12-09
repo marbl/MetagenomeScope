@@ -472,13 +472,27 @@ def run(
                 },
             ),
             # floating buttons on top of the Cytoscape.js graph
-            html.Button(
+            html.Div(
                 [
-                    html.I(className="bi bi-arrows-angle-expand"),
+                    html.Button(
+                        [
+                            html.I(className="bi bi-arrows-angle-contract"),
+                        ],
+                        id="fitSelectedButton",
+                        className="btn btn-light floatingButton",
+                        type="button",
+                    ),
+                    html.Br(),
+                    html.Button(
+                        [
+                            html.I(className="bi bi-arrows-angle-expand"),
+                        ],
+                        id="fitButton",
+                        className="btn btn-light floatingButton",
+                        type="button",
+                    ),
                 ],
-                id="fitButton",
-                className="btn btn-light floatingButton",
-                type="button",
+                id="floatingButtonsBottomRight",
             ),
             # Graph info modal dialog
             # https://getbootstrap.com/docs/5.3/components/modal/#live-demo
@@ -1304,10 +1318,28 @@ def run(
     clientside_callback(
         """
         function(nClicks) {
-            document.getElementById("cy")._cyreg.cy.fit();
+            let cy = document.getElementById("cy")._cyreg.cy;
+            cy.fit();
         }
         """,
         Input("fitButton", "n_clicks"),
+        prevent_initial_call=True,
+    )
+
+    # NOTE: in older versions of metagenomescope, we maintained a list of
+    # selected nodes/edges/patterns using cy.on('select'), etc. This let us
+    # avoid having to search through everything drawn in the graph when fitting
+    # to all selected elements. I will probably do this eventually (since it
+    # will help with dynamically showing info about selected elements) but for
+    # now it is sufficient to just search through the graph in this callback.
+    clientside_callback(
+        """
+        function(nClicks) {
+            let cy = document.getElementById("cy")._cyreg.cy;
+            cy.fit(cy.$(":selected"));
+        }
+        """,
+        Input("fitSelectedButton", "n_clicks"),
         prevent_initial_call=True,
     )
 
