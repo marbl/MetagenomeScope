@@ -1188,7 +1188,11 @@ def run(
         # Okay, now we've done enough checks that this request to draw the
         # graph seems good. Let's clear all elements in the graph and trigger
         # draw(), which will actually add new elements to the graph.
-        logging.debug("Drawing request seems good. Flushing the graph.")
+        ccn = "cc" if len(cc_nums) == 1 else "ccs"
+        logging.debug(
+            f"Request to draw {ccn} {ui_utils.fmt_num_ranges(cc_nums)} "
+            "seems good; flushing the graph."
+        )
 
         return (
             curr_toasts,
