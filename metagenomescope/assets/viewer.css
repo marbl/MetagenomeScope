@@ -63,7 +63,11 @@ body {
     position: absolute;
     z-index: 2;
     /* roughly try to match border color from floating buttons in old MgSc
-     * versions, using bootstrap 3.3 */
+     * versions, using bootstrap 3.3. See
+     * https://getbootstrap.com/docs/5.3/components/buttons/#sass-mixins
+     * for a list of these attributes.
+     */
+    --bs-btn-disabled-border-color: #ddd !important;
     --bs-btn-border-color: #bbb !important;
     --bs-btn-hover-border-color: #888 !important;
     --bs-btn-active-border-color: #666 !important;
