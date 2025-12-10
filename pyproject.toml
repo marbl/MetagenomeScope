@@ -55,6 +55,11 @@ dependencies = [
     "gfapy",
     "pyfastg",
     "dash-cytoscape",
+    "dash-bootstrap-components",
+    # we probably don't need to bother including dash in this list (since
+    # both dash-cytoscape and dash-bootstrap-components will include it as a
+    # dependency) but we may as well be explicit
+    "dash",
 ]
 # Based on dash-cytoscape's min python version.
 requires-python = ">= 3.8"
