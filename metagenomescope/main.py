@@ -468,19 +468,24 @@ def run(
                                         value=ui_config.DEFAULT_SCREENSHOT_FILETYPE,
                                         className="btn-group",
                                         inputClassName="btn-check",
-                                        labelClassName="btn btn-outline-light",
+                                        labelClassName="btn btn-sm btn-outline-light",
                                         labelCheckedClassName="active",
                                         id="imageTypeRadio",
                                     ),
                                 ],
                                 className="radio-group",
+                                # Needed in order to allow these buttons to be
+                                # on the same line as the export button. i
+                                # don't know why exactly this works - it was
+                                # in the CSS for .btn-group for old mgsc, so
+                                # I guess this is from Bootstrap 3.3? Old magic
+                                style={"display": "inline-block"},
                             ),
-                            ctrl_sep_invis,
                             html.Button(
                                 [
                                     html.I(className="bi bi-camera-fill"),
                                     html.Span(
-                                        "Export",
+                                        "Save",
                                         className="iconlbl",
                                     ),
                                 ],
