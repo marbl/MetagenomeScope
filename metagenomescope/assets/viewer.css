@@ -30,7 +30,7 @@ body {
     overflow: hidden;
 }
 
-#controls *:not(.ctrlSep) {
+#controls *:not(.ctrlSep, .btn-group *) {
  /* Add some space between elements in the control panel and the horizontal
   * boundaries of the panel. (Don't capture .ctrlSep things, though,
   * which should span the entire horizontal width of the panel.)
@@ -38,7 +38,6 @@ body {
   padding-left: 0.5em;
   padding-right: 0.5em;
 }
-
 
 /* CODELINK: The toggling mechanism for the control panel was inspired by a
  * similar mechanism in the following Cytoscape.js demo:
@@ -88,12 +87,29 @@ body {
  * back to auto (the default value, per MDN:
  * https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/pointer-events)
  */
-#floatingButtonsBottomRight > button {
+#floatingButtonsBottomRight .btn {
     pointer-events: auto;
 }
 
 #fitButton {
     margin-top: 7px;
+}
+
+/* By default, Bootstrap uses a few 0.15s transition properties for all .btn
+ * elements. This looks nice for "normal" buttons, but for things in a radio
+ * button group I think it makes the UI feel sluggish (it doesn't look like
+ * Bootstrap 3.3 had this?). Also, the transitions can be slow and awkward
+ * when changing the button causes a long process to happen (e.g. changing
+ * node/edge colorization when there are a lot of elements in the graph --
+ * drawing all components in the Velvet E. coli graph demonstrates this issue).
+ *
+ * For the latter thing we could solve this by just adding back an "Apply"
+ * button for the colorization stuff, but an easier solution (and one that
+ * would be compatible with adding back such a button :) is just cancelling
+ * transitions on .btn elements inside radio button groups.
+ */
+.radio-group .btn-group .btn {
+    transition: none !important;
 }
 
 /* position the dash dev tools UI a bit higher than the bottom of the

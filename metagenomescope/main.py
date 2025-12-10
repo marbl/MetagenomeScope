@@ -3,6 +3,7 @@
 import logging
 import dash
 import dash_cytoscape as cyto
+import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 from collections import defaultdict
 from dash import (
@@ -20,9 +21,8 @@ from .log_utils import start_log, log_lines_with_sep
 from .graph import AssemblyGraph, graph_utils
 from .errors import UIError, WeirdError
 
-# Needed for layout extensions. Probably comment this out when we get
-# actual Graphviz layouts back in (or maybe keep this in if people want
-# to try out fcose / dagre / etc)
+# Needed for layout extensions like dagre. And for exporting SVG images, per
+# https://dash.plotly.com/cytoscape/images.
 cyto.load_extra_layouts()
 
 
@@ -90,6 +90,35 @@ def run(
         className="ctrlSep",
     )
 
+    colorful_random_text = html.Span(
+        [
+            html.Span(
+                "R",
+                style={"color": "#e00"},
+            ),
+            html.Span(
+                "a",
+                style={"color": "#e70"},
+            ),
+            html.Span(
+                "n",
+                style={"color": "#aa8822"},
+            ),
+            html.Span(
+                "d",
+                style={"color": "#22aa11"},
+            ),
+            html.Span(
+                "o",
+                style={"color": "#0bf"},
+            ),
+            html.Span(
+                "m",
+                style={"color": "#d3d"},
+            ),
+        ]
+    )
+
     # If there are multiple components, show a "Components" tab in the info
     # dialog with information about these components. Also show various options
     # for selecting which component(s) to draw.
@@ -143,7 +172,7 @@ def run(
     # update_title=None prevents Dash's default "Updating..." page title change
     app = dash.Dash(__name__, title="MgSc", update_title=None)
     CONTROLS_TOGGLER_ICON_CLASSES = "bi bi-list"
-    app.layout = html.Div(
+    app.layout = dbc.Container(
         [
             # controls toggler (hamburger button)
             html.Div(
@@ -321,6 +350,15 @@ def run(
                     ),
                     html.Div(
                         [
+                            # I'm sticking with a standard dcc.Checklist
+                            # (rather than dbc.Checklist) because I don't
+                            # like the default formatting of their inline
+                            # checklists. Even after doing some massaging
+                            # to make the margins better, there is still an
+                            # ugly unclickable region between the checkbox
+                            # and label... maybe I am just doing something
+                            # wrong, but I think the UX of the dcc.Checklist
+                            # is better.
                             dcc.Checklist(
                                 options=[
                                     {
@@ -356,10 +394,12 @@ def run(
                     ),
                     html.Div(
                         [
-                            dcc.RadioItems(
+                            # See section "RadioItems as ButtonGroup" on
+                            # https://www.dash-bootstrap-components.com/docs/components/button_group/
+                            dbc.RadioItems(
                                 options=[
                                     {
-                                        "label": "Random",
+                                        "label": colorful_random_text,
                                         "value": ui_config.COLORING_RANDOM,
                                     },
                                     {
@@ -368,11 +408,14 @@ def run(
                                     },
                                 ],
                                 value=ui_config.DEFAULT_NODE_COLORING,
-                                inline=True,
+                                className="btn-group",
+                                inputClassName="btn-check",
+                                labelClassName="btn btn-sm btn-outline-light",
+                                labelCheckedClassName="active",
                                 id="nodeColorRadio",
                             ),
                         ],
-                        className="form-check",
+                        className="radio-group",
                     ),
                     ctrl_sep_invis,
                     html.H5(
@@ -380,10 +423,10 @@ def run(
                     ),
                     html.Div(
                         [
-                            dcc.RadioItems(
+                            dbc.RadioItems(
                                 options=[
                                     {
-                                        "label": "Random",
+                                        "label": colorful_random_text,
                                         "value": ui_config.COLORING_RANDOM,
                                     },
                                     {
@@ -392,13 +435,49 @@ def run(
                                     },
                                 ],
                                 value=ui_config.DEFAULT_EDGE_COLORING,
-                                inline=True,
+                                className="btn-group",
+                                inputClassName="btn-check",
+                                labelClassName="btn btn-sm btn-outline-light",
+                                labelCheckedClassName="active",
                                 id="edgeColorRadio",
                             ),
                         ],
-                        className="form-check",
+                        className="radio-group",
                     ),
                     ctrl_sep,
+                    # html.H4("Screenshots"),
+                    # html.Div(
+                    #    [
+                    #        html.Div(
+                    #            [
+                    #                dbc.RadioItems(
+                    #                    options=[
+                    #                        {
+                    #                            "label": "PNG",
+                    #                            "value": "png",
+                    #                        },
+                    #                        {
+                    #                            "label": "JPG",
+                    #                            "value": "jpg",
+                    #                        },
+                    #                        {
+                    #                            "label": "SVG",
+                    #                            "value": "svg",
+                    #                        },
+                    #                    ],
+                    #                    value="png",
+                    #                    className="btn-group",
+                    #                    inputClassName="btn-check",
+                    #                    labelClassName="btn btn-outline-light",
+                    #                    labelCheckedClassName="active",
+                    #                    id="imageTypeRadio",
+                    #                ),
+                    #            ],
+                    #            className="radio-group",
+                    #        ),
+                    #    ]
+                    # ),
+                    # ctrl_sep,
                     # html.H4("Selected"),
                 ],
                 id="controls",
