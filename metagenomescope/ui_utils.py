@@ -409,3 +409,10 @@ def fmt_num_ranges(nums):
         i += 1
     range_texts.append(_get_range_text(curr_range))
     return "; ".join(range_texts)
+
+
+def get_screenshot_basename():
+    # this should be ISO 8601 compliant. See https://xkcd.com/1179, lol.
+    # I am sure there are better ways to represent this tho... if whoever is
+    # reading this has strong opinions feel free to open a github issue
+    return time.strftime("mgsc-%Y%m%dT%H%M%S")

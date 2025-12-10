@@ -59,6 +59,7 @@ body {
 }
 
 .floatingButton {
+    z-index: 2;
     /* roughly try to match border color from floating buttons in old MgSc
      * versions, using bootstrap 3.3. See
      * https://getbootstrap.com/docs/5.3/components/buttons/#sass-mixins
@@ -70,11 +71,21 @@ body {
     --bs-btn-active-border-color: #666 !important;
 }
 
+#floatingExportButton {
+    position: absolute;
+    right: 0em;
+    top: 0em;
+}
+
+/* We want to stack the fit buttons in a column. We do this by absolutely
+ * positioning their container div but NOT absolutely positioning the child
+ * buttons -- if you apply "position: absolute;" to all .floatingButton eles
+ * then this breaks.
+ */
 #floatingButtonsBottomRight {
     position: absolute;
     right: 0em;
     bottom: 0em;
-    z-index: 2;
     pointer-events: none;
 }
 

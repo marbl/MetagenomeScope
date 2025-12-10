@@ -445,40 +445,52 @@ def run(
                         className="radio-group",
                     ),
                     ctrl_sep,
-                    # html.H4("Screenshots"),
-                    # html.Div(
-                    #    [
-                    #        html.Div(
-                    #            [
-                    #                dbc.RadioItems(
-                    #                    options=[
-                    #                        {
-                    #                            "label": "PNG",
-                    #                            "value": "png",
-                    #                        },
-                    #                        {
-                    #                            "label": "JPG",
-                    #                            "value": "jpg",
-                    #                        },
-                    #                        {
-                    #                            "label": "SVG",
-                    #                            "value": "svg",
-                    #                        },
-                    #                    ],
-                    #                    value="png",
-                    #                    className="btn-group",
-                    #                    inputClassName="btn-check",
-                    #                    labelClassName="btn btn-outline-light",
-                    #                    labelCheckedClassName="active",
-                    #                    id="imageTypeRadio",
-                    #                ),
-                    #            ],
-                    #            className="radio-group",
-                    #        ),
-                    #    ]
-                    # ),
-                    # ctrl_sep,
-                    # html.H4("Selected"),
+                    html.H4("Screenshots"),
+                    html.Div(
+                        [
+                            html.Div(
+                                [
+                                    dbc.RadioItems(
+                                        options=[
+                                            {
+                                                "label": "PNG",
+                                                "value": ui_config.SCREENSHOT_PNG,
+                                            },
+                                            {
+                                                "label": "JPG",
+                                                "value": ui_config.SCREENSHOT_JPG,
+                                            },
+                                            {
+                                                "label": "SVG",
+                                                "value": ui_config.SCREENSHOT_SVG,
+                                            },
+                                        ],
+                                        value=ui_config.DEFAULT_SCREENSHOT_FILETYPE,
+                                        className="btn-group",
+                                        inputClassName="btn-check",
+                                        labelClassName="btn btn-outline-light",
+                                        labelCheckedClassName="active",
+                                        id="imageTypeRadio",
+                                    ),
+                                ],
+                                className="radio-group",
+                            ),
+                            ctrl_sep_invis,
+                            html.Button(
+                                [
+                                    html.I(className="bi bi-camera-fill"),
+                                    html.Span(
+                                        "Export",
+                                        className="iconlbl",
+                                    ),
+                                ],
+                                id="panelExportButton",
+                                className="btn btn-light",
+                                type="button",
+                            ),
+                        ],
+                    ),
+                    ctrl_sep,
                 ],
                 id="controls",
                 style={
@@ -551,21 +563,23 @@ def run(
                 },
             ),
             # floating buttons on top of the Cytoscape.js graph
+            html.Button(
+                html.I(className="bi bi-camera-fill"),
+                id="floatingExportButton",
+                className="btn btn-light floatingButton",
+                type="button",
+            ),
             html.Div(
                 [
                     html.Button(
-                        [
-                            html.I(className="bi bi-arrows-angle-contract"),
-                        ],
+                        html.I(className="bi bi-arrows-angle-contract"),
                         id="fitSelectedButton",
                         className="btn btn-light floatingButton",
                         type="button",
                     ),
                     html.Br(),
                     html.Button(
-                        [
-                            html.I(className="bi bi-arrows-angle-expand"),
-                        ],
+                        html.I(className="bi bi-arrows-angle-expand"),
                         id="fitButton",
                         className="btn btn-light floatingButton",
                         type="button",
@@ -1207,6 +1221,24 @@ def run(
             node_coloring=node_color_radio,
             edge_coloring=edge_color_radio,
         )
+
+    @callback(
+        Output("cy", "generateImage"),
+        State("imageTypeRadio", "value"),
+        Input("panelExportButton", "n_clicks"),
+        Input("floatingExportButton", "n_clicks"),
+        prevent_initial_call=True,
+        allow_duplicate=True,
+    )
+    def export_screenshot(image_type, panel_n_clicks, floating_n_clicks):
+        # see https://dash.plotly.com/cytoscape/images for a high-level
+        # tutorial, and https://github.com/plotly/dash-cytoscape/blob/f96e760f3b84c3f4d7ecbfaa905e9d57c698456d/dash_cytoscape/Cytoscape.py#L194
+        # for detailed options
+        return {
+            "type": image_type,
+            "filename": ui_utils.get_screenshot_basename(),
+            "action": "download",
+        }
 
     @callback(
         Output("toastHolder", "children"),

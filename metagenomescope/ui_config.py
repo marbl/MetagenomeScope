@@ -15,6 +15,11 @@ COLORING_UNIFORM = "uniform"
 DEFAULT_NODE_COLORING = COLORING_RANDOM
 DEFAULT_EDGE_COLORING = COLORING_UNIFORM
 
+SCREENSHOT_PNG = "png"
+SCREENSHOT_JPG = "jpg"
+SCREENSHOT_SVG = "svg"
+DEFAULT_SCREENSHOT_FILETYPE = SCREENSHOT_PNG
+
 ###############################################################################
 # Component size rank selection
 ###############################################################################
