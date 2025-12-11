@@ -673,13 +673,13 @@ class AssemblyGraph(object):
         # accordingly, we still need to re-route edges and update the
         # decomposed assembly graph's topology here.
         #
-        # NOTE: there is the rare chance that we might need to merge multiple
+        # NOTE: there is the chance that we might need to merge multiple
         # child chains in at once. In this case, there may be edges between
         # these child chains -- so, we include the IDs of these child chains in
         # patt_node_ids_post_merging. (if we don't do this, it screws with the
         # edge dec src/tgt IDs, which then screws with unnecessary split node
-        # removal.) See test_chr1mat_minus653300458_splits_merged() in the
-        # hierarchical decomposition test.
+        # removal.) See test_chr21mat_minus653300458_splits_merged() in the
+        # hierarchical decomposition tests.
         patt_node_ids_post_merging = p.get_node_ids() + [
             t.unique_id for t in p.merged_child_chains
         ]
@@ -693,6 +693,8 @@ class AssemblyGraph(object):
             # change? oh, maybe it's because none of the src/tgt of this edge
             # is in patt_node_ids_post_merging; check if src/tgt are in
             # p.merged_Child_chains, maybe, and handle specially? or something
+            # ^^^ 2025 update: i forget what the above text means. try it out
+            # with the "full" chr15 version maybe
             for incoming_node in pred:
                 if incoming_node in patt_node_ids_post_merging:
                     for e in pred[incoming_node]:
@@ -978,6 +980,22 @@ class AssemblyGraph(object):
                     # we should be trying to deem *that* node as unnecessary,
                     # and we'll get to it later.
                     if counterpart_fe_id not in self.pattid2obj:
+                        if counterpart_fe_id not in self.nodeid2obj:
+                            # Probably what happened here is -- the counterpart
+                            # ID corresponds to a pattern that has since been
+                            # removed from the graph. The chain merging process
+                            # is surprisngly complex, and has triggered this
+                            # kind of bug in the past.
+                            raise WeirdError(
+                                f"Fake edge {fe_id} between split node {node} "
+                                f"and counterpart {counterpart} points to "
+                                f"node ID {counterpart_fe_id} in the "
+                                "decomposed graph; this ID doesn't seem like "
+                                "a pattern OR a non-pattern node?"
+                            )
+                        # If we've made it here, then "counterpart" corresponds
+                        # to a top-level non-pattern node in the fully
+                        # decomposed graph.
                         continue
 
                     # If we've made it here, this fake edge points to an
