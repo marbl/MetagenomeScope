@@ -155,7 +155,9 @@ def fail_if_not_single_edge(adj_view, node_id, edge_descriptor):
         )
 
 
-def is_edge_fake_and_trivial(g, n0, n1, nodeid2obj, edgeid2obj):
+def is_edge_fake_and_trivial(
+    g, n0, n1, nodeid2obj, edgeid2obj, split_type_to_mark_trivial
+):
     curr_edge = g.edges[n0, n1, 0]
     if edgeid2obj[curr_edge["uid"]].is_fake:
         # Figure out if this is a *trivial* edge.
@@ -172,10 +174,15 @@ def is_edge_fake_and_trivial(g, n0, n1, nodeid2obj, edgeid2obj):
             # good -- this is a nontrivial edge.
             return False
         else:
-            # Exactly one of (n0, n1) is a pattern node, meaning that this
-            # is a trivial fake edge. Shift the new "starting node"
-            # position over to the right by 1.
-            return True
+            # Exactly one of (n0, n1) is a pattern node.
+            if split_type_to_mark_trivial == config.SPLIT_LEFT:
+                return n0_is_node
+            elif split_type_to_mark_trivial == config.SPLIT_RIGHT:
+                return n1_is_node
+            else:
+                raise WeirdError(
+                    f"Unrecognized split type {split_type_to_mark_trivial}"
+                )
 
 
 def is_valid_frayed_rope(g, start_node_id):
@@ -1019,7 +1026,12 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     fail_if_not_single_edge(cs_adj, start_node_id, "outgoing")
     next_node_id = list(cs_adj)[0]
     if is_edge_fake_and_trivial(
-        g, start_node_id, next_node_id, nodeid2obj, edgeid2obj
+        g,
+        start_node_id,
+        next_node_id,
+        nodeid2obj,
+        edgeid2obj,
+        config.SPLIT_LEFT,
     ):
         node_ids_to_remove.add(start_node_id)
         # Shift the starting node to the right by one.
@@ -1037,7 +1049,12 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     fail_if_not_single_edge(ce_pred, end_node_id, "incoming")
     prev_node_id = list(ce_pred)[0]
     if is_edge_fake_and_trivial(
-        g, prev_node_id, end_node_id, nodeid2obj, edgeid2obj
+        g,
+        prev_node_id,
+        end_node_id,
+        nodeid2obj,
+        edgeid2obj,
+        config.SPLIT_RIGHT,
     ):
         node_ids_to_remove.add(end_node_id)
         # Shift the ending node to the left by one.
