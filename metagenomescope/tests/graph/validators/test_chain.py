@@ -228,3 +228,21 @@ def test_chain_with_parallel_edges():
     assert vr.node_ids == [1, 2]
     assert vr.start_node_ids == [1]
     assert vr.end_node_ids == [2]
+
+
+def test_cyclic_bulge_not_a_chain():
+    r"""The input graph looks like
+
+     /-->\
+    1 --> 2
+     \<--/
+
+    Should NOT be labelled as a chain
+    (https://github.com/marbl/MetagenomeScope/issues/251).
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(1, 2)
+    g.add_edge(2, 1)
+    assert not validators.is_valid_chain(g, 1)
+    assert not validators.is_valid_chain(g, 2)

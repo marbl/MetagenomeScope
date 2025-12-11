@@ -281,3 +281,21 @@ def test_parallel_edge_selfloop_surrounded():
     g.add_edge(2, 1)
     for s in (0, 1, 2):
         assert not validators.is_valid_cyclic_chain(g, s)
+
+
+def test_cyclic_bulge_not_a_cyclic_chain():
+    r"""The input graph looks like
+
+     /-->\
+    1 --> 2
+     \<--/
+
+    Should NOT be labelled as a chain
+    (https://github.com/marbl/MetagenomeScope/issues/251).
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(1, 2)
+    g.add_edge(2, 1)
+    assert not validators.is_valid_cyclic_chain(g, 1)
+    assert not validators.is_valid_cyclic_chain(g, 2)

@@ -636,8 +636,6 @@ def test_bubble_on_end_of_chain_etfe_trimming():
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 0
         assert len(ag.bubbles) == 1
-        # the boundary nodes of both frayed ropes should not be split after
-        # decomposition is finished
         assert len(ag.graph.nodes) == 6
         assert len(ag.graph.edges) == 6
     finally:
@@ -676,10 +674,39 @@ def test_isolated_bubble():
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 0
         assert len(ag.bubbles) == 1
-        # the boundary nodes of both frayed ropes should not be split after
-        # decomposition is finished
         assert len(ag.graph.nodes) == 4
         assert len(ag.graph.edges) == 4
+    finally:
+        os.close(fh)
+        os.unlink(fn)
+
+
+def test_cyclic_bulge():
+    r"""The input graph looks like
+
+     /-->\
+    1 --> 2
+     \<--/
+
+    Should be labelled as a cyclic bulge, not a chain
+    (https://github.com/marbl/MetagenomeScope/issues/251).
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(1, 2)
+    g.add_edge(2, 1)
+
+    fh, fn = nx2gml(g)
+    try:
+        ag = AssemblyGraph(fn)
+        assert len(ag.decomposed_graph.nodes) == 1
+        assert len(ag.decomposed_graph.edges) == 0
+        assert len(ag.chains) == 0
+        assert len(ag.cyclic_chains) == 0
+        assert len(ag.frayed_ropes) == 0
+        assert len(ag.bubbles) == 1
+        assert len(ag.graph.nodes) == 2
+        assert len(ag.graph.edges) == 3
     finally:
         os.close(fh)
         os.unlink(fn)

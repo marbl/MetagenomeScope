@@ -836,7 +836,7 @@ def is_valid_chain(g, start_node_id):
             # that we already know that the other stuff in chain_list has
             # only one incoming node, etc.
             if (
-                len(out_curr_node_ids) > 1
+                len(out_curr_node_ids) >= 1
                 and start_node_id in out_curr_node_ids
             ):
                 chain_ends_cyclically = True
