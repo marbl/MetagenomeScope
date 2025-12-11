@@ -587,7 +587,13 @@ def test_chr15_pattern_resolution_fixed():
     has an outgoing edge to a "node" with the ID 99 that doesn't exist in the
     graph after decomposition is done.
 
-    This test makes sure this bug has been fixed."""
+    As of 2025, this was instead manifesting as node 262588926 remaining
+    split despite it being unnecessary.
+
+    Anyway, this test makes sure that both bugs do not impact this graph.
+    Fixing https://github.com/marbl/MetagenomeScope/issues/267 appeared to
+    resolve the problem.
+    """
     gv_fn = "metagenomescope/tests/input/chr15_subgraph.gv"
     ag = AssemblyGraph(gv_fn)
     _check_ag_topology_matches_gv(ag, gv_fn)

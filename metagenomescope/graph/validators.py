@@ -156,8 +156,69 @@ def fail_if_not_single_edge(adj_view, node_id, edge_descriptor):
 
 
 def is_edge_fake_and_trivial(
-    g, n0, n1, nodeid2obj, edgeid2obj, split_type_to_mark_trivial
+    g, n0, n1, nodeid2obj, edgeid2obj, split_side_to_mark_trivial
 ):
+    r"""Checks if an edge n0 -> n1 should be included as a boundary of a chain.
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+
+    n0: int
+
+    n1: int
+
+    nodeid2obj: dict
+
+    edgeid2obj: dict
+
+    split_side_to_mark_trivial: str
+        This should be either config.SPLIT_LEFT or config.SPLIT_RIGHT.
+
+    Returns
+    -------
+    bool
+        True if this edge is fake and trivial (and should not be included
+        as a boundary on this side of a chain), False otherwise.
+
+    Notes
+    -----
+    Regarding the new split_side_to_mark_trivial parameter: see
+    https://github.com/marbl/MetagenomeScope/issues/267 for context. Basically,
+    the whole point of trimming ETFEs from chains is to avoid junk like
+
+         +--------------------+
+         |     /--> 2 --\     |
+    1-L ==> 1-R          4-L ==> 4-R
+         |     \--> 3 --/     |
+         +--------------------+
+
+    counting as a chain of {1-L, {Bubble}, 4-R}. The reason we create split
+    nodes in the first place is to allow them to be the boundary nodes of other
+    patterns (e.g. node 4-R might be the start of another bubble).
+
+    However, not all fake edges between a node and a pattern should be
+    considered "trivial." In the example below, it seems reasonable to make a
+    chain containing {X, Y, 1-L, {Bubble}}, despite the fact that the rightmost
+    edge of this chain (1-L ==> {Bubble}) is a fake edge between a node and a
+    pattern.
+
+                     +-----------------+
+                     |     /--> 2 --\  |
+    X --> Y --> 1-L ==> 1-R          4 |
+                     |     \--> 3 --/  |
+                     +-----------------+
+
+    The reason for this, as I see it, is that 1-L ==> {Bubble} is a
+    "left-side" / "start-side" fake edge. Because of this, it is okay for it
+    to be the rightmost edge in a chain, because including it will not deprive
+    1-L of being used for anything else.
+
+    (And if we remove X from the graph then this is still valid... but if we
+    remove Y then now 1-L ==> {Bubble} is also the leftmost edge in the chain.
+    Now, including it in this chain is risky, since we want to reserve 1-L for
+    other purposes. So would consider that case trivial.)
+    """
     curr_edge = g.edges[n0, n1, 0]
     if edgeid2obj[curr_edge["uid"]].is_fake:
         # Figure out if this is a *trivial* edge.
@@ -175,13 +236,13 @@ def is_edge_fake_and_trivial(
             return False
         else:
             # Exactly one of (n0, n1) is a pattern node.
-            if split_type_to_mark_trivial == config.SPLIT_LEFT:
+            if split_side_to_mark_trivial == config.SPLIT_LEFT:
                 return n0_is_node
-            elif split_type_to_mark_trivial == config.SPLIT_RIGHT:
+            elif split_side_to_mark_trivial == config.SPLIT_RIGHT:
                 return n1_is_node
             else:
                 raise WeirdError(
-                    f"Unrecognized split type {split_type_to_mark_trivial}"
+                    f"Unrecognized split type {split_side_to_mark_trivial}"
                 )
 
 
