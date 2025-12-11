@@ -81,5 +81,7 @@ def test_is_edge_fake_and_trivial_bad():
     nodeid2obj = {0: Node(0, "0", {}), 1: Node(1, "1", {})}
     edgeid2obj = {2: Edge(2, 0, 1, {}, is_fake=True)}
     with pytest.raises(WeirdError) as ei:
-        validators.is_edge_fake_and_trivial(g, 0, 1, nodeid2obj, edgeid2obj)
+        validators.is_edge_fake_and_trivial(
+            g, 0, 1, nodeid2obj, edgeid2obj, config.SPLIT_LEFT
+        )
     assert str(ei.value) == "Non-pattern nodes (0, 1) connected by fake edge?"
