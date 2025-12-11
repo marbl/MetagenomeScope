@@ -597,3 +597,84 @@ def test_chr15_pattern_resolution_fixed():
     gv_fn = "metagenomescope/tests/input/chr15_subgraph.gv"
     ag = AssemblyGraph(gv_fn)
     _check_ag_topology_matches_gv(ag, gv_fn)
+
+
+def test_bubble_on_end_of_chain_etfe_trimming():
+    r"""The input graph looks like
+
+                 /--> 2 --\
+    0 --> 5 --> 1          4
+                 \--> 3 --/
+
+    It should be decomposed into a chain containing a bubble:
+
+                     +-----------------+
+                     |     /--> 2 --\  |
+    0 --> 5 --> 1-L ==> 1-R          4 |
+                     |     \--> 3 --/  |
+                     +-----------------+
+
+    And then the node splitting should be undone, bringing us back to
+    where we started but with the chain and bubble identified.
+
+    See docs for is_edge_fake_and_trivial() for context.
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 5)
+    g.add_edge(5, 1)
+    g.add_edge(1, 2)
+    g.add_edge(1, 3)
+    g.add_edge(2, 4)
+    g.add_edge(3, 4)
+
+    fh, fn = nx2gml(g)
+    try:
+        ag = AssemblyGraph(fn)
+        assert len(ag.decomposed_graph.nodes) == 1
+        assert len(ag.decomposed_graph.edges) == 0
+        assert len(ag.chains) == 1
+        assert len(ag.cyclic_chains) == 0
+        assert len(ag.frayed_ropes) == 0
+        assert len(ag.bubbles) == 1
+        # the boundary nodes of both frayed ropes should not be split after
+        # decomposition is finished
+        assert len(ag.graph.nodes) == 6
+        assert len(ag.graph.edges) == 6
+    finally:
+        os.close(fh)
+        os.unlink(fn)
+
+
+def test_isolated_bubble_etfe_trimming():
+    r"""Is this actually explicitly tested anywhere else? I don't think so.
+
+    The input graph looks like
+
+     /--> 2 --\
+    1          4
+     \--> 3 --/
+
+    See docs for is_edge_fake_and_trivial() for context.
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(1, 3)
+    g.add_edge(2, 4)
+    g.add_edge(3, 4)
+
+    fh, fn = nx2gml(g)
+    try:
+        ag = AssemblyGraph(fn)
+        assert len(ag.decomposed_graph.nodes) == 1
+        assert len(ag.decomposed_graph.edges) == 0
+        assert len(ag.chains) == 0
+        assert len(ag.cyclic_chains) == 0
+        assert len(ag.frayed_ropes) == 0
+        assert len(ag.bubbles) == 1
+        # the boundary nodes of both frayed ropes should not be split after
+        # decomposition is finished
+        assert len(ag.graph.nodes) == 4
+        assert len(ag.graph.edges) == 4
+    finally:
+        os.close(fh)
+        os.unlink(fn)
