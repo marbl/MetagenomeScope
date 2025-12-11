@@ -212,7 +212,8 @@ def is_edge_fake_and_trivial(
     The reason for this, as I see it, is that 1-L ==> {Bubble} is a
     "left-side" / "start-side" fake edge. Because of this, it is okay for it
     to be the rightmost edge in a chain, because including it will not deprive
-    1-L of being used for anything else.
+    1-L of being used for anything else. (1-L should eventually be removed from
+    this graph, because it is unnecessary.)
 
     (And if we remove X from the graph then this is still valid... but if we
     remove Y then now 1-L ==> {Bubble} is also the leftmost edge in the chain.
