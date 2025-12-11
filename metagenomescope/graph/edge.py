@@ -36,27 +36,32 @@ class Edge(object):
     re-route edges. What two nodes does an edge actually connect?
     You can think of three "levels" of this:
 
-    1. The original source and target ID of an edge. Usually these should
-       correspond to the IDs of full nodes in the input assembly graph,
-       but -- if this edge is fake -- then these IDs should correspond to
-       split nodes (the source should be the left split node, and the target
-       should be the right split node).
+    1. The ORIGINAL source and target ID of an edge. Usually these should
+       correspond to the IDs of full nodes in the input assembly graph.
 
        These attributes are controlled by the orig_src_id and orig_tgt_id
        parameters of this function, and will be stored in the identically-
        named attributes of this Edge object. These attributes should never
        be modified in an already-created Edge object.
 
-       Minor note: when we remove "unnecessary" split nodes, these might become
-       outdated (if the split node that gets removed corresponds to the
-       "original" version of the split node). The second level of info should
-       be sufficient, tho...?
+       Note that, if this edge is fake, then these IDs should correspond to
+       split nodes (the source should be the left split node, and the target
+       should be the right split node) -- because a fake edge has no original
+       "full" node, by design. However, for non-fake edges, these IDs will
+       remain static, even if the nodes they point to end up being split or
+       whatever.
 
-    2. The rerouted source and target ID of an edge. These should still
-       correspond to node IDs (either full nodes or split nodes); however,
-       they should be changed as we perform node splitting. For example, if
-       an edge E points from node 1 to node 2, and we determine that node 2 is
-       the starting node of a pattern (so it gets split into 2-L ==> 2-R),
+       We keep this information around solely for debugging / for reference, as
+       of 2025 -- it does not look like these properties are actually used to
+       make any decisions. As the above text implies, performing decomposition
+       (and splitting nodes, etc.) will make these IDs obsolete. The two levels
+       below are more useful for actually drawing the graph.
+
+    2. The REROUTED source and target ID of an edge. These should still
+       correspond to non-pattern node IDs (either full nodes or split nodes);
+       however, they will be changed as we perform node splitting. For example,
+       if an edge E points from node 1 to node 2, and we determine that node 2
+       is the starting node of a pattern (so it gets split into 2-L ==> 2-R),
        then E should be rerouted to point from node 1 to node 2-L.
 
        (This is assuming that node 2's pattern doesn't contain node 1. If it
@@ -77,8 +82,8 @@ class Edge(object):
        parameters of this function. You can update them using the
        reroute_src() and reroute_tgt() methods, respectively.
 
-    3. The rerouted source and target ID of an edge, in the decomposed
-       graph. If this edge's (rerouted) source and target node are not
+    3. The REROUTED source and target ID of an edge, IN THE DECOMPOSED
+       GRAPH. If this edge's (rerouted) source and target node are not
        children of any patterns -- or, if the source and target node are
        children of the same pattern -- then these IDs should be identical
        to the previous level's IDs. However, if neither of these conditions

@@ -5,6 +5,13 @@
 # one validation function here -- for example, we include functions for
 # validating "bulges" as well as large bubbles, but both of them are (as of
 # writing) labelled as "bubbles" in the user interface.
+#
+# Also, note that the patterns returned by these functions are not guaranteed
+# to start at a given start node ID. This is the case for bubble detection,
+# for example: if the bubble starting at a given node actually contains another
+# bubble within it then we will just identify that minimal bubble instead. (And
+# since this is done iteratively we should call such functions later on and
+# catch patterns of patterns.)
 
 
 from metagenomescope import config, misc_utils
