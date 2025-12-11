@@ -290,7 +290,7 @@ def test_cyclic_bulge_not_a_cyclic_chain():
     1 --> 2
      \<--/
 
-    Should NOT be labelled as a chain
+    Should NOT be labelled as a chain (or a cyclic chain)
     (https://github.com/marbl/MetagenomeScope/issues/251).
     """
     g = nx.MultiDiGraph()
