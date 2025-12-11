@@ -645,7 +645,7 @@ def test_bubble_on_end_of_chain_etfe_trimming():
         os.unlink(fn)
 
 
-def test_isolated_bubble_etfe_trimming():
+def test_isolated_bubble():
     r"""Is this actually explicitly tested anywhere else? I don't think so.
 
     The input graph looks like
@@ -653,6 +653,11 @@ def test_isolated_bubble_etfe_trimming():
      /--> 2 --\
     1          4
      \--> 3 --/
+
+    It should be decomposed into just a single bubble, as you'd expect. No
+    split nodes should be created (since 1 and 4 have no incoming / outgoing
+    edges from outside the pattern, respectively) -- and even if they were
+    to be created, no chains resulting from them should be created.
 
     See docs for is_edge_fake_and_trivial() for context.
     """
