@@ -984,7 +984,7 @@ class AssemblyGraph(object):
                             # Probably what happened here is -- the counterpart
                             # ID corresponds to a pattern that has since been
                             # removed from the graph. The chain merging process
-                            # is surprisngly complex, and has triggered this
+                            # is surprisingly complex, and has triggered this
                             # kind of bug in the past.
                             raise WeirdError(
                                 f"Fake edge {fe_id} between split node {node} "
