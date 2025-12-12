@@ -24,24 +24,70 @@ def get_cyjs_stylesheet(
                 "background-blacken": cy_config.SELECTED_NODE_BLACKEN,
             },
         },
+        ###### Forward-oriented nodes (pentagons pointing right)
         {
-            "selector": "node.fwd",
+            "selector": "node.fwd.splitN",
             "style": {
                 "shape": "polygon",
-                "shape-polygon-points": cy_config.FWD_NODE_POLYGON_PTS,
+                "shape-polygon-points": cy_config.FWD_NODE_SPLITN_POLYGON_PTS,
             },
         },
         {
-            "selector": "node.rev",
+            "selector": "node.fwd.splitL",
             "style": {
-                "shape": "polygon",
-                "shape-polygon-points": cy_config.REV_NODE_POLYGON_PTS,
+                "shape": "rectangle",
             },
         },
         {
-            "selector": "node.unoriented",
+            "selector": "node.fwd.splitR",
             "style": {
-                "shape": cy_config.UNORIENTED_NODE_SHAPE,
+                "shape": "polygon",
+                "shape-polygon-points": cy_config.FWD_NODE_SPLITR_POLYGON_PTS,
+            },
+        },
+        ###### Reverse-oriented nodes (pentagons pointing left)
+        {
+            "selector": "node.rev.splitN",
+            "style": {
+                "shape": "polygon",
+                "shape-polygon-points": cy_config.REV_NODE_SPLITN_POLYGON_PTS,
+            },
+        },
+        {
+            "selector": "node.rev.splitL",
+            "style": {
+                "shape": "polygon",
+                "shape-polygon-points": cy_config.REV_NODE_SPLITL_POLYGON_PTS,
+            },
+        },
+        {
+            "selector": "node.rev.splitR",
+            "style": {
+                "shape": "rectangle",
+            },
+        },
+        ###### Unoriented nodes (circles)
+        # ok yeah you could argue that nodes in de Bruijn graphs also have
+        # "orientations" but the convention is to draw them like circles
+        # because really the edges have the sequences we care about
+        {
+            "selector": "node.unoriented.splitN",
+            "style": {
+                "shape": "ellipse",
+            },
+        },
+        {
+            "selector": "node.unoriented.splitL",
+            "style": {
+                "shape": "polygon",
+                "shape-polygon-points": cy_config.UNORIENTED_NODE_SPLITL_POLYGON_PTS,
+            },
+        },
+        {
+            "selector": "node.unoriented.splitR",
+            "style": {
+                "shape": "polygon",
+                "shape-polygon-points": cy_config.UNORIENTED_NODE_SPLITR_POLYGON_PTS,
             },
         },
         # patterns

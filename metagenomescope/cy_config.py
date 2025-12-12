@@ -1,3 +1,5 @@
+from math import sqrt
+
 ###############################################################################
 # Nodes
 ###############################################################################
@@ -25,9 +27,70 @@ UNSELECTED_NODE_FONT_COLOR = "#eeeeee"
 SELECTED_NODE_BLACKEN = "0.5"
 SELECTED_NODE_FONT_COLOR = "#eeeeee"
 
-FWD_NODE_POLYGON_PTS = "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1"
-REV_NODE_POLYGON_PTS = "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1"
-UNORIENTED_NODE_SHAPE = "ellipse"
+########
+# Node shapes for "oriented" nodes (i.e. the pentagon-looking things)
+########
+
+# Non-split node shapes. These should correspond to the "invhouse" / "house"
+# shapes in Graphviz: https://graphviz.org/doc/info/shapes.html#polygon
+FWD_NODE_SPLITN_POLYGON_PTS = "-1 1 0.23587 1 1 0 0.23587 -1 -1 -1"
+REV_NODE_SPLITN_POLYGON_PTS = "1 1 -0.23587 1 -1 0 -0.23587 -1 1 -1"
+
+# For a split forward node, the left split becomes a rectangle (we can just
+# use Cytoscape.js' built-in "rectangle" shape) and the right split becomes
+# a triangle (pointing right).
+FWD_NODE_SPLITR_POLYGON_PTS = "-1 1 1 0 -1 -1"
+
+# It's the opposite for a split reverse node: now, the right split is a
+# rectangle and the left split is a triangle.
+REV_NODE_SPLITL_POLYGON_PTS = "1 1 -1 0 1 -1"
+
+########
+# Node shapes for "unoriented" nodes (i.e. circles)
+########
+
+UNORIENTED_NODE_SPLITL_POLYGON_PTS = "1 1 -0.75 0.75 -1 0 -0.75 -0.75 1 -1"
+UNORIENTED_NODE_SPLITR_POLYGON_PTS = "-1 1 0.75 0.75 1 0 0.75 -0.75 -1 -1"
+
+# The formula for a circle with radius 1 centered on (0, 0) is
+# x^2 + y^2 = 1. We want to just get points from half of this circle.
+
+xpts = [0, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6, -0.7, -0.8, -0.9, -0.95, -1]
+
+# If you think of drawing a circle around (0, 0), this is the top-left
+# quarter of the circle.
+left_semicircle_top = [[x, sqrt(1 - x**2)] for x in xpts]
+
+# And this is the bottom-left quarter. Since it is symmetric to the top-left
+# quarter we can reuse our work from above and avoid redoing all of these
+# sqrt operations (not that this will be a bottleneck, though...)
+# The [:-1] slices off the last coordinate in the top half [-1, 0] because
+# there is no need to duplicate that
+left_semicircle_bot = [[x, -y] for (x, y) in left_semicircle_top[:-1]][::-1]
+
+# The coordinates above are for the left half of a circle centered on (0, 0),
+# which means that the center point of this approximate semicircle is roughly
+# at (-0.5, 0).
+#
+# When you tap on / select a node in Cytoscape.js, a semitransparent rounded
+# box appears around this node. These semicircles look a bit off-center in
+# relation to this box, because the shape-polygon-points conventions in
+# Cytoscape.js assume that the node shape is centered at (0, 0).
+#
+# So! We can fix this by just moving this shape to the side by x = 0.5. This
+# centers the semicircle within the bounding box.
+
+left_semicircle_full_centered = [
+    [x + 0.5, y] for (x, y) in left_semicircle_top + left_semicircle_bot
+]
+
+UNORIENTED_NODE_SPLITL_POLYGON_PTS = " ".join(
+    f"{c[0]} {c[1]}" for c in left_semicircle_full_centered
+)
+
+UNORIENTED_NODE_SPLITR_POLYGON_PTS = " ".join(
+    f"{-c[0]} {c[1]}" for c in left_semicircle_full_centered
+)
 
 ###############################################################################
 # Edges

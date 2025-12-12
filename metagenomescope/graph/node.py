@@ -299,13 +299,15 @@ class Node(object):
         else:
             ndir = "unoriented"
 
+        splitcls = f"split{'N' if self.split is None else self.split}"
+
         ele = {
             "data": {
                 "id": str(self.unique_id),
                 # str() is apparently needed here for some GML graphs
                 "label": str(self.name),
             },
-            "classes": f"nonpattern {ndir} noderand{self.rand_idx}",
+            "classes": f"nonpattern {ndir} {splitcls} noderand{self.rand_idx}",
         }
 
         if incl_patterns and self.parent_id is not None:
