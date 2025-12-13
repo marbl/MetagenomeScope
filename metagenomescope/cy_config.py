@@ -88,6 +88,12 @@ UNORIENTED_NODE_SPLITL_POLYGON_PTS = " ".join(
     f"{c[0]} {c[1]}" for c in left_semicircle_full_centered
 )
 
+# For drawing a right semicircle, just negate the x coordinates. We could also
+# do this before the + 0.5 operation above, in which case we would need (for
+# each left semicircle x-coordinate x) to compute rightversion(x) = -x - 0.5,
+# in order to apply the analogous centering operation for the right semicircle.
+# Since -(x + 0.5) = -x - 0.5, we get the same result either way, so we can
+# just be lazy and negate the x coordinates after the + 0.5 operation.
 UNORIENTED_NODE_SPLITR_POLYGON_PTS = " ".join(
     f"{-c[0]} {c[1]}" for c in left_semicircle_full_centered
 )
