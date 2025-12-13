@@ -48,36 +48,51 @@ REV_NODE_SPLITL_POLYGON_PTS = "1 1 -1 0 1 -1"
 ########
 # Node shapes for "unoriented" nodes (i.e. circles)
 ########
-
-UNORIENTED_NODE_SPLITL_POLYGON_PTS = "1 1 -0.75 0.75 -1 0 -0.75 -0.75 1 -1"
-UNORIENTED_NODE_SPLITR_POLYGON_PTS = "-1 1 0.75 0.75 1 0 0.75 -0.75 -1 -1"
-
 # The formula for a circle with radius 1 centered on (0, 0) is
 # x^2 + y^2 = 1. We want to just get points from half of this circle.
 
-xpts = [0, -0.1, -0.2, -0.3, -0.4, -0.5, -0.6, -0.7, -0.8, -0.9, -0.95, -1]
+# First, we will define the top-left quarter of the circle. This is
+# centered on (0, 0) still, so we will trace out x values from x = 0
+# to x = -1. You can add or remove entries to this list in order to
+# increase or decrease the smoothness of the semicircle.
+xcoords = [
+    0,
+    -0.1,
+    -0.2,
+    -0.3,
+    -0.4,
+    -0.5,
+    -0.6,
+    -0.7,
+    -0.8,
+    -0.9,
+    -0.95,
+    -0.98,
+    -1,
+]
 
-# If you think of drawing a circle around (0, 0), this is the top-left
-# quarter of the circle.
-left_semicircle_top = [[x, sqrt(1 - x**2)] for x in xpts]
+# Okay, now compute y coordinates for the above x coordinates.
+left_semicircle_top = [[x, sqrt(1 - x**2)] for x in xcoords]
 
-# And this is the bottom-left quarter. Since it is symmetric to the top-left
-# quarter we can reuse our work from above and avoid redoing all of these
-# sqrt operations (not that this will be a bottleneck, though...)
+# Now we'll define is the bottom-left quarter of the circle. Since it is
+# symmetric to the top-left quarter, we can reuse our work from above and
+# avoid redoing all of these sqrt operations (not that this will be a
+# bottleneck, though...)
 # The [:-1] slices off the last coordinate in the top half [-1, 0] because
-# there is no need to duplicate that
+# there is no need to duplicate that.
+# The [::-1] reverses the points, since now we are starting at x = -1
+# and going back to x = 0.
 left_semicircle_bot = [[x, -y] for (x, y) in left_semicircle_top[:-1]][::-1]
 
-# The coordinates above are for the left half of a circle centered on (0, 0),
-# which means that the center point of this approximate semicircle is roughly
-# at (-0.5, 0).
+# The points above are represent the left half of a circle centered on (0, 0),
+# which means that the center point of this semicircle is roughly at (-0.5, 0).
 #
 # When you tap on / select a node in Cytoscape.js, a semitransparent rounded
 # box appears around this node. These semicircles look a bit off-center in
 # relation to this box, because the shape-polygon-points conventions in
 # Cytoscape.js assume that the node shape is centered at (0, 0).
 #
-# So! We can fix this by just moving this shape to the side by x = 0.5. This
+# So! We can fix this by just moving this shape to the right by x = 0.5. This
 # centers the semicircle within the bounding box.
 
 left_semicircle_full_centered = [
