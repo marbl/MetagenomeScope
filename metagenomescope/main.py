@@ -140,10 +140,10 @@ def run(
             html.I(className="bi bi-hash"),
             html.Span("Component(s), by size rank"),
         ],
-        "ccDrawingNodeName": [
+        "ccDrawingNodeNames": [
             html.I(className="bi bi-search"),
             html.Span(
-                "Component containing a node",
+                "Component(s), by node name(s)",
             ),
         ],
         "ccDrawingAll": [
@@ -270,10 +270,10 @@ def run(
                                     html.Li(
                                         html.A(
                                             cc_selection_options[
-                                                "ccDrawingNodeName"
+                                                "ccDrawingNodeNames"
                                             ],
                                             className=CC_SELECTION_A_CLASSES_MULTIPLE_CCS,
-                                            id="ccDrawingNodeName",
+                                            id="ccDrawingNodeNames",
                                             **CC_SELECTION_A_ATTRS_MULTIPLE_CCS,
                                         ),
                                     ),
@@ -336,14 +336,14 @@ def run(
                                 type="text",
                                 id="ccNodeNameSelector",
                                 className="form-control",
-                                placeholder="Node name",
+                                placeholder="Node name(s)",
                             ),
                         ],
                         id="ccNodeNameSelectorEles",
                         className=css_config.CC_SELECTOR_ELES_CLASSES
                         + (
                             " hidden"
-                            if "ccDrawingNodeName"
+                            if "ccDrawingNodeNames"
                             != DEFAULT_CC_SELECTION_METHOD
                             else ""
                         ),
@@ -919,6 +919,30 @@ def run(
             dcc.Store(
                 id="doneFlushing",
             ),
+            # we'll update this after drawing the graph. As of writing, it is
+            # just used to contain a list of the component numbers that are
+            # currently drawn. This is useful to have around to help with
+            # searching. (We could try to get this info from doneFlushing,
+            # but this is risky: doneFlushing can get cleared without redrawing
+            # the graph if a bad drawing request is made -- e.g. someone enters
+            # in a component size rank that doesn't exist.)
+            dcc.Store(
+                id="currDrawnInfo",
+            ),
+            # Similarly, we'll update this during the process of searching
+            # for nodes. There is some jank where (1) Dash Cytoscape doesn't
+            # apparently support procedurally selecting elements in the graph
+            # through a callback or something, and (2) JS code can only see
+            # stuff about the current page state -- it can't access the entire
+            # graph on the python side.
+            #
+            # So! In order to make searching work, we use an ordinary callback
+            # (in Python) that checks that nodes are in the graph, etc., and
+            # if we still want to select stuff from the currently-drawn graph
+            # then we update this Store.
+            dcc.Store(
+                id="nodeSelectionInfo",
+            ),
         ],
     )
 
@@ -1153,7 +1177,7 @@ def run(
         State("ccSizeRankSelectorEles", "className"),
         State("ccNodeNameSelectorEles", "className"),
         Input("ccDrawingSizeRank", "n_clicks"),
-        Input("ccDrawingNodeName", "n_clicks"),
+        Input("ccDrawingNodeNames", "n_clicks"),
         Input("ccDrawingAll", "n_clicks"),
         prevent_initial_call=True,
     )
@@ -1169,7 +1193,7 @@ def run(
             cc_nn_eles_classes = (
                 css_config.CC_SELECTOR_ELES_CLASSES + " hidden"
             )
-        elif ctx.triggered_id == "ccDrawingNodeName":
+        elif ctx.triggered_id == "ccDrawingNodeNames":
             cc_sr_eles_classes = (
                 css_config.CC_SELECTOR_ELES_CLASSES + " hidden"
             )
@@ -1195,7 +1219,6 @@ def run(
         Input("ccSizeRankDecrBtn", "n_clicks"),
         Input("ccSizeRankIncrBtn", "n_clicks"),
         prevent_initial_call=True,
-        allow_duplicate=True,
     )
     def update_cc_size_rank(size_rank, decr_n_clicks, incr_n_clicks):
         # reset to something sane if empty
@@ -1233,7 +1256,6 @@ def run(
         Input("nodeColorRadio", "value"),
         Input("edgeColorRadio", "value"),
         prevent_initial_call=True,
-        allow_duplicate=True,
     )
     def update_colorings(node_color_radio, edge_color_radio):
         return cy_utils.get_cyjs_stylesheet(
@@ -1247,7 +1269,6 @@ def run(
         Input("panelExportButton", "n_clicks"),
         Input("floatingExportButton", "n_clicks"),
         prevent_initial_call=True,
-        allow_duplicate=True,
     )
     def export_screenshot(image_type, panel_n_clicks, floating_n_clicks):
         # see https://dash.plotly.com/cytoscape/images for a high-level
@@ -1260,12 +1281,11 @@ def run(
         }
 
     @callback(
-        Output("toastHolder", "children"),
+        Output("toastHolder", "children", allow_duplicate=True),
         Output("cy", "elements", allow_duplicate=True),
         Output("doneFlushing", "data"),
         State("toastHolder", "children"),
         State("cy", "elements"),
-        State("doneFlushing", "data"),
         State("ccDrawingSelect", "value"),
         State("ccSizeRankSelector", "value"),
         State("ccNodeNameSelector", "value"),
@@ -1276,10 +1296,9 @@ def run(
     def flush(
         curr_toasts,
         curr_cy_eles,
-        curr_done_flushing,
         cc_drawing_selection_type,
         size_ranks,
-        node_name,
+        node_names,
         draw_settings,
         draw_btn_n_clicks,
     ):
@@ -1302,21 +1321,21 @@ def run(
                 )
             cc_selection_params = {"cc_size_ranks": srs}
 
-        elif cc_drawing_selection_type == "ccDrawingNodeName":
+        elif cc_drawing_selection_type == "ccDrawingNodeNames":
             # looks like not typing in the node name field at all results
-            # in node_name being None. However, if we type something in and
-            # then fully delete it, then node_name becomes "". Eesh!
-            if node_name is None or node_name == "":
+            # in node_names being None. However, if we type something in and
+            # then fully delete it, then node_names becomes "". Eesh!
+            if node_names is None or node_names == "":
                 return (
                     ui_utils.add_error_toast(
                         curr_toasts,
-                        "Empty node name",
-                        "No node name specified.",
+                        "Empty node names",
+                        "No node name(s) specified.",
                     ),
                     curr_cy_eles,
                     {"requestGood": False},
                 )
-            cc_selection_params = {"cc_node_name": node_name}
+            cc_selection_params = {"cc_node_names": node_names}
 
         # if something goes wrong during cc selection, propagate the result to
         # a toast message in the browser without changing the cytoscape div.
@@ -1360,12 +1379,19 @@ def run(
     @callback(
         Output("cy", "elements", allow_duplicate=True),
         Output("currDrawnText", "children"),
+        Output("currDrawnInfo", "data"),
         State("cy", "elements"),
         State("currDrawnText", "children"),
+        State("currDrawnInfo", "data"),
         Input("doneFlushing", "data"),
         prevent_initial_call=True,
     )
-    def draw(curr_cy_eles, curr_curr_drawn_text, curr_done_flushing):
+    def draw(
+        curr_cy_eles,
+        curr_curr_drawn_text,
+        curr_curr_drawn_info,
+        curr_done_flushing,
+    ):
         # as far as I can tell, this gets triggered whenever doneFlushing is
         # updated -- even if it is updated to the exact same thing as it was
         # before. To avoid making us redraw the entire graph if the user just
@@ -1389,10 +1415,15 @@ def run(
             return (
                 new_cy_eles,
                 f"Currently drawn: {ui_utils.fmt_num_ranges(cc_nums)}",
+                {"cc_nums": cc_nums},
             )
         else:
             logging.debug("Caught a bad drawing request. Not redrawing.")
-            return curr_cy_eles, curr_curr_drawn_text
+            return (
+                curr_cy_eles,
+                curr_curr_drawn_text,
+                curr_curr_drawn_info,
+            )
 
     # It looks like Bootstrap requires us to use JS to show the toast. If we
     # try to show it ourselves (by just adding the "show" class when creating
@@ -1470,6 +1501,140 @@ def run(
         }
         """,
         Input("fitSelectedButton", "n_clicks"),
+        prevent_initial_call=True,
+    )
+
+    @callback(
+        Output("toastHolder", "children", allow_duplicate=True),
+        Output("nodeSelectionInfo", "data"),
+        State("toastHolder", "children"),
+        State("searchInput", "value"),
+        State("currDrawnInfo", "data"),
+        Input("searchButton", "n_clicks"),
+        Input("searchInput", "n_submit"),
+        prevent_initial_call=True,
+    )
+    def check_nodes_for_search(
+        curr_toasts, node_names, curr_curr_drawn_info, n_clicks, n_submit
+    ):
+        if node_names is None or node_names == "":
+            return (
+                ui_utils.add_error_toast(
+                    curr_toasts,
+                    "Empty node names",
+                    "No node names specified.",
+                ),
+                {"requestGood": False},
+            )
+        else:
+            try:
+                nn2ccnum = ag.get_nodename2ccnum(node_names)
+            except UIError as err:
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts, "Node search error", str(err)
+                    ),
+                    {"requestGood": False},
+                )
+            cc_nums = set(nn2ccnum.values())
+            # Find which, if any, of the requested cc_nums are currently drawn
+            if (
+                curr_curr_drawn_info is not None
+                and "cc_nums" in curr_curr_drawn_info
+            ):
+                curr_drawn_cc_nums = set(curr_curr_drawn_info["cc_nums"])
+            else:
+                curr_drawn_cc_nums = set()
+            notdrawn_cc_nums = cc_nums - curr_drawn_cc_nums
+            # TODO this error message stinks, make it better -
+            # distinguish 1-node vs. multi-node case
+            if len(notdrawn_cc_nums) == len(cc_nums):
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts,
+                        "Nodes not drawn",
+                        (
+                            "None of these nodes are currently drawn. "
+                            "They are in these components: "
+                            f"{', '.join(str(c) for c in cc_nums)}"
+                        ),
+                    ),
+                    {"requestGood": False},
+                )
+            toasts = curr_toasts
+            if len(notdrawn_cc_nums) > 0:
+                # Same here make this err message better depending
+                # on how many nodes are missing
+                # Also this should be a warning not an error. Vary
+                # the toast icon i guess?
+                toasts = ui_utils.add_error_toast(
+                    curr_toasts,
+                    "Nodes not drawn",
+                    (
+                        "Some of these nodes are not currently drawn. "
+                        "They are in these components: "
+                        f"{', '.join(str(c) for c in notdrawn_cc_nums)}"
+                    ),
+                )
+            # TODO this is lazy, and we can combine it with the work above
+            nodes_to_select = []
+            for n in nn2ccnum:
+                if nn2ccnum[n] in curr_drawn_cc_nums:
+                    nodes_to_select.append(n)
+            logging.debug(str(nodes_to_select))
+            return (
+                toasts,
+                {"requestGood": True, "nodesToSelect": nodes_to_select},
+            )
+
+    clientside_callback(
+        """
+        function(nodeSelectionInfo) {
+            if (!nodeSelectionInfo["requestGood"]) {
+                console.log("Caught a bad search request.");
+            } else {
+                let cy = document.getElementById("cy")._cyreg.cy;
+                let eles = cy.collection();
+                for (var i = 0; i < nodeSelectionInfo["nodesToSelect"].length; i++) {
+                    let nodename = nodeSelectionInfo["nodesToSelect"][i];
+                    // BE VERY CAREFUL about escaping strings here with
+                    // backslashes. This can cause Dash to jank out with
+                    // this infuriatingly vague error:
+                    // https://community.plotly.com/t/clientside-callback-example-with-js-function-throws-cannot-read-property-apply-of-undefined-error/44411
+                    //
+                    // Also, including three queries to detect split nodes is
+                    // very silly. Maybe assign each node a "basename" property
+                    // or something in to_cyjs() to prevent the need for this?
+                    // Or maybe the space requirement from that is prohibitive.
+                    //
+                    // Also whenever you update this callback you have to use
+                    // like ctrl+shift+R or something to get rid of Dash's
+                    // cache. Otherwise you get the aforementioned terrible
+                    // vague error. Writing this function raised my blood
+                    // pressure i think
+                    newEles = cy.nodes(
+                        '[label="' + nodename + '"], ' +
+                        '[label="' + nodename + '-L"], ' +
+                        '[label="' + nodename + '-R"]'
+                    );
+                    if (newEles.empty()) {
+                        // I think we could show a toast here but that will
+                        // take some finagling
+                        alert(
+                            "Node with name " + nodename + " not currently " +
+                            "drawn? This should never happen by this point."
+                        );
+                        return;
+                    }
+                    eles = eles.union(newEles);
+                }
+                cy.fit(eles);
+                cy.filter(':selected').unselect();
+                eles.select();
+            }
+        }
+        """,
+        Input("nodeSelectionInfo", "data"),
         prevent_initial_call=True,
     )
 

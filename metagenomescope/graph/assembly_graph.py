@@ -2227,7 +2227,44 @@ class AssemblyGraph(object):
             fh.write(output_stats)
         conclude_msg()
 
-    def select_cc_nums(self, cc_size_ranks=None, cc_node_name=None):
+    def get_nodename2ccnum(self, node_name_text):
+        node_names_to_search = set(
+            n.strip() for n in node_name_text.split(",")
+        )
+        # Ignore ""s resulting from inputs like "node1,,node2"
+        # (later we'll case silly things like ",,,")
+        node_names_to_search.discard("")
+
+        # Find nums of components containing these nodes
+        # TODO this is inefficient b/c it searches through the
+        # entire graph. If it becomes a bottleneck, we could start
+        # saving a mapping of node name -> cc num or something?
+        nodename2ccnum = {}
+        for n in self.nodeid2obj.values():
+            if n.basename in node_names_to_search:
+                nodename2ccnum[n.basename] = n.cc_num
+                node_names_to_search.remove(n.basename)
+                if len(node_names_to_search) == 0:
+                    break
+
+        # TODO: it might be nice in the future to put the node names in these
+        # error messages in monospace, since it looks like bootstrap (?)'s
+        # formatting is collapsing spaces. but it's nbd (if your node names
+        # have spaces then something is already horrible)
+        if len(node_names_to_search) == 1:
+            n = node_names_to_search.pop()
+            raise UIError(f'Can\'t find a node with name "{n}" in the graph.')
+        elif len(node_names_to_search) > 1:
+            nt = ", ".join(f'"{n}"' for n in node_names_to_search)
+            raise UIError(f"Can't find nodes with names {nt} in the graph.")
+
+        # catch the evil ",,," case
+        if len(nodename2ccnum) == 0:
+            raise UIError("No node name(s) specified.")
+
+        return nodename2ccnum
+
+    def select_cc_nums(self, cc_size_ranks=None, cc_node_names=None):
         """Given some criteria, outputs a list of matching component numbers.
 
         Parameters
@@ -2239,7 +2276,7 @@ class AssemblyGraph(object):
             a list that can be easily JSON-ified for passing to the
             doneFlushing dcc.Store.
 
-        cc_node_name: str or None
+        cc_node_names: str or None
             Node name to search for in the graph. We'll select the component
             that contains a node with this name. (Nodes really should not have
             duplicate names, but in the freak event that this is the case,
@@ -2256,8 +2293,8 @@ class AssemblyGraph(object):
                entries of cc_size_ranks.
 
             2. If cc_node_names is not None, this will be just a list
-               containing the .cc_num of the component containing a node with
-               this name.
+               containing the .cc_nums of the component(s) containing nodes
+               with these names.
 
             3. If cc_size_ranks and cc_node_names are both None, this will be
                a list containing all components' .cc_num attributes.
@@ -2265,37 +2302,23 @@ class AssemblyGraph(object):
         Raises
         ------
         UIError
-            If the node specified by cc_node_name does not exist in the graph.
+            If any of the nodes specified by cc_node_names do not exist in the
+            graph.
 
         WeirdError
-            If both cc_size_ranks and cc_node_name are not None.
+            If both cc_size_ranks and cc_node_names are not None.
         """
         if cc_size_ranks is None:
-            if cc_node_name is None:
+            if cc_node_names is None:
                 # Select all ccs
                 cc_nums = [cc.cc_num for cc in self.components]
             else:
-                # Select a single cc, as the one that contains a node
-                # TODO this is inefficient b/c it searches through the
-                # entire graph. If it becomes a bottleneck, we could start
-                # saving a mapping of node name -> cc num or something?
-                cc_num = None
-                for n in self.nodeid2obj.values():
-                    if n.basename == cc_node_name:
-                        cc_num = n.cc_num
-                        break
-                if cc_num is None:
-                    # TODO: it might be nice in the future to put the node
-                    # name in monospace, since it looks like bootstrap (?)'s
-                    # formatting is collapsing spaces. but it's nbd (if your
-                    # node names have spaces something is already horrible)
-                    raise UIError(
-                        f'Can\'t find a node with name "{cc_node_name}" in '
-                        "the graph."
-                    )
-                cc_nums = [cc_num]
+                # Select ccs containing node names
+                cc_nums = list(
+                    set(self.get_nodename2ccnum(cc_node_names).values())
+                )
         else:
-            if cc_node_name is None:
+            if cc_node_names is None:
                 cc_nums = list(cc_size_ranks)
             else:
                 raise WeirdError("Both size rank(s) and node name specified?")
