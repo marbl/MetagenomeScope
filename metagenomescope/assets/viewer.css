@@ -161,7 +161,8 @@ body {
     -webkit-text-stroke: 2px;
 }
 
-.bi-check2-square {
+/* same deal for the search icons */
+.bi-search {
     -webkit-text-stroke: 1px;
 }
 

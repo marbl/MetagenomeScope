@@ -385,6 +385,20 @@ def run(
                         type="button",
                     ),
                     ctrl_sep,
+                    html.H4("Search"),
+                    dbc.InputGroup(
+                        [
+                            dbc.Input(
+                                id="searchInput", placeholder="Node name(s)"
+                            ),
+                            dbc.Button(
+                                html.I(className="bi bi-search"),
+                                id="searchButton",
+                                color="light",
+                            ),
+                        ]
+                    ),
+                    ctrl_sep,
                     html.H4(
                         "Colors",
                     ),
