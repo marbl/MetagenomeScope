@@ -1306,11 +1306,11 @@ def run(
             "Received request to draw the graph. Validating request."
         )
 
-        cc_selection_params = {}
-
         if cc_drawing_selection_type == "ccDrawingSizeRank":
             try:
-                srs = ui_utils.get_size_ranks(size_ranks, len(ag.components))
+                cc_nums = ui_utils.get_size_ranks(
+                    size_ranks, len(ag.components)
+                )
             except UIError as err:
                 return (
                     ui_utils.add_error_toast(
@@ -1319,37 +1319,20 @@ def run(
                     curr_cy_eles,
                     {"requestGood": False},
                 )
-            cc_selection_params = {"cc_size_ranks": srs}
-
         elif cc_drawing_selection_type == "ccDrawingNodeNames":
-            # looks like not typing in the node name field at all results
-            # in node_names being None. However, if we type something in and
-            # then fully delete it, then node_names becomes "". Eesh!
-            if node_names is None or node_names == "":
+            try:
+                nn2cn = ag.get_nodename2ccnum(node_names)
+            except UIError as err:
                 return (
                     ui_utils.add_error_toast(
-                        curr_toasts,
-                        "Empty node names",
-                        "No node name(s) specified.",
+                        curr_toasts, "Node search error", str(err)
                     ),
                     curr_cy_eles,
                     {"requestGood": False},
                 )
-            cc_selection_params = {"cc_node_names": node_names}
-
-        # if something goes wrong during cc selection, propagate the result to
-        # a toast message in the browser without changing the cytoscape div.
-        # Same idea as the calls to ui_utils.add_error_toast() above.
-        try:
-            cc_nums = ag.select_cc_nums(**cc_selection_params)
-        except UIError as err:
-            return (
-                ui_utils.add_error_toast(
-                    curr_toasts, "Node search error", str(err)
-                ),
-                curr_cy_eles,
-                {"requestGood": False},
-            )
+            cc_nums = set(nn2cn.values())
+        else:
+            cc_nums = range(1, len(ag.components) + 1)
 
         # Parse other (less easy to mess up) drawing options
         incl_patterns = False
@@ -1361,6 +1344,8 @@ def run(
         # graph seems good. Let's clear all elements in the graph and trigger
         # draw(), which will actually add new elements to the graph.
         ccn = "cc" if len(cc_nums) == 1 else "ccs"
+        # cc_nums has to be JSON-serializable
+        cc_nums = list(cc_nums)
         logging.debug(
             f"Request to draw {ccn} {ui_utils.fmt_num_ranges(cc_nums)} "
             "seems good; flushing the graph."
@@ -1517,75 +1502,65 @@ def run(
     def check_nodes_for_search(
         curr_toasts, node_names, curr_curr_drawn_info, n_clicks, n_submit
     ):
-        if node_names is None or node_names == "":
+        try:
+            nn2ccnum = ag.get_nodename2ccnum(node_names)
+        except UIError as err:
             return (
                 ui_utils.add_error_toast(
-                    curr_toasts,
-                    "Empty node names",
-                    "No node names specified.",
+                    curr_toasts, "Node search error", str(err)
                 ),
                 {"requestGood": False},
             )
+        cc_nums = set(nn2ccnum.values())
+        # Find which, if any, of the requested cc_nums are currently drawn
+        if (
+            curr_curr_drawn_info is not None
+            and "cc_nums" in curr_curr_drawn_info
+        ):
+            curr_drawn_cc_nums = set(curr_curr_drawn_info["cc_nums"])
         else:
-            try:
-                nn2ccnum = ag.get_nodename2ccnum(node_names)
-            except UIError as err:
-                return (
-                    ui_utils.add_error_toast(
-                        curr_toasts, "Node search error", str(err)
-                    ),
-                    {"requestGood": False},
-                )
-            cc_nums = set(nn2ccnum.values())
-            # Find which, if any, of the requested cc_nums are currently drawn
-            if (
-                curr_curr_drawn_info is not None
-                and "cc_nums" in curr_curr_drawn_info
-            ):
-                curr_drawn_cc_nums = set(curr_curr_drawn_info["cc_nums"])
-            else:
-                curr_drawn_cc_nums = set()
-            notdrawn_cc_nums = cc_nums - curr_drawn_cc_nums
-            # TODO this error message stinks, make it better -
-            # distinguish 1-node vs. multi-node case
-            if len(notdrawn_cc_nums) == len(cc_nums):
-                return (
-                    ui_utils.add_error_toast(
-                        curr_toasts,
-                        "Nodes not drawn",
-                        (
-                            "None of these nodes are currently drawn. "
-                            "They are in these components: "
-                            f"{', '.join(str(c) for c in cc_nums)}"
-                        ),
-                    ),
-                    {"requestGood": False},
-                )
-            toasts = curr_toasts
-            if len(notdrawn_cc_nums) > 0:
-                # Same here make this err message better depending
-                # on how many nodes are missing
-                # Also this should be a warning not an error. Vary
-                # the toast icon i guess?
-                toasts = ui_utils.add_error_toast(
+            curr_drawn_cc_nums = set()
+        notdrawn_cc_nums = cc_nums - curr_drawn_cc_nums
+        # TODO this error message stinks, make it better -
+        # distinguish 1-node vs. multi-node case
+        if len(notdrawn_cc_nums) == len(cc_nums):
+            return (
+                ui_utils.add_error_toast(
                     curr_toasts,
                     "Nodes not drawn",
                     (
-                        "Some of these nodes are not currently drawn. "
+                        "None of these nodes are currently drawn. "
                         "They are in these components: "
-                        f"{', '.join(str(c) for c in notdrawn_cc_nums)}"
+                        f"{', '.join(str(c) for c in cc_nums)}"
                     ),
-                )
-            # TODO this is lazy, and we can combine it with the work above
-            nodes_to_select = []
-            for n in nn2ccnum:
-                if nn2ccnum[n] in curr_drawn_cc_nums:
-                    nodes_to_select.append(n)
-            logging.debug(str(nodes_to_select))
-            return (
-                toasts,
-                {"requestGood": True, "nodesToSelect": nodes_to_select},
+                ),
+                {"requestGood": False},
             )
+        toasts = curr_toasts
+        if len(notdrawn_cc_nums) > 0:
+            # Same here make this err message better depending
+            # on how many nodes are missing
+            # Also this should be a warning not an error. Vary
+            # the toast icon i guess?
+            toasts = ui_utils.add_error_toast(
+                curr_toasts,
+                "Nodes not drawn",
+                (
+                    "Some of these nodes are not currently drawn. "
+                    "They are in these components: "
+                    f"{', '.join(str(c) for c in notdrawn_cc_nums)}"
+                ),
+            )
+        # TODO this is lazy, and we can combine it with the work above
+        nodes_to_select = []
+        for n in nn2ccnum:
+            if nn2ccnum[n] in curr_drawn_cc_nums:
+                nodes_to_select.append(n)
+        logging.debug(str(nodes_to_select))
+        return (
+            toasts,
+            {"requestGood": True, "nodesToSelect": nodes_to_select},
+        )
 
     clientside_callback(
         """

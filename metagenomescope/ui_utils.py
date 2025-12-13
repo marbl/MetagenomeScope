@@ -394,8 +394,6 @@ def _get_range_text(r):
 def fmt_num_ranges(nums):
     if len(nums) == 1:
         return f"#{nums[0]:,}"
-    # we MIGHT be able to assume that the input cc nums list is sorted but
-    # whatever it's safer to just be paranoid and sort anyway
     nums = sorted(nums)
     i = 0
     curr_range = []

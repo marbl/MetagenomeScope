@@ -2228,6 +2228,9 @@ class AssemblyGraph(object):
         conclude_msg()
 
     def get_nodename2ccnum(self, node_name_text):
+        if node_name_text is None or len(node_name_text) == 0:
+            raise UIError("No node name(s) specified.")
+
         node_names_to_search = set(
             n.strip() for n in node_name_text.split(",")
         )
@@ -2263,67 +2266,6 @@ class AssemblyGraph(object):
             raise UIError("No node name(s) specified.")
 
         return nodename2ccnum
-
-    def select_cc_nums(self, cc_size_ranks=None, cc_node_names=None):
-        """Given some criteria, outputs a list of matching component numbers.
-
-        Parameters
-        ----------
-        cc_size_ranks: collection of int or None
-            List of component number(s) to select. Um, since this function's
-            purpose is to output the numbers of selected components, we don't
-            do all that much if you pass this here besides converting it to
-            a list that can be easily JSON-ified for passing to the
-            doneFlushing dcc.Store.
-
-        cc_node_names: str or None
-            Node name to search for in the graph. We'll select the component
-            that contains a node with this name. (Nodes really should not have
-            duplicate names, but in the freak event that this is the case,
-            we will break as soon as we find the first component containing a
-            node with this name.)
-
-        Returns
-        -------
-        list of int
-            Matching component .cc_num attributes. This will be selected based
-            on one of three methods:
-
-            1. If cc_size_ranks is not None, this will be a list containing the
-               entries of cc_size_ranks.
-
-            2. If cc_node_names is not None, this will be just a list
-               containing the .cc_nums of the component(s) containing nodes
-               with these names.
-
-            3. If cc_size_ranks and cc_node_names are both None, this will be
-               a list containing all components' .cc_num attributes.
-
-        Raises
-        ------
-        UIError
-            If any of the nodes specified by cc_node_names do not exist in the
-            graph.
-
-        WeirdError
-            If both cc_size_ranks and cc_node_names are not None.
-        """
-        if cc_size_ranks is None:
-            if cc_node_names is None:
-                # Select all ccs
-                cc_nums = [cc.cc_num for cc in self.components]
-            else:
-                # Select ccs containing node names
-                cc_nums = list(
-                    set(self.get_nodename2ccnum(cc_node_names).values())
-                )
-        else:
-            if cc_node_names is None:
-                cc_nums = list(cc_size_ranks)
-            else:
-                raise WeirdError("Both size rank(s) and node name specified?")
-
-        return cc_nums
 
     def to_cyjs(self, cc_nums, incl_patterns=True):
         """Converts the graph's elements to a Cytoscape.js-compatible format.
