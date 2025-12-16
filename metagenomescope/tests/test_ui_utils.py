@@ -408,3 +408,39 @@ def test_get_node_names():
     assert uu.get_node_names("node_1") == {"node_1"}
     assert uu.get_node_names("3") == {"3"}
     assert uu.get_node_names("4,,,,  ,,,,,,4,") == {"4"}
+
+
+def test_get_node_names_empty():
+    exp_err = "No node name(s) specified."
+
+    with pytest.raises(UIError) as ei:
+        uu.get_node_names(None)
+    assert str(ei.value) == exp_err
+
+    with pytest.raises(UIError) as ei:
+        uu.get_node_names("")
+    assert str(ei.value) == exp_err
+
+    with pytest.raises(UIError) as ei:
+        uu.get_node_names("         \t ")
+    assert str(ei.value) == exp_err
+
+    with pytest.raises(UIError) as ei:
+        uu.get_node_names("         \t ")
+    assert str(ei.value) == exp_err
+
+
+def test_get_node_names_just_empty_entries():
+    exp_err = "No node name(s) specified."
+
+    with pytest.raises(UIError) as ei:
+        uu.get_node_names(",,,,,,,,,,,")
+    assert str(ei.value) == exp_err
+
+    with pytest.raises(UIError) as ei:
+        uu.get_node_names(",,,,,,,,,     ,,")
+    assert str(ei.value) == exp_err
+
+    with pytest.raises(UIError) as ei:
+        uu.get_node_names(",")
+    assert str(ei.value) == exp_err
