@@ -299,7 +299,15 @@ def run(
                                         ),
                                     ],
                                     id="ccDrawingUl",
-                                    className="dropdown-menu dropdown-menu-sm",
+                                    # position-fixed is needed to make the
+                                    # dropdown menu escape the control panel
+                                    # when zoomed in super far: this fixes
+                                    # https://github.com/marbl/MetagenomeScope/issues/270
+                                    # I tried a billion other things and none
+                                    # of them worked, except for this one.
+                                    # God alone knows why. Shoutouts to
+                                    # https://stackoverflow.com/a/74794768.
+                                    className="dropdown-menu dropdown-menu-sm position-fixed",
                                     style={"font-size": "0.85em"},
                                 ),
                             ],
