@@ -30,7 +30,7 @@ body {
     overflow: hidden;
 }
 
-#controls *:not(.ctrlSep, .btn-group *) {
+#controls *:not(.ctrlSep, .btn-group *, #innerControlsDivForBorder) {
  /* Add some space between elements in the control panel and the horizontal
   * boundaries of the panel. (Don't capture .ctrlSep things, though,
   * which should span the entire horizontal width of the panel.)

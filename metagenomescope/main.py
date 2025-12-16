@@ -184,333 +184,352 @@ def run(
             ),
             # controls
             html.Div(
-                [
-                    html.H4(
-                        ag.basename,
-                        className="font-monospace",
-                        style={
-                            "margin-top": "2em",
-                            # If the user passes in a graph with a really
-                            # long filename, split it over multiple lines.
-                            # There are multiple ways to do this in CSS but
-                            # this seems best for this purpose:
-                            # https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_text/Wrapping_breaking_text
-                            "word-break": "break-all",
-                        },
-                    ),
-                    html.P(
-                        [
-                            f"{ui_utils.pluralize(ag.node_ct, 'node')}, "
-                            f"{ui_utils.pluralize(ag.edge_ct, 'edge')}."
-                        ]
-                    ),
-                    html.P(
-                        f"{ui_utils.pluralize(len(ag.components), 'component')}."
-                    ),
-                    html.P(
-                        html.Span(
-                            "Nothing currently drawn.", id="currDrawnText"
+                # inner div containing everything. We structure things
+                # this way so that the scrollbar is shown outside, i.e.
+                # to the right of, the inner div's border -- if you just
+                # put a border and a scrollbar on the same div, then the
+                # scrollbar occurs inside the border, which looks gross imo
+                # https://stackoverflow.com/a/27150900
+                html.Div(
+                    [
+                        html.H4(
+                            ag.basename,
+                            className="font-monospace",
+                            style={
+                                "margin-top": "2em",
+                                # If the user passes in a graph with a really
+                                # long filename, split it over multiple lines.
+                                # There are multiple ways to do this in CSS but
+                                # this seems best for this purpose:
+                                # https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_text/Wrapping_breaking_text
+                                "word-break": "break-all",
+                            },
                         ),
-                    ),
-                    ctrl_sep_invis,
-                    html.P(
-                        [
-                            html.Button(
-                                [
-                                    html.I(className="bi bi-grid-1x2-fill"),
-                                    html.Span(
-                                        "Graph info", className="iconlbl"
-                                    ),
-                                ],
-                                id="infoButton",
-                                className="btn btn-light",
-                                type="button",
-                                **{
-                                    "data-bs-toggle": "modal",
-                                    "data-bs-target": "#infoDialog",
-                                },
-                            )
-                        ],
-                    ),
-                    ctrl_sep,
-                    html.H4("Draw"),
-                    # https://getbootstrap.com/docs/5.3/components/dropdowns/#single-button
-                    html.Div(
-                        [
-                            html.Button(
-                                cc_selection_options[
-                                    DEFAULT_CC_SELECTION_METHOD
-                                ],
-                                className="btn btn-sm btn-light dropdown-toggle",
-                                id="ccDrawingSelect",
-                                type="button",
-                                style={"width": "100%"},
-                                # We'll update the button's value along with its
-                                # children when the user selects a drawing method.
-                                # The value is used by our code to determine the
-                                # currently-selected drawing method.
-                                value=DEFAULT_CC_SELECTION_METHOD,
-                                **{
-                                    "data-bs-toggle": "dropdown",
-                                    "aria-expanded": "false",
-                                },
-                            ),
-                            html.Ul(
-                                [
-                                    html.Li(
-                                        html.A(
-                                            cc_selection_options[
-                                                "ccDrawingSizeRank"
-                                            ],
-                                            className=CC_SELECTION_A_CLASSES_MULTIPLE_CCS,
-                                            id="ccDrawingSizeRank",
-                                            **CC_SELECTION_A_ATTRS_MULTIPLE_CCS,
-                                        ),
-                                    ),
-                                    html.Li(
-                                        html.A(
-                                            cc_selection_options[
-                                                "ccDrawingNodeNames"
-                                            ],
-                                            className=CC_SELECTION_A_CLASSES_MULTIPLE_CCS,
-                                            id="ccDrawingNodeNames",
-                                            **CC_SELECTION_A_ATTRS_MULTIPLE_CCS,
-                                        ),
-                                    ),
-                                    html.Li(
-                                        html.A(
-                                            cc_selection_options[
-                                                "ccDrawingAll"
-                                            ],
-                                            className="dropdown-item",
-                                            id="ccDrawingAll",
-                                        ),
-                                    ),
-                                ],
-                                id="ccDrawingUl",
-                                className="dropdown-menu dropdown-menu-sm",
-                                style={"font-size": "0.85em"},
-                            ),
-                        ],
-                        className="dropdown",
-                    ),
-                    html.Div(
-                        [
-                            html.Button(
-                                html.I(className="bi bi-dash-lg"),
-                                id="ccSizeRankDecrBtn",
-                                # might add borders to the sides of these later
-                                className="btn btn-light cc-size-rank-adj",
-                                type="button",
-                            ),
-                            # dash doesn't have a html.Input thing like it
-                            # does for other HTML tags, so we use dcc.Input
-                            # which apparently is close enough
-                            # (https://github.com/plotly/dash/issues/2791)
-                            dcc.Input(
-                                type="text",
-                                id="ccSizeRankSelector",
-                                className="form-control",
-                                value="1",
-                                placeholder="Size rank(s)",
-                            ),
-                            html.Button(
-                                html.I(className="bi bi-plus-lg"),
-                                id="ccSizeRankIncrBtn",
-                                className="btn btn-light cc-size-rank-adj",
-                                type="button",
-                            ),
-                        ],
-                        id="ccSizeRankSelectorEles",
-                        className=css_config.CC_SELECTOR_ELES_CLASSES
-                        + (
-                            " hidden"
-                            if "ccDrawingSizeRank"
-                            != DEFAULT_CC_SELECTION_METHOD
-                            else ""
+                        html.P(
+                            [
+                                f"{ui_utils.pluralize(ag.node_ct, 'node')}, "
+                                f"{ui_utils.pluralize(ag.edge_ct, 'edge')}."
+                            ]
                         ),
-                    ),
-                    html.Div(
-                        [
-                            dcc.Input(
-                                type="text",
-                                id="ccNodeNameSelector",
-                                className="form-control",
-                                placeholder="Node name(s)",
-                            ),
-                        ],
-                        id="ccNodeNameSelectorEles",
-                        className=css_config.CC_SELECTOR_ELES_CLASSES
-                        + (
-                            " hidden"
-                            if "ccDrawingNodeNames"
-                            != DEFAULT_CC_SELECTION_METHOD
-                            else ""
+                        html.P(
+                            f"{ui_utils.pluralize(len(ag.components), 'component')}."
                         ),
-                    ),
-                    html.Div(
-                        [
-                            # I'm sticking with a standard dcc.Checklist
-                            # (rather than dbc.Checklist) because I don't
-                            # like the default formatting of their inline
-                            # checklists. Even after doing some massaging
-                            # to make the margins better, there is still an
-                            # ugly unclickable region between the checkbox
-                            # and label... maybe I am just doing something
-                            # wrong, but I think the UX of the dcc.Checklist
-                            # is better.
-                            dcc.Checklist(
-                                options=[
-                                    {
-                                        "label": "Show patterns",
-                                        "value": ui_config.SHOW_PATTERNS,
-                                    },
-                                ],
-                                value=ui_config.DEFAULT_DRAW_SETTINGS,
-                                id="drawSettingsChecklist",
-                            )
-                        ],
-                        className="form-check",
-                    ),
-                    html.Button(
-                        [
-                            html.I(className="bi bi-brush-fill"),
+                        html.P(
                             html.Span(
-                                "Draw",
-                                className="iconlbl",
+                                "Nothing currently drawn.",
+                                id="currDrawnText",
                             ),
-                        ],
-                        id="drawButton",
-                        className="btn btn-light",
-                        type="button",
-                    ),
-                    ctrl_sep,
-                    html.H4("Search"),
-                    dbc.InputGroup(
-                        [
-                            dbc.Input(
-                                id="searchInput", placeholder="Node name(s)"
-                            ),
-                            dbc.Button(
-                                html.I(className="bi bi-search"),
-                                id="searchButton",
-                                color="light",
-                            ),
-                        ]
-                    ),
-                    ctrl_sep,
-                    html.H4(
-                        "Colors",
-                    ),
-                    ctrl_sep_invis,
-                    html.H5(
-                        "Nodes",
-                    ),
-                    html.Div(
-                        [
-                            # See section "RadioItems as ButtonGroup" on
-                            # https://www.dash-bootstrap-components.com/docs/components/button_group/
-                            dbc.RadioItems(
-                                options=[
-                                    {
-                                        "label": colorful_random_text,
-                                        "value": ui_config.COLORING_RANDOM,
+                        ),
+                        ctrl_sep_invis,
+                        html.P(
+                            [
+                                html.Button(
+                                    [
+                                        html.I(
+                                            className="bi bi-grid-1x2-fill"
+                                        ),
+                                        html.Span(
+                                            "Graph info",
+                                            className="iconlbl",
+                                        ),
+                                    ],
+                                    id="infoButton",
+                                    className="btn btn-light",
+                                    type="button",
+                                    **{
+                                        "data-bs-toggle": "modal",
+                                        "data-bs-target": "#infoDialog",
                                     },
-                                    {
-                                        "label": "Uniform",
-                                        "value": ui_config.COLORING_UNIFORM,
+                                )
+                            ],
+                        ),
+                        ctrl_sep,
+                        html.H4("Draw"),
+                        # https://getbootstrap.com/docs/5.3/components/dropdowns/#single-button
+                        html.Div(
+                            [
+                                html.Button(
+                                    cc_selection_options[
+                                        DEFAULT_CC_SELECTION_METHOD
+                                    ],
+                                    className="btn btn-sm btn-light dropdown-toggle",
+                                    id="ccDrawingSelect",
+                                    type="button",
+                                    style={"width": "100%"},
+                                    # We'll update the button's value along with its
+                                    # children when the user selects a drawing method.
+                                    # The value is used by our code to determine the
+                                    # currently-selected drawing method.
+                                    value=DEFAULT_CC_SELECTION_METHOD,
+                                    **{
+                                        "data-bs-toggle": "dropdown",
+                                        "aria-expanded": "false",
                                     },
-                                ],
-                                value=ui_config.DEFAULT_NODE_COLORING,
-                                className="btn-group",
-                                inputClassName="btn-check",
-                                labelClassName="btn btn-sm btn-outline-light",
-                                labelCheckedClassName="active",
-                                id="nodeColorRadio",
+                                ),
+                                html.Ul(
+                                    [
+                                        html.Li(
+                                            html.A(
+                                                cc_selection_options[
+                                                    "ccDrawingSizeRank"
+                                                ],
+                                                className=CC_SELECTION_A_CLASSES_MULTIPLE_CCS,
+                                                id="ccDrawingSizeRank",
+                                                **CC_SELECTION_A_ATTRS_MULTIPLE_CCS,
+                                            ),
+                                        ),
+                                        html.Li(
+                                            html.A(
+                                                cc_selection_options[
+                                                    "ccDrawingNodeNames"
+                                                ],
+                                                className=CC_SELECTION_A_CLASSES_MULTIPLE_CCS,
+                                                id="ccDrawingNodeNames",
+                                                **CC_SELECTION_A_ATTRS_MULTIPLE_CCS,
+                                            ),
+                                        ),
+                                        html.Li(
+                                            html.A(
+                                                cc_selection_options[
+                                                    "ccDrawingAll"
+                                                ],
+                                                className="dropdown-item",
+                                                id="ccDrawingAll",
+                                            ),
+                                        ),
+                                    ],
+                                    id="ccDrawingUl",
+                                    className="dropdown-menu dropdown-menu-sm",
+                                    style={"font-size": "0.85em"},
+                                ),
+                            ],
+                            className="dropdown",
+                        ),
+                        html.Div(
+                            [
+                                html.Button(
+                                    html.I(className="bi bi-dash-lg"),
+                                    id="ccSizeRankDecrBtn",
+                                    # might add borders to the sides of these later
+                                    className="btn btn-light cc-size-rank-adj",
+                                    type="button",
+                                ),
+                                # dash doesn't have a html.Input thing like it
+                                # does for other HTML tags, so we use dcc.Input
+                                # which apparently is close enough
+                                # (https://github.com/plotly/dash/issues/2791)
+                                dcc.Input(
+                                    type="text",
+                                    id="ccSizeRankSelector",
+                                    className="form-control",
+                                    value="1",
+                                    placeholder="Size rank(s)",
+                                ),
+                                html.Button(
+                                    html.I(className="bi bi-plus-lg"),
+                                    id="ccSizeRankIncrBtn",
+                                    className="btn btn-light cc-size-rank-adj",
+                                    type="button",
+                                ),
+                            ],
+                            id="ccSizeRankSelectorEles",
+                            className=css_config.CC_SELECTOR_ELES_CLASSES
+                            + (
+                                " hidden"
+                                if "ccDrawingSizeRank"
+                                != DEFAULT_CC_SELECTION_METHOD
+                                else ""
                             ),
-                        ],
-                        className="radio-group",
-                    ),
-                    ctrl_sep_invis,
-                    html.H5(
-                        "Edges",
-                    ),
-                    html.Div(
-                        [
-                            dbc.RadioItems(
-                                options=[
-                                    {
-                                        "label": colorful_random_text,
-                                        "value": ui_config.COLORING_RANDOM,
-                                    },
-                                    {
-                                        "label": "Uniform",
-                                        "value": ui_config.COLORING_UNIFORM,
-                                    },
-                                ],
-                                value=ui_config.DEFAULT_EDGE_COLORING,
-                                className="btn-group",
-                                inputClassName="btn-check",
-                                labelClassName="btn btn-sm btn-outline-light",
-                                labelCheckedClassName="active",
-                                id="edgeColorRadio",
+                        ),
+                        html.Div(
+                            [
+                                dcc.Input(
+                                    type="text",
+                                    id="ccNodeNameSelector",
+                                    className="form-control",
+                                    placeholder="Node name(s)",
+                                ),
+                            ],
+                            id="ccNodeNameSelectorEles",
+                            className=css_config.CC_SELECTOR_ELES_CLASSES
+                            + (
+                                " hidden"
+                                if "ccDrawingNodeNames"
+                                != DEFAULT_CC_SELECTION_METHOD
+                                else ""
                             ),
-                        ],
-                        className="radio-group",
-                    ),
-                    ctrl_sep,
-                    html.H4("Screenshots"),
-                    html.Div(
-                        [
-                            html.Div(
-                                [
-                                    dbc.RadioItems(
-                                        options=[
-                                            {
-                                                "label": "PNG",
-                                                "value": ui_config.SCREENSHOT_PNG,
-                                            },
-                                            {
-                                                "label": "JPG",
-                                                "value": ui_config.SCREENSHOT_JPG,
-                                            },
-                                            {
-                                                "label": "SVG",
-                                                "value": ui_config.SCREENSHOT_SVG,
-                                            },
-                                        ],
-                                        value=ui_config.DEFAULT_SCREENSHOT_FILETYPE,
-                                        className="btn-group",
-                                        inputClassName="btn-check",
-                                        labelClassName="btn btn-sm btn-outline-light",
-                                        labelCheckedClassName="active",
-                                        id="imageTypeRadio",
-                                    ),
-                                ],
-                                className="radio-group",
-                                # Needed in order to allow these buttons to be
-                                # on the same line as the export button. i
-                                # don't know why exactly this works - it was
-                                # in the CSS for .btn-group for old mgsc, so
-                                # I guess this is from Bootstrap 3.3? Old magic
-                                style={"display": "inline-block"},
-                            ),
-                            html.Button(
-                                [
-                                    html.I(className="bi bi-camera-fill"),
-                                    html.Span(
-                                        "Save",
-                                        className="iconlbl",
-                                    ),
-                                ],
-                                id="panelExportButton",
-                                className="btn btn-light",
-                                type="button",
-                            ),
-                        ],
-                    ),
-                    ctrl_sep,
-                ],
+                        ),
+                        html.Div(
+                            [
+                                # I'm sticking with a standard dcc.Checklist
+                                # (rather than dbc.Checklist) because I don't
+                                # like the default formatting of their inline
+                                # checklists. Even after doing some massaging
+                                # to make the margins better, there is still an
+                                # ugly unclickable region between the checkbox
+                                # and label... maybe I am just doing something
+                                # wrong, but I think the UX of the dcc.Checklist
+                                # is better.
+                                dcc.Checklist(
+                                    options=[
+                                        {
+                                            "label": "Show patterns",
+                                            "value": ui_config.SHOW_PATTERNS,
+                                        },
+                                    ],
+                                    value=ui_config.DEFAULT_DRAW_SETTINGS,
+                                    id="drawSettingsChecklist",
+                                )
+                            ],
+                            className="form-check",
+                        ),
+                        html.Button(
+                            [
+                                html.I(className="bi bi-brush-fill"),
+                                html.Span(
+                                    "Draw",
+                                    className="iconlbl",
+                                ),
+                            ],
+                            id="drawButton",
+                            className="btn btn-light",
+                            type="button",
+                        ),
+                        ctrl_sep,
+                        html.H4("Search"),
+                        dbc.InputGroup(
+                            [
+                                dbc.Input(
+                                    id="searchInput",
+                                    placeholder="Node name(s)",
+                                ),
+                                dbc.Button(
+                                    html.I(className="bi bi-search"),
+                                    id="searchButton",
+                                    color="light",
+                                ),
+                            ]
+                        ),
+                        ctrl_sep,
+                        html.H4(
+                            "Colors",
+                        ),
+                        ctrl_sep_invis,
+                        html.H5(
+                            "Nodes",
+                        ),
+                        html.Div(
+                            [
+                                # See section "RadioItems as ButtonGroup" on
+                                # https://www.dash-bootstrap-components.com/docs/components/button_group/
+                                dbc.RadioItems(
+                                    options=[
+                                        {
+                                            "label": colorful_random_text,
+                                            "value": ui_config.COLORING_RANDOM,
+                                        },
+                                        {
+                                            "label": "Uniform",
+                                            "value": ui_config.COLORING_UNIFORM,
+                                        },
+                                    ],
+                                    value=ui_config.DEFAULT_NODE_COLORING,
+                                    className="btn-group",
+                                    inputClassName="btn-check",
+                                    labelClassName="btn btn-sm btn-outline-light",
+                                    labelCheckedClassName="active",
+                                    id="nodeColorRadio",
+                                ),
+                            ],
+                            className="radio-group",
+                        ),
+                        ctrl_sep_invis,
+                        html.H5(
+                            "Edges",
+                        ),
+                        html.Div(
+                            [
+                                dbc.RadioItems(
+                                    options=[
+                                        {
+                                            "label": colorful_random_text,
+                                            "value": ui_config.COLORING_RANDOM,
+                                        },
+                                        {
+                                            "label": "Uniform",
+                                            "value": ui_config.COLORING_UNIFORM,
+                                        },
+                                    ],
+                                    value=ui_config.DEFAULT_EDGE_COLORING,
+                                    className="btn-group",
+                                    inputClassName="btn-check",
+                                    labelClassName="btn btn-sm btn-outline-light",
+                                    labelCheckedClassName="active",
+                                    id="edgeColorRadio",
+                                ),
+                            ],
+                            className="radio-group",
+                        ),
+                        ctrl_sep,
+                        html.H4("Screenshots"),
+                        html.Div(
+                            [
+                                html.Div(
+                                    [
+                                        dbc.RadioItems(
+                                            options=[
+                                                {
+                                                    "label": "PNG",
+                                                    "value": ui_config.SCREENSHOT_PNG,
+                                                },
+                                                {
+                                                    "label": "JPG",
+                                                    "value": ui_config.SCREENSHOT_JPG,
+                                                },
+                                                {
+                                                    "label": "SVG",
+                                                    "value": ui_config.SCREENSHOT_SVG,
+                                                },
+                                            ],
+                                            value=ui_config.DEFAULT_SCREENSHOT_FILETYPE,
+                                            className="btn-group",
+                                            inputClassName="btn-check",
+                                            labelClassName="btn btn-sm btn-outline-light",
+                                            labelCheckedClassName="active",
+                                            id="imageTypeRadio",
+                                        ),
+                                    ],
+                                    className="radio-group",
+                                    # Needed in order to allow these buttons to be
+                                    # on the same line as the export button. i
+                                    # don't know why exactly this works - it was
+                                    # in the CSS for .btn-group for old mgsc, so
+                                    # I guess this is from Bootstrap 3.3? Old magic
+                                    style={"display": "inline-block"},
+                                ),
+                                html.Button(
+                                    [
+                                        html.I(className="bi bi-camera-fill"),
+                                        html.Span(
+                                            "Save",
+                                            className="iconlbl",
+                                        ),
+                                    ],
+                                    id="panelExportButton",
+                                    className="btn btn-light",
+                                    type="button",
+                                ),
+                            ],
+                        ),
+                        ctrl_sep,
+                    ],
+                    id="innerControlsDivForBorder",
+                    style={
+                        "border-right": f"{css_config.CONTROLS_BORDER_THICKNESS} solid #002",
+                        "background-color": "#123",
+                        "width": "100%",
+                    },
+                ),
                 id="controls",
                 style={
                     "position": "absolute",
@@ -518,14 +537,17 @@ def run(
                     "bottom": "0em",
                     "left": "0em",
                     "width": css_config.CONTROLS_WIDTH,
-                    "text-align": "center",
+                    "height": "100%",
+                    # seems to help force the inner div to span the entire
+                    # page height - https://stackoverflow.com/a/52408006
+                    "display": "grid",
                     # only show the scrollbar when needed - firefox doesn't
                     # seem to need this, but chrome does
                     "overflow-y": "auto",
+                    "text-align": "center",
                     "z-index": "1",
-                    "background-color": "#123",
                     "color": "#ccc",
-                    "border-right": f"{css_config.CONTROLS_BORDER_THICKNESS} solid #002",
+                    "background-color": "#002",
                     "transition": f"left {css_config.CONTROLS_TRANSITION_DURATION}",
                 },
                 className="",
