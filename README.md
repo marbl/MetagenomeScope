@@ -218,10 +218,11 @@ then that's also fine, and we'll visualize all of them.)
 <details>
   <summary><strong>FAQ 4. What do you mean by a component's "size rank"?</strong></summary>
 
-Given a graph with _N_ connected components we sort these components by the number of
-nodes they contain, from high to low. We then assign each of these components a _size rank_,
-a number from 1 to _N_: the component with size rank #1 corresponds to the largest component,
-and the component with size rank #_N_ corresponds to the smallest component.
+Given a graph with _N_ connected components: we sort these components by the number of
+nodes they contain, from high to low. We then assign each of these components a
+**size rank**, a number from 1 to _N_: the component with size rank #1 corresponds
+to the largest component, and the component with size rank #_N_ corresponds to the
+smallest component.
 
 Often, we only care about looking at individual components in a graph -- laying out
 and drawing the entire graph is not always a good idea when the graph is massive.
