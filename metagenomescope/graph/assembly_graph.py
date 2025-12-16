@@ -2228,13 +2228,57 @@ class AssemblyGraph(object):
         conclude_msg()
 
     def get_nodename2ccnum(self, node_name_text):
+        """Returns a mapping of node names to cc nums, given some node names.
+
+        Parameters
+        ----------
+        node_name_text: str
+            Text input by the user. This should be a comma-separated list of
+            node names.
+
+        Returns
+        -------
+        dict
+            Maps node names (strings) to their corresponding component numbers
+            (ints).
+
+        Raises
+        ------
+        UIError
+            If the input text is malformed in some way (see
+            ui_utils.get_node_names()).
+
+            If the input text contains at least one name that does not
+            correspond to a node in the graph.
+
+        Notes
+        -----
+        - This searches through every node in the graph to look at their
+          .basename attributes. If this becomes a bottleneck, we could start
+          saving a mapping of node name --> cc num or something (or maybe
+          just node name --> obj, analgoous to nodeid2obj).
+
+        - Currently, this looks at the *basename* of each node -- meaning
+          that if you search for something like "40-L" then it will be rejected
+          as not being in the graph. We could be more lenient about this,
+          maybe, but then I worry about confusing cases where nodes in the
+          input graph already end in -L or -R. Addressing
+          https://github.com/marbl/MetagenomeScope/issues/272 will make this
+          feasible. (TODO)
+
+        - In the future, we may want to start putting the node names included
+          in these error messages in monospace (this will require fussing with
+          how we create the error message toasts). One concern is that
+          Bootstrap (?)'s formatting is collapsing spaces... but also, node
+          names really shouldn't have spaces anyway, so probably nbd.
+        """
         node_names_to_search = ui_utils.get_node_names(node_name_text)
 
-        # Find nums of components containing these nodes
-        # TODO this is inefficient b/c it searches through the
-        # entire graph. If it becomes a bottleneck, we could start
-        # saving a mapping of node name -> cc num or something?
+        # Go through the graph and check each node's name. When we find a node
+        # we are looking for, remove it from node_names_to_search and update
+        # nodename2ccnum.
         nodename2ccnum = {}
+
         for n in self.nodeid2obj.values():
             if n.basename in node_names_to_search:
                 nodename2ccnum[n.basename] = n.cc_num
@@ -2242,10 +2286,9 @@ class AssemblyGraph(object):
                 if len(node_names_to_search) == 0:
                     break
 
-        # TODO: it might be nice in the future to put the node names in these
-        # error messages in monospace, since it looks like bootstrap (?)'s
-        # formatting is collapsing spaces. but it's nbd (if your node names
-        # have spaces then something is already horrible)
+        # If anything remains in node_names_to_search after the above loop,
+        # then there must be at least one node name in the input text that is
+        # not present in the graph. Raise an error.
         if len(node_names_to_search) == 1:
             n = node_names_to_search.pop()
             raise UIError(f'Can\'t find a node with name "{n}" in the graph.')

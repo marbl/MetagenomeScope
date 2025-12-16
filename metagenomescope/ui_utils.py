@@ -426,10 +426,16 @@ def get_node_names(val):
     set of str
         Node names described by the input.
 
+    Raises
+    ------
+    UIError
+        If the input text is malformed in some way. Currently, this can only
+        be triggered here by there being no node names in the input text.
+
     Notes
     -----
     - This does not actually check if any of these nodes are in the graph. This
-      should be done later, e.g. in AssemblyGraph.get_nodename2ccnum().
+      is done by the caller, e.g. in AssemblyGraph.get_nodename2ccnum().
 
     - This assumes that node names do not contain whitespace (technically I
       think this allows node names to contain inner whitespace, but they can't
