@@ -56,9 +56,7 @@ support, feel free to open a GitHub issue.
 
 ## FAQs
 
-(The title "FAQ" is kind of a lie because I don't think anyone has asked me any
-of these questions yet. Maybe we can just act like the "F" in "FAQ" stands for
-"future"?)
+### Reverse-complementary sequences
 
 <!-- use of <strong> here was stolen from strainflye's readme, which in turn is
 based on https://codedragontech.com/createwithcodedragon/how-to-style-html-details-and-summary-tags/ -->
@@ -215,8 +213,42 @@ from `X -> -X`, then that's fine; if it describes two or more edges from `X -> -
 then that's also fine, and we'll visualize all of them.)
 </details>
 
+### Graph structure
+
 <details>
-  <summary><strong>FAQ 4. Can my graphs have parallel edges?</strong></summary>
+  <summary><strong>FAQ 4. What do you mean by a component's "size rank"?</strong></summary>
+
+Given a graph with _N_ connected components we sort these components by the number of
+nodes they contain, from high to low. We then assign each of these components a _size rank_,
+a number from 1 to _N_: the component with size rank #1 corresponds to the largest component,
+and the component with size rank #_N_ corresponds to the smallest component.
+
+Often, we only care about looking at individual components in a graph -- laying out
+and drawing the entire graph is not always a good idea when the graph is massive.
+Component size ranks are a nice way of formalizing this.
+
+Some details about component size ranks, if you are interested:
+
+- The numbers shown in the treemap (accessible in the "Graph info" dialog)
+  correspond exactly to component size ranks. So, the rectangle labelled
+  #1 in the treemap corresponds to the largest component, the rectangle labelled
+  #2 corresponds to the second-largest component, etc.
+
+- The exact component sorting functionality accounts for ties by using four different sorting
+  criteria, in the following order. Ties at one level cause later levels to be considered for
+  breaking ties.
+  - the number of "full" nodes in the component (treating a pair of split nodes 40-L → 40-R as a
+    single node)
+  - the number of "total" nodes in the component (treating a pair of split nodes 40-L → 40-R as
+    two nodes)
+  - the number of "total" edges in the component (including both real edges and "fake" edges
+    between pairs of split nodes like 40-L → 40-R)
+  - the number of patterns in the component
+
+</details>
+
+<details>
+  <summary><strong>FAQ 5. Can my graphs have parallel edges?</strong></summary>
 
 Yes! MetagenomeScope supports
 [multigraphs](https://en.wikipedia.org/wiki/Multigraph). If your assembly graph
@@ -233,7 +265,7 @@ this (at least for GFA files) at some point, but it doesn't seem like a very imp
 </details>
 
 <details>
-  <summary><strong>FAQ 5. What filetype should I use for de Bruijn graphs?</strong></summary>
+  <summary><strong>FAQ 6. What filetype should I use for de Bruijn graphs?</strong></summary>
 
 If you are using LJA (and probably also if you are using Flye), you may want to use a DOT file instead of a GFA / FASTG file as input.
 
