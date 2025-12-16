@@ -1355,7 +1355,7 @@ def run(
             except UIError as err:
                 return (
                     ui_utils.add_error_toast(
-                        curr_toasts, "Node search error", str(err)
+                        curr_toasts, "Node name error", str(err)
                     ),
                     curr_cy_eles,
                     {"requestGood": False},
@@ -1537,7 +1537,7 @@ def run(
         except UIError as err:
             return (
                 ui_utils.add_error_toast(
-                    curr_toasts, "Node search error", str(err)
+                    curr_toasts, "Node name error", str(err)
                 ),
                 {"requestGood": False},
             )
