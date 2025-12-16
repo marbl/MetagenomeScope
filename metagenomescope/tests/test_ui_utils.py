@@ -394,3 +394,17 @@ def test_fmt_num_ranges():
     assert uu.fmt_num_ranges([1, 2, 3, 3, 3, 4]) == (
         "#1 \u2013 3; #3; #3 \u2013 4"
     )
+
+
+def test_get_node_names():
+    assert uu.get_node_names("1,2,3,node_5,  abc,,,3,node_6, node_5") == {
+        "1",
+        "2",
+        "3",
+        "node_5",
+        "abc",
+        "node_6",
+    }
+    assert uu.get_node_names("node_1") == {"node_1"}
+    assert uu.get_node_names("3") == {"3"}
+    assert uu.get_node_names("4,,,,  ,,,,,,4,") == {"4"}

@@ -409,6 +409,50 @@ def fmt_num_ranges(nums):
     return "; ".join(range_texts)
 
 
+def get_node_names(val):
+    """Returns a set of node names based on user input.
+
+    This is kind of analogous to get_size_ranks() above -- the same idea, of
+    converting arbitrary comma-separated user inputs to a collection of IDs.
+
+    Parameters
+    ----------
+    val: str
+        Text input by the user. This should be a comma-separated list of node
+        names (just a single node name is fine also).
+
+    Returns
+    -------
+    set of str
+        Node names described by the input.
+
+    Notes
+    -----
+    - This does not actually check if any of these nodes are in the graph. This
+      should be done later, e.g. in AssemblyGraph.get_nodename2ccnum().
+
+    - This assumes that node names do not contain whitespace (technically I
+      think this allows node names to contain inner whitespace, but they can't
+      start or end with whitespace). Look, if your names have whitespace then
+      something is very wrong; we should be rejecting such graphs up front
+      anyway.
+    """
+    nothing_err = UIError("No node name(s) specified.")
+    if val is None or len(val.strip()) == 0:
+        raise nothing_err
+
+    node_names = set(n.strip() for n in val.split(","))
+
+    # Ignore ""s resulting from inputs like "node1,,node2"
+    node_names.discard("")
+
+    # catch the evil ",,," case
+    if len(node_names) == 0:
+        raise nothing_err
+
+    return node_names
+
+
 def get_screenshot_basename():
     # this should be ISO 8601 compliant. See https://xkcd.com/1179, lol.
     # I am sure there are better ways to represent this tho... if whoever is

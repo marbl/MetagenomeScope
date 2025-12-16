@@ -2228,15 +2228,7 @@ class AssemblyGraph(object):
         conclude_msg()
 
     def get_nodename2ccnum(self, node_name_text):
-        if node_name_text is None or len(node_name_text) == 0:
-            raise UIError("No node name(s) specified.")
-
-        node_names_to_search = set(
-            n.strip() for n in node_name_text.split(",")
-        )
-        # Ignore ""s resulting from inputs like "node1,,node2"
-        # (later we'll case silly things like ",,,")
-        node_names_to_search.discard("")
+        node_names_to_search = ui_utils.get_node_names(node_name_text)
 
         # Find nums of components containing these nodes
         # TODO this is inefficient b/c it searches through the
@@ -2260,10 +2252,6 @@ class AssemblyGraph(object):
         elif len(node_names_to_search) > 1:
             nt = ", ".join(f'"{n}"' for n in node_names_to_search)
             raise UIError(f"Can't find nodes with names {nt} in the graph.")
-
-        # catch the evil ",,," case
-        if len(nodename2ccnum) == 0:
-            raise UIError("No node name(s) specified.")
 
         return nodename2ccnum
 
