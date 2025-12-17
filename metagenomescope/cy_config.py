@@ -126,10 +126,9 @@ xcoords = [
 # Okay, now compute y coordinates for the above x coordinates.
 left_semicircle_top = [[x, sqrt(1 - x**2)] for x in xcoords]
 
-# Now we'll define is the bottom-left quarter of the circle. Since it is
-# symmetric to the top-left quarter, we can reuse our work from above and
-# avoid redoing all of these sqrt operations (not that this will be a
-# bottleneck, though...)
+# Now we'll define the bottom-left quarter of the circle. Since it is symmetric
+# to the top-left quarter, we can reuse our work from above and avoid redoing
+# all of these sqrt operations (not that this will be a bottleneck, though...)
 # The [:-1] slices off the last coordinate in the top half [-1, 0] because
 # there is no need to duplicate that.
 # The [::-1] reverses the points, since now we are starting at x = -1
