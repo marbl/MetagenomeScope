@@ -1566,13 +1566,17 @@ def run(
                 ),
                 {"requestGood": False},
             )
+
+        # By this point, we know that the request is good; we will at least
+        # select *something* from the currently-drawn nodes.
         toasts = curr_toasts
         if len(notdrawn_cc_nums) > 0:
-            # Same here make this err message better depending
-            # on how many nodes are missing
-            # Also this should be a warning not an error. Vary
-            # the toast icon i guess?
-            toasts = ui_utils.add_error_toast(
+            # We will reach this case if someone searched for a list of nodes,
+            # and some but not all of these nodes are not currently drawn.
+            # In this case we show a warning toast message, not an error one.
+            # TODO make this err message better depending on how many nodes
+            # are missing
+            toasts = ui_utils.add_warning_toast(
                 curr_toasts,
                 "Nodes not drawn",
                 (

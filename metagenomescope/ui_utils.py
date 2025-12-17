@@ -66,10 +66,45 @@ def get_length_info(ag):
     )
 
 
-def add_error_toast(toasts, title_text="Error", body_text=None):
+def add_error_toast(
+    toasts, title_text="Error", body_text=None, header_color="#990000"
+):
+    return add_toast(
+        toasts,
+        title_text=title_text,
+        body_text=body_text,
+        icon="bi-exclamation-octagon",
+        header_color=header_color,
+    )
+
+
+def add_warning_toast(
+    toasts, title_text="Warning", body_text=None, header_color="#d1872c"
+):
+    return add_toast(
+        toasts,
+        title_text=title_text,
+        body_text=body_text,
+        icon="bi-exclamation-triangle",
+        header_color=header_color,
+    )
+
+
+def add_toast(
+    toasts,
+    title_text="Error",
+    body_text=None,
+    icon="bi-exclamation-lg",
+    header_color=None,
+):
     if toasts is None:
         toasts = []
-    new_toast = get_error_toast(title_text=title_text, body_text=body_text)
+    new_toast = get_toast(
+        title_text=title_text,
+        body_text=body_text,
+        icon=icon,
+        header_color=header_color,
+    )
     # adding the new toast BEFORE the other toasts does put it on top if any
     # others are still on the screen, but it causes weird behavior if any
     # other toasts have been hidden (probably due to bootstrap css/js details).
@@ -87,17 +122,27 @@ def get_toast_timestamp():
     return t
 
 
-def get_error_toast(title_text="Error", body_text=None):
+def get_toast(
+    title_text="Error",
+    body_text=None,
+    icon="bi-exclamation-lg",
+    header_color=None,
+):
     # https://getbootstrap.com/docs/5.3/components/toasts/#live-example
+    # For a list of possible icons, see https://icons.getbootstrap.com/
+    header_style = {}
+    if header_color is not None:
+        header_style = {"color": header_color}
     toast = html.Div(
         [
             # toast header
             html.Div(
                 [
-                    html.I(className="bi bi-exclamation-lg"),
+                    html.I(className=f"bi {icon}", style=header_style),
                     html.Span(
                         title_text,
-                        className="iconlbl me-auto",
+                        className="iconlbl me-auto toast-title",
+                        style=header_style,
                     ),
                     html.Small(get_toast_timestamp()),
                     html.Button(

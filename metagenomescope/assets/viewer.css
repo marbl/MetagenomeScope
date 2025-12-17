@@ -145,15 +145,14 @@ body {
     -webkit-text-stroke: 1px;
 }
 
-.toast-header span {
+.toast-title {
     font-size: 1.3em;
     font-weight: bold;
 }
 
-.bi-exclamation-lg {
+.bi-exclamation-octagon, .bi-exclamation-triangle {
     font-size: 1.7em;
     -webkit-text-stroke: 1px;
-    color: #cc8833;
 }
 
 /* let's make the cc size rank controls thicker but not, like, bigger */
