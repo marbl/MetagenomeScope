@@ -1,5 +1,6 @@
 import re
 import time
+import dash_bootstrap_components as dbc
 from collections import defaultdict
 from dash import html
 from . import css_config, ui_config
@@ -566,13 +567,19 @@ def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, num_searched_for_nodes):
             cnoun = "component"
         else:
             cnoun = "components"
-        cc_html_eles = [html.Div(f"{s1} They are in the following {cnoun}:")]
+        theader = [
+            html.Thead(html.Tr([html.Th("Component #"), html.Th("Nodes")]))
+        ]
+        rows = []
+        intro = html.Div(f"{s1} They are in the following {cnoun}:")
         for c in sorted(undrawn_cc_to_nodes):
             node_list = get_fancy_node_name_list(
                 undrawn_cc_to_nodes[c], quote=False
             )
-            cc_html_eles.append(html.Div(f"#{c:,}: {node_list}"))
-        return html.Div(cc_html_eles, className="toast-body")
+            rows.append(html.Tr([html.Td(f"{c:,}"), html.Td(node_list)]))
+        tbody = [html.Tbody(rows)]
+        table = dbc.Table(theader + tbody)
+        return html.Div([intro, table], className="toast-body")
 
 
 def get_screenshot_basename():

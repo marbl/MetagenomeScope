@@ -197,6 +197,16 @@ body {
     filter: brightness(85%);
 }
 
+/* Make the tables of components / undrawn nodes look nice and consistent in
+ * the toast. This removes the (IMO) unnecessary bottom margin on these tables,
+ * and removes the white background color (in favor of letting the table also
+ * be semitransparent, like the rest of the toast body)
+ */
+.toast-body .table {
+    margin-bottom: 0;
+    --bs-table-bg: inherit;
+}
+
 #ccDrawingSelect {
     /* matches (ish) old bootstrap btn:hover border color */
     border-bottom: 2px solid #adadad;
