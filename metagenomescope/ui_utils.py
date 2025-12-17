@@ -522,7 +522,7 @@ def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, num_searched_for_nodes):
     else:
         num_undrawn = len(undrawn_nodes)
         if num_searched_for_nodes == num_undrawn:
-            s1 = f"None of these nodes are currently drawn."
+            s1 = "None of these nodes are currently drawn."
         else:
             s1 = (
                 f"{num_undrawn:,} / {num_searched_for_nodes:,} nodes are not "
