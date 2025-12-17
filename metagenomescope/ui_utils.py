@@ -3,7 +3,7 @@ import time
 from collections import defaultdict
 from dash import html
 from . import css_config, ui_config
-from .errors import UIError
+from .errors import UIError, WeirdError
 
 
 def pluralize(num, thing="edge"):
