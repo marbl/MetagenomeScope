@@ -1551,11 +1551,20 @@ def run(
         else:
             curr_drawn_cc_nums = set()
         notdrawn_cc_nums = cc_nums - curr_drawn_cc_nums
-        # TODO this error message stinks, make it better -
-        # distinguish 1-node vs. multi-node case
         if len(notdrawn_cc_nums) == len(cc_nums):
-            return (
-                ui_utils.add_error_toast(
+            if len(nn2ccnum) == 1:
+                n, c = list(nn2ccnum.items())[0]
+                toasts = ui_utils.add_error_toast(
+                    curr_toasts,
+                    "Node not drawn",
+                    (
+                        f'Node "{n}" is not currently drawn. It\'s in '
+                        f"component #{c:,}."
+                    ),
+                )
+            else:
+                # TODO: maybe show a table?
+                toasts = ui_utils.add_error_toast(
                     curr_toasts,
                     "Nodes not drawn",
                     (
@@ -1563,9 +1572,9 @@ def run(
                         "They are in these components: "
                         f"{', '.join(str(c) for c in cc_nums)}"
                     ),
-                ),
-                {"requestGood": False},
-            )
+                )
+
+            return toasts, {"requestGood": False}
 
         # By this point, we know that the request is good; we will at least
         # select *something* from the currently-drawn nodes.
