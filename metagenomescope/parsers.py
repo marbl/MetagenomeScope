@@ -828,7 +828,7 @@ def parse_dot(filename):
                     # Of course, this is just an approximation of the *true*
                     # edge length. Something we may want to warn about, as
                     # discussed above.
-                    elen = elen_thousands * 1000
+                    elen = round(elen_thousands * 1000)
                 else:
                     raise GraphParsingError(
                         f'{err_prefix} has a confusing length of "{elen_str}"?'
