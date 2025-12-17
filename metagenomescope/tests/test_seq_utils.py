@@ -6,10 +6,7 @@ from metagenomescope.tests import utils
 from metagenomescope.errors import WeirdError
 
 
-def test_gc_content():
-    with pytest.raises(WeirdError) as ei:
-        seq_utils.gc_content("")
-    assert str(ei.value) == "Can't compute the GC content of an empty sequence"
+def test_gc_content_simple():
     assert seq_utils.gc_content("A") == (0, 0)
     assert seq_utils.gc_content("C") == (1, 1)
     assert seq_utils.gc_content("G") == (1, 1)
@@ -27,10 +24,26 @@ def test_gc_content():
         assert gc_ct == gc_content_output[1]
 
 
+def test_gc_content_empty():
+    with pytest.raises(WeirdError) as ei:
+        seq_utils.gc_content("")
+    assert str(ei.value) == "Can't compute the GC content of an empty sequence"
+
+
 def test_n50_simple():
     # example from wikipedia:
     # https://en.wikipedia.org/wiki/N50,_L50,_and_related_statistics#N50
     assert seq_utils.n50([2, 3, 4, 5, 6, 7, 8, 9, 10]) == 8
+
+
+def test_n50_singleseq():
+    assert seq_utils.n50([12345]) == 12345
+
+
+def test_n50_twoseqs():
+    assert seq_utils.n50([123, 456]) == 456
+    assert seq_utils.n50([300, 300]) == 300
+    assert seq_utils.n50([300, 600]) == 600
 
 
 def test_n50_empty():
