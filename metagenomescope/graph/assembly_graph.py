@@ -2293,10 +2293,8 @@ class AssemblyGraph(object):
             n = node_names_to_search.pop()
             raise UIError(f'Can\'t find a node with name "{n}" in the graph.')
         elif len(node_names_to_search) > 1:
-            # sort the list of bad node names. this makes the error message
-            # easier to read for the user, i think, and it makes testing easier
-            nt = ", ".join(f'"{n}"' for n in sorted(node_names_to_search))
-            raise UIError(f"Can't find nodes with names {nt} in the graph.")
+            ns = ui_utils.get_fancy_node_name_list(node_names_to_search)
+            raise UIError(f"Can't find nodes with names {ns} in the graph.")
 
         return nodename2ccnum
 

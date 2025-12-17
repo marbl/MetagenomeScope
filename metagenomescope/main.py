@@ -1557,41 +1557,21 @@ def run(
         # Which, if any, of the searched-for nodes are currently drawn?
         drawn_nodes = []
         undrawn_nodes = []
-        undrawn_relevant_ccs = []
         for n, c in nn2ccnum.items():
             if c in curr_drawn_cc_nums:
                 drawn_nodes.append(n)
             else:
                 undrawn_nodes.append(n)
-                undrawn_relevant_ccs.append(c)
 
         # If none of these nodes are currently drawn, show an error.
         if len(drawn_nodes) == 0:
-            if len(undrawn_nodes) == 1:
-                n = undrawn_nodes[0]
-                c = nn2ccnum[n]
-                toasts = ui_utils.add_error_toast(
-                    curr_toasts,
-                    "Node not drawn",
-                    (
-                        f'Node "{n}" is not currently drawn. It\'s in '
-                        f"component #{c:,}."
-                    ),
-                )
-            else:
-                # TODO: maybe show a table? Or more information, at least
-                # (e.g. "#1: node1, node2; #3: node10")
-                toasts = ui_utils.add_error_toast(
-                    curr_toasts,
-                    "Nodes not drawn",
-                    (
-                        "None of these nodes are currently drawn. "
-                        "They are in these components: "
-                        f"{', '.join(str(c) for c in undrawn_relevant_ccs)}"
-                    ),
-                )
-
-            return toasts, {"requestGood": False}
+            return ui_utils.add_error_toast(
+                curr_toasts,
+                "Nodes not drawn",
+                ui_utils.summarize_undrawn_nodes(
+                    undrawn_nodes, nn2ccnum, all_undrawn=True
+                ),
+            ), {"requestGood": False}
 
         # By this point, we know that the request is good; at least one of
         # these nodes is currently drawn, so we can at least show *something.*
@@ -1600,15 +1580,11 @@ def run(
             # We will reach this case if someone searched for a list of nodes,
             # and some but not all of these nodes are not currently drawn.
             # In this case we show a warning toast message, not an error one.
-            # TODO make this err message better depending on how many nodes
-            # are missing -- reuse code from the above multi-node error msg
             toasts = ui_utils.add_warning_toast(
                 curr_toasts,
                 "Nodes not drawn",
-                (
-                    "Some of these nodes are not currently drawn. "
-                    "They are in these components: "
-                    f"{', '.join(str(c) for c in undrawn_relevant_ccs)}"
+                ui_utils.summarize_undrawn_nodes(
+                    undrawn_nodes, nn2ccnum, all_undrawn=False
                 ),
             )
         return (

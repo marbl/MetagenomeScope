@@ -1,5 +1,6 @@
 import re
 import time
+from collections import defaultdict
 from dash import html
 from . import css_config, ui_config
 from .errors import UIError
@@ -502,6 +503,39 @@ def get_node_names(val):
         raise nothing_err
 
     return node_names
+
+
+def get_fancy_node_name_list(node_names):
+    # sorting the node names makes these error messages easier to read for the
+    # user, i think. it also makes testing easier
+    return ", ".join(f'"{n}"' for n in sorted(node_names))
+
+
+def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, all_undrawn=True):
+    if len(undrawn_nodes) == 1:
+        n = undrawn_nodes[0]
+        c = nn2ccnum[n]
+        return (
+            f'Node "{n}" is not currently drawn. It\'s in component '
+            f"#{c:,}."
+        )
+    else:
+        num_undrawn = len(undrawn_nodes)
+        if all_undrawn:
+            s1 = f"None of these {num_undrawn:,} nodes are currently drawn."
+        else:
+            s1 = f"{num_undrawn:,} of these nodes are not currently drawn."
+
+        undrawn_cc_to_nodes = defaultdict(list)
+        for n in undrawn_nodes:
+            undrawn_cc_to_nodes[nn2ccnum[n]].append(n)
+
+        text = []
+        for c in sorted(undrawn_cc_to_nodes):
+            node_list = get_fancy_node_name_list(undrawn_cc_to_nodes[c])
+            text.append(f"#{c:,}: {node_list}")
+
+        return f"{s1} They are in the following components: {'; '.join(text)}"
 
 
 def get_screenshot_basename():
