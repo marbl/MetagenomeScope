@@ -1321,6 +1321,8 @@ def run(
         State("ccNodeNameSelector", "value"),
         State("drawSettingsChecklist", "value"),
         Input("drawButton", "n_clicks"),
+        Input("ccSizeRankSelector", "n_submit"),
+        Input("ccNodeNameSelector", "n_submit"),
         prevent_initial_call=True,
     )
     def flush(
@@ -1331,7 +1333,16 @@ def run(
         node_names,
         draw_settings,
         draw_btn_n_clicks,
+        size_rank_input_n_submit,
+        node_name_input_n_submit,
     ):
+        """Sanity-checks a drawing request before drawing.
+
+        Note that this can now be triggered by:
+        (1) clicking on the "Draw" button,
+        (2) pressing Enter in the size rank input, or
+        (3) pressing Enter in the node name input.
+        """
         logging.debug(
             "Received request to draw the graph. Validating request."
         )
