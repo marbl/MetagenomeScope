@@ -1540,7 +1540,7 @@ def run(
             # name that is not present in the graph (in ANY component)
             return (
                 ui_utils.add_error_toast(
-                    curr_toasts, "Node name error", str(err)
+                    curr_toasts, "Search error", str(err)
                 ),
                 {"requestGood": False},
             )
@@ -1555,6 +1555,7 @@ def run(
             curr_drawn_cc_nums = set()
 
         # Which, if any, of the searched-for nodes are currently drawn?
+        num_searched_for_nodes = len(nn2ccnum)
         drawn_nodes = []
         undrawn_nodes = []
         for n, c in nn2ccnum.items():
@@ -1567,9 +1568,9 @@ def run(
         if len(drawn_nodes) == 0:
             return ui_utils.add_error_toast(
                 curr_toasts,
-                "Nodes not drawn",
+                "Search error",
                 ui_utils.summarize_undrawn_nodes(
-                    undrawn_nodes, nn2ccnum, all_undrawn=True
+                    undrawn_nodes, nn2ccnum, num_searched_for_nodes
                 ),
             ), {"requestGood": False}
 
@@ -1582,9 +1583,9 @@ def run(
             # In this case we show a warning toast message, not an error one.
             toasts = ui_utils.add_warning_toast(
                 curr_toasts,
-                "Nodes not drawn",
+                "Search warning",
                 ui_utils.summarize_undrawn_nodes(
-                    undrawn_nodes, nn2ccnum, all_undrawn=False
+                    undrawn_nodes, nn2ccnum, num_searched_for_nodes
                 ),
             )
         return (

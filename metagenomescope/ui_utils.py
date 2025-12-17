@@ -511,7 +511,7 @@ def get_fancy_node_name_list(node_names):
     return ", ".join(f'"{n}"' for n in sorted(node_names))
 
 
-def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, all_undrawn=True):
+def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, num_searched_for_nodes):
     if len(undrawn_nodes) == 1:
         n = undrawn_nodes[0]
         c = nn2ccnum[n]
@@ -521,10 +521,13 @@ def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, all_undrawn=True):
         )
     else:
         num_undrawn = len(undrawn_nodes)
-        if all_undrawn:
-            s1 = f"None of these {num_undrawn:,} nodes are currently drawn."
+        if num_searched_for_nodes == num_undrawn:
+            s1 = f"None of these nodes are currently drawn."
         else:
-            s1 = f"{num_undrawn:,} of these nodes are not currently drawn."
+            s1 = (
+                f"{num_undrawn:,} / {num_searched_for_nodes:,} nodes are not "
+                "currently drawn."
+            )
 
         undrawn_cc_to_nodes = defaultdict(list)
         for n in undrawn_nodes:
