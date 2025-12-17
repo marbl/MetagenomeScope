@@ -16,7 +16,7 @@ def gc_content(dna_string):
     """
     seq_len = len(dna_string)
     if seq_len == 0:
-        raise ValueError("Can't compute the GC content of an empty sequence")
+        raise WeirdError("Can't compute the GC content of an empty sequence")
     gc_ct = 0
     for nt in dna_string:
         if nt == "G" or nt == "C":
