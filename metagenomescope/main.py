@@ -1580,7 +1580,7 @@ def run(
             return ui_utils.add_error_toast(
                 curr_toasts,
                 "Search error",
-                ui_utils.summarize_undrawn_nodes(
+                body_html=ui_utils.summarize_undrawn_nodes(
                     undrawn_nodes, nn2ccnum, num_searched_for_nodes
                 ),
             ), {"requestGood": False}
@@ -1595,7 +1595,7 @@ def run(
             toasts = ui_utils.add_warning_toast(
                 curr_toasts,
                 "Search warning",
-                ui_utils.summarize_undrawn_nodes(
+                body_html=ui_utils.summarize_undrawn_nodes(
                     undrawn_nodes, nn2ccnum, num_searched_for_nodes
                 ),
             )

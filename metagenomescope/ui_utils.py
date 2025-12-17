@@ -68,24 +68,34 @@ def get_length_info(ag):
 
 
 def add_error_toast(
-    toasts, title_text="Error", body_text=None, header_color="#990000"
+    toasts,
+    title_text="Error",
+    body_text=None,
+    body_html=None,
+    header_color="#990000",
 ):
     return add_toast(
         toasts,
         title_text=title_text,
         body_text=body_text,
+        body_html=body_html,
         icon="bi-exclamation-octagon",
         header_color=header_color,
     )
 
 
 def add_warning_toast(
-    toasts, title_text="Warning", body_text=None, header_color="#d1872c"
+    toasts,
+    title_text="Warning",
+    body_text=None,
+    body_html=None,
+    header_color="#d1872c",
 ):
     return add_toast(
         toasts,
         title_text=title_text,
         body_text=body_text,
+        body_html=body_html,
         icon="bi-exclamation-triangle",
         header_color=header_color,
     )
@@ -95,14 +105,16 @@ def add_toast(
     toasts,
     title_text="Error",
     body_text=None,
+    body_html=None,
     icon="bi-exclamation-lg",
     header_color=None,
 ):
     if toasts is None:
         toasts = []
-    new_toast = get_toast(
+    new_toast = create_toast(
         title_text=title_text,
         body_text=body_text,
+        body_html=body_html,
         icon=icon,
         header_color=header_color,
     )
@@ -123,9 +135,10 @@ def get_toast_timestamp():
     return t
 
 
-def get_toast(
+def create_toast(
     title_text="Error",
     body_text=None,
+    body_html=None,
     icon="bi-exclamation-lg",
     header_color=None,
 ):
@@ -172,7 +185,14 @@ def get_toast(
         },
     )
     if body_text is not None:
-        toast.children.append(html.Div(body_text, className="toast-body"))
+        if body_html is not None:
+            raise WeirdError("body_text and body_html are mutually exclusive")
+        else:
+            toast.children.append(html.Div(body_text, className="toast-body"))
+    else:
+        if body_html is not None:
+            toast.children.append(body_html)
+
     return toast
 
 
@@ -505,19 +525,28 @@ def get_node_names(val):
     return node_names
 
 
-def get_fancy_node_name_list(node_names):
+def get_fancy_node_name_list(node_names, quote=True):
     # sorting the node names makes these error messages easier to read for the
     # user, i think. it also makes testing easier
-    return ", ".join(f'"{n}"' for n in sorted(node_names))
+    if quote:
+        sn = [f'"{n}"' for n in sorted(node_names)]
+    else:
+        sn = sorted(node_names)
+    return ", ".join(sn)
 
 
 def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, num_searched_for_nodes):
+    """Produces a HTML summary of undrawn nodes, to be shown after searching.
+
+    This is used when creating a toast message indicating an error or warning
+    arising from searching from nodes that are not currently drawn.
+    """
     if len(undrawn_nodes) == 1:
         n = undrawn_nodes[0]
         c = nn2ccnum[n]
-        return (
-            f'Node "{n}" is not currently drawn. It\'s in component '
-            f"#{c:,}."
+        return html.Div(
+            f'Node "{n}" is not currently drawn. It\'s in component #{c:,}.',
+            className="toast-body",
         )
     else:
         num_undrawn = len(undrawn_nodes)
@@ -533,12 +562,17 @@ def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, num_searched_for_nodes):
         for n in undrawn_nodes:
             undrawn_cc_to_nodes[nn2ccnum[n]].append(n)
 
-        text = []
+        if len(undrawn_cc_to_nodes) == 1:
+            cnoun = "component"
+        else:
+            cnoun = "components"
+        cc_html_eles = [html.Div(f"{s1} They are in the following {cnoun}:")]
         for c in sorted(undrawn_cc_to_nodes):
-            node_list = get_fancy_node_name_list(undrawn_cc_to_nodes[c])
-            text.append(f"#{c:,}: {node_list}")
-
-        return f"{s1} They are in the following components: {'; '.join(text)}"
+            node_list = get_fancy_node_name_list(
+                undrawn_cc_to_nodes[c], quote=False
+            )
+            cc_html_eles.append(html.Div(f"#{c:,}: {node_list}"))
+        return html.Div(cc_html_eles, className="toast-body")
 
 
 def get_screenshot_basename():
