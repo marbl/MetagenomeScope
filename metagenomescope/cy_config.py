@@ -25,8 +25,8 @@ RANDOM_COLORS = [
 
 NODE_COLOR = "#888888"
 UNSELECTED_NODE_FONT_COLOR = "#eeeeee"
-SELECTED_NODE_BLACKEN = "0.5"
-SELECTED_NODE_FONT_COLOR = "#eeeeee"
+SELECTED_NODE_BORDER_COLOR = "#0000ff"
+SELECTED_NODE_BORDER_WIDTH = 2
 
 ###############################################################################
 # Node shapes
@@ -172,12 +172,7 @@ UNORIENTED_NODE_SPLITR_POLYGON_PTS = pts2spp(
 ###############################################################################
 
 EDGE_COLOR = "#555555"
-# ideally we would use something like background-blacken to just darken
-# edges by some amount regardless of what color they are, but cy.js does
-# not seem to support this. the easy solution is just using a fixed dark
-# color for edges, even if they are colorized as something at the moment
-# (maybe we can make this fancier later)
-SELECTED_EDGE_COLOR = "#000000"
+SELECTED_EDGE_COLOR = "#0000ff"
 
 FAKE_EDGE_LINE_STYLE = "dashed"
 FAKE_EDGE_DASH_PATTERN = ["5", "9"]
@@ -197,7 +192,7 @@ CHAIN_COLOR = "#eedddd"
 # matches "darkgoldenrod1" in graphviz
 CYCLICCHAIN_COLOR = "#ffd163"
 
-UNSELECTED_PATTERN_BORDER_WIDTH = "2"
+UNSELECTED_PATTERN_BORDER_WIDTH = 2
 UNSELECTED_PATTERN_BORDER_COLOR = "#000000"
-SELECTED_PATTERN_BORDER_WIDTH = "5"
-SELECTED_PATTERN_BORDER_COLOR = "#000000"
+SELECTED_PATTERN_BORDER_WIDTH = 5
+SELECTED_PATTERN_BORDER_COLOR = "#0000ff"

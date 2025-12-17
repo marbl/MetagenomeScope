@@ -20,8 +20,8 @@ def get_cyjs_stylesheet(
         {
             "selector": "node.nonpattern:selected",
             "style": {
-                "color": cy_config.SELECTED_NODE_FONT_COLOR,
-                "background-blacken": cy_config.SELECTED_NODE_BLACKEN,
+                "border-width": cy_config.SELECTED_NODE_BORDER_WIDTH,
+                "border-color": cy_config.SELECTED_NODE_BORDER_COLOR,
             },
         },
         ###### Forward-oriented nodes (pentagons pointing right)
@@ -183,7 +183,7 @@ def get_cyjs_stylesheet(
                 }
             )
 
-    # Apply a unique color to selected edges. Do this last so it takes
+    # Apply styles to selected edges. Do this last so it takes
     # precedence over even random edge colorings.
     stylesheet.append(
         {
