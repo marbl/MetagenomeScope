@@ -39,3 +39,13 @@ def test_get_nodename2ccnum_missing_multiple_nodes():
     assert str(ei.value) == (
         'Can\'t find nodes with names "help", "poop", "what" in the graph.'
     )
+
+
+def test_get_nodename2ccnum_empty():
+    # this error is actually caused by ui_utils.get_node_names(), which we are
+    # already testing separately... this is just a quick test that tries to
+    # verify that this work is being properly delegated to that function
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    with pytest.raises(UIError) as ei:
+        ag.get_nodename2ccnum(",,,")
+    assert str(ei.value) == "No node name(s) specified."
