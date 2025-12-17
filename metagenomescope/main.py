@@ -1535,14 +1535,17 @@ def run(
         try:
             nn2ccnum = ag.get_nodename2ccnum(node_names)
         except UIError as err:
+            # If we fail at this point, it is because either the input text
+            # is empty / malformed or because it includes at least one node
+            # name that is not present in the graph (in ANY component)
             return (
                 ui_utils.add_error_toast(
                     curr_toasts, "Node name error", str(err)
                 ),
                 {"requestGood": False},
             )
-        cc_nums = set(nn2ccnum.values())
-        # Find which, if any, of the requested cc_nums are currently drawn
+
+        # Find which, if any, components are currently drawn
         if (
             curr_curr_drawn_info is not None
             and "cc_nums" in curr_curr_drawn_info
@@ -1550,10 +1553,23 @@ def run(
             curr_drawn_cc_nums = set(curr_curr_drawn_info["cc_nums"])
         else:
             curr_drawn_cc_nums = set()
-        notdrawn_cc_nums = cc_nums - curr_drawn_cc_nums
-        if len(notdrawn_cc_nums) == len(cc_nums):
-            if len(nn2ccnum) == 1:
-                n, c = list(nn2ccnum.items())[0]
+
+        # Which, if any, of the searched-for nodes are currently drawn?
+        drawn_nodes = []
+        undrawn_nodes = []
+        undrawn_relevant_ccs = []
+        for n, c in nn2ccnum.items():
+            if c in curr_drawn_cc_nums:
+                drawn_nodes.append(n)
+            else:
+                undrawn_nodes.append(n)
+                undrawn_relevant_ccs.append(c)
+
+        # If none of these nodes are currently drawn, show an error.
+        if len(drawn_nodes) == 0:
+            if len(undrawn_nodes) == 1:
+                n = undrawn_nodes[0]
+                c = nn2ccnum[n]
                 toasts = ui_utils.add_error_toast(
                     curr_toasts,
                     "Node not drawn",
@@ -1563,46 +1579,41 @@ def run(
                     ),
                 )
             else:
-                # TODO: maybe show a table?
+                # TODO: maybe show a table? Or more information, at least
+                # (e.g. "#1: node1, node2; #3: node10")
                 toasts = ui_utils.add_error_toast(
                     curr_toasts,
                     "Nodes not drawn",
                     (
                         "None of these nodes are currently drawn. "
                         "They are in these components: "
-                        f"{', '.join(str(c) for c in cc_nums)}"
+                        f"{', '.join(str(c) for c in undrawn_relevant_ccs)}"
                     ),
                 )
 
             return toasts, {"requestGood": False}
 
-        # By this point, we know that the request is good; we will at least
-        # select *something* from the currently-drawn nodes.
+        # By this point, we know that the request is good; at least one of
+        # these nodes is currently drawn, so we can at least show *something.*
         toasts = curr_toasts
-        if len(notdrawn_cc_nums) > 0:
+        if len(undrawn_nodes) > 0:
             # We will reach this case if someone searched for a list of nodes,
             # and some but not all of these nodes are not currently drawn.
             # In this case we show a warning toast message, not an error one.
             # TODO make this err message better depending on how many nodes
-            # are missing
+            # are missing -- reuse code from the above multi-node error msg
             toasts = ui_utils.add_warning_toast(
                 curr_toasts,
                 "Nodes not drawn",
                 (
                     "Some of these nodes are not currently drawn. "
                     "They are in these components: "
-                    f"{', '.join(str(c) for c in notdrawn_cc_nums)}"
+                    f"{', '.join(str(c) for c in undrawn_relevant_ccs)}"
                 ),
             )
-        # TODO this is lazy, and we can combine it with the work above
-        nodes_to_select = []
-        for n in nn2ccnum:
-            if nn2ccnum[n] in curr_drawn_cc_nums:
-                nodes_to_select.append(n)
-        logging.debug(str(nodes_to_select))
         return (
             toasts,
-            {"requestGood": True, "nodesToSelect": nodes_to_select},
+            {"requestGood": True, "nodesToSelect": drawn_nodes},
         )
 
     clientside_callback(
