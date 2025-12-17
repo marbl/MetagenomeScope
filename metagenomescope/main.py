@@ -143,7 +143,7 @@ def run(
         "ccDrawingNodeNames": [
             html.I(className="bi bi-search"),
             html.Span(
-                "Component(s), by node name(s)",
+                "Component(s), by node name",
             ),
         ],
         "ccDrawingAll": [
