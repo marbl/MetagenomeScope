@@ -564,14 +564,15 @@ def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, num_searched_for_nodes):
             undrawn_cc_to_nodes[nn2ccnum[n]].append(n)
 
         if len(undrawn_cc_to_nodes) == 1:
-            cnoun = "component"
+            s2 = "They are all in another component:"
         else:
-            cnoun = "components"
+            s2 = "They are in the following components:"
+        intro = html.Div(f"{s1} {s2}")
+
         theader = [
             html.Thead(html.Tr([html.Th("Component #"), html.Th("Nodes")]))
         ]
         rows = []
-        intro = html.Div(f"{s1} They are in the following {cnoun}:")
         for c in sorted(undrawn_cc_to_nodes):
             node_list = get_fancy_node_name_list(
                 undrawn_cc_to_nodes[c], quote=False
