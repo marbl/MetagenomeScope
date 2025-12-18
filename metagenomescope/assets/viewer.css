@@ -218,6 +218,10 @@ body {
     transition-property: opacity;
 }
 
+#ccNodeNameSelectorEles {
+    margin-bottom: 0.2em;
+}
+
 .hidden {
     opacity: 0;
     pointer-events: none;

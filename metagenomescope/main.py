@@ -367,29 +367,18 @@ def run(
                                 else ""
                             ),
                         ),
-                        html.Div(
+                        html.Button(
                             [
-                                # I'm sticking with a standard dcc.Checklist
-                                # (rather than dbc.Checklist) because I don't
-                                # like the default formatting of their inline
-                                # checklists. Even after doing some massaging
-                                # to make the margins better, there is still an
-                                # ugly unclickable region between the checkbox
-                                # and label... maybe I am just doing something
-                                # wrong, but I think the UX of the dcc.Checklist
-                                # is better.
-                                dcc.Checklist(
-                                    options=[
-                                        {
-                                            "label": "Show patterns",
-                                            "value": ui_config.SHOW_PATTERNS,
-                                        },
-                                    ],
-                                    value=ui_config.DEFAULT_DRAW_SETTINGS,
-                                    id="drawSettingsChecklist",
-                                )
+                                html.I(className="bi bi-gear-fill"),
+                                html.Span(
+                                    "Options",
+                                    className="iconlbl",
+                                ),
                             ],
-                            className="form-check",
+                            id="drawingOptionsButton",
+                            className="btn btn-light",
+                            type="button",
+                            style={"margin-right": "1em"},
                         ),
                         html.Button(
                             [
@@ -935,6 +924,54 @@ def run(
                     "tabIndex": "-1",
                 },
             ),
+            dbc.Modal(
+                [
+                    dbc.ModalHeader(
+                        [
+                            html.H1(
+                                [
+                                    html.I(className="bi bi-gear-fill"),
+                                    html.Span(
+                                        "Drawing options",
+                                        className="iconlbl",
+                                    ),
+                                ],
+                                className="modal-title fs-5",
+                            ),
+                        ]
+                    ),
+                    dbc.ModalBody(
+                        [
+                            html.Div(
+                                [
+                                    # I'm sticking with a standard dcc.Checklist
+                                    # (rather than dbc.Checklist) because I don't
+                                    # like the default formatting of their inline
+                                    # checklists. Even after doing some massaging
+                                    # to make the margins better, there is still an
+                                    # ugly unclickable region between the checkbox
+                                    # and label... maybe I am just doing something
+                                    # wrong, but I think the UX of the dcc.Checklist
+                                    # is better.
+                                    dcc.Checklist(
+                                        options=[
+                                            {
+                                                "label": "Show patterns",
+                                                "value": ui_config.SHOW_PATTERNS,
+                                            },
+                                        ],
+                                        value=ui_config.DEFAULT_DRAW_SETTINGS,
+                                        id="drawSettingsChecklist",
+                                    )
+                                ],
+                                className="form-check",
+                            ),
+                        ]
+                    ),
+                ],
+                id="modal",
+                is_open=False,
+            ),
             # toast messages will go here. you can change top-0 to bottom-0 to
             # position these in the bottom right of the window; see
             # https://getbootstrap.com/docs/5.3/components/toasts/#live-example
@@ -1185,6 +1222,17 @@ def run(
                 CONTROLS_TOGGLER_ICON_CLASSES + " darkToggler",
                 cy_div_style,
             )
+
+    @callback(
+        Output("modal", "is_open"),
+        Input("drawingOptionsButton", "n_clicks"),
+        State("modal", "is_open"),
+    )
+    def toggle_drawing_options_modal(nc, is_open):
+        # from https://www.dash-bootstrap-components.com/docs/components/modal/
+        if nc:
+            return not is_open
+        return is_open
 
     # By default, bootstrap's dropdowns don't change the button element (i.e.
     # the thing showing the name of the dropdown), as an ordinary HTML <select>
