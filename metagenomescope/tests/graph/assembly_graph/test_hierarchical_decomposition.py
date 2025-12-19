@@ -710,3 +710,47 @@ def test_cyclic_bulge():
     finally:
         os.close(fh)
         os.unlink(fn)
+
+
+def test_split_start_node_with_incoming_edges_inside_pattern():
+    r"""The input graph looks like
+
+     /--> 2 --\ /----V
+    1          4     5
+     \--> 3 --/^----/
+
+    This tests that node 4 is split, and that the incoming edge on
+    node 4 (5 --> 4) points to 4-R (inside the cyclic chain) instead of 4-L.
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(1, 3)
+    g.add_edge(2, 4)
+    g.add_edge(3, 4)
+    g.add_edge(4, 5)
+    g.add_edge(5, 4)
+
+    fh, fn = nx2gml(g)
+    try:
+        ag = AssemblyGraph(fn)
+        assert len(ag.decomposed_graph.nodes) == 1
+        assert len(ag.decomposed_graph.edges) == 0
+        assert len(ag.chains) == 1
+        assert len(ag.cyclic_chains) == 1
+        assert len(ag.frayed_ropes) == 0
+        assert len(ag.bubbles) == 1
+        assert len(ag.graph.nodes) == 6
+        assert len(ag.graph.edges) == 7
+
+        five_to_four_r_edge_seen = False
+        for src, tgt, d in ag.graph.edges(data=True):
+            obj = ag.edgeid2obj[d["uid"]]
+            sn = ag.nodeid2obj[src].name
+            tn = ag.nodeid2obj[tgt].name
+            if sn == "5" and tn == "4-R":
+                five_to_four_r_edge_seen = True
+                assert not obj.is_fake
+                break
+        assert five_to_four_r_edge_seen
+    finally:
+        os.close(fh)
