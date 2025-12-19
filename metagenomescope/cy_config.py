@@ -7,20 +7,32 @@ from math import sqrt
 
 # I just manually picked these from a hex color picker
 RANDOM_COLORS = [
+    "#cc0000",  # light red
     "#880000",  # dark red
-    "#aa5522",  # orange
+    "#e35f10",  # light orange
+    "#aa5522",  # dark orange
+    "#ebb102",  # light gold
     "#aa8822",  # gold
+    "#b3cc00",  # light lemon-lime
     "#99aa22",  # lemon-lime
     "#227711",  # forest green
+    "#0f5c00",  # dark green
     "#587562",  # olive drab, kinda
+    "#364d3d",  # darker olive drab
     "#119f9f",  # turquoise
+    "#026e6e",  # dark turquoise
+    "#1c1ca3",  # kind of dark blue
     "#111177",  # dark blue
     "#4411aa",  # royal purple. is that a color? yeah i think so
     "#661199",  # magenta
     "#c71461",  # kinda pinkish red
     "#a30f9e",  # fuschia
+    "#b38bb1",  # lavender
     "#826a5b",  # light brown
     "#382403",  # deep brown
+    "#a6a09f",  # light gray
+    "#7a7878",  # dark gray
+    "#525050",  # charcoal
 ]
 
 NODE_COLOR = "#888888"
