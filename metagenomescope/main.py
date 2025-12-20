@@ -1069,12 +1069,36 @@ def run(
             prevent_initial_call=True,
         )
         def plot_cc_treemap(n_clicks):
-            cc_names, cc_parents, cc_sizes = ag.to_treemap()
+            cc_names, cc_parents, cc_sizes, cc_aggs = ag.to_treemap()
+
+            # silly thing: scale the aggregated rectangles' colors along a
+            # distinct purple gradient to make them stand out visually
+            # I wrote this code in a trance i am so tired dude
+            cc_marker_colors = []
+            # values picked by messing around in https://www.hslpicker.com
+            H = "255"
+            S = "29%"
+            Lmin = 15
+            Lmax = 70
+            d = Lmax - Lmin
+            for i, a in enumerate(cc_aggs):
+                if a:
+                    L = ((1 - (i / len(cc_aggs))) * d) + Lmin
+                    cc_marker_colors.append(f"hsl({H},{S},{L}%)")
+                else:
+                    # blessedly, if you pass "" as a color then plotly
+                    # understands that we should just use the default
+                    # colormap here
+                    cc_marker_colors.append("")
+
             fig = go.Figure(
                 go.Treemap(
+                    # actual data
                     labels=cc_names,
                     parents=cc_parents,
                     values=cc_sizes,
+                    # stylistic things
+                    marker_colors=cc_marker_colors,
                     # Need to set "total" here so that the size of the top-
                     # level element is treated as the sum of its children,
                     # rather than as an extra size in addition to the sum

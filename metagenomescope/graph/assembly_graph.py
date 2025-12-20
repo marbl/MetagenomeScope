@@ -2339,15 +2339,25 @@ class AssemblyGraph(object):
 
         Returns
         -------
-        names, parents, sizes: list of str, list of str, list of int
-            Names, parent names, and sizes (in terms of node count) of each
-            rectangle in the treemap.
+        names, parents, sizes, is_agg: lists of (str, str, int, bool)
+            The first three lists describe the names, parent names, and sizes
+            (in terms of node count) of each rectangle in the treemap.
+
+            The fourth list, is_agg, describes whether or not each rectangle
+            represents an aggregate of multiple components. It's useful if you
+            want to apply special styles to these aggregate rectangles.
+
+            Note that the first entry of each list represents "Components", a
+            rectangle describing all components in the graph. It will have no
+            parent, a size equal to the total number of nodes in the graph, and
+            is not considered to be an aggregate.
         """
         graph_utils.validate_multiple_ccs(self)
 
         cc_names = ["Components"]
         cc_parents = [""]
         cc_sizes = [self.node_ct]
+        cc_aggs = [False]
 
         node_ct2cc_nums = defaultdict(list)
         for cc in self.components:
@@ -2367,5 +2377,12 @@ class AssemblyGraph(object):
             cc_names.extend(names)
             cc_sizes.extend(sizes)
             cc_parents.extend(["Components"] * len(names))
+            if len(cc_nums) > 1:
+                if len(names) == 1:
+                    cc_aggs.append(True)
+                else:
+                    cc_aggs.extend([False] * len(names))
+            else:
+                cc_aggs.append(False)
 
-        return cc_names, cc_parents, cc_sizes
+        return cc_names, cc_parents, cc_sizes, cc_aggs

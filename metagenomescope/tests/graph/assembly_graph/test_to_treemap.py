@@ -13,10 +13,11 @@ def test_to_treemap_one_cc_fails():
 
 def test_to_treemap_no_aggregation():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
-    assert ag.to_treemap() == (
+    assert ag.to_treemap(min_large_cc_ct=100) == (
         ["Components", "#1", "#2", "#3", "#4"],
         ["", "Components", "Components", "Components", "Components"],
         [12, 5, 5, 1, 1],
+        [False, False, False, False, False],
     )
 
 
@@ -30,4 +31,5 @@ def test_to_treemap_aggregation():
         ],
         ["", "Components", "Components"],
         [12, 10, 2],
+        [False, True, True],
     )
