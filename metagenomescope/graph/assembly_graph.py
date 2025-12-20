@@ -97,11 +97,13 @@ class AssemblyGraph(object):
         https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/
         """
         logger = logging.getLogger(__name__)
+
         self.filename = graph_fp
         self.agp_filename = agp_fp
-
+        if self.agp_filename is not None:
+            self.agp_basename = os.path.basename(self.agp_filename)
         self.basename = os.path.basename(self.filename)
-        self.agp_basename = os.path.basename(self.agp_filename)
+
         logger.info(f'Loading input graph "{self.basename}"...')
         self.filetype = parsers.FILETYPE2HR[
             parsers.sniff_filetype(self.filename)
