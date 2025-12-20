@@ -23,12 +23,16 @@ def get_only_connecting_edge_uid(g, src_id, tgt_id):
 
 
 def validate_multiple_ccs(ag):
-    # neither of the following cases should ever happen, since this
-    # callback should only be triggered on graphs with > 1 components
-    if len(ag.components) < 1:
-        raise WeirdError("Graph has < 1 components? Something is busted.")
-    elif len(ag.components) == 1:
+    """Raises an error if an AssemblyGraph contains <= 1 components.
+
+    Of course it is okay for a graph to have only 1 component, but this
+    function is intended to be called after we have already observed that
+    it contains multiple components -- it's just a sanity check.
+    """
+    if len(ag.components) == 1:
         raise WeirdError("Graph has only a single component")
+    elif len(ag.components) < 1:
+        raise WeirdError("Graph has < 1 components? Something is busted.")
 
 
 def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
