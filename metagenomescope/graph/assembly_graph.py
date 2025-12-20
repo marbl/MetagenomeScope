@@ -101,6 +101,7 @@ class AssemblyGraph(object):
         self.agp_filename = agp_fp
 
         self.basename = os.path.basename(self.filename)
+        self.agp_basename = os.path.basename(self.agp_filename)
         logger.info(f'Loading input graph "{self.basename}"...')
         self.filetype = parsers.FILETYPE2HR[
             parsers.sniff_filetype(self.filename)
@@ -154,7 +155,7 @@ class AssemblyGraph(object):
 
         self.paths = []
         if self.agp_filename is not None:
-            logger.debug("  Loading paths from AGP file...")
+            logger.debug(f'  Loading input AGP file "{self.agp_basename}"...')
             paths = agp_utils.get_paths_from_agp(self.agp_filename)
             logger.debug(
                 f"  ...Done. Found {ui_utils.pluralize(len(paths), 'path')}."
