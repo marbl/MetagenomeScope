@@ -2326,14 +2326,22 @@ class AssemblyGraph(object):
             eles.extend(cc.to_cyjs(incl_patterns=incl_patterns))
         return eles
 
-    def to_treemap(self):
+    def to_treemap(self, min_large_cc_ct=ui_config.MIN_LARGE_CC_COUNT):
         """Creates data describing the graph's components for use in a treemap.
+
+        Parameters
+        ----------
+        min_large_cc_ct: int
+            We will aggregate components with the same number of nodes together
+            only if the graph contains at least this many components.
+            (Or, stated another way: if the graph is small, then aggregation is
+            unnecessary, so just show the full treemap to the user.)
 
         Returns
         -------
-        list of str, list of str, list of int
+        names, parents, sizes: list of str, list of str, list of int
             Names, parent names, and sizes (in terms of node count) of each
-            rectangle.
+            rectangle in the treemap.
         """
         graph_utils.validate_multiple_ccs(self)
 
@@ -2347,7 +2355,7 @@ class AssemblyGraph(object):
 
         # If the graph contains a relatively small number of components,
         # don't bother aggregating same-size components' rectangles together
-        aggregate = len(self.components) >= ui_config.MIN_LARGE_CC_COUNT
+        aggregate = len(self.components) >= min_large_cc_ct
 
         # Go in descending order of node counts: so, consider the biggest
         # component first, then the second biggest, etc.
