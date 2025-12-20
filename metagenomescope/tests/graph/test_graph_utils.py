@@ -54,3 +54,60 @@ def test_validate_multiple_ccs_zero_ccs():
     with pytest.raises(WeirdError) as ei:
         gu.validate_multiple_ccs(ag)
     assert str(ei.value) == "Graph has < 1 components? Something is busted."
+
+
+def test_get_treemap_rectangles_empty():
+    with pytest.raises(WeirdError) as ei:
+        gu.get_treemap_rectangles([], 5)
+    assert str(ei.value) == "cc_nums cannot be empty"
+
+    with pytest.raises(WeirdError) as ei:
+        gu.get_treemap_rectangles([], 0)
+    assert str(ei.value) == "cc_nums cannot be empty"
+
+
+def test_get_treemap_rectangles_single():
+    # NOTE: you gotta use parens otherwise python thinks we are just asserting
+    # that the output equals ["#1"] and that the error message to throw if the
+    # assert fails is [5]. eep!
+    assert gu.get_treemap_rectangles([1], 5) == (["#1"], [5])
+    assert gu.get_treemap_rectangles([123456], 5) == (["#123,456"], [5])
+
+
+def test_get_treemap_rectangles_multi_aggregate():
+    assert gu.get_treemap_rectangles([1, 2], 5) == (
+        ["#1 \u2013 2 (5-node components)"],
+        [10],
+    )
+
+    assert gu.get_treemap_rectangles([1, 2, 3], 5) == (
+        ["#1 \u2013 3 (5-node components)"],
+        [15],
+    )
+
+    assert gu.get_treemap_rectangles([3, 4, 5, 6, 7, 8, 9, 10], 67890) == (
+        ["#3 \u2013 10 (67,890-node components)"],
+        [67890 * 8],
+    )
+
+
+def test_get_treemap_rectangles_multi_discontinuous():
+    with pytest.raises(WeirdError) as ei:
+        gu.get_treemap_rectangles([1, 3], 5)
+    assert str(ei.value) == "Discontinuous size ranks: |1 to 3| != 2"
+
+    with pytest.raises(WeirdError) as ei:
+        gu.get_treemap_rectangles([900, 901, 2000, 1999], 30)
+    assert str(ei.value) == "Discontinuous size ranks: |900 to 2,000| != 4"
+
+
+def test_get_treemap_rectangles_multi_no_aggregate():
+    assert gu.get_treemap_rectangles([1, 2], 5, aggregate=False) == (
+        ["#1", "#2"],
+        [5, 5],
+    )
+
+    assert gu.get_treemap_rectangles([1, 2, 3], 5, aggregate=False) == (
+        ["#1", "#2", "#3"],
+        [5, 5, 5],
+    )

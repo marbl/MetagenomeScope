@@ -73,7 +73,8 @@ def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
     ------
     WeirdError
         If len(cc_nums) < 1.
-        If cc_nums does not represent a continuous range of integers.
+        If aggregate=True and cc_nums does not represent a continuous range
+        of integers.
     """
     if len(cc_nums) < 1:
         raise WeirdError("cc_nums cannot be empty")
@@ -88,7 +89,7 @@ def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
         # should not see this happen in practice here, so let's be paranoid.
         if max_cc_num - min_cc_num + 1 != len(cc_nums):
             raise WeirdError(
-                "Something weird is up with the size ranks? "
+                "Discontinuous size ranks: "
                 f"|{min_cc_num:,} to {max_cc_num:,}| != {len(cc_nums):,}"
             )
         names.append(
@@ -98,7 +99,7 @@ def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
         # exactly 3 nodes, then they represent 15 nodes total.
         sizes.append(node_ct * len(cc_nums))
     else:
-        for cc_num in sorted(cc_nums, reverse=True):
+        for cc_num in sorted(cc_nums):
             names.append(f"#{cc_num:,}")
             sizes.append(node_ct)
     return names, sizes
