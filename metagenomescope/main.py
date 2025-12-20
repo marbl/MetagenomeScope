@@ -18,7 +18,7 @@ from dash import (
 from . import defaults, css_config, ui_config, ui_utils, cy_utils
 from .log_utils import start_log, log_lines_with_sep
 from .graph import AssemblyGraph, graph_utils
-from .errors import UIError, WeirdError
+from .errors import UIError
 
 # Needed for layout extensions like dagre. And for exporting SVG images, per
 # https://dash.plotly.com/cytoscape/images.
