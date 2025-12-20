@@ -1,4 +1,14 @@
+import pytest
+from metagenomescope.errors import WeirdError
 from metagenomescope.graph import AssemblyGraph
+
+
+def test_to_treemap_one_cc_fails():
+    # this graph is just a single bubble
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_test.gml")
+    with pytest.raises(WeirdError) as ei:
+        ag.to_treemap()
+    assert str(ei.value) == "Graph has only a single component"
 
 
 def test_to_treemap_no_aggregation():
