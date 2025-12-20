@@ -469,6 +469,63 @@ def run(
                             className="radio-group",
                         ),
                         ctrl_sep,
+                        html.H4(
+                            "Paths",
+                        ),
+                        html.Div(
+                            [
+                                dbc.Table(
+                                    [
+                                        html.Thead(
+                                            html.Tr(
+                                                [
+                                                    html.Th("ID"),
+                                                    html.Th("# children"),
+                                                    html.Th("Show"),
+                                                ]
+                                            )
+                                        ),
+                                        html.Tbody(
+                                            [
+                                                html.Tr(
+                                                    [
+                                                        html.Td(
+                                                            "scaffold_1",
+                                                            className="font-monospace",
+                                                        ),
+                                                        html.Td("3"),
+                                                        html.Td(
+                                                            html.I(
+                                                                className="bi bi-eye-fill"
+                                                            ),
+                                                        ),
+                                                    ]
+                                                ),
+                                                html.Tr(
+                                                    [
+                                                        html.Td(
+                                                            "scaffold_2",
+                                                            className="font-monospace",
+                                                        ),
+                                                        html.Td("5"),
+                                                        html.Td(
+                                                            html.I(
+                                                                className="bi bi-eye-fill"
+                                                            ),
+                                                        ),
+                                                    ]
+                                                ),
+                                            ],
+                                        ),
+                                    ],
+                                    style={
+                                        "--bs-table-bg": "inherit",
+                                        "--bs-table-color-state": "#ccc",
+                                    },
+                                ),
+                            ]
+                        ),
+                        ctrl_sep,
                         html.H4("Screenshots"),
                         html.Div(
                             [
