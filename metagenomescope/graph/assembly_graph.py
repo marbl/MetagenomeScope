@@ -2341,7 +2341,6 @@ class AssemblyGraph(object):
         cc_parents = [""]
         cc_sizes = [self.node_ct]
 
-        small_cc_node_ct = 0
         node_ct2cc_nums = defaultdict(list)
         for cc in self.components:
             node_ct2cc_nums[cc.num_full_nodes].append(cc.cc_num)
@@ -2350,44 +2349,15 @@ class AssemblyGraph(object):
         # don't bother aggregating same-size components' rectangles together
         aggregate = len(self.components) >= ui_config.MIN_LARGE_CC_COUNT
 
-        # We will add a special parent for small components. We define a
-        # component containing N nodes as "small" if:
-        # (1) for all values X in the range 1 <= X <= N, there are at least 2
-        #     components containing X nodes. (So, seeing just 0 or 1 components
-        #     containing X nodes will break this.)
-        # (2) N < ui_config.ui_config.MIN_NONSMALL_CC_NODE_COUNT.
-        adding_small_ccs = True
-
-        # Go in ascending order of node counts: so, consider the components
-        # with 1 node each, then with 2 nodes each, etc.
-        prev_node_ct = 0
-        for node_ct in sorted(node_ct2cc_nums.keys()):
+        # Go in descending order of node counts: so, consider the biggest
+        # component first, then the second biggest, etc.
+        for node_ct in sorted(node_ct2cc_nums.keys(), reverse=True):
             cc_nums = node_ct2cc_nums[node_ct]
-            if adding_small_ccs and (
-                node_ct != prev_node_ct + 1
-                or len(cc_nums) < 2
-                or node_ct >= ui_config.MIN_NONSMALL_CC_NODE_COUNT
-            ):
-                adding_small_ccs = False
             names, sizes = graph_utils.get_treemap_rectangles(
-                cc_nums, node_ct, aggregate=(aggregate and adding_small_ccs)
+                cc_nums, node_ct, aggregate=aggregate
             )
             cc_names.extend(names)
             cc_sizes.extend(sizes)
-            if adding_small_ccs:
-                cc_parents.extend(["Small Components"] * len(names))
-                small_cc_node_ct += sum(sizes)
-            else:
-                cc_parents.extend(["Components"] * len(names))
-            prev_node_ct = node_ct
-
-        cc_names.reverse()
-        cc_parents.reverse()
-        cc_sizes.reverse()
-
-        if small_cc_node_ct > 0:
-            cc_names.insert(-1, "Small Components")
-            cc_parents.insert(-1, "Components")
-            cc_sizes.insert(-1, small_cc_node_ct)
+            cc_parents.extend(["Components"] * len(names))
 
         return cc_names, cc_parents, cc_sizes
