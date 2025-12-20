@@ -5,16 +5,15 @@ import random
 import logging
 import subprocess
 from copy import deepcopy
-from collections import deque
+from collections import deque, defaultdict
 import numpy
 import networkx as nx
 import pygraphviz
-
-
 from .. import (
     parsers,
     config,
     cy_config,
+    ui_config,
     layout_utils,
     color_utils,
     ui_utils,
@@ -1897,10 +1896,6 @@ class AssemblyGraph(object):
                 subprocess.run(f"dot -Tpng {ffp} > {png_fp}", shell=True)
                 conclude_msg()
 
-    def to_cytoscape_compatible_format(self):
-        """TODO."""
-        raise NotImplementedError
-
     def _fail_if_layout_not_done(self, fn_name):
         if not self.layout_done:
             raise GraphError(
@@ -2330,3 +2325,69 @@ class AssemblyGraph(object):
             cc = self.components[n - 1]
             eles.extend(cc.to_cyjs(incl_patterns=incl_patterns))
         return eles
+
+    def to_treemap(self):
+        """Creates data describing the graph's components for use in a treemap.
+
+        Returns
+        -------
+        list of str, list of str, list of int
+            Names, parent names, and sizes (in terms of node count) of each
+            rectangle.
+        """
+        graph_utils.validate_multiple_ccs(self)
+
+        cc_names = ["Components"]
+        cc_parents = [""]
+        cc_sizes = [self.node_ct]
+
+        small_cc_node_ct = 0
+        node_ct2cc_nums = defaultdict(list)
+        for cc in self.components:
+            node_ct2cc_nums[cc.num_full_nodes].append(cc.cc_num)
+
+        # If the graph contains a relatively small number of components,
+        # don't bother aggregating same-size components' rectangles together
+        aggregate = len(self.components) >= ui_config.MIN_LARGE_CC_COUNT
+
+        # We will add a special parent for small components. We define a
+        # component containing N nodes as "small" if:
+        # (1) for all values X in the range 1 <= X <= N, there are at least 2
+        #     components containing X nodes. (So, seeing just 0 or 1 components
+        #     containing X nodes will break this.)
+        # (2) N < ui_config.ui_config.MIN_NONSMALL_CC_NODE_COUNT.
+        adding_small_ccs = True
+
+        # Go in ascending order of node counts: so, consider the components
+        # with 1 node each, then with 2 nodes each, etc.
+        prev_node_ct = 0
+        for node_ct in sorted(node_ct2cc_nums.keys()):
+            cc_nums = node_ct2cc_nums[node_ct]
+            if adding_small_ccs and (
+                node_ct != prev_node_ct + 1
+                or len(cc_nums) < 2
+                or node_ct >= ui_config.MIN_NONSMALL_CC_NODE_COUNT
+            ):
+                adding_small_ccs = False
+            names, sizes = graph_utils.get_treemap_rectangles(
+                cc_nums, node_ct, aggregate=(aggregate and adding_small_ccs)
+            )
+            cc_names.extend(names)
+            cc_sizes.extend(sizes)
+            if adding_small_ccs:
+                cc_parents.extend(["Small Components"] * len(names))
+                small_cc_node_ct += sum(sizes)
+            else:
+                cc_parents.extend(["Components"] * len(names))
+            prev_node_ct = node_ct
+
+        cc_names.reverse()
+        cc_parents.reverse()
+        cc_sizes.reverse()
+
+        if small_cc_node_ct > 0:
+            cc_names.insert(-1, "Small Components")
+            cc_parents.insert(-1, "Components")
+            cc_sizes.insert(-1, small_cc_node_ct)
+
+        return cc_names, cc_parents, cc_sizes

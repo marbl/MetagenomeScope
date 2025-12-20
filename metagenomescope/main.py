@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 import logging
-import dash
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from collections import defaultdict
 from dash import (
+    Dash,
     html,
     callback,
     clientside_callback,
@@ -170,7 +169,7 @@ def run(
         CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {"aria-disabled": "true"}
 
     # update_title=None prevents Dash's default "Updating..." page title change
-    app = dash.Dash(__name__, title="MgSc", update_title=None)
+    app = Dash(__name__, title="MgSc", update_title=None)
     CONTROLS_TOGGLER_ICON_CLASSES = "bi bi-list"
     app.layout = dbc.Container(
         [
@@ -1070,52 +1069,7 @@ def run(
             prevent_initial_call=True,
         )
         def plot_cc_treemap(n_clicks):
-            graph_utils.validate_multiple_ccs(ag)
-            cc_names = ["Components"]
-            cc_sizes = [ag.node_ct]
-            cc_parents = [""]
-            if len(ag.components) >= ui_config.MIN_LARGE_CC_COUNT:
-                node_ct2cc_nums = defaultdict(list)
-                for cc in ag.components:
-                    node_ct2cc_nums[cc.num_full_nodes].append(cc.cc_num)
-                for node_ct in sorted(node_ct2cc_nums.keys(), reverse=True):
-                    cc_nums = node_ct2cc_nums[node_ct]
-                    cc_ct = len(cc_nums)
-                    if cc_ct >= ui_config.MIN_SAME_SIZE_CC_COUNT:
-                        # Enough ccs have the same exact amount of nodes that
-                        # we should collapse them in the treemap
-                        min_cc_num = min(cc_nums)
-                        max_cc_num = max(cc_nums)
-                        # NOTE: now that we delegate computing the hover
-                        # text template to ui_utils.fmt_num_ranges(), this
-                        # is no longer a strict requirement -- that function
-                        # can describe discontinuous cc size ranks. However,
-                        # we should not see this happen in practice yet, so
-                        # I guess we can be paranoid and check here anyway.
-                        if max_cc_num - min_cc_num + 1 != len(cc_nums):
-                            raise WeirdError(
-                                "Something weird is up with the size ranks? "
-                                f"|{min_cc_num:,} to {max_cc_num:,}| != "
-                                f"{len(cc_nums):,}"
-                            )
-                        cc_names.append(
-                            f"{ui_utils.fmt_num_ranges(cc_nums)} "
-                            f"({node_ct:,}-node components)"
-                        )
-                        # If we have let's say 5 components that each contain
-                        # exactly 3 nodes, then they represent 15 nodes total.
-                        cc_sizes.append(node_ct * cc_ct)
-                        cc_parents.append("Components")
-                    else:
-                        for cc_num in cc_nums:
-                            cc_names.append(f"#{cc_num:,}")
-                            cc_sizes.append(node_ct)
-                            cc_parents.append("Components")
-            else:
-                for cc in ag.components:
-                    cc_names.append(f"#{cc.cc_num:,}")
-                    cc_sizes.append(cc.num_full_nodes)
-                    cc_parents.append("Components")
+            cc_names, cc_parents, cc_sizes = ag.to_treemap()
             fig = go.Figure(
                 go.Treemap(
                     labels=cc_names,
@@ -1151,15 +1105,6 @@ def run(
                 # that hover tooltips for rectangles at the bottom of the
                 # plot don't get chopped off by the figure border
                 margin=dict(l=0, r=0, b=30, t=75),
-                # This will hide too-small labels (yay!), at the cost of
-                # forcing all other labels to consistently be the same
-                # size and disabling transition animations when you
-                # like click to expand a box or something (???). Let's
-                # see if we can do without it for now.
-                # uniformtext=dict(
-                #     minsize=12,
-                #     mode="show",
-                # )
             )
             return dcc.Graph(figure=fig)
 
