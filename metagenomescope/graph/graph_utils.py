@@ -32,6 +32,47 @@ def validate_multiple_ccs(ag):
 
 
 def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
+    """Formats components of a given node size to be represented in a treemap.
+
+    Parameters
+    ----------
+    cc_nums: list of int
+        List of component size ranks that all contain a given number of nodes.
+        Because of the way component size ranks are produced (by sorting
+        components based first on how many nodes they contain), this should
+        be a continuous range. It is okay if this list contains only a single
+        component size rank; this indicates that just one component contains
+        node_ct nodes.
+
+    node_ct: int
+        The number of nodes that each component in cc_nums contains.
+
+    aggregate: bool
+        If True, we will only create a single rectangle (representing all of
+        these components). Otherwise, we will create one rectangle for each
+        component.
+
+    Returns
+    -------
+    names, sizes: list of str, list of int
+        "names" describes the name of each rectangle. If len(cc_nums) > 1 and
+        aggregate=True, then this will be formatted in a fancy way to indicate
+        that this rectangle represents multiple components.
+
+        "sizes" describes the size of each rectangle, in terms of nodes.
+
+        Note that, if aggregate=True, then len(names) == len(sizes) == 1.
+        (Either this is because multiple components will be aggregated
+        together -- if len(cc_nums) > 1 -- or it is because len(cc_nums) == 1.)
+
+    Raises
+    ------
+    WeirdError
+        If len(cc_nums) < 1.
+        If cc_nums does not represent a continuous range of integers.
+    """
+    if len(cc_nums) < 1:
+        raise WeirdError("cc_nums cannot be empty")
     names = []
     sizes = []
     if len(cc_nums) > 1 and aggregate:
