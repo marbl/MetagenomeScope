@@ -30,13 +30,13 @@ from . import __version__, defaults, descs, config, main
 #     required=False,
 #     help=FASTA,
 # )
-# @click.option(
-#     "-a",
-#     "--agp",
-#     type=click.Path(exists=True, dir_okay=False, readable=True),
-#     required=False,
-#     help=AGP,
-# )
+@click.option(
+    "-a",
+    "--agp",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    required=False,
+    help=descs.AGP,
+)
 @click.option(
     "-p",
     "--port",
@@ -55,6 +55,7 @@ from . import __version__, defaults, descs, config, main
 @click.version_option(__version__, "-v", "--version")
 def run_script(
     graph: str,
+    agp: str,
     port: int,
     verbose: bool,
 ) -> None:
@@ -65,6 +66,7 @@ def run_script(
     """
     main.run(
         graph=graph,
+        agp=agp,
         port=port,
         verbose=verbose,
     )

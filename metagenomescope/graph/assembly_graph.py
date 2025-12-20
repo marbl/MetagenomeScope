@@ -18,6 +18,7 @@ from .. import (
     color_utils,
     ui_utils,
     seq_utils,
+    agp_utils,
     input_node_utils,
 )
 from ..errors import GraphParsingError, GraphError, WeirdError, UIError
@@ -74,6 +75,7 @@ class AssemblyGraph(object):
     def __init__(
         self,
         graph_fp,
+        agp_fp=None,
     ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
@@ -84,9 +86,19 @@ class AssemblyGraph(object):
         ----------
         graph_fp: str
             Path to the assembly graph to be visualized.
+
+        agp_fp: str or None
+            If specified, this should be a path to an AGP file describing paths
+            in the graph.
+
+        References
+        ----------
+        For details about AGP files, see
+        https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/
         """
         logger = logging.getLogger(__name__)
         self.filename = graph_fp
+        self.agp_filename = agp_fp
 
         self.basename = os.path.basename(self.filename)
         logger.info(f'Loading input graph "{self.basename}"...')
@@ -139,6 +151,14 @@ class AssemblyGraph(object):
         logger.debug("  Initializing node and edge graph objects...")
         self._init_graph_objs()
         logger.debug("  ...Done.")
+
+        self.paths = []
+        if self.agp_filename is not None:
+            logger.debug("  Loading paths from AGP file...")
+            paths = agp_utils.get_paths_from_agp(self.agp_filename)
+            logger.debug(
+                f"  ...Done. Found {ui_utils.pluralize(len(paths), 'path')}."
+            )
 
         logger.debug(
             f"  Computing some stats about {self.seq_noun} sequence lengths..."

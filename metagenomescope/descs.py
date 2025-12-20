@@ -7,7 +7,7 @@ FASTA = (
     "LastGraph) or edges (DOT)."
 )
 
-AGP = "AGP file describing paths of nodes."
+AGP = "AGP file describing paths (e.g. scaffolds) in the graph."
 
 PORT = "Server port number."
 

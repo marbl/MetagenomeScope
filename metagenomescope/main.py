@@ -27,6 +27,7 @@ cyto.load_extra_layouts()
 
 def run(
     graph: str = None,
+    agp: str = None,
     port: int = defaults.PORT,
     verbose: bool = defaults.VERBOSE,
 ):
@@ -53,6 +54,7 @@ def run(
         [
             "Settings:",
             f"Graph: {graph}",
+            f"AGP file: {agp}",
             f"Port: {port}",
             f"Verbose?: {verbose}",
         ],
@@ -63,7 +65,7 @@ def run(
     # Read the assembly graph file and create an object representing it.
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
     # edges, etc.
-    ag = AssemblyGraph(graph)
+    ag = AssemblyGraph(graph, agp_fp=agp)
 
     # Prepare some of the UI components in advance. A nice thing about Dash
     # (which I guess comes from it being built on top of React) is that we can
