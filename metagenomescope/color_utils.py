@@ -126,7 +126,6 @@ def selectively_interpolate_hsl(
 
     Default values picked by messing around in https://www.hslpicker.com.
     """
-    cc_marker_colors = []
     if Lmax <= Lmin:
         raise WeirdError("Lmax must be > Lmin")
     d = Lmax - Lmin
