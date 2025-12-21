@@ -123,17 +123,24 @@ def selectively_interpolate_hsl(
     -----
     I'm not sure if allowing H, S, and L to all be floats is useful, but
     whatever it doesn't really matter (https://stackoverflow.com/q/5723225).
+
+    Default values picked by messing around in https://www.hslpicker.com.
     """
     cc_marker_colors = []
-    # values picked by messing around in https://www.hslpicker.com
     if Lmax <= Lmin:
         raise WeirdError("Lmax must be > Lmin")
     d = Lmax - Lmin
     colors = []
+    prefix = f"hsl({H},{S}%,"
     for i, a in enumerate(positions):
         if a:
-            L = ((1 - (i / len(positions))) * d) + Lmin
-            colors.append(f"hsl({H},{S},{L}%)")
+            if light_to_dark:
+                # go from high L to low L
+                frac = 1 - (i / (len(positions) - 1))
+            else:
+                frac = i / (len(positions) - 1)
+            L = (frac * d) + Lmin
+            colors.append(f"{prefix}{L}%)")
         else:
             # blessedly, if you pass "" as a marker_color for a particular
             # treemap entry then plotly understands that we should just follow
