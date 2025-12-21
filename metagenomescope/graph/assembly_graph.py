@@ -2362,13 +2362,17 @@ class AssemblyGraph(object):
 
         Returns
         -------
-        names, parents, sizes, is_agg: lists of (str, str, int, bool)
+        names, parents, sizes, aggs: lists of (str, str, int, bool)
             The first three lists describe the names, parent names, and sizes
             (in terms of node count) of each rectangle in the treemap.
 
-            The fourth list, is_agg, describes whether or not each rectangle
+            The fourth list, aggs, describes whether or not each rectangle
             represents an aggregate of multiple components. It's useful if you
             want to apply special styles to these aggregate rectangles.
+
+            The orders of all these lists are consistent: names[i], parents[i],
+            sizes[i], and aggs[i] all describe the same i-th rectangle in the
+            treemap.
 
             Note that the first entry of each list represents "Components", a
             rectangle describing all components in the graph. It will have no
