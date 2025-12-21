@@ -77,3 +77,66 @@ def get_rand_idx(n):
         if len(available_indices) == 0:
             available_indices = get_rand_idx_list(n)
         yield available_indices.pop()
+
+
+def selectively_interpolate_hsl(
+    positions, light_to_dark=True, Lmin=15, Lmax=70, H=255, S=29
+):
+    """Linearly interpolates HSL colors along a given lightness range.
+
+    Parameters
+    ----------
+    positions: list of bool
+        Only produce HSL colors for entries of this list marked as True.
+        Other entries of this list will get ""s instead.
+
+    light_to_dark: bool
+        If True, interpolate from high to low L values (so, earlier
+        entries in the output list will be lighter). If False, go from
+        low to high.
+
+    Lmin: float
+        Minimum lightness.
+
+    Lmax: float
+        Maximum lightness.
+
+    H: float
+        Hue.
+
+    S: float
+        Saturation.
+
+    Returns
+    -------
+    colors: list of str
+        This will have the same dimensions as positions. Each entry in this
+        list will be either a HSL color compatible with Plotly or a "",
+        depending on the corresponding entry in positions.
+
+    Raises
+    ------
+    WeirdError
+        If Lmax <= Lmin.
+
+    Notes
+    -----
+    I'm not sure if allowing H, S, and L to all be floats is useful, but
+    whatever it doesn't really matter (https://stackoverflow.com/q/5723225).
+    """
+    cc_marker_colors = []
+    # values picked by messing around in https://www.hslpicker.com
+    if Lmax <= Lmin:
+        raise WeirdError("Lmax must be > Lmin")
+    d = Lmax - Lmin
+    colors = []
+    for i, a in enumerate(positions):
+        if a:
+            L = ((1 - (i / len(positions))) * d) + Lmin
+            colors.append(f"hsl({H},{S},{L}%)")
+        else:
+            # blessedly, if you pass "" as a marker_color for a particular
+            # treemap entry then plotly understands that we should just follow
+            # the usual colormap
+            colors.append("")
+    return colors
