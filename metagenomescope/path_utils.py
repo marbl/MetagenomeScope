@@ -66,7 +66,7 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
                 )
                 continue
             seq_id = parts[5]
-            if parts[8] == "-":
+            if orientation_in_name and parts[8] == "-":
                 seq_id = "-" + seq_id
             paths[parts[0]].append(seq_id)
     return paths
