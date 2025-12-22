@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from .errors import AGPParsingError
+from .errors import PathParsingError
 
 
 def get_paths_from_agp(agp_fp, orientation_in_name=True):
@@ -35,7 +35,7 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
 
     Raises
     ------
-    AGPParsingError
+    PathParsingError
         If the file looks invalid.
 
     Notes
@@ -50,9 +50,9 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
     paths = defaultdict(list)
     with open(agp_fp, "r") as fh:
         for line in fh:
-            parts = line.split("\t")
+            parts = line.strip().split("\t")
             if len(parts) != 9:
-                raise AGPParsingError(
+                raise PathParsingError(
                     f"Line {line} doesn't have exactly 9 tab-separated columns"
                 )
             if parts[4] in "NU":
@@ -70,3 +70,56 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
                 seq_id = "-" + seq_id
             paths[parts[0]].append(seq_id)
     return paths
+
+
+def map_cc_nums_to_paths(id2obj, paths, nodes=True):
+    """Returns a mapping of component size ranks -> path names."""
+    # in theory i guess a path can traverse the same sequence multiple
+    # times? so let's use a set to account for that
+    objname2pathnames = defaultdict(set)
+    for pathname, path_parts in paths.items():
+        for name in path_parts:
+            objname2pathnames[name].add(pathname)
+    pathname2ccnum = {}
+
+    for obj in id2obj.values():
+        if nodes:
+            objname = obj.basename
+        else:
+            objname = obj.data["id"]
+        # Is this node or edge present in at least one of the input paths?
+        if objname in objname2pathnames:
+            # Yes, it is. Go through all paths it is contained in.
+            for pathname in objname2pathnames[objname]:
+                # Have we already seen this path?
+                if pathname in pathname2ccnum:
+                    # Have we recorded this path as being in a *different* cc?
+                    if pathname2ccnum[pathname] != obj.cc_num:
+                        raise PathParsingError(
+                            f"Path {pathname} spans multiple components, "
+                            f"including #{pathname2ccnum[pathname]:,} and "
+                            f"#{obj.cc_num:,}?"
+                        )
+                else:
+                    # We haven't already seen this path, so record what cc it
+                    # is in.
+                    pathname2ccnum[pathname] = obj.cc_num
+            # Okay, we've finished checking this node/edge. Continue on.
+            del objname2pathnames[objname]
+
+    noun = "node" if nodes else "edge"
+    if len(objname2pathnames) > 0:
+        raise PathParsingError(
+            f"The following {noun}s specified in the paths are not present "
+            f"in the graph: {', '.join(objname2pathnames.keys())}"
+        )
+
+    ccnum2pathnames = defaultdict(list)
+    for pathname in paths:
+        if pathname not in pathname2ccnum:
+            raise PathParsingError(
+                f"Couldn't find any {noun}s in path {pathname} in the graph?"
+            )
+        ccnum2pathnames[pathname2ccnum[pathname]].append(pathname)
+
+    return ccnum2pathnames

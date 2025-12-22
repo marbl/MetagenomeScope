@@ -18,7 +18,7 @@ from .. import (
     color_utils,
     ui_utils,
     seq_utils,
-    agp_utils,
+    path_utils,
     input_node_utils,
 )
 from ..errors import GraphParsingError, GraphError, WeirdError, UIError
@@ -158,16 +158,6 @@ class AssemblyGraph(object):
         self._init_graph_objs()
         logger.debug("  ...Done.")
 
-        self.paths = []
-        if self.agp_filename is not None:
-            logger.debug(f'  Loading input AGP file "{self.agp_basename}"...')
-            self.paths = agp_utils.get_paths_from_agp(
-                self.agp_filename, self.orientation_in_name
-            )
-            logger.debug(
-                f"  ...Done. Found {ui_utils.pluralize(len(self.paths), 'path')}."
-            )
-
         logger.debug(
             f"  Computing some stats about {self.seq_noun} sequence lengths..."
         )
@@ -226,6 +216,23 @@ class AssemblyGraph(object):
             "  ...Done. The graph has "
             f"{ui_utils.pluralize(len(self.components), 'component')}."
         )
+
+        self.paths = {}
+        self.ccnum2pathnames = None
+        if self.agp_filename is not None:
+            logger.debug(f'  Loading input AGP file "{self.agp_basename}"...')
+            self.paths = path_utils.get_paths_from_agp(
+                self.agp_filename, self.orientation_in_name
+            )
+            id2obj = self.nodeid2obj if self.node_centric else self.edgeid2obj
+            self.ccnum2pathnames = path_utils.map_cc_nums_to_paths(
+                id2obj, self.paths, self.node_centric
+            )
+            logger.debug(
+                "  ...Done. Found "
+                f"{ui_utils.pluralize(len(self.paths), 'path')} across "
+                f"{ui_utils.pluralize(len(self.ccnum2pathnames), 'component')}."
+            )
 
         # Since layout can take a while, we leave it to the creator of this
         # object to call .layout() (if for example they don't actually need to

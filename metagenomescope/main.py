@@ -178,7 +178,9 @@ def run(
         paths_html = [
             ctrl_sep,
             html.H4("Paths"),
-            html.P(f"0 / {len(ag.paths):,} currently visible."),
+            html.Div(
+                f"0 / {len(ag.paths):,} currently visible.", id="pathsDiv"
+            ),
         ]
 
     # update_title=None prevents Dash's default "Updating..." page title change
@@ -1463,6 +1465,22 @@ def run(
                 curr_curr_drawn_text,
                 curr_curr_drawn_info,
             )
+
+    # When drawing is finished, update the paths div with info about all
+    # paths selectable for the currently drawn region of the graph
+    if paths_given:
+
+        @callback(
+            Output("pathsDiv", "children"),
+            Input("currDrawnInfo", "data"),
+            prevent_initial_call=True,
+        )
+        def update_curr_visible_paths(curr_drawn_info):
+            visible_paths = []
+            for cc_num in curr_drawn_info["cc_nums"]:
+                if cc_num in ag.ccnum2pathnames:
+                    visible_paths.extend(ag.ccnum2pathnames[cc_num])
+            return f"Currently visible: {', '.join(visible_paths)}"
 
     # It looks like Bootstrap requires us to use JS to show the toast. If we
     # try to show it ourselves (by just adding the "show" class when creating

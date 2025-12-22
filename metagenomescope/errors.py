@@ -2,7 +2,7 @@ class GraphParsingError(Exception):
     pass
 
 
-class AGPParsingError(Exception):
+class PathParsingError(Exception):
     pass
 
 
