@@ -54,3 +54,55 @@ def test_get_rand_idx_cycles():
     ctr = Counter(indices)
     for i in (0, 1, 2, 3, 4, 5, 6):
         assert ctr[i] == 5
+
+
+def test_selectively_interpolate_hsl_bad_lrange():
+    with pytest.raises(WeirdError):
+        color_utils.selectively_interpolate_hsl([True, True], Lmin=30, Lmax=30)
+    with pytest.raises(WeirdError):
+        color_utils.selectively_interpolate_hsl([True, True], Lmin=30, Lmax=20)
+
+
+def test_selectively_interpolate_hsl():
+    c = color_utils.selectively_interpolate_hsl(
+        [True, True], Lmin=0, Lmax=100, H=255, S=29
+    )
+    assert c == ["hsl(255,29%,100.0%)", "hsl(255,29%,0.0%)"]
+
+
+def test_selectively_interpolate_hsl_dark_to_light():
+    c = color_utils.selectively_interpolate_hsl(
+        [True, True], Lmin=0, Lmax=100, H=255, S=29, light_to_dark=False
+    )
+    assert c == ["hsl(255,29%,0.0%)", "hsl(255,29%,100.0%)"]
+
+
+def test_selectively_interpolate_hsl_omit():
+    c = color_utils.selectively_interpolate_hsl(
+        [True, False], Lmin=0, Lmax=100, H=255, S=29
+    )
+    assert c == ["hsl(255,29%,100.0%)", ""]
+
+    c = color_utils.selectively_interpolate_hsl(
+        [False, True], Lmin=0, Lmax=100, H=255, S=29
+    )
+    assert c == ["", "hsl(255,29%,0.0%)"]
+
+    c = color_utils.selectively_interpolate_hsl(
+        [False, False], Lmin=0, Lmax=100, H=255, S=29
+    )
+    assert c == ["", ""]
+
+
+def test_selectively_interpolate_hsl_bigger_range():
+    c = color_utils.selectively_interpolate_hsl(
+        [False, True, True, False, True, True], Lmin=20, Lmax=50, H=30, S=60.3
+    )
+    assert c == [
+        "",
+        "hsl(30,60.3%,44.0%)",
+        "hsl(30,60.3%,38.0%)",
+        "",
+        "hsl(30,60.3%,26.0%)",
+        "hsl(30,60.3%,20.0%)",
+    ]
