@@ -125,6 +125,11 @@ def selectively_interpolate_hsl(
     whatever it doesn't really matter (https://stackoverflow.com/q/5723225).
 
     Default values picked by messing around in https://www.hslpicker.com.
+
+    Note that -- if you are calling this using the treemap rectangles -- then
+    the first entry in the "cc_aggs" list, describing all components in the
+    graph, will always be False. I guess this will (slightly?) impact the
+    lightnesses, but probably not in a very noticeable way.
     """
     if Lmax <= Lmin:
         raise WeirdError("Lmax must be > Lmin")
