@@ -19,9 +19,11 @@
 #  2. Add the lowercase file extension as a key in SUPPORTED_FILETYPE_TO_PARSER
 #  that maps to your new function.
 #
-#  3. Update FILETYPE2HR and HRFILETYPE2NODECENTRIC in order to make clear what
-#  a human-readable version of your filetype is, and whether or not the
-#  "important" sequences are stored on the nodes or edges for this filetype.
+#  3. Update the following config variables in this file regarding your
+#  filetype:
+#      - FILETYPE2HR (what is the "human-readable" name of your filetype?)
+#      - HRFILETYPE2NODECENTRIC (are sequences on nodes or on edges?)
+#      - HRFILETYPE2ORIENTATION_IN_NAME (are orientations encoded in names?)
 #
 #  4. Add tests for your parser in metagenomescope/tests/parsers/
 
@@ -980,12 +982,22 @@ FILETYPE2HR = {
     "dot": "DOT",
 }
 
+# Are the sequences stored on the nodes or the edges?
 HRFILETYPE2NODECENTRIC = {
     "LastGraph": True,
     "GML": True,
     "GFA": True,
     "FASTG": True,
     "DOT": False,
+}
+
+# Are the sequence names include a prefix with their orientation?
+HRFILETYPE2ORIENTATION_IN_NAME = {
+    "LastGraph": True,
+    "GML": False,
+    "GFA": True,
+    "FASTG": True,
+    "DOT": True,
 }
 
 

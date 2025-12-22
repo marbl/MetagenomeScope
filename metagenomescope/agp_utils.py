@@ -1,8 +1,9 @@
+import logging
 from collections import defaultdict
 from .errors import AGPParsingError
 
 
-def get_paths_from_agp(agp_fp):
+def get_paths_from_agp(agp_fp, orientation_in_name=True):
     # https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/
     paths = defaultdict(list)
     with open(agp_fp, "r") as fh:
@@ -15,10 +16,15 @@ def get_paths_from_agp(agp_fp):
             if parts[4] in "NU":
                 # like we totally COULD support this but if nobody is
                 # using this kind of thing then it's not worth it
-                raise AGPParsingError(
-                    f"Line {line} describes a gap. We don't support this yet "
-                    "(is anyone generating these kinds of files...?), but "
-                    "let us know if you would like us to support this!"
+                logging.warning(
+                    f"Line {line} describes a gap. Currently, gaps are "
+                    "ignored in the visualization. However, please let us "
+                    "know if you would like us to support visualizing them "
+                    "specially."
                 )
-            paths[parts[0]].append(parts[5])
+                continue
+            seq_id = parts[5]
+            if parts[8] == "-":
+                seq_id = "-" + seq_id
+            paths[parts[0]].append(seq_id)
     return paths

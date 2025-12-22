@@ -109,6 +109,9 @@ class AssemblyGraph(object):
             parsers.sniff_filetype(self.filename)
         ]
         self.graph = parsers.parse(self.filename)
+        self.orientation_in_name = parsers.HRFILETYPE2ORIENTATION_IN_NAME[
+            self.filetype
+        ]
         self.node_centric = parsers.HRFILETYPE2NODECENTRIC[self.filetype]
         if self.node_centric:
             self.seq_noun = "node"
@@ -158,9 +161,11 @@ class AssemblyGraph(object):
         self.paths = []
         if self.agp_filename is not None:
             logger.debug(f'  Loading input AGP file "{self.agp_basename}"...')
-            paths = agp_utils.get_paths_from_agp(self.agp_filename)
+            self.paths = agp_utils.get_paths_from_agp(
+                self.agp_filename, self.orientation_in_name
+            )
             logger.debug(
-                f"  ...Done. Found {ui_utils.pluralize(len(paths), 'path')}."
+                f"  ...Done. Found {ui_utils.pluralize(len(self.paths), 'path')}."
             )
 
         logger.debug(

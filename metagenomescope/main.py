@@ -170,6 +170,17 @@ def run(
         CC_SELECTION_A_CLASSES_MULTIPLE_CCS += " disabled"
         CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {"aria-disabled": "true"}
 
+    # If the user specified paths somehow (e.g. an AGP file), we'll show an
+    # interface for these
+    paths_given = len(ag.paths) > 0
+    paths_html = None
+    if paths_given:
+        paths_html = [
+            ctrl_sep,
+            html.H4("Paths"),
+            html.P(f"0 / {len(ag.paths):,} currently visible."),
+        ]
+
     # update_title=None prevents Dash's default "Updating..." page title change
     app = Dash(__name__, title="MgSc", update_title=None)
     CONTROLS_TOGGLER_ICON_CLASSES = "bi bi-list"
@@ -468,63 +479,7 @@ def run(
                             ],
                             className="radio-group",
                         ),
-                        ctrl_sep,
-                        html.H4(
-                            "Paths",
-                        ),
-                        html.Div(
-                            [
-                                dbc.Table(
-                                    [
-                                        html.Thead(
-                                            html.Tr(
-                                                [
-                                                    html.Th("ID"),
-                                                    html.Th("# children"),
-                                                    html.Th("Show"),
-                                                ]
-                                            )
-                                        ),
-                                        html.Tbody(
-                                            [
-                                                html.Tr(
-                                                    [
-                                                        html.Td(
-                                                            "scaffold_1",
-                                                            className="font-monospace",
-                                                        ),
-                                                        html.Td("3"),
-                                                        html.Td(
-                                                            html.I(
-                                                                className="bi bi-eye-fill"
-                                                            ),
-                                                        ),
-                                                    ]
-                                                ),
-                                                html.Tr(
-                                                    [
-                                                        html.Td(
-                                                            "scaffold_2",
-                                                            className="font-monospace",
-                                                        ),
-                                                        html.Td("5"),
-                                                        html.Td(
-                                                            html.I(
-                                                                className="bi bi-eye-fill"
-                                                            ),
-                                                        ),
-                                                    ]
-                                                ),
-                                            ],
-                                        ),
-                                    ],
-                                    style={
-                                        "--bs-table-bg": "inherit",
-                                        "--bs-table-color-state": "#ccc",
-                                    },
-                                ),
-                            ]
-                        ),
+                        *paths_html,
                         ctrl_sep,
                         html.H4("Screenshots"),
                         html.Div(
