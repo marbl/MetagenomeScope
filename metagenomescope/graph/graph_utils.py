@@ -1,4 +1,3 @@
-from collections import defaultdict
 from .. import ui_utils
 from metagenomescope.errors import WeirdError
 
