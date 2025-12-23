@@ -1,7 +1,7 @@
 import logging
 import dash_bootstrap_components as dbc
+import dash_ag_grid as dag
 from collections import defaultdict
-from dash import html, dash_table
 from .errors import PathParsingError
 from . import css_config
 
@@ -141,32 +141,16 @@ def get_visible_list(cc_nums, ccnum2pathnames):
 
 
 def get_table(paths_to_list, paths, nodes=True):
+    n = "Name"
     ct = f"# {'nodes' if nodes else 'edges'}"
     rows = []
     for p in paths_to_list:
-        rows.append({"Name": p, ct: f"{len(paths[p]):,}"})
+        rows.append({n: p, ct: f"{len(paths[p]):,}"})
 
-    return dash_table.DataTable(
-        rows,
-        style_header={
-            "backgroundColor": css_config.CONTROLS_BG_COLOR,
-            "color": css_config.CONTROLS_FG_COLOR,
-            "font-family": "inherit !important",
-            "font-weight": "bold",
-            "text-align": "center",
-        },
-        style_data={
-            "backgroundColor": css_config.CONTROLS_BG_COLOR,
-            "color": css_config.CONTROLS_FG_COLOR,
-            "text-align": "center",
-        },
-        # Override default red box around active things:
-        # https://stackoverflow.com/a/61233835
-        style_data_conditional=[
-            {
-                "if": {"state": "selected"},
-                "backgroundColor": "inherit !important",
-                "color": "#0cc",
-            }
-        ],
+    return dag.AgGrid(
+        rowData=rows,
+        columnDefs=[{"field": f, "headerName": f} for f in (n, ct)],
+        # https://dash.plotly.com/dash-ag-grid/column-sizing
+        columnSize="responsiveSizeToFit",
+        className="ag-theme-balham-dark",
     )

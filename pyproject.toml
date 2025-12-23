@@ -56,6 +56,7 @@ dependencies = [
     "pyfastg",
     "dash-cytoscape",
     "dash-bootstrap-components",
+    "dash-ag-grid",
     # we probably don't need to bother including dash in this list (since
     # both dash-cytoscape and dash-bootstrap-components will include it as a
     # dependency) but we may as well be explicit
