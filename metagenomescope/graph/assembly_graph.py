@@ -217,6 +217,9 @@ class AssemblyGraph(object):
             f"{ui_utils.pluralize(len(self.components), 'component')}."
         )
 
+        # Maps path names -> list of node or edge names in path
+        # (whether we think these are nodes or edges is determined by
+        # self.node_centric)
         self.paths = {}
         self.ccnum2pathnames = None
         if self.agp_filename is not None:

@@ -15,7 +15,15 @@ from dash import (
     Output,
     State,
 )
-from . import defaults, css_config, ui_config, ui_utils, cy_utils, color_utils
+from . import (
+    defaults,
+    css_config,
+    ui_config,
+    ui_utils,
+    cy_utils,
+    color_utils,
+    path_utils,
+)
 from .log_utils import start_log, log_lines_with_sep
 from .graph import AssemblyGraph, graph_utils
 from .errors import UIError
@@ -179,7 +187,15 @@ def run(
             ctrl_sep,
             html.H4("Paths"),
             html.Div(
-                f"0 / {len(ag.paths):,} currently visible.", id="pathsDiv"
+                [
+                    html.P(
+                        path_utils.get_visible_count_text(0, len(ag.paths)),
+                        id="pathCount",
+                    ),
+                    html.Div(
+                        id="pathList",
+                    ),
+                ],
             ),
         ]
 
@@ -1471,16 +1487,28 @@ def run(
     if paths_given:
 
         @callback(
-            Output("pathsDiv", "children"),
+            Output("pathCount", "children"),
+            Output("pathList", "children"),
             Input("currDrawnInfo", "data"),
             prevent_initial_call=True,
         )
         def update_curr_visible_paths(curr_drawn_info):
-            visible_paths = []
-            for cc_num in curr_drawn_info["cc_nums"]:
-                if cc_num in ag.ccnum2pathnames:
-                    visible_paths.extend(ag.ccnum2pathnames[cc_num])
-            return f"Currently visible: {', '.join(visible_paths)}"
+            # get the list of currently visible paths, based on what's drawn
+            visible_pathnames = path_utils.get_visible_list(
+                curr_drawn_info["cc_nums"], ag.ccnum2pathnames
+            )
+            # show a summary
+            visible_count_text = path_utils.get_visible_count_text(
+                len(visible_pathnames), len(ag.paths)
+            )
+            # an also a table
+            visible_table = path_utils.get_table(
+                visible_pathnames, ag.paths, nodes=ag.node_centric
+            )
+            return (
+                visible_count_text,
+                visible_table,
+            )
 
     # It looks like Bootstrap requires us to use JS to show the toast. If we
     # try to show it ourselves (by just adding the "show" class when creating

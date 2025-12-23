@@ -1,5 +1,7 @@
 import logging
+import dash_bootstrap_components as dbc
 from collections import defaultdict
+from dash import html
 from .errors import PathParsingError
 
 
@@ -123,3 +125,47 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
         ccnum2pathnames[pathname2ccnum[pathname]].append(pathname)
 
     return ccnum2pathnames
+
+
+def get_visible_count_text(num_visible, total_num):
+    pn = "path" if num_visible == 1 else "paths"
+    return f"{num_visible:,} / {total_num:,} {pn} currently visible."
+
+
+def get_visible_list(cc_nums, ccnum2pathnames):
+    visible_pathnames = []
+    for cc_num in cc_nums:
+        if cc_num in ccnum2pathnames:
+            visible_pathnames.extend(ccnum2pathnames[cc_num])
+    return visible_pathnames
+
+
+def get_table(paths_to_list, paths, nodes=True):
+    header = html.Thead(
+        html.Tr(
+            [
+                html.Th("ID"),
+                html.Th(f"# {'nodes' if nodes else 'edges'}"),
+            ]
+        )
+    )
+
+    rows = []
+    for p in paths_to_list:
+        rows.append(
+            html.Tr(
+                [
+                    html.Td(p, className="font-monospace"),
+                    html.Td(f"{len(paths[p]):,}"),
+                ],
+            )
+        )
+    body = html.Tbody(rows)
+
+    return dbc.Table(
+        [header, body],
+        style={
+            "--bs-table-bg": "inherit",
+            "--bs-table-color-state": "#ccc",
+        },
+    )
