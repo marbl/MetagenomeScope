@@ -1579,7 +1579,7 @@ def run(
                                 '[label="' + name + '-R"]'
                             );
                         } else {
-                            newEles = cy.edges('[id="' + name + '"]');
+                            newEles = cy.edges('[edgeID="' + name + '"]');
                         }
                         if (newEles.empty()) {
                             alert(

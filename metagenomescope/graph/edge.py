@@ -265,7 +265,10 @@ class Edge(object):
         }
         # pass LJA / Flye edge IDs to the viz, for selection / etc
         if "id" in self.data:
-            ele["data"]["id"] = self.data["id"]
+            # NOTE: "id" has a special meaning in Cytoscape.js, and if
+            # we use "id" here then this overwrites that and causes weird
+            # problems in the viz. So just use something generic instead
+            ele["data"]["edgeID"] = self.data["id"]
 
         if incl_patterns and self.parent_id is not None:
             ele["data"]["parent"] = str(self.parent_id)
