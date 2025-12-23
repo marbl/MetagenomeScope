@@ -128,8 +128,7 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
 
 
 def get_visible_count_text(num_visible, total_num):
-    pn = "path" if num_visible == 1 else "paths"
-    return f"{num_visible:,} / {total_num:,} {pn} currently visible."
+    return f"{num_visible:,} / {total_num:,} currently visible."
 
 
 def get_visible_list(cc_nums, ccnum2pathnames):
@@ -144,7 +143,7 @@ def get_table(paths_to_list, paths, nodes=True):
     header = html.Thead(
         html.Tr(
             [
-                html.Th("ID"),
+                html.Th("Name"),
                 html.Th(f"# {'nodes' if nodes else 'edges'}"),
             ]
         )
