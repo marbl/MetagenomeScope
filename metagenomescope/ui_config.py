@@ -39,3 +39,14 @@ MIN_LARGE_CC_COUNT = 100
 # Don't label components with >= this many nodes as small
 # (see https://github.com/marbl/MetagenomeScope/issues/278)
 MIN_NONSMALL_CC_NODE_COUNT = 50
+
+###############################################################################
+# Table of paths
+###############################################################################
+
+# these are just the IDs of the columns, we'll come up with something fancier
+# for the UI. Since these apparently need to be repeated once for every row in
+# rowData, let's use shorter strings to reduce the amount of space we need...?
+# probably won't matter tho
+PATH_TBL_NAME_COL = "N"
+PATH_TBL_COUNT_COL = "C"

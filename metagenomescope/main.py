@@ -3,6 +3,7 @@
 import logging
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
+import dash_ag_grid as dag
 import plotly.graph_objects as go
 from dash import (
     Dash,
@@ -183,6 +184,7 @@ def run(
     paths_given = len(ag.paths) > 0
     paths_html = None
     if paths_given:
+        ct_col = f"# {'nodes' if ag.node_centric else 'edges'}"
         paths_html = [
             ctrl_sep,
             html.H4("Paths"),
@@ -192,7 +194,21 @@ def run(
                         path_utils.get_visible_count_text(0, len(ag.paths)),
                         id="pathCount",
                     ),
-                    html.Div(
+                    dag.AgGrid(
+                        rowData=[],
+                        columnDefs=[
+                            {
+                                "field": ui_config.PATH_TBL_NAME_COL,
+                                "headerName": "Name",
+                            },
+                            {
+                                "field": ui_config.PATH_TBL_COUNT_COL,
+                                "headerName": ct_col,
+                            },
+                        ],
+                        # https://dash.plotly.com/dash-ag-grid/column-sizing
+                        columnSize="responsiveSizeToFit",
+                        className="ag-theme-balham-dark",
                         id="pathList",
                     ),
                 ],
@@ -1488,7 +1504,7 @@ def run(
 
         @callback(
             Output("pathCount", "children"),
-            Output("pathList", "children"),
+            Output("pathList", "rowData"),
             Input("currDrawnInfo", "data"),
             prevent_initial_call=True,
         )
@@ -1504,15 +1520,17 @@ def run(
             visible_count_text = path_utils.get_visible_count_text(
                 len(visible_pathnames), len(ag.paths)
             )
-            # an also a table
-            visible_table = path_utils.get_table(
-                visible_pathnames, ag.paths, nodes=ag.node_centric
-            )
+            # and also a table
+            rows = []
+            for p in visible_pathnames:
+                rows.append(
+                    {
+                        ui_config.PATH_TBL_NAME_COL: p,
+                        ui_config.PATH_TBL_COUNT_COL: f"{len(ag.paths[p]):,}",
+                    }
+                )
             logging.debug(f"Done. {visible_count_text}")
-            return (
-                visible_count_text,
-                visible_table,
-            )
+            return visible_count_text, rows
 
     # It looks like Bootstrap requires us to use JS to show the toast. If we
     # try to show it ourselves (by just adding the "show" class when creating
