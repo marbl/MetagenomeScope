@@ -200,6 +200,7 @@ def run(
                             {
                                 "field": ui_config.PATH_TBL_NAME_COL,
                                 "headerName": "Name",
+                                "cellClass": "path-table-name",
                             },
                             {
                                 "field": ui_config.PATH_TBL_COUNT_COL,
@@ -1057,6 +1058,10 @@ def run(
             dcc.Store(
                 id="nodeSelectionInfo",
             ),
+            # And when selecting stuff in a path
+            dcc.Store(
+                id="pathSelectionInfo",
+            ),
         ],
     )
 
@@ -1531,6 +1536,56 @@ def run(
                 )
             logging.debug(f"Done. {visible_count_text}")
             return visible_count_text, rows
+
+        @callback(
+            Output("pathSelectionInfo", "data"),
+            Input("pathList", "cellClicked"),
+            prevent_initial_call=True,
+        )
+        def highlight_path(clicked_cell):
+            if clicked_cell["colId"] == ui_config.PATH_TBL_NAME_COL:
+                eles = ag.paths[clicked_cell["value"]]
+                return {"requestGood": True, "eles": eles, "nodes": ag.node_centric}
+            else:
+                return {"requestGood": False}
+
+        clientside_callback(
+            """
+            function(pathSelectionInfo) {
+                if (!pathSelectionInfo["requestGood"]) {
+                    console.log("Caught a bad path selection request.");
+                } else {
+                    let cy = document.getElementById("cy")._cyreg.cy;
+                    let eles = cy.collection();
+                    for (var i = 0; i < pathSelectionInfo["eles"].length; i++) {
+                        let name = pathSelectionInfo["eles"][i];
+                        if (pathSelectionInfo["nodes"]) {
+                            newEles = cy.nodes(
+                                '[label="' + name + '"], ' +
+                                '[label="' + name + '-L"], ' +
+                                '[label="' + name + '-R"]'
+                            );
+                        } else {
+                            newEles = cy.edges('[id="' + name + '"]');
+                        }
+                        if (newEles.empty()) {
+                            alert(
+                                "Ele. with name " + name + " not currently " +
+                                "drawn? This should never happen by this point."
+                            );
+                            return;
+                        }
+                        eles = eles.union(newEles);
+                    }
+                    cy.fit(eles);
+                    cy.filter(':selected').unselect();
+                    eles.select();
+                }
+            }
+            """,
+            Input("pathSelectionInfo", "data"),
+            prevent_initial_call=True,
+        )
 
     # It looks like Bootstrap requires us to use JS to show the toast. If we
     # try to show it ourselves (by just adding the "show" class when creating
