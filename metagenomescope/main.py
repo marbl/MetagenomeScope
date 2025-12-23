@@ -1493,6 +1493,9 @@ def run(
             prevent_initial_call=True,
         )
         def update_curr_visible_paths(curr_drawn_info):
+            logging.debug(
+                "Updating info about visible paths based on what was drawn..."
+            )
             # get the list of currently visible paths, based on what's drawn
             visible_pathnames = path_utils.get_visible_list(
                 curr_drawn_info["cc_nums"], ag.ccnum2pathnames
@@ -1505,6 +1508,7 @@ def run(
             visible_table = path_utils.get_table(
                 visible_pathnames, ag.paths, nodes=ag.node_centric
             )
+            logging.debug(f"Done. {visible_count_text}")
             return (
                 visible_count_text,
                 visible_table,
