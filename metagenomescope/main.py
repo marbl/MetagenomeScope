@@ -200,11 +200,12 @@ def run(
                             {
                                 "field": ui_config.PATH_TBL_NAME_COL,
                                 "headerName": "Name",
-                                "cellClass": "path-table-name",
+                                "cellClass": "path-table-name path-table-cells",
                             },
                             {
                                 "field": ui_config.PATH_TBL_COUNT_COL,
                                 "headerName": ct_col,
+                                "cellClass": "path-table-cells",
                             },
                         ],
                         # https://dash.plotly.com/dash-ag-grid/column-sizing

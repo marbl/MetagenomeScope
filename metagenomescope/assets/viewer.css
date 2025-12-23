@@ -457,3 +457,8 @@ button {
     cursor: pointer;
     color: #3ff;
 }
+
+/* i despise the ugly blue border that appears around cells on click */
+.path-table-cells {
+    border: none !important;
+}
