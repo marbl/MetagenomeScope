@@ -2,6 +2,10 @@
 # CSS stuff
 ###############################################################################
 
+CONTROLS_FG_COLOR = "#ccc"
+CONTROLS_BG_COLOR = "#123"
+CONTROLS_BORDER_COLOR = "#002"
+
 # width of the control panel
 # This should ensure that -- on big screens -- the control panel is limited to
 # a reasonable 20em width, but on small screens the control panel takes up

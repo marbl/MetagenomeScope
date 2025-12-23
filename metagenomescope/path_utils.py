@@ -1,8 +1,9 @@
 import logging
 import dash_bootstrap_components as dbc
 from collections import defaultdict
-from dash import html
+from dash import html, dash_table
 from .errors import PathParsingError
+from . import css_config
 
 
 def get_paths_from_agp(agp_fp, orientation_in_name=True):
@@ -140,31 +141,32 @@ def get_visible_list(cc_nums, ccnum2pathnames):
 
 
 def get_table(paths_to_list, paths, nodes=True):
-    header = html.Thead(
-        html.Tr(
-            [
-                html.Th("Name"),
-                html.Th(f"# {'nodes' if nodes else 'edges'}"),
-            ]
-        )
-    )
-
+    ct = f"# {'nodes' if nodes else 'edges'}"
     rows = []
     for p in paths_to_list:
-        rows.append(
-            html.Tr(
-                [
-                    html.Td(p, className="font-monospace"),
-                    html.Td(f"{len(paths[p]):,}"),
-                ],
-            )
-        )
-    body = html.Tbody(rows)
+        rows.append({"Name": p, ct: f"{len(paths[p]):,}"})
 
-    return dbc.Table(
-        [header, body],
-        style={
-            "--bs-table-bg": "inherit",
-            "--bs-table-color-state": "#ccc",
+    return dash_table.DataTable(
+        rows,
+        style_header={
+            "backgroundColor": css_config.CONTROLS_BG_COLOR,
+            "color": css_config.CONTROLS_FG_COLOR,
+            "font-family": "inherit !important",
+            "font-weight": "bold",
+            "text-align": "center",
         },
+        style_data={
+            "backgroundColor": css_config.CONTROLS_BG_COLOR,
+            "color": css_config.CONTROLS_FG_COLOR,
+            "text-align": "center",
+        },
+        # Override default red box around active things:
+        # https://stackoverflow.com/a/61233835
+        style_data_conditional=[
+            {
+                "if": {"state": "selected"},
+                "backgroundColor": "inherit !important",
+                "color": "#0cc",
+            }
+        ],
     )

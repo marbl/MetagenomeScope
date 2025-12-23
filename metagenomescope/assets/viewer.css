@@ -30,10 +30,12 @@ body {
     overflow: hidden;
 }
 
-#controls *:not(.ctrlSep, .btn-group *, #innerControlsDivForBorder) {
+#controls *:not(.ctrlSep, .btn-group *, #innerControlsDivForBorder, #pathList *) {
  /* Add some space between elements in the control panel and the horizontal
   * boundaries of the panel. (Don't capture .ctrlSep things, though,
   * which should span the entire horizontal width of the panel.)
+  * Also if we add padding to the datatable for paths then like each layer of the
+  * table gets padding and it looks miserable lmao
   */
   padding-left: 0.5em;
   padding-right: 0.5em;
@@ -54,6 +56,7 @@ body {
     color: #ddd;
 }
 
+/* matches css_config.CONTROLS_BG_COLOR */
 .darkToggler {
     color: #123;
 }
