@@ -38,7 +38,7 @@ RANDOM_COLORS = [
 NODE_COLOR = "#888888"
 UNSELECTED_NODE_FONT_COLOR = "#eeeeee"
 SELECTED_NODE_BORDER_COLOR = "#0000ff"
-SELECTED_NODE_BORDER_WIDTH = 2
+SELECTED_NODE_BORDER_WIDTH = 4
 
 ###############################################################################
 # Node shapes
