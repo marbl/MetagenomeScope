@@ -125,13 +125,13 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
     return ccnum2pathnames
 
 
-def get_visible_count_text(num_visible, total_num):
-    return f"{num_visible:,} / {total_num:,} currently available."
+def get_available_count_text(num_available, total_num):
+    return f"{num_available:,} / {total_num:,} currently available."
 
 
-def get_visible_list(cc_nums, ccnum2pathnames):
-    visible_pathnames = []
+def get_available_list(cc_nums, ccnum2pathnames):
+    available_pathnames = []
     for cc_num in cc_nums:
         if cc_num in ccnum2pathnames:
-            visible_pathnames.extend(ccnum2pathnames[cc_num])
-    return visible_pathnames
+            available_pathnames.extend(ccnum2pathnames[cc_num])
+    return available_pathnames

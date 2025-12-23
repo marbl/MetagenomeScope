@@ -191,7 +191,7 @@ def run(
             html.Div(
                 [
                     html.P(
-                        path_utils.get_visible_count_text(0, len(ag.paths)),
+                        path_utils.get_available_count_text(0, len(ag.paths)),
                         id="pathCount",
                         style={"margin-bottom": "0.5em"},
                     ),
@@ -1522,29 +1522,29 @@ def run(
             Input("currDrawnInfo", "data"),
             prevent_initial_call=True,
         )
-        def update_curr_visible_paths(curr_drawn_info):
+        def update_curr_available_paths(curr_drawn_info):
             logging.debug(
-                "Updating info about visible paths based on what was drawn..."
+                "Updating info about available paths based on what was drawn..."
             )
-            # get the list of currently visible paths, based on what's drawn
-            visible_pathnames = path_utils.get_visible_list(
+            # get the list of currently available paths, based on what's drawn
+            available_pathnames = path_utils.get_available_list(
                 curr_drawn_info["cc_nums"], ag.ccnum2pathnames
             )
             # show a summary
-            visible_count_text = path_utils.get_visible_count_text(
-                len(visible_pathnames), len(ag.paths)
+            available_count_text = path_utils.get_available_count_text(
+                len(available_pathnames), len(ag.paths)
             )
             # and also a table
             rows = []
-            for p in visible_pathnames:
+            for p in available_pathnames:
                 rows.append(
                     {
                         ui_config.PATH_TBL_NAME_COL: p,
                         ui_config.PATH_TBL_COUNT_COL: f"{len(ag.paths[p]):,}",
                     }
                 )
-            logging.debug(f"Done. {visible_count_text}")
-            return visible_count_text, rows
+            logging.debug(f"Done. {available_count_text}")
+            return available_count_text, rows
 
         @callback(
             Output("pathSelectionInfo", "data"),
