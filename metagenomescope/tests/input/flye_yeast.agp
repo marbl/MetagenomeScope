@@ -1,8 +1,8 @@
-scaffold_1	1	4033	0	W	12	1	4033	-
-scaffold_1	4034	4060	1	W	32	1	27	+
-scaffold_1	4061	5819	2	W	26	1	1759	-
-scaffold_1	4061	5819	2	W	62	1	1759	-
-scaffold_1	4061	5819	2	W	62	1	1759	-
-scaffold_1	5820	5822	3	W	34	1	3	+
-scaffold_2	1	4033	0	W	2	1	4033	+
-scaffold_3	1	4033	0	W	2	1	4033	-
+scaffold_1	1	117000	0	W	12	1	117000	-
+scaffold_1	117001	134001	1	W	32	1	17000	+
+scaffold_1	134002	336002	2	W	26	1	302000	-
+scaffold_1	336003	337903	3	W	62	1	1900	-
+scaffold_1	337904	339804	4	W	62	1	1900	-
+scaffold_1	339805	534805	5	W	34	1	3	+
+scaffold_2	1	6000	0	W	2	1	6000	+
+scaffold_3	1	6000	0	W	2	1	6000	-
