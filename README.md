@@ -32,6 +32,9 @@ mgsc -g graph.gfa
 
 ... where `graph.gfa` is a path to the assembly graph you want to visualize
 (see information below on supported graph filetypes).
+If you have an [AGP file](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/)
+that you would like to visualize on top of the graph, you can additionally
+specify this using the `-a`/`--agp` parameter of `mgsc`.
 
 This will start a server using Dash.
 Navigate to `localhost:8050` in a web browser to access the visualization.
