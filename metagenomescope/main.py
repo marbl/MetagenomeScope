@@ -213,6 +213,13 @@ def run(
                         columnSize="responsiveSizeToFit",
                         className="ag-theme-balham-dark",
                         id="pathList",
+                        # Needed to replace the default "No Rows To Show"
+                        # message when no paths are available:
+                        # https://community.plotly.com/t/how-to-customize-overlay-messages-in-dash-ag-grid/73932/2
+                        dashGridOptions={
+                            "overlayNoRowsTemplate": "No available paths.",
+                        },
+                        dangerously_allow_code=True,
                     ),
                 ],
             ),
@@ -456,6 +463,7 @@ def run(
                                 ),
                             ]
                         ),
+                        *paths_html,
                         ctrl_sep,
                         html.H4(
                             "Colors",
@@ -516,7 +524,6 @@ def run(
                             ],
                             className="radio-group",
                         ),
-                        *paths_html,
                         ctrl_sep,
                         html.H4("Screenshots"),
                         html.Div(
@@ -1547,7 +1554,11 @@ def run(
         def highlight_path(clicked_cell):
             if clicked_cell["colId"] == ui_config.PATH_TBL_NAME_COL:
                 eles = ag.paths[clicked_cell["value"]]
-                return {"requestGood": True, "eles": eles, "nodes": ag.node_centric}
+                return {
+                    "requestGood": True,
+                    "eles": eles,
+                    "nodes": ag.node_centric,
+                }
             else:
                 return {"requestGood": False}
 

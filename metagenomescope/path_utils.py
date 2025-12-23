@@ -126,7 +126,7 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
 
 
 def get_visible_count_text(num_visible, total_num):
-    return f"{num_visible:,} / {total_num:,} currently visible."
+    return f"{num_visible:,} / {total_num:,} currently available."
 
 
 def get_visible_list(cc_nums, ccnum2pathnames):
