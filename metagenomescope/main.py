@@ -193,6 +193,7 @@ def run(
                     html.P(
                         path_utils.get_visible_count_text(0, len(ag.paths)),
                         id="pathCount",
+                        style={"margin-bottom": "0.5em"},
                     ),
                     dag.AgGrid(
                         rowData=[],
