@@ -61,6 +61,8 @@ dependencies = [
     # both dash-cytoscape and dash-bootstrap-components will include it as a
     # dependency) but we may as well be explicit
     "dash",
+    # same deal for plotly -- should be included alongside dash anyway
+    "plotly"
 ]
 # Based on dash-cytoscape's min python version.
 requires-python = ">= 3.8"
