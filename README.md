@@ -44,8 +44,7 @@ Usage: mgsc [OPTIONS]
 
   Visualizes an assembly graph.
 
-  Please check out https://github.com/marbl/MetagenomeScope if you have any
-  questions, suggestions, etc. about this tool.
+  Please visit https://github.com/marbl/MetagenomeScope for more information.
 
 Options:
   -g, --graph FILE          In GFA, FASTG, DOT, GML, or LastGraph format.  [required]

@@ -69,8 +69,7 @@ def run_script(
 ) -> None:
     """Visualizes an assembly graph.
 
-    Please check out https://github.com/marbl/MetagenomeScope if you have any
-    questions, suggestions, etc. about this tool.
+    Please visit https://github.com/marbl/MetagenomeScope for more information.
     """
     main.run(
         graph=graph,
