@@ -32,16 +32,16 @@ mgsc -g graph.gfa
 
 ... where `graph.gfa` is a path to the assembly graph you want to visualize
 (see information below on supported graph filetypes).
-If you have an [AGP file](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/)
-that you would like to visualize on top of the graph, you can additionally
-specify this using the `-a`/`--agp` parameter of `mgsc`.
 
 This will start a server using Dash.
-Navigate to `localhost:8050` in a web browser to access the visualization.
-(If you want to use a different port number than `8050`, you can use the
-`-p`/`--port` parameter of `mgsc`.)
+The port number of the server defaults to `8050`, so navigate
+to `localhost:8050` in a web browser to access the visualization.
 
-## Supported assembly graph filetypes
+(If you want to use a different port number -- for example, if you want to
+run multiple visualizations at the same time -- you can use the `-p`/`--port`
+parameter of `mgsc`.)
+
+### Supported assembly graph filetypes
 
 <!-- TODO: I haven't tested miniasm, hifiasm(-meta), and MEGAHIT output graphs here;
 should do that to verify that their graphs work ok -->
@@ -56,6 +56,26 @@ should do that to verify that their graphs work ok -->
 
 Should you run into [additional](https://xkcd.com/927/) assembly graph filetypes you'd like us to
 support, feel free to open a GitHub issue.
+
+### All command-line options
+
+```
+Usage: mgsc [OPTIONS]
+
+  Visualizes an assembly graph.
+
+  Please check out https://github.com/marbl/MetagenomeScope if you have any
+  questions, suggestions, etc. about this tool.
+
+Options:
+  -g, --graph FILE          In GFA, FASTG, DOT, GML, or LastGraph format.  [required]
+  -a, --agp FILE            AGP file describing paths (e.g. scaffolds) in the graph.
+  -p, --port INTEGER RANGE  Server port number.  [default: 8050; 1024<=x<=65535]
+  --verbose / --no-verbose  Log extra details.  [default: no-verbose]
+  --debug / --no-debug      Use Dash's debug mode.  [default: no-debug]
+  -v, --version             Show the version and exit.
+  -h, --help                Show this message and exit.
+```
 
 ## FAQs
 
