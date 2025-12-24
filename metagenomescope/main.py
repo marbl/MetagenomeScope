@@ -211,11 +211,18 @@ def run(
                                 "field": ui_config.PATH_TBL_NAME_COL,
                                 "headerName": "Name",
                                 "cellClass": "path-table-name path-table-cells",
+                                # i don't think we really need to explictly set
+                                # this but let's be careful
+                                "cellDataType": "text",
                             },
                             {
                                 "field": ui_config.PATH_TBL_COUNT_COL,
                                 "headerName": ct_col,
                                 "cellClass": "path-table-cells",
+                                # Mark that this column will contain numbers;
+                                # this ensures that sorting works correctly
+                                # (i.e. that "101" > "11").
+                                "cellDataType": "number",
                             },
                         ],
                         # https://dash.plotly.com/dash-ag-grid/column-sizing
@@ -1549,7 +1556,7 @@ def run(
                 rows.append(
                     {
                         ui_config.PATH_TBL_NAME_COL: p,
-                        ui_config.PATH_TBL_COUNT_COL: f"{len(ag.paths[p]):,}",
+                        ui_config.PATH_TBL_COUNT_COL: len(ag.paths[p]),
                     }
                 )
             logging.debug(f"Done. {available_count_text}")
