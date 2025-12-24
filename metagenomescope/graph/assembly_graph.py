@@ -652,11 +652,16 @@ class AssemblyGraph(object):
 
         # For every edge from outside this pattern to a node within this
         # pattern: route this edge to just point (in the decomposed graph)
-        # to the new pattern node. I think this should only actually change
-        # the graph if the pattern has weird incoming edges from outside nodes
-        # into its middle nodes or something (this shouldn't happen in
-        # practice, but maybe when we add back support for arbitrary user-
-        # defined patterns it could happen).
+        # to the new pattern node.
+        #
+        # If all of the pattern's boundary nodes were newly split in this
+        # function, then I do not think this will change the graph. But often
+        # there are lingering edges incident to the pattern node in the
+        # decomposed graph (maybe because of not splitting a boundary node,
+        # maybe because of weird edges between other stuff in the graph and
+        # the middle nodes of a pattern -- not that that should happen with
+        # the current kinds of pattern identified by MgSc). So, we have to do
+        # this.
         in_edges = self.decomposed_graph.in_edges(patt_node_ids, keys=True)
         p_in_edges = list(
             filter(lambda e: e[0] not in patt_node_ids, in_edges)
