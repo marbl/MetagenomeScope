@@ -39,6 +39,7 @@ def run(
     agp: str = None,
     port: int = defaults.PORT,
     verbose: bool = defaults.VERBOSE,
+    debug: bool = defaults.DEBUG,
 ):
     """Reads the graph and starts a Dash app for visualizing it.
 
@@ -53,6 +54,13 @@ def run(
     verbose: bool
         If True, include DEBUG messages in the log output.
 
+    debug: bool
+        If True, run Dash in debug mode. See https://dash.plotly.com/devtools.
+        (This is very useful for development since it supports hot reloading
+        and other nice features, but for just ordinary use this should be
+        turned off -- using debug mode will require processing the graph
+        twice on startup.)
+
     Returns
     -------
     None
@@ -66,6 +74,7 @@ def run(
             f"AGP file: {agp}",
             f"Port: {port}",
             f"Verbose?: {verbose}",
+            f"Debug mode?: {debug}",
         ],
         logger.info,
         endsepline=True,
@@ -182,10 +191,10 @@ def run(
     # If the user specified paths somehow (e.g. an AGP file), we'll show an
     # interface for these
     paths_given = len(ag.paths) > 0
-    paths_html = None
+    path_html = []
     if paths_given:
         ct_col = f"# {'nodes' if ag.node_centric else 'edges'}"
-        paths_html = [
+        path_html = [
             ctrl_sep,
             html.H4("Paths"),
             html.Div(
@@ -463,7 +472,7 @@ def run(
                                 ),
                             ]
                         ),
-                        *paths_html,
+                        *path_html,
                         ctrl_sep,
                         html.H4(
                             "Colors",
@@ -1804,4 +1813,4 @@ def run(
         prevent_initial_call=True,
     )
 
-    app.run(debug=True, port=port)
+    app.run(debug=debug, port=port)

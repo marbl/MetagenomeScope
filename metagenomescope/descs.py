@@ -12,3 +12,5 @@ AGP = "AGP file describing paths (e.g. scaffolds) in the graph."
 PORT = "Server port number."
 
 VERBOSE = "Log extra details."
+
+DEBUG = "Use Dash's debug mode."

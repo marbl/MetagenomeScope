@@ -52,12 +52,20 @@ from . import __version__, defaults, descs, config, main
     show_default=True,
     help=descs.VERBOSE,
 )
+@click.option(
+    "--debug/--no-debug",
+    is_flag=True,
+    default=defaults.DEBUG,
+    show_default=True,
+    help=descs.DEBUG,
+)
 @click.version_option(__version__, "-v", "--version")
 def run_script(
     graph: str,
     agp: str,
     port: int,
     verbose: bool,
+    debug: bool,
 ) -> None:
     """Visualizes an assembly graph.
 
@@ -69,6 +77,7 @@ def run_script(
         agp=agp,
         port=port,
         verbose=verbose,
+        debug=debug,
     )
 
 
