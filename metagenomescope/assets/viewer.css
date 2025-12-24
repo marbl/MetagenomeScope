@@ -30,13 +30,13 @@ body {
     overflow: hidden;
 }
 
-#controls *:not(.ctrlSep, .btn-group *, #innerControlsDivForBorder, #pathList *) {
+#controls *:not(.ctrlSep, .btn-group *, #innerControlsDivForBorder, .fancytable *, .noPadding *) {
  /* Add some space between elements in the control panel and the horizontal
   * boundaries of the panel. (Don't capture .ctrlSep things, though,
   * which should span the entire horizontal width of the panel.)
   *
-  * Also if we add padding to the datatable for paths then like each layer of the
-  * table gets padding and it looks miserable lmao
+  * Also if we add padding to the fancy ag grid tables then like multiple things
+  * within the table get padding and it looks miserable lmao
   */
   padding-left: 0.5em;
   padding-right: 0.5em;
@@ -226,9 +226,15 @@ body {
     margin-bottom: 0.2em;
 }
 
+/* this hides things, but they still impact the flow of the CSS layout */
 .hidden {
     opacity: 0;
     pointer-events: none;
+}
+
+/* this hides things completely - they don't impact the layout */
+.removedEntirely {
+    display: none;
 }
 
 /* dash's checklists nest the <input> inside the <label>, which is insane to
@@ -294,6 +300,7 @@ button {
     margin-right: 0.1em;
     float: right;
 }
+
 .cyclerBtn {
     cursor: pointer;
     font-size: 2em;
@@ -461,4 +468,8 @@ button {
 /* i despise the ugly blue border that appears around cells on click */
 .path-table-cells {
     border: none !important;
+}
+
+.fancytable {
+    margin-top: 0.5em;
 }

@@ -17,6 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from metagenomescope import cy_config
 from metagenomescope.config import SPLIT_SEP, SPLIT_LEFT, SPLIT_RIGHT, INDENT
 from metagenomescope.errors import WeirdError, GraphParsingError
 
@@ -306,6 +307,11 @@ class Node(object):
                 "id": str(self.unique_id),
                 # str() is apparently needed here for some GML graphs
                 "label": str(self.name),
+                # ensure that the callbacks for looking at selected node
+                # data can distinguish btwn actual nodes and patterns. We may
+                # be able to use this to replace some of the "classes" below
+                # for styling (maybe some memory savings?) but probs nbd
+                "type": cy_config.NODE_DATA_TYPE,
             },
             "classes": f"nonpattern {ndir} {splitcls} noderand{self.rand_idx}",
         }

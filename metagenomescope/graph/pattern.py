@@ -20,7 +20,7 @@
 import pygraphviz
 from .node import Node
 from .pattern_stats import PatternStats
-from metagenomescope import config, layout_utils, misc_utils
+from metagenomescope import config, cy_config, layout_utils, misc_utils
 from metagenomescope.errors import WeirdError
 
 
@@ -335,6 +335,7 @@ class Pattern(Node):
         ele = {
             "data": {
                 "id": str(self.unique_id),
+                "type": cy_config.PATTERN_DATA_TYPE,
             },
             "classes": f"pattern {config.PT2HR_NOSPACE[self.pattern_type]}",
         }

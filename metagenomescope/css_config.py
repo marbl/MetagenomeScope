@@ -1,5 +1,5 @@
 ###############################################################################
-# CSS stuff
+# Control panel
 ###############################################################################
 
 CONTROLS_FG_COLOR = "#ccc"
@@ -26,9 +26,22 @@ CONTROLS_SUB_BORDER_THICKNESS = "0.25em"
 # duration for hiding/showing ctrl panel, moving it and the graph accordingly
 CONTROLS_TRANSITION_DURATION = "0.2s"
 
-# classes on the info dialog's tables
-INFO_DIALOG_TABLE_CLASSES = "table table-striped-columns"
+###############################################################################
+# Component selectors
+###############################################################################
 
 # default classes on the input groups used for selecting components to draw
 # by size rank or node name
 CC_SELECTOR_ELES_CLASSES = "input-group"
+
+###############################################################################
+# Selected element tables
+###############################################################################
+SELECTED_ELE_TBL_CLASSES = "ag-theme-balham-dark fancytable"
+
+###############################################################################
+# Info dialog
+###############################################################################
+
+# classes on the info dialog's tables
+INFO_DIALOG_TABLE_CLASSES = "table table-striped-columns"

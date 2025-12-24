@@ -50,3 +50,9 @@ MIN_NONSMALL_CC_NODE_COUNT = 50
 # probably won't matter tho
 PATH_TBL_NAME_COL = "N"
 PATH_TBL_COUNT_COL = "C"
+
+###############################################################################
+# Tables of selected elements
+###############################################################################
+
+NODE_TBL_NAME_COL = "N"

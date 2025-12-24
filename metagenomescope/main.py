@@ -19,6 +19,7 @@ from dash import (
 from . import (
     defaults,
     css_config,
+    cy_config,
     ui_config,
     ui_utils,
     cy_utils,
@@ -202,7 +203,6 @@ def run(
                     html.P(
                         path_utils.get_available_count_text(0, len(ag.paths)),
                         id="pathCount",
-                        style={"margin-bottom": "0.5em"},
                     ),
                     dag.AgGrid(
                         rowData=[],
@@ -227,7 +227,7 @@ def run(
                         ],
                         # https://dash.plotly.com/dash-ag-grid/column-sizing
                         columnSize="responsiveSizeToFit",
-                        className="ag-theme-balham-dark",
+                        className="ag-theme-balham-dark fancytable",
                         id="pathList",
                         # Needed to replace the default "No Rows To Show"
                         # message when no paths are available:
@@ -238,6 +238,7 @@ def run(
                         dangerously_allow_code=True,
                     ),
                 ],
+                className="noPadding",
             ),
         ]
 
@@ -478,6 +479,51 @@ def run(
                                     color="light",
                                 ),
                             ]
+                        ),
+                        ctrl_sep,
+                        html.H4("Selected"),
+                        html.Div(
+                            [
+                                html.Div(
+                                    [
+                                        "Nodes",
+                                        dbc.Badge(
+                                            "0",
+                                            pill=True,
+                                            className="ms-1",
+                                            color="primary",
+                                            id="selectedNodeCount",
+                                        ),
+                                        html.Span(
+                                            html.I(
+                                                className="bi bi-caret-right-fill",
+                                                id="selectedNodeOpener",
+                                            ),
+                                            className="opener",
+                                        ),
+                                    ],
+                                    className="selectedEleHeader",
+                                    id="selectedNodeHeader",
+                                ),
+                                dag.AgGrid(
+                                    rowData=[],
+                                    columnDefs=[
+                                        {
+                                            "field": ui_config.NODE_TBL_NAME_COL,
+                                            "headerName": "Name",
+                                            "cellDataType": "text",
+                                        },
+                                    ],
+                                    columnSize="responsiveSizeToFit",
+                                    className="ag-theme-balham-dark fancytable removedEntirely",
+                                    id="selectedNodeList",
+                                    dashGridOptions={
+                                        "overlayNoRowsTemplate": "No nodes selected.",
+                                    },
+                                    dangerously_allow_code=True,
+                                ),
+                            ],
+                            className="noPadding",
                         ),
                         *path_html,
                         ctrl_sep,
@@ -1694,6 +1740,47 @@ def run(
         Input("fitSelectedButton", "n_clicks"),
         prevent_initial_call=True,
     )
+
+    @callback(
+        Output("selectedNodeList", "className"),
+        Output("selectedNodeOpener", "className"),
+        State("selectedNodeList", "className"),
+        Input("selectedNodeHeader", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def toggle_node_table(classes, n_clicks):
+        if "removedEntirely" in classes:
+            return css_config.SELECTED_ELE_TBL_CLASSES, "bi bi-caret-down-fill"
+        else:
+            return (
+                css_config.SELECTED_ELE_TBL_CLASSES + " removedEntirely",
+                "bi bi-caret-right-fill",
+            )
+
+    @callback(
+        Output("selectedNodeList", "rowData"),
+        Output("selectedNodeCount", "children"),
+        Output("selectedNodeCount", "color"),
+        Input("cy", "selectedNodeData"),
+        Input("cy", "selectedEdgeData"),
+        prevent_initial_call=True,
+    )
+    def list_selected_elements(selected_nodes, selected_edges):
+        # TODO: record all available data fields and use this info to
+        # define table columns. Then, extract this data from the AG here.
+        # (We could also pass node data directly to Cytoscape, but that
+        # seems wasteful since it involves duplicating the data...)
+        node_data = []
+        for n in selected_nodes:
+            if n["type"] == cy_config.NODE_DATA_TYPE:
+                node_data.append({"N": n["label"]})
+        # NOTE: this currently counts both splits of a node towards the
+        # count. i guess ideally we only count once? but nbd
+        return (
+            node_data,
+            f"{len(node_data):,}",
+            "success" if len(node_data) > 0 else "primary",
+        )
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),

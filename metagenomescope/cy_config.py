@@ -40,6 +40,10 @@ UNSELECTED_NODE_FONT_COLOR = "#eeeeee"
 SELECTED_NODE_BORDER_COLOR = "#0000ff"
 SELECTED_NODE_BORDER_WIDTH = 4
 
+# used to distinguish ordinary nodes from pattern nodes based on data dict
+# from the selectedNodeData callback alone
+NODE_DATA_TYPE = "N"
+
 ###############################################################################
 # Node shapes
 ###############################################################################
@@ -207,3 +211,5 @@ UNSELECTED_PATTERN_BORDER_WIDTH = 2
 UNSELECTED_PATTERN_BORDER_COLOR = "#000000"
 SELECTED_PATTERN_BORDER_WIDTH = 5
 SELECTED_PATTERN_BORDER_COLOR = "#0000ff"
+
+PATTERN_DATA_TYPE = "P"
