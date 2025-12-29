@@ -311,7 +311,7 @@ class Node(object):
                 # data can distinguish btwn actual nodes and patterns. We may
                 # be able to use this to replace some of the "classes" below
                 # for styling (maybe some memory savings?) but probs nbd
-                "type": cy_config.NODE_DATA_TYPE,
+                "ntype": cy_config.NODE_DATA_TYPE,
             },
             "classes": f"nonpattern {ndir} {splitcls} noderand{self.rand_idx}",
         }

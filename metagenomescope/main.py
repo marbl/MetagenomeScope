@@ -21,6 +21,7 @@ from . import (
     css_config,
     cy_config,
     ui_config,
+    config,
     ui_utils,
     cy_utils,
     color_utils,
@@ -483,46 +484,56 @@ def run(
                         ctrl_sep,
                         html.H4("Selected"),
                         html.Div(
-                            [
-                                html.Div(
-                                    [
-                                        "Nodes",
-                                        dbc.Badge(
-                                            "0",
-                                            pill=True,
-                                            className="ms-1",
-                                            color="primary",
-                                            id="selectedNodeCount",
-                                        ),
-                                        html.Span(
-                                            html.I(
-                                                className="bi bi-caret-right-fill",
-                                                id="selectedNodeOpener",
-                                            ),
-                                            className="opener",
-                                        ),
-                                    ],
-                                    className="selectedEleHeader",
-                                    id="selectedNodeHeader",
-                                ),
-                                dag.AgGrid(
-                                    rowData=[],
-                                    columnDefs=[
-                                        {
-                                            "field": ui_config.NODE_TBL_NAME_COL,
-                                            "headerName": "Name",
-                                            "cellDataType": "text",
-                                        },
-                                    ],
-                                    columnSize="responsiveSizeToFit",
-                                    className="ag-theme-balham-dark fancytable removedEntirely",
-                                    id="selectedNodeList",
-                                    dashGridOptions={
-                                        "overlayNoRowsTemplate": "No nodes selected.",
+                            ui_utils.get_selected_ele_html(
+                                "Node",
+                                [
+                                    {
+                                        "field": ui_config.NODE_TBL_NAME_COL,
+                                        "headerName": "Name",
+                                        "cellDataType": "text",
                                     },
-                                    dangerously_allow_code=True,
-                                ),
-                            ],
+                                ],
+                            )
+                            + ui_utils.get_selected_ele_html(
+                                "Edge",
+                                [
+                                    {
+                                        "field": ui_config.EDGE_TBL_SRC_COL,
+                                        "headerName": "From",
+                                        "cellDataType": "text",
+                                    },
+                                    {
+                                        "field": ui_config.EDGE_TBL_TGT_COL,
+                                        "headerName": "To",
+                                        "cellDataType": "text",
+                                    },
+                                ],
+                            )
+                            + ui_utils.get_selected_ele_html(
+                                "Pattern",
+                                [
+                                    {
+                                        "field": ui_config.PATT_TBL_TYPE_COL,
+                                        "headerName": "Type",
+                                        "cellDataType": "text",
+                                    },
+                                    {
+                                        "field": ui_config.PATT_TBL_NCT_COL,
+                                        "headerName": "# nodes",
+                                        "cellDataType": "number",
+                                    },
+                                    {
+                                        "field": ui_config.PATT_TBL_ECT_COL,
+                                        "headerName": "# edges",
+                                        "cellDataType": "number",
+                                    },
+                                    {
+                                        "field": ui_config.PATT_TBL_PCT_COL,
+                                        "headerName": "# patts",
+                                        "cellDataType": "number",
+                                    },
+                                ],
+                            ),
                             className="noPadding",
                         ),
                         *path_html,
@@ -1741,46 +1752,90 @@ def run(
         prevent_initial_call=True,
     )
 
-    @callback(
-        Output("selectedNodeList", "className"),
-        Output("selectedNodeOpener", "className"),
-        State("selectedNodeList", "className"),
-        Input("selectedNodeHeader", "n_clicks"),
-        prevent_initial_call=True,
-    )
-    def toggle_node_table(classes, n_clicks):
-        if "removedEntirely" in classes:
-            return css_config.SELECTED_ELE_TBL_CLASSES, "bi bi-caret-down-fill"
-        else:
-            return (
-                css_config.SELECTED_ELE_TBL_CLASSES + " removedEntirely",
-                "bi bi-caret-right-fill",
-            )
+    # This is a little jank but it seems to work fine. If opening selected
+    # node/edge/pattern tables becomes broken, this can easily be fixed by just
+    # removing the for loop and writing this out as three separate functions.
+    for eleType in ("Node", "Edge", "Pattern"):
+
+        @callback(
+            Output(f"selected{eleType}List", "className"),
+            Output(f"selected{eleType}Opener", "className"),
+            State(f"selected{eleType}List", "className"),
+            Input(f"selected{eleType}Header", "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def toggle_ele_table(classes, n_clicks):
+            if "removedEntirely" in classes:
+                return (
+                    css_config.SELECTED_ELE_TBL_CLASSES,
+                    "bi bi-caret-down-fill",
+                )
+            else:
+                return (
+                    css_config.SELECTED_ELE_TBL_CLASSES + " removedEntirely",
+                    "bi bi-caret-right-fill",
+                )
 
     @callback(
         Output("selectedNodeList", "rowData"),
         Output("selectedNodeCount", "children"),
         Output("selectedNodeCount", "color"),
+        Output("selectedPatternList", "rowData"),
+        Output("selectedPatternCount", "children"),
+        Output("selectedPatternCount", "color"),
         Input("cy", "selectedNodeData"),
-        Input("cy", "selectedEdgeData"),
         prevent_initial_call=True,
     )
-    def list_selected_elements(selected_nodes, selected_edges):
+    def list_selected_nodes_and_patterns(selected_nodes):
         # TODO: record all available data fields and use this info to
         # define table columns. Then, extract this data from the AG here.
         # (We could also pass node data directly to Cytoscape, but that
         # seems wasteful since it involves duplicating the data...)
         node_data = []
+        patt_data = []
         for n in selected_nodes:
-            if n["type"] == cy_config.NODE_DATA_TYPE:
-                node_data.append({"N": n["label"]})
+            if n["ntype"] == cy_config.NODE_DATA_TYPE:
+                node_data.append({ui_config.NODE_TBL_NAME_COL: n["label"]})
+            else:
+                patt_data.append(
+                    {
+                        ui_config.PATT_TBL_TYPE_COL: config.PT2HR[n["ptype"]],
+                        ui_config.PATT_TBL_NCT_COL: n["nct"],
+                        ui_config.PATT_TBL_ECT_COL: n["ect"],
+                        ui_config.PATT_TBL_PCT_COL: n["pct"],
+                    }
+                )
         # NOTE: this currently counts both splits of a node towards the
         # count. i guess ideally we only count once? but nbd
+        nct = len(node_data)
+        pct = len(patt_data)
         return (
             node_data,
-            f"{len(node_data):,}",
-            "success" if len(node_data) > 0 else "primary",
+            f"{nct:,}",
+            ui_utils.get_count_badge_color(nct),
+            patt_data,
+            f"{pct:,}",
+            ui_utils.get_count_badge_color(pct),
         )
+
+    @callback(
+        Output("selectedEdgeList", "rowData"),
+        Output("selectedEdgeCount", "children"),
+        Output("selectedEdgeCount", "color"),
+        Input("cy", "selectedEdgeData"),
+        prevent_initial_call=True,
+    )
+    def list_selected_edges(selected_edges):
+        edge_data = []
+        for n in selected_edges:
+            edge_data.append(
+                {
+                    ui_config.EDGE_TBL_SRC_COL: n["source"],
+                    ui_config.EDGE_TBL_TGT_COL: n["target"],
+                }
+            )
+        ect = len(edge_data)
+        return edge_data, f"{ect:,}", ui_utils.get_count_badge_color(ect)
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),

@@ -56,3 +56,12 @@ PATH_TBL_COUNT_COL = "C"
 ###############################################################################
 
 NODE_TBL_NAME_COL = "N"
+
+EDGE_TBL_SRC_COL = "S"
+EDGE_TBL_TGT_COL = "T"
+
+PATT_TBL_ID_COL = "I"
+PATT_TBL_TYPE_COL = "T"
+PATT_TBL_NCT_COL = "N"
+PATT_TBL_ECT_COL = "E"
+PATT_TBL_PCT_COL = "P"

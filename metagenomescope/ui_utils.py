@@ -1,6 +1,7 @@
 import re
 import time
 import dash_bootstrap_components as dbc
+import dash_ag_grid as dag
 from collections import defaultdict
 from dash import html
 from . import css_config, ui_config
@@ -586,3 +587,48 @@ def get_screenshot_basename():
     # I am sure there are better ways to represent this tho... if whoever is
     # reading this has strong opinions feel free to open a github issue
     return time.strftime("mgsc-%Y%m%dT%H%M%S")
+
+
+def get_selected_ele_html(eleType, columnDefs):
+    return [
+        html.Div(
+            [
+                f"{eleType}s",
+                dbc.Badge(
+                    "0",
+                    pill=True,
+                    className="ms-1",
+                    color="primary",
+                    id=f"selected{eleType}Count",
+                ),
+                html.Span(
+                    html.I(
+                        className="bi bi-caret-right-fill",
+                        id=f"selected{eleType}Opener",
+                    ),
+                    className="opener",
+                ),
+            ],
+            className="selectedEleHeader",
+            id=f"selected{eleType}Header",
+        ),
+        dag.AgGrid(
+            rowData=[],
+            columnDefs=columnDefs,
+            columnSize="responsiveSizeToFit",
+            className="ag-theme-balham-dark fancytable removedEntirely",
+            id=f"selected{eleType}List",
+            dashGridOptions={
+                "overlayNoRowsTemplate": f"No {eleType.lower()}s selected.",
+            },
+            dangerously_allow_code=True,
+        ),
+    ]
+
+
+def get_count_badge_color(ct):
+    # see https://www.dash-bootstrap-components.com/docs/components/badge/
+    if ct > 0:
+        return "success"
+    else:
+        return "primary"

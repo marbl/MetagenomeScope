@@ -332,10 +332,21 @@ class Pattern(Node):
         # unlike to_dot(), we don't bother doing this recursively. we assume
         # the caller already knows about all nodes and edges in this pattern.
         # since this is called by a Component object that should be fine
+        pn, pe, pp, _ = self.get_descendant_info()
         ele = {
             "data": {
                 "id": str(self.unique_id),
-                "type": cy_config.PATTERN_DATA_TYPE,
+                # this lets us distinguish between patterns and "normal" nodes
+                "ntype": cy_config.PATTERN_DATA_TYPE,
+                # Extra stuff intended for showing in selected element tables
+                # this is not human readable, but it is a tinier amount of data
+                # to store. when displaying info about selected patterns, etc,
+                # we can use config.PT2HR to extract info about what this means
+                "ptype": self.pattern_type,
+                "nct": len(pn),
+                "ect": len(pe),
+                # ignore this pattern itself
+                "pct": len(pp) - 1,
             },
             "classes": f"pattern {config.PT2HR_NOSPACE[self.pattern_type]}",
         }
