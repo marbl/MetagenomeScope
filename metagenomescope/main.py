@@ -1826,12 +1826,20 @@ def run(
         prevent_initial_call=True,
     )
     def list_selected_edges(selected_edges):
+        def id2name(i):
+            # Node IDs (in the AssemblyGraph) are integers, but Cytoscape.js
+            # expects them to be strings -- so we pass them as strings in the
+            # Node / Edge / Pattern .to_cyjs() methods. Here, we need to turn
+            # them back into integers in order to look up a node in the
+            # AssemblyGraph by its ID.
+            return str(ag.nodeid2obj[int(i)].name)
+
         edge_data = []
         for n in selected_edges:
             edge_data.append(
                 {
-                    ui_config.EDGE_TBL_SRC_COL: n["source"],
-                    ui_config.EDGE_TBL_TGT_COL: n["target"],
+                    ui_config.EDGE_TBL_SRC_COL: id2name(n["source"]),
+                    ui_config.EDGE_TBL_TGT_COL: id2name(n["target"]),
                 }
             )
         ect = len(edge_data)
