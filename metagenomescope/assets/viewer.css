@@ -227,7 +227,7 @@ body {
 }
 
 /* this hides things, but they still impact the flow of the CSS layout */
-.hidden {
+.invisibleButStillThere {
     opacity: 0;
     pointer-events: none;
 }
