@@ -37,8 +37,8 @@ def test_validate_nonempty_zero_nodes_dot():
     assert str(ei.value) == "DOT-format graph contains 0 edges."
 
 
-def test_validate_nonempty_one_node_lastgraph():
+def test_validate_nonempty_one_node_gml():
     # this is okay
-    ag = AssemblyGraph("metagenomescope/tests/input/1_node.Lastgraph")
+    ag = AssemblyGraph("metagenomescope/tests/input/one.gml")
     assert ag.node_ct == 1
     assert ag.edge_ct == 0
