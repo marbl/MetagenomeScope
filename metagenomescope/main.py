@@ -253,7 +253,7 @@ def run(
                         # message when no paths are available:
                         # https://community.plotly.com/t/how-to-customize-overlay-messages-in-dash-ag-grid/73932/2
                         dashGridOptions={
-                            "overlayNoRowsTemplate": "No available paths.",
+                            "overlayNoRowsTemplate": "No paths available.",
                         },
                         dangerously_allow_code=True,
                     ),
