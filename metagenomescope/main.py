@@ -1638,7 +1638,11 @@ def run(
                     }
                 )
             logging.debug(f"Done. {available_count_text}")
-            return available_count_text, rows, ui_utils.get_badge_color(act, False)
+            return (
+                available_count_text,
+                rows,
+                ui_utils.get_badge_color(act, False),
+            )
 
         @callback(
             Output("pathSelectionInfo", "data"),
@@ -1794,7 +1798,6 @@ def run(
     )
     def toggle_node_table(classes, n_clicks):
         return toggle_ele_table_classes(classes)
-
 
     @callback(
         Output("selectedEdgeList", "className"),
