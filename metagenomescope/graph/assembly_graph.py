@@ -128,6 +128,8 @@ class AssemblyGraph(object):
             f"Graph contains {self.node_ct:,} node(s) and {self.edge_ct:,} "
             "edge(s)."
         )
+        graph_utils.validate_nonempty(self)
+
         logger.info("Processing the graph to prep for visualization...")
 
         # These store Node, Edge, and Pattern objects. We still use the

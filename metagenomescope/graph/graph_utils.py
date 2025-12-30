@@ -1,5 +1,5 @@
 from .. import ui_utils
-from metagenomescope.errors import WeirdError
+from metagenomescope.errors import WeirdError, GraphParsingError
 
 
 def get_only_connecting_edge_uid(g, src_id, tgt_id):
@@ -20,6 +20,28 @@ def get_only_connecting_edge_uid(g, src_id, tgt_id):
     if len(adj[tgt_id]) > 1:
         raise WeirdError(f"> 1 edge {suffix}")
     return g.edges[src_id, tgt_id, 0]["uid"]
+
+
+def validate_nonempty(ag):
+    """Raises an error if an AssemblyGraph has 0 nodes and/or edges.
+
+    We allow node-centric graphs to have 0 edges (so long as they have at
+    least one node), but edge-centric graphs must have at least one edge
+    (implying at least one node).
+    """
+    if ag.node_centric:
+        if ag.node_ct == 0:
+            raise GraphParsingError("Graph has 0 nodes.")
+    else:
+        # NOTE: the DOT parsing function already checks for this, so it
+        # is impossible (well, not really, it's just a pain) to test these
+        # branches of this function. I am leaving them in as failsafes.
+        if ag.edge_ct == 0:
+            raise GraphParsingError("Graph has 0 edges.")
+        if ag.node_ct == 0:
+            # if we make it here, the graph has >= 1 edge but 0 nodes.
+            # um. that's not a graph any more i think
+            raise WeirdError("Get thee behind me, satan")
 
 
 def validate_multiple_ccs(ag):
