@@ -472,3 +472,22 @@ button {
     word-break: break-all;
     white-space: normal;
 }
+
+/* If you search for a lot of nodes at once that are in other ccs of the
+ * graph, the leftmost column of the table showing these nodes (labelled
+ * "CC #" as of writing) may be split into two lines: "CC", and then "#".
+ * This looks gross! Previously I fixed this by just labelling the column
+ * "CC#", but that also looks (less) gross. The ideal solution is just
+ * using CSS to indicate that this cell should not be broken. From
+ * https://stackoverflow.com/a/1893764
+ *
+ * just for future reference, here is a simple test case for this: open
+ * the august1.gml graph, draw cc 6, and search for "k99_27883, k99_10,
+ * k99_189074, k99_57544, k99_88484, k99_27874, k99_53629, k99_27875,
+ * k99_27870"
+ *
+ * trying this with/without this class on should demonstrate the issue
+ */
+.nowrap {
+    white-space: nowrap;
+}

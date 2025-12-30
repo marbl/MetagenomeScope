@@ -31,7 +31,7 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
     Returns
     -------
     paths: defaultdict of str -> list
-        Maps path names to a list of sequence names in the path.
+        Maps path names to a list of sequence (node or edge) names in the path.
 
     Raises
     ------
@@ -125,13 +125,5 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
     return ccnum2pathnames
 
 
-def get_available_count_text(num_available, total_num):
+def get_available_count_badge_text(num_available, total_num):
     return f"{num_available:,} / {total_num:,}"
-
-
-def get_available_list(cc_nums, ccnum2pathnames):
-    available_pathnames = []
-    for cc_num in cc_nums:
-        if cc_num in ccnum2pathnames:
-            available_pathnames.extend(ccnum2pathnames[cc_num])
-    return available_pathnames

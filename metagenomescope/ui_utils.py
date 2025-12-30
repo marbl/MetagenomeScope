@@ -570,7 +570,13 @@ def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, num_searched_for_nodes):
             s2 = "They are in the following components:"
         intro = html.Div(f"{s1} {s2}")
 
-        theader = [html.Thead(html.Tr([html.Th("CC#"), html.Th("Nodes")]))]
+        theader = [
+            html.Thead(
+                html.Tr(
+                    [html.Th("CC #", className="nowrap"), html.Th("Nodes")]
+                )
+            )
+        ]
         rows = []
         for c in sorted(undrawn_cc_to_nodes):
             node_list = get_fancy_node_name_list(

@@ -205,7 +205,7 @@ def run(
                         [
                             "Available",
                             dbc.Badge(
-                                path_utils.get_available_count_text(
+                                path_utils.get_available_count_badge_text(
                                     0, len(ag.paths)
                                 ),
                                 pill=True,
@@ -242,6 +242,12 @@ def run(
                                 # Mark that this column will contain numbers;
                                 # this ensures that sorting works correctly
                                 # (i.e. that "101" > "11").
+                                "cellDataType": "number",
+                            },
+                            {
+                                "field": ui_config.PATH_TBL_CC_COL,
+                                "headerName": "CC #",
+                                "cellClass": "path-table-cells",
                                 "cellDataType": "number",
                             },
                         ],
@@ -1619,30 +1625,25 @@ def run(
             logging.debug(
                 "Updating info about available paths based on what was drawn..."
             )
-            # get the list of currently available paths, based on what's drawn
-            available_pathnames = path_utils.get_available_list(
-                curr_drawn_info["cc_nums"], ag.ccnum2pathnames
-            )
-            act = len(available_pathnames)
-            # show a summary
-            available_count_text = path_utils.get_available_count_text(
-                act, len(ag.paths)
-            )
-            # and also a table
+            # update the table of available paths, based on what's drawn
             rows = []
-            for p in available_pathnames:
-                rows.append(
-                    {
-                        ui_config.PATH_TBL_NAME_COL: p,
-                        ui_config.PATH_TBL_COUNT_COL: len(ag.paths[p]),
-                    }
-                )
-            logging.debug(f"Done. {available_count_text}")
-            return (
-                available_count_text,
-                rows,
-                ui_utils.get_badge_color(act, False),
+            ct = 0
+            for ccnum in curr_drawn_info["cc_nums"]:
+                for p in ag.ccnum2pathnames[ccnum]:
+                    rows.append(
+                        {
+                            ui_config.PATH_TBL_NAME_COL: p,
+                            ui_config.PATH_TBL_COUNT_COL: len(ag.paths[p]),
+                            ui_config.PATH_TBL_CC_COL: ccnum,
+                        }
+                    )
+                    ct += 1
+            # also show a summary
+            count_text = path_utils.get_available_count_badge_text(
+                ct, len(ag.paths)
             )
+            logging.debug(f"Done. {count_text}")
+            return count_text, rows, ui_utils.get_badge_color(ct, False)
 
         @callback(
             Output("pathSelectionInfo", "data"),
