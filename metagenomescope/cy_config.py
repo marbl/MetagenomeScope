@@ -21,8 +21,8 @@ RANDOM_COLORS = [
     "#364d3d",  # darker olive drab
     "#119f9f",  # turquoise
     "#026e6e",  # dark turquoise
-    "#1c1ca3",  # kind of dark blue
-    "#111177",  # dark blue
+    "#5252b3",  # medium blueish (purposefully avoiding #00f - selection color)
+    "#2f2f57",  # blue gray ish
     "#4411aa",  # royal purple. is that a color? yeah i think so
     "#661199",  # magenta
     "#c71461",  # kinda pinkish red
