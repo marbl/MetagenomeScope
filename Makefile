@@ -9,7 +9,6 @@ test:
 		metagenomescope/tests/ \
 		--ignore metagenomescope/tests/graph/assembly_graph/test_node_scaling.py \
 		--ignore metagenomescope/tests/graph/assembly_graph/test_edge_scaling.py \
-		--ignore metagenomescope/tests/graph/assembly_graph/test_to_dict.py \
 		--ignore metagenomescope/tests/graph/assembly_graph/test_to_dot.py \
 		--ignore metagenomescope/tests/graph/pattern/test_layout.py \
 		--cov-report xml \
