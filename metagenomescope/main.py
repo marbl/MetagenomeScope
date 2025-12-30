@@ -1642,7 +1642,9 @@ def run(
             count_text = path_utils.get_available_count_badge_text(
                 ct, len(ag.paths)
             )
-            logging.debug(f"Done. {count_text}")
+            # FINEEE i'll do this correctly even though nobody will see it
+            noun = "paths" if ct != 1 else "path"
+            logging.debug(f"Done. {count_text} {noun} currently available.")
             return count_text, rows, ui_utils.get_badge_color(ct, False)
 
         @callback(
