@@ -304,13 +304,14 @@ button {
     float: right;
 }
 
+/* indicate visually that you can click on the path name to highlight it */
 .path-table-name {
     cursor: pointer;
     color: #3ff;
 }
 
 /* i despise the ugly blue border that appears around cells on click */
-.path-table-cells {
+.fancytable-cells {
     border: none !important;
 }
 

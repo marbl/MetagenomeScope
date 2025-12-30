@@ -230,7 +230,7 @@ def run(
                             {
                                 "field": ui_config.PATH_TBL_NAME_COL,
                                 "headerName": "Name",
-                                "cellClass": "path-table-name path-table-cells",
+                                "cellClass": "path-table-name fancytable-cells",
                                 # i don't think we really need to explictly set
                                 # this but let's be careful
                                 "cellDataType": "text",
@@ -238,7 +238,7 @@ def run(
                             {
                                 "field": ui_config.PATH_TBL_COUNT_COL,
                                 "headerName": ct_col,
-                                "cellClass": "path-table-cells",
+                                "cellClass": "fancytable-cells",
                                 # Mark that this column will contain numbers;
                                 # this ensures that sorting works correctly
                                 # (i.e. that "101" > "11").
@@ -247,7 +247,7 @@ def run(
                             {
                                 "field": ui_config.PATH_TBL_CC_COL,
                                 "headerName": "CC #",
-                                "cellClass": "path-table-cells",
+                                "cellClass": "fancytable-cells",
                                 "cellDataType": "number",
                             },
                         ],
@@ -516,6 +516,7 @@ def run(
                                         "field": ui_config.NODE_TBL_NAME_COL,
                                         "headerName": "Name",
                                         "cellDataType": "text",
+                                        "cellClass": "fancytable-cells",
                                     },
                                 ],
                             )
@@ -526,11 +527,13 @@ def run(
                                         "field": ui_config.EDGE_TBL_SRC_COL,
                                         "headerName": "From",
                                         "cellDataType": "text",
+                                        "cellClass": "fancytable-cells",
                                     },
                                     {
                                         "field": ui_config.EDGE_TBL_TGT_COL,
                                         "headerName": "To",
                                         "cellDataType": "text",
+                                        "cellClass": "fancytable-cells",
                                     },
                                 ],
                             )
@@ -541,21 +544,25 @@ def run(
                                         "field": ui_config.PATT_TBL_TYPE_COL,
                                         "headerName": "Type",
                                         "cellDataType": "text",
+                                        "cellClass": "fancytable-cells",
                                     },
                                     {
                                         "field": ui_config.PATT_TBL_NCT_COL,
                                         "headerName": "# nodes",
                                         "cellDataType": "number",
+                                        "cellClass": "fancytable-cells",
                                     },
                                     {
                                         "field": ui_config.PATT_TBL_ECT_COL,
                                         "headerName": "# edges",
                                         "cellDataType": "number",
+                                        "cellClass": "fancytable-cells",
                                     },
                                     {
                                         "field": ui_config.PATT_TBL_PCT_COL,
                                         "headerName": "# patts",
                                         "cellDataType": "number",
+                                        "cellClass": "fancytable-cells",
                                     },
                                 ],
                             ),
