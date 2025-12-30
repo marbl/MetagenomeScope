@@ -1860,12 +1860,18 @@ def run(
             if n["ntype"] == cy_config.NODE_DATA_TYPE:
                 node_data.append({ui_config.NODE_TBL_NAME_COL: n["label"]})
             else:
+                obj = ag.pattid2obj[int(n["id"])]
+                pn, pe, pp, _ = obj.get_descendant_info()
                 patt_data.append(
                     {
-                        ui_config.PATT_TBL_TYPE_COL: config.PT2HR[n["ptype"]],
-                        ui_config.PATT_TBL_NCT_COL: n["nct"],
-                        ui_config.PATT_TBL_ECT_COL: n["ect"],
-                        ui_config.PATT_TBL_PCT_COL: n["pct"],
+                        ui_config.PATT_TBL_TYPE_COL: config.PT2HR[
+                            obj.pattern_type
+                        ],
+                        ui_config.PATT_TBL_NCT_COL: len(pn),
+                        ui_config.PATT_TBL_ECT_COL: len(pe),
+                        # get_descendant_info() includes the pattern as a
+                        # descendant of itself. don't show that here.
+                        ui_config.PATT_TBL_PCT_COL: len(pp) - 1,
                     }
                 )
         # NOTE: this currently counts both splits of a node towards the
