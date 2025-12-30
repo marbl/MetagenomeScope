@@ -153,7 +153,7 @@ class AssemblyGraph(object):
         # Populate self.nodeid2obj and self.edgeid2obj, re-label nodes in
         # the graph, and add an "uid" attribute for edges in the graph. This
         # way, we can easily associate nodes and edges with their corresponding
-        # objects' unique IDs.
+        # objects' unique IDs. (Also do some sanity checking about the graph.)
         logger.debug("  Initializing node and edge graph objects...")
         self._init_graph_objs()
         logger.debug("  ...Done.")
@@ -254,6 +254,8 @@ class AssemblyGraph(object):
         graph (don't worry, this data isn't lost -- it's saved in the
         corresponding Node and Edge objects' .data attributes).
 
+        Also sanity checks node names.
+
         Also populates self.seq_lengths with the observed Node or Edge sequence
         lengths, depending on if self.node_centric is True or False.
 
@@ -275,6 +277,9 @@ class AssemblyGraph(object):
             this situation. (I mean EVENTUALLY we could support graphs without
             defined lengths but that doesn't really sound all that useful...?)
 
+        GraphParsingError
+            If any of the node name sanity checking fails.
+
         Notes
         -----
         We may add more Node and Edge objects as we perform pattern detection
@@ -292,9 +297,11 @@ class AssemblyGraph(object):
         self.seq_lengths = []
         lengths_completely_defined = True
         for node_name in self.graph.nodes:
+            str_node_name = str(node_name)
+            input_node_utils.sanity_check_node_name(str_node_name)
             node_id = self._get_unique_id()
             data = deepcopy(self.graph.nodes[node_name])
-            new_node = Node(node_id, node_name, data)
+            new_node = Node(node_id, str_node_name, data)
             self.nodeid2obj[node_id] = new_node
             self.extra_node_attrs |= set(data.keys())
             # Remove node data from the graph (we've already saved it in the
@@ -302,7 +309,7 @@ class AssemblyGraph(object):
             self.graph.nodes[node_name].clear()
             # We'll re-label nodes in the graph, to make it easy to associate
             # them with their corresponding Node objects. (Don't worry -- we
-            # already passed node_name to the corresponding Node object for
+            # already passed str_node_name to the corresponding Node object for
             # this node, so the user will still see it in the visualization.)
             oldid2uniqueid[node_name] = node_id
 
@@ -320,7 +327,7 @@ class AssemblyGraph(object):
             # If we have not seen the RC of this node yet (or if that RC does
             # not exist in this graph at all), then assign this node a new
             # random index for coloring.
-            rc_name = input_node_utils.negate_node_id(node_name)
+            rc_name = input_node_utils.negate_node_id(str_node_name)
             if rc_name in oldid2uniqueid:
                 new_node.rand_idx = self.nodeid2obj[
                     oldid2uniqueid[rc_name]

@@ -1,4 +1,5 @@
-from .errors import WeirdError
+from . import config
+from .errors import WeirdError, GraphParsingError
 
 
 def negate_node_id(id_string):
@@ -10,21 +11,41 @@ def negate_node_id(id_string):
 
     This will raise a ValueError if len(id_string) == 0.
     """
-    # account for integer IDs. Can be the case in some GML files, at least.
     if type(id_string) is not str:
-        if id_string == 0:
-            raise WeirdError(
-                "If you are using numeric IDs and ALSO if one of your IDs is "
-                "0, something is going to go wrong. This probably shouldn't "
-                "happen, so please file an issue on GitHub if you see this."
-            )
-        else:
-            id_string = str(id_string)
+        raise WeirdError(
+            "We should've already converted node names to strings. This "
+            "should never happen."
+        )
 
     if len(id_string) == 0:
-        raise WeirdError("Can't negate an empty node ID?")
+        raise WeirdError("We should've already screened for empty node names?")
 
     if id_string[0] == "-":
         return id_string[1:]
     else:
         return "-" + id_string
+
+
+def sanity_check_node_name(name):
+    """Ensures that a node name seems reasonable."""
+
+    if len(name) == 0:
+        raise GraphParsingError(
+            "A node with an empty name exists in the graph?"
+        )
+
+    if name.strip() != name:
+        raise GraphParsingError(
+            f'A node named "{name}" exists in the graph. Nodes cannot have '
+            "names that start or end with whitespace."
+        )
+
+    # Node names shouldn't end in -L or -R
+    # https://github.com/marbl/MetagenomeScope/issues/272
+    left_suff = config.SPLIT_SEP + config.SPLIT_LEFT
+    right_suff = config.SPLIT_SEP + config.SPLIT_RIGHT
+    if name.endswith(left_suff) or name.endswith(right_suff):
+        raise GraphParsingError(
+            f'A node named "{name}" exists in the graph. Nodes cannot have '
+            f'names that end in "{left_suff}" or "{right_suff}".'
+        )
