@@ -31,7 +31,7 @@ import re
 import networkx as nx
 import gfapy
 import pyfastg
-from .input_node_utils import negate_node_id
+from .name_utils import negate
 from .seq_utils import gc_content
 from .errors import GraphParsingError, WeirdError
 
@@ -203,10 +203,7 @@ def validate_lastgraph_file(graph_file):
                         "arc.".format(line_num, node_id)
                     )
             fwd_ids = (split_line[1], split_line[2])
-            rev_ids = (
-                negate_node_id(split_line[2]),
-                negate_node_id(split_line[1]),
-            )
+            rev_ids = (negate(split_line[2]), negate(split_line[1]))
             # NOTE: We could say "if fwd_ids in seen_edges" to check if this
             # edge has already been defined earlier in the file (if we wanted
             # to disallow multigraphs). Note that we would only need to check
@@ -236,7 +233,7 @@ def validate_lastgraph_file(graph_file):
                 # about the current node block. We can say that this node
                 # is tentatively valid (and we can add it to seen_nodes).
                 seen_nodes.append(curr_node_id)
-                seen_nodes.append(negate_node_id(curr_node_id))
+                seen_nodes.append(negate(curr_node_id))
 
                 # Reset various flag variables
                 in_node_block = False
@@ -450,7 +447,7 @@ def parse_gfa(filename):
             orientation="+",
         )
         digraph.add_node(
-            negate_node_id(node.name),
+            negate(node.name),
             length=node.length,
             gc_content=sequence_gc,
             orientation="-",
@@ -462,11 +459,11 @@ def parse_gfa(filename):
         # This code is a bit verbose, but that was the easiest way to write it
         # I could think of
         if edge.from_orient == "-":
-            src_id = negate_node_id(edge.from_name)
+            src_id = negate(edge.from_name)
         else:
             src_id = edge.from_name
         if edge.to_orient == "-":
-            tgt_id = negate_node_id(edge.to_name)
+            tgt_id = negate(edge.to_name)
         else:
             tgt_id = edge.to_name
         edge_tuple = (src_id, tgt_id)
@@ -474,7 +471,7 @@ def parse_gfa(filename):
 
         # Now, try to add the complement of the edge (done manually, since
         # .complement() isn't available for GFA2 edges as of writing)
-        complement_tuple = (negate_node_id(tgt_id), negate_node_id(src_id))
+        complement_tuple = (negate(tgt_id), negate(src_id))
 
         # Don't add an edge twice if its complement is itself (as in the
         # loop.gfa test case)
@@ -597,8 +594,8 @@ def parse_lastgraph(filename):
             elif line.startswith("ARC"):
                 line_contents = line.split()
                 id1, id2 = line_contents[1], line_contents[2]
-                nid1 = negate_node_id(line_contents[1])
-                nid2 = negate_node_id(line_contents[2])
+                nid1 = negate(line_contents[1])
+                nid2 = negate(line_contents[2])
                 multiplicity = int(line_contents[3])
                 digraph.add_edge(id1, id2, multiplicity=multiplicity)
                 # Only add implied edge if the edge does not imply itself
@@ -625,7 +622,7 @@ def parse_lastgraph(filename):
                     curr_node_attrs["revseq"] = line.strip()
                     # Now we can add a node for the "negative" node.
                     digraph.add_node(
-                        negate_node_id(curr_node_attrs["id"]),
+                        negate(curr_node_attrs["id"]),
                         length=curr_node_attrs["length"],
                         depth=curr_node_attrs["depth"],
                         gc_content=gc_content(curr_node_attrs["revseq"])[0],

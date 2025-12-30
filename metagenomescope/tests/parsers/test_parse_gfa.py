@@ -1,5 +1,5 @@
 import networkx as nx
-from metagenomescope.input_node_utils import negate_node_id
+from metagenomescope.name_utils import negate
 from metagenomescope.parsers import parse_gfa
 from metagenomescope.errors import GraphParsingError
 from .utils import run_tempfile_test
@@ -25,7 +25,7 @@ def check_sample_gfa_digraph(digraph):
 
     for node_id in ("1", "2", "3", "4", "5", "6"):
         assert node_id in digraph.nodes
-        assert negate_node_id(node_id) in digraph.nodes
+        assert negate(node_id) in digraph.nodes
 
     for node_id in ("1", "-1"):
         assert digraph.nodes[node_id]["length"] == 8

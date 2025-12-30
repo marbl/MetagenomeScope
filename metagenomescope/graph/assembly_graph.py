@@ -19,7 +19,7 @@ from .. import (
     ui_utils,
     seq_utils,
     path_utils,
-    input_node_utils,
+    name_utils,
 )
 from ..errors import GraphParsingError, GraphError, WeirdError, UIError
 from . import validators, graph_utils
@@ -298,7 +298,7 @@ class AssemblyGraph(object):
         lengths_completely_defined = True
         for node_name in self.graph.nodes:
             str_node_name = str(node_name)
-            input_node_utils.sanity_check_node_name(str_node_name)
+            name_utils.sanity_check_node_name(str_node_name)
             node_id = self._get_unique_id()
             data = deepcopy(self.graph.nodes[node_name])
             new_node = Node(node_id, str_node_name, data)
@@ -327,7 +327,7 @@ class AssemblyGraph(object):
             # If we have not seen the RC of this node yet (or if that RC does
             # not exist in this graph at all), then assign this node a new
             # random index for coloring.
-            rc_name = input_node_utils.negate_node_id(str_node_name)
+            rc_name = name_utils.negate(str_node_name)
             if rc_name in oldid2uniqueid:
                 new_node.rand_idx = self.nodeid2obj[
                     oldid2uniqueid[rc_name]
@@ -367,8 +367,8 @@ class AssemblyGraph(object):
             tgt = self.nodeid2obj[e[1]]
             namepair = (src.name, tgt.name)
             rcnamepair = (
-                input_node_utils.negate_node_id(tgt.name),
-                input_node_utils.negate_node_id(src.name),
+                name_utils.negate(tgt.name),
+                name_utils.negate(src.name),
             )
 
             # If we have already seen the RC of this edge, or if we have

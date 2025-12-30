@@ -1,5 +1,5 @@
 from metagenomescope.graph import AssemblyGraph
-from metagenomescope.input_node_utils import negate_node_id
+from metagenomescope.name_utils import negate
 from metagenomescope import config
 from pytest import approx
 
@@ -33,7 +33,7 @@ def test_scale_nodes():
             assert rl == nodename2rl[name]
             assert lp == nodename2lp[name]
         else:
-            negated_name = negate_node_id(name)
+            negated_name = negate(name)
             assert rl == nodename2rl[negated_name]
             assert lp == nodename2lp[negated_name]
         seen_nodenames.append(name)
@@ -78,7 +78,7 @@ def test_compute_node_dimensions():
         if name in nodename2dims:
             exp_data = nodename2dims[name]
         else:
-            exp_data = nodename2dims[negate_node_id(name)]
+            exp_data = nodename2dims[negate(name)]
         assert w == approx(exp_data[1])
         assert h == approx(exp_data[0])
         seen_nodenames.append(name)
