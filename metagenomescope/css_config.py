@@ -38,6 +38,10 @@ CC_SELECTOR_ELES_CLASSES = "input-group"
 # Selected element tables
 ###############################################################################
 SELECTED_ELE_TBL_CLASSES = "ag-theme-balham-dark fancytable"
+BADGE_CLASSES = "ms-1"
+BADGE_ZERO_COLOR = "primary"
+BADGE_SELECTED_COLOR = "#96183c"
+BADGE_AVAILABLE_COLOR = "#6c1ddb"
 
 ###############################################################################
 # Info dialog

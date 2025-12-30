@@ -201,9 +201,28 @@ def run(
             html.H4("Paths"),
             html.Div(
                 [
-                    html.P(
-                        path_utils.get_available_count_text(0, len(ag.paths)),
-                        id="pathCount",
+                    html.Div(
+                        [
+                            "Available",
+                            dbc.Badge(
+                                path_utils.get_available_count_text(
+                                    0, len(ag.paths)
+                                ),
+                                pill=True,
+                                className=css_config.BADGE_CLASSES,
+                                color=css_config.BADGE_ZERO_COLOR,
+                                id="pathCount",
+                            ),
+                            html.Span(
+                                html.I(
+                                    className="bi bi-caret-right-fill",
+                                    id="pathOpener",
+                                ),
+                                className="opener",
+                            ),
+                        ],
+                        className="eleTableHeader",
+                        id="pathHeader",
                     ),
                     dag.AgGrid(
                         rowData=[],
@@ -228,7 +247,7 @@ def run(
                         ],
                         # https://dash.plotly.com/dash-ag-grid/column-sizing
                         columnSize="responsiveSizeToFit",
-                        className="ag-theme-balham-dark fancytable",
+                        className="ag-theme-balham-dark fancytable removedEntirely",
                         id="pathList",
                         # Needed to replace the default "No Rows To Show"
                         # message when no paths are available:
@@ -1592,6 +1611,7 @@ def run(
         @callback(
             Output("pathCount", "children"),
             Output("pathList", "rowData"),
+            Output("pathCount", "color"),
             Input("currDrawnInfo", "data"),
             prevent_initial_call=True,
         )
@@ -1603,9 +1623,10 @@ def run(
             available_pathnames = path_utils.get_available_list(
                 curr_drawn_info["cc_nums"], ag.ccnum2pathnames
             )
+            act = len(available_pathnames)
             # show a summary
             available_count_text = path_utils.get_available_count_text(
-                len(available_pathnames), len(ag.paths)
+                act, len(ag.paths)
             )
             # and also a table
             rows = []
@@ -1617,7 +1638,7 @@ def run(
                     }
                 )
             logging.debug(f"Done. {available_count_text}")
-            return available_count_text, rows
+            return available_count_text, rows, ui_utils.get_badge_color(act, False)
 
         @callback(
             Output("pathSelectionInfo", "data"),
@@ -1752,29 +1773,58 @@ def run(
         prevent_initial_call=True,
     )
 
-    # This is a little jank but it seems to work fine. If opening selected
-    # node/edge/pattern tables becomes broken, this can easily be fixed by just
-    # removing the for loop and writing this out as three separate functions.
-    for eleType in ("Node", "Edge", "Pattern"):
+    def toggle_ele_table_classes(classes):
+        if "removedEntirely" in classes:
+            return (
+                css_config.SELECTED_ELE_TBL_CLASSES,
+                "bi bi-caret-down-fill",
+            )
+        else:
+            return (
+                css_config.SELECTED_ELE_TBL_CLASSES + " removedEntirely",
+                "bi bi-caret-right-fill",
+            )
 
-        @callback(
-            Output(f"selected{eleType}List", "className"),
-            Output(f"selected{eleType}Opener", "className"),
-            State(f"selected{eleType}List", "className"),
-            Input(f"selected{eleType}Header", "n_clicks"),
-            prevent_initial_call=True,
-        )
-        def toggle_ele_table(classes, n_clicks):
-            if "removedEntirely" in classes:
-                return (
-                    css_config.SELECTED_ELE_TBL_CLASSES,
-                    "bi bi-caret-down-fill",
-                )
-            else:
-                return (
-                    css_config.SELECTED_ELE_TBL_CLASSES + " removedEntirely",
-                    "bi bi-caret-right-fill",
-                )
+    @callback(
+        Output("selectedNodeList", "className"),
+        Output("selectedNodeOpener", "className"),
+        State("selectedNodeList", "className"),
+        Input("selectedNodeHeader", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def toggle_node_table(classes, n_clicks):
+        return toggle_ele_table_classes(classes)
+
+
+    @callback(
+        Output("selectedEdgeList", "className"),
+        Output("selectedEdgeOpener", "className"),
+        State("selectedEdgeList", "className"),
+        Input("selectedEdgeHeader", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def toggle_edge_table(classes, n_clicks):
+        return toggle_ele_table_classes(classes)
+
+    @callback(
+        Output("selectedPatternList", "className"),
+        Output("selectedPatternOpener", "className"),
+        State("selectedPatternList", "className"),
+        Input("selectedPatternHeader", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def toggle_pattern_table(classes, n_clicks):
+        return toggle_ele_table_classes(classes)
+
+    @callback(
+        Output("pathList", "className"),
+        Output("pathOpener", "className"),
+        State("pathList", "className"),
+        Input("pathHeader", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def toggle_path_table(classes, n_clicks):
+        return toggle_ele_table_classes(classes)
 
     @callback(
         Output("selectedNodeList", "rowData"),
@@ -1812,10 +1862,10 @@ def run(
         return (
             node_data,
             f"{nct:,}",
-            ui_utils.get_count_badge_color(nct),
+            ui_utils.get_badge_color(nct),
             patt_data,
             f"{pct:,}",
-            ui_utils.get_count_badge_color(pct),
+            ui_utils.get_badge_color(pct),
         )
 
     @callback(
@@ -1843,7 +1893,7 @@ def run(
                 }
             )
         ect = len(edge_data)
-        return edge_data, f"{ect:,}", ui_utils.get_count_badge_color(ect)
+        return edge_data, f"{ect:,}", ui_utils.get_badge_color(ect)
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),

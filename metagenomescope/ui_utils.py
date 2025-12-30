@@ -597,8 +597,8 @@ def get_selected_ele_html(eleType, columnDefs):
                 dbc.Badge(
                     "0",
                     pill=True,
-                    className="ms-1",
-                    color="primary",
+                    className=css_config.BADGE_CLASSES,
+                    color=css_config.BADGE_ZERO_COLOR,
                     id=f"selected{eleType}Count",
                 ),
                 html.Span(
@@ -609,7 +609,7 @@ def get_selected_ele_html(eleType, columnDefs):
                     className="opener",
                 ),
             ],
-            className="selectedEleHeader",
+            className="eleTableHeader",
             id=f"selected{eleType}Header",
         ),
         dag.AgGrid(
@@ -626,9 +626,15 @@ def get_selected_ele_html(eleType, columnDefs):
     ]
 
 
-def get_count_badge_color(ct):
+def get_badge_color(ct, selection_only=True):
     # see https://www.dash-bootstrap-components.com/docs/components/badge/
-    if ct > 0:
-        return "success"
+    # selection_only means: if the count is > 0, does this mean that this
+    # many things (nodes, edges, ...) are *selected*, or just that this
+    # many things are *available to select*? (The latter is only used for
+    # paths, currently.) We use different colors to distinguish these cases.
+    if ct == 0:
+        return css_config.BADGE_ZERO_COLOR
+    elif selection_only:
+        return css_config.BADGE_SELECTED_COLOR
     else:
-        return "primary"
+        return css_config.BADGE_AVAILABLE_COLOR

@@ -292,14 +292,19 @@ button {
 .bottom-page-div {
     margin-bottom: 0.1em;
 }
-.selectedEleHeader {
+
+/**** Selected elment (and available path) tables ****/
+.eleTableHeader {
     cursor: pointer;
     text-align: left;
 }
+
 .opener {
     margin-right: 0.1em;
     float: right;
 }
+
+/**** End selected elment (and available path) tables ****/
 
 .cyclerBtn {
     cursor: pointer;
