@@ -304,6 +304,21 @@ button {
     float: right;
 }
 
+.path-table-name {
+    cursor: pointer;
+    color: #3ff;
+}
+
+/* i despise the ugly blue border that appears around cells on click */
+.path-table-cells {
+    border: none !important;
+}
+
+.fancytable {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
 /**** End selected elment (and available path) tables ****/
 
 .cyclerBtn {
@@ -324,13 +339,6 @@ button {
     /* Override Bootstrap's default CSS (which gives a margin-bottom of 20px on
      * elements with class .table) */
     margin-bottom: 10px !important;
-}
-.eleInfoTable {
-    margin: 0 auto; /* Center the table */
-}
-.eleInfoTable * {
-    text-align: center;
-    border: 1px solid #555 !important;
 }
 .modal-body {
     /* ensures that modal dialogs have a horizontal scrollbar if needed
@@ -463,18 +471,4 @@ button {
      */
     word-break: break-all;
     white-space: normal;
-}
-
-.path-table-name {
-    cursor: pointer;
-    color: #3ff;
-}
-
-/* i despise the ugly blue border that appears around cells on click */
-.path-table-cells {
-    border: none !important;
-}
-
-.fancytable {
-    margin-top: 0.5em;
 }
