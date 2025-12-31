@@ -260,6 +260,7 @@ class Edge(object):
             "data": {
                 "source": str(self.new_src_id),
                 "target": str(self.new_tgt_id),
+                "uid": self.unique_id,
             },
             "classes": f"edgerand{self.rand_idx}",
         }

@@ -140,7 +140,7 @@ class AssemblyGraph(object):
         self.edgeid2obj = {}
         self.pattid2obj = {}
 
-        # "Extra" data for nodes / edges -- e.g. GC content, coverage,
+        # "Extra" data for nodes / edges -- e.g. length, GC content, coverage,
         # multiplicity, ... -- will be updated based on what we see in
         # self._init_graph_objs().
         self.extra_node_attrs = set()
@@ -253,7 +253,9 @@ class AssemblyGraph(object):
 
         This clears the NetworkX data stored for each node and edge in the
         graph (don't worry, this data isn't lost -- it's saved in the
-        corresponding Node and Edge objects' .data attributes).
+        corresponding Node and Edge objects' .data attributes). Information
+        about which of these data fields are specified for the nodes/edges is
+        stored in the .extra_node_attrs and .extra_edge_attrs collections.
 
         Also sanity checks node names.
 
@@ -388,6 +390,12 @@ class AssemblyGraph(object):
 
         if not lengths_completely_defined:
             raise WeirdError(f"Not all {self.seq_noun}s have defined lengths?")
+
+        # Now that we've seen all of these attributes, turn them from sets to
+        # lists so that they have a consistent ordering. This is useful for
+        # showing tables of nodes/edges in the visualization.
+        self.extra_node_attrs = sorted(self.extra_node_attrs)
+        self.extra_edge_attrs = sorted(self.extra_edge_attrs)
 
     def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.

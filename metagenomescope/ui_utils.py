@@ -595,7 +595,17 @@ def get_screenshot_basename():
     return time.strftime("mgsc-%Y%m%dT%H%M%S")
 
 
-def get_selected_ele_html(eleType, columnDefs):
+def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
+    for e in extra_attrs:
+        # TODO figure out human readable names & good types based on e
+        columnDefs.append(
+            {
+                "field": e,
+                "headerName": e,
+                "cellDataType": "text",
+                "cellClass": "fancytable-cells",
+            }
+        )
     return [
         html.Div(
             [

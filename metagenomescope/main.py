@@ -519,6 +519,7 @@ def run(
                                         "cellClass": "fancytable-cells",
                                     },
                                 ],
+                                ag.extra_node_attrs,
                             )
                             + ui_utils.get_selected_ele_html(
                                 "Edge",
@@ -536,6 +537,7 @@ def run(
                                         "cellClass": "fancytable-cells",
                                     },
                                 ],
+                                ag.extra_edge_attrs,
                             )
                             + ui_utils.get_selected_ele_html(
                                 "Pattern",
@@ -1850,15 +1852,18 @@ def run(
         prevent_initial_call=True,
     )
     def list_selected_nodes_and_patterns(selected_nodes):
-        # TODO: record all available data fields and use this info to
-        # define table columns. Then, extract this data from the AG here.
-        # (We could also pass node data directly to Cytoscape, but that
-        # seems wasteful since it involves duplicating the data...)
         node_data = []
         patt_data = []
         for n in selected_nodes:
             if n["ntype"] == cy_config.NODE_DATA_TYPE:
-                node_data.append({ui_config.NODE_TBL_NAME_COL: n["label"]})
+                # Since Cytoscape.js expects node IDs to be strings, the
+                # ID for this node in the Cy.js graph is a string. But it's
+                # an int in the AssemblyGraph! So, we gotta convert it back.
+                obj = ag.nodeid2obj[int(n["id"])]
+                row = {ui_config.NODE_TBL_NAME_COL: n["label"]}
+                for attr in ag.extra_node_attrs:
+                    row[attr] = obj.data[attr] if attr in obj.data else "N/A"
+                node_data.append(row)
             else:
                 obj = ag.pattid2obj[int(n["id"])]
                 pn, pe, pp, _ = obj.get_descendant_info()
@@ -1895,22 +1900,19 @@ def run(
         prevent_initial_call=True,
     )
     def list_selected_edges(selected_edges):
-        def id2name(i):
-            # Node IDs (in the AssemblyGraph) are integers, but Cytoscape.js
-            # expects them to be strings -- so we pass them as strings in the
-            # Node / Edge / Pattern .to_cyjs() methods. Here, we need to turn
-            # them back into integers in order to look up a node in the
-            # AssemblyGraph by its ID.
-            return str(ag.nodeid2obj[int(i)].name)
-
         edge_data = []
-        for n in selected_edges:
-            edge_data.append(
-                {
-                    ui_config.EDGE_TBL_SRC_COL: id2name(n["source"]),
-                    ui_config.EDGE_TBL_TGT_COL: id2name(n["target"]),
-                }
-            )
+        for e in selected_edges:
+            # Although node IDs have to be strings in Cytoscape.js, "edgeID"
+            # (not a real field) can be whatever. So we've left it as an int,
+            # avoiding the need to do any conversion.
+            obj = ag.edgeid2obj[e["uid"]]
+            row = {
+                ui_config.EDGE_TBL_SRC_COL: ag.nodeid2obj[obj.new_src_id].name,
+                ui_config.EDGE_TBL_TGT_COL: ag.nodeid2obj[obj.new_tgt_id].name,
+            }
+            for attr in ag.extra_edge_attrs:
+                row[attr] = obj.data[attr] if attr in obj.data else "N/A"
+            edge_data.append(row)
         ect = len(edge_data)
         return edge_data, f"{ect:,}", ui_utils.get_badge_color(ect)
 

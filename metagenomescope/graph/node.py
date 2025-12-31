@@ -304,6 +304,7 @@ class Node(object):
 
         ele = {
             "data": {
+                # Cytoscape.js expects node IDs to be strings
                 "id": str(self.unique_id),
                 # str() is apparently needed here for some GML graphs
                 "label": str(self.name),
