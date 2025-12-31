@@ -348,6 +348,17 @@ button {
     --ag-header-column-separator-color: #444 !important;
 }
 
+/* this is severe attention to detail. you can drag and drop (presumably this
+ * is what "dnd" stands for) column headers to rearrange columns, which is
+ * super cool! however, these "ghost" elements exist outside of the table,
+ * and thus do not get the same styles. Let's change that here. Since a column
+ * can come from either an "extra" attr (dark red) or a default attr (dark
+ * blue), let's color these things dark purple.
+ */
+.ag-dnd-ghost {
+    --ag-background-color: #1b062e !important;
+}
+
 /* center the header labels. this makes using less padding seem reasonable
  * https://stackoverflow.com/a/46495997
  */
