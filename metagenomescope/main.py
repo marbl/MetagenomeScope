@@ -253,7 +253,8 @@ def run(
                         ],
                         # https://dash.plotly.com/dash-ag-grid/column-sizing
                         columnSize="responsiveSizeToFit",
-                        className=css_config.SELECTED_ELE_TBL_CLASSES + " removedEntirely",
+                        className=css_config.SELECTED_ELE_TBL_CLASSES
+                        + " removedEntirely",
                         id="pathList",
                         # Needed to replace the default "No Rows To Show"
                         # message when no paths are available:
