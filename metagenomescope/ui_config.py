@@ -93,9 +93,7 @@ EDGEATTR2HRT = {
     "bsize": ("BSize", "number"),
     "multiplicity": ("Multiplicity", "number"),
     "id": ("ID", "text"),
-    # See https://github.com/marbl/MetagenomeScope/issues/290 -- we will show
-    # these as strings, e.g. "1.8k"
-    "approx_length": ("~Length", "text"),
+    "approx_length": ("~Length", "number"),
     "cov": ("Cov.", "number"),
     "color": ("Color", "text"),
     "first_nt": ("First nt", "text"),

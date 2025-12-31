@@ -1914,17 +1914,7 @@ def run(
                 ui_config.EDGE_TBL_TGT_COL: ag.nodeid2obj[obj.new_tgt_id].name,
             }
             for attr in ag.extra_edge_attrs:
-                if attr in obj.data:
-                    v = obj.data[attr]
-                    # See https://github.com/marbl/MetagenomeScope/issues/290
-                    if attr == "approx_length":
-                        if v % 1000 == 0:
-                            v = f"{round(v / 1000)}k"
-                        else:
-                            v = f"{v / 1000:.1f}k"
-                else:
-                    v = None
-                row[attr] = v
+                row[attr] = obj.data[attr] if attr in obj.data else None
             edge_data.append(row)
         ect = len(edge_data)
         return edge_data, f"{ect:,}", ui_utils.get_badge_color(ect)

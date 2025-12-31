@@ -623,13 +623,10 @@ def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
             "headerClass": "fancytable-header-extra",
         }
 
-        # this points to a JS function in assets/dashAgGridFunction.js (I
-        # had to name the file that exactly or it wouldn't work) that extracts
-        # the "k" suffix from these lengths and then sorts them as numbers,
-        # to avoid jank like "1049k" being sorted as "less than" "11k". See
-        # references there.
+        # See https://github.com/marbl/MetagenomeScope/issues/290
+        # and https://dash.plotly.com/dash-ag-grid/value-formatters
         if a == "approx_length":
-            col["comparator"] = {"function": "compareFlyeApproxLengths"}
+            col["valueFormatter"] = {"function": "(params.value / 1000) + 'k'"}
 
         columnDefs.append(col)
     return [
