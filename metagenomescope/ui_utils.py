@@ -615,15 +615,23 @@ def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
             headerName = a
             colType = "text"
 
-        columnDefs.append(
-            {
-                "field": a,
-                "headerName": headerName,
-                "cellDataType": colType,
-                "cellClass": "fancytable-cells",
-                "headerClass": "fancytable-header-extra",
-            }
-        )
+        col = {
+            "field": a,
+            "headerName": headerName,
+            "cellDataType": colType,
+            "cellClass": "fancytable-cells",
+            "headerClass": "fancytable-header-extra",
+        }
+
+        # this points to a JS function in assets/dashAgGridFunction.js (I
+        # had to name the file that exactly or it wouldn't work) that extracts
+        # the "k" suffix from these lengths and then sorts them as numbers,
+        # to avoid jank like "1049k" being sorted as "less than" "11k". See
+        # references there.
+        if a == "approx_length":
+            col["comparator"] = {"function": "compareFlyeApproxLengths"}
+
+        columnDefs.append(col)
     return [
         html.Div(
             [
