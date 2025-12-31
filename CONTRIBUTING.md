@@ -28,14 +28,30 @@ correctly.
 
 (You should run these from the root directory of the repository.)
 
-### Run a simple demo
+### Running the visualization in debug mode
+
+The `metagenomescope/tests/input/` directory contains various graphs and
+associated files that may be helpful in testing out your changes. Some examples:
+
+#### A tiny GFA file
+
+(From the [gfalint](https://github.com/sjackman/gfalint) repository.)
 
 ```bash
-make demo
+mgsc -g metagenomescope/tests/input/sample1.gfa --verbose --debug
 ```
 
-The `metagenomescope/tests/input/` directory contains some other
-example graph files that may be helpful in testing out your changes.
+#### An example Flye graph and AGP file
+
+(The graph is from [AGB](https://github.com/almiheenko/AGB/tree/master/test_data/flye_yeast)'s repository.)
+
+```bash
+mgsc \
+    -g metagenomescope/tests/input/flye_yeast.gv \
+    -a metagenomescope/tests/input/flye_yeast.agp \
+    --verbose \
+    --debug
+```
 
 ### Linting and stylechecking
 

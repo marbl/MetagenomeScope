@@ -22,7 +22,3 @@ stylecheck:
 
 style:
 	black -l 79 $(PYLOCS)
-
-demo:
-	@# makes a simple demo with a tiny graph that lets us test out the viz
-	mgsc -g metagenomescope/tests/input/sample1.gfa --verbose
