@@ -1627,6 +1627,16 @@ def run(
     if paths_given:
 
         @callback(
+            Output("pathList", "className"),
+            Output("pathOpener", "className"),
+            State("pathList", "className"),
+            Input("pathHeader", "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def toggle_path_table(classes, n_clicks):
+            return toggle_ele_table_classes(classes)
+
+        @callback(
             Output("pathCount", "children"),
             Output("pathList", "rowData"),
             Output("pathCount", "color"),
@@ -1832,16 +1842,6 @@ def run(
         prevent_initial_call=True,
     )
     def toggle_pattern_table(classes, n_clicks):
-        return toggle_ele_table_classes(classes)
-
-    @callback(
-        Output("pathList", "className"),
-        Output("pathOpener", "className"),
-        State("pathList", "className"),
-        Input("pathHeader", "n_clicks"),
-        prevent_initial_call=True,
-    )
-    def toggle_path_table(classes, n_clicks):
         return toggle_ele_table_classes(classes)
 
     @callback(
