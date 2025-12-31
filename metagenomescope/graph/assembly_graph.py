@@ -396,6 +396,12 @@ class AssemblyGraph(object):
         # showing tables of nodes/edges in the visualization.
         self.extra_node_attrs = sorted(self.extra_node_attrs)
         self.extra_edge_attrs = sorted(self.extra_edge_attrs)
+        # ... And, just to be extra fancy: if this is a LJA / Flye graph where
+        # the edges have their own defined IDs, move these to the start of the
+        # list so they're shown as the leftmost extra attr in the table
+        if "id" in self.extra_edge_attrs:
+            self.extra_edge_attrs.remove("id")
+            self.extra_edge_attrs = ["id"] + self.extra_edge_attrs
 
     def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.
