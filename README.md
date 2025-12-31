@@ -81,6 +81,7 @@ based on https://codedragontech.com/createwithcodedragon/how-to-style-html-detai
 <details>
   <summary><strong>FAQ 1. How do you handle reverse complement nodes/edges?</strong></summary>
 
+<hr/>
 The answer to this depends on the filetype of the graph you are using.
 
 ##### "Explicit" graph filetypes (FASTG, DOT, GML)
@@ -141,6 +142,7 @@ for details on how we handle reverse complements in FASTG files.)
 <details>
   <summary><strong>FAQ 2. Why does my graph have node <code>X</code> and <code>-X</code> in the same component?</strong></summary>
 
+<hr/>
 One common reason this happens is the presence of
 [palindromic](https://en.wikipedia.org/wiki/Palindromic_sequence) sequences:
 these can cause both a sequence and its reverse-complement to be connected to
@@ -153,6 +155,7 @@ This often occurs with the big ("hairball") component in an assembly graph.
 <details>
   <summary><strong>FAQ 3. What happens if an edge is its own reverse complement?</strong></summary>
 
+<hr/>
 (This assumes that you have read FAQ 1.)
 
 This can happen if an edge exists from `X -> -X` or from `-X -> X` in an
@@ -197,6 +200,7 @@ then that's also fine, and we'll visualize all of them.)
 <details>
   <summary><strong>FAQ 4. What do you mean by a component's "size rank"?</strong></summary>
 
+<hr/>
 Given a graph with _N_ connected components: we sort these components by the number of
 nodes they contain, from high to low. We then assign each of these components a
 **size rank**, a number from 1 to _N_: the component with size rank #1 corresponds
@@ -231,6 +235,7 @@ Some details about component size ranks, if you are interested:
 <details>
   <summary><strong>FAQ 5. Can my graphs have parallel edges?</strong></summary>
 
+<hr/>
 Yes! MetagenomeScope supports
 [multigraphs](https://en.wikipedia.org/wiki/Multigraph). If your assembly graph
 file describes more than one edge from `X -> Y`, then MetagenomeScope will
@@ -249,6 +254,7 @@ this (at least for GFA files) at some point, but it doesn't seem like a very imp
 <details>
   <summary><strong>FAQ 6. What filetype should I use for de Bruijn graphs?</strong></summary>
 
+<hr/>
 If you are using LJA (and probably also if you are using Flye), you may want to use a DOT file instead of a GFA / FASTG file as input.
 
 This is because GFA and FASTG [are not ideal](https://github.com/AntonBankevich/LJA/blob/main/docs/jumbodbg_manual.md#output-of-de-bruijn-graph-construction) for representing graphs in which sequences are stored on edges rather than nodes (i.e. de Bruijn / repeat graphs). The DOT files output by Flye and LJA should contain the _original_ structure of these graphs (in which edges and nodes in the visualization actually correspond to edges and nodes in the original graph, respectively); the GFA / FASTG files usually represent altered versions in which nodes and edges have been swapped, which is not always an ideal representation.
