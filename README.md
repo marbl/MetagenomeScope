@@ -135,6 +135,7 @@ and their reverse complements (as well as adjacencies between edge sequences and
 separately. Because of this, we consider FASTG to be an "explicit" filetype.
 (See [pyfastg's documentation](https://github.com/fedarko/pyfastg#about-reverse-complements)
 for details on how we handle reverse complements in FASTG files.)
+<hr/>
 </details>
 
 <details>
@@ -146,6 +147,7 @@ these can cause both a sequence and its reverse-complement to be connected to
 each other.
 
 This often occurs with the big ("hairball") component in an assembly graph.
+<hr/>
 </details>
 
 <details>
@@ -187,6 +189,7 @@ explicitly define all of the nodes and edges in their graph, MetagenomeScope doe
 special for this case for these files. (If your DOT file describes one edge
 from `X -> -X`, then that's fine; if it describes two or more edges from `X -> -X`,
 then that's also fine, and we'll visualize all of them.)
+<hr/>
 </details>
 
 ### Graph structure
@@ -222,6 +225,7 @@ Some details about component size ranks, if you are interested:
     between pairs of split nodes like 40-L → 40-R)
   - the number of patterns in the component
 
+<hr/>
 </details>
 
 <details>
@@ -239,6 +243,7 @@ parsers MetagenomeScope uses for GFA and FASTG files
 means that, at the moment, trying to use MetagenomeScope to visualize a GFA or
 FASTG file containing parallel edges will cause an error. I would like to address
 this (at least for GFA files) at some point, but it doesn't seem like a very important issue.
+<hr/>
 </details>
 
 <details>
@@ -252,6 +257,7 @@ That being said, please note that -- if you are using an assembler that outputs 
 filetypes -- these files may have additional differences beyond the usual filetype differences.
 For example, [Flye's GFA and DOT files can have slightly different coverages](https://github.com/mikolmogorov/Flye/issues/597),
 since Flye produces them at different times in its pipeline.
+<hr/>
 </details>
 
 ## Development documentation
