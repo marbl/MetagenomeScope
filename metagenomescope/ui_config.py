@@ -76,8 +76,8 @@ NODEATTR2HRT = {
     "orientation": ("+/-", "text"),
     "depth": ("Cov.", "number"),
     "cov": ("Cov.", "number"),
-    "gc": ("GC Content", "number"),
-    "gc_content": ("GC Content", "number"),
+    "gc": ("GC %", "number"),
+    "gc_content": ("GC %", "number"),
 }
 
 EDGEATTR2HRT = {
@@ -104,3 +104,37 @@ EDGEATTR2HRT = {
 # tables, since there is not a lot of space. Record these here.
 NODEATTRS_SKIP = ("orientation",)
 EDGEATTRS_SKIP = ("color", "dir")
+
+# Showing unformatted numbers to the user looks a bit gross -- e.g.
+# "12345.123213" might be better shown as "12,345.12" or something. we can use
+# column-specific valueFormatters to enable this:
+# https://dash.plotly.com/dash-ag-grid/value-formatters
+# https://community.plotly.com/t/dash-ag-grid-format-values/72145/2
+FMT_THOUSANDS_SEP = {
+    "function": "params.value !== null ? params.value.toLocaleString() : null"
+}
+FMT_PERCENT = {
+    "function": "params.value !== null ? (params.value * 100).toFixed(2) + '%' : null"
+}
+# See https://github.com/marbl/MetagenomeScope/issues/290
+FMT_APPROX_LENGTH = {
+    "function": "params.value !== null ? (params.value / 1000).toLocaleString() + 'k' : null"
+}
+
+NODEATTR2FMT = {
+    "length": FMT_THOUSANDS_SEP,
+    "depth": FMT_THOUSANDS_SEP,
+    "cov": FMT_THOUSANDS_SEP,
+    "gc": FMT_PERCENT,
+    "gc_content": FMT_PERCENT,
+}
+
+EDGEATTR2FMT = {
+    "mean": FMT_THOUSANDS_SEP,
+    "stdev": FMT_THOUSANDS_SEP,
+    "bsize": FMT_THOUSANDS_SEP,
+    "multiplicity": FMT_THOUSANDS_SEP,
+    "approx_length": FMT_APPROX_LENGTH,
+    "cov": FMT_THOUSANDS_SEP,
+    "kmer_cov": FMT_THOUSANDS_SEP,
+}

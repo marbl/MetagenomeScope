@@ -603,10 +603,14 @@ def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
             if a in ui_config.NODEATTRS_SKIP:
                 continue
             attrRef = ui_config.NODEATTR2HRT
-        else:
+        elif eleType == "Edge":
             if a in ui_config.EDGEATTRS_SKIP:
                 continue
             attrRef = ui_config.EDGEATTR2HRT
+        else:
+            # patterns shouldn't have extra attrs, as of writing, so we
+            # shouldn't end up here. but let's be defensive.
+            attrRef = {}
         if a in attrRef:
             headerName, colType = attrRef[a]
         else:
@@ -623,10 +627,12 @@ def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
             "headerClass": "fancytable-header-extra",
         }
 
-        # See https://github.com/marbl/MetagenomeScope/issues/290
-        # and https://dash.plotly.com/dash-ag-grid/value-formatters
-        if a == "approx_length":
-            col["valueFormatter"] = {"function": "(params.value / 1000) + 'k'"}
+        if eleType == "Node":
+            if a in ui_config.NODEATTR2FMT:
+                col["valueFormatter"] = ui_config.NODEATTR2FMT[a]
+        elif eleType == "Edge":
+            if a in ui_config.EDGEATTR2FMT:
+                col["valueFormatter"] = ui_config.EDGEATTR2FMT[a]
 
         columnDefs.append(col)
     return [
