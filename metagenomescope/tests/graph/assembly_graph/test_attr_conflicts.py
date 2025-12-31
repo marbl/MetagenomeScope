@@ -27,7 +27,7 @@ def test_node_attr_conflict():
         if not e.is_fake:
             assert e.data == {
                 "orientation": "EB",
-                "mean": "-1",
+                "mean": -1,
                 "stdev": 5,
                 "bsize": 5,
             }
@@ -50,7 +50,7 @@ def test_edge_attr_conflict():
             if g.nodeid2obj[e.new_src_id].name == "6":
                 assert e.data == {
                     "orientation": "EB",
-                    "mean": "-1",
+                    "mean": -1,
                     "stdev": 5,
                     "bsize": 5,
                     "ctrl_pt_coords": "1234",
@@ -59,7 +59,7 @@ def test_edge_attr_conflict():
             else:
                 assert e.data == {
                     "orientation": "EB",
-                    "mean": "-1",
+                    "mean": -1,
                     "stdev": 5,
                     "bsize": 5,
                 }

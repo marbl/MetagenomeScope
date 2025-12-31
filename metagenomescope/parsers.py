@@ -390,17 +390,22 @@ def parse_metacarvel_gml(filename):
         # scaling edges by their stdev and then having an edge with an
         # "infinity" stdev just explode everything
         for field in ("mean", "stdev"):
-            try:
-                float(g.edges[e][field])
-            except Exception:
-                # Rationale for using except Exception is analogous to what's
-                # discussed in this comment thread:
-                # https://github.com/biocore/LabControl/pull/585#discussion_r323413268
-                raise GraphParsingError(
-                    'Edge {} has non-numeric {} "{}".'.format(
-                        e, field, g.edges[e][field]
+            datum = g.edges[e][field]
+            # Some MetaCarvel graphs I have lying around encase the "mean"
+            # values in quotes, which causes nx to parse them as strings and
+            # later breaks their display in the selected element table. Let's
+            # just cast them to floats up front.
+            if type(datum) not in (float, int):
+                try:
+                    f = float(datum)
+                except Exception:
+                    # Rationale for using except Exception is analogous to
+                    # what's discussed in this comment thread:
+                    # https://github.com/biocore/LabControl/pull/585#discussion_r323413268
+                    raise GraphParsingError(
+                        f'Edge {e} has non-numeric {field} "{datum}".'
                     )
-                )
+                g.edges[e][field] = f
 
     return g  # , ("orientation",), ("bsize", "orientation", "mean", "stdev")
 

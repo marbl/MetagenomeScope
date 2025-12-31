@@ -22,7 +22,7 @@ def check_marygold_fig2a_graph_nodes_and_edges(digraph):
             assert digraph.edges[e]["orientation"] == "EE"
         else:
             assert digraph.edges[e]["orientation"] == "EB"
-        assert digraph.edges[e]["mean"] == "-200.00"
+        assert digraph.edges[e]["mean"] == -200.0
         assert digraph.edges[e]["stdev"] == 25.1234
         assert digraph.edges[e]["bsize"] == 30
 
