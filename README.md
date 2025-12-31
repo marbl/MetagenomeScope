@@ -140,53 +140,12 @@ for details on how we handle reverse complements in FASTG files.)
 <details>
   <summary><strong>FAQ 2. Why does my graph have node <code>X</code> and <code>-X</code> in the same component?</strong></summary>
 
-The short answer is "probably palindromes." Below is a more detailed answer.
+One common reason this happens is the presence of
+[palindromic](https://en.wikipedia.org/wiki/Palindromic_sequence) sequences:
+these can cause both a sequence and its reverse-complement to be connected to
+each other.
 
-##### Strand-separated components
-
-Consider the following example GFA file from FAQ 1:
-
-```gfa
-H	VN:Z:1.0
-S	1	CGATGCAA
-S	2	TGCAAAGTAC
-L	1	+	2	+	5M
-```
-
-There are four nodes and two edges in this graph, but they form two
-[(weakly) connected components](https://en.wikipedia.org/wiki/Component_(graph_theory)) --
-that is, the graph contains one "island" of `1` and `2` (which are connected to
-each other), and another "island" of `-1` and `-2` (which are also connected to each other).
-You can think of these entire components as "reverse complements" of each other:
-although MetagenomeScope will visualize both of them
-([at least right now](https://github.com/marbl/MetagenomeScope/issues/67)),
-you don't really need to analyze them separately.
-These "**strand-separated**" components describe the same
-(or [mostly the same](https://github.com/rrwick/Bandage/wiki/Assembler-differences#velvet))
-sequences, just in different directions.
-
-##### Strand-mixed components
-
-Sometimes a node and its reverse complement will end up
-being in the same component,
-due to things like [palindromic](https://en.wikipedia.org/wiki/Palindromic_sequence) sequences
-gluing them together. The following GFA file is the same as the one we just saw,
-but it now contains an extra "link" line from `1` to `-2`:
-
-```gfa
-H	VN:Z:1.0
-S	1	CGATGCAA
-S	2	TGCAAAGTAC
-L	1	+	2	+	5M
-L	1	+	2	-	0M
-```
-
-This graph contains four edges: `1 -> 2` and `-2 -> -1` (which we've already seen),
-and `1 -> -2` and `2 -> -1`. The introduction of these last two edges has caused
-the graph to become a single "strand-mixed" component, containing both
-a node `X` and its reverse-complementary node `-X`.
-
-This often happens with the big ("hairball") component in an assembly graph.
+This often occurs with the big ("hairball") component in an assembly graph.
 </details>
 
 <details>
@@ -196,8 +155,7 @@ This often happens with the big ("hairball") component in an assembly graph.
 
 This can happen if an edge exists from `X -> -X` or from `-X -> X` in an
 "implicit" graph file (GFA / LastGraph). Consider
-[this GFA file](https://github.com/sjackman/assembly-graph/blob/master/loop.gfa),
-c/o Shaun Jackman:
+[this GFA file](https://github.com/sjackman/assembly-graph/blob/master/loop.gfa):
 
 ```gfa
 H	VN:Z:1.0
