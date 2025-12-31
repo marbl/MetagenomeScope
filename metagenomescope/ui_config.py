@@ -66,3 +66,41 @@ PATT_TBL_TYPE_COL = "T"
 PATT_TBL_NCT_COL = "N"
 PATT_TBL_ECT_COL = "E"
 PATT_TBL_PCT_COL = "P"
+
+# Maps "internal" names for node / edge properties to human-readable names, and
+# AG Grid cellDataType parameters.
+# (As we add on more filetype parsers, feel free to extend these structures.)
+NODEATTR2HRT = {
+    "name": ("ID", "text"),
+    "length": ("Length", "text"),
+    "orientation": ("+/-", "text"),
+    "depth": ("Cov.", "number"),
+    "cov": ("Cov.", "number"),
+    "gc": ("GC Content", "number"),
+    "gc_content": ("GC Content", "number"),
+}
+
+EDGEATTR2HRT = {
+    # Ideally we'd be more precise about what exactly these are the mean and
+    # standard deviation of, but i am not completely sure. I think they
+    # represent the "mean and standard deviation for the implied distance
+    # between a pair of contigs," to quote the MetaCarvel paper? But they could
+    # also represent "the library size (mean and standard deviation)," maybe,
+    # so for the sake of avoiding being wrong I am being conservative for now
+    "mean": ("Mean", "number"),
+    "stdev": ("\u03c3", "number"),
+    "orientation": ("Orient.", "text"),
+    "bsize": ("BSize", "number"),
+    "multiplicity": ("Multiplicity", "number"),
+    "id": ("ID", "text"),
+    "approx_length": ("~Length", "number"),
+    "cov": ("Cov.", "number"),
+    "color": ("Color", "text"),
+    "first_nt": ("First nt", "text"),
+    "kmer_cov": ("k-mer cov.", "number"),
+}
+
+# some attributes are obvious and/or not worth showing in the selected element
+# tables, since there is not a lot of space. Record these here.
+NODEATTRS_SKIP = ("orientation",)
+EDGEATTRS_SKIP = ("color", "dir")

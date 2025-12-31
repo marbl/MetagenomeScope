@@ -315,6 +315,14 @@ button {
     border: none !important;
 }
 
+/* specially style "extra" fields' column headers a dark red, to visually
+ * separate them from the "default" fields like "Name"
+ */
+.fancytable-header-extra {
+    background-color: #2e0612 !important;
+
+}
+
 .fancytable {
     margin-top: 0.5em;
     margin-bottom: 0.5em;

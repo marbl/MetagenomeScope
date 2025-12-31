@@ -596,14 +596,28 @@ def get_screenshot_basename():
 
 
 def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
-    for e in extra_attrs:
-        # TODO figure out human readable names & good types based on e
+    for a in extra_attrs:
+        if eleType == "Node":
+            if a in ui_config.NODEATTRS_SKIP:
+                continue
+            attrRef = ui_config.NODEATTR2HRT
+        else:
+            if a in ui_config.EDGEATTRS_SKIP:
+                continue
+            attrRef = ui_config.EDGEATTR2HRT
+        if a in attrRef:
+            headerName, colType = attrRef[a]
+        else:
+            headerName = a
+            colType = "text"
+
         columnDefs.append(
             {
-                "field": e,
-                "headerName": e,
-                "cellDataType": "text",
+                "field": a,
+                "headerName": headerName,
+                "cellDataType": colType,
                 "cellClass": "fancytable-cells",
+                "headerClass": "fancytable-header-extra",
             }
         )
     return [
