@@ -320,12 +320,39 @@ button {
  */
 .fancytable-header-extra {
     background-color: #2e0612 !important;
-
 }
 
 .fancytable {
     margin-top: 0.5em;
     margin-bottom: 0.5em;
+    /* see https://dash.plotly.com/dash-ag-grid/compactness */
+    --ag-cell-horizontal-padding: 6px !important;
+    --ag-grid-size: 3px !important;
+    /* try to match the blue background of the control panel, kinda
+     * i might change these later. ("felt cute, might restyle the table later")
+     */
+    --ag-background-color: #12314f !important;
+    --ag-odd-row-background-color: #133d66 !important;
+    --ag-row-hover-color: #1e4e7d !important;
+    --ag-header-background-color: #0a062e !important;
+    /* Based on https://www.ag-grid.com/angular-data-grid/theming-v32-customisation-headers/#header-column-separators-and-resize-handles
+     * -- note that header column separators and resize handles are two
+     * separate things! By default, it looks like header column separators
+     * are shown by default, whereas resize handles aren't. Anyway we can
+     * just pick one and run with it I guess. I don't like the default
+     * styles (too tiny); this makes them more visible.
+     */
+    --ag-header-column-separator-display: block !important;
+    --ag-header-column-separator-height: 60% !important;
+    --ag-header-column-separator-width: 2px !important;
+    --ag-header-column-separator-color: #444 !important;
+}
+
+/* center the header labels. this makes using less padding seem reasonable
+ * https://stackoverflow.com/a/46495997
+ */
+.fancytable .ag-header-cell-label {
+    justify-content: center;
 }
 
 /**** End selected elment (and available path) tables ****/

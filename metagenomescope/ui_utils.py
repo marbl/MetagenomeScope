@@ -650,7 +650,7 @@ def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
             rowData=[],
             columnDefs=columnDefs,
             columnSize="responsiveSizeToFit",
-            className="ag-theme-balham-dark fancytable removedEntirely",
+            className=css_config.SELECTED_ELE_TBL_CLASSES + " removedEntirely",
             id=f"selected{eleType}List",
             dashGridOptions={
                 "overlayNoRowsTemplate": f"No {eleType.lower()}s selected.",
