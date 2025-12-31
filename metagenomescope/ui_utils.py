@@ -597,6 +597,8 @@ def get_screenshot_basename():
 
 def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
     for a in extra_attrs:
+        # Do we know in advance a human-readable name and a good type for
+        # this field? If so, get this info from ui_config.
         if eleType == "Node":
             if a in ui_config.NODEATTRS_SKIP:
                 continue
@@ -608,6 +610,8 @@ def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
         if a in attrRef:
             headerName, colType = attrRef[a]
         else:
+            # Okay, we don't already know about this field. That's fine; just
+            # show the field name to the user directly and treat it as text
             headerName = a
             colType = "text"
 
