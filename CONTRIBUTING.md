@@ -53,6 +53,18 @@ mgsc \
     --debug
 ```
 
+#### An example Velvet graph and AGP file
+
+(The graph is an example from [Bandage](http://rrwick.github.io/Bandage/).)
+
+```bash
+mgsc \
+    -g metagenomescope/tests/input/E_coli_LastGraph \
+    -a metagenomescope/tests/input/scaffolds_ecoli.agp \
+    --verbose \
+    --debug
+```
+
 ### Linting and stylechecking
 
 ```bash
