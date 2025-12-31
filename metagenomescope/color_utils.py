@@ -125,6 +125,10 @@ def selectively_interpolate_hsl(
     whatever it doesn't really matter (https://stackoverflow.com/q/5723225).
 
     Default values picked by messing around in https://www.hslpicker.com.
+    This represents a gradient from lightish purple to very dark purple.
+    (Um, as of December 30, 2025 I changed the actual application to use
+    less saturation, so now it is more like medium gray to black. this helps
+    distinguish these rectangles from the other normal ones in the treemap.)
 
     Note that -- if you are calling this using the treemap rectangles -- then
     the first entry in the "cc_aggs" list, describing all components in the

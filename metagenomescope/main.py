@@ -1240,8 +1240,10 @@ def run(
         def plot_cc_treemap(n_clicks):
             cc_names, cc_parents, cc_sizes, cc_aggs = ag.to_treemap()
             # silly thing: scale the aggregated rectangles' colors along a
-            # distinct purple gradient to make them stand out visually
-            cc_marker_colors = color_utils.selectively_interpolate_hsl(cc_aggs)
+            # distinct gradient to make them stand out visually
+            cc_marker_colors = color_utils.selectively_interpolate_hsl(
+                cc_aggs, S=5
+            )
             fig = go.Figure(
                 go.Treemap(
                     # actual data
