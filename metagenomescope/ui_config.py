@@ -94,6 +94,7 @@ EDGEATTR2HRT = {
     "multiplicity": ("Multiplicity", "number"),
     "id": ("ID", "text"),
     "approx_length": ("~Length", "number"),
+    "length": ("Length", "number"),
     "cov": ("Cov.", "number"),
     "color": ("Color", "text"),
     "first_nt": ("First nt", "text"),
@@ -103,7 +104,14 @@ EDGEATTR2HRT = {
 # some attributes are obvious and/or not worth showing in the selected element
 # tables, since there is not a lot of space. Record these here.
 NODEATTRS_SKIP = ("orientation",)
-EDGEATTRS_SKIP = ("color", "dir")
+EDGEATTRS_SKIP = (
+    # Flye
+    "color",
+    "dir",
+    # LJA
+    "label",
+    "labeltooltip",
+)
 
 # Showing unformatted numbers to the user looks a bit gross -- e.g.
 # "12345.123213" might be better shown as "12,345.12" or something. we can use
