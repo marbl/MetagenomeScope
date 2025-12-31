@@ -1862,7 +1862,7 @@ def run(
                 obj = ag.nodeid2obj[int(n["id"])]
                 row = {ui_config.NODE_TBL_NAME_COL: n["label"]}
                 for attr in ag.extra_node_attrs:
-                    row[attr] = obj.data[attr] if attr in obj.data else "N/A"
+                    row[attr] = obj.data[attr] if attr in obj.data else None
                 node_data.append(row)
             else:
                 obj = ag.pattid2obj[int(n["id"])]
@@ -1911,7 +1911,7 @@ def run(
                 ui_config.EDGE_TBL_TGT_COL: ag.nodeid2obj[obj.new_tgt_id].name,
             }
             for attr in ag.extra_edge_attrs:
-                row[attr] = obj.data[attr] if attr in obj.data else "N/A"
+                row[attr] = obj.data[attr] if attr in obj.data else None
             edge_data.append(row)
         ect = len(edge_data)
         return edge_data, f"{ect:,}", ui_utils.get_badge_color(ect)
