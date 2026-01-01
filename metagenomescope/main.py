@@ -1656,16 +1656,20 @@ def run(
             # update the table of available paths, based on what's drawn
             rows = []
             ct = 0
-            for ccnum in curr_drawn_info["cc_nums"]:
-                for p in ag.ccnum2pathnames[ccnum]:
-                    rows.append(
-                        {
-                            ui_config.PATH_TBL_NAME_COL: p,
-                            ui_config.PATH_TBL_COUNT_COL: len(ag.paths[p]),
-                            ui_config.PATH_TBL_CC_COL: ccnum,
-                        }
-                    )
-                    ct += 1
+            if (
+                curr_drawn_info is not None
+                and "cc_nums" in curr_curr_drawn_info
+            ):
+                for ccnum in curr_drawn_info["cc_nums"]:
+                    for p in ag.ccnum2pathnames[ccnum]:
+                        rows.append(
+                            {
+                                ui_config.PATH_TBL_NAME_COL: p,
+                                ui_config.PATH_TBL_COUNT_COL: len(ag.paths[p]),
+                                ui_config.PATH_TBL_CC_COL: ccnum,
+                            }
+                        )
+                        ct += 1
             # also show a summary
             count_text = path_utils.get_available_count_badge_text(
                 ct, len(ag.paths)
