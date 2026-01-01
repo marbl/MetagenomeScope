@@ -216,25 +216,9 @@ body {
     border-bottom: 2px solid #adadad;
 }
 
-#ccSizeRankSelectorEles, #ccNodeNameSelectorEles {
-    transition-duration: 0.25s;
-    transition-timing-function: ease-in-out;
-    transition-property: opacity;
-}
-
-#ccNodeNameSelectorEles {
-    margin-bottom: 0.2em;
-}
-
-/* this hides things, but they still impact the flow of the CSS layout */
-.invisibleButStillThere {
-    opacity: 0;
-    pointer-events: none;
-}
-
 /* this hides things completely - they don't impact the layout */
 .removedEntirely {
-    display: none;
+    display: none !important;
 }
 
 /* dash's checklists nest the <input> inside the <label>, which is insane to

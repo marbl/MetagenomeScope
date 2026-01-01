@@ -444,7 +444,7 @@ def run(
                             id="ccSizeRankSelectorEles",
                             className=css_config.CC_SELECTOR_ELES_CLASSES
                             + (
-                                " invisibleButStillThere"
+                                " removedEntirely"
                                 if "ccDrawingSizeRank"
                                 != DEFAULT_CC_SELECTION_METHOD
                                 else ""
@@ -462,36 +462,41 @@ def run(
                             id="ccNodeNameSelectorEles",
                             className=css_config.CC_SELECTOR_ELES_CLASSES
                             + (
-                                " invisibleButStillThere"
+                                " removedEntirely"
                                 if "ccDrawingNodeNames"
                                 != DEFAULT_CC_SELECTION_METHOD
                                 else ""
                             ),
                         ),
-                        html.Button(
+                        html.Div(
                             [
-                                html.I(className="bi bi-gear-fill"),
-                                html.Span(
-                                    "Options",
-                                    className="iconlbl",
+                                html.Button(
+                                    [
+                                        html.I(className="bi bi-gear-fill"),
+                                        html.Span(
+                                            "Options",
+                                            className="iconlbl",
+                                        ),
+                                    ],
+                                    id="drawingOptionsButton",
+                                    className="btn btn-light",
+                                    type="button",
+                                    style={"margin-right": "1em"},
+                                ),
+                                html.Button(
+                                    [
+                                        html.I(className="bi bi-brush-fill"),
+                                        html.Span(
+                                            "Draw",
+                                            className="iconlbl",
+                                        ),
+                                    ],
+                                    id="drawButton",
+                                    className="btn btn-light",
+                                    type="button",
                                 ),
                             ],
-                            id="drawingOptionsButton",
-                            className="btn btn-light",
-                            type="button",
-                            style={"margin-right": "1em"},
-                        ),
-                        html.Button(
-                            [
-                                html.I(className="bi bi-brush-fill"),
-                                html.Span(
-                                    "Draw",
-                                    className="iconlbl",
-                                ),
-                            ],
-                            id="drawButton",
-                            className="btn btn-light",
-                            type="button",
+                            style={"margin-top": "0.2em"},
                         ),
                         ctrl_sep,
                         html.H4("Search"),
@@ -1393,20 +1398,20 @@ def run(
         if ctx.triggered_id == "ccDrawingSizeRank":
             cc_sr_eles_classes = css_config.CC_SELECTOR_ELES_CLASSES
             cc_nn_eles_classes = (
-                css_config.CC_SELECTOR_ELES_CLASSES + " invisibleButStillThere"
+                css_config.CC_SELECTOR_ELES_CLASSES + " removedEntirely"
             )
         elif ctx.triggered_id == "ccDrawingNodeNames":
             cc_sr_eles_classes = (
-                css_config.CC_SELECTOR_ELES_CLASSES + " invisibleButStillThere"
+                css_config.CC_SELECTOR_ELES_CLASSES + " removedEntirely"
             )
             cc_nn_eles_classes = css_config.CC_SELECTOR_ELES_CLASSES
         else:
             # draw all components, so hide both size rank and node name eles
             cc_sr_eles_classes = (
-                css_config.CC_SELECTOR_ELES_CLASSES + " invisibleButStillThere"
+                css_config.CC_SELECTOR_ELES_CLASSES + " removedEntirely"
             )
             cc_nn_eles_classes = (
-                css_config.CC_SELECTOR_ELES_CLASSES + " invisibleButStillThere"
+                css_config.CC_SELECTOR_ELES_CLASSES + " removedEntirely"
             )
         return (
             cc_selection_options[ctx.triggered_id],
