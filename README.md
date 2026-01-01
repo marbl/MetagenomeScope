@@ -94,7 +94,7 @@ wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/met
 mgsc -g E_coli_LastGraph
 ```
 
-### Other files
+### Other datasets
 
 See the [`metagenomescope/tests/input/`](https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/tests/input)
 directory.

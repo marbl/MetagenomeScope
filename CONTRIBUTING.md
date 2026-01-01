@@ -30,7 +30,8 @@ correctly.
 
 ### Running the visualization in debug mode
 
-The `metagenomescope/tests/input/` directory contains various graphs and
+The [`metagenomescope/tests/input/`](https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/tests/input)
+directory contains various graphs and
 associated files that may be helpful in testing out your changes.
 
 For example, here is how we might test out MetagenomeScope using a small
