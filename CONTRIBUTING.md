@@ -31,19 +31,11 @@ correctly.
 ### Running the visualization in debug mode
 
 The `metagenomescope/tests/input/` directory contains various graphs and
-associated files that may be helpful in testing out your changes. Some examples:
+associated files that may be helpful in testing out your changes.
 
-#### A tiny GFA file
-
-(From the [gfalint](https://github.com/sjackman/gfalint) repository.)
-
-```bash
-mgsc -g metagenomescope/tests/input/sample1.gfa --verbose --debug
-```
-
-#### An example Flye graph and AGP file
-
-(The graph is from [AGB](https://github.com/almiheenko/AGB/tree/master/test_data/flye_yeast)'s repository.)
+For example, here is how we might test out MetagenomeScope using a small
+yeast assembly graph from Flye (the graph is from
+[AGB](https://github.com/almiheenko/AGB/tree/master/test_data/flye_yeast)'s repository):
 
 ```bash
 mgsc \
@@ -53,17 +45,14 @@ mgsc \
     --debug
 ```
 
-#### An example Velvet graph and AGP file
+Using `--debug` is nice because it enables
+[Dash Dev Tools](https://dash.plotly.com/devtools). This will enable useful features
+like hot reloading (whenever you changed code, Dash should reload the application).
 
-(The graph is an example from [Bandage](http://rrwick.github.io/Bandage/).)
-
-```bash
-mgsc \
-    -g metagenomescope/tests/input/E_coli_LastGraph \
-    -a metagenomescope/tests/input/scaffolds_ecoli.agp \
-    --verbose \
-    --debug
-```
+Note that using `--debug` will process the graph twice on startup. This appears
+to just be a Dash thing. So, if you are testing out how MetagenomeScope works on
+a massive graph where processing it will take a while, using `--debug` may not be
+ideal.
 
 ### Linting and stylechecking
 
