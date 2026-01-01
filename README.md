@@ -72,9 +72,7 @@ should do that to verify that their graphs work ok -->
 Should you run into [additional](https://xkcd.com/927/) assembly graph filetypes you'd like us to
 support, feel free to open a GitHub issue.
 
-## Test data
-
-If you would like to try out MetagenomeScope quickly, here are some example datasets:
+## Example datasets
 
 ### Flye (DOT file, 61 nodes, 122 edges): _S. cerevisiae_ (yeast)
 
@@ -95,6 +93,11 @@ Note that the original sequences have been removed to save space.
 wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/metagenomescope/tests/input/E_coli_LastGraph
 mgsc -g E_coli_LastGraph
 ```
+
+### Other files
+
+See the [`metagenomescope/tests/input/`](https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/tests/input)
+directory.
 
 ## FAQs
 
