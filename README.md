@@ -74,6 +74,8 @@ support, feel free to open a GitHub issue.
 
 ## Test data
 
+If you would like to try out MetagenomeScope quickly, here are some example datasets:
+
 ### Flye (DOT file, 61 nodes, 122 edges): _S. cerevisiae_ (yeast)
 
 The graph is from [AGB's GitHub repository](https://github.com/almiheenko/AGB/tree/master/test_data/flye_yeast).
