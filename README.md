@@ -76,7 +76,7 @@ support, feel free to open a GitHub issue.
 
 ### Flye (DOT file, 61 nodes, 122 edges): _S. cerevisiae_ (yeast)
 
-(The graph is from [AGB's GitHub repository](https://github.com/almiheenko/AGB/tree/master/test_data/flye_yeast).)
+The graph is from [AGB's GitHub repository](https://github.com/almiheenko/AGB/tree/master/test_data/flye_yeast).
 
 ```bash
 wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/metagenomescope/tests/input/flye_yeast.gv
@@ -86,8 +86,8 @@ mgsc -g flye_yeast.gv -a flye_yeast.agp
 
 ### Velvet (LastGraph file, 558 nodes, 664 edges): _E. coli_
 
-(The graph is an example from [Bandage](http://rrwick.github.io/Bandage/).
-Note that the original sequences have been removed to save space.)
+This is an example graph from [Bandage](http://rrwick.github.io/Bandage/).
+Note that the original sequences have been removed to save space.
 
 ```bash
 wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/metagenomescope/tests/input/E_coli_LastGraph
