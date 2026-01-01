@@ -27,14 +27,6 @@ CONTROLS_SUB_BORDER_THICKNESS = "0.25em"
 CONTROLS_TRANSITION_DURATION = "0.2s"
 
 ###############################################################################
-# Component selectors
-###############################################################################
-
-# default classes on the input groups used for selecting components to draw
-# by size rank or node name
-CC_SELECTOR_ELES_CLASSES = "input-group"
-
-###############################################################################
 # Selected element tables
 ###############################################################################
 SELECTED_ELE_TBL_CLASSES = "ag-theme-balham-dark fancytable"

@@ -165,7 +165,7 @@ body {
 }
 
 /* same deal for the search icons */
-.bi-search {
+.bi-search, .bi-record-circle {
     -webkit-text-stroke: 1px;
 }
 

@@ -168,6 +168,12 @@ def run(
                 "Component(s), by node name",
             ),
         ],
+        "ccDrawingAroundNodes": [
+            html.I(className="bi bi-record-circle"),
+            html.Span(
+                "Around certain nodes",
+            ),
+        ],
         "ccDrawingAll": [
             html.I(className="bi bi-asterisk"),
             html.Span(
@@ -392,6 +398,16 @@ def run(
                                         html.Li(
                                             html.A(
                                                 cc_selection_options[
+                                                    "ccDrawingAroundNodes"
+                                                ],
+                                                className=CC_SELECTION_A_CLASSES_MULTIPLE_CCS,
+                                                id="ccDrawingAroundNodes",
+                                                **CC_SELECTION_A_ATTRS_MULTIPLE_CCS,
+                                            ),
+                                        ),
+                                        html.Li(
+                                            html.A(
+                                                cc_selection_options[
                                                     "ccDrawingAll"
                                                 ],
                                                 className="dropdown-item",
@@ -416,57 +432,97 @@ def run(
                         ),
                         html.Div(
                             [
-                                html.Button(
-                                    html.I(className="bi bi-dash-lg"),
-                                    id="ccSizeRankDecrBtn",
-                                    # might add borders to the sides of these later
-                                    className="btn btn-light cc-size-rank-adj",
-                                    type="button",
+                                html.Div(
+                                    html.Div(
+                                        [
+                                            html.Button(
+                                                html.I(
+                                                    className="bi bi-dash-lg"
+                                                ),
+                                                id="ccSizeRankDecrBtn",
+                                                # might add borders to the sides of these later
+                                                className="btn btn-light cc-size-rank-adj",
+                                                type="button",
+                                            ),
+                                            # dash doesn't have a html.Input thing like it
+                                            # does for other HTML tags, so we use dcc.Input
+                                            # which apparently is close enough
+                                            # (https://github.com/plotly/dash/issues/2791)
+                                            dcc.Input(
+                                                type="text",
+                                                id="ccSizeRankSelector",
+                                                className="form-control",
+                                                value="1",
+                                                placeholder="Size rank(s)",
+                                            ),
+                                            html.Button(
+                                                html.I(
+                                                    className="bi bi-plus-lg"
+                                                ),
+                                                id="ccSizeRankIncrBtn",
+                                                className="btn btn-light cc-size-rank-adj",
+                                                type="button",
+                                            ),
+                                        ],
+                                        className="input-group",
+                                    ),
+                                    id="ccSizeRankSelectorEles",
+                                    className=(
+                                        " removedEntirely"
+                                        if "ccDrawingSizeRank"
+                                        != DEFAULT_CC_SELECTION_METHOD
+                                        else ""
+                                    ),
                                 ),
-                                # dash doesn't have a html.Input thing like it
-                                # does for other HTML tags, so we use dcc.Input
-                                # which apparently is close enough
-                                # (https://github.com/plotly/dash/issues/2791)
-                                dcc.Input(
-                                    type="text",
-                                    id="ccSizeRankSelector",
-                                    className="form-control",
-                                    value="1",
-                                    placeholder="Size rank(s)",
+                                html.Div(
+                                    html.Div(
+                                        [
+                                            dcc.Input(
+                                                type="text",
+                                                id="ccNodeNameSelector",
+                                                className="form-control",
+                                                placeholder="Node name(s)",
+                                            ),
+                                        ],
+                                        className="input-group",
+                                    ),
+                                    id="ccNodeNameSelectorEles",
+                                    className=(
+                                        " removedEntirely"
+                                        if "ccDrawingNodeNames"
+                                        != DEFAULT_CC_SELECTION_METHOD
+                                        else ""
+                                    ),
                                 ),
-                                html.Button(
-                                    html.I(className="bi bi-plus-lg"),
-                                    id="ccSizeRankIncrBtn",
-                                    className="btn btn-light cc-size-rank-adj",
-                                    type="button",
+                                html.Div(
+                                    [
+                                        html.Div(
+                                            dcc.Input(
+                                                type="text",
+                                                id="ccAroundNodesNameSelector",
+                                                className="form-control",
+                                                placeholder="Node name(s)",
+                                            ),
+                                        ),
+                                        html.Div(
+                                            dcc.Input(
+                                                type="text",
+                                                id="ccAroundNodesDistSelector",
+                                                className="form-control",
+                                                placeholder="Distance",
+                                            )
+                                        ),
+                                    ],
+                                    id="ccAroundNodesSelectorEles",
+                                    className=(
+                                        " removedEntirely"
+                                        if "ccDrawingAroundNodes"
+                                        != DEFAULT_CC_SELECTION_METHOD
+                                        else ""
+                                    ),
                                 ),
                             ],
-                            id="ccSizeRankSelectorEles",
-                            className=css_config.CC_SELECTOR_ELES_CLASSES
-                            + (
-                                " removedEntirely"
-                                if "ccDrawingSizeRank"
-                                != DEFAULT_CC_SELECTION_METHOD
-                                else ""
-                            ),
-                        ),
-                        html.Div(
-                            [
-                                dcc.Input(
-                                    type="text",
-                                    id="ccNodeNameSelector",
-                                    className="form-control",
-                                    placeholder="Node name(s)",
-                                ),
-                            ],
-                            id="ccNodeNameSelectorEles",
-                            className=css_config.CC_SELECTOR_ELES_CLASSES
-                            + (
-                                " removedEntirely"
-                                if "ccDrawingNodeNames"
-                                != DEFAULT_CC_SELECTION_METHOD
-                                else ""
-                            ),
+                            className="noPadding",
                         ),
                         html.Div(
                             [
@@ -1381,43 +1437,28 @@ def run(
         Output("ccDrawingSelect", "value"),
         Output("ccSizeRankSelectorEles", "className"),
         Output("ccNodeNameSelectorEles", "className"),
-        State("ccSizeRankSelectorEles", "className"),
-        State("ccNodeNameSelectorEles", "className"),
+        Output("ccAroundNodesSelectorEles", "className"),
         Input("ccDrawingSizeRank", "n_clicks"),
         Input("ccDrawingNodeNames", "n_clicks"),
+        Input("ccDrawingAroundNodes", "n_clicks"),
         Input("ccDrawingAll", "n_clicks"),
         prevent_initial_call=True,
     )
-    def change_drawing_method(
-        cc_sr_eles_classes,
-        cc_nn_eles_classes,
-        cc_sr_clicks,
-        cc_nn_clicks,
-        cc_all_clicks,
-    ):
+    def change_drawing_method(sr_clicks, nn_clicks, an_clicks, all_clicks):
+        # figure out which UI elements to show / hide
+        sr_classes = nn_classes = an_classes = "removedEntirely"
         if ctx.triggered_id == "ccDrawingSizeRank":
-            cc_sr_eles_classes = css_config.CC_SELECTOR_ELES_CLASSES
-            cc_nn_eles_classes = (
-                css_config.CC_SELECTOR_ELES_CLASSES + " removedEntirely"
-            )
+            sr_classes = ""
         elif ctx.triggered_id == "ccDrawingNodeNames":
-            cc_sr_eles_classes = (
-                css_config.CC_SELECTOR_ELES_CLASSES + " removedEntirely"
-            )
-            cc_nn_eles_classes = css_config.CC_SELECTOR_ELES_CLASSES
-        else:
-            # draw all components, so hide both size rank and node name eles
-            cc_sr_eles_classes = (
-                css_config.CC_SELECTOR_ELES_CLASSES + " removedEntirely"
-            )
-            cc_nn_eles_classes = (
-                css_config.CC_SELECTOR_ELES_CLASSES + " removedEntirely"
-            )
+            nn_classes = ""
+        elif ctx.triggered_id == "ccDrawingAroundNodes":
+            an_classes = ""
         return (
             cc_selection_options[ctx.triggered_id],
             ctx.triggered_id,
-            cc_sr_eles_classes,
-            cc_nn_eles_classes,
+            sr_classes,
+            nn_classes,
+            an_classes,
         )
 
     @callback(
@@ -1549,8 +1590,28 @@ def run(
                     {"requestGood": False},
                 )
             cc_nums = set(nn2cn.values())
-        else:
+        elif cc_drawing_selection_type == "ccDrawingAroundNodes":
+            return (
+                ui_utils.add_warning_toast(
+                    curr_toasts,
+                    "This isn't done yet!",
+                    "soon...",
+                ),
+                curr_cy_eles,
+                {"requestGood": False},
+            )
+        elif cc_drawing_selection_type == "ccDrawingAll":
             cc_nums = range(1, len(ag.components) + 1)
+        else:
+            return (
+                ui_utils.add_error_toast(
+                    curr_toasts,
+                    "Weird error?",
+                    f'Unrecognized method "{cc_drawing_selection_type}".',
+                ),
+                curr_cy_eles,
+                {"requestGood": False},
+            )
 
         # Parse other (less easy to mess up) drawing options
         incl_patterns = False
@@ -1656,10 +1717,7 @@ def run(
             # update the table of available paths, based on what's drawn
             rows = []
             ct = 0
-            if (
-                curr_drawn_info is not None
-                and "cc_nums" in curr_curr_drawn_info
-            ):
+            if curr_drawn_info is not None and "cc_nums" in curr_drawn_info:
                 for ccnum in curr_drawn_info["cc_nums"]:
                     for p in ag.ccnum2pathnames[ccnum]:
                         rows.append(
