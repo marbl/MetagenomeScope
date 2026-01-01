@@ -148,6 +148,8 @@ def run(
     # This is all useless and confusing if the graph only has one component, so
     # this flag lets us figure out if we should show or hide this kinda stuff
     multiple_ccs = len(ag.components) > 1
+    cc_ct_desc = ui_utils.pluralize(len(ag.components), "component")
+    all_cc_desc = "all components" if multiple_ccs else "one component"
 
     # Options for drawing components
     # If there is only one cc in the graph, we'll disable the "one component"
@@ -171,18 +173,12 @@ def run(
         "ccDrawingAroundNodes": [
             html.I(className="bi bi-record-circle"),
             html.Span(
-                "Around certain nodes",
+                "Around certain node(s)",
             ),
         ],
         "ccDrawingAll": [
             html.I(className="bi bi-asterisk"),
-            html.Span(
-                (
-                    "All components"
-                    if multiple_ccs
-                    else "Only component in the graph"
-                ),
-            ),
+            html.Span(f"Entire graph ({all_cc_desc})"),
         ],
     }
     DEFAULT_CC_SELECTION_METHOD = (
@@ -318,9 +314,7 @@ def run(
                                 f"{ui_utils.pluralize(ag.edge_ct, 'edge')}."
                             ]
                         ),
-                        html.P(
-                            f"{ui_utils.pluralize(len(ag.components), 'component')}."
-                        ),
+                        html.P(f"{cc_ct_desc}."),
                         html.P(
                             html.Span(
                                 "Nothing currently drawn.",
@@ -400,9 +394,8 @@ def run(
                                                 cc_selection_options[
                                                     "ccDrawingAroundNodes"
                                                 ],
-                                                className=CC_SELECTION_A_CLASSES_MULTIPLE_CCS,
+                                                className="dropdown-item",
                                                 id="ccDrawingAroundNodes",
-                                                **CC_SELECTION_A_ATTRS_MULTIPLE_CCS,
                                             ),
                                         ),
                                         html.Li(
