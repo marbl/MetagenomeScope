@@ -15,7 +15,6 @@ prev = 0
 node2idx = {}
 for line in gfa.splitlines():
     if not line.startswith("S\t"):
-
         if line.startswith("L\t"):
             # This an "L" line (link)
             parts = line.split()

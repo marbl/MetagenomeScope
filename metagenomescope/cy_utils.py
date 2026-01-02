@@ -189,7 +189,7 @@ def get_cyjs_stylesheet(
                 # makes sense since it makes clicking on nodes easier
                 "z-index": "2",
                 "z-index-compare": "manual",
-            }
+            },
         },
     ]
 
