@@ -50,7 +50,6 @@ Options:
   -g, --graph FILE          In GFA, FASTG, DOT, GML, or LastGraph format.  [required]
   -a, --agp FILE            AGP file describing paths (e.g. scaffolds) in the graph.
   -p, --port INTEGER RANGE  Server port number.  [default: 8050; 1024<=x<=65535]
-  --out-tsv FILE            If given, write a TSV file with some graph statistics.
   --verbose / --no-verbose  Log extra details.  [default: no-verbose]
   --debug / --no-debug      Use Dash's debug mode.  [default: no-debug]
   -v, --version             Show the version and exit.

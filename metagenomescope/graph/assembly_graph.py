@@ -75,7 +75,6 @@ class AssemblyGraph(object):
         self,
         graph_fp,
         agp_fp=None,
-        out_tsv_fp=None,
     ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
@@ -91,10 +90,6 @@ class AssemblyGraph(object):
             If specified, this should be a path to an AGP file describing paths
             in the graph.
 
-        out_tsv_fp: str or None
-            If specified, we'll write out a TSV file with some graph stats to
-            this path.
-
         References
         ----------
         For details about AGP files, see
@@ -107,7 +102,6 @@ class AssemblyGraph(object):
         if self.agp_filename is not None:
             self.agp_basename = os.path.basename(self.agp_filename)
         self.basename = os.path.basename(self.filename)
-        self.out_tsv_filename = out_tsv_fp
 
         logger.info(f'Loading input graph "{self.basename}"...')
         self.filetype = parsers.FILETYPE2HR[
@@ -223,13 +217,6 @@ class AssemblyGraph(object):
             "  ...Done. The graph has "
             f"{ui_utils.pluralize(len(self.components), 'component')}."
         )
-
-        if self.out_tsv_filename is not None:
-            logger.debug(
-                f"  Writing out some graph stats to {self.out_tsv_filename}..."
-            )
-            self.to_tsv(self.out_tsv_filename)
-            logger.debug("  ...Done.")
 
         # Maps path names -> list of node or edge names in path
         # (whether we think these are nodes or edges is determined by

@@ -40,7 +40,6 @@ def run(
     graph: str = None,
     agp: str = None,
     port: int = defaults.PORT,
-    out_tsv: str = None,
     verbose: bool = defaults.VERBOSE,
     debug: bool = defaults.DEBUG,
 ):
@@ -57,9 +56,6 @@ def run(
 
     port: int
         Port number to run the server on. We'll just pass this to Dash.
-
-    out_tsv: str or None
-        If provided, write out a TSV file with some graph stats to this path.
 
     verbose: bool
         If True, include DEBUG messages in the log output.
@@ -78,7 +74,7 @@ def run(
     # Read the assembly graph file and create an object representing it.
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
     # edges, etc.
-    ag = AssemblyGraph(graph, agp_fp=agp, out_tsv_fp=out_tsv)
+    ag = AssemblyGraph(graph, agp_fp=agp)
 
     # Prepare some of the UI components in advance. A nice thing about Dash
     # (which I guess comes from it being built on top of React) is that we can

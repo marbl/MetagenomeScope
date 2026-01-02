@@ -142,18 +142,3 @@ def test_to_tsv_bubble_sample1gfa():
     finally:
         os.close(fh)
         os.unlink(fn)
-
-
-def test_to_tsv_write_from_ag_init():
-    """Tests the new way (circa Jan 2026) of writing out these files, by just
-    passing the filepath to the AssemblyGraph on initialization.
-    """
-    try:
-        fh, fn = tempfile.mkstemp(suffix=".tsv")
-        ag = AssemblyGraph(
-            "metagenomescope/tests/input/sample1.gfa", out_tsv_fp=fn
-        )
-        check_sample1gfa_tsv(fn)
-    finally:
-        os.close(fh)
-        os.unlink(fn)
