@@ -2067,32 +2067,40 @@ class AssemblyGraph(object):
                 if len(node_names_to_search) == 0:
                     break
 
-        # If anything remains in node_names_to_search after the above loop,
-        # then there must be at least one node name in the input text that is
-        # not present in the graph. Raise an error.
-        if len(node_names_to_search) == 1:
-            n = node_names_to_search.pop()
-            raise UIError(f'Can\'t find a node with name "{n}" in the graph.')
-        elif len(node_names_to_search) > 1:
-            ns = ui_utils.get_fancy_node_name_list(node_names_to_search)
-            raise UIError(f"Can't find nodes with names {ns} in the graph.")
-
+        ui_utils.fail_if_unfound_nodes(node_names_to_search)
         return nodename2ccnum
 
-    def to_cyjs(self, cc_nums, incl_patterns=True):
+    def get_node_ids(self, node_name_text):
+        node_names_to_search = ui_utils.get_node_names(node_name_text)
+        ids = []
+
+        for n in self.nodeid2obj.values():
+            if n.basename in node_names_to_search:
+                ids.append(n.unique_id)
+                if n.split:
+                    ids.append(n.counterpart_node_id)
+                node_names_to_search.remove(n.basename)
+                if len(node_names_to_search) == 0:
+                    break
+
+        ui_utils.fail_if_unfound_nodes(node_names_to_search)
+        return ids
+
+    def get_node_names_from_ids(self, node_ids):
+        # include both A-L and A-R, if both IDs are in the input
+        names = []
+        for i in node_ids:
+            names.append(self.nodeid2obj[i].name)
+        return names
+
+    def to_cyjs(self, done_flushing):
         """Converts the graph's elements to a Cytoscape.js-compatible format.
 
         Parameters
         ----------
-        cc_nums: list of int
-            List of Component .cc_num attributes, indicating the components
-            whose elements we should include in the output here. (So, [1]
-            indicates that we should just draw the largest component; [3, 4]
-            indicates that we should draw the third and fourth largest
-            components; and so on.)
-
-        incl_patterns: bool
-            If True, include patterns in the output. If False, don't.
+        done_flushing: dict
+            Describes the draw request. The output of flush() in main.py.
+            See that function for details.
 
         Returns
         -------
@@ -2107,9 +2115,52 @@ class AssemblyGraph(object):
         https://js.cytoscape.org/#notation/elements-json
         """
         eles = []
-        for n in cc_nums:
-            cc = self.components[n - 1]
-            eles.extend(cc.to_cyjs(incl_patterns=incl_patterns))
+        draw_type = done_flushing["draw_type"]
+        incl_patterns = done_flushing["patterns"]
+
+        if draw_type == config.DRAW_ALL:
+            for cc in self.components:
+                eles.extend(cc.to_cyjs(incl_patterns=incl_patterns))
+
+        elif draw_type == config.DRAW_CCS:
+            for ccn in done_flushing["cc_nums"]:
+                cc = self.components[ccn - 1]
+                eles.extend(cc.to_cyjs(incl_patterns=incl_patterns))
+
+        elif draw_type == config.DRAW_AROUND:
+            around_node_ids = done_flushing["around_node_ids"]
+            dist = done_flushing["around_dist"]
+            # There is probably a more efficient way to do this (avoiding
+            # creating an undirected view of the graph) but in light of
+            # https://github.com/networkx/networkx/issues/8442 this at least
+            # works
+            u = self.graph.to_undirected(as_view=True)
+            # Select all nodes within distance "dist" of "around_node_ids"
+            # NOTE: this will count split nodes towards this distance. we may
+            # want to change this.
+            node_ids_to_select = []
+            for layer, ids in enumerate(nx.bfs_layers(u, around_node_ids)):
+                if layer > dist:
+                    break
+                node_ids_to_select.extend(ids)
+
+            subgraph = nx.induced_subgraph(self.graph, node_ids_to_select)
+
+            for ni in subgraph.nodes:
+                eles.append(
+                    self.nodeid2obj[ni].to_cyjs(incl_patterns=incl_patterns)
+                )
+
+            for _, _, uid in subgraph.edges(data="uid"):
+                eles.append(
+                    self.edgeid2obj[uid].to_cyjs(incl_patterns=incl_patterns)
+                )
+
+            # TODO get patterns only if all their children are in eles
+
+        else:
+            raise WeirdError(f"Unrecognized draw type: {draw_type}")
+
         return eles
 
     def to_treemap(self, min_large_cc_ct=ui_config.MIN_LARGE_CC_COUNT):

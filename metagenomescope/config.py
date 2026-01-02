@@ -180,6 +180,11 @@ PT2COLOR = {
     PT_CYCLICCHAIN: "#ffd163",
 }
 
+# Draw types. Used internally for communicating between flush() and draw().
+DRAW_ALL = "all"
+DRAW_CCS = "ccs"
+DRAW_AROUND = "around"
+
 # Some context on port numbers, for anyone who stumbles upon this in the future
 # (including future me):
 #

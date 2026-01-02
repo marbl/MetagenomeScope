@@ -127,6 +127,23 @@ body {
     transition: none !important;
 }
 
+/* input group text looks JUST SLIGHTLY off when put next to a button. maybe this
+ * is a symptom of other problems but whatever. anyway this can be fixed by copying
+ * the button border style, i.e. setting
+ * border: var(--bs-btn-border-width) solid var(--bs-btn-border-color) !important;
+ * ... but then the browser can't find either variable??? but it still looks better
+ * than the default???
+ *
+ * it turns out that the effect we are looking for is just removing the border on
+ * this thing entirely. okay???? do the buttons not have borders by default? why
+ * does any of this work?????
+ *
+ * anyway whatever this makes the around-nodes UI look good so sure
+ */
+.input-group-text-next-to-button {
+    border: none !important;
+}
+
 /* position the dash dev tools UI a bit higher than the bottom of the
  * screen, to avoid covering the fit button. Note that:
  * (1) we may need to adjust this spacing as we add in more floating buttons

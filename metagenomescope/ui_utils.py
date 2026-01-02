@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 from collections import defaultdict
 from dash import html
-from . import css_config, ui_config
+from . import css_config, ui_config, config
 from .errors import UIError, WeirdError
 
 
@@ -214,6 +214,16 @@ def incr_size_rank(size_rank, minval, maxval):
         return maxval
     else:
         return size_rank + 1
+
+
+def get_distance(dist):
+    try:
+        d = int(dist)
+    except ValueError:
+        raise UIError(f"{dist} is not a valid integer.")
+    if d < 0:
+        raise UIError(f"Distance must be at least 0.")
+    return d
 
 
 def say_goodrange(maxcc, both=False):
@@ -449,14 +459,17 @@ def get_size_ranks(val, maxcc):
     return srs
 
 
+def _get_from_text(a, b, prefix="#"):
+    return f"{prefix}{a:,} \u2013 {b:,}"
+
+
 def _get_range_text(r):
     # We assume r is a continuous range of integers. It can contain a single
     # element.
-    first_ele = f"#{r[0]:,}"
     if len(r) == 1:
-        return first_ele
+        return f"#{r[0]:,}"
     else:
-        return f"{first_ele} \u2013 {r[-1]:,}"
+        return _get_from_text(r[0], r[-1])
 
 
 def fmt_num_ranges(nums):
@@ -475,6 +488,27 @@ def fmt_num_ranges(nums):
         i += 1
     range_texts.append(_get_range_text(curr_range))
     return "; ".join(range_texts)
+
+
+def get_curr_drawn_text(done_flushing, ag):
+    draw_type = done_flushing["draw_type"]
+
+    if draw_type == config.DRAW_ALL:
+        t = _get_from_text(1, len(ag.components))
+
+    elif draw_type == config.DRAW_CCS:
+        t = fmt_num_ranges(done_flushing["cc_nums"])
+
+    elif draw_type == config.DRAW_AROUND:
+        d = done_flushing["around_dist"]
+        node_ids = done_flushing["around_node_ids"]
+        node_names = ag.get_node_names_from_ids(node_ids)
+        noun = "node" if len(node_names) == 1 else "nodes"
+        t = f'within distance {d:,} of {noun} {", ".join(sorted(node_names))}'
+
+    else:
+        raise WeirdError(f"Unrecognized draw type: {draw_type}")
+    return t
 
 
 def get_node_names(val):
@@ -535,6 +569,19 @@ def get_fancy_node_name_list(node_names, quote=True):
     else:
         sn = sorted(node_names)
     return ", ".join(sn)
+
+
+def fail_if_unfound_nodes(node_names_to_search):
+    # If anything remains in node_names_to_search after going through the
+    # graph, then there must be at least one node the user asked for that is
+    # not present in the graph. Raise an error.
+    if len(node_names_to_search) == 1:
+        n = node_names_to_search.pop()
+        raise UIError(f'Can\'t find a node with name "{n}" in the graph.')
+
+    elif len(node_names_to_search) > 1:
+        ns = ui_utils.get_fancy_node_name_list(node_names_to_search)
+        raise UIError(f"Can't find nodes with names {ns} in the graph.")
 
 
 def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, num_searched_for_nodes):

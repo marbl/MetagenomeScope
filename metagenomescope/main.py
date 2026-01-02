@@ -319,6 +319,7 @@ def run(
                             html.Span(
                                 "Nothing currently drawn.",
                                 id="currDrawnText",
+                                className="noPadding",
                             ),
                         ),
                         ctrl_sep_invis,
@@ -433,8 +434,7 @@ def run(
                                                     className="bi bi-dash-lg"
                                                 ),
                                                 id="ccSizeRankDecrBtn",
-                                                # might add borders to the sides of these later
-                                                className="btn btn-light cc-size-rank-adj",
+                                                className="btn btn-light",
                                                 type="button",
                                             ),
                                             # dash doesn't have a html.Input thing like it
@@ -453,7 +453,7 @@ def run(
                                                     className="bi bi-plus-lg"
                                                 ),
                                                 id="ccSizeRankIncrBtn",
-                                                className="btn btn-light cc-size-rank-adj",
+                                                className="btn btn-light",
                                                 type="button",
                                             ),
                                         ],
@@ -497,13 +497,33 @@ def run(
                                                 placeholder="Node name(s)",
                                             ),
                                         ),
-                                        html.Div(
-                                            dcc.Input(
-                                                type="text",
-                                                id="ccAroundNodesDistSelector",
-                                                className="form-control",
-                                                placeholder="Distance",
-                                            )
+                                        dbc.InputGroup(
+                                            [
+                                                dbc.InputGroupText(
+                                                    "Distance",
+                                                    className="input-group-text-next-to-button",
+                                                ),
+                                                dbc.Button(
+                                                    html.I(
+                                                        className="bi bi-dash-lg"
+                                                    ),
+                                                    id="ccAroundNodesDistDecrBtn",
+                                                    color="light",
+                                                ),
+                                                dbc.Input(
+                                                    type="text",
+                                                    id="ccAroundNodesDistSelector",
+                                                    value="1",
+                                                    placeholder="Distance",
+                                                ),
+                                                dbc.Button(
+                                                    html.I(
+                                                        className="bi bi-plus-lg"
+                                                    ),
+                                                    id="ccAroundNodesDistIncrBtn",
+                                                    color="light",
+                                                ),
+                                            ],
                                         ),
                                     ],
                                     id="ccAroundNodesSelectorEles",
@@ -1206,13 +1226,9 @@ def run(
             dcc.Store(
                 id="doneFlushing",
             ),
-            # we'll update this after drawing the graph. As of writing, it is
-            # just used to contain a list of the component numbers that are
-            # currently drawn. This is useful to have around to help with
-            # searching. (We could try to get this info from doneFlushing,
-            # but this is risky: doneFlushing can get cleared without redrawing
-            # the graph if a bad drawing request is made -- e.g. someone enters
-            # in a component size rank that doesn't exist.)
+            # we'll update this after drawing the graph. It describes how much
+            # of the graph is currently drawn; this is useful for things like
+            # searching, figuring out which paths are currently available, etc.
             dcc.Store(
                 id="currDrawnInfo",
             ),
@@ -1493,6 +1509,38 @@ def run(
             return size_rank
 
     @callback(
+        Output("ccAroundNodesDistSelector", "value"),
+        State("ccAroundNodesDistSelector", "value"),
+        Input("ccAroundNodesDistDecrBtn", "n_clicks"),
+        Input("ccAroundNodesDistIncrBtn", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def update_aroundnodes_dist(dist, decr_n_clicks, incr_n_clicks):
+        """Analogous to update_cc_size_rank().
+
+        Unlike that function, here there is no upper bound on the possible
+        distance value (I mean, super large values will just mean drawing
+        the entire components containing the selected nodes, but that's fine
+        whatever). So the validation here is a bit easier -- the only bound
+        is that the distance has to be >= 0.
+        """
+        # reset to something sane if empty
+        if dist is None or dist == "":
+            return "1"
+        try:
+            ndist = int(dist)
+            if ctx.triggered_id == "ccAroundNodesDistDecrBtn":
+                if ndist > 0:
+                    return str(ndist - 1)
+                return "0"
+            else:
+                if ndist < 0:
+                    return "0"
+                return str(ndist + 1)
+        except ValueError:
+            return dist
+
+    @callback(
         Output("cy", "stylesheet"),
         Input("nodeColorRadio", "value"),
         Input("edgeColorRadio", "value"),
@@ -1530,6 +1578,8 @@ def run(
         State("ccDrawingSelect", "value"),
         State("ccSizeRankSelector", "value"),
         State("ccNodeNameSelector", "value"),
+        State("ccAroundNodesNameSelector", "value"),
+        State("ccAroundNodesDistSelector", "value"),
         State("drawSettingsChecklist", "value"),
         Input("drawButton", "n_clicks"),
         Input("ccSizeRankSelector", "n_submit"),
@@ -1542,6 +1592,8 @@ def run(
         cc_drawing_selection_type,
         size_ranks,
         node_names,
+        around_nodes_names,
+        around_nodes_dist,
         draw_settings,
         draw_btn_n_clicks,
         size_rank_input_n_submit,
@@ -1558,6 +1610,11 @@ def run(
             "Received request to draw the graph. Validating request."
         )
 
+        cc_nums = []
+        around_node_ids = []
+        around_dist = 0
+        draw_type = None
+
         if cc_drawing_selection_type == "ccDrawingSizeRank":
             try:
                 cc_nums = ui_utils.get_size_ranks(
@@ -1571,6 +1628,8 @@ def run(
                     curr_cy_eles,
                     {"requestGood": False},
                 )
+            draw_type = config.DRAW_CCS
+
         elif cc_drawing_selection_type == "ccDrawingNodeNames":
             try:
                 nn2cn = ag.get_nodename2ccnum(node_names)
@@ -1583,18 +1642,34 @@ def run(
                     {"requestGood": False},
                 )
             cc_nums = set(nn2cn.values())
+            draw_type = config.DRAW_CCS
+
         elif cc_drawing_selection_type == "ccDrawingAroundNodes":
-            return (
-                ui_utils.add_warning_toast(
-                    curr_toasts,
-                    "This isn't done yet!",
-                    "soon...",
-                ),
-                curr_cy_eles,
-                {"requestGood": False},
-            )
+            try:
+                around_node_ids = ag.get_node_ids(around_nodes_names)
+            except UIError as err:
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts, "Node name error", str(err)
+                    ),
+                    curr_cy_eles,
+                    {"requestGood": False},
+                )
+            try:
+                around_dist = ui_utils.get_distance(around_nodes_dist)
+            except UIError as err:
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts, "Distance error", str(err)
+                    ),
+                    curr_cy_eles,
+                    {"requestGood": False},
+                )
+            draw_type = config.DRAW_AROUND
+
         elif cc_drawing_selection_type == "ccDrawingAll":
-            cc_nums = range(1, len(ag.components) + 1)
+            draw_type = config.DRAW_ALL
+
         else:
             return (
                 ui_utils.add_error_toast(
@@ -1613,22 +1688,26 @@ def run(
                 incl_patterns = True
 
         # Okay, now we've done enough checks that this request to draw the
-        # graph seems good. Let's clear all elements in the graph and trigger
-        # draw(), which will actually add new elements to the graph.
-        ccn = "cc" if len(cc_nums) == 1 else "ccs"
-        # cc_nums has to be JSON-serializable
-        cc_nums = list(cc_nums)
+        # graph seems good.
         logging.debug(
-            f"Request to draw {ccn} {ui_utils.fmt_num_ranges(cc_nums)} "
-            "seems good; flushing the graph."
+            f'Request of type "{draw_type}" seems good; flushing the graph.'
         )
 
+        # cc_nums has to be JSON-serializable (it might be a set at this point)
+        cc_nums = list(cc_nums)
+
+        # Let's clear all elements drawn in Cytoscape.js (by returning []
+        # for #cy's "elements") and trigger draw() (by updating #doneFlushing),
+        # which will then add new elements to the Cytoscape.js instance.
         return (
             curr_toasts,
             [],
             {
                 "requestGood": True,
+                "draw_type": draw_type,
                 "cc_nums": cc_nums,
+                "around_node_ids": around_node_ids,
+                "around_dist": around_dist,
                 "patterns": incl_patterns,
             },
         )
@@ -1657,22 +1736,24 @@ def run(
         # ACTUALLY want to redraw the graph.
         if curr_done_flushing["requestGood"]:
             logging.debug(
-                "Request good, so flushing should be done. Beginning drawing."
+                "Request good, so flushing should be done. Creating JSON "
+                "for Cytoscape.js..."
             )
-            cc_nums = curr_done_flushing["cc_nums"]
-            incl_patterns = curr_done_flushing["patterns"]
-            logging.debug(
-                "Converting graph to Cytoscape.js elements ("
-                f"{ui_utils.pluralize(len(cc_nums), 'cc')}, "
-                f"show patterns = {incl_patterns}"
-                ")..."
-            )
-            new_cy_eles = ag.to_cyjs(cc_nums, incl_patterns=incl_patterns)
+            new_cy_eles = ag.to_cyjs(curr_done_flushing)
             logging.debug(f"...Done. {len(new_cy_eles):,} ele(s) total.")
             return (
                 new_cy_eles,
-                f"Currently drawn: {ui_utils.fmt_num_ranges(cc_nums)}",
-                {"cc_nums": cc_nums},
+                html.Span(
+                    [
+                        html.Span(
+                            "Currently drawn:",
+                            style={"font-weight": "bold"},
+                        ),
+                        " ",
+                        ui_utils.get_curr_drawn_text(curr_done_flushing, ag),
+                    ]
+                ),
+                curr_done_flushing,
             )
         else:
             logging.debug("Caught a bad drawing request. Not redrawing.")
