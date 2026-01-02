@@ -1,6 +1,7 @@
 import pytest
-from metagenomescope import ui_utils as uu
-from metagenomescope.errors import UIError
+from metagenomescope import ui_utils as uu, config
+from metagenomescope.graph import AssemblyGraph
+from metagenomescope.errors import UIError, WeirdError
 
 
 def test_pluralize():
@@ -394,6 +395,72 @@ def test_fmt_num_ranges():
     assert uu.fmt_num_ranges([1, 2, 3, 3, 3, 4]) == (
         "#1 \u2013 3; #3; #3 \u2013 4"
     )
+
+
+def test_get_curr_drawn_text_all_multicc():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert (
+        uu.get_curr_drawn_text({"draw_type": config.DRAW_ALL}, ag)
+        == "#1 \u2013 4"
+    )
+
+
+def test_get_curr_drawn_text_all_1cc():
+    ag = AssemblyGraph("metagenomescope/tests/input/one.gml")
+    assert uu.get_curr_drawn_text({"draw_type": config.DRAW_ALL}, ag) == "#1"
+
+
+def test_get_curr_drawn_text_cc_single():
+    ag = AssemblyGraph("metagenomescope/tests/input/one.gml")
+    assert (
+        uu.get_curr_drawn_text(
+            {"draw_type": config.DRAW_CCS, "cc_nums": [1]}, ag
+        )
+        == "#1"
+    )
+
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert (
+        uu.get_curr_drawn_text(
+            {"draw_type": config.DRAW_CCS, "cc_nums": [3]}, ag
+        )
+        == "#3"
+    )
+
+
+def test_get_curr_drawn_text_cc_multi():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert (
+        uu.get_curr_drawn_text(
+            {"draw_type": config.DRAW_CCS, "cc_nums": [3, 1, 4]}, ag
+        )
+        == "#1; #3 \u2013 4"
+    )
+
+
+def test_get_curr_drawn_text_around():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    n0 = ag.nodeid2obj[0]
+    n1 = ag.nodeid2obj[1]
+    names = ", ".join(sorted((n0.name, n1.name)))
+    assert (
+        uu.get_curr_drawn_text(
+            {
+                "draw_type": config.DRAW_AROUND,
+                "around_node_ids": [0, 1],
+                "around_dist": 0,
+            },
+            ag,
+        )
+        == f"within distance 0 of nodes {names}"
+    )
+
+
+def test_get_curr_drawn_text_bad_draw_type():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    with pytest.raises(WeirdError) as ei:
+        uu.get_curr_drawn_text({"draw_type": "hullabaloo"}, ag)
+    assert str(ei.value) == "Unrecognized draw type: hullabaloo"
 
 
 def test_get_node_names():
