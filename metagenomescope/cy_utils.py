@@ -15,6 +15,23 @@ def get_cyjs_stylesheet(
                 "label": "data(label)",
                 "text-valign": "center",
                 "min-zoomed-font-size": "12",
+                "z-index": "1",
+                "z-index-compare": "manual",
+            },
+        },
+        {
+            "selector": "node.fwd, node.rev",
+            "style": {
+                "width": "data(w)",
+                "height": "data(h)",
+            },
+        },
+        {
+            # TODO maybe resize to accommodate large LJA node labels
+            "selector": "node.unoriented",
+            "style": {
+                "width": "30",
+                "height": "30",
             },
         },
         {
@@ -146,6 +163,18 @@ def get_cyjs_stylesheet(
                 "target-arrow-shape": "triangle",
                 "line-color": cy_config.EDGE_COLOR,
                 "target-arrow-color": cy_config.EDGE_COLOR,
+                # makes the loop come out of the node at its right side.
+                # doesn't look like there is a reliable way to make the
+                # loop fully go from right side --> up --> left side (that
+                # requires weird stuff - see
+                # https://github.com/cytoscape/cytoscape.js/issues/1451) but
+                # this is fine
+                "loop-direction": "45deg",
+                # edges go above nodes. this is mainly here to help with
+                # loop edges on long nodes (e.g. -76 in the E. coli test graph)
+                # which can intersect with the node body
+                "z-index": "2",
+                "z-index-compare": "manual",
             },
         },
         {
