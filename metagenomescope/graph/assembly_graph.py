@@ -20,7 +20,7 @@ from .. import (
     path_utils,
     name_utils,
 )
-from ..errors import GraphParsingError, GraphError, WeirdError, UIError
+from ..errors import GraphParsingError, GraphError, WeirdError
 from . import validators, graph_utils
 from .component import Component
 from .pattern import Pattern
@@ -2030,7 +2030,8 @@ class AssemblyGraph(object):
             ui_utils.get_node_names()).
 
             If the input text contains at least one name that does not
-            correspond to a node in the graph.
+            correspond to a node in the graph (see
+            ui_utils.fail_if_unfound_nodes()).
 
         Notes
         -----

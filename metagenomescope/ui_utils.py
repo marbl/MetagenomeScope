@@ -222,7 +222,7 @@ def get_distance(dist):
     except ValueError:
         raise UIError(f"{dist} is not a valid integer.")
     if d < 0:
-        raise UIError(f"Distance must be at least 0.")
+        raise UIError("Distance must be at least 0.")
     return d
 
 
@@ -580,7 +580,7 @@ def fail_if_unfound_nodes(node_names_to_search):
         raise UIError(f'Can\'t find a node with name "{n}" in the graph.')
 
     elif len(node_names_to_search) > 1:
-        ns = ui_utils.get_fancy_node_name_list(node_names_to_search)
+        ns = get_fancy_node_name_list(node_names_to_search)
         raise UIError(f"Can't find nodes with names {ns} in the graph.")
 
 
