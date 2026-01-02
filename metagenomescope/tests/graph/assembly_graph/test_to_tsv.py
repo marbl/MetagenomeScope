@@ -110,31 +110,50 @@ def test_to_tsv_bubble_cyclic_chain():
         os.unlink(fn)
 
 
+def check_sample1gfa_tsv(fn):
+    df = pd.read_csv(fn, sep="\t", index_col=0)
+    pd.testing.assert_frame_equal(
+        df,
+        pd.DataFrame(
+            {
+                "TotalNodes": [5, 5, 1, 1],
+                "UnsplitNodes": [5, 5, 1, 1],
+                "SplitNodes": [0, 0, 0, 0],
+                "TotalEdges": [4, 4, 0, 0],
+                "RealEdges": [4, 4, 0, 0],
+                "FakeEdges": [0, 0, 0, 0],
+                "Bubbles": [0, 0, 0, 0],
+                "Chains": [1, 1, 0, 0],
+                "CyclicChains": [0, 0, 0, 0],
+                "FrayedRopes": [0, 0, 0, 0],
+            },
+            index=pd.Index([1, 2, 3, 4], name="ComponentNumber"),
+        ),
+    )
+
+
 def test_to_tsv_bubble_sample1gfa():
     """sample1.gfa has multiple components, which is why we use it here."""
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     try:
         fh, fn = tempfile.mkstemp(suffix=".tsv")
         ag.to_tsv(fn)
-        df = pd.read_csv(fn, sep="\t", index_col=0)
-        pd.testing.assert_frame_equal(
-            df,
-            pd.DataFrame(
-                {
-                    "TotalNodes": [5, 5, 1, 1],
-                    "UnsplitNodes": [5, 5, 1, 1],
-                    "SplitNodes": [0, 0, 0, 0],
-                    "TotalEdges": [4, 4, 0, 0],
-                    "RealEdges": [4, 4, 0, 0],
-                    "FakeEdges": [0, 0, 0, 0],
-                    "Bubbles": [0, 0, 0, 0],
-                    "Chains": [1, 1, 0, 0],
-                    "CyclicChains": [0, 0, 0, 0],
-                    "FrayedRopes": [0, 0, 0, 0],
-                },
-                index=pd.Index([1, 2, 3, 4], name="ComponentNumber"),
-            ),
+        check_sample1gfa_tsv(fn)
+    finally:
+        os.close(fh)
+        os.unlink(fn)
+
+
+def test_to_tsv_write_from_ag_init():
+    """Tests the new way (circa Jan 2026) of writing out these files, by just
+    passing the filepath to the AssemblyGraph on initialization.
+    """
+    try:
+        fh, fn = tempfile.mkstemp(suffix=".tsv")
+        ag = AssemblyGraph(
+            "metagenomescope/tests/input/sample1.gfa", out_tsv_fp=fn
         )
+        check_sample1gfa_tsv(fn)
     finally:
         os.close(fh)
         os.unlink(fn)

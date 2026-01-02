@@ -34,6 +34,7 @@ from . import __version__, defaults, descs, config
     "-a",
     "--agp",
     type=click.Path(exists=True, dir_okay=False, readable=True),
+    default=None,
     required=False,
     help=descs.AGP,
 )
@@ -44,6 +45,13 @@ from . import __version__, defaults, descs, config
     default=defaults.PORT,
     show_default=True,
     help=descs.PORT,
+)
+@click.option(
+    "--out-tsv",
+    type=click.Path(exists=False, dir_okay=False, writable=True),
+    default=None,
+    required=False,
+    help=descs.OUT_TSV,
 )
 @click.option(
     "--verbose/--no-verbose",
@@ -64,6 +72,7 @@ def run_script(
     graph: str,
     agp: str,
     port: int,
+    out_tsv: str,
     verbose: bool,
     debug: bool,
 ) -> None:
@@ -84,9 +93,10 @@ def run_script(
     log_utils.log_lines_with_sep(
         [
             "Settings:",
-            f"Graph: {graph}",
+            f"Graph file: {graph}",
             f"AGP file: {agp}",
             f"Port: {port}",
+            f"Output TSV file: {out_tsv}",
             f"Verbose?: {verbose}",
             f"Debug mode?: {debug}",
         ],
@@ -95,7 +105,14 @@ def run_script(
 
     from .main import run
 
-    run(graph=graph, agp=agp, port=port, verbose=verbose, debug=debug)
+    run(
+        graph=graph,
+        agp=agp,
+        port=port,
+        out_tsv=out_tsv,
+        verbose=verbose,
+        debug=debug,
+    )
 
 
 if __name__ == "__main__":

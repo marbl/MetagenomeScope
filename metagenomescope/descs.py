@@ -11,6 +11,8 @@ AGP = "AGP file describing paths (e.g. scaffolds) in the graph."
 
 PORT = "Server port number."
 
+OUT_TSV = "If given, write a TSV file with some graph statistics."
+
 VERBOSE = "Log extra details."
 
 DEBUG = "Use Dash's debug mode."
