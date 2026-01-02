@@ -1584,6 +1584,8 @@ def run(
         Input("drawButton", "n_clicks"),
         Input("ccSizeRankSelector", "n_submit"),
         Input("ccNodeNameSelector", "n_submit"),
+        Input("ccAroundNodesNameSelector", "n_submit"),
+        Input("ccAroundNodesDistSelector", "n_submit"),
         prevent_initial_call=True,
     )
     def flush(
@@ -1598,13 +1600,17 @@ def run(
         draw_btn_n_clicks,
         size_rank_input_n_submit,
         node_name_input_n_submit,
+        around_nodes_names_input_n_submit,
+        around_nodes_dist_input_n_submit,
     ):
         """Sanity-checks a drawing request before drawing.
 
         Note that this can now be triggered by:
-        (1) clicking on the "Draw" button,
-        (2) pressing Enter in the size rank input, or
-        (3) pressing Enter in the node name input.
+        (1) clicking on the "Draw" button, or
+        (2) pressing Enter ("submitting") various <input> fields.
+
+        See https://github.com/dbc-team/dash-bootstrap-components/issues/1151
+        regarding the "submit" events (probably nbd for most use cases).
         """
         logging.debug(
             "Received request to draw the graph. Validating request."
