@@ -1,5 +1,5 @@
 import pytest
-from metagenomescope import ui_utils as uu, config
+from metagenomescope import ui_utils as uu, config, css_config
 from metagenomescope.graph import AssemblyGraph
 from metagenomescope.errors import UIError, WeirdError
 
@@ -511,3 +511,16 @@ def test_get_node_names_just_empty_entries():
     with pytest.raises(UIError) as ei:
         uu.get_node_names(",")
     assert str(ei.value) == exp_err
+
+
+def test_get_badge_color():
+    assert uu.get_badge_color(0) == css_config.BADGE_ZERO_COLOR
+    assert (
+        uu.get_badge_color(0, selection_only=False)
+        == css_config.BADGE_ZERO_COLOR
+    )
+    assert uu.get_badge_color(1) == css_config.BADGE_SELECTED_COLOR
+    assert (
+        uu.get_badge_color(1, selection_only=False)
+        == css_config.BADGE_AVAILABLE_COLOR
+    )

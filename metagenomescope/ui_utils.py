@@ -728,11 +728,24 @@ def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
 
 
 def get_badge_color(ct, selection_only=True):
-    # see https://www.dash-bootstrap-components.com/docs/components/badge/
-    # selection_only means: if the count is > 0, does this mean that this
-    # many things (nodes, edges, ...) are *selected*, or just that this
-    # many things are *available to select*? (The latter is only used for
-    # paths, currently.) We use different colors to distinguish these cases.
+    """Decides the color of a badge showing a count of some elements.
+
+    Parameters
+    ----------
+    ct: int
+        The number of elements (nodes, edges, patterns, or paths) to show.
+
+    selection_only: bool
+        If ct > 0, the color returned will vary depending on this flag.
+        selection_only = True means that this is a count of *selected*
+        elements (e.g. selected nodes). selection_only = False means that
+        this is a count of *available* elements (e.g. paths that are relevant
+        to the currently drawn region of the graph).
+
+    References
+    ----------
+    See https://www.dash-bootstrap-components.com/docs/components/badge/
+    """
     if ct == 0:
         return css_config.BADGE_ZERO_COLOR
     elif selection_only:
