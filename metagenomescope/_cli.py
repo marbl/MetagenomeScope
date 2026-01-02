@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 
 import click
-from . import __version__, defaults, descs, config, main
+
+# NOTE: we purposefully delay importing main.run() until we need to do so.
+# This saves time for just running "mgsc -h", running mgsc without proper
+# CLI arguments (so click returns errors faster), etc.
+from . import __version__, defaults, descs, config
 
 
 @click.command(
@@ -71,13 +75,9 @@ def run_script(
 
     Please visit https://github.com/marbl/MetagenomeScope for more information.
     """
-    main.run(
-        graph=graph,
-        agp=agp,
-        port=port,
-        verbose=verbose,
-        debug=debug,
-    )
+    from .main import run
+
+    run(graph=graph, agp=agp, port=port, verbose=verbose, debug=debug)
 
 
 if __name__ == "__main__":
