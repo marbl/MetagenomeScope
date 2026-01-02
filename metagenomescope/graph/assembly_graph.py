@@ -385,8 +385,17 @@ class AssemblyGraph(object):
             elif namepair in edgenamepair2rand_idx:
                 new_edge.rand_idx = edgenamepair2rand_idx[namepair]
             else:
-                new_edge.rand_idx = next(rand_idx_generator)
-                edgenamepair2rand_idx[namepair] = new_edge.rand_idx
+                ri = next(rand_idx_generator)
+
+                # To avoid confusion, guarantee that edges do not share the
+                # random color of their source or target node. This is
+                # especially important for loop edges, which -- depending on
+                # Cytoscape.js styling -- can pass through the node body.
+                while ri == src.rand_idx or ri == tgt.rand_idx:
+                    ri = next(rand_idx_generator)
+
+                new_edge.rand_idx = ri
+                edgenamepair2rand_idx[namepair] = ri
 
         if not lengths_completely_defined:
             raise WeirdError(f"Not all {self.seq_noun}s have defined lengths?")
