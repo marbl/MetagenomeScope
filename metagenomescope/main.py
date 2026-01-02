@@ -1021,6 +1021,27 @@ def run(
                                                     ui_utils.get_length_info(
                                                         ag
                                                     ),
+                                                    html.Div(
+                                                        dbc.Button(
+                                                            [
+                                                                html.I(
+                                                                    className="bi bi-file-earmark-spreadsheet-fill"
+                                                                ),
+                                                                html.Span(
+                                                                    "Save basic graph statistics (TSV)",
+                                                                    className="iconlbl",
+                                                                ),
+                                                            ],
+                                                            id="tsvButton",
+                                                            color="success",
+                                                            # it looks like google sheets :3
+                                                            # ^^^ things a fundamentally unwell person (me) would say
+                                                            outline=True,
+                                                        ),
+                                                        style={
+                                                            "text-align": "center"
+                                                        },
+                                                    ),
                                                 ],
                                                 id="statsTabPane",
                                                 className="tab-pane fade show active",
@@ -1234,9 +1255,13 @@ def run(
             dcc.Store(
                 id="nodeSelectionInfo",
             ),
-            # And when selecting stuff in a path
+            # similar to the above but for paths
             dcc.Store(
                 id="pathSelectionInfo",
+            ),
+            # used to store the graph TSV to be downloaded
+            dcc.Download(
+                id="statsDownload",
             ),
         ],
     )
@@ -1556,6 +1581,15 @@ def run(
             "filename": ui_utils.get_screenshot_basename(),
             "action": "download",
         }
+
+    @callback(
+        Output("statsDownload", "data"),
+        Input("tsvButton", "n_clicks"),
+        prevent_initial_call=True,
+    )
+    def export_tsv(n_clicks):
+        # see https://dash.plotly.com/dash-core-components/download
+        return {"filename": "stats.tsv", "content": ag.to_tsv()}
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),

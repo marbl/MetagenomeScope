@@ -1977,13 +1977,14 @@ class AssemblyGraph(object):
                 f"before calling .{fn_name}()."
             )
 
-    def to_tsv(self, output_fp):
+    def to_tsv(self, output_fp=None):
         """Writes out a TSV file describing connected component statistics.
 
         Parameters
         ----------
-        output_fp: str
+        output_fp: str or None
             Filepath to which we'll write out this TSV file.
+            If this is None, just return the content of the TSV file.
         """
         output_stats = (
             "ComponentNumber\tTotalNodes\tUnsplitNodes\tSplitNodes\t"
@@ -2000,8 +2001,11 @@ class AssemblyGraph(object):
                 f"{cc.pattern_stats.num_cyclicchains}\t"
                 f"{cc.pattern_stats.num_frayedropes}\n"
             )
-        with open(output_fp, "w") as fh:
-            fh.write(output_stats)
+        if output_fp is None:
+            return output_stats
+        else:
+            with open(output_fp, "w") as fh:
+                fh.write(output_stats)
 
     def get_nodename2ccnum(self, node_name_text):
         """Returns a mapping of node names to cc nums, given some node names.
