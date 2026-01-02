@@ -35,18 +35,14 @@ def test_to_tsv_bt1():
             df,
             pd.DataFrame(
                 {
-                    "TotalNodes": [5],
-                    "UnsplitNodes": [5],
-                    "SplitNodes": [0],
-                    "TotalEdges": [5],
-                    "RealEdges": [5],
-                    "FakeEdges": [0],
+                    "Nodes": [5],
+                    "Edges": [5],
                     "Bubbles": [1],
                     "Chains": [1],
                     "CyclicChains": [0],
                     "FrayedRopes": [0],
                 },
-                index=pd.Index([1], name="ComponentNumber"),
+                index=pd.Index([1], name="Component"),
             ),
         )
     finally:
@@ -68,7 +64,8 @@ def test_to_tsv_bubble_cyclic_chain():
       +-------+-------+--------+---------+
 
     The decomposition has fake nodes and edges, so this checks how to_tsv()
-    handles those.
+    handles those. (As of Jan 2026, it should ignore them -- it should be as
+    if the graph remained unmodified.)
     """
     ag = AssemblyGraph(
         "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
@@ -91,18 +88,14 @@ def test_to_tsv_bubble_cyclic_chain():
             df,
             pd.DataFrame(
                 {
-                    "TotalNodes": [16],
-                    "UnsplitNodes": [8],
-                    "SplitNodes": [8],
-                    "TotalEdges": [20],
-                    "RealEdges": [16],
-                    "FakeEdges": [4],
+                    "Nodes": [12],
+                    "Edges": [16],
                     "Bubbles": [4],
                     "Chains": [0],
                     "CyclicChains": [1],
                     "FrayedRopes": [0],
                 },
-                index=pd.Index([1], name="ComponentNumber"),
+                index=pd.Index([1], name="Component"),
             ),
         )
     finally:
@@ -116,18 +109,14 @@ def check_sample1gfa_tsv(fn):
         df,
         pd.DataFrame(
             {
-                "TotalNodes": [5, 5, 1, 1],
-                "UnsplitNodes": [5, 5, 1, 1],
-                "SplitNodes": [0, 0, 0, 0],
-                "TotalEdges": [4, 4, 0, 0],
-                "RealEdges": [4, 4, 0, 0],
-                "FakeEdges": [0, 0, 0, 0],
+                "Nodes": [5, 5, 1, 1],
+                "Edges": [4, 4, 0, 0],
                 "Bubbles": [0, 0, 0, 0],
                 "Chains": [1, 1, 0, 0],
                 "CyclicChains": [0, 0, 0, 0],
                 "FrayedRopes": [0, 0, 0, 0],
             },
-            index=pd.Index([1, 2, 3, 4], name="ComponentNumber"),
+            index=pd.Index([1, 2, 3, 4], name="Component"),
         ),
     )
 

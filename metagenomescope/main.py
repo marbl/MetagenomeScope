@@ -1028,7 +1028,7 @@ def run(
                                                                     className="bi bi-file-earmark-spreadsheet-fill"
                                                                 ),
                                                                 html.Span(
-                                                                    "Save basic graph statistics (TSV)",
+                                                                    "Save node, edge and pattern counts per component (TSV)",
                                                                     className="iconlbl",
                                                                 ),
                                                             ],

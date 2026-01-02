@@ -1987,15 +1987,12 @@ class AssemblyGraph(object):
             If this is None, just return the content of the TSV file.
         """
         output_stats = (
-            "ComponentNumber\tTotalNodes\tUnsplitNodes\tSplitNodes\t"
-            "TotalEdges\tRealEdges\tFakeEdges\tBubbles\tChains\tCyclicChains\t"
-            "FrayedRopes\n"
+            "Component\tNodes\tEdges\t"
+            "Bubbles\tChains\tCyclicChains\tFrayedRopes\n"
         )
         for cc in self.components:
             output_stats += (
-                f"{cc.cc_num}\t{cc.num_total_nodes}\t{cc.num_unsplit_nodes}\t"
-                f"{cc.num_split_nodes}\t{cc.num_total_edges}\t"
-                f"{cc.num_real_edges}\t{cc.num_fake_edges}\t"
+                f"{cc.cc_num}\t{cc.num_full_nodes}\t{cc.num_real_edges}\t"
                 f"{cc.pattern_stats.num_bubbles}\t"
                 f"{cc.pattern_stats.num_chains}\t"
                 f"{cc.pattern_stats.num_cyclicchains}\t"
