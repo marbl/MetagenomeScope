@@ -320,7 +320,8 @@ class Node(object):
         if ndir != "unoriented":
             if "length" in self.data:
                 g = self.data["length"]
-                ele["data"]["w"] = max(math.log(g, 10), 1) * 40
+                m = max(math.log(g, 1000), 1)
+                ele["data"]["w"] = m * max(math.log(g, 10), 1) * 50
                 ele["data"]["h"] = 10 * max(math.log(g, 10), 1) + 25
             else:
                 # ofc we could allow such nodes to just be set to a uniform

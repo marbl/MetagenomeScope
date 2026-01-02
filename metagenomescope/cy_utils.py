@@ -175,13 +175,10 @@ def get_cyjs_stylesheet(
         {
             "selector": "edge:loop",
             "style": {
-                # makes the loop come out of the node at its right side.
-                # doesn't look like there is a reliable way to make the
-                # loop fully go from right side --> up --> left side (that
-                # requires weird stuff - see
-                # https://github.com/cytoscape/cytoscape.js/issues/1451) but
-                # this is fine
-                "loop-direction": "45deg",
+                # makes the loop come out of the node at its right side and
+                # enter the node at its left side
+                "source-endpoint": "90deg",
+                "target-endpoint": "-90deg",
                 # loop edges go above nodes. this is mainly here to help with
                 # loop edges on long nodes (e.g. -76 in the E. coli test graph)
                 # which can intersect with the node body. I think otherwise
