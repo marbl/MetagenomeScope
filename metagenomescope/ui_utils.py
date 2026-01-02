@@ -472,6 +472,15 @@ def _get_range_text(r):
         return _get_from_text(r[0], r[-1])
 
 
+def _get_range_text_from_bounds_only(low, high):
+    # if we wanna be super anxious about performance and avoid writing out
+    # range(1, |components|) when the user draws all ccs
+    if low == high:
+        return f"#{low:,}"
+    else:
+        return _get_from_text(low, high)
+
+
 def fmt_num_ranges(nums):
     if len(nums) == 1:
         return f"#{nums[0]:,}"
@@ -494,7 +503,7 @@ def get_curr_drawn_text(done_flushing, ag):
     draw_type = done_flushing["draw_type"]
 
     if draw_type == config.DRAW_ALL:
-        t = _get_from_text(1, len(ag.components))
+        t = _get_range_text_from_bounds_only(1, len(ag.components))
 
     elif draw_type == config.DRAW_CCS:
         t = fmt_num_ranges(done_flushing["cc_nums"])
