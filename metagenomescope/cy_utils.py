@@ -163,18 +163,6 @@ def get_cyjs_stylesheet(
                 "target-arrow-shape": "triangle",
                 "line-color": cy_config.EDGE_COLOR,
                 "target-arrow-color": cy_config.EDGE_COLOR,
-                # makes the loop come out of the node at its right side.
-                # doesn't look like there is a reliable way to make the
-                # loop fully go from right side --> up --> left side (that
-                # requires weird stuff - see
-                # https://github.com/cytoscape/cytoscape.js/issues/1451) but
-                # this is fine
-                "loop-direction": "45deg",
-                # edges go above nodes. this is mainly here to help with
-                # loop edges on long nodes (e.g. -76 in the E. coli test graph)
-                # which can intersect with the node body
-                "z-index": "2",
-                "z-index-compare": "manual",
             },
         },
         {
@@ -183,6 +171,25 @@ def get_cyjs_stylesheet(
                 "line-style": cy_config.FAKE_EDGE_LINE_STYLE,
                 "line-dash-pattern": cy_config.FAKE_EDGE_DASH_PATTERN,
             },
+        },
+        {
+            "selector": "edge:loop",
+            "style": {
+                # makes the loop come out of the node at its right side.
+                # doesn't look like there is a reliable way to make the
+                # loop fully go from right side --> up --> left side (that
+                # requires weird stuff - see
+                # https://github.com/cytoscape/cytoscape.js/issues/1451) but
+                # this is fine
+                "loop-direction": "45deg",
+                # loop edges go above nodes. this is mainly here to help with
+                # loop edges on long nodes (e.g. -76 in the E. coli test graph)
+                # which can intersect with the node body. I think otherwise
+                # keeping edges below nodes (as is the Cytoscape.js default)
+                # makes sense since it makes clicking on nodes easier
+                "z-index": "2",
+                "z-index-compare": "manual",
+            }
         },
     ]
 
