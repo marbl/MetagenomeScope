@@ -1589,7 +1589,7 @@ def run(
     )
     def export_tsv(n_clicks):
         # see https://dash.plotly.com/dash-core-components/download
-        return {"filename": "stats.tsv", "content": ag.to_tsv()}
+        return {"filename": "ccstats.tsv", "content": ag.to_tsv()}
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
