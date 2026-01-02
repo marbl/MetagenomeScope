@@ -17,6 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import math
 from metagenomescope import cy_config
 from metagenomescope.config import SPLIT_SEP, SPLIT_LEFT, SPLIT_RIGHT, INDENT
 from metagenomescope.errors import WeirdError, GraphParsingError
@@ -315,6 +316,18 @@ class Node(object):
             },
             "classes": f"nonpattern {ndir} {splitcls} noderand{self.rand_idx}",
         }
+
+        if ndir != "unoriented":
+            if "length" in self.data:
+                g = self.data["length"]
+                ele["data"]["w"] = max(math.log(g, 10), 1) * 40
+                ele["data"]["h"] = 10 * max(math.log(g, 10), 1) + 25
+            else:
+                # ofc we could allow such nodes to just be set to a uniform
+                # size, but this should never happen
+                raise WeirdError(
+                    f"Node {self} has no length, but it has an orientation?"
+                )
 
         if incl_patterns and self.parent_id is not None:
             ele["data"]["parent"] = str(self.parent_id)
