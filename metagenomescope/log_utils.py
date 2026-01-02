@@ -3,7 +3,7 @@ from . import __version__
 from .config import SEPBIG, SEPSML
 
 
-def log_lines_with_sep(lines, logfunc, sepchar=SEPSML, endsepline=False):
+def log_lines_with_sep(lines, sepchar=SEPSML, endsepline=False):
     # Accounts for the "{HH:MM:SS.mmm} " prefix before each logging message.
     # Note that this is brittle; it will break if the call to
     # logging.basicConfig() in start_log() is changed.
@@ -17,7 +17,10 @@ def log_lines_with_sep(lines, logfunc, sepchar=SEPSML, endsepline=False):
         out += f"\n{linelist}"
     if endsepline:
         out += f"\n{sepline}"
-    logfunc(out)
+    logger = logging.getLogger(__name__)
+    # NOTE: defaults to using info-level logging because all the places that
+    # use this function need that lol. Can make configurable if needed
+    logger.info(out)
 
 
 def start_log(verbose: bool):
@@ -34,12 +37,9 @@ def start_log(verbose: bool):
         format="{{{asctime}.{msecs:03.0f}}} {message}",
         datefmt="%H:%M:%S",
     )
-    logger = logging.getLogger(__name__)
-
     # Log the version, just for reference -- based on this blog post:
     # http://lh3.github.io/2022/09/28/additional-recommendations-for-creating-command-line-interfaces
     log_lines_with_sep(
         [f"Running MetagenomeScope (version {__version__})..."],
-        logger.info,
         SEPBIG,
     )

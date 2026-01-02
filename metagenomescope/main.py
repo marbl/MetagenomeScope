@@ -28,7 +28,6 @@ from . import (
     color_utils,
     path_utils,
 )
-from .log_utils import start_log, log_lines_with_sep
 from .graph import AssemblyGraph, graph_utils
 from .errors import UIError
 
@@ -68,21 +67,6 @@ def run(
     -------
     None
     """
-    start_log(verbose)
-    logger = logging.getLogger(__name__)
-    log_lines_with_sep(
-        [
-            "Settings:",
-            f"Graph: {graph}",
-            f"AGP file: {agp}",
-            f"Port: {port}",
-            f"Verbose?: {verbose}",
-            f"Debug mode?: {debug}",
-        ],
-        logger.info,
-        endsepline=True,
-    )
-
     # Read the assembly graph file and create an object representing it.
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
     # edges, etc.

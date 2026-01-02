@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 
 import click
-
-# NOTE: we purposefully delay importing main.run() until we need to do so.
-# This saves time for just running "mgsc -h", running mgsc without proper
-# CLI arguments (so click returns errors faster), etc.
 from . import __version__, defaults, descs, config
 
 
@@ -75,6 +71,28 @@ def run_script(
 
     Please visit https://github.com/marbl/MetagenomeScope for more information.
     """
+    # NOTE: we purposefully delay importing stuff here until we need to do so.
+    # This makes the CLI much snappier.
+    # When we get to the point of importing main.run(), we hit the wall of
+    # needing to import a bunch of stuff at once. (It is probably possible to
+    # do more "import deferring" after that point, but that doesn't seem worth
+    # it.) Anyway, for this reason, let's hold off on importing main.run() as
+    # long as possible.
+    from . import log_utils
+
+    log_utils.start_log(verbose)
+    log_utils.log_lines_with_sep(
+        [
+            "Settings:",
+            f"Graph: {graph}",
+            f"AGP file: {agp}",
+            f"Port: {port}",
+            f"Verbose?: {verbose}",
+            f"Debug mode?: {debug}",
+        ],
+        endsepline=True,
+    )
+
     from .main import run
 
     run(graph=graph, agp=agp, port=port, verbose=verbose, debug=debug)
