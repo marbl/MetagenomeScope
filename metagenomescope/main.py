@@ -513,7 +513,7 @@ def run(
                                                 dbc.Input(
                                                     type="text",
                                                     id="ccAroundNodesDistSelector",
-                                                    value="1",
+                                                    value="0",
                                                     placeholder="Distance",
                                                 ),
                                                 dbc.Button(
@@ -1526,7 +1526,7 @@ def run(
         """
         # reset to something sane if empty
         if dist is None or dist == "":
-            return "1"
+            return "0"
         try:
             ndist = int(dist)
             if ctx.triggered_id == "ccAroundNodesDistDecrBtn":
