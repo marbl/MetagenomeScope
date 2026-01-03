@@ -223,14 +223,17 @@ class AssemblyGraph(object):
         # self.node_centric)
         self.paths = {}
         self.ccnum2pathnames = None
+        self.pathname2ccnum = None
         if self.agp_filename is not None:
             logger.debug(f'  Loading input AGP file "{self.agp_basename}"...')
             self.paths = path_utils.get_paths_from_agp(
                 self.agp_filename, self.orientation_in_name
             )
             id2obj = self.nodeid2obj if self.node_centric else self.edgeid2obj
-            self.ccnum2pathnames = path_utils.map_cc_nums_to_paths(
-                id2obj, self.paths, self.node_centric
+            self.ccnum2pathnames, self.pathname2ccnum = (
+                path_utils.map_cc_nums_to_paths(
+                    id2obj, self.paths, self.node_centric
+                )
             )
             logger.debug(
                 "  ...Done. Found "

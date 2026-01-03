@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import itertools
 import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
@@ -1819,17 +1820,42 @@ def run(
             # update the table of available paths, based on what's drawn
             rows = []
             ct = 0
-            if curr_drawn_info is not None and "cc_nums" in curr_drawn_info:
-                for ccnum in curr_drawn_info["cc_nums"]:
-                    for p in ag.ccnum2pathnames[ccnum]:
-                        rows.append(
-                            {
-                                ui_config.PATH_TBL_NAME_COL: p,
-                                ui_config.PATH_TBL_COUNT_COL: len(ag.paths[p]),
-                                ui_config.PATH_TBL_CC_COL: ccnum,
-                            }
-                        )
-                        ct += 1
+            if curr_drawn_info is not None:
+                if curr_drawn_info["draw_type"] == config.DRAW_ALL:
+                    avail_paths = ag.paths
+                elif curr_drawn_info["draw_type"] == config.DRAW_CCS:
+                    # https://stackoverflow.com/a/33277438
+                    avail_paths = itertools.chain.from_iterable(
+                        ag.ccnum2pathnames[ccnum]
+                        for ccnum in curr_drawn_info["cc_nums"]
+                    )
+                elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
+                    avail_paths = []
+                    # nodeids, edgeids, _ = ag.get_ids_in_neighborhood(
+                    #     curr_drawn_info["around_node_ids"],
+                    #     curr_drawn_info["around_dist"],
+                    #     curr_drawn_info["patterns"],
+                    # )
+                    # # TODO this won't work because the scaffolds' edge IDs are diff from
+                    # # drawn IDs - just move this logic to AG
+                    # tosearch = nodeids if ag.node_centric else edgeids
+                    # print(tosearch, ag.paths)
+                    # for p in ag.paths:
+                    #     if set(ag.paths[p]).issubset(tosearch):
+                    #         avail_paths.append(p)
+                else:
+                    raise WeirdError(
+                        f"Unrecognized draw type: {curr_drawn_info}"
+                    )
+                for p in avail_paths:
+                    rows.append(
+                        {
+                            ui_config.PATH_TBL_NAME_COL: p,
+                            ui_config.PATH_TBL_COUNT_COL: len(ag.paths[p]),
+                            ui_config.PATH_TBL_CC_COL: ag.pathname2ccnum[p],
+                        }
+                    )
+                    ct += 1
             # also show a summary
             count_text = path_utils.get_available_count_badge_text(
                 ct, len(ag.paths)

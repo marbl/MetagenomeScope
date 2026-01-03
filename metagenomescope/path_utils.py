@@ -122,7 +122,7 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
             )
         ccnum2pathnames[pathname2ccnum[pathname]].append(pathname)
 
-    return ccnum2pathnames
+    return ccnum2pathnames, pathname2ccnum
 
 
 def get_available_count_badge_text(num_available, total_num):
