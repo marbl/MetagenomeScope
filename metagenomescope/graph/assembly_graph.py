@@ -2090,6 +2090,68 @@ class AssemblyGraph(object):
             names.append(self.nodeid2obj[i].name)
         return names
 
+    def get_neighborhood(self, node_ids, dist):
+        # There may be more efficient ways to do this (avoiding creating an
+        # an undirected view of the graph, and instead just operating directly
+        # on the digraph) but this should be fine
+        u = self.graph.to_undirected(as_view=True)
+
+        # Select all nodes within distance "dist" of "node_ids"
+        # NOTE: this will count split nodes towards this distance. may want to
+        # change this. (https://github.com/marbl/MetagenomeScope/issues/296)
+        node_ids_to_select = set()
+        for layer, ids in enumerate(nx.bfs_layers(u, node_ids)):
+            if layer > dist:
+                break
+            node_ids_to_select.update(ids)
+
+        subgraph = nx.induced_subgraph(self.graph, node_ids_to_select)
+        return subgraph, node_ids_to_select
+
+    def _to_cyjs_around_nodes(self, node_ids, dist, incl_patterns):
+        """Produces Cytoscape.js elements only "around" certain nodes."""
+
+        subgraph, subgraph_node_ids = self.get_neighborhood(node_ids, dist)
+        eles = []
+
+        # Nodes and edges are straightforward - just look at what's in the
+        # induced subgraph
+        for ni in subgraph.nodes:
+            eles.append(
+                self.nodeid2obj[ni].to_cyjs(incl_patterns=incl_patterns)
+            )
+        subgraph_edge_ids = set()
+        for _, _, uid in subgraph.edges(data="uid"):
+            eles.append(
+                self.edgeid2obj[uid].to_cyjs(incl_patterns=incl_patterns)
+            )
+            subgraph_edge_ids.add(uid)
+
+        if incl_patterns:
+            # include a pattern only if all its descendant nodes and edges are
+            # included
+            for p in self.pattid2obj.values():
+                available = True
+                desc_nodes, desc_edges, desc_patts, _ = p.get_descendant_info()
+                for dn in desc_nodes:
+                    if dn.unique_id not in subgraph_node_ids:
+                        available = False
+                        break
+                # NOTE: If all of the descendant nodes of a pattern are drawn,
+                # then all of the descendant edges of this pattern should also
+                # have been drawn. Probably??? At least for the types of
+                # patterns we currently identify, I think. Just for the sake
+                # of safety, we also check the edges (set lookups are fastish
+                # anyway right) out of paranoia.
+                for de in desc_edges:
+                    if de.unique_id not in subgraph_edge_ids:
+                        available = False
+                        break
+                if available:
+                    eles.append(p.to_cyjs())
+
+        return eles
+
     def to_cyjs(self, done_flushing):
         """Converts the graph's elements to a Cytoscape.js-compatible format.
 
@@ -2125,35 +2187,11 @@ class AssemblyGraph(object):
                 eles.extend(cc.to_cyjs(incl_patterns=incl_patterns))
 
         elif draw_type == config.DRAW_AROUND:
-            around_node_ids = done_flushing["around_node_ids"]
-            dist = done_flushing["around_dist"]
-            # There is probably a more efficient way to do this (avoiding
-            # creating an undirected view of the graph) but in light of
-            # https://github.com/networkx/networkx/issues/8442 this at least
-            # works
-            u = self.graph.to_undirected(as_view=True)
-            # Select all nodes within distance "dist" of "around_node_ids"
-            # NOTE: this will count split nodes towards this distance. we may
-            # want to change this.
-            node_ids_to_select = []
-            for layer, ids in enumerate(nx.bfs_layers(u, around_node_ids)):
-                if layer > dist:
-                    break
-                node_ids_to_select.extend(ids)
-
-            subgraph = nx.induced_subgraph(self.graph, node_ids_to_select)
-
-            for ni in subgraph.nodes:
-                eles.append(
-                    self.nodeid2obj[ni].to_cyjs(incl_patterns=incl_patterns)
-                )
-
-            for _, _, uid in subgraph.edges(data="uid"):
-                eles.append(
-                    self.edgeid2obj[uid].to_cyjs(incl_patterns=incl_patterns)
-                )
-
-            # TODO get patterns only if all their children are in eles
+            eles = self._to_cyjs_around_nodes(
+                done_flushing["around_node_ids"],
+                done_flushing["around_dist"],
+                incl_patterns,
+            )
 
         else:
             raise WeirdError(f"Unrecognized draw type: {draw_type}")
