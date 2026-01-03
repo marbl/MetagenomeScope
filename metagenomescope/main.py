@@ -30,7 +30,7 @@ from . import (
     path_utils,
 )
 from .graph import AssemblyGraph, graph_utils
-from .errors import UIError
+from .errors import UIError, WeirdError
 
 # Needed for layout extensions like dagre. And for exporting SVG images, per
 # https://dash.plotly.com/cytoscape/images.

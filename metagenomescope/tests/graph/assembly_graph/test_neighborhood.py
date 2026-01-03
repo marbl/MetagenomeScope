@@ -43,7 +43,6 @@ def test_get_neighborhood_two():
 def check_sample1_subgraph_entire_component(
     ag, all_node_ids_in_cc, snodeids, sedgeids
 ):
-
     def id2name(i):
         return ag.nodeid2obj[i].name
 
