@@ -2136,6 +2136,8 @@ class AssemblyGraph(object):
         in the neighborhood; we say that a pattern is "available" for inclusion
         in the neighborhood if all of this pattern's descendant nodes and edges
         are also in the neighborhood.
+
+        Oh also the IDs are stored in sets. in case that's relevant.
         """
         # Get nodes
         subgraph, subgraph_node_ids = self.get_neighborhood(node_ids, dist)
