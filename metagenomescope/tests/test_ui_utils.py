@@ -452,7 +452,7 @@ def test_get_curr_drawn_text_around():
             },
             ag,
         )
-        == f"within distance 0 of nodes {names}"
+        == f"around nodes {names} (distance 0)"
     )
 
 
