@@ -2091,6 +2091,26 @@ class AssemblyGraph(object):
         return names
 
     def get_neighborhood(self, node_ids, dist):
+        """Returns the induced subgraph within a given distance of some nodes.
+
+        Parameters
+        ----------
+        node_ids: collection of int
+            IDs of nodes around which to search.
+
+        dist: int
+            We will induce the subgraph of all nodes within this many "hops"
+            of any of the node_ids. So, if dist == 0, then we will just induce
+            the subgraph of node_ids; if dist == 1, then we will also include
+            all of their direct neighbors; and so on. Note that we ignore edge
+            directionality, and treat the graph as if it were undirected.
+
+        Returns
+        -------
+        subgraph, subgraph_node_ids: nx.MultiDiGraph, set of int
+            The induced subgraph, computed as described above, and the set of
+            all its contained node IDs (just for the sake of convenience).
+        """
         # There may be more efficient ways to do this (avoiding creating an
         # an undirected view of the graph, and instead just operating directly
         # on the digraph) but this should be fine
@@ -2099,38 +2119,38 @@ class AssemblyGraph(object):
         # Select all nodes within distance "dist" of "node_ids"
         # NOTE: this will count split nodes towards this distance. may want to
         # change this. (https://github.com/marbl/MetagenomeScope/issues/296)
-        node_ids_to_select = set()
+        subgraph_node_ids = set()
         for layer, ids in enumerate(nx.bfs_layers(u, node_ids)):
             if layer > dist:
                 break
-            node_ids_to_select.update(ids)
+            subgraph_node_ids.update(ids)
 
-        subgraph = nx.induced_subgraph(self.graph, node_ids_to_select)
-        return subgraph, node_ids_to_select
+        subgraph = nx.induced_subgraph(self.graph, subgraph_node_ids)
+        return subgraph, subgraph_node_ids
 
-    def _to_cyjs_around_nodes(self, node_ids, dist, incl_patterns):
-        """Produces Cytoscape.js elements only "around" certain nodes."""
+    def get_ids_in_neighborhood(self, node_ids, dist, incl_patterns):
+        """Returns the IDs of all nodes, edges, and patterns in a neighborhood.
 
+        See get_neighborhood()'s documentation for details. The main "extra"
+        thing this function does is computing which patterns should be included
+        in the neighborhood; we say that a pattern is "available" for inclusion
+        in the neighborhood if all of this pattern's descendant nodes and edges
+        are also in the neighborhood.
+        """
+        # Get nodes
         subgraph, subgraph_node_ids = self.get_neighborhood(node_ids, dist)
-        eles = []
 
-        # Nodes and edges are straightforward - just look at what's in the
-        # induced subgraph
-        for ni in subgraph.nodes:
-            eles.append(
-                self.nodeid2obj[ni].to_cyjs(incl_patterns=incl_patterns)
-            )
+        # Get edges
         subgraph_edge_ids = set()
         for _, _, uid in subgraph.edges(data="uid"):
-            eles.append(
-                self.edgeid2obj[uid].to_cyjs(incl_patterns=incl_patterns)
-            )
             subgraph_edge_ids.add(uid)
 
+        # Get patterns, maybe
+        subgraph_patt_ids = set()
         if incl_patterns:
             # include a pattern only if all its descendant nodes and edges are
             # included
-            for p in self.pattid2obj.values():
+            for pid, p in self.pattid2obj.items():
                 available = True
                 desc_nodes, desc_edges, desc_patts, _ = p.get_descendant_info()
                 for dn in desc_nodes:
@@ -2148,8 +2168,28 @@ class AssemblyGraph(object):
                         available = False
                         break
                 if available:
-                    eles.append(p.to_cyjs())
+                    subgraph_patt_ids.add(pid)
+        return subgraph_node_ids, subgraph_edge_ids, subgraph_patt_ids
 
+    def _to_cyjs_around_nodes(self, node_ids, dist, incl_patterns):
+        """Produces Cytoscape.js elements only "around" certain nodes."""
+        sel_node_ids, sel_edge_ids, sel_patt_ids = (
+            self.get_ids_in_neighborhood(node_ids, dist, incl_patterns)
+        )
+        eles = []
+        for i in sel_node_ids:
+            eles.append(
+                self.nodeid2obj[i].to_cyjs(incl_patterns=incl_patterns)
+            )
+        for i in sel_edge_ids:
+            eles.append(
+                self.edgeid2obj[i].to_cyjs(incl_patterns=incl_patterns)
+            )
+        if incl_patterns:
+            # if incl_patterns was False then sel_patt_ids will be empty, so
+            # checking doesn't really save us much time. whatever it's clearer.
+            for i in sel_patt_ids:
+                eles.append(self.pattid2obj[i].to_cyjs())
         return eles
 
     def to_cyjs(self, done_flushing):
