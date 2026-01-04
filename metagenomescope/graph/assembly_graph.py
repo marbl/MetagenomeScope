@@ -2182,23 +2182,36 @@ class AssemblyGraph(object):
             self.get_ids_in_neighborhood(node_ids, dist, incl_patterns)
         )
         eles = []
-        nodect = len(sel_node_ids)
-        edgect = len(sel_edge_ids)
+        nodect = 0
+        edgect = 0
         pattct = 0
         for i in sel_node_ids:
-            eles.append(
-                self.nodeid2obj[i].to_cyjs(incl_patterns=incl_patterns)
-            )
+            nobj = self.nodeid2obj[i]
+            eles.append(nobj.to_cyjs(incl_patterns=incl_patterns))
+            if nobj.split:
+                nodect += 1
+            else:
+                nodect += 2
         for i in sel_edge_ids:
-            eles.append(
-                self.edgeid2obj[i].to_cyjs(incl_patterns=incl_patterns)
-            )
+            eobj = self.edgeid2obj[i]
+            eles.append(eobj.to_cyjs(incl_patterns=incl_patterns))
+            if not eobj.is_fake:
+                edgect += 1
         if incl_patterns:
             # if incl_patterns was False then sel_patt_ids should be empty, so
             # checking doesn't really save us much time. whatever it's clearer.
             for i in sel_patt_ids:
                 eles.append(self.pattid2obj[i].to_cyjs())
             pattct = len(sel_patt_ids)
+        # It is currently possible for us to draw only half of a split node
+        # here (test case: velvet e. coli graph, draw around node 156 at dist
+        # 1). To account for this we treat each split node as one half of a
+        # full node. https://github.com/marbl/MetagenomeScope/issues/296 will
+        # remove the need to do this.
+        if nodect % 2 == 0:
+            nodect //= 2
+        else:
+            nodect /= 2
         return eles, nodect, edgect, pattct
 
     def to_cyjs(self, done_flushing):
@@ -2218,7 +2231,9 @@ class AssemblyGraph(object):
             references below for examples on what this format looks like.
 
             The other outputs describe the counts of drawn nodes, edges, and
-            patterns.
+            patterns. Note that these counts, like the total numbers of nodes
+            and edges in the graph, treat split nodes as worth 0.5 of a "full"
+            node and do not include fake edges.
 
         References
         ----------

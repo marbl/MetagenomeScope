@@ -128,6 +128,18 @@ class Component(object):
             obj.set_cc_num(cc_num)
 
     def to_cyjs(self, incl_patterns=True):
+        """Creates Cytoscape.js elements for all nodes/edges in this component.
+
+        Parameters
+        ----------
+        incl_patterns: bool
+            If True, include patterns (and adjust the node/edge elements to
+            refer to these patterns as their "parent" elements).
+
+        Returns
+        -------
+        list of dict
+        """
         eles = [
             obj.to_cyjs(incl_patterns=incl_patterns)
             for obj in self.get_nonpattern_objs()
@@ -136,4 +148,4 @@ class Component(object):
         if incl_patterns:
             eles.extend(obj.to_cyjs() for obj in self.patterns)
             pattct = len(self.patterns)
-        return eles, len(self.nodes), len(self.edges), pattct
+        return eles, self.num_full_nodes, self.num_real_edges, pattct
