@@ -305,12 +305,11 @@ def run(
                         ),
                         html.P(f"{cc_ct_desc}."),
                         html.P(
-                            html.Span(
-                                "Nothing currently drawn.",
-                                id="currDrawnText",
-                                className="noPadding",
-                            ),
+                            "Nothing currently drawn.",
+                            id="currDrawnText",
+                            className="noPadding",
                         ),
+                        html.P(id="currDrawnCounts"),
                         ctrl_sep_invis,
                         html.P(
                             [
@@ -1744,9 +1743,11 @@ def run(
     @callback(
         Output("cy", "elements", allow_duplicate=True),
         Output("currDrawnText", "children"),
+        Output("currDrawnCounts", "children"),
         Output("currDrawnInfo", "data"),
         State("cy", "elements"),
         State("currDrawnText", "children"),
+        State("currDrawnCounts", "children"),
         State("currDrawnInfo", "data"),
         Input("doneFlushing", "data"),
         prevent_initial_call=True,
@@ -1754,6 +1755,7 @@ def run(
     def draw(
         curr_cy_eles,
         curr_curr_drawn_text,
+        curr_curr_drawn_counts,
         curr_curr_drawn_info,
         curr_done_flushing,
     ):
@@ -1768,8 +1770,13 @@ def run(
                 "Request good, so flushing should be done. Creating JSON "
                 "for Cytoscape.js..."
             )
-            new_cy_eles = ag.to_cyjs(curr_done_flushing)
-            logging.debug(f"...Done. {len(new_cy_eles):,} ele(s) total.")
+            new_cy_eles, nct, ect, pct = ag.to_cyjs(curr_done_flushing)
+            lsum = ui_utils.pluralize(len(new_cy_eles), "ele")
+            nsum = ui_utils.pluralize(nct, "node")
+            esum = ui_utils.pluralize(ect, "edge")
+            psum = ui_utils.pluralize(pct, "pattern")
+            asum = f"({nsum}, {esum}, {psum})"
+            logging.debug(f"...Done. {lsum} {asum}.")
             return (
                 new_cy_eles,
                 html.Span(
@@ -1782,6 +1789,7 @@ def run(
                         ui_utils.get_curr_drawn_text(curr_done_flushing, ag),
                     ]
                 ),
+                asum,
                 curr_done_flushing,
             )
         else:
@@ -1789,6 +1797,7 @@ def run(
             return (
                 curr_cy_eles,
                 curr_curr_drawn_text,
+                curr_curr_drawn_counts,
                 curr_curr_drawn_info,
             )
 

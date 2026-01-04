@@ -2182,6 +2182,9 @@ class AssemblyGraph(object):
             self.get_ids_in_neighborhood(node_ids, dist, incl_patterns)
         )
         eles = []
+        nodect = len(sel_node_ids)
+        edgect = len(sel_edge_ids)
+        pattct = 0
         for i in sel_node_ids:
             eles.append(
                 self.nodeid2obj[i].to_cyjs(incl_patterns=incl_patterns)
@@ -2191,11 +2194,12 @@ class AssemblyGraph(object):
                 self.edgeid2obj[i].to_cyjs(incl_patterns=incl_patterns)
             )
         if incl_patterns:
-            # if incl_patterns was False then sel_patt_ids will be empty, so
+            # if incl_patterns was False then sel_patt_ids should be empty, so
             # checking doesn't really save us much time. whatever it's clearer.
             for i in sel_patt_ids:
                 eles.append(self.pattid2obj[i].to_cyjs())
-        return eles
+            pattct = len(sel_patt_ids)
+        return eles, nodect, edgect, pattct
 
     def to_cyjs(self, done_flushing):
         """Converts the graph's elements to a Cytoscape.js-compatible format.
@@ -2208,10 +2212,13 @@ class AssemblyGraph(object):
 
         Returns
         -------
-        list of dict
-            Each entry corresponds to a dictionary describing an element
-            (a node, edge, or pattern) in the graph. See the references
-            below for examples on what this format looks like.
+        eles, nodect, edgect, pattct: list of dict, int, int, int
+            Each entry in "eles" corresponds to a dictionary describing an
+            element (a node, edge, or pattern) in the graph. See the
+            references below for examples on what this format looks like.
+
+            The other outputs describe the counts of drawn nodes, edges, and
+            patterns.
 
         References
         ----------
@@ -2221,18 +2228,27 @@ class AssemblyGraph(object):
         eles = []
         draw_type = done_flushing["draw_type"]
         incl_patterns = done_flushing["patterns"]
+        nodect = edgect = pattct = 0
 
         if draw_type == config.DRAW_ALL:
             for cc in self.components:
-                eles.extend(cc.to_cyjs(incl_patterns=incl_patterns))
+                cceles, nct, ect, pct = cc.to_cyjs(incl_patterns=incl_patterns)
+                eles.extend(cceles)
+                nodect += nct
+                edgect += ect
+                pattct += pct
 
         elif draw_type == config.DRAW_CCS:
             for ccn in done_flushing["cc_nums"]:
                 cc = self.components[ccn - 1]
-                eles.extend(cc.to_cyjs(incl_patterns=incl_patterns))
+                cceles, nct, ect, pct = cc.to_cyjs(incl_patterns=incl_patterns)
+                eles.extend(cceles)
+                nodect += nct
+                edgect += ect
+                pattct += pct
 
         elif draw_type == config.DRAW_AROUND:
-            eles = self._to_cyjs_around_nodes(
+            eles, nodect, edgect, pattct = self._to_cyjs_around_nodes(
                 done_flushing["around_node_ids"],
                 done_flushing["around_dist"],
                 incl_patterns,
@@ -2241,7 +2257,7 @@ class AssemblyGraph(object):
         else:
             raise WeirdError(f"Unrecognized draw type: {draw_type}")
 
-        return eles
+        return eles, nodect, edgect, pattct
 
     def to_treemap(self, min_large_cc_ct=ui_config.MIN_LARGE_CC_COUNT):
         """Creates data describing the graph's components for use in a treemap.

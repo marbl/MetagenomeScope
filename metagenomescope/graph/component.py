@@ -132,6 +132,8 @@ class Component(object):
             obj.to_cyjs(incl_patterns=incl_patterns)
             for obj in self.get_nonpattern_objs()
         ]
+        pattct = 0
         if incl_patterns:
             eles.extend(obj.to_cyjs() for obj in self.patterns)
-        return eles
+            pattct = len(self.patterns)
+        return eles, len(self.nodes), len(self.edges), pattct
