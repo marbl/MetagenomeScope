@@ -190,7 +190,8 @@ EDGE_COLOR = "#555555"
 SELECTED_EDGE_COLOR = "#0000ff"
 
 FAKE_EDGE_LINE_STYLE = "dashed"
-FAKE_EDGE_DASH_PATTERN = ["5", "9"]
+FAKE_EDGE_LINE_DASH_PATTERN = ["5", "9"]
+FAKE_EDGE_WIDTH = "8"
 
 ###############################################################################
 # Patterns

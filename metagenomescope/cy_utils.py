@@ -169,7 +169,8 @@ def get_cyjs_stylesheet(
             "selector": "edge.fake",
             "style": {
                 "line-style": cy_config.FAKE_EDGE_LINE_STYLE,
-                "line-dash-pattern": cy_config.FAKE_EDGE_DASH_PATTERN,
+                "line-dash-pattern": cy_config.FAKE_EDGE_LINE_DASH_PATTERN,
+                "width": cy_config.FAKE_EDGE_WIDTH,
             },
         },
         {
