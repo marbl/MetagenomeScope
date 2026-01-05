@@ -1,6 +1,7 @@
 import pytest
 import tempfile
 from metagenomescope.errors import PathParsingError
+from metagenomescope.graph import AssemblyGraph
 from metagenomescope import path_utils as pu
 
 
@@ -27,3 +28,14 @@ def test_paths_from_agp_toofew_cols():
         with pytest.raises(PathParsingError) as ei:
             pu.get_paths_from_agp(fp.name)
         assert "doesn't have exactly 9 tab-separated columns" in str(ei.value)
+
+
+def test_map_cc_nums_to_paths_simple():
+    paths = pu.get_paths_from_agp(
+        "metagenomescope/tests/input/scaffolds_ecoli.agp"
+    )
+    ag = AssemblyGraph("metagenomescope/tests/input/E_coli_LastGraph")
+    assert pu.map_cc_nums_to_paths(ag.nodeid2obj, paths) == (
+        {3: ["scaffold_1"]},
+        {"scaffold_1": 3},
+    )

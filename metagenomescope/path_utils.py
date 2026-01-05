@@ -73,7 +73,45 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
 
 
 def map_cc_nums_to_paths(id2obj, paths, nodes=True):
-    """Returns a mapping of component size ranks -> path names."""
+    """Creates mappings between component size ranks and path names.
+
+    Parameters
+    ----------
+    id2obj: dict of str -> (Node or Edge)
+        Maps node or edge IDs to Node / Edge objects in the graph. This should
+        only contain nodes (if nodes=True) or edges (if edges=True).
+
+    paths: dict of str -> list
+        Maps path name to the names of nodes or edges within the path. The
+        names contained these lists should only be of nodes or edges, depending
+        again on what "nodes" is set to.
+
+    nodes: bool
+        If True, assume the paths are on nodes. If False, assume the paths
+        are on edges.
+
+    Returns
+    -------
+    ccnum2pathnames, pathname2ccnum: dict of int -> list, dict of str -> int
+        The first dict maps component size rank to a list of the names of all
+        paths in this component. The second dict is the inverse, mapping each
+        path name to its parent component size rank.
+
+        Note that some input paths may not be represented in these dicts. If
+        a path contains at least one node or edge name that is not in the graph
+        at all, then we will not include this path in either of these dicts.
+        If literally no paths meet this criteria then we'll raise an error (see
+        below), but as long as one path is "fully represented" then this
+        function should not raise an error. (It will emit a warning about these
+        "missing" paths, though.)
+
+    Raises
+    ------
+    PathParsingError
+        If any path contains objects within multiple components.
+
+        If none of the paths are fully represented in the graph.
+    """
     # in theory i guess a path can traverse the same sequence multiple
     # times? so let's use a set to account for that
     objname2pathnames = defaultdict(set)
