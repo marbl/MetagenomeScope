@@ -1,6 +1,5 @@
 import logging
 from collections import defaultdict
-from . import ui_utils
 from .errors import PathParsingError
 
 
@@ -109,6 +108,9 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
             del objname2pathnames[objname]
 
     noun = "node" if nodes else "edge"
+    # If a node/edge remains in objname2pathnames at this point, then it
+    # means that this object is described in at least one path BUT not
+    # present in the actual graph.
     if len(objname2pathnames) > 0:
         missing_paths = set()
         for missing_obj, unavailable_paths in objname2pathnames.items():
@@ -128,11 +130,28 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
                 "match up."
             )
 
-        missing_info = ui_utils.pluralize(len(missing_paths), "path")
+        # we devote probably too much effort to making this warning fancy
+        first20_missing_paths = list(missing_paths)[:20]
+        pn = "paths"
+        suffix = ""
+        tmp = 'These "missing" paths'
+        # If thousands of paths are missing then don't list all of them, since
+        # that will frustrate the user and mess up their terminal. Just list
+        # at most 20 missing paths (the choice of which are shown is arbitrary)
+        if len(missing_paths) > 20:
+            suffix = ", ..."
+            mpn = "Some example missing paths"
+        elif len(missing_paths) == 1:
+            mpn = "Missing path"
+            pn = "path"
+            tmp = 'This "missing" path'
+        else:
+            mpn = "Missing paths"
+        exampletext = f"{mpn}: {', '.join(first20_missing_paths)}{suffix}"
         logging.warning(
-            f"    WARNING: {len(missing_paths):,} / {len(paths):,} paths "
-            f"contained {noun}s that were not present in the graph. "
-            'These "missing" paths will not be shown in the visualization.'
+            f"    WARNING: {len(missing_paths):,} / {len(paths):,} {pn} "
+            f"contained {noun}(s) that were not present in the graph. "
+            f"{tmp} will not be shown in the visualization. {exampletext}"
         )
 
     ccnum2pathnames = defaultdict(list)
