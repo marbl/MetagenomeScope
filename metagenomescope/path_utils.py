@@ -1,5 +1,6 @@
 import logging
 from collections import defaultdict
+from . import ui_utils
 from .errors import PathParsingError
 
 
@@ -109,9 +110,21 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
 
     noun = "node" if nodes else "edge"
     if len(objname2pathnames) > 0:
+        # If there are like a thousand missing things (because e.g. this
+        # AGP file is just from a different assembly entirely) then don't
+        # print out all of them like a chump (this will overwhelm the user
+        # and make the error message impossible to read). Just print out
+        # at most 20 of these missing things. (I picked "20" out of a hat.)
+        missing = list(objname2pathnames.keys())
+        first20missing = missing[:20]
+        missingtext = ', '.join(first20missing)
+        if len(missing) > 20:
+            missingtext += ", ..."
+        missing_info = ui_utils.pluralize(len(missing), noun)
+        are = "is" if len(missing) == 1 else "are"
         raise PathParsingError(
-            f"The following {noun}s specified in the paths are not present "
-            f"in the graph: {', '.join(objname2pathnames.keys())}"
+            f"{missing_info} specified in the paths {are} not present in the "
+            f"graph: {missingtext}"
         )
 
     ccnum2pathnames = defaultdict(list)
