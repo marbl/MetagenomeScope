@@ -132,7 +132,7 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
         logging.warning(
             f"    WARNING: {len(missing_paths):,} / {len(paths):,} paths "
             f"contained {noun}s that were not present in the graph. "
-            "These \"missing\" paths will not be shown in the visualization."
+            'These "missing" paths will not be shown in the visualization.'
         )
 
     ccnum2pathnames = defaultdict(list)

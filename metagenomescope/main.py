@@ -1860,7 +1860,9 @@ def run(
                     rows.append(
                         {
                             ui_config.PATH_TBL_NAME_COL: p,
-                            ui_config.PATH_TBL_COUNT_COL: len(ag.pathname2objnames[p]),
+                            ui_config.PATH_TBL_COUNT_COL: len(
+                                ag.pathname2objnames[p]
+                            ),
                             ui_config.PATH_TBL_CC_COL: ag.pathname2ccnum[p],
                         }
                     )
