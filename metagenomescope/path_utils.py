@@ -163,7 +163,7 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
 
         if len(pathname2ccnum) == 0:
             raise PathParsingError(
-                "All of the paths contained {noun}s that were not present in "
+                f"All of the paths contained {noun}s that were not present in "
                 "the graph. Please verify that your path and graph files "
                 "match up."
             )
