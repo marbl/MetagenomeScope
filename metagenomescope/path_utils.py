@@ -60,10 +60,10 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
                 # like we totally COULD support this but if nobody is
                 # using this kind of thing then it's not worth it
                 logging.warning(
-                    f"Line {line} describes a gap. Currently, gaps are "
-                    "ignored in the visualization. However, please let us "
-                    "know if you would like us to support visualizing them "
-                    "specially."
+                    f"    WARNING: Line {line} describes a gap. Currently, "
+                    "gaps are ignored in the visualization. However, please "
+                    "let us know if you would like us to support visualizing "
+                    "them specially."
                 )
                 continue
             seq_id = parts[5]
@@ -110,29 +110,33 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
 
     noun = "node" if nodes else "edge"
     if len(objname2pathnames) > 0:
-        # If there are like a thousand missing things (because e.g. this
-        # AGP file is just from a different assembly entirely) then don't
-        # print out all of them like a chump (this will overwhelm the user
-        # and make the error message impossible to read). Just print out
-        # at most 20 of these missing things. (I picked "20" out of a hat.)
-        missing = list(objname2pathnames.keys())
-        first20missing = missing[:20]
-        missingtext = ', '.join(first20missing)
-        if len(missing) > 20:
-            missingtext += ", ..."
-        missing_info = ui_utils.pluralize(len(missing), noun)
-        are = "is" if len(missing) == 1 else "are"
-        raise PathParsingError(
-            f"{missing_info} specified in the paths {are} not present in the "
-            f"graph: {missingtext}"
+        missing_paths = set()
+        for missing_obj, unavailable_paths in objname2pathnames.items():
+            for p in unavailable_paths:
+                # If we saw another object in this path in the graph,
+                # then it will already have been assigned a cc num.
+                # Clear it out (on the basis that showing only some of a path
+                # does not seem reasonable)
+                # https://stackoverflow.com/a/15411146
+                pathname2ccnum.pop(p, None)
+                missing_paths.add(p)
+
+        if len(pathname2ccnum) == 0:
+            raise PathParsingError(
+                "All of the paths contained {noun}s that were not present in "
+                "the graph. Please verify that your path and graph files "
+                "match up."
+            )
+
+        missing_info = ui_utils.pluralize(len(missing_paths), "path")
+        logging.warning(
+            f"    WARNING: {len(missing_paths):,} / {len(paths):,} paths "
+            f"contained {noun}s that were not present in the graph. "
+            "These \"missing\" paths will not be shown in the visualization."
         )
 
     ccnum2pathnames = defaultdict(list)
-    for pathname in paths:
-        if pathname not in pathname2ccnum:
-            raise PathParsingError(
-                f"Couldn't find any {noun}s in path {pathname} in the graph?"
-            )
+    for pathname in pathname2ccnum:
         ccnum2pathnames[pathname2ccnum[pathname]].append(pathname)
 
     return ccnum2pathnames, pathname2ccnum

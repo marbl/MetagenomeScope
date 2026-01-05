@@ -221,23 +221,27 @@ class AssemblyGraph(object):
         # Maps path names -> list of node or edge names in path
         # (whether we think these are nodes or edges is determined by
         # self.node_centric)
-        self.paths = {}
+        self.pathname2objnames = {}
         self.ccnum2pathnames = None
         self.pathname2ccnum = None
         if self.agp_filename is not None:
             logger.debug(f'  Loading input AGP file "{self.agp_basename}"...')
-            self.paths = path_utils.get_paths_from_agp(
+            input_paths = path_utils.get_paths_from_agp(
                 self.agp_filename, self.orientation_in_name
             )
             id2obj = self.nodeid2obj if self.node_centric else self.edgeid2obj
             self.ccnum2pathnames, self.pathname2ccnum = (
                 path_utils.map_cc_nums_to_paths(
-                    id2obj, self.paths, self.node_centric
+                    id2obj, input_paths, self.node_centric
                 )
             )
+            # Filter to just the paths that were available in the graph.
+            for p in self.pathname2ccnum:
+                self.pathname2objnames[p] = input_paths[p]
             logger.debug(
                 "  ...Done. Found "
-                f"{ui_utils.pluralize(len(self.paths), 'path')} across "
+                f"{ui_utils.pluralize(len(self.pathname2objnames), 'path')} "
+                "across "
                 f"{ui_utils.pluralize(len(self.ccnum2pathnames), 'component')}."
             )
 

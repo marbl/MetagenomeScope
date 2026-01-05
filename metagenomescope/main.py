@@ -184,7 +184,7 @@ def run(
 
     # If the user specified paths somehow (e.g. an AGP file), we'll show an
     # interface for these
-    paths_given = len(ag.paths) > 0
+    paths_given = len(ag.pathname2objnames) > 0
     path_html = []
     if paths_given:
         ct_col = f"# {'nodes' if ag.node_centric else 'edges'}"
@@ -198,7 +198,7 @@ def run(
                             "Available",
                             dbc.Badge(
                                 path_utils.get_available_count_badge_text(
-                                    0, len(ag.paths)
+                                    0, len(ag.pathname2objnames)
                                 ),
                                 pill=True,
                                 className=css_config.BADGE_CLASSES,
@@ -1831,7 +1831,7 @@ def run(
             ct = 0
             if curr_drawn_info is not None:
                 if curr_drawn_info["draw_type"] == config.DRAW_ALL:
-                    avail_paths = ag.paths
+                    avail_paths = ag.pathname2objnames
                 elif curr_drawn_info["draw_type"] == config.DRAW_CCS:
                     # https://stackoverflow.com/a/33277438
                     avail_paths = itertools.chain.from_iterable(
@@ -1860,14 +1860,14 @@ def run(
                     rows.append(
                         {
                             ui_config.PATH_TBL_NAME_COL: p,
-                            ui_config.PATH_TBL_COUNT_COL: len(ag.paths[p]),
+                            ui_config.PATH_TBL_COUNT_COL: len(ag.pathname2objnames[p]),
                             ui_config.PATH_TBL_CC_COL: ag.pathname2ccnum[p],
                         }
                     )
                     ct += 1
             # also show a summary
             count_text = path_utils.get_available_count_badge_text(
-                ct, len(ag.paths)
+                ct, len(ag.pathname2objnames)
             )
             # FINEEE i'll do this correctly even though nobody will see it
             noun = "paths" if ct != 1 else "path"
@@ -1881,7 +1881,7 @@ def run(
         )
         def highlight_path(clicked_cell):
             if clicked_cell["colId"] == ui_config.PATH_TBL_NAME_COL:
-                eles = ag.paths[clicked_cell["value"]]
+                eles = ag.pathname2objnames[clicked_cell["value"]]
                 return {
                     "requestGood": True,
                     "eles": eles,
