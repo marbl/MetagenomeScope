@@ -27,7 +27,10 @@ function getCy() {
     return document.getElementById("cy")._cyreg.cy;
 }
 
-// https://dash.plotly.com/clientside-callbacks
+/* For more information about clientside callbacks, see
+ * https://dash.plotly.com/clientside-callbacks -- this next line
+ * (window.dash_clientside...) is based on their docs.
+ */
 window.dash_clientside = Object.assign({}, window.dash_clientside, {
     toasts: {
         showNewToast: function (toasts) {
@@ -83,32 +86,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     i++
                 ) {
                     let nodename = nodeSelectionInfo["nodesToSelect"][i];
-                    // BE VERY CAREFUL about escaping strings here with
-                    // backslashes. This can cause Dash to jank out with
-                    // this infuriatingly vague error:
-                    // https://community.plotly.com/t/clientside-callback-example-with-js-function-throws-cannot-read-property-apply-of-undefined-error/44411
-                    //
-                    // Also, including three queries to detect split nodes is
-                    // very silly. Maybe assign each node a "basename" property
-                    // or something in to_cyjs() to prevent the need for this?
-                    // Or maybe the space requirement from that is prohibitive.
-                    //
-                    // Also whenever you update this callback you have to use
-                    // like ctrl+shift+R or something to get rid of Dash's
-                    // cache. Otherwise you get the aforementioned terrible
-                    // vague error. Writing this function raised my blood
-                    // pressure i think
-                    newEles = cy.nodes(
-                        '[label="' +
-                            nodename +
-                            '"], ' +
-                            '[label="' +
-                            nodename +
-                            '-L"], ' +
-                            '[label="' +
-                            nodename +
-                            '-R"]',
-                    );
+                    newEles = cy.nodes('[label="' + nodename + '"]');
                     if (newEles.empty()) {
                         // I think we could show a toast here but that will
                         // take some finagling

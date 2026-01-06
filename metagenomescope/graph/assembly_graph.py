@@ -221,12 +221,21 @@ class AssemblyGraph(object):
             f"{ui_utils.pluralize(len(self.components), 'component')}."
         )
 
+        # To make various lookup operations (e.g. searching) easier, just map
+        # node names to objects as well. These names will include splits if
+        # applicable (e.g. "40-L") since we wait to do this until after the
+        # decomposition
+        logger.debug("  Creating a node name mapping for later use...")
+        self.nodename2obj = {n.name: n for n in self.nodeid2obj.values()}
+        logger.debug("  ...Done.")
+
         # Maps path names -> list of node or edge names in path
         # (whether we think these are nodes or edges is determined by
         # self.node_centric)
         self.pathname2objnames = {}
         self.ccnum2pathnames = None
         self.pathname2ccnum = None
+        # TODO can update path lookup stuff to use nodename2obj - faster
         if self.agp_filename is not None:
             logger.debug(f'  Loading input AGP file "{self.agp_basename}"...')
             input_paths = path_utils.get_paths_from_agp(
@@ -2019,13 +2028,14 @@ class AssemblyGraph(object):
                 fh.write(output_stats)
 
     def get_nodename2ccnum(self, node_name_text):
-        """Returns a mapping of node names to cc nums, given some node names.
+        """Returns a mapping of node names to cc nums, given node name "text".
 
         Parameters
         ----------
         node_name_text: str
             Text input by the user. This should be a comma-separated list of
-            node names.
+            node names. (But it can just be user-specified junk -- we do some
+            validation to make sure it seems sane.)
 
         Returns
         -------
@@ -2045,19 +2055,6 @@ class AssemblyGraph(object):
 
         Notes
         -----
-        - This searches through every node in the graph to look at their
-          .basename attributes. If this becomes a bottleneck, we could start
-          saving a mapping of node name --> cc num or something (or maybe
-          just node name --> obj, analgoous to nodeid2obj).
-
-        - Currently, this looks at the *basename* of each node -- meaning
-          that if you search for something like "40-L" then it will be rejected
-          as not being in the graph. We could be more lenient about this,
-          maybe, but then I worry about confusing cases where nodes in the
-          input graph already end in -L or -R. Addressing
-          https://github.com/marbl/MetagenomeScope/issues/272 will make this
-          feasible. (TODO)
-
         - In the future, we may want to start putting the node names included
           in these error messages in monospace (this will require fussing with
           how we create the error message toasts). One concern is that
@@ -2066,19 +2063,30 @@ class AssemblyGraph(object):
         """
         node_names_to_search = ui_utils.get_node_names(node_name_text)
 
-        # Go through the graph and check each node's name. When we find a node
-        # we are looking for, remove it from node_names_to_search and update
-        # nodename2ccnum.
+        unfound_nodes = set()
         nodename2ccnum = {}
-
-        for n in self.nodeid2obj.values():
-            if n.basename in node_names_to_search:
-                nodename2ccnum[n.basename] = n.cc_num
-                node_names_to_search.remove(n.basename)
-                if len(node_names_to_search) == 0:
-                    break
-
-        ui_utils.fail_if_unfound_nodes(node_names_to_search)
+        for name in node_names_to_search:
+            if name in self.nodename2obj:
+                obj = self.nodename2obj[name]
+                nodename2ccnum[name] = obj.cc_num
+            else:
+                # This can happen if a node was split but a user searched for
+                # the basename -- e.g. node "40" no longer exists in the graph,
+                # but nodes "40-L" and "40-R" do. In this case, select both
+                # split nodes ("40" should yield both "40-L" and "40-R").
+                # TODO: this will of ofc need to be updated when we allow
+                # searching subregions of ccs since only one split node at a
+                # time might be drawn
+                leftsplitname = name + config.SPLIT_LEFT_SUFFIX
+                if leftsplitname in self.nodename2obj:
+                    obj1 = self.nodename2obj[leftsplitname]
+                    obj2 = self.nodename2obj[name + config.SPLIT_RIGHT_SUFFIX]
+                    for o in (obj1, obj2):
+                        nodename2ccnum[o.name] = o.cc_num
+                else:
+                    # Okay this node just straight up isn't in the graph
+                    unfound_nodes.add(name)
+        ui_utils.fail_if_unfound_nodes(unfound_nodes)
         return nodename2ccnum
 
     def get_node_ids(self, node_name_text):

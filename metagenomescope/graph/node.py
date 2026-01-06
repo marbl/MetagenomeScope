@@ -18,32 +18,32 @@
 
 
 import math
-from metagenomescope import cy_config
-from metagenomescope.config import SPLIT_SEP, SPLIT_LEFT, SPLIT_RIGHT, INDENT
+from metagenomescope import cy_config, config
 from metagenomescope.errors import WeirdError, GraphParsingError
+from metagenomescope.graph import graph_utils
 
 
 def get_node_name(basename, split):
+    graph_utils.validate_split_type(basename, split)
     if split is None:
         return basename
-    elif split == SPLIT_LEFT or split == SPLIT_RIGHT:
-        return f"{basename}{SPLIT_SEP}{split}"
+    elif split == config.SPLIT_LEFT:
+        return f"{basename}{config.SPLIT_LEFT_SUFFIX}"
     else:
-        raise WeirdError(
-            f"split is {split}, but it should be one of "
-            f"{{None, {SPLIT_LEFT}, {SPLIT_RIGHT}}}."
-        )
+        # because we've already called validate_split_type(), we know
+        # that the split type must be right if we have made it here
+        return f"{basename}{config.SPLIT_RIGHT_SUFFIX}"
 
 
 def get_opposite_split(split):
-    if split == SPLIT_LEFT:
-        return SPLIT_RIGHT
-    elif split == SPLIT_RIGHT:
-        return SPLIT_LEFT
+    if split == config.SPLIT_LEFT:
+        return config.SPLIT_RIGHT
+    elif split == config.SPLIT_RIGHT:
+        return config.SPLIT_LEFT
     else:
         raise WeirdError(
-            f"split is {split}, but it should be {SPLIT_LEFT} or "
-            f"{SPLIT_RIGHT}?"
+            f"split is {split}, but it should be {config.SPLIT_LEFT} or "
+            f"{config.SPLIT_RIGHT}?"
         )
 
 
@@ -69,10 +69,11 @@ class Node(object):
 
         name: str
             Name of this node, to be displayed in the visualization interface.
-            (If split is not None, then the name of this node will be extended
-            to "[node name][SPLIT_SEP][split]" -- for example, a left split
-            node named "123" will be renamed to "123-L", if SPLIT_SEP and
-            SPLIT_LEFT remain their current defaults.)
+            If split is not None, then the name of this node will be extended
+            to "[node name][config.SPLIT_LEFT_SUFFIX]"
+            or "[node name][config.SPLIT_RIGHT_SUFFIX]" -- for example, a left
+            split node named "123" will be renamed to "123-L", if the
+            config.SPLIT_* variables remain as their current defaults.
 
         data: dict
             Maps field names (e.g. "length", "orientation", "depth", ...) to
@@ -81,16 +82,17 @@ class Node(object):
             this node, this can be an empty dict).
 
         split: str or None
-            If this is given, this should be either SPLIT_LEFT or SPLIT_RIGHT.
-            SPLIT_LEFT indicates that this is a "left split" node, SPLIT_RIGHT
-            indicates that this is a "right split" node, and None indicates
-            that this is not a split node yet (I'm going to label these non-
-            split nodes as "full," just for the sake of clarity -- see the Edge
-            object docs for details). Note that a Node that has a split value
-            of None could, later on in the decomposition process, be split up
-            (if this happens, it will be done when a counterpart Node of this
-            node is added -- the counterpart Node's constructor will call
-            .make_into_split() on this Node).
+            If this is given, this should be either config.SPLIT_LEFT or
+            config.SPLIT_RIGHT. config.SPLIT_LEFT indicates that this is a
+            "left split" node, config.SPLIT_RIGHT indicates that this is a
+            "right split" node, and None indicates that this is not a split
+            node yet (I'm going to label these non- split nodes as "full," just
+            for the sake of clarity -- see the Edge object docs for details).
+            Note that a Node that has a split value of None could, later on in
+            the decomposition process, be split up (if this happens, it will be
+            done when a counterpart Node of this node is added -- the
+            counterpart Node's constructor will call .make_into_split() on this
+            Node).
 
         counterpart_node: Node or None
             Node object that represents a "counterpart" Node from which we
@@ -101,13 +103,14 @@ class Node(object):
         Raises
         ------
         WeirdError
-            - If split is not one of {None, SPLIT_LEFT, SPLIT_RIGHT}
+            - If split is not in {None, config.SPLIT_LEFT, config.SPLIT_RIGHT}
             - If split is None and counterpart_node is not None, or vice versa
             - If counterpart_node already has a split that is not None
             - If counterpart_node already has another counterpart node
         """
         self.unique_id = unique_id
         self.basename = name
+        # this will take care of validating split
         self.name = get_node_name(self.basename, split)
         self.data = data
         self.split = split
@@ -198,7 +201,8 @@ class Node(object):
         counterpart_split_type: str
             The split type of the counterpart Node. We'll set the split type of
             this Node to the opposite of this (so, if counterpart_split_type is
-            SPLIT_LEFT, then this Node will have a split type of SPLIT_RIGHT).
+            config.SPLIT_LEFT, then this Node will have a split type of
+            config.SPLIT_RIGHT).
         """
         if self.is_split():
             raise WeirdError(f"{self}: split attr is already {self.split}?")
@@ -231,8 +235,7 @@ class Node(object):
         self.cc_num = cc_num
 
     def _set_shape(self):
-        if self.split not in (SPLIT_LEFT, SPLIT_RIGHT, None):
-            raise WeirdError(f"Unrecognized split value: {self.split}")
+        graph_utils.validate_split_type(self.name, self.split)
 
         if "orientation" in self.data:
             orientation = self.data["orientation"]
@@ -250,16 +253,16 @@ class Node(object):
                 )
 
             if orientation == "+":
-                if self.split == SPLIT_LEFT:
+                if self.split == config.SPLIT_LEFT:
                     self.shape = "rect"
-                elif self.split == SPLIT_RIGHT:
+                elif self.split == config.SPLIT_RIGHT:
                     self.shape = "invtriangle"
                 else:
                     self.shape = "invhouse"
             else:
-                if self.split == SPLIT_LEFT:
+                if self.split == config.SPLIT_LEFT:
                     self.shape = "triangle"
-                elif self.split == SPLIT_RIGHT:
+                elif self.split == config.SPLIT_RIGHT:
                     self.shape = "rect"
                 else:
                     self.shape = "house"
@@ -268,14 +271,14 @@ class Node(object):
             # should be able to get around this by using custom shapes
             # (https://graphviz.org/faq/#FaqCustShape), but for now we just use
             # (inv)triangles as a hacky workaround.
-            if self.split == SPLIT_LEFT:
+            if self.split == config.SPLIT_LEFT:
                 self.shape = "triangle"
-            elif self.split == SPLIT_RIGHT:
+            elif self.split == config.SPLIT_RIGHT:
                 self.shape = "invtriangle"
             else:
                 self.shape = "circle"
 
-    def to_dot(self, indent=INDENT):
+    def to_dot(self, indent=config.INDENT):
         if self.width is None or self.height is None:
             raise WeirdError(
                 "Can't call to_dot() on a Node with unset width and/or height"

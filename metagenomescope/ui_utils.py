@@ -580,16 +580,13 @@ def get_fancy_node_name_list(node_names, quote=True):
     return ", ".join(sn)
 
 
-def fail_if_unfound_nodes(node_names_to_search):
-    # If anything remains in node_names_to_search after going through the
-    # graph, then there must be at least one node the user asked for that is
-    # not present in the graph. Raise an error.
-    if len(node_names_to_search) == 1:
-        n = node_names_to_search.pop()
+def fail_if_unfound_nodes(unfound_nodes):
+    if len(unfound_nodes) == 1:
+        n = unfound_nodes.pop()
         raise UIError(f'Can\'t find a node with name "{n}" in the graph.')
 
-    elif len(node_names_to_search) > 1:
-        ns = get_fancy_node_name_list(node_names_to_search)
+    elif len(unfound_nodes) > 1:
+        ns = get_fancy_node_name_list(unfound_nodes)
         raise UIError(f"Can't find nodes with names {ns} in the graph.")
 
 

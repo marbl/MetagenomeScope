@@ -1,4 +1,4 @@
-from .. import ui_utils
+from .. import ui_utils, config
 from metagenomescope.errors import WeirdError, GraphParsingError
 
 
@@ -125,3 +125,8 @@ def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
             names.append(f"#{cc_num:,}")
             sizes.append(node_ct)
     return names, sizes
+
+
+def validate_split_type(node_name, split):
+    if split not in (config.SPLIT_LEFT, config.SPLIT_RIGHT, None):
+        raise WeirdError(f"Invalid split type for node {node_name}: {split}")

@@ -42,10 +42,11 @@ def sanity_check_node_name(name):
 
     # Node names shouldn't end in -L or -R
     # https://github.com/marbl/MetagenomeScope/issues/272
-    left_suff = config.SPLIT_SEP + config.SPLIT_LEFT
-    right_suff = config.SPLIT_SEP + config.SPLIT_RIGHT
-    if name.endswith(left_suff) or name.endswith(right_suff):
+    if name.endswith(config.SPLIT_LEFT_SUFFIX) or name.endswith(
+        config.SPLIT_RIGHT_SUFFIX
+    ):
         raise GraphParsingError(
             f'A node named "{name}" exists in the graph. Nodes cannot have '
-            f'names that end in "{left_suff}" or "{right_suff}".'
+            f'names that end in "{config.SPLIT_LEFT_SUFFIX}" or '
+            f'"{config.SPLIT_RIGHT_SUFFIX}".'
         )
