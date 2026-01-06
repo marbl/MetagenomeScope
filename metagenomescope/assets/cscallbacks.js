@@ -74,6 +74,24 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         },
     },
     selection: {
+        /* Selects and zooms to a list of node names.
+         *
+         * @param {Object} nodeSelectionInfo contains information from the
+         *     "nodeSelectionInfo" dcc.Store in the dash application. Basically
+         *     this should contain two entries: (1) "requestGood" (maps to a
+         *     bool) and (2) "nodesToSelect" (maps to an array).
+         *
+         * If requestGood maps to a falsy value, then this will just log that
+         * we caught a bad search request and not do anything.
+         *
+         * Otherwise, this will unselect all currently-selected nodes in the
+         * Cytoscape.js graph, select all nodes in the array of nodesToSelect,
+         * and zoom to them in the graph.
+         *
+         * Note that node names in nodeToSelect should match up exactly with
+         * the labels of currently drawn nodes in the graph (e.g. "40-L"
+         * instead of "40").
+         */
         showSelectedNodes: function (nodeSelectionInfo) {
             if (!nodeSelectionInfo["requestGood"]) {
                 console.log("Caught a bad search request.");
