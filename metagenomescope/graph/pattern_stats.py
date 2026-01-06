@@ -14,11 +14,13 @@ class PatternStats(object):
         num_chains=0,
         num_cyclicchains=0,
         num_frayedropes=0,
+        num_bipartites=0,
     ):
         self.num_bubbles = num_bubbles
         self.num_chains = num_chains
         self.num_cyclicchains = num_cyclicchains
         self.num_frayedropes = num_frayedropes
+        self.num_bipartites = num_bipartites
 
     def __add__(self, other_pattern_stats):
         return PatternStats(
@@ -26,6 +28,7 @@ class PatternStats(object):
             self.num_chains + other_pattern_stats.num_chains,
             self.num_cyclicchains + other_pattern_stats.num_cyclicchains,
             self.num_frayedropes + other_pattern_stats.num_frayedropes,
+            self.num_bipartites + other_pattern_stats.num_bipartites,
         )
 
     def __eq__(self, other_pattern_stats):
@@ -34,6 +37,7 @@ class PatternStats(object):
             and self.num_chains == other_pattern_stats.num_chains
             and self.num_cyclicchains == other_pattern_stats.num_cyclicchains
             and self.num_frayedropes == other_pattern_stats.num_frayedropes
+            and self.num_bipartites == other_pattern_stats.num_bipartites
         )
 
     def __repr__(self):
@@ -41,7 +45,8 @@ class PatternStats(object):
             f"PatternStats({self.num_bubbles:,} bubble(s), "
             f"{self.num_chains:,} chain(s), "
             f"{self.num_cyclicchains:,} cyclic chain(s), "
-            f"{self.num_frayedropes:,} frayed rope(s))"
+            f"{self.num_frayedropes:,} frayed rope(s), "
+            f"{self.num_bipartites:,} bipartite(s))"
         )
 
     def sum(self):
@@ -50,6 +55,7 @@ class PatternStats(object):
             + self.num_chains
             + self.num_cyclicchains
             + self.num_frayedropes
+            + self.num_bipartites
         )
 
     def update(self, pattern_type):
@@ -61,5 +67,7 @@ class PatternStats(object):
             self.num_cyclicchains += 1
         elif pattern_type == config.PT_FRAYEDROPE:
             self.num_frayedropes += 1
+        elif pattern_type == config.PT_BIPARTITE:
+            self.num_bipartites += 1
         else:
             raise WeirdError(f"Unrecognized pattern type: {pattern_type}")

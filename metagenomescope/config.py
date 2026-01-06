@@ -149,6 +149,7 @@ PT_BUBBLE = 0
 PT_CHAIN = 1
 PT_CYCLICCHAIN = 2
 PT_FRAYEDROPE = 3
+PT_BIPARTITE = 4
 
 # Maps pattern types to human-readable names.
 PT2HR = {
@@ -156,6 +157,7 @@ PT2HR = {
     PT_CHAIN: "Chain",
     PT_CYCLICCHAIN: "Cyclic Chain",
     PT_FRAYEDROPE: "Frayed Rope",
+    PT_BIPARTITE: "Bipartite",
 }
 
 # Maps pattern types to human-readable names without spaces. For those silly
@@ -166,6 +168,7 @@ PT2HR_NOSPACE = {
     PT_CHAIN: "chain",
     PT_CYCLICCHAIN: "cyclicchain",
     PT_FRAYEDROPE: "frayedrope",
+    PT_BIPARTITE: "bipartite",
 }
 
 # Whether or not to specify colors for node groups in .gv/.xdot files. If this
@@ -178,6 +181,7 @@ PT2COLOR = {
     PT_FRAYEDROPE: "#59f459",
     PT_CHAIN: "#eedddd",
     PT_CYCLICCHAIN: "#ffd163",
+    PT_BIPARTITE: "#c8a4ed",
 }
 
 # Draw types. Used internally for communicating between flush() and draw().

@@ -754,3 +754,50 @@ def test_split_start_node_with_incoming_edges_inside_pattern():
         assert five_to_four_r_edge_seen
     finally:
         os.close(fh)
+
+
+def test_bipartite_series():
+    r"""The input graph looks like
+
+    1 -> 2 -> 5
+      \/   \/
+      /\   /\
+    3 -> 4 -> 6
+
+    This tests that we identify two bipartite patterns, one after the other.
+    Nodes 2 and 4 should be split.
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(1, 2)
+    g.add_edge(1, 4)
+    g.add_edge(3, 2)
+    g.add_edge(3, 4)
+    g.add_edge(2, 5)
+    g.add_edge(2, 6)
+    g.add_edge(4, 5)
+    g.add_edge(4, 6)
+
+    fh, fn = nx2gml(g)
+    try:
+        ag = AssemblyGraph(fn)
+        assert len(ag.decomposed_graph.nodes) == 2
+        assert len(ag.decomposed_graph.edges) == 2
+        assert len(ag.chains) == 0
+        assert len(ag.cyclic_chains) == 0
+        assert len(ag.frayed_ropes) == 0
+        assert len(ag.bipartites) == 2
+        assert len(ag.bubbles) == 0
+        assert len(ag.graph.nodes) == 8
+        assert len(ag.graph.edges) == 10
+        assert sorted([n.name for n in ag.nodeid2obj.values()]) == [
+            "1",
+            "2-L",
+            "2-R",
+            "3",
+            "4-L",
+            "4-R",
+            "5",
+            "6",
+        ]
+    finally:
+        os.close(fh)

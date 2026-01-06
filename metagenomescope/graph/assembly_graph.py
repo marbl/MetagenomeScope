@@ -186,11 +186,13 @@ class AssemblyGraph(object):
         self.chains = []
         self.cyclic_chains = []
         self.frayed_ropes = []
+        self.bipartites = []
         self.ptype2collection = {
             config.PT_BUBBLE: self.bubbles,
             config.PT_CHAIN: self.chains,
             config.PT_CYCLICCHAIN: self.cyclic_chains,
             config.PT_FRAYEDROPE: self.frayed_ropes,
+            config.PT_BIPARTITE: self.bipartites,
         }
 
         logger.debug("  Decomposing the assembly graph...")
@@ -204,8 +206,9 @@ class AssemblyGraph(object):
             "    ...Done. Found "
             f"{ui_utils.pluralize(len(self.bubbles), 'bubble')}, "
             f"{ui_utils.pluralize(len(self.chains), 'chain')}, "
-            f"{ui_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, and "
-            f"{ui_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}."
+            f"{ui_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, "
+            f"{ui_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}, and "
+            f"{ui_utils.pluralize(len(self.bipartites), 'bipartite regions')}."
         )
         logger.debug("  ...Done.")
 
@@ -948,32 +951,35 @@ class AssemblyGraph(object):
                 # while loop.
                 break
 
-        # Now, identify frayed ropes, which are a "top-level only" pattern.
-        # There aren't any other "top-level only" patterns as of writing, but I
-        # guess you could add them here if you wanted.
+        # Now, identify frayed ropes and bipartite regions -- "top-level only" pattern.
         top_level_candidate_nodes = set(self.decomposed_graph.nodes)
         while len(top_level_candidate_nodes) > 0:
             n = top_level_candidate_nodes.pop()
-            validation_results = validators.is_valid_frayed_rope_tl_only(
-                self.decomposed_graph, n, self.pattid2obj
-            )
-            if validation_results:
-                # Mostly the same logic as for when we found a pattern above.
-                pobj, left_splits, right_splits = self._add_pattern(
-                    validation_results
+            for validator in (
+                validators.is_valid_frayed_rope_tl_only,
+                validators.is_valid_bipartite_tl_only,
+            ):
+                validation_results = validator(
+                    self.decomposed_graph, n, self.pattid2obj
                 )
-                for pn in pobj.nodes:
-                    top_level_candidate_nodes.discard(pn.unique_id)
-                for rs in right_splits:
-                    top_level_candidate_nodes.add(rs)
-                for ls in left_splits:
-                    for incoming_node in self.decomposed_graph.pred[ls]:
-                        if incoming_node not in pobj.get_node_ids():
-                            top_level_candidate_nodes.add(incoming_node)
-                if len(pobj.merged_child_chains) > 0:
-                    raise WeirdError(
-                        f"Shouldn't have done chain merging on {pobj}?"
+                if validation_results:
+                    # Mostly the same logic as for when we found a pattern above.
+                    pobj, left_splits, right_splits = self._add_pattern(
+                        validation_results
                     )
+                    for pn in pobj.nodes:
+                        top_level_candidate_nodes.discard(pn.unique_id)
+                    for rs in right_splits:
+                        top_level_candidate_nodes.add(rs)
+                    for ls in left_splits:
+                        for incoming_node in self.decomposed_graph.pred[ls]:
+                            if incoming_node not in pobj.get_node_ids():
+                                top_level_candidate_nodes.add(incoming_node)
+                    if len(pobj.merged_child_chains) > 0:
+                        raise WeirdError(
+                            f"Shouldn't have done chain merging on {pobj}?"
+                        )
+                    break
 
         self._remove_unnecessary_split_nodes()
 

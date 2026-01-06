@@ -144,6 +144,12 @@ def get_cyjs_stylesheet(
             },
         },
         {
+            "selector": "node.bipartite",
+            "style": {
+                "background-color": cy_config.BIPARTITE_COLOR,
+            },
+        },
+        {
             "selector": "node.chain",
             "style": {
                 "background-color": cy_config.CHAIN_COLOR,

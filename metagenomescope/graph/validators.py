@@ -1135,6 +1135,17 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     )
 
 
+def contains_multiboundary_patts(validation_results, pattid2obj):
+    for node_id in validation_results.node_ids:
+        if node_id in pattid2obj:
+            if pattid2obj[node_id].pattern_type in (
+                config.PT_FRAYEDROPE,
+                config.PT_BIPARTITE,
+            ):
+                return True
+    return False
+
+
 def is_valid_frayed_rope_tl_only(g, start_node_id, pattid2obj):
     r"""Validates a frayed rope (FR), rejecting FRs containing other FRs.
 
@@ -1169,12 +1180,61 @@ def is_valid_frayed_rope_tl_only(g, start_node_id, pattid2obj):
 
     # If we've made it here, then we found a valid frayed rope. Check to see if
     # it contains any other frayed ropes.
-    for node_id in validation_results.node_ids:
-        if node_id in pattid2obj:
-            if pattid2obj[node_id].pattern_type == config.PT_FRAYEDROPE:
-                # This frayed rope contains at least one other frayed rope;
-                # reject it.
-                return ValidationResults()
+    if contains_multiboundary_patts(validation_results, pattid2obj):
+        return ValidationResults()
 
     # Nope, this frayed rope doesn't contain any other frayed ropes!
+    return validation_results
+
+
+def is_valid_bipartite(g, start_node_id):
+    r"""Validates a bipartite region starting at a node in a graph.
+
+    As with frayed ropes there should be multiple start nodes to these patterns
+    and the choice of start node doesn't matter (any is fine).
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    start_node_id: int
+
+    Returns
+    -------
+    ValidationResults
+    """
+    verify_node_in_graph(g, start_node_id)
+
+    layer2 = list(g.adj[start_node_id])
+    if len(layer2) < 2:
+        return ValidationResults()
+
+    layer1 = list(g.pred[layer2[0]])
+    if len(layer1) < 2:
+        return ValidationResults()
+    if len(set(layer1) & set(layer2)) > 0:
+        return ValidationResults()
+
+    for n1 in layer1:
+        if len(g.adj[n1]) != len(layer2):
+            return ValidationResults()
+        for n2 in layer2:
+            if len(g.pred[n2]) != len(layer1):
+                return ValidationResults()
+            if n2 not in g.adj[n1] or len(g.adj[n1][n2]) != 1:
+                return ValidationResults()
+            # disallow direct edges from layer 2 back to layer 1
+            if n1 in g.adj[n2]:
+                return ValidationResults()
+
+    return ValidationResults(
+        config.PT_BIPARTITE, True, layer1 + layer2, layer1, layer2
+    )
+
+
+def is_valid_bipartite_tl_only(g, start_node_id, pattid2obj):
+    validation_results = is_valid_bipartite(g, start_node_id)
+    if not validation_results:
+        return validation_results
+    if contains_multiboundary_patts(validation_results, pattid2obj):
+        return ValidationResults()
     return validation_results
