@@ -87,7 +87,7 @@ def test__set_shape_bad_split():
     b.split = "filasdf"
     with pytest.raises(WeirdError) as ei:
         b._set_shape()
-    assert str(ei.value) == "Unrecognized split value: filasdf"
+    assert str(ei.value) == "Invalid split type for node B: filasdf"
 
 
 def test__set_shape_bad_orientation():

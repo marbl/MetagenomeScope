@@ -12,10 +12,7 @@ def test_get_node_name():
     )
     with pytest.raises(WeirdError) as ei:
         get_node_name("1234", SPLIT_SEP)
-    assert str(ei.value) == (
-        f"split is {SPLIT_SEP}, but it should be one of {{None, "
-        f"{SPLIT_LEFT}, {SPLIT_RIGHT}}}."
-    )
+    assert str(ei.value) == f"Invalid split type for node 1234: {SPLIT_SEP}"
 
 
 def test_get_opposite_split():
