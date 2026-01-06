@@ -103,7 +103,7 @@ EDGEATTR2HRT = {
 
 # some attributes are obvious and/or not worth showing in the selected element
 # tables, since there is not a lot of space. Record these here.
-NODEATTRS_SKIP = ("orientation",)
+NODEATTRS_SKIP = ()
 EDGEATTRS_SKIP = (
     # Flye
     "color",
