@@ -208,7 +208,7 @@ class AssemblyGraph(object):
             f"{ui_utils.pluralize(len(self.chains), 'chain')}, "
             f"{ui_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, "
             f"{ui_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}, and "
-            f"{ui_utils.pluralize(len(self.bipartites), 'bipartite regions')}."
+            f"{ui_utils.pluralize(len(self.bipartites), 'bipartite')}."
         )
         logger.debug("  ...Done.")
 
@@ -851,10 +851,10 @@ class AssemblyGraph(object):
                 # You could switch the order of this tuple up in order to
                 # change the "precedence" of pattern detection, if desired.
                 # I don't thiiiiink this should make a difference, due to (1)
-                # automatic boundary duplication for all non-frayed rope
-                # patterns and (2) the guarantee of minimality (each bulge,
-                # chain, bubble, and cyclic chain are guaranteed not to contain
-                # any undetected smaller patterns within them).
+                # automatic boundary duplication and (2) the guarantee of
+                # minimality (each bulge, chain, bubble, and cyclic chain
+                # are guaranteed not to contain any undetected smaller patterns
+                # within them).
                 #
                 # However, maybe the order could matter in a way that I'm not
                 # thinking of right now -- I mean, I haven't written out a
@@ -919,7 +919,7 @@ class AssemblyGraph(object):
                         # The reason for only adding these nodes: we know that
                         # the left split nodes and the new pattern node can't
                         # be the start of a chain, cyclic chain, bulge, bubble,
-                        # or frayed rope. (The use of
+                        # frayed rope, or bipartite. (The use of
                         # is_valid_chain_trimmed_etfes() prevents us from
                         # identifying these as the start of "chains.") They
                         # could be located *within* a pattern that starts at
@@ -951,7 +951,7 @@ class AssemblyGraph(object):
                 # while loop.
                 break
 
-        # Now, identify frayed ropes and bipartite regions -- "top-level only" pattern.
+        # Now, identify frayed ropes and bipartites ("top-level only" patterns)
         top_level_candidate_nodes = set(self.decomposed_graph.nodes)
         while len(top_level_candidate_nodes) > 0:
             n = top_level_candidate_nodes.pop()
@@ -2001,7 +2001,7 @@ class AssemblyGraph(object):
         """
         output_stats = (
             "Component\tNodes\tEdges\t"
-            "Bubbles\tChains\tCyclicChains\tFrayedRopes\n"
+            "Bubbles\tChains\tCyclicChains\tFrayedRopes\tBipartites\n"
         )
         for cc in self.components:
             output_stats += (
@@ -2009,7 +2009,8 @@ class AssemblyGraph(object):
                 f"{cc.pattern_stats.num_bubbles}\t"
                 f"{cc.pattern_stats.num_chains}\t"
                 f"{cc.pattern_stats.num_cyclicchains}\t"
-                f"{cc.pattern_stats.num_frayedropes}\n"
+                f"{cc.pattern_stats.num_frayedropes}\t"
+                f"{cc.pattern_stats.num_bipartites}\n"
             )
         if output_fp is None:
             return output_stats

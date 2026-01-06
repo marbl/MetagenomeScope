@@ -23,6 +23,7 @@ def test_to_tsv_bt1():
     assert len(ag.chains) == 1
     assert len(ag.cyclic_chains) == 0
     assert len(ag.frayed_ropes) == 0
+    assert len(ag.bipartites) == 0
     assert len(ag.bubbles) == 1
     assert len(ag.graph.nodes) == 5
     assert len(ag.graph.edges) == 5
@@ -41,6 +42,7 @@ def test_to_tsv_bt1():
                     "Chains": [1],
                     "CyclicChains": [0],
                     "FrayedRopes": [0],
+                    "Bipartites": [0],
                 },
                 index=pd.Index([1], name="Component"),
             ),
@@ -76,6 +78,7 @@ def test_to_tsv_bubble_cyclic_chain():
     assert len(ag.chains) == 0
     assert len(ag.cyclic_chains) == 1
     assert len(ag.frayed_ropes) == 0
+    assert len(ag.bipartites) == 0
     assert len(ag.bubbles) == 4
     assert len(ag.graph.nodes) == 16
     assert len(ag.graph.edges) == 20
@@ -94,6 +97,7 @@ def test_to_tsv_bubble_cyclic_chain():
                     "Chains": [0],
                     "CyclicChains": [1],
                     "FrayedRopes": [0],
+                    "Bipartites": [0],
                 },
                 index=pd.Index([1], name="Component"),
             ),
@@ -115,6 +119,7 @@ def check_sample1gfa_tsv(fn):
                 "Chains": [1, 1, 0, 0],
                 "CyclicChains": [0, 0, 0, 0],
                 "FrayedRopes": [0, 0, 0, 0],
+                "Bipartites": [0, 0, 0, 0],
             },
             index=pd.Index([1, 2, 3, 4], name="Component"),
         ),
