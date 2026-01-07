@@ -10,6 +10,13 @@ assembly graphs.
 
 This version of the tool is still a work in progress; more to come soon.
 
+## Screenshots
+
+| Stool metagenome assembly ([MetaCarvel](https://github.com/marbl/MetaCarvel)) | Yeast genome assembly ([Flye](https://github.com/mikolmogorov/Flye)) |
+| ------------------------- | --------------------- |
+| ![Second-largest component in a metagenome assembly graph, showing various structural patterns.](https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc2.png) | ![Part of a yeast genome assembly graph, showing the selection of a path of edges.](https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/flye_yeast.png) |
+
+
 ## Installation
 
 Using [mamba](https://mamba.readthedocs.io/):
