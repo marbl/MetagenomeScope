@@ -2033,8 +2033,35 @@ class AssemblyGraph(object):
             with open(output_fp, "w") as fh:
                 fh.write(output_stats)
 
+    def _search(self, node_name_text, get_cc_map=False, get_ids=False):
+        """Searches through the graph and accumulates info about nodes."""
+
+        if (get_cc_map and get_ids) or (not get_cc_map and not get_ids):
+            # yeah yeah yeah you could write out the bitwise XNOR or whatever
+            # but this is clearer imo
+            raise WeirdError("Only one of these should be specified.")
+
+        nodename2ccnum = {}
+        ids = set()
+        node_names_to_search = ui_utils.get_node_names(node_name_text)
+        unfound_nodes = set()
+        for name in node_names_to_search:
+            if name in self.nodename2objs:
+                for obj in self.nodename2objs[name]:
+                    if get_ids:
+                        ids.add(obj.unique_id)
+                    elif get_cc_map:
+                        nodename2ccnum[obj.name] = obj.cc_num
+                    else:
+                        raise WeirdError("bruh")
+            else:
+                # Okay this node just straight up isn't in the graph
+                unfound_nodes.add(name)
+        ui_utils.fail_if_unfound_nodes(unfound_nodes)
+        return list(ids) if get_ids else nodename2ccnum
+
     def get_nodename2ccnum(self, node_name_text):
-        """Returns a mapping of node names to cc nums, given node name "text".
+        """Returns a mapping of node names -> cc nums, given user-input text.
 
         Parameters
         ----------
@@ -2070,35 +2097,32 @@ class AssemblyGraph(object):
           Bootstrap (?)'s formatting is collapsing spaces... but also, node
           names really shouldn't have spaces anyway, so probably nbd.
         """
-        node_names_to_search = ui_utils.get_node_names(node_name_text)
-
-        unfound_nodes = set()
-        nodename2ccnum = {}
-        for name in node_names_to_search:
-            if name in self.nodename2objs:
-                for obj in self.nodename2objs[name]:
-                    nodename2ccnum[obj.name] = obj.cc_num
-            else:
-                # Okay this node just straight up isn't in the graph
-                unfound_nodes.add(name)
-        ui_utils.fail_if_unfound_nodes(unfound_nodes)
-        return nodename2ccnum
+        return self._search(node_name_text, get_cc_map=True)
 
     def get_node_ids(self, node_name_text):
-        node_names_to_search = ui_utils.get_node_names(node_name_text)
-        ids = []
+        """Returns a list of node IDs, given user-input text.
 
-        for n in self.nodeid2obj.values():
-            if n.basename in node_names_to_search:
-                ids.append(n.unique_id)
-                if n.split:
-                    ids.append(n.counterpart_node_id)
-                node_names_to_search.remove(n.basename)
-                if len(node_names_to_search) == 0:
-                    break
+        Parameters
+        ----------
+        node_name_text: str
+            Text input by the user. Should be a comma-separated list of node
+            names.
 
-        ui_utils.fail_if_unfound_nodes(node_names_to_search)
-        return ids
+        Returns
+        -------
+        ids: list
+            List of corresponding node IDs. Note that if you specify the
+            basename of a split node then both its split nodes' IDs will be
+            included. (However, referring directly to a single split node,
+            e.g. "40-L", will only result in its ID being included.)
+
+        Raises
+        ------
+        UIError
+            For the same reasons as get_nodename2ccnum().
+        """
+
+        return self._search(node_name_text, get_ids=True)
 
     def get_node_names_from_ids(self, node_ids):
         # include both A-L and A-R, if both IDs are in the input
