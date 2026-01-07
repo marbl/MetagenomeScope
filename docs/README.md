@@ -14,11 +14,10 @@ Most of the markup defining the navigation bar ("navbar") is adapted from
 Bootstrap's documentation on navbars, located
 [here](https://getbootstrap.com/docs/3.3/components/#navbar).
 
-### CSS (`css/mgsc_docs_style.css`)
+### CSS (`mgsc_docs_style.css`)
 
 The basic body styling of the site was inspired by
-[this website](http://bettermotherfuckingwebsite.com/)
-(that site's URL/name contains some profanity), which was created by
+[this website](http://bettermotherfuckingwebsite.com/), which was created by
 [Drew McConville](https://twitter.com/drew_mc) and
 [Gabe Hammersmith](https://twitter.com/gabehammersmith).
 

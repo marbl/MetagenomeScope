@@ -37,7 +37,7 @@
             integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
             crossorigin="anonymous"
         />
-        <link rel="stylesheet" href="css/mgsc_docs_style.css" />
+        <link rel="stylesheet" href="mgsc_docs_style.css" />
     </head>
     <body>
         <!-- CODELINK: Most of this markup defining this <nav> and its "collapse"
@@ -78,11 +78,6 @@
                     <ul class="nav navbar-nav">
                         <li><a href="#news">News</a></li>
                         <li><a href="#overview">Overview</a></li>
-                        <!--
-                        <li><a href="#demo">Demo</a></li>
-                        <li><a href="#documentation">Documentation</a></li>
-                        <li><a href="#installing">Installing</a></li>
-                        -->
                         <li><a href="#code">Code</a></li>
                         <li><a href="#contact">Contact</a></li>
                     </ul>
@@ -91,8 +86,8 @@
         </nav>
         <!-- All <a> elements in #stuffbelowthenav will be underlined by
             default, contrary to Bootstrap's default. This makes these links
-            easier to see for colorblind users (see css/mgsc_docs_style.css
-            for details).
+            easier to see for colorblind users (see mgsc_docs_style.css for
+            details).
         -->
         <div id="stuffbelowthenav">
             <div class="page-header">
@@ -100,78 +95,26 @@
             </div>
             <div class="container-fluid">
                 <div class="row">
-                    <div class="col-lg-6">
+                    <div class="col-lg">
                         <div class="thumbnail">
                             <img
                                 onclick="openScreenshot(event);"
-                                src="res/screenshots/marygold.png"
+                                src="res/screenshots/aug1cc2.png"
                                 alt="Visualization of a graph based on Fig. 2(a) of Nijkamp et al. 2013, demonstrating MetagenomeScope's use of hierarchical pattern decomposition."
                             />
                             <hr />
                             <div class="caption">
                                 <p>
-                                    Visualization of a graph based on Fig. 2(a)
-                                    of [<a
-                                        href="https://www.ncbi.nlm.nih.gov/pubmed/24058058"
-                                        >Nijkamp et al. 2013</a
-                                    >].
-                                </p>
-                                <p>
-                                    Due to MetagenomeScope's use of hierarchical
-                                    pattern decomposition, the input assembly
-                                    graph is automatically annotated as a bubble
-                                    containing two smaller bubbles: each of the
-                                    three bubbles can be interactively collapsed
-                                    and uncollapsed in the interface.
-                                </p>
-                                <p>
-                                    <strong
-                                        >Check out a
-                                        <a
-                                            href="https://marbl.github.io/MetagenomeScope/demos/marygold"
-                                            >demo</a
-                                        >
-                                        of this visualization!</strong
-                                    >
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="thumbnail">
-                            <img
-                                onclick="openScreenshot(event);"
-                                src="res/screenshots/srs049959_cc6.png"
-                            />
-                            <hr />
-                            <div class="caption">
-                                <p>
-                                    Visualization of a region of a stool
+                                    Second-largest connected component of a
                                     metagenome scaffold graph produced by
                                     <a
                                         href="https://github.com/marbl/MetaCarvel"
                                         >MetaCarvel</a
                                     >
-                                    [<a
+                                    (<a
                                         href="https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1791-3"
-                                        >Ghurye et al. 2019</a
-                                    >].
-                                </p>
-                                <p>
-                                    MetagenomeScope performs
-                                    <a
-                                        href="https://en.wikipedia.org/wiki/Layered_graph_drawing"
-                                        >hierarchical graph layout</a
-                                    >
-                                    using
-                                    <a href="https://graphviz.org/"
-                                        >Graphviz'</a
-                                    >
-                                    <span class="dotname">dot</span> layout
-                                    tool. This simplifies the visualization and
-                                    manual inspection of complex, small-scale
-                                    details within assembly graphs, such as
-                                    these branching paths.
+                                        >Ghurye <em>et al.</em>, 2019</a
+                                    >).
                                 </p>
                             </div>
                         </div>
@@ -181,7 +124,14 @@
 
             <h2 id="news">News</h2>
             <p>
-                <strong>December 2020:</strong> MetagenomeScope is back! We just
+                <strong>January 2026:</strong> We've been working on refactoring
+                and extending the tool recently, and have updated the website
+                with new information. Please see
+                <a href="https://github.com/marbl/MetagenomeScope">the GitHub page</a>
+                for details.
+            </p>
+            <p>
+                <strong>December 2020:</strong> We just
                 merged in a new version of the codebase featuring many new
                 features, including hierarchical pattern decomposition, bubble
                 boundary duplication, drawing multiple components at once, and
@@ -225,99 +175,12 @@
 
             <h2 id="overview">Overview</h2>
             <p>
-                MetagenomeScope is a web-based visualization tool designed for
-                metagenomic assembly graphs. MetagenomeScope aims to display a
+                MetagenomeScope is a visualization tool designed for
+                sequence assembly graphs. MetagenomeScope aims to display a
                 semi-linearized, hierarchical overview of the input graph while
                 emphasizing the presence of certain structural patterns in the
                 graph.
             </p>
-            <!--
-            <h3>Highlighted features</h3>
-            <ul class="highlighted-features">
-                <li>
-                    <strong>Hierarchical graph layout</strong> performed using
-                    <a href="https://www.graphviz.org">Graphviz</a>'
-                    <span class="dotname">dot</span> layout engine.
-                </li>
-                <li>
-                    <strong>Hierarchical pattern decomposition:</strong>
-                    identifies and supports interactive collapsing/uncollapsing
-                    of bubbles and frayed ropes [<a
-                        href="https://www.ncbi.nlm.nih.gov/pubmed/20211242"
-                        >Miller, Koren, Sutton 2010</a
-                    >], along with linear and cyclic linear sequences of
-                    contigs.
-                    <ul>
-                        <li>
-                            Runs pattern decomposition iteratively, so that
-                            patterns containing other patterns (e.g. bubbles
-                            containing chains) can be identified. In the viewer
-                            interface, these patterns can be collapsed or
-                            uncollapsed to show the graph at different levels of
-                            "complexity."
-                        </li>
-                    </ul>
-                </li>
-                <!--
-                <li>
-                    Supports the
-                    <strong
-                        >visualization of
-                        <a
-                            href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/"
-                            >AGP files</a
-                        ></strong
-                    >
-                    describing scaffolds constructed for the graph
-                </li>
-                <li>
-                    Includes controls for
-                    <strong>manually performing finishing</strong> on sequences
-                    of contigs in the graph
-                    <ul>
-                        <li>
-                            Supports "autofinishing," in which unambiguous paths
-                            are automatically followed during this process
-                        </li>
-                        <li>
-                            The resulting paths can be exported to
-                            <a
-                                href="https://www.ncbi.nlm.nih.gov/assembly/agp/AGP_Specification/"
-                                >AGP</a
-                            >
-                            or
-                            <a
-                                href="https://en.wikipedia.org/wiki/Comma-separated_values"
-                                >CSV</a
-                            >
-                            format
-                        </li>
-                    </ul>
-                </li>
-                <li>
-                    <strong>Scales edges</strong> in the graph by their
-                    multiplicity/bundle size [<a
-                        href="https://www.ncbi.nlm.nih.gov/pubmed/20211242"
-                        >Miller, Koren, Sutton 2010</a
-                    >].
-                    <ul>
-                        <li>
-                            Uses
-                            <a
-                                href="http://sphweb.bumc.bu.edu/otlt/mph-modules/bs/bs704_summarizingdata/bs704_summarizingdata7.html"
-                                >Tukey fences</a
-                            >
-                            to identify "outlier" edge weights and omit them
-                            from the scaling process
-                        </li>
-                        <li>
-                            Outlier edges are specially colored in the graph to
-                            indicate their unusual high/low weight
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-            -->
             <h2 id="code">Code</h2>
             <p>
                 The source code for MetagenomeScope is publicly available on

@@ -40,7 +40,7 @@ body {
  * http://nicolasgallagher.com/jump-links-and-viewport-positioning/demo/#method-C
  */
 h2 {
-    padding-top: 60px;
+    padding-top: 00px;
     margin-top: -60px;
 }
 nav li:hover {
@@ -68,7 +68,7 @@ nav li:hover {
 }
 
 .caption {
-    text-align: justify;
+    text-align: center;
 }
 
 .dotname {
