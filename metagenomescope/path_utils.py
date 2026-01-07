@@ -111,6 +111,13 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
         If any path contains objects within multiple components.
 
         If none of the paths are fully represented in the graph.
+
+    Notes
+    -----
+    It should be possible to speed this up (at least when the graph is
+    node-centric) by using the AssemblyGraph.nodename2objs mapping to
+    directly look up node objects (rather than having to go through
+    .nodeid2obj). However, this is not a bottleneck or anything as is.
     """
     # in theory i guess a path can traverse the same sequence multiple
     # times? so let's use a set to account for that
