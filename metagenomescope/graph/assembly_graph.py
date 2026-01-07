@@ -2047,7 +2047,10 @@ class AssemblyGraph(object):
         -------
         dict
             Maps node names (strings) to their corresponding component numbers
-            (ints).
+            (ints). Note that split nodes' basenames will be "expanded" -- e.g.
+            searching for a split node "40" will result in both "40-L" and
+            "40-R" having entries in this. (But searching for just "40-L" will
+            only give it an entry.)
 
         Raises
         ------

@@ -49,3 +49,16 @@ def test_get_nodename2ccnum_empty():
     with pytest.raises(UIError) as ei:
         ag.get_nodename2ccnum(",,,")
     assert str(ei.value) == "No node name(s) specified."
+
+
+def test_get_nodename2ccnum_splitnodes_ok():
+    # see test_bubble_chain_identification() for a nice diagram abt this graph
+    # basically it has two split nodes: 4-L ==> 4-R
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
+    assert ag.get_nodename2ccnum("4") == {"4-L": 1, "4-R": 1}
+    assert ag.get_nodename2ccnum("4-L") == {"4-L": 1}
+    assert ag.get_nodename2ccnum("4-R") == {"4-R": 1}
+    assert ag.get_nodename2ccnum("4-L, 4-R") == {"4-L": 1, "4-R": 1}
+    assert ag.get_nodename2ccnum("4-L, 4-R, 4") == {"4-L": 1, "4-R": 1}
+    assert ag.get_nodename2ccnum("4-L, 4") == {"4-L": 1, "4-R": 1}
+    assert ag.get_nodename2ccnum("4-R, 4") == {"4-L": 1, "4-R": 1}
