@@ -5,8 +5,15 @@
 <a href="https://codecov.io/gh/marbl/MetagenomeScope"><img src="https://codecov.io/gh/marbl/MetagenomeScope/branch/main/graph/badge.svg" alt="Code Coverage" /></a>
 </div>
 
-MetagenomeScope is an interactive visualization tool designed for (meta)genome
-assembly graphs.
+An interactive visualization tool designed for (meta)genome assembly graphs.
+
+MetagenomeScope decomposes the graph into _structural patterns_ and highlights
+these as annotations on the graph, helping simplify the display of small-scale
+details in the graph.
+
+It also contains various functionalities for visualizing assembly
+graphs at larger scales -- for example, overlaying paths on the graph and
+drawing a treemap summarizing the graph structure.
 
 This version of the tool is still a work in progress; more to come soon.
 
