@@ -16,7 +16,7 @@ This version of the tool is still a work in progress; more to come soon.
   <thead>
     <tr>
       <th>Stool metagenome assembly (<a href="https://github.com/marbl/MetaCarvel">MetaCarvel</a>)</th>
-      <th>Flye genome assembly (<a href="https://github.com/mikolmogorov/Flye">Flye</a>)</th>
+      <th>Yeast genome assembly (<a href="https://github.com/mikolmogorov/Flye">Flye</a>)</th>
     </tr>
   </thead>
   <tbody>
