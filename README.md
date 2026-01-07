@@ -12,15 +12,42 @@ This version of the tool is still a work in progress; more to come soon.
 
 ## Screenshots
 
-| Stool metagenome assembly ([MetaCarvel](https://github.com/marbl/MetaCarvel)) | Yeast genome assembly ([Flye](https://github.com/mikolmogorov/Flye)) |
-| ------------------------- | --------------------- |
-| ![Second-largest component in a metagenome assembly graph, showing various structural patterns.](https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc2.png) | ![Part of a yeast genome assembly graph, showing the selection of a path of edges.](https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/flye_yeast.png) |
-| [`SRS049959`](https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959) | [AGB's repository](https://github.com/almiheenko/AGB/tree/master/test_data/flye_yeast) |
+<table>
+  <thead>
+    <tr>
+      <th>Stool metagenome assembly (<a href="https://github.com/marbl/MetaCarvel">MetaCarvel</a>)</th>
+      <th>Flye genome assembly (<a href="https://github.com/mikolmogorov/Flye">Flye</a>)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc2.png" alt="Second-largest component in a metagenome assembly graph, showing various identified structural patterns." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/flye_yeast.png" alt="Part of a yeast genome assembly graph, showing the selection of a path of edges." /></td>
+    </tr>
+    <tr align="center">
+      <td><i>Data source: <a href="https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959">SRS049959</a></i></td>
+      <td><i>Data source: <a href="https://github.com/almiheenko/AGB/tree/master/test_data/flye_yeast">AGB</a></i></td>
+    </tr>
+  </tbody>
+</table>
 
-| Visualizing paths from an [AGP file](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/) | Summarizing the graph structure using a [treemap](https://en.wikipedia.org/wiki/Treemapping) |
-| ------------------------- | --------------------- |
-| ![Path of selected nodes in a metagenome assembly graph.](https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc6_scaffold430.png) | ![Treemap showing the amount of nodes in each connected component in a metagenome assembly graph.](https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1treemap.png) |
-| [`SRS049959`](https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959) | [`SRS049959`](https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959) |
+<table>
+  <thead>
+    <tr>
+      <th>Visualizing paths from an <a href="https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/">AGP file</a></th>
+      <th>Summarizing the graph structure using a <a href="https://en.wikipedia.org/wiki/Treemapping">treemap</a></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc6_scaffold430.png" alt="Second-largest component in a metagenome assembly graph, showing various identified structural patterns." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1treemap.png" alt="Part of a yeast genome assembly graph, showing the selection of a path of edges." /></td>
+    </tr>
+    <tr align="center">
+      <td colspan="2"><i>Data source: <a href="https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959">SRS049959</a></i></td>
+    </tr>
+  </tbody>
+</table>
 
 ## Installation
 
