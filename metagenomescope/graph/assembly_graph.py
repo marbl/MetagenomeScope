@@ -222,11 +222,17 @@ class AssemblyGraph(object):
         )
 
         # To make various lookup operations (e.g. searching) easier, just map
-        # node names to objects as well. These names will include splits if
-        # applicable (e.g. "40-L") since we wait to do this until after the
-        # decomposition
+        # node names to lists of objects as well. A nonsplit node is mapped to
+        # a list containing just one Node object; a split node (e.g. "40-L")
+        # is mapped to a list containing just this Node object; and the
+        # basename of a split node (e.g. "40") is mapped to a list containing
+        # both its split Node objects, for convenience's sake.
         logger.debug("  Creating a node name mapping for later use...")
-        self.nodename2obj = {n.name: n for n in self.nodeid2obj.values()}
+        self.nodename2objs = defaultdict(list)
+        for n in self.nodeid2obj.values():
+            self.nodename2objs[n.name].append(n)
+            if n.is_split():
+                self.nodename2objs[n.basename].append(n)
         logger.debug("  ...Done.")
 
         # Maps path names -> list of node or edge names in path
@@ -235,7 +241,7 @@ class AssemblyGraph(object):
         self.pathname2objnames = {}
         self.ccnum2pathnames = None
         self.pathname2ccnum = None
-        # TODO can update path lookup stuff to use nodename2obj - faster
+        # TODO can update path lookup stuff to use nodename2objs - faster
         if self.agp_filename is not None:
             logger.debug(f'  Loading input AGP file "{self.agp_basename}"...')
             input_paths = path_utils.get_paths_from_agp(
@@ -2066,26 +2072,12 @@ class AssemblyGraph(object):
         unfound_nodes = set()
         nodename2ccnum = {}
         for name in node_names_to_search:
-            if name in self.nodename2obj:
-                obj = self.nodename2obj[name]
-                nodename2ccnum[name] = obj.cc_num
+            if name in self.nodename2objs:
+                for obj in self.nodename2objs[name]:
+                    nodename2ccnum[obj.name] = obj.cc_num
             else:
-                # This can happen if a node was split but a user searched for
-                # the basename -- e.g. node "40" no longer exists in the graph,
-                # but nodes "40-L" and "40-R" do. In this case, select both
-                # split nodes ("40" should yield both "40-L" and "40-R").
-                # TODO: this will of ofc need to be updated when we allow
-                # searching subregions of ccs since only one split node at a
-                # time might be drawn
-                leftsplitname = name + config.SPLIT_LEFT_SUFFIX
-                if leftsplitname in self.nodename2obj:
-                    obj1 = self.nodename2obj[leftsplitname]
-                    obj2 = self.nodename2obj[name + config.SPLIT_RIGHT_SUFFIX]
-                    for o in (obj1, obj2):
-                        nodename2ccnum[o.name] = o.cc_num
-                else:
-                    # Okay this node just straight up isn't in the graph
-                    unfound_nodes.add(name)
+                # Okay this node just straight up isn't in the graph
+                unfound_nodes.add(name)
         ui_utils.fail_if_unfound_nodes(unfound_nodes)
         return nodename2ccnum
 

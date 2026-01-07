@@ -149,6 +149,8 @@ SPLIT_RIGHT_SUFFIX = SPLIT_SEP + SPLIT_RIGHT
 # This is mostly all configurable, but the JS callbacks for searching/etc
 # rely on these being "-L" and "-R". That could be made more elegant by like
 # passing the suffixes to the function but that seems not worth it
+# Also, name_utils.get_splitname_base() assumes that these both have a length
+# of 2. seriously don't change these lol
 if SPLIT_LEFT_SUFFIX != "-L" or SPLIT_RIGHT_SUFFIX != "-R":
     raise ValueError(
         "Hey, you can't change that without updating the JS searching code."

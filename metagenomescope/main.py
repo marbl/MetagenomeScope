@@ -2049,6 +2049,9 @@ def run(
         curr_toasts, node_names, curr_curr_drawn_info, n_clicks, n_submit
     ):
         try:
+            # NOTE: this will "expand" split nodes' basenames into their
+            # splits (for example, "40" will be represented here with two
+            # entries: "40-L" -> (cc num), and "40-R" -> (cc num).
             nn2ccnum = ag.get_nodename2ccnum(node_names)
         except UIError as err:
             # If we fail at this point, it is because either the input text
@@ -2071,7 +2074,6 @@ def run(
             curr_drawn_cc_nums = set()
 
         # Which, if any, of the searched-for nodes are currently drawn?
-        num_searched_for_nodes = len(nn2ccnum)
         drawn_nodes = []
         undrawn_nodes = []
         for n, c in nn2ccnum.items():
@@ -2086,7 +2088,7 @@ def run(
                 curr_toasts,
                 "Search error",
                 body_html=ui_utils.summarize_undrawn_nodes(
-                    undrawn_nodes, nn2ccnum, num_searched_for_nodes
+                    undrawn_nodes, ag, all_undrawn=True
                 ),
             ), {"requestGood": False}
 
@@ -2101,7 +2103,7 @@ def run(
                 curr_toasts,
                 "Search warning",
                 body_html=ui_utils.summarize_undrawn_nodes(
-                    undrawn_nodes, nn2ccnum, num_searched_for_nodes
+                    undrawn_nodes, ag, all_undrawn=False
                 ),
             )
         return (

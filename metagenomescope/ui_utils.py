@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 from collections import defaultdict
 from dash import html
-from . import css_config, ui_config, config
+from . import css_config, ui_config, config, name_utils
 from .errors import UIError, WeirdError
 
 
@@ -590,32 +590,53 @@ def fail_if_unfound_nodes(unfound_nodes):
         raise UIError(f"Can't find nodes with names {ns} in the graph.")
 
 
-def summarize_undrawn_nodes(undrawn_nodes, nn2ccnum, num_searched_for_nodes):
+def get_single_node_in_other_cc_summary(undrawn_nodes, ag):
+    n = undrawn_nodes[0]
+    c = ag.nodename2objs[n][0].cc_num
+    return html.Div(
+        f'Node "{n}" is not currently drawn. It\'s in component #{c:,}.',
+        className="toast-body",
+    )
+
+
+def summarize_undrawn_nodes(undrawn_nodes, ag, all_undrawn):
     """Produces a HTML summary of undrawn nodes, to be shown after searching.
 
     This is used when creating a toast message indicating an error or warning
     arising from searching from nodes that are not currently drawn.
     """
     if len(undrawn_nodes) == 1:
-        n = undrawn_nodes[0]
-        c = nn2ccnum[n]
-        return html.Div(
-            f'Node "{n}" is not currently drawn. It\'s in component #{c:,}.',
-            className="toast-body",
-        )
+        return get_single_node_in_other_cc_summary(undrawn_nodes, ag)
     else:
-        num_undrawn = len(undrawn_nodes)
-        if num_searched_for_nodes == num_undrawn:
+        # If the user searched for the basename of a split node, then both of
+        # this node's splits will be in undrawn_nodes. To simplify the output,
+        # "condense" these split nodes together here.
+        undrawn_nodes = name_utils.condense_splits(undrawn_nodes)
+
+        # If the only thing that the user searched for was the two splits of a
+        # node (for some reason???), go back and use the same message as above
+        if len(undrawn_nodes) == 1:
+            return get_single_node_in_other_cc_summary(undrawn_nodes, ag)
+
+        # okay if we've made it here then legitimately there are at least two
+        # nodes that are not currently drawn
+        if all_undrawn:
             s1 = "None of these nodes are currently drawn."
         else:
-            s1 = (
-                f"{num_undrawn:,} / {num_searched_for_nodes:,} nodes are not "
-                "currently drawn."
-            )
+            # it would be possible to show a fraction (e.g. "2 / 5 nodes")
+            # based on what nodes *are* drawn, but that requires accounting
+            # for split nodes, duplicates, etc. and is messy.
+            s1 = f"{len(undrawn_nodes):,} nodes are not currently drawn."
 
         undrawn_cc_to_nodes = defaultdict(list)
         for n in undrawn_nodes:
-            undrawn_cc_to_nodes[nn2ccnum[n]].append(n)
+            # If we condensed split nodes together (e.g. "40-L" and "40-R"
+            # were merged into "40"), then the resulting node names may not
+            # be in the graph at all. But this is okay! ag.nodename2objs maps
+            # node basenames to their corresponding split nodes, so we can
+            # still look up the basename here without trouble.
+            cc_num = ag.nodename2objs[n][0].cc_num
+            undrawn_cc_to_nodes[cc_num].append(n)
 
         if len(undrawn_cc_to_nodes) == 1:
             s2 = "They are all in another component:"
