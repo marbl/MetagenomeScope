@@ -35,7 +35,7 @@ This version of the tool is still a work in progress; more to come soon.
   <thead>
     <tr>
       <th>Visualizing paths from an <a href="https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/">AGP file</a></th>
-      <th>Summarizing the graph structure using a <a href="https://en.wikipedia.org/wiki/Treemapping">treemap</a></th>
+      <th>Summarizing graph structure in a <a href="https://en.wikipedia.org/wiki/Treemapping">treemap</a></th>
     </tr>
   </thead>
   <tbody>
