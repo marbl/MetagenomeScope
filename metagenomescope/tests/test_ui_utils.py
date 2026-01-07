@@ -1,4 +1,5 @@
 import pytest
+from dash import html
 from metagenomescope import ui_utils as uu, config, css_config
 from metagenomescope.graph import AssemblyGraph
 from metagenomescope.errors import UIError, WeirdError
@@ -511,6 +512,101 @@ def test_get_node_names_just_empty_entries():
     with pytest.raises(UIError) as ei:
         uu.get_node_names(",")
     assert str(ei.value) == exp_err
+
+
+def test_summarize_undrawn_nodes_one():
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
+    div = uu.summarize_undrawn_nodes(["3"], ag, True)
+    assert div.children == (
+        'Node "3" is not currently drawn. It\'s in component #1.'
+    )
+
+
+def test_summarize_undrawn_nodes_one_split_basename():
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
+    div = uu.summarize_undrawn_nodes(["4"], ag, True)
+    assert div.children == (
+        'Node "4" is not currently drawn. It\'s in component #1.'
+    )
+
+
+def test_summarize_undrawn_nodes_both_splits():
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
+    div = uu.summarize_undrawn_nodes(["4-L", "4-R"], ag, True)
+    assert div.children == (
+        'Node "4" is not currently drawn. It\'s in component #1.'
+    )
+
+
+def test_summarize_undrawn_nodes_one_split():
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
+    div = uu.summarize_undrawn_nodes(["4-L"], ag, True)
+    assert div.children == (
+        'Node "4-L" is not currently drawn. It\'s in component #1.'
+    )
+
+
+def test_summarize_undrawn_nodes_multi_all_undrawn():
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
+    div = uu.summarize_undrawn_nodes(["4-L", "3"], ag, True)
+    assert len(div.children) == 2
+    assert div.children[0].children == (
+        "None of these nodes are currently drawn. They are all in another "
+        "component:"
+    )
+    # this is jank, sorry
+    # i am sure there is a better way to test dash tables but equality checking
+    # doesn't work on these objects it looks like so...
+    # this is testing that the first col is 1 (i.e. cc # 1)...
+    assert div.children[1].children[1].children[0].children[0].children == "1"
+    # ...and that the nodes lited are 3 and 4-L
+    assert (
+        div.children[1].children[1].children[0].children[1].children
+        == "3, 4-L"
+    )
+    # pro tip for future me or whoever: just bite the bullet and work this out
+    # in an ipython console. dash objects are not too bad to introspect
+
+def test_summarize_undrawn_nodes_multi_some_undrawn():
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
+    div = uu.summarize_undrawn_nodes(["4-L", "3"], ag, False)
+    assert len(div.children) == 2
+    assert div.children[0].children == (
+        "2 nodes are not currently drawn. They are all in another component:"
+    )
+    # this is jank, sorry
+    # i am sure there is a better way to test dash tables but equality checking
+    # doesn't work on these objects it looks like so...
+    # this is testing that the first col is 1 (i.e. cc # 1)...
+    assert div.children[1].children[1].children[0].children[0].children == "1"
+    # ...and that the nodes lited are 3 and 4-L
+    assert (
+        div.children[1].children[1].children[0].children[1].children
+        == "3, 4-L"
+    )
+    # pro tip for future me or whoever: just bite the bullet and work this out
+    # in an ipython console. dash objects are not too bad to introspect
+
+
+def test_summarize_undrawn_nodes_multi_all_undrawn_diff_ccs():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    div = uu.summarize_undrawn_nodes(["3", "-3"], ag, False)
+    assert len(div.children) == 2
+    assert div.children[0].children == (
+        "2 nodes are not currently drawn. They are in the following "
+        "components:"
+    )
+    # cc 1 and cc 2
+    assert div.children[1].children[1].children[0].children[0].children == "1"
+    assert div.children[1].children[1].children[1].children[0].children == "2"
+    # since cc 1 and 2 are mirror images of each other, i think which gets what
+    # rank is arbitrary. to be safe, let's allow either to be the case -- just
+    # check that 3 was in one of the ccs and -3 was in the other.
+    recorded_nodes = {
+        div.children[1].children[1].children[0].children[1].children,
+        div.children[1].children[1].children[1].children[1].children,
+    }
+    assert recorded_nodes == {"3", "-3"}
 
 
 def test_get_badge_color():
