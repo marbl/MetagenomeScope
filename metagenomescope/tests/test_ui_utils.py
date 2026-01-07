@@ -1,5 +1,4 @@
 import pytest
-from dash import html
 from metagenomescope import ui_utils as uu, config, css_config
 from metagenomescope.graph import AssemblyGraph
 from metagenomescope.errors import UIError, WeirdError
@@ -566,6 +565,7 @@ def test_summarize_undrawn_nodes_multi_all_undrawn():
     )
     # pro tip for future me or whoever: just bite the bullet and work this out
     # in an ipython console. dash objects are not too bad to introspect
+
 
 def test_summarize_undrawn_nodes_multi_some_undrawn():
     ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_test.gml")
