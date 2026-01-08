@@ -190,18 +190,14 @@ COLOR_PATTERNS = True
 PT2COLOR = {
     # matches "cornflowerblue" in graphviz
     PT_BUBBLE: "#9abaf3",
-
     # matches "green2" in graphviz
     PT_FRAYEDROPE: "#59f459",
-
     # this one used to match "salmon" in graphviz (#fcaca3 i think?) and then i
     # changed it to be less flashy since there are a lot of chains involved
     # in hierarchical decomp stuff and i want people to take this seriously
     PT_CHAIN: "#eedddd",
-
     # matches "darkgoldenrod1" in graphviz
     PT_CYCLICCHAIN: "#ffd163",
-
     PT_BIPARTITE: "#c8a4ed",
 }
 
