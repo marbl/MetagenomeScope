@@ -104,11 +104,11 @@ Options:
 
 ### Supported assembly graph filetypes
 
-| Filetype | Tools that output this filetype | Notes |
-| -------- | ------------------------------- | ----- |
-| [GFA](https://gfa-spec.github.io/GFA-spec/) (`.gfa`) | [(meta)Flye](https://github.com/mikolmogorov/Flye), [LJA](https://github.com/AntonBankevich/LJA), [hifiasm](https://github.com/chhylp123/hifiasm)([-meta](https://github.com/xfengnefx/hifiasm-meta)) , [verkko](https://github.com/marbl/verkko), ... | Both GFA v1 and GFA v2 files are accepted, but [currently](https://github.com/marbl/MetagenomeScope/issues/147) only the raw structure (segments and links) are included. |
+| Filetype | Tools | Notes |
+| -------- | ----- | ----- |
+| [GFA](https://gfa-spec.github.io/GFA-spec/) (`.gfa`) | [Flye](https://github.com/mikolmogorov/Flye), [LJA](https://github.com/AntonBankevich/LJA), [hifiasm](https://github.com/chhylp123/hifiasm), [verkko](https://github.com/marbl/verkko), ... | Both GFA v1 and GFA v2 files are accepted, but [currently](https://github.com/marbl/MetagenomeScope/issues/147) only the raw structure (segments and links) are included. |
 | [FASTG](https://github.com/fedarko/pyfastg#the-fastg-file-format) (`.fastg`) | [SPAdes](https://github.com/ablab/spades), [MEGAHIT](https://github.com/voutcn/megahit) | [Expects](https://github.com/fedarko/pyfastg) FASTG files produced by SPAdes or MEGAHIT. |
-| [DOT](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) (`.dot`, `.gv`) | [(meta)Flye](https://github.com/mikolmogorov/Flye), [LJA](https://github.com/AntonBankevich/LJA) | Expects DOT files produced by Flye or LJA. See "What filetype should I use for de Bruijn graphs?" in the FAQs below. |
+| [DOT](https://en.wikipedia.org/wiki/DOT_(graph_description_language)) (`.dot`, `.gv`) | [Flye](https://github.com/mikolmogorov/Flye), [LJA](https://github.com/AntonBankevich/LJA) | Expects DOT files produced by Flye or LJA. See "What filetype should I use for de Bruijn graphs?" in the FAQs below. |
 | [GML](https://networkx.org/documentation/stable/reference/readwrite/gml.html) (`.gml`) | [MetaCarvel](https://github.com/marbl/MetaCarvel) | Expects GML files produced by MetaCarvel. |
 | [LastGraph](https://github.com/dzerbino/velvet/blob/master/Manual.pdf) (`.LastGraph`) | [Velvet](https://github.com/dzerbino/velvet) | Only the raw structure (nodes and arcs) are included. |
 
