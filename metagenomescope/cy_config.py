@@ -11,26 +11,24 @@ RANDOM_COLORS = [
     "#880000",  # dark red
     "#e35f10",  # light orange
     "#aa5522",  # dark orange
-    "#ebb102",  # light gold
+    "#8f5836",  # moldy apricot. that was the first term that came to mind
     "#aa8822",  # gold
-    "#b3cc00",  # light lemon-lime
-    "#99aa22",  # lemon-lime
+    "#8c6900",  # darker gold
+    "#616e04",  # dark lemon-lime (ordinary lemon-lime was hard to see)
     "#227711",  # forest green
-    "#0f5c00",  # dark green
     "#587562",  # olive drab, kinda
     "#364d3d",  # darker olive drab
     "#119f9f",  # turquoise
     "#026e6e",  # dark turquoise
     "#5252b3",  # medium blueish (purposefully avoiding #00f - selection color)
-    "#2f2f57",  # blue gray ish
-    "#4411aa",  # royal purple. is that a color? yeah i think so
+    "#6f6fa3",  # blue gray ish
+    "#5e25cf",  # royal purple. is that a color? yeah i think so
     "#661199",  # magenta
     "#c71461",  # kinda pinkish red
     "#a30f9e",  # fuschia
-    "#b38bb1",  # lavender
-    "#826a5b",  # light brown
-    "#382403",  # deep brown
-    "#a6a09f",  # light gray
+    "#e34fdc",  # brighter fuschia (basically pink)
+    "#735644",  # light brown
+    "#613f07",  # darker brown
     "#7a7878",  # dark gray
     "#525050",  # charcoal
 ]
