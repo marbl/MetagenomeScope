@@ -196,18 +196,7 @@ FAKE_EDGE_WIDTH = "8"
 ###############################################################################
 # Patterns
 ###############################################################################
-
-# matches "cornflowerblue" in graphviz
-BUBBLE_COLOR = "#9abaf3"
-# matches "green2" in graphviz
-FRAYEDROPE_COLOR = "#59f459"
-# this one used to match "salmon" in graphviz (#fcaca3 i think?) and then i
-# changed it to be less flashy since there are a lot of chains involved
-# in hierarchical decomp stuff and i want people to take this seriously
-CHAIN_COLOR = "#eedddd"
-# matches "darkgoldenrod1" in graphviz
-CYCLICCHAIN_COLOR = "#ffd163"
-BIPARTITE_COLOR = "#c8a4ed"
+# (the colors are set in config.py's PT2COLOR variable)
 
 UNSELECTED_PATTERN_BORDER_WIDTH = 2
 UNSELECTED_PATTERN_BORDER_COLOR = "#000000"

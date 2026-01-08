@@ -1,4 +1,4 @@
-from . import cy_config, ui_config
+from . import cy_config, ui_config, config
 
 
 def get_cyjs_stylesheet(
@@ -134,31 +134,31 @@ def get_cyjs_stylesheet(
         {
             "selector": "node.bubble",
             "style": {
-                "background-color": cy_config.BUBBLE_COLOR,
+                "background-color": config.PT2COLOR[config.PT_BUBBLE],
             },
         },
         {
             "selector": "node.frayedrope",
             "style": {
-                "background-color": cy_config.FRAYEDROPE_COLOR,
+                "background-color": config.PT2COLOR[config.PT_FRAYEDROPE],
             },
         },
         {
             "selector": "node.bipartite",
             "style": {
-                "background-color": cy_config.BIPARTITE_COLOR,
+                "background-color": config.PT2COLOR[config.PT_BIPARTITE],
             },
         },
         {
             "selector": "node.chain",
             "style": {
-                "background-color": cy_config.CHAIN_COLOR,
+                "background-color": config.PT2COLOR[config.PT_CHAIN],
             },
         },
         {
             "selector": "node.cyclicchain",
             "style": {
-                "background-color": cy_config.CYCLICCHAIN_COLOR,
+                "background-color": config.PT2COLOR[config.PT_CYCLICCHAIN],
             },
         },
         # edges
