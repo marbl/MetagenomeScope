@@ -341,6 +341,28 @@ since Flye produces them at different times in its pipeline.
 <hr/>
 </details>
 
+### Filetypes
+
+<details>
+  <summary><strong>FAQ 7. I got an error saying `Custom record types are not supported in GFA1`?</strong></summary>
+
+<hr/>
+
+As of writing, some assemblers include additional output lines in their GFA files representing other types of data. For example,
+hifiasm and hifiasm-meta include `A`-lines describing alignments. These "custom" lines can cause problems when parsing these graphs,
+because they may not be technically allowed in certain GFA versions.
+
+The simplest way around this is just deleting or commenting out these custom lines. You can do this using `sed`:
+
+```bash
+sed -i -e 's/^A/#A/' hifiasm-out.p_ctg.gfa
+```
+
+[Eventually](https://github.com/marbl/MetagenomeScope/issues/310) I'd like to implement a better solution for this...
+
+<hr/>
+</details>
+
 ## Development documentation
 
 See [`CONTRIBUTING.md`](https://github.com/marbl/MetagenomeScope/blob/main/CONTRIBUTING.md).
