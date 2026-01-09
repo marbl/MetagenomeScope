@@ -145,7 +145,7 @@ label:has(#fcoseAlgSpan).active {
 
 /* i feel like these buttons should be fancy so sure */
 .layout-alg-btn.active {
-    box-shadow: 0 0 5px black;
+    box-shadow: 0 0 3px black;
 }
 
 
