@@ -217,6 +217,8 @@ def incr_size_rank(size_rank, minval, maxval):
 
 
 def get_distance(dist):
+    if len(dist) == 0:
+        raise UIError("No distance specified.")
     try:
         d = int(dist)
     except ValueError:
