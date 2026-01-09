@@ -186,6 +186,70 @@ def test_add_ids_inconsistent_presence():
     )
 
 
+def test_add_ids_overlapping_nodes():
+    dr = DrawResults(
+        [
+            {"data": {"id": "asdf"}},
+            {"data": {"id": "butt"}},
+            {"data": {"source": "asdf", "target": "butt"}},
+        ],
+        nodect=2,
+        edgect=1,
+        nodeids=["asdf", "butt"],
+        edgeids=[0],
+    )
+    dr2 = DrawResults(
+        [
+            {"data": {"id": "asdf2"}},
+            {"data": {"id": "butt2"}},
+            {"data": {"id": "patt!!!"}},
+            {"data": {"id": "hello"}},
+            {"data": {"source": "asdf2", "target": "butt2"}},
+            {"data": {"source": "butt2", "target": "butt2"}},
+        ],
+        nodect=3,
+        edgect=2,
+        pattct=1,
+        nodeids=["asdf", "butt2", "hello"],
+        edgeids=[1, 2],
+    )
+    with pytest.raises(WeirdError) as ei:
+        dr + dr2
+    assert str(ei.value) == "Shared node IDs?"
+
+
+def test_add_ids_overlapping_edges():
+    dr = DrawResults(
+        [
+            {"data": {"id": "asdf"}},
+            {"data": {"id": "butt"}},
+            {"data": {"source": "asdf", "target": "butt"}},
+        ],
+        nodect=2,
+        edgect=1,
+        nodeids=["asdf", "butt"],
+        edgeids=[0],
+    )
+    dr2 = DrawResults(
+        [
+            {"data": {"id": "asdf2"}},
+            {"data": {"id": "butt2"}},
+            {"data": {"id": "patt!!!"}},
+            {"data": {"id": "hello"}},
+            {"data": {"source": "asdf2", "target": "butt2"}},
+            {"data": {"source": "butt2", "target": "butt2"}},
+        ],
+        nodect=3,
+        edgect=2,
+        pattct=1,
+        nodeids=["asdf2", "butt2", "hello"],
+        edgeids=[1, 0],
+    )
+    with pytest.raises(WeirdError) as ei:
+        dr + dr2
+    assert str(ei.value) == "Shared edge IDs?"
+
+
 def test_add():
     dr = DrawResults()
     dr += DrawResults(

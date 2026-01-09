@@ -51,6 +51,8 @@ class DrawResults(object):
         Raises
         ------
         WeirdError
+            If the node/edge/patt counts don't match up with len(eles).
+
             If only one of {nodeids, edgeids} is given.
 
         References
@@ -117,6 +119,7 @@ class DrawResults(object):
         return lsum, asum
 
     def __add__(self, other):
+        """Adds two DrawResults objects and does some validation."""
         ids_given = self.check_ids_given()
         if ids_given != other.check_ids_given():
             raise WeirdError(
@@ -125,6 +128,18 @@ class DrawResults(object):
 
         nodeids = edgeids = None
         if ids_given:
+            # paranoia!!! this should really never happen. This MIGHT slow
+            # things down slightly, but I sincerely doubt it (this should only
+            # be triggered as of writing if there are IDs given, which will
+            # only happen if you are drawn around nodes, in which case probably
+            # there are not a ton of things being drawn anyway). Also actually
+            # lol as of writing we only create a single DR object when drawing
+            # around so literally this branch should never happen anyway.
+            # whatevs
+            if set(self.nodeids) & set(other.nodeids):
+                raise WeirdError("Shared node IDs?")
+            if set(self.edgeids) & set(other.edgeids):
+                raise WeirdError("Shared edge IDs?")
             nodeids = self.nodeids + other.nodeids
             edgeids = self.edgeids + other.edgeids
 
