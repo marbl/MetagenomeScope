@@ -41,3 +41,10 @@ BADGE_AVAILABLE_COLOR = "#6c1ddb"
 
 # classes on the info dialog's tables
 INFO_DIALOG_TABLE_CLASSES = "table table-striped-columns"
+
+###############################################################################
+# Drawing options dialog
+###############################################################################
+
+# default classes on the algorithm descriptions
+ALG_DESC_CLASSES = "layout-alg-desc"

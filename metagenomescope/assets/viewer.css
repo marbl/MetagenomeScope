@@ -561,3 +561,8 @@ button {
 .nowrap {
     white-space: nowrap;
 }
+
+/* i feel like the bottom margin is way too big here */
+.layout-alg-desc p:last-of-type {
+    margin-bottom: 0;
+}

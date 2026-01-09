@@ -131,6 +131,11 @@ def run(
         ]
     )
 
+    dot_text = html.Span("dot", style={"font-style": "italic"})
+    etal_text = html.Span(
+        [html.Span("et al", style={"font-style": "italic"}), ".,"]
+    )
+
     # If there are multiple components, show a "Components" tab in the info
     # dialog with information about these components. Also show various options
     # for selecting which component(s) to draw.
@@ -1223,52 +1228,149 @@ def run(
                                     html.Br(),
                                     html.H5("Layout algorithm"),
                                     html.Div(
-                                        dbc.RadioItems(
-                                            options=[
-                                                {
-                                                    "label": html.Span(
-                                                        [
-                                                            "Graphviz (",
-                                                            html.Span(
-                                                                "dot",
-                                                                style={
-                                                                    "font-style": "italic"
-                                                                },
+                                        [
+                                            html.Div(
+                                                dbc.RadioItems(
+                                                    options=[
+                                                        {
+                                                            "label": html.Span(
+                                                                [
+                                                                    "Graphviz (",
+                                                                    dot_text,
+                                                                    ")",
+                                                                ],
+                                                                id="dotAlgSpan",
                                                             ),
-                                                            ")",
+                                                            "value": ui_config.LAYOUT_DOT,
+                                                        },
+                                                        {
+                                                            "label": html.Span(
+                                                                "Dagre",
+                                                                id="dagreAlgSpan",
+                                                            ),
+                                                            "value": ui_config.LAYOUT_DAGRE,
+                                                        },
+                                                        {
+                                                            "label": html.Span(
+                                                                "fCoSE",
+                                                                id="fcoseAlgSpan",
+                                                            ),
+                                                            "value": ui_config.LAYOUT_FCOSE,
+                                                        },
+                                                    ],
+                                                    value=ui_config.DEFAULT_LAYOUT_ALG,
+                                                    className="btn-group",
+                                                    inputClassName="btn-check",
+                                                    labelClassName="btn btn-outline-dark layout-alg-btn",
+                                                    labelCheckedClassName="active",
+                                                    id="layoutAlgRadio",
+                                                ),
+                                                className="radio-group",
+                                                style={
+                                                    "margin-top": "0.75em",
+                                                    "margin-bottom": "0.75em",
+                                                },
+                                            ),
+                                            html.Div(
+                                                [
+                                                    html.P(
+                                                        [
+                                                            "Hierarchical layout algorithm described in ",
+                                                            html.A(
+                                                                [
+                                                                    "Gansner ",
+                                                                    etal_text,
+                                                                    " 1993",
+                                                                ],
+                                                                href="https://doi.org/10.1109/32.221135",
+                                                                # this tells the browser to open this link
+                                                                # in a new tab; we don't wanna move off the
+                                                                # page if the user has already been drawing
+                                                                # stuff
+                                                                target="_blank",
+                                                            ),
+                                                            ' ("A technique for drawing directed graphs").',
+                                                        ]
+                                                    ),
+                                                    html.P(
+                                                        [
+                                                            "We will run ",
+                                                            dot_text,
+                                                            " recursively, laying out bottom-level ",
+                                                            "patterns first then laying out higher-"
+                                                            "level parts of the graph.",
                                                         ],
-                                                        id="dotAlgSpan",
                                                     ),
-                                                    "value": ui_config.LAYOUT_DOT,
-                                                },
-                                                {
-                                                    "label": html.Span(
-                                                        "Dagre",
-                                                        id="dagreAlgSpan",
-                                                    ),
-                                                    "value": ui_config.LAYOUT_DAGRE,
-                                                },
-                                                {
-                                                    "label": html.Span(
-                                                        "fCoSE",
-                                                        id="fcoseAlgSpan",
-                                                    ),
-                                                    "value": ui_config.LAYOUT_FCOSE,
-                                                },
-                                            ],
-                                            value=ui_config.LAYOUT_DOT,
-                                            className="btn-group",
-                                            inputClassName="btn-check",
-                                            labelClassName="btn btn-outline-dark layout-alg-btn",
-                                            labelCheckedClassName="active",
-                                            id="layoutRadio",
-                                        ),
-                                        className="radio-group",
+                                                ],
+                                                id="dotAlgDesc",
+                                                className=css_config.ALG_DESC_CLASSES
+                                                + (
+                                                    " removedEntirely"
+                                                    if ui_config.DEFAULT_LAYOUT_ALG
+                                                    != ui_config.LAYOUT_DOT
+                                                    else ""
+                                                ),
+                                            ),
+                                            html.Div(
+                                                html.P(
+                                                    [
+                                                        "Client-side hierarchical layout algorithm (",
+                                                        html.A(
+                                                            "GitHub",
+                                                            href="https://github.com/dagrejs/dagre",
+                                                            target="_blank",
+                                                        ),
+                                                        ").",
+                                                    ]
+                                                ),
+                                                id="dagreAlgDesc",
+                                                className=css_config.ALG_DESC_CLASSES
+                                                + (
+                                                    " removedEntirely"
+                                                    if ui_config.DEFAULT_LAYOUT_ALG
+                                                    != ui_config.LAYOUT_DAGRE
+                                                    else ""
+                                                ),
+                                            ),
+                                            html.Div(
+                                                html.P(
+                                                    [
+                                                        "Client-side force-directed layout algorithm ",
+                                                        "described in ",
+                                                        html.A(
+                                                            "Balci & Dogrusoz 2021",
+                                                            href="https://doi.org/10.1109/TVCG.2021.3095303",
+                                                            target="_blank",
+                                                        ),
+                                                        ' ("fCoSE: A fast compound graph layout algorithm with ',
+                                                        'constraint support").',
+                                                    ]
+                                                ),
+                                                id="fcoseAlgDesc",
+                                                className=css_config.ALG_DESC_CLASSES
+                                                + (
+                                                    " removedEntirely"
+                                                    if ui_config.DEFAULT_LAYOUT_ALG
+                                                    != ui_config.LAYOUT_FCOSE
+                                                    else ""
+                                                ),
+                                            ),
+                                        ],
                                         style={"text-align": "center"},
                                     ),
                                 ],
                             ),
                         ],
+                    ),
+                    dbc.ModalFooter(
+                        html.P(
+                            (
+                                "These settings will take "
+                                "effect when you redraw the graph."
+                            ),
+                            style={"font-style": "italic"},
+                        ),
+                        style={"justify-content": "center"},
                     ),
                 ],
                 id="modal",
@@ -1648,6 +1750,32 @@ def run(
     def export_tsv(n_clicks):
         # see https://dash.plotly.com/dash-core-components/download
         return {"filename": "ccstats.tsv", "content": ag.to_tsv()}
+
+    @callback(
+        Output("dotAlgDesc", "className"),
+        Output("dagreAlgDesc", "className"),
+        Output("fcoseAlgDesc", "className"),
+        Input("layoutAlgRadio", "value"),
+        prevent_initial_call=True,
+    )
+    def update_layout_alg_desc(layout_alg):
+        """Toggles which of the algorithm descriptions is available.
+
+        I'm sure there is a more elegant way to do this... maybe by relying on
+        the value of the layoutAlgRadio element sharing text with the IDs of
+        each description element, removing the need for a big if statement? But
+        whatever, this is fine.
+        """
+        vis = css_config.ALG_DESC_CLASSES
+        hid = vis + " removedEntirely"
+        if layout_alg == ui_config.LAYOUT_DOT:
+            return vis, hid, hid
+        elif layout_alg == ui_config.LAYOUT_DAGRE:
+            return hid, vis, hid
+        elif layout_alg == ui_config.LAYOUT_FCOSE:
+            return hid, hid, vis
+        else:
+            raise WeirdError(f"Unrecognized layout alg?: {layout_alg}")
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
