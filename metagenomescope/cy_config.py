@@ -12,8 +12,10 @@ from math import sqrt
 #
 # Anyway, they have slightly different default duration settings, so let's
 # standardize things here so that the user gets the same kinda experience
+#
+# (Actually controlling "animate" - whether or not we do animation at all -
+# is controlled by a checkbox, which defaults to ui_config.DO_LAYOUT_ANIMATION)
 ANIMATION_SETTINGS = {
-    "animate": False,
     "animationDuration": 500,
 }
 

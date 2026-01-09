@@ -798,7 +798,8 @@ def run(
                         id="cy",
                         elements=[],
                         layout=cy_utils.get_layout_params(
-                            ui_config.DEFAULT_LAYOUT_ALG
+                            ui_config.DEFAULT_LAYOUT_ALG,
+                            ui_config.DEFAULT_DRAW_SETTINGS,
                         ),
                         style={
                             "width": "100%",
@@ -1220,6 +1221,10 @@ def run(
                                                 {
                                                     "label": "Show patterns",
                                                     "value": ui_config.SHOW_PATTERNS,
+                                                },
+                                                {
+                                                    "label": "Animate layout (Dagre & fCoSE only)",
+                                                    "value": ui_config.DO_LAYOUT_ANIMATION,
                                                 },
                                             ],
                                             value=ui_config.DEFAULT_DRAW_SETTINGS,
@@ -1904,12 +1909,8 @@ def run(
             )
 
         # Parse other (less easy to mess up) drawing options
-        incl_patterns = False
-        for val in draw_settings:
-            if val == ui_config.SHOW_PATTERNS:
-                incl_patterns = True
-
-        layout_params = cy_utils.get_layout_params(layout_alg)
+        incl_patterns = ui_config.SHOW_PATTERNS in draw_settings
+        layout_params = cy_utils.get_layout_params(layout_alg, draw_settings)
 
         # Okay, now we've done enough checks that this request to draw the
         # graph seems good.

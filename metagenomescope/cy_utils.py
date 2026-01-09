@@ -238,16 +238,16 @@ def get_cyjs_stylesheet(
     return stylesheet
 
 
-def get_layout_params(layout_alg):
+def get_layout_params(layout_alg, draw_settings):
     """Gets layout parameters for Cytoscape.js for a given algorithm."""
+
+    anim_settings = cy_config.ANIMATION_SETTINGS
+    anim_settings["animate"] = ui_config.DO_LAYOUT_ANIMATION in draw_settings
+
     if layout_alg == ui_config.LAYOUT_DAGRE:
-        return {
-            "name": "dagre",
-            "rankDir": "LR",
-            **cy_config.ANIMATION_SETTINGS,
-        }
+        return {"name": "dagre", "rankDir": "LR", **anim_settings}
     elif layout_alg == ui_config.LAYOUT_FCOSE:
-        return {"name": "fcose", **cy_config.ANIMATION_SETTINGS}
+        return {"name": "fcose", **anim_settings}
     elif layout_alg == ui_config.LAYOUT_DOT:
         return {"name": "preset"}
     else:
