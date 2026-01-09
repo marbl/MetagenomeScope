@@ -1829,45 +1829,7 @@ def run(
                     )
 
                 elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
-                    avail_paths = []
-                    if ag.node_centric:
-                        if config.CDI_DRAWN_NODE_IDS in curr_drawn_info:
-                            touched_paths = set()
-                            drawn_basenames = set()
-                            for ni in curr_drawn_info[
-                                config.CDI_DRAWN_NODE_IDS
-                            ]:
-                                bn = ag.nodeid2obj[ni].basename
-                                touched_paths |= ag.objname2pathnames[bn]
-                                drawn_basenames.add(bn)
-                            for p in touched_paths:
-                                if set(ag.pathname2objnames[p]).issubset(
-                                    drawn_basenames
-                                ):
-                                    avail_paths.append(p)
-                        else:
-                            raise WeirdError(
-                                f"No node IDs available in {curr_drawn_info}"
-                            )
-                    else:
-                        if config.CDI_DRAWN_EDGE_IDS in curr_drawn_info:
-                            touched_paths = set()
-                            drawn_edgeids = set()
-                            for ei in curr_drawn_info[
-                                config.CDI_DRAWN_EDGE_IDS
-                            ]:
-                                eid = ag.edgeid2obj[ei].get_userspecified_id()
-                                touched_paths |= ag.objname2pathnames[eid]
-                                drawn_edgeids.add(eid)
-                            for p in touched_paths:
-                                if set(ag.pathname2objnames[p]).issubset(
-                                    drawn_edgeids
-                                ):
-                                    avail_paths.append(p)
-                        else:
-                            raise WeirdError(
-                                f"No edge IDs available in {curr_drawn_info}"
-                            )
+                    avail_paths = ag.get_region_avail_paths(curr_drawn_info)
 
                 else:
                     raise WeirdError(

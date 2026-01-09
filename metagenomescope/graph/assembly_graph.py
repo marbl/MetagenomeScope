@@ -2146,6 +2146,32 @@ class AssemblyGraph(object):
             names.append(self.nodeid2obj[i].name)
         return names
 
+    def get_region_avail_paths(self, curr_drawn_info):
+        id_field = (
+            config.CDI_DRAWN_NODE_IDS
+            if self.node_centric
+            else config.CDI_DRAWN_EDGE_IDS
+        )
+        if id_field not in curr_drawn_info:
+            raise WeirdError(f"{id_field} not in {curr_drawn_info}?")
+
+        avail_paths = []
+        touched_paths = set()
+        drawn_names = set()
+        for i in curr_drawn_info[id_field]:
+            if self.node_centric:
+                name = self.nodeid2obj[i].basename
+            else:
+                name = self.edgeid2obj[i].get_userspecified_id()
+            touched_paths |= self.objname2pathnames[name]
+            drawn_names.add(name)
+
+        for p in touched_paths:
+            if set(self.pathname2objnames[p]).issubset(drawn_names):
+                avail_paths.append(p)
+
+        return avail_paths
+
     def get_neighborhood(self, node_ids, dist):
         """Returns the induced subgraph within a given distance of some nodes.
 
