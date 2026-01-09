@@ -2031,7 +2031,7 @@ def run(
         prevent_initial_call=True,
     )
     def check_nodes_for_search(
-        curr_toasts, node_names, curr_curr_drawn_info, n_clicks, n_submit
+        curr_toasts, node_names, curr_drawn_info, n_clicks, n_submit
     ):
         try:
             # NOTE: this will "expand" split nodes' basenames into their
@@ -2048,24 +2048,33 @@ def run(
                 ),
                 {"requestGood": False},
             )
-
-        # Find which, if any, components are currently drawn
-        if (
-            curr_curr_drawn_info is not None
-            and "cc_nums" in curr_curr_drawn_info
-        ):
-            curr_drawn_cc_nums = set(curr_curr_drawn_info["cc_nums"])
-        else:
-            curr_drawn_cc_nums = set()
-
-        # Which, if any, of the searched-for nodes are currently drawn?
+        # At this point, we know that all of these nodes are in the graph.
+        # Figure out which if any of them are currently drawn.
         drawn_nodes = []
         undrawn_nodes = []
-        for n, c in nn2ccnum.items():
-            if c in curr_drawn_cc_nums:
-                drawn_nodes.append(n)
-            else:
-                undrawn_nodes.append(n)
+
+        if curr_drawn_info is None:
+            # nothing has been drawn yet
+            undrawn_nodes = list(nn2ccnum.keys())
+
+        elif curr_drawn_info["draw_type"] == config.DRAW_ALL:
+            # everything is drawn
+            drawn_nodes = list(nn2ccnum.keys())
+
+        elif curr_drawn_info["draw_type"] == config.DRAW_CCS:
+            # only certain component(s) are drawn
+            curr_drawn_cc_nums = set(curr_drawn_info["cc_nums"])
+            for n, c in nn2ccnum.items():
+                if c in curr_drawn_cc_nums:
+                    drawn_nodes.append(n)
+                else:
+                    undrawn_nodes.append(n)
+
+        elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
+            raise NotImplementedError("SOON")
+
+        else:
+            raise WeirdError(f"Unrecognized draw type: {curr_drawn_info}")
 
         # If none of these nodes are currently drawn, show an error.
         if len(drawn_nodes) == 0:
