@@ -254,9 +254,9 @@ class AssemblyGraph(object):
             id2obj = self.nodeid2obj if self.node_centric else self.edgeid2obj
             (
                 self.ccnum2pathnames,
-                self.pathname2ccnum,
                 self.objname2pathnames,
-            ) = path_utils.map_cc_nums_to_paths(
+                self.pathname2ccnum,
+            ) = path_utils.get_path_maps(
                 id2obj, input_paths, self.node_centric
             )
             # Filter to just the paths that were available in the graph.

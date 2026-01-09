@@ -72,7 +72,7 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
     return paths
 
 
-def map_cc_nums_to_paths(id2obj, paths, nodes=True):
+def get_path_maps(id2obj, paths, nodes=True):
     """Creates mappings between component size ranks and path names.
 
     Parameters
@@ -86,20 +86,33 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
         names contained these lists should only be of nodes or edges, depending
         again on what "nodes" is set to.
 
+        Note that we expect node names here to correspond to the .basename
+        attributes of Node objects in the graph, and we expecte edge names
+        here to correspond to the .data["id"] attributes of Edge objects.
+
     nodes: bool
         If True, assume the paths are on nodes. If False, assume the paths
         are on edges.
 
     Returns
     -------
-    ccnum2pathnames, pathname2ccnum: dict of int -> list, dict of str -> int
+    ccnum2pathnames, objname2pathnames, pathname2ccnum: (
+        dict of int -> list, dict of str -> set, dict of str -> int
+    )
         The first dict maps component size rank to a list of the names of all
-        paths in this component. The second dict is the inverse, mapping each
-        path name to its parent component size rank.
+        paths in this component.
+
+        The second dict maps node or edge "names" (as given in the paths
+        input above) to a set of the names of all paths that traverse this
+        node or edge. (Yes, a set, because a path might traverse a node/edge
+        multiple times.)
+
+        The third dict is the inverse of the first: it maps each path name
+        to its parent component size rank.
 
         Note that some input paths may not be represented in these dicts. If
         a path contains at least one node or edge name that is not in the graph
-        at all, then we will not include this path in either of these dicts.
+        at all, then we will not include this path in any of these dicts.
         If literally no paths meet this criteria then we'll raise an error (see
         below), but as long as one path is "fully represented" then this
         function should not raise an error. (It will emit a warning about these
@@ -217,7 +230,7 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
         for objname in paths[pathname]:
             objname2pathnames[objname].add(pathname)
 
-    return ccnum2pathnames, pathname2ccnum, objname2pathnames
+    return ccnum2pathnames, objname2pathnames, pathname2ccnum
 
 
 def get_available_count_badge_text(num_available, total_num):

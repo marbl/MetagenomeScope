@@ -30,25 +30,37 @@ def test_paths_from_agp_toofew_cols():
         assert "doesn't have exactly 9 tab-separated columns" in str(ei.value)
 
 
-def test_map_cc_nums_to_paths_simple():
+def test_get_path_maps_simple():
     paths = pu.get_paths_from_agp(
         "metagenomescope/tests/input/scaffolds_ecoli.agp"
     )
     ag = AssemblyGraph("metagenomescope/tests/input/E_coli_LastGraph")
-    assert pu.map_cc_nums_to_paths(ag.nodeid2obj, paths) == (
+    assert pu.get_path_maps(ag.nodeid2obj, paths) == (
         {3: ["scaffold_1"]},
+        {
+            "17": {"scaffold_1"},
+            "-35": {"scaffold_1"},
+            "-63": {"scaffold_1"},
+            "259": {"scaffold_1"},
+        },
         {"scaffold_1": 3},
     )
 
 
-def test_map_cc_nums_to_paths_one_missing(caplog):
+def test_get_path_maps_one_missing(caplog):
     ag = AssemblyGraph("metagenomescope/tests/input/E_coli_LastGraph")
     paths = {
         "scaffold_1": ["17", "-35", "-63", "259"],
         "scaff_invis": ["asdf", "ghjk"],
     }
-    assert pu.map_cc_nums_to_paths(ag.nodeid2obj, paths) == (
+    assert pu.get_path_maps(ag.nodeid2obj, paths) == (
         {3: ["scaffold_1"]},
+        {
+            "17": {"scaffold_1"},
+            "-35": {"scaffold_1"},
+            "-63": {"scaffold_1"},
+            "259": {"scaffold_1"},
+        },
         {"scaffold_1": 3},
     )
     assert caplog.records[0].msg == (
@@ -58,15 +70,21 @@ def test_map_cc_nums_to_paths_one_missing(caplog):
     )
 
 
-def test_map_cc_nums_to_paths_missing_due_to_single_missing_node(caplog):
+def test_get_path_maps_missing_due_to_single_missing_node(caplog):
     ag = AssemblyGraph("metagenomescope/tests/input/E_coli_LastGraph")
     paths = {
         "scaffold_1": ["17", "-35", "-63", "259"],
         "scaff_invis": ["asdf", "ghjk"],
         "scaffold_2": ["-35", "bruh"],
     }
-    assert pu.map_cc_nums_to_paths(ag.nodeid2obj, paths) == (
+    assert pu.get_path_maps(ag.nodeid2obj, paths) == (
         {3: ["scaffold_1"]},
+        {
+            "17": {"scaffold_1"},
+            "-35": {"scaffold_1"},
+            "-63": {"scaffold_1"},
+            "259": {"scaffold_1"},
+        },
         {"scaffold_1": 3},
     )
     exp_warning_msg = (
@@ -83,11 +101,11 @@ def test_map_cc_nums_to_paths_missing_due_to_single_missing_node(caplog):
     )
 
 
-def test_map_cc_nums_to_paths_all_missing():
+def test_get_path_maps_all_missing():
     ag = AssemblyGraph("metagenomescope/tests/input/E_coli_LastGraph")
     paths = {"scaff_invis": ["asdf", "ghjk"]}
     with pytest.raises(PathParsingError) as ei:
-        pu.map_cc_nums_to_paths(ag.nodeid2obj, paths)
+        pu.get_path_maps(ag.nodeid2obj, paths)
     assert str(ei.value) == (
         "All of the paths contained nodes that were not present in the graph. "
         "Please verify that your path and graph files match up."
