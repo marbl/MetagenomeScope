@@ -2283,14 +2283,16 @@ class AssemblyGraph(object):
         draw_type = done_flushing["draw_type"]
         incl_patterns = done_flushing["patterns"]
 
-        dr = DrawResults()
-
         if draw_type == config.DRAW_ALL:
+            dr = DrawResults()
             for cc in self.components:
                 dr += cc.to_cyjs(incl_patterns=incl_patterns)
 
         elif draw_type == config.DRAW_CCS:
+            dr = DrawResults()
             for ccn in done_flushing["cc_nums"]:
+                # (self.components is an ordinary 0-indexed python list, but
+                # the component numbers are 1-indexed)
                 cc = self.components[ccn - 1]
                 dr += cc.to_cyjs(incl_patterns=incl_patterns)
 

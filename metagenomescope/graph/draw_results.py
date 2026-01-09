@@ -51,6 +51,22 @@ class DrawResults(object):
         https://dash.plotly.com/cytoscape/elements
         https://js.cytoscape.org/#notation/elements-json
         """
+        ctsum = nodect + edgect + pattct
+        if ctsum != len(eles):
+            raise WeirdError(
+                f"{len(eles):,} ele(s), but ("
+                f"{nodect:,} node(s) + "
+                f"{edgect:,} edge(s) + "
+                f"{pattct:,} patt(s)) = {ctsum:,}?"
+            )
+        if nodeids is not None and len(nodeids) != nodect:
+            raise WeirdError(
+                f"nodect = {nodect:,} but {len(nodeids):,} node IDs given?"
+            )
+        if edgeids is not None and len(edgeids) != edgect:
+            raise WeirdError(
+                f"edgect = {edgect:,} but {len(edgeids):,} edge IDs given?"
+            )
         self.eles = eles
         self.nodect = nodect
         self.edgect = edgect
@@ -78,10 +94,10 @@ class DrawResults(object):
     def __repr__(self):
         return (
             "DrawResults("
-            f"{len(self.eles):,} ele(s), "
-            f"{self.nodect:,} node(s), "
-            f"{self.edgect:,} edge(s), "
-            f"{self.pattct:,} patt(s), "
+            f"{len(self.eles):,} ele(s) ["
+            f"{self.nodect:,} node(s) + "
+            f"{self.edgect:,} edge(s) + "
+            f"{self.pattct:,} patt(s)], "
             f"{'ids given' if self.check_ids_given() else 'ids not given'})"
         )
 
