@@ -20,6 +20,10 @@ SCREENSHOT_JPG = "jpg"
 SCREENSHOT_SVG = "svg"
 DEFAULT_SCREENSHOT_FILETYPE = SCREENSHOT_PNG
 
+LAYOUT_DOT = "dot"
+LAYOUT_DAGRE = "dagre"
+LAYOUT_FCOSE = "fcose"
+
 ###############################################################################
 # Component size rank selection
 ###############################################################################

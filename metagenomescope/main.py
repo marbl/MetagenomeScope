@@ -1194,6 +1194,10 @@ def run(
                         [
                             html.Div(
                                 [
+                                    html.H5("Modifiers"),
+                                    # Eventually we can add other stuff here,
+                                    # e.g. "filter nodes/edges with < X cov"
+                                    #
                                     # I'm sticking with a standard dcc.Checklist
                                     # (rather than dbc.Checklist) because I don't
                                     # like the default formatting of their inline
@@ -1203,20 +1207,68 @@ def run(
                                     # and label... maybe I am just doing something
                                     # wrong, but I think the UX of the dcc.Checklist
                                     # is better.
-                                    dcc.Checklist(
-                                        options=[
-                                            {
-                                                "label": "Show patterns",
-                                                "value": ui_config.SHOW_PATTERNS,
-                                            },
-                                        ],
-                                        value=ui_config.DEFAULT_DRAW_SETTINGS,
-                                        id="drawSettingsChecklist",
-                                    )
+                                    html.Div(
+                                        dcc.Checklist(
+                                            options=[
+                                                {
+                                                    "label": "Show patterns",
+                                                    "value": ui_config.SHOW_PATTERNS,
+                                                },
+                                            ],
+                                            value=ui_config.DEFAULT_DRAW_SETTINGS,
+                                            id="drawSettingsChecklist",
+                                        ),
+                                        className="form-check",
+                                    ),
+                                    html.Br(),
+                                    html.H5("Layout algorithm"),
+                                    html.Div(
+                                        dbc.RadioItems(
+                                            options=[
+                                                {
+                                                    "label": html.Span(
+                                                        [
+                                                            "Graphviz (",
+                                                            html.Span(
+                                                                "dot",
+                                                                style={
+                                                                    "font-style": "italic"
+                                                                },
+                                                            ),
+                                                            ")",
+                                                        ],
+                                                        id="dotAlgSpan",
+                                                    ),
+                                                    "value": ui_config.LAYOUT_DOT,
+                                                },
+                                                {
+                                                    "label": html.Span(
+                                                        "Dagre",
+                                                        id="dagreAlgSpan",
+                                                    ),
+                                                    "value": ui_config.LAYOUT_DAGRE,
+                                                },
+                                                {
+                                                    "label": html.Span(
+                                                        "fCoSE",
+                                                        id="fcoseAlgSpan",
+                                                    ),
+                                                    "value": ui_config.LAYOUT_FCOSE,
+                                                },
+                                            ],
+                                            value=ui_config.LAYOUT_DOT,
+                                            className="btn-group",
+                                            inputClassName="btn-check",
+                                            labelClassName="btn btn-outline-dark layout-alg-btn",
+                                            labelCheckedClassName="active",
+                                            id="layoutRadio",
+                                        ),
+                                        className="radio-group",
+                                        style={"text-align": "center"},
+                                    ),
                                 ],
-                                className="form-check",
                             ),
-                        ]
+                        ],
                     ),
                 ],
                 id="modal",

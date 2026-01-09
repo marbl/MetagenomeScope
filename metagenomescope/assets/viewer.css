@@ -127,6 +127,28 @@ body {
     transition: none !important;
 }
 
+/* use fancy colors for each layout algorithm */
+label:has(#dotAlgSpan).active {
+    /* colorpicked from https://graphviz.org/ */
+    background-color: #30638e;
+}
+label:has(#dagreAlgSpan).active {
+    /* colorpicked from the nodes in the dagre example used on cy.js' website,
+     * but those were ALSO blue, so i just kinda made them dark green ish */
+    background-color: #196a0f;
+}
+label:has(#fcoseAlgSpan).active {
+    /* colorpicked from the cose example used on cy.js' website, because the
+     * nodes in the fcose example were ALSO blue lol */
+    background-color: #b32266;
+}
+
+/* i feel like these buttons should be fancy so sure */
+.layout-alg-btn.active {
+    box-shadow: 0 0 5px black;
+}
+
+
 /* input group text looks JUST SLIGHTLY off when put next to a button. maybe this
  * is a symptom of other problems but whatever. anyway this can be fixed by copying
  * the button border style, i.e. setting
