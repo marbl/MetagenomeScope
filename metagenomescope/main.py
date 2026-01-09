@@ -1746,20 +1746,10 @@ def run(
         Output("currDrawnText", "children"),
         Output("currDrawnCounts", "children"),
         Output("currDrawnInfo", "data"),
-        State("cy", "elements"),
-        State("currDrawnText", "children"),
-        State("currDrawnCounts", "children"),
-        State("currDrawnInfo", "data"),
         Input("doneFlushing", "data"),
         prevent_initial_call=True,
     )
-    def draw(
-        curr_cy_eles,
-        curr_curr_drawn_text,
-        curr_curr_drawn_counts,
-        curr_curr_drawn_info,
-        curr_done_flushing,
-    ):
+    def draw(curr_done_flushing):
         # as far as I can tell, this gets triggered whenever doneFlushing is
         # updated -- even if it is updated to the exact same thing as it was
         # before. To avoid making us redraw the entire graph if the user just
@@ -1795,12 +1785,7 @@ def run(
             )
         else:
             logging.debug("Caught a bad drawing request. Not redrawing.")
-            return (
-                curr_cy_eles,
-                curr_curr_drawn_text,
-                curr_curr_drawn_counts,
-                curr_curr_drawn_info,
-            )
+            return (no_update, no_update, no_update, no_update)
 
     # When drawing is finished, update the paths div with info about all
     # paths selectable for the currently drawn region of the graph
@@ -2095,7 +2080,7 @@ def run(
 
         # By this point, we know that the request is good; at least one of
         # these nodes is currently drawn, so we can at least show *something.*
-        toasts = curr_toasts
+        toasts = no_update
         if len(undrawn_nodes) > 0:
             # We will reach this case if someone searched for a list of nodes,
             # and some but not all of these nodes are not currently drawn.
