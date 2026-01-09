@@ -1768,8 +1768,8 @@ def run(
             logging.debug(f"...Done. {lsum} {asum}.")
             curr_drawn_info = curr_done_flushing.copy()
             if dr.check_ids_given():
-                curr_drawn_info["drawn_node_ids"] = dr.nodeids
-                curr_drawn_info["drawn_edge_ids"] = dr.nodeids
+                curr_drawn_info[config.CDI_DRAWN_NODE_IDS] = dr.nodeids
+                curr_drawn_info[config.CDI_DRAWN_EDGE_IDS] = dr.edgeids
             return (
                 dr.eles,
                 html.Span(
@@ -2038,9 +2038,9 @@ def run(
     ):
         try:
             # NOTE: this will "expand" split nodes' basenames into their
-            # splits (for example, "40" will be represented here with two
-            # entries: "40-L" -> (cc num), and "40-R" -> (cc num).
-            nn2ccnum = ag.get_nodename2ccnum(node_names)
+            # splits (for example, "40" will be represented in nn2ccnum with
+            # two entries: "40-L" -> (cc num), and "40-R" -> (cc num)).
+            nodeids, nn2ccnum = ag.get_node_ids_and_cc_map(node_names)
         except UIError as err:
             # If we fail at this point, it is because either the input text
             # is empty / malformed or because it includes at least one node
@@ -2074,8 +2074,15 @@ def run(
                     undrawn_nodes.append(n)
 
         elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
-            raise NotImplementedError("SOON")
-
+            # some weird subregion of the graph is drawn, as specified in
+            # currDrawnInfo
+            if config.CDI_DRAWN_NODE_IDS in curr_drawn_info:
+                for ni in nodeids:
+                    name = ag.nodeid2obj[ni].name
+                    if ni in curr_drawn_info[config.CDI_DRAWN_NODE_IDS]:
+                        drawn_nodes.append(name)
+                    else:
+                        undrawn_nodes.append(name)
         else:
             raise WeirdError(f"Unrecognized draw type: {curr_drawn_info}")
 

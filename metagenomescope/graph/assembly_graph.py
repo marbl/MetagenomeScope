@@ -2037,7 +2037,7 @@ class AssemblyGraph(object):
     def _search(self, node_name_text, get_cc_map=False, get_ids=False):
         """Searches through the graph and accumulates info about nodes."""
 
-        if (get_cc_map and get_ids) or (not get_cc_map and not get_ids):
+        if not get_cc_map and not get_ids:
             # yeah yeah yeah you could write out the bitwise XNOR or whatever
             # but this is clearer imo
             raise WeirdError("Only one of these should be specified.")
@@ -2051,15 +2051,22 @@ class AssemblyGraph(object):
                 for obj in self.nodename2objs[name]:
                     if get_ids:
                         ids.add(obj.unique_id)
-                    elif get_cc_map:
+                    if get_cc_map:
                         nodename2ccnum[obj.name] = obj.cc_num
-                    else:
-                        raise WeirdError("bruh")
             else:
                 # Okay this node just straight up isn't in the graph
                 unfound_nodes.add(name)
         ui_utils.fail_if_unfound_nodes(unfound_nodes)
-        return list(ids) if get_ids else nodename2ccnum
+        if get_ids:
+            if get_cc_map:
+                return (list(ids), nodename2ccnum)
+            else:
+                return list(ids)
+        else:
+            if get_cc_map:
+                return nodename2ccnum
+            else:
+                raise WeirdError("bruh")
 
     def get_nodename2ccnum(self, node_name_text):
         """Returns a mapping of node names -> cc nums, given user-input text.
@@ -2122,8 +2129,10 @@ class AssemblyGraph(object):
         UIError
             For the same reasons as get_nodename2ccnum().
         """
-
         return self._search(node_name_text, get_ids=True)
+
+    def get_node_ids_and_cc_map(self, node_name_text):
+        return self._search(node_name_text, get_ids=True, get_cc_map=True)
 
     def get_node_names_from_ids(self, node_ids):
         # include both A-L and A-R, if both IDs are in the input

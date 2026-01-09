@@ -35,14 +35,16 @@ def test_init_inconsistent_node_id_counts():
             [
                 {"data": {"id": "asdf"}},
                 {"data": {"id": "butt"}},
+                {"data": {"id": "aosidj"}},
+                {"data": {"id": "oijadfsij"}},
                 {"data": {"source": "asdf", "target": "butt"}},
             ],
-            nodect=2,
+            nodect=4,
             edgect=1,
             nodeids=["asdf", "butt", "aosidj"],
             edgeids=["oijadsf"],
         )
-    assert str(ei.value) == "nodect = 2 but 3 node ID(s) given?"
+    assert str(ei.value) == "nodect = 4 but 3 node ID(s) given?"
 
 
 def test_init_inconsistent_edge_id_counts():
@@ -52,13 +54,30 @@ def test_init_inconsistent_edge_id_counts():
                 {"data": {"id": "asdf"}},
                 {"data": {"id": "butt"}},
                 {"data": {"source": "asdf", "target": "butt"}},
+                {"data": {"source": "asdf", "target": "butt"}},
+                {"data": {"source": "asdf", "target": "butt"}},
             ],
             nodect=2,
-            edgect=1,
+            edgect=3,
             nodeids=["asdf", "butt"],
             edgeids=["oijadsf", "asodifdoihowu"],
         )
-    assert str(ei.value) == "edgect = 1 but 2 edge ID(s) given?"
+    assert str(ei.value) == "edgect = 3 but 2 edge ID(s) given?"
+
+def test_init_inconsistent_edge_id_counts_but_lower_ok():
+    # (since fake edges aren't included in edgect)
+    dr = DrawResults(
+            [
+                {"data": {"id": "asdf"}},
+                {"data": {"id": "butt"}},
+                {"data": {"source": "asdf", "target": "butt"}},
+            ],
+            nodect=2,
+            edgect=0,
+            nodeids=["asdf", "butt"],
+            edgeids=["oijadsf"],
+        )
+    assert dr.edgect == 0
 
 
 def test_init_inconsistent_ids_given_onlynodes():

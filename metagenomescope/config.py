@@ -206,6 +206,11 @@ DRAW_ALL = "all"
 DRAW_CCS = "ccs"
 DRAW_AROUND = "around"
 
+# Optional ID fields, used sometimes in the JSON output of draw() (aka
+# "currDrawnInfo")
+CDI_DRAWN_NODE_IDS = "drawn_node_ids"
+CDI_DRAWN_EDGE_IDS = "drawn_edge_ids"
+
 # Some context on port numbers, for anyone who stumbles upon this in the future
 # (including future me):
 #

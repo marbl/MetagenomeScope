@@ -51,7 +51,9 @@ class DrawResults(object):
         Raises
         ------
         WeirdError
-            If the node/edge/patt counts don't match up with len(eles).
+            If the node/edge/patt counts sum to something > len(eles).
+            (If they are <= len(eles), then this is okay, since these
+            counts can undercount len(eles) due to split nodes/fake edges.)
 
             If only one of {nodeids, edgeids} is given.
 
@@ -61,18 +63,18 @@ class DrawResults(object):
         https://js.cytoscape.org/#notation/elements-json
         """
         ctsum = nodect + edgect + pattct
-        if ctsum != len(eles):
+        if ctsum > len(eles):
             raise WeirdError(
                 f"{len(eles):,} ele(s), but ("
                 f"{nodect:,} node(s) + "
                 f"{edgect:,} edge(s) + "
                 f"{pattct:,} patt(s)) = {ctsum:,}?"
             )
-        if nodeids is not None and len(nodeids) != nodect:
+        if nodeids is not None and nodect > len(nodeids):
             raise WeirdError(
                 f"nodect = {nodect:,} but {len(nodeids):,} node ID(s) given?"
             )
-        if edgeids is not None and len(edgeids) != edgect:
+        if edgeids is not None and edgect > len(edgeids):
             raise WeirdError(
                 f"edgect = {edgect:,} but {len(edgeids):,} edge ID(s) given?"
             )
