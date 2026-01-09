@@ -38,6 +38,13 @@ class DrawResults(object):
             immediately easy way to figure out which nodes are drawn when we
             go to do stuff like searching).
 
+            Also note that IDs should generally be integers (at least that's
+            how the .unique_id properties of Node/Edge/Pattern objects are
+            set), but we don't really care here if these are strings or
+            whatever. (I mean the caller might care... but if you are, say,
+            me writing tests for this and you used strings for all your IDs,
+            then whatever.)
+
         edgeids: None or list of int
             List of edge IDs that were drawn. Same deal as with nodeids.
 
@@ -61,11 +68,11 @@ class DrawResults(object):
             )
         if nodeids is not None and len(nodeids) != nodect:
             raise WeirdError(
-                f"nodect = {nodect:,} but {len(nodeids):,} node IDs given?"
+                f"nodect = {nodect:,} but {len(nodeids):,} node ID(s) given?"
             )
         if edgeids is not None and len(edgeids) != edgect:
             raise WeirdError(
-                f"edgect = {edgect:,} but {len(edgeids):,} edge IDs given?"
+                f"edgect = {edgect:,} but {len(edgeids):,} edge ID(s) given?"
             )
         self.eles = eles
         self.nodect = nodect

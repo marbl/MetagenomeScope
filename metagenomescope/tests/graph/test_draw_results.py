@@ -29,6 +29,92 @@ def test_init_inconsistent_lengths():
     )
 
 
+def test_init_inconsistent_node_id_counts():
+    with pytest.raises(WeirdError) as ei:
+        DrawResults(
+            [
+                {"data": {"id": "asdf"}},
+                {"data": {"id": "butt"}},
+                {"data": {"source": "asdf", "target": "butt"}},
+            ],
+            nodect=2,
+            edgect=1,
+            nodeids=["asdf", "butt", "aosidj"],
+            edgeids=["oijadsf"],
+        )
+    assert str(ei.value) == "nodect = 2 but 3 node ID(s) given?"
+
+
+def test_init_inconsistent_edge_id_counts():
+    with pytest.raises(WeirdError) as ei:
+        DrawResults(
+            [
+                {"data": {"id": "asdf"}},
+                {"data": {"id": "butt"}},
+                {"data": {"source": "asdf", "target": "butt"}},
+            ],
+            nodect=2,
+            edgect=1,
+            nodeids=["asdf", "butt"],
+            edgeids=["oijadsf", "asodifdoihowu"],
+        )
+    assert str(ei.value) == "edgect = 1 but 2 edge ID(s) given?"
+
+
+def test_init_inconsistent_ids_given_onlynodes():
+    with pytest.raises(WeirdError) as ei:
+        DrawResults(
+            [
+                {"data": {"id": "asdf"}},
+                {"data": {"id": "butt"}},
+                {"data": {"source": "asdf", "target": "butt"}},
+            ],
+            nodect=2,
+            edgect=1,
+            nodeids=["asdf", "butt"],
+        )
+    assert str(ei.value) == "Node IDs but not edge IDs given?"
+
+
+def test_init_inconsistent_ids_given_onlyedges():
+    with pytest.raises(WeirdError) as ei:
+        DrawResults(
+            [
+                {"data": {"id": "asdf"}},
+                {"data": {"id": "butt"}},
+                {"data": {"source": "asdf", "target": "butt"}},
+            ],
+            nodect=2,
+            edgect=1,
+            edgeids=["asodif"],
+        )
+    assert str(ei.value) == "Edge IDs but not node IDs given?"
+
+
+def test_init_good_ids():
+    dr = DrawResults(
+        [
+            {"data": {"id": "asdf"}},
+            {"data": {"id": "butt"}},
+            {"data": {"source": "asdf", "target": "butt"}},
+        ],
+        nodect=2,
+        edgect=1,
+        nodeids=["asdf", "butt"],
+        edgeids=["asodif"],
+    )
+    assert dr.eles == [
+        {"data": {"id": "asdf"}},
+        {"data": {"id": "butt"}},
+        {"data": {"source": "asdf", "target": "butt"}},
+    ]
+    assert dr.nodect == 2
+    assert dr.edgect == 1
+    assert dr.pattct == 0
+    assert dr.nodeids == ["asdf", "butt"]
+    assert dr.edgeids == ["asodif"]
+
+
 def test_add():
     dr = DrawResults()
     dr += DrawResults(
