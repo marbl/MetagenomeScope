@@ -115,6 +115,77 @@ def test_init_good_ids():
     assert dr.edgeids == ["asodif"]
 
 
+def test_add_ids():
+    dr = DrawResults(
+        [
+            {"data": {"id": "asdf"}},
+            {"data": {"id": "butt"}},
+            {"data": {"source": "asdf", "target": "butt"}},
+        ],
+        nodect=2,
+        edgect=1,
+        nodeids=["asdf", "butt"],
+        edgeids=[0],
+    )
+    dr2 = DrawResults(
+        [
+            {"data": {"id": "asdf2"}},
+            {"data": {"id": "butt2"}},
+            {"data": {"id": "patt!!!"}},
+            {"data": {"id": "hello"}},
+            {"data": {"source": "asdf2", "target": "butt2"}},
+            {"data": {"source": "butt2", "target": "butt2"}},
+        ],
+        nodect=3,
+        edgect=2,
+        pattct=1,
+        nodeids=["asdf2", "butt2", "hello"],
+        edgeids=[1, 2],
+    )
+    dr3 = dr + dr2
+    assert dr3.nodect == 5
+    assert dr3.edgect == 3
+    assert dr3.pattct == 1
+    assert dr3.nodeids == ["asdf", "butt", "asdf2", "butt2", "hello"]
+    assert dr3.edgeids == [0, 1, 2]
+
+
+def test_add_ids_inconsistent_presence():
+    dr = DrawResults(
+        [
+            {"data": {"id": "asdf"}},
+            {"data": {"id": "butt"}},
+            {"data": {"source": "asdf", "target": "butt"}},
+        ],
+        nodect=2,
+        edgect=1,
+    )
+    dr2 = DrawResults(
+        [
+            {"data": {"id": "asdf2"}},
+            {"data": {"id": "butt2"}},
+            {"data": {"id": "patt!!!"}},
+            {"data": {"id": "hello"}},
+            {"data": {"source": "asdf2", "target": "butt2"}},
+            {"data": {"source": "butt2", "target": "butt2"}},
+        ],
+        nodect=3,
+        edgect=2,
+        pattct=1,
+        nodeids=["asdf2", "butt2", "hello"],
+        edgeids=[1, 2],
+    )
+    with pytest.raises(WeirdError) as ei:
+        dr + dr2
+    assert str(ei.value) == (
+        "Can't add "
+        "DrawResults(3 ele(s) [2 node(s) + 1 edge(s) + 0 patt(s)], "
+        "ids not given) and "
+        "DrawResults(6 ele(s) [3 node(s) + 2 edge(s) + 1 patt(s)], "
+        "ids given): inconsistent ID presence"
+    )
+
+
 def test_add():
     dr = DrawResults()
     dr += DrawResults(
@@ -151,4 +222,20 @@ def test_repr():
     assert repr(dr) == (
         "DrawResults(3 ele(s) [2 node(s) + 1 edge(s) + 0 patt(s)], "
         "ids not given)"
+    )
+
+
+def test_get_fancy_count_text():
+    dr = DrawResults(
+        [
+            {"data": {"id": "asdf"}},
+            {"data": {"id": "butt"}},
+            {"data": {"source": "asdf", "target": "butt"}},
+        ],
+        nodect=2,
+        edgect=1,
+    )
+    assert dr.get_fancy_count_text() == (
+        "3 eles",
+        "(2 nodes, 1 edge, 0 patterns)",
     )
