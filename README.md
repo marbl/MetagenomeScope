@@ -344,13 +344,13 @@ since Flye produces them at different times in its pipeline.
 ### Filetypes
 
 <details>
-  <summary><strong>FAQ 7. I got an error saying `Custom record types are not supported in GFA1`?</strong></summary>
+  <summary><strong>FAQ 7. I got an error saying <code>Custom record types are not supported in GFA1</code>?</strong></summary>
 
 <hr/>
 
 As of writing, some assemblers include additional output lines in their GFA files representing other types of data. For example,
-hifiasm and hifiasm-meta include `A`-lines describing alignments. These "custom" lines can cause problems when parsing these graphs,
-because they may not be technically allowed in certain GFA versions.
+hifiasm and hifiasm-meta include [`A`-lines describing alignments](https://github.com/chhylp123/hifiasm/issues/91). These
+"custom" lines can cause problems when parsing these graphs, because they may not be technically allowed in certain GFA versions.
 
 The simplest way around this is just deleting or commenting out these custom lines. You can do this using `sed`:
 
