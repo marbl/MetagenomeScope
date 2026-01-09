@@ -1,4 +1,5 @@
 from . import cy_config, ui_config, config
+from .errors import WeirdError
 
 
 def get_cyjs_stylesheet(
@@ -235,3 +236,19 @@ def get_cyjs_stylesheet(
         }
     )
     return stylesheet
+
+
+def get_layout_params(layout_alg):
+    """Gets layout parameters for Cytoscape.js for a given algorithm."""
+    if layout_alg == ui_config.LAYOUT_DAGRE:
+        return {
+            "name": "dagre",
+            "rankDir": "LR",
+            **cy_config.ANIMATION_SETTINGS,
+        }
+    elif layout_alg == ui_config.LAYOUT_FCOSE:
+        return {"name": "fcose", **cy_config.ANIMATION_SETTINGS}
+    elif layout_alg == ui_config.LAYOUT_DOT:
+        return {"name": "preset"}
+    else:
+        raise WeirdError(f"Unrecogized layout algorithm: {layout_alg}")

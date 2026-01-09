@@ -797,7 +797,9 @@ def run(
                     cyto.Cytoscape(
                         id="cy",
                         elements=[],
-                        layout={"name": "dagre", "rankDir": "LR"},
+                        layout=cy_utils.get_layout_params(
+                            ui_config.DEFAULT_LAYOUT_ALG
+                        ),
                         style={
                             "width": "100%",
                             "height": "100%",
@@ -1780,6 +1782,7 @@ def run(
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
         Output("cy", "elements", allow_duplicate=True),
+        Output("cy", "layout"),
         Output("doneFlushing", "data"),
         State("toastHolder", "children"),
         State("ccDrawingSelect", "value"),
@@ -1788,6 +1791,7 @@ def run(
         State("ccAroundNodesNameSelector", "value"),
         State("ccAroundNodesDistSelector", "value"),
         State("drawSettingsChecklist", "value"),
+        State("layoutAlgRadio", "value"),
         Input("drawButton", "n_clicks"),
         Input("ccSizeRankSelector", "n_submit"),
         Input("ccNodeNameSelector", "n_submit"),
@@ -1803,6 +1807,7 @@ def run(
         around_nodes_names,
         around_nodes_dist,
         draw_settings,
+        layout_alg,
         draw_btn_n_clicks,
         size_rank_input_n_submit,
         node_name_input_n_submit,
@@ -1838,6 +1843,7 @@ def run(
                         curr_toasts, "Size rank error", str(err)
                     ),
                     no_update,
+                    no_update,
                     {"requestGood": False},
                 )
             draw_type = config.DRAW_CCS
@@ -1850,6 +1856,7 @@ def run(
                     ui_utils.add_error_toast(
                         curr_toasts, "Node name error", str(err)
                     ),
+                    no_update,
                     no_update,
                     {"requestGood": False},
                 )
@@ -1865,6 +1872,7 @@ def run(
                         curr_toasts, "Node name error", str(err)
                     ),
                     no_update,
+                    no_update,
                     {"requestGood": False},
                 )
             try:
@@ -1874,6 +1882,7 @@ def run(
                     ui_utils.add_error_toast(
                         curr_toasts, "Distance error", str(err)
                     ),
+                    no_update,
                     no_update,
                     {"requestGood": False},
                 )
@@ -1890,6 +1899,7 @@ def run(
                     f'Unrecognized method "{cc_drawing_selection_type}".',
                 ),
                 no_update,
+                no_update,
                 {"requestGood": False},
             )
 
@@ -1898,6 +1908,8 @@ def run(
         for val in draw_settings:
             if val == ui_config.SHOW_PATTERNS:
                 incl_patterns = True
+
+        layout_params = cy_utils.get_layout_params(layout_alg)
 
         # Okay, now we've done enough checks that this request to draw the
         # graph seems good.
@@ -1911,9 +1923,15 @@ def run(
         # Let's clear all elements drawn in Cytoscape.js (by returning []
         # for #cy's "elements") and trigger draw() (by updating #doneFlushing),
         # which will then add new elements to the Cytoscape.js instance.
+        #
+        # Also! This is where we update the layout, if the user changed it.
+        # Yeah yeah you could try to update the layout as soon as the user
+        # changes the radio button since (Dash-)Cytoscape does support that,
+        # but I feel like that is impractical for large graphs
         return (
             no_update,
             [],
+            layout_params,
             {
                 "requestGood": True,
                 "draw_type": draw_type,
