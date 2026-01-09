@@ -88,7 +88,8 @@ def get_path_maps(id2obj, paths, nodes=True):
 
         Note that we expect node names here to correspond to the .basename
         attributes of Node objects in the graph, and we expecte edge names
-        here to correspond to the .data["id"] attributes of Edge objects.
+        here to correspond to the .data["id"] attributes of Edge objects (the
+        exact behavior is governed by Edge.get_userspecified_id()).
 
     nodes: bool
         If True, assume the paths are on nodes. If False, assume the paths
@@ -144,7 +145,7 @@ def get_path_maps(id2obj, paths, nodes=True):
         if nodes:
             objname = obj.basename
         else:
-            objname = obj.data["id"]
+            objname = obj.get_userspecified_id()
         # Is this node or edge present in at least one of the input paths?
         if objname in objname2pathnames:
             # Yes, it is. Go through all paths it is contained in.

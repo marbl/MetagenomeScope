@@ -214,6 +214,15 @@ class Edge(object):
     def set_cc_num(self, cc_num):
         self.cc_num = cc_num
 
+    def has_userspecified_id(self):
+        return "id" in self.data
+
+    def get_userspecified_id(self):
+        if self.has_userspecified_id():
+            return self.data["id"]
+        else:
+            raise WeirdError(f"No 'id' field for {self}. Data: {self.data}")
+
     def to_dot(self, level="new", indent=INDENT):
         # TODO make all of these constants (dashed, colors, penwidth min/max)
         # into config/parameters...
@@ -265,11 +274,11 @@ class Edge(object):
             "classes": f"edgerand{self.rand_idx}",
         }
         # pass LJA / Flye edge IDs to the viz, for selection / etc
-        if "id" in self.data:
+        if self.has_userspecified_id():
             # NOTE: "id" has a special meaning in Cytoscape.js, and if
             # we use "id" here then this overwrites that and causes weird
             # problems in the viz. So just use something generic instead
-            ele["data"]["edgeID"] = self.data["id"]
+            ele["data"]["edgeID"] = self.get_userspecified_id()
 
         if incl_patterns and self.parent_id is not None:
             ele["data"]["parent"] = str(self.parent_id)

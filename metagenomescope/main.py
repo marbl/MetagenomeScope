@@ -1856,8 +1856,7 @@ def run(
                             for ei in curr_drawn_info[
                                 config.CDI_DRAWN_EDGE_IDS
                             ]:
-                                # TODO abstract btwn this and path utils
-                                eid = ag.edgeid2obj[ei].data["id"]
+                                eid = ag.edgeid2obj[ei].get_userspecified_id()
                                 touched_paths |= ag.objname2pathnames[eid]
                                 drawn_edgeids.add(eid)
                             for p in touched_paths:
