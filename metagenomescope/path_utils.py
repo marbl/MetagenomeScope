@@ -200,10 +200,24 @@ def map_cc_nums_to_paths(id2obj, paths, nodes=True):
         )
 
     ccnum2pathnames = defaultdict(list)
+    # while we're at it, recreate the mapping of object names to path names
+    # (for nodes these are basenames, e.g. "40" instead of "40-L" or "40-R").
+    # a big distinction here is that now we have filtered out missing paths,
+    # which is why we don't just reuse the earlier version of this mapping
+    # that we created.
+    #
+    # (... not to imply that this could not be made more efficient bc it totes
+    # could, this is lazy and i'm tired)
+    #
+    # also, again, we use a set here just in case a path traverses an obj
+    # multiple times
+    objname2pathnames = defaultdict(set)
     for pathname in pathname2ccnum:
         ccnum2pathnames[pathname2ccnum[pathname]].append(pathname)
+        for objname in paths[pathname]:
+            objname2pathnames[objname].add(pathname)
 
-    return ccnum2pathnames, pathname2ccnum
+    return ccnum2pathnames, pathname2ccnum, objname2pathnames
 
 
 def get_available_count_badge_text(num_available, total_num):

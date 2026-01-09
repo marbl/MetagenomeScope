@@ -240,8 +240,11 @@ class AssemblyGraph(object):
         # (whether we think these are nodes or edges is determined by
         # self.node_centric)
         self.pathname2objnames = {}
+        # Other mappings that are useful for determining available paths, etc.
+        # This is kind of inelegant but whatever
         self.ccnum2pathnames = None
         self.pathname2ccnum = None
+        self.objname2pathnames = None
         # TODO can update path lookup stuff to use nodename2objs - faster
         if self.agp_filename is not None:
             logger.debug(f'  Loading input AGP file "{self.agp_basename}"...')
@@ -249,10 +252,12 @@ class AssemblyGraph(object):
                 self.agp_filename, self.orientation_in_name
             )
             id2obj = self.nodeid2obj if self.node_centric else self.edgeid2obj
-            self.ccnum2pathnames, self.pathname2ccnum = (
-                path_utils.map_cc_nums_to_paths(
-                    id2obj, input_paths, self.node_centric
-                )
+            (
+                self.ccnum2pathnames,
+                self.pathname2ccnum,
+                self.objname2pathnames,
+            ) = path_utils.map_cc_nums_to_paths(
+                id2obj, input_paths, self.node_centric
             )
             # Filter to just the paths that were available in the graph.
             for p in self.pathname2ccnum:

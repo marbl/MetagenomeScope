@@ -1819,31 +1819,62 @@ def run(
             ct = 0
             if curr_drawn_info is not None:
                 if curr_drawn_info["draw_type"] == config.DRAW_ALL:
-                    avail_paths = ag.pathname2objnames
+                    avail_paths = ag.pathname2objnames.keys()
+
                 elif curr_drawn_info["draw_type"] == config.DRAW_CCS:
                     # https://stackoverflow.com/a/33277438
                     avail_paths = itertools.chain.from_iterable(
                         ag.ccnum2pathnames[ccnum]
                         for ccnum in curr_drawn_info["cc_nums"]
                     )
+
                 elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
                     avail_paths = []
-                    # nodeids, edgeids, _ = ag.get_ids_in_neighborhood(
-                    #     curr_drawn_info["around_node_ids"],
-                    #     curr_drawn_info["around_dist"],
-                    #     curr_drawn_info["patterns"],
-                    # )
-                    # # TODO this won't work because the scaffolds' edge IDs are diff from
-                    # # drawn IDs - just move this logic to AG
-                    # tosearch = nodeids if ag.node_centric else edgeids
-                    # print(tosearch, ag.paths)
-                    # for p in ag.paths:
-                    #     if set(ag.paths[p]).issubset(tosearch):
-                    #         avail_paths.append(p)
+                    if ag.node_centric:
+                        if config.CDI_DRAWN_NODE_IDS in curr_drawn_info:
+                            touched_paths = set()
+                            drawn_basenames = set()
+                            for ni in curr_drawn_info[
+                                config.CDI_DRAWN_NODE_IDS
+                            ]:
+                                bn = ag.nodeid2obj[ni].basename
+                                touched_paths |= ag.objname2pathnames[bn]
+                                drawn_basenames.add(bn)
+                            for p in touched_paths:
+                                if set(ag.pathname2objnames[p]).issubset(
+                                    drawn_basenames
+                                ):
+                                    avail_paths.append(p)
+                        else:
+                            raise WeirdError(
+                                f"No node IDs available in {curr_drawn_info}"
+                            )
+                    else:
+                        if config.CDI_DRAWN_EDGE_IDS in curr_drawn_info:
+                            touched_paths = set()
+                            drawn_edgeids = set()
+                            for ei in curr_drawn_info[
+                                config.CDI_DRAWN_EDGE_IDS
+                            ]:
+                                # TODO abstract btwn this and path utils
+                                eid = ag.edgeid2obj[ei].data["id"]
+                                touched_paths |= ag.objname2pathnames[eid]
+                                drawn_edgeids.add(eid)
+                            for p in touched_paths:
+                                if set(ag.pathname2objnames[p]).issubset(
+                                    drawn_edgeids
+                                ):
+                                    avail_paths.append(p)
+                        else:
+                            raise WeirdError(
+                                f"No edge IDs available in {curr_drawn_info}"
+                            )
+
                 else:
                     raise WeirdError(
                         f"Unrecognized draw type: {curr_drawn_info}"
                     )
+
                 for p in avail_paths:
                     rows.append(
                         {
@@ -2083,6 +2114,9 @@ def run(
                         drawn_nodes.append(name)
                     else:
                         undrawn_nodes.append(name)
+            else:
+                raise WeirdError(f"No node IDs available in {curr_drawn_info}")
+
         else:
             raise WeirdError(f"Unrecognized draw type: {curr_drawn_info}")
 
