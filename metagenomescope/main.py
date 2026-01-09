@@ -12,6 +12,7 @@ from dash import (
     callback,
     clientside_callback,
     ClientsideFunction,
+    no_update,
     ctx,
     dcc,
     Input,
@@ -1598,7 +1599,6 @@ def run(
         Output("cy", "elements", allow_duplicate=True),
         Output("doneFlushing", "data"),
         State("toastHolder", "children"),
-        State("cy", "elements"),
         State("ccDrawingSelect", "value"),
         State("ccSizeRankSelector", "value"),
         State("ccNodeNameSelector", "value"),
@@ -1614,7 +1614,6 @@ def run(
     )
     def flush(
         curr_toasts,
-        curr_cy_eles,
         cc_drawing_selection_type,
         size_ranks,
         node_names,
@@ -1655,7 +1654,7 @@ def run(
                     ui_utils.add_error_toast(
                         curr_toasts, "Size rank error", str(err)
                     ),
-                    curr_cy_eles,
+                    no_update,
                     {"requestGood": False},
                 )
             draw_type = config.DRAW_CCS
@@ -1668,7 +1667,7 @@ def run(
                     ui_utils.add_error_toast(
                         curr_toasts, "Node name error", str(err)
                     ),
-                    curr_cy_eles,
+                    no_update,
                     {"requestGood": False},
                 )
             cc_nums = set(nn2cn.values())
@@ -1682,7 +1681,7 @@ def run(
                     ui_utils.add_error_toast(
                         curr_toasts, "Node name error", str(err)
                     ),
-                    curr_cy_eles,
+                    no_update,
                     {"requestGood": False},
                 )
             try:
@@ -1692,7 +1691,7 @@ def run(
                     ui_utils.add_error_toast(
                         curr_toasts, "Distance error", str(err)
                     ),
-                    curr_cy_eles,
+                    no_update,
                     {"requestGood": False},
                 )
             draw_type = config.DRAW_AROUND
@@ -1707,7 +1706,7 @@ def run(
                     "Weird error?",
                     f'Unrecognized method "{cc_drawing_selection_type}".',
                 ),
-                curr_cy_eles,
+                no_update,
                 {"requestGood": False},
             )
 
@@ -1730,7 +1729,7 @@ def run(
         # for #cy's "elements") and trigger draw() (by updating #doneFlushing),
         # which will then add new elements to the Cytoscape.js instance.
         return (
-            curr_toasts,
+            no_update,
             [],
             {
                 "requestGood": True,
