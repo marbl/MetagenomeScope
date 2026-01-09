@@ -1323,8 +1323,8 @@ def run(
                                                     [
                                                         "Client-side hierarchical layout algorithm (",
                                                         html.A(
-                                                            "GitHub",
-                                                            href="https://github.com/dagrejs/dagre",
+                                                            "GitHub wiki",
+                                                            href="https://github.com/dagrejs/dagre/wiki",
                                                             target="_blank",
                                                         ),
                                                         ").",
