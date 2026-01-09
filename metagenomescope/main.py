@@ -1230,14 +1230,16 @@ def run(
             ),
             # we'll update this when it's time to draw the graph -- after
             # we flush it (removing all currently present elements) and
-            # before we redraw it (based on updating this data).
+            # before we redraw it (based on updating this data). It includes
+            # information about the drawing request that was made.
             # See https://github.com/plotly/dash-cytoscape/issues/106#issuecomment-3535358135
             dcc.Store(
                 id="doneFlushing",
             ),
-            # we'll update this after drawing the graph. It describes how much
-            # of the graph is currently drawn; this is useful for things like
-            # searching, figuring out which paths are currently available, etc.
+            # After successfully drawing the graph, we'll update this to be
+            # exactly what was set in "doneFlushing". Keeping this information
+            # (about what part(s) of the graph are currently drawn) around is
+            # useful for searching, figuring out what paths are available, etc.
             dcc.Store(
                 id="currDrawnInfo",
             ),
