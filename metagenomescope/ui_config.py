@@ -23,7 +23,7 @@ DEFAULT_SCREENSHOT_FILETYPE = SCREENSHOT_PNG
 LAYOUT_DOT = "dot"
 LAYOUT_DAGRE = "dagre"
 LAYOUT_FCOSE = "fcose"
-DEFAULT_LAYOUT_ALG = LAYOUT_DOT
+DEFAULT_LAYOUT_ALG = LAYOUT_DAGRE
 
 ###############################################################################
 # Component size rank selection
