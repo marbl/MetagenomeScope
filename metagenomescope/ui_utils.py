@@ -511,7 +511,9 @@ def get_curr_drawn_text(done_flushing, ag):
     elif draw_type == config.DRAW_AROUND:
         d = done_flushing["around_dist"]
         node_ids = done_flushing["around_node_ids"]
-        node_names = ag.get_node_names_from_ids(node_ids)
+        node_names = name_utils.condense_splits(
+            ag.get_node_names_from_ids(node_ids)
+        )
         noun = "node" if len(node_names) == 1 else "nodes"
         t = f'around {noun} {", ".join(sorted(node_names))} (distance {d:,})'
 
