@@ -19,6 +19,7 @@
 import itertools
 from .. import config
 from .pattern_stats import PatternStats
+from .draw_results import DrawResults
 
 
 class Component(object):
@@ -118,16 +119,13 @@ class Component(object):
     def get_objs(self):
         return itertools.chain(self.nodes, self.edges, self.patterns)
 
-    def get_nonpattern_objs(self):
-        return itertools.chain(self.nodes, self.edges)
-
     def set_cc_num(self, cc_num):
         """Updates the component number of this component and its children."""
         self.cc_num = cc_num
         for obj in self.get_objs():
             obj.set_cc_num(cc_num)
 
-    def to_cyjs(self, incl_patterns=True):
+    def to_cyjs(self, incl_patterns=True, report_ids=False):
         """Creates Cytoscape.js elements for all nodes/edges in this component.
 
         Parameters
@@ -136,16 +134,33 @@ class Component(object):
             If True, include patterns (and adjust the node/edge elements to
             refer to these patterns as their "parent" elements).
 
+        report_ids: bool
+            If True, record node and edge IDs in the output DrawResults.
+
         Returns
         -------
-        list of dict
+        DrawResults
         """
-        eles = [
-            obj.to_cyjs(incl_patterns=incl_patterns)
-            for obj in self.get_nonpattern_objs()
-        ]
+        eles = []
+        nodeids = [] if report_ids else None
+        edgeids = [] if report_ids else None
+        for n in self.nodes:
+            eles.append(n.to_cyjs(incl_patterns=incl_patterns))
+            if report_ids:
+                nodeids.append(n.unique_id)
+        for e in self.edges:
+            eles.append(e.to_cyjs(incl_patterns=incl_patterns))
+            if report_ids:
+                edgeids.append(e.unique_id)
         pattct = 0
         if incl_patterns:
             eles.extend(obj.to_cyjs() for obj in self.patterns)
             pattct = len(self.patterns)
-        return eles, self.num_full_nodes, self.num_real_edges, pattct
+        return DrawResults(
+            eles,
+            self.num_full_nodes,
+            self.num_real_edges,
+            pattct,
+            nodeids,
+            edgeids,
+        )

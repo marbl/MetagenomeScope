@@ -1237,10 +1237,13 @@ def run(
             dcc.Store(
                 id="doneFlushing",
             ),
-            # After successfully drawing the graph, we'll update this to be
-            # exactly what was set in "doneFlushing". Keeping this information
-            # (about what part(s) of the graph are currently drawn) around is
-            # useful for searching, figuring out what paths are available, etc.
+            # After successfully drawing the graph, we'll update this to
+            # include what was set in "doneFlushing". Keeping this info around
+            # is useful for searching, figuring out what paths are available,
+            # etc. (On that note, if the user selected drawing "around" certain
+            # node IDs, then this will also include the IDs of *all* nodes and
+            # edges that were drawn. This lets us avoid having to recompute
+            # this info a bunch of times.)
             dcc.Store(
                 id="currDrawnInfo",
             ),
@@ -1760,15 +1763,15 @@ def run(
                 "Request good, so flushing should be done. Creating JSON "
                 "for Cytoscape.js..."
             )
-            new_cy_eles, nct, ect, pct = ag.to_cyjs(curr_done_flushing)
-            lsum = ui_utils.pluralize(len(new_cy_eles), "ele")
-            nsum = ui_utils.pluralize(nct, "node")
-            esum = ui_utils.pluralize(ect, "edge")
-            psum = ui_utils.pluralize(pct, "pattern")
-            asum = f"({nsum}, {esum}, {psum})"
+            dr = ag.to_cyjs(curr_done_flushing)
+            lsum, asum = dr.get_fancy_count_text()
             logging.debug(f"...Done. {lsum} {asum}.")
+            curr_drawn_info = curr_done_flushing.copy()
+            if dr.check_ids_given():
+                curr_drawn_info["drawn_node_ids"] = dr.nodeids
+                curr_drawn_info["drawn_edge_ids"] = dr.nodeids
             return (
-                new_cy_eles,
+                dr.eles,
                 html.Span(
                     [
                         html.Span(
@@ -1780,7 +1783,7 @@ def run(
                     ]
                 ),
                 asum,
-                curr_done_flushing,
+                curr_drawn_info,
             )
         else:
             logging.debug("Caught a bad drawing request. Not redrawing.")
