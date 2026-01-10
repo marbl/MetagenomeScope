@@ -842,6 +842,7 @@ def run(
                         style={
                             "width": "100%",
                             "height": "100%",
+                            "background": cy_config.BG_COLOR,
                         },
                         boxSelectionEnabled=True,
                         maxZoom=9,
@@ -1756,6 +1757,7 @@ def run(
             "type": image_type,
             "filename": ui_utils.get_screenshot_basename(),
             "action": "download",
+            "options": {"bg": cy_config.BG_COLOR},
         }
 
     @callback(
