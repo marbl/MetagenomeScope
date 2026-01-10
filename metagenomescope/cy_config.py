@@ -2,25 +2,6 @@ from statistics import mean
 from math import sqrt
 
 ###############################################################################
-# Layout settings
-###############################################################################
-
-# Dagre and fCoSE support animating the layout. I guess we might as well
-# support this since it looks nice -- plus these layouts put all of the nodes
-# in the same position at the start, so if we don't turn on animation then
-# the user still sees this "flash of unstyled content" i guess
-#
-# Anyway, they have slightly different default duration settings, so let's
-# standardize things here so that the user gets the same kinda experience
-#
-# (Actually controlling "animate" - whether or not we do animation at all -
-# is controlled by a checkbox, which is controlled by
-# ui_config.DEFAULT_DRAW_SETTINGS)
-ANIMATION_SETTINGS = {
-    "animationDuration": 500,
-}
-
-###############################################################################
 # Nodes
 ###############################################################################
 

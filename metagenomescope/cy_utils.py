@@ -1,4 +1,4 @@
-from . import cy_config, ui_config, config
+from . import cy_config, ui_config, config, layout_config
 from .errors import WeirdError
 
 
@@ -241,7 +241,7 @@ def get_cyjs_stylesheet(
 def get_layout_params(layout_alg, draw_settings):
     """Gets layout parameters for Cytoscape.js for a given algorithm."""
 
-    anim_settings = cy_config.ANIMATION_SETTINGS
+    anim_settings = layout_config.ANIMATION_SETTINGS
     anim_settings["animate"] = ui_config.DO_LAYOUT_ANIMATION in draw_settings
 
     if layout_alg == ui_config.LAYOUT_DAGRE:

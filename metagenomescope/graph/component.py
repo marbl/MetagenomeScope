@@ -125,6 +125,9 @@ class Component(object):
         for obj in self.get_objs():
             obj.set_cc_num(cc_num)
 
+    def layout(self):
+        pass
+
     def to_cyjs(
         self,
         incl_patterns=True,
