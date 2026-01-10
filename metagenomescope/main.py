@@ -135,6 +135,44 @@ def run(
     etal_text = html.Span(
         [html.Span("et al", style={"font-style": "italic"}), ".,"]
     )
+    DOT_ALG_DESC = [
+        html.P(
+            [
+                "Hierarchical layout algorithm described in ",
+                html.A(
+                    [
+                        "Gansner ",
+                        etal_text,
+                        " 1993",
+                    ],
+                    href="https://doi.org/10.1109/32.221135",
+                    # this tells the browser to open this link
+                    # in a new tab; we don't wanna move off the
+                    # page if the user has already been drawing
+                    # stuff
+                    target="_blank",
+                ),
+                ' ("A technique for drawing directed graphs").',
+            ]
+        ),
+    ]
+    DOT_ALG_DESC_PATTS = DOT_ALG_DESC + [
+        html.P(
+            [
+                "We run ",
+                dot_text,
+                " recursively, laying out bottom-level ",
+                "patterns first then laying out higher-"
+                "level parts of the graph.",
+            ],
+            id="dotAlgPatternDesc",
+        ),
+    ]
+    dot_alg_desc_used = (
+        DOT_ALG_DESC_PATTS
+        if ui_config.SHOW_PATTERNS in ui_config.DEFAULT_DRAW_SETTINGS
+        else DOT_ALG_DESC
+    )
 
     # If there are multiple components, show a "Components" tab in the info
     # dialog with information about these components. Also show various options
@@ -1279,36 +1317,7 @@ def run(
                                                 },
                                             ),
                                             html.Div(
-                                                [
-                                                    html.P(
-                                                        [
-                                                            "Hierarchical layout algorithm described in ",
-                                                            html.A(
-                                                                [
-                                                                    "Gansner ",
-                                                                    etal_text,
-                                                                    " 1993",
-                                                                ],
-                                                                href="https://doi.org/10.1109/32.221135",
-                                                                # this tells the browser to open this link
-                                                                # in a new tab; we don't wanna move off the
-                                                                # page if the user has already been drawing
-                                                                # stuff
-                                                                target="_blank",
-                                                            ),
-                                                            ' ("A technique for drawing directed graphs").',
-                                                        ]
-                                                    ),
-                                                    html.P(
-                                                        [
-                                                            "We run ",
-                                                            dot_text,
-                                                            " recursively, laying out bottom-level ",
-                                                            "patterns first then laying out higher-"
-                                                            "level parts of the graph.",
-                                                        ],
-                                                    ),
-                                                ],
+                                                dot_alg_desc_used,
                                                 id="dotAlgDesc",
                                                 className=css_config.ALG_DESC_CLASSES
                                                 + (
@@ -1783,6 +1792,17 @@ def run(
             return hid, hid, vis
         else:
             raise WeirdError(f"Unrecognized layout alg?: {layout_alg}")
+
+    @callback(
+        Output("dotAlgDesc", "children"),
+        Input("drawSettingsChecklist", "value"),
+        prevent_initial_call=True,
+    )
+    def update_dot_pattern_desc(draw_settings):
+        if ui_config.SHOW_PATTERNS in draw_settings:
+            return DOT_ALG_DESC_PATTS
+        else:
+            return DOT_ALG_DESC
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
