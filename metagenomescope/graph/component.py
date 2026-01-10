@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 import itertools
-from .. import config
+from .. import config, ui_config
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
 
@@ -125,7 +125,12 @@ class Component(object):
         for obj in self.get_objs():
             obj.set_cc_num(cc_num)
 
-    def to_cyjs(self, incl_patterns=True, report_ids=False):
+    def to_cyjs(
+        self,
+        incl_patterns=True,
+        layout_alg=ui_config.DEFAULT_LAYOUT_ALG,
+        report_ids=False,
+    ):
         """Creates Cytoscape.js elements for all nodes/edges in this component.
 
         Parameters
@@ -133,6 +138,13 @@ class Component(object):
         incl_patterns: bool
             If True, include patterns (and adjust the node/edge elements to
             refer to these patterns as their "parent" elements).
+
+        layout_alg: str
+            Layout algorithm to use. If this is ui_config.LAYOUT_DOT, then
+            we will perform the fancy recursive backfilling stuff using dot
+            (in order to generate positions for Cytoscape.js). Otherwise,
+            we assume that you are doing some sort of client-side layout
+            like Dagre, so we will not include positions.
 
         report_ids: bool
             If True, record node and edge IDs in the output DrawResults.

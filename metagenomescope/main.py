@@ -1940,6 +1940,7 @@ def run(
                 "around_node_ids": around_node_ids,
                 "around_dist": around_dist,
                 "patterns": incl_patterns,
+                "layout_alg": layout_alg,
             },
         )
 

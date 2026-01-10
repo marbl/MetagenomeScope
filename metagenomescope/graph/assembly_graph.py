@@ -2255,7 +2255,7 @@ class AssemblyGraph(object):
                     subgraph_patt_ids.add(pid)
         return subgraph_node_ids, subgraph_edge_ids, subgraph_patt_ids
 
-    def _to_cyjs_around_nodes(self, node_ids, dist, incl_patterns):
+    def _to_cyjs_around_nodes(self, node_ids, dist, incl_patterns, layout_alg):
         """Produces Cytoscape.js elements only "around" certain nodes."""
         sel_node_ids, sel_edge_ids, sel_patt_ids = (
             self.get_ids_in_neighborhood(node_ids, dist, incl_patterns)
@@ -2264,6 +2264,17 @@ class AssemblyGraph(object):
         nodect = 0
         edgect = 0
         pattct = 0
+        # TODO: this will not be as simple as just passing the layout alg
+        # to the node object -- we need to perform layout on this specific
+        # neighborhood and store that info in the nodes somehow.
+        # When we draw entire components, the component can take care of this
+        # logic; but when we draw subregions it is trickier. Probably a good
+        # solution would be defining some sort of Subgraph class, analogous
+        # to Component, that can manage this stuff in the same kinda way.
+        if layout_alg == ui_config.LAYOUT_DOT:
+            raise NotImplementedError(
+                "we don't yet support drawing around nodes using dot"
+            )
         for i in sel_node_ids:
             nobj = self.nodeid2obj[i]
             eles.append(nobj.to_cyjs(incl_patterns=incl_patterns))
@@ -2322,11 +2333,14 @@ class AssemblyGraph(object):
         """
         draw_type = done_flushing["draw_type"]
         incl_patterns = done_flushing["patterns"]
+        layout_alg = done_flushing["layout_alg"]
 
         if draw_type == config.DRAW_ALL:
             dr = DrawResults()
             for cc in self.components:
-                dr += cc.to_cyjs(incl_patterns=incl_patterns)
+                dr += cc.to_cyjs(
+                    incl_patterns=incl_patterns, layout_alg=layout_alg
+                )
 
         elif draw_type == config.DRAW_CCS:
             dr = DrawResults()
@@ -2334,13 +2348,16 @@ class AssemblyGraph(object):
                 # (self.components is an ordinary 0-indexed python list, but
                 # the component numbers are 1-indexed)
                 cc = self.components[ccn - 1]
-                dr += cc.to_cyjs(incl_patterns=incl_patterns)
+                dr += cc.to_cyjs(
+                    incl_patterns=incl_patterns, layout_alg=layout_alg
+                )
 
         elif draw_type == config.DRAW_AROUND:
             dr = self._to_cyjs_around_nodes(
                 done_flushing["around_node_ids"],
                 done_flushing["around_dist"],
                 incl_patterns,
+                layout_alg,
             )
 
         else:

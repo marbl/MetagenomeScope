@@ -14,7 +14,8 @@ from math import sqrt
 # standardize things here so that the user gets the same kinda experience
 #
 # (Actually controlling "animate" - whether or not we do animation at all -
-# is controlled by a checkbox, which defaults to ui_config.DO_LAYOUT_ANIMATION)
+# is controlled by a checkbox, which is controlled by
+# ui_config.DEFAULT_DRAW_SETTINGS)
 ANIMATION_SETTINGS = {
     "animationDuration": 500,
 }
