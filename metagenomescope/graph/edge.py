@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from metagenomescope.config import INDENT
+from metagenomescope.layout_config import INDENT
 from metagenomescope.errors import WeirdError
 
 

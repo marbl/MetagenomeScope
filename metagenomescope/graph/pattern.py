@@ -20,7 +20,13 @@
 import pygraphviz
 from .node import Node
 from .pattern_stats import PatternStats
-from metagenomescope import config, cy_config, layout_utils, misc_utils
+from metagenomescope import (
+    config,
+    cy_config,
+    layout_config,
+    layout_utils,
+    misc_utils,
+)
 from metagenomescope.errors import WeirdError
 
 
@@ -305,7 +311,7 @@ class Pattern(Node):
             edges.append(edge)
         return nodes, edges, patts, patt_stats
 
-    def to_dot(self, indent=config.INDENT):
+    def to_dot(self, indent=layout_config.INDENT):
         """Returns a DOT representation of this Pattern and its descendants.
 
         Parameters
@@ -321,7 +327,7 @@ class Pattern(Node):
             represented as a "cluster" subgraph.
         """
         # inner indentation level
-        ii = indent + config.INDENT
+        ii = indent + indent
         gv = f"{indent}subgraph cluster_{self.name} {{\n"
         gv += f'{ii}style="filled";\n'
         gv += f'{ii}fillcolor="{config.PT2COLOR[self.pattern_type]}";\n'

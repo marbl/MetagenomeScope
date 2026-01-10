@@ -1,4 +1,4 @@
-from . import config
+from . import layout_config
 
 
 def get_gv_header():
@@ -15,12 +15,16 @@ def get_gv_header():
     node/edge/subgraph data and close out the graph declaration with a }.
     """
     gv_input = "digraph {\n"
-    if config.GRAPH_STYLE != "":
-        gv_input += f"{config.INDENT}{config.GRAPH_STYLE};\n"
-    if config.GLOBALNODE_STYLE != "":
-        gv_input += f"{config.INDENT}node [{config.GLOBALNODE_STYLE}];\n"
-    if config.GLOBALEDGE_STYLE != "":
-        gv_input += f"{config.INDENT}edge [{config.GLOBALEDGE_STYLE}];\n"
+    if layout_config.GRAPH_STYLE != "":
+        gv_input += f"{layout_config.INDENT}{layout_config.GRAPH_STYLE};\n"
+    if layout_config.GLOBALNODE_STYLE != "":
+        gv_input += (
+            f"{layout_config.INDENT}node [{layout_config.GLOBALNODE_STYLE}];\n"
+        )
+    if layout_config.GLOBALEDGE_STYLE != "":
+        gv_input += (
+            f"{layout_config.INDENT}edge [{layout_config.GLOBALEDGE_STYLE}];\n"
+        )
     return gv_input
 
 
@@ -135,7 +139,7 @@ def getxy(pos_string):
 
 def get_bb_x2_y2(bb_string):
     """Given a string of the format "x1,y1,x2,y2", returns floats of x2 and y2
-    divided by config.POINTS_PER_INCH.
+    divided by layout_config.POINTS_PER_INCH.
 
     In a bounding box produced by GraphViz, (x1, y1) is the bottom left
     position of the box and (x2, y2) is the top right position of the box.
@@ -155,6 +159,6 @@ def get_bb_x2_y2(bb_string):
         raise ValueError(
             "Bounding box doesn't start at (0, 0): {}".format(bb_string)
         )
-    x2i = float(x2) / config.POINTS_PER_INCH
-    y2i = float(y2) / config.POINTS_PER_INCH
+    x2i = float(x2) / layout_config.POINTS_PER_INCH
+    y2i = float(y2) / layout_config.POINTS_PER_INCH
     return x2i, y2i

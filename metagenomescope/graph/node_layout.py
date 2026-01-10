@@ -1,4 +1,4 @@
-from metagenomescope import config
+from metagenomescope import config, layout_config
 from metagenomescope.errors import WeirdError
 
 
@@ -59,7 +59,7 @@ class NodeLayout(object):
             else:
                 self.shape = "circle"
 
-    def to_dot(self, nodeid, nodelabel, indent=config.INDENT):
+    def to_dot(self, nodeid, nodelabel, indent=layout_config.INDENT):
         if self.width is None or self.height is None:
             raise WeirdError(
                 "Can't call to_dot() on a Node with unset width and/or height"

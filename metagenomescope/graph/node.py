@@ -18,7 +18,7 @@
 
 
 import math
-from metagenomescope import cy_config, config
+from metagenomescope import cy_config, layout_config, config
 from metagenomescope.errors import WeirdError
 from metagenomescope.graph import graph_utils
 from .node_layout import NodeLayout
@@ -216,7 +216,7 @@ class Node(object):
     def set_cc_num(self, cc_num):
         self.cc_num = cc_num
 
-    def to_dot(self, indent=config.INDENT):
+    def to_dot(self, indent=layout_config.INDENT):
         return self.layout.to_dot(self.unique_id, self.name, indent)
 
     def to_cyjs(self, incl_patterns=True):

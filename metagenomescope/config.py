@@ -11,10 +11,6 @@ NOR = None
 SEPBIG = "="
 SEPSML = "-"
 
-# The amount of indentation to use for each level in DOT files. You could also
-# use a \t character here, if you're the sort of person who prefers tabs ._.
-INDENT = "  "
-
 # Used as the suffixes of split nodes.
 SPLIT_SEP = "-"
 SPLIT_LEFT = "L"

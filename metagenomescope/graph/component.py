@@ -165,7 +165,7 @@ class Component(object):
         if layout_alg == ui_config.LAYOUT_DOT:
             self.layout()
             # TODO and tell nodes/edges to include their coords
-            # in the js
+            # in the js, in the next section, when we add to eles
         eles = []
         nodeids = [] if report_ids else None
         edgeids = [] if report_ids else None

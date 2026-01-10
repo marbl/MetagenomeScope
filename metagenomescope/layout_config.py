@@ -2,6 +2,10 @@
 # Graphviz settings
 ###############################################################################
 
+# The amount of indentation to use for each level in DOT files. You could also
+# use a \t character here, if you're the sort of person who prefers tabs ._.
+INDENT = "  "
+
 # The conversion factor between points (in GraphViz output) and inches, as used
 # by GraphViz. GraphViz uses 72 points per inch, but here we use 63
 # points per inch -- this is kind of a compromise. In old versions of
