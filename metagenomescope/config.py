@@ -2,6 +2,11 @@
 # Miscellaneous settings
 ###############################################################################
 
+# Node orientations
+FWD = "+"
+REV = "-"
+NOR = None
+
 # Used to create lines in logging output like =====
 SEPBIG = "="
 SEPSML = "-"

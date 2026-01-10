@@ -1,4 +1,5 @@
 import networkx as nx
+from metagenomescope import config
 from .utils import run_tempfile_test
 
 
@@ -36,8 +37,8 @@ def test_good():
     i2gc = {1: 5 / 9.0, 2: 2 / 3.0, 3: 3 / 5.0}
     for i in range(1, 4):
         si = str(i)
-        for orientation in ("+", "-"):
-            if orientation == "+":
+        for orientation in (config.FWD, config.REV):
+            if orientation == config.FWD:
                 name = si
             else:
                 name = orientation + si

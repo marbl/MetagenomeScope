@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 import itertools
-from .. import config, ui_config
+from .. import config, ui_config, layout_utils
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
 
@@ -125,12 +125,18 @@ class Component(object):
         for obj in self.get_objs():
             obj.set_cc_num(cc_num)
 
-    def layout(self):
-        pass
+    def layout(self, incl_patterns=ui_config.DEFAULT_SHOW_PATTERNS):
+        gv_input = layout_utils.get_gv_header()
+        if incl_patterns:
+            for p in self.patterns:
+                p.layout()
+        for n in self.nodes:
+            pass
+        return gv_input
 
     def to_cyjs(
         self,
-        incl_patterns=True,
+        incl_patterns=ui_config.DEFAULT_SHOW_PATTERNS,
         layout_alg=ui_config.DEFAULT_LAYOUT_ALG,
         report_ids=False,
     ):
@@ -156,6 +162,10 @@ class Component(object):
         -------
         DrawResults
         """
+        if layout_alg == ui_config.LAYOUT_DOT:
+            self.layout()
+            # TODO and tell nodes/edges to include their coords
+            # in the js
         eles = []
         nodeids = [] if report_ids else None
         edgeids = [] if report_ids else None

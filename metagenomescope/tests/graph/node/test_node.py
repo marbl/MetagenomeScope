@@ -1,7 +1,7 @@
 import pytest
 from metagenomescope.graph.node import Node
-from metagenomescope.config import SPLIT_LEFT, SPLIT_RIGHT
-from metagenomescope.errors import WeirdError, GraphParsingError
+from metagenomescope.config import SPLIT_LEFT, SPLIT_RIGHT, FWD
+from metagenomescope.errors import WeirdError
 
 
 def test_constructor_counterpart_but_no_split():
@@ -82,22 +82,6 @@ def test_set_cc_num():
     # AND THE CROWD GOES WILD
 
 
-def test__set_shape_bad_split():
-    b = Node(0, "B", {})
-    b.split = "filasdf"
-    with pytest.raises(WeirdError) as ei:
-        b._set_shape()
-    assert str(ei.value) == "Invalid split type for node B: filasdf"
-
-
-def test__set_shape_bad_orientation():
-    with pytest.raises(GraphParsingError) as ei:
-        Node(0, "B", {"orientation": "FOW"})
-    assert 'Unsupported node orientation: FOW. Should be "+" or "-".' in str(
-        ei.value
-    )
-
-
 def test_to_dot_unset_dims():
     def check_exception(e):
         assert str(e.value) == (
@@ -111,14 +95,14 @@ def test_to_dot_unset_dims():
 
     with pytest.raises(WeirdError) as ei:
         b = Node(0, "B", {})
-        b.height = 5
+        b.layout.height = 5
         # ... but the width is still unset!
         b.to_dot()
     check_exception(ei)
 
     with pytest.raises(WeirdError) as ei:
         b = Node(0, "B", {})
-        b.width = 5
+        b.layout.width = 5
         # ... but the height is still unset!
         b.to_dot()
     check_exception(ei)
@@ -126,7 +110,7 @@ def test_to_dot_unset_dims():
 
 def test_to_dot_non_split():
     b = Node(0, "B", {})
-    b.width = b.height = 3
+    b.layout.width = b.layout.height = 3
     assert (
         b.to_dot(indent=" ")
         == ' 0 [width=3,height=3,shape=circle,label="B"];\n'
@@ -134,12 +118,12 @@ def test_to_dot_non_split():
 
 
 def test_to_dot_split():
-    b = Node(0, "B", {"orientation": "+"})
+    b = Node(0, "B", {"orientation": FWD})
     c = Node(
-        1, "C", {"orientation": "+"}, counterpart_node=b, split=SPLIT_LEFT
+        1, "C", {"orientation": FWD}, counterpart_node=b, split=SPLIT_LEFT
     )
-    b.width = b.height = 3
-    c.width = c.height = 3
+    b.layout.width = b.layout.height = 3
+    c.layout.width = c.layout.height = 3
     assert (
         c.to_dot(indent=" ")
         == ' 1 [width=1.5,height=3,shape=rect,label="C-L"];\n'

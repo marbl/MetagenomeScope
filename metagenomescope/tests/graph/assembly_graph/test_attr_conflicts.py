@@ -3,6 +3,7 @@
 # edge multiplicity) and "internal" data (e.g. node height, edge control
 # points, ...) -- but after the refactor these conflicts should no longer pose
 # a problem. These tests verify this.
+from metagenomescope import config
 from metagenomescope.graph import AssemblyGraph
 
 
@@ -14,13 +15,13 @@ def test_node_attr_conflict():
         # A node having the attribute "height" is ok now! nature is healing
         if n.name == "6":
             assert n.data == {
-                "orientation": "+",
+                "orientation": config.FWD,
                 "length": 1,
                 "height": "20",
             }
             six_seen = True
         else:
-            assert n.data == {"orientation": "+", "length": 1}
+            assert n.data == {"orientation": config.FWD, "length": 1}
     assert six_seen
 
     for e in g.edgeid2obj.values():
@@ -38,7 +39,7 @@ def test_edge_attr_conflict():
     g = AssemblyGraph("metagenomescope/tests/input/check_attrs_test_edge.gml")
 
     for n in g.nodeid2obj.values():
-        assert n.data == {"orientation": "+", "length": 1}
+        assert n.data == {"orientation": config.FWD, "length": 1}
 
     six_seen = False
     for e in g.edgeid2obj.values():

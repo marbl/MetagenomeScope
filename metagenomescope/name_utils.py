@@ -5,11 +5,13 @@ from .errors import WeirdError, GraphParsingError
 def negate(n):
     """Negates a (node) name. Literally just adds or removes a starting "-".
 
+    Um, that is, "config.REV".
+
     Using this function assumes, of course, that a node's "base" name in an
     unoriented aka "implicit" graph (GFA / LastGraph files, as of writing)
-    doesn't already start with a "-" character -- because that'd mess things
-    up. The GFA / LastGraph parsers should check for this and reject such
-    graphs.
+    doesn't already start with a config.REV character -- because that'd mess
+    things up. The GFA / LastGraph parsers should check for this and reject
+    such graphs.
     """
     if type(n) is not str:
         raise WeirdError(
@@ -20,10 +22,10 @@ def negate(n):
     if len(n) == 0:
         raise WeirdError("We should've already screened for empty node names?")
 
-    if n[0] == "-":
+    if n[0] == config.REV:
         return n[1:]
     else:
-        return "-" + n
+        return config.REV + n
 
 
 def has_leftsplit_suffix(name):

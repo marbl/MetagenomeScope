@@ -253,6 +253,9 @@ class Pattern(Node):
             # rather than passing in a string of graphviz input -- this way we
             # can define edge keys explicitly (which prooobably won't be
             # necessary but whatevs).
+            # TODO 2: okay well actually, if these are parallel edges, we can
+            # PROBABLY safely fall back to just basic beziers unless these are
+            # back edges....
             cg_edge = cg.get_edge(edge.dec_src_id, edge.dec_tgt_id)
             edge.relative_ctrl_pt_coords = layout_utils.get_control_points(
                 cg_edge.attr["pos"]

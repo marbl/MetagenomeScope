@@ -127,6 +127,6 @@ def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
     return names, sizes
 
 
-def validate_split_type(node_name, split):
+def validate_split_type(split):
     if split not in (config.SPLIT_LEFT, config.SPLIT_RIGHT, None):
-        raise WeirdError(f"Invalid split type for node {node_name}: {split}")
+        raise WeirdError(f"Invalid split type: {split}")

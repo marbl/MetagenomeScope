@@ -1,4 +1,5 @@
 import networkx as nx
+from metagenomescope import config
 from metagenomescope.name_utils import negate
 from metagenomescope.parsers import parse_gfa
 from metagenomescope.errors import GraphParsingError
@@ -183,5 +184,5 @@ def test_parse_invalid_id_node():
         s1,
         GraphParsingError,
         "Node IDs in the input assembly graph cannot "
-        'start with the "-" character.',
+        f'start with the "{config.REV}" character.',
     )

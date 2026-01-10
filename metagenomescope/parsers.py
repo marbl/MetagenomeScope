@@ -31,6 +31,7 @@ import re
 import networkx as nx
 import gfapy
 import pyfastg
+from . import config
 from .name_utils import negate
 from .seq_utils import gc_content
 from .errors import GraphParsingError, WeirdError
@@ -103,7 +104,7 @@ def validate_lastgraph_file(graph_file):
 
         Any NODE:
         -doesn't have a $NODE_ID, $COV_SHORT1, and $O_COV_SHORT1 value
-        -has a $NODE_ID that starts with a "-" character
+        -has a $NODE_ID that starts with a config.REV character
         -shares a $NODE_ID with another node in the same file
         -has less than two sequences given*
         -has two sequences given, but the sequences are of unequal lengths (or
@@ -159,10 +160,10 @@ def validate_lastgraph_file(graph_file):
                     "Line {}: The $COV_SHORT1 and $O_COV_SHORT1 values "
                     "must be positive integers.".format(line_num)
                 )
-            if split_line[1][0] == "-":
+            if split_line[1][0] == config.REV:
                 raise GraphParsingError(
-                    "Line {}: Node IDs can't start with "
-                    "'-'.".format(line_num)
+                    f"Line {line_num}: Node IDs can't start with "
+                    f"'{config.REV}'."
                 )
             if split_line[1] in seen_nodes:
                 raise GraphParsingError(
@@ -346,8 +347,8 @@ def parse_metacarvel_gml(filename):
     g = make_multigraph_if_not_already(g)
 
     # Verify that node attributes are good. Also, change orientations from FOW
-    # and REV to + and -, to standardize this across filetypes, and convert
-    # lengths from strings to integers.
+    # and REV to + and - (controlled by config.FWD / REV) to standardize this
+    # across filetypes, and convert lengths from strings to integers.
     for n in g.nodes:
         orientation = g.nodes[n]["orientation"]
         if type(orientation) is not str or orientation not in ("FOW", "REV"):
@@ -361,7 +362,9 @@ def parse_metacarvel_gml(filename):
                     n, g.nodes[n]["length"]
                 )
             )
-        g.nodes[n]["orientation"] = "+" if orientation == "FOW" else "-"
+        g.nodes[n]["orientation"] = (
+            config.FWD if orientation == "FOW" else config.REV
+        )
         g.nodes[n]["length"] = int(g.nodes[n]["length"])
 
     # Verify that edge attributes are good
@@ -433,13 +436,12 @@ def parse_gfa(filename):
     for node in gfa_graph.segments:
         if node.length is None:
             raise GraphParsingError(
-                "Found a node without a specified length: "
-                "{}".format(node.name)
+                f"Found a node without a specified length: {node.name}"
             )
-        if node.name[0] == "-":
+        if node.name[0] == config.REV:
             raise GraphParsingError(
                 "Node IDs in the input assembly graph cannot "
-                'start with the "-" character.'
+                f'start with the "{config.REV}" character.'
             )
         sequence_gc = None
         if not gfapy.is_placeholder(node.sequence):
@@ -449,13 +451,13 @@ def parse_gfa(filename):
             node.name,
             length=node.length,
             gc_content=sequence_gc,
-            orientation="+",
+            orientation=config.FWD,
         )
         digraph.add_node(
             negate(node.name),
             length=node.length,
             gc_content=sequence_gc,
-            orientation="-",
+            orientation=config.REV,
         )
 
     # Now, add edges to the DiGraph
@@ -463,11 +465,11 @@ def parse_gfa(filename):
         # Set edge_tuple to the edge's explicitly specified orientation
         # This code is a bit verbose, but that was the easiest way to write it
         # I could think of
-        if edge.from_orient == "-":
+        if edge.from_orient == config.REV:
             src_id = negate(edge.from_name)
         else:
             src_id = edge.from_name
-        if edge.to_orient == "-":
+        if edge.to_orient == config.REV:
             tgt_id = negate(edge.to_name)
         else:
             tgt_id = edge.to_name
@@ -516,12 +518,12 @@ def parse_fastg(filename):
     oldname2newname = {}
     for n in g.nodes:
         suffix = n[-1]
-        if suffix == "+":
-            g.nodes[n]["orientation"] = "+"
+        if suffix == config.FWD:
+            g.nodes[n]["orientation"] = config.FWD
             oldname2newname[n] = n[:-1]
-        elif suffix == "-":
-            g.nodes[n]["orientation"] = "-"
-            oldname2newname[n] = "-" + n[:-1]
+        elif suffix == config.REV:
+            g.nodes[n]["orientation"] = config.REV
+            oldname2newname[n] = config.REV + n[:-1]
         else:
             # shouldn't happen, unless pyfastg breaks or changes its behavior
             # (but it's useful to have this check anyway, just to make this
@@ -620,7 +622,7 @@ def parse_lastgraph(filename):
                         length=curr_node_attrs["length"],
                         depth=curr_node_attrs["depth"],
                         gc_content=gc_content(curr_node_attrs["fwdseq"])[0],
-                        orientation="+",
+                        orientation=config.FWD,
                     )
                     parsed_fwdseq = True
                 else:
@@ -631,7 +633,7 @@ def parse_lastgraph(filename):
                         length=curr_node_attrs["length"],
                         depth=curr_node_attrs["depth"],
                         gc_content=gc_content(curr_node_attrs["revseq"])[0],
-                        orientation="-",
+                        orientation=config.REV,
                     )
                     # At this point, we're done with parsing this node.
                     # Clear our temporary variables for later use if
@@ -667,7 +669,7 @@ def parse_dot(filename):
       In LJA DOT files, edges don't seem to have orientations but nodes do.
       Since "orientation" arguably isn't important for the direct visualization
       of de Bruijn graphs (I mean, we still keep the IDs that may or may not
-      include "-" around), I don't assign an "orientation" field to either
+      start with "-" around), I don't assign an "orientation" field to either
       nodes or edges in DOT files. I can change this if desired.
 
     - In the pathological case where the same node is defined twice (this can

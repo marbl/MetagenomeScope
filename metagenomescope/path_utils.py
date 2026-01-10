@@ -1,5 +1,6 @@
 import logging
 from collections import defaultdict
+from metagenomescope import config
 from .errors import PathParsingError
 
 
@@ -14,7 +15,7 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
     orientation_in_name: bool
         If True, assume that each node / edge name in the path is
         computed based on looking at the orientation column. If it is
-        "-", then the sequence name is "-" + the component_id column;
+        "-", then the sequence name is config.REV + the component_id column;
         otherwise, the sequence name is just the component_id column.
 
         If False, then do not take the orientation column into account
@@ -66,8 +67,13 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
                 )
                 continue
             seq_id = parts[5]
+            # NOTE: ok look, config.REV == "-", so whatever. But the AGP
+            # specification specifically writes out a minus sign, so i guess
+            # in theory we can change config.REV/FWD without breaking this
+            # function. sure. look it really doesn't matter im never gonna
+            # change those LOL
             if orientation_in_name and parts[8] == "-":
-                seq_id = "-" + seq_id
+                seq_id = config.REV + seq_id
             paths[parts[0]].append(seq_id)
     return paths
 

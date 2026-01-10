@@ -1,6 +1,7 @@
 import networkx as nx
 from networkx import NetworkXError
 from .utils import run_tempfile_test
+from metagenomescope import config
 from metagenomescope.errors import GraphParsingError
 from metagenomescope.parsers import parse_metacarvel_gml
 
@@ -9,9 +10,9 @@ def check_marygold_fig2a_graph_nodes_and_edges(digraph):
     for i in range(1, 13):
         label = "NODE_{}".format(i)
         if i == 3:
-            assert digraph.nodes[label]["orientation"] == "-"
+            assert digraph.nodes[label]["orientation"] == config.REV
         else:
-            assert digraph.nodes[label]["orientation"] == "+"
+            assert digraph.nodes[label]["orientation"] == config.FWD
         assert digraph.nodes[label]["length"] == 100
         assert "id" not in digraph.nodes[label]
         assert "label" not in digraph.nodes[label]

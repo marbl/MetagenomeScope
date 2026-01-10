@@ -19,12 +19,13 @@
 
 import math
 from metagenomescope import cy_config, config
-from metagenomescope.errors import WeirdError, GraphParsingError
+from metagenomescope.errors import WeirdError
 from metagenomescope.graph import graph_utils
+from .node_layout import NodeLayout
 
 
 def get_node_name(basename, split):
-    graph_utils.validate_split_type(basename, split)
+    graph_utils.validate_split_type(split)
     if split is None:
         return basename
     elif split == config.SPLIT_LEFT:
@@ -126,8 +127,6 @@ class Node(object):
             # error
             counterpart_node.make_into_split(self.unique_id, self.split)
             self.counterpart_node_id = counterpart_node.unique_id
-            self.relative_length = counterpart_node.relative_length
-            self.longside_proportion = counterpart_node.longside_proportion
         else:
             if self.split is not None:
                 raise WeirdError(
@@ -135,10 +134,6 @@ class Node(object):
                     "but no counterpart Node specified?"
                 )
             self.counterpart_node_id = None
-            # Also will be filled in after node scaling. See
-            # AssemblyGraph.scale_nodes().
-            self.relative_length = None
-            self.longside_proportion = None
 
         # Should be filled in with something later on to simplify random
         # coloring of nodes. See AssemblyGraph._init_graph_objs().
@@ -149,22 +144,6 @@ class Node(object):
         # not guaranteed, since some filetypes (e.g. MetaCarvel GML) may not
         # describe two copies of each node.
         self.rc_node = None
-
-        # Will be filled in after doing node scaling. Stored in points.
-        self.width = None
-        self.height = None
-
-        # Relative position of this node within its parent pattern, if this
-        # node is located within a pattern. (None if this node exists in the
-        # top level of the graph.) Stored in points.
-        self.relative_x = None
-        self.relative_y = None
-
-        # Absolute position of this node within its connected component.
-        self.x = None
-        self.y = None
-
-        self._set_shape()
 
         # ID of the pattern containing this node, or None if this node
         # exists in the top level of the graph.
@@ -180,6 +159,9 @@ class Node(object):
         # a node, then we'll merge its left and right split nodes back into a
         # single node. This flag is a simple way of tracking this.
         self.removed = False
+
+        # will store DOT layout info
+        self.layout = NodeLayout(self.split, self.data)
 
     def __repr__(self):
         return f"Node {self.unique_id} (name: {self.name})"
@@ -214,7 +196,7 @@ class Node(object):
         self.counterpart_node_id = counterpart_id
         self.split = get_opposite_split(counterpart_split_type)
         self.name = get_node_name(self.basename, self.split)
-        self._set_shape()
+        self.layout.update_split(self.split)
 
     def unsplit(self):
         if self.is_not_split():
@@ -229,75 +211,17 @@ class Node(object):
                 f"{self} can't be unsplit; doesn't have a counterpart node ID?"
             )
         self.counterpart_node_id = None
-        self._set_shape()
+        self.layout.update_split(self.split)
 
     def set_cc_num(self, cc_num):
         self.cc_num = cc_num
 
-    def _set_shape(self):
-        graph_utils.validate_split_type(self.name, self.split)
-
-        if "orientation" in self.data:
-            orientation = self.data["orientation"]
-            # If a node has a weird messed-up orientation, we can also just
-            # make it a circle shape or something -- but it's safer to loudly
-            # throw an error, esp since i don't think this should normally
-            # happen
-            if orientation not in ("+", "-"):
-                raise GraphParsingError(
-                    f"Unsupported node orientation: {orientation}. Should be "
-                    '"+" or "-". If this is not the result of an error '
-                    "somewhere and is actually a real orientation in your "
-                    "graph, please open an issue on GitHub so we can add "
-                    "support for it!"
-                )
-
-            if orientation == "+":
-                if self.split == config.SPLIT_LEFT:
-                    self.shape = "rect"
-                elif self.split == config.SPLIT_RIGHT:
-                    self.shape = "invtriangle"
-                else:
-                    self.shape = "invhouse"
-            else:
-                if self.split == config.SPLIT_LEFT:
-                    self.shape = "triangle"
-                elif self.split == config.SPLIT_RIGHT:
-                    self.shape = "rect"
-                else:
-                    self.shape = "house"
-        else:
-            # NOTE: Graphviz doesn't support semicircles (as of writing). We
-            # should be able to get around this by using custom shapes
-            # (https://graphviz.org/faq/#FaqCustShape), but for now we just use
-            # (inv)triangles as a hacky workaround.
-            if self.split == config.SPLIT_LEFT:
-                self.shape = "triangle"
-            elif self.split == config.SPLIT_RIGHT:
-                self.shape = "invtriangle"
-            else:
-                self.shape = "circle"
-
     def to_dot(self, indent=config.INDENT):
-        if self.width is None or self.height is None:
-            raise WeirdError(
-                "Can't call to_dot() on a Node with unset width and/or height"
-            )
-        # If a node is split, it's drawn with half its width. This way, the two
-        # split nodes of an original node N have the same total area as N would
-        # were it an un-split node, because hw = h*(w/2) + h*(w/2).
-        if self.split is not None:
-            dotwidth = self.width / 2
-        else:
-            dotwidth = self.width
-        return (
-            f"{indent}{self.unique_id} [width={dotwidth},height={self.height},"
-            f'shape={self.shape},label="{self.name}"];\n'
-        )
+        return self.layout.to_dot(self.unique_id, self.name, indent)
 
     def to_cyjs(self, incl_patterns=True):
         if "orientation" in self.data:
-            if self.data["orientation"] == "+":
+            if self.data["orientation"] == config.FWD:
                 ndir = "fwd"
             else:
                 ndir = "rev"

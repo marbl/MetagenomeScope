@@ -4,6 +4,7 @@ from .edge import Edge
 from .pattern import Pattern
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
+from .node_layout import NodeLayout
 from .component import Component
 from . import validators
 
@@ -14,6 +15,7 @@ __all__ = [
     "Pattern",
     "PatternStats",
     "DrawResults",
+    "NodeLayout",
     "Component",
     "validators",
 ]
