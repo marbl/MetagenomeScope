@@ -1301,7 +1301,7 @@ def run(
                                                     ),
                                                     html.P(
                                                         [
-                                                            "We will run ",
+                                                            "We run ",
                                                             dot_text,
                                                             " recursively, laying out bottom-level ",
                                                             "patterns first then laying out higher-"
