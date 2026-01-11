@@ -249,7 +249,7 @@ class Node(object):
                 g = self.data["length"]
                 m = max(math.log(g, 1000), 1)
                 ele["data"]["w"] = m * max(math.log(g, 10), 1) * 50
-                ele["data"]["h"] = 10 * max(math.log(g, 10), 1) + 25
+                ele["data"]["h"] = ele["data"]["w"] / 2.5
             else:
                 # ofc we could allow such nodes to just be set to a uniform
                 # size, but this should never happen
