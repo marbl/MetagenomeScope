@@ -374,6 +374,9 @@ class AssemblyGraph(object):
             len(cy_config.RANDOM_COLORS)
         )
 
+        extra_node_attrs_with_atleastone_entry = set()
+        extra_edge_attrs_with_atleastone_entry = set()
+
         oldid2uniqueid = {}
         self.seq_lengths = []
         lengths_completely_defined = True
@@ -384,7 +387,12 @@ class AssemblyGraph(object):
             data = deepcopy(self.graph.nodes[node_name])
             new_node = Node(node_id, str_node_name, data)
             self.nodeid2obj[node_id] = new_node
+
             self.extra_node_attrs |= set(data.keys())
+            for a in self.extra_node_attrs:
+                if data[a] is not None:
+                    extra_node_attrs_with_atleastone_entry.add(a)
+
             # Remove node data from the graph (we've already saved it in the
             # Node object's .data attribute).
             self.graph.nodes[node_name].clear()
@@ -426,7 +434,12 @@ class AssemblyGraph(object):
             data = deepcopy(e[3])
             new_edge = Edge(edge_id, e[0], e[1], data)
             self.edgeid2obj[edge_id] = new_edge
+
             self.extra_edge_attrs |= set(data.keys())
+            for a in self.extra_edge_attrs:
+                if data[a] is not None:
+                    extra_edge_attrs_with_atleastone_entry.add(a)
+
             # Remove edge data from the graph.
             self.graph.edges[e[0], e[1], e[2]].clear()
             # Edges in NetworkX don't really have "IDs," but we can use the
@@ -481,8 +494,10 @@ class AssemblyGraph(object):
         # Now that we've seen all of these attributes, turn them from sets to
         # lists so that they have a consistent ordering. This is useful for
         # showing tables of nodes/edges in the visualization.
-        self.extra_node_attrs = sorted(self.extra_node_attrs)
-        self.extra_edge_attrs = sorted(self.extra_edge_attrs)
+        # (Also, ignore attributes where the entries were all None.)
+        self.extra_node_attrs = sorted(extra_node_attrs_with_atleastone_entry)
+        self.extra_edge_attrs = sorted(extra_edge_attrs_with_atleastone_entry)
+
         # ... And, just to be extra fancy: if this is a LJA / Flye graph where
         # the edges have their own defined IDs, move these to the start of the
         # list so they're shown as the leftmost extra attr in the table
