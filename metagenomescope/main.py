@@ -33,10 +33,6 @@ from . import (
 from .graph import AssemblyGraph, graph_utils
 from .errors import UIError, WeirdError
 
-# Needed for layout extensions like dagre. And for exporting SVG images, per
-# https://dash.plotly.com/cytoscape/images.
-cyto.load_extra_layouts()
-
 
 def run(
     graph: str = None,
@@ -309,6 +305,10 @@ def run(
                 className="noPadding",
             ),
         ]
+
+    # Needed for layout extensions like dagre. And for exporting SVG images,
+    # per https://dash.plotly.com/cytoscape/images.
+    cyto.load_extra_layouts()
 
     # update_title=None prevents Dash's default "Updating..." page title change
     app = Dash(__name__, title="MgSc", update_title=None)
