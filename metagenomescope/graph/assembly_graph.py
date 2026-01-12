@@ -516,10 +516,13 @@ class AssemblyGraph(object):
 
         # ... And, just to be extra fancy: if this is a LJA / Flye graph where
         # the edges have their own defined IDs, move these to the start of the
-        # list so they're shown as the leftmost extra attr in the table
-        if "id" in self.extra_edge_attrs:
-            self.extra_edge_attrs.remove("id")
-            self.extra_edge_attrs = ["id"] + self.extra_edge_attrs
+        # list so they're shown as the leftmost extra attr in the table.
+        # Lengths should go after IDs, if present.
+        misc_utils.move_to_start_if_in(self.extra_edge_attrs, "approx_length")
+        misc_utils.move_to_start_if_in(self.extra_edge_attrs, "length")
+        misc_utils.move_to_start_if_in(self.extra_edge_attrs, "id")
+        # Same deal for nodes - put the lengths as early as possible if given
+        misc_utils.move_to_start_if_in(self.extra_node_attrs, "length")
 
     def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.

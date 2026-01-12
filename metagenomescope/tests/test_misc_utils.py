@@ -64,3 +64,12 @@ def test_verify_subset_custom_message():
     with pytest.raises(WeirdError) as ei:
         mu.verify_subset([1, 2, 3], [1, 2], custom_message="floompty")
     assert str(ei.value) == "floompty"
+
+
+def test_move_to_start_if_in():
+    c = ["abc", "def", "ghi"]
+    mu.move_to_start_if_in(c, "def")
+    assert c == ["def", "abc", "ghi"]
+
+    mu.move_to_start_if_in(c, "oijadsf")
+    assert c == ["def", "abc", "ghi"]

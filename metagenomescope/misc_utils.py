@@ -45,3 +45,9 @@ def get_basename_if_fp(fp):
         return None
     else:
         return os.path.basename(fp)
+
+
+def move_to_start_if_in(things, t):
+    if t in things:
+        things.remove(t)
+        things.insert(0, t)
