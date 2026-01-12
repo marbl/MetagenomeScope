@@ -1,9 +1,7 @@
-import math
 import random
 import logging
 from copy import deepcopy
 from collections import deque, defaultdict
-import numpy
 import networkx as nx
 import pygraphviz
 from .. import (
@@ -1337,85 +1335,6 @@ class AssemblyGraph(object):
             if "length" in n.data:
                 lengths[ni] = n.data["length"]
         return lengths
-
-    def _scale_nodes_all_uniform(self):
-        for node in self.nodeid2obj.values():
-            if "orientation" in node.data:
-                node.relative_length = 0.5
-                node.longside_proportion = config.MID_LONGSIDE_PROPORTION
-
-    def _scale_nodes(self):
-        """Scales nodes in the graph based on their lengths.
-
-        This assigns two new attributes for each node:
-
-        1. relative_length: a number in the range [0, 1]. Corresponds to
-           where log(node length) falls in a range between log(min node
-           length) and log(max node length), relative to the rest of the
-           graph's nodes. Used for scaling node area.
-
-        2. longside_proportion: another number in the range [0, 1], assigned
-           based on the relative percentile range the node's log length
-           falls into. Used for determining the proportions of a node, and
-           how "long" it looks.
-
-        Previously, this scaled nodes in separate components differently.
-        However, MetagenomeScope can now show multiple components at once, so
-        we scale nodes based on the min/max lengths throughout the entire
-        graph.
-
-        Notes
-        -----
-        If either of the following conditions are met:
-
-        1. at least one of the graph's nodes does not have a "length" attribute
-        2. all nodes in the graph have the same "length" attribute
-
-        ...Then this will assign each node a relative_length of 0.5 and a
-        longside_proportion of config.MID_LONGSIDE_PROPORTION.
-
-        (TODO, just omit these or something instead? would slim down the
-        visualization filesize.)
-        """
-        # dict that maps node IDs --> lengths
-        node_lengths = self.get_node_lengths()
-
-        # bail out if not all nodes have a length
-        if len(node_lengths) < len(self.graph.nodes):
-            self._scale_nodes_all_uniform()
-        else:
-            node_length_values = node_lengths.values()
-            min_len = min(node_length_values)
-            max_len = max(node_length_values)
-
-            # bail out if all nodes have equal lengths
-            if min_len == max_len:
-                self._scale_nodes_all_uniform()
-            else:
-                # okay, if we've made it here we can actually do node scaling
-                node_log_lengths = {}
-                for node_id, length in node_lengths.items():
-                    node_log_lengths[node_id] = math.log(
-                        length, config.NODE_SCALING_LOG_BASE
-                    )
-                min_log_len = min(node_log_lengths.values())
-                max_log_len = max(node_log_lengths.values())
-                log_len_range = max_log_len - min_log_len
-                q25, q75 = numpy.percentile(
-                    list(node_log_lengths.values()), [25, 75]
-                )
-                for node_id in self.nodeid2obj:
-                    node_log_len = node_log_lengths[node_id]
-                    self.nodeid2obj[node_id].relative_length = (
-                        node_log_len - min_log_len
-                    ) / log_len_range
-                    if node_log_len < q25:
-                        lp = config.LOW_LONGSIDE_PROPORTION
-                    elif node_log_len < q75:
-                        lp = config.MID_LONGSIDE_PROPORTION
-                    else:
-                        lp = config.HIGH_LONGSIDE_PROPORTION
-                    self.nodeid2obj[node_id].longside_proportion = lp
 
     def is_pattern(self, node_id):
         """Returns True if a node ID is for a pattern, False otherwise.

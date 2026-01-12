@@ -47,9 +47,10 @@ classifiers = [
 # dependencies here without problems, so now I am just including them here.
 # However, we can move these to build-system.requires if needed to match the
 # old behavior.
+# NOTE 2: numpy is not currently required, but eventually we will probs add it
+# back in order to do node/edge scaling.
 dependencies = [
     "click",
-    "numpy",
     "networkx",
     "pygraphviz",
     "gfapy",
