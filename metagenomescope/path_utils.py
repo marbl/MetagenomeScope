@@ -104,8 +104,8 @@ def get_paths_from_flye_info(fp):
         trimmedpaths[name] = eids
     if seen_gaps:
         logging.warning(
-            "    Found gaps in the assembly_info file. Currently we ignore "
-            "gaps in the visualization."
+            "    WARNING: Found gaps in the assembly_info file. Note that we "
+            "currently ignore gaps in the visualization."
         )
     return trimmedpaths
 
