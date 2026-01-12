@@ -13,7 +13,7 @@ details in the graph.
 
 It also contains various functionalities for visualizing assembly
 graphs at larger scales -- for example, overlaying paths on the graph and
-drawing a treemap summarizing the graph structure.
+drawing various summary plots of the graph's structure.
 
 This version of the tool is still a work in progress; more to come soon.
 
