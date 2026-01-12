@@ -124,8 +124,8 @@ The graph is from [AGB's GitHub repository](https://github.com/almiheenko/AGB/tr
 
 ```bash
 wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/metagenomescope/tests/input/flye_yeast.gv
-wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/metagenomescope/tests/input/flye_yeast.agp
-mgsc -g flye_yeast.gv -a flye_yeast.agp
+wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/metagenomescope/tests/input/flye_yeast_assembly_info.txt
+mgsc -g flye_yeast.gv -i flye_yeast_assembly_info.txt
 ```
 
 ### Velvet (LastGraph file, 558 nodes, 664 edges): _E. coli_
