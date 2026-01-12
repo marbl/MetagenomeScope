@@ -257,3 +257,28 @@ def test_parse_path_of_just_edges_has_nodes_extracted():
     assert len(g.nodes) == 6
     assert len(g.edges) == 4
     assert paths == {"15": ["1", "3", "4"], "-15": ["-4", "-3", "-1"]}
+
+
+def test_multigraphs_okay_gfa1():
+    s1 = get_sample1_gfa()
+    s1.append("L\t1\t+\t2\t+\t10M")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert len(g.edges) == 10
+    assert ("1", "2", 0) in g.edges
+    assert ("1", "2", 1) in g.edges
+    assert ("-2", "-1", 0) in g.edges
+    assert ("-2", "-1", 1) in g.edges
+
+
+def test_multigraphs_okay_gfa2():
+    g, paths = parse_gfa(
+        "metagenomescope/tests/input/path_of_edges_multigraph.gfa"
+    )
+    assert len(g.nodes) == 6
+    assert len(g.edges) == 6
+    assert paths == {"15": ["1", "3", "4"], "-15": ["-4", "-3", "-1"]}
+    assert ("1", "3", 0) in g.edges
+    assert ("1", "3", 1) in g.edges
+    assert ("-3", "-1", 0) in g.edges
+    assert ("-3", "-1", 1) in g.edges

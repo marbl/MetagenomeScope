@@ -316,12 +316,11 @@ file describes more than one edge from `X -> Y`, then MetagenomeScope will
 visualize all of these "parallel" edges. (This is mostly useful when visualizing
 de Bruijn graphs.)
 
-Notably, parallel edges are only supported right now for some filetypes. The
-parsers MetagenomeScope uses for GFA and FASTG files
-[do not allow multigraphs](https://github.com/marbl/MetagenomeScope/issues/239) -- this
-means that, at the moment, trying to use MetagenomeScope to visualize a GFA or
-FASTG file containing parallel edges will cause an error. I would like to address
-this (at least for GFA files) at some point, but it doesn't seem like a very important issue.
+Notably, parallel edges not supported right now for FASTG files. I don't think
+I've ever seen any FASTG files that have parallel edges, so I don't think this
+is a big priority, but
+[please let me know if you would like us to add support for it](https://github.com/fedarko/pyfastg/issues/8).
+
 <hr/>
 </details>
 
