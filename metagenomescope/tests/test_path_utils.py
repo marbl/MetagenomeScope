@@ -110,3 +110,25 @@ def test_get_path_maps_all_missing():
         "All of the paths contained nodes that were not present in the graph. "
         "Please verify that your path and graph files match up."
     )
+
+
+def test_multiple_path_sources_good():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/flye_yeast.gv",
+        agp_fp="metagenomescope/tests/input/flye_yeast.agp",
+        flye_info_fp="metagenomescope/tests/input/flye_yeast_assembly_info.txt",
+    )
+    assert len(ag.pathname2ccnum) == 32
+
+
+def test_multiple_path_sources_duplicate_name():
+    with tempfile.NamedTemporaryFile(suffix=".agp") as fp:
+        fp.write(b"contig_53\t1\t4033\t0\tW\t17\t1\t4033\t+\n")
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            AssemblyGraph(
+                "metagenomescope/tests/input/flye_yeast.gv",
+                agp_fp=fp.name,
+                flye_info_fp="metagenomescope/tests/input/flye_yeast_assembly_info.txt",
+            )
+        assert str(ei.value) == "Duplicate paths found between sources?"
