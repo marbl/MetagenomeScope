@@ -14,7 +14,7 @@ git clone https://github.com/your-github-username-goes-here/MetagenomeScope.git
 
 # Install conda dependencies
 cd MetagenomeScope
-mamba create -n mgscdev -c conda-forge "python >= 3.8" numpy pygraphviz
+mamba create -n mgscdev -c conda-forge "python >= 3.8" pygraphviz
 mamba activate mgscdev
 
 # Install MetagenomeScope from the cloned source code in "editable mode"
