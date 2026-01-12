@@ -155,6 +155,7 @@ EDGEATTR2FMT = {
     "stdev": FMT_THOUSANDS_SEP,
     "bsize": FMT_THOUSANDS_SEP,
     "multiplicity": FMT_THOUSANDS_SEP,
+    "length": FMT_THOUSANDS_SEP,
     "approx_length": FMT_APPROX_LENGTH,
     "cov": FMT_THOUSANDS_SEP,
     "kmer_cov": FMT_THOUSANDS_SEP,
