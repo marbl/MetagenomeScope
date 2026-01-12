@@ -18,7 +18,7 @@
 
 import itertools
 from .. import config, ui_config
-from ..layout import layout_utils
+from ..layout import Layout
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
 
@@ -126,15 +126,6 @@ class Component(object):
         for obj in self.get_objs():
             obj.set_cc_num(cc_num)
 
-    def layout(self, incl_patterns=ui_config.DEFAULT_SHOW_PATTERNS):
-        gv_input = layout_utils.get_gv_header()
-        if incl_patterns:
-            for p in self.patterns:
-                p.layout()
-        for n in self.nodes:
-            pass
-        return gv_input
-
     def to_cyjs(
         self,
         incl_patterns=ui_config.DEFAULT_SHOW_PATTERNS,
@@ -164,9 +155,9 @@ class Component(object):
         DrawResults
         """
         if layout_alg == ui_config.LAYOUT_DOT:
-            lay = self.layout(incl_patterns=incl_patterns)
-            # TODO and tell nodes/edges to include their coords
-            # in the js, in the next section, when we add to eles
+            return Layout(
+                components=[self], incl_patterns=incl_patterns
+            ).to_cyjs()
         eles = []
         nodeids = [] if report_ids else None
         edgeids = [] if report_ids else None

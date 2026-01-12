@@ -79,3 +79,12 @@ def test_move_to_start_if_in():
 
     mu.move_to_start_if_in(c, "oijadsf")
     assert c == ["def", "abc", "ghi"]
+
+
+def test_verify_at_least_one_nonempty():
+    assert mu.verify_at_least_one_nonempty(["abc", "def", "ghi"])
+    assert mu.verify_at_least_one_nonempty(["abc", "def", "ghi"], [])
+    assert mu.verify_at_least_one_nonempty([], ["abc", "def", "ghi"], [])
+    with pytest.raises(WeirdError) as ei:
+        mu.verify_at_least_one_nonempty([], [])
+    assert str(ei.value) == "All collections are empty"

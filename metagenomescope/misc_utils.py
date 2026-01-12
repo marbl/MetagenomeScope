@@ -51,3 +51,10 @@ def move_to_start_if_in(things, t):
     if t in things:
         things.remove(t)
         things.insert(0, t)
+
+
+def verify_at_least_one_nonempty(*collections):
+    for c in collections:
+        if len(c) > 0:
+            return True
+    raise WeirdError("All collections are empty")

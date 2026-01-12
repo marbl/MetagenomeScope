@@ -1,4 +1,5 @@
-from . import cy_config, ui_config, config, layout_config
+from . import cy_config, ui_config, config
+from .layout import layout_config
 from .errors import WeirdError
 
 
