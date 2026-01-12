@@ -19,7 +19,7 @@ from .. import (
     seq_utils,
     path_utils,
     name_utils,
-    misc_utils
+    misc_utils,
 )
 from ..errors import GraphParsingError, GraphError, WeirdError
 from . import validators, graph_utils
@@ -297,15 +297,17 @@ class AssemblyGraph(object):
         if self.flye_info_filename is not None and self.filetype == "DOT":
             logger.debug(
                 f'  Loading input Flye info file "{self.flye_info_basename}"'
-                '...'
+                "..."
             )
             fi_paths = path_utils.get_paths_from_flye_info(
                 self.flye_info_filename
             )
-            noun = "contigs/scaffolds" if len(fi_paths) != 1 else "contig/scaffold"
-            logger.debug(
-                f"  ...Done. It contained {len(fi_paths):,} {noun}."
+            noun = (
+                "contigs/scaffolds"
+                if len(fi_paths) != 1
+                else "contig/scaffold"
             )
+            logger.debug(f"  ...Done. It contained {len(fi_paths):,} {noun}.")
             path_utils.merge_paths(input_paths, fi_paths)
 
         # If there were any paths at all, record info about them (and filter

@@ -109,6 +109,7 @@ def get_paths_from_flye_info(fp):
         )
     return trimmedpaths
 
+
 def get_path_maps(id2obj, paths, nodes=True):
     """Creates mappings between component size ranks and path names.
 
@@ -254,7 +255,7 @@ def get_path_maps(id2obj, paths, nodes=True):
             for o in objname2pathnames:
                 if len(pretty) > 0:
                     pretty += "; "
-                plist =  ", ".join(objname2pathnames[o])
+                plist = ", ".join(objname2pathnames[o])
                 pretty += f"{o} -> {plist}"
             logging.warning(f"    Missing {noun}(s), for reference: {pretty}")
 
