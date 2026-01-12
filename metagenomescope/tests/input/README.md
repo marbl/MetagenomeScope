@@ -10,7 +10,10 @@ downloaded them from the [gfalint](https://github.com/sjackman/gfalint) reposito
 
 `all_line_types.gfa1.gfa` and `all_line_types.gfa2.gfa` are from
 [the Gfapy repository's test data](https://github.com/ggonnella/gfapy/tree/master/tests/testdata).
-Furthermore, `path_of_edges.gfa` is a modified version of `all_line_types.gfa2.gfa`.
+I modified the GFA1 test file to give all segments lengths, since
+MetagenomeScope requires that segments in GFA files have lengths given.
+Furthermore, `path_of_edges.gfa` and `path_of_edges_multigraph.gfa` are modified versions of
+`all_line_types.gfa2.gfa`.
 
 `marygold_fig2a.gml` is based on Figure 2a from
 [Nijkamp et al. 2013](https://www.ncbi.nlm.nih.gov/pubmed/24058058).
