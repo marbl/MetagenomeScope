@@ -13,7 +13,6 @@ from .. import (
     config,
     cy_config,
     ui_config,
-    layout_utils,
     color_utils,
     ui_utils,
     seq_utils,
@@ -22,6 +21,7 @@ from .. import (
     misc_utils,
 )
 from ..errors import GraphParsingError, GraphError, WeirdError
+from ..layout import layout_utils
 from . import validators, graph_utils
 from .draw_results import DrawResults
 from .component import Component

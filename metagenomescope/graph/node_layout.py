@@ -1,4 +1,5 @@
-from metagenomescope import config, layout_config
+from metagenomescope import config
+from metagenomescope.layout import layout_config
 from metagenomescope.errors import WeirdError
 
 

@@ -20,13 +20,8 @@
 import pygraphviz
 from .node import Node
 from .pattern_stats import PatternStats
-from metagenomescope import (
-    config,
-    cy_config,
-    layout_config,
-    layout_utils,
-    misc_utils,
-)
+from metagenomescope import config, cy_config, misc_utils
+from metagenomescope.layout import layout_config, layout_utils
 from metagenomescope.errors import WeirdError
 
 

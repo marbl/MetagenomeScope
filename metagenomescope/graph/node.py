@@ -18,7 +18,8 @@
 
 
 import math
-from metagenomescope import cy_config, layout_config, config
+from metagenomescope import cy_config, config
+from metagenomescope.layout import layout_config
 from metagenomescope.errors import WeirdError
 from metagenomescope.graph import graph_utils
 from .node_layout import NodeLayout

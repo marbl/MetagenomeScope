@@ -17,7 +17,8 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 import itertools
-from .. import config, ui_config, layout_utils
+from .. import config, ui_config
+from ..layout import layout_utils
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
 
@@ -163,7 +164,7 @@ class Component(object):
         DrawResults
         """
         if layout_alg == ui_config.LAYOUT_DOT:
-            self.layout()
+            lay = self.layout(incl_patterns=incl_patterns)
             # TODO and tell nodes/edges to include their coords
             # in the js, in the next section, when we add to eles
         eles = []

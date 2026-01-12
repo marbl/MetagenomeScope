@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 import pytest
-from metagenomescope import layout_utils
+from metagenomescope.layout import layout_utils
 
 
 def test_shift_control_points_good():
