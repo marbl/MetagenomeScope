@@ -1,3 +1,4 @@
+import math
 from metagenomescope import config
 from metagenomescope.layout import layout_config
 from metagenomescope.errors import WeirdError
@@ -13,25 +14,18 @@ class NodeLayout(object):
         else:
             self.orientation = None
 
-        # Will be filled in after doing node scaling. Stored in points.
-        self.width = None
-        self.height = None
-
-        # Relative position of this node within its parent pattern, if this
-        # node is located within a pattern. (None if this node exists in the
-        # top level of the graph.) Stored in points.
-        self.relative_x = None
-        self.relative_y = None
-
-        # Absolute position of this node within its connected component.
-        self.x = None
-        self.y = None
+        if "length" in data:
+            self.length = data["length"]
+        else:
+            self.length = None
 
         self.set_shape()
+        self.set_dims()
 
     def update_split(self, new_split):
         self.split = new_split
         self.set_shape()
+        self.set_dims()
 
     def set_shape(self):
         if self.orientation == config.FWD:
@@ -60,19 +54,33 @@ class NodeLayout(object):
             else:
                 self.shape = "circle"
 
-    def to_dot(self, nodeid, nodelabel, indent=layout_config.INDENT):
-        if self.width is None or self.height is None:
-            raise WeirdError(
-                "Can't call to_dot() on a Node with unset width and/or height"
-            )
+    def set_dims(self):
+        if self.length is not None:
+            m = max(math.log(self.length, 1000), 1)
+            self.width = m * max(math.log(self.length, 10), 1)
+            self.height = self.width / 2.5
+        else:
+            # match flye's DOT files
+            self.width = 0.3
+            self.height = 0.3
+
         # If a node is split, it's drawn with half its width. This way, the two
         # split nodes of an original node N have the same total area as N would
         # were it an un-split node, because hw = h*(w/2) + h*(w/2).
         if self.split is not None:
-            dotwidth = self.width / 2
+            self.width /= 2
+
+    def get_dims(self, to_cyjs=True):
+        if to_cyjs:
+            return (
+                self.width * layout_config.PIXELS_PER_INCH,
+                self.height * layout_config.PIXELS_PER_INCH,
+            )
         else:
-            dotwidth = self.width
+            return self.width, self.height
+
+    def to_dot(self, nodeid, nodelabel, indent=layout_config.INDENT):
         return (
-            f"{indent}{nodeid} [width={dotwidth},height={self.height},"
+            f"{indent}{nodeid} [width={self.width},height={self.height},"
             f'shape={self.shape},label="{nodelabel}"];\n'
         )

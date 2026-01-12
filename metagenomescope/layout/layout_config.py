@@ -6,25 +6,10 @@
 # use a \t character here, if you're the sort of person who prefers tabs ._.
 INDENT = "  "
 
-# The conversion factor between points (in GraphViz output) and inches, as used
-# by GraphViz. GraphViz uses 72 points per inch, but here we use 63
-# points per inch -- this is kind of a compromise. In old versions of
-# MetagenomeScope, at times we would pass inch values (for node / pattern
-# widths and heights) directly to the JS interface and have that code do the
-# conversion using an INCHES_TO_PIXELS value of 54 -- which was inconsistent,
-# since things like edge control points were just stored as points and not
-# converted to pixels.
-#
-# We now do all the conversions in the Python code, but
-# I've noticed that using the 72 points-per-inch value for nodes kinda squishes
-# the graph too much, making things look gross. (Some of the edge arrows for
-# bubbles don't even show up in the interface.) Using a smaller value helps a
-# bit -- using 54 for this spaces out the graph a bit too much, and using the
-# midpoint between 54 and 72 (63) seems ok. Since this really scales _all_
-# distances in the graph, I think, changing this value doesn't change the
-# intepretation of the graph -- at least for node sizes, it seems to rescale
-# all nodes. But I should really try to formally look into this sometime...
-POINTS_PER_INCH = 63.0
+# The conversion factor between inches (Graphviz) and pixels (Cytoscape.js).
+# There is a lot of history to this, and I think Cytoscape.js has changed its
+# system from points to pixels. so, let's just see how things work out
+PIXELS_PER_INCH = 54
 
 ########
 # Node scaling
@@ -32,22 +17,6 @@ POINTS_PER_INCH = 63.0
 
 # The base we use when logarithmically scaling contig dimensions from length
 NODE_SCALING_LOG_BASE = 10
-# The minimum/maximum area of a node.
-# These variables are used directly in GraphViz, so they're technically in
-# "inches". That being said, "inches" are really an intermediate unit from our
-# perspective since (at least as of writing) they're converted to points and
-# then passed directly to Cytoscape.js. See POINTS_PER_INCH above for details.
-MAX_NODE_AREA = 10
-MIN_NODE_AREA = 1
-NODE_AREA_RANGE = MAX_NODE_AREA - MIN_NODE_AREA
-# Proportions of the "long side" of a contig, for various levels of contigs in
-# the graph.
-# Used for the lower 25% (from 0% to 25%) of contigs in a component
-LOW_LONGSIDE_PROPORTION = 0.5
-# Used for the middle 50% (from 25% to 75%) of contigs in a component
-MID_LONGSIDE_PROPORTION = 2.0 / 3.0
-# Used for the upper 25% (from 75% to 100%) of contigs in a component
-HIGH_LONGSIDE_PROPORTION = 5.0 / 6.0
 
 ########
 # Graph style

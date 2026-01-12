@@ -19,21 +19,8 @@ def get_cyjs_stylesheet(
                 "min-zoomed-font-size": "12",
                 "z-index": "1",
                 "z-index-compare": "manual",
-            },
-        },
-        {
-            "selector": "node.fwd, node.rev",
-            "style": {
                 "width": "data(w)",
                 "height": "data(h)",
-            },
-        },
-        {
-            # TODO maybe resize to accommodate large LJA node labels
-            "selector": "node.unoriented",
-            "style": {
-                "width": "30",
-                "height": "30",
             },
         },
         {

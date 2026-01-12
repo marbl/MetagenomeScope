@@ -245,18 +245,7 @@ class Node(object):
             "classes": f"nonpattern {ndir} {splitcls} noderand{self.rand_idx}",
         }
 
-        if ndir != "unoriented":
-            if "length" in self.data:
-                g = self.data["length"]
-                m = max(math.log(g, 1000), 1)
-                ele["data"]["w"] = m * max(math.log(g, 10), 1) * 50
-                ele["data"]["h"] = ele["data"]["w"] / 2.5
-            else:
-                # ofc we could allow such nodes to just be set to a uniform
-                # size, but this should never happen
-                raise WeirdError(
-                    f"Node {self} has no length, but it has an orientation?"
-                )
+        ele["data"]["w"], ele["data"]["h"] = self.layout.get_dims(to_cyjs=True)
 
         if incl_patterns and self.parent_id is not None:
             ele["data"]["parent"] = str(self.parent_id)

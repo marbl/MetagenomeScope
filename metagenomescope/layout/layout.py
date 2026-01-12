@@ -18,7 +18,10 @@ class Layout(object):
         self.run()
 
     def run(self):
-        pass
+        for sg in self.subgraphs:
+            gv_input = layout_utils.get_gv_header()
+            for node in sg.nodes:
+                gv_input += node.to_dot()
 
     def layout_pattern(self):
         gv_input = layout_utils.get_gv_header()
