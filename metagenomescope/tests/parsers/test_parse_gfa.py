@@ -67,15 +67,15 @@ def check_sample_gfa_digraph(digraph):
 
 
 def test_parse_gfa1_good():
-    g, paths =    parse_gfa("metagenomescope/tests/input/sample1.gfa")
+    g, paths = parse_gfa("metagenomescope/tests/input/sample1.gfa")
     assert paths is None
     check_sample_gfa_digraph(g)
 
 
 def test_parse_gfa2_good():
-    g, paths =    parse_gfa("metagenomescope/tests/input/sample2.gfa")
+    g, paths = parse_gfa("metagenomescope/tests/input/sample2.gfa")
     assert paths is None
-    check_sample_gfa_digraph( g)
+    check_sample_gfa_digraph(g)
 
 
 def test_parse_self_implied_edge():
