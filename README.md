@@ -95,6 +95,7 @@ Usage: mgsc [OPTIONS]
 Options:
   -g, --graph FILE          In GFA, FASTG, DOT, GML, or LastGraph format.  [required]
   -a, --agp FILE            AGP file describing paths (e.g. scaffolds) in the graph.
+  -i, --info FILE           Flye assembly_info.txt file describing contigs/scaffolds.
   -p, --port INTEGER RANGE  Server port number.  [default: 8050; 1024<=x<=65535]
   --verbose / --no-verbose  Log extra details.  [default: no-verbose]
   --debug / --no-debug      Use Dash's debug mode.  [default: no-debug]

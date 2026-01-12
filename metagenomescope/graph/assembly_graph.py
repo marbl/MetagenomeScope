@@ -19,6 +19,7 @@ from .. import (
     seq_utils,
     path_utils,
     name_utils,
+    misc_utils
 )
 from ..errors import GraphParsingError, GraphError, WeirdError
 from . import validators, graph_utils
@@ -76,6 +77,7 @@ class AssemblyGraph(object):
         self,
         graph_fp,
         agp_fp=None,
+        flye_info_fp=None,
     ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
@@ -91,18 +93,26 @@ class AssemblyGraph(object):
             If specified, this should be a path to an AGP file describing paths
             in the graph.
 
+        flye_info_fp: str or None
+            If specified, this should be a path to a Flye assembly_info.txt
+            file describing contigs/scaffolds in the graph.
+
         References
         ----------
         For details about AGP files, see
         https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/
+
+        For details about the Flye info files, see
+        https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md
         """
         logger = logging.getLogger(__name__)
 
         self.filename = graph_fp
+        self.basename = misc_utils.get_basename_if_fp(graph_fp)
         self.agp_filename = agp_fp
-        if self.agp_filename is not None:
-            self.agp_basename = os.path.basename(self.agp_filename)
-        self.basename = os.path.basename(self.filename)
+        self.agp_basename = misc_utils.get_basename_if_fp(agp_fp)
+        self.flye_info_filename = flye_info_fp
+        self.flye_info_basename = misc_utils.get_basename_if_fp(flye_info_fp)
 
         logger.info(f'Loading input graph "{self.basename}"...')
         self.filetype = parsers.FILETYPE2HR[
@@ -116,6 +126,13 @@ class AssemblyGraph(object):
         else:
             self.graph = parser_output[0]
             graph_paths = parser_output[1]
+
+        if self.filetype != "DOT" and self.flye_info_filename is not None:
+            logging.warning(
+                "Flye assembly info file provided. Since this is a "
+                f"{self.filetype} file (not a DOT file), we are ignoring "
+                "the assembly info file."
+            )
 
         self.orientation_in_name = parsers.HRFILETYPE2ORIENTATION_IN_NAME[
             self.filetype
@@ -256,10 +273,16 @@ class AssemblyGraph(object):
         self.pathname2ccnum = None
         self.objname2pathnames = None
 
-        agp_paths = None
-        input_paths = None
+        input_paths = {}
 
-        # process the AGP file, if given
+        # process the paths, if given
+        if graph_paths is not None:
+            logger.debug(
+                f"  Detected {ui_utils.pluralize(len(graph_paths), 'path')} "
+                f"in the input {self.filetype} file."
+            )
+            input_paths = graph_paths
+
         if self.agp_filename is not None:
             logger.debug(f'  Loading input AGP file "{self.agp_basename}"...')
             agp_paths = path_utils.get_paths_from_agp(
@@ -269,34 +292,26 @@ class AssemblyGraph(object):
                 "  ...Done. It contained "
                 f"{ui_utils.pluralize(len(agp_paths), 'path')}."
             )
-        if graph_paths is not None:
+            path_utils.merge_paths(input_paths, agp_paths)
+
+        if self.flye_info_filename is not None and self.filetype == "DOT":
             logger.debug(
-                f"  Detected {ui_utils.pluralize(len(graph_paths), 'path')} "
-                f"in the input {self.filetype} file."
+                f'  Loading input Flye info file "{self.flye_info_basename}"'
+                '...'
             )
-            if agp_paths is not None:
-                # we were passed paths through an AGP file and in the graph
-                dup_path_ids = set(agp_paths.keys()) & set(graph_paths.keys())
-                if len(dup_path_ids) > 0:
-                    raise GraphParsingError(
-                        f"{ui_utils.pluralize(dup_path_ids, 'path name')} "
-                        f"overlap between the AGP and {self.filetype} files, "
-                        f"including: {', '.join(list(dup_path_ids)[:20])}"
-                    )
-                # merge agp_paths and graph_paths:
-                # https://stackoverflow.com/a/26853961
-                input_paths = agp_paths.copy()
-                input_paths.update(graph_paths)
-            else:
-                # just paths in the graph file
-                input_paths = graph_paths.copy()
-        elif agp_paths is not None:
-            # just paths in the AGP file
-            input_paths = agp_paths.copy()
+            fi_paths = path_utils.get_paths_from_flye_info(
+                self.flye_info_filename
+            )
+            noun = "contigs/scaffolds" if len(fi_paths) != 1 else "contig/scaffold"
+            logger.debug(
+                f"  ...Done. It contained {len(fi_paths):,} {noun}."
+            )
+            path_utils.merge_paths(input_paths, fi_paths)
 
         # If there were any paths at all, record info about them (and filter
         # out paths containing stuff not in the graph)
-        if input_paths is not None:
+        if len(input_paths) > 0:
+            logger.debug("  Matching up paths to the graph...")
             # TODO can update path lookup stuff to use nodename2objs - faster
             id2obj = self.nodeid2obj if self.node_centric else self.edgeid2obj
             (

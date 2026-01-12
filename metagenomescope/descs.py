@@ -9,6 +9,8 @@ FASTA = (
 
 AGP = "AGP file describing paths (e.g. scaffolds) in the graph."
 
+FLYE_ASM_INFO = "Flye assembly_info.txt file describing contigs/scaffolds."
+
 PORT = "Server port number."
 
 OUT_TSV = "If given, write a TSV file with some graph statistics."

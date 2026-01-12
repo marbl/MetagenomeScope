@@ -1,3 +1,4 @@
+import os
 from .errors import WeirdError
 
 
@@ -37,3 +38,10 @@ def verify_subset(s1, s2, custom_message=None):
         else:
             msg = custom_message
         raise WeirdError(msg)
+
+
+def get_basename_if_fp(fp):
+    if fp is None:
+        return None
+    else:
+        return os.path.basename(fp)

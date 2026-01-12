@@ -1,4 +1,5 @@
 import logging
+import pandas as pd
 from collections import defaultdict
 from metagenomescope import config
 from .errors import PathParsingError
@@ -77,6 +78,36 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
             paths[parts[0]].append(seq_id)
     return paths
 
+
+def get_paths_from_flye_info(fp):
+    df = pd.read_csv(fp, sep="\t", index_col=0)
+    if "graph_path" not in df.columns:
+        raise PathParsingError("graph_path column not in assembly_info file?")
+    paths = df["graph_path"].str.split(",").to_dict()
+    trimmedpaths = {}
+    seen_gaps = False
+    for name, edgeids in paths.items():
+        if name in trimmedpaths:
+            raise PathParsingError(
+                f"Name {name} occurs twice in assembly_info file?"
+            )
+        eids = []
+        for i in paths[name]:
+            if i == "*":
+                continue
+            elif i == "??":
+                seen_gaps = True
+            else:
+                eids.append(i)
+        if len(eids) == 0:
+            raise PathParsingError(f"Invalid path: {name} -> {paths[name]}")
+        trimmedpaths[name] = eids
+    if seen_gaps:
+        logging.warning(
+            "    Found gaps in the assembly_info file. Currently we ignore "
+            "gaps in the visualization."
+        )
+    return trimmedpaths
 
 def get_path_maps(id2obj, paths, nodes=True):
     """Creates mappings between component size ranks and path names.
@@ -218,6 +249,14 @@ def get_path_maps(id2obj, paths, nodes=True):
             f"contained {noun}(s) that were not present in the graph. "
             f"{tmp} will not be shown in the visualization. {exampletext}"
         )
+        if len(objname2pathnames) < 20:
+            pretty = ""
+            for o in objname2pathnames:
+                if len(pretty) > 0:
+                    pretty += "; "
+                plist =  ", ".join(objname2pathnames[o])
+                pretty += f"{o} -> {plist}"
+            logging.warning(f"    Missing {noun}(s), for reference: {pretty}")
 
     ccnum2pathnames = defaultdict(list)
     # while we're at it, recreate the mapping of object names to path names
@@ -242,3 +281,11 @@ def get_path_maps(id2obj, paths, nodes=True):
 
 def get_available_count_badge_text(num_available, total_num):
     return f"{num_available:,} / {total_num:,}"
+
+
+def merge_paths(curr_paths, new_paths):
+    i0 = set(curr_paths.keys())
+    i1 = set(new_paths.keys())
+    if i0 & i1:
+        raise PathParsingError("Duplicate paths found between sources?")
+    curr_paths.update(new_paths)

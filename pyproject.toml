@@ -54,6 +54,7 @@ dependencies = [
     "pygraphviz",
     "gfapy",
     "pyfastg",
+    "pandas",
     "dash-cytoscape",
     "dash-bootstrap-components",
     "dash-ag-grid",
@@ -73,7 +74,6 @@ dev = [
     "pytest-cov",
     "flake8",
     "black >= 22.1.0",
-    "pandas",
 ]
 
 [project.scripts]

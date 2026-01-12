@@ -39,6 +39,14 @@ from . import __version__, defaults, descs, config
     help=descs.AGP,
 )
 @click.option(
+    "-i",
+    "--info",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    default=None,
+    required=False,
+    help=descs.FLYE_ASM_INFO,
+)
+@click.option(
     "-p",
     "--port",
     type=click.IntRange(min=config.MIN_PORT, max=config.MAX_PORT),
@@ -64,6 +72,7 @@ from . import __version__, defaults, descs, config
 def run_script(
     graph: str,
     agp: str,
+    info: str,
     port: int,
     verbose: bool,
     debug: bool,
@@ -87,6 +96,7 @@ def run_script(
             "Settings:",
             f"Graph file: {graph}",
             f"AGP file: {agp}",
+            f"Flye info file: {info}",
             f"Port: {port}",
             f"Verbose?: {verbose}",
             f"Debug mode?: {debug}",
@@ -99,6 +109,7 @@ def run_script(
     run(
         graph=graph,
         agp=agp,
+        flye_info=info,
         port=port,
         verbose=verbose,
         debug=debug,
