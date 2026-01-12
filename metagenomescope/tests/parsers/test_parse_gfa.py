@@ -195,7 +195,8 @@ def test_parse_paths_and_containments_gfa1():
     g, paths = parse_gfa("metagenomescope/tests/input/all_line_types.gfa1.gfa")
     assert len(g.nodes) == 18
     # 4 links, 2 containments (times two for the RCs)
-    assert len(g.edges) == 12
+    # but for now we ignore containments!
+    assert len(g.edges) == 8
     assert len(paths) == 4
     assert paths == {
         "14": ["11", "12"],
@@ -203,14 +204,17 @@ def test_parse_paths_and_containments_gfa1():
         "-14": ["-12", "-11"],
         "-15": ["-13", "-11"],
     }
-
+    exp_containment_edges = ("1", "5"), ("2", "6"), ("-5", "-1"), ("-6", "-2")
+    for e in g.edges():
+        assert (e[0], e[1]) not in exp_containment_edges
 
 def test_parse_paths_and_containments_gfa2():
     g, paths = parse_gfa("metagenomescope/tests/input/all_line_types.gfa2.gfa")
     assert len(g.nodes) == 18
     # 4 links, 2 containments (times two for the RCs)
-    # note that links and containments are all E-lines in GFA2
-    assert len(g.edges) == 12
+    # note that links and containments are all E-lines in GFA2 but thankfully
+    # gfapy can distinguish them
+    assert len(g.edges) == 8
     assert len(paths) == 4
     assert paths == {
         "14": ["11", "12"],
@@ -218,3 +222,6 @@ def test_parse_paths_and_containments_gfa2():
         "-14": ["-12", "-11"],
         "-15": ["-13", "-11"],
     }
+    exp_containment_edges = ("5", "1"), ("6", "2"), ("-1", "-5"), ("-2", "-6")
+    for e in g.edges():
+        assert (e[0], e[1]) not in exp_containment_edges

@@ -439,9 +439,15 @@ def parse_gfa(filename):
       duplicate link lines.
 
     - Currently we only store information about nodes (segments), edges
-      (including containments), and paths. Things like gaps, unoriented groups,
+      (but not containments), and paths. Things like gaps, unoriented groups,
       and fragments (G-/U-/F- lines in GFA2) are ignored (at least for now).
       See https://github.com/marbl/MetagenomeScope/issues/147.
+
+    - Regarding containments, see the comment below. We could visualize
+      these but it will require some thinking to do it in a non-misleading
+      way. See https://github.com/marbl/MetagenomeScope/commit/72bd908b6875d5fe0d4d7ae8674ea00821ace7d9
+      for one way of doing this (but this has pitfalls because it just
+      treats the containments like regular edges...)
     """
     digraph = nx.MultiDiGraph()
     gfa_graph = gfapy.Gfa.from_file(filename)
@@ -476,6 +482,20 @@ def parse_gfa(filename):
 
     # Now, add edges to the DiGraph
     for edge in gfa_graph.edges:
+
+        # We could visualize containments if desired -- GfaViz does by drawing
+        # a line between the nodes that connects in the middles of the nodes
+        # rather than on the ends -- but since we don't support that sort of
+        # functionality yet, i think it makes sense to ignore these for now
+        # (like Bandage does from what i've seen)
+        #
+        # This is also complicated by how, like, containments are generally
+        # listed in gfa 1 files as "container" -> "contained", so does it
+        # make sense for a containment edge to have a RC? what would that
+        # mean? it gets complicated
+        if edge.is_containment():
+            continue
+
         # Set edge_tuple to the edge's explicitly specified orientation
         # This code is a bit verbose, but that was the easiest way to write it
         # I could think of
@@ -488,17 +508,14 @@ def parse_gfa(filename):
         else:
             tgt_id = edge.to_name
         edge_tuple = (src_id, tgt_id)
-        containment = "Yes" if edge.is_containment() else "No"
-        digraph.add_edge(*edge_tuple, containment=containment)
+        digraph.add_edge(*edge_tuple)
 
-        # Now, try to add the complement of the edge (done manually, since
-        # .complement() isn't available for GFA2 edges as of writing)
         complement_tuple = (negate(tgt_id), negate(src_id))
 
         # Don't add an edge twice if its complement is itself (as in the
         # loop.gfa test case)
         if complement_tuple != edge_tuple:
-            digraph.add_edge(*complement_tuple, containment=containment)
+            digraph.add_edge(*complement_tuple)
 
     paths = None
     if len(gfa_graph.paths) > 0:
