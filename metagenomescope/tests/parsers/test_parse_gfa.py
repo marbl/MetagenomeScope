@@ -189,3 +189,32 @@ def test_parse_invalid_id_node():
         "Node IDs in the input assembly graph cannot "
         f'start with the "{config.REV}" character.',
     )
+
+
+def test_parse_paths_and_containments_gfa1():
+    g, paths = parse_gfa("metagenomescope/tests/input/all_line_types.gfa1.gfa")
+    assert len(g.nodes) == 18
+    # 4 links, 2 containments (times two for the RCs)
+    assert len(g.edges) == 12
+    assert len(paths) == 4
+    assert paths == {
+        "14": ["11", "12"],
+        "15": ["11", "13"],
+        "-14": ["-12", "-11"],
+        "-15": ["-13", "-11"],
+    }
+
+
+def test_parse_paths_and_containments_gfa2():
+    g, paths = parse_gfa("metagenomescope/tests/input/all_line_types.gfa2.gfa")
+    assert len(g.nodes) == 18
+    # 4 links, 2 containments (times two for the RCs)
+    # note that links and containments are all E-lines in GFA2
+    assert len(g.edges) == 12
+    assert len(paths) == 4
+    assert paths == {
+        "14": ["11", "12"],
+        "15": ["11", "13"],
+        "-14": ["-12", "-11"],
+        "-15": ["-13", "-11"],
+    }
