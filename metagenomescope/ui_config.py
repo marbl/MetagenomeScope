@@ -111,6 +111,7 @@ EDGEATTR2HRT = {
     "color": ("Color", "text"),
     "first_nt": ("First nt", "text"),
     "kmer_cov": ("k-mer cov.", "number"),
+    "containment": ("Containment?", "text"),
 }
 
 # some attributes are obvious and/or not worth showing in the selected element

@@ -488,7 +488,8 @@ def parse_gfa(filename):
         else:
             tgt_id = edge.to_name
         edge_tuple = (src_id, tgt_id)
-        digraph.add_edge(*edge_tuple)
+        containment = "Yes" if edge.is_containment() else "No"
+        digraph.add_edge(*edge_tuple, containment=containment)
 
         # Now, try to add the complement of the edge (done manually, since
         # .complement() isn't available for GFA2 edges as of writing)
@@ -497,7 +498,7 @@ def parse_gfa(filename):
         # Don't add an edge twice if its complement is itself (as in the
         # loop.gfa test case)
         if complement_tuple != edge_tuple:
-            digraph.add_edge(*complement_tuple)
+            digraph.add_edge(*complement_tuple, containment=containment)
 
     paths = None
     if len(gfa_graph.paths) > 0:
