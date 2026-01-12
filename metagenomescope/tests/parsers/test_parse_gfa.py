@@ -208,6 +208,7 @@ def test_parse_paths_and_containments_gfa1():
     for e in g.edges():
         assert (e[0], e[1]) not in exp_containment_edges
 
+
 def test_parse_paths_and_containments_gfa2():
     g, paths = parse_gfa("metagenomescope/tests/input/all_line_types.gfa2.gfa")
     assert len(g.nodes) == 18
