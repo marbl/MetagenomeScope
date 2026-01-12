@@ -127,13 +127,6 @@ class AssemblyGraph(object):
             self.graph = parser_output[0]
             graph_paths = parser_output[1]
 
-        if self.filetype != "DOT" and self.flye_info_filename is not None:
-            logging.warning(
-                "Flye assembly info file provided. Since this is a "
-                f"{self.filetype} file (not a DOT file), we are ignoring "
-                "the assembly info file."
-            )
-
         self.orientation_in_name = parsers.HRFILETYPE2ORIENTATION_IN_NAME[
             self.filetype
         ]
@@ -143,6 +136,12 @@ class AssemblyGraph(object):
         else:
             self.seq_noun = "edge"
         logger.info(f'...Loaded graph. Filetype: "{self.filetype}".')
+
+        if self.filetype != "DOT" and self.flye_info_filename is not None:
+            logging.warning(
+                "Flye assembly info file provided. Since the input graph "
+                f"is not a DOT file, we are ignoring the info file."
+            )
 
         # These are the "raw" counts, before adding split nodes / fake edges
         # / etc during decomposition
