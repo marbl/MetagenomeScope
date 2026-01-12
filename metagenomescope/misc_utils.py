@@ -53,8 +53,12 @@ def move_to_start_if_in(things, t):
         things.insert(0, t)
 
 
-def verify_at_least_one_nonempty(*collections):
+def verify_exactly_one_nonempty(*collections):
+    nonempty_seen = False
     for c in collections:
         if len(c) > 0:
-            return True
-    raise WeirdError("All collections are empty")
+            if nonempty_seen:
+                raise WeirdError("Multiple collections nonempty")
+            nonempty_seen = True
+    if not nonempty_seen:
+        raise WeirdError("All collections are empty")

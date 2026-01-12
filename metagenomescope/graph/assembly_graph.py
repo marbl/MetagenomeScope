@@ -1377,6 +1377,7 @@ class AssemblyGraph(object):
                     node_id, data=True
                 ):
                     cobj.add_edge(self.edgeid2obj[data["uid"]])
+            cobj.round_num_full_nodes()
             components.append(cobj)
 
         # The number of "full" nodes (i.e. ignoring node splitting) MUST be the

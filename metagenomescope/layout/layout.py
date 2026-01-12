@@ -1,5 +1,4 @@
 import pygraphviz
-from .. import misc_utils
 from . import layout_utils
 
 
@@ -12,22 +11,9 @@ class Layout(object):
     TODO: define some mechanism for adding Layouts? for component tiling.
     """
 
-    def __init__(
-        self,
-        components=[],
-        nodes=[],
-        edges=[],
-        patterns=[],
-        incl_patterns=True,
-    ):
+    def __init__(self, *subgraphs, incl_patterns=True):
         """Initializes this Layout object."""
-        misc_utils.verify_at_least_one_nonempty(
-            components, nodes, edges, patterns
-        )
-        self.components = components
-        self.nodes = nodes
-        self.edges = edges
-        self.patterns = patterns
+        self.subgraphs = subgraphs
         self.incl_patterns = incl_patterns
         self.run()
 

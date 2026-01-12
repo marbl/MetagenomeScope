@@ -16,14 +16,10 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
-import itertools
-from .. import config, ui_config
-from ..layout import Layout
-from .pattern_stats import PatternStats
-from .draw_results import DrawResults
+from .subgraph import Subgraph
 
 
-class Component(object):
+class Component(Subgraph):
     """Represents a weakly connected component in an assembly graph."""
 
     def __init__(self, unique_id):
@@ -36,148 +32,18 @@ class Component(object):
             Component.
         """
         self.unique_id = unique_id
-        self.nodes = []
-        self.edges = []
-        self.patterns = []
-
-        # Number of nodes in this Component that are not split.
-        self.num_unsplit_nodes = 0
-
-        # Number of split nodes in this Component (including both left and
-        # right splits: e.g. if a component contains exactly one instance of a
-        # node being split, then num_split_nodes should be 2).
-        self.num_split_nodes = 0
-
-        # Number of total nodes in this Component (should be equal to
-        # num_unsplit_nodes + num_split_nodes).
-        self.num_total_nodes = 0
-
-        # Total number of "full" nodes (treating the left and right part of a
-        # split node as one "full" node). Should be equal to
-        # num_unsplit_nodes + (num_split_nodes / 2).
-        self.num_full_nodes = 0
-
-        # Number of edges in this Component, not including fake edges from a
-        # left split node to a right split node.
-        self.num_real_edges = 0
-
-        # Number of fake edges in this Component.
-        self.num_fake_edges = 0
-
-        # Total number of edges in this Component (should be equal to
-        # num_real_edges + num_fake_edges).
-        self.num_total_edges = 0
-
-        # PatternStats for this Component.
-        self.pattern_stats = PatternStats()
 
         # unique size rank index of this component (the cc in the graph with
         # the most nodes has size rank 1, the next biggest one has size rank 2,
         # etc). We store this to make searching through the graph easier.
         self.cc_num = None
+        super().__init__()
 
     def __repr__(self):
-        return (
-            f"Component {self.unique_id}: {self.num_total_nodes:,} node(s), "
-            f"{self.num_total_edges:,} edge(s), {self.pattern_stats.sum():,} "
-            "pattern(s)"
-        )
-
-    def add_node(self, node):
-        self.nodes.append(node)
-        if node.is_split():
-            self.num_split_nodes += 1
-            # Both the left and right part of a split node count as 1 "full"
-            # node. We could add 0.5 for each split node, but we can avoid
-            # float jank by just counting left-split nodes (since we know that
-            # if node N is split then there must be both N-L and N-R in this
-            # cc)
-            if node.split == config.SPLIT_LEFT:
-                self.num_full_nodes += 1
-        else:
-            self.num_unsplit_nodes += 1
-            self.num_full_nodes += 1
-        self.num_total_nodes += 1
-
-    def add_edge(self, edge):
-        self.edges.append(edge)
-        if edge.is_fake:
-            self.num_fake_edges += 1
-        else:
-            self.num_real_edges += 1
-        self.num_total_edges += 1
-
-    def add_pattern(self, pattern):
-        nodes, edges, patts, patt_stats = pattern.get_descendant_info()
-        for n in nodes:
-            self.add_node(n)
-        for e in edges:
-            self.add_edge(e)
-        for p in patts:
-            self.patterns.append(p)
-        self.pattern_stats += patt_stats
-
-    def get_objs(self):
-        return itertools.chain(self.nodes, self.edges, self.patterns)
+        return f"Component {self.unique_id}: {self._get_repr_counts()}"
 
     def set_cc_num(self, cc_num):
         """Updates the component number of this component and its children."""
         self.cc_num = cc_num
         for obj in self.get_objs():
             obj.set_cc_num(cc_num)
-
-    def to_cyjs(
-        self,
-        incl_patterns=ui_config.DEFAULT_SHOW_PATTERNS,
-        layout_alg=ui_config.DEFAULT_LAYOUT_ALG,
-        report_ids=False,
-    ):
-        """Creates Cytoscape.js elements for all nodes/edges in this component.
-
-        Parameters
-        ----------
-        incl_patterns: bool
-            If True, include patterns (and adjust the node/edge elements to
-            refer to these patterns as their "parent" elements).
-
-        layout_alg: str
-            Layout algorithm to use. If this is ui_config.LAYOUT_DOT, then
-            we will perform the fancy recursive backfilling stuff using dot
-            (in order to generate positions for Cytoscape.js). Otherwise,
-            we assume that you are doing some sort of client-side layout
-            like Dagre, so we will not include positions.
-
-        report_ids: bool
-            If True, record node and edge IDs in the output DrawResults.
-
-        Returns
-        -------
-        DrawResults
-        """
-        if layout_alg == ui_config.LAYOUT_DOT:
-            return Layout(
-                components=[self], incl_patterns=incl_patterns
-            ).to_cyjs()
-        eles = []
-        nodeids = [] if report_ids else None
-        edgeids = [] if report_ids else None
-        for n in self.nodes:
-            eles.append(n.to_cyjs(incl_patterns=incl_patterns))
-            if report_ids:
-                nodeids.append(n.unique_id)
-        for e in self.edges:
-            eles.append(e.to_cyjs(incl_patterns=incl_patterns))
-            if report_ids:
-                edgeids.append(e.unique_id)
-        pattct = 0
-        if incl_patterns:
-            eles.extend(obj.to_cyjs() for obj in self.patterns)
-            pattct = len(self.patterns)
-        return DrawResults(
-            eles,
-            self.num_full_nodes,
-            self.num_real_edges,
-            pattct,
-            nodeids,
-            edgeids,
-        )
