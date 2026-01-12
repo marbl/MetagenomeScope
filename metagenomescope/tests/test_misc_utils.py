@@ -66,6 +66,12 @@ def test_verify_subset_custom_message():
     assert str(ei.value) == "floompty"
 
 
+def test_get_basename_if_fp():
+    assert mu.get_basename_if_fp(None) is None
+    assert mu.get_basename_if_fp("abcdef.ghjil") == "abcdef.ghjil"
+    assert mu.get_basename_if_fp("/path/to/this/thing/test.txt") == "test.txt"
+
+
 def test_move_to_start_if_in():
     c = ["abc", "def", "ghi"]
     mu.move_to_start_if_in(c, "def")
