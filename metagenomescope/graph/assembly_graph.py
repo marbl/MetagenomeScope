@@ -390,7 +390,7 @@ class AssemblyGraph(object):
 
             self.extra_node_attrs |= set(data.keys())
             for a in self.extra_node_attrs:
-                if data[a] is not None:
+                if a in data and data[a] is not None:
                     extra_node_attrs_with_atleastone_entry.add(a)
 
             # Remove node data from the graph (we've already saved it in the
@@ -437,7 +437,7 @@ class AssemblyGraph(object):
 
             self.extra_edge_attrs |= set(data.keys())
             for a in self.extra_edge_attrs:
-                if data[a] is not None:
+                if a in data and data[a] is not None:
                     extra_edge_attrs_with_atleastone_entry.add(a)
 
             # Remove edge data from the graph.

@@ -42,3 +42,8 @@ def test_validate_nonempty_one_node_gml():
     ag = AssemblyGraph("metagenomescope/tests/input/one.gml")
     assert ag.node_ct == 1
     assert ag.edge_ct == 0
+
+
+def test_noseq_gfa_has_no_gc_contents():
+    ag = AssemblyGraph("metagenomescope/tests/input/sheepgut_g1217.gfa")
+    assert ag.extra_node_attrs == ["length", "orientation"]
