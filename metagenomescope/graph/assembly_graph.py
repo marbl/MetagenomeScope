@@ -140,7 +140,7 @@ class AssemblyGraph(object):
         if self.filetype != "DOT" and self.flye_info_filename is not None:
             logging.warning(
                 "Flye assembly info file provided. Since the input graph "
-                f"is not a DOT file, we are ignoring the info file."
+                "is not a DOT file, we are ignoring the info file."
             )
 
         # These are the "raw" counts, before adding split nodes / fake edges
