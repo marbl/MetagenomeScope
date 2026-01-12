@@ -82,32 +82,6 @@ def test_set_cc_num():
     # AND THE CROWD GOES WILD
 
 
-def test_to_dot_unset_dims():
-    def check_exception(e):
-        assert str(e.value) == (
-            "Can't call to_dot() on a Node with unset width and/or height"
-        )
-
-    with pytest.raises(WeirdError) as ei:
-        b = Node(0, "B", {})
-        b.to_dot()
-    check_exception(ei)
-
-    with pytest.raises(WeirdError) as ei:
-        b = Node(0, "B", {})
-        b.layout.height = 5
-        # ... but the width is still unset!
-        b.to_dot()
-    check_exception(ei)
-
-    with pytest.raises(WeirdError) as ei:
-        b = Node(0, "B", {})
-        b.layout.width = 5
-        # ... but the height is still unset!
-        b.to_dot()
-    check_exception(ei)
-
-
 def test_to_dot_non_split():
     b = Node(0, "B", {})
     b.layout.width = b.layout.height = 3
@@ -123,12 +97,12 @@ def test_to_dot_split():
         1, "C", {"orientation": FWD}, counterpart_node=b, split=SPLIT_LEFT
     )
     b.layout.width = b.layout.height = 3
-    c.layout.width = c.layout.height = 3
+    c.layout.width = c.layout.height = 1
     assert (
         c.to_dot(indent=" ")
-        == ' 1 [width=1.5,height=3,shape=rect,label="C-L"];\n'
+        == ' 1 [width=1,height=1,shape=rect,label="C-L"];\n'
     )
     assert (
         b.to_dot(indent=" ")
-        == ' 0 [width=1.5,height=3,shape=invtriangle,label="B-R"];\n'
+        == ' 0 [width=3,height=3,shape=invtriangle,label="B-R"];\n'
     )

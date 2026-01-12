@@ -56,12 +56,14 @@ class NodeLayout(object):
     def set_dims(self):
         if self.length is not None:
             m = max(math.log(self.length, 1000), 1)
-            self.width = m * max(math.log(self.length, 10), 1)
+            self.width = m * max(
+                math.log(self.length, layout_config.NODE_SCALING_LOG_BASE), 1
+            )
             self.height = self.width / 2.5
         else:
             # match flye's DOT files
-            self.width = 0.3
-            self.height = 0.3
+            self.width = layout_config.NOLENGTH_NODE_WIDTH
+            self.height = layout_config.NOLENGTH_NODE_HEIGHT
 
         # If a node is split, it's drawn with half its width. This way, the two
         # split nodes of an original node N have the same total area as N would
