@@ -17,11 +17,9 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import pygraphviz
 from .node import Node
 from .pattern_stats import PatternStats
 from metagenomescope import config, cy_config, misc_utils
-from metagenomescope.layout import layout_config, layout_utils
 from metagenomescope.errors import WeirdError
 
 
@@ -204,64 +202,6 @@ class Pattern(Node):
     def get_node_ids(self):
         return get_ids_of_nodes(self.nodes)
 
-    def layout(self):
-        gv_input = layout_utils.get_gv_header()
-        # Recursively go through all of the nodes within this pattern. If any
-        # of these isn't actually a node (and is actually a pattern), then lay
-        # out that pattern!
-        for node in self.nodes:
-            if is_pattern(node):
-                node.layout()
-            # TODO: add a "solid" parameter to Pattern.to_dot() or
-            # something that just converts this child pattern to a
-            # rectangle here (rather than representing it as a subgraph) --
-            # then use this.
-            gv_input += node.to_dot()
-        for edge in self.edges:
-            gv_input += edge.to_dot(level="dec")
-        gv_input += "}"
-
-        # Now, we can lay out this pattern's graph! Yay.
-        cg = pygraphviz.AGraph(gv_input)
-        cg.layout(prog="dot")
-
-        # Extract dimension info. The first two coordinates in the bounding box
-        # (bb) should always be (0, 0).
-        # The width and height we store here are large enough in order to
-        # contain the layout of the nodes/edges/other patterns in this pattern.
-        self.width, self.height = layout_utils.get_bb_x2_y2(
-            cg.graph_attr["bb"]
-        )
-
-        # Extract relative node coordinates (x and y)
-        # NOTE: for child patterns of this pattern, we don't need to update the
-        # child node/edge positions within this sub-pattern just yet: we only
-        # need to worry about having stuff be relative to the immediate parent
-        # pattern. When the top level of each component is laid out, we can go
-        # down through the patterns and update positions accordingly --
-        # no need to slow ourselves down by repeatedly updating this
-        # information throughout the layout process.
-        for node in self.nodes:
-            node = cg.get_node(node.unique_id)
-            x, y = layout_utils.getxy(node.attr["pos"])
-            node.relative_x = x
-            node.relative_y = y
-
-        # Extract (relative) edge control points
-        for edge in self.edges:
-            # TODO: This is gonna cause problems when we have parallel edges.
-            # Modify the pygraphviz stuff to explicitly create nodes and edges,
-            # rather than passing in a string of graphviz input -- this way we
-            # can define edge keys explicitly (which prooobably won't be
-            # necessary but whatevs).
-            # TODO 2: okay well actually, if these are parallel edges, we can
-            # PROBABLY safely fall back to just basic beziers unless these are
-            # back edges....
-            cg_edge = cg.get_edge(edge.dec_src_id, edge.dec_tgt_id)
-            edge.relative_ctrl_pt_coords = layout_utils.get_control_points(
-                cg_edge.attr["pos"]
-            )
-
     def set_bb(self, x, y):
         """Given a center position of this Pattern, sets its bounding box.
 
@@ -306,36 +246,13 @@ class Pattern(Node):
             edges.append(edge)
         return nodes, edges, patts, patt_stats
 
-    def to_dot(self, indent=layout_config.INDENT):
-        """Returns a DOT representation of this Pattern and its descendants.
-
-        Parameters
-        ----------
-        indent: str
-            "Outer indentation" to use in the DOT output. We'll increment the
-            indentation for child nodes/edges/patterns of this pattern as well.
-
-        Returns
-        -------
-        str
-            DOT representation of this Pattern, in which the Pattern is
-            represented as a "cluster" subgraph.
-        """
-        # inner indentation level
-        ii = indent + indent
-        gv = f"{indent}subgraph cluster_{self.name} {{\n"
-        gv += f'{ii}style="filled";\n'
-        gv += f'{ii}fillcolor="{config.PT2COLOR[self.pattern_type]}";\n'
-        for obj_coll in (self.nodes, self.edges):
-            for obj in obj_coll:
-                gv += obj.to_dot(indent=ii)
-        gv += f"{indent}}}\n"
-        return gv
-
     def to_cyjs(self):
-        # unlike to_dot(), we don't bother doing this recursively. we assume
-        # the caller already knows about all nodes and edges in this pattern.
-        # since this is called by a Component object that should be fine
+        """Creates a Cytoscape.js element for this pattern.
+
+        Note that we don't do this recursively; we assume that the caller
+        already knows about all nodes and edges in this pattern. So, we just
+        return a single Cytoscape.js element representing this pattern.
+        """
         ele = {
             "data": {
                 "id": str(self.unique_id),

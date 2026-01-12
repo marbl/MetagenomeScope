@@ -1,8 +1,6 @@
 import math
-import os
 import random
 import logging
-import subprocess
 from copy import deepcopy
 from collections import deque, defaultdict
 import numpy
@@ -20,7 +18,7 @@ from .. import (
     name_utils,
     misc_utils,
 )
-from ..errors import GraphParsingError, GraphError, WeirdError
+from ..errors import WeirdError
 from ..layout import layout_utils
 from . import validators, graph_utils
 from .draw_results import DrawResults
@@ -28,18 +26,6 @@ from .component import Component
 from .pattern import Pattern
 from .node import Node
 from .edge import Edge
-
-
-# a lot of this code still relies on the old logging system. i want to
-# add stuff back piece by piece, so for now here are clunky placeholder
-# functions to prevent flake8 errors -- gradually i will remove references
-# to these functions in favor of just using the new logging stuff
-def operation_msg(*args):
-    print("TEMP OM", args)
-
-
-def conclude_msg(*args):
-    print("TEMP CM", args)
 
 
 class AssemblyGraph(object):
@@ -331,15 +317,6 @@ class AssemblyGraph(object):
                 "across "
                 f"{ui_utils.pluralize(len(self.ccnum2pathnames), 'component')}."
             )
-
-        # Since layout can take a while, we leave it to the creator of this
-        # object to call .layout() (if for example they don't actually need to
-        # lay out the graph, and they just want to do pattern detection).
-        #
-        # Some functions require that layout has already been performed,
-        # though. These functions can just use this flag to figure out if they
-        # should immediately fail with an error.
-        self.layout_done = False
         logger.info("...Done.")
 
     def _init_graph_objs(self):
@@ -1445,210 +1422,6 @@ class AssemblyGraph(object):
                         lp = config.HIGH_LONGSIDE_PROPORTION
                     self.nodeid2obj[node_id].longside_proportion = lp
 
-    def _compute_node_dimensions(self):
-        r"""Adds height and width attributes to each node in the graph.
-
-        It is assumed that _scale_nodes() has already been called; otherwise,
-        this will be unable to access the relative_length and
-        longside_proportion node attributes, which will cause a KeyError.
-
-        This only covers "bottom-level" nodes -- i.e. patterns are not assigned
-        dimensions, since those should be scaled based on the bounding box
-        needed to contain their child elements. However, "duplicate" nodes
-        should be assigned dimensions, since for all intents and purposes
-        they're "real". (It may be possible to speed this up slightly by only
-        duplicating data for these nodes after doing scaling, etc., but I doubt
-        that the time savings there will be that useful in most cases.)
-
-        In previous versions of MetagenomeScope (that laid out the graph using
-        the default top --> bottom "rankdir"), the width and height of nodes
-        were flipped. Now that we lay out the graph from left to right, the
-        width and height are no longer flipped, so this code should be way less
-        confusing.
-        """
-        for node in self.nodeid2obj.values():
-            if node.relative_length is not None:
-                area = config.MIN_NODE_AREA + (
-                    node.relative_length * config.NODE_AREA_RANGE
-                )
-                node.width = area**node.longside_proportion
-                node.height = area / node.width
-            else:
-                # TODO make into a config variable
-                # matches flye's graphs' node sizes
-                node.width = node.height = 0.3
-
-    def get_edge_weight_field(
-        self, field_names=["bsize", "multiplicity", "cov", "kmer_cov"]
-    ):
-        """Returns the name of the edge weight field this graph has.
-
-        If the graph does not have any edge weight fields, or if only some
-        edges have an edge weight field, returns None.
-
-        If there are multiple edge weight fields, this raises a
-        GraphParsingError. If any of the edges in the graph are fake, this
-        raises a WeirdError.
-
-        The list of field names corresponding to "edge weights" is
-        configurable via the field_names parameter. You should verify (in the
-        assembly graph parsers) that these fields correspond to positive
-        numbers.
-
-        Notes
-        -----
-        - This entire function should be removed, eventually, in favor of
-          letting the user dynamically choose how to adjust edge weights in the
-          browser.
-
-        - It should be possible to merge this function with _init_graph_objs();
-          this would speed things up, since we could avoid iterating through
-          the edges in the graph here. But not worth it right now.
-        """
-
-        def _check_edge_weight_fields(edge_data):
-            edge_fns = set(edge_data.keys()) & set(field_names)
-            if len(edge_fns) > 1:
-                raise GraphParsingError(
-                    f"Graph has multiple 'edge weight' fields ({edge_fns}). "
-                    "It's ambiguous which we should use for scaling."
-                )
-            elif len(edge_fns) == 1:
-                return list(edge_fns)[0]
-            else:
-                return None
-
-        chosen_fn = None
-        for e in self.edgeid2obj.values():
-            if e.is_fake:
-                raise WeirdError(
-                    "Fake edges shouldn't exist in the graph yet."
-                )
-            fn = _check_edge_weight_fields(e.data)
-            if fn is None:
-                return None
-            else:
-                if chosen_fn is None:
-                    chosen_fn = fn
-                else:
-                    if chosen_fn != fn:
-                        raise GraphParsingError(
-                            "One edge has only the 'edge weight' field "
-                            f"{chosen_fn}, while another has only {fn}. "
-                            "It's ambiguous how we should do scaling."
-                        )
-        return chosen_fn
-
-    def _scale_edges(self):
-        """Scales edges in the graph based on their weights, if present.
-
-        If this graph has edge weights, this assigns two new attributes for
-        each edge:
-
-        1. is_outlier: one of -1, 0, or 1. Ways to interpret this:
-            -1: This edge's weight is a low outlier
-             0: This edge's weight is not an outlier
-             1: This edge's weight is a high outlier
-
-           NOTE that if the graph has less than 4 edges, this'll just set all
-           of their is_outlier values to 0 (since with such a small number of
-           data points the notion of "outliers" kinda breaks apart).
-
-        2. relative_weight: a number in the range [0, 1]. If this edge is not
-           an outlier, this corresponds to where this edge's weight falls
-           within a range between the minimum non-outlier edge weight and the
-           maximum non-outlier edge weight. If this edge is a low outlier, this
-           will just be 0, and if this edge is a high outlier, this will just
-           be 1.
-
-        If edge weight scaling cannot be done for some or all edges
-        (e.g. no edge weight data is available, or only one non-outlier edge
-        exists) then this will assign is_outlier = 0 and relative_weight = 0.5
-        to the impacted edges.
-
-        Relative scaling will only be done for non-outlier edges. This helps
-        make things look more consistent.
-
-        Outlier detection is done using "inner" Tukey fences, as described in
-        Exploratory Data Analysis (1977).
-        """
-
-        def _assign_default_weight_attrs(edges):
-            """Assigns "normal" attributes to each Edge object in edges."""
-            for edge in edges:
-                edge.is_outlier = 0
-                edge.relative_weight = 0.5
-
-        # self.get_edge_weight_field() will throw an error if any of the
-        # current edges in the graph are fake (we should not have done
-        # hierarchical decomposition yet!) -- this way, we can assume for the
-        # rest of this function that all edges in the graph are real
-        ew_field = self.get_edge_weight_field()
-        if ew_field is not None:
-            operation_msg("Scaling edges based on weights...")
-            weights = []
-            for edge in self.edgeid2obj.values():
-                weights.append(edge.data[ew_field])
-
-            non_outlier_edges = []
-            non_outlier_edge_weights = []
-            # Only try to flag outlier edges if the graph contains at least 4
-            # edges. With < 4 data points, computing quartiles becomes a bit
-            # silly.
-            if len(weights) >= 4:
-                # Calculate lower and upper Tukey fences. First, compute the
-                # upper and lower quartiles (aka the 25th and 75th percentiles)
-                lq, uq = numpy.percentile(weights, [25, 75])
-                # Determine 1.5 * the interquartile range.
-                # (If desired, we could use other values besides 1.5 -- this
-                # isn't set in stone.)
-                d = 1.5 * (uq - lq)
-                # Now we can calculate the actual Tukey fences:
-                lf = lq - d
-                uf = uq + d
-                # Now, iterate through every edge and flag outliers.
-                # Non-outlier edges will be added to a list of edges that we'll
-                # scale relatively.
-                for edge in self.edgeid2obj.values():
-                    ew = edge.data[ew_field]
-                    if ew > uf:
-                        edge.is_outlier = 1
-                        edge.relative_weight = 1
-                    elif ew < lf:
-                        edge.is_outlier = -1
-                        edge.relative_weight = 0
-                    else:
-                        edge.is_outlier = 0
-                        non_outlier_edges.append(edge)
-                        non_outlier_edge_weights.append(ew)
-            else:
-                # There are < 4 edges, so consider all edges as "non-outliers."
-                for edge in self.edgeid2obj.values():
-                    edge.is_outlier = 0
-                    non_outlier_edges.append(edge)
-                    ew = edge.data[ew_field]
-                    non_outlier_edge_weights.append(ew)
-
-            # Perform relative scaling for non-outlier edges, if possible.
-            if len(non_outlier_edges) >= 2:
-                min_ew = min(non_outlier_edge_weights)
-                max_ew = max(non_outlier_edge_weights)
-                if min_ew != max_ew:
-                    ew_range = max_ew - min_ew
-                    for edge in non_outlier_edges:
-                        ew = edge.data[ew_field]
-                        rw = (ew - min_ew) / ew_range
-                        edge.relative_weight = rw
-                else:
-                    # Can't do edge scaling, so just assign this list of edges
-                    # (... which should in practice just be a list with one or
-                    # zero edges, I guess...?) "default" edge weight attributes
-                    _assign_default_weight_attrs(non_outlier_edges)
-            conclude_msg()
-        else:
-            # Can't do edge scaling, so just assign every edge "default" attrs
-            _assign_default_weight_attrs(self.edgeid2obj.values())
-
     def is_pattern(self, node_id):
         """Returns True if a node ID is for a pattern, False otherwise.
 
@@ -1720,18 +1493,6 @@ class AssemblyGraph(object):
             f"{len(self.components):,} Component(s)"
         )
 
-    def layout(self):
-        """Lays out the assembly graph."""
-        logging.info("Laying out the graph...")
-        self._layout()
-        logging.info("...Finished laying out the graph.")
-
-        logging.info("Rotating and scaling things as needed...")
-        self._rotate_from_TB_to_LR()
-        logging.info("...Done.")
-
-        self.layout_done = True
-
     def _layout(self):
         """Lays out the graph's components, handling patterns specially."""
         # Do layout one component at a time.
@@ -1742,14 +1503,14 @@ class AssemblyGraph(object):
             cc_full_edge_ct = cc_tuple[2]
 
             if cc_full_node_ct >= 5:
-                operation_msg(
+                logging.debug(
                     "Laying out component {:,} ({:,} nodes, {:,} edges)...".format(
                         cc_i, cc_full_node_ct, cc_full_edge_ct
                     )
                 )
             else:
                 if not first_small_component:
-                    operation_msg(
+                    logging.debug(
                         "Laying out small (each containing < 5 nodes) "
                         "remaining component(s)..."
                     )
@@ -1907,190 +1668,10 @@ class AssemblyGraph(object):
                 data["ctrl_pt_coords"] = coords
 
             if not first_small_component:
-                conclude_msg()
+                logging.debug("...Done laying out component.")
 
         if first_small_component:
-            conclude_msg()
-
-        # At this point, we are now done with layout. Coordinate information
-        # for nodes and edges is stored in self.graph or in the
-        # subgraphs of patterns; coordinate information for patterns is stored
-        # in the Pattern objects referenced in self.pattid2obj. Now we should
-        # be able to make a JSON representation of this graph and move on to
-        # visualizing it in the browser!
-
-    def _rotate_from_TB_to_LR(self):
-        """Rotates the graph so it flows from L -> R rather than T -> B."""
-        # TODO: THIS FUNCTION IS NOW UNNECESSARY since we can now just lay out
-        # the graph from L -> R from the get-go
-        # Rotate and scale bounding boxes
-        for cc_num in self.cc_num_to_bb.keys():
-            bb = self.cc_num_to_bb[cc_num]
-            self.cc_num_to_bb[cc_num] = [
-                bb[1] * config.POINTS_PER_INCH,
-                bb[0] * config.POINTS_PER_INCH,
-            ]
-
-        # Rotate patterns
-        for patt in self.pattid2obj.values():
-            # Swap height and width
-            patt.width, patt.height = patt.height, patt.width
-            patt.width *= config.POINTS_PER_INCH
-            patt.height *= config.POINTS_PER_INCH
-            # Change bounding box of the pattern.
-            #
-            #    _T_                  ___R___
-            #   |   |       --->    T|       |B
-            #  L|   |R      --->     |_______|
-            #   |___|                    L
-            #     B
-            l, b, r, t = patt.left, patt.bottom, patt.right, patt.top
-            patt.left = -t
-            patt.right = -b
-            patt.top = -r
-            patt.bottom = -l
-
-            # Rotate edges within this pattern
-            for edge in patt.subgraph.edges:
-                data = patt.subgraph.edges[edge]
-                data["ctrl_pt_coords"] = layout_utils.rotate_ctrl_pt_coords(
-                    data["ctrl_pt_coords"]
-                )
-
-        # Rotate normal nodes
-        for node_id in self.graph.nodes:
-            data = self.graph.nodes[node_id]
-            data["width"], data["height"] = data["height"], data["width"]
-            data["width"] *= config.POINTS_PER_INCH
-            data["height"] *= config.POINTS_PER_INCH
-            data["x"], data["y"] = layout_utils.rotate(data["x"], data["y"])
-
-        # Rotate edges
-        for edge in self.decomposed_graph.edges:
-            data = self.decomposed_graph.edges[edge]
-            data["ctrl_pt_coords"] = layout_utils.rotate_ctrl_pt_coords(
-                data["ctrl_pt_coords"]
-            )
-
-    def to_dot(self, output_fp):
-        """Outputs a DOT representation of the assembly graph.
-
-        We represent patterns as Graphviz "clusters" in the DOT file; this
-        means that the DOT representation will bear similarity to the fully
-        uncollapsed view you'd see in MetagenomeScope.
-
-        Parameters
-        ----------
-        output_fp: str
-            The filepath to which this DOT file will be written.
-        """
-        operation_msg(f'Writing out DOT to filepath "{output_fp}"...')
-        gv = layout_utils.get_gv_header()
-        # we only need to bother including patterns, nodes, and edges in the
-        # top level of the graph; stuff inside patterns will be included as
-        # part of the top-level pattern's to_dot() :)
-        for obj_coll in (self.pattid2obj, self.nodeid2obj, self.edgeid2obj):
-            for obj in obj_coll.values():
-                if obj.parent_id is None:
-                    gv += obj.to_dot()
-        gv += "}"
-        with open(output_fp, "w") as fh:
-            fh.write(gv)
-        conclude_msg()
-
-    def dump_dots(
-        self,
-        output_dir,
-        graph_fn="graph.gv",
-        decomposed_graph_fn="dec-graph.gv",
-        full_graph_fn="full-graph.gv",
-        make_pngs=True,
-    ):
-        """Writes out multiple versions of the graph in DOT format.
-
-        Parameters
-        ----------
-        output_dir: str
-            The output directory to which we will write these graphs.
-
-        graph_fn: str or None
-            Filename to give the DOT output for the uncollapsed graph. If this
-            is None, we won't write out the uncollapsed graph.
-
-        decomposed_graph_fn: str or None
-            Filename to give the DOT output for the collapsed graph. If this
-            is None, we won't write out the collapsed graph.
-
-        full_graph_fn: str or None
-            Filename to give the DOT output for the full graph (including all
-            nodes and edges, and representing patterns as clusters). If this
-            is None, we won't write out the full graph.
-
-        make_pngs: bool
-            If True, convert all of the DOT files we wrote out to PNGs; if
-            False, don't. The PNG files for the uncollapsed, collapsed, and
-            full graph will be named "graph.png", "dec-graph.png", and
-            "full-graph.png", respectively.
-
-        Notes
-        -----
-        This is a quick-and-dirty function designed for debugging. Notably, it
-        uses shell=True when drawing PNGs of these graphs -- this is a security
-        problem if you are running this on arbitrary user input (since
-        shell=True is vulnerable to code injection). This is probably only an
-        issue if you are running this on a server, and even then you can
-        just... not call this function.
-        """
-        os.makedirs(output_dir, exist_ok=True)
-
-        if graph_fn is not None:
-            operation_msg("Writing out the uncollapsed graph...")
-            g_to_write = deepcopy(self.graph)
-            for n in g_to_write.nodes:
-                g_to_write.nodes[n]["label"] = repr(self.nodeid2obj[n])
-            gfp = os.path.join(output_dir, graph_fn)
-            nx.drawing.nx_pydot.write_dot(g_to_write, gfp)
-            conclude_msg()
-            if make_pngs:
-                operation_msg("Visualizing uncollapsed graph as a PNG...")
-                png_fp = os.path.join(output_dir, "graph.png")
-                subprocess.run(f"dot -Tpng {gfp} > {png_fp}", shell=True)
-                conclude_msg()
-
-        if decomposed_graph_fn is not None:
-            operation_msg("Writing out the collapsed graph...")
-            d_to_write = deepcopy(self.decomposed_graph)
-            for n in d_to_write.nodes:
-                if n in self.nodeid2obj:
-                    d_to_write.nodes[n]["label"] = repr(self.nodeid2obj[n])
-                else:
-                    d_to_write.nodes[n]["label"] = repr(self.pattid2obj[n])
-            dfp = os.path.join(output_dir, decomposed_graph_fn)
-            nx.drawing.nx_pydot.write_dot(d_to_write, dfp)
-            conclude_msg()
-            if make_pngs:
-                operation_msg("Visualizing collapsed graph as a PNG...")
-                png_fp = os.path.join(output_dir, "dec-graph.png")
-                subprocess.run(f"dot -Tpng {dfp} > {png_fp}", shell=True)
-                conclude_msg()
-
-        if full_graph_fn is not None:
-            operation_msg("Writing out the full graph...")
-            ffp = os.path.join(output_dir, full_graph_fn)
-            self.to_dot(ffp)
-            conclude_msg()
-            if make_pngs:
-                operation_msg("Visualizing full graph as a PNG...")
-                png_fp = os.path.join(output_dir, "full-graph.png")
-                subprocess.run(f"dot -Tpng {ffp} > {png_fp}", shell=True)
-                conclude_msg()
-
-    def _fail_if_layout_not_done(self, fn_name):
-        if not self.layout_done:
-            raise GraphError(
-                "You need to call .layout() on this AssemblyGraph object "
-                f"before calling .{fn_name}()."
-            )
+            logging.debug("...Done.")
 
     def to_tsv(self, output_fp=None):
         """Writes out a TSV file describing connected component statistics.
