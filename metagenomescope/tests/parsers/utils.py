@@ -55,7 +55,7 @@ def run_tempfile_test(
     """
     filehandle, filename = tempfile.mkstemp(suffix=suffix)
     ei = None
-    output_graph = None
+    parse_output = None
     try:
         with open(filename, "w") as f:
             f.write(join_char.join(file_contents))
@@ -64,7 +64,7 @@ def run_tempfile_test(
                 parse(filename)
             assert in_err in str(ei.value)
         else:
-            output_graph = parse(filename)
+            parse_output = parse(filename)
     except (Exception, Failed) as e:
         # To give more context about *why* a failure occurred, print error info
         # (then reraise the exception).
@@ -91,4 +91,4 @@ def run_tempfile_test(
     finally:
         os.close(filehandle)
         os.unlink(filename)
-    return output_graph
+    return parse_output

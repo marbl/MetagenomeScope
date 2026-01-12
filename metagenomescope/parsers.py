@@ -14,7 +14,9 @@
 #
 #  1. Create a function that takes as input a filename and (if the graph is
 #  valid) returns a NetworkX MultiDiGraph representing the contained assembly
-#  graph.
+#  graph. (You can make it return other stuff in addition to the graph if
+#  desired, but then you'll need to modify the AssemblyGraph __init__()
+#  function to account for that.)
 #
 #  2. Add the lowercase file extension as a key in SUPPORTED_FILETYPE_TO_PARSER
 #  that maps to your new function.
@@ -28,6 +30,7 @@
 #  4. Add tests for your parser in metagenomescope/tests/parsers/
 
 import re
+import logging
 import networkx as nx
 import gfapy
 import pyfastg
@@ -416,18 +419,29 @@ def parse_metacarvel_gml(filename):
 def parse_gfa(filename):
     """Returns a nx.MultiDiGraph representation of a GFA1 or GFA2 file.
 
+    Parameters
+    ----------
+    filename: str
+        Path to a GFA1 / GFA2 file.
+
+    Returns
+    -------
+    graph, paths: nx.MultiDiGraph, dict or None
+        If this graph contains any paths (i.e. P-lines in GFA 1 files or
+        O-lines in GFA 2 files), then "paths" will be a dict mapping path names
+        to the names of nodes in the paths. Otherwise "paths" will be None.
+
     Notes
     -----
-    - At present, we only visualize nodes and edges in the GFA graph.
-      A TODO is displaying all or most of the relevant information in these
-      graphs, like GfaViz does: see
-      https://github.com/marbl/MetagenomeScope/issues/147 and
-      https://github.com/marbl/MetagenomeScope/issues/238 for further details.
-
     - Although this returns an object of type nx.MultiGraph, it won't actually
       contain any parallel edges. This is because, as of writing, GfaPy will
       throw a NotUniqueError if you to have it read a GFA file containing
       duplicate link lines.
+
+    - Currently we only store information about nodes (segments), edges
+      (including containments), and paths. Things like gaps, unoriented groups,
+      and fragments (G-/U-/F- lines in GFA2) are ignored (at least for now).
+      See https://github.com/marbl/MetagenomeScope/issues/147.
     """
     digraph = nx.MultiDiGraph()
     gfa_graph = gfapy.Gfa.from_file(filename)
@@ -484,7 +498,41 @@ def parse_gfa(filename):
         # loop.gfa test case)
         if complement_tuple != edge_tuple:
             digraph.add_edge(*complement_tuple)
-    return digraph
+
+    paths = None
+    if len(gfa_graph.paths) > 0:
+        paths = {}
+        for p in gfa_graph.paths:
+            # we make two versions of each path (one for each strand), which i
+            # think matches the intent here
+            rc_path_name = negate(p.name)
+            if p.name in paths:
+                raise GraphParsingError(f"Duplicate path ID: {p.name}")
+            if rc_path_name in paths:
+                raise GraphParsingError(f"{rc_path_name} already in paths?")
+            segments = []
+            rc_segments = []
+            for s in p.captured_segments:
+                name = s.name
+                rc_name = negate(name)
+                if s.orient == config.FWD:
+                    segments.append(name)
+                    rc_segments.insert(0, rc_name)
+                else:
+                    segments.append(rc_name)
+                    rc_segments.insert(0, name)
+            if len(segments) == 0:
+                logging.warning(
+                    f"Path ({p.name}) contains zero segments. We don't "
+                    "yet support creating GFA edge paths, so we are ignoring "
+                    "it. If this is an important use-case to you, please let "
+                    "us know on GitHub!"
+                )
+            else:
+                paths[p.name] = segments
+                paths[negate(p.name)] = rc_segments
+
+    return digraph, paths
 
 
 def parse_fastg(filename):

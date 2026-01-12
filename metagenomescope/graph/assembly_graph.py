@@ -108,7 +108,15 @@ class AssemblyGraph(object):
         self.filetype = parsers.FILETYPE2HR[
             parsers.sniff_filetype(self.filename)
         ]
-        self.graph = parsers.parse(self.filename)
+
+        graph_paths = None
+        parser_output = parsers.parse(self.filename)
+        if self.filetype != "GFA":
+            self.graph = parser_output
+        else:
+            self.graph = parser_output[0]
+            graph_paths = parser_output[1]
+
         self.orientation_in_name = parsers.HRFILETYPE2ORIENTATION_IN_NAME[
             self.filetype
         ]
@@ -236,6 +244,8 @@ class AssemblyGraph(object):
                 self.nodename2objs[n.basename].append(n)
         logger.debug("  ...Done.")
 
+        # Process paths, if given.
+        #
         # Maps path names -> list of node or edge names in path
         # (whether we think these are nodes or edges is determined by
         # self.node_centric)
@@ -245,12 +255,49 @@ class AssemblyGraph(object):
         self.ccnum2pathnames = None
         self.pathname2ccnum = None
         self.objname2pathnames = None
-        # TODO can update path lookup stuff to use nodename2objs - faster
+
+        agp_paths = None
+        input_paths = None
+
+        # process the AGP file, if given
         if self.agp_filename is not None:
             logger.debug(f'  Loading input AGP file "{self.agp_basename}"...')
-            input_paths = path_utils.get_paths_from_agp(
+            agp_paths = path_utils.get_paths_from_agp(
                 self.agp_filename, self.orientation_in_name
             )
+            logger.debug(
+                "  ...Done. It contained "
+                f"{ui_utils.pluralize(len(agp_paths), 'path')}."
+            )
+        if graph_paths is not None:
+            logger.debug(
+                f"  Detected {ui_utils.pluralize(len(graph_paths), 'path')} "
+                f"in the input {self.filetype} file."
+            )
+            if agp_paths is not None:
+                # BOTH paths in the graph file and in the AGP file
+                dup_path_ids = set(agp_paths.keys()) & set(graph_paths.keys())
+                if len(dup_path_ids) > 0:
+                    raise GraphParsingError(
+                        f"{ui_utils.pluralize(dup_path_ids, 'path name')} "
+                        f"overlap between the AGP and {self.filetype} files, "
+                        f"including: {', '.join(list(dup_path_ids)[:20])}"
+                    )
+                # merge agp_paths and graph_paths:
+                # https://stackoverflow.com/a/26853961
+                input_paths = agp_paths.copy()
+                input_paths.update(graph_paths)
+            else:
+                # just paths in the graph file
+                input_paths = graph_paths.copy()
+        elif agp_paths is not None:
+            # just paths in the AGP file
+            input_paths = agp_paths.copy()
+
+        # If there were any paths at all, record info about them (and filter
+        # out paths containing stuff not in the graph)
+        if input_paths is not None:
+            # TODO can update path lookup stuff to use nodename2objs - faster
             id2obj = self.nodeid2obj if self.node_centric else self.edgeid2obj
             (
                 self.ccnum2pathnames,

@@ -67,15 +67,15 @@ def check_sample_gfa_digraph(digraph):
 
 
 def test_parse_gfa1_good():
-    check_sample_gfa_digraph(
-        parse_gfa("metagenomescope/tests/input/sample1.gfa")
-    )
+    g, paths =    parse_gfa("metagenomescope/tests/input/sample1.gfa")
+    assert paths is None
+    check_sample_gfa_digraph(g)
 
 
 def test_parse_gfa2_good():
-    check_sample_gfa_digraph(
-        parse_gfa("metagenomescope/tests/input/sample2.gfa")
-    )
+    g, paths =    parse_gfa("metagenomescope/tests/input/sample2.gfa")
+    assert paths is None
+    check_sample_gfa_digraph( g)
 
 
 def test_parse_self_implied_edge():
@@ -91,7 +91,8 @@ def test_parse_self_implied_edge():
     loop.gfa in Shaun's repository containing it
     (https://github.com/sjackman/assembly-graph).
     """
-    digraph = parse_gfa("metagenomescope/tests/input/loop.gfa")
+    digraph, paths = parse_gfa("metagenomescope/tests/input/loop.gfa")
+    assert paths is None
     assert len(digraph.nodes) == 8
 
     # Even though there are 4 edges specified in loop.gfa, we only expect *6*
@@ -146,7 +147,8 @@ def test_parse_no_length_node():
     # (since the length is then implied)
     s1.pop(1)
     s1.insert(1, "S\t1\tAAA")
-    digraph = run_tempfile_test("gfa", s1, None, None)
+    digraph, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
     assert digraph.nodes["1"]["gc_content"] == 0
     assert digraph.nodes["1"]["length"] == 3
 
@@ -155,7 +157,8 @@ def test_parse_no_length_node():
     # https://github.com/GFA-spec/GFA-spec/blob/master/GFA1.md#optional-fields-2)
     s1.pop(1)
     s1.insert(1, "S\t1\t*\tLN:i:6")
-    digraph = run_tempfile_test("gfa", s1, None, None)
+    digraph, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
     assert digraph.nodes["1"]["gc_content"] is None
     assert digraph.nodes["1"]["length"] == 6
 
