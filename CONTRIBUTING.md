@@ -49,12 +49,13 @@ mgsc \
 Using `--debug` is nice because it enables
 [Dash Dev Tools](https://dash.plotly.com/devtools). This provides various useful
 features for development -- for example, hot reloading (whenever you change a
-files of code, Dash should reload the application).
+file of code, Dash should reload the application).
 
 Note that using `--debug` will cause MetagenomeScope to process the graph twice
-on startup. This appears to just be a Dash thing. So, if you are testing out how
-MetagenomeScope works on a massive graph where processing it will take a while,
-using `--debug` may not be ideal.
+on startup. This
+[is just part of using debug mode](https://community.plotly.com/t/app-loading-twice/35093).
+So, if you are testing out how MetagenomeScope works on a massive graph where processing
+it will take a while, using `--debug` may not be ideal.
 
 ### Linting and stylechecking
 
