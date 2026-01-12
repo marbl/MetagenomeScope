@@ -17,7 +17,6 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import math
 from metagenomescope import cy_config, config
 from metagenomescope.layout import layout_config
 from metagenomescope.errors import WeirdError
