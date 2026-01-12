@@ -31,26 +31,32 @@ def check_sample_gfa_digraph(digraph):
     for node_id in ("1", "-1"):
         assert digraph.nodes[node_id]["length"] == 8
         assert digraph.nodes[node_id]["gc_content"] == 0.5
+        assert digraph.nodes[node_id]["cov"] is None
 
     for node_id in ("2", "-2"):
         assert digraph.nodes[node_id]["length"] == 10
         assert digraph.nodes[node_id]["gc_content"] == 0.4
+        assert digraph.nodes[node_id]["cov"] is None
 
     for node_id in ("3", "-3"):
         assert digraph.nodes[node_id]["length"] == 21
         assert digraph.nodes[node_id]["gc_content"] == (9 / 21)
+        assert digraph.nodes[node_id]["cov"] == (4 / 21)
 
     for node_id in ("4", "-4"):
         assert digraph.nodes[node_id]["length"] == 7
         assert digraph.nodes[node_id]["gc_content"] == (2 / 7)
+        assert digraph.nodes[node_id]["cov"] is None
 
     for node_id in ("5", "-5"):
         assert digraph.nodes[node_id]["length"] == 8
         assert digraph.nodes[node_id]["gc_content"] == (3 / 8)
+        assert digraph.nodes[node_id]["cov"] is None
 
     for node_id in ("6", "-6"):
         assert digraph.nodes[node_id]["length"] == 4
         assert digraph.nodes[node_id]["gc_content"] == 0.25
+        assert digraph.nodes[node_id]["cov"] is None
 
     expected_edges = (
         ("1", "2"),

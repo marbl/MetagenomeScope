@@ -466,18 +466,24 @@ def parse_gfa(filename):
         sequence_gc = None
         if not gfapy.is_placeholder(node.sequence):
             sequence_gc = gc_content(node.sequence)[0]
+        # If this sequence doesn't have an RC / KC / FC tag, then this will be
+        # None. If all the coverages are None then the AssemblyGraph code
+        # should detect that and not list coverages in the selected node table
+        cov = node.coverage()
         # Add both a positive and negative node.
         digraph.add_node(
             node.name,
             length=node.length,
             gc_content=sequence_gc,
             orientation=config.FWD,
+            cov=cov,
         )
         digraph.add_node(
             negate(node.name),
             length=node.length,
             gc_content=sequence_gc,
             orientation=config.REV,
+            cov=cov,
         )
 
     # Now, add edges to the DiGraph
