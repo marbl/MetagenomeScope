@@ -524,10 +524,11 @@ def parse_gfa(filename):
             # we make two versions of each path (one for each strand), which i
             # think matches the intent here
             rc_path_name = negate(p.name)
-            if p.name in paths:
+            # Gfapy should catch cases where two paths have the same name,
+            # but there can be jank where a path's negated name is not unique.
+            # Anyway let's just be paranoid and check
+            if p.name in paths or rc_path_name in paths:
                 raise GraphParsingError(f"Duplicate path ID: {p.name}")
-            if rc_path_name in paths:
-                raise GraphParsingError(f"{rc_path_name} already in paths?")
             segments = []
             rc_segments = []
             for s in p.captured_segments:
@@ -549,6 +550,8 @@ def parse_gfa(filename):
             else:
                 paths[p.name] = segments
                 paths[negate(p.name)] = rc_segments
+        if len(paths) == 0:
+            paths = None
 
     return digraph, paths
 

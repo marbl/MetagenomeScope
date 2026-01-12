@@ -4,7 +4,7 @@ from metagenomescope.name_utils import negate
 from metagenomescope.parsers import parse_gfa
 from metagenomescope.errors import GraphParsingError
 from .utils import run_tempfile_test
-from gfapy.error import InconsistencyError
+from gfapy.error import InconsistencyError, NotUniqueError
 
 
 def check_sample_gfa_digraph(digraph):
@@ -226,3 +226,34 @@ def test_parse_paths_and_containments_gfa2():
     exp_containment_edges = ("5", "1"), ("6", "2"), ("-1", "-5"), ("-2", "-6")
     for e in g.edges():
         assert (e[0], e[1]) not in exp_containment_edges
+
+
+def test_parse_path_with_plus_and_minus():
+    s1 = get_sample1_gfa()
+    s1.append("P\tpath1\t3+,4-\t*")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert len(paths) == 2
+    assert paths == {"path1": ["3", "-4"], "-path1": ["4", "-3"]}
+
+
+def test_parse_path_duplicate_name():
+    s1 = get_sample1_gfa()
+    s1.append("P\tpath1\t3+,4-\t*")
+    s1.append("P\tpath1\t1+,2+\t*")
+    run_tempfile_test("gfa", s1, NotUniqueError, "Line or ID not unique")
+
+
+def test_parse_path_duplicate_name_of_rc():
+    s1 = get_sample1_gfa()
+    s1.append("P\tpath1\t3+,4-\t*")
+    s1.append("P\t-path1\t1+,2+\t*")
+    run_tempfile_test(
+        "gfa", s1, GraphParsingError, "Duplicate path ID: -path1"
+    )
+
+
+def test_parse_path_of_just_edges_has_nodes_extracted():
+    g, paths = parse_gfa("metagenomescope/tests/input/path_of_edges.gfa")
+    assert len(g.nodes) == 6
+    assert len(g.edges) == 4
+    assert paths == {"15": ["1", "3", "4"], "-15": ["-4", "-3", "-1"]}

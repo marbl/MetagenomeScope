@@ -275,7 +275,7 @@ class AssemblyGraph(object):
                 f"in the input {self.filetype} file."
             )
             if agp_paths is not None:
-                # BOTH paths in the graph file and in the AGP file
+                # we were passed paths through an AGP file and in the graph
                 dup_path_ids = set(agp_paths.keys()) & set(graph_paths.keys())
                 if len(dup_path_ids) > 0:
                     raise GraphParsingError(
