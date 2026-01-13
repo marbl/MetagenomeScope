@@ -1468,7 +1468,9 @@ class AssemblyGraph(object):
             # easier later on.
             for node_id in cc_node_ids:
                 if self.is_pattern(node_id):
-                    # TODO i forget what the cc_num stuff is doing here ???
+                    # TODO previously, we iterated through the DECOMPOSED graph
+                    # in which any nodes we see in this iteration MUST be top
+                    # level. hence the cc num setting. now its different
                     # it should already now be set for all nodes,edges,& patts.
                     # Lay out the pattern in isolation (could involve multiple
                     # layers, since patterns can contain other patterns).
