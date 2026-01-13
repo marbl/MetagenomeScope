@@ -487,3 +487,26 @@ def test_parse_already_set_key():
         GraphParsingError,
         "Edge 1 -> 2 has a non-int key",
     )
+
+
+def test_parse_example_from_readme_faq_on_rcs():
+    g = run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label="edge1 A99(2.4)"];',
+            "}",
+        ],
+        None,
+        None,
+    )
+    assert len(g.nodes) == 2
+    assert len(g.edges) == 1
+    assert sorted(g.nodes) == ["1", "2"]
+    assert g.edges["1", "2", 0] == {
+        "id": "edge1",
+        "label": "edge1 A99(2.4)",
+        "first_nt": "A",
+        "length": 99,
+        "kmer_cov": 2.4,
+    }

@@ -150,7 +150,7 @@ directory.
 <!-- use of <strong> here was stolen from strainflye's readme, which in turn is
 based on https://codedragontech.com/createwithcodedragon/how-to-style-html-details-and-summary-tags/ -->
 <details>
-  <summary><strong>FAQ 1. How do you handle reverse complement nodes/edges?</strong></summary>
+  <summary><strong>FAQ 1. How do you handle reverse-complementary nodes/edges?</strong></summary>
 
 <hr/>
 
@@ -164,7 +164,7 @@ So, let's say you give MetagenomeScope the following DOT file:
 
 ```dot
 digraph g {
-  1 -> 2 [label="A99(2.4)"];
+  1 -> 2 [label="edge1 A99(2.4)"];
 }
 ```
 
