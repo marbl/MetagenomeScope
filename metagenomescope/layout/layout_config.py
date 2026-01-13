@@ -18,9 +18,8 @@ PIXELS_PER_INCH = 54
 # The base we use when logarithmically scaling contig dimensions from length
 NODE_SCALING_LOG_BASE = 10
 
-# matches flye's DOT files (note that these are in Graphviz units, i.e. inches)
-NOLENGTH_NODE_WIDTH = 0.3
-NOLENGTH_NODE_HEIGHT = 0.3
+NOLENGTH_NODE_WIDTH = 0.55
+NOLENGTH_NODE_HEIGHT = 0.55
 
 ########
 # Graph style
