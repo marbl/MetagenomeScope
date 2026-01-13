@@ -28,6 +28,13 @@ class Subgraph(object):
 
     There is no requirement that this subgraph forms a connected component
     or anything.
+
+    Notes
+    -----
+    We assume that the contents of this Subgraph won't change after
+    initialization; probably don't call _add_node(), _add_edge(), or
+    _add_pattern() from outside of this object unless you're doing something
+    fancy.
     """
 
     def __init__(self, unique_id, name, nodes, edges, patterns):
@@ -47,9 +54,9 @@ class Subgraph(object):
 
         Notes
         -----
-        It is the caller's responsibility to only add a pattern if all
+        It is the caller's responsibility to only include a pattern if all
         of the children of the pattern are present in this subgraph. We don't
-        recursively go through the patterns' descendants here.
+        recursively go through the patterns' descendants here to check stuff.
         """
         self.unique_id = unique_id
         self.name = name
