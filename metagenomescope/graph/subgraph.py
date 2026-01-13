@@ -30,13 +30,26 @@ class Subgraph(object):
     or anything.
     """
 
-    def __init__(self, unique_id, name):
+    def __init__(self, unique_id, name, nodes, edges, patterns):
         """Initializes this Subgraph object.
 
         Parameters
         ----------
         unique_id: int
+
         name: str
+
+        nodes: list of Node
+
+        edges: list of Edge
+
+        patterns: list of Pattern
+
+        Notes
+        -----
+        It is the caller's responsibility to only add a pattern if all
+        of the children of the pattern are present in this subgraph. We don't
+        recursively go through the patterns' descendants here.
         """
         self.unique_id = unique_id
         self.name = name
@@ -75,6 +88,14 @@ class Subgraph(object):
         # PatternStats for this Subgraph.
         self.pattern_stats = PatternStats()
 
+        for n in nodes:
+            self._add_node(n)
+        for e in edges:
+            self._add_edge(e)
+        for p in patterns:
+            self._add_pattern(p)
+        self.round_num_full_nodes()
+
     def _get_repr_counts(self):
         return (
             f"{self.num_total_nodes:,} node(s), "
@@ -85,7 +106,7 @@ class Subgraph(object):
     def __repr__(self):
         return f"{self.name}: {self._get_repr_counts()}"
 
-    def add_node(self, node):
+    def _add_node(self, node):
         self.nodes.append(node)
         if node.is_split():
             self.num_split_nodes += 1
@@ -94,9 +115,6 @@ class Subgraph(object):
             self.num_unsplit_nodes += 1
             self.num_full_nodes += 1
         self.num_total_nodes += 1
-        # TODO horrendously jank stop doing this every time you add
-        # a node if you can help it
-        self.round_num_full_nodes()
 
     def round_num_full_nodes(self):
         # leave node counts like 23.5 as 23.5, but turn node counts
@@ -105,7 +123,7 @@ class Subgraph(object):
         if abs(self.num_full_nodes - round(self.num_full_nodes)) < 0.001:
             self.num_full_nodes = round(self.num_full_nodes)
 
-    def add_edge(self, edge):
+    def _add_edge(self, edge):
         self.edges.append(edge)
         if edge.is_fake:
             self.num_fake_edges += 1
@@ -113,15 +131,9 @@ class Subgraph(object):
             self.num_real_edges += 1
         self.num_total_edges += 1
 
-    def add_pattern(self, pattern):
-        nodes, edges, patts, patt_stats = pattern.get_descendant_info()
-        for n in nodes:
-            self.add_node(n)
-        for e in edges:
-            self.add_edge(e)
-        for p in patts:
-            self.patterns.append(p)
-        self.pattern_stats += patt_stats
+    def _add_pattern(self, pattern):
+        self.patterns.append(pattern)
+        self.pattern_stats.update(pattern.pattern_type)
 
     def get_objs(self):
         return itertools.chain(self.nodes, self.edges, self.patterns)

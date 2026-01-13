@@ -22,7 +22,7 @@ from .subgraph import Subgraph
 class Component(Subgraph):
     """Represents a weakly connected component in an assembly graph."""
 
-    def __init__(self, unique_id):
+    def __init__(self, unique_id, nodes, edges, patterns):
         """Initializes this Component object.
 
         Parameters
@@ -30,12 +30,20 @@ class Component(Subgraph):
         unique_id: int
             Unique (with respect to all other Components) integer ID of this
             Component.
+
+        nodes: list of Node
+
+        edges: list of Edge
+
+        patterns: list of Pattern
         """
         # unique size rank index of this component (the cc in the graph with
         # the most nodes has size rank 1, the next biggest one has size rank 2,
         # etc). We store this to make searching through the graph easier.
         self.cc_num = None
-        super().__init__(unique_id=unique_id, name=f"ComponentID{unique_id}")
+        super().__init__(
+            unique_id, f"ComponentID{unique_id}", nodes, edges, patterns
+        )
 
     def set_cc_num(self, cc_num):
         """Updates the component number of this component and its children."""

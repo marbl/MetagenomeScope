@@ -1357,28 +1357,40 @@ class AssemblyGraph(object):
         """
         components = []
         for cc in nx.weakly_connected_components(self.decomposed_graph):
-            cobj = Component(self._get_unique_id())
-            for node_id in cc:
-                if self.is_pattern(node_id):
-                    # Component.add_pattern() will take care of adding
-                    # information about all descendant nodes/edges/patterns of
-                    # this pattern
-                    cobj.add_pattern(self.pattid2obj[node_id])
+            nodes = []
+            edges = []
+            patts = []
+            for nid in cc:
+                if self.is_pattern(nid):
+                    patt = self.pattid2obj[nid]
+                    # get_descendant_info() goes through ALL descendants,
+                    # not just children. so if we see a collapsed pattern node
+                    # then here we get all of its children, grandchildren, ...
+                    #
+                    # Also! note that calling patt.get_descendant_info()
+                    # includes "patt" in the output "ppatts" list. So, no
+                    # need to run patts.append(nid) or something.
+                    pnodes, pedges, ppatts, _ = patt.get_descendant_info()
+                    for n in pnodes:
+                        nodes.append(n)
+                    for e in pedges:
+                        edges.append(e)
+                    for p in ppatts:
+                        patts.append(p)
                 else:
-                    cobj.add_node(self.nodeid2obj[node_id])
+                    # this is just an ordinary top-level node
+                    nodes.append(self.nodeid2obj[nid])
                 # Record all of the top-level edges in this component by
                 # looking at the outgoing edges of each "node", whether it's a
                 # real or collapsed-pattern node. (Don't worry, this includes
                 # parallel edges.)
-                #
-                # We could also create the induced subgraph of this component's
-                # nodes (in "cc") and then count the number of edges there, but
-                # I think this is more efficient.
                 for src_id, tgt_id, data in self.decomposed_graph.out_edges(
-                    node_id, data=True
+                    nid, data=True
                 ):
-                    cobj.add_edge(self.edgeid2obj[data["uid"]])
-            components.append(cobj)
+                    edges.append(self.edgeid2obj[data["uid"]])
+            components.append(
+                Component(self._get_unique_id(), nodes, edges, patts)
+            )
 
         # The number of "full" nodes (i.e. ignoring node splitting) MUST be the
         # highest-priority sorting criterion. Otherwise, we will be unable to
@@ -1840,26 +1852,13 @@ class AssemblyGraph(object):
             self.get_ids_in_neighborhood(node_ids, dist, incl_patterns)
         )
         sid = self._get_unique_id()
-        sg = Subgraph(sid, f"Subgraph{sid}")
-        # NOTE: Subgraph.add_pattern() works RECURSIVELY so if you even THINK
-        # about adding stuff that is already in a pattern then this will add
-        # like 1,000 edges to the graph and make me throw the laptop out the
-        # window. The fix to this is adjusting the Subgraph init to just
-        # take in all elements at once; see
-        # https://github.com/marbl/MetagenomeScope/issues/320
-        # CHRIST debugging that was annoying
-        for node_id in sel_node_ids:
-            node = self.nodeid2obj[node_id]
-            if node.parent_id is None:
-                sg.add_node(node)
-        for edge_id in sel_edge_ids:
-            edge = self.edgeid2obj[edge_id]
-            if edge.parent_id is None:
-                sg.add_edge(edge)
-        for patt_id in sel_patt_ids:
-            patt = self.pattid2obj[patt_id]
-            if patt.parent_id is None:
-                sg.add_pattern(patt)
+        sg = Subgraph(
+            sid,
+            f"Subgraph{sid}",
+            [self.nodeid2obj[i] for i in sel_node_ids],
+            [self.edgeid2obj[i] for i in sel_edge_ids],
+            [self.pattid2obj[i] for i in sel_patt_ids],
+        )
         return sg.to_cyjs(
             incl_patterns=incl_patterns, layout_alg=layout_alg, report_ids=True
         )
