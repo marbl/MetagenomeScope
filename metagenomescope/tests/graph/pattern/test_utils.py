@@ -3,7 +3,6 @@ from metagenomescope import config
 from metagenomescope.graph import Pattern, Node, Edge, validators
 from metagenomescope.errors import WeirdError
 from metagenomescope.graph.pattern import (
-    is_pattern,
     verify_vr_and_nodes_good,
     verify_1_node,
     verify_edges_in_induced_subgraph,
@@ -11,19 +10,15 @@ from metagenomescope.graph.pattern import (
 
 
 def test_is_pattern():
-    assert not is_pattern(Node(0, "asdf", {}))
+    assert not Node(0, "asdf", {}).compound
     # WOW there's a lot of junk we need to have to init a Pattern lol
     # this is representing a chain from node 5 -> node 6
-    assert is_pattern(
-        Pattern(
-            1,
-            validators.ValidationResults(
-                config.PT_CHAIN, True, [5, 6], [5], [6]
-            ),
-            [Node(5, "5", {}), Node(6, "6", {})],
-            [Edge(10, 5, 6, {})],
-        )
-    )
+    assert Pattern(
+        1,
+        validators.ValidationResults(config.PT_CHAIN, True, [5, 6], [5], [6]),
+        [Node(5, "5", {}), Node(6, "6", {})],
+        [Edge(10, 5, 6, {})],
+    ).compound
 
 
 def test_verify_vr_and_nodes_good_okay():

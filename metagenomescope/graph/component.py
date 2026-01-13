@@ -31,19 +31,15 @@ class Component(Subgraph):
             Unique (with respect to all other Components) integer ID of this
             Component.
         """
-        self.unique_id = unique_id
-
         # unique size rank index of this component (the cc in the graph with
         # the most nodes has size rank 1, the next biggest one has size rank 2,
         # etc). We store this to make searching through the graph easier.
         self.cc_num = None
-        super().__init__()
-
-    def __repr__(self):
-        return f"Component {self.unique_id}: {self._get_repr_counts()}"
+        super().__init__(unique_id=unique_id, name=f"ComponentID{unique_id}")
 
     def set_cc_num(self, cc_num):
         """Updates the component number of this component and its children."""
         self.cc_num = cc_num
+        self.name = f"Component#{self.cc_num}"
         for obj in self.get_objs():
             obj.set_cc_num(cc_num)

@@ -17,6 +17,9 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
+# If you try to run "from . import Node" then python explodes and complains
+# about circular imports. little known programming fact: this is actually
+# because god hates me personally!
 from .node import Node
 from .pattern_stats import PatternStats
 from metagenomescope import config, cy_config, misc_utils
@@ -25,10 +28,6 @@ from metagenomescope.errors import WeirdError
 
 def get_ids_of_nodes(nodes):
     return [n.unique_id for n in nodes]
-
-
-def is_pattern(obj):
-    return type(obj) is Pattern
 
 
 def verify_vr_and_nodes_good(vr, nodes):
@@ -113,13 +112,6 @@ class Pattern(Node):
         verify_edges_in_induced_subgraph(edges, validation_results.node_ids)
         self.edges = edges
 
-        # Will be filled in after performing top-level AssemblyGraph layout,
-        # when self.set_bb() is called. Stored in points.
-        self.left = None
-        self.bottom = None
-        self.right = None
-        self.top = None
-
         # Update parent ID info for child nodes (including patterns) and edges
         self.merged_child_chains = []
         is_chain_ish = (
@@ -133,7 +125,7 @@ class Pattern(Node):
             node.parent_id = self.unique_id
             if (
                 is_chain_ish
-                and is_pattern(node)
+                and node.compound
                 and node.pattern_type == config.PT_CHAIN
             ):
                 self._absorb_child_pattern(node)
@@ -152,7 +144,7 @@ class Pattern(Node):
 
         name = f"{config.PT2HR_NOSPACE[self.pattern_type]}{self.unique_id}"
         # Use the Node constructor to initialize the rest of the stuff we need
-        super().__init__(unique_id, name, {})
+        super().__init__(unique_id, name, {}, compound=True)
 
     def __repr__(self):
         return (
@@ -202,19 +194,6 @@ class Pattern(Node):
     def get_node_ids(self):
         return get_ids_of_nodes(self.nodes)
 
-    def set_bb(self, x, y):
-        """Given a center position of this Pattern, sets its bounding box.
-
-        This assumes that x and y are both given in points, since the width and
-        height of this pattern are both stored in points.
-        """
-        half_w = (self.width * config.POINTS_PER_INCH) / 2
-        half_h = (self.height * config.POINTS_PER_INCH) / 2
-        self.left = x - half_w
-        self.right = x + half_w
-        self.bottom = y - half_h
-        self.top = y + half_h
-
     def make_into_split(self):
         raise WeirdError(f"Attempted to split Pattern {self}.")
 
@@ -234,7 +213,7 @@ class Pattern(Node):
         patt_stats = PatternStats()
         patt_stats.update(self.pattern_type)
         for node in self.nodes:
-            if is_pattern(node):
+            if node.compound:
                 pn, pe, pp, ps = node.get_descendant_info()
                 nodes.extend(pn)
                 edges.extend(pe)

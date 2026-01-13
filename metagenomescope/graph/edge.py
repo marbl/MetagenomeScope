@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from metagenomescope.layout.layout_config import INDENT
+from metagenomescope.layout import layout_config
 from metagenomescope.errors import WeirdError
 
 
@@ -149,8 +149,6 @@ class Edge(object):
 
         self.ctrl_pt_coords = None
         self.relative_ctrl_pt_coords = None
-        self.is_outlier = None
-        self.relative_weight = None
 
         # for random coloring
         self.rand_idx = None
@@ -223,37 +221,15 @@ class Edge(object):
         else:
             raise WeirdError(f"No 'id' field for {self}. Data: {self.data}")
 
-    def to_dot(self, level="new", indent=INDENT):
-        # TODO make all of these constants (dashed, colors, penwidth min/max)
-        # into config/parameters...
+    def to_dot(self, level="new", indent=layout_config.INDENT):
         attrs = []
         if self.is_fake:
-            attrs.append('style="dashed"')
+            attrs.append(layout_config.FAKEEDGE_STYLE)
 
-        MIN_PW = 0.5
-        MAX_PW = 1.5
-        if self.is_outlier == -1:
-            attrs.append('color="blue"')
-        elif self.is_outlier == 1:
-            attrs.append('color="red"')
-
-        if self.relative_weight is not None:
-            pw = MIN_PW + (self.relative_weight * (MAX_PW - MIN_PW))
-            # NOTE: If desired, we could detect if pw == 1 and then not include
-            # "penwidth={pw}" if so -- this is because graphviz' default
-            # penwidth is 1, so "penwidth=1" doesn't tell us any new
-            # information. That being said, I'm leery of doing this because it
-            # means that this will break if graphviz changes its default
-            # penwidth, and I don't think the space savings justifies the risk.
-            # Sooooooooooooo I'm just gonna leave this here.
-            #
-            # NOTE, however, that we could also design this more intelligently
-            # by having some check in the AssemblyGraph code if the edges even
-            # have weights -- if not, we could disable this branch entirely I
-            # think, which would solve the problem. but ugh that's more wooork
-            attrs.append(f"penwidth={pw}")
-
-        attrs_str = ",".join(attrs)
+        if len(attrs) > 0:
+            attrs_str = f" [{','.join(attrs)}]"
+        else:
+            attrs_str = ""
 
         if level == "dec":
             decl = f"{self.dec_src_id} -> {self.dec_tgt_id}"
@@ -262,7 +238,7 @@ class Edge(object):
         else:
             raise WeirdError(f"Unrecognized edge level: {level}")
 
-        return f"{indent}{decl} [{attrs_str}];\n"
+        return f"{indent}{decl}{attrs_str};\n"
 
     def to_cyjs(self, incl_patterns=True):
         ele = {

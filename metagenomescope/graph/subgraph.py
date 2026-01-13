@@ -30,15 +30,20 @@ class Subgraph(object):
     or anything.
     """
 
-    def __init__(self, nodes=[], edges=[], patterns=[]):
+    def __init__(self, unique_id, name):
         """Initializes this Subgraph object.
 
         Parameters
         ----------
-        nodes: list of Node
-        edges: list of Edge
-        patterns: list of Pattern
+        unique_id: int
+        name: str
         """
+        self.unique_id = unique_id
+        self.name = name
+        self.nodes = []
+        self.edges = []
+        self.patterns = []
+
         # Number of nodes in this Subgraph that are not split.
         self.num_unsplit_nodes = 0
 
@@ -70,17 +75,6 @@ class Subgraph(object):
         # PatternStats for this Subgraph.
         self.pattern_stats = PatternStats()
 
-        self.nodes = []
-        self.edges = []
-        self.patterns = []
-
-        for n in nodes:
-            self.add_node(n)
-        for e in edges:
-            self.add_edge(e)
-        for p in patterns:
-            self.add_pattern(p)
-
     def _get_repr_counts(self):
         return (
             f"{self.num_total_nodes:,} node(s), "
@@ -89,7 +83,7 @@ class Subgraph(object):
         )
 
     def __repr__(self):
-        return f"Subgraph: {self._get_repr_counts()}"
+        return f"{self.name}: {self._get_repr_counts()}"
 
     def add_node(self, node):
         self.nodes.append(node)
@@ -100,12 +94,15 @@ class Subgraph(object):
             self.num_unsplit_nodes += 1
             self.num_full_nodes += 1
         self.num_total_nodes += 1
+        # TODO horrendously jank stop doing this every time you add
+        # a node if you can help it
+        self.round_num_full_nodes()
 
     def round_num_full_nodes(self):
         # leave node counts like 23.5 as 23.5, but turn node counts
         # like 23.0 back into just 23 (since we know that num_full_nodes
         # must end with .0 or .5)
-        if self.num_full_nodes - round(self.num_full_nodes) < 0.001:
+        if abs(self.num_full_nodes - round(self.num_full_nodes)) < 0.001:
             self.num_full_nodes = round(self.num_full_nodes)
 
     def add_edge(self, edge):

@@ -1,6 +1,6 @@
 import math
 from metagenomescope import config
-from metagenomescope.layout import layout_config
+from metagenomescope.layout import layout_config, layout_utils
 
 
 class NodeLayout(object):
@@ -81,7 +81,6 @@ class NodeLayout(object):
             return self.width, self.height
 
     def to_dot(self, nodeid, nodelabel, indent=layout_config.INDENT):
-        return (
-            f"{indent}{nodeid} [width={self.width},height={self.height},"
-            f'shape={self.shape},label="{nodelabel}"];\n'
+        return layout_utils.get_node_dot(
+            nodeid, nodelabel, self.width, self.height, self.shape, indent
         )

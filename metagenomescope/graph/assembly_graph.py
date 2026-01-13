@@ -20,6 +20,7 @@ from ..errors import WeirdError
 from ..layout import layout_utils
 from . import validators, graph_utils
 from .draw_results import DrawResults
+from .subgraph import Subgraph
 from .component import Component
 from .pattern import Pattern
 from .node import Node
@@ -1377,7 +1378,6 @@ class AssemblyGraph(object):
                     node_id, data=True
                 ):
                     cobj.add_edge(self.edgeid2obj[data["uid"]])
-            cobj.round_num_full_nodes()
             components.append(cobj)
 
         # The number of "full" nodes (i.e. ignoring node splitting) MUST be the
@@ -1839,55 +1839,29 @@ class AssemblyGraph(object):
         sel_node_ids, sel_edge_ids, sel_patt_ids = (
             self.get_ids_in_neighborhood(node_ids, dist, incl_patterns)
         )
-        eles = []
-        nodect = 0
-        edgect = 0
-        pattct = 0
-        # TODO: this will not be as simple as just passing the layout alg
-        # to the node object -- we need to perform layout on this specific
-        # neighborhood and store that info in the nodes somehow.
-        # When we draw entire components, the component can take care of this
-        # logic; but when we draw subregions it is trickier. Probably a good
-        # solution would be defining some sort of Subgraph class, analogous
-        # to Component, that can manage this stuff in the same kinda way.
-        if layout_alg == ui_config.LAYOUT_DOT:
-            raise NotImplementedError(
-                "we don't yet support drawing around nodes using dot"
-            )
-        for i in sel_node_ids:
-            nobj = self.nodeid2obj[i]
-            eles.append(nobj.to_cyjs(incl_patterns=incl_patterns))
-            if nobj.split:
-                nodect += 1
-            else:
-                nodect += 2
-        for i in sel_edge_ids:
-            eobj = self.edgeid2obj[i]
-            eles.append(eobj.to_cyjs(incl_patterns=incl_patterns))
-            if not eobj.is_fake:
-                edgect += 1
-        if incl_patterns:
-            # if incl_patterns was False then sel_patt_ids should be empty, so
-            # checking doesn't really save us much time. whatever it's clearer.
-            for i in sel_patt_ids:
-                eles.append(self.pattid2obj[i].to_cyjs())
-            pattct = len(sel_patt_ids)
-        # It is currently possible for us to draw only half of a split node
-        # here (test case: velvet e. coli graph, draw around node 156 at dist
-        # 1). To account for this we treat each split node as one half of a
-        # full node. https://github.com/marbl/MetagenomeScope/issues/296 will
-        # remove the need to do this.
-        if nodect % 2 == 0:
-            nodect //= 2
-        else:
-            nodect /= 2
-        return DrawResults(
-            eles,
-            nodect,
-            edgect,
-            pattct,
-            list(sel_node_ids),
-            list(sel_edge_ids),
+        sid = self._get_unique_id()
+        sg = Subgraph(sid, f"Subgraph{sid}")
+        # NOTE: Subgraph.add_pattern() works RECURSIVELY so if you even THINK
+        # about adding stuff that is already in a pattern then this will add
+        # like 1,000 edges to the graph and make me throw the laptop out the
+        # window. The fix to this is adjusting the Subgraph init to just
+        # take in all elements at once; see
+        # https://github.com/marbl/MetagenomeScope/issues/320
+        # CHRIST debugging that was annoying
+        for node_id in sel_node_ids:
+            node = self.nodeid2obj[node_id]
+            if node.parent_id is None:
+                sg.add_node(node)
+        for edge_id in sel_edge_ids:
+            edge = self.edgeid2obj[edge_id]
+            if edge.parent_id is None:
+                sg.add_edge(edge)
+        for patt_id in sel_patt_ids:
+            patt = self.pattid2obj[patt_id]
+            if patt.parent_id is None:
+                sg.add_pattern(patt)
+        return sg.to_cyjs(
+            incl_patterns=incl_patterns, layout_alg=layout_alg, report_ids=True
         )
 
     def to_cyjs(self, done_flushing):

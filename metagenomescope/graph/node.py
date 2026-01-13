@@ -58,7 +58,13 @@ class Node(object):
     """
 
     def __init__(
-        self, unique_id, name, data, split=None, counterpart_node=None
+        self,
+        unique_id,
+        name,
+        data,
+        split=None,
+        counterpart_node=None,
+        compound=False,
     ):
         """Initializes this Node object.
 
@@ -100,6 +106,10 @@ class Node(object):
             should copy this new Node's relative_length and longside_proportion
             attributes. We'll also call counterpart_node.make_into_split() to
             update it.
+
+        compound: bool
+            If True, this node has children (i.e. it's a pattern). If False,
+            it's just a normal node...
 
         Raises
         ------
@@ -148,6 +158,9 @@ class Node(object):
         # ID of the pattern containing this node, or None if this node
         # exists in the top level of the graph.
         self.parent_id = None
+
+        # Silly trick so that we don't have to write an is_pattern() function
+        self.compound = compound
 
         # Number (1-indexed) of the connected component containing this node.
         # This will be set later on, after we are finished with pattern

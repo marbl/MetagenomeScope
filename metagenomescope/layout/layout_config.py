@@ -52,9 +52,9 @@ GRAPH_STYLE = "rankdir=LR"
 # "orientation" attr existed.
 GLOBALNODE_STYLE = "fixedsize=true,orientation=90"
 
-# Whether or not to color in nodes in the drawings produced by dot (without
-# having an effect on the viewer interface, since it doesn't care what colors
-# dot says a node/node group is).
+# Colors in nodes in the drawings produced by dot (without having an effect on
+# the interactive visualization in Cy.js, which doesn't care what colors dot
+# says things are)
 GLOBALNODE_STYLE += ',style=filled,fillcolor="#888888"'
 
 ########
@@ -67,6 +67,8 @@ GLOBALNODE_STYLE += ',style=filled,fillcolor="#888888"'
 # graph (and the JS code expects edges to originate from nodes' "headports"
 # and end at nodes' "tailports").
 GLOBALEDGE_STYLE = "headport=w,tailport=e"
+
+FAKEEDGE_STYLE = 'style="dashed"'
 
 ###############################################################################
 # Client-side (i.e. done like within Cytoscape.js I guess?) layout settings
