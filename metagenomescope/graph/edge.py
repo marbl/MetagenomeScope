@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from metagenomescope.layout import layout_config
+from metagenomescope.layout import layout_config, layout_utils
 from metagenomescope.errors import WeirdError
 
 
@@ -222,23 +222,15 @@ class Edge(object):
             raise WeirdError(f"No 'id' field for {self}. Data: {self.data}")
 
     def to_dot(self, level="new", indent=layout_config.INDENT):
-        attrs = []
-        if self.is_fake:
-            attrs.append(layout_config.FAKEEDGE_STYLE)
-
-        if len(attrs) > 0:
-            attrs_str = f" [{','.join(attrs)}]"
-        else:
-            attrs_str = ""
-
         if level == "dec":
-            decl = f"{self.dec_src_id} -> {self.dec_tgt_id}"
+            src = self.dec_src_id
+            tgt = self.dec_tgt_id
         elif level == "new":
-            decl = f"{self.new_src_id} -> {self.new_tgt_id}"
+            src = self.new_src_id
+            tgt = self.new_tgt_id
         else:
             raise WeirdError(f"Unrecognized edge level: {level}")
-
-        return f"{indent}{decl}{attrs_str};\n"
+        return layout_utils.get_edge_dot(src, tgt, self.is_fake, indent)
 
     def to_cyjs(self, incl_patterns=True):
         ele = {

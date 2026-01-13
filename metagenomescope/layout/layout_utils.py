@@ -171,3 +171,10 @@ def get_node_dot(nid, lbl, w, h, shape, indent=layout_config.INDENT):
     return (
         f'{indent}{nid} [width={w},height={h},shape={shape},label="{lbl}"];\n'
     )
+
+
+def get_edge_dot(srcid, tgtid, is_fake=False, indent=layout_config.INDENT):
+    attrs = ""
+    if is_fake:
+        attrs = " [{layout_config.FAKEEDGE_STYLE}]"
+    return f"{indent}{srcid} -> {tgtid}{attrs};\n"

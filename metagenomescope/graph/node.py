@@ -173,7 +173,7 @@ class Node(object):
         # single node. This flag is a simple way of tracking this.
         self.removed = False
 
-        # will store layout/drawing info about shape, width/height, etc
+        # will store info about shape, width/height, etc
         self.layout = NodeLayout(self.split, self.data)
 
     def __repr__(self):

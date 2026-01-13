@@ -4,6 +4,8 @@ from metagenomescope.layout import layout_config, layout_utils
 
 
 class NodeLayout(object):
+    """Stores information about a node's dimensions and shape."""
+
     def __init__(self, split, data):
         # this can change! see update_split()
         self.split = split
