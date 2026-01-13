@@ -1851,6 +1851,12 @@ class AssemblyGraph(object):
         sel_node_ids, sel_edge_ids, sel_patt_ids = (
             self.get_ids_in_neighborhood(node_ids, dist, incl_patterns)
         )
+        # NOTE: in theory, if a user draws around nodes multiple times then
+        # we will just keep creating new subgraph ids. however, since diff
+        # versions of mgsc on diff workers may not share memory, we may reuse
+        # IDs here. I think this is fine, but if we really want to keep things
+        # 100% stateless we can just use a constant id here, or create a uuid,
+        # etc
         sid = self._get_unique_id()
         sg = Subgraph(
             sid,
