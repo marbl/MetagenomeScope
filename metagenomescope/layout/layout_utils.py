@@ -1,4 +1,5 @@
 from . import layout_config
+from .. import config
 
 
 def get_gv_header(name="g"):
@@ -54,9 +55,7 @@ def get_control_points(pos):
     points_str = pos.replace(",", " ")
     coord_list = [float(c) for c in points_str.split()]
     if len(coord_list) % 2 != 0:
-        raise ValueError(
-            "Invalid GraphViz edge control points: {}".format(pos)
-        )
+        raise ValueError("Invalid GraphViz edge control points: {pos}")
     return coord_list
 
 
@@ -93,37 +92,8 @@ def shift_control_points(coord_list, left, bottom):
     # We should have ended on a y position. If we didn't, something is
     # seriously wrong.
     if i % 2 == 0:
-        raise ValueError(
-            "Non-even number of control points: {}".format(coord_list)
-        )
+        raise ValueError(f"Non-even number of control points: {coord_list}")
     return new_coord_list
-
-
-def rotate(x, y):
-    """Rotates a position by 90 degrees counterclockwise.
-
-    This is used when converting the graph layout from the top -> bottom
-    direction to the left -> right direction.
-    """
-    return -y, x
-
-
-def rotate_ctrl_pt_coords(coords):
-    if len(coords) % 2 != 0:
-        raise ValueError("Non-even number of control points")
-
-    # This catches the case where the user passes in [] as coords.
-    if len(coords) < 2:
-        raise ValueError("Not enough control points given")
-
-    new_coords = []
-    for i in range(0, len(coords), 2):
-        x, y = coords[i], coords[i + 1]
-        newx, newy = rotate(x, y)
-        new_coords.append(newx)
-        new_coords.append(newy)
-
-    return new_coords
 
 
 def getxy(pos_string):
@@ -199,3 +169,31 @@ def get_edge_dot(srcid, tgtid, is_fake=False, indent=layout_config.INDENT):
     if is_fake:
         attrs = f" [{layout_config.FAKEEDGE_STYLE}]"
     return f"{indent}{srcid} -> {tgtid}{attrs};\n"
+
+
+def get_pattern_cluster_dot(pattern, indent=layout_config.INDENT):
+    """Creates a DOT string describing this pattern and its descendants.
+
+    This does, like, use recursion to do this, but it's not really "recursive
+    layout" -- we're not laying out each individual pattern. We're just
+    getting the entire string and then we'll lay that out separately.
+
+    References
+    ----------
+    This used to be Pattern.to_dot(): https://github.com/marbl/MetagenomeScope/blob/3667504555508d32ea63ad867e91153dea197045/metagenomescope/graph/pattern.py#L218-L245
+    Shoutouts to me from like three years ago lol
+    """
+    # inner indentation level
+    ii = indent + layout_config.INDENT
+    dot = f"{indent}subgraph cluster_{pattern.name} {{\n"
+    dot += f'{ii}style="filled";\n'
+    dot += f'{ii}color="{config.PT2COLOR[pattern.pattern_type]}";\n'
+    for node in pattern.nodes:
+        if node.compound:
+            dot += get_pattern_cluster_dot(node, indent=ii)
+        else:
+            dot += node.to_dot(indent=ii)
+    for edge in pattern.edges:
+        dot += edge.to_dot(level="new", indent=ii)
+    dot += f"{indent}}}\n"
+    return dot
