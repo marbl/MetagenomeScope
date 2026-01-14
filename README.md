@@ -120,7 +120,8 @@ support, feel free to open a GitHub issue.
 Paths can optionally be specified through any of the following inputs:
 
 - [AGP files](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/) (`-a`)
-  - If your graph is in DOT format, we assume the `component_id`s in column 6a of this file correspondg to edge IDs. Otherwise, we assume they correspond to node IDs.
+  - _If your graph is in DOT format_: we assume the `component_id`s in column 6a of this file correspond to edge IDs.
+  - Otherwise, we assume they correspond to node IDs.
 
 - `assembly_info.txt` files from [Flye](https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#-flye-output) (`-i`)
 
