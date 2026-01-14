@@ -120,12 +120,11 @@ support, feel free to open a GitHub issue.
 Paths can optionally be specified through any of the following inputs:
 
 - [AGP files](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/) (`-a`)
+  - If your graph is in DOT format, we assume the IDs here refer to edges. Otherwise, we assume the IDs here refer to nodes.
 
 - `assembly_info.txt` files from [Flye](https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#-flye-output) (`-i`)
 
 - P-lines in [GFA 1 files](https://gfa-spec.github.io/GFA-spec/GFA1.html), or O-lines in [GFA 2 files](https://gfa-spec.github.io/GFA-spec/GFA2.html) (`-g`)
-
-As above, let us know if there are other filetypes you'd like us to support.
 
 ## Example datasets
 
