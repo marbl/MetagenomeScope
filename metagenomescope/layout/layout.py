@@ -1,3 +1,4 @@
+import logging
 import pygraphviz
 from . import layout_utils, layout_config
 from .. import ui_utils, config
@@ -11,7 +12,7 @@ class Layout(object):
     a subregion of the graph, etc.
     """
 
-    def __init__(self, region, draw_settings):
+    def __init__(self, region, draw_settings, log=True):
         """Initializes this Layout object.
 
         Parameters
@@ -19,7 +20,14 @@ class Layout(object):
         region: Subgraph or Pattern
 
         draw_settings: list
+
+        log: bool
+            basically the idea here is we don't want to log like every
+            pattern we lay out lol
         """
+        self.log = log
+        if self.log:
+            logging.debug(f"  Laying out {region}...")
         self.region = region
         self.draw_settings = draw_settings
         self.incl_patterns = ui_utils.show_patterns(draw_settings)
@@ -51,6 +59,8 @@ class Layout(object):
         self.regionid2dims = {}
 
         self._run()
+        if self.log:
+            logging.debug(f"  ...Done laying out {region.name}!")
 
     def __repr__(self):
         return f"Layout({self.region}; {self.draw_settings})"
@@ -101,7 +111,7 @@ class Layout(object):
                 if self.at_top_level_of_region(node):
                     if node.compound:
                         # "node" is a collapsed pattern; lay it out first
-                        lay = Layout(node, self.draw_settings)
+                        lay = Layout(node, self.draw_settings, False)
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)
@@ -126,7 +136,7 @@ class Layout(object):
             if not self.region_is_pattern:
                 for pattern in self.region.patterns:
                     if self.at_top_level_of_region(pattern):
-                        lay = Layout(pattern, self.draw_settings)
+                        lay = Layout(pattern, self.draw_settings, False)
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)

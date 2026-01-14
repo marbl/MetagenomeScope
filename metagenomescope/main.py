@@ -2002,7 +2002,7 @@ def run(
             )
             dr = ag.to_cyjs(curr_done_flushing)
             lsum, asum = dr.get_fancy_count_text()
-            logging.debug(f"...Done. {lsum} {asum}.")
+            logging.debug(f"...Done.")
             curr_drawn_info = curr_done_flushing.copy()
             if dr.check_ids_given():
                 curr_drawn_info[config.CDI_DRAWN_NODE_IDS] = dr.nodeids
