@@ -129,26 +129,23 @@ def test_end_to_start_cyclic_frayed_rope():
         2
     1 -/ \-> 4
 
-     ... is a valid frayed rope. Wow, character development! This test used to
-     check that this *wasn't* a valid frayed rope.
-
-     Note that we only allow cyclic edges from the end node(s) to the start
-     node(s): we disallow cyclic edges within the frayed rope, including
-     self-loops. Those are tested below.
+    ... is NOT a valid frayed rope. At least, as of January 2026. We used
+    to allow these, but yeah actually maybe they don't make sense to identify.
     """
     g = get_simple_fr_graph()
     g.add_edge(3, 0)
+    assert not validators.is_valid_frayed_rope(g, 0)
+    assert not validators.is_valid_frayed_rope(g, 1)
 
-    check_simple_fr_graph_valid(g)
-
-    # ... and if we add another cyclic edge, it's good also, right?
-    # (although in practice, we should detect a cyclic simple bubble of
-    # [2, 3, 4, 0] rather than detecting a frayed rope here, since the
-    # hierarchical decomposition process should afford bubbles higher priority
-    # than frayed ropes.)
+    # ... and if we add another cyclic edge, it's still not good, right?
+    # (in practice, we should detect a cyclic simple bubble of [2, 3, 4, 0]
+    # rather than detecting a frayed rope here, since the hierarchical
+    # decomposition process should afford bubbles higher priority than frayed
+    # ropes.)
 
     g.add_edge(4, 0)
-    check_simple_fr_graph_valid(g)
+    assert not validators.is_valid_frayed_rope(g, 0)
+    assert not validators.is_valid_frayed_rope(g, 1)
 
 
 def test_non_end_to_start_cyclic_frayed_rope():

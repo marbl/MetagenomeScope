@@ -460,6 +460,19 @@ def test_multiple_shared_boundaries_frayed_ropes():
       2   7
      / \ / \
     1   4   9
+
+    If we were to allow "end-to-start" cyclic frayed ropes, then we should
+    classify two frayed ropes here (first we'd classify {0, 1, 2, 3, 4}, and
+    later we'd classify {3-R, 4-R, 7, 8, 9}).
+
+    However, since we now (circa Jan 2026) don't allow such cyclic frayed
+    ropes, we will now classify neither structure as a frayed rope. (The
+    rightmost structure can't be a frayed rope because 3 has that outgoing
+    edge to 0.)
+
+    NOTE: for some reason i forgot 5 and 6 when i was naming these nodes???
+    so there are actually 8 nodes in this graph, despite what the node numbers
+    might imply. lmao. i was so tired in 2020 or 2023 or something
     """
     g = nx.MultiDiGraph()
     g.add_edge(0, 2)
@@ -469,8 +482,7 @@ def test_multiple_shared_boundaries_frayed_ropes():
 
     g.add_edge(3, 7)
     g.add_edge(4, 7)
-    # again, this edge (now cyclic) just makes sure we identify this as 2
-    # frayed ropes, not a bubble
+    # this edge (now cyclic) just makes sure we don't identify this as a bubble
     g.add_edge(3, 0)
 
     g.add_edge(7, 8)
@@ -479,15 +491,15 @@ def test_multiple_shared_boundaries_frayed_ropes():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 2
-        assert len(ag.decomposed_graph.edges) == 2
+        assert len(ag.decomposed_graph.nodes) == 8
+        assert len(ag.decomposed_graph.edges) == 9
         assert len(ag.chains) == 0
         assert len(ag.cyclic_chains) == 0
-        assert len(ag.frayed_ropes) == 2
+        assert len(ag.frayed_ropes) == 0
         assert len(ag.bubbles) == 0
-        # Nodes 3 and 4 should both be split
-        assert len(ag.graph.nodes) == 10
-        assert len(ag.graph.edges) == 11
+        # no splitting!
+        assert len(ag.graph.nodes) == 8
+        assert len(ag.graph.edges) == 9
     finally:
         os.close(fh)
         os.unlink(fn)

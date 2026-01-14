@@ -356,14 +356,16 @@ def is_valid_frayed_rope(g, start_node_id):
         # Check for extraneous incoming edges
         if len(g.pred[n]) != 1:
             return ValidationResults()
-        # NOTE: We now allow cyclic frayed ropes. If you'd like to disallow
-        # this, you can un-comment this.
-        # for o in list(g.adj[n].keys()):
-        #     # We know now that all of the ending nodes only have one
-        #     # incoming node, but we don't know that about the starting
-        #     # nodes. Make sure that this frayed rope isn't cyclical.
-        #     if o in start_node_ids:
-        #         return ValidationResults()
+        # NOTE: This disallows cyclic frayed ropes, because in my opinion (at
+        # least as of Jan 2026) they look kind of gross and break the expected
+        # structure of frayed ropes. If you would like to allow cyclic frayed
+        # ropes for some reason, you can un-comment this.
+        for o in list(g.adj[n].keys()):
+            # We know now that all of the ending nodes only have one
+            # incoming node, but we don't know that about the starting
+            # nodes. Make sure that this frayed rope isn't cyclic.
+            if o in start_node_ids:
+                return ValidationResults()
 
     # Check the entire frayed rope's structure
     composite = start_node_ids + middle_node_ids + end_node_ids
