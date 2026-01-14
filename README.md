@@ -8,7 +8,7 @@
 Interactive visualization tool for (meta)genome assembly graphs.
 
 MetagenomeScope decomposes the graph into **structural patterns** and highlights
-these as annotations on the graph. It lays out the graph [hierarchically](https://en.wikipedia.org/wiki/Layered_graph_drawing), using [Graphviz'](https://graphviz.org/) [_dot_](https://graphviz.org/docs/layouts/dot/) algorithm.
+these as annotations on the graph. It lays out the graph [hierarchically](https://en.wikipedia.org/wiki/Layered_graph_drawing), using [Graphviz](https://graphviz.org/)' [_dot_](https://graphviz.org/docs/layouts/dot/) algorithm.
 
 MetagenomeScope also contains various functionalities for visualizing assembly
 graphs at larger scales -- for example, highlighting paths on the graph and
@@ -114,6 +114,16 @@ Options:
 
 Should you run into [additional](https://xkcd.com/927/) assembly graph filetypes you'd like us to
 support, feel free to open a GitHub issue.
+
+### Visualizing paths on the graph
+
+The following formats are currently accepted:
+
+- [AGP files](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/) (can be passed to MetagenomeScope using `-a`)
+
+- Path lines in [GFA files](https://gfa-spec.github.io/GFA-spec/)
+
+- `assembly_info.txt` files from [Flye](https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#-flye-output) (can be passed to MetagenomeScope using `-i`)
 
 ## Example datasets
 
