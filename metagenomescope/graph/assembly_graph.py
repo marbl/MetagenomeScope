@@ -1,9 +1,8 @@
 import random
 import logging
 from copy import deepcopy
-from collections import deque, defaultdict
+from collections import defaultdict
 import networkx as nx
-import pygraphviz
 from .. import (
     parsers,
     config,
@@ -17,7 +16,6 @@ from .. import (
     misc_utils,
 )
 from ..errors import WeirdError
-from ..layout import layout_utils
 from . import validators, graph_utils
 from .draw_results import DrawResults
 from .subgraph import Subgraph
