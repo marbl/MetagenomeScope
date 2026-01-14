@@ -174,7 +174,9 @@ class Subgraph(object):
         DrawResults
         """
         if layout_alg == ui_config.LAYOUT_DOT:
-            return Layout(self, incl_patterns=incl_patterns).to_cyjs()
+            lay = Layout(self, incl_patterns=incl_patterns)
+            coords = lay.to_coords()
+            # TODO add coords to nodes/edges
         eles = []
         nodeids = [] if report_ids else None
         edgeids = [] if report_ids else None

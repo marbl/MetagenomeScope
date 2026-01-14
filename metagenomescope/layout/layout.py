@@ -89,15 +89,19 @@ class Layout(object):
         # Extract (relative) edge control points
         for edge in self.region.edges:
             if edge.unique_id not in self.edgeid2rel:
-                # If this is a parallel edge between dec_src_id and dec_tgt_id,
-                # then get_edge() should give us an arbitrary one of these edges.
-                # At the end of this block, we call cg.remove_edge() to ensure
-                # that the next time -- if any -- that we call cg.get_edge() with
-                # these node IDs, we get a different edge position.
+                # If this is a parallel edge, then get_edge() should give us an
+                # arbitrary one of these edges. At the end of this block, we
+                # call cg.remove_edge() to ensure that the next time -- if any
+                # -- that we call cg.get_edge() with these node IDs, we get a
+                # different edge position.
                 #
                 # THAT BEING SAID if these are parallel edges proobs they don't
                 # need to be laid out with fancy control pt stuff
-                ce = cg.get_edge(edge.dec_src_id, edge.dec_tgt_id)
+                if self.incl_patterns:
+                    src, tgt = edge.dec_src_id, edge.dec_tgt_id
+                else:
+                    src, tgt = edge.new_src_id, edge.new_tgt_id
+                ce = cg.get_edge(src, tgt)
                 self.edgeid2rel[edge.unique_id] = (
                     layout_utils.get_control_points(ce.attr["pos"])
                 )
@@ -180,7 +184,5 @@ class Layout(object):
             color,
         )
 
-    def to_cyjs(self):
-        # TODO extract cyjs from nodes/edges (using self.nodeid2rel
-        # and self.edgeid2rel) and add in positions from layout
-        pass
+    def to_coords(self):
+        return None
