@@ -24,6 +24,9 @@ def log_lines_with_sep(lines, sepchar=SEPSML, endsepline=False):
 
 
 def start_log(verbose: bool):
+    # in any case, stop logging every time a request or something happens:
+    # https://community.plotly.com/t/logging-debug-messages-suppressed-in-callbacks/17854/4
+    logging.getLogger("werkzeug").setLevel(logging.WARNING)
     if verbose:
         logging_level = logging.DEBUG
     else:
