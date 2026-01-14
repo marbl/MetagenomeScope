@@ -115,15 +115,17 @@ Options:
 Should you run into [additional](https://xkcd.com/927/) assembly graph filetypes you'd like us to
 support, feel free to open a GitHub issue.
 
-### Visualizing paths on the graph
+### Supported path filetypes
 
-The following formats are currently accepted:
+Paths can optionally be specified through any of the following inputs:
 
-- [AGP files](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/) (can be passed to MetagenomeScope using `-a`)
+- [AGP files](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/) (`-a`)
 
-- Path lines in [GFA files](https://gfa-spec.github.io/GFA-spec/)
+- `assembly_info.txt` files from [Flye](https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#-flye-output) (`-i`)
 
-- `assembly_info.txt` files from [Flye](https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#-flye-output) (can be passed to MetagenomeScope using `-i`)
+- P-lines in [GFA 1 files](https://gfa-spec.github.io/GFA-spec/GFA1.html), or O-lines in [GFA 2 files](https://gfa-spec.github.io/GFA-spec/GFA2.html) (`-g`)
+
+As above, let us know if there are other filetypes you'd like us to support.
 
 ## Example datasets
 
