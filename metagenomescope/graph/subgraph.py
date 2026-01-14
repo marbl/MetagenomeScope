@@ -178,7 +178,7 @@ class Subgraph(object):
             lay = Layout(self, draw_settings)
             nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords()
             preset_positions = True
-            logging.debug(f"  ...Done with layout!")
+            logging.debug("  ...Done with layout!")
 
         eles = []
         nodeids = [] if report_ids else None
