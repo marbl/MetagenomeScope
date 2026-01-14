@@ -487,6 +487,15 @@ class AssemblyGraph(object):
         misc_utils.move_to_start_if_in(self.extra_edge_attrs, "approx_length")
         misc_utils.move_to_start_if_in(self.extra_edge_attrs, "length")
         misc_utils.move_to_start_if_in(self.extra_edge_attrs, "id")
+
+        # same deal for metacarvel edges - bsize then mean then ...
+        # this is a really lazy way of doing this but i want to be safe!!!
+        # plus there is no way this becomes a bottleneck lmao
+        misc_utils.move_to_start_if_in(self.extra_edge_attrs, "orientation")
+        misc_utils.move_to_start_if_in(self.extra_edge_attrs, "stdev")
+        misc_utils.move_to_start_if_in(self.extra_edge_attrs, "mean")
+        misc_utils.move_to_start_if_in(self.extra_edge_attrs, "bsize")
+
         # Same deal for nodes - put the lengths as early as possible if given
         misc_utils.move_to_start_if_in(self.extra_node_attrs, "length")
 

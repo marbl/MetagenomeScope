@@ -128,10 +128,10 @@ EDGEATTR2HRT = {
     # between a pair of contigs," to quote the MetaCarvel paper? But they could
     # also represent "the library size (mean and standard deviation)," maybe,
     # so for the sake of avoiding being wrong I am being conservative for now
-    "mean": ("Mean", "number"),
+    "mean": ("\u03bc", "number"),
     "stdev": ("\u03c3", "number"),
     "orientation": ("Orient.", "text"),
-    "bsize": ("BSize", "number"),
+    "bsize": ("bsize", "number"),
     "multiplicity": ("Multiplicity", "number"),
     "id": ("ID", "text"),
     "approx_length": ("~Length", "number"),

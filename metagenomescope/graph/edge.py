@@ -222,6 +222,27 @@ class Edge(object):
         else:
             raise WeirdError(f"No 'id' field for {self}. Data: {self.data}")
 
+    def get_fancy_label(self):
+        """Returns a label for this edge for displaying in Cytoscape.js.
+
+        This is kind of hacky; it uses the contents of self.data as a proxy
+        for figuring out what to show.
+        """
+        if "multiplicity" in self.data:
+            # LastGraph
+            return f"{self.data['multiplicity']:,}x"
+
+        if self.has_userspecified_id():
+            return self.get_userspecified_id()
+
+        if "bsize" in self.data:
+            # MetaCarvel
+            return f"bsize {self.data['bsize']:,}"
+
+        # base case, for e.g. GFA files
+        # we could try to parse GFA edge tags maybe...?
+        return f"Edge {self.unique_id}"
+
     def to_dot(self, level="new", indent=layout_config.INDENT):
         if level == "dec":
             src = self.dec_src_id
@@ -259,5 +280,6 @@ class Edge(object):
         else:
             # "json that makes you say 'real'"
             ele["classes"] += " real"
-            ele["data"]["label"] = repr(self)
+            # only real edges get labels. because of woke
+            ele["data"]["label"] = self.get_fancy_label()
         return ele
