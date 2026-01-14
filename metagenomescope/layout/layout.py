@@ -265,10 +265,17 @@ class Layout(object):
 
         Notes
         -----
-        More work needs to be done to convert edge ctrl pts to Cytoscape.js
-        format. layout_utils.shift_control_points() is a start, but then you
-        still have to do the conversion to the sort of format Cy.js expects;
-        see convertCtrlPtsToDistsAndWeights() in the old drawer.js code.
+        - More work needs to be done to convert edge ctrl pts to Cytoscape.js
+          format. layout_utils.shift_control_points() is a start, but then you
+          still have to do the conversion to the sort of format Cy.js expects;
+          see convertCtrlPtsToDistsAndWeights() in the old drawer.js code.
+
+        - In Graphviz coordinates, the origin is at the bottom left corner
+          (https://graphviz.org/docs/outputs/);
+          in Cytoscape.js coordinates, the origin is at the top left corner
+          (https://js.cytoscape.org/#notation/position).
+          Thus, this function flips y-coordinates so that the stuff drawn in
+          Cytoscape.js matches Graphviz.
         """
         if self.region_is_pattern:
             raise WeirdError(
@@ -284,6 +291,7 @@ class Layout(object):
                     # self.region.nodes should only contain patterns if
                     # self.region IS a pattern, and that should never happen
                     raise WeirdError(f"no!!!! {self} {node}")
+                # TODO: remember to flip the y coords!
                 nodeid2xy[node.unique_id] = self.nodeid2rel[node.unique_id]
             for edge in self.region.edges:
                 edgeid2ctrlpts[edge.unique_id] = self.edgeid2rel[
@@ -291,7 +299,9 @@ class Layout(object):
                 ]
         else:
             for node in self.region.nodes:
-                nodeid2xy[node.unique_id] = self.nodeid2rel[node.unique_id]
+                x, y = self.nodeid2rel[node.unique_id]
+                y = self.height - y
+                nodeid2xy[node.unique_id] = x, y
             for edge in self.region.edges:
                 edgeid2ctrlpts[edge.unique_id] = self.edgeid2rel[
                     edge.unique_id
