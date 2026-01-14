@@ -22,8 +22,9 @@ class Layout(object):
         self.region = region
         self.draw_settings = draw_settings
         self.incl_patterns = ui_utils.show_patterns(draw_settings)
-        # TODO USE
         self.recursive = ui_utils.do_recursive_layout(draw_settings)
+        if not self.recursive:
+            raise NotImplementedError("Not done yet")
         # print("Creating layout for", self.region)
 
         # I know this is a jank way of testing if this is a pattern or a
@@ -42,6 +43,8 @@ class Layout(object):
         # the stuff inside this region
         self.nodeid2rel = {}
         self.edgeid2rel = {}
+        self.pattid2rel = {}
+        self.regionid2dims = {}
         self.width = None
         self.height = None
         self.dot = None
@@ -50,62 +53,6 @@ class Layout(object):
 
     def __repr__(self):
         return f"Layout({self.region}; {self.draw_settings})"
-
-    def _run(self):
-        """Lays out this region."""
-        self.dot = self._to_dot()
-        cg = pygraphviz.AGraph(self.dot)
-        cg.layout(prog="dot")
-
-        # print(self.dot)
-        # print(self.region.nodes)
-        # print(self.region.edges)
-        # if hasattr(self.region, "patterns"):
-        #     print(self.region.patterns)
-
-        # Extract dimension info. The first two coordinates in the bounding box
-        # (bb) should always be (0, 0).
-        # The width and height we store here are large enough in order to
-        # contain the layout of the stuff we just laid out.
-        self.width, self.height = layout_utils.get_bb_x2_y2(
-            cg.graph_attr["bb"]
-        )
-
-        # Extract relative node coordinates (x and y)
-        # NOTE: for child patterns of this pattern, we don't need to update the
-        # child node/edge positions within this sub-pattern just yet: we only
-        # need to worry about having stuff be relative to the immediate parent
-        # pattern. When the top level of each component is laid out, we can go
-        # down through the patterns and update positions accordingly --
-        # no need to slow ourselves down by repeatedly updating this
-        # information throughout the layout process.
-        for node in self.region.nodes:
-            if node.unique_id not in self.nodeid2rel:
-                cn = cg.get_node(node.unique_id)
-                self.nodeid2rel[node.unique_id] = layout_utils.getxy(
-                    cn.attr["pos"]
-                )
-
-        # Extract (relative) edge control points
-        for edge in self.region.edges:
-            if edge.unique_id not in self.edgeid2rel:
-                # If this is a parallel edge, then get_edge() should give us an
-                # arbitrary one of these edges. At the end of this block, we
-                # call cg.remove_edge() to ensure that the next time -- if any
-                # -- that we call cg.get_edge() with these node IDs, we get a
-                # different edge position.
-                #
-                # THAT BEING SAID if these are parallel edges proobs they don't
-                # need to be laid out with fancy control pt stuff
-                if self.incl_patterns:
-                    src, tgt = edge.dec_src_id, edge.dec_tgt_id
-                else:
-                    src, tgt = edge.new_src_id, edge.new_tgt_id
-                ce = cg.get_edge(src, tgt)
-                self.edgeid2rel[edge.unique_id] = (
-                    layout_utils.get_control_points(ce.attr["pos"])
-                )
-                cg.remove_edge(ce)
 
     def at_top_level_of_region(self, obj):
         # if the region is a pattern then check if obj parent id matches the
@@ -116,25 +63,26 @@ class Layout(object):
         else:
             return obj.parent_id is None
 
-    def _to_dot(self, incl_bounds=True):
-        """Creates a DOT string describing the top level of this region."""
+    def _to_dot(self):
+        """Creates a DOT string describing the top level of this region.
+
+        This will lay out descendant patterns as needed recursively,
+        assuming that self.incl_patterns and self.recursive are True.
+        """
         dot = ""
-        if incl_bounds:
-            dot += layout_utils.get_gv_header(self.region.name)
+        dot += layout_utils.get_gv_header(self.region.name)
         if self.incl_patterns:
-            # top-level nodes and edges, relative to this region
             for node in self.region.nodes:
                 if self.at_top_level_of_region(node):
-                    # print("Trying to lay out node", node)
                     if node.compound:
-                        # print("COMPOUND")
                         # "node" is a collapsed pattern; lay it out first
                         lay = Layout(node, self.draw_settings)
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)
+                        self.pattid2rel.update(lay.pattid2rel)
+                        self.regionid2dims.update(lay.regionid2dims)
                     else:
-                        # print("normal..")
                         # "node" is just a normal node. just an innocent node.
                         # https://www.youtube.com/watch?v=lr_vl62JblQ
                         dot += node.to_dot()
@@ -147,7 +95,9 @@ class Layout(object):
             # separately from nodes. as above, lay out patterns recursively.
             #
             # TODO: it would be nice to not have to make this distinction --
-            # so, making patterns store nodes and patterns separately i guess
+            # so, making patterns store nodes and patterns separately i guess,
+            # like Subgraphs do. But then we'd need to update a bunch of
+            # decomposition stuff, eep!
             if not self.region_is_pattern:
                 for pattern in self.region.patterns:
                     if self.at_top_level_of_region(pattern):
@@ -155,14 +105,15 @@ class Layout(object):
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)
+                        self.pattid2rel.update(lay.pattid2rel)
+                        self.regionid2dims.update(lay.regionid2dims)
 
         else:
             for node in self.region.nodes:
                 dot += node.to_dot()
             for edge in self.region.edges:
                 dot += edge.to_dot()
-        if incl_bounds:
-            dot += "}"
+        dot += "}"
         return dot
 
     def to_solid_dot(self, indent=layout_config.INDENT):
@@ -184,5 +135,84 @@ class Layout(object):
             color,
         )
 
+    def _run(self):
+        """Lays out this region."""
+
+        # Actually do layout
+        self.dot = self._to_dot()
+        cg = pygraphviz.AGraph(self.dot)
+        cg.layout(prog="dot")
+
+        # Extract dimension info. The first two coordinates in the bounding box
+        # (bb) should always be (0, 0).
+        # The width and height we store here are large enough in order to
+        # contain the layout of the stuff we just laid out.
+        self.width, self.height = layout_utils.get_bb_x2_y2(
+            cg.graph_attr["bb"]
+        )
+
+        # Extract relative node coordinates (x and y) -- for child nodes
+        # and patterns. (As with ._to_dot() above, remember that Subgraphs
+        # don't store patterns in .nodes -- they store them in .patterns.
+        # So we'll do another pass later on to catch child patterns if this
+        # region is a Subgraph, not a Pattern.)
+        #
+        # NOTE: Because this checks if the unique ID is in self.nodeid2rel,
+        # this will only consider top-level children of this pattern. Stuff
+        # located on deeper layers of the hierarchy should already be in
+        # self.nodeid2rel.
+        for node in self.region.nodes:
+            # If self.incl_patterns is False, then we should not have laid out
+            # any patterns, so we won't have to worry about anything in
+            # self.region.nodes being a pattern, because self.region isn't a
+            # pattern! sure okay. eesh. i really gotta refactor that.
+            if node.unique_id not in self.nodeid2rel:
+                pgv_node = cg.get_node(node.unique_id)
+                if node.compound:
+                    d = self.pattid2rel
+                else:
+                    d = self.nodeid2rel
+                d[node.unique_id] = layout_utils.getxy(pgv_node.attr["pos"])
+
+        # Extract (relative) edge control points
+        for edge in self.region.edges:
+            if edge.unique_id not in self.edgeid2rel:
+                # If this is a parallel edge, then get_edge() should give us an
+                # arbitrary one of these edges. At the end of this block, we
+                # call cg.remove_edge() to ensure that the next time -- if any
+                # -- that we call cg.get_edge() with these node IDs, we get a
+                # different edge position.
+                #
+                # THAT BEING SAID if these are parallel edges proobs they don't
+                # need to be laid out with fancy control pt stuff
+                if self.incl_patterns:
+                    src, tgt = edge.dec_src_id, edge.dec_tgt_id
+                else:
+                    src, tgt = edge.new_src_id, edge.new_tgt_id
+                pgv_edge = cg.get_edge(src, tgt)
+                self.edgeid2rel[edge.unique_id] = (
+                    layout_utils.get_control_points(pgv_edge.attr["pos"])
+                )
+                cg.remove_edge(pgv_edge)
+
+        # If this is a Subgraph/Component, extract top-level child pattern
+        # relative coordinates (only if self.incl_patterns is True, ofc)
+        print(self.dot)
+        if self.incl_patterns and not self.region_is_pattern:
+            for pattern in self.region.patterns:
+                if pattern.unique_id not in self.pattid2rel:
+                    print("looking up", pattern)
+                    pgv_patt = cg.get_node(pattern.unique_id)
+                    print("...found")
+                    self.pattid2rel[pattern.unique_id] = layout_utils.getxy(
+                        pgv_patt.attr["pos"]
+                    )
+        self.regionid2dims[self.region.unique_id] = (self.width, self.height)
+
     def to_coords(self):
-        return None
+        print (
+            # self.nodeid2rel,
+            # self.edgeid2rel,
+            self.pattid2rel,
+            self.regionid2dims,
+        )

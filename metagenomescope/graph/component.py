@@ -48,6 +48,6 @@ class Component(Subgraph):
     def set_cc_num(self, cc_num):
         """Updates the component number of this component and its children."""
         self.cc_num = cc_num
-        self.name = f"cc{self.cc_num}"
+        self.name = f"cc{self.cc_num}_id{self.unique_id}"
         for obj in self.get_objs():
             obj.set_cc_num(cc_num)

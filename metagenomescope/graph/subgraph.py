@@ -171,9 +171,6 @@ class Subgraph(object):
         if layout_alg == ui_config.LAYOUT_DOT:
             lay = Layout(self, draw_settings)
             coords = lay.to_coords()
-            # TODO add coords to nodes/edges
-            for c in coords:
-                pass
         eles = []
         nodeids = [] if report_ids else None
         edgeids = [] if report_ids else None

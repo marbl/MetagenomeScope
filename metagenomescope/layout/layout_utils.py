@@ -167,6 +167,17 @@ def get_bb_x2_y2(bb_string):
     return x2i, y2i
 
 
+def infer_bb(self, x, y, w, h):
+    """Infers the bounding box of a rectangle based on its center point."""
+    half_w = w / 2
+    half_h = h / 2
+    left = x - half_w
+    right = x + half_w
+    bottom = y - half_h
+    top = y + half_h
+    return {"l": left, "r": right, "b": bottom, "t": top}
+
+
 def get_node_dot(
     nid, lbl, w, h, shape, indent=layout_config.INDENT, color=None
 ):
