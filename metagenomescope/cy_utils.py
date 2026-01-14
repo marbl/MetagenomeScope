@@ -16,12 +16,10 @@ def get_cyjs_stylesheet(
             "style": {
                 "background-color": cy_config.NODE_COLOR,
                 "color": cy_config.UNSELECTED_NODE_FONT_COLOR,
-                "label": "data(label)" if node_labels else "",
                 "z-index": "1",
                 "z-index-compare": "manual",
                 "width": "data(w)",
                 "height": "data(h)",
-                **cy_config.LABEL_STYLE,
             },
         },
         {
@@ -171,13 +169,6 @@ def get_cyjs_stylesheet(
             },
         },
         {
-            "selector": "edge.real",
-            "style": {
-                "label": "data(label)" if edge_labels else "",
-                **cy_config.LABEL_STYLE,
-            },
-        },
-        {
             "selector": "edge.fake",
             "style": {
                 "line-style": cy_config.FAKE_EDGE_LINE_STYLE,
@@ -202,6 +193,26 @@ def get_cyjs_stylesheet(
             },
         },
     ]
+
+    if node_labels:
+        # yeah yeah i know that literally the first entry in the stylesheet
+        # is node.nonpattern so we could just say stylesheet[0].update()...
+        # or something. But I don't want to hardcode reliance on that - seems
+        # brittle.
+        for sty in stylesheet:
+            if node_labels and sty["selector"] == "node.nonpattern":
+                sty["style"].update(cy_config.LABEL_STYLE)
+                break
+
+    if edge_labels:
+        stylesheet.append(
+            {
+                "selector": "edge.real",
+                "style": {
+                    **cy_config.LABEL_STYLE,
+                },
+            }
+        )
 
     if node_coloring == ui_config.COLORING_RANDOM:
         for i, c in enumerate(cy_config.RANDOM_COLORS):

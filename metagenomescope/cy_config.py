@@ -214,6 +214,7 @@ PATTERN_DATA_TYPE = "P"
 ###############################################################################
 
 LABEL_STYLE = {
+    "label": "data(label)",
     "text-valign": "center",
     "min-zoomed-font-size": "12",
 }
