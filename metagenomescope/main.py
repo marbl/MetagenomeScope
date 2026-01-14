@@ -1945,18 +1945,18 @@ def run(
                 {"requestGood": False},
             )
 
-        # Parse other (less easy to mess up) drawing options
-        incl_patterns = ui_config.SHOW_PATTERNS in draw_settings
         layout_params = cy_utils.get_layout_params(layout_alg, draw_settings)
+
+        # cc_nums has to be JSON-serializable (it might be a set at this point)
+        # (and if we are drawing around nodes instead of drawing entire ccs,
+        # then this will just be []. and that's beautiful. not really)
+        cc_nums = list(cc_nums)
 
         # Okay, now we've done enough checks that this request to draw the
         # graph seems good.
         logging.debug(
             f'Request of type "{draw_type}" seems good; flushing the graph.'
         )
-
-        # cc_nums has to be JSON-serializable (it might be a set at this point)
-        cc_nums = list(cc_nums)
 
         # Let's clear all elements drawn in Cytoscape.js (by returning []
         # for #cy's "elements") and trigger draw() (by updating #doneFlushing),
@@ -1976,7 +1976,7 @@ def run(
                 "cc_nums": cc_nums,
                 "around_node_ids": around_node_ids,
                 "around_dist": around_dist,
-                "patterns": incl_patterns,
+                "draw_settings": draw_settings,
                 "layout_alg": layout_alg,
             },
         )

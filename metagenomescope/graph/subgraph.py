@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 import itertools
-from .. import ui_config
+from .. import ui_config, ui_utils
 from ..layout import Layout
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
@@ -147,7 +147,7 @@ class Subgraph(object):
 
     def to_cyjs(
         self,
-        incl_patterns=ui_config.DEFAULT_SHOW_PATTERNS,
+        draw_settings=ui_config.DEFAULT_DRAW_SETTINGS,
         layout_alg=ui_config.DEFAULT_LAYOUT_ALG,
         report_ids=False,
     ):
@@ -155,16 +155,11 @@ class Subgraph(object):
 
         Parameters
         ----------
-        incl_patterns: bool
-            If True, include patterns (and adjust the node/edge elements to
-            refer to these patterns as their "parent" elements).
+        draw_settings: list
+            Various draw settings (show patterns?, do recursive layout?, etc.)
 
         layout_alg: str
-            Layout algorithm to use. If this is ui_config.LAYOUT_DOT, then
-            we will perform the fancy recursive backfilling stuff using dot
-            (in order to generate positions for Cytoscape.js). Otherwise,
-            we assume that you are doing some sort of client-side layout
-            like Dagre, so we will not include positions.
+            Layout algorithm to use.
 
         report_ids: bool
             If True, record node and edge IDs in the output DrawResults.
@@ -174,7 +169,7 @@ class Subgraph(object):
         DrawResults
         """
         if layout_alg == ui_config.LAYOUT_DOT:
-            lay = Layout(self, incl_patterns=incl_patterns)
+            lay = Layout(self, draw_settings)
             coords = lay.to_coords()
             # TODO add coords to nodes/edges
             for c in coords:
@@ -183,15 +178,15 @@ class Subgraph(object):
         nodeids = [] if report_ids else None
         edgeids = [] if report_ids else None
         for n in self.nodes:
-            eles.append(n.to_cyjs(incl_patterns=incl_patterns))
+            eles.append(n.to_cyjs(draw_settings=draw_settings))
             if report_ids:
                 nodeids.append(n.unique_id)
         for e in self.edges:
-            eles.append(e.to_cyjs(incl_patterns=incl_patterns))
+            eles.append(e.to_cyjs(draw_settings=draw_settings))
             if report_ids:
                 edgeids.append(e.unique_id)
         pattct = 0
-        if incl_patterns:
+        if ui_utils.show_patterns(draw_settings):
             eles.extend(obj.to_cyjs() for obj in self.patterns)
             pattct = len(self.patterns)
         return DrawResults(

@@ -1,6 +1,6 @@
 import pygraphviz
 from . import layout_utils, layout_config
-from .. import config
+from .. import ui_utils, config
 
 
 class Layout(object):
@@ -10,20 +10,20 @@ class Layout(object):
     a subregion of the graph, etc.
     """
 
-    def __init__(self, region, incl_patterns=True):
+    def __init__(self, region, draw_settings):
         """Initializes this Layout object.
 
         Parameters
         ----------
         region: Subgraph or Pattern
 
-        incl_patterns: bool
-            If True, include patterns in the layout (and do the whole thing
-            of laying out the graph recursively). If False, ignore patterns,
-            and just act like their descendant nodes/edges have no parents.
+        draw_settings: list
         """
         self.region = region
-        self.incl_patterns = incl_patterns
+        self.draw_settings = draw_settings
+        self.incl_patterns = ui_utils.show_patterns(draw_settings)
+        # TODO USE
+        self.recursive = ui_utils.do_recursive_layout(draw_settings)
         # print("Creating layout for", self.region)
 
         # I know this is a jank way of testing if this is a pattern or a
@@ -49,7 +49,7 @@ class Layout(object):
         self._run()
 
     def __repr__(self):
-        return f"Layout({self.region}; incl_patterns={self.incl_patterns})"
+        return f"Layout({self.region}; {self.draw_settings})"
 
     def _run(self):
         """Lays out this region."""
@@ -129,7 +129,7 @@ class Layout(object):
                     if node.compound:
                         # print("COMPOUND")
                         # "node" is a collapsed pattern; lay it out first
-                        lay = Layout(node)
+                        lay = Layout(node, self.draw_settings)
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)
@@ -151,7 +151,7 @@ class Layout(object):
             if not self.region_is_pattern:
                 for pattern in self.region.patterns:
                     if self.at_top_level_of_region(pattern):
-                        lay = Layout(pattern)
+                        lay = Layout(pattern, self.draw_settings)
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)

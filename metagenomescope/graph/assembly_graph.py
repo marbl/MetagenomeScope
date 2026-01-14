@@ -1801,7 +1801,7 @@ class AssemblyGraph(object):
         subgraph = nx.induced_subgraph(self.graph, subgraph_node_ids)
         return subgraph, subgraph_node_ids
 
-    def get_ids_in_neighborhood(self, node_ids, dist, incl_patterns):
+    def get_ids_in_neighborhood(self, node_ids, dist, draw_settings):
         """Returns the IDs of all nodes, edges, and patterns in a neighborhood.
 
         See get_neighborhood()'s documentation for details. The main "extra"
@@ -1822,7 +1822,7 @@ class AssemblyGraph(object):
 
         # Get patterns, maybe
         subgraph_patt_ids = set()
-        if incl_patterns:
+        if ui_utils.show_patterns(draw_settings):
             # include a pattern only if all its descendant nodes and edges are
             # included
             for pid, p in self.pattid2obj.items():
@@ -1846,10 +1846,10 @@ class AssemblyGraph(object):
                     subgraph_patt_ids.add(pid)
         return subgraph_node_ids, subgraph_edge_ids, subgraph_patt_ids
 
-    def _to_cyjs_around_nodes(self, node_ids, dist, incl_patterns, layout_alg):
+    def _to_cyjs_around_nodes(self, node_ids, dist, draw_settings, layout_alg):
         """Produces Cytoscape.js elements only "around" certain nodes."""
         sel_node_ids, sel_edge_ids, sel_patt_ids = (
-            self.get_ids_in_neighborhood(node_ids, dist, incl_patterns)
+            self.get_ids_in_neighborhood(node_ids, dist, draw_settings)
         )
         # NOTE: in theory, if a user draws around nodes multiple times then
         # we will just keep creating new subgraph ids. however, since diff
@@ -1866,7 +1866,7 @@ class AssemblyGraph(object):
             [self.pattid2obj[i] for i in sel_patt_ids],
         )
         return sg.to_cyjs(
-            incl_patterns=incl_patterns, layout_alg=layout_alg, report_ids=True
+            draw_settings=draw_settings, layout_alg=layout_alg, report_ids=True
         )
 
     def to_cyjs(self, done_flushing):
@@ -1890,14 +1890,14 @@ class AssemblyGraph(object):
         https://js.cytoscape.org/#notation/elements-json
         """
         draw_type = done_flushing["draw_type"]
-        incl_patterns = done_flushing["patterns"]
+        draw_settings = done_flushing["draw_settings"]
         layout_alg = done_flushing["layout_alg"]
 
         if draw_type == config.DRAW_ALL:
             dr = DrawResults()
             for cc in self.components:
                 dr += cc.to_cyjs(
-                    incl_patterns=incl_patterns, layout_alg=layout_alg
+                    draw_settings=draw_settings, layout_alg=layout_alg
                 )
 
         elif draw_type == config.DRAW_CCS:
@@ -1907,14 +1907,14 @@ class AssemblyGraph(object):
                 # the component numbers are 1-indexed)
                 cc = self.components[ccn - 1]
                 dr += cc.to_cyjs(
-                    incl_patterns=incl_patterns, layout_alg=layout_alg
+                    draw_settings=draw_settings, layout_alg=layout_alg
                 )
 
         elif draw_type == config.DRAW_AROUND:
             dr = self._to_cyjs_around_nodes(
                 done_flushing["around_node_ids"],
                 done_flushing["around_dist"],
-                incl_patterns,
+                draw_settings,
                 layout_alg,
             )
 

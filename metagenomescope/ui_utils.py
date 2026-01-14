@@ -774,3 +774,11 @@ def get_badge_color(ct, selection_only=True):
         return css_config.BADGE_SELECTED_COLOR
     else:
         return css_config.BADGE_AVAILABLE_COLOR
+
+
+def show_patterns(draw_settings):
+    return ui_config.SHOW_PATTERNS in draw_settings
+
+
+def do_recursive_layout(draw_settings):
+    return ui_config.DO_RECURSIVE_LAYOUT in draw_settings

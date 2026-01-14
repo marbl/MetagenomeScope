@@ -1,3 +1,4 @@
+from metagenomescope import ui_config
 from metagenomescope.graph import AssemblyGraph
 
 
@@ -71,7 +72,7 @@ def test_get_ids_in_neighborhood_entire_component():
     all_node_ids_in_cc = ag.get_node_ids("1,2,3,-4,5")
 
     snodeids, sedgeids, spattids = ag.get_ids_in_neighborhood(
-        all_node_ids_in_cc, 100, True
+        all_node_ids_in_cc, 100, [ui_config.SHOW_PATTERNS]
     )
     check_sample1_subgraph_entire_component(
         ag, all_node_ids_in_cc, snodeids, sedgeids
@@ -89,7 +90,7 @@ def test_get_ids_in_neighborhood_entire_component_dont_incl_patterns():
     all_node_ids_in_cc = ag.get_node_ids("1,2,3,-4,5")
 
     snodeids, sedgeids, spattids = ag.get_ids_in_neighborhood(
-        all_node_ids_in_cc, 100, False
+        all_node_ids_in_cc, 100, []
     )
     check_sample1_subgraph_entire_component(
         ag, all_node_ids_in_cc, snodeids, sedgeids

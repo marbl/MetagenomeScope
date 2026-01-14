@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from metagenomescope import cy_config, config
+from metagenomescope import cy_config, config, ui_utils
 from metagenomescope.layout import layout_config
 from metagenomescope.errors import WeirdError
 from metagenomescope.graph import graph_utils
@@ -232,7 +232,7 @@ class Node(object):
     def to_dot(self, indent=layout_config.INDENT):
         return self.layout.to_dot(self.unique_id, self.name, indent)
 
-    def to_cyjs(self, incl_patterns=True):
+    def to_cyjs(self, draw_settings):
         if "orientation" in self.data:
             if self.data["orientation"] == config.FWD:
                 ndir = "fwd"
@@ -259,7 +259,10 @@ class Node(object):
 
         ele["data"]["w"], ele["data"]["h"] = self.layout.get_dims(to_cyjs=True)
 
-        if incl_patterns and self.parent_id is not None:
+        if (
+            ui_utils.show_patterns(draw_settings)
+            and self.parent_id is not None
+        ):
             ele["data"]["parent"] = str(self.parent_id)
 
         return ele

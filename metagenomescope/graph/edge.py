@@ -17,6 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
+from metagenomescope import ui_utils
 from metagenomescope.layout import layout_config, layout_utils
 from metagenomescope.errors import WeirdError
 
@@ -232,7 +233,7 @@ class Edge(object):
             raise WeirdError(f"Unrecognized edge level: {level}")
         return layout_utils.get_edge_dot(src, tgt, self.is_fake, indent)
 
-    def to_cyjs(self, incl_patterns=True):
+    def to_cyjs(self, draw_settings):
         ele = {
             "data": {
                 "source": str(self.new_src_id),
@@ -248,7 +249,10 @@ class Edge(object):
             # problems in the viz. So just use something generic instead
             ele["data"]["edgeID"] = self.get_userspecified_id()
 
-        if incl_patterns and self.parent_id is not None:
+        if (
+            ui_utils.show_patterns(draw_settings)
+            and self.parent_id is not None
+        ):
             ele["data"]["parent"] = str(self.parent_id)
         if self.is_fake:
             ele["classes"] += " fake"
