@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import itertools
 from .. import ui_config, ui_utils
 from ..layout import Layout
@@ -173,9 +174,11 @@ class Subgraph(object):
         nodeid2xy = {}
         edgeid2ctrlpts = {}
         if layout_alg == ui_config.LAYOUT_DOT:
+            logging.debug(f"  Laying out {self}; settings: {draw_settings}...")
             lay = Layout(self, draw_settings)
             nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords()
             preset_positions = True
+            logging.debug(f"  ...Done with layout!")
 
         eles = []
         nodeids = [] if report_ids else None

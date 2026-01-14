@@ -116,7 +116,7 @@ def get_bb_x2_y2(bb_string):
     Usually we only care about (x2, y2) (since often the bottom left is just
     (0, 0)), hence this function.
 
-    The reason we divide by PIXELS_PER_INCH is because, in GraphViz' output,
+    The reason we divide by PIXELS_PER_INCH is because, in Graphviz' output,
     node positions and edge control points are (usually) given in inches,
     whereas bounding boxes are (usually) given in points. To quote Plato,
     "that's kinda annoying tbh." I'm like 90% sure Plato said that once.
@@ -137,10 +137,10 @@ def get_bb_x2_y2(bb_string):
     return x2i, y2i
 
 
-def infer_bb(self, x, y, w, h):
+def infer_bb(x, y, w, h):
     """Infers the bounding box of a rectangle based on its center point."""
-    half_w = w / 2
-    half_h = h / 2
+    half_w = (w * layout_config.PIXELS_PER_INCH) / 2
+    half_h = (h * layout_config.PIXELS_PER_INCH) / 2
     left = x - half_w
     right = x + half_w
     bottom = y - half_h

@@ -1,5 +1,5 @@
-import logging
 import pygraphviz
+from collections import deque
 from . import layout_utils, layout_config
 from .. import ui_utils, config
 from ..errors import WeirdError
@@ -12,7 +12,7 @@ class Layout(object):
     a subregion of the graph, etc.
     """
 
-    def __init__(self, region, draw_settings, log=True):
+    def __init__(self, region, draw_settings):
         """Initializes this Layout object.
 
         Parameters
@@ -20,14 +20,7 @@ class Layout(object):
         region: Subgraph or Pattern
 
         draw_settings: list
-
-        log: bool
-            basically the idea here is we don't want to log like every
-            pattern we lay out lol
         """
-        self.log = log
-        if self.log:
-            logging.debug(f"  Laying out {region}...")
         self.region = region
         self.draw_settings = draw_settings
         self.incl_patterns = ui_utils.show_patterns(draw_settings)
@@ -59,8 +52,6 @@ class Layout(object):
         self.regionid2dims = {}
 
         self._run()
-        if self.log:
-            logging.debug(f"  ...Done laying out {region.name}!")
 
     def __repr__(self):
         return f"Layout({self.region}; {self.draw_settings})"
@@ -111,7 +102,7 @@ class Layout(object):
                 if self.at_top_level_of_region(node):
                     if node.compound:
                         # "node" is a collapsed pattern; lay it out first
-                        lay = Layout(node, self.draw_settings, False)
+                        lay = Layout(node, self.draw_settings)
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)
@@ -136,7 +127,7 @@ class Layout(object):
             if not self.region_is_pattern:
                 for pattern in self.region.patterns:
                     if self.at_top_level_of_region(pattern):
-                        lay = Layout(pattern, self.draw_settings, False)
+                        lay = Layout(pattern, self.draw_settings)
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)
@@ -147,6 +138,10 @@ class Layout(object):
                 raise WeirdError(f"Yeah this doesn't make sense chief {self}")
 
             if self.incl_patterns and not self.recursive:
+                # layout_utils.get_pattern_cluster_dot() works recursively
+                # on all descendants of a pattern, so we can just consider
+                # the top-level patterns/nodes/edges and leave the rest to
+                # recursion
                 for pattern in self.region.patterns:
                     if self.at_top_level_of_region(pattern):
                         dot += layout_utils.get_pattern_cluster_dot(pattern)
@@ -321,19 +316,60 @@ class Layout(object):
             )
         nodeid2xy = {}
         edgeid2ctrlpts = {}
-        # pattid2bb = {}
+        pattid2bb = {}
         if self.incl_patterns and self.recursive:
+            # TODO flip the y-coords! need to do for patt bounding boxes
+            # AND node/edge positions
+
+            for pattern in self.region.patterns:
+                if self.at_top_level_of_region(pattern):
+                    pid = pattern.unique_id
+                    x, y = self.pattid2rel[pid]
+                    w, h = self.regionid2dims[pid]
+                    pattid2bb[pid] = layout_utils.infer_bb(x, y, w, h)
+
+                    patt_queue = deque([pattern])
+                    while len(patt_queue) > 0:
+
+                        curr_patt = patt_queue.popleft()
+                        curr_bb = pattid2bb[curr_patt.unique_id]
+
+                        for child in curr_patt.nodes:
+                            cid = child.unique_id
+                            if child.compound:
+                                rx, ry = self.pattid2rel[cid]
+                                x = curr_bb["l"] + rx
+                                y = curr_bb["b"] + ry
+                                w, h = self.regionid2dims[cid]
+                                pattid2bb[cid] = layout_utils.infer_bb(
+                                    x, y, w, h
+                                )
+                                patt_queue.append(child)
+                            else:
+                                rx, ry = self.nodeid2rel[cid]
+                                x = curr_bb["l"] + rx
+                                y = curr_bb["b"] + ry
+                                nodeid2xy[cid] = (x, y)
+
+                        for edge in curr_patt.edges:
+                            edgeid2ctrlpts[edge.unique_id] = (
+                                layout_utils.shift_control_points(
+                                    self.edgeid2rel, curr_bb["l"], curr_bb["b"]
+                                )
+                            )
+
             for node in self.region.nodes:
-                if node.compound:
-                    # self.region.nodes should only contain patterns if
-                    # self.region IS a pattern, and that should never happen
-                    raise WeirdError(f"no!!!! {self} {node}")
-                # TODO: remember to flip the y coords!
-                nodeid2xy[node.unique_id] = self.nodeid2rel[node.unique_id]
+                if self.at_top_level_of_region(node):
+                    if node.compound:
+                        # self.region.nodes should only contain patterns if
+                        # self.region IS a pattern, and that should never happen
+                        raise WeirdError(f"no!!!! {self} {node}")
+                    nodeid2xy[node.unique_id] = self.nodeid2rel[node.unique_id]
             for edge in self.region.edges:
-                edgeid2ctrlpts[edge.unique_id] = self.edgeid2rel[
-                    edge.unique_id
-                ]
+                if self.at_top_level_of_region(edge):
+                    edgeid2ctrlpts[edge.unique_id] = self.edgeid2rel[
+                        edge.unique_id
+                    ]
         else:
             for node in self.region.nodes:
                 x, y = self.nodeid2rel[node.unique_id]

@@ -8,8 +8,10 @@ INDENT = "  "
 
 # The conversion factor between inches (Graphviz) and pixels (Cytoscape.js).
 # There is a lot of history to this, and I think Cytoscape.js has changed its
-# system from points to pixels. so, let's just see how things work out
-PIXELS_PER_INCH = 54
+# system from points to pixels??? Or maybe it was always in pixels and graphviz
+# has just been kind of inconsistent with its units being in points or inches
+# depending on bounding boxes or coordinates??? let's just see how things go
+PIXELS_PER_INCH = 72
 
 ########
 # Node scaling
