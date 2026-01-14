@@ -33,6 +33,9 @@ class Layout(object):
         # (ok i might be going crazy but that's about other things)
         self.region_is_pattern = hasattr(self.region, "pattern_type")
 
+        if not self.region_is_pattern:
+            self.pattern_ids = [p.unique_id for p in self.region.patterns]
+
         # when laid out as a "solid object," this region will be represented
         # as just a rectangle. ofc in the fancy viz we may use a diff shape
         self.shape = "rectangle"
@@ -53,13 +56,37 @@ class Layout(object):
         return f"Layout({self.region}; {self.draw_settings})"
 
     def at_top_level_of_region(self, obj):
-        # if the region is a pattern then check if obj parent id matches the
-        # region; otherwise, check if obj parent id is None (i.e. if the obj
-        # has no parent and is thus at the top level of the graph)
+        """Checks if this object is at the "top level" of this region.
+
+        If we are drawing entire components, the check is easy:
+
+            - If this region R is a pattern, then obj is at the top level if
+              its parent is R.
+
+            - If this region R is a general subgraph, then obj is at the top
+              level if its parent ID is None -- i.e. it has no parent.
+
+        However! If we are drawing "around" nodes, then there is the
+        possibility that an obj has a parent but that parent is not being
+        drawn (like, in the case where we are drawing only some of the nodes
+        in a pattern because the distance limit got reached partway through).
+        So, we add the additional check that -- if R is a general subgraph --
+        then obj is at the top level if it has no parent ***OR*** if its parent
+        is not in R at all. This covers things.
+
+        (If R is a pattern, then we know that all its descendants must also be
+        being drawn, so it suffices to just check if the obj's parent is R.)
+
+        Test case: k99_60114 in aug1 -- try drawing around 0, 1, 2, ... hops
+
+        Should really test this formally also
+        """
         if self.region_is_pattern:
             return obj.parent_id == self.region.unique_id
         else:
-            return obj.parent_id is None
+            return (
+                obj.parent_id is None or obj.parent_id not in self.pattern_ids
+            )
 
     def _to_dot(self):
         """Creates a DOT string describing the top level of this region.
