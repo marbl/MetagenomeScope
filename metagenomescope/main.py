@@ -170,11 +170,14 @@ def run(
             id="dotAlgPatternDesc",
         ),
     ]
-    dot_alg_desc_used = (
-        DOT_ALG_DESC_PATTS
-        if ui_config.SHOW_PATTERNS in ui_config.DEFAULT_DRAW_SETTINGS
-        else DOT_ALG_DESC
-    )
+
+    if (
+        ui_config.SHOW_PATTERNS in ui_config.DEFAULT_DRAW_SETTINGS
+        and ui_config.DO_RECURSIVE_LAYOUT in ui_config.DEFAULT_DRAW_SETTINGS
+    ):
+        dot_alg_desc_used = DOT_ALG_DESC_PATTS
+    else:
+        dot_alg_desc_used = DOT_ALG_DESC
 
     # If there are multiple components, show a "Components" tab in the info
     # dialog with information about these components. Also show various options

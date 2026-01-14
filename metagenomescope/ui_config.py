@@ -24,17 +24,14 @@ DRAW_SETTINGS_OPTIONS = [
     {
         "label": "Show patterns",
         "value": SHOW_PATTERNS,
-        "disabled": False,
     },
     {
         "label": "Lay out patterns recursively (Graphviz only)",
         "value": DO_RECURSIVE_LAYOUT,
-        "disabled": False,
     },
     {
         "label": "Animate layout (Dagre & fCoSE only)",
         "value": DO_LAYOUT_ANIMATION,
-        "disabled": False,
     },
 ]
 
