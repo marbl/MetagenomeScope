@@ -234,7 +234,42 @@ class Layout(object):
         self.regionid2dims[self.region.unique_id] = (self.width, self.height)
 
     def _run(self):
-        """Lays out this region."""
+        """Lays out this region.
+
+        Running this should populate the following attributes:
+
+        self.dot: str
+            DOT representation of this region, used in computing layout.
+
+        self.width, self.int: float, float
+            Dimensions of the bounding box of this region's layout.
+
+        self.nodeid2rel: dict of int -> (int, int)
+            Relative (x, y) position of nodes in this region. If we are doing
+            recursive layout, then this should be relative to the bounding box
+            of the parent pattern (if present); else, it should be relative to
+            the bounding box of the entire layout.
+
+        self.edgeid2rel: dict of int -> list of int
+            Control points of edges in this region. Again, for recursive
+            layout, these are relative to the bounding box of the edge's parent
+            pattern (if present) or the entire layout (if not present).
+
+        self.pattid2rel: dict of int -> (int, int)
+            Relative (x, y) position of patterns in this region, analogous to
+            self.nodeid2rel. This should only be populated if we are doing
+            recursive layout. (If we are just doing the normal "clustered"
+            layout, with no recursion, then we don't need to care about the
+            patterns' positions; Cytoscape.js will just infer the positions
+            when rendering the graph.)
+
+        self.regionid2dims: dict of int -> (int, int)
+            Maps region (pattern or subgraph) IDs to layout width and height.
+            Only necessary to populate if we are doing recursive layout (since
+            if we are not doing recursive layout, then there is just one
+            region, and we already know its dimensions as self.width and
+            self.height).
+        """
 
         # Actually do layout
         self.dot = self._to_dot()
