@@ -238,8 +238,8 @@ class Layout(object):
 
         # Actually do layout
         self.dot = self._to_dot()
-        with open("scrap/layouts/" + self.region.name + ".gv", "w") as f:
-            f.write(self.dot)
+        # with open("scrap/layouts/" + self.region.name + ".gv", "w") as f:
+        #     f.write(self.dot)
         cg = pygraphviz.AGraph(self.dot)
         cg.layout(prog="dot")
 
