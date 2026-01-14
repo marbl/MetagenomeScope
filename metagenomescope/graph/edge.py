@@ -256,4 +256,8 @@ class Edge(object):
             ele["data"]["parent"] = str(self.parent_id)
         if self.is_fake:
             ele["classes"] += " fake"
+        else:
+            # "json that makes you say 'real'"
+            ele["classes"] += " real"
+            ele["data"]["label"] = repr(self)
         return ele

@@ -4,6 +4,8 @@ from .errors import WeirdError
 
 
 def get_cyjs_stylesheet(
+    node_labels=ui_config.DEFAULT_USE_NODE_LABELS,
+    edge_labels=ui_config.DEFAULT_USE_EDGE_LABELS,
     node_coloring=ui_config.DEFAULT_NODE_COLORING,
     edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
 ):
@@ -14,13 +16,12 @@ def get_cyjs_stylesheet(
             "style": {
                 "background-color": cy_config.NODE_COLOR,
                 "color": cy_config.UNSELECTED_NODE_FONT_COLOR,
-                "label": "data(label)",
-                "text-valign": "center",
-                "min-zoomed-font-size": "12",
+                "label": "data(label)" if node_labels else "",
                 "z-index": "1",
                 "z-index-compare": "manual",
                 "width": "data(w)",
                 "height": "data(h)",
+                **cy_config.LABEL_STYLE,
             },
         },
         {
@@ -167,6 +168,13 @@ def get_cyjs_stylesheet(
                 "control-point-distances": "data(cpd)",
                 "control-point-weights": "data(cpw)",
                 "edge-distances": "node-position",
+            },
+        },
+        {
+            "selector": "edge.real",
+            "style": {
+                "label": "data(label)" if edge_labels else "",
+                **cy_config.LABEL_STYLE,
             },
         },
         {

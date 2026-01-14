@@ -208,3 +208,12 @@ SELECTED_PATTERN_BORDER_WIDTH = 8
 SELECTED_PATTERN_BORDER_COLOR = "#0000ff"
 
 PATTERN_DATA_TYPE = "P"
+
+###############################################################################
+# Labels
+###############################################################################
+
+LABEL_STYLE = {
+    "text-valign": "center",
+    "min-zoomed-font-size": "12",
+}

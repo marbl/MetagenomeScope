@@ -179,6 +179,11 @@ def run(
     else:
         dot_alg_desc_used = DOT_ALG_DESC
 
+    default_labels = ui_config.DEFAULT_LABELS.copy()
+    if ag.filetype == "DOT":
+        if ui_config.EDGE_LABELS not in default_labels:
+            default_labels.append(ui_config.EDGE_LABELS)
+
     # If there are multiple components, show a "Components" tab in the info
     # dialog with information about these components. Also show various options
     # for selecting which component(s) to draw.
@@ -719,7 +724,7 @@ def run(
                                     id="nodeColorRadio",
                                 ),
                             ],
-                            className="radio-group",
+                            className="btn-opt-group",
                         ),
                         ctrl_sep_invis,
                         html.H5(
@@ -746,7 +751,36 @@ def run(
                                     id="edgeColorRadio",
                                 ),
                             ],
-                            className="radio-group",
+                            className="btn-opt-group",
+                        ),
+                        ctrl_sep,
+                        html.H4(
+                            "Labels",
+                        ),
+                        html.Div(
+                            [
+                                # refreshingly, the "RadioItems as ButtonGroup"
+                                # trick dbc supports works with checklists also
+                                dbc.Checklist(
+                                    options=[
+                                        {
+                                            "label": "Nodes",
+                                            "value": ui_config.NODE_LABELS,
+                                        },
+                                        {
+                                            "label": "Edges",
+                                            "value": ui_config.EDGE_LABELS,
+                                        },
+                                    ],
+                                    value=default_labels,
+                                    className="btn-group",
+                                    inputClassName="btn-check",
+                                    labelClassName="btn btn-sm btn-outline-success",
+                                    labelCheckedClassName="active",
+                                    id="labelChecklist",
+                                ),
+                            ],
+                            className="btn-opt-group",
                         ),
                         ctrl_sep,
                         html.H4("Screenshots"),
@@ -777,7 +811,7 @@ def run(
                                             id="imageTypeRadio",
                                         ),
                                     ],
-                                    className="radio-group",
+                                    className="btn-opt-group",
                                     # Needed in order to allow these buttons to be
                                     # on the same line as the export button. i
                                     # don't know why exactly this works - it was
@@ -856,6 +890,10 @@ def run(
                         boxSelectionEnabled=True,
                         maxZoom=9,
                         stylesheet=cy_utils.get_cyjs_stylesheet(
+                            node_labels=ui_config.NODE_LABELS
+                            in default_labels,
+                            edge_labels=ui_config.EDGE_LABELS
+                            in default_labels,
                             node_coloring=ui_config.DEFAULT_NODE_COLORING,
                             edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
                         ),
@@ -1311,7 +1349,7 @@ def run(
                                                     labelCheckedClassName="active",
                                                     id="layoutAlgRadio",
                                                 ),
-                                                className="radio-group",
+                                                className="btn-opt-group",
                                                 style={
                                                     "margin-top": "0.75em",
                                                     "margin-bottom": "0.75em",
@@ -1732,12 +1770,19 @@ def run(
 
     @callback(
         Output("cy", "stylesheet"),
+        Input("labelChecklist", "value"),
         Input("nodeColorRadio", "value"),
         Input("edgeColorRadio", "value"),
         prevent_initial_call=True,
     )
-    def update_colorings(node_color_radio, edge_color_radio):
+    def update_cy_stylesheet(
+        label_checklist, node_color_radio, edge_color_radio
+    ):
+        node_labels = ui_config.NODE_LABELS in label_checklist
+        edge_labels = ui_config.EDGE_LABELS in label_checklist
         return cy_utils.get_cyjs_stylesheet(
+            node_labels=node_labels,
+            edge_labels=edge_labels,
             node_coloring=node_color_radio,
             edge_coloring=edge_color_radio,
         )
