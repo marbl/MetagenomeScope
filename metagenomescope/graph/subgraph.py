@@ -177,6 +177,8 @@ class Subgraph(object):
             lay = Layout(self, incl_patterns=incl_patterns)
             coords = lay.to_coords()
             # TODO add coords to nodes/edges
+            for c in coords:
+                pass
         eles = []
         nodeids = [] if report_ids else None
         edgeids = [] if report_ids else None
