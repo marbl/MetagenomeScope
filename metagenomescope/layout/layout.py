@@ -354,7 +354,9 @@ class Layout(object):
                         for edge in curr_patt.edges:
                             edgeid2ctrlpts[edge.unique_id] = (
                                 layout_utils.shift_control_points(
-                                    self.edgeid2rel, curr_bb["l"], curr_bb["b"]
+                                    self.edgeid2rel[edge.unique_id],
+                                    curr_bb["l"],
+                                    curr_bb["b"],
                                 )
                             )
 
