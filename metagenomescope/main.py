@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import copy
 import logging
 import itertools
 import dash_cytoscape as cyto
@@ -160,11 +161,11 @@ def run(
     DOT_ALG_DESC_PATTS = DOT_ALG_DESC + [
         html.P(
             [
-                "We run ",
+                "We'll run ",
                 dot_text,
-                " recursively, laying out bottom-level ",
-                "patterns first then laying out higher-"
-                "level parts of the graph.",
+                " recursively: we'll lay out bottom-level ",
+                "patterns first, then lay out parent patterns of those "
+                "patterns, and eventually lay out the entire graph.",
             ],
             id="dotAlgPatternDesc",
         ),
@@ -1261,16 +1262,7 @@ def run(
                                     # is better.
                                     html.Div(
                                         dcc.Checklist(
-                                            options=[
-                                                {
-                                                    "label": "Show patterns",
-                                                    "value": ui_config.SHOW_PATTERNS,
-                                                },
-                                                {
-                                                    "label": "Animate layout (Dagre & fCoSE only)",
-                                                    "value": ui_config.DO_LAYOUT_ANIMATION,
-                                                },
-                                            ],
+                                            options=ui_config.DRAW_SETTINGS_OPTIONS,
                                             value=ui_config.DEFAULT_DRAW_SETTINGS,
                                             id="drawSettingsChecklist",
                                         ),
@@ -1802,14 +1794,29 @@ def run(
 
     @callback(
         Output("dotAlgDesc", "children"),
+        Output("drawSettingsChecklist", "options"),
         Input("drawSettingsChecklist", "value"),
         prevent_initial_call=True,
     )
-    def update_dot_pattern_desc(draw_settings):
-        if ui_config.SHOW_PATTERNS in draw_settings:
-            return DOT_ALG_DESC_PATTS
+    def update_recursive_layout_plans(draw_settings):
+        show_patts = ui_config.SHOW_PATTERNS in draw_settings
+        do_rec_layout = ui_config.DO_RECURSIVE_LAYOUT in draw_settings
+
+        if show_patts and do_rec_layout:
+            desc = DOT_ALG_DESC_PATTS
         else:
-            return DOT_ALG_DESC
+            desc = DOT_ALG_DESC
+
+        if not show_patts:
+            opts = copy.deepcopy(ui_config.DRAW_SETTINGS_OPTIONS)
+            for o in opts:
+                if o["value"] == ui_config.DO_RECURSIVE_LAYOUT:
+                    o["disabled"] = True
+                    break
+        else:
+            opts = ui_config.DRAW_SETTINGS_OPTIONS
+
+        return desc, opts
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),

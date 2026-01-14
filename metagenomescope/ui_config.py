@@ -2,19 +2,41 @@
 # Default drawing settings
 ###############################################################################
 
-# value of the draw settings checklist indicating that yes, we do want to
-# show patterns in the visualization
+# values in the draw settings checklist
 SHOW_PATTERNS = "patterns"
 DO_LAYOUT_ANIMATION = "animate"
+DO_RECURSIVE_LAYOUT = "recursive"
 
 # by default, these draw settings are enabled --
 DEFAULT_SHOW_PATTERNS = True
 DEFAULT_DO_LAYOUT_ANIMATION = True
+DEFAULT_DO_RECURSIVE_LAYOUT = True
+
 DEFAULT_DRAW_SETTINGS = []
 if DEFAULT_SHOW_PATTERNS:
     DEFAULT_DRAW_SETTINGS.append(SHOW_PATTERNS)
 if DEFAULT_DO_LAYOUT_ANIMATION:
     DEFAULT_DRAW_SETTINGS.append(DO_LAYOUT_ANIMATION)
+if DEFAULT_DO_RECURSIVE_LAYOUT:
+    DEFAULT_DRAW_SETTINGS.append(DO_RECURSIVE_LAYOUT)
+
+DRAW_SETTINGS_OPTIONS = [
+    {
+        "label": "Show patterns",
+        "value": SHOW_PATTERNS,
+        "disabled": False,
+    },
+    {
+        "label": "Lay out patterns recursively (Graphviz only)",
+        "value": DO_RECURSIVE_LAYOUT,
+        "disabled": False,
+    },
+    {
+        "label": "Animate layout (Dagre & fCoSE only)",
+        "value": DO_LAYOUT_ANIMATION,
+        "disabled": False,
+    },
+]
 
 COLORING_RANDOM = "random"
 COLORING_UNIFORM = "uniform"
