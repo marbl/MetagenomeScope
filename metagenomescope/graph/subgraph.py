@@ -168,20 +168,39 @@ class Subgraph(object):
         -------
         DrawResults
         """
+
+        preset_positions = False
+        nodeid2xy = {}
+        edgeid2ctrlpts = {}
         if layout_alg == ui_config.LAYOUT_DOT:
             lay = Layout(self, draw_settings)
-            coords = lay.to_coords()
+            nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords()
+            preset_positions = True
+
         eles = []
         nodeids = [] if report_ids else None
         edgeids = [] if report_ids else None
+
         for n in self.nodes:
-            eles.append(n.to_cyjs(draw_settings=draw_settings))
+            js = n.to_cyjs(draw_settings=draw_settings)
+            if preset_positions:
+                x, y = nodeid2xy[n.unique_id]
+                js["position"] = {"x": x, "y": y}
+            eles.append(js)
             if report_ids:
                 nodeids.append(n.unique_id)
+
         for e in self.edges:
-            eles.append(e.to_cyjs(draw_settings=draw_settings))
+            js = e.to_cyjs(draw_settings=draw_settings)
+            # Let's hold off on converting edge ctrl pts now.
+            # There is some goofy math involved.
+            # if preset_positions:
+            #     ctrlpts = edgeid2ctrlpts[e.unique_id]
+            #     js["classes"] += " withctrlpts"
+            eles.append(js)
             if report_ids:
                 edgeids.append(e.unique_id)
+
         pattct = 0
         if ui_utils.show_patterns(draw_settings):
             eles.extend(obj.to_cyjs() for obj in self.patterns)

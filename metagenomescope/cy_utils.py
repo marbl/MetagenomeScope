@@ -161,6 +161,15 @@ def get_cyjs_stylesheet(
             },
         },
         {
+            "selector": "edge.withctrlpts",
+            "style": {
+                "curve-style": "unbundled-bezier",
+                "control-point-distances": "data(cpd)",
+                "control-point-weights": "data(cpw)",
+                "edge-distances": "node-position",
+            },
+        },
+        {
             "selector": "edge.fake",
             "style": {
                 "line-style": cy_config.FAKE_EDGE_LINE_STYLE,

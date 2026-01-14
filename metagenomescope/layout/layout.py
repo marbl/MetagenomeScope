@@ -209,10 +209,50 @@ class Layout(object):
                     )
         self.regionid2dims[self.region.unique_id] = (self.width, self.height)
 
-    def to_coords(self):
-        print (
-            # self.nodeid2rel,
-            # self.edgeid2rel,
-            self.pattid2rel,
-            self.regionid2dims,
-        )
+    def to_abs_coords(self):
+        """Returns the absolute coordinates of descendant nodes and edges.
+
+        Basically, if you did the default thing of using patterns + doing
+        recursive layout, then this will go through and convert coordinates
+        to be absolute (instead of relative to whatever parent pattern a
+        node/edge has).
+
+        And if you did something else, then we don't really need to *convert*
+        anything, but we still return the results in the same format to make
+        life easier for the caller. yay!
+
+        Returns
+        -------
+        nodeid2xy, edgeid2ctrlpts:
+                dict of int -> (int, int), dict of int -> list of int
+
+            exactly what it says on the tin
+
+        Notes
+        -----
+        More work needs to be done to convert edge ctrl pts to Cytoscape.js
+        format. layout_utils.shift_control_points() is a start, but then you
+        still have to do the conversion to the sort of format Cy.js expects;
+        see convertCtrlPtsToDistsAndWeights() in the old drawer.js code.
+        """
+        nodeid2xy = {}
+        edgeid2ctrlpts = {}
+        pattid2bb = {}
+        if self.incl_patterns:
+            if self.recursive:
+                for node in self.region.nodes:
+                    nodeid2xy[node.unique_id] = self.nodeid2rel[node.unique_id]
+                for edge in self.region.edges:
+                    edgeid2ctrlpts[edge.unique_id] = self.edgeid2rel[
+                        edge.unique_id
+                    ]
+            else:
+                raise NotImplementedError("not done yet!!!")
+        else:
+            for node in self.region.nodes:
+                nodeid2xy[node.unique_id] = self.nodeid2rel[node.unique_id]
+            for edge in self.region.edges:
+                edgeid2ctrlpts[edge.unique_id] = self.edgeid2rel[
+                    edge.unique_id
+                ]
+        return nodeid2xy, edgeid2ctrlpts
