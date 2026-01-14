@@ -1,5 +1,6 @@
 import pygraphviz
 from . import layout_utils, layout_config
+from .. import config
 
 
 class Layout(object):
@@ -23,6 +24,7 @@ class Layout(object):
         """
         self.region = region
         self.incl_patterns = incl_patterns
+        # print("Creating layout for", self.region)
 
         # I know this is a jank way of testing if this is a pattern or a
         # Subgraph but i don't want to cause circular imports by importing
@@ -30,7 +32,7 @@ class Layout(object):
         # See https://stackoverflow.com/q/39740632 for some discussion about
         # this issue (which IS A REAL ISSUE i'm not going crazy)
         # (ok i might be going crazy but that's about other things)
-        self.region_is_pattern = hasattr(self.region, "compound")
+        self.region_is_pattern = hasattr(self.region, "pattern_type")
 
         # when laid out as a "solid object," this region will be represented
         # as just a rectangle. ofc in the fancy viz we may use a diff shape
@@ -42,17 +44,24 @@ class Layout(object):
         self.edgeid2rel = {}
         self.width = None
         self.height = None
+        self.dot = None
 
         self._run()
 
+    def __repr__(self):
+        return f"Layout({self.region}; incl_patterns={self.incl_patterns})"
+
     def _run(self):
         """Lays out this region."""
-        # If incl_patterns=True, calling .to_dot() will recursively lay out
-        # patterns contained within these regions
-        dot = self.to_dot()
-
-        cg = pygraphviz.AGraph(dot)
+        self.dot = self._to_dot()
+        cg = pygraphviz.AGraph(self.dot)
         cg.layout(prog="dot")
+
+        # print(self.dot)
+        # print(self.region.nodes)
+        # print(self.region.edges)
+        # if hasattr(self.region, "patterns"):
+        #     print(self.region.patterns)
 
         # Extract dimension info. The first two coordinates in the bounding box
         # (bb) should always be (0, 0).
@@ -103,32 +112,39 @@ class Layout(object):
         else:
             return obj.parent_id is None
 
-    def to_dot(self, incl_bounds=True):
-        """Creates a DOT string describing the top-level of these regions."""
+    def _to_dot(self, incl_bounds=True):
+        """Creates a DOT string describing the top level of this region."""
         dot = ""
         if incl_bounds:
-            dot += layout_utils.get_gv_header()
+            dot += layout_utils.get_gv_header(self.region.name)
         if self.incl_patterns:
-            # top level nodes and edges, relative to this region
+            # top-level nodes and edges, relative to this region
             for node in self.region.nodes:
                 if self.at_top_level_of_region(node):
+                    # print("Trying to lay out node", node)
                     if node.compound:
+                        # print("COMPOUND")
+                        # "node" is a collapsed pattern; lay it out first
                         lay = Layout(node)
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)
                     else:
+                        # print("normal..")
+                        # "node" is just a normal node. just an innocent node.
+                        # https://www.youtube.com/watch?v=lr_vl62JblQ
                         dot += node.to_dot()
 
             for edge in self.region.edges:
                 if self.at_top_level_of_region(edge):
                     dot += edge.to_dot(level="dec")
 
-            # Lay out bottommost patterns first
-            # Pattern objects don't have a .patterns attr; they just store
-            # children that are collapsed patterns in .nodes. However,
-            # Subgraphs and Components do have .patterns
-            if hasattr(self.region, "patterns"):
+            # If this region is a subgraph/component, then it stores patterns
+            # separately from nodes. as above, lay out patterns recursively.
+            #
+            # TODO: it would be nice to not have to make this distinction --
+            # so, making patterns store nodes and patterns separately i guess
+            if not self.region_is_pattern:
                 for pattern in self.region.patterns:
                     if self.at_top_level_of_region(pattern):
                         lay = Layout(pattern)
@@ -151,6 +167,9 @@ class Layout(object):
         For example, this is what takes care of like laying out a pattern
         as just a solid rectangular node.
         """
+        color = None
+        if self.region_is_pattern:
+            color = config.PT2COLOR[self.region.pattern_type]
         return layout_utils.get_node_dot(
             self.region.unique_id,
             self.region.name,
@@ -158,11 +177,10 @@ class Layout(object):
             self.height,
             self.shape,
             indent,
+            color,
         )
 
     def to_cyjs(self):
-        with open(f"scrap/layouts/{self.region.unique_id}.gv", "w") as f:
-            f.write(self.to_dot())
-
         # TODO extract cyjs from nodes/edges (using self.nodeid2rel
         # and self.edgeid2rel) and add in positions from layout
+        pass

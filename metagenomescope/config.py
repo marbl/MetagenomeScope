@@ -55,10 +55,7 @@ PT2HR_NOSPACE = {
     PT_BIPARTITE: "bipartite",
 }
 
-# Whether or not to specify colors for node groups in .gv/.xdot files. If this
-# is True, then PT2COLOR is used to set the colors.
-COLOR_PATTERNS = True
-
+# colors for patterns, in both the Cy.js interface and in DOT outputs
 PT2COLOR = {
     # matches "cornflowerblue" in graphviz
     PT_BUBBLE: "#9abaf3",

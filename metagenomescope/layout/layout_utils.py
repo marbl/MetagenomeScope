@@ -1,12 +1,12 @@
 from . import layout_config
 
 
-def get_gv_header():
+def get_gv_header(name="g"):
     """Returns the header of a DOT language file.
 
     This will look something like
 
-    "digraph {
+    "digraph g {
         [top-level graph attributes];
         [top-level node attributes];
         [top-level edge attributes];"
@@ -14,7 +14,7 @@ def get_gv_header():
     ... It's expected that the caller will, you know, add some actual
     node/edge/subgraph data and close out the graph declaration with a }.
     """
-    gv_input = "digraph {\n"
+    gv_input = "digraph " + name + " {\n"
     if layout_config.GRAPH_STYLE != "":
         gv_input += f"{layout_config.INDENT}{layout_config.GRAPH_STYLE};\n"
     if layout_config.GLOBALNODE_STYLE != "":
@@ -167,14 +167,24 @@ def get_bb_x2_y2(bb_string):
     return x2i, y2i
 
 
-def get_node_dot(nid, lbl, w, h, shape, indent=layout_config.INDENT):
+def get_node_dot(
+    nid, lbl, w, h, shape, indent=layout_config.INDENT, color=None
+):
+    cs = ""
+    if color is not None:
+        cs = f',fillcolor="{color}"'
     return (
-        f'{indent}{nid} [width={w},height={h},shape={shape},label="{lbl}"];\n'
+        f"{indent}{nid} "
+        f"[width={w},"
+        f"height={h},"
+        f"shape={shape},"
+        f'label="{lbl}"'
+        f"{cs}];\n"
     )
 
 
 def get_edge_dot(srcid, tgtid, is_fake=False, indent=layout_config.INDENT):
     attrs = ""
     if is_fake:
-        attrs = " [{layout_config.FAKEEDGE_STYLE}]"
+        attrs = f" [{layout_config.FAKEEDGE_STYLE}]"
     return f"{indent}{srcid} -> {tgtid}{attrs};\n"
