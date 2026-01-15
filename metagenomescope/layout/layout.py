@@ -276,7 +276,8 @@ class Layout(object):
         # with open("scrap/layouts/" + self.region.name + ".gv", "w") as f:
         #     f.write(self.dot)
         cg = pygraphviz.AGraph(self.dot)
-        cg.layout(prog="dot")
+        # -q turns off warnings about nodes being too small for labels
+        cg.layout(prog="dot", args="-q")
 
         # Extract dimension info. The first two coordinates in the bounding box
         # (bb) should always be (0, 0).
