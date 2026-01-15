@@ -179,10 +179,9 @@ def run(
     else:
         dot_alg_desc_used = DOT_ALG_DESC
 
-    default_labels = ui_config.DEFAULT_LABELS.copy()
+    default_labels = ui_config.DEFAULT_LABELS
     if ag.filetype == "DOT":
-        if ui_config.EDGE_LABELS not in default_labels:
-            default_labels.append(ui_config.EDGE_LABELS)
+        default_labels = [ui_config.EDGE_LABELS]
 
     # If there are multiple components, show a "Components" tab in the info
     # dialog with information about these components. Also show various options
