@@ -210,6 +210,7 @@ def get_cyjs_stylesheet(
         for sty in stylesheet:
             if node_labels and sty["selector"] == "node.nonpattern":
                 sty["style"].update(cy_config.LABEL_STYLE)
+                sty["style"].update(cy_config.NODE_LABEL_STYLE)
                 break
 
     if edge_labels:
