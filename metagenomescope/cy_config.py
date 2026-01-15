@@ -13,8 +13,8 @@ BG_COLOR = "#ffffff"
 
 # I just manually picked these from a hex color picker
 RANDOM_COLORS = [
-    "#dd0000",  # light red
-    "#bb0000",  # darker red
+    "#ee0000",  # light red
+    "#cc0000",  # darker red
     "#ef9058",  # lighter orange
     "#e35f10",  # light orange
     "#aa5522",  # dark orange
@@ -28,8 +28,8 @@ RANDOM_COLORS = [
     "#148f8f",  # darker turquoise
     "#6363bb",  # medium blueish (purposefully avoiding #00f - selection color)
     "#6f6fa3",  # blue gray ish
-    "#7b4dd8",  # light purple
-    "#8632b9",  # darker purple, sorta
+    "#9169e0",  # dull light purple
+    "#b243f5",  # bright purple, sorta
     "#c71461",  # kinda pinkish red
     "#a30f9e",  # fuschia?
     "#e34fdc",  # brighter fuschia (basically pink)
