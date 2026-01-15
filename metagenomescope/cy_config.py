@@ -13,34 +13,34 @@ BG_COLOR = "#ffffff"
 
 # I just manually picked these from a hex color picker
 RANDOM_COLORS = [
-    "#cc0000",  # light red
-    "#880000",  # dark red
+    "#dd0000",  # light red
+    "#bb0000",  # darker red
+    "#ef9058",  # lighter orange
     "#e35f10",  # light orange
     "#aa5522",  # dark orange
-    "#8f5836",  # moldy apricot. that was the first term that came to mind
+    "#985932",  # moldy apricot. that was the first term that came to mind
     "#aa8822",  # gold
-    "#8c6900",  # darker gold
-    "#616e04",  # dark lemon-lime (ordinary lemon-lime was hard to see)
-    "#227711",  # forest green
-    "#587562",  # olive drab, kinda
-    "#364d3d",  # darker olive drab
+    "#93792b",  # darker gold
+    "#697608",  # dark lemon-lime (ordinary lemon-lime was too hard to see)
+    "#2a8717",  # forest green
+    "#61806c",  # olive drab, kinda
     "#119f9f",  # turquoise
-    "#026e6e",  # dark turquoise
-    "#5252b3",  # medium blueish (purposefully avoiding #00f - selection color)
+    "#148f8f",  # darker turquoise
+    "#6363bb",  # medium blueish (purposefully avoiding #00f - selection color)
     "#6f6fa3",  # blue gray ish
-    "#5e25cf",  # royal purple. is that a color? yeah i think so
-    "#661199",  # magenta
+    "#7b4dd8",  # light purple
+    "#8632b9",  # darker purple, sorta
     "#c71461",  # kinda pinkish red
-    "#a30f9e",  # fuschia
+    "#a30f9e",  # fuschia?
     "#e34fdc",  # brighter fuschia (basically pink)
-    "#735644",  # light brown
-    "#613f07",  # darker brown
-    "#7a7878",  # dark gray
-    "#525050",  # charcoal
+    "#86624c",  # light brown
+    "#73503b",  # darker brown
+    "#999999",  # light gray
+    "#787878",  # dark gray
 ]
 
 NODE_COLOR = "#888888"
-UNSELECTED_NODE_FONT_COLOR = "#eeeeee"
+NODE_FONT_COLOR = "#000000"
 SELECTED_NODE_BORDER_COLOR = "#0000ff"
 SELECTED_NODE_BORDER_WIDTH = 8
 
@@ -191,13 +191,16 @@ UNORIENTED_NODE_SPLITR_POLYGON_PTS = pts2spp(
 ###############################################################################
 
 EDGE_COLOR = "#555555"
-SELECTED_EDGE_COLOR = "#0000ff"
+SELECTED_EDGE_COLOR = "#5555ff"
 SELECTED_EDGE_WIDTH = "8"
 
 FAKE_EDGE_LINE_STYLE = "dashed"
 FAKE_EDGE_LINE_DASH_PATTERN = ["5", "9"]
 FAKE_EDGE_WIDTH = "8"
 SELECTED_FAKE_EDGE_WIDTH = "10"
+
+EDGE_FONT_COLOR = "#000000"
+SELECTED_EDGE_FONT_COLOR = "#000000"
 
 ###############################################################################
 # Patterns

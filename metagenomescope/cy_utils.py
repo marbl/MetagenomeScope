@@ -15,7 +15,7 @@ def get_cyjs_stylesheet(
             "selector": "node.nonpattern",
             "style": {
                 "background-color": cy_config.NODE_COLOR,
-                "color": cy_config.UNSELECTED_NODE_FONT_COLOR,
+                "color": cy_config.NODE_FONT_COLOR,
                 "z-index": "1",
                 "z-index-compare": "manual",
                 "width": "data(w)",
@@ -161,6 +161,7 @@ def get_cyjs_stylesheet(
                 "target-arrow-shape": "triangle",
                 "line-color": cy_config.EDGE_COLOR,
                 "target-arrow-color": cy_config.EDGE_COLOR,
+                "color": cy_config.EDGE_FONT_COLOR,
             },
         },
         {
@@ -187,6 +188,7 @@ def get_cyjs_stylesheet(
                 # enter the node at its left side
                 "source-endpoint": "90deg",
                 "target-endpoint": "-90deg",
+                "control-point-step-size": 60,
                 # loop edges go above nodes. this is mainly here to help with
                 # loop edges on long nodes (e.g. -76 in the E. coli test graph)
                 # which can intersect with the node body. I think otherwise
@@ -253,6 +255,7 @@ def get_cyjs_stylesheet(
                 "line-color": cy_config.SELECTED_EDGE_COLOR,
                 "target-arrow-color": cy_config.SELECTED_EDGE_COLOR,
                 "width": cy_config.SELECTED_EDGE_WIDTH,
+                "color": cy_config.SELECTED_EDGE_FONT_COLOR,
             },
         }
     )
