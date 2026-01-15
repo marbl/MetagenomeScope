@@ -241,7 +241,7 @@ class Edge(object):
 
         # base case, for e.g. GFA files
         # we could try to parse GFA edge tags maybe...?
-        return f"Edge {self.unique_id}"
+        return f"#{self.unique_id}"
 
     def to_dot(self, level="new", indent=layout_config.INDENT):
         if level == "dec":
