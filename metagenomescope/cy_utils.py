@@ -104,6 +104,10 @@ def get_cyjs_stylesheet(
                 "shape": "rectangle",
                 "border-width": cy_config.UNSELECTED_PATTERN_BORDER_WIDTH,
                 "border-color": cy_config.UNSELECTED_PATTERN_BORDER_COLOR,
+                # if a descendant node/edge's label goes outside of the
+                # pattern, don't make the pattern bigger to compensate. that
+                # will just make the graph look worse imo...
+                "compound-sizing-wrt-labels": "exclude",
                 # NOTE: if desired we can set padding attrs here to 0 to force
                 # node boundaries to be flush with the sides of the pattern -
                 # it might help with accuracy stuff when we use graphviz edge
