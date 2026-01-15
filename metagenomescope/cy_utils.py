@@ -252,8 +252,17 @@ def get_cyjs_stylesheet(
             "style": {
                 "line-color": cy_config.SELECTED_EDGE_COLOR,
                 "target-arrow-color": cy_config.SELECTED_EDGE_COLOR,
+                "width": cy_config.SELECTED_EDGE_WIDTH,
             },
         }
+    )
+    stylesheet.append(
+        {
+            "selector": "edge.fake:selected",
+            "style": {
+                "width": cy_config.SELECTED_FAKE_EDGE_WIDTH,
+            },
+        },
     )
     return stylesheet
 

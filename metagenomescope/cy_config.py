@@ -192,10 +192,12 @@ UNORIENTED_NODE_SPLITR_POLYGON_PTS = pts2spp(
 
 EDGE_COLOR = "#555555"
 SELECTED_EDGE_COLOR = "#0000ff"
+SELECTED_EDGE_WIDTH = "8"
 
 FAKE_EDGE_LINE_STYLE = "dashed"
 FAKE_EDGE_LINE_DASH_PATTERN = ["5", "9"]
 FAKE_EDGE_WIDTH = "8"
+SELECTED_FAKE_EDGE_WIDTH = "10"
 
 ###############################################################################
 # Patterns
