@@ -27,6 +27,8 @@ def get_cyjs_stylesheet(
             "style": {
                 "border-width": cy_config.SELECTED_NODE_BORDER_WIDTH,
                 "border-color": cy_config.SELECTED_NODE_BORDER_COLOR,
+                "z-index": "2",
+                "z-index-compare": "manual",
             },
         },
         ###### Forward-oriented nodes (pentagons pointing right)
@@ -194,7 +196,7 @@ def get_cyjs_stylesheet(
                 # which can intersect with the node body. I think otherwise
                 # keeping edges below nodes (as is the Cytoscape.js default)
                 # makes sense since it makes clicking on nodes easier
-                "z-index": "2",
+                "z-index": "3",
                 "z-index-compare": "manual",
             },
         },
@@ -256,6 +258,8 @@ def get_cyjs_stylesheet(
                 "target-arrow-color": cy_config.SELECTED_EDGE_COLOR,
                 "width": cy_config.SELECTED_EDGE_WIDTH,
                 "color": cy_config.SELECTED_EDGE_FONT_COLOR,
+                "z-index": "3",
+                "z-index-compare": "manual",
             },
         }
     )
