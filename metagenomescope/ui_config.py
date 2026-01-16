@@ -1,5 +1,3 @@
-from dash import html
-
 ###############################################################################
 # Default drawing settings
 ###############################################################################
@@ -137,13 +135,21 @@ EDGEATTR2HRT = {
     "cov": ("Cov.", "number"),
     "color": ("Color", "text"),
     "first_nt": ("First nt", "text"),
-    "kmer_cov": ("k-mer cov.", "number"),
+    "kp1mer_cov": ("(K+1)-mer cov.", "number"),
     "containment": ("Containment?", "text"),
+}
+
+COVATTR2SINGLE = {
+    "cov": "coverage",
+    "kp1mer_cov": "(K+1)-mer coverage",
+    "depth": "coverage",
+    "bsize": "bundle size",
+    "multiplicity": "multiplicity",
 }
 
 COVATTR2PLURAL = {
     "cov": "coverages",
-    "kmer_cov": "k-mer coverages",
+    "kp1mer_cov": "(K+1)-mer coverages",
     "depth": "coverages",
     "bsize": "bundle sizes",
     "multiplicity": "multiplicities",
@@ -151,21 +157,10 @@ COVATTR2PLURAL = {
 
 COVATTR2TITLE = {
     "cov": "Coverage",
-    "kmer_cov": "k-mer Coverage",
+    "kp1mer_cov": "(K+1)-mer Coverage",
     "depth": "Coverage",
     "bsize": "Bundle size",
     "multiplicity": "Multiplicity",
-}
-
-COVATTR2HTML = {
-    "cov": html.Span("coverage", className="fw-bold"),
-    "kmer_cov": html.Span(
-        [html.Span("k", className="fst-italic"), "-mer coverage"],
-        className="fw-bold",
-    ),
-    "depth": html.Span("coverage", className="fw-bold"),
-    "bsize": html.Span("bundle size", className="fw-bold"),
-    "multiplicity": html.Span("multiplicity", className="fw-bold"),
 }
 
 # some attributes are obvious and/or not worth showing in the selected element
@@ -212,5 +207,5 @@ EDGEATTR2FMT = {
     "length": FMT_THOUSANDS_SEP,
     "approx_length": FMT_APPROX_LENGTH,
     "cov": FMT_THOUSANDS_SEP,
-    "kmer_cov": FMT_THOUSANDS_SEP,
+    "kp1mer_cov": FMT_THOUSANDS_SEP,
 }

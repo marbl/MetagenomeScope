@@ -437,14 +437,14 @@ def test_parse_lja_complicatedlabels_nocolor():
         "label": "1.23456 A99(2.4)",
         "first_nt": "A",
         "length": 99,
-        "kmer_cov": 2.4,
+        "kp1mer_cov": 2.4,
     }
     assert g.edges["1", "2", 1] == {
         "id": "1.34567",
         "label": "1.34567 C 850(3)\nOtherStuffLol",
         "first_nt": "C",
         "length": 850,
-        "kmer_cov": 3,
+        "kp1mer_cov": 3,
     }
 
 
@@ -508,5 +508,5 @@ def test_parse_example_from_readme_faq_on_rcs():
         "label": "edge1 A99(2.4)",
         "first_nt": "A",
         "length": 99,
-        "kmer_cov": 2.4,
+        "kp1mer_cov": 2.4,
     }

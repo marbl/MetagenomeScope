@@ -974,13 +974,13 @@ def parse_dot(filename):
 
             groups = lfl_match.groups()
 
-            # The length and kmer-cov lines could cause errors if these aren't
-            # valid numbers. That's fine -- like in the Flye parser, let the
-            # errors propagate up to the user.
+            # The length and (K+1)-mer-cov lines could cause errors if these
+            # aren't valid numbers. That's fine -- like in the Flye parser, let
+            # the errors propagate up to the user.
             g.edges[e[:3]]["id"] = groups[0]
             g.edges[e[:3]]["first_nt"] = groups[1]
             g.edges[e[:3]]["length"] = int(groups[2])
-            g.edges[e[:3]]["kmer_cov"] = float(groups[3])
+            g.edges[e[:3]]["kp1mer_cov"] = float(groups[3])
 
             # Both Flye and LJA give all edges "color" attributes in these DOT
             # files. As far as I can tell, Flye will color edges if they are

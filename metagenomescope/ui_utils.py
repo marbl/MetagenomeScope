@@ -69,8 +69,8 @@ def get_length_info(ag):
                 ),
                 html.Tr(
                     [
-                        html.Td(fmt_qty(ag.total_seq_len)),
-                        html.Td(fmt_qty(ag.n50)),
+                        html.Td(fmt_qty(ag.total_seq_len, ag.length_units)),
+                        html.Td(fmt_qty(ag.n50, ag.length_units)),
                     ]
                 ),
             ]
@@ -89,7 +89,9 @@ def fmt_cov(cov):
 def get_cov_info(ag):
     if not ag.has_covs:
         return [None]
-    covhtml = ui_config.COVATTR2HTML[ag.cov_field]
+    covhtml = html.Span(
+        ui_config.COVATTR2SINGLE[ag.cov_field], className="fw-bold"
+    )
     srcnoun = f"{ag.cov_source}s"
     have = "have"
     if ag.missing_cov_ct == 0:

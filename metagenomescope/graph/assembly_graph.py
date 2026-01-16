@@ -166,7 +166,7 @@ class AssemblyGraph(object):
             logging.debug(
                 f"  ...Done. Found {self.cov_source} coverage info! "
                 f"{len(self.covs):,} / {total:,} {self.cov_source}s have a "
-                f'"{self.cov_field}" value given.'
+                f"{ui_config.COVATTR2SINGLE[self.cov_field]} given."
             )
         else:
             logger.debug(
@@ -341,7 +341,7 @@ class AssemblyGraph(object):
 
         Also populates self.seq_lengths with the observed Node or Edge sequence
         lengths, depending on if self.node_centric is True or False.
-        And updates self.lengths_are_approx.
+        And updates self.lengths_are_approx and self.length_units.
 
         And assigns each node and edge a random integer in the range
         [0, |cy_config.RANDOM_COLORS| - 1]. This makes it simpler to assign
@@ -383,6 +383,7 @@ class AssemblyGraph(object):
         oldid2uniqueid = {}
         self.seq_lengths = []
         self.lengths_are_approx = False
+        self.length_units = "bp"
         lengths_completely_defined = True
         for node_name in self.graph.nodes:
             str_node_name = str(node_name)
@@ -496,6 +497,12 @@ class AssemblyGraph(object):
         if not lengths_completely_defined:
             raise WeirdError(f"Not all {self.seq_noun}s have defined lengths?")
 
+        if not self.node_centric and not self.lengths_are_approx:
+            # At least for now, this particular combination of things means
+            # that this is an LJA DOT file, where lengths are given in
+            # (K+1)-mers. See https://github.com/fedarko/metaLJA/issues/31
+            self.length_units = "(K+1)-mers"
+
         # Now that we've seen all of these attributes, turn them from sets to
         # lists so that they have a consistent ordering. This is useful for
         # showing tables of nodes/edges in the visualization.
@@ -568,7 +575,7 @@ class AssemblyGraph(object):
 
         # Or... do the edges have coverages?
         if self.cov_source is None:
-            for ecfield in ("bsize", "cov", "kmer_cov", "multiplicity"):
+            for ecfield in ("bsize", "cov", "kp1mer_cov", "multiplicity"):
                 if ecfield in self.extra_edge_attrs:
                     self.cov_source = "edge"
                     self.cov_field = ecfield

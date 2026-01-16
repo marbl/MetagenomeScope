@@ -1755,7 +1755,7 @@ def run(
         )
         fig.update_layout(
             title_text=f"{ag.seq_noun.title()} sequence lengths",
-            xaxis_title_text="Length (bp)",
+            xaxis_title_text=f"Length ({ag.length_units})",
             yaxis_title_text=f"# {ag.seq_noun}s",
             font=dict(size=16),
             title=dict(yanchor="bottom", y=1, yref="paper"),
