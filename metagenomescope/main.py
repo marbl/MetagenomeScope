@@ -1135,6 +1135,9 @@ def run(
                                                             ".",
                                                         ]
                                                     ),
+                                                    ui_utils.get_approx_length_disclaimer_if_needed(
+                                                        ag
+                                                    ),
                                                     ui_utils.get_length_info(
                                                         ag
                                                     ),

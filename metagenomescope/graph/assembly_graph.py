@@ -174,8 +174,13 @@ class AssemblyGraph(object):
                 "expect."
             )
 
+        if self.lengths_are_approx:
+            prefix = "approx. "
+        else:
+            prefix = ""
         logger.debug(
-            f"  Computing some stats about {self.seq_noun} sequence lengths..."
+            f"  Computing some stats about {prefix}{self.seq_noun} "
+            "sequence lengths..."
         )
         self.n50 = seq_utils.n50(self.seq_lengths)
         self.total_seq_len = sum(self.seq_lengths)
@@ -336,6 +341,7 @@ class AssemblyGraph(object):
 
         Also populates self.seq_lengths with the observed Node or Edge sequence
         lengths, depending on if self.node_centric is True or False.
+        And updates self.lengths_are_approx.
 
         And assigns each node and edge a random integer in the range
         [0, |cy_config.RANDOM_COLORS| - 1]. This makes it simpler to assign
@@ -376,6 +382,7 @@ class AssemblyGraph(object):
 
         oldid2uniqueid = {}
         self.seq_lengths = []
+        self.lengths_are_approx = False
         lengths_completely_defined = True
         for node_name in self.graph.nodes:
             str_node_name = str(node_name)
@@ -450,6 +457,7 @@ class AssemblyGraph(object):
                 elif "approx_length" in data:
                     # for flye graphs that write edge lengths as e.g. "720k"
                     self.seq_lengths.append(data["approx_length"])
+                    self.lengths_are_approx = True
                 else:
                     # at least one edge doesn't have a length given, bail out
                     lengths_completely_defined = False

@@ -41,6 +41,15 @@ def pluralize(num, thing="edge"):
     return f"{num:,} {thing}s"
 
 
+def get_approx_length_disclaimer_if_needed(ag):
+    if ag.lengths_are_approx:
+        return html.P(
+            'Note that lengths were only stored approximately (e.g. "5k" '
+            "instead of 5,423) in the input graph file."
+        )
+    return None
+
+
 def fmt_qty(quantity, unit="bp", na="N/A"):
     if quantity is not None:
         return f"{quantity:,} {unit}"
