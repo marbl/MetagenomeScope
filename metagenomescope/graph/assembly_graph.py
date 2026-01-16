@@ -161,17 +161,17 @@ class AssemblyGraph(object):
 
         logger.debug("  Looking for information about coverages...")
         self._record_coverages()
-        if self.cov_source is None:
-            logger.debug(
-                "  ...Done. Didn't find anything, at least in a format we "
-                "expect."
-            )
-        else:
+        if self.has_covs:
             total = len(self.covs) + self.missing_cov_ct
             logging.debug(
                 f"  ...Done. Found {self.cov_source} coverage info! "
                 f"{len(self.covs):,} / {total:,} {self.cov_source}s have a "
                 f'"{self.cov_field}" value given.'
+            )
+        else:
+            logger.debug(
+                "  ...Done. Didn't find anything, at least in a format we "
+                "expect."
             )
 
         logger.debug(
@@ -517,10 +517,10 @@ class AssemblyGraph(object):
     def _record_coverages(self):
         """Figures out if the graph has coverages, and if so stores them.
 
-        The attributes self.cov_source, self.cov_field, self.covs, and
-        self.missing_cov_ct will be set after this is called. If the graph
-        does not have coverages then this will just set self.cov_source and
-        self.cov_field to None, self.covs to [], and self.missing_cov_ct to 0.
+        The attributes self.cov_source, self.cov_field, self.covs,
+        self.missing_cov_ct, and self.has_covs will be set after this is
+        called. If the graph does not have coverages then self.has_covs
+        will be False.
 
         We COULD do this in the for-loops in self._init_graph_objs(), which
         would save us the time spent iterating through the nodes / edges again,
@@ -544,6 +544,7 @@ class AssemblyGraph(object):
           support for this.
           * https://github.com/GFA-spec/GFA-spec/blob/master/GFA1.md
         """
+        self.has_covs = False
         self.cov_source = None
         self.cov_field = None
         self.covs = []
@@ -581,6 +582,8 @@ class AssemblyGraph(object):
                 # data dict - or if it had it, but the value was None - then
                 # ignore
                 self.missing_cov_ct += 1
+            if len(self.covs) > 0:
+                self.has_covs = True
 
     def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.
