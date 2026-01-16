@@ -12,9 +12,12 @@ BG_COLOR = "#ffffff"
 ###############################################################################
 
 # I just manually picked these from a hex color picker
+# For testing, https://lawlesscreation.github.io/hex-color-visualiser/ is
+# super useful
 RANDOM_COLORS = [
     "#ee0000",  # light red
     "#cc0000",  # darker red
+    "#cc5555",  # kinda washed out terracotta red
     "#ef9058",  # lighter orange
     "#e35f10",  # light orange
     "#aa5522",  # dark orange
@@ -23,6 +26,7 @@ RANDOM_COLORS = [
     "#93792b",  # darker gold
     "#697608",  # dark lemon-lime (ordinary lemon-lime was too hard to see)
     "#2a8717",  # forest green
+    "#22aa22",  # partially bulldozed forest green
     "#61806c",  # olive drab, kinda
     "#119f9f",  # turquoise
     "#148f8f",  # darker turquoise
