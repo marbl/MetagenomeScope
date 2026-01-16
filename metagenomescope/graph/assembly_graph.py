@@ -159,6 +159,21 @@ class AssemblyGraph(object):
         self._init_graph_objs()
         logger.debug("  ...Done.")
 
+        logger.debug("  Looking for information about coverages...")
+        self._record_coverages()
+        if self.cov_source is None:
+            logger.debug(
+                "  ...Done. Didn't find anything, at least in a format we "
+                "expect."
+            )
+        else:
+            total = len(self.covs) + self.missing_cov_ct
+            logging.debug(
+                f"  ...Done. Found {self.cov_source} coverage info! "
+                f"{len(self.covs):,} / {total:,} {self.cov_source}s have a "
+                f'"{self.cov_field}" value given.'
+            )
+
         logger.debug(
             f"  Computing some stats about {self.seq_noun} sequence lengths..."
         )
@@ -498,6 +513,69 @@ class AssemblyGraph(object):
 
         # Same deal for nodes - put the lengths as early as possible if given
         misc_utils.move_to_start_if_in(self.extra_node_attrs, "length")
+
+    def _record_coverages(self):
+        """Figures out if the graph has coverages, and if so stores them.
+
+        The attributes self.cov_source, self.cov_field, self.covs, and
+        self.missing_cov_ct will be set after this is called. If the graph
+        does not have coverages then this will just set self.cov_source and
+        self.cov_field to None, self.covs to [], and self.missing_cov_ct to 0.
+
+        We COULD do this in the for-loops in self._init_graph_objs(), which
+        would save us the time spent iterating through the nodes / edges again,
+        but that would be tricky and annoying and it's easier to split things
+        up this way. self._init_graph_objs() probably does too much as it is.
+
+        Anyway if there are coverages then we can show coverage plots! yay.
+
+        Notes
+        -----
+        - This prioritizes node coverages over edge coverages, if both are
+          given. As of writing that should only happen in Velvet output, among
+          all the graph filetypes we support, so I think that's fine. (Like we
+          totally COULD add support for switching between plots of node and
+          edge coverages but is the juice worth the squeeze? eh.)
+
+        - In theory GFA files can have RC/FC/KC tags for links*, but i don't
+          think i've ever seen that in a GFA file. Gfapy doesn't even seem to
+          support this (segments have a .coverage() method, links don't, even
+          if you add in a link with an RC tag). Anyway if desired we can add
+          support for this.
+          * https://github.com/GFA-spec/GFA-spec/blob/master/GFA1.md
+        """
+        self.cov_source = None
+        self.cov_field = None
+        self.covs = []
+        self.missing_cov_ct = 0
+
+        # Do the nodes have coverages?
+        for ncfield in ("cov", "depth"):
+            if ncfield in self.extra_node_attrs:
+                self.cov_source = "node"
+                self.cov_field = ncfield
+                break
+
+        # Or... do the edges have coverages?
+        if self.cov_source is None:
+            for ecfield in ("bsize", "cov", "kmer_cov", "multiplicity"):
+                if ecfield in self.extra_edge_attrs:
+                    self.cov_source = "edge"
+                    self.cov_field = ecfield
+                    break
+
+        # If there are coverages, record them!
+        if self.cov_source is not None:
+            if self.cov_source == "node":
+                id2obj = self.nodeid2obj
+            else:
+                id2obj = self.edgeid2obj
+
+            for obj in id2obj.values():
+                if self.cov_field in obj.data:
+                    self.covs.append(obj.data[self.cov_field])
+                else:
+                    self.missing_cov_ct += 1
 
     def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.
