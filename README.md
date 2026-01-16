@@ -426,8 +426,7 @@ defaultdict(<class 'list'>,
              '2': [Node 2 (name: 2)],
              ...
              '40': [Node 78 (name: 40-R), Node 1259 (name: 40-L)],
-             ...
-            }
+             ...})
 >>> # Examine split nodes
 >>> for n in ag.nodeid2obj.values():
 ...     if n.split is not None:
