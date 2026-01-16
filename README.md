@@ -397,7 +397,7 @@ At this point:
 
 - All nodes and edges, edges, and patterns in both graphs have unique IDs assigned. These IDs can be used to look up information about nodes, edges, and patterns in the `ag.nodeid2obj`, `ag.edgeid2obj`, and `ag.pattid2obj` dictionaries, respectively.
 
-A brief example:
+An example of analyzing a real graph in this way:
 
 ```python
 >>> from metagenomescope.graph import AssemblyGraph
