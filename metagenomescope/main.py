@@ -1027,7 +1027,7 @@ def run(
                                             ),
                                             html.Li(
                                                 html.Button(
-                                                    "Sequences",
+                                                    "Lengths",
                                                     className="nav-link",
                                                     id="seqLenTab",
                                                     type="button",
@@ -1041,6 +1041,27 @@ def run(
                                                 ),
                                                 className="nav-item",
                                                 role="presentation",
+                                            ),
+                                            (
+                                                html.Li(
+                                                    html.Button(
+                                                        "Coverages",
+                                                        className="nav-link",
+                                                        id="covTab",
+                                                        type="button",
+                                                        role="tab",
+                                                        **{
+                                                            "data-bs-toggle": "tab",
+                                                            "data-bs-target": "#covTabPane",
+                                                            "aria-controls": "covTabPane",
+                                                            "aria-selected": "false",
+                                                        },
+                                                    ),
+                                                    className="nav-item",
+                                                    role="presentation",
+                                                )
+                                                if ag.has_covs
+                                                else None
                                             ),
                                         ],
                                         id="infoDialogTabs",
@@ -1246,6 +1267,132 @@ def run(
                                                 **{
                                                     "aria-labelledby": "seqLenTab"
                                                 },
+                                            ),
+                                            (
+                                                html.Div(
+                                                    [
+                                                        html.Ul(
+                                                            [
+                                                                html.Li(
+                                                                    html.Button(
+                                                                        "Length \u00d7 Coverage (components)",
+                                                                        className="nav-link active",
+                                                                        id="covNestCCTab",
+                                                                        type="button",
+                                                                        role="tab",
+                                                                        **{
+                                                                            "data-bs-toggle": "tab",
+                                                                            "data-bs-target": "#covNestCCTabPane",
+                                                                            "aria-controls": "covNestCCTabPane",
+                                                                            "aria-selected": "true",
+                                                                        },
+                                                                    ),
+                                                                    className="nav-item",
+                                                                    role="presentation",
+                                                                ),
+                                                                (
+                                                                    html.Li(
+                                                                        html.Button(
+                                                                            f"Length \u00d7 Coverage ({ag.cov_source}s)",
+                                                                            className="nav-link",
+                                                                            id="covNestEleTab",
+                                                                            type="button",
+                                                                            role="tab",
+                                                                            **{
+                                                                                "data-bs-toggle": "tab",
+                                                                                "data-bs-target": "#covNestEleTabPane",
+                                                                                "aria-controls": "covNestEleTabPane",
+                                                                                "aria-selected": "false",
+                                                                            },
+                                                                        ),
+                                                                        className="nav-item",
+                                                                        role="presentation",
+                                                                    )
+                                                                    if ag.has_covlens
+                                                                    else None
+                                                                ),
+                                                                html.Li(
+                                                                    html.Button(
+                                                                        "Histogram of coverages",
+                                                                        className="nav-link",
+                                                                        id="covNestHistTab",
+                                                                        type="button",
+                                                                        role="tab",
+                                                                        **{
+                                                                            "data-bs-toggle": "tab",
+                                                                            "data-bs-target": "#covNestHistTabPane",
+                                                                            "aria-controls": "covNestHistTabPane",
+                                                                            "aria-selected": "true",
+                                                                        },
+                                                                    ),
+                                                                    className="nav-item",
+                                                                    role="presentation",
+                                                                ),
+                                                            ],
+                                                            className="nav nav-tabs",
+                                                            id="covTabs",
+                                                            role="tablist",
+                                                        ),
+                                                        html.Div(
+                                                            [
+                                                                html.Div(
+                                                                    html.Div(
+                                                                        "scatterhere",
+                                                                        id="covlenCCScatterContainer",
+                                                                    ),
+                                                                    className="tab-pane fade show active",
+                                                                    id="covNestCCTabPane",
+                                                                    role="tabpanel",
+                                                                    tabIndex="0",
+                                                                    **{
+                                                                        "aria-labelledby": "covNestCCTab"
+                                                                    },
+                                                                ),
+                                                                (
+                                                                    html.Div(
+                                                                        html.Div(
+                                                                            "ele scatter here",
+                                                                            id="covlenEleScatterContainer",
+                                                                        ),
+                                                                        className="tab-pane fade",
+                                                                        id="covNestEleTabPane",
+                                                                        role="tabpanel",
+                                                                        tabIndex="0",
+                                                                        **{
+                                                                            "aria-labelledby": "covNestEleTab"
+                                                                        },
+                                                                    )
+                                                                    if ag.has_covlens
+                                                                    else None
+                                                                ),
+                                                                html.Div(
+                                                                    html.Div(
+                                                                        "hist here",
+                                                                        id="covlenHistContainer",
+                                                                    ),
+                                                                    className="tab-pane fade",
+                                                                    id="covNestHistTabPane",
+                                                                    role="tabpanel",
+                                                                    tabIndex="0",
+                                                                    **{
+                                                                        "aria-labelledby": "covNestHistTab"
+                                                                    },
+                                                                ),
+                                                            ],
+                                                            className="tab-content",
+                                                            id="covNestTabContent",
+                                                        ),
+                                                    ],
+                                                    id="covTabPane",
+                                                    className="tab-pane fade show",
+                                                    role="tabpanel",
+                                                    tabIndex="0",
+                                                    **{
+                                                        "aria-labelledby": "covTab"
+                                                    },
+                                                )
+                                                if ag.has_covs
+                                                else None
                                             ),
                                         ],
                                         className="tab-content",

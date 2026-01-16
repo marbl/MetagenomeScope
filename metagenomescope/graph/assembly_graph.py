@@ -518,9 +518,9 @@ class AssemblyGraph(object):
         """Figures out if the graph has coverages, and if so stores them.
 
         The attributes self.cov_source, self.cov_field, self.covs,
-        self.missing_cov_ct, and self.has_covs will be set after this is
-        called. If the graph does not have coverages then self.has_covs
-        will be False.
+        self.missing_cov_ct, self.has_covs, and self.has_covlens will be set
+        after this is called. If the graph does not have coverages then
+        self.has_covs will be False.
 
         We COULD do this in the for-loops in self._init_graph_objs(), which
         would save us the time spent iterating through the nodes / edges again,
@@ -549,6 +549,7 @@ class AssemblyGraph(object):
         self.cov_field = None
         self.covs = []
         self.missing_cov_ct = 0
+        self.has_covlens = False
 
         # Do the nodes have coverages?
         for ncfield in ("cov", "depth"):
@@ -584,6 +585,19 @@ class AssemblyGraph(object):
                 self.missing_cov_ct += 1
             if len(self.covs) > 0:
                 self.has_covs = True
+
+        # We know that all nodes or edges (depending on the input filetype)
+        # should have lengths. So, we can figure out if we can pair coverage x
+        # length info in a scatterplot by comparing the graph's node-centricity
+        # (not a word) with where the coverages are coming from. (I think the
+        # only time self.has_covs will be True but self.has_covlens will be
+        # False is for MetaCarvel GMLs, where edges have bsizes but no
+        # "lengths".
+        if self.has_covs:
+            if self.cov_source == "node":
+                self.has_covlens = self.node_centric
+            else:
+                self.has_covlens = not self.node_centric
 
     def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.
