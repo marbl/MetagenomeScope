@@ -113,10 +113,10 @@ def get_cov_info(ag):
             [
                 html.Tr(
                     [
-                        html.Th([f"Min ", covhtml]),
-                        html.Th([f"Median ", covhtml]),
-                        html.Th([f"Average ", covhtml]),
-                        html.Th([f"Max ", covhtml]),
+                        html.Th(["Min ", covhtml]),
+                        html.Th(["Median ", covhtml]),
+                        html.Th(["Average ", covhtml]),
+                        html.Th(["Max ", covhtml]),
                     ]
                 ),
                 html.Tr(
