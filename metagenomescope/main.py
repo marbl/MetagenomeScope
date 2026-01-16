@@ -1138,6 +1138,7 @@ def run(
                                                     ui_utils.get_length_info(
                                                         ag
                                                     ),
+                                                    *ui_utils.get_cov_info(ag),
                                                     html.Div(
                                                         dbc.Button(
                                                             [

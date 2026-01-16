@@ -1,3 +1,5 @@
+from dash import html
+
 ###############################################################################
 # Default drawing settings
 ###############################################################################
@@ -90,7 +92,7 @@ PATH_TBL_COUNT_COL = "C"
 PATH_TBL_CC_COL = "O"
 
 ###############################################################################
-# Tables of selected elements
+# Tables of selected elements, and other things involving "metadata" like covs
 ###############################################################################
 
 NODE_TBL_NAME_COL = "N"
@@ -137,6 +139,17 @@ EDGEATTR2HRT = {
     "first_nt": ("First nt", "text"),
     "kmer_cov": ("k-mer cov.", "number"),
     "containment": ("Containment?", "text"),
+}
+
+COVATTR2HTML = {
+    "cov": html.Span("coverage", className="fw-bold"),
+    "kmer_cov": html.Span(
+        [html.Span("k", className="fst-italic"), "-mer coverage"],
+        className="fw-bold",
+    ),
+    "depth": html.Span("coverage", className="fw-bold"),
+    "bsize": html.Span("bundle size", className="fw-bold"),
+    "multiplicity": html.Span("multiplicity", className="fw-bold"),
 }
 
 # some attributes are obvious and/or not worth showing in the selected element

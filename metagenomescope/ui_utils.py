@@ -1,5 +1,6 @@
 import re
 import time
+import statistics
 import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 from collections import defaultdict
@@ -67,6 +68,70 @@ def get_length_info(ag):
         ),
         className=css_config.INFO_DIALOG_TABLE_CLASSES,
     )
+
+
+def fmt_cov(cov):
+    if type(cov) is int or abs(cov - round(cov)) < 0.001:
+        return f"{round(cov):,}x"
+    else:
+        return f"{cov:,.2f}x"
+
+
+def get_cov_info(ag):
+    if not ag.has_covs:
+        return [None]
+    covhtml = ui_config.COVATTR2HTML[ag.cov_field]
+    srcnoun = f"{ag.cov_source}s"
+    have = "have"
+    if ag.missing_cov_ct == 0:
+        if len(ag.covs) == 1:
+            # "the graph's only (?) edge has ..."
+            defct = "the graph's only (?)"
+            srcnoun = ag.cov_source
+            have = "has"
+        else:
+            # "all edges have ..."
+            defct = f"all {len(ag.covs):,}"
+    else:
+        # "x / y edges have ..."
+        defct = f"{len(ag.covs):,} / {len(ag.covs) + ag.missing_cov_ct:,} "
+        if len(ag.covs) == 1:
+            # "1 / y edge has ..."
+            srcnoun = ag.cov_source
+            have = "has"
+    introtext = html.P(
+        [
+            "Additionally, ",
+            html.Span(f"{defct} {srcnoun}", className="fw-bold"),
+            f" {have} a defined ",
+            covhtml,
+            ".",
+        ]
+    )
+    tbl = html.Table(
+        html.Tbody(
+            [
+                html.Tr(
+                    [
+                        html.Th([f"Min ", covhtml]),
+                        html.Th([f"Median ", covhtml]),
+                        html.Th([f"Average ", covhtml]),
+                        html.Th([f"Max ", covhtml]),
+                    ]
+                ),
+                html.Tr(
+                    [
+                        html.Td(fmt_cov(min(ag.covs))),
+                        html.Td(fmt_cov(statistics.median(ag.covs))),
+                        html.Td(fmt_cov(statistics.mean(ag.covs))),
+                        html.Td(fmt_cov(max(ag.covs))),
+                    ]
+                ),
+            ]
+        ),
+        className=css_config.INFO_DIALOG_TABLE_CLASSES,
+    )
+    return [introtext, tbl]
 
 
 def add_error_toast(
