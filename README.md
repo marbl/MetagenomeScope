@@ -374,6 +374,34 @@ sed -i -e 's/^A/#A/' hifiasm-out.p_ctg.gfa
 <hr/>
 </details>
 
+### Patterns
+
+<details>
+  <summary><strong>FAQ 8. How can I run the pattern decomposition process programmatically?</strong></summary>
+
+<hr/>
+
+```python
+>>> # replace this with the filepath to the graph you want to analyze
+>>> MY_GRAPH_FP = "metagenomescope/tests/input/sample1.gfa"
+>>> from metagenomescope.graph import AssemblyGrph
+>>> ag = AssemblyGraph(MY_GRAPH_FP)
+```
+
+At this point:
+
+- The "decomposed graph" (where patterns are collapsed into nodes) is represented by `ag.decomposed_graph` (a [NetworkX `MultiDiGraph`](https://networkx.org/documentation/stable/reference/classes/multidigraph.html)).
+
+- The "original graph" (without any patterns) is represented by `ag.graph` (also a [NetworkX `MultiDiGraph`](https://networkx.org/documentation/stable/reference/classes/multidigraph.html))
+  - Note that this will still include split nodes and fake edges, if any remain after the decomposition process.
+
+- All nodes and edges, edges, and patterns in both graphs have unique IDs assigned. These IDs can be used to look up information about these objects in the `ag.nodeid2obj`, `ag.edgeid2obj`, and `ag.pattid2obj` dictionaries.
+
+This interface should remain relatively stable. If you have any questions, please reach out.
+
+<hr/>
+</details>
+
 ## Development documentation
 
 See [`CONTRIBUTING.md`](https://github.com/marbl/MetagenomeScope/blob/main/CONTRIBUTING.md).
