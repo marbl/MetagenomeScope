@@ -418,6 +418,16 @@ A brief example:
  1227: bubble1227 containing nodes [34, 76, 382, 303] from [34] to [76],
  1232: bubble1232 containing nodes [40, 43, 35, 501] from [35] to [43],
  ...}
+>>> # Look up a node by name (if a node was split, this will list both halves)
+>>> ag.nodename2objs
+defaultdict(<class 'list'>,
+            {'1': [Node 0 (name: 1)],
+             '-1': [Node 1 (name: -1)],
+             '2': [Node 2 (name: 2)],
+             ...
+             '40': [Node 78 (name: 40-R), Node 1259 (name: 40-L)],
+             ...
+            }
 >>> # Examine split nodes
 >>> for n in ag.nodeid2obj.values():
 ...     if n.split is not None:
