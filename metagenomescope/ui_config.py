@@ -141,6 +141,22 @@ EDGEATTR2HRT = {
     "containment": ("Containment?", "text"),
 }
 
+COVATTR2PLURAL = {
+    "cov": "coverages",
+    "kmer_cov": "k-mer coverages",
+    "depth": "coverages",
+    "bsize": "bundle sizes",
+    "multiplicity": "multiplicities",
+}
+
+COVATTR2TITLE = {
+    "cov": "Coverage",
+    "kmer_cov": "k-mer Coverage",
+    "depth": "Coverage",
+    "bsize": "Bundle size",
+    "multiplicity": "Multiplicity",
+}
+
 COVATTR2HTML = {
     "cov": html.Span("coverage", className="fw-bold"),
     "kmer_cov": html.Span(

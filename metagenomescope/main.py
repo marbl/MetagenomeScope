@@ -1369,7 +1369,7 @@ def run(
                                                                 html.Div(
                                                                     html.Div(
                                                                         "hist here",
-                                                                        id="covlenHistContainer",
+                                                                        id="covHistContainer",
                                                                     ),
                                                                     className="tab-pane fade",
                                                                     id="covNestHistTabPane",
@@ -1761,6 +1761,40 @@ def run(
         )
         fig.update_yaxes(ticksuffix=" ")
         return dcc.Graph(figure=fig)
+
+    if ag.has_covs:
+
+        @callback(
+            Output("covHistContainer", "children"),
+            Input("covNestHistTab", "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def plot_cov_hist(n_clicks):
+            fig = go.Figure()
+            desc = (
+                f"{ag.cov_source.title()} "
+                f"{ui_config.COVATTR2PLURAL[ag.cov_field]}"
+            )
+            fig.add_trace(
+                go.Histogram(
+                    x=ag.covs,
+                    marker_color="#2259e3",
+                    marker_line_width=2,
+                    marker_line_color="#031b57",
+                    name=desc,
+                )
+            )
+            fig.update_layout(
+                title_text=desc,
+                xaxis_title_text=ui_config.COVATTR2TITLE[ag.cov_field],
+                yaxis_title_text=f"# {ag.cov_source}s",
+                font=dict(size=16),
+                title=dict(yanchor="bottom", y=1, yref="paper"),
+                title_pad=dict(b=30),
+                margin=dict(t=75),
+            )
+            fig.update_yaxes(ticksuffix=" ")
+            return dcc.Graph(figure=fig)
 
     @callback(
         Output("controls", "className"),
