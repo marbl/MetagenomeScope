@@ -31,6 +31,21 @@ def test_paths_from_agp_toofew_cols():
         assert "doesn't have exactly 9 tab-separated columns" in str(ei.value)
 
 
+def test_get_paths_from_agp_gap():
+    paths = pu.get_paths_from_agp(
+        "metagenomescope/tests/input/scaffolds_ecoli_with_gaps.agp"
+    )
+    assert paths == {
+        "scaffold_1": [
+            "17",
+            "-35",
+            "-63",
+            Gap(length=123456, gaptype="scaffold"),
+            "259",
+        ]
+    }
+
+
 def test_get_path_maps_simple():
     paths = pu.get_paths_from_agp(
         "metagenomescope/tests/input/scaffolds_ecoli.agp"
@@ -135,7 +150,7 @@ def test_multiple_path_sources_duplicate_name():
         assert str(ei.value) == "Duplicate paths found between sources?"
 
 
-def test_paths_with_gaps():
+def test_flye_path_with_gaps():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/flye_yeast.gv",
         flye_info_fp="metagenomescope/tests/input/flye_yeast_assembly_info.txt",

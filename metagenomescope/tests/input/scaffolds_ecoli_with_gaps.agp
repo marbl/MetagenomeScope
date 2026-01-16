@@ -1,0 +1,5 @@
+scaffold_1	1	4033	0	W	17	1	4033	+
+scaffold_1	4034	4060	1	W	35	1	27	-
+scaffold_1	4061	5819	2	W	63	1	1759	-
+scaffold_1	5820	5921	3	N	123456	scaffold	yes	proximity_ligation
+scaffold_1	5922	5924	4	W	259	1	3	+
