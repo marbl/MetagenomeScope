@@ -11,8 +11,8 @@ MetagenomeScope decomposes the graph into **structural patterns** and highlights
 these as annotations on the graph. It lays out the graph [**hierarchically**](https://en.wikipedia.org/wiki/Layered_graph_drawing), using [Graphviz](https://graphviz.org/)' [_dot_](https://graphviz.org/docs/layouts/dot/) algorithm.
 
 MetagenomeScope also contains various functionalities for visualizing assembly
-graphs at larger scales -- for example, highlighting paths on the graph and
-drawing various summary plots of the graph's structure.
+graphs at larger scales -- for example, highlighting scaffold paths on the graph and
+drawing summary plots of the graph's structure.
 
 This tool is still a work in progress, so please let us know if you have any feedback!
 
