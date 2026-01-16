@@ -2322,20 +2322,25 @@ def run(
             return count_text, rows, ui_utils.get_badge_color(ct, False)
 
         @callback(
+            Output("toastHolder", "children", allow_duplicate=True),
             Output("pathSelectionInfo", "data"),
+            State("toastHolder", "children"),
             Input("pathList", "cellClicked"),
             prevent_initial_call=True,
         )
-        def highlight_path(clicked_cell):
+        def highlight_path(curr_toasts, clicked_cell):
             if clicked_cell["colId"] == ui_config.PATH_TBL_NAME_COL:
-                eles = ag.pathname2objnames[clicked_cell["value"]]
-                return {
+                path = clicked_cell["value"]
+                eles = ag.pathname2objnames[path]
+                return ui_utils.add_path_toast(
+                    curr_toasts, path, ", ".join(eles)
+                ), {
                     "requestGood": True,
                     "eles": eles,
                     "nodes": ag.node_centric,
                 }
             else:
-                return {"requestGood": False}
+                return no_update, {"requestGood": False}
 
         clientside_callback(
             ClientsideFunction(

@@ -179,6 +179,23 @@ def add_warning_toast(
     )
 
 
+def add_path_toast(
+    toasts,
+    title_text="Path",
+    body_text=None,
+    body_html=None,
+    header_color=css_config.BADGE_AVAILABLE_COLOR,
+):
+    return add_toast(
+        toasts,
+        title_text=title_text,
+        body_text=body_text,
+        body_html=body_html,
+        icon="bi-list-nested",
+        header_color=header_color,
+    )
+
+
 def add_toast(
     toasts,
     title_text="Error",
