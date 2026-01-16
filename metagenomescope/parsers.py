@@ -572,13 +572,12 @@ def parse_fastg(filename):
     -----
     Although this returns an object of type nx.MultiGraph, it won't actually
     contain any parallel edges. This is because, as of writing, the latest
-    pyfastg version (0.1.0) will throw an error if you try to use it to parse
+    pyfastg version (0.2.0) will throw an error if you try to use it to parse
     a multigraph. See https://github.com/fedarko/pyfastg/issues/8. This
     probably isn't a big deal, since I don't think SPAdes or MEGAHIT generate
-    multigraph FASTG files (although I'm not 100% sure about that). In any
-    case, if people want us to support multigraph FASTG files, then we'd just
-    need to update pyfastg (and then the rest of this function shouldn't need
-    to change).
+    multigraph FASTG files. In any case, if people want us to support
+    multigraph FASTG files, then we'd just need to update pyfastg (and then the
+    rest of this function shouldn't need to change).
     """
     g = pyfastg.parse_fastg(filename)
     validate_nx_digraph(g, ("length", "cov", "gc"), ())

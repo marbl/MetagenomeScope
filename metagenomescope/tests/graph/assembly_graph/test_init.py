@@ -11,6 +11,32 @@ def test_flye_yeast_lengths_are_ints():
     assert type(ag.total_seq_len) is int
 
 
+def test_flye_yeast_cov_recording():
+    ag = AssemblyGraph("metagenomescope/tests/input/flye_yeast.gv")
+    assert ag.cov_source == "edge"
+    assert ag.cov_field == "cov"
+    assert ag.missing_cov_ct == 0
+    assert len(ag.covs) == 122
+    assert max(ag.covs) == 77078
+
+
+def test_no_edges_metacarvel_gml_cov_recording():
+    ag = AssemblyGraph("metagenomescope/tests/input/one.gml")
+    assert ag.cov_source is None
+    assert ag.cov_field is None
+    assert ag.missing_cov_ct == 0
+    assert len(ag.covs) == 0
+
+
+def test_sample_gfa_cov_recording():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert ag.cov_source == "node"
+    assert ag.cov_field == "cov"
+    assert ag.missing_cov_ct == 10
+    assert len(ag.covs) == 2
+    assert ag.covs == [4 / 21, 4 / 21]
+
+
 def test_sanity_checking_already_splitsuffix():
     # https://github.com/marbl/MetagenomeScope/issues/272
     with pytest.raises(GraphParsingError) as ei:

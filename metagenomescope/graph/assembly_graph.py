@@ -573,9 +573,14 @@ class AssemblyGraph(object):
 
             for obj in id2obj.values():
                 if self.cov_field in obj.data:
-                    self.covs.append(obj.data[self.cov_field])
-                else:
-                    self.missing_cov_ct += 1
+                    cov = obj.data[self.cov_field]
+                    if cov is not None:
+                        self.covs.append(cov)
+                        continue
+                # If this node/edge didn't have the cov field at all in its
+                # data dict - or if it had it, but the value was None - then
+                # ignore
+                self.missing_cov_ct += 1
 
     def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.
