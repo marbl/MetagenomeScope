@@ -237,6 +237,7 @@ class Pattern(Node):
                 "id": str(self.unique_id),
                 # this lets us distinguish between patterns and "normal" nodes
                 "ntype": cy_config.PATTERN_DATA_TYPE,
+                "label": config.PT2HR[self.pattern_type],
             },
             "classes": f"pattern {config.PT2HR_NOSPACE[self.pattern_type]}",
         }

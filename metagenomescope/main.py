@@ -179,9 +179,10 @@ def run(
     else:
         dot_alg_desc_used = DOT_ALG_DESC
 
-    default_labels = ui_config.DEFAULT_LABELS
-    if ag.filetype == "DOT":
-        default_labels = [ui_config.EDGE_LABELS]
+    if ag.node_centric:
+        default_labels = ui_config.DEFAULT_LABELS_NODE_CENTRIC
+    else:
+        default_labels = ui_config.DEFAULT_LABELS_EDGE_CENTRIC
 
     # If there are multiple components, show a "Components" tab in the info
     # dialog with information about these components. Also show various options
@@ -770,6 +771,10 @@ def run(
                                             "label": "Edges",
                                             "value": ui_config.EDGE_LABELS,
                                         },
+                                        {
+                                            "label": "Patterns",
+                                            "value": ui_config.PATTERN_LABELS,
+                                        },
                                     ],
                                     value=default_labels,
                                     className="btn-group",
@@ -889,10 +894,7 @@ def run(
                         boxSelectionEnabled=True,
                         maxZoom=9,
                         stylesheet=cy_utils.get_cyjs_stylesheet(
-                            node_labels=ui_config.NODE_LABELS
-                            in default_labels,
-                            edge_labels=ui_config.EDGE_LABELS
-                            in default_labels,
+                            default_labels,
                             node_coloring=ui_config.DEFAULT_NODE_COLORING,
                             edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
                         ),
@@ -1777,11 +1779,8 @@ def run(
     def update_cy_stylesheet(
         label_checklist, node_color_radio, edge_color_radio
     ):
-        node_labels = ui_config.NODE_LABELS in label_checklist
-        edge_labels = ui_config.EDGE_LABELS in label_checklist
         return cy_utils.get_cyjs_stylesheet(
-            node_labels=node_labels,
-            edge_labels=edge_labels,
+            label_checklist,
             node_coloring=node_color_radio,
             edge_coloring=edge_color_radio,
         )

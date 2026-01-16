@@ -4,11 +4,11 @@ from .errors import WeirdError
 
 
 def get_cyjs_stylesheet(
-    node_labels=ui_config.DEFAULT_USE_NODE_LABELS,
-    edge_labels=ui_config.DEFAULT_USE_EDGE_LABELS,
+    labels,
     node_coloring=ui_config.DEFAULT_NODE_COLORING,
     edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
 ):
+
     stylesheet = [
         # nodes
         {
@@ -202,18 +202,18 @@ def get_cyjs_stylesheet(
         },
     ]
 
-    if node_labels:
+    if ui_config.NODE_LABELS in labels:
         # yeah yeah i know that literally the first entry in the stylesheet
         # is node.nonpattern so we could just say stylesheet[0].update()...
         # or something. But I don't want to hardcode reliance on that - seems
         # brittle.
         for sty in stylesheet:
-            if node_labels and sty["selector"] == "node.nonpattern":
+            if sty["selector"] == "node.nonpattern":
                 sty["style"].update(cy_config.LABEL_STYLE)
                 sty["style"].update(cy_config.NODE_LABEL_STYLE)
                 break
 
-    if edge_labels:
+    if ui_config.EDGE_LABELS in labels:
         stylesheet.append(
             {
                 "selector": "edge.real",
@@ -222,6 +222,13 @@ def get_cyjs_stylesheet(
                 },
             }
         )
+
+    if ui_config.PATTERN_LABELS in labels:
+        for sty in stylesheet:
+            if sty["selector"] == "node.pattern":
+                sty["style"].update(cy_config.LABEL_STYLE)
+                sty["style"].update(cy_config.PATTERN_LABEL_STYLE)
+                break
 
     if node_coloring == ui_config.COLORING_RANDOM:
         for i, c in enumerate(cy_config.RANDOM_COLORS):

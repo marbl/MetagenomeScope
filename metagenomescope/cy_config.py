@@ -218,13 +218,18 @@ PATTERN_DATA_TYPE = "P"
 # Labels
 ###############################################################################
 
-# both nodes and edges (at least, if labels are turned on)
+# for nodes, edges, and patterns
 LABEL_STYLE = {
     "label": "data(label)",
     "min-zoomed-font-size": "12",
 }
 
-# just nodes with labels turned on
+# just nodes
 NODE_LABEL_STYLE = {
     "text-valign": "center",
+}
+
+# just patterns
+PATTERN_LABEL_STYLE = {
+    "text-valign": "top",
 }
