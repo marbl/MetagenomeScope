@@ -381,11 +381,11 @@ sed -i -e 's/^A/#A/' hifiasm-out.p_ctg.gfa
 
 <hr/>
 
+Creating a `metagenomescope.graph.AssemblyGraph` object will automatically run the decomposition process:
+
 ```python
->>> # replace this with the filepath to the graph you want to analyze
->>> MY_GRAPH_FP = "metagenomescope/tests/input/sample1.gfa"
->>> from metagenomescope.graph import AssemblyGrph
->>> ag = AssemblyGraph(MY_GRAPH_FP)
+>>> from metagenomescope.graph import AssemblyGraph
+>>> ag = AssemblyGraph("graph.gfa")  # replace with your graph's filepath
 ```
 
 At this point:
@@ -393,9 +393,48 @@ At this point:
 - The "decomposed graph" (where patterns are collapsed into nodes) is represented by `ag.decomposed_graph` (a [NetworkX `MultiDiGraph`](https://networkx.org/documentation/stable/reference/classes/multidigraph.html)).
 
 - The "original graph" (without any patterns) is represented by `ag.graph` (also a [NetworkX `MultiDiGraph`](https://networkx.org/documentation/stable/reference/classes/multidigraph.html))
-  - Note that this will still include split nodes and fake edges, if any remain after the decomposition process.
+  - Note that this graph will still include split nodes and fake edges, if any remain after the decomposition process.
 
-- All nodes and edges, edges, and patterns in both graphs have unique IDs assigned. These IDs can be used to look up information about these objects in the `ag.nodeid2obj`, `ag.edgeid2obj`, and `ag.pattid2obj` dictionaries.
+- All nodes and edges, edges, and patterns in both graphs have unique IDs assigned. These IDs can be used to look up information about nodes, edges, and patterns in the `ag.nodeid2obj`, `ag.edgeid2obj`, and `ag.pattid2obj` dictionaries, respectively.
+
+A brief example:
+
+```python
+>>> from metagenomescope.graph import AssemblyGraph
+>>> ag = AssemblyGraph("metagenomescope/tests/input/E_coli_LastGraph")
+>>> # Inspect nodes, edges, and patterns
+>>> ag.nodeid2obj
+{0: Node 0 (name: 1),
+ 1: Node 1 (name: -1),
+ 2: Node 2 (name: 2),
+ ...}
+>>> ag.edgeid2obj
+{558: Edge 558 (orig: 0 -> 244; new: 0 -> 244; dec: 0 -> 1421),
+ 559: Edge 559 (orig: 1 -> 342; new: 1 -> 342; dec: 1527 -> 342),
+ 560: Edge 560 (orig: 2 -> 477; new: 2 -> 477; dec: 2 -> 477),
+ ...}
+>>> ag.pattid2obj
+{1222: bubble1222 containing nodes [33, 283, 395, 39] from [33] to [39],
+ 1227: bubble1227 containing nodes [34, 76, 382, 303] from [34] to [76],
+ 1232: bubble1232 containing nodes [40, 43, 35, 501] from [35] to [43],
+ ...}
+>>> # Examine split nodes
+>>> for n in ag.nodeid2obj.values():
+...     if n.split is not None:
+...         print(n)
+Node 32 (name: 17-L)
+Node 33 (name: -17-R)
+Node 34 (name: 18-R)
+...
+>>> # Distinguish fake from real edges
+>>> for e in ag.edgeid2obj.values():
+...     print(e, e.is_fake)
+Edge 558 (orig: 0 -> 244; new: 0 -> 244; dec: 0 -> 1421) False
+Edge 559 (orig: 1 -> 342; new: 1 -> 342; dec: 1527 -> 342) False
+...
+Edge*1634 (orig: 348 -> 1633; new: 348 -> 1633; dec: 1628 -> 1666) True
+Edge*1639 (orig: 1638 -> 451; new: 1638 -> 451; dec: 1671 -> 1635) True
+```
 
 This interface should remain relatively stable. If you have any questions, please reach out.
 
