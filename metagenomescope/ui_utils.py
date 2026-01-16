@@ -193,6 +193,7 @@ def add_path_toast(
         body_html=body_html,
         icon="bi-list-nested",
         header_color=header_color,
+        extra_title_classes="font-monospace",
     )
 
 
@@ -203,6 +204,7 @@ def add_toast(
     body_html=None,
     icon="bi-exclamation-lg",
     header_color=None,
+    extra_title_classes="",
 ):
     if toasts is None:
         toasts = []
@@ -212,6 +214,7 @@ def add_toast(
         body_html=body_html,
         icon=icon,
         header_color=header_color,
+        extra_title_classes=extra_title_classes,
     )
     # adding the new toast BEFORE the other toasts does put it on top if any
     # others are still on the screen, but it causes weird behavior if any
@@ -236,6 +239,7 @@ def create_toast(
     body_html=None,
     icon="bi-exclamation-lg",
     header_color=None,
+    extra_title_classes="",
 ):
     # https://getbootstrap.com/docs/5.3/components/toasts/#live-example
     # For a list of possible icons, see https://icons.getbootstrap.com/
@@ -250,7 +254,7 @@ def create_toast(
                     html.I(className=f"bi {icon}", style=header_style),
                     html.Span(
                         title_text,
-                        className="iconlbl me-auto toast-title",
+                        className=f"iconlbl me-auto toast-title {extra_title_classes}",
                         style=header_style,
                     ),
                     html.Small(get_toast_timestamp()),
