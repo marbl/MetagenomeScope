@@ -15,6 +15,7 @@ from .. import (
     name_utils,
     misc_utils,
 )
+from ..gap import Gap
 from ..errors import WeirdError
 from . import validators, graph_utils
 from .draw_results import DrawResults
@@ -259,7 +260,12 @@ class AssemblyGraph(object):
         #
         # Maps path names -> list of node or edge names in path
         # (whether we think these are nodes or edges is determined by
-        # self.node_centric)
+        # self.node_centric). Note that the list may also contain Gap objects
+        # representing gaps specified in the path.
+        self.pathname2objnamesandgaps = {}
+        # Like the above, but with gaps filtered out. This is kind of silly
+        # to store as its own thing but doing so avoids needing to constantly
+        # recompute this sooooo
         self.pathname2objnames = {}
         # Other mappings that are useful for determining available paths, etc.
         # This is kind of inelegant but whatever
@@ -319,7 +325,10 @@ class AssemblyGraph(object):
             )
             # Filter to just the paths that were available in the graph.
             for p in self.pathname2ccnum:
-                self.pathname2objnames[p] = input_paths[p]
+                self.pathname2objnamesandgaps[p] = input_paths[p]
+                self.pathname2objnames[p] = [
+                    n for n in input_paths[p] if type(n) is not Gap
+                ]
             logger.debug(
                 "  ...Done. Found "
                 f"{ui_utils.pluralize(len(self.pathname2objnames), 'path')} "
@@ -1695,6 +1704,8 @@ class AssemblyGraph(object):
             drawn_names.add(name)
 
         for p in touched_paths:
+            # remember that self.pathname2objnames[p] does not contain Gaps,
+            # so no need to worry about those here
             if set(self.pathname2objnames[p]).issubset(drawn_names):
                 avail_paths.append(p)
 

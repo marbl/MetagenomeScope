@@ -3,6 +3,7 @@ import pandas as pd
 from collections import defaultdict
 from metagenomescope import config
 from .errors import PathParsingError
+from .gap import Gap
 
 
 def get_paths_from_agp(agp_fp, orientation_in_name=True):
@@ -32,8 +33,9 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
 
     Returns
     -------
-    paths: defaultdict of str -> list
+    paths: defaultdict of str -> list of str or Gap
         Maps path names to a list of sequence (node or edge) names in the path.
+        Gaps are represented as Gap objects in the list.
 
     Raises
     ------
@@ -42,14 +44,15 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
 
     Notes
     -----
-    We just ignore gap lines (i.e. those where column 5 is equal to N or U).
-    This could be improved in the future, if desired.
+    There is more info we can extract from AGP files about gaps (e.g. linkage,
+    linkage_evidence) if desired.
 
     References
     ----------
     https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/
     """
     paths = defaultdict(list)
+    pathnames_with_nongaps = set()
     with open(agp_fp, "r") as fh:
         for line in fh:
             parts = line.strip().split("\t")
@@ -57,15 +60,13 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
                 raise PathParsingError(
                     f"Line {line} doesn't have exactly 9 tab-separated columns"
                 )
+            path_name = parts[0]
             if parts[4] in "NU":
-                # like we totally COULD support this but if nobody is
-                # using this kind of thing then it's not worth it
-                logging.warning(
-                    f"    WARNING: Line {line} describes a gap. Currently, "
-                    "gaps are ignored in the visualization. However, please "
-                    "let us know if you would like us to support visualizing "
-                    "them specially."
-                )
+                if parts[4] == "N":
+                    glen = int(parts[5])
+                else:
+                    glen = None
+                paths[path_name].append(Gap(length=glen, gaptype=parts[6]))
                 continue
             seq_id = parts[5]
             # NOTE: ok look, config.REV == "-", so whatever. But the AGP
@@ -75,7 +76,11 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
             # change those LOL
             if orientation_in_name and parts[8] == "-":
                 seq_id = config.REV + seq_id
-            paths[parts[0]].append(seq_id)
+            paths[path_name].append(seq_id)
+            pathnames_with_nongaps.add(path_name)
+    only_gap_paths = set(paths.keys()) - pathnames_with_nongaps
+    if only_gap_paths:
+        raise PathParsingError(f"Some paths only have gaps: {only_gap_paths}")
     return paths
 
 
@@ -85,28 +90,26 @@ def get_paths_from_flye_info(fp):
         raise PathParsingError("graph_path column not in assembly_info file?")
     paths = df["graph_path"].str.split(",").to_dict()
     trimmedpaths = {}
-    seen_gaps = False
     for name, edgeids in paths.items():
         if name in trimmedpaths:
             raise PathParsingError(
                 f"Name {name} occurs twice in assembly_info file?"
             )
-        eids = []
+        path_edge_ids = []
+        path_has_nongaps = False
         for i in paths[name]:
             if i == "*":
                 continue
             elif i == "??":
-                seen_gaps = True
+                path_edge_ids.append(Gap())
             else:
-                eids.append(i)
-        if len(eids) == 0:
+                path_edge_ids.append(i)
+                path_has_nongaps = True
+        if len(path_edge_ids) == 0:
             raise PathParsingError(f"Invalid path: {name} -> {paths[name]}")
-        trimmedpaths[name] = eids
-    if seen_gaps:
-        logging.warning(
-            "    WARNING: Found gaps in the assembly_info file. Note that we "
-            "currently ignore gaps in the visualization."
-        )
+        if not path_has_nongaps:
+            raise PathParsingError(f"Path {name} only has gaps???")
+        trimmedpaths[name] = path_edge_ids
     return trimmedpaths
 
 
@@ -119,7 +122,7 @@ def get_path_maps(id2obj, paths, nodes=True):
         Maps node or edge IDs to Node / Edge objects in the graph. This should
         only contain nodes (if nodes=True) or edges (if edges=True).
 
-    paths: dict of str -> list
+    paths: dict of str -> list of str or Gap
         Maps path name to the names of nodes or edges within the path. The
         names contained these lists should only be of nodes or edges, depending
         again on what "nodes" is set to.
@@ -176,7 +179,8 @@ def get_path_maps(id2obj, paths, nodes=True):
     objname2pathnames = defaultdict(set)
     for pathname, path_parts in paths.items():
         for name in path_parts:
-            objname2pathnames[name].add(pathname)
+            if type(name) is not Gap:
+                objname2pathnames[name].add(pathname)
     pathname2ccnum = {}
 
     for obj in id2obj.values():
@@ -275,7 +279,8 @@ def get_path_maps(id2obj, paths, nodes=True):
     for pathname in pathname2ccnum:
         ccnum2pathnames[pathname2ccnum[pathname]].append(pathname)
         for objname in paths[pathname]:
-            objname2pathnames[objname].add(pathname)
+            if type(objname) is not Gap:
+                objname2pathnames[objname].add(pathname)
 
     return ccnum2pathnames, objname2pathnames, pathname2ccnum
 
@@ -285,6 +290,25 @@ def get_available_count_badge_text(num_available, total_num):
 
 
 def merge_paths(curr_paths, new_paths):
+    """Merges paths in new_paths into curr_paths.
+
+    Parameters
+    ----------
+    curr_paths: dict of str -> list of str or Gap
+    new_paths: dict of str -> list of str or Gap
+
+    Returns
+    -------
+    None
+        (This will update curr_paths in place.)
+
+    Raises
+    ------
+    PathParsingError
+        If any path names (i.e. dict keys) are shared between curr_paths and
+        new_paths. We don't want to risk data loss, so we complain loudly
+        if the user provided multiple sources of paths that use the same IDs.
+    """
     i0 = set(curr_paths.keys())
     i1 = set(new_paths.keys())
     if i0 & i1:

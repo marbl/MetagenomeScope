@@ -2,6 +2,7 @@ import pytest
 import tempfile
 from metagenomescope.errors import PathParsingError
 from metagenomescope.graph import AssemblyGraph
+from metagenomescope.gap import Gap
 from metagenomescope import path_utils as pu
 
 
@@ -132,3 +133,66 @@ def test_multiple_path_sources_duplicate_name():
                 flye_info_fp="metagenomescope/tests/input/flye_yeast_assembly_info.txt",
             )
         assert str(ei.value) == "Duplicate paths found between sources?"
+
+
+def test_paths_with_gaps():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/flye_yeast.gv",
+        flye_info_fp="metagenomescope/tests/input/flye_yeast_assembly_info.txt",
+    )
+    assert len(ag.pathname2objnames) == 29
+    assert len(ag.pathname2objnamesandgaps) == 29
+    # the gap between -34 and 62 is hidden in this internal representation
+    assert ag.pathname2objnames["scaffold_34"] == [
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "-56",
+        "-55",
+        "-34",
+        "62",
+        "62",
+        "62",
+        "62",
+        "62",
+        "62",
+        "62",
+        "26",
+        "-32",
+    ]
+    assert ag.pathname2objnamesandgaps["scaffold_34"] == [
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "44",
+        "-56",
+        "-55",
+        "-34",
+        Gap(),
+        "62",
+        "62",
+        "62",
+        "62",
+        "62",
+        "62",
+        "62",
+        "26",
+        "-32",
+    ]

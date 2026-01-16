@@ -2305,6 +2305,8 @@ def run(
                     rows.append(
                         {
                             ui_config.PATH_TBL_NAME_COL: p,
+                            # this ignores gaps! which is what we want for just
+                            # counting the number of nodes/edges on this path
                             ui_config.PATH_TBL_COUNT_COL: len(
                                 ag.pathname2objnames[p]
                             ),
@@ -2331,12 +2333,17 @@ def run(
         def highlight_path(curr_toasts, clicked_cell):
             if clicked_cell["colId"] == ui_config.PATH_TBL_NAME_COL:
                 path = clicked_cell["value"]
-                eles = ag.pathname2objnames[path]
-                return ui_utils.add_path_toast(
-                    curr_toasts, path, ", ".join(eles)
-                ), {
+                # TODO we COUUULD try to actually visually show gap info on top
+                # of the graph but whatever just listing it in the toast is ok
+                nongap_names = ag.pathname2objnames[path]
+                full_path_contents = ag.pathname2objnamesandgaps[path]
+                new_toasts = ui_utils.add_path_toast(
+                    curr_toasts, path, full_path_contents, ag.node_centric
+                )
+
+                return new_toasts, {
                     "requestGood": True,
-                    "eles": eles,
+                    "eles": nongap_names,
                     "nodes": ag.node_centric,
                 }
             else:

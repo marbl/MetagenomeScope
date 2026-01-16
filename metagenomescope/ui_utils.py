@@ -7,6 +7,7 @@ from collections import defaultdict
 from dash import html
 from . import css_config, ui_config, config, name_utils
 from .errors import UIError, WeirdError
+from .gap import Gap
 
 
 def pluralize(num, thing="edge"):
@@ -181,15 +182,49 @@ def add_warning_toast(
 
 def add_path_toast(
     toasts,
-    title_text="Path",
-    body_text=None,
-    body_html=None,
+    path_name,
+    path_contents,
+    nodes=True,
     header_color=css_config.BADGE_AVAILABLE_COLOR,
 ):
+    """Adds a fancy toast message showing the contents of a path."""
+    # path_contents is a list of node/edge names, with optional Gap objs
+    nongap_ct = 0
+    gap_ct = 0
+    path_p_children = []
+    after_first = False
+    for e in path_contents:
+        if after_first:
+            path_p_children.append(", ")
+        if type(e) is Gap:
+            gap_ct += 1
+            path_p_children.append(html.Span(str(e), className="fw-bold"))
+        else:
+            nongap_ct += 1
+            path_p_children.append(str(e))
+        after_first = True
+
+    ngnoun = "node" if nodes else "edge"
+    ngct = pluralize(nongap_ct, ngnoun)
+    gct = pluralize(gap_ct, "gap")
+    body_html = html.Div(
+        [
+            html.P(
+                f"{ngct}, {gct}.",
+                className="fw-bold",
+                style={"text-align": "center"},
+            ),
+            html.P(
+                path_p_children,
+                className="font-monospace",
+                style={"margin-bottom": 0},
+            ),
+        ],
+        className="toast-body",
+    )
     return add_toast(
         toasts,
-        title_text=title_text,
-        body_text=body_text,
+        title_text=path_name,
         body_html=body_html,
         icon="bi-list-nested",
         header_color=header_color,
