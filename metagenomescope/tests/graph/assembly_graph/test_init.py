@@ -99,3 +99,63 @@ def test_validate_nonempty_one_node_gml():
 def test_noseq_gfa_has_no_gc_contents():
     ag = AssemblyGraph("metagenomescope/tests/input/sheepgut_g1217.gfa")
     assert ag.extra_node_attrs == ["length", "orientation"]
+
+
+def test_flye_gfa_metadata_integration():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/flye_yeast_noseq.gfa",
+        flye_info_fp="metagenomescope/tests/input/flye_yeast_assembly_info.txt",
+    )
+    assert ag.extra_node_attrs == [
+        "length",
+        "circ.",
+        "cov",
+        "mult.",
+        "repeat",
+        "orientation",
+    ]
+    assert ag.extra_edge_attrs == []
+    assert ag.cov_source == "node"
+    assert ag.cov_field == "cov"
+    # 27 lines in the .txt file (ignoring scaffolds and the header) times 2 for
+    # RC nodes
+    assert len(ag.covs) == 54
+
+    # I don't think it is worth the time to write another parser that checks
+    # every single segment in the graph, so just hard-code a few knowns:
+
+    # contig 1 is present in the .txt file
+    found_contig_1 = False
+    # contig 37 is also present in the .txt file, but has mostly different
+    # values for things than contig 1
+    found_contig_37 = False
+    # contig 4 is NOT present in the .txt file! It should get None for most
+    # of its metadata
+    found_contig_4 = False
+    for c in ag.nodeid2obj.values():
+        if c.name == "contig_1":
+            # lengths should go by the GFA file, NOT by the .txt file
+            assert c.data["length"] == 1032844
+            assert c.data["cov"] == 90
+            assert c.data["circ."] == "-"
+            assert c.data["repeat"] == "-"
+            assert c.data["mult."] == 1
+            found_contig_1 = True
+        elif c.name == "contig_37":
+            assert c.data["length"] == 5363
+            assert c.data["cov"] == 286
+            assert c.data["circ."] == "-"
+            assert c.data["repeat"] == "+"
+            assert c.data["mult."] == 3
+            found_contig_37 = True
+        elif c.name == "contig_4":
+            assert c.data["length"] == 554754
+            assert c.data["cov"] is None
+            assert c.data["circ."] is None
+            assert c.data["repeat"] is None
+            assert c.data["mult."] is None
+            found_contig_4 = True
+
+    assert found_contig_1
+    assert found_contig_37
+    assert found_contig_4
