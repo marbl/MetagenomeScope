@@ -104,6 +104,8 @@ PATT_TBL_NCT_COL = "N"
 PATT_TBL_ECT_COL = "E"
 PATT_TBL_PCT_COL = "P"
 
+FLYE_INFO_COLS_TO_RENAME = {"cov.": "cov"}
+
 # Maps "internal" names for node / edge properties to human-readable names, and
 # AG Grid cellDataType parameters.
 # (As we add on more filetype parsers, feel free to extend these structures.)
@@ -113,6 +115,13 @@ NODEATTR2HRT = {
     "orientation": ("+/-", "text"),
     "depth": ("Cov.", "number"),
     "cov": ("Cov.", "number"),
+    "circ.": ("Circular?", "text"),
+    "repeat": ("Repeat?", "text"),
+    # To whoever is reading this: figuring out why column names with periods
+    # were breaking the tables took like an hour out of my life. I really hope
+    # you appreciate this information about multiplicity, because I sold a part
+    # of my soul in order to make it viewable
+    "mult.": ("Mult.", "number"),
     "gc": ("GC %", "number"),
     "gc_content": ("GC %", "number"),
 }
@@ -165,7 +174,11 @@ COVATTR2TITLE = {
 
 # some attributes are obvious and/or not worth showing in the selected element
 # tables, since there is not a lot of space. Record these here.
-NODEATTRS_SKIP = ()
+NODEATTRS_SKIP = (
+    # Flye (... at least in my opinion. like you're already looking at the
+    # graph right?)
+    "circ.",
+)
 EDGEATTRS_SKIP = (
     # Flye
     "color",
@@ -196,6 +209,7 @@ NODEATTR2FMT = {
     "depth": FMT_THOUSANDS_SEP,
     "cov": FMT_THOUSANDS_SEP,
     "gc": FMT_PERCENT,
+    "mult.": FMT_THOUSANDS_SEP,
     "gc_content": FMT_PERCENT,
 }
 

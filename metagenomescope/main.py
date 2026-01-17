@@ -307,6 +307,10 @@ def run(
                         # https://community.plotly.com/t/how-to-customize-overlay-messages-in-dash-ag-grid/73932/2
                         dashGridOptions={
                             "overlayNoRowsTemplate": "No paths available.",
+                            # makes col names that have periods function
+                            # normally. not a problem atm for the path table
+                            # but let's be careful
+                            "suppressFieldDotNotation": True,
                         },
                         dangerously_allow_code=True,
                     ),

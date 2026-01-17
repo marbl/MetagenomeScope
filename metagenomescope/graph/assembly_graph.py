@@ -1,5 +1,6 @@
 import random
 import logging
+import pandas as pd
 from copy import deepcopy
 from collections import defaultdict
 import networkx as nx
@@ -16,7 +17,7 @@ from .. import (
     misc_utils,
 )
 from ..gap import Gap
-from ..errors import WeirdError
+from ..errors import WeirdError, GraphParsingError
 from . import validators, graph_utils
 from .draw_results import DrawResults
 from .subgraph import Subgraph
@@ -113,11 +114,17 @@ class AssemblyGraph(object):
             self.seq_noun = "edge"
         logger.info(f'...Loaded graph. Filetype: "{self.filetype}".')
 
-        if self.filetype != "DOT" and self.flye_info_filename is not None:
-            logging.warning(
-                "Flye assembly info file provided. Since the input graph "
-                "is not a DOT file, we are ignoring the info file."
-            )
+        if self.flye_info_filename is not None:
+            if self.filetype == "GFA":
+                self._store_flye_info_for_gfa_nodes()
+            elif self.filetype != "DOT":
+                # we'll record paths later for DOT files
+                logging.warning(
+                    "Flye assembly info file provided. Since the input graph "
+                    "is not a DOT or GFA file, we are ignoring the info file."
+                )
+                self.flye_info_filename = None
+                self.flye_info_basename = None
 
         # These are the "raw" counts, before adding split nodes / fake edges
         # / etc during decomposition
@@ -336,6 +343,33 @@ class AssemblyGraph(object):
                 f"{ui_utils.pluralize(len(self.ccnum2pathnames), 'component')}."
             )
         logger.info("...Done.")
+
+    def _store_flye_info_for_gfa_nodes(self):
+        df = pd.read_csv(self.flye_info_filename, sep="\t", index_col=0)
+        df.rename(columns=ui_config.FLYE_INFO_COLS_TO_RENAME, inplace=True)
+        fields = set(df.columns) - {"length", "graph_path"}
+        # at this point, node IDs in the graph are still names - we haven't
+        # called self._init_graph_objs() yet
+        for n in self.graph.nodes:
+            row_name = None
+            if n in df.index:
+                row_name = n
+            elif name_utils.negate(n) in df.index:
+                row_name = name_utils.negate(n)
+            if row_name is not None:
+                row = df.loc[row_name]
+                for f in fields:
+                    if (
+                        f in self.graph.nodes[n]
+                        and self.graph.nodes[n][f] is not None
+                    ):
+                        raise GraphParsingError(
+                            f"Field {f} defined twice for node {n}?"
+                        )
+                    self.graph.nodes[n][f] = row[f]
+            else:
+                for f in fields:
+                    self.graph.nodes[n][f] = None
 
     def _init_graph_objs(self):
         """Initializes Node and Edge objects for the original graph.
