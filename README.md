@@ -123,7 +123,10 @@ Paths can optionally be specified through any of the following inputs:
   - _If your graph is in DOT format_: we assume the `component_id`s in column 6a of this file correspond to edge IDs.
   - _Otherwise_: we assume the `component_id`s correspond to node IDs.
 
-- `assembly_info.txt` files from [Flye](https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#-flye-output) (`-i`)
+- [`assembly_info.txt` files](https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#-flye-output) from [Flye](https://github.com/mikolmogorov/Flye) (`-i`)
+  - _If your graph is in DOT format_: we visualize the edge-paths described in the `.txt` file.
+  - _If your graph is in GFA format_: the contigs in the GFA file correspond to the edge-paths in the `.txt` file, so we can't really visualize these paths (they have already been "collapsed").
+    - That being said, we will at least extract contigs' information from the `.txt` file (e.g. coverage) and show it in the interface.
 
 - P-lines in [GFA 1 files](https://gfa-spec.github.io/GFA-spec/GFA1.html), or O-lines in [GFA 2 files](https://gfa-spec.github.io/GFA-spec/GFA2.html) (`-g`)
 
