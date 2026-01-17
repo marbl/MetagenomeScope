@@ -1482,26 +1482,6 @@ class AssemblyGraph(object):
             cc_edge_cts.append(cc.num_real_edges)
         return cc_node_cts, cc_edge_cts
 
-    def get_node_lengths(self):
-        """Returns a dict mapping node IDs to lengths.
-
-        If a node does not have a corresponding length available, then this
-        node will not be represented in the returned dict. If no nodes have
-        lengths, this will return {}.
-
-        This will raise a WeirdError if we see any split nodes in the graph.
-        You should call this before doing the pattern decomposition stuff!
-        """
-        lengths = {}
-        for ni, n in self.nodeid2obj.items():
-            if n.split is not None:
-                raise WeirdError(
-                    f"Split nodes shouldn't exist in the graph yet: {n}"
-                )
-            if "length" in n.data:
-                lengths[ni] = n.data["length"]
-        return lengths
-
     def is_pattern(self, node_id):
         """Returns True if a node ID is for a pattern, False otherwise.
 
