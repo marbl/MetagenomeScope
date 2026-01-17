@@ -120,12 +120,13 @@ support, feel free to open a GitHub issue.
 Paths can optionally be specified through any of the following inputs:
 
 - [AGP files](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/) (`-a`)
-  - _If your graph is in DOT format_: we assume the `component_id`s in column 6a of this file correspond to edge IDs.
-  - _Otherwise_: we assume the `component_id`s correspond to node IDs.
+  - **If your graph is in DOT format:** we assume the `component_id`s in column 6a of this file correspond to edge IDs.
+  - **Otherwise:** we assume the `component_id`s correspond to node IDs.
 
 - [`assembly_info.txt` files](https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#-flye-output) from [Flye](https://github.com/mikolmogorov/Flye) (`-i`)
-  - _If your graph is in DOT format_: we visualize the edge-paths described in the `.txt` file.
-  - _If your graph is in GFA format_: the contigs in the GFA file correspond to the edge-paths in the `.txt` file, so we can't really visualize these paths (they have already been "collapsed").
+  - **If your graph is in DOT format:** we visualize the edge-paths described in the `.txt` file.
+  - **If your graph is in GFA format:**
+    - The contigs in the GFA file correspond to the edge-paths in the `.txt` file, so we can't really visualize these paths (they have already been "collapsed").
     - That being said, we will at least extract contigs' information from the `.txt` file (e.g. coverage) and show it in the interface.
 
 - P-lines in [GFA 1 files](https://gfa-spec.github.io/GFA-spec/GFA1.html), or O-lines in [GFA 2 files](https://gfa-spec.github.io/GFA-spec/GFA2.html) (`-g`)
@@ -344,7 +345,7 @@ is a big priority, but
 
 <hr/>
 
-If you are using LJA (and probably also if you are using Flye), you may want to use a DOT file instead of a GFA / FASTG file as input.
+If you are visualizing output from LJA or Flye, you _may_ want to use a DOT file instead of a GFA / FASTG file as input.
 
 This is because GFA and FASTG [are not ideal](https://github.com/AntonBankevich/LJA/blob/main/docs/jumbodbg_manual.md#output-of-de-bruijn-graph-construction) for representing graphs in which sequences are stored on edges rather than nodes (i.e. de Bruijn / repeat graphs). The DOT files output by Flye and LJA should contain the _original_ structure of these graphs (in which edges and nodes in the visualization actually correspond to edges and nodes in the original graph, respectively); the GFA / FASTG files usually represent altered versions in which nodes and edges have been swapped, which is not always an ideal representation (especially if you are doing something where you really care about the structure of the original graph).
 
