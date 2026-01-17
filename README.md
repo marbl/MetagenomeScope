@@ -119,22 +119,45 @@ support, feel free to open a GitHub issue.
 
 Paths can optionally be specified through any of the following inputs:
 
-- [AGP files](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/) (`-a`)
-  - **If your graph is in DOT format:**
-    - We assume the `component_id`s in column 6a of this file correspond to edge IDs.
+<details>
+  <summary><strong>AGP files (<code>-a</code>)</strong></summary>
 
-  - **Otherwise:**
-    - We assume the `component_id`s correspond to node IDs.
+<hr/>
 
-- [`assembly_info.txt` files](https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#-flye-output) from [Flye](https://github.com/mikolmogorov/Flye) (`-i`)
-  - **If your graph is in DOT format:**
-    - We will visualize the edge-paths described in the `.txt` file!
+**If your graph is in DOT format:**
+  - We assume the `component_id`s in column 6a of the AGP file correspond to edge IDs.
 
-  - **If your graph is in GFA format:**
-    - The contigs in the GFA file correspond to the edge-paths in the `.txt` file, so we can't really visualize these paths (they have already been "collapsed").
-    - That being said, we will at least extract contigs' information from the `.txt` file (e.g. coverage) and show it in the interface.
+**Otherwise:**
+  - We assume the `component_id`s correspond to node IDs.
 
-- P-lines in [GFA 1 files](https://gfa-spec.github.io/GFA-spec/GFA1.html), or O-lines in [GFA 2 files](https://gfa-spec.github.io/GFA-spec/GFA2.html) (`-g`)
+<hr/>
+</details>
+
+<details>
+  <summary><strong>Flye <code>assembly_info.txt</code> files (<code>-i</code>)</strong></summary>
+
+<hr/>
+
+**If your graph is in DOT format:**
+  - We will visualize the edge-paths described in the `.txt` file.
+
+**If your graph is in GFA format:**
+  - The contigs in the GFA file should correspond to collapsed edge-paths in the `.txt` file, so we can't really visualize these as paths.
+
+  - However, we will extract contigs' information from the `.txt` file (e.g. coverage) and show it in the interface as node data.
+
+<hr/>
+</details>
+
+<details>
+  <summary><strong>P-lines in <a href="https://gfa-spec.github.io/GFA-spec/GFA1.html">GFA 1 files</a>, or O-lines in <a href="https://gfa-spec.github.io/GFA-spec/GFA2.html">GFA 2 files</a> (<code>-g</code>)</strong></summary>
+
+<hr/>
+
+[Currently](https://github.com/marbl/MetagenomeScope/issues/147), we only show segments on GFA paths (not edges, gaps, etc.)
+
+<hr/>
+</details>
 
 ## Example datasets
 
