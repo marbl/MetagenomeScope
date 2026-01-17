@@ -1358,10 +1358,15 @@ def run(
                                                                 ),
                                                                 (
                                                                     html.Div(
-                                                                        html.Div(
-                                                                            "ele scatter here",
-                                                                            id="covlenEleScatterContainer",
-                                                                        ),
+                                                                        [
+                                                                            html.Div(
+                                                                                "ele scatter here",
+                                                                                id="covlenEleScatterContainer",
+                                                                            ),
+                                                                            html.Div(
+                                                                                id="covlenEleScatterMissingInfo",
+                                                                            ),
+                                                                        ],
                                                                         className="tab-pane fade",
                                                                         id="covNestEleTabPane",
                                                                         role="tabpanel",
@@ -1802,6 +1807,132 @@ def run(
             )
             fig.update_yaxes(ticksuffix=" ")
             return dcc.Graph(figure=fig)
+
+    if ag.has_covlens:
+
+        @callback(
+            Output("covlenEleScatterContainer", "children"),
+            Output("covlenEleScatterMissingInfo", "children"),
+            Input("covNestEleTab", "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def plot_cov_ele_scatter(n_clicks):
+            fig = go.Figure()
+            desc = (
+                f"{ag.cov_source.title()} lengths and "
+                f"{ui_config.COVATTR2PLURAL[ag.cov_field]}"
+            )
+            fancycovtitle = ui_config.COVATTR2TITLE[ag.cov_field]
+            id2obj = (
+                ag.nodeid2obj if ag.cov_source == "node" else ag.edgeid2obj
+            )
+            # we already have lists of covs and lengths stored in the
+            # AssemblyGraph, but just to be safe let's recompute them so we
+            # know we can pair 'em up
+            lens = []
+            covs = []
+            names = []
+            missing_ct = 0
+            total_ct = 0
+            # TODO this is kind of brittle, we should ideally store this as an
+            # ag attribute analogous to ag.cov_field
+            lenfield = "approx_length" if ag.lengths_are_approx else "length"
+            for obj in id2obj.values():
+                # Don't let pattern decomposition impact these results!
+                # Ignore fake edges, and ignore left split nodes. This ensures
+                # that each original edge/node is counted exactly once.
+                if ag.cov_source == "edge" and obj.is_fake:
+                    continue
+                if ag.cov_source == "node" and obj.split == config.SPLIT_LEFT:
+                    continue
+                # okay, if we've made it here, we're safe - this is a real
+                # edge or an unsplit / right-split node, so we can just count
+                # its stuff once
+                if lenfield in obj.data and ag.cov_field in obj.data:
+                    olen = obj.data[lenfield]
+                    ocov = obj.data[ag.cov_field]
+                    if olen is not None and ocov is not None:
+                        lens.append(olen)
+                        covs.append(ocov)
+                        if ag.cov_source == "node":
+                            # since we ignored left split nodes above, we know
+                            # this node is either unsplit or a right split
+                            # node. If the latter, show "40" instead of "40-R"
+                            # (since there IS no unsplit version of the node
+                            # remaining if it has been split...)
+                            names.append(obj.basename)
+                        else:
+                            names.append(obj.get_userspecified_id())
+                else:
+                    missing_ct += 1
+                total_ct += 1
+            fig.add_trace(
+                # "whatever. go my scattergls"
+                go.Scattergl(
+                    text=names,
+                    x=lens,
+                    y=covs,
+                    mode="markers",
+                    marker_size=10,
+                    marker_color="#8843d9",
+                    marker_line_width=2,
+                    marker_line_color="#250e40",
+                    opacity=0.5,
+                    # keep in mind that we are using f-strings to format stuff
+                    # and also referring to variables using {}s. Hence why only
+                    # some of these strings are f-strings
+                    hovertemplate=(
+                        # Edge ID / node name
+                        f"<b>{ag.cov_source.title()} "
+                        "%{text}</b><br>"
+                        # Length
+                        "<b>Length:</b> %{x:,} "
+                        f"{ag.length_units}<br>"
+                        # Coverage
+                        f"<b>{fancycovtitle}:</b> "
+                        # I don't LOVE this because even if covs are ints then
+                        # this will show them with a ".00" suffix. I am not
+                        # sure if there is a way to show them as ints if they
+                        # are "close enough" to an int, at least within the
+                        # confines of d3-format... so whatever
+                        "%{y:,.2f}x"
+                    ),
+                    # Hide the "trace 0" message next to the popup -
+                    # https://community.plotly.com/t/remove-trace-0-next-to-hover/33731/2
+                    name="",
+                )
+            )
+            fig.update_layout(
+                title_text=desc,
+                xaxis_title_text=f"Length ({ag.length_units})",
+                yaxis_title_text=fancycovtitle,
+                font=dict(size=16),
+                title=dict(yanchor="bottom", y=1, yref="paper"),
+                title_pad=dict(b=30),
+                margin=dict(t=75),
+            )
+            fig.update_yaxes(ticksuffix=" ")
+            if missing_ct > 0:
+                # now THIS is obsessive compulsive disorder
+                if missing_ct == 1:
+                    s = ""
+                    are = "is"
+                else:
+                    s = "s"
+                    are = "are"
+                mpct = 100 * (missing_ct / len(ag.covs))
+                missing_info = [
+                    html.Span(
+                        f"{missing_ct:,} / {total_ct:,} ({mpct:.2f}%) "
+                        f"{ag.cov_source}{s}",
+                        className="fw-bold",
+                    ),
+                    f" {are} omitted from this plot due to not having "
+                    "length and/or coverage data.",
+                ]
+            else:
+                missing_info = None
+            return dcc.Graph(figure=fig), missing_info
 
     @callback(
         Output("controls", "className"),
