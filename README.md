@@ -134,7 +134,7 @@ Paths can optionally be specified through any of the following inputs:
 </details>
 
 <details>
-  <summary><strong>Flye <code>assembly_info.txt</code> files (<code>-i</code>)</strong></summary>
+  <summary><strong>Flye <a href="https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#output" target="_blank"><code>assembly_info.txt</code></a> files (<code>-i</code>)</strong></summary>
 
 <hr/>
 
@@ -142,15 +142,15 @@ Paths can optionally be specified through any of the following inputs:
   - We will visualize the edge-paths described in the `.txt` file.
 
 **If your graph is in GFA format:**
-  - The contigs in the GFA file should correspond to collapsed edge-paths in the `.txt` file, so we can't really visualize these as paths.
+  - The contigs in the GFA file should correspond to collapsed edge-paths in the `.txt` file, so we can't really visualize these edge-paths.
 
-  - However, we will extract contigs' information from the `.txt` file (e.g. coverage) and show it in the interface as node data.
+  - However, we will extract contig information from the `.txt` file (e.g. coverage) and show it in the interface as node data.
 
 <hr/>
 </details>
 
 <details>
-  <summary><strong>P-lines in <a href="https://gfa-spec.github.io/GFA-spec/GFA1.html">GFA 1 files</a>, or O-lines in <a href="https://gfa-spec.github.io/GFA-spec/GFA2.html">GFA 2 files</a> (<code>-g</code>)</strong></summary>
+  <summary><strong>P-lines in <a href="https://gfa-spec.github.io/GFA-spec/GFA1.html" target="_blank">GFA 1 files</a>, or O-lines in <a href="https://gfa-spec.github.io/GFA-spec/GFA2.html" target="_blank">GFA 2 files</a> (<code>-g</code>)</strong></summary>
 
 <hr/>
 
