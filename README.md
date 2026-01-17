@@ -124,6 +124,8 @@ Paths can optionally be specified through any of the following inputs:
 
 <hr/>
 
+_See the [AGP specification](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/) for details._
+
 **If your graph is in DOT format:**
   - We assume the `component_id`s in column 6a of the AGP file correspond to edge IDs.
 
@@ -134,9 +136,11 @@ Paths can optionally be specified through any of the following inputs:
 </details>
 
 <details>
-  <summary><strong>Flye <a href="https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#output" target="_blank"><code>assembly_info.txt</code></a> files (<code>-i</code>)</strong></summary>
+  <summary><strong>Flye <code>assembly_info.txt</code> files (<code>-i</code>)</strong></summary>
 
 <hr/>
+
+_See [Flye's documentation](https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md#output) for details._
 
 **If your graph is in DOT format:**
   - We will visualize the edge-paths described in the `.txt` file.
@@ -150,9 +154,11 @@ Paths can optionally be specified through any of the following inputs:
 </details>
 
 <details>
-  <summary><strong>P-lines in <a href="https://gfa-spec.github.io/GFA-spec/GFA1.html" target="_blank">GFA 1 files</a>, or O-lines in <a href="https://gfa-spec.github.io/GFA-spec/GFA2.html" target="_blank">GFA 2 files</a> (<code>-g</code>)</strong></summary>
+  <summary><strong>P-lines in GFA 1 files, or O-lines in GFA 2 files (<code>-g</code>)</strong></summary>
 
 <hr/>
+
+_See the [GFA 1](https://gfa-spec.github.io/GFA-spec/GFA1.html) and [GFA 2](https://gfa-spec.github.io/GFA-spec/GFA2.html) specifications for details._
 
 [Currently](https://github.com/marbl/MetagenomeScope/issues/147), we only show segments on GFA paths (not edges, gaps, etc.)
 
