@@ -79,3 +79,15 @@ def test_move_to_start_if_in():
 
     mu.move_to_start_if_in(c, "oijadsf")
     assert c == ["def", "abc", "ghi"]
+
+
+def test_move_to_end_if_in():
+    c = ["abc", "def", "ghi"]
+    mu.move_to_end_if_in(c, "def")
+    assert c == ["abc", "ghi", "def"]
+
+    mu.move_to_end_if_in(c, "oijadsf")
+    assert c == ["abc", "ghi", "def"]
+
+    mu.move_to_end_if_in(c, "def")
+    assert c == ["abc", "ghi", "def"]

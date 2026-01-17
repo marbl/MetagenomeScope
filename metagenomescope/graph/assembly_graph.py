@@ -564,13 +564,16 @@ class AssemblyGraph(object):
         # same deal for metacarvel edges - bsize then mean then ...
         # this is a really lazy way of doing this but i want to be safe!!!
         # plus there is no way this becomes a bottleneck lmao
-        misc_utils.move_to_start_if_in(self.extra_edge_attrs, "orientation")
         misc_utils.move_to_start_if_in(self.extra_edge_attrs, "stdev")
         misc_utils.move_to_start_if_in(self.extra_edge_attrs, "mean")
         misc_utils.move_to_start_if_in(self.extra_edge_attrs, "bsize")
 
         # Same deal for nodes - put the lengths as early as possible if given
         misc_utils.move_to_start_if_in(self.extra_node_attrs, "length")
+
+        # Orientation is obvious enough that it should go last
+        misc_utils.move_to_end_if_in(self.extra_node_attrs, "orientation")
+        misc_utils.move_to_end_if_in(self.extra_edge_attrs, "orientation")
 
     def _record_coverages(self):
         """Figures out if the graph has coverages, and if so stores them.

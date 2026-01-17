@@ -51,3 +51,9 @@ def move_to_start_if_in(things, t):
     if t in things:
         things.remove(t)
         things.insert(0, t)
+
+
+def move_to_end_if_in(things, t):
+    if t in things:
+        things.remove(t)
+        things.append(t)
