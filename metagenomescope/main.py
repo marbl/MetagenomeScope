@@ -1926,7 +1926,7 @@ def run(
                         f"{ag.length_units}<br>"
                         # Coverage
                         f"<b>{aggname} "
-                        f"{ui_config.COVATTR2TITLE[ag.cov_field]}:</b> "
+                        f"{ui_config.COVATTR2SINGLE[ag.cov_field]}:</b> "
                         "%{y:,.2f}x"
                     ),
                     # hide "trace 0" msg
