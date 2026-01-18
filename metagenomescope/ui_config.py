@@ -7,10 +7,10 @@ SHOW_PATTERNS = "patterns"
 DO_LAYOUT_ANIMATION = "animate"
 DO_RECURSIVE_LAYOUT = "recursive"
 
-# by default, these draw settings are enabled --
+# by default, which draw settings are enabled?
 DEFAULT_SHOW_PATTERNS = True
 DEFAULT_DO_LAYOUT_ANIMATION = True
-DEFAULT_DO_RECURSIVE_LAYOUT = True
+DEFAULT_DO_RECURSIVE_LAYOUT = False
 
 DEFAULT_DRAW_SETTINGS = []
 if DEFAULT_SHOW_PATTERNS:
