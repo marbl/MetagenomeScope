@@ -1382,10 +1382,14 @@ def run(
                                                                     else None
                                                                 ),
                                                                 html.Div(
-                                                                    html.Div(
-                                                                        "hist here",
-                                                                        id="covHistContainer",
-                                                                    ),
+                                                                    [
+                                                                        html.Div(
+                                                                            id="covHistContainer",
+                                                                        ),
+                                                                        html.Div(
+                                                                            id="covHistMissingInfo",
+                                                                        ),
+                                                                    ],
                                                                     className="tab-pane fade",
                                                                     id="covNestHistTabPane",
                                                                     role="tabpanel",
@@ -1781,6 +1785,7 @@ def run(
 
         @callback(
             Output("covHistContainer", "children"),
+            Output("covHistMissingInfo", "children"),
             Input("covNestHistTab", "n_clicks"),
             prevent_initial_call=True,
         )
@@ -1809,7 +1814,13 @@ def run(
                 margin=dict(t=75),
             )
             fig.update_yaxes(ticksuffix=" ")
-            return dcc.Graph(figure=fig)
+            missing_info = ui_utils.get_plot_missing_data_msg(
+                ag.missing_cov_ct,
+                ag.possible_covlen_ct,
+                ag.cov_source,
+                "not having coverage data",
+            )
+            return dcc.Graph(figure=fig), missing_info
 
     if ag.has_covs:
 
@@ -1954,7 +1965,14 @@ def run(
             # shift the y-axis title to the left:
             # https://stackoverflow.com/a/75098774
             fig.update_yaxes(ticksuffix=" ", title_standoff=50)
-            return dcc.Graph(mathjax=True, figure=fig), None
+            missing_info = ui_utils.get_plot_missing_data_msg(
+                missing_cc_ct,
+                len(ag.components),
+                "component",
+                "not having any coverage data and/or having a total length "
+                "of zero",
+            )
+            return dcc.Graph(mathjax=True, figure=fig), missing_info
 
     if ag.has_covlens:
 
@@ -2024,26 +2042,12 @@ def run(
                 margin=dict(t=75),
             )
             fig.update_yaxes(ticksuffix=" ")
-            if ag.missing_cov_ct > 0:
-                # now THIS is obsessive compulsive disorder
-                if ag.missing_cov_ct == 1:
-                    s = ""
-                    are = "is"
-                else:
-                    s = "s"
-                    are = "are"
-                mpct = 100 * (ag.missing_cov_ct / ag.possible_covlen_ct)
-                missing_info = [
-                    html.Span(
-                        f"{ag.missing_cov_ct:,} / {ag.possible_covlen_ct:,} "
-                        f"({mpct:.2f}%) {ag.cov_source}{s}",
-                        className="fw-bold",
-                    ),
-                    f" {are} omitted from this plot due to not having "
-                    "coverage data.",
-                ]
-            else:
-                missing_info = None
+            missing_info = ui_utils.get_plot_missing_data_msg(
+                ag.missing_cov_ct,
+                ag.possible_covlen_ct,
+                ag.cov_source,
+                "not having coverage data",
+            )
             return dcc.Graph(figure=fig), missing_info
 
     @callback(

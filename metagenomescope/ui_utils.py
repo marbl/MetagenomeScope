@@ -994,3 +994,25 @@ def get_unweightedavg_cov_latex(node_centric, cov_field):
             "Edges"
             r"|}$"
         )
+
+
+def get_plot_missing_data_msg(num, den, noun, reason):
+    if num > 0:
+        # now THIS is obsessive compulsive disorder
+        if num == 1:
+            s = ""
+            are = "is"
+        else:
+            s = "s"
+            are = "are"
+        mpct = 100 * (num / den)
+        missing_info = [
+            html.Span(
+                f"{num:,} / {den:,} ({mpct:.2f}%) {noun}{s}",
+                className="fw-bold",
+            ),
+            f" {are} omitted from this plot due to {reason}.",
+        ]
+    else:
+        missing_info = None
+    return missing_info
