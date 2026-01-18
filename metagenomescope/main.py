@@ -7,7 +7,6 @@ import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 import plotly.graph_objects as go
-from statistics import mean
 from dash import (
     Dash,
     html,
@@ -1906,10 +1905,12 @@ def run(
                 ylatex = ui_utils.get_weightedavg_cov_latex(
                     ag.node_centric, ag.cov_field
                 )
+                aggname = "Weighted average"
             else:
                 ylatex = ui_utils.get_unweightedavg_cov_latex(
                     ag.node_centric, ag.cov_field
                 )
+                aggname = "Average"
 
             fig.add_trace(
                 go.Scattergl(
@@ -1924,13 +1925,13 @@ def run(
                     opacity=0.5,
                     hovertemplate=(
                         # Edge ID / node name
-                        f"<b>Component #"
+                        "<b>Component #"
                         "%{text}</b><br>"
                         # Length
                         "<b>Total Length:</b> %{x:,} "
                         f"{ag.length_units}<br>"
                         # Coverage
-                        "<b>Aggregate "
+                        f"<b>{aggname} "
                         f"{ui_config.COVATTR2TITLE[ag.cov_field]}:</b> "
                         "%{y:,.2f}x"
                     ),

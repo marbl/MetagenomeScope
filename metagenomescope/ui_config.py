@@ -168,7 +168,7 @@ COVATTR2TITLE = {
     "cov": "Coverage",
     "kp1mer_cov": "(K+1)-mer Coverage",
     "depth": "Coverage",
-    "bsize": "Bundle size",
+    "bsize": "Bundle Size",
     "multiplicity": "Multiplicity",
 }
 
