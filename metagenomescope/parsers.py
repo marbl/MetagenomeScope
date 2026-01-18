@@ -469,6 +469,14 @@ def parse_gfa(filename):
         # None. If all the coverages are None then the AssemblyGraph code
         # should detect that and not list coverages in the selected node table
         cov = node.coverage()
+        # hifasm, flye, etc can store coverages in DP tags of GFAs
+        # https://github.com/asl/BandageNG/issues/146
+        if cov is None:
+            for possible_cov_tag in ("dp", "DP"):
+                if possible_cov_tag in node.tagnames:
+                    cov = node.get(possible_cov_tag)
+                    break
+
         # Add both a positive and negative node.
         digraph.add_node(
             node.name,

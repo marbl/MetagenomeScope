@@ -288,3 +288,12 @@ def test_multigraphs_okay_gfa2():
     assert ("1", "3", 1) in g.edges
     assert ("-3", "-1", 0) in g.edges
     assert ("-3", "-1", 1) in g.edges
+
+
+def test_dp_tags_parsed_as_coverage():
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\tCCC\tdp:f:123")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["7"]["cov"] == 123
+    assert g.nodes["-7"]["cov"] == 123
