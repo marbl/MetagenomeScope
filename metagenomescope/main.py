@@ -28,6 +28,7 @@ from . import (
     config,
     ui_utils,
     cy_utils,
+    chart_utils,
     color_utils,
     path_utils,
 )
@@ -1814,7 +1815,7 @@ def run(
                 margin=dict(t=75),
             )
             fig.update_yaxes(ticksuffix=" ")
-            missing_info = ui_utils.get_plot_missing_data_msg(
+            missing_info = chart_utils.get_plot_missing_data_msg(
                 ag.missing_cov_ct,
                 ag.possible_covlen_ct,
                 ag.cov_source,
@@ -1911,14 +1912,14 @@ def run(
                     ect = ui_utils.pluralize(cc.num_real_edges, "edge")
                     cc_names.append(f"{cc.cc_num:,} ({nct}, {ect})")
 
-            xlatex = ui_utils.get_total_length_latex(ag.node_centric)
+            xlatex = chart_utils.get_total_length_latex(ag.node_centric)
             if ag.has_covlens:
-                ylatex = ui_utils.get_weightedavg_cov_latex(
+                ylatex = chart_utils.get_weightedavg_cov_latex(
                     ag.node_centric, ag.cov_field
                 )
                 aggname = "Weighted average"
             else:
-                ylatex = ui_utils.get_unweightedavg_cov_latex(
+                ylatex = chart_utils.get_unweightedavg_cov_latex(
                     ag.node_centric, ag.cov_field
                 )
                 aggname = "Average"
@@ -1965,7 +1966,7 @@ def run(
             # shift the y-axis title to the left:
             # https://stackoverflow.com/a/75098774
             fig.update_yaxes(ticksuffix=" ", title_standoff=50)
-            missing_info = ui_utils.get_plot_missing_data_msg(
+            missing_info = chart_utils.get_plot_missing_data_msg(
                 missing_cc_ct,
                 len(ag.components),
                 "component",
@@ -2042,7 +2043,7 @@ def run(
                 margin=dict(t=75),
             )
             fig.update_yaxes(ticksuffix=" ")
-            missing_info = ui_utils.get_plot_missing_data_msg(
+            missing_info = chart_utils.get_plot_missing_data_msg(
                 ag.missing_cov_ct,
                 ag.possible_covlen_ct,
                 ag.cov_source,
