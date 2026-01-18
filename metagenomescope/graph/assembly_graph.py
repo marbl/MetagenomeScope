@@ -167,8 +167,8 @@ class AssemblyGraph(object):
         self._init_graph_objs()
         logger.debug("  ...Done.")
 
-        logger.debug("  Looking for information about coverages...")
-        self._record_coverages()
+        logger.debug("  Recording information about coverages...")
+        self._record_coverages_and_lengths()
         if self.has_covs:
             total = len(self.covs) + self.missing_cov_ct
             logging.debug(
@@ -178,8 +178,8 @@ class AssemblyGraph(object):
             )
         else:
             logger.debug(
-                "  ...Done. Didn't find anything, at least in a format we "
-                "expect."
+                "  ...Done. Didn't find any node or edge coverage data, at "
+                "least in a format we expect."
             )
 
         if self.lengths_are_approx:
@@ -190,8 +190,8 @@ class AssemblyGraph(object):
             f"  Computing some stats about {prefix}{self.seq_noun} "
             "sequence lengths..."
         )
-        self.n50 = seq_utils.n50(self.seq_lengths)
-        self.total_seq_len = sum(self.seq_lengths)
+        self.n50 = seq_utils.n50(self.lengths)
+        self.total_seq_len = sum(self.lengths)
         logger.debug(f"  ...Done. N50 is {self.n50:,} bp.")
 
         # Records the bounding boxes of each component in the graph. Indexed by
@@ -382,9 +382,8 @@ class AssemblyGraph(object):
 
         Also sanity checks node names.
 
-        Also populates self.seq_lengths with the observed Node or Edge sequence
-        lengths, depending on if self.node_centric is True or False.
-        And updates self.lengths_are_approx and self.length_units.
+        And updates self.length_field, self.lengths_are_approx, and
+        self.length_units.
 
         And assigns each node and edge a random integer in the range
         [0, |cy_config.RANDOM_COLORS| - 1]. This makes it simpler to assign
@@ -424,10 +423,9 @@ class AssemblyGraph(object):
         extra_edge_attrs_with_atleastone_entry = set()
 
         oldid2uniqueid = {}
-        self.seq_lengths = []
+        self.length_field = None
         self.lengths_are_approx = False
         self.length_units = "bp"
-        lengths_completely_defined = True
         for node_name in self.graph.nodes:
             str_node_name = str(node_name)
             name_utils.sanity_check_node_name(str_node_name)
@@ -450,12 +448,9 @@ class AssemblyGraph(object):
             # this node, so the user will still see it in the visualization.)
             oldid2uniqueid[node_name] = node_id
 
-            if lengths_completely_defined and self.node_centric:
-                if "length" in data:
-                    self.seq_lengths.append(data["length"])
-                else:
-                    # at least one node doesn't have a length given, bail out
-                    lengths_completely_defined = False
+            if self.node_centric and "length" not in data:
+                # at least one node doesn't have a length given, bail out
+                raise WeirdError(f"Node {str_node_name} has no length?")
 
             # If we've already seen the RC of this node, then we'll just copy
             # its random index to this node (in order to assign it the same
@@ -471,6 +466,12 @@ class AssemblyGraph(object):
                 ].rand_idx
             else:
                 new_node.rand_idx = next(rand_idx_generator)
+
+        # if this is a node-centric graph and we've made it here unscathed then
+        # we know for sure that all nodes have lengths, and that these are
+        # stored in a data field called "length".
+        if self.node_centric:
+            self.length_field = "length"
 
         nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
 
@@ -495,16 +496,27 @@ class AssemblyGraph(object):
             # make it easy to associate this edge with its Edge object.
             self.graph.edges[e[0], e[1], e[2]]["uid"] = edge_id
 
-            if lengths_completely_defined and not self.node_centric:
-                if "length" in data:
-                    self.seq_lengths.append(data["length"])
-                elif "approx_length" in data:
-                    # for flye graphs that write edge lengths as e.g. "720k"
-                    self.seq_lengths.append(data["approx_length"])
-                    self.lengths_are_approx = True
-                else:
-                    # at least one edge doesn't have a length given, bail out
-                    lengths_completely_defined = False
+            # If this is an edge-centric graph, then the very first iteration
+            # of this for loop will see an edge while we still have
+            # self.length_field set to None. Use this first edge to determine
+            # what the length field should be. Then, in all later iterations
+            # of this loop, check to ensure that the other edges have this same
+            # length field.
+            if not self.node_centric:
+                if self.length_field is None:
+                    if "length" in data:
+                        self.length_field = "length"
+                    elif "approx_length" in data:
+                        # for flye graphs that write edge lengths as e.g. "6k"
+                        self.length_field = "approx_length"
+                        self.lengths_are_approx = True
+                    else:
+                        # at least one edge doesn't have a length given, bail
+                        raise WeirdError(
+                            f"Edge {e[0]} -> {e[1]} has no length?"
+                        )
+                elif self.length_field not in data:
+                    raise WeirdError(f"Edge {e[0]} -> {e[1]} has no length?")
 
             src = self.nodeid2obj[e[0]]
             tgt = self.nodeid2obj[e[1]]
@@ -536,9 +548,6 @@ class AssemblyGraph(object):
 
                 new_edge.rand_idx = ri
                 edgenamepair2rand_idx[namepair] = ri
-
-        if not lengths_completely_defined:
-            raise WeirdError(f"Not all {self.seq_noun}s have defined lengths?")
 
         if not self.node_centric and not self.lengths_are_approx:
             # At least for now, this particular combination of things means
@@ -575,18 +584,64 @@ class AssemblyGraph(object):
         misc_utils.move_to_end_if_in(self.extra_node_attrs, "orientation")
         misc_utils.move_to_end_if_in(self.extra_edge_attrs, "orientation")
 
-    def _record_coverages(self):
-        """Figures out if the graph has coverages, and if so stores them.
+    def _record_coverages_and_lengths(self):
+        """Stores coverage info (if given) and length info (must be given).
 
-        The attributes self.cov_source, self.cov_field, self.covs,
-        self.missing_cov_ct, self.has_covs, and self.has_covlens will be set
-        after this is called. If the graph does not have coverages then
-        self.has_covs will be False.
+        You should already have called self._init_graph_objs() to have set
+        self.length_field before calling this function.
 
-        We COULD do this in the for-loops in self._init_graph_objs(), which
-        would save us the time spent iterating through the nodes / edges again,
-        but that would be tricky and annoying and it's easier to split things
-        up this way. self._init_graph_objs() probably does too much as it is.
+        Attributes set after calling this
+        ---------------------------------
+        self.lengths: list of int
+            List of node lengths (if self.node_centric) or edge lengths (if
+            not self.node_centric).
+
+        self.has_covs: bool
+            True if there are coverages in the graph, False otherwise.
+            If this is False then you should probably just ignore the remaining
+            attributes described in this docstring.
+
+        self.cov_source: str or None
+            Either "node", "edge", or None, depending on where coverages are
+            available in the graph. Note that this does not always match up
+            with node-centricity! e.g. MetaCarvel GML graphs are node-centric
+            (nodes have lengths, etc) but coverages are stored on edges as
+            bundle sizes.
+
+        self.cov_field: str or None
+            This describes the node / edge (depends on self.cov_source)
+            data field containing coverages.
+
+        self.covs: list of int
+            List of available coverages, analogous to self.lengths (but not
+            necessarily of the same size as self.lengths, since length is a
+            required field but coverage is not).
+
+        self.has_covlens: bool
+            True if there are coverages in the graph AND self.cov_source
+            matches up with where lengths are available -- that is, "can
+            we associate all coverage values with corresponding length
+            values?" This does NOT mean that every node or edge has to have
+            a defined coverage, but it does mean that all coverages can be
+            related to some length. If that makes sense.
+
+        self.name2covlen: dict of str -> (int, int)
+            Maps node names or user-specified edge IDs to a (cov, len) tuple.
+            Notes:
+            - This excludes nodes or edges that don't have defined coverages.
+            - If the input graph included two copies of each sequence (e.g.
+              node 123 and node -123) then both copies will be represented here
+              (assuming that both had a defined coverage). That said, remember
+              that we are calling this function BEFORE the graph decomposition
+              stuff, so we don't have to worry about fake edges or split nodes
+              messing with the values here.
+
+        self.missing_cov_ct: int
+            Lists the number of nodes or edges (depending on self.cov_source)
+            that do not have a defined coverage. As before, this is computed
+            before the decomposition, so like yeah of course fake edges don't
+            have a coverage but also they won't be described in this count
+            because that would be silly.
 
         Anyway if there are coverages then we can show coverage plots! yay.
 
@@ -604,13 +659,26 @@ class AssemblyGraph(object):
           if you add in a link with an RC tag). Anyway if desired we can add
           support for this.
           * https://github.com/GFA-spec/GFA-spec/blob/master/GFA1.md
+
+        - We COULD do this in the for-loops in self._init_graph_objs(), which
+          would save us the time spent iterating through the nodes / edges
+          again, but that would be tricky and annoying and it's easier to split
+          things up this way. self._init_graph_objs() probably does too much as
+          it is.
+
+        - Similarly, storing self.name2covlen is kind of memory inefficient,
+          right? But I am willing to trade a bit of inefficiency for a lot of
+          safety in not having to repeatedly scan through the graph after
+          decomposition and be like ummm is this a split node or is it a ...
         """
+        self.lengths = []
         self.has_covs = False
         self.cov_source = None
         self.cov_field = None
         self.covs = []
-        self.missing_cov_ct = 0
         self.has_covlens = False
+        self.name2covlen = {}
+        self.missing_cov_ct = 0
 
         # Do the nodes have coverages?
         for ncfield in ("cov", "depth"):
@@ -659,6 +727,31 @@ class AssemblyGraph(object):
                 self.has_covlens = self.node_centric
             else:
                 self.has_covlens = not self.node_centric
+
+        if self.has_covlens:
+            for obj in id2obj.values():
+                if self.cov_field in obj.data:
+                    ocov = obj.data[self.cov_field]
+                    if ocov is not None:
+                        olen = obj.data[self.length_field]
+                        if olen is None:
+                            # should never happen, since we already should have
+                            # verified that all nodes or all edges have lengths
+                            raise WeirdError(
+                                f"{obj} has no {self.length_field}"
+                            )
+                        if self.node_centric:
+                            key = obj.name
+                        else:
+                            key = obj.get_userspecified_id()
+                        self.name2covlen[key] = (ocov, olen)
+
+        if self.node_centric:
+            id2obj = self.nodeid2obj
+        else:
+            id2obj = self.edgeid2obj
+        for obj in id2obj.values():
+            self.lengths.append(obj.data[self.length_field])
 
     def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.
