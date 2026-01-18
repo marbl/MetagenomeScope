@@ -7,6 +7,7 @@ import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 import plotly.graph_objects as go
+from statistics import mean
 from dash import (
     Dash,
     html,
@@ -1810,6 +1811,149 @@ def run(
             )
             fig.update_yaxes(ticksuffix=" ")
             return dcc.Graph(figure=fig)
+
+    if ag.has_covs:
+
+        @callback(
+            Output("covlenCCScatterContainer", "children"),
+            Output("covlenCCScatterMissingInfo", "children"),
+            Input("covTab", "n_clicks"),
+            prevent_initial_call=True,
+        )
+        def plot_cov_cc_scatter(n_clicks):
+            fig = go.Figure()
+            cc_names = []
+            cc_lens = []
+            cc_covs = []
+            missing_cc_ct = 0
+            for cc in ag.components:
+                cc_total_len = 0
+                cc_agg_cov = 0
+                covs_given_in_cc = False
+                if ag.has_covlens:
+                    cc_total_weighted_cov = 0
+
+                    if ag.node_centric:
+                        # nodes have lengths and covs
+                        seen_basenames = set()
+                        for n in cc.nodes:
+                            bn = n.basename
+                            # only consider a node with a basename once - this
+                            # means that we only process a split node pair once
+                            if (
+                                bn not in seen_basenames
+                                and bn in ag.name2covlen
+                            ):
+                                ncov, nlen = ag.name2covlen[bn]
+                                cc_total_len += nlen
+                                cc_total_weighted_cov += nlen * ncov
+                                seen_basenames.add(bn)
+                                covs_given_in_cc = True
+                    else:
+                        # edges have lengths and covs
+                        for e in cc.edges:
+                            if not e.is_fake:
+                                eid = e.get_userspecified_id()
+                                if eid in ag.name2covlen:
+                                    ecov, elen = ag.name2covlen[eid]
+                                    cc_total_len += elen
+                                    cc_total_weighted_cov += elen * ecov
+                                    covs_given_in_cc = True
+                    # avoid division by zero issues. not that any node or
+                    # edge should have a length of zero lol. anyway if
+                    # cc_total_len is 0 we'll detect it below and not include
+                    # this cc in the plot anyway
+                    if cc_total_len != 0:
+                        cc_agg_cov = cc_total_weighted_cov / cc_total_len
+                else:
+                    cc_total_unweighted_cov = 0
+                    num_seen_covs = 0
+                    if ag.node_centric:
+                        # nodes have lengths, edges have covs
+                        # this is the case for metacarvel graphs
+                        # x-axis = total node length
+                        # y-axis = average edge cov
+                        seen_basenames = set()
+                        for n in cc.nodes:
+                            bn = n.basename
+                            if bn not in seen_basenames:
+                                cc_total_len += n.data[ag.length_field]
+                                seen_basenames.add(bn)
+                        for e in cc.edges:
+                            if not e.is_fake:
+                                cc_total_unweighted_cov += e.data[ag.cov_field]
+                                num_seen_covs += 1
+                                covs_given_in_cc = True
+                    else:
+                        # edges have lengths, nodes have coverages. We don't
+                        # currently support any graphs that are formatted like
+                        # this (but we totally could if needed)
+                        raise WeirdError("Unexpected graph format?")
+                    if covs_given_in_cc:
+                        cc_agg_cov = cc_total_unweighted_cov / num_seen_covs
+
+                if cc_total_len == 0 or not covs_given_in_cc:
+                    missing_cc_ct += 1
+                else:
+                    cc_lens.append(cc_total_len)
+                    cc_covs.append(cc_agg_cov)
+                    nct = ui_utils.pluralize(cc.num_full_nodes, "node")
+                    ect = ui_utils.pluralize(cc.num_real_edges, "edge")
+                    cc_names.append(f"{cc.cc_num:,} ({nct}, {ect})")
+
+            xlatex = ui_utils.get_total_length_latex(ag.node_centric)
+            if ag.has_covlens:
+                ylatex = ui_utils.get_weightedavg_cov_latex(
+                    ag.node_centric, ag.cov_field
+                )
+            else:
+                ylatex = ui_utils.get_unweightedavg_cov_latex(
+                    ag.node_centric, ag.cov_field
+                )
+
+            fig.add_trace(
+                go.Scattergl(
+                    text=cc_names,
+                    x=cc_lens,
+                    y=cc_covs,
+                    mode="markers",
+                    marker_size=10,
+                    marker_color="#9c5717",
+                    marker_line_width=2,
+                    marker_line_color="#301b06",
+                    opacity=0.5,
+                    hovertemplate=(
+                        # Edge ID / node name
+                        f"<b>Component #"
+                        "%{text}</b><br>"
+                        # Length
+                        "<b>Total Length:</b> %{x:,} "
+                        f"{ag.length_units}<br>"
+                        # Coverage
+                        "<b>Aggregate "
+                        f"{ui_config.COVATTR2TITLE[ag.cov_field]}:</b> "
+                        "%{y:,.2f}x"
+                    ),
+                    # hide "trace 0" msg
+                    name="",
+                )
+            )
+            fig.update_layout(
+                title_text=(
+                    f"Component lengths and {ag.cov_source} "
+                    f"{ui_config.COVATTR2PLURAL[ag.cov_field]}"
+                ),
+                xaxis_title_text=xlatex,
+                yaxis_title_text=ylatex,
+                font=dict(size=16),
+                title=dict(yanchor="bottom", y=1, yref="paper"),
+                title_pad=dict(b=30),
+                margin=dict(t=75, l=50),
+            )
+            # shift the y-axis title to the left:
+            # https://stackoverflow.com/a/75098774
+            fig.update_yaxes(ticksuffix=" ", title_standoff=50)
+            return dcc.Graph(mathjax=True, figure=fig), None
 
     if ag.has_covlens:
 
