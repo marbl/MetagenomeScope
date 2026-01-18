@@ -1811,10 +1811,14 @@ def run(
         @callback(
             Output("covlenCCScatterContainer", "children"),
             Output("covlenCCScatterMissingInfo", "children"),
+            Input("covNestCCTab", "n_clicks"),
             Input("covTab", "n_clicks"),
             prevent_initial_call=True,
         )
-        def plot_cov_cc_scatter(n_clicks):
+        def plot_cov_cc_scatter(parent_tab_nclicks, grandparent_tab_nclicks):
+            # if we don't redo (?) the fig on clicking the covnestcctab then
+            # the y-axis label can get knocked off the top part of the plot
+            # partially when you go from another sibling tab to this one
             fig = go.Figure()
             cc_names = []
             cc_lens = []
