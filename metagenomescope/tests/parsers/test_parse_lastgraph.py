@@ -26,22 +26,22 @@ def test_parse_lastgraph_good():
     # and node "-ABC" to be different.
     assert "1" in digraph.nodes
     assert digraph.nodes["1"]["length"] == 1
-    assert digraph.nodes["1"]["depth"] == 5
+    assert digraph.nodes["1"]["cov"] == 5
     assert digraph.nodes["1"]["gc_content"] == 1
 
     assert "-1" in digraph.nodes
     assert digraph.nodes["-1"]["length"] == 1
-    assert digraph.nodes["-1"]["depth"] == 5
+    assert digraph.nodes["-1"]["cov"] == 5
     assert digraph.nodes["-1"]["gc_content"] == 0
 
     assert "2" in digraph.nodes
     assert digraph.nodes["2"]["length"] == 6
-    assert digraph.nodes["2"]["depth"] == (20 / 6)
+    assert digraph.nodes["2"]["cov"] == (20 / 6)
     assert digraph.nodes["2"]["gc_content"] == (2 / 3)
 
     assert "-2" in digraph.nodes
     assert digraph.nodes["-2"]["length"] == 6
-    assert digraph.nodes["-2"]["depth"] == (20 / 6)
+    assert digraph.nodes["-2"]["cov"] == (20 / 6)
     assert digraph.nodes["-2"]["gc_content"] == (1 / 6)
 
     # Check that edges were properly stored in the digraph

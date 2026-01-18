@@ -686,6 +686,8 @@ class AssemblyGraph(object):
         self.missing_cov_ct = 0
 
         # Do the nodes have coverages?
+        # NOTE: as of jan 2026 no parsers currently output "depth" info for
+        # nodes. let's include it in the tuple below anyway just to be safe
         for ncfield in ("cov", "depth"):
             if ncfield in self.extra_node_attrs:
                 self.cov_source = "node"

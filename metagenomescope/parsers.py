@@ -635,7 +635,7 @@ def parse_lastgraph(filename):
         4.2.4.
 
     https://github.com/rrwick/Bandage
-        The behavior of the LastGraph parser here (i.e. calculating depth
+        The behavior of the LastGraph parser here (i.e. calculating coverage
         as $O_COV_SHORT_1 / $COV_SHORT_1) was primarily based on chucking
         LastGraph files into Bandage and seeing how it handled them.
     """
@@ -654,7 +654,7 @@ def parse_lastgraph(filename):
         curr_node_attrs = {
             "id": "",
             "length": -1,
-            "depth": -1,
+            "cov": -1,
             "fwdseq": None,
             "revseq": None,
         }
@@ -664,11 +664,11 @@ def parse_lastgraph(filename):
                 line_contents = line.split()
                 curr_node_attrs["id"] = line_contents[1]
                 curr_node_attrs["length"] = int(line_contents[2])
-                # NOTE: we define "depth" as just the node's O_COV_SHORT_1
+                # NOTE: we define "cov" as just the node's O_COV_SHORT_1
                 # value divided by the node's length (its COV_SHORT_1
                 # value). This decision mirrors Bandage's behavior with
                 # LastGraph files.
-                curr_node_attrs["depth"] = (
+                curr_node_attrs["cov"] = (
                     float(line_contents[3]) / curr_node_attrs["length"]
                 )
             elif line.startswith("ARC"):
@@ -693,7 +693,7 @@ def parse_lastgraph(filename):
                     digraph.add_node(
                         curr_node_attrs["id"],
                         length=curr_node_attrs["length"],
-                        depth=curr_node_attrs["depth"],
+                        cov=curr_node_attrs["cov"],
                         gc_content=gc_content(curr_node_attrs["fwdseq"])[0],
                         orientation=config.FWD,
                     )
@@ -704,7 +704,7 @@ def parse_lastgraph(filename):
                     digraph.add_node(
                         negate(curr_node_attrs["id"]),
                         length=curr_node_attrs["length"],
-                        depth=curr_node_attrs["depth"],
+                        cov=curr_node_attrs["cov"],
                         gc_content=gc_content(curr_node_attrs["revseq"])[0],
                         orientation=config.REV,
                     )
@@ -716,7 +716,7 @@ def parse_lastgraph(filename):
                     curr_node_attrs = {
                         "id": "",
                         "length": -1,
-                        "depth": -1,
+                        "cov": -1,
                         "fwdseq": None,
                         "revseq": None,
                     }

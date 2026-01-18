@@ -113,7 +113,6 @@ NODEATTR2HRT = {
     "name": ("ID", "text"),
     "length": ("Length", "text"),
     "orientation": ("+/-", "text"),
-    "depth": ("Cov.", "number"),
     "cov": ("Cov.", "number"),
     "circ.": ("Circular?", "text"),
     "repeat": ("Repeat?", "text"),
@@ -151,7 +150,6 @@ EDGEATTR2HRT = {
 COVATTR2SINGLE = {
     "cov": "coverage",
     "kp1mer_cov": "(K+1)-mer coverage",
-    "depth": "coverage",
     "bsize": "bundle size",
     "multiplicity": "multiplicity",
 }
@@ -159,7 +157,6 @@ COVATTR2SINGLE = {
 COVATTR2PLURAL = {
     "cov": "coverages",
     "kp1mer_cov": "(K+1)-mer coverages",
-    "depth": "coverages",
     "bsize": "bundle sizes",
     "multiplicity": "multiplicities",
 }
@@ -167,7 +164,6 @@ COVATTR2PLURAL = {
 COVATTR2TITLE = {
     "cov": "Coverage",
     "kp1mer_cov": "(K+1)-mer Coverage",
-    "depth": "Coverage",
     "bsize": "Bundle Size",
     "multiplicity": "Multiplicity",
 }
@@ -206,7 +202,6 @@ FMT_APPROX_LENGTH = {
 
 NODEATTR2FMT = {
     "length": FMT_THOUSANDS_SEP,
-    "depth": FMT_THOUSANDS_SEP,
     "cov": FMT_THOUSANDS_SEP,
     "gc": FMT_PERCENT,
     "mult.": FMT_THOUSANDS_SEP,

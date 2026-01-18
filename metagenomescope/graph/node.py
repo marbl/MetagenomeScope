@@ -83,7 +83,7 @@ class Node(object):
             config.SPLIT_* variables remain as their current defaults.
 
         data: dict
-            Maps field names (e.g. "length", "orientation", "depth", ...) to
+            Maps field names (e.g. "length", "orientation", "cov", ...) to
             their values for this node. The amount of this data will vary based
             on the input assembly graph's filetype (if no data is available for
             this node, this can be an empty dict).
