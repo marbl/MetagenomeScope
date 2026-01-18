@@ -72,7 +72,7 @@ def get_unweightedavg_cov_latex(node_centric, cov_field):
             r"}("
             "e"
             r")}{|"
-            "Edges"
+            r"\text{Edges}"
             r"|}$"
         )
 
