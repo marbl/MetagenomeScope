@@ -643,6 +643,11 @@ class AssemblyGraph(object):
             have a coverage but also they won't be described in this count
             because that would be silly.
 
+        self.possible_covlen_ct: int
+            Equal to len(self.lengths). Basically, this is a way of saying
+            "if every possible node or edge in the input graph had an
+            associated coverage, how big would self.name2covlen be?"
+
         Anyway if there are coverages then we can show coverage plots! yay.
 
         Notes
@@ -752,6 +757,7 @@ class AssemblyGraph(object):
             id2obj = self.edgeid2obj
         for obj in id2obj.values():
             self.lengths.append(obj.data[self.length_field])
+        self.possible_covlen_ct = len(self.lengths)
 
     def _get_unique_id(self):
         """Returns an int guaranteed to be usable as a unique new ID.

@@ -1344,10 +1344,14 @@ def run(
                                                         html.Div(
                                                             [
                                                                 html.Div(
-                                                                    html.Div(
-                                                                        "scatterhere",
-                                                                        id="covlenCCScatterContainer",
-                                                                    ),
+                                                                    [
+                                                                        html.Div(
+                                                                            id="covlenCCScatterContainer",
+                                                                        ),
+                                                                        html.Div(
+                                                                            id="covlenCCScatterMissingInfo",
+                                                                        ),
+                                                                    ],
                                                                     className="tab-pane fade show active",
                                                                     id="covNestCCTabPane",
                                                                     role="tabpanel",
@@ -1360,7 +1364,6 @@ def run(
                                                                     html.Div(
                                                                         [
                                                                             html.Div(
-                                                                                "ele scatter here",
                                                                                 id="covlenEleScatterContainer",
                                                                             ),
                                                                             html.Div(
@@ -1755,7 +1758,7 @@ def run(
         fig = go.Figure()
         fig.add_trace(
             go.Histogram(
-                x=ag.seq_lengths,
+                x=ag.lengths,
                 marker_color="#811",
                 marker_line_width=2,
                 marker_line_color="#100",
@@ -1823,49 +1826,13 @@ def run(
                 f"{ui_config.COVATTR2PLURAL[ag.cov_field]}"
             )
             fancycovtitle = ui_config.COVATTR2TITLE[ag.cov_field]
-            id2obj = (
-                ag.nodeid2obj if ag.cov_source == "node" else ag.edgeid2obj
-            )
-            # we already have lists of covs and lengths stored in the
-            # AssemblyGraph, but just to be safe let's recompute them so we
-            # know we can pair 'em up
             lens = []
             covs = []
             names = []
-            missing_ct = 0
-            total_ct = 0
-            # TODO this is kind of brittle, we should ideally store this as an
-            # ag attribute analogous to ag.cov_field
-            lenfield = "approx_length" if ag.lengths_are_approx else "length"
-            for obj in id2obj.values():
-                # Don't let pattern decomposition impact these results!
-                # Ignore fake edges, and ignore left split nodes. This ensures
-                # that each original edge/node is counted exactly once.
-                if ag.cov_source == "edge" and obj.is_fake:
-                    continue
-                if ag.cov_source == "node" and obj.split == config.SPLIT_LEFT:
-                    continue
-                # okay, if we've made it here, we're safe - this is a real
-                # edge or an unsplit / right-split node, so we can just count
-                # its stuff once
-                if lenfield in obj.data and ag.cov_field in obj.data:
-                    olen = obj.data[lenfield]
-                    ocov = obj.data[ag.cov_field]
-                    if olen is not None and ocov is not None:
-                        lens.append(olen)
-                        covs.append(ocov)
-                        if ag.cov_source == "node":
-                            # since we ignored left split nodes above, we know
-                            # this node is either unsplit or a right split
-                            # node. If the latter, show "40" instead of "40-R"
-                            # (since there IS no unsplit version of the node
-                            # remaining if it has been split...)
-                            names.append(obj.basename)
-                        else:
-                            names.append(obj.get_userspecified_id())
-                else:
-                    missing_ct += 1
-                total_ct += 1
+            for objname, (ocov, olen) in ag.name2covlen.items():
+                lens.append(olen)
+                covs.append(ocov)
+                names.append(objname)
             fig.add_trace(
                 # "whatever. go my scattergls"
                 go.Scattergl(
@@ -1912,23 +1879,23 @@ def run(
                 margin=dict(t=75),
             )
             fig.update_yaxes(ticksuffix=" ")
-            if missing_ct > 0:
+            if ag.missing_cov_ct > 0:
                 # now THIS is obsessive compulsive disorder
-                if missing_ct == 1:
+                if ag.missing_cov_ct == 1:
                     s = ""
                     are = "is"
                 else:
                     s = "s"
                     are = "are"
-                mpct = 100 * (missing_ct / len(ag.covs))
+                mpct = 100 * (ag.missing_cov_ct / ag.possible_covlen_ct)
                 missing_info = [
                     html.Span(
-                        f"{missing_ct:,} / {total_ct:,} ({mpct:.2f}%) "
-                        f"{ag.cov_source}{s}",
+                        f"{ag.missing_cov_ct:,} / {ag.possible_covlen_ct:,} "
+                        f"({mpct:.2f}%) {ag.cov_source}{s}",
                         className="fw-bold",
                     ),
                     f" {are} omitted from this plot due to not having "
-                    "length and/or coverage data.",
+                    "coverage data.",
                 ]
             else:
                 missing_info = None
