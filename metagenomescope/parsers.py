@@ -39,7 +39,6 @@ from .name_utils import negate
 from .seq_utils import gc_content
 from .errors import GraphParsingError, WeirdError
 
-
 LJA_LFL_PATT = re.compile(
     r"([\-_a-zA-Z\d\.]+) ([ACGT]) ?([0-9]+)\(([0-9\.]+)\)"
 )
