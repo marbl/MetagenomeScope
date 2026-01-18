@@ -99,7 +99,11 @@ def get_plot_missing_data_msg(num, den, noun, reason):
     return missing_info
 
 
-def prettify_fig(fig):
+def prettify_go_fig(fig):
+    """Adjusts a plotly.graph_objects figure to make it a bit nicer.
+
+    ...at least for our purposes, and in my opinion.
+    """
     fig.update_layout(
         font=dict(size=16),
         # By default the title is shoved up really high above

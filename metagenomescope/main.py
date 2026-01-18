@@ -1688,7 +1688,7 @@ def run(
                 xaxis_title_text="# nodes or # edges",
                 yaxis_title_text="# components",
             )
-            chart_utils.prettify_fig(fig)
+            chart_utils.prettify_go_fig(fig)
             return dcc.Graph(figure=fig)
 
         @callback(
@@ -1765,7 +1765,7 @@ def run(
             xaxis_title_text=f"Length ({ag.length_units})",
             yaxis_title_text=f"# {ag.seq_noun}s",
         )
-        chart_utils.prettify_fig(fig)
+        chart_utils.prettify_go_fig(fig)
         return dcc.Graph(figure=fig)
 
     if ag.has_covs:
@@ -1796,7 +1796,7 @@ def run(
                 xaxis_title_text=ui_config.COVATTR2TITLE[ag.cov_field],
                 yaxis_title_text=f"# {ag.cov_source}s",
             )
-            chart_utils.prettify_fig(fig)
+            chart_utils.prettify_go_fig(fig)
             missing_info = chart_utils.get_plot_missing_data_msg(
                 ag.missing_cov_ct,
                 ag.possible_covlen_ct,
@@ -1944,7 +1944,7 @@ def run(
             # shift the y-axis title to the left:
             # https://stackoverflow.com/a/75098774
             fig.update_yaxes(title_standoff=50)
-            chart_utils.prettify_fig(fig)
+            chart_utils.prettify_go_fig(fig)
             missing_info = chart_utils.get_plot_missing_data_msg(
                 missing_cc_ct,
                 len(ag.components),
@@ -2017,7 +2017,7 @@ def run(
                 xaxis_title_text=f"Length ({ag.length_units})",
                 yaxis_title_text=fancycovtitle,
             )
-            chart_utils.prettify_fig(fig)
+            chart_utils.prettify_go_fig(fig)
             missing_info = chart_utils.get_plot_missing_data_msg(
                 ag.missing_cov_ct,
                 ag.possible_covlen_ct,
