@@ -97,3 +97,19 @@ def get_plot_missing_data_msg(num, den, noun, reason):
     else:
         missing_info = None
     return missing_info
+
+
+def prettify_fig(fig):
+    fig.update_layout(
+        font=dict(size=16),
+        # By default the title is shoved up really high above
+        # the figure; this repositions it to be closer, while
+        # still keeping a bit of padding. From
+        # https://community.plotly.com/t/margins-around-graphs/11550/6
+        title=dict(yanchor="bottom", y=1, yref="paper"),
+        title_pad=dict(b=30),
+        margin=dict(t=75),
+    )
+    # Hack to add padding to the right of the y-axis tick labels:
+    # https://stackoverflow.com/a/66736119
+    fig.update_yaxes(ticksuffix=" ")

@@ -1687,18 +1687,8 @@ def run(
                 title_text="Numbers of nodes and edges per component",
                 xaxis_title_text="# nodes or # edges",
                 yaxis_title_text="# components",
-                font=dict(size=16),
-                # By default the title is shoved up really high above
-                # the figure; this repositions it to be closer, while
-                # still keeping a bit of padding. From
-                # https://community.plotly.com/t/margins-around-graphs/11550/6
-                title=dict(yanchor="bottom", y=1, yref="paper"),
-                title_pad=dict(b=30),
-                margin=dict(t=75),
             )
-            # Hack to add padding to the right of the y-axis tick labels:
-            # https://stackoverflow.com/a/66736119
-            fig.update_yaxes(ticksuffix=" ")
+            chart_utils.prettify_fig(fig)
             return dcc.Graph(figure=fig)
 
         @callback(
@@ -1774,12 +1764,8 @@ def run(
             title_text=f"{ag.seq_noun.title()} sequence lengths",
             xaxis_title_text=f"Length ({ag.length_units})",
             yaxis_title_text=f"# {ag.seq_noun}s",
-            font=dict(size=16),
-            title=dict(yanchor="bottom", y=1, yref="paper"),
-            title_pad=dict(b=30),
-            margin=dict(t=75),
         )
-        fig.update_yaxes(ticksuffix=" ")
+        chart_utils.prettify_fig(fig)
         return dcc.Graph(figure=fig)
 
     if ag.has_covs:
@@ -1809,12 +1795,8 @@ def run(
                 title_text=desc,
                 xaxis_title_text=ui_config.COVATTR2TITLE[ag.cov_field],
                 yaxis_title_text=f"# {ag.cov_source}s",
-                font=dict(size=16),
-                title=dict(yanchor="bottom", y=1, yref="paper"),
-                title_pad=dict(b=30),
-                margin=dict(t=75),
             )
-            fig.update_yaxes(ticksuffix=" ")
+            chart_utils.prettify_fig(fig)
             missing_info = chart_utils.get_plot_missing_data_msg(
                 ag.missing_cov_ct,
                 ag.possible_covlen_ct,
@@ -1958,14 +1940,11 @@ def run(
                 ),
                 xaxis_title_text=xlatex,
                 yaxis_title_text=ylatex,
-                font=dict(size=16),
-                title=dict(yanchor="bottom", y=1, yref="paper"),
-                title_pad=dict(b=30),
-                margin=dict(t=75, l=50),
             )
             # shift the y-axis title to the left:
             # https://stackoverflow.com/a/75098774
-            fig.update_yaxes(ticksuffix=" ", title_standoff=50)
+            fig.update_yaxes(title_standoff=50)
+            chart_utils.prettify_fig(fig)
             missing_info = chart_utils.get_plot_missing_data_msg(
                 missing_cc_ct,
                 len(ag.components),
@@ -2037,12 +2016,8 @@ def run(
                 title_text=desc,
                 xaxis_title_text=f"Length ({ag.length_units})",
                 yaxis_title_text=fancycovtitle,
-                font=dict(size=16),
-                title=dict(yanchor="bottom", y=1, yref="paper"),
-                title_pad=dict(b=30),
-                margin=dict(t=75),
             )
-            fig.update_yaxes(ticksuffix=" ")
+            chart_utils.prettify_fig(fig)
             missing_info = chart_utils.get_plot_missing_data_msg(
                 ag.missing_cov_ct,
                 ag.possible_covlen_ct,
