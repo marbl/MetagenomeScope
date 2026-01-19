@@ -147,14 +147,14 @@ def get_scale_options(html_obj_id, desc):
                     options=[
                         {
                             "label": "Linear",
-                            "value": "linear",
+                            "value": ui_config.SCALE_LINEAR,
                         },
                         {
                             "label": "Logarithmic",
-                            "value": "log",
+                            "value": ui_config.SCALE_LOG,
                         },
                     ],
-                    value="linear",
+                    value=ui_config.SCALE_LINEAR,
                     className="btn-group",
                     inputClassName="btn-check",
                     labelClassName="btn btn-sm btn-outline-dark",
