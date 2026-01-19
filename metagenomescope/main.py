@@ -1237,9 +1237,16 @@ def run(
                                                                     },
                                                                 ),
                                                                 html.Div(
-                                                                    html.Div(
-                                                                        id="ccHistContainer",
-                                                                    ),
+                                                                    [
+                                                                        html.Div(
+                                                                            id="ccHistContainer",
+                                                                        ),
+                                                                        chart_utils.get_hist_options(
+                                                                            "ccHistNumBins",
+                                                                            "ccHistNumBinsApply",
+                                                                            "ccHistYScale",
+                                                                        ),
+                                                                    ],
                                                                     className="tab-pane fade",
                                                                     id="ccNestHistTabPane",
                                                                     role="tabpanel",
@@ -1392,6 +1399,11 @@ def run(
                                                                     [
                                                                         html.Div(
                                                                             id="covHistContainer",
+                                                                        ),
+                                                                        chart_utils.get_hist_options(
+                                                                            "covHistNumBins",
+                                                                            "covHistNumBinsApply",
+                                                                            "covHistYScale",
                                                                         ),
                                                                         html.Div(
                                                                             id="covHistMissingInfo",
@@ -1659,11 +1671,33 @@ def run(
     if multiple_ccs:
 
         @callback(
+            Output("toastHolder", "children", allow_duplicate=True),
             Output("ccHistContainer", "children"),
+            State("toastHolder", "children"),
             Input("ccNestHistTab", "n_clicks"),
+            State("ccHistNumBins", "value"),
+            Input("ccHistNumBins", "n_submit"),
+            Input("ccHistNumBinsApply", "n_clicks"),
+            Input("ccHistYScale", "value"),
             prevent_initial_call=True,
         )
-        def plot_cc_hist(n_clicks):
+        def plot_cc_hist(
+            curr_toasts,
+            tab_n_clicks,
+            nbinsx,
+            nbins_n_submit,
+            nbins_n_clicks,
+            yscale,
+        ):
+            try:
+                ibins = ui_utils.get_hist_nbins(nbinsx)
+            except UIError as err:
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts, "Histogram error", str(err)
+                    ),
+                    no_update,
+                )
             graph_utils.validate_multiple_ccs(ag)
             cc_node_cts, cc_edge_cts = ag.get_component_node_and_edge_cts()
 
@@ -1675,6 +1709,7 @@ def run(
                     marker_line_width=2,
                     marker_line_color="#030",
                     name="# nodes",
+                    nbinsx=ibins,
                 )
             )
             fig.add_trace(
@@ -1693,9 +1728,10 @@ def run(
                 title_text="Numbers of nodes and edges per component",
                 xaxis_title_text="# nodes or # edges",
                 yaxis_title_text="# components",
+                yaxis_type=yscale,
             )
             chart_utils.prettify_go_fig(fig)
-            return dcc.Graph(figure=fig)
+            return no_update, dcc.Graph(figure=fig)
 
         @callback(
             Output("ccTreemapContainer", "children"),
@@ -1754,8 +1790,8 @@ def run(
         Output("toastHolder", "children", allow_duplicate=True),
         Output("seqLenHistContainer", "children"),
         State("toastHolder", "children"),
-        State("seqLenHistNumBins", "value"),
         Input("seqLenTab", "n_clicks"),
+        State("seqLenHistNumBins", "value"),
         Input("seqLenHistNumBins", "n_submit"),
         Input("seqLenHistNumBinsApply", "n_clicks"),
         Input("seqLenHistYScale", "value"),
@@ -1763,8 +1799,8 @@ def run(
     )
     def plot_seqlen_hist(
         curr_toasts,
-        nbinsx,
         tab_n_clicks,
+        nbinsx,
         nbins_n_submit,
         nbins_n_clicks,
         yscale,
@@ -1802,12 +1838,35 @@ def run(
     if ag.has_covs:
 
         @callback(
+            Output("toastHolder", "children", allow_duplicate=True),
             Output("covHistContainer", "children"),
             Output("covHistMissingInfo", "children"),
+            State("toastHolder", "children"),
             Input("covNestHistTab", "n_clicks"),
+            State("covHistNumBins", "value"),
+            Input("covHistNumBins", "n_submit"),
+            Input("covHistNumBinsApply", "n_clicks"),
+            Input("covHistYScale", "value"),
             prevent_initial_call=True,
         )
-        def plot_cov_hist(n_clicks):
+        def plot_cov_hist(
+            curr_toasts,
+            tab_n_clicks,
+            nbinsx,
+            nbins_n_submit,
+            nbins_n_clicks,
+            yscale,
+        ):
+            try:
+                ibins = ui_utils.get_hist_nbins(nbinsx)
+            except UIError as err:
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts, "Histogram error", str(err)
+                    ),
+                    no_update,
+                    no_update,
+                )
             fig = go.Figure()
             desc = (
                 f"{ag.cov_source.title()} "
@@ -1820,12 +1879,14 @@ def run(
                     marker_line_width=2,
                     marker_line_color="#031b57",
                     name=desc,
+                    nbinsx=ibins,
                 )
             )
             fig.update_layout(
                 title_text=desc,
                 xaxis_title_text=ui_config.COVATTR2TITLE[ag.cov_field],
                 yaxis_title_text=f"# {ag.cov_source}s",
+                yaxis_type=yscale,
             )
             chart_utils.prettify_go_fig(fig)
             missing_info = chart_utils.get_plot_missing_data_msg(
@@ -1834,7 +1895,7 @@ def run(
                 ag.cov_source,
                 "not having coverage data",
             )
-            return dcc.Graph(figure=fig), missing_info
+            return no_update, dcc.Graph(figure=fig), missing_info
 
     if ag.has_covs:
 

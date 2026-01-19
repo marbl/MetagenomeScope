@@ -124,7 +124,8 @@ def get_num_bins_option(val_id, btn_id):
     return dbc.InputGroup(
         [
             dbc.InputGroupText(
-                "Maximum # bins", className="input-group-text-next-to-button"
+                "Desired maximum # bins",
+                className="input-group-text-next-to-button",
             ),
             dbc.Input(
                 placeholder="# bins", id=val_id, style={"max-width": "10em"}
