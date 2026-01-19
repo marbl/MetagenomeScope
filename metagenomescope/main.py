@@ -1746,7 +1746,6 @@ def run(
                 )
             )
             fig.update_layout(
-                barmode="stack",
                 title_text=title,
                 xaxis_title_text=f"# {nouns}",
                 yaxis_title_text="# components",
@@ -1816,6 +1815,9 @@ def run(
         State("seqLenHistNumBins", "value"),
         Input("seqLenHistNumBins", "n_submit"),
         Input("seqLenHistNumBinsApply", "n_clicks"),
+        State("seqLenHistMaxX", "value"),
+        Input("seqLenHistMaxX", "n_submit"),
+        Input("seqLenHistMaxXApply", "n_clicks"),
         Input("seqLenHistYScale", "value"),
         prevent_initial_call=True,
     )
@@ -1825,10 +1827,14 @@ def run(
         nbinsx,
         nbins_n_submit,
         nbins_n_clicks,
+        maxx,
+        maxx_n_submit,
+        maxx_n_clicks,
         yscale,
     ):
         try:
             ibins = ui_utils.get_hist_nbins(nbinsx)
+            maxx = ui_utils.get_maxx(maxx)
         except UIError as err:
             return (
                 ui_utils.add_error_toast(
@@ -1836,10 +1842,12 @@ def run(
                 ),
                 no_update,
             )
+        title=f"{ag.seq_noun.title()} sequence lengths"
+        lens, title = ui_utils.truncate_hist(ag.lengths, title, maxx)
         fig = go.Figure()
         fig.add_trace(
             go.Histogram(
-                x=ag.lengths,
+                x=lens,
                 marker_color="#811",
                 marker_line_width=2,
                 marker_line_color="#100",
@@ -1848,7 +1856,7 @@ def run(
             )
         )
         fig.update_layout(
-            title_text=f"{ag.seq_noun.title()} sequence lengths",
+            title_text=title,
             xaxis_title_text=f"Length ({ag.length_units})",
             yaxis_title_text=f"# {ag.seq_noun}s",
             # https://stackoverflow.com/questions/57771116/how-to-change-x-axis-to-logarithmic-in-plotly-histogram#comment139789486_57771271
@@ -1868,6 +1876,9 @@ def run(
             State("covHistNumBins", "value"),
             Input("covHistNumBins", "n_submit"),
             Input("covHistNumBinsApply", "n_clicks"),
+            State("covHistMaxX", "value"),
+            Input("covHistMaxX", "n_submit"),
+            Input("covHistMaxXApply", "n_clicks"),
             Input("covHistYScale", "value"),
             prevent_initial_call=True,
         )
@@ -1877,10 +1888,14 @@ def run(
             nbinsx,
             nbins_n_submit,
             nbins_n_clicks,
+            maxx,
+            maxx_n_submit,
+            maxx_n_clicks,
             yscale,
         ):
             try:
                 ibins = ui_utils.get_hist_nbins(nbinsx)
+                maxx = ui_utils.get_maxx(maxx)
             except UIError as err:
                 return (
                     ui_utils.add_error_toast(
@@ -1890,22 +1905,22 @@ def run(
                     no_update,
                 )
             fig = go.Figure()
-            desc = (
+            title = (
                 f"{ag.cov_source.title()} "
                 f"{ui_config.COVATTR2PLURAL[ag.cov_field]}"
             )
+            covs, title = ui_utils.truncate_hist(ag.covs, title, maxx)
             fig.add_trace(
                 go.Histogram(
-                    x=ag.covs,
+                    x=covs,
                     marker_color="#2259e3",
                     marker_line_width=2,
                     marker_line_color="#031b57",
-                    name=desc,
                     nbinsx=ibins,
                 )
             )
             fig.update_layout(
-                title_text=desc,
+                title_text=title,
                 xaxis_title_text=ui_config.COVATTR2TITLE[ag.cov_field],
                 yaxis_title_text=f"# {ag.cov_source}s",
                 yaxis_type=yscale,
