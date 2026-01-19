@@ -1202,7 +1202,7 @@ def run(
                                                                 ),
                                                                 html.Li(
                                                                     html.Button(
-                                                                        "Histogram of nodes/edges",
+                                                                        "Histograms of nodes/edges",
                                                                         className="nav-link",
                                                                         id="ccNestHistTab",
                                                                         type="button",
@@ -1240,6 +1240,14 @@ def run(
                                                                     [
                                                                         html.Div(
                                                                             id="ccHistContainer",
+                                                                        ),
+                                                                        chart_utils.get_node_edge_toggle(
+                                                                            "ccHistEleType"
+                                                                        ),
+                                                                        html.Div(
+                                                                            style={
+                                                                                "margin-top": "0.3em"
+                                                                            }
                                                                         ),
                                                                         chart_utils.get_hist_options(
                                                                             "ccHistNumBins",
@@ -1679,6 +1687,7 @@ def run(
             Input("ccHistNumBins", "n_submit"),
             Input("ccHistNumBinsApply", "n_clicks"),
             Input("ccHistYScale", "value"),
+            Input("ccHistEleType", "value"),
             prevent_initial_call=True,
         )
         def plot_cc_hist(
@@ -1688,6 +1697,7 @@ def run(
             nbins_n_submit,
             nbins_n_clicks,
             yscale,
+            ele_type,
         ):
             try:
                 ibins = ui_utils.get_hist_nbins(nbinsx)
@@ -1699,34 +1709,32 @@ def run(
                     no_update,
                 )
             graph_utils.validate_multiple_ccs(ag)
-            cc_node_cts, cc_edge_cts = ag.get_component_node_and_edge_cts()
+            if ele_type == ui_config.NODES_HIST:
+                cts = ag.get_component_node_cts()
+                noun = "node"
+                nouns = "nodes"
+                barcolor = "#0a0"
+            else:
+                cts = ag.get_component_edge_cts()
+                noun = "edge"
+                nouns = "edges"
+                barcolor = "#7a0"
 
             fig = go.Figure()
             fig.add_trace(
                 go.Histogram(
-                    x=cc_node_cts,
-                    marker_color="#0a0",
+                    x=cts,
+                    marker_color=barcolor,
                     marker_line_width=2,
                     marker_line_color="#030",
-                    name="# nodes",
+                    name=f"# {nouns}",
                     nbinsx=ibins,
-                )
-            )
-            fig.add_trace(
-                go.Histogram(
-                    x=cc_edge_cts,
-                    marker_color="#447",
-                    marker_line_width=2,
-                    marker_line_color="#005",
-                    marker_pattern_shape="x",
-                    marker_pattern_fgcolor="#fff",
-                    name="# edges",
                 )
             )
             fig.update_layout(
                 barmode="stack",
-                title_text="Numbers of nodes and edges per component",
-                xaxis_title_text="# nodes or # edges",
+                title_text=f"Number of {nouns} per component",
+                xaxis_title_text=f"# {nouns}",
                 yaxis_title_text="# components",
                 yaxis_type=yscale,
             )

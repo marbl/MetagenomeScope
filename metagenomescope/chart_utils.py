@@ -176,3 +176,36 @@ def get_hist_options(nbins_id, nbins_btn_id, y_scale_id):
             get_scale_options(y_scale_id, "y-axis scale"),
         ],
     )
+
+
+def get_node_edge_toggle(html_obj_id):
+    return dbc.InputGroup(
+        [
+            dbc.InputGroupText(
+                "Show nodes or edges?",
+                className="input-group-text-next-to-button",
+            ),
+            html.Div(
+                dbc.RadioItems(
+                    options=[
+                        {
+                            "label": "Nodes",
+                            "value": ui_config.NODES_HIST,
+                        },
+                        {
+                            "label": "Edges",
+                            "value": ui_config.EDGES_HIST,
+                        },
+                    ],
+                    value=ui_config.NODES_HIST,
+                    className="btn-group",
+                    inputClassName="btn-check",
+                    labelClassName="btn btn-sm btn-outline-dark",
+                    labelCheckedClassName="active",
+                    id=html_obj_id,
+                ),
+                className="btn-opt-group",
+            ),
+        ],
+        size="sm",
+    )

@@ -1554,34 +1554,23 @@ class AssemblyGraph(object):
                     del self.nodeid2obj[node_id]
                     del self.edgeid2obj[fe_id]
 
-    def get_component_node_and_edge_cts(self):
-        """Returns lists of node and edge counts for each component.
+    def get_component_node_cts(self):
+        """Returns a list of "full" node counts in each component.
 
-        Currently, this returns counts of "full" nodes -- treating each split
-        node A-L and A-R as a single node, but also treating
-        reverse-complementary nodes separately (so, if a component contains
-        both node A and node -A, then this will count as two nodes).
+        That is, this treats each pair of split nodes A-L and A-R as a single
+        node, but also treats reverse-complementary nodes separately (so, if a
+        component contains both node A and node -A, then this will count as two
+        nodes). And the corollary of that is that if a component has
+        A-L, A-R, -A-L, and -A-R, then it contains just two nodes.
 
-        And it returns counts of "real" edges, ignoring the fake ones created
-        by node splitting.
-
-        So like the takeaway here is that this is the kind of helpful
-        information we want to actually SHOW to the user lol
-
-        Returns
-        -------
-        (node_cts, edge_cts): (list of int, list of int)
-            Lists of counts of nodes and edges in each component. These lists
-            are guaranteed to have the same lengths. Furthermore, they are in
-            the same order -- so the same component is described by position X
-            in node_cts and by position X in edge_cts.
+        So like this is what we want to show the user - node splitting won't
+        impact these results.
         """
-        cc_node_cts = []
-        cc_edge_cts = []
-        for cc in self.components:
-            cc_node_cts.append(cc.num_full_nodes)
-            cc_edge_cts.append(cc.num_real_edges)
-        return cc_node_cts, cc_edge_cts
+        return [cc.num_full_nodes for cc in self.components]
+
+    def get_component_edge_cts(self):
+        """Returns a list of "real" edge counts in each component."""
+        return [cc.num_real_edges for cc in self.components]
 
     def is_pattern(self, node_id):
         """Returns True if a node ID is for a pattern, False otherwise.

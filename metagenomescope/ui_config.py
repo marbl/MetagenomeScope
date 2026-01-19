@@ -61,8 +61,14 @@ DEFAULT_LAYOUT_ALG = LAYOUT_DOT
 # Histograms in the info dialog
 ###############################################################################
 
+# axis scales (correspond to yaxis_type plotly go.Histogram settings)
 SCALE_LINEAR = "linear"
 SCALE_LOG = "log"
+
+# should the hist of stuff per cc show nodes or edges?
+# (showing them stacked looks gross imo...)
+NODES_HIST = "nodes"
+EDGES_HIST = "edges"
 
 ###############################################################################
 # Component size rank selection
