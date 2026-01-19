@@ -136,6 +136,22 @@ def get_num_bins_option(val_id, btn_id):
     )
 
 
+def get_max_x_option(val_id, btn_id):
+    return dbc.InputGroup(
+        [
+            dbc.InputGroupText(
+                "Maximum x value",
+                className="input-group-text-next-to-button",
+            ),
+            dbc.Input(
+                placeholder="max x", id=val_id, style={"max-width": "10em"}
+            ),
+            dbc.Button("Apply", id=btn_id, color="dark"),
+        ],
+        size="sm",
+    )
+
+
 def get_scale_options(html_obj_id, desc):
     return dbc.InputGroup(
         [
@@ -168,10 +184,12 @@ def get_scale_options(html_obj_id, desc):
     )
 
 
-def get_hist_options(nbins_id, nbins_btn_id, y_scale_id):
+def get_hist_options(nbins_id, nbins_btn_id, xmax_id, xmax_btn_id, y_scale_id):
     return html.Div(
         [
             get_num_bins_option(nbins_id, nbins_btn_id),
+            html.Div(style={"margin-top": "0.3em"}),
+            get_max_x_option(xmax_id, xmax_btn_id),
             html.Div(style={"margin-top": "0.3em"}),
             get_scale_options(y_scale_id, "y-axis scale"),
         ],

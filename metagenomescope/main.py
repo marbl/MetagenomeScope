@@ -1252,6 +1252,8 @@ def run(
                                                                         chart_utils.get_hist_options(
                                                                             "ccHistNumBins",
                                                                             "ccHistNumBinsApply",
+                                                                            "ccHistMaxX",
+                                                                            "ccHistMaxXApply",
                                                                             "ccHistYScale",
                                                                         ),
                                                                     ],
@@ -1287,6 +1289,8 @@ def run(
                                                     chart_utils.get_hist_options(
                                                         "seqLenHistNumBins",
                                                         "seqLenHistNumBinsApply",
+                                                        "seqLenHistMaxX",
+                                                        "seqLenHistMaxXApply",
                                                         "seqLenHistYScale",
                                                     ),
                                                 ],
@@ -1411,6 +1415,8 @@ def run(
                                                                         chart_utils.get_hist_options(
                                                                             "covHistNumBins",
                                                                             "covHistNumBinsApply",
+                                                                            "covHistMaxX",
+                                                                            "covHistMaxXApply",
                                                                             "covHistYScale",
                                                                         ),
                                                                         html.Div(
@@ -1686,6 +1692,9 @@ def run(
             State("ccHistNumBins", "value"),
             Input("ccHistNumBins", "n_submit"),
             Input("ccHistNumBinsApply", "n_clicks"),
+            State("ccHistMaxX", "value"),
+            Input("ccHistMaxX", "n_submit"),
+            Input("ccHistMaxXApply", "n_clicks"),
             Input("ccHistYScale", "value"),
             Input("ccHistEleType", "value"),
             prevent_initial_call=True,
@@ -1696,11 +1705,15 @@ def run(
             nbinsx,
             nbins_n_submit,
             nbins_n_clicks,
+            maxx,
+            maxx_n_submit,
+            maxx_n_clicks,
             yscale,
             ele_type,
         ):
             try:
                 ibins = ui_utils.get_hist_nbins(nbinsx)
+                maxx = ui_utils.get_maxx(maxx)
             except UIError as err:
                 return (
                     ui_utils.add_error_toast(
@@ -1711,14 +1724,15 @@ def run(
             graph_utils.validate_multiple_ccs(ag)
             if ele_type == ui_config.NODES_HIST:
                 cts = ag.get_component_node_cts()
-                noun = "node"
                 nouns = "nodes"
                 barcolor = "#0a0"
             else:
                 cts = ag.get_component_edge_cts()
-                noun = "edge"
                 nouns = "edges"
                 barcolor = "#7a0"
+
+            title = f"Number of {nouns} per component"
+            cts, title = ui_utils.truncate_hist(cts, title, maxx)
 
             fig = go.Figure()
             fig.add_trace(
@@ -1733,7 +1747,7 @@ def run(
             )
             fig.update_layout(
                 barmode="stack",
-                title_text=f"Number of {nouns} per component",
+                title_text=title,
                 xaxis_title_text=f"# {nouns}",
                 yaxis_title_text="# components",
                 yaxis_type=yscale,

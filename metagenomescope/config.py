@@ -2,6 +2,11 @@
 # Miscellaneous settings
 ###############################################################################
 
+# used when figuring out if we should just round a float to an int
+# i did not choose this value for an intelligent reason; i just kinda eyeballed
+# it. if this causes problems feel free to adjust
+EPSILON = 0.000001
+
 # Node orientations
 FWD = "+"
 REV = "-"

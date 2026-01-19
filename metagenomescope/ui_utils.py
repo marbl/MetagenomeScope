@@ -80,8 +80,19 @@ def get_length_info(ag):
     )
 
 
+def close_to_int(f, epsilon=config.EPSILON):
+    return abs(f - round(f)) < epsilon
+
+
+def round_to_int_if_close(f, epsilon=config.EPSILON):
+    if close_to_int(f, epsilon):
+        return round(f)
+    else:
+        return f
+
+
 def fmt_cov(cov):
-    if type(cov) is int or abs(cov - round(cov)) < 0.001:
+    if type(cov) is int or close_to_int(cov):
         return f"{round(cov):,}x"
     else:
         return f"{cov:,.2f}x"
@@ -358,6 +369,27 @@ def get_distance(dist):
     if d < 0:
         raise UIError("Distance must be at least 0.")
     return d
+
+
+def get_maxx(maxx):
+    if maxx is None or len(maxx) == 0:
+        return None
+    try:
+        m = float(maxx)
+    except ValueError:
+        raise UIError(f"{maxx} is not a valid number.")
+    if m < 0:
+        raise UIError("Maximum x value must be at least 0.")
+    return round_to_int_if_close(m)
+
+
+def truncate_hist(xvals, title, maxx):
+    if maxx is None:
+        return xvals, title
+    else:
+        return [
+            x for x in xvals if x <= maxx
+        ], title + f", truncated to x \u2264 {maxx:,}"
 
 
 def get_hist_nbins(nbins):

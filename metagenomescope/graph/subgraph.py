@@ -128,8 +128,9 @@ class Subgraph(object):
         # leave node counts like 23.5 as 23.5, but turn node counts
         # like 23.0 back into just 23 (since we know that num_full_nodes
         # must end with .0 or .5)
-        if abs(self.num_full_nodes - round(self.num_full_nodes)) < 0.001:
-            self.num_full_nodes = round(self.num_full_nodes)
+        self.num_full_nodes = ui_utils.round_to_int_if_close(
+            self.num_full_nodes
+        )
 
     def _add_edge(self, edge):
         self.edges.append(edge)
