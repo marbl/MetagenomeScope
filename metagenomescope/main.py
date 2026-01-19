@@ -1269,6 +1269,11 @@ def run(
                                                     html.Div(
                                                         id="seqLenHistContainer",
                                                     ),
+                                                    chart_utils.get_hist_options(
+                                                        "seqLenHistNumBins",
+                                                        "seqLenHistNumBinsApply",
+                                                        "seqLenHistYScale",
+                                                    ),
                                                 ],
                                                 id="seqLenTabPane",
                                                 className="tab-pane fade",
@@ -1746,11 +1751,33 @@ def run(
             return dcc.Graph(figure=fig)
 
     @callback(
+        Output("toastHolder", "children", allow_duplicate=True),
         Output("seqLenHistContainer", "children"),
+        State("toastHolder", "children"),
+        State("seqLenHistNumBins", "value"),
         Input("seqLenTab", "n_clicks"),
+        Input("seqLenHistNumBins", "n_submit"),
+        Input("seqLenHistNumBinsApply", "n_clicks"),
+        Input("seqLenHistYScale", "value"),
         prevent_initial_call=True,
     )
-    def plot_seqlen_hist(n_clicks):
+    def plot_seqlen_hist(
+        curr_toasts,
+        nbinsx,
+        tab_n_clicks,
+        nbins_n_submit,
+        nbins_n_clicks,
+        yscale,
+    ):
+        try:
+            ibins = ui_utils.get_hist_nbins(nbinsx)
+        except UIError as err:
+            return (
+                ui_utils.add_error_toast(
+                    curr_toasts, "Histogram error", str(err)
+                ),
+                no_update,
+            )
         fig = go.Figure()
         fig.add_trace(
             go.Histogram(
@@ -1759,15 +1786,18 @@ def run(
                 marker_line_width=2,
                 marker_line_color="#100",
                 name="Sequence lengths",
+                nbinsx=ibins,
             )
         )
         fig.update_layout(
             title_text=f"{ag.seq_noun.title()} sequence lengths",
             xaxis_title_text=f"Length ({ag.length_units})",
             yaxis_title_text=f"# {ag.seq_noun}s",
+            # https://stackoverflow.com/questions/57771116/how-to-change-x-axis-to-logarithmic-in-plotly-histogram#comment139789486_57771271
+            yaxis_type=yscale,
         )
         chart_utils.prettify_go_fig(fig)
-        return dcc.Graph(figure=fig)
+        return no_update, dcc.Graph(figure=fig)
 
     if ag.has_covs:
 

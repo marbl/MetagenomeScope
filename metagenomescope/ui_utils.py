@@ -360,6 +360,25 @@ def get_distance(dist):
     return d
 
 
+def get_hist_nbins(nbins):
+    # Allow "" and None (None should be the default since there is nothing
+    # in the "value" attr of the input)
+    # And, 0 is the default - it means don't impose an upper bound # of bins
+    # as far as I can tell.
+    #
+    # If the user specifies SOMETHING but it's not a valid int, then we
+    # show a toast and don't bother updating the hist
+    ibins = 0
+    if nbins is not None and len(nbins) > 0:
+        try:
+            ibins = int(nbins)
+        except ValueError:
+            raise UIError(f"{nbins} is not a valid integer.")
+        if ibins < 0:
+            raise UIError("Number of bins must be at least 0.")
+    return ibins
+
+
 def say_goodrange(maxcc, both=False):
     if maxcc > 1:
         if both:

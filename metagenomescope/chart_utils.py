@@ -1,6 +1,7 @@
 from dash import html
 from . import ui_config
 from .errors import WeirdError
+import dash_bootstrap_components as dbc
 
 
 def get_eqn_parts(node_centric):
@@ -117,3 +118,60 @@ def prettify_go_fig(fig):
     # Hack to add padding to the right of the y-axis tick labels:
     # https://stackoverflow.com/a/66736119
     fig.update_yaxes(ticksuffix=" ")
+
+
+def get_num_bins_option(val_id, btn_id):
+    return dbc.InputGroup(
+        [
+            dbc.InputGroupText(
+                "Maximum # bins", className="input-group-text-next-to-button"
+            ),
+            dbc.Input(
+                placeholder="# bins", id=val_id, style={"max-width": "10em"}
+            ),
+            dbc.Button("Apply", id=btn_id, color="dark"),
+        ],
+        size="sm",
+    )
+
+
+def get_scale_options(html_obj_id, desc):
+    return dbc.InputGroup(
+        [
+            dbc.InputGroupText(
+                desc, className="input-group-text-next-to-button"
+            ),
+            html.Div(
+                dbc.RadioItems(
+                    options=[
+                        {
+                            "label": "Linear",
+                            "value": "linear",
+                        },
+                        {
+                            "label": "Logarithmic",
+                            "value": "log",
+                        },
+                    ],
+                    value="linear",
+                    className="btn-group",
+                    inputClassName="btn-check",
+                    labelClassName="btn btn-sm btn-outline-dark",
+                    labelCheckedClassName="active",
+                    id=html_obj_id,
+                ),
+                className="btn-opt-group",
+            ),
+        ],
+        size="sm",
+    )
+
+
+def get_hist_options(nbins_id, nbins_btn_id, y_scale_id):
+    return html.Div(
+        [
+            get_num_bins_option(nbins_id, nbins_btn_id),
+            html.Div(style={"margin-top": "0.3em"}),
+            get_scale_options(y_scale_id, "y-axis scale"),
+        ],
+    )
