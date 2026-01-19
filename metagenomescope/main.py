@@ -1842,7 +1842,7 @@ def run(
                 ),
                 no_update,
             )
-        title=f"{ag.seq_noun.title()} sequence lengths"
+        title = f"{ag.seq_noun.title()} sequence lengths"
         lens, title = ui_utils.truncate_hist(ag.lengths, title, maxx)
         fig = go.Figure()
         fig.add_trace(
