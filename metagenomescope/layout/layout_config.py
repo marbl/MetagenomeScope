@@ -63,11 +63,7 @@ GLOBALNODE_STYLE += ',style=filled,fillcolor="#888888"'
 ########
 
 # Style applied to every edge in the graph.
-# Keeping headport=w,tailport=e is strongly recommended (assuming we keep
-# rankdir=LR), since that impacts how edges are positioned and drawn in the
-# graph (and the JS code expects edges to originate from nodes' "headports"
-# and end at nodes' "tailports").
-GLOBALEDGE_STYLE = "headport=w,tailport=e"
+GLOBALEDGE_STYLE = ""
 
 FAKEEDGE_STYLE = 'style="dashed"'
 
