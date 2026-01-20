@@ -34,7 +34,7 @@ DRAW_SETTINGS_OPTIONS = [
         "value": DO_RECURSIVE_LAYOUT,
     },
     {
-        "label": "Use fixed headports and tailports (Graphviz only)",
+        "label": "Fix edges' headports and tailports (Graphviz only)",
         "value": USE_GV_PORTS,
     },
     {
