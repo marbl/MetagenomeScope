@@ -184,11 +184,14 @@ def get_cyjs_stylesheet(
         {
             "selector": "edge:loop",
             "style": {
-                # makes the loop come out of the node at its right side and
-                # enter the node at its left side
+                # imitate how dot lays out loop edges, where the edge kinda
+                # protrudes from the top of the node (see the flye yeast
+                # test for an example)
                 "source-endpoint": "90deg",
                 "target-endpoint": "-90deg",
-                "control-point-step-size": 60,
+                "control-point-step-size": 45,
+                "loop-direction": "0deg",
+                "loop-sweep": "-45deg",
                 # loop edges go above nodes. this is mainly here to help with
                 # loop edges on long nodes (e.g. -76 in the E. coli test graph)
                 # which can intersect with the node body. I think otherwise
