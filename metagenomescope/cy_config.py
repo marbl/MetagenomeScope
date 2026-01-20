@@ -114,6 +114,10 @@ REV_NODE_SPLITL_POLYGON_PTS = pts2spp(fwd_pentagon_triangle_pts, mx=-1)
 ########
 # Node shapes for "unoriented" nodes (i.e. circles)
 ########
+# Note that the split node shapes for fwd/rev nodes above fill the
+# entirety of the shape-polygon-points bounding box. This is not the
+# case for semicircles, which only take up half of the box. We'll account
+# for this in NodeLayout.set_dims().
 
 # The formula for a circle with radius 1 centered on (0, 0) is
 # x^2 + y^2 = 1. We want to just get points from half of this circle.
