@@ -42,8 +42,7 @@ def get_cyjs_stylesheet(
         {
             "selector": "node.fwd.splitL",
             "style": {
-                "shape": "polygon",
-                "shape-polygon-points": cy_config.FWD_NODE_SPLITL_POLYGON_PTS,
+                "shape": "rectangle",
             },
         },
         {
@@ -71,8 +70,7 @@ def get_cyjs_stylesheet(
         {
             "selector": "node.rev.splitR",
             "style": {
-                "shape": "polygon",
-                "shape-polygon-points": cy_config.REV_NODE_SPLITR_POLYGON_PTS,
+                "shape": "rectangle",
             },
         },
         ###### Unoriented nodes (circles)

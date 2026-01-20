@@ -104,21 +104,12 @@ REV_NODE_SPLITN_POLYGON_PTS = pts2spp(rev_pentagon_pts)
 
 # For a split forward node, the left split becomes a rectangle
 #  and the right split becomes a triangle pointing right.
-fwd_pentagon_rect_pts = [[-1, 1], [0.23587, 1], [0.23587, -1], [-1, -1]]
-fwd_pentagon_triangle_pts = [[0.23587, 1], [1, 0], [0.23587, -1]]
-FWD_NODE_SPLITL_POLYGON_PTS = pts2spp(fwd_pentagon_rect_pts, autocenter=True)
-FWD_NODE_SPLITR_POLYGON_PTS = pts2spp(
-    fwd_pentagon_triangle_pts, autocenter=True
-)
+fwd_pentagon_triangle_pts = [[-1, 1], [1, 0], [-1, -1]]
+FWD_NODE_SPLITR_POLYGON_PTS = pts2spp(fwd_pentagon_triangle_pts)
 
 # It's the opposite for a split reverse node: now, the right split is a
 # rectangle and the left split is a triangle.
-REV_NODE_SPLITL_POLYGON_PTS = pts2spp(
-    fwd_pentagon_triangle_pts, autocenter=True, mx=-1
-)
-# Since this part is just a rectangle, it's already symmetric -- no need
-# to flip it about the y-axis
-REV_NODE_SPLITR_POLYGON_PTS = FWD_NODE_SPLITL_POLYGON_PTS
+REV_NODE_SPLITL_POLYGON_PTS = pts2spp(fwd_pentagon_triangle_pts, mx=-1)
 
 ########
 # Node shapes for "unoriented" nodes (i.e. circles)
