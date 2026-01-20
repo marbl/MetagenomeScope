@@ -354,9 +354,6 @@ class Layout(object):
         edgeid2ctrlpts = {}
         pattid2bb = {}
         if self.incl_patterns and self.recursive:
-            # TODO flip the y-coords! need to do for patt bounding boxes
-            # AND node positions AND edge positions (done)
-
             for pattern in self.region.patterns:
                 if self.at_top_level_of_region(pattern):
                     pid = pattern.unique_id
@@ -385,19 +382,8 @@ class Layout(object):
                                 rx, ry = self.nodeid2rel[cid]
                                 x = curr_bb["l"] + rx
                                 y = curr_bb["b"] + ry
+                                y = self.height - y
                                 nodeid2xy[cid] = (x, y)
-
-                        for edge in curr_patt.edges:
-                            edgeid2ctrlpts[edge.unique_id] = (
-                                layout_utils.dot_to_cyjs_control_points(
-                                    nodeid2xy[edge.new_src_id],
-                                    nodeid2xy[edge.new_tgt_id],
-                                    self.edgeid2rel[edge.unique_id],
-                                    self.height,
-                                    left=curr_bb["l"],
-                                    bottom=curr_bb["b"],
-                                )
-                            )
 
             for node in self.region.nodes:
                 if self.at_top_level_of_region(node):
@@ -405,17 +391,33 @@ class Layout(object):
                         # self.region.nodes should only contain patterns if
                         # self.region IS a pattern, and that should never happen
                         raise WeirdError(f"no!!!! {self} {node}")
-                    nodeid2xy[node.unique_id] = self.nodeid2rel[node.unique_id]
+                    x, y = self.nodeid2rel[node.unique_id]
+                    y = self.height - y
+                    nodeid2xy[node.unique_id] = x, y
+
+            # Edge layout is dependent upon us knowing the position of all
+            # other nodes in the graph -- even edges in a pattern might connect
+            # to edges outside of this pattern, meaning that we can't just do
+            # edges alongside nodes. It is easier to just go through edges
+            # at the end, down here.
             for edge in self.region.edges:
                 if self.at_top_level_of_region(edge):
-                    edgeid2ctrlpts[edge.unique_id] = (
-                        layout_utils.dot_to_cyjs_control_points(
-                            nodeid2xy[edge.new_src_id],
-                            nodeid2xy[edge.new_tgt_id],
-                            self.edgeid2rel[edge.unique_id],
-                            self.height,
-                        )
+                    left = bottom = None
+                else:
+                    bb = pattid2bb[edge.parent_id]
+                    left = bb["l"]
+                    bottom = bb["b"]
+
+                edgeid2ctrlpts[edge.unique_id] = (
+                    layout_utils.dot_to_cyjs_control_points(
+                        nodeid2xy[edge.new_src_id],
+                        nodeid2xy[edge.new_tgt_id],
+                        self.edgeid2rel[edge.unique_id],
+                        self.height,
+                        left=left,
+                        bottom=bottom,
                     )
+                )
         else:
             for node in self.region.nodes:
                 x, y = self.nodeid2rel[node.unique_id]
