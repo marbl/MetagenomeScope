@@ -274,8 +274,6 @@ class Layout(object):
 
         # Actually do layout
         self.dot = self._to_dot()
-        with open("scrap/layouts/" + self.region.name + ".gv", "w") as f:
-            f.write(self.dot)
         cg = pygraphviz.AGraph(self.dot)
         # -q turns off warnings about nodes being too small for labels
         cg.layout(prog="dot", args="-q")
