@@ -488,6 +488,19 @@ This interface should remain relatively stable. If you have any questions, pleas
 <hr/>
 </details>
 
+## Known issues
+
+- Isolated components containing only a bubble with an "end-to-start" cycle are decomposed
+  ambiguously, either into a bubble or a cyclic chain containing a bubble
+  ([#241](https://github.com/marbl/MetagenomeScope/issues/241)).
+
+- Graph layouts that form a long horizontal or vertical line may break Cytoscape.js'
+  rendering process ([#262](https://github.com/marbl/MetagenomeScope/issues/262)). If this
+  happens to you, you can refresh the page to get Cytoscape.js working again.
+
+- Rarely, chain merging may cause the pattern decomposition process to crash. This seems to
+  mostly impact edge-centric graphs. Please let us know if you run into this issue.
+
 ## Development documentation
 
 See [`CONTRIBUTING.md`](https://github.com/marbl/MetagenomeScope/blob/main/CONTRIBUTING.md).
