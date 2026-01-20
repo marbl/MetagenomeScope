@@ -2,6 +2,11 @@
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+# prevent setuptools from going down a rabbit hole when it sees other sibling
+# folders to "metagenomescope": https://stackoverflow.com/a/75881304
+[tool.setuptools.packages.find]
+include = ["metagenomescope*"]
+
 # Get the version from the metagenomescope/__init__.py file in order to
 # avoid duplicating it. See
 # https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#dynamic-metadata
