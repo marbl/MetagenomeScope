@@ -86,8 +86,7 @@ def test_to_dot_non_split():
     b = Node(0, "B", {})
     b.layout.width = b.layout.height = 3
     assert (
-        b.to_dot(indent=" ")
-        == ' 0 [width=3,height=3,shape=rect,label="B"];\n'
+        b.to_dot(indent=" ") == ' 0 [width=3,height=3,shape=rect,label="B"];\n'
     )
 
 
