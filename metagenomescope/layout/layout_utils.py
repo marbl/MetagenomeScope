@@ -195,7 +195,7 @@ def dot_to_cyjs_control_points(
 
     Returns
     -------
-    just_a_straight_line, dists, weights: bool, str, str
+    just_a_straight_line, dists, weights: bool, str or None, str or None
         If just_a_straight_line is True, you can easily approximate this
         with just a straight line.
 
@@ -207,6 +207,8 @@ def dot_to_cyjs_control_points(
     Adapted from my old JS code:
     https://github.com/marbl/MetagenomeScope/blob/0db5e3790fc736f428f65b4687bd4d1e054c3978/viewer/js/xdot2cy.js#L5129-L5185
     """
+    if src_pos == tgt_pos:
+        return True, None, None
     if left is not None and bottom is not None:
         coords = shift_control_points(coords, left, bottom)
     for i in range(len(coords)):
