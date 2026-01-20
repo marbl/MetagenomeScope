@@ -40,7 +40,7 @@ This tool is still a work in progress, so please let us know if you have any fee
 <table>
   <thead>
     <tr>
-      <th>Interactive summaries of graph statistics</th>
+      <th>Interactive charts of graph statistics</th>
       <th>Summarizing graph structure in a <a href="https://en.wikipedia.org/wiki/Treemapping">treemap</a></th>
     </tr>
   </thead>
