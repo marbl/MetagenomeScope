@@ -230,7 +230,12 @@ class Edge(object):
             return f"{self.data['multiplicity']:,}x"
 
         if self.has_userspecified_id():
-            return self.get_userspecified_id()
+            if "approx_length" in self.data:
+                # Flye
+                return self.get_userspecified_id()
+            else:
+                # LJA
+                return f"{self.data['length']:,} ({self.data['kp1mer_cov']:,}x)"
 
         if "bsize" in self.data:
             # MetaCarvel
