@@ -11,7 +11,7 @@ INDENT = "  "
 # system from points to pixels??? Or maybe it was always in pixels and graphviz
 # has just been kind of inconsistent with its units being in points or inches
 # depending on bounding boxes or coordinates??? let's just see how things go
-PIXELS_PER_INCH = 72
+PIXELS_PER_INCH = 54
 
 ########
 # Node scaling
