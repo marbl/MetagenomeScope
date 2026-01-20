@@ -71,6 +71,12 @@ GLOBALEDGE_STYLE = "headport=w,tailport=e"
 
 FAKEEDGE_STYLE = 'style="dashed"'
 
+# If all of the control points of an edge are close enough to the straight
+# line from source to target, then we won't bother drawing the edge using its
+# control points -- we'll just mark it a basic bezier or something. This value
+# controls how close "close enough" is.
+CTRL_PT_DIST_EPSILON = 5
+
 ###############################################################################
 # Client-side (i.e. done like within Cytoscape.js I guess?) layout settings
 ###############################################################################

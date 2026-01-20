@@ -186,22 +186,23 @@ class Subgraph(object):
         edgeids = [] if report_ids else None
 
         for n in self.nodes:
-            js = n.to_cyjs(draw_settings=draw_settings)
+            j = n.to_cyjs(draw_settings=draw_settings)
             if preset_positions:
                 x, y = nodeid2xy[n.unique_id]
-                js["position"] = {"x": x, "y": y}
-            eles.append(js)
+                j["position"] = {"x": x, "y": y}
+            eles.append(j)
             if report_ids:
                 nodeids.append(n.unique_id)
 
         for e in self.edges:
-            js = e.to_cyjs(draw_settings=draw_settings)
-            # Let's hold off on converting edge ctrl pts now.
-            # There is some goofy math involved.
-            # if preset_positions:
-            #     ctrlpts = edgeid2ctrlpts[e.unique_id]
-            #     js["classes"] += " withctrlpts"
-            eles.append(js)
+            j = e.to_cyjs(draw_settings=draw_settings)
+            if preset_positions:
+                straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
+                if not straight:
+                    j["classes"] += " withctrlpts"
+                    j["data"]["cpd"] = cpd
+                    j["data"]["cpw"] = cpw
+            eles.append(j)
             if report_ids:
                 edgeids.append(e.unique_id)
 

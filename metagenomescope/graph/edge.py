@@ -148,9 +148,6 @@ class Edge(object):
         self.prev_dec_src_id = orig_src_id
         self.prev_dec_tgt_id = orig_tgt_id
 
-        self.ctrl_pt_coords = None
-        self.relative_ctrl_pt_coords = None
-
         # for random coloring
         self.rand_idx = None
 

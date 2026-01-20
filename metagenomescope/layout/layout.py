@@ -273,8 +273,8 @@ class Layout(object):
 
         # Actually do layout
         self.dot = self._to_dot()
-        # with open("scrap/layouts/" + self.region.name + ".gv", "w") as f:
-        #     f.write(self.dot)
+        with open("scrap/layouts/" + self.region.name + ".gv", "w") as f:
+            f.write(self.dot)
         cg = pygraphviz.AGraph(self.dot)
         # -q turns off warnings about nodes being too small for labels
         cg.layout(prog="dot", args="-q")
@@ -355,7 +355,7 @@ class Layout(object):
         pattid2bb = {}
         if self.incl_patterns and self.recursive:
             # TODO flip the y-coords! need to do for patt bounding boxes
-            # AND node/edge positions
+            # AND node positions AND edge positions (done)
 
             for pattern in self.region.patterns:
                 if self.at_top_level_of_region(pattern):
@@ -389,10 +389,13 @@ class Layout(object):
 
                         for edge in curr_patt.edges:
                             edgeid2ctrlpts[edge.unique_id] = (
-                                layout_utils.shift_control_points(
+                                layout_utils.dot_to_cyjs_control_points(
+                                    nodeid2xy[edge.new_src_id],
+                                    nodeid2xy[edge.new_tgt_id],
                                     self.edgeid2rel[edge.unique_id],
-                                    curr_bb["l"],
-                                    curr_bb["b"],
+                                    self.height,
+                                    left=curr_bb["l"],
+                                    bottom=curr_bb["b"],
                                 )
                             )
 
@@ -405,16 +408,26 @@ class Layout(object):
                     nodeid2xy[node.unique_id] = self.nodeid2rel[node.unique_id]
             for edge in self.region.edges:
                 if self.at_top_level_of_region(edge):
-                    edgeid2ctrlpts[edge.unique_id] = self.edgeid2rel[
-                        edge.unique_id
-                    ]
+                    edgeid2ctrlpts[edge.unique_id] = (
+                        layout_utils.dot_to_cyjs_control_points(
+                            nodeid2xy[edge.new_src_id],
+                            nodeid2xy[edge.new_tgt_id],
+                            self.edgeid2rel[edge.unique_id],
+                            self.height,
+                        )
+                    )
         else:
             for node in self.region.nodes:
                 x, y = self.nodeid2rel[node.unique_id]
                 y = self.height - y
                 nodeid2xy[node.unique_id] = x, y
             for edge in self.region.edges:
-                edgeid2ctrlpts[edge.unique_id] = self.edgeid2rel[
-                    edge.unique_id
-                ]
+                edgeid2ctrlpts[edge.unique_id] = (
+                    layout_utils.dot_to_cyjs_control_points(
+                        nodeid2xy[edge.new_src_id],
+                        nodeid2xy[edge.new_tgt_id],
+                        self.edgeid2rel[edge.unique_id],
+                        self.height,
+                    )
+                )
         return nodeid2xy, edgeid2ctrlpts

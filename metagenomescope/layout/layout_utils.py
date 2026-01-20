@@ -1,5 +1,7 @@
+import math
 from . import layout_config
 from .. import config
+from ..errors import WeirdError
 
 
 def get_gv_header(name="g"):
@@ -53,13 +55,13 @@ def get_control_points(pos):
         pos = pos[pos.index(" ") + 1 :]
 
     points_str = pos.replace(",", " ")
-    coord_list = [float(c) for c in points_str.split()]
-    if len(coord_list) % 2 != 0:
+    coords = [float(c) for c in points_str.split()]
+    if len(coords) % 2 != 0:
         raise ValueError("Invalid GraphViz edge control points: {pos}")
-    return coord_list
+    return coords
 
 
-def shift_control_points(coord_list, left, bottom):
+def shift_control_points(coords, left, bottom):
     r"""Given a list of coordinates (e.g. the output of get_control_points()),
     increases each x coordinate in the list by "left" and increases each y
     coordinate in the list by "bottom".
@@ -80,20 +82,188 @@ def shift_control_points(coord_list, left, bottom):
     |
     (0, 0)------------------------>
     """
-    new_coord_list = []
-    for i, coord in enumerate(coord_list):
+    new_coords = []
+    for i, coord in enumerate(coords):
         if i % 2 == 0:
             # This is an x position (since the list is [x, y, x, y, ...])
-            new_coord_list.append(left + coord)
+            new_coords.append(left + coord)
         else:
             # This is a y position
-            new_coord_list.append(bottom + coord)
+            new_coords.append(bottom + coord)
 
     # We should have ended on a y position. If we didn't, something is
     # seriously wrong.
     if i % 2 == 0:
-        raise ValueError(f"Non-even number of control points: {coord_list}")
-    return new_coord_list
+        raise ValueError(f"Non-even number of control points: {coords}")
+    return new_coords
+
+
+def euclidean_distance(p1, p2):
+    # https://en.wikipedia.org/wiki/Euclidean_distance
+    # just sqrt(dx^2 + dy^2)
+    return math.sqrt(((p2[0] - p1[0]) ** 2) + ((p2[1] - p1[1]) ** 2))
+
+
+def point_to_line_distance(point, a, b):
+    """Returns perpendicular distance from a point to a line (from a to b).
+
+    Parameters
+    ----------
+    point: (float, float)
+
+    a: (float, float)
+
+    b: (float, float)
+
+    Returns
+    -------
+    dist: float
+
+    Notes
+    -----
+    Given a line that passes through two points (a and b), this function
+    returns the perpendicular distance from a point to the line.
+
+    Note that, unlike most formulations of point-to-line-distance, the value
+    returned here isn't necessarily nonnegative. This is because Cytoscape.js
+    expects the control-point-distances used for unbundled-bezier edges to have
+    a sign based on which "side" of the line from source node to sink node
+    they're on:
+
+          negative
+    SOURCE ------> TARGET
+          positive
+
+    So here, if this edge has a bend "upwards," we'd give the corresponding
+    control point a negative distance from the line, and if the bend was
+    "downwards" it'd have a positive distance from the line. You can see this
+    for yourself here (http://js.cytoscape.org/demos/edge-types/) -- notice how
+    the control-point-distances for the unbundled-bezier (multiple) edge are
+    [40, -40] (a downward bend, then an upwards bend).
+
+    What that means here is that we don't take the absolute value of the
+    numerator in this formula; instead, we negate it. This makes these distances
+    match up with what Cytoscape.js expects. (I'll be honest: I don't know why
+    this works. This is just what I found back in 2016. As a big heaping TODO,
+    I should really make this more consistent, or at least figure out *why* this
+    works -- it's worth noting that if you swap around linePoint1 and
+    linePoint2, this'll negate the distance you get, and I have no idea why this
+    is working right now.)
+
+    Raises
+    ------
+    WeirdError
+        If distance(a, b) is equal to 0 (since this would make the
+        point-to-line-distance formula undefined, due to having 0 in the
+        denominator). So don't define a line by the same point twice!!!
+
+    References
+    ----------
+    The formula used here is based on
+    https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points.
+    """
+    line_distance = euclidean_distance(a, b)
+    if line_distance == 0:
+        raise WeirdError("Line distance is zero?")
+    ydelta = b[1] - a[1]
+    xdelta = b[0] - a[0]
+    x2y1 = b[0] * a[1]
+    y2x1 = b[1] * a[0]
+    x0, y0 = point
+    numerator = (ydelta * x0) - (xdelta * y0) + x2y1 - y2x1
+    return -numerator / line_distance
+
+
+def dot_to_cyjs_control_points(
+    src_pos, tgt_pos, coords, flipheight, left=None, bottom=None
+):
+    """Shifts edge control points and converts them to Cytoscape.js format.
+
+    Parameters
+    ----------
+    src_pos: (float, float)
+
+    tgt_pos: (float, float)
+
+    coords: list of float
+
+    flipheight: float
+
+    left: float or None
+
+    bottom: float or None
+
+    Returns
+    -------
+    just_a_straight_line, dists, weights: bool, str, str
+        If just_a_straight_line is True, you can easily approximate this
+        with just a straight line.
+
+        dists and weights can be used as the control-point-distances and
+        control-point-weights properties in Cytoscape.js, respectively.
+
+    Notes
+    -----
+    Adapted from my old JS code:
+    https://github.com/marbl/MetagenomeScope/blob/0db5e3790fc736f428f65b4687bd4d1e054c3978/viewer/js/xdot2cy.js#L5129-L5185
+    """
+    if left is not None and bottom is not None:
+        coords = shift_control_points(coords, left, bottom)
+    for i in range(len(coords)):
+        if i % 2 == 1:
+            coords[i] = flipheight - coords[i]
+    src_tgt_dist = euclidean_distance(src_pos, tgt_pos)
+    cpdists = ""
+    cpweights = ""
+    just_a_straight_line = True
+    i = 0
+    while i < len(coords):
+        curr_pt = (coords[i], coords[i + 1])
+        pld = point_to_line_distance(curr_pt, src_pos, tgt_pos)
+        pldsq = pld**2
+        dsp = euclidean_distance(curr_pt, src_pos)
+        dtp = euclidean_distance(curr_pt, tgt_pos)
+
+        # The interiors of the sqrts below should always be positive, but
+        # rounding jank can cause them to become slightly negative (or at
+        # least that was a thing I had to account for in JS). Hence the abs().
+        ws = math.sqrt(abs(dsp**2 - pldsq))
+        wt = math.sqrt(abs(dtp**2 - pldsq))
+
+        # Get the weight of the control point on the line between source and
+        # sink oriented properly; if the control point is "behind" the source
+        # node we make it negative, and if it is "past" the sink node we make
+        # it > 1. Everything in between the source and sink falls within [0, 1]
+        # inclusive.
+        if wt > src_tgt_dist and wt > ws:
+            # ctrl point is "behind" the source node
+            w = -ws / src_tgt_dist
+        else:
+            # ctrl point is anywhere past the source node
+            w = ws / src_tgt_dist
+
+        # Is this control point far enough away from the straight line between
+        # the source and target node?
+        if abs(pld) > layout_config.CTRL_PT_DIST_EPSILON:
+            just_a_straight_line = False
+
+        # control points with a weight of 0 (first ctrl pt) or 1 (last ctrl pt)
+        # aren't valid due to implicit points already "existing there." see
+        # github.com/cytoscape/cytoscape.js/issues/1451. This preemptively
+        # fixes such control points.
+        # TODO: or maybe we should just skip these lmao ...?
+        if i == 0 and w == 0:
+            w = 0.01
+        elif i == len(coords) - 2 and w == 1:
+            w = 0.99
+
+        space = ""
+        if i > 0:
+            space = " "
+        cpdists += f"{space}{pld:.4f} "
+        cpweights += f"{space}{w:.4f} "
+        i += 2
+    return just_a_straight_line, cpdists, cpweights
 
 
 def getxy(pos_string):
