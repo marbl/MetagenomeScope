@@ -6,11 +6,13 @@
 SHOW_PATTERNS = "patterns"
 DO_LAYOUT_ANIMATION = "animate"
 DO_RECURSIVE_LAYOUT = "recursive"
+USE_GV_PORTS = "ports"
 
 # by default, which draw settings are enabled?
 DEFAULT_SHOW_PATTERNS = True
 DEFAULT_DO_LAYOUT_ANIMATION = True
 DEFAULT_DO_RECURSIVE_LAYOUT = False
+DEFAULT_USE_GV_PORTS = False
 
 DEFAULT_DRAW_SETTINGS = []
 if DEFAULT_SHOW_PATTERNS:
@@ -19,6 +21,8 @@ if DEFAULT_DO_LAYOUT_ANIMATION:
     DEFAULT_DRAW_SETTINGS.append(DO_LAYOUT_ANIMATION)
 if DEFAULT_DO_RECURSIVE_LAYOUT:
     DEFAULT_DRAW_SETTINGS.append(DO_RECURSIVE_LAYOUT)
+if DEFAULT_USE_GV_PORTS:
+    DEFAULT_DRAW_SETTINGS.append(USE_GV_PORTS)
 
 DRAW_SETTINGS_OPTIONS = [
     {
@@ -28,6 +32,10 @@ DRAW_SETTINGS_OPTIONS = [
     {
         "label": "Lay out patterns recursively (Graphviz only)",
         "value": DO_RECURSIVE_LAYOUT,
+    },
+    {
+        "label": "Use fixed headports and tailports (Graphviz only)",
+        "value": USE_GV_PORTS,
     },
     {
         "label": "Animate layout (Dagre & fCoSE only)",

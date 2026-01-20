@@ -25,6 +25,7 @@ class Layout(object):
         self.draw_settings = draw_settings
         self.incl_patterns = ui_utils.show_patterns(draw_settings)
         self.recursive = ui_utils.do_recursive_layout(draw_settings)
+        self.use_gv_ports = ui_utils.use_gv_ports(draw_settings)
 
         # I know this is a jank way of testing if this is a pattern or a
         # Subgraph but i don't want to cause circular imports by importing
@@ -96,7 +97,7 @@ class Layout(object):
         assuming that self.incl_patterns and self.recursive are True.
         """
         dot = ""
-        dot += layout_utils.get_gv_header(self.region.name)
+        dot += layout_utils.get_gv_header(self.region.name, self.use_gv_ports)
         if self.incl_patterns and self.recursive:
             for node in self.region.nodes:
                 if self.at_top_level_of_region(node):

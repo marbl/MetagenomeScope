@@ -4,7 +4,7 @@ from .. import config
 from ..errors import WeirdError
 
 
-def get_gv_header(name="g"):
+def get_gv_header(name="g", use_ports=False):
     """Returns the header of a DOT language file.
 
     This will look something like
@@ -18,16 +18,23 @@ def get_gv_header(name="g"):
     node/edge/subgraph data and close out the graph declaration with a }.
     """
     gv_input = "digraph " + name + " {\n"
-    if layout_config.GRAPH_STYLE != "":
+
+    if len(layout_config.GRAPH_STYLE) > 0:
         gv_input += f"{layout_config.INDENT}{layout_config.GRAPH_STYLE};\n"
-    if layout_config.GLOBALNODE_STYLE != "":
+
+    if len(layout_config.GLOBALNODE_STYLE) > 0:
         gv_input += (
             f"{layout_config.INDENT}node [{layout_config.GLOBALNODE_STYLE}];\n"
         )
-    if layout_config.GLOBALEDGE_STYLE != "":
-        gv_input += (
-            f"{layout_config.INDENT}edge [{layout_config.GLOBALEDGE_STYLE}];\n"
-        )
+
+    global_edge_style = layout_config.GLOBALEDGE_STYLE
+    if use_ports:
+        if len(global_edge_style) > 0:
+            global_edge_style += ","
+        global_edge_style += "headport=w,tailport=e"
+    if len(global_edge_style) > 0:
+        gv_input += f"{layout_config.INDENT}edge [{global_edge_style}];\n"
+
     return gv_input
 
 

@@ -971,3 +971,7 @@ def show_patterns(draw_settings):
 
 def do_recursive_layout(draw_settings):
     return ui_config.DO_RECURSIVE_LAYOUT in draw_settings
+
+
+def use_gv_ports(draw_settings):
+    return ui_config.USE_GV_PORTS in draw_settings
