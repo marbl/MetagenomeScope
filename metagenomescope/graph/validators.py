@@ -518,8 +518,9 @@ def is_valid_bulge(g, start_node_id):
     1. There exist at least two edges from S --> E.
     2. All of S's outgoing edges point to E.
     3. All of E's incoming edges come from S.
+    4. S != E.
 
-    We could relax conditions 2 and 3 if desired, although this may complicate
+    We could relax conditions 2-4 if desired, although this may complicate
     the pattern decomposition stuff. Notably, we also allow bulges where there
     exist edge(s) from E to S, to be consistent with how we allow cyclic
     bubbles (see https://github.com/marbl/MetagenomeScope/issues/241 for
@@ -530,17 +531,19 @@ def is_valid_bulge(g, start_node_id):
     if len(adj) == 1:
         # Condition 2 is met
         end_node_id = list(adj)[0]
-        if len(g.pred[end_node_id]) == 1:
-            # Condition 3 is met
-            if len(adj[end_node_id]) > 1:
-                # Condition 1 is met
-                return ValidationResults(
-                    config.PT_BUBBLE,
-                    True,
-                    [start_node_id, end_node_id],
-                    [start_node_id],
-                    [end_node_id],
-                )
+        if end_node_id != start_node_id:
+            # Condition 4 is met
+            if len(g.pred[end_node_id]) == 1:
+                # Condition 3 is met
+                if len(adj[end_node_id]) > 1:
+                    # Condition 1 is met
+                    return ValidationResults(
+                        config.PT_BUBBLE,
+                        True,
+                        [start_node_id, end_node_id],
+                        [start_node_id],
+                        [end_node_id],
+                    )
     return ValidationResults()
 
 

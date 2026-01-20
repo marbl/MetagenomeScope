@@ -410,6 +410,15 @@ def test_cyclic_bulge():
     _test_validation_results(validators.is_valid_bulge(g, 1), node_ids=[1, 0])
 
 
+def test_cyclic_bulge_one_node_not_allowed():
+    # NOOOO DON'T ALLOW THIS LOL
+    # i mean we COULD. but it is jank and more trouble than it's worth i think
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 0)
+    g.add_edge(0, 0)
+    assert not validators.is_valid_bulge(g, 0)
+
+
 def test_finding_bubble_containing_bulge():
     # This can happen in practice, since we are pretty strict with how we
     # define "bulges" -- not all cases of parallel edges will be turned into
