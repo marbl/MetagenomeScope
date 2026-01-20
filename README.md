@@ -27,8 +27,8 @@ This tool is still a work in progress, so please let us know if you have any fee
   </thead>
   <tbody>
     <tr>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc2.png" alt="Second-largest component in a metagenome assembly graph, showing various identified structural patterns." /></td>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/flye_yeast.png" alt="Part of a yeast genome assembly graph, showing the selection of a path of edges." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc2.png" alt="Second-largest component in a metagenome scaffold graph, showing various identified structural patterns." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/flye_yeast.png" alt="Part of a yeast genome assembly graph, showing the visualization of a scaffold of edge sequences." /></td>
     </tr>
     <tr align="center">
       <td><i>Data source: <a href="https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959">SRS049959</a></i></td>
@@ -40,14 +40,14 @@ This tool is still a work in progress, so please let us know if you have any fee
 <table>
   <thead>
     <tr>
-      <th>Visualizing paths from an <a href="https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/">AGP file</a></th>
+      <th>Interactive summaries of graph statistics</th>
       <th>Summarizing graph structure in a <a href="https://en.wikipedia.org/wiki/Treemapping">treemap</a></th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc6_scaffold430.png" alt="Second-largest component in a metagenome assembly graph, showing various identified structural patterns." /></td>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1treemap.png" alt="Part of a yeast genome assembly graph, showing the selection of a path of edges." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_covlen.png" alt="Scatterplot comparing total node length with average edge bundle sizes in a scaffold graph." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1treemap.png" alt="Treemap of node counts per component." /></td>
     </tr>
     <tr align="center">
       <td colspan="2"><i>Data source: <a href="https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959">SRS049959</a></i></td>
