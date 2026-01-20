@@ -1,4 +1,3 @@
 graft metagenomescope/assets
-prune metagenomescope/tests
 include README.md
 include COPYING.txt
