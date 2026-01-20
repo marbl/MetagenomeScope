@@ -235,7 +235,9 @@ class Edge(object):
                 return self.get_userspecified_id()
             else:
                 # LJA
-                return f"{self.data['length']:,} ({self.data['kp1mer_cov']:,}x)"
+                return (
+                    f"{self.data['length']:,} ({self.data['kp1mer_cov']:,}x)"
+                )
 
         if "bsize" in self.data:
             # MetaCarvel
