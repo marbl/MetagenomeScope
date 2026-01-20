@@ -87,7 +87,7 @@ def test_to_dot_non_split():
     b.layout.width = b.layout.height = 3
     assert (
         b.to_dot(indent=" ")
-        == ' 0 [width=3,height=3,shape=circle,label="B"];\n'
+        == ' 0 [width=3,height=3,shape=rect,label="B"];\n'
     )
 
 
@@ -104,5 +104,5 @@ def test_to_dot_split():
     )
     assert (
         b.to_dot(indent=" ")
-        == ' 0 [width=3,height=3,shape=invtriangle,label="B-R"];\n'
+        == ' 0 [width=3,height=3,shape=rect,label="B-R"];\n'
     )
