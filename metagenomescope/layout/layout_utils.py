@@ -1,4 +1,5 @@
 import math
+from collections import defaultdict
 from . import layout_config
 from .. import config
 from ..errors import WeirdError
@@ -273,6 +274,25 @@ def dot_to_cyjs_control_points(
         cpweights += f"{space}{w:.4f} "
         i += 2
     return just_a_straight_line, cpdists, cpweights
+
+
+def flatten_parallel_edge_styles(sg, edgeid2ctrlpts):
+    # Ignore edge directionality (so A -> B is treated as identical to B -> A).
+    # If any two nodes A and B are directly connected by more than one edge,
+    # then we "flatten" all of these edges -- ignoring any control points dot
+    # decided to give them. This is because the vast majority of parallel
+    # edges, simple whirls, etc. can be rendered as basic bezier edges, which
+    # is more performant and also less prone to disappearing due to math stuff
+    pair2eid = defaultdict(set)
+    for e in sg.edges:
+        s = e.new_src_id
+        t = e.new_tgt_id
+        pair2eid[(s, t)].add(e.unique_id)
+        pair2eid[(t, s)].add(e.unique_id)
+    for pair, eids in pair2eid.items():
+        if len(pair2eid[pair]) > 1:
+            for eid in eids:
+                edgeid2ctrlpts[eid] = (True, None, None)
 
 
 def getxy(pos_string):
