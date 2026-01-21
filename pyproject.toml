@@ -16,7 +16,11 @@ build-backend = "setuptools.build_meta"
 # to check how this stuff works.)
 [tool.setuptools.packages.find]
 include = ["metagenomescope*"]
-exclude = ["metagenomescope*tests"]
+exclude = ["metagenomescope/tests*"]
+
+# https://github.com/pypa/setuptools/issues/3260#issuecomment-2903806599
+[tool.setuptools.exclude-package-data]
+"*" = ["metagenomescope/tests*"]
 
 # Get the version from the metagenomescope/__init__.py file in order to
 # avoid duplicating it. See
