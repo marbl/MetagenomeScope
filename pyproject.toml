@@ -5,11 +5,11 @@ build-backend = "setuptools.build_meta"
 # the include prevents setuptools from breaking when it sees other sibling
 # folders to "metagenomescope": https://stackoverflow.com/a/75881304
 # the exclude prevents tests from being included with the installed code
-# (https://stackoverflow.com/a/75390679), which I think makes sense
-# (https://stackoverflow.com/a/14617124)
+# (https://stackoverflow.com/a/75390679, https://stackoverflow.com/a/75383392),
+# which I think makes sense (https://stackoverflow.com/a/14617124)
 [tool.setuptools.packages.find]
 include = ["metagenomescope*"]
-exclude = ["metagenomescope/tests*"]
+exclude = ["metagenomescope*tests"]
 
 # Get the version from the metagenomescope/__init__.py file in order to
 # avoid duplicating it. See
