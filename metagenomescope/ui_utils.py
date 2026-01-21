@@ -80,6 +80,78 @@ def get_length_info(ag):
     )
 
 
+def get_patt_info(ag):
+    pct = len(ag.pattid2obj)
+    introtext = html.P(
+        [
+            "We identified ",
+            html.Span(pluralize(pct, "pattern"), className="fw-bold"),
+            " in the graph:",
+        ]
+    )
+    tbl = html.Table(
+        html.Tbody(
+            [
+                html.Tr(
+                    [
+                        html.Th(
+                            "# bubbles",
+                            style={
+                                "background-color": config.PT2COLOR[
+                                    config.PT_BUBBLE
+                                ]
+                            },
+                        ),
+                        html.Th(
+                            "# frayed ropes",
+                            style={
+                                "background-color": config.PT2COLOR[
+                                    config.PT_FRAYEDROPE
+                                ]
+                            },
+                        ),
+                        html.Th(
+                            "# chains",
+                            style={
+                                "background-color": config.PT2COLOR[
+                                    config.PT_CHAIN
+                                ]
+                            },
+                        ),
+                        html.Th(
+                            "# cyclic chains",
+                            style={
+                                "background-color": config.PT2COLOR[
+                                    config.PT_CYCLICCHAIN
+                                ]
+                            },
+                        ),
+                        html.Th(
+                            "# bipartites",
+                            style={
+                                "background-color": config.PT2COLOR[
+                                    config.PT_BIPARTITE
+                                ]
+                            },
+                        ),
+                    ]
+                ),
+                html.Tr(
+                    [
+                        html.Td(f"{len(ag.bubbles):,}"),
+                        html.Td(f"{len(ag.frayed_ropes):,}"),
+                        html.Td(f"{len(ag.chains):,}"),
+                        html.Td(f"{len(ag.cyclic_chains):,}"),
+                        html.Td(f"{len(ag.bipartites):,}"),
+                    ]
+                ),
+            ]
+        ),
+        className=css_config.INFO_DIALOG_TABLE_CLASSES,
+    )
+    return [introtext, tbl]
+
+
 def close_to_int(f, epsilon=config.EPSILON):
     return abs(f - round(f)) < epsilon
 

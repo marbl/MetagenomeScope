@@ -1148,6 +1148,9 @@ def run(
                                                         ag
                                                     ),
                                                     *ui_utils.get_cov_info(ag),
+                                                    *ui_utils.get_patt_info(
+                                                        ag
+                                                    ),
                                                     html.Div(
                                                         dbc.Button(
                                                             [
