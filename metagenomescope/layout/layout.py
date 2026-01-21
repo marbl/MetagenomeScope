@@ -431,5 +431,5 @@ class Layout(object):
                         self.height,
                     )
                 )
-        layout_utils.flatten_parallel_edge_styles(self.region, edgeid2ctrlpts)
+        layout_utils.flatten_some_edges(self.region, edgeid2ctrlpts)
         return nodeid2xy, edgeid2ctrlpts

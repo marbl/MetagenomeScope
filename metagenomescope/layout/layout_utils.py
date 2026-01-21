@@ -205,7 +205,7 @@ def dot_to_cyjs_control_points(
     -------
     just_a_straight_line, dists, weights: bool, str or None, str or None
         If just_a_straight_line is True, you can easily approximate this
-        with just a straight line.
+        with just a straight line or ordinary self-loop edge or something.
 
         dists and weights can be used as the control-point-distances and
         control-point-weights properties in Cytoscape.js, respectively.
@@ -214,6 +214,11 @@ def dot_to_cyjs_control_points(
     -----
     Adapted from my old JS code:
     https://github.com/marbl/MetagenomeScope/blob/0db5e3790fc736f428f65b4687bd4d1e054c3978/viewer/js/xdot2cy.js#L5129-L5185
+
+    References
+    ----------
+    For details about how Cytoscape.js expects control point data, see
+    https://js.cytoscape.org/#style/unbundled-bezier-edges
     """
     if src_pos == tgt_pos:
         return True, None, None
@@ -276,23 +281,78 @@ def dot_to_cyjs_control_points(
     return just_a_straight_line, cpdists, cpweights
 
 
-def flatten_parallel_edge_styles(sg, edgeid2ctrlpts):
-    # Ignore edge directionality (so A -> B is treated as identical to B -> A).
-    # If any two nodes A and B are directly connected by more than one edge,
-    # then we "flatten" all of these edges -- ignoring any control points dot
-    # decided to give them. This is because the vast majority of parallel
-    # edges, simple whirls, etc. can be rendered as basic bezier edges, which
-    # is more performant and also less prone to disappearing due to math stuff
+def flatten_some_edges(sg, edgeid2ctrlpts):
+    """Analyzes a laid-out region and tries to remove edge control point data.
+
+    The idea is that Cytoscape.js, if it sees an unbundled-bezier edge with
+    control point data given, can break (especially when the user moves the
+    edge's nodes around) and silently hide the edge (ok technically it logs a
+    warning but from the user's perspective the edge just disappears). We want
+    to avoid this as much as possible, so it is to our advantage to
+    preemptively go through and be like "okay, this edge doesn't NEED to be
+    routed this way, make it a basic bezier or something." This also should
+    help with performance, I think? Since basic bezier edges are easier for
+    Cytoscape.js to handle than "unbundled" beziers with custom control points.
+
+    Some of this should have already been done when the Graphviz control points
+    were processed and converted to Cytoscape.js format -- see the
+    CTRL_PT_DIST_EPSILON stuff in dot_to_cyjs_control_points() above.
+    This function addresses the following types of edges:
+
+    - If any two nodes A and B are directly connected by more than one edge
+      (ignoring direction), we flatten all of these edges (both A -> B and
+      B -> A). Accounts for various bulges, whirls, etc; to my knowledge all
+      such cases are best rendered as basic bezier edges. (Cytoscape.js janks
+      out particularly hard at handling control points for these kinds of
+      parallel edges, which I think is due to the fix for
+      https://github.com/cytoscape/cytoscape.js/issues/3322 not being part of
+      Dash Cytoscape yet... but even after that fix, we should still continue
+      flattening these edges.)
+
+    - All loop edges (of the form A -> A). We should have already taken care
+      of flattening these when processing control points (since we check if
+      the source and target node position are the same), but I don't trust
+      there to not be jank abt the same node having SLIGHTLY different
+      positions in a loop edge's control points, so let's be paranoid.
+
+    Parameters
+    ----------
+    sg: Subgraph
+
+    edgeid2ctrlpts: dict of int -> (bool, str or None, str or None)
+        Maps edge IDs to control point data. If the bool is True, then the
+        next two entries in the 3-tuple are control point distances and control
+        point weights (see dot_to_cyjs_control_points()). If the bool is False,
+        then the next two entries don't matter (they can just be Nones).
+
+    Returns
+    -------
+    None
+        This modifies edgeid2ctrlpts in-place as needed.
+
+    Notes
+    -----
+    We should do even more of this, I think. See
+    https://github.com/marbl/MetagenomeScope/issues/339 for plans
+    """
+    FLAT = (True, None, None)
     pair2eid = defaultdict(set)
     for e in sg.edges:
         s = e.new_src_id
         t = e.new_tgt_id
-        pair2eid[(s, t)].add(e.unique_id)
-        pair2eid[(t, s)].add(e.unique_id)
+        if s == t:
+            # just immediately flatten, no questions asked
+            edgeid2ctrlpts[e.unique_id] = FLAT
+            continue
+        # sort the pair to ensure that (A, B) and (B, A) get stored in the same
+        # dict entry; sorted() returns a list, so convert it to a tuple to make
+        # it hashable.
+        pair2eid[tuple(sorted((s, t)))].add(e.unique_id)
+
     for pair, eids in pair2eid.items():
         if len(pair2eid[pair]) > 1:
             for eid in eids:
-                edgeid2ctrlpts[eid] = (True, None, None)
+                edgeid2ctrlpts[eid] = FLAT
 
 
 def getxy(pos_string):
