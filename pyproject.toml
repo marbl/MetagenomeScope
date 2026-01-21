@@ -1,35 +1,35 @@
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-# the include prevents setuptools from breaking when it sees other sibling
-# folders to "metagenomescope": https://stackoverflow.com/a/75881304
-#
-# the exclude SHOULD prevent tests from being included with the installed code
-# (https://stackoverflow.com/a/75390679, https://stackoverflow.com/a/75383392),
-# but it doesn't actually do anything as of writing due to setuptools jank:
-# https://github.com/pypa/setuptools/issues/3260 -- so we exclude tests
-# manually using the MANIFEST.in file in the root of this repository.
-#
-# (Note for future lost souls trying to test this: you can use
-# "python -m build ." then inspect the tar file in the resulting dist/ folder
-# to check how this stuff works.)
-[tool.setuptools.packages.find]
-include = ["metagenomescope*"]
-exclude = ["metagenomescope/tests*"]
+# it is apparently convention to include tests along with the sdist, so sure.
+# this should also include files in tests/input, which is nice
+[tool.hatch.build.targets.sdist]
+include = [
+    "metagenomescope/*",
+    "COPYING.txt",
+    "README.md"
+]
+exclude = [
+    "docs"
+]
 
-# https://github.com/pypa/setuptools/issues/3260#issuecomment-2903806599
-[tool.setuptools.exclude-package-data]
-"*" = ["metagenomescope/tests*"]
+# wheels shouldn't have tests
+# https://packaging.python.org/en/latest/discussions/package-formats/
+[tool.hatch.build.targets.wheel]
+include = [
+    "metagenomescope/*",
+    "COPYING.txt",
+    "README.md"
+]
+exclude = [
+    "metagenomescope/tests/*",
+    "docs"
+]
 
-# Get the version from the metagenomescope/__init__.py file in order to
-# avoid duplicating it. See
-# https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html#dynamic-metadata
-# and https://packaging.python.org/en/latest/discussions/single-source-version/
-# (and https://github.com/django-crispy-forms/django-crispy-forms/blob/main/pyproject.toml
-# for a real example)
-[tool.setuptools.dynamic]
-version = {attr = "metagenomescope.__version__"}
+# hatch will extract the version for us - https://hatch.pypa.io/latest/version/
+[tool.hatch.version]
+path = "metagenomescope/__init__.py"
 
 [project]
 name = "metagenomescope"
