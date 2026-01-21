@@ -56,7 +56,8 @@ dependencies = [
     "networkx",
     "pygraphviz",
     "gfapy",
-    "pyfastg",
+    # pyfastg 0.2.0 added support for MEGAHIT FASTG files
+    "pyfastg >= 0.2.0",
     "pandas",
     "dash-cytoscape",
     "dash-bootstrap-components",
