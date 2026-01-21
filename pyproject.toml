@@ -4,9 +4,16 @@ build-backend = "setuptools.build_meta"
 
 # the include prevents setuptools from breaking when it sees other sibling
 # folders to "metagenomescope": https://stackoverflow.com/a/75881304
-# the exclude prevents tests from being included with the installed code
+#
+# the exclude SHOULD prevent tests from being included with the installed code
 # (https://stackoverflow.com/a/75390679, https://stackoverflow.com/a/75383392),
-# which I think makes sense (https://stackoverflow.com/a/14617124)
+# but it doesn't actually do anything as of writing due to setuptools jank:
+# https://github.com/pypa/setuptools/issues/3260 -- so we exclude tests
+# manually using the MANIFEST.in file in the root of this repository.
+#
+# (Note for future lost souls trying to test this: you can use
+# "python -m build ." then inspect the tar file in the resulting dist/ folder
+# to check how this stuff works.)
 [tool.setuptools.packages.find]
 include = ["metagenomescope*"]
 exclude = ["metagenomescope*tests"]
