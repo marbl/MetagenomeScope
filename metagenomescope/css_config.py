@@ -48,3 +48,9 @@ INFO_DIALOG_TABLE_CLASSES = "table table-striped-columns"
 
 # default classes on the algorithm descriptions
 ALG_DESC_CLASSES = "layout-alg-desc"
+
+###############################################################################
+# Path settings
+###############################################################################
+
+PATH_SETTINGS_PARENT_CLASSES = "form-check"

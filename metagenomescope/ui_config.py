@@ -66,6 +66,21 @@ LAYOUT_FCOSE = "fcose"
 DEFAULT_LAYOUT_ALG = LAYOUT_DOT
 
 ###############################################################################
+# Default path settings
+###############################################################################
+
+PATH_SETTINGS_ZOOM = "zoom"
+
+PATH_SETTINGS_OPTIONS = [
+    {
+        "label": "Zoom in on selected paths",
+        "value": PATH_SETTINGS_ZOOM,
+    }
+]
+
+DEFAULT_PATH_SETTINGS = [PATH_SETTINGS_ZOOM]
+
+###############################################################################
 # Histograms in the info dialog
 ###############################################################################
 

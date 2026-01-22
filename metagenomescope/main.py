@@ -272,49 +272,68 @@ def run(
                         className="eleTableHeader",
                         id="pathHeader",
                     ),
-                    dag.AgGrid(
-                        rowData=[],
-                        columnDefs=[
-                            {
-                                "field": ui_config.PATH_TBL_NAME_COL,
-                                "headerName": "Name",
-                                "cellClass": "path-table-name fancytable-cells",
-                                # i don't think we really need to explictly set
-                                # this but let's be careful
-                                "cellDataType": "text",
-                            },
-                            {
-                                "field": ui_config.PATH_TBL_COUNT_COL,
-                                "headerName": ct_col,
-                                "cellClass": "fancytable-cells",
-                                # Mark that this column will contain numbers;
-                                # this ensures that sorting works correctly
-                                # (i.e. that "101" > "11").
-                                "cellDataType": "number",
-                            },
-                            {
-                                "field": ui_config.PATH_TBL_CC_COL,
-                                "headerName": "CC #",
-                                "cellClass": "fancytable-cells",
-                                "cellDataType": "number",
-                            },
+                    html.Div(
+                        [
+                            html.Div(
+                                dcc.Checklist(
+                                    options=ui_config.PATH_SETTINGS_OPTIONS,
+                                    value=ui_config.DEFAULT_PATH_SETTINGS,
+                                    id="pathSettingsChecklist",
+                                ),
+                                className=css_config.PATH_SETTINGS_PARENT_CLASSES
+                                + " removedEntirely",
+                                # by default, form-check adds some padding -
+                                # this looks ugly in this context, so just
+                                # keeping the thing centered looks better
+                                style={"padding-left": "0"},
+                                id="pathSettings",
+                            ),
+                            dag.AgGrid(
+                                rowData=[],
+                                columnDefs=[
+                                    {
+                                        "field": ui_config.PATH_TBL_NAME_COL,
+                                        "headerName": "Name",
+                                        "cellClass": "path-table-name fancytable-cells",
+                                        # i don't think we really need to explictly set
+                                        # this but let's be careful
+                                        "cellDataType": "text",
+                                    },
+                                    {
+                                        "field": ui_config.PATH_TBL_COUNT_COL,
+                                        "headerName": ct_col,
+                                        "cellClass": "fancytable-cells",
+                                        # Mark that this column will contain numbers;
+                                        # this ensures that sorting works correctly
+                                        # (i.e. that "101" > "11").
+                                        "cellDataType": "number",
+                                    },
+                                    {
+                                        "field": ui_config.PATH_TBL_CC_COL,
+                                        "headerName": "CC #",
+                                        "cellClass": "fancytable-cells",
+                                        "cellDataType": "number",
+                                    },
+                                ],
+                                # https://dash.plotly.com/dash-ag-grid/column-sizing
+                                columnSize="responsiveSizeToFit",
+                                className=css_config.SELECTED_ELE_TBL_CLASSES
+                                + " removedEntirely",
+                                id="pathList",
+                                # Needed to replace the default "No Rows To Show"
+                                # message when no paths are available:
+                                # https://community.plotly.com/t/how-to-customize-overlay-messages-in-dash-ag-grid/73932/2
+                                dashGridOptions={
+                                    "overlayNoRowsTemplate": "No paths available.",
+                                    # makes col names that have periods function
+                                    # normally. not a problem atm for the path table
+                                    # but let's be careful
+                                    "suppressFieldDotNotation": True,
+                                },
+                                dangerously_allow_code=True,
+                            ),
                         ],
-                        # https://dash.plotly.com/dash-ag-grid/column-sizing
-                        columnSize="responsiveSizeToFit",
-                        className=css_config.SELECTED_ELE_TBL_CLASSES
-                        + " removedEntirely",
-                        id="pathList",
-                        # Needed to replace the default "No Rows To Show"
-                        # message when no paths are available:
-                        # https://community.plotly.com/t/how-to-customize-overlay-messages-in-dash-ag-grid/73932/2
-                        dashGridOptions={
-                            "overlayNoRowsTemplate": "No paths available.",
-                            # makes col names that have periods function
-                            # normally. not a problem atm for the path table
-                            # but let's be careful
-                            "suppressFieldDotNotation": True,
-                        },
-                        dangerously_allow_code=True,
+                        id="pathUI",
                     ),
                 ],
                 className="noPadding",
@@ -2637,12 +2656,23 @@ def run(
         @callback(
             Output("pathList", "className"),
             Output("pathOpener", "className"),
+            Output("pathSettings", "className"),
             State("pathList", "className"),
             Input("pathHeader", "n_clicks"),
             prevent_initial_call=True,
         )
-        def toggle_path_table(classes, n_clicks):
-            return toggle_ele_table_classes(classes)
+        def toggle_path_ui(classes, n_clicks):
+            # NOTE: it would be better to just toggle the ENTIRE path UI
+            # (including the path settings checklist and the table) -- but if
+            # we do that then the table kinda... flickers a bit when you
+            # open it up. guessing it's some sort of thing about whether or
+            # not the table already has dimensions on initialization or
+            # something, idk. anyway this looks better but it is jank so...
+            listcls, openercls = toggle_ele_ui(classes)
+            settingscls = css_config.PATH_SETTINGS_PARENT_CLASSES
+            if "removedEntirely" in listcls:
+                settingscls += " removedEntirely"
+            return listcls, openercls, settingscls
 
         @callback(
             Output("pathCount", "children"),
@@ -2703,10 +2733,11 @@ def run(
             Output("toastHolder", "children", allow_duplicate=True),
             Output("pathSelectionInfo", "data"),
             State("toastHolder", "children"),
+            State("pathSettingsChecklist", "value"),
             Input("pathList", "cellClicked"),
             prevent_initial_call=True,
         )
-        def highlight_path(curr_toasts, clicked_cell):
+        def highlight_path(curr_toasts, path_settings, clicked_cell):
             if clicked_cell["colId"] == ui_config.PATH_TBL_NAME_COL:
                 path = clicked_cell["value"]
                 # TODO we COUUULD try to actually visually show gap info on top
@@ -2719,6 +2750,7 @@ def run(
 
                 return new_toasts, {
                     "requestGood": True,
+                    "path_settings": path_settings,
                     "eles": nongap_names,
                     "nodes": ag.node_centric,
                 }
@@ -2751,15 +2783,18 @@ def run(
         prevent_initial_call=True,
     )
 
-    def toggle_ele_table_classes(classes):
-        if "removedEntirely" in classes:
+    def toggle_ele_ui(
+        curr_classes, always_classes=css_config.SELECTED_ELE_TBL_CLASSES
+    ):
+        # returns a 2-tuple of (UI classes, opener classes)
+        if "removedEntirely" in curr_classes:
             return (
-                css_config.SELECTED_ELE_TBL_CLASSES,
+                always_classes,
                 "bi bi-caret-down-fill",
             )
         else:
             return (
-                css_config.SELECTED_ELE_TBL_CLASSES + " removedEntirely",
+                always_classes + " removedEntirely",
                 "bi bi-caret-right-fill",
             )
 
@@ -2771,7 +2806,7 @@ def run(
         prevent_initial_call=True,
     )
     def toggle_node_table(classes, n_clicks):
-        return toggle_ele_table_classes(classes)
+        return toggle_ele_ui(classes)
 
     @callback(
         Output("selectedEdgeList", "className"),
@@ -2781,7 +2816,7 @@ def run(
         prevent_initial_call=True,
     )
     def toggle_edge_table(classes, n_clicks):
-        return toggle_ele_table_classes(classes)
+        return toggle_ele_ui(classes)
 
     @callback(
         Output("selectedPatternList", "className"),
@@ -2791,7 +2826,7 @@ def run(
         prevent_initial_call=True,
     )
     def toggle_pattern_table(classes, n_clicks):
-        return toggle_ele_table_classes(classes)
+        return toggle_ele_ui(classes)
 
     @callback(
         Output("selectedNodeList", "rowData"),

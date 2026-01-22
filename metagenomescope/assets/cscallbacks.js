@@ -157,7 +157,13 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     }
                     eles = eles.union(newEles);
                 }
-                cy.fit(eles);
+                // The key term "zoom" is set in ui_config.py
+                // I don't like duplicating it here, but... I mean
+                // I guess we COULD define some mechanism for passing
+                // config variables from py -> js but whatever
+                if (pathSelectionInfo["path_settings"].indexOf("zoom") >= 0) {
+                    cy.fit(eles);
+                }
                 cy.filter(":selected").unselect();
                 eles.select();
             }
