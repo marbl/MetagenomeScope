@@ -488,6 +488,41 @@ This interface should remain relatively stable. If you have any questions, pleas
 <hr/>
 </details>
 
+### Performance
+
+<details>
+  <summary><strong>FAQ 9. What's the biggest possible graph I can visualize?</strong></summary>
+
+<hr/>
+
+We're still figuring that out. There are two main bottlenecks I am aware of:
+
+1. Laying out the graph.
+
+    - We usually only lay out one component at a time, so generally the problem comes with laying out the large "hairball" component(s) of the graph, if any.
+
+    - When you get to the order of, say, thousands of nodes, laying out a component will probably become somewhat slow (especially if you select the `Lay out patterns recursively` option in the draw options dialog).
+
+    - To my understanding, a big factor here is the ratio of nodes to edges: when there are many more edges than nodes in a component (indicating a very densely connected structure), Graphviz has to do a lot of work to position things properly.
+
+2. Drawing the graph's elements.
+
+    - Cytoscape.js has a lot of optimizations built-in, but I think there are some inherent limitations of drawing using a HTML canvas.
+
+    - With graphs containing thousands of nodes, interaction (e.g. zooming, panning) starts to feel a bit sluggish.
+
+
+I have some ideas for dealing with these bottlenecks, but thankfully there are already ways around both of these issues. Some approaches that may be helpful:
+
+- Assuming that your graph has multiple components, check out the `Components` tab in the `Graph info` dialog to see how big these components are. If component #1 (the largest one) contains more than, say, 10,000 nodes, you may want to start off with analyzing the smaller components.
+
+- You don't need to draw entire components at once. Try using the `Around certain node(s)` drawing method (in the dropdown inside the `Draw` section): if you are interested in just certain neighborhood(s) in a massive component, you can enter in a list of nodes here (and some distance around them) and we'll just draw the corresponding neighborhoods. (Inspired by [Bandage](https://github.com/rrwick/bandage) :)
+
+- Turning off labels might be helpful? Although probably not by that much, since we already use Cytoscape.js' functionality to hide labels when you're zoomed out from the graph.
+
+<hr/>
+</details>
+
 ## Known issues
 
 - Isolated components containing only a bubble with an "end-to-start" cycle are decomposed
