@@ -282,10 +282,6 @@ def run(
                                 ),
                                 className=css_config.PATH_SETTINGS_PARENT_CLASSES
                                 + " removedEntirely",
-                                # by default, form-check adds some padding -
-                                # this looks ugly in this context, so just
-                                # keeping the thing centered looks better
-                                style={"padding-left": "0"},
                                 id="pathSettings",
                             ),
                             dag.AgGrid(
