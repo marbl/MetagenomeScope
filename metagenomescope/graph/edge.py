@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from metagenomescope import ui_utils, cy_config
+from metagenomescope import ui_utils, color_utils
 from metagenomescope.layout import layout_config, layout_utils
 from metagenomescope.errors import WeirdError
 
@@ -276,20 +276,8 @@ class Edge(object):
 
         if "color" in self.data:
             color = self.data["color"]
-            recognized = False
-            if color in cy_config.GVCOLOR2HEX:
-                color = cy_config.GVCOLOR2HEX[color]
-                recognized = True
-            elif (
-                color[0] == "#"
-                or color.startswith("rgb(")
-                or color.startswith("hsl(")
-            ):
-                recognized = True
-            # if the color is some random name that we don't recognized don't
-            # pass it on to cy.js - just fall back to default uniform edge
-            # color
-            if recognized:
+            good, color = color_utils.user_color_to_cyjs(self.data["color"])
+            if good:
                 ele["data"]["color"] = color
 
         if (

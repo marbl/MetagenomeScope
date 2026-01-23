@@ -1,4 +1,5 @@
 import random
+from . import cy_config
 from .errors import WeirdError
 
 
@@ -155,3 +156,17 @@ def selectively_interpolate_hsl(
             # the usual colormap
             colors.append("")
     return colors
+
+
+def user_color_to_cyjs(color):
+    recognized = False
+    if color in cy_config.GVCOLOR2HEX:
+        color = cy_config.GVCOLOR2HEX[color]
+        recognized = True
+    elif (
+        color[0] == "#" or color.startswith("rgb(") or color.startswith("hsl(")
+    ):
+        recognized = True
+    # if the color is some random name that we don't recognize don't pass it on
+    # to cy.js - just fall back to default uniform edge color
+    return recognized, color
