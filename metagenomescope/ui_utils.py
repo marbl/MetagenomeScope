@@ -455,6 +455,20 @@ def get_maxx(maxx):
     return round_to_int_if_close(m)
 
 
+def get_font_size(fs):
+    if len(fs) == 0:
+        raise UIError("No font size specified.")
+    try:
+        f = float(fs)
+    except ValueError:
+        raise UIError(f"{fs} is not a valid number.")
+    if f <= 0:
+        raise UIError("Font size must be > 0.")
+    if f >= 100:
+        raise UIError("Font size must be < 100.")
+    return f
+
+
 def truncate_hist(xvals, title, maxx):
     if maxx is None:
         return xvals, title

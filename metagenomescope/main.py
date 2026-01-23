@@ -807,6 +807,34 @@ def run(
                             ],
                             className="btn-opt-group",
                         ),
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText(
+                                    "Font size",
+                                    className="input-group-text-next-to-button",
+                                ),
+                                dbc.Input(
+                                    type="text",
+                                    id="labelFontSize",
+                                    value=cy_config.DEFAULT_LABEL_FONT_SIZE,
+                                    style={"max-width": "5em"},
+                                ),
+                                dbc.InputGroupText(
+                                    "em",
+                                    className="input-group-text-next-to-button",
+                                ),
+                                dbc.Button(
+                                    "Apply",
+                                    id="labelFontSizeApply",
+                                    color="success",
+                                ),
+                            ],
+                            size="sm",
+                            style={
+                                "justify-content": "center",
+                                "margin-top": "0.2em",
+                            },
+                        ),
                         ctrl_sep,
                         html.H4("Screenshots"),
                         html.Div(
@@ -916,6 +944,7 @@ def run(
                         maxZoom=9,
                         stylesheet=cy_utils.get_cyjs_stylesheet(
                             default_labels,
+                            cy_config.DEFAULT_LABEL_FONT_SIZE,
                             node_coloring=ui_config.DEFAULT_NODE_COLORING,
                             edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
                         ),
@@ -2346,19 +2375,46 @@ def run(
             return dist
 
     @callback(
+        Output("toastHolder", "children", allow_duplicate=True),
+        Output("labelFontSize", "value"),
         Output("cy", "stylesheet"),
+        State("toastHolder", "children"),
+        State("labelFontSize", "value"),
+        Input("labelFontSize", "n_submit"),
+        Input("labelFontSizeApply", "n_clicks"),
         Input("labelChecklist", "value"),
         Input("nodeColorRadio", "value"),
         Input("edgeColorRadio", "value"),
         prevent_initial_call=True,
     )
     def update_cy_stylesheet(
-        label_checklist, node_color_radio, edge_color_radio
+        curr_toasts,
+        label_font_size,
+        label_font_size_n_submit,
+        label_font_size_apply_n_clicks,
+        label_checklist,
+        node_color_radio,
+        edge_color_radio,
     ):
-        return cy_utils.get_cyjs_stylesheet(
-            label_checklist,
-            node_coloring=node_color_radio,
-            edge_coloring=edge_color_radio,
+        out_toasts = no_update
+        out_labelfontsize = no_update
+        try:
+            used_labelfontsize = ui_utils.get_font_size(label_font_size)
+        except UIError as err:
+            out_toasts = ui_utils.add_error_toast(
+                curr_toasts, "Font size error", str(err)
+            )
+            out_labelfontsize = str(cy_config.DEFAULT_LABEL_FONT_SIZE)
+            used_labelfontsize = cy_config.DEFAULT_LABEL_FONT_SIZE
+        return (
+            out_toasts,
+            out_labelfontsize,
+            cy_utils.get_cyjs_stylesheet(
+                label_checklist,
+                used_labelfontsize,
+                node_coloring=node_color_radio,
+                edge_coloring=edge_color_radio,
+            ),
         )
 
     @callback(

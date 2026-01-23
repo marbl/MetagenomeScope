@@ -5,10 +5,10 @@ from .errors import WeirdError
 
 def get_cyjs_stylesheet(
     labels,
+    label_font_size,
     node_coloring=ui_config.DEFAULT_NODE_COLORING,
     edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
 ):
-
     stylesheet = [
         # nodes
         {
@@ -203,6 +203,8 @@ def get_cyjs_stylesheet(
         },
     ]
 
+    labelstyle = cy_config.LABEL_STYLE.copy()
+    labelstyle["fontSize"] = f"{label_font_size}em"
     if ui_config.NODE_LABELS in labels:
         # yeah yeah i know that literally the first entry in the stylesheet
         # is node.nonpattern so we could just say stylesheet[0].update()...
@@ -210,7 +212,7 @@ def get_cyjs_stylesheet(
         # brittle.
         for sty in stylesheet:
             if sty["selector"] == "node.nonpattern":
-                sty["style"].update(cy_config.LABEL_STYLE)
+                sty["style"].update(labelstyle)
                 sty["style"].update(cy_config.NODE_LABEL_STYLE)
                 break
 
@@ -219,7 +221,7 @@ def get_cyjs_stylesheet(
             {
                 "selector": "edge.real",
                 "style": {
-                    **cy_config.LABEL_STYLE,
+                    **labelstyle,
                 },
             }
         )
@@ -227,7 +229,7 @@ def get_cyjs_stylesheet(
     if ui_config.PATTERN_LABELS in labels:
         for sty in stylesheet:
             if sty["selector"] == "node.pattern":
-                sty["style"].update(cy_config.LABEL_STYLE)
+                sty["style"].update(labelstyle)
                 sty["style"].update(cy_config.PATTERN_LABEL_STYLE)
                 break
 
