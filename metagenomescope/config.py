@@ -61,6 +61,9 @@ PT2HR_NOSPACE = {
 }
 
 # colors for patterns, in both the Cy.js interface and in DOT outputs
+# most of these were based on graphviz colors, but like the original cy.js
+# styling made patterns semitransparent, so these really match graphviz colors
+# at some semitransparency on a white background. history!
 PT2COLOR = {
     # matches "cornflowerblue" in graphviz
     PT_BUBBLE: "#9abaf3",

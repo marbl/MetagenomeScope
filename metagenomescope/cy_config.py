@@ -7,6 +7,29 @@ from math import sqrt
 
 BG_COLOR = "#ffffff"
 
+# Flye and LJA have defined colors for edges, and some of these are not
+# recognized by Cy.js (e.g. "aquamarine1"). I think we could PROBABLY look up
+# the X11 colors and use those somehow but whatever let's just manually handle
+# these
+#
+# https://github.com/mikolmogorov/Flye/blob/886b8c17412cdf3a2868a28237bca6c5ad1da156/src/repeat_graph/output_generator.cpp#L261-L265
+# https://github.com/AntonBankevich/LJA/blob/2815f838f01527facceeb77b6eea997a6aaed0b4/src/lib/spoa/src/graph.cpp#L625
+GVCOLOR2HEX = {
+    "red": "#ff0000",
+    "darkgreen": "#005f00",
+    "blue": "#0000ff",
+    "goldenrod": "#daa520",
+    "goldenrod1": "#ffc125",
+    "cadetblue1": "#90e9f2",
+    "darkorchid": "#9932cc",
+    "aquamarine1": "#7fffd4",
+    "darkgoldenrod1": "#ffb90f",
+    "deepskyblue1": "#00b5f2",
+    "darkolivegreen3": "#a2cd5a",
+    "black": "#000000",
+    "grey": "#797979",
+}
+
 ###############################################################################
 # Nodes
 ###############################################################################

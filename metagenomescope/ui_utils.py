@@ -456,7 +456,7 @@ def get_maxx(maxx):
 
 
 def get_font_size(fs):
-    if len(fs) == 0:
+    if type(fs) is None or (type(fs) is str and len(fs) == 0):
         raise UIError("No font size specified.")
     try:
         f = float(fs)
@@ -1049,6 +1049,27 @@ def get_badge_color(ct, selection_only=True):
         return css_config.BADGE_SELECTED_COLOR
     else:
         return css_config.BADGE_AVAILABLE_COLOR
+
+
+def get_edge_coloring_options(ag):
+    options = [
+        {
+            "label": ui_config.COLORFUL_RANDOM_TEXT,
+            "value": ui_config.COLORING_RANDOM,
+        },
+        {
+            "label": "Uniform",
+            "value": ui_config.COLORING_UNIFORM,
+        },
+    ]
+    if "color" in ag.extra_edge_attrs:
+        options.append(
+            {
+                "label": f"{ag.filetype} file",
+                "value": ui_config.COLORING_GRAPH,
+            }
+        )
+    return options
 
 
 def show_patterns(draw_settings):

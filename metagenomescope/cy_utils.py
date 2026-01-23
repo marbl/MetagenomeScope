@@ -258,6 +258,18 @@ def get_cyjs_stylesheet(
                     },
                 }
             )
+    elif edge_coloring == ui_config.COLORING_GRAPH:
+        stylesheet.append(
+            {
+                # [color] only matches edges with a defined data(color)
+                # this means that other edges will fall back to the default
+                "selector": "edge.real[color]",
+                "style": {
+                    "line-color": "data(color)",
+                    "target-arrow-color": "data(color)",
+                },
+            }
+        )
 
     # Apply styles to selected edges. Do this last so it takes
     # precedence over even random edge colorings.

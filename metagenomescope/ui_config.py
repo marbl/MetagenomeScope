@@ -1,3 +1,5 @@
+from dash import html
+
 ###############################################################################
 # Default drawing settings
 ###############################################################################
@@ -45,6 +47,7 @@ DRAW_SETTINGS_OPTIONS = [
 
 COLORING_RANDOM = "random"
 COLORING_UNIFORM = "uniform"
+COLORING_GRAPH = "graph"
 
 DEFAULT_NODE_COLORING = COLORING_RANDOM
 DEFAULT_EDGE_COLORING = COLORING_RANDOM
@@ -64,6 +67,39 @@ LAYOUT_DOT = "dot"
 LAYOUT_DAGRE = "dagre"
 LAYOUT_FCOSE = "fcose"
 DEFAULT_LAYOUT_ALG = LAYOUT_DOT
+
+###############################################################################
+# Coloring UI
+###############################################################################
+
+COLORFUL_RANDOM_TEXT = html.Span(
+    [
+        html.Span(
+            "R",
+            style={"color": "#e00"},
+        ),
+        html.Span(
+            "a",
+            style={"color": "#e70"},
+        ),
+        html.Span(
+            "n",
+            style={"color": "#aa8822"},
+        ),
+        html.Span(
+            "d",
+            style={"color": "#22aa11"},
+        ),
+        html.Span(
+            "o",
+            style={"color": "#0bf"},
+        ),
+        html.Span(
+            "m",
+            style={"color": "#d3d"},
+        ),
+    ]
+)
 
 ###############################################################################
 # Default path settings

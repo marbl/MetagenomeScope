@@ -106,35 +106,6 @@ def run(
         className="ctrlSep",
     )
 
-    colorful_random_text = html.Span(
-        [
-            html.Span(
-                "R",
-                style={"color": "#e00"},
-            ),
-            html.Span(
-                "a",
-                style={"color": "#e70"},
-            ),
-            html.Span(
-                "n",
-                style={"color": "#aa8822"},
-            ),
-            html.Span(
-                "d",
-                style={"color": "#22aa11"},
-            ),
-            html.Span(
-                "o",
-                style={"color": "#0bf"},
-            ),
-            html.Span(
-                "m",
-                style={"color": "#d3d"},
-            ),
-        ]
-    )
-
     dot_text = html.Span("dot", style={"font-style": "italic"})
     etal_text = html.Span(
         [html.Span("et al", style={"font-style": "italic"}), ".,"]
@@ -729,7 +700,7 @@ def run(
                                 dbc.RadioItems(
                                     options=[
                                         {
-                                            "label": colorful_random_text,
+                                            "label": ui_config.COLORFUL_RANDOM_TEXT,
                                             "value": ui_config.COLORING_RANDOM,
                                         },
                                         {
@@ -754,16 +725,9 @@ def run(
                         html.Div(
                             [
                                 dbc.RadioItems(
-                                    options=[
-                                        {
-                                            "label": colorful_random_text,
-                                            "value": ui_config.COLORING_RANDOM,
-                                        },
-                                        {
-                                            "label": "Uniform",
-                                            "value": ui_config.COLORING_UNIFORM,
-                                        },
-                                    ],
+                                    options=ui_utils.get_edge_coloring_options(
+                                        ag
+                                    ),
                                     value=ui_config.DEFAULT_EDGE_COLORING,
                                     className="btn-group",
                                     inputClassName="btn-check",
