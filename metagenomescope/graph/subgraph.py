@@ -196,7 +196,7 @@ class Subgraph(object):
 
         for e in self.edges:
             j = e.to_cyjs(draw_settings=draw_settings)
-            if preset_positions:
+            if preset_positions and e.unique_id in edgeid2ctrlpts:
                 straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
                 if not straight:
                     j["classes"] += " withctrlpts"

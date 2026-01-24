@@ -435,14 +435,18 @@ class Layout(object):
                 x, y = self.nodeid2rel[node.unique_id]
                 y = self.height - y
                 nodeid2xy[node.unique_id] = x, y
-            for edge in self.region.edges:
-                edgeid2ctrlpts[edge.unique_id] = (
-                    layout_utils.dot_to_cyjs_control_points(
-                        nodeid2xy[edge.new_src_id],
-                        nodeid2xy[edge.new_tgt_id],
-                        self.edgeid2rel[edge.unique_id],
-                        self.height,
+            # for sfdp, just don't bother making edges fancy
+            # we only have to check this here (not earlier in this func) since
+            # sfdp should not be used with recursive layout
+            if self.alg in ui_config.GVLAYOUT2RECORD_EDGE_CTRL_PTS:
+                for edge in self.region.edges:
+                    edgeid2ctrlpts[edge.unique_id] = (
+                        layout_utils.dot_to_cyjs_control_points(
+                            nodeid2xy[edge.new_src_id],
+                            nodeid2xy[edge.new_tgt_id],
+                            self.edgeid2rel[edge.unique_id],
+                            self.height,
+                        )
                     )
-                )
-        layout_utils.flatten_some_edges(self.region, edgeid2ctrlpts)
+                layout_utils.flatten_some_edges(self.region, edgeid2ctrlpts)
         return nodeid2xy, edgeid2ctrlpts

@@ -87,6 +87,7 @@ LAYOUT2GVPROG = {LAYOUT_DOT: "dot", LAYOUT_SFDP: "sfdp"}
 # here
 GVLAYOUT2RECURSIVE = {LAYOUT_DOT: True, LAYOUT_SFDP: False}
 GVLAYOUT2GV_PORTS = {LAYOUT_DOT: True, LAYOUT_SFDP: False}
+GVLAYOUT2RECORD_EDGE_CTRL_PTS = {LAYOUT_DOT: True, LAYOUT_SFDP: False}
 
 ###############################################################################
 # Coloring UI
