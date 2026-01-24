@@ -620,3 +620,105 @@ def test_get_badge_color():
         uu.get_badge_color(1, selection_only=False)
         == css_config.BADGE_AVAILABLE_COLOR
     )
+
+
+def test_get_num_simple():
+    assert uu.get_num(1, "asdf") == 1
+    assert uu.get_num(1.234, "asdf", integer=False) == 1.234
+    assert uu.get_num("1", "asdf") == 1
+    assert uu.get_num("1.234", "asdf", integer=False) == 1.234
+
+
+def test_get_num_empty_ok():
+    assert uu.get_num(None, "asdf", none_ok=True) is None
+    assert uu.get_num(None, "asdf", none_ok=True, none_val=67) == 67
+
+
+def test_get_num_empty_not_ok():
+    with pytest.raises(UIError) as ei:
+        uu.get_num(None, "asdf")
+    assert str(ei.value) == "asdf not specified."
+
+
+def test_get_num_float_cant_cast_to_int():
+    with pytest.raises(UIError) as ei:
+        uu.get_num("3.5", "Thing")
+    assert str(ei.value) == '"3.5" is not a valid integer.'
+
+
+def test_get_num_gibberish():
+    with pytest.raises(UIError) as ei:
+        uu.get_num("asdofij", "Thing")
+    assert str(ei.value) == '"asdofij" is not a valid integer.'
+
+    with pytest.raises(UIError) as ei:
+        uu.get_num("asdofij", "Thing", integer=False)
+    assert str(ei.value) == '"asdofij" is not a valid number.'
+
+
+def test_get_num_toolow():
+    with pytest.raises(UIError) as ei:
+        uu.get_num("-5", "Thing")
+    assert str(ei.value) == "Thing must be \u2265 0."
+
+    with pytest.raises(UIError) as ei:
+        uu.get_num("1", "Thing", min_val=2)
+    assert str(ei.value) == "Thing must be \u2265 2."
+
+    assert uu.get_num("2", "Thing", min_val=2) == 2
+
+    with pytest.raises(UIError) as ei:
+        uu.get_num("2", "Thing", min_val=2, min_incl=False)
+    assert str(ei.value) == "Thing must be > 2."
+
+
+def test_get_num_toohigh():
+    with pytest.raises(UIError) as ei:
+        uu.get_num("100", "Thing", max_val=100)
+    assert str(ei.value) == "Thing must be < 100."
+
+    assert uu.get_num("100", "Thing", max_val=100, max_incl=True) == 100
+
+    with pytest.raises(UIError) as ei:
+        uu.get_num("101", "Thing", max_val=100, max_incl=True)
+    assert str(ei.value) == "Thing must be \u2264 100."
+
+
+def test_get_num_nolimits():
+    assert uu.get_num("-5", "Thing", min_val=None) == -5
+    assert (
+        uu.get_num("-5.12321", "Thing", min_val=None, integer=False)
+        == -5.12321
+    )
+
+
+def test_get_num_rounding():
+    assert uu.get_num("5000.0", "Length", integer=False) == 5000
+
+
+def test_get_hist_nbins():
+    assert uu.get_hist_nbins("1") == 1
+    assert uu.get_hist_nbins("0") == 0
+    assert uu.get_hist_nbins("") == 0
+    assert uu.get_hist_nbins(None) == 0
+    assert uu.get_hist_nbins("100") == 100
+    with pytest.raises(UIError) as ei:
+        uu.get_hist_nbins("-5")
+    assert str(ei.value) == "Number of bins must be \u2265 0."
+    with pytest.raises(UIError) as ei:
+        uu.get_hist_nbins("fjfj")
+    assert str(ei.value) == '"fjfj" is not a valid integer.'
+
+
+def test_get_maxx():
+    assert uu.get_maxx("1") == 1
+    assert uu.get_maxx("0") == 0
+    assert uu.get_maxx("") is None
+    assert uu.get_maxx(None) is None
+    assert uu.get_maxx("100.234") == 100.234
+    with pytest.raises(UIError) as ei:
+        uu.get_maxx("-5")
+    assert str(ei.value) == "Maximum x value must be \u2265 0."
+    with pytest.raises(UIError) as ei:
+        uu.get_maxx("sdfij")
+    assert str(ei.value) == '"sdfij" is not a valid number.'

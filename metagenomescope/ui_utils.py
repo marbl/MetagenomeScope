@@ -457,6 +457,10 @@ def get_num(
         f = func(n)
     except ValueError:
         raise UIError(f'"{n}" is not a valid {tname}.')
+    # yeah yeah whatever if you select like 99.999999.... and the max is 100
+    # and max_incl is False then this can cause problems. whatever that is
+    # unimportant imo
+    f = round_to_int_if_close(f)
     if min_val is not None:
         if min_incl:
             badcmp = f < min_val
@@ -475,7 +479,7 @@ def get_num(
             t = "<"
         if badcmp:
             raise UIError(f"{name} must be {t} {max_val:,}.")
-    return round_to_int_if_close(f)
+    return f
 
 
 def get_hist_nbins(nbins):
