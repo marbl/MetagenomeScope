@@ -120,7 +120,6 @@ class Layout(object):
         dot += layout_utils.get_gv_header(
             self.prog, self.region.name, self.use_gv_ports, self.params
         )
-        print(dot)
         if self.incl_patterns and self.recursive:
             for node in self.region.nodes:
                 if self.at_top_level_of_region(node):
