@@ -1,3 +1,4 @@
+import math
 import random
 import logging
 import pandas as pd
@@ -15,6 +16,7 @@ from .. import (
     path_utils,
     name_utils,
     misc_utils,
+    chart_utils,
 )
 from ..gap import Gap
 from ..errors import WeirdError, GraphParsingError
@@ -2037,3 +2039,116 @@ class AssemblyGraph(object):
                 cc_aggs.append(False)
 
         return cc_names, cc_parents, cc_sizes, cc_aggs
+
+    def to_cc_scatter(self):
+        cc_names = []
+        cc_lens = []
+        cc_covs = []
+        cc_scaled_sizes = []
+        missing_cc_ct = 0
+        for cc in self.components:
+            cc_total_len = 0
+            cc_agg_cov = 0
+            covs_given_in_cc = False
+            # this counts the number of coverages we've seen for a cc
+            # (i.e. the number of nodes or edges with a defined coverage
+            # that we use for this plot). Used to scale components in
+            # the scatterplot by size
+            cc_cov_ct = 0
+            if self.has_covlens:
+                cc_total_weighted_cov = 0
+
+                if self.node_centric:
+                    # nodes have lengths and covs
+                    seen_basenames = set()
+                    for n in cc.nodes:
+                        bn = n.basename
+                        # only consider a node with a basename once - this
+                        # means that we only process a split node pair once
+                        if bn not in seen_basenames and bn in self.name2covlen:
+                            ncov, nlen = self.name2covlen[bn]
+                            cc_total_len += nlen
+                            cc_total_weighted_cov += nlen * ncov
+                            seen_basenames.add(bn)
+                            covs_given_in_cc = True
+                            cc_cov_ct += 1
+                else:
+                    # edges have lengths and covs
+                    for e in cc.edges:
+                        if not e.is_fake:
+                            eid = e.get_userspecified_id()
+                            if eid in self.name2covlen:
+                                ecov, elen = self.name2covlen[eid]
+                                cc_total_len += elen
+                                cc_total_weighted_cov += elen * ecov
+                                covs_given_in_cc = True
+                                cc_cov_ct += 1
+                # avoid division by zero issues. not that any node or
+                # edge should have a length of zero lol. anyway if
+                # cc_total_len is 0 we'll detect it below and not include
+                # this cc in the plot anyway
+                if cc_total_len != 0:
+                    cc_agg_cov = cc_total_weighted_cov / cc_total_len
+            else:
+                cc_total_unweighted_cov = 0
+                num_seen_covs = 0
+                if self.node_centric:
+                    # nodes have lengths, edges have covs
+                    # this is the case for metacarvel graphs
+                    # x-axis = total node length
+                    # y-axis = average edge cov
+                    seen_basenames = set()
+                    for n in cc.nodes:
+                        bn = n.basename
+                        if bn not in seen_basenames:
+                            cc_total_len += n.data[self.length_field]
+                            seen_basenames.add(bn)
+                    for e in cc.edges:
+                        if not e.is_fake:
+                            cc_total_unweighted_cov += e.data[self.cov_field]
+                            num_seen_covs += 1
+                            covs_given_in_cc = True
+                            cc_cov_ct += 1
+                else:
+                    # edges have lengths, nodes have coverages. We don't
+                    # currently support any graphs that are formatted like
+                    # this (but we totally could if needed)
+                    raise WeirdError("Unexpected graph format?")
+                if covs_given_in_cc:
+                    cc_agg_cov = cc_total_unweighted_cov / num_seen_covs
+
+            if cc_total_len == 0 or not covs_given_in_cc:
+                missing_cc_ct += 1
+            else:
+                cc_lens.append(cc_total_len)
+                cc_covs.append(cc_agg_cov)
+                # subject to change, but this looks good on various
+                # graphs so i'm happy w/ it for now
+                scaled_size = math.log(max(cc_cov_ct, 5), 10) * 15
+                cc_scaled_sizes.append(scaled_size)
+                nct = ui_utils.pluralize(cc.num_full_nodes, "node")
+                ect = ui_utils.pluralize(cc.num_real_edges, "edge")
+                cc_names.append(f"{cc.cc_num:,} ({nct}, {ect})")
+
+        xlatex = chart_utils.get_total_length_latex(self.node_centric)
+        if self.has_covlens:
+            ylatex = chart_utils.get_weightedavg_cov_latex(
+                self.node_centric, self.cov_field
+            )
+            aggname = "Weighted Average"
+        else:
+            ylatex = chart_utils.get_unweightedavg_cov_latex(
+                self.node_centric, self.cov_field
+            )
+            aggname = "Average"
+
+        return (
+            cc_names,
+            cc_lens,
+            cc_covs,
+            cc_scaled_sizes,
+            missing_cc_ct,
+            aggname,
+            xlatex,
+            ylatex,
+        )
