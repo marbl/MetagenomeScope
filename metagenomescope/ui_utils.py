@@ -431,42 +431,74 @@ def incr_size_rank(size_rank, minval, maxval):
         return size_rank + 1
 
 
-def get_distance(dist):
-    if len(dist) == 0:
-        raise UIError("No distance specified.")
+def get_num(
+    n,
+    name,
+    integer=True,
+    min_val=0,
+    max_val=None,
+    min_incl=True,
+    max_incl=False,
+    none_val=None,
+    none_ok=False,
+):
+    if n is None or (type(n) is str and len(n) == 0):
+        if none_ok:
+            return none_val
+        else:
+            raise UIError(f"{name} not specified.")
+    if integer:
+        func = int
+        tname = "integer"
+    else:
+        func = float
+        tname = "number"
     try:
-        d = int(dist)
+        f = func(n)
     except ValueError:
-        raise UIError(f"{dist} is not a valid integer.")
-    if d < 0:
-        raise UIError("Distance must be at least 0.")
-    return d
+        raise UIError(f'"{n}" is not a valid {tname}.')
+    if min_val is not None:
+        if min_incl:
+            badcmp = f < min_val
+            t = "\u2265"
+        else:
+            badcmp = f <= min_val
+            t = ">"
+        if badcmp:
+            raise UIError(f"{name} must be {t} {min_val:,}.")
+    if max_val is not None:
+        if max_incl:
+            badcmp = f > max_val
+            t = "\u2264"
+        else:
+            badcmp = f >= max_val
+            t = "<"
+        if badcmp:
+            raise UIError(f"{name} must be {t} {max_val:,}.")
+    return round_to_int_if_close(f)
+
+
+def get_hist_nbins(nbins):
+    return get_num(
+        nbins,
+        "Number of bins",
+        min_val=0,
+        min_incl=True,
+        none_val=0,
+        none_ok=True,
+    )
 
 
 def get_maxx(maxx):
-    if maxx is None or len(maxx) == 0:
-        return None
-    try:
-        m = float(maxx)
-    except ValueError:
-        raise UIError(f"{maxx} is not a valid number.")
-    if m < 0:
-        raise UIError("Maximum x value must be at least 0.")
-    return round_to_int_if_close(m)
-
-
-def get_float(fs, name, min_val_excl=0, max_val_excl=100):
-    if type(fs) is None or (type(fs) is str and len(fs) == 0):
-        raise UIError(f"{name} not specified.")
-    try:
-        f = float(fs)
-    except ValueError:
-        raise UIError(f"{fs} is not a valid number.")
-    if f <= 0:
-        raise UIError(f"{name} must be > 0.")
-    if f >= 100:
-        raise UIError(f"{name} must be < 100.")
-    return f
+    return get_num(
+        maxx,
+        "Maximum x value",
+        integer=False,
+        min_val=0,
+        min_incl=True,
+        none_val=None,
+        none_ok=True,
+    )
 
 
 def truncate_hist(xvals, title, maxx):
@@ -476,25 +508,6 @@ def truncate_hist(xvals, title, maxx):
         return [
             x for x in xvals if x <= maxx
         ], title + f", truncated to x \u2264 {maxx:,}"
-
-
-def get_hist_nbins(nbins):
-    # Allow "" and None (None should be the default since there is nothing
-    # in the "value" attr of the input)
-    # And, 0 is the default - it means don't impose an upper bound # of bins
-    # as far as I can tell.
-    #
-    # If the user specifies SOMETHING but it's not a valid int, then we
-    # show a toast and don't bother updating the hist
-    ibins = 0
-    if nbins is not None and len(nbins) > 0:
-        try:
-            ibins = int(nbins)
-        except ValueError:
-            raise UIError(f"{nbins} is not a valid integer.")
-        if ibins < 0:
-            raise UIError("Number of bins must be at least 0.")
-    return ibins
 
 
 def say_goodrange(maxcc, both=False):

@@ -2334,8 +2334,15 @@ def run(
         out_toasts = no_update
         out_labelfontsize = no_update
         try:
-            used_labelfontsize = ui_utils.get_float(
-                label_font_size, "Font size"
+            # let's say font sizes must be > 0 and < 100
+            used_labelfontsize = ui_utils.get_num(
+                label_font_size,
+                "Font size",
+                integer=False,
+                min_val=0,
+                max_val=100,
+                min_incl=False,
+                max_incl=False,
             )
         except UIError as err:
             out_toasts = ui_utils.add_error_toast(
@@ -2535,7 +2542,9 @@ def run(
                     {"requestGood": False},
                 )
             try:
-                around_dist = ui_utils.get_distance(around_nodes_dist)
+                around_dist = ui_utils.get_num(
+                    around_nodes_dist, "Distance", min_val=0, min_incl=True
+                )
             except UIError as err:
                 return (
                     ui_utils.add_error_toast(
@@ -2566,11 +2575,14 @@ def run(
 
         if layout_alg == ui_config.LAYOUT_SFDP:
             try:
-                sfdp_k = ui_utils.get_float(sfdp_k, "K")
+                # K = 0 actually messes with pygraphviz lol
+                sfdp_k = ui_utils.get_num(
+                    sfdp_k, "K", integer=False, min_val=0, min_incl=False
+                )
             except UIError as err:
                 return (
                     ui_utils.add_error_toast(
-                        curr_toasts, "sfdp K error", str(err)
+                        curr_toasts, "sfdp error", str(err)
                     ),
                     no_update,
                     no_update,
