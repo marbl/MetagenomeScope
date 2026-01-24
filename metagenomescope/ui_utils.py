@@ -455,17 +455,17 @@ def get_maxx(maxx):
     return round_to_int_if_close(m)
 
 
-def get_font_size(fs):
+def get_float(fs, name, min_val_excl=0, max_val_excl=100):
     if type(fs) is None or (type(fs) is str and len(fs) == 0):
-        raise UIError("No font size specified.")
+        raise UIError(f"{name} not specified.")
     try:
         f = float(fs)
     except ValueError:
         raise UIError(f"{fs} is not a valid number.")
     if f <= 0:
-        raise UIError("Font size must be > 0.")
+        raise UIError(f"{name} must be > 0.")
     if f >= 100:
-        raise UIError("Font size must be < 100.")
+        raise UIError(f"{name} must be < 100.")
     return f
 
 

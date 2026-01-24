@@ -12,7 +12,7 @@ class Layout(object):
     a subregion of the graph, etc.
     """
 
-    def __init__(self, region, draw_settings, alg):
+    def __init__(self, region, draw_settings, alg, params):
         """Initializes this Layout object.
 
         Parameters
@@ -22,12 +22,15 @@ class Layout(object):
         draw_settings: list
 
         alg: str
+
+        params: dict
         """
         self.region = region
         self.draw_settings = draw_settings
         self.incl_patterns = ui_utils.show_patterns(draw_settings)
         self.recursive = ui_utils.do_recursive_layout(draw_settings)
         self.use_gv_ports = ui_utils.use_gv_ports(draw_settings)
+        self.params = params
 
         if alg not in ui_config.LAYOUT2GVPROG:
             raise WeirdError(f"{alg} not mapped to a Graphviz program?")
@@ -39,6 +42,10 @@ class Layout(object):
             self.recursive = False
         if not ui_config.GVLAYOUT2GV_PORTS[self.alg]:
             self.use_gv_ports = False
+
+        self.sfdp_k = None
+        if self.alg == ui_config.LAYOUT_SFDP:
+            self.sfdp_k = params["sfdp_k"]
 
         # I know this is a jank way of testing if this is a pattern or a
         # Subgraph but i don't want to cause circular imports by importing
@@ -111,8 +118,9 @@ class Layout(object):
         """
         dot = ""
         dot += layout_utils.get_gv_header(
-            self.prog, self.region.name, self.use_gv_ports
+            self.prog, self.region.name, self.use_gv_ports, self.params
         )
+        print(dot)
         if self.incl_patterns and self.recursive:
             for node in self.region.nodes:
                 if self.at_top_level_of_region(node):

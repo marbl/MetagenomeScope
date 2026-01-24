@@ -151,6 +151,7 @@ class Subgraph(object):
         self,
         draw_settings=ui_config.DEFAULT_DRAW_SETTINGS,
         layout_alg=ui_config.DEFAULT_LAYOUT_ALG,
+        layout_params={},
         report_ids=False,
     ):
         """Creates Cytoscape.js elements for all nodes/edges in this subgraph.
@@ -162,6 +163,10 @@ class Subgraph(object):
 
         layout_alg: str
             Layout algorithm to use.
+
+        layout_params: dict
+            Other parameters to pass to Layout, if we are calling a Graphviz
+            program.
 
         report_ids: bool
             If True, record node and edge IDs in the output DrawResults.
@@ -176,7 +181,7 @@ class Subgraph(object):
         edgeid2ctrlpts = {}
         if layout_alg in ui_config.LAYOUT2GVPROG:
             logging.debug(f"  Laying out {self}; settings: {draw_settings}...")
-            lay = Layout(self, draw_settings, layout_alg)
+            lay = Layout(self, draw_settings, layout_alg, layout_params)
             nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords()
             preset_positions = True
             logging.debug("  ...Done with layout!")

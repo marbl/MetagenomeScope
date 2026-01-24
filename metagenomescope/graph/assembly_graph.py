@@ -1898,7 +1898,9 @@ class AssemblyGraph(object):
                     subgraph_patt_ids.add(pid)
         return subgraph_node_ids, subgraph_edge_ids, subgraph_patt_ids
 
-    def _to_cyjs_around_nodes(self, node_ids, dist, draw_settings, layout_alg):
+    def _to_cyjs_around_nodes(
+        self, node_ids, dist, draw_settings, layout_alg, layout_params
+    ):
         """Produces Cytoscape.js elements only "around" certain nodes."""
         sel_node_ids, sel_edge_ids, sel_patt_ids = (
             self.get_ids_in_neighborhood(node_ids, dist, draw_settings)
@@ -1918,7 +1920,10 @@ class AssemblyGraph(object):
             [self.pattid2obj[i] for i in sel_patt_ids],
         )
         return sg.to_cyjs(
-            draw_settings=draw_settings, layout_alg=layout_alg, report_ids=True
+            draw_settings=draw_settings,
+            layout_alg=layout_alg,
+            layout_params=layout_params,
+            report_ids=True,
         )
 
     def to_cyjs(self, done_flushing):
@@ -1944,12 +1949,15 @@ class AssemblyGraph(object):
         draw_type = done_flushing["draw_type"]
         draw_settings = done_flushing["draw_settings"]
         layout_alg = done_flushing["layout_alg"]
+        layout_params = {"sfdp_k": done_flushing["sfdp_k"]}
 
         if draw_type == config.DRAW_ALL:
             dr = DrawResults()
             for cc in self.components:
                 dr += cc.to_cyjs(
-                    draw_settings=draw_settings, layout_alg=layout_alg
+                    draw_settings=draw_settings,
+                    layout_alg=layout_alg,
+                    layout_params=layout_params,
                 )
 
         elif draw_type == config.DRAW_CCS:
@@ -1959,7 +1967,9 @@ class AssemblyGraph(object):
                 # the component numbers are 1-indexed)
                 cc = self.components[ccn - 1]
                 dr += cc.to_cyjs(
-                    draw_settings=draw_settings, layout_alg=layout_alg
+                    draw_settings=draw_settings,
+                    layout_alg=layout_alg,
+                    layout_params=layout_params,
                 )
 
         elif draw_type == config.DRAW_AROUND:
@@ -1968,6 +1978,7 @@ class AssemblyGraph(object):
                 done_flushing["around_dist"],
                 draw_settings,
                 layout_alg,
+                layout_params,
             )
 
         else:

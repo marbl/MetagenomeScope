@@ -28,7 +28,7 @@ NOLENGTH_NODE_HEIGHT = 0.4
 ########
 # General graph style. Feel free to insert newlines/tabs for readability.
 # Any text here must end without a semicolon.
-PROG2GRAPHSTYLE = {"dot": "rankdir=LR", "sfdp": "overlap=prism; K=5"}
+PROG2GRAPHSTYLE = {"dot": "rankdir=LR", "sfdp": "overlap=prism"}
 
 ########
 # Node style

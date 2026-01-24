@@ -5,7 +5,7 @@ from .. import config
 from ..errors import WeirdError
 
 
-def get_gv_header(prog, name="g", use_ports=False):
+def get_gv_header(prog, name="g", use_ports=False, params={}):
     """Returns the header of a DOT language file.
 
     This will look something like
@@ -23,6 +23,10 @@ def get_gv_header(prog, name="g", use_ports=False):
     graphsty = layout_config.PROG2GRAPHSTYLE[prog]
     if len(graphsty) > 0:
         gv_input += f"{layout_config.INDENT}{graphsty};\n"
+
+    if len(params) > 0:
+        if prog == "sfdp" and "sfdp_k" in params:
+            gv_input += f"{layout_config.INDENT}K={params['sfdp_k']};\n"
 
     if len(layout_config.GLOBALNODE_STYLE) > 0:
         gv_input += (

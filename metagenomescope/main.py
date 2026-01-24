@@ -773,7 +773,6 @@ def run(
                             [
                                 dbc.InputGroupText(
                                     "Font size",
-                                    className="input-group-text-next-to-button",
                                 ),
                                 dbc.Input(
                                     type="text",
@@ -783,7 +782,6 @@ def run(
                                 ),
                                 dbc.InputGroupText(
                                     "em",
-                                    className="input-group-text-next-to-button",
                                 ),
                                 dbc.Button(
                                     "Apply",
@@ -1512,12 +1510,55 @@ def run(
                                     # wrong, but I think the UX of the dcc.Checklist
                                     # is better.
                                     html.Div(
-                                        dcc.Checklist(
-                                            options=ui_config.DRAW_SETTINGS_OPTIONS,
-                                            value=ui_config.DEFAULT_DRAW_SETTINGS,
-                                            id="drawSettingsChecklist",
-                                        ),
-                                        className="form-check",
+                                        [
+                                            html.Div(
+                                                dcc.Checklist(
+                                                    options=ui_config.DRAW_SETTINGS_OPTIONS,
+                                                    value=ui_config.DEFAULT_DRAW_SETTINGS,
+                                                    id="drawSettingsChecklist",
+                                                ),
+                                                className="form-check",
+                                            ),
+                                            html.Div(
+                                                dbc.InputGroup(
+                                                    [
+                                                        dbc.InputGroupText(
+                                                            html.Span(
+                                                                [
+                                                                    html.Span(
+                                                                        "K",
+                                                                        style={
+                                                                            "font-style": "italic"
+                                                                        },
+                                                                    ),
+                                                                    " (",
+                                                                    html.A(
+                                                                        "spring constant",
+                                                                        href="https://graphviz.org/docs/attrs/K/",
+                                                                    ),
+                                                                    ", sfdp only)",
+                                                                ],
+                                                            ),
+                                                        ),
+                                                        dbc.Input(
+                                                            type="text",
+                                                            id="sfdpK",
+                                                            value=5,
+                                                            style={
+                                                                "max-width": "5em"
+                                                            },
+                                                        ),
+                                                    ],
+                                                    style={
+                                                        "justify-content": "center"
+                                                    },
+                                                ),
+                                                style={
+                                                    "margin-top": "1em",
+                                                    "text-align": "center",
+                                                },
+                                            ),
+                                        ],
                                     ),
                                     html.Br(),
                                     html.H5("Layout algorithm"),
@@ -2292,7 +2333,9 @@ def run(
         out_toasts = no_update
         out_labelfontsize = no_update
         try:
-            used_labelfontsize = ui_utils.get_font_size(label_font_size)
+            used_labelfontsize = ui_utils.get_float(
+                label_font_size, "Font size"
+            )
         except UIError as err:
             out_toasts = ui_utils.add_error_toast(
                 curr_toasts, "Font size error", str(err)
@@ -2404,6 +2447,7 @@ def run(
         State("ccAroundNodesNameSelector", "value"),
         State("ccAroundNodesDistSelector", "value"),
         State("drawSettingsChecklist", "value"),
+        State("sfdpK", "value"),
         State("layoutAlgRadio", "value"),
         Input("drawButton", "n_clicks"),
         Input("ccSizeRankSelector", "n_submit"),
@@ -2420,6 +2464,7 @@ def run(
         around_nodes_names,
         around_nodes_dist,
         draw_settings,
+        sfdp_k,
         layout_alg,
         draw_btn_n_clicks,
         size_rank_input_n_submit,
@@ -2518,6 +2563,19 @@ def run(
 
         layout_params = cy_utils.get_layout_params(layout_alg, draw_settings)
 
+        if layout_alg == ui_config.LAYOUT_SFDP:
+            try:
+                sfdp_k = ui_utils.get_float(sfdp_k, "K")
+            except UIError as err:
+                return (
+                    ui_utils.add_error_toast(
+                        curr_toasts, "sfdp K error", str(err)
+                    ),
+                    no_update,
+                    no_update,
+                    {"requestGood": False},
+                )
+
         # cc_nums has to be JSON-serializable (it might be a set at this point)
         # (and if we are drawing around nodes instead of drawing entire ccs,
         # then this will just be []. and that's beautiful. not really)
@@ -2549,6 +2607,7 @@ def run(
                 "around_dist": around_dist,
                 "draw_settings": draw_settings,
                 "layout_alg": layout_alg,
+                "sfdp_k": sfdp_k,
             },
         )
 
