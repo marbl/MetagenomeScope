@@ -110,7 +110,9 @@ class Layout(object):
         assuming that self.incl_patterns and self.recursive are True.
         """
         dot = ""
-        dot += layout_utils.get_gv_header(self.region.name, self.use_gv_ports)
+        dot += layout_utils.get_gv_header(
+            self.prog, self.region.name, self.use_gv_ports
+        )
         if self.incl_patterns and self.recursive:
             for node in self.region.nodes:
                 if self.at_top_level_of_region(node):

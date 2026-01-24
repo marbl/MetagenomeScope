@@ -27,13 +27,8 @@ NOLENGTH_NODE_HEIGHT = 0.4
 # Graph style
 ########
 # General graph style. Feel free to insert newlines/tabs for readability.
-# Leaving this empty is also fine, if you just want default graph-wide settings
-# Note that we rely on having a rankdir value of "TB" for the entire graph,
-# in order to facilitate rotation in the .xdot viewer. (So I'd recommend not
-# changing that unless you have a good reason.)
 # Any text here must end without a semicolon.
-GRAPH_STYLE = "rankdir=LR"
-
+PROG2GRAPHSTYLE = {"dot": "rankdir=LR", "sfdp": "overlap=prism; K=5"}
 
 ########
 # Node style
