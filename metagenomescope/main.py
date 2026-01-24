@@ -1535,6 +1535,7 @@ def run(
                                                                     html.A(
                                                                         "spring constant",
                                                                         href="https://graphviz.org/docs/attrs/K/",
+                                                                        target="_blank",
                                                                     ),
                                                                     ", sfdp only)",
                                                                 ],
