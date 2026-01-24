@@ -174,9 +174,9 @@ class Subgraph(object):
         preset_positions = False
         nodeid2xy = {}
         edgeid2ctrlpts = {}
-        if layout_alg == ui_config.LAYOUT_DOT:
+        if layout_alg in ui_config.LAYOUT2GVPROG:
             logging.debug(f"  Laying out {self}; settings: {draw_settings}...")
-            lay = Layout(self, draw_settings)
+            lay = Layout(self, draw_settings, layout_alg)
             nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords()
             preset_positions = True
             logging.debug("  ...Done with layout!")

@@ -307,7 +307,7 @@ def get_layout_params(layout_alg, draw_settings):
         return {"name": "dagre", "rankDir": "LR", **anim_settings}
     elif layout_alg == ui_config.LAYOUT_FCOSE:
         return {"name": "fcose", **anim_settings}
-    elif layout_alg == ui_config.LAYOUT_DOT:
+    elif layout_alg in ui_config.LAYOUT2GVPROG:
         return {"name": "preset"}
     else:
         raise WeirdError(f"Unrecogized layout algorithm: {layout_alg}")

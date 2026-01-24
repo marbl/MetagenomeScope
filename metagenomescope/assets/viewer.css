@@ -132,6 +132,10 @@ label:has(#dotAlgSpan).active {
     /* colorpicked from https://graphviz.org/ */
     background-color: #30638e;
 }
+label:has(#sfdpAlgSpan).active {
+    /* colorpicked from https://graphviz.org/ */
+    background-color: #cc0000;
+}
 label:has(#dagreAlgSpan).active {
     /* colorpicked from the nodes in the dagre example used on cy.js' website,
      * but those were ALSO blue, so i just kinda made them dark green ish */

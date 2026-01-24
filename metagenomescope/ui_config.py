@@ -26,17 +26,31 @@ if DEFAULT_DO_RECURSIVE_LAYOUT:
 if DEFAULT_USE_GV_PORTS:
     DEFAULT_DRAW_SETTINGS.append(USE_GV_PORTS)
 
+DOT_TEXT = html.Span("dot", style={"font-style": "italic"})
+
 DRAW_SETTINGS_OPTIONS = [
     {
         "label": "Show patterns",
         "value": SHOW_PATTERNS,
     },
     {
-        "label": "Lay out patterns recursively (Graphviz only)",
+        "label": html.Span(
+            [
+                "Lay out patterns recursively (",
+                DOT_TEXT,
+                " only)",
+            ]
+        ),
         "value": DO_RECURSIVE_LAYOUT,
     },
     {
-        "label": "Fix edges' headports and tailports (Graphviz only)",
+        "label": html.Span(
+            [
+                "Fix edges' headports and tailports (",
+                DOT_TEXT,
+                " only)",
+            ]
+        ),
         "value": USE_GV_PORTS,
     },
     {
@@ -64,9 +78,11 @@ SCREENSHOT_SVG = "svg"
 DEFAULT_SCREENSHOT_FILETYPE = SCREENSHOT_PNG
 
 LAYOUT_DOT = "dot"
+LAYOUT_SFDP = "sfdp"
 LAYOUT_DAGRE = "dagre"
 LAYOUT_FCOSE = "fcose"
 DEFAULT_LAYOUT_ALG = LAYOUT_DOT
+LAYOUT2GVPROG = {LAYOUT_DOT: "dot", LAYOUT_SFDP: "sfdp"}
 
 ###############################################################################
 # Coloring UI

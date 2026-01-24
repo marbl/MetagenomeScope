@@ -1,7 +1,7 @@
 import pygraphviz
 from collections import deque
 from . import layout_utils, layout_config
-from .. import ui_utils, config
+from .. import ui_utils, config, ui_config
 from ..errors import WeirdError
 
 
@@ -12,7 +12,7 @@ class Layout(object):
     a subregion of the graph, etc.
     """
 
-    def __init__(self, region, draw_settings):
+    def __init__(self, region, draw_settings, alg):
         """Initializes this Layout object.
 
         Parameters
@@ -20,12 +20,19 @@ class Layout(object):
         region: Subgraph or Pattern
 
         draw_settings: list
+
+        alg: str
         """
         self.region = region
         self.draw_settings = draw_settings
         self.incl_patterns = ui_utils.show_patterns(draw_settings)
         self.recursive = ui_utils.do_recursive_layout(draw_settings)
         self.use_gv_ports = ui_utils.use_gv_ports(draw_settings)
+
+        if alg not in ui_config.LAYOUT2GVPROG:
+            raise WeirdError(f"{alg} not mapped to a Graphviz program?")
+        self.alg = alg
+        self.prog = ui_config.LAYOUT2GVPROG[self.alg]
 
         # I know this is a jank way of testing if this is a pattern or a
         # Subgraph but i don't want to cause circular imports by importing
@@ -103,7 +110,7 @@ class Layout(object):
                 if self.at_top_level_of_region(node):
                     if node.compound:
                         # "node" is a collapsed pattern; lay it out first
-                        lay = Layout(node, self.draw_settings)
+                        lay = Layout(node, self.draw_settings, self.alg)
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)
@@ -128,7 +135,7 @@ class Layout(object):
             if not self.region_is_pattern:
                 for pattern in self.region.patterns:
                     if self.at_top_level_of_region(pattern):
-                        lay = Layout(pattern, self.draw_settings)
+                        lay = Layout(pattern, self.draw_settings, self.alg)
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)
@@ -276,7 +283,7 @@ class Layout(object):
         self.dot = self._to_dot()
         cg = pygraphviz.AGraph(self.dot)
         # -q turns off warnings about nodes being too small for labels
-        cg.layout(prog="dot", args="-q")
+        cg.layout(prog=self.prog, args="-q")
 
         # Extract dimension info. The first two coordinates in the bounding box
         # (bb) should always be (0, 0).

@@ -105,7 +105,6 @@ def run(
         className="ctrlSep",
     )
 
-    dot_text = html.Span("dot", style={"font-style": "italic"})
     etal_text = html.Span(
         [html.Span("et al", style={"font-style": "italic"}), ".,"]
     )
@@ -134,7 +133,7 @@ def run(
         html.P(
             [
                 "We'll run ",
-                dot_text,
+                ui_config.DOT_TEXT,
                 " recursively: we'll lay out bottom-level ",
                 "patterns first, then lay out parent patterns of those "
                 "patterns, and eventually lay out the entire graph.",
@@ -1529,14 +1528,17 @@ def run(
                                                     options=[
                                                         {
                                                             "label": html.Span(
-                                                                [
-                                                                    "Graphviz (",
-                                                                    dot_text,
-                                                                    ")",
-                                                                ],
+                                                                ui_config.DOT_TEXT,
                                                                 id="dotAlgSpan",
                                                             ),
                                                             "value": ui_config.LAYOUT_DOT,
+                                                        },
+                                                        {
+                                                            "label": html.Span(
+                                                                "sfdp",
+                                                                id="sfdpAlgSpan",
+                                                            ),
+                                                            "value": ui_config.LAYOUT_SFDP,
                                                         },
                                                         {
                                                             "label": html.Span(
@@ -1574,6 +1576,28 @@ def run(
                                                     " removedEntirely"
                                                     if ui_config.DEFAULT_LAYOUT_ALG
                                                     != ui_config.LAYOUT_DOT
+                                                    else ""
+                                                ),
+                                            ),
+                                            html.Div(
+                                                html.P(
+                                                    [
+                                                        "Force-directed layout algorithm described in ",
+                                                        html.A(
+                                                            "Hu 2005",
+                                                            href="http://yifanhu.net/PUB/graph_draw_small.pdf",
+                                                            target="_blank",
+                                                        ),
+                                                        ' ("Efficient and high quality force-directed graph '
+                                                        'drawing").',
+                                                    ]
+                                                ),
+                                                id="sfdpAlgDesc",
+                                                className=css_config.ALG_DESC_CLASSES
+                                                + (
+                                                    " removedEntirely"
+                                                    if ui_config.DEFAULT_LAYOUT_ALG
+                                                    != ui_config.LAYOUT_SFDP
                                                     else ""
                                                 ),
                                             ),
@@ -2315,6 +2339,7 @@ def run(
 
     @callback(
         Output("dotAlgDesc", "className"),
+        Output("sfdpAlgDesc", "className"),
         Output("dagreAlgDesc", "className"),
         Output("fcoseAlgDesc", "className"),
         Input("layoutAlgRadio", "value"),
@@ -2331,11 +2356,13 @@ def run(
         vis = css_config.ALG_DESC_CLASSES
         hid = vis + " removedEntirely"
         if layout_alg == ui_config.LAYOUT_DOT:
-            return vis, hid, hid
+            return vis, hid, hid, hid
+        elif layout_alg == ui_config.LAYOUT_SFDP:
+            return hid, vis, hid, hid
         elif layout_alg == ui_config.LAYOUT_DAGRE:
-            return hid, vis, hid
+            return hid, hid, vis, hid
         elif layout_alg == ui_config.LAYOUT_FCOSE:
-            return hid, hid, vis
+            return hid, hid, hid, vis
         else:
             raise WeirdError(f"Unrecognized layout alg?: {layout_alg}")
 
