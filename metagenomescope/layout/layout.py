@@ -34,6 +34,12 @@ class Layout(object):
         self.alg = alg
         self.prog = ui_config.LAYOUT2GVPROG[self.alg]
 
+        # even if these are checked, disable them for e.g. sfdp
+        if not ui_config.GVLAYOUT2RECURSIVE[self.alg]:
+            self.recursive = False
+        if not ui_config.GVLAYOUT2GV_PORTS[self.alg]:
+            self.use_gv_ports = False
+
         # I know this is a jank way of testing if this is a pattern or a
         # Subgraph but i don't want to cause circular imports by importing
         # those types in to check that so.... whatever, sure, let's use hasattr

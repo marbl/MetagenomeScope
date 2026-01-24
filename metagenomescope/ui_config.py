@@ -83,6 +83,10 @@ LAYOUT_DAGRE = "dagre"
 LAYOUT_FCOSE = "fcose"
 DEFAULT_LAYOUT_ALG = LAYOUT_DOT
 LAYOUT2GVPROG = {LAYOUT_DOT: "dot", LAYOUT_SFDP: "sfdp"}
+# basically, we don't want to support these settings with sfdp, so encode that
+# here
+GVLAYOUT2RECURSIVE = {LAYOUT_DOT: True, LAYOUT_SFDP: False}
+GVLAYOUT2GV_PORTS = {LAYOUT_DOT: True, LAYOUT_SFDP: False}
 
 ###############################################################################
 # Coloring UI
