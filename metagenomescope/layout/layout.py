@@ -75,7 +75,11 @@ class Layout(object):
         self._run()
 
     def __repr__(self):
-        return f"Layout({self.region}; {self.draw_settings})"
+        return (
+            "Layout("
+            f"{self.region}; {self.draw_settings}; {self.alg}; {self.params}"
+            ")"
+        )
 
     def at_top_level_of_region(self, obj):
         """Checks if this object is at the "top level" of this region.
@@ -125,7 +129,9 @@ class Layout(object):
                 if self.at_top_level_of_region(node):
                     if node.compound:
                         # "node" is a collapsed pattern; lay it out first
-                        lay = Layout(node, self.draw_settings, self.alg)
+                        lay = Layout(
+                            node, self.draw_settings, self.alg, self.params
+                        )
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)
@@ -150,7 +156,9 @@ class Layout(object):
             if not self.region_is_pattern:
                 for pattern in self.region.patterns:
                     if self.at_top_level_of_region(pattern):
-                        lay = Layout(pattern, self.draw_settings, self.alg)
+                        lay = Layout(
+                            pattern, self.draw_settings, self.alg, self.params
+                        )
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
                         self.edgeid2rel.update(lay.edgeid2rel)
