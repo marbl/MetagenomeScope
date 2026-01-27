@@ -43,6 +43,10 @@ class Layout(object):
         if not ui_config.GVLAYOUT2GV_PORTS[self.alg]:
             self.use_gv_ports = False
 
+        self.record_edge_ctrl_pts = ui_config.GVLAYOUT2RECORD_EDGE_CTRL_PTS[
+            self.alg
+        ]
+
         self.sfdp_k = None
         if self.alg == ui_config.LAYOUT_SFDP:
             self.sfdp_k = params["sfdp_k"]
@@ -352,6 +356,8 @@ class Layout(object):
                 dict of int -> (int, int), dict of int -> list of int
 
             Exactly what they say on the tin.
+            Note that if self.record_edge_ctrl_pts is False then edgeid2ctrlpts
+            will just be an empty dict, {}.
 
         Raises
         ------
@@ -362,17 +368,12 @@ class Layout(object):
 
         Notes
         -----
-        - More work needs to be done to convert edge ctrl pts to Cytoscape.js
-          format. layout_utils.shift_control_points() is a start, but then you
-          still have to do the conversion to the sort of format Cy.js expects;
-          see convertCtrlPtsToDistsAndWeights() in the old drawer.js code.
-
         - In Graphviz coordinates, the origin is at the bottom left corner
-          (https://graphviz.org/docs/outputs/);
-          in Cytoscape.js coordinates, the origin is at the top left corner
-          (https://js.cytoscape.org/#notation/position).
-          Thus, this function flips y-coordinates so that the stuff drawn in
-          Cytoscape.js matches Graphviz.
+          (https://graphviz.org/docs/outputs/); in Cytoscape.js coordinates,
+          the origin is at the top left corner
+          (https://js.cytoscape.org/#notation/position). Thus, this function
+          flips y-coordinates so that the stuff drawn in Cytoscape.js matches
+          Graphviz.
         """
         if self.region_is_pattern:
             raise WeirdError(
@@ -429,33 +430,37 @@ class Layout(object):
             # to edges outside of this pattern, meaning that we can't just do
             # edges alongside nodes. It is easier to just go through edges
             # at the end, down here.
-            for edge in self.region.edges:
-                if self.at_top_level_of_region(edge):
-                    left = bottom = None
-                else:
-                    bb = pattid2bb[edge.parent_id]
-                    left = bb["l"]
-                    bottom = bb["b"]
+            #
+            # NOTE: if self.incl_patterns and self.recursive are true, then as
+            # of writing self.record_edge_ctrl_pts should always be true (since
+            # currently self.recursive can only be true if we are using the dot
+            # layout algorithm). So, this check currently will always be true,
+            # but let's be safe and future-proof this ...
+            if self.record_edge_ctrl_pts:
+                for edge in self.region.edges:
+                    if self.at_top_level_of_region(edge):
+                        left = bottom = None
+                    else:
+                        bb = pattid2bb[edge.parent_id]
+                        left = bb["l"]
+                        bottom = bb["b"]
 
-                edgeid2ctrlpts[edge.unique_id] = (
-                    layout_utils.dot_to_cyjs_control_points(
-                        nodeid2xy[edge.new_src_id],
-                        nodeid2xy[edge.new_tgt_id],
-                        self.edgeid2rel[edge.unique_id],
-                        self.height,
-                        left=left,
-                        bottom=bottom,
+                    edgeid2ctrlpts[edge.unique_id] = (
+                        layout_utils.dot_to_cyjs_control_points(
+                            nodeid2xy[edge.new_src_id],
+                            nodeid2xy[edge.new_tgt_id],
+                            self.edgeid2rel[edge.unique_id],
+                            self.height,
+                            left=left,
+                            bottom=bottom,
+                        )
                     )
-                )
         else:
             for node in self.region.nodes:
                 x, y = self.nodeid2rel[node.unique_id]
                 y = self.height - y
                 nodeid2xy[node.unique_id] = x, y
-            # for sfdp, just don't bother making edges fancy
-            # we only have to check this here (not earlier in this func) since
-            # sfdp should not be used with recursive layout
-            if self.alg in ui_config.GVLAYOUT2RECORD_EDGE_CTRL_PTS:
+            if self.record_edge_ctrl_pts:
                 for edge in self.region.edges:
                     edgeid2ctrlpts[edge.unique_id] = (
                         layout_utils.dot_to_cyjs_control_points(
@@ -465,5 +470,6 @@ class Layout(object):
                             self.height,
                         )
                     )
-                layout_utils.flatten_some_edges(self.region, edgeid2ctrlpts)
+        if self.record_edge_ctrl_pts:
+            layout_utils.flatten_some_edges(self.region, edgeid2ctrlpts)
         return nodeid2xy, edgeid2ctrlpts
