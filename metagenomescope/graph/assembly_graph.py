@@ -204,9 +204,6 @@ class AssemblyGraph(object):
         self.cc_num_to_bb = {}
 
         # Each entry in these structures will be a Pattern (or subclass).
-        # NOTE: do we need to keep these lists around? Couldn't we just save
-        # the numbers of each type of pattern? (And we don't even need to do
-        # that; we could just traverse self.pattid2obj to figure it out.)
         self.bubbles = []
         self.chains = []
         self.cyclic_chains = []

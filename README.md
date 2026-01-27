@@ -397,11 +397,13 @@ since Flye produces them at different times in its pipeline.
 
 <hr/>
 
-As of writing, some assemblers include additional output lines in their GFA files representing other types of data. For example,
-hifiasm and hifiasm-meta include [`A`-lines describing alignments](https://github.com/chhylp123/hifiasm/issues/91). These
-"custom" lines can cause problems when parsing these graphs, because they may not be technically allowed in certain GFA versions.
+Some assemblers include additional kinds of lines in their output GFA files. For example,
+hifiasm and hifiasm-meta include [`A`-lines describing alignments](https://github.com/chhylp123/hifiasm/issues/91).
 
-The simplest way around this is just deleting or commenting out these custom lines. You can do this using `sed`:
+These "custom" lines can cause problems when parsing these graphs, because they may not be technically
+allowed in certain GFA versions.
+
+The simplest way around this is just deleting or commenting out these custom lines. Here is an examle of commenting out the `A`-lines in hifiasm GFA files using `sed`:
 
 ```bash
 sed -i -e 's/^A/#A/' hifiasm-out.p_ctg.gfa
@@ -435,7 +437,7 @@ At this point:
 
 - All nodes and edges, edges, and patterns in both graphs have unique IDs assigned. These IDs can be used to look up information about nodes, edges, and patterns in the `ag.nodeid2obj`, `ag.edgeid2obj`, and `ag.pattid2obj` dictionaries, respectively.
 
-An example of analyzing a real graph in this way:
+Some examples of analyzing the decomposition results:
 
 ```python
 >>> from metagenomescope.graph import AssemblyGraph
@@ -456,6 +458,12 @@ An example of analyzing a real graph in this way:
  1227: bubble1227 containing nodes [34, 76, 382, 303] from [34] to [76],
  1232: bubble1232 containing nodes [40, 43, 35, 501] from [35] to [43],
  ...}
+>>> # Go through just the bubble patterns
+>>> ag.bubbles
+[bubble1222 containing nodes [33, 283, 395, 39] from [33] to [39],
+ bubble1227 containing nodes [34, 76, 382, 303] from [34] to [76],
+ bubble1232 containing nodes [40, 43, 35, 501] from [35] to [43],
+ ...]
 >>> # Look up a node by name (if a node was split, this will list both halves)
 >>> ag.nodename2objs
 defaultdict(<class 'list'>,
@@ -463,7 +471,9 @@ defaultdict(<class 'list'>,
              '-1': [Node 1 (name: -1)],
              '2': [Node 2 (name: 2)],
              ...
+             '40-R': [Node 78 (name: 40-R)],
              '40': [Node 78 (name: 40-R), Node 1259 (name: 40-L)],
+             '40-L': [Node 1259 (name: 40-L)],
              ...})
 >>> # Examine split nodes
 >>> for n in ag.nodeid2obj.values():
@@ -483,7 +493,7 @@ Edge*1634 (orig: 348 -> 1633; new: 348 -> 1633; dec: 1628 -> 1666) True
 Edge*1639 (orig: 1638 -> 451; new: 1638 -> 451; dec: 1671 -> 1635) True
 ```
 
-This interface should remain relatively stable. If you have any questions, please reach out.
+This interface should remain relatively stable, although I may change things slightly as development continues. If you have any questions, please reach out.
 
 <hr/>
 </details>
