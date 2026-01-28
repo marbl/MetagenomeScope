@@ -140,9 +140,38 @@ class DrawResults(object):
         curr_row_height = 0
         x = 0
         y = 0
+        curr_row = 0
         curr_row_max_height = 0
+        r2xrow = {}
+        row2y = {curr_row: 0}
+        row2max_height = {}
+        # pass 1: compute region positions and row heights
+        for r in self.get_sorted_regions():
+            r2xrow[r] = (x, curr_row)
+            lay = self.region2layout[r]
+            x += lay.width
+            curr_row_max_height = max(curr_row_max_height, lay.height)
+            if x >= row_width:
+                row2max_height[curr_row] = curr_row_max_height
+                y += curr_row_max_height + layout_config.BB_YPAD
+                curr_row += 1
+                row2y[curr_row] = y
+                x = 0
+                curr_row_max_height = 0
+            else:
+                # don't let x padding be the reason a row overflows
+                # test case, as of writing: ccs "3-", Flye yeast graph
+                x += layout_config.BB_XPAD
+
+        if curr_row not in row2max_height:
+            row2max_height[curr_row] = curr_row_max_height
+
+        # pass 2: actually assign positions to elements
         for r in self.get_sorted_regions():
             lay = self.region2layout[r]
+            x, row = r2xrow[r]
+            # vertically center stuff within the row
+            y = row2y[row] + ((row2max_height[row] - lay.height) / 2)
             nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords()
 
             for n in r.nodes:
