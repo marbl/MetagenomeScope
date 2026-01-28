@@ -18,8 +18,8 @@ PIXELS_PER_INCH = 54
 # boxes to a row until the width of this row is >= (total width) / (this).
 BB_ROW_WIDTH_FRAC = 2
 
-BB_XPAD = 25
-BB_YPAD = 35
+BB_XPAD = 0.025
+BB_YPAD = 0.05
 
 ########
 # Node scaling

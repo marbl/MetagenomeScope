@@ -132,8 +132,15 @@ class DrawResults(object):
             return self.get_nolayout_eles()
 
         eles = []
-        widths = [lay.width for lay in self.region2layout.values()]
+        widths = []
+        heights = []
+        for lay in self.region2layout.values():
+            widths.append(lay.width)
+            heights.append(lay.height)
         total_width = sum(widths)
+        total_height = sum(heights)
+        xpad = layout_config.BB_XPAD * total_width
+        ypad = layout_config.BB_YPAD * total_height
         row_width = total_width / layout_config.BB_ROW_WIDTH_FRAC
 
         x = 0
@@ -150,8 +157,13 @@ class DrawResults(object):
             x += lay.width
             curr_row_max_height = max(curr_row_max_height, lay.height)
             if x >= row_width:
+                # if the first row is REALLY long (due to maybe including a
+                # rightmost Layout that is kind of wide), let this extend
+                # row_width accordingly. this makes the drawing look nicer
+                if curr_row == 0:
+                    row_width = x
                 row2max_height[curr_row] = curr_row_max_height
-                y += curr_row_max_height + layout_config.BB_YPAD
+                y += curr_row_max_height + ypad
                 curr_row += 1
                 row2y[curr_row] = y
                 x = 0
@@ -159,7 +171,7 @@ class DrawResults(object):
             else:
                 # don't let x padding be the reason a row overflows
                 # test case, as of writing: ccs "3-", Flye yeast graph
-                x += layout_config.BB_XPAD
+                x += xpad
 
         if curr_row not in row2max_height:
             row2max_height[curr_row] = curr_row_max_height
