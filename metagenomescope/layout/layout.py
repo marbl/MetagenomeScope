@@ -207,8 +207,8 @@ class Layout(object):
         return layout_utils.get_node_dot(
             self.region.unique_id,
             self.region.name,
-            self.width,
-            self.height,
+            self.width / layout_config.PIXELS_PER_INCH,
+            self.height / layout_config.PIXELS_PER_INCH,
             self.shape,
             indent,
             color,
