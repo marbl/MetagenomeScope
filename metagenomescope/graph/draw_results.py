@@ -133,7 +133,8 @@ class DrawResults(object):
 
         eles = []
         widths = [lay.width for lay in self.region2layout.values()]
-        row_width = sum(widths) / layout_config.BB_ROW_WIDTH_FRAC
+        total_width = sum(widths)
+        row_width = total_width / layout_config.BB_ROW_WIDTH_FRAC
 
         x = 0
         y = 0
@@ -190,11 +191,4 @@ class DrawResults(object):
             if self.incl_patterns:
                 eles.extend(p.to_cyjs() for p in r.patterns)
 
-            x += lay.width
-            curr_row_max_height = max(curr_row_max_height, lay.height)
-            if x >= row_width:
-                x = 0
-                y += curr_row_max_height + layout_config.BB_YPAD
-            else:
-                x += layout_config.BB_XPAD
         return eles
