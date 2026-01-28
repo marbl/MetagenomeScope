@@ -1,5 +1,5 @@
 ###############################################################################
-# Graphviz settings
+# General settings
 ###############################################################################
 
 # The amount of indentation to use for each level in DOT files. You could also
@@ -12,6 +12,14 @@ INDENT = "  "
 # has just been kind of inconsistent with its units being in points or inches
 # depending on bounding boxes or coordinates??? let's just see how things go
 PIXELS_PER_INCH = 54
+
+# when drawing a bunch of layouts' bounding boxes, compute their total width.
+# When tiling these bounding boxes for the layout, we will only add bounding
+# boxes to a row until the width of this row is >= (total width) / (this).
+BB_ROW_WIDTH_FRAC = 2
+
+BB_XPAD = 25
+BB_YPAD = 35
 
 ########
 # Node scaling

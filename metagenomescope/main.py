@@ -2644,14 +2644,16 @@ def run(
                 "for Cytoscape.js..."
             )
             dr = ag.to_cyjs(curr_done_flushing)
-            lsum, asum = dr.get_fancy_count_text()
+            eles = dr.pack()
+            asum = dr.get_fancy_count_text()
             logging.debug("...Done creating JSON.")
             curr_drawn_info = curr_done_flushing.copy()
-            if dr.check_ids_given():
-                curr_drawn_info[config.CDI_DRAWN_NODE_IDS] = dr.nodeids
-                curr_drawn_info[config.CDI_DRAWN_EDGE_IDS] = dr.edgeids
+            if curr_done_flushing["draw_type"] == config.DRAW_AROUND:
+                nodeids, edgeids = dr.get_node_and_edge_ids()
+                curr_drawn_info[config.CDI_DRAWN_NODE_IDS] = nodeids
+                curr_drawn_info[config.CDI_DRAWN_EDGE_IDS] = edgeids
             return (
-                dr.eles,
+                eles,
                 html.Span(
                     [
                         html.Span(
@@ -2662,7 +2664,7 @@ def run(
                         ui_utils.get_curr_drawn_text(curr_done_flushing, ag),
                     ]
                 ),
-                asum,
+                f"({asum})",
                 curr_drawn_info,
             )
         else:

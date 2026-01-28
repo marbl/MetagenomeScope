@@ -207,8 +207,8 @@ class Layout(object):
         return layout_utils.get_node_dot(
             self.region.unique_id,
             self.region.name,
-            self.width,
-            self.height,
+            self.width / layout_config.PIXELS_PER_INCH,
+            self.height / layout_config.PIXELS_PER_INCH,
             self.shape,
             indent,
             color,
@@ -338,7 +338,7 @@ class Layout(object):
                 # account for parallel edges -- see _save_rel_coords() comment
                 cg.remove_edge(pgv_edge)
 
-    def to_abs_coords(self):
+    def to_abs_coords(self, dx=0, dy=0):
         """Returns the absolute coordinates of descendant nodes and edges.
 
         Basically, if you did the default thing of using patterns + doing
@@ -425,6 +425,9 @@ class Layout(object):
                     y = self.height - y
                     nodeid2xy[node.unique_id] = x, y
 
+            for nid, (x, y) in nodeid2xy.items():
+                nodeid2xy[nid] = (x + dx, y + dy)
+
             # Edge layout is dependent upon us knowing the position of all
             # other nodes in the graph -- even edges in a pattern might connect
             # to edges outside of this pattern, meaning that we can't just do
@@ -453,12 +456,16 @@ class Layout(object):
                             self.height,
                             left=left,
                             bottom=bottom,
+                            dx=dx,
+                            dy=dy,
                         )
                     )
         else:
             for node in self.region.nodes:
                 x, y = self.nodeid2rel[node.unique_id]
                 y = self.height - y
+                x += dx
+                y += dy
                 nodeid2xy[node.unique_id] = x, y
             if self.record_edge_ctrl_pts:
                 for edge in self.region.edges:
@@ -468,8 +475,11 @@ class Layout(object):
                             nodeid2xy[edge.new_tgt_id],
                             self.edgeid2rel[edge.unique_id],
                             self.height,
+                            dx=dx,
+                            dy=dy,
                         )
                     )
         if self.record_edge_ctrl_pts:
             layout_utils.flatten_some_edges(self.region, edgeid2ctrlpts)
+
         return nodeid2xy, edgeid2ctrlpts

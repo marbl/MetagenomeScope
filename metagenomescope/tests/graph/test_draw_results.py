@@ -1,325 +1,56 @@
-import pytest
-from metagenomescope.errors import WeirdError
-from metagenomescope.graph import DrawResults
+from metagenomescope.graph import DrawResults, Subgraph, Node, Edge
+from metagenomescope import ui_config, config
 
 
 def test_init_empty():
-    dr = DrawResults()
-    assert dr.eles == []
-    assert dr.nodect == 0
-    assert dr.edgect == 0
-    assert dr.pattct == 0
-    assert dr.nodeids is None
-    assert dr.edgeids is None
+    dr = DrawResults({}, [ui_config.SHOW_PATTERNS])
+    assert dr.region2layout == {}
+    assert dr.draw_settings == [ui_config.SHOW_PATTERNS]
+    assert dr.incl_patterns
+    assert dr.layouts_given
+    assert dr.num_full_nodes == 0
+    assert dr.num_real_edges == 0
+    assert dr.num_patterns == 0
 
 
-def test_init_inconsistent_lengths():
-    with pytest.raises(WeirdError) as ei:
-        DrawResults(
-            [
-                {"data": {"id": "asdf"}},
-                {"data": {"id": "butt"}},
-                {"data": {"source": "asdf", "target": "butt"}},
-            ],
-            nodect=3,
-            edgect=1,
-        )
-    assert str(ei.value) == (
-        "3 ele(s), but (3 node(s) + 1 edge(s) + 0 patt(s)) = 4?"
-    )
-
-
-def test_init_inconsistent_node_id_counts():
-    with pytest.raises(WeirdError) as ei:
-        DrawResults(
-            [
-                {"data": {"id": "asdf"}},
-                {"data": {"id": "butt"}},
-                {"data": {"id": "aosidj"}},
-                {"data": {"id": "oijadfsij"}},
-                {"data": {"source": "asdf", "target": "butt"}},
-            ],
-            nodect=4,
-            edgect=1,
-            nodeids=["asdf", "butt", "aosidj"],
-            edgeids=["oijadsf"],
-        )
-    assert str(ei.value) == "nodect = 4 but 3 node ID(s) given?"
-
-
-def test_init_inconsistent_edge_id_counts():
-    with pytest.raises(WeirdError) as ei:
-        DrawResults(
-            [
-                {"data": {"id": "asdf"}},
-                {"data": {"id": "butt"}},
-                {"data": {"source": "asdf", "target": "butt"}},
-                {"data": {"source": "asdf", "target": "butt"}},
-                {"data": {"source": "asdf", "target": "butt"}},
-            ],
-            nodect=2,
-            edgect=3,
-            nodeids=["asdf", "butt"],
-            edgeids=["oijadsf", "asodifdoihowu"],
-        )
-    assert str(ei.value) == "edgect = 3 but 2 edge ID(s) given?"
-
-
-def test_init_inconsistent_edge_id_counts_but_lower_ok():
-    # (since fake edges aren't included in edgect)
-    dr = DrawResults(
-        [
-            {"data": {"id": "asdf"}},
-            {"data": {"id": "butt"}},
-            {"data": {"source": "asdf", "target": "butt"}},
-        ],
-        nodect=2,
-        edgect=0,
-        nodeids=["asdf", "butt"],
-        edgeids=["oijadsf"],
-    )
-    assert dr.edgect == 0
-
-
-def test_init_inconsistent_ids_given_onlynodes():
-    with pytest.raises(WeirdError) as ei:
-        DrawResults(
-            [
-                {"data": {"id": "asdf"}},
-                {"data": {"id": "butt"}},
-                {"data": {"source": "asdf", "target": "butt"}},
-            ],
-            nodect=2,
-            edgect=1,
-            nodeids=["asdf", "butt"],
-        )
-    assert str(ei.value) == "Node IDs but not edge IDs given?"
-
-
-def test_init_inconsistent_ids_given_onlyedges():
-    with pytest.raises(WeirdError) as ei:
-        DrawResults(
-            [
-                {"data": {"id": "asdf"}},
-                {"data": {"id": "butt"}},
-                {"data": {"source": "asdf", "target": "butt"}},
-            ],
-            nodect=2,
-            edgect=1,
-            edgeids=["asodif"],
-        )
-    assert str(ei.value) == "Edge IDs but not node IDs given?"
-
-
-def test_init_good_ids():
-    dr = DrawResults(
-        [
-            {"data": {"id": "asdf"}},
-            {"data": {"id": "butt"}},
-            {"data": {"source": "asdf", "target": "butt"}},
-        ],
-        nodect=2,
-        edgect=1,
-        nodeids=["asdf", "butt"],
-        edgeids=["asodif"],
-    )
-    assert dr.eles == [
-        {"data": {"id": "asdf"}},
-        {"data": {"id": "butt"}},
-        {"data": {"source": "asdf", "target": "butt"}},
-    ]
-    assert dr.nodect == 2
-    assert dr.edgect == 1
-    assert dr.pattct == 0
-    assert dr.nodeids == ["asdf", "butt"]
-    assert dr.edgeids == ["asodif"]
-
-
-def test_add_ids():
-    dr = DrawResults(
-        [
-            {"data": {"id": "asdf"}},
-            {"data": {"id": "butt"}},
-            {"data": {"source": "asdf", "target": "butt"}},
-        ],
-        nodect=2,
-        edgect=1,
-        nodeids=["asdf", "butt"],
-        edgeids=[0],
-    )
-    dr2 = DrawResults(
-        [
-            {"data": {"id": "asdf2"}},
-            {"data": {"id": "butt2"}},
-            {"data": {"id": "patt!!!"}},
-            {"data": {"id": "hello"}},
-            {"data": {"source": "asdf2", "target": "butt2"}},
-            {"data": {"source": "butt2", "target": "butt2"}},
-        ],
-        nodect=3,
-        edgect=2,
-        pattct=1,
-        nodeids=["asdf2", "butt2", "hello"],
-        edgeids=[1, 2],
-    )
-    dr3 = dr + dr2
-    assert dr3.nodect == 5
-    assert dr3.edgect == 3
-    assert dr3.pattct == 1
-    assert dr3.nodeids == ["asdf", "butt", "asdf2", "butt2", "hello"]
-    assert dr3.edgeids == [0, 1, 2]
-
-
-def test_add_ids_inconsistent_presence():
-    dr = DrawResults(
-        [
-            {"data": {"id": "asdf"}},
-            {"data": {"id": "butt"}},
-            {"data": {"source": "asdf", "target": "butt"}},
-        ],
-        nodect=2,
-        edgect=1,
-    )
-    dr2 = DrawResults(
-        [
-            {"data": {"id": "asdf2"}},
-            {"data": {"id": "butt2"}},
-            {"data": {"id": "patt!!!"}},
-            {"data": {"id": "hello"}},
-            {"data": {"source": "asdf2", "target": "butt2"}},
-            {"data": {"source": "butt2", "target": "butt2"}},
-        ],
-        nodect=3,
-        edgect=2,
-        pattct=1,
-        nodeids=["asdf2", "butt2", "hello"],
-        edgeids=[1, 2],
-    )
-    with pytest.raises(WeirdError) as ei:
-        dr + dr2
-    assert str(ei.value) == (
-        "Can't add "
-        "DrawResults(3 ele(s) [2 node(s) + 1 edge(s) + 0 patt(s)], "
-        "ids not given) and "
-        "DrawResults(6 ele(s) [3 node(s) + 2 edge(s) + 1 patt(s)], "
-        "ids given): inconsistent ID presence"
-    )
-
-
-def test_add_ids_overlapping_nodes():
-    dr = DrawResults(
-        [
-            {"data": {"id": "asdf"}},
-            {"data": {"id": "butt"}},
-            {"data": {"source": "asdf", "target": "butt"}},
-        ],
-        nodect=2,
-        edgect=1,
-        nodeids=["asdf", "butt"],
-        edgeids=[0],
-    )
-    dr2 = DrawResults(
-        [
-            {"data": {"id": "asdf2"}},
-            {"data": {"id": "butt2"}},
-            {"data": {"id": "patt!!!"}},
-            {"data": {"id": "hello"}},
-            {"data": {"source": "asdf2", "target": "butt2"}},
-            {"data": {"source": "butt2", "target": "butt2"}},
-        ],
-        nodect=3,
-        edgect=2,
-        pattct=1,
-        nodeids=["asdf", "butt2", "hello"],
-        edgeids=[1, 2],
-    )
-    with pytest.raises(WeirdError) as ei:
-        dr + dr2
-    assert str(ei.value) == "Shared node IDs?"
-
-
-def test_add_ids_overlapping_edges():
-    dr = DrawResults(
-        [
-            {"data": {"id": "asdf"}},
-            {"data": {"id": "butt"}},
-            {"data": {"source": "asdf", "target": "butt"}},
-        ],
-        nodect=2,
-        edgect=1,
-        nodeids=["asdf", "butt"],
-        edgeids=[0],
-    )
-    dr2 = DrawResults(
-        [
-            {"data": {"id": "asdf2"}},
-            {"data": {"id": "butt2"}},
-            {"data": {"id": "patt!!!"}},
-            {"data": {"id": "hello"}},
-            {"data": {"source": "asdf2", "target": "butt2"}},
-            {"data": {"source": "butt2", "target": "butt2"}},
-        ],
-        nodect=3,
-        edgect=2,
-        pattct=1,
-        nodeids=["asdf2", "butt2", "hello"],
-        edgeids=[1, 0],
-    )
-    with pytest.raises(WeirdError) as ei:
-        dr + dr2
-    assert str(ei.value) == "Shared edge IDs?"
-
-
-def test_add():
-    dr = DrawResults()
-    dr += DrawResults(
-        [
-            {"data": {"id": "asdf"}},
-            {"data": {"id": "butt"}},
-            {"data": {"source": "asdf", "target": "butt"}},
-        ],
-        nodect=2,
-        edgect=1,
-    )
-    assert dr.eles == [
-        {"data": {"id": "asdf"}},
-        {"data": {"id": "butt"}},
-        {"data": {"source": "asdf", "target": "butt"}},
-    ]
-    assert dr.nodect == 2
-    assert dr.edgect == 1
-    assert dr.pattct == 0
-    assert dr.nodeids is None
-    assert dr.edgeids is None
-
-
-def test_repr():
-    dr = DrawResults(
-        [
-            {"data": {"id": "asdf"}},
-            {"data": {"id": "butt"}},
-            {"data": {"source": "asdf", "target": "butt"}},
-        ],
-        nodect=2,
-        edgect=1,
-    )
-    assert repr(dr) == (
-        "DrawResults(3 ele(s) [2 node(s) + 1 edge(s) + 0 patt(s)], "
-        "ids not given)"
-    )
+def test_init_nolayout_subgraph():
+    b = Node(0, "B", {"orientation": config.FWD})
+    sg = Subgraph(5, "sg5", [b], [], [])
+    dr = DrawResults({sg: None}, [])
+    assert dr.region2layout == {sg: None}
+    assert dr.draw_settings == []
+    assert not dr.incl_patterns
+    assert not dr.layouts_given
+    assert dr.num_full_nodes == 1
+    assert dr.num_real_edges == 0
+    assert dr.num_patterns == 0
 
 
 def test_get_fancy_count_text():
-    dr = DrawResults(
-        [
-            {"data": {"id": "asdf"}},
-            {"data": {"id": "butt"}},
-            {"data": {"source": "asdf", "target": "butt"}},
-        ],
-        nodect=2,
-        edgect=1,
+    b = Node(0, "B", {"orientation": config.FWD})
+    sg = Subgraph(5, "sg5", [b], [], [])
+    dr = DrawResults({sg: None}, [])
+    assert dr.get_fancy_count_text() == "1 node, 0 edges, 0 patterns"
+
+
+def test_repr():
+    b = Node(0, "B", {"orientation": config.FWD})
+    e = Edge(8, 0, 0, {})
+    e2 = Edge(9, 0, 0, {"asdf": "ghjik"})
+    sg = Subgraph(5, "sg5", [b], [e, e2], [])
+    dr = DrawResults({sg: None}, [])
+    assert (
+        repr(dr) == "DrawResults(1 region (1 node, 2 edges, 0 patterns); [])"
     )
-    assert dr.get_fancy_count_text() == (
-        "3 eles",
-        "(2 nodes, 1 edge, 0 patterns)",
-    )
+
+
+def test_get_node_and_edge_ids():
+    b = Node(0, "B", {"orientation": config.FWD})
+    e = Edge(8, 0, 0, {})
+    e2 = Edge(9, 0, 0, {"asdf": "ghjik"})
+    sg = Subgraph(5, "sg5", [b], [e, e2], [])
+    dr = DrawResults({sg: None}, [])
+    nodeids, edgeids = dr.get_node_and_edge_ids()
+    assert nodeids == [0]
+    # order is arbitrary here
+    assert sorted(edgeids) == [8, 9]
