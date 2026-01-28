@@ -134,7 +134,6 @@ class DrawResults(object):
         eles = []
         widths = [lay.width for lay in self.region2layout.values()]
         row_width = sum(widths) / layout_config.BB_ROW_WIDTH_FRAC
-        print("hi here!", widths, row_width)
 
         x = 0
         y = 0
