@@ -130,3 +130,21 @@ def get_treemap_rectangles(cc_nums, node_ct, aggregate=True):
 def validate_split_type(split):
     if split not in (config.SPLIT_LEFT, config.SPLIT_RIGHT, None):
         raise WeirdError(f"Invalid split type: {split}")
+
+
+def get_sorted_subgraphs(sgs):
+    # The number of "full" nodes (i.e. ignoring node splitting) MUST be the
+    # highest-priority sorting criterion. Otherwise, we will be unable to
+    # say that an aggregated group of components with the exact same
+    # amount of nodes represents a continuous range of component size
+    # ranks. See the treemap plot code.
+    return sorted(
+        sgs,
+        key=lambda obj: (
+            obj.num_full_nodes,
+            obj.num_total_nodes,
+            obj.num_total_edges,
+            obj.pattern_stats.sum(),
+        ),
+        reverse=True,
+    )

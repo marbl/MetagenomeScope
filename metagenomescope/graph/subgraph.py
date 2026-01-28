@@ -147,13 +147,7 @@ class Subgraph(object):
     def get_objs(self):
         return itertools.chain(self.nodes, self.edges, self.patterns)
 
-    def to_cyjs(
-        self,
-        draw_settings=ui_config.DEFAULT_DRAW_SETTINGS,
-        layout_alg=ui_config.DEFAULT_LAYOUT_ALG,
-        layout_params={},
-        report_ids=False,
-    ):
+    def to_cyjs(self, draw_settings, layout_alg, layout_params):
         """Creates Cytoscape.js elements for all nodes/edges in this subgraph.
 
         Parameters
@@ -168,58 +162,13 @@ class Subgraph(object):
             Other parameters to pass to Layout, if we are calling a Graphviz
             program.
 
-        report_ids: bool
-            If True, record node and edge IDs in the output DrawResults.
-
         Returns
         -------
         DrawResults
         """
-
-        preset_positions = False
-        nodeid2xy = {}
-        edgeid2ctrlpts = {}
+        lay = None
         if layout_alg in ui_config.LAYOUT2GVPROG:
             logging.debug(f"  Laying out {self}; settings: {draw_settings}...")
             lay = Layout(self, draw_settings, layout_alg, layout_params)
-            nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords()
-            preset_positions = True
             logging.debug("  ...Done with layout!")
-
-        eles = []
-        nodeids = [] if report_ids else None
-        edgeids = [] if report_ids else None
-
-        for n in self.nodes:
-            j = n.to_cyjs(draw_settings=draw_settings)
-            if preset_positions:
-                x, y = nodeid2xy[n.unique_id]
-                j["position"] = {"x": x, "y": y}
-            eles.append(j)
-            if report_ids:
-                nodeids.append(n.unique_id)
-
-        for e in self.edges:
-            j = e.to_cyjs(draw_settings=draw_settings)
-            if preset_positions and e.unique_id in edgeid2ctrlpts:
-                straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
-                if not straight:
-                    j["classes"] += " withctrlpts"
-                    j["data"]["cpd"] = cpd
-                    j["data"]["cpw"] = cpw
-            eles.append(j)
-            if report_ids:
-                edgeids.append(e.unique_id)
-
-        pattct = 0
-        if ui_utils.show_patterns(draw_settings):
-            eles.extend(obj.to_cyjs() for obj in self.patterns)
-            pattct = len(self.patterns)
-        return DrawResults(
-            eles,
-            self.num_full_nodes,
-            self.num_real_edges,
-            pattct,
-            nodeids,
-            edgeids,
-        )
+        return DrawResults({self: lay}, draw_settings)

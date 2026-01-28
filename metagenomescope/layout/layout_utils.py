@@ -372,21 +372,12 @@ def getxy(pos_string):
 
 
 def get_bb_x2_y2(bb_string):
-    """Given a string of the format "x1,y1,x2,y2", returns floats of x2 and y2
-    divided by layout_config.PIXELS_PER_INCH.
+    """Given a string of the format "x1,y1,x2,y2", returns floats of x2 and y2.
 
     In a bounding box produced by GraphViz, (x1, y1) is the bottom left
     position of the box and (x2, y2) is the top right position of the box.
     Usually we only care about (x2, y2) (since often the bottom left is just
     (0, 0)), hence this function.
-
-    The reason we divide by PIXELS_PER_INCH is because, in Graphviz' output,
-    node positions and edge control points are (usually) given in inches,
-    whereas bounding boxes are (usually) given in points. To quote Plato,
-    "that's kinda annoying tbh." I'm like 90% sure Plato said that once.
-
-    NOTE: wait hm should we use something aside from pixels per inch then?
-    need to test out.......... yuck
 
     See http://www.graphviz.org/doc/info/attrs.html#d:bb and
     http://www.graphviz.org/doc/info/attrs.html#k:rect for reference.
@@ -396,15 +387,15 @@ def get_bb_x2_y2(bb_string):
         raise ValueError(
             "Bounding box doesn't start at (0, 0): {}".format(bb_string)
         )
-    x2i = float(x2) / layout_config.PIXELS_PER_INCH
-    y2i = float(y2) / layout_config.PIXELS_PER_INCH
+    x2i = float(x2)
+    y2i = float(y2)
     return x2i, y2i
 
 
 def infer_bb(x, y, w, h):
     """Infers the bounding box of a rectangle based on its center point."""
-    half_w = (w * layout_config.PIXELS_PER_INCH) / 2
-    half_h = (h * layout_config.PIXELS_PER_INCH) / 2
+    half_w = w / 2
+    half_h = h / 2
     left = x - half_w
     right = x + half_w
     bottom = y - half_h

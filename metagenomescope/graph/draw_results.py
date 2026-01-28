@@ -1,155 +1,176 @@
 from .. import ui_utils
 from ..errors import WeirdError
+from ..layout import layout_config
+from . import graph_utils
 
 
 class DrawResults(object):
-    """Represents a collection of Cytoscape.js elements that were just drawn.
+    """Takes care of preparing Cytoscape.js JSON elements to be drawn."""
 
-    I guess I didn't feel like making AssemblyGraph.to_cyjs() return like
-    6 different things lol
-    """
-
-    def __init__(
-        self, eles=[], nodect=0, edgect=0, pattct=0, nodeids=None, edgeids=None
-    ):
+    def __init__(self, region2layout, draw_settings):
         """Initializes this DrawResults object.
 
         Parameters
         ----------
-        eles: list of dict
-            Each entry describes an element (a node, edge, or pattern) in the
-            graph, in Cytoscape.js-accepted format. See the references below
-            for examples on what this format looks like.
+        region2layout: dict of Subgraph -> (Layout or None)
+            Can be {}. I guess that's useful if you want to define an instance
+            of this to which you'll later add other DrawResults objects.
 
-        nodect: float
-            List of nodes that were drawn. Split nodes are treated as worth
-            0.5 of a "full" node.
+        draw_settings: list
 
-        edgect: int
-            List of edges that were drawn. Fake edges are not included in this
-            count.
-
-        pattct: int
-            List of patterns that were drawn.
-
-        nodeids: None or list of int
-            List of node IDs that were drawn. You only need to include this
-            if you are drawing "around" nodes (in which case there is not an
-            immediately easy way to figure out which nodes are drawn when we
-            go to do stuff like searching).
-
-            Also note that IDs should generally be integers (at least that's
-            how the .unique_id properties of Node/Edge/Pattern objects are
-            set), but we don't really care here if these are strings or
-            whatever. (I mean the caller might care... but if you are, say,
-            me writing tests for this and you used strings for all your IDs,
-            then whatever.)
-
-        edgeids: None or list of int
-            List of edge IDs that were drawn. Same deal as with nodeids.
-
-        Raises
-        ------
-        WeirdError
-            If the node/edge/patt counts sum to something > len(eles).
-            (If they are <= len(eles), then this is okay, since these
-            counts can undercount len(eles) due to split nodes/fake edges.)
-
-            If only one of {nodeids, edgeids} is given.
-
-        References
-        ----------
-        https://dash.plotly.com/cytoscape/elements
-        https://js.cytoscape.org/#notation/elements-json
+        Notes
+        -----
+        The region2layout thing exploits the fact that Subgraphs are hashable.
         """
-        ctsum = nodect + edgect + pattct
-        if ctsum > len(eles):
-            raise WeirdError(
-                f"{len(eles):,} ele(s), but ("
-                f"{nodect:,} node(s) + "
-                f"{edgect:,} edge(s) + "
-                f"{pattct:,} patt(s)) = {ctsum:,}?"
-            )
-        if nodeids is not None and nodect > len(nodeids):
-            raise WeirdError(
-                f"nodect = {nodect:,} but {len(nodeids):,} node ID(s) given?"
-            )
-        if edgeids is not None and edgect > len(edgeids):
-            raise WeirdError(
-                f"edgect = {edgect:,} but {len(edgeids):,} edge ID(s) given?"
-            )
-        self.eles = eles
-        self.nodect = nodect
-        self.edgect = edgect
-        self.pattct = pattct
-        self.nodeids = nodeids
-        self.edgeids = edgeids
-        self.check_ids_given()
+        self.region2layout = region2layout
+        self.draw_settings = draw_settings
+        self.incl_patterns = ui_utils.show_patterns(self.draw_settings)
 
-    def check_ids_given(self):
-        """Returns True if IDs are given and False if not.
-
-        Raises an error if only one of (node IDs, edge IDs) is given.
-        """
-        if self.nodeids is None:
-            if self.edgeids is None:
-                return False
-            else:
-                raise WeirdError("Edge IDs but not node IDs given?")
-        else:
-            if self.edgeids is None:
-                raise WeirdError("Node IDs but not edge IDs given?")
-            else:
-                return True
-
-    def __repr__(self):
-        return (
-            "DrawResults("
-            f"{len(self.eles):,} ele(s) ["
-            f"{self.nodect:,} node(s) + "
-            f"{self.edgect:,} edge(s) + "
-            f"{self.pattct:,} patt(s)], "
-            f"{'ids given' if self.check_ids_given() else 'ids not given'})"
-        )
+        # if we see even a single layout that is None, we will immediately give
+        # up on processing layouts. In practice we should never see mix-and-
+        # match things where only some regions have a layout so this is fine
+        self.layouts_given = True
+        self.num_full_nodes = 0
+        self.num_real_edges = 0
+        self.num_patterns = 0
+        for r, lay in self.region2layout.items():
+            self.num_full_nodes += r.num_full_nodes
+            self.num_real_edges += r.num_real_edges
+            if self.incl_patterns:
+                self.num_patterns += len(r.patterns)
+            if lay is None:
+                self.layouts_given = False
 
     def get_fancy_count_text(self):
-        lsum = ui_utils.pluralize(len(self.eles), "ele")
-        nsum = ui_utils.pluralize(self.nodect, "node")
-        esum = ui_utils.pluralize(self.edgect, "edge")
-        psum = ui_utils.pluralize(self.pattct, "pattern")
-        asum = f"({nsum}, {esum}, {psum})"
-        return lsum, asum
+        nsum = ui_utils.pluralize(self.num_full_nodes, "node")
+        esum = ui_utils.pluralize(self.num_real_edges, "edge")
+        psum = ui_utils.pluralize(self.num_patterns, "pattern")
+        return f"{nsum}, {esum}, {psum}"
+
+    def __repr__(self):
+        asum = self.get_fancy_count_text()
+        rsum = ui_utils.pluralize(len(self.region2layout), "region")
+        return f"DrawResults({rsum} ({asum}); {self.draw_settings})"
+
+    def get_node_and_edge_ids(self):
+        nodeids = []
+        edgeids = []
+        for r in self.region2layout:
+            for n in r.nodes:
+                nodeids.append(n.unique_id)
+            for e in r.edges:
+                edgeids.append(e.unique_id)
+        return nodeids, edgeids
 
     def __add__(self, other):
         """Adds two DrawResults objects and does some validation."""
-        ids_given = self.check_ids_given()
-        if ids_given != other.check_ids_given():
+        if self.draw_settings != other.draw_settings:
+            raise WeirdError(f"Incompatible draw settings: {self}, {other}")
+
+        if set(self.region2layout) & set(other.region2layout):
             raise WeirdError(
-                f"Can't add {self} and {other}: inconsistent ID presence"
+                "Regions present in multiple DrawResults: "
+                f"{self.region2layout}, {other.region2layout}"
             )
 
-        nodeids = edgeids = None
-        if ids_given:
-            # paranoia!!! this should really never happen. This MIGHT slow
-            # things down slightly, but I sincerely doubt it (this should only
-            # be triggered as of writing if there are IDs given, which will
-            # only happen if you are drawn around nodes, in which case probably
-            # there are not a ton of things being drawn anyway). Also actually
-            # lol as of writing we only create a single DR object when drawing
-            # around so literally this branch should never happen anyway.
-            # whatevs
-            if set(self.nodeids) & set(other.nodeids):
-                raise WeirdError("Shared node IDs?")
-            if set(self.edgeids) & set(other.edgeids):
-                raise WeirdError("Shared edge IDs?")
-            nodeids = self.nodeids + other.nodeids
-            edgeids = self.edgeids + other.edgeids
+        # we could MAYBE do self.region2layout.update(other.region2layout) but
+        # i worry about jank side effects from modifying this class. so, safety
+        # first
+        d = self.region2layout.copy()
+        for r, lay in other.region2layout.items():
+            d[r] = lay
+        return DrawResults(d, self.draw_settings)
 
-        return DrawResults(
-            eles=self.eles + other.eles,
-            nodect=self.nodect + other.nodect,
-            edgect=self.edgect + other.edgect,
-            pattct=self.pattct + other.pattct,
-            nodeids=nodeids,
-            edgeids=edgeids,
-        )
+    def get_sorted_regions(self):
+        """Sorts all of the regions represented here.
+
+        As of writing, self.region2layout should either contain ONLY Components
+        or just a single non-Component Subgraph. It shouldn't contain both. But
+        just to future-proof this, we allow for both.
+
+        This returns regions in the following order:
+
+        1. All Components, sorted by cc_num (lower cc nums, i.e. bigger
+           components, go first)
+
+        2. All non-Components, sorted using graph_utils.get_sorted_subgraphs()
+           (so, using the same criteria as how we assigned cc nums -- bigger
+           subgraphs first)
+        """
+        ccs = []
+        non_ccs = []
+        for r in self.region2layout:
+            if hasattr(r, "cc_num"):
+                ccs.append(r)
+            else:
+                non_ccs.append(r)
+
+        sorted_ccs = sorted(ccs, key=lambda c: c.cc_num)
+        sorted_non_ccs = graph_utils.get_sorted_subgraphs(non_ccs)
+        return sorted_ccs + sorted_non_ccs
+
+    def get_nolayout_eles(self):
+        eles = []
+        for r in self.region2layout:
+            eles.extend(n.to_cyjs(self.draw_settings) for n in r.nodes)
+            eles.extend(e.to_cyjs(self.draw_settings) for e in r.edges)
+            if self.incl_patterns:
+                eles.extend(p.to_cyjs() for p in r.patterns)
+        return eles
+
+    def pack(self):
+        """Packs layouts as needed; returns Cytoscape.js JSON for all elements.
+
+        Returns
+        -------
+        eles: list of dict
+            Each entry describes a node / edge / pattern in the graph. This
+            list can be plopped directly into a Cytoscape.js object's
+            "elements" field.
+        """
+        if not self.layouts_given:
+            return self.get_nolayout_eles()
+
+        eles = []
+        widths = [lay.width for lay in self.region2layout.values()]
+        row_width = sum(widths) / layout_config.BB_ROW_WIDTH_FRAC
+        print("hi here!", widths, row_width)
+
+        curr_row_width = 0
+        curr_row_height = 0
+        x = 0
+        y = 0
+        curr_row_max_height = 0
+        for r in self.get_sorted_regions():
+            lay = self.region2layout[r]
+            nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords()
+
+            for n in r.nodes:
+                j = n.to_cyjs(self.draw_settings)
+                nx, ny = nodeid2xy[n.unique_id]
+                print(n, nx, ny, x, y)
+                j["position"] = {"x": nx + x, "y": ny + y}
+                eles.append(j)
+
+            for e in r.edges:
+                j = e.to_cyjs(self.draw_settings)
+                # TODO implement
+                # if e.unique_id in edgeid2ctrlpts:
+                #     straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
+                #     if not straight:
+                #         j["classes"] += " withctrlpts"
+                #         j["data"]["cpd"] = cpd
+                #         j["data"]["cpw"] = cpw
+                eles.append(j)
+
+            if self.incl_patterns:
+                eles.extend(p.to_cyjs() for p in r.patterns)
+
+            x += lay.width
+            curr_row_max_height = max(curr_row_max_height, lay.height)
+            if x >= row_width:
+                x = 0
+                y += curr_row_max_height + layout_config.BB_YPAD
+            else:
+                x += layout_config.BB_XPAD
+        return eles

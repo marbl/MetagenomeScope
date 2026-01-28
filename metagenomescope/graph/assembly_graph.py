@@ -1621,21 +1621,7 @@ class AssemblyGraph(object):
                 Component(self._get_unique_id(), nodes, edges, patts)
             )
 
-        # The number of "full" nodes (i.e. ignoring node splitting) MUST be the
-        # highest-priority sorting criterion. Otherwise, we will be unable to
-        # say that an aggregated group of components with the exact same
-        # amount of nodes represents a continuous range of component size
-        # ranks. See the treemap plot code.
-        self.components = sorted(
-            components,
-            key=lambda cobj: (
-                cobj.num_full_nodes,
-                cobj.num_total_nodes,
-                cobj.num_total_edges,
-                cobj.pattern_stats.sum(),
-            ),
-            reverse=True,
-        )
+        self.components = graph_utils.get_sorted_subgraphs(components)
         # Label each component with a "cc_num" indicating how relatively large
         # it is. Useful for searching later on.
         for i, cc in enumerate(self.components, 1):
@@ -1916,12 +1902,7 @@ class AssemblyGraph(object):
             [self.edgeid2obj[i] for i in sel_edge_ids],
             [self.pattid2obj[i] for i in sel_patt_ids],
         )
-        return sg.to_cyjs(
-            draw_settings=draw_settings,
-            layout_alg=layout_alg,
-            layout_params=layout_params,
-            report_ids=True,
-        )
+        return sg.to_cyjs(draw_settings, layout_alg, layout_params)
 
     def to_cyjs(self, done_flushing):
         """Converts the graph's elements to a Cytoscape.js-compatible format.
@@ -1935,8 +1916,8 @@ class AssemblyGraph(object):
         Returns
         -------
         dr: DrawResults
-            Describes the stuff to be drawn. See the DrawResults definition
-            in this directory for more details.
+            Describes the stuff to be drawn. Call .pack() on this to retrieve
+            the Cytoscape.js JSON for the elements.
 
         References
         ----------
@@ -1949,25 +1930,17 @@ class AssemblyGraph(object):
         layout_params = {"sfdp_k": done_flushing["sfdp_k"]}
 
         if draw_type == config.DRAW_ALL:
-            dr = DrawResults()
+            dr = DrawResults({}, draw_settings)
             for cc in self.components:
-                dr += cc.to_cyjs(
-                    draw_settings=draw_settings,
-                    layout_alg=layout_alg,
-                    layout_params=layout_params,
-                )
+                dr += cc.to_cyjs(draw_settings, layout_alg, layout_params)
 
         elif draw_type == config.DRAW_CCS:
-            dr = DrawResults()
+            dr = DrawResults({}, draw_settings)
             for ccn in done_flushing["cc_nums"]:
                 # (self.components is an ordinary 0-indexed python list, but
                 # the component numbers are 1-indexed)
                 cc = self.components[ccn - 1]
-                dr += cc.to_cyjs(
-                    draw_settings=draw_settings,
-                    layout_alg=layout_alg,
-                    layout_params=layout_params,
-                )
+                dr += cc.to_cyjs(draw_settings, layout_alg, layout_params)
 
         elif draw_type == config.DRAW_AROUND:
             dr = self._to_cyjs_around_nodes(
