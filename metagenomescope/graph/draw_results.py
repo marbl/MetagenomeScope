@@ -136,8 +136,6 @@ class DrawResults(object):
         row_width = sum(widths) / layout_config.BB_ROW_WIDTH_FRAC
         print("hi here!", widths, row_width)
 
-        curr_row_width = 0
-        curr_row_height = 0
         x = 0
         y = 0
         curr_row = 0
