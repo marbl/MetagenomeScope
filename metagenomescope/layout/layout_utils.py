@@ -58,7 +58,7 @@ def get_control_points(pos):
     Raises a ValueError if the number of coordinates is not divisible by 2.
 
     See http://www.graphviz.org/doc/Dot.ref for more information on
-    how splines work in GraphViz.
+    how splines work in Graphviz.
     """
     # Remove startp data
     if pos.startswith("s,"):
@@ -70,7 +70,7 @@ def get_control_points(pos):
     points_str = pos.replace(",", " ")
     coords = [float(c) for c in points_str.split()]
     if len(coords) % 2 != 0:
-        raise ValueError("Invalid GraphViz edge control points: {pos}")
+        raise ValueError(f"Invalid Graphviz edge control points: {pos}")
     return coords
 
 
@@ -374,7 +374,7 @@ def getxy(pos_string):
 def get_bb_x2_y2(bb_string):
     """Given a string of the format "x1,y1,x2,y2", returns floats of x2 and y2.
 
-    In a bounding box produced by GraphViz, (x1, y1) is the bottom left
+    In a bounding box produced by Graphviz, (x1, y1) is the bottom left
     position of the box and (x2, y2) is the top right position of the box.
     Usually we only care about (x2, y2) (since often the bottom left is just
     (0, 0)), hence this function.
