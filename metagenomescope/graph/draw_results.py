@@ -170,24 +170,22 @@ class DrawResults(object):
             x, row = r2xrow[r]
             # vertically center stuff within the row
             y = row2y[row] + ((row2max_height[row] - lay.height) / 2)
-            nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords()
+            nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords(x, y)
 
             for n in r.nodes:
                 j = n.to_cyjs(self.draw_settings)
                 nx, ny = nodeid2xy[n.unique_id]
-                print(n, nx, ny, x, y)
-                j["position"] = {"x": nx + x, "y": ny + y}
+                j["position"] = {"x": nx, "y": ny}
                 eles.append(j)
 
             for e in r.edges:
                 j = e.to_cyjs(self.draw_settings)
-                # TODO implement
-                # if e.unique_id in edgeid2ctrlpts:
-                #     straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
-                #     if not straight:
-                #         j["classes"] += " withctrlpts"
-                #         j["data"]["cpd"] = cpd
-                #         j["data"]["cpw"] = cpw
+                if e.unique_id in edgeid2ctrlpts:
+                    straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
+                    if not straight:
+                        j["classes"] += " withctrlpts"
+                        j["data"]["cpd"] = cpd
+                        j["data"]["cpw"] = cpw
                 eles.append(j)
 
             if self.incl_patterns:

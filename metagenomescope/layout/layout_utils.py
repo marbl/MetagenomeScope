@@ -188,7 +188,7 @@ def point_to_line_distance(point, a, b):
 
 
 def dot_to_cyjs_control_points(
-    src_pos, tgt_pos, coords, flipheight, left=None, bottom=None
+    src_pos, tgt_pos, coords, flipheight, left=None, bottom=None, dx=0, dy=0
 ):
     """Shifts edge control points and converts them to Cytoscape.js format.
 
@@ -205,6 +205,10 @@ def dot_to_cyjs_control_points(
     left: float or None
 
     bottom: float or None
+
+    dx: float
+
+    dy: float
 
     Returns
     -------
@@ -231,7 +235,9 @@ def dot_to_cyjs_control_points(
         coords = shift_control_points(coords, left, bottom)
     for i in range(len(coords)):
         if i % 2 == 1:
-            coords[i] = flipheight - coords[i]
+            coords[i] = (flipheight - coords[i]) + dy
+        else:
+            coords[i] += dx
     src_tgt_dist = euclidean_distance(src_pos, tgt_pos)
     cpdists = ""
     cpweights = ""
