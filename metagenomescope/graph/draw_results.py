@@ -74,8 +74,8 @@ class DrawResults(object):
             )
 
         # we could MAYBE do self.region2layout.update(other.region2layout) but
-        # i worry about jank side effects from modifying this class. so, safety
-        # first
+        # i worry about jank side effects from modifying self in __add__(). so,
+        # safety first
         d = self.region2layout.copy()
         for r, lay in other.region2layout.items():
             d[r] = lay
