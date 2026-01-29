@@ -106,13 +106,13 @@ class Subgraph(object):
 
     def _get_repr_counts(self):
         return (
-            f"{self.num_total_nodes:,} node(s), "
-            f"{self.num_total_edges:,} edge(s), "
-            f"{self.pattern_stats.sum():,} pattern(s)"
+            f"{ui_utils.pluralize(self.num_total_nodes, 'node')}, "
+            f"{ui_utils.pluralize(self.num_total_edges, 'edge')}, "
+            f"{ui_utils.pluralize(self.pattern_stats.sum(), 'pattern')}"
         )
 
     def __repr__(self):
-        return f"{self.name}: {self._get_repr_counts()}"
+        return f"{self.name} ({self._get_repr_counts()})"
 
     def _add_node(self, node):
         self.nodes.append(node)
@@ -168,7 +168,15 @@ class Subgraph(object):
         """
         lay = None
         if layout_alg in ui_config.LAYOUT2GVPROG:
-            logging.debug(f"  Laying out {self}; settings: {draw_settings}...")
+            ptext = ""
+            for pk, pv in layout_params.items():
+                ptext += f"{pk} = {pv}"
+            if len(ptext) > 0 and len(draw_settings) > 0:
+                ptext = "; " + ptext
+            logging.debug(
+                f"  Laying out {self} with {layout_alg} ("
+                f"{'; '.join(draw_settings)}{ptext})..."
+            )
             lay = Layout(self, draw_settings, layout_alg, layout_params)
             logging.debug("  ...Done with layout!")
         return DrawResults({self: lay}, draw_settings)
