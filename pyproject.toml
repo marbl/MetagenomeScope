@@ -72,7 +72,12 @@ dependencies = [
     "pandas",
     "dash-cytoscape",
     "dash-bootstrap-components",
-    "dash-ag-grid",
+    # v33.3.3 changes how the built-in dark themes are loaded, and this
+    # was not apparently supported by earlier versions of dash ag grid. so
+    # we can either do a < pin (using the old syntax) or a >= pin (using the
+    # new syntax). let's do the latter. (We COULD detect the version and then
+    # use that to adjust things but that seems messy and unnecessary)
+    "dash-ag-grid >= 33.3.3",
     # we probably don't need to bother including dash in this list (since
     # both dash-cytoscape and dash-bootstrap-components will include it as a
     # dependency) but we may as well be explicit

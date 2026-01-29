@@ -1028,6 +1028,7 @@ def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
             className=css_config.SELECTED_ELE_TBL_CLASSES + " removedEntirely",
             id=f"selected{eleType}List",
             dashGridOptions={
+                "theme": "legacy",
                 "overlayNoRowsTemplate": f"No {eleType.lower()}s selected.",
                 # We need to include this, or column names that include periods
                 # (e.g. "mult." in Flye output) will completely explode the

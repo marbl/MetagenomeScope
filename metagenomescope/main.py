@@ -289,6 +289,7 @@ def run(
                                 # message when no paths are available:
                                 # https://community.plotly.com/t/how-to-customize-overlay-messages-in-dash-ag-grid/73932/2
                                 dashGridOptions={
+                                    "theme": "legacy",
                                     "overlayNoRowsTemplate": "No paths available.",
                                     # makes col names that have periods function
                                     # normally. not a problem atm for the path table
@@ -310,7 +311,16 @@ def run(
     cyto.load_extra_layouts()
 
     # update_title=None prevents Dash's default "Updating..." page title change
-    app = Dash(__name__, title="MgSc", update_title=None)
+    #
+    # external_stylesheets are needed to load the balham dark theme:
+    # https://dash.plotly.com/dash-ag-grid/styling-themes#included-legacy-themes,
+    # https://github.com/plotly/dash-ag-grid/issues/427#issuecomment-3702398863
+    app = Dash(
+        __name__,
+        title="MgSc",
+        update_title=None,
+        external_stylesheets=[dag.themes.BASE, dag.themes.BALHAM],
+    )
     CONTROLS_TOGGLER_ICON_CLASSES = "bi bi-list"
     app.layout = dbc.Container(
         [
