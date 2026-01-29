@@ -171,6 +171,18 @@ MIN_LARGE_CC_COUNT = 100
 MIN_NONSMALL_CC_NODE_COUNT = 50
 
 ###############################################################################
+# General table stuff (both paths and selected nodes/edges/patterns)
+###############################################################################
+DASH_GRID_OPTIONS = {
+    "theme": "legacy",
+    # We need to include this, or column names that include periods (e.g.
+    # "mult." in Flye output) will completely explode the tables and make me
+    # spend like an hour debugging it. https://stackoverflow.com/q/58772051
+    # https://dash.plotly.com/dash-ag-grid/column-definitions#suppressing-field-dot-notation
+    "suppressFieldDotNotation": True,
+}
+
+###############################################################################
 # Table of paths
 ###############################################################################
 

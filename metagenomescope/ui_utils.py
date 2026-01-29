@@ -1025,17 +1025,11 @@ def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
             rowData=[],
             columnDefs=columnDefs,
             columnSize="responsiveSizeToFit",
-            className=css_config.SELECTED_ELE_TBL_CLASSES + " removedEntirely",
+            className=css_config.ELE_TBL_CLASSES + " removedEntirely",
             id=f"selected{eleType}List",
             dashGridOptions={
-                "theme": "legacy",
                 "overlayNoRowsTemplate": f"No {eleType.lower()}s selected.",
-                # We need to include this, or column names that include periods
-                # (e.g. "mult." in Flye output) will completely explode the
-                # tables and make me spend like an hour debugging it.
-                # https://stackoverflow.com/q/58772051
-                # https://dash.plotly.com/dash-ag-grid/column-definitions#suppressing-field-dot-notation
-                "suppressFieldDotNotation": True,
+                **ui_config.DASH_GRID_OPTIONS,
             },
             dangerously_allow_code=True,
         ),

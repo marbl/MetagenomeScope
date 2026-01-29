@@ -282,19 +282,15 @@ def run(
                                 ],
                                 # https://dash.plotly.com/dash-ag-grid/column-sizing
                                 columnSize="responsiveSizeToFit",
-                                className=css_config.SELECTED_ELE_TBL_CLASSES
+                                className=css_config.ELE_TBL_CLASSES
                                 + " removedEntirely",
                                 id="pathList",
                                 # Needed to replace the default "No Rows To Show"
                                 # message when no paths are available:
                                 # https://community.plotly.com/t/how-to-customize-overlay-messages-in-dash-ag-grid/73932/2
                                 dashGridOptions={
-                                    "theme": "legacy",
                                     "overlayNoRowsTemplate": "No paths available.",
-                                    # makes col names that have periods function
-                                    # normally. not a problem atm for the path table
-                                    # but let's be careful
-                                    "suppressFieldDotNotation": True,
+                                    **ui_config.DASH_GRID_OPTIONS,
                                 },
                                 dangerously_allow_code=True,
                             ),
@@ -2815,9 +2811,7 @@ def run(
         prevent_initial_call=True,
     )
 
-    def toggle_ele_ui(
-        curr_classes, always_classes=css_config.SELECTED_ELE_TBL_CLASSES
-    ):
+    def toggle_ele_ui(curr_classes, always_classes=css_config.ELE_TBL_CLASSES):
         # returns a 2-tuple of (UI classes, opener classes)
         if "removedEntirely" in curr_classes:
             return (

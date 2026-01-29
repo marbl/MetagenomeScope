@@ -29,7 +29,7 @@ CONTROLS_TRANSITION_DURATION = "0.2s"
 ###############################################################################
 # Selected element tables
 ###############################################################################
-SELECTED_ELE_TBL_CLASSES = "ag-theme-balham-dark fancytable"
+ELE_TBL_CLASSES = "ag-theme-balham-dark fancytable"
 BADGE_CLASSES = "ms-1"
 BADGE_ZERO_COLOR = "primary"
 BADGE_SELECTED_COLOR = "#96183c"
