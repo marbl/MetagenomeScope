@@ -40,14 +40,14 @@ This tool is still a work in progress, so please let us know if you have any fee
 <table>
   <thead>
     <tr>
-      <th>Interactive charts of graph statistics</th>
       <th>Summarizing graph structure in a <a href="https://en.wikipedia.org/wiki/Treemapping">treemap</a></th>
+      <th>Interactive charts of graph statistics</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_covlen.png" alt="Scatterplot comparing total node length with average edge bundle sizes in a scaffold graph." /></td>
       <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1treemap.png" alt="Treemap of node counts per component." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_covlen.png" alt="Scatterplot comparing total node length with average edge bundle sizes in a scaffold graph." /></td>
     </tr>
     <tr align="center">
       <td colspan="2"><i>Data source: <a href="https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959">SRS049959</a></i></td>
