@@ -297,3 +297,23 @@ def test_dp_tags_parsed_as_coverage():
     assert paths is None
     assert g.nodes["7"]["cov"] == 123
     assert g.nodes["-7"]["cov"] == 123
+
+
+def test_kc_tags_parsed_as_coverage():
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\tCCC\tKC:i:12345")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    # matches bandage's behavior
+    assert g.nodes["7"]["cov"] == (12345 / 3)
+    assert g.nodes["-7"]["cov"] == (12345 / 3)
+
+
+def test_fc_tags_parsed_as_coverage():
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\tCCCC\tKC:i:22222")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    # matches bandage's behavior
+    assert g.nodes["7"]["cov"] == (22222 / 4)
+    assert g.nodes["-7"]["cov"] == (22222 / 4)
