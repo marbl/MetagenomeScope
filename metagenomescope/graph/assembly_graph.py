@@ -17,6 +17,7 @@ from .. import (
     name_utils,
     misc_utils,
     chart_utils,
+    log_utils,
 )
 from ..gap import Gap
 from ..errors import WeirdError, GraphParsingError
@@ -1929,6 +1930,10 @@ class AssemblyGraph(object):
         layout_alg = done_flushing["layout_alg"]
         layout_params = {"sfdp_k": done_flushing["sfdp_k"]}
 
+        doing_layout = layout_alg in ui_config.LAYOUT2GVPROG
+        if doing_layout:
+            log_utils.log_layout_start(done_flushing, self, layout_params)
+
         if draw_type == config.DRAW_ALL:
             dr = DrawResults({}, draw_settings)
             for cc in self.components:
@@ -1953,6 +1958,9 @@ class AssemblyGraph(object):
 
         else:
             raise WeirdError(f"Unrecognized draw type: {draw_type}")
+
+        if doing_layout:
+            logging.debug("  ...Done with layout!")
 
         return dr
 

@@ -1,9 +1,9 @@
 import logging
-from . import __version__
-from .config import SEPBIG, SEPSML
+from . import __version__, config, ui_utils
+from .errors import WeirdError
 
 
-def log_lines_with_sep(lines, sepchar=SEPSML, endsepline=False):
+def log_lines_with_sep(lines, sepchar=config.SEPSML, endsepline=False):
     # Accounts for the "{HH:MM:SS.mmm} " prefix before each logging message.
     # Note that this is brittle; it will break if the call to
     # logging.basicConfig() in start_log() is changed.
@@ -44,5 +44,23 @@ def start_log(verbose: bool):
     # http://lh3.github.io/2022/09/28/additional-recommendations-for-creating-command-line-interfaces
     log_lines_with_sep(
         [f"Running MetagenomeScope (version {__version__})..."],
-        SEPBIG,
+        config.SEPBIG,
+    )
+
+
+def log_layout_start(done_flushing, ag, layout_params):
+    # TODO store layout params in a clearer way so we can easily parse them
+    # here in a portable way without having to hardcode knowledge abt them
+    draw_settings = done_flushing["draw_settings"]
+    ptext = ""
+    for pk, pv in layout_params.items():
+        ptext += f"{pk} = {pv}"
+    if len(ptext) > 0 and len(draw_settings) > 0:
+        ptext = "; " + ptext
+
+    thing = ui_utils.get_curr_drawn_text(done_flushing, ag)
+
+    logging.debug(
+        f"  Laying out {thing} with {done_flushing['layout_alg']} "
+        f"({'; '.join(draw_settings)}{ptext})..."
     )
