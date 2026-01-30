@@ -127,15 +127,20 @@ COLORFUL_RANDOM_TEXT = html.Span(
 ###############################################################################
 
 PATH_SETTINGS_ZOOM = "zoom"
+PATH_SETTINGS_TOAST = "toast"
 
 PATH_SETTINGS_OPTIONS = [
     {
         "label": "Zoom in on selected paths",
         "value": PATH_SETTINGS_ZOOM,
-    }
+    },
+    {
+        "label": "Show selected paths' details",
+        "value": PATH_SETTINGS_TOAST,
+    },
 ]
 
-DEFAULT_PATH_SETTINGS = [PATH_SETTINGS_ZOOM]
+DEFAULT_PATH_SETTINGS = [PATH_SETTINGS_ZOOM, PATH_SETTINGS_TOAST]
 
 ###############################################################################
 # Histograms in the info dialog

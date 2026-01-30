@@ -157,8 +157,10 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     }
                     eles = eles.union(newEles);
                 }
-                // The key term "zoom" is set in ui_config.py
-                // I don't like duplicating it here, but... I mean
+                // The key term "zoom" is set in ui_config.py as
+                // PATH_SETTINGS_ZOOM.
+                // I don't like duplicating it here, but... I mean, that's the
+                // easiest way to do this.
                 // I guess we COULD define some mechanism for passing
                 // config variables from py -> js but whatever
                 if (pathSelectionInfo["path_settings"].indexOf("zoom") >= 0) {

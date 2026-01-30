@@ -2772,9 +2772,13 @@ def run(
                 # of the graph but whatever just listing it in the toast is ok
                 nongap_names = ag.pathname2objnames[path]
                 full_path_contents = ag.pathname2objnamesandgaps[path]
-                new_toasts = ui_utils.add_path_toast(
-                    curr_toasts, path, full_path_contents, ag.node_centric
-                )
+
+                if ui_config.PATH_SETTINGS_TOAST in path_settings:
+                    new_toasts = ui_utils.add_path_toast(
+                        curr_toasts, path, full_path_contents, ag.node_centric
+                    )
+                else:
+                    new_toasts = no_update
 
                 return new_toasts, {
                     "requestGood": True,
