@@ -1928,11 +1928,11 @@ class AssemblyGraph(object):
         draw_type = done_flushing["draw_type"]
         draw_settings = done_flushing["draw_settings"]
         layout_alg = done_flushing["layout_alg"]
-        layout_params = {"sfdp_k": done_flushing["sfdp_k"]}
+        layout_params = done_flushing["layout_params"]
 
         doing_layout = layout_alg in ui_config.LAYOUT2GVPROG
         if doing_layout:
-            log_utils.log_layout_start(done_flushing, self, layout_params)
+            log_utils.log_layout_start(done_flushing, self)
 
         if draw_type == config.DRAW_ALL:
             dr = DrawResults({}, draw_settings)

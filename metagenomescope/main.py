@@ -897,7 +897,7 @@ def run(
                     cyto.Cytoscape(
                         id="cy",
                         elements=[],
-                        layout=cy_utils.get_layout_params(
+                        layout=cy_utils.get_cyjs_layout_params(
                             ui_config.DEFAULT_LAYOUT_ALG,
                             ui_config.DEFAULT_DRAW_SETTINGS,
                         ),
@@ -2609,7 +2609,9 @@ def run(
                 {"requestGood": False},
             )
 
-        layout_params = cy_utils.get_layout_params(layout_alg, draw_settings)
+        cyjs_layout_params = cy_utils.get_cyjs_layout_params(
+            layout_alg, draw_settings
+        )
 
         if layout_alg == ui_config.LAYOUT_SFDP:
             try:
@@ -2649,7 +2651,7 @@ def run(
         return (
             no_update,
             [],
-            layout_params,
+            cyjs_layout_params,
             {
                 "requestGood": True,
                 "draw_type": draw_type,
@@ -2658,7 +2660,9 @@ def run(
                 "around_dist": around_dist,
                 "draw_settings": draw_settings,
                 "layout_alg": layout_alg,
-                "sfdp_k": sfdp_k,
+                "layout_params": {
+                    "sfdp_k": sfdp_k,
+                },
             },
         )
 

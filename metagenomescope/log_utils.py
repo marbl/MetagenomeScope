@@ -48,12 +48,10 @@ def start_log(verbose: bool):
     )
 
 
-def log_layout_start(done_flushing, ag, layout_params):
-    # TODO store layout params in a clearer way so we can easily parse them
-    # here in a portable way without having to hardcode knowledge abt them
+def log_layout_start(done_flushing, ag):
     draw_settings = done_flushing["draw_settings"]
     ptext = ""
-    for pk, pv in layout_params.items():
+    for pk, pv in done_flushing["layout_params"].items():
         ptext += f"{pk} = {pv}"
     if len(ptext) > 0 and len(draw_settings) > 0:
         ptext = "; " + ptext
