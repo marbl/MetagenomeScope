@@ -98,7 +98,7 @@ def test_validate_nonempty_one_node_gml():
 
 def test_noseq_gfa_has_no_gc_contents():
     ag = AssemblyGraph("metagenomescope/tests/input/sheepgut_g1217.gfa")
-    assert ag.extra_node_attrs == ["length", "orientation"]
+    assert ag.extra_node_attrs == ["length", "cov", "orientation"]
 
 
 def test_flye_gfa_metadata_integration():

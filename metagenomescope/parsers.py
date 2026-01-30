@@ -476,6 +476,21 @@ def parse_gfa(filename):
                 if possible_cov_tag in node.tagnames:
                     cov = node.get(possible_cov_tag)
                     break
+            # gfapy seems to ignore KC / FC tags by default. let's make it
+            # use those if they are present. (It should default to looking for
+            # RC tags, but I'm including them anyway here just in case.)
+            if cov is None:
+                for possible_countcov_tag in (
+                    "kc",
+                    "KC",
+                    "fc",
+                    "FC",
+                    "rc",
+                    "RC",
+                ):
+                    if possible_countcov_tag in node.tagnames:
+                        cov = node.coverage(count_tag=possible_countcov_tag)
+                        break
 
         # Add both a positive and negative node.
         digraph.add_node(
