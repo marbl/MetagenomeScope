@@ -80,8 +80,8 @@ class NodeLayout(object):
         if self.split is not None and self.orientation is not None:
             self.width /= 2
 
-    def get_dims(self, to_cyjs=True):
-        if to_cyjs:
+    def get_dims(self, pixels=True):
+        if pixels:
             return (
                 self.width * layout_config.PIXELS_PER_INCH,
                 self.height * layout_config.PIXELS_PER_INCH,

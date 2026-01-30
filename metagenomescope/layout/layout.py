@@ -305,38 +305,58 @@ class Layout(object):
             region, and we already know its dimensions as self.width and
             self.height).
         """
-
-        # Actually do layout
-        self.dot = self._to_dot()
-        cg = pygraphviz.AGraph(self.dot)
-        # -q turns off warnings about nodes being too small for labels
-        cg.layout(prog=self.prog, args="-q")
-
-        # Extract dimension info. The first two coordinates in the bounding box
-        # (bb) should always be (0, 0).
-        # The width and height we store here are large enough in order to
-        # contain the layout of the stuff we just laid out.
-        self.width, self.height = layout_utils.get_bb_x2_y2(
-            cg.graph_attr["bb"]
-        )
-
-        if self.incl_patterns and self.recursive:
-            self._save_rel_coords(cg)
-        else:
-            for node in self.region.nodes:
-                pgv_node = cg.get_node(node.unique_id)
-                self.nodeid2rel[node.unique_id] = layout_utils.getxy(
-                    pgv_node.attr["pos"]
+        # Skip the layout for 1-node regions - we won't learn anything
+        # new from calling pygraphviz.
+        skipped = False
+        if not self.region_is_pattern:
+            if (
+                len(self.region.nodes) == 1
+                and len(self.region.edges) == 0
+                and len(self.region.patterns) == 0
+            ):
+                n = self.region.nodes[0]
+                # NOTE: the bounding boxes are different because we use
+                # a conversion factor of 54 instead of 72. But should not
+                # change the actual appearance of nodes
+                self.width, self.height = n.layout.get_dims(pixels=True)
+                self.nodeid2rel[n.unique_id] = (
+                    self.width / 2,
+                    self.height / 2,
                 )
+                skipped = True
 
-            for edge in self.region.edges:
-                src, tgt = edge.new_src_id, edge.new_tgt_id
-                pgv_edge = cg.get_edge(src, tgt)
-                self.edgeid2rel[edge.unique_id] = (
-                    layout_utils.get_control_points(pgv_edge.attr["pos"])
-                )
-                # account for parallel edges -- see _save_rel_coords() comment
-                cg.remove_edge(pgv_edge)
+        if not skipped:
+            # Actually do layout
+            self.dot = self._to_dot()
+            cg = pygraphviz.AGraph(self.dot)
+            # -q turns off warnings about nodes being too small for labels
+            cg.layout(prog=self.prog, args="-q")
+
+            # Extract dimension info. The first two coordinates in the bounding box
+            # (bb) should always be (0, 0).
+            # The width and height we store here are large enough in order to
+            # contain the layout of the stuff we just laid out.
+            self.width, self.height = layout_utils.get_bb_x2_y2(
+                cg.graph_attr["bb"]
+            )
+
+            if self.incl_patterns and self.recursive:
+                self._save_rel_coords(cg)
+            else:
+                for node in self.region.nodes:
+                    pgv_node = cg.get_node(node.unique_id)
+                    self.nodeid2rel[node.unique_id] = layout_utils.getxy(
+                        pgv_node.attr["pos"]
+                    )
+
+                for edge in self.region.edges:
+                    src, tgt = edge.new_src_id, edge.new_tgt_id
+                    pgv_edge = cg.get_edge(src, tgt)
+                    self.edgeid2rel[edge.unique_id] = (
+                        layout_utils.get_control_points(pgv_edge.attr["pos"])
+                    )
+                    # account for parallel edges -- see _save_rel_coords() comment
+                    cg.remove_edge(pgv_edge)
 
     def to_abs_coords(self, dx=0, dy=0):
         """Returns the absolute coordinates of descendant nodes and edges.
