@@ -133,8 +133,8 @@ label:has(#dotAlgSpan).active {
     background-color: #30638e;
 }
 label:has(#sfdpAlgSpan).active {
-    /* colorpicked from https://graphviz.org/ */
-    background-color: #cc0000;
+    /* colorpicked from Fig 5 of the sfdp paper */
+    background-color: #7f00ff;
 }
 label:has(#dagreAlgSpan).active {
     /* colorpicked from the nodes in the dagre example used on cy.js' website,

@@ -1550,7 +1550,7 @@ def run(
                                                         dbc.Input(
                                                             type="text",
                                                             id="sfdpK",
-                                                            value=5,
+                                                            value=0.3,
                                                             style={
                                                                 "max-width": "5em"
                                                             },
@@ -1576,28 +1576,60 @@ def run(
                                                     options=[
                                                         {
                                                             "label": html.Span(
-                                                                ui_config.DOT_TEXT,
+                                                                [
+                                                                    html.I(
+                                                                        className="bi bi-arrow-right"
+                                                                    ),
+                                                                    html.Span(
+                                                                        ui_config.DOT_TEXT,
+                                                                        className="iconlbl",
+                                                                    ),
+                                                                ],
                                                                 id="dotAlgSpan",
                                                             ),
                                                             "value": ui_config.LAYOUT_DOT,
                                                         },
                                                         {
                                                             "label": html.Span(
-                                                                "sfdp",
+                                                                [
+                                                                    html.I(
+                                                                        className="bi bi-snow"
+                                                                    ),
+                                                                    html.Span(
+                                                                        "sfdp",
+                                                                        className="iconlbl",
+                                                                    ),
+                                                                ],
                                                                 id="sfdpAlgSpan",
                                                             ),
                                                             "value": ui_config.LAYOUT_SFDP,
                                                         },
                                                         {
                                                             "label": html.Span(
-                                                                "Dagre",
+                                                                [
+                                                                    html.I(
+                                                                        className="bi bi-arrow-right"
+                                                                    ),
+                                                                    html.Span(
+                                                                        "Dagre",
+                                                                        className="iconlbl",
+                                                                    ),
+                                                                ],
                                                                 id="dagreAlgSpan",
                                                             ),
                                                             "value": ui_config.LAYOUT_DAGRE,
                                                         },
                                                         {
                                                             "label": html.Span(
-                                                                "fCoSE",
+                                                                [
+                                                                    html.I(
+                                                                        className="bi bi-snow"
+                                                                    ),
+                                                                    html.Span(
+                                                                        "fCoSE",
+                                                                        className="iconlbl",
+                                                                    ),
+                                                                ],
                                                                 id="fcoseAlgSpan",
                                                             ),
                                                             "value": ui_config.LAYOUT_FCOSE,
