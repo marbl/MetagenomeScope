@@ -13,14 +13,6 @@ INDENT = "  "
 # depending on bounding boxes or coordinates??? let's just see how things go
 PIXELS_PER_INCH = 54
 
-# when drawing a bunch of layouts' bounding boxes, compute their total width.
-# When tiling these bounding boxes for the layout, we will only add bounding
-# boxes to a row until the width of this row is >= (total width) / (this).
-BB_ROW_WIDTH_FRAC = 2
-
-BB_XPAD = 0.025
-BB_YPAD = 0.05
-
 ########
 # Node scaling
 ########

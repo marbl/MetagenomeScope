@@ -1,3 +1,4 @@
+import math
 from .. import ui_utils
 from ..errors import WeirdError
 from ..layout import layout_config
@@ -139,9 +140,17 @@ class DrawResults(object):
             heights.append(lay.height)
         total_width = sum(widths)
         total_height = sum(heights)
-        xpad = layout_config.BB_XPAD * total_width
-        ypad = layout_config.BB_YPAD * total_height
-        row_width = total_width / layout_config.BB_ROW_WIDTH_FRAC
+        # TODO should turn these into user-configurable params
+        min_xpad = 100
+        min_ypad = 100
+        xpadfrac = 0.1
+        ypadfrac = 0.1
+        # this seems to work mostly well for both big and large graphs.
+        # use of sqrt() inspired by https://www.graphviz.org/pdf/gvpack.1.pdf;
+        # the 2.5 factor ... idk slims out the rows and makes these look better
+        # imo?? i am sure there are better ways to set this, i've just been
+        # trying a bunch of stuff
+        row_width = math.sqrt(total_width * total_height) / 2.5
 
         x = 0
         y = 0
@@ -163,7 +172,9 @@ class DrawResults(object):
                 if curr_row == 0:
                     row_width = x
                 row2max_height[curr_row] = curr_row_max_height
-                y += curr_row_max_height + ypad
+                y += curr_row_max_height + max(
+                    min_ypad, ypadfrac * curr_row_max_height
+                )
                 curr_row += 1
                 row2y[curr_row] = y
                 x = 0
@@ -171,7 +182,7 @@ class DrawResults(object):
             else:
                 # don't let x padding be the reason a row overflows
                 # test case, as of writing: ccs "3-", Flye yeast graph
-                x += xpad
+                x += max(min_xpad, xpadfrac * lay.width)
 
         if curr_row not in row2max_height:
             row2max_height[curr_row] = curr_row_max_height
