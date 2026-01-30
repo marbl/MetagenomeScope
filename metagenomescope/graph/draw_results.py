@@ -1,7 +1,6 @@
 import math
 from .. import ui_utils
 from ..errors import WeirdError
-from ..layout import layout_config
 from . import graph_utils
 
 

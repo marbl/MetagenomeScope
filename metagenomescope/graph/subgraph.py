@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
-import logging
 import itertools
 from .. import ui_config, ui_utils
 from ..layout import Layout

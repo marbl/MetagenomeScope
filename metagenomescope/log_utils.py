@@ -1,6 +1,5 @@
 import logging
 from . import __version__, config, ui_utils
-from .errors import WeirdError
 
 
 def log_lines_with_sep(lines, sepchar=config.SEPSML, endsepline=False):
