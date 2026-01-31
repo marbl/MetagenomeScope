@@ -42,6 +42,7 @@ from .errors import GraphParsingError, WeirdError
 LJA_LFL_PATT = re.compile(
     r"([\-_a-zA-Z\d\.]+) ([ACGT]) ?([0-9]+)\(([0-9\.]+)\)"
 )
+LJA_LFL_PATT_NOID = re.compile(r"([ACGT]) ?([0-9]+)\(([0-9\.]+)\)")
 
 
 def is_not_pos_int(number_string):
@@ -981,28 +982,39 @@ def parse_dot(filename):
             # jumboDBG's labels seem mostly to span single lines). The first
             # line of the label is what we mainly care about.
             label_first_line = label.splitlines()[0]
+            id_given = True
             lfl_match = re.match(LJA_LFL_PATT, label_first_line)
             if lfl_match is None:
-                # we could make this error message more descriptive, but it
-                # probably won't be encountered by most users so i don't think
-                # it's super urgent
-                raise GraphParsingError(
-                    f"{err_prefix} looks like it came from LJA, but its label "
-                    f'has an invalid first line of "{label_first_line}". LJA '
-                    "labels should have a first line formatted like "
-                    '"1234.56 A 99(2)" (corresponding to '
-                    '"[ID] [first nt] [length]([coverage])").'
-                )
+                lfl_match = re.match(LJA_LFL_PATT_NOID, label_first_line)
+                if lfl_match is None:
+                    # we could make this error message more descriptive, but it
+                    # probably won't be encountered by most users so i don't
+                    # think it's super urgent
+                    raise GraphParsingError(
+                        f"{err_prefix} looks like it came from LJA, but its "
+                        "label has an invalid first line of "
+                        f'"{label_first_line}". LJA '
+                        "labels should have a first line formatted like "
+                        '"1234.56 A 99(2)" (corresponding to '
+                        '"[ID] [first nt] [length]([coverage])"). (The ID is '
+                        "optional for now.)"
+                    )
+                else:
+                    id_given = False
 
             groups = lfl_match.groups()
 
             # The length and (K+1)-mer-cov lines could cause errors if these
             # aren't valid numbers. That's fine -- like in the Flye parser, let
             # the errors propagate up to the user.
-            g.edges[e[:3]]["id"] = groups[0]
-            g.edges[e[:3]]["first_nt"] = groups[1]
-            g.edges[e[:3]]["length"] = int(groups[2])
-            g.edges[e[:3]]["kp1mer_cov"] = float(groups[3])
+            if id_given:
+                g.edges[e[:3]]["id"] = groups[0]
+                fnt_idx, len_idx, cov_idx = 1, 2, 3
+            else:
+                fnt_idx, len_idx, cov_idx = 0, 1, 2
+            g.edges[e[:3]]["first_nt"] = groups[fnt_idx]
+            g.edges[e[:3]]["length"] = int(groups[len_idx])
+            g.edges[e[:3]]["kp1mer_cov"] = float(groups[cov_idx])
 
             # Both Flye and LJA give all edges "color" attributes in these DOT
             # files. As far as I can tell, Flye will color edges if they are
