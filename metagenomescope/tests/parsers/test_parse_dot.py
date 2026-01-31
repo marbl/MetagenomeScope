@@ -558,3 +558,31 @@ def test_parse_lja_duplicate_explicit_edge_ids():
             "this file have the same ID."
         ),
     )
+
+
+def test_undirected_graph():
+    run_tempfile_test(
+        "gv",
+        [
+            "graph g {",
+            '1 -- 2 [label="funnyid C 4246(2)"]',
+            '3 -- 4 [label="funnierid A 3210(3)"]',
+            "}",
+        ],
+        GraphParsingError,
+        "It looks like the input DOT file isn't a multi-digraph.",
+    )
+
+
+def test_non_multigraph():
+    run_tempfile_test(
+        "gv",
+        [
+            "strict digraph g {",
+            '1 -> 2 [label="funnyid C 4246(2)"]',
+            '3 -> 4 [label="funnierid A 3210(3)"]',
+            "}",
+        ],
+        GraphParsingError,
+        "It looks like the input DOT file isn't a multi-digraph.",
+    )
