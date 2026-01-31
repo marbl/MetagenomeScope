@@ -375,7 +375,9 @@ def create_toast(
                         className=f"iconlbl me-auto toast-title {extra_title_classes}",
                         style=header_style,
                     ),
-                    html.Small(get_toast_timestamp()),
+                    html.Small(
+                        get_toast_timestamp(), className="toast-timestamp"
+                    ),
                     html.Button(
                         className="btn-close",
                         type="button",

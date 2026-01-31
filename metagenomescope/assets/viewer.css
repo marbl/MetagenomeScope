@@ -194,6 +194,12 @@ label:has(#fcoseAlgSpan).active {
 .toast-title {
     font-size: 1.3em;
     font-weight: bold;
+    word-break: break-all;
+}
+
+.toast-timestamp {
+    margin-left: 0.5em;
+    white-space: nowrap;
 }
 
 .bi-exclamation-octagon, .bi-exclamation-triangle {
