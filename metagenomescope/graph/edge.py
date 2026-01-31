@@ -211,15 +211,11 @@ class Edge(object):
         self.cc_num = cc_num
 
     def has_userspecified_id(self):
-        return "id" in self.data or "label" in self.data
+        return "id" in self.data
 
     def get_userspecified_id(self):
-        if "id" in self.data:
+        if self.has_userspecified_id():
             return self.data["id"]
-        elif "label" in self.data:
-            # account for old LJA graphs (IDs in DOT edge labels were only
-            # added to the experimental branch circa April 2024 iirc)
-            return f"{self.data["label"]} #{self.unique_id}"
         else:
             raise WeirdError(f"No 'id' field for {self}. Data: {self.data}")
 

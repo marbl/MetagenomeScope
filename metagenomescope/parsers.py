@@ -747,6 +747,19 @@ def parse_lastgraph(filename):
     return digraph
 
 
+def verify_edge_id_unique(eid, seen_eids, err_prefix):
+    # Enforce the restriction that edge IDs must be unique. We don't
+    # really need to do this (lots of graph filetypes don't even have
+    # edge IDs), but... it's nice to know this. (And probably duplicate
+    # IDs here would be a symptom of bugs or other problems upstream
+    # that the user should look into.)
+    if eid in seen_eids:
+        raise GraphParsingError(
+            f"{err_prefix} has the ID {eid}, but other edge(s) in "
+            "this file have the same ID."
+        )
+
+
 def parse_dot(filename):
     """Returns a nx.MultiDiGraph representation of a DOT (Graphviz) file.
 
@@ -819,7 +832,7 @@ def parse_dot(filename):
     flye_vibes = False
     seen_one_edge = False
 
-    seen_flye_edge_ids = set()
+    seen_edge_ids = set()
 
     for e in g.edges(data=True, keys=True):
         seen_one_edge = True
@@ -891,17 +904,8 @@ def parse_dot(filename):
                     "shouldn't contain any whitespace."
                 )
             eid = id_parts[1]
-            # Enforce the restriction that edge IDs must be unique. We don't
-            # really need to do this (lots of graph filetypes don't even have
-            # edge IDs), but... it's nice to know this. (And probably duplicate
-            # IDs here would be a symptom of bugs or other problems upstream
-            # that the user should look into.)
-            if eid in seen_flye_edge_ids:
-                raise GraphParsingError(
-                    f"{err_prefix} has the ID {eid}, but other edge(s) in "
-                    "this file have the same ID."
-                )
-            seen_flye_edge_ids.add(eid)
+            verify_edge_id_unique(eid, seen_edge_ids, err_prefix)
+            seen_edge_ids.add(eid)
 
             # Get the length and coverage
             lencov_part = parts[1]
@@ -1008,10 +1012,20 @@ def parse_dot(filename):
             # aren't valid numbers. That's fine -- like in the Flye parser, let
             # the errors propagate up to the user.
             if id_given:
-                g.edges[e[:3]]["id"] = groups[0]
                 fnt_idx, len_idx, cov_idx = 1, 2, 3
+                eid = groups[0]
             else:
                 fnt_idx, len_idx, cov_idx = 0, 1, 2
+                # old LJA file where edges don't have IDs. just come up with a
+                # reasonable edge ID. much cleaner solution than adjusting a
+                # ton of downstream code to account for how edges in a DOT file
+                # may not have IDs
+                eid = f"{e[0]} \u2192 {e[1]} ({groups[fnt_idx]})"
+
+            verify_edge_id_unique(eid, seen_edge_ids, err_prefix)
+            seen_edge_ids.add(eid)
+
+            g.edges[e[:3]]["id"] = eid
             g.edges[e[:3]]["first_nt"] = groups[fnt_idx]
             g.edges[e[:3]]["length"] = int(groups[len_idx])
             g.edges[e[:3]]["kp1mer_cov"] = float(groups[cov_idx])
