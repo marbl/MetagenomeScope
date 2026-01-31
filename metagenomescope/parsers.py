@@ -755,7 +755,7 @@ def verify_edge_id_unique(eid, seen_eids, err_prefix):
     # that the user should look into.)
     if eid in seen_eids:
         raise GraphParsingError(
-            f"{err_prefix} has the ID {eid}, but other edge(s) in "
+            f'{err_prefix} has the ID "{eid}", but other edge(s) in '
             "this file have the same ID."
         )
 

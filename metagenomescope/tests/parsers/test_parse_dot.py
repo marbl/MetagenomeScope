@@ -235,7 +235,7 @@ def test_parse_flye_duplicate_edge_ids():
         ],
         GraphParsingError,
         (
-            "Edge 2 -> 3 has the ID -5, but other edge(s) in this file have "
+            'Edge 2 -> 3 has the ID "-5", but other edge(s) in this file have '
             "the same ID."
         ),
     )
@@ -510,3 +510,51 @@ def test_parse_example_from_readme_faq_on_rcs():
         "length": 99,
         "kp1mer_cov": 2.4,
     }
+
+
+def test_parse_lja_dot_with_no_edge_ids():
+    g = parse_dot("metagenomescope/tests/input/chr15_subgraph_noids.gv")
+    assert type(g) is nx.MultiDiGraph
+    assert len(g.nodes) == 22
+    assert len(g.edges) == 32
+    assert g.edges["894040819", "-324749538", 0] == {
+        "id": "894040819 \u2192 -324749538 (C)",
+        "label": "C 4246(2)",
+        "first_nt": "C",
+        "length": 4246,
+        "kp1mer_cov": 2,
+    }
+
+
+def test_parse_lja_duplicate_autoassigned_edge_ids():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label="C 4246(2)"]',
+            '1 -> 2 [label="C 4246(2)"]',
+            "}",
+        ],
+        GraphParsingError,
+        (
+            'Edge 1 -> 2 has the ID "1 \u2192 2 (C)", but other edge(s) in '
+            "this file have the same ID."
+        ),
+    )
+
+
+def test_parse_lja_duplicate_explicit_edge_ids():
+    run_tempfile_test(
+        "gv",
+        [
+            "digraph g {",
+            '1 -> 2 [label="funnyid C 4246(2)"]',
+            '3 -> 4 [label="funnyid A 3210(3)"]',
+            "}",
+        ],
+        GraphParsingError,
+        (
+            'Edge 3 -> 4 has the ID "funnyid", but other edge(s) in '
+            "this file have the same ID."
+        ),
+    )
