@@ -78,6 +78,28 @@ PT2COLOR = {
     PT_BIPARTITE: "#c8a4ed",
 }
 
+# Whether or not to automatically flatten (i.e. reduce to basic Bezier style
+# edges in Cy.js) child edges of a pattern. Note that this is "child," not
+# "descendant" -- we just look at the immediate parent of a pattern in making
+# this decision.
+#
+# Note that patterns marked with False can still have their child edges
+# flattened for other reasons - this is just like, "of course if an edge is a
+# child of a bipartite it should be a straight line."
+#
+# This is fairly conservative - I think a case could be made for flattening
+# child edges of ALL patterns. Bubbles can MAYBE have complex edge routings
+# that benefit from fancier lines, and cyclic chains can MAYBE have back edges
+# where it is nice to draw the edge going above or below. But like in general
+# flattening is fairly safe imo
+PT2FLATTEN_CHILD_EDGES = {
+    PT_BUBBLE: False,
+    PT_FRAYEDROPE: True,
+    PT_CHAIN: True,
+    PT_CYCLICCHAIN: False,
+    PT_BIPARTITE: True,
+}
+
 # Draw types. Used internally for communicating between flush() and draw().
 DRAW_ALL = "all"
 DRAW_CCS = "ccs"

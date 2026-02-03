@@ -95,6 +95,11 @@ class Subgraph(object):
         # PatternStats for this Subgraph.
         self.pattern_stats = PatternStats()
 
+        # maps pattern IDs to objects. Useful if we want to e.g. figure out
+        # what type of pattern an edge has (relevant to
+        # layout_utils.flatten_some_edges()).
+        self.pattid2obj = {}
+
         for n in nodes:
             self._add_node(n)
         for e in edges:
@@ -142,6 +147,7 @@ class Subgraph(object):
     def _add_pattern(self, pattern):
         self.patterns.append(pattern)
         self.pattern_stats.update(pattern.pattern_type)
+        self.pattid2obj[pattern.unique_id] = pattern
 
     def get_objs(self):
         return itertools.chain(self.nodes, self.edges, self.patterns)

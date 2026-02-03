@@ -305,10 +305,21 @@ def flatten_some_edges(sg, edgeid2ctrlpts):
     help with performance, I think? Since basic bezier edges are easier for
     Cytoscape.js to handle than "unbundled" beziers with custom control points.
 
-    Some of this should have already been done when the Graphviz control points
-    were processed and converted to Cytoscape.js format -- see the
-    CTRL_PT_DIST_EPSILON stuff in dot_to_cyjs_control_points() above.
-    This function addresses the following types of edges:
+    Note that this is much less of a problem now that we've implemented
+    code (https://github.com/marbl/MetagenomeScope/issues/360 and #361) to
+    "rescue" and show edges Cytoscape.js silently hides. Let's keep doing this
+    though...
+
+    Some of this flattening stuff should have already been done when the
+    Graphviz control points were processed and converted to Cytoscape.js format
+    -- see the CTRL_PT_DIST_EPSILON stuff in dot_to_cyjs_control_points()
+    above. This function addresses the following types of edges:
+
+    - All loop edges (of the form A -> A). We should have already taken care
+      of flattening these when processing control points (since we check if
+      the source and target node position are the same), but I don't trust
+      there to not be jank abt the same node having SLIGHTLY different
+      positions in a loop edge's control points, so let's be paranoid.
 
     - If any two nodes A and B are directly connected by more than one edge
       (ignoring direction), we flatten all of these edges (both A -> B and
@@ -320,11 +331,10 @@ def flatten_some_edges(sg, edgeid2ctrlpts):
       Dash Cytoscape yet... but even after that fix, we should still continue
       flattening these edges.)
 
-    - All loop edges (of the form A -> A). We should have already taken care
-      of flattening these when processing control points (since we check if
-      the source and target node position are the same), but I don't trust
-      there to not be jank abt the same node having SLIGHTLY different
-      positions in a loop edge's control points, so let's be paranoid.
+    - If an edge is a child of a pattern, we will refer to
+      config.PT2FLATTEN_CHILD_EDGES to determine if this edge should just
+      immediately be flattened. (For example, bipartite patterns are IMO much
+      clearer when they just have straight-line edges.)
 
     Parameters
     ----------
@@ -351,15 +361,25 @@ def flatten_some_edges(sg, edgeid2ctrlpts):
     for e in sg.edges:
         s = e.new_src_id
         t = e.new_tgt_id
+
+        # immediately flatten loop edges...
         if s == t:
-            # just immediately flatten, no questions asked
             edgeid2ctrlpts[e.unique_id] = FLAT
             continue
+
+        # ... and child edges of certain types of patterns
+        if e.parent_id is not None:
+            patt = sg.pattid2obj[e.parent_id]
+            if config.PT2FLATTEN_CHILD_EDGES[patt.pattern_type]:
+                edgeid2ctrlpts[e.unique_id] = FLAT
+                continue
+
         # sort the pair to ensure that (A, B) and (B, A) get stored in the same
         # dict entry; sorted() returns a list, so convert it to a tuple to make
         # it hashable.
         pair2eid[tuple(sorted((s, t)))].add(e.unique_id)
 
+    # flatten edges where another edge connects the same nodes (any direction)
     for pair, eids in pair2eid.items():
         if len(pair2eid[pair]) > 1:
             for eid in eids:
