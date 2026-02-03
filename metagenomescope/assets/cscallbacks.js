@@ -69,6 +69,23 @@ function rescueEdges(edges, edgeLabels) {
     }
 }
 
+function tryToSetBadEdgeDragRescuer(cy) {
+    // this only needs to be set once
+    const SET_FLAG = "_mgscBindingsSet";
+    if (!cy.data(SET_FLAG)) {
+        // so far it does not look like this is a bottleneck, but we could
+        // rate limit this if desired (or e.g. only do stuff when dragging
+        // is done)
+        cy.on("drag", "node", function(evt) {
+            let node = evt.target;
+            rescueEdges(
+                node.connectedEdges(), "adjacent edge(s) to dragged node(s)"
+            );
+        });
+        cy.data(SET_FLAG, true);
+    }
+}
+
 /* For more information about clientside callbacks, see
  * https://dash.plotly.com/clientside-callbacks -- this next line
  * (window.dash_clientside...) is based on their docs.
@@ -101,9 +118,13 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         },
     },
     cyManip: {
-        rescueBadEdges: function() {
+        rescueNewlyDrawnBadEdges: function(currDrawnInfo) {
             let cy = getCy();
             rescueEdges(cy.edges(), "edge(s) on initial draw");
+            // This isn't its own function because of a Dash bug? with multiple
+            // clientside callbacks with the same input and no outputs -
+            // https://github.com/plotly/dash/issues/3596
+            tryToSetBadEdgeDragRescuer(cy);
         },
         rescueAdjacentBadEdges: function(selectedNodes) {
             if (selectedNodes.length > 0) {

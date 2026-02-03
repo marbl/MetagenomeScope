@@ -2715,7 +2715,7 @@ def run(
 
     clientside_callback(
         ClientsideFunction(
-            namespace="cyManip", function_name="rescueBadEdges"
+            namespace="cyManip", function_name="rescueNewlyDrawnBadEdges"
         ),
         Input("currDrawnInfo", "data"),
         prevent_initial_call=True,
