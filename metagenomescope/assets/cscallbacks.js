@@ -27,6 +27,48 @@ function getCy() {
     return document.getElementById("cy")._cyreg.cy;
 }
 
+/* If an edge is tagged as a badLine that Cytoscape.js refuses to draw, then
+ * remove the .withctrlpts class -- which should change it back to a regular
+ * "bezier"-style edge.
+ */
+function rescueEdges(edges, edgeLabels) {
+    let rescuedIDs = [];
+    let rct = 0;
+    edges.forEach(function(e) {
+        if (e._private.rscratch.badLine) {
+            // If an edge is marked as bad but doesn't have the withctrlpts
+            // class, this probably indicates that the user both selected the
+            // edge and a node adjacent to it. In this case, the question of
+            // which rescuing callback is triggered first is arbitrary, right?
+            // Both callbacks would go through the relevant edges, and the
+            // first callback would rescue edges as needed and the second
+            // would just see the already-rescued edge and be like dang that's
+            // crazy. It looks like there is some delay between when we fix
+            // the edge and when Cytoscape.js restores the badLine attribute?
+            // (Or maybe the Dash callbacks just fire too quickly together
+            // or something.)
+            //
+            // I guess this could also indicate e.g. that the user has moved
+            // stuff around in a way that breaks the edge display, e.g.
+            // smushing a node into another node or something. In that case
+            // (and really in either case) there is nothing more we can do
+            // here -- things should already be okay.
+            if (e.hasClass("withctrlpts")) {
+                e.removeClass("withctrlpts");
+                rescuedIDs.push(e.data("id"));
+                rct++;
+            }
+        }
+    });
+    if (rct > 0) {
+        console.log(
+            "Of the", edges.length, edgeLabels, "-- detected and rescued",
+            rct, "bad edge(s):"
+        );
+        console.log(rescuedIDs.join("\n"));
+    }
+}
+
 /* For more information about clientside callbacks, see
  * https://dash.plotly.com/clientside-callbacks -- this next line
  * (window.dash_clientside...) is based on their docs.
@@ -60,57 +102,28 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
     },
     cyManip: {
         rescueBadEdges: function() {
-            /* If Cytoscape.js refuses to draw an edge due to it having wacky
-             * control points, detect this and turn the edge into a straight
-             * line (thus making it at least visible).
-             * Note that this does not (yet) account for cases that occur after
-             * the initial drawing process, e.g. edges that become invisible
-             * only upon stuff being moved or selected.
-             */
-            console.time("rescuingBadEdges");
             let cy = getCy();
-            cy.startBatch();
-            cy.edges().forEach(function(e) {
-                if (e._private.rscratch.badLine) {
-                    e.removeClass("withctrlpts");
-                    console.log("Rescued bad edge", e.data("id"));
-                }
-            });
-            cy.endBatch();
-            console.timeEnd("rescuingBadEdges");
+            rescueEdges(cy.edges(), "edge(s) on initial draw");
         },
         rescueAdjacentBadEdges: function(selectedNodes) {
             if (selectedNodes.length > 0) {
-                console.time("rescuingAdjacentBadEdges");
                 let cy = getCy();
-                cy.startBatch();
+                let adjEdges = cy.collection();
                 for (let i = 0; i < selectedNodes.length; i++) {
                     let n = selectedNodes[i];
-                    cy.getElementById(n.id).connectedEdges().forEach(function(e) {
-                        if (e._private.rscratch.badLine) {
-                            e.removeClass("withctrlpts");
-                            console.log("Rescued adj bad edge", e.data("id"));
-                        }
-                    });
+                    adjEdges = adjEdges.union(cy.getElementById(n.id).connectedEdges());
                 }
-                cy.endBatch();
-                console.timeEnd("rescuingAdjacentBadEdges");
+                rescueEdges(adjEdges, "adjacent edge(s) to selected node(s)");
             }
         },
         rescueSelectedBadEdges: function(selectedEdges) {
             if (selectedEdges.length > 0) {
-                console.time("rescuingSelectedBadEdges");
                 let cy = getCy();
-                cy.startBatch();
+                let selEdges = cy.collection();
                 for (let i = 0; i < selectedEdges.length; i++) {
-                    let e = cy.getElementById(selectedEdges[i].id);
-                    if (e._private.rscratch.badLine) {
-                        e.removeClass("withctrlpts");
-                        console.log("Rescued selected bad edge", e.data("id"));
-                    }
+                    selEdges = selEdges.union(cy.getElementById(selectedEdges[i].id));
                 }
-                cy.endBatch();
-                console.timeEnd("rescuingSelectedBadEdges");
+                rescueEdges(selEdges, "selected edge(s)");
             }
         },
         fit: function (nClicks) {
