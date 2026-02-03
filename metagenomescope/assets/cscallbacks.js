@@ -79,6 +79,22 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             cy.endBatch();
             console.timeEnd("rescuingBadEdges");
         },
+        rescueAdjacentBadEdges: function(selectedNodes) {
+            console.time("rescuingAdjacentBadEdges");
+            let cy = getCy();
+            cy.startBatch();
+            for (let i = 0; i < selectedNodes.length; i++) {
+                let n = selectedNodes[i];
+                cy.$("#" + n.id).connectedEdges().forEach(function(e) {
+                    if (e._private.rscratch.badLine) {
+                        e.removeClass("withctrlpts");
+                        console.log("Rescued adj bad edge", e.data("id"));
+                    }
+                });
+            }
+            cy.endBatch();
+            console.timeEnd("rescuingAdjacentBadEdges");
+        },
         fit: function (nClicks) {
             let cy = getCy();
             cy.fit();
