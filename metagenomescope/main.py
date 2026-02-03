@@ -2714,22 +2714,28 @@ def run(
             return (no_update, no_update, no_update, no_update)
 
     clientside_callback(
-        ClientsideFunction(namespace="cyManip", function_name="rescueBadEdges"),
+        ClientsideFunction(
+            namespace="cyManip", function_name="rescueBadEdges"
+        ),
         Input("currDrawnInfo", "data"),
         prevent_initial_call=True,
     )
 
     clientside_callback(
-        ClientsideFunction(namespace="cyManip", function_name="rescueAdjacentBadEdges"),
+        ClientsideFunction(
+            namespace="cyManip", function_name="rescueAdjacentBadEdges"
+        ),
         Input("cy", "selectedNodeData"),
         prevent_initial_call=True,
     )
 
-    #clientside_callback(
-    #    ClientsideFunction(namespace="cyManip", function_name="rescueSelectedBadEdge"),
-    #    Input("cy", "selectedEdgeData"),
-    #    prevent_initial_call=True,
-    #)
+    clientside_callback(
+        ClientsideFunction(
+            namespace="cyManip", function_name="rescueSelectedBadEdges"
+        ),
+        Input("cy", "selectedEdgeData"),
+        prevent_initial_call=True,
+    )
 
     # When drawing is finished, update the paths div with info about all
     # paths selectable for the currently drawn region of the graph

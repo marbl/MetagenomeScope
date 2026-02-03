@@ -80,20 +80,38 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             console.timeEnd("rescuingBadEdges");
         },
         rescueAdjacentBadEdges: function(selectedNodes) {
-            console.time("rescuingAdjacentBadEdges");
-            let cy = getCy();
-            cy.startBatch();
-            for (let i = 0; i < selectedNodes.length; i++) {
-                let n = selectedNodes[i];
-                cy.$("#" + n.id).connectedEdges().forEach(function(e) {
+            if (selectedNodes.length > 0) {
+                console.time("rescuingAdjacentBadEdges");
+                let cy = getCy();
+                cy.startBatch();
+                for (let i = 0; i < selectedNodes.length; i++) {
+                    let n = selectedNodes[i];
+                    cy.getElementById(n.id).connectedEdges().forEach(function(e) {
+                        if (e._private.rscratch.badLine) {
+                            e.removeClass("withctrlpts");
+                            console.log("Rescued adj bad edge", e.data("id"));
+                        }
+                    });
+                }
+                cy.endBatch();
+                console.timeEnd("rescuingAdjacentBadEdges");
+            }
+        },
+        rescueSelectedBadEdges: function(selectedEdges) {
+            if (selectedEdges.length > 0) {
+                console.time("rescuingSelectedBadEdges");
+                let cy = getCy();
+                cy.startBatch();
+                for (let i = 0; i < selectedEdges.length; i++) {
+                    let e = cy.getElementById(selectedEdges[i].id);
                     if (e._private.rscratch.badLine) {
                         e.removeClass("withctrlpts");
-                        console.log("Rescued adj bad edge", e.data("id"));
+                        console.log("Rescued selected bad edge", e.data("id"));
                     }
-                });
+                }
+                cy.endBatch();
+                console.timeEnd("rescuingSelectedBadEdges");
             }
-            cy.endBatch();
-            console.timeEnd("rescuingAdjacentBadEdges");
         },
         fit: function (nClicks) {
             let cy = getCy();
