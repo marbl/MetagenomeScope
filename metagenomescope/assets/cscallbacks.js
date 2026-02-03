@@ -34,7 +34,7 @@ function getCy() {
 function rescueEdges(edges, edgeLabels) {
     let rescuedIDs = [];
     let rct = 0;
-    edges.forEach(function(e) {
+    edges.forEach(function (e) {
         if (e._private.rscratch.badLine) {
             // If an edge is marked as bad but doesn't have the withctrlpts
             // class, this probably indicates that the user both selected the
@@ -62,8 +62,12 @@ function rescueEdges(edges, edgeLabels) {
     });
     if (rct > 0) {
         console.log(
-            "Of the", edges.length, edgeLabels, "-- detected and rescued",
-            rct, "bad edge(s):"
+            "Of the",
+            edges.length,
+            edgeLabels,
+            "-- detected and rescued",
+            rct,
+            "bad edge(s):",
         );
         console.log(rescuedIDs.join("\n"));
     }
@@ -76,10 +80,11 @@ function tryToSetBadEdgeDragRescuer(cy) {
         // so far it does not look like this is a bottleneck, but we could
         // rate limit this if desired (or e.g. only do stuff when dragging
         // is done)
-        cy.on("drag", "node", function(evt) {
+        cy.on("drag", "node", function (evt) {
             let node = evt.target;
             rescueEdges(
-                node.connectedEdges(), "adjacent edge(s) to dragged node(s)"
+                node.connectedEdges(),
+                "adjacent edge(s) to dragged node(s)",
             );
         });
         cy.data(SET_FLAG, true);
@@ -118,7 +123,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         },
     },
     cyManip: {
-        rescueNewlyDrawnBadEdges: function(currDrawnInfo) {
+        rescueNewlyDrawnBadEdges: function (currDrawnInfo) {
             let cy = getCy();
             rescueEdges(cy.edges(), "edge(s) on initial draw");
             // This isn't its own function because of a Dash bug? with multiple
@@ -126,23 +131,27 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // https://github.com/plotly/dash/issues/3596
             tryToSetBadEdgeDragRescuer(cy);
         },
-        rescueAdjacentBadEdges: function(selectedNodes) {
+        rescueAdjacentBadEdges: function (selectedNodes) {
             if (selectedNodes.length > 0) {
                 let cy = getCy();
                 let adjEdges = cy.collection();
                 for (let i = 0; i < selectedNodes.length; i++) {
                     let n = selectedNodes[i];
-                    adjEdges = adjEdges.union(cy.getElementById(n.id).connectedEdges());
+                    adjEdges = adjEdges.union(
+                        cy.getElementById(n.id).connectedEdges(),
+                    );
                 }
                 rescueEdges(adjEdges, "adjacent edge(s) to selected node(s)");
             }
         },
-        rescueSelectedBadEdges: function(selectedEdges) {
+        rescueSelectedBadEdges: function (selectedEdges) {
             if (selectedEdges.length > 0) {
                 let cy = getCy();
                 let selEdges = cy.collection();
                 for (let i = 0; i < selectedEdges.length; i++) {
-                    selEdges = selEdges.union(cy.getElementById(selectedEdges[i].id));
+                    selEdges = selEdges.union(
+                        cy.getElementById(selectedEdges[i].id),
+                    );
                 }
                 rescueEdges(selEdges, "selected edge(s)");
             }
