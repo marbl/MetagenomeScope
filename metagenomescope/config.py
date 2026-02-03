@@ -88,15 +88,21 @@ PT2COLOR = {
 # child of a bipartite it should be a straight line."
 #
 # This is fairly conservative - I think a case could be made for flattening
-# child edges of ALL patterns. Bubbles can MAYBE have complex edge routings
-# that benefit from fancier lines, and cyclic chains can MAYBE have back edges
-# where it is nice to draw the edge going above or below. But like in general
-# flattening is fairly safe imo
+# child edges of ALL patterns.
 PT2FLATTEN_CHILD_EDGES = {
+    # Bubbles can MAYBE have complex edge routes that benefit from fancy lines
     PT_BUBBLE: False,
-    PT_FRAYEDROPE: True,
+    # Consider aug1 cc2. Sometimes the straight edge approach means an edge
+    # passes through a corner of a really big node that "protrudes".
+    PT_FRAYEDROPE: False,
+    # these should already all be straight lines ._.
     PT_CHAIN: True,
+    # Cyclic chains can MAYBE have fancy back edges. For 2-node cyclic chains
+    # the other flattening code should already flatten the forward and back
+    # edges
     PT_CYCLICCHAIN: False,
+    # Bipartites are essentially always clearer with straight lines IMO
+    # Consider aug1 cc6. with squiggly lines the bipartites look confusing
     PT_BIPARTITE: True,
 }
 
