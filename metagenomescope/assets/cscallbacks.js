@@ -59,6 +59,26 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         },
     },
     cyManip: {
+        rescueBadEdges: function() {
+            /* If Cytoscape.js refuses to draw an edge due to it having wacky
+             * control points, detect this and turn the edge into a straight
+             * line (thus making it at least visible).
+             * Note that this does not (yet) account for cases that occur after
+             * the initial drawing process, e.g. edges that become invisible
+             * only upon stuff being moved or selected.
+             */
+            console.time("rescuingBadEdges");
+            let cy = getCy();
+            cy.startBatch();
+            cy.edges().forEach(function(e) {
+                if (e._private.rscratch.badLine) {
+                    e.removeClass("withctrlpts");
+                    console.log("Rescued bad edge", e.data("id"));
+                }
+            });
+            cy.endBatch();
+            console.timeEnd("rescuingBadEdges");
+        },
         fit: function (nClicks) {
             let cy = getCy();
             cy.fit();

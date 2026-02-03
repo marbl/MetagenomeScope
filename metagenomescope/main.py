@@ -2713,6 +2713,12 @@ def run(
             logging.debug("Caught a bad drawing request. Not redrawing.")
             return (no_update, no_update, no_update, no_update)
 
+    clientside_callback(
+        ClientsideFunction(namespace="cyManip", function_name="rescueBadEdges"),
+        Input("currDrawnInfo", "data"),
+        prevent_initial_call=True,
+    )
+
     # When drawing is finished, update the paths div with info about all
     # paths selectable for the currently drawn region of the graph
     if paths_given:
