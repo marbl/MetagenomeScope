@@ -1715,13 +1715,10 @@ def run(
                                                     style={"max-width": "5em"},
                                                 ),
                                             ],
-                                            style={
-                                                "justify-content": "center"
-                                            },
+                                            size="sm",
                                         ),
                                         style={
-                                            "margin-top": "1em",
-                                            "text-align": "center",
+                                            "margin-top": "0.75em",
                                         },
                                     ),
                                 ],
