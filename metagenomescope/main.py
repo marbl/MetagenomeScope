@@ -1524,46 +1524,6 @@ def run(
                                         className="form-check",
                                     ),
                                     html.Br(),
-                                    html.H5("Parameters"),
-                                    html.Div(
-                                        dbc.InputGroup(
-                                            [
-                                                dbc.InputGroupText(
-                                                    html.Span(
-                                                        [
-                                                            html.Span(
-                                                                "K",
-                                                                style={
-                                                                    "font-style": "italic"
-                                                                },
-                                                            ),
-                                                            " (",
-                                                            html.A(
-                                                                "spring constant",
-                                                                href="https://graphviz.org/docs/attrs/K/",
-                                                                target="_blank",
-                                                            ),
-                                                            ", sfdp only)",
-                                                        ],
-                                                    ),
-                                                ),
-                                                dbc.Input(
-                                                    type="text",
-                                                    id="sfdpK",
-                                                    value=0.3,
-                                                    style={"max-width": "5em"},
-                                                ),
-                                            ],
-                                            style={
-                                                "justify-content": "center"
-                                            },
-                                        ),
-                                        style={
-                                            "margin-top": "1em",
-                                            "text-align": "center",
-                                        },
-                                    ),
-                                    html.Br(),
                                     html.H5("Layout algorithm"),
                                     html.Div(
                                         [
@@ -1723,6 +1683,46 @@ def run(
                                             ),
                                         ],
                                         style={"text-align": "center"},
+                                    ),
+                                    html.Br(),
+                                    html.H5("Parameters"),
+                                    html.Div(
+                                        dbc.InputGroup(
+                                            [
+                                                dbc.InputGroupText(
+                                                    html.Span(
+                                                        [
+                                                            html.Span(
+                                                                "K",
+                                                                style={
+                                                                    "font-style": "italic"
+                                                                },
+                                                            ),
+                                                            " (",
+                                                            html.A(
+                                                                "spring constant",
+                                                                href="https://graphviz.org/docs/attrs/K/",
+                                                                target="_blank",
+                                                            ),
+                                                            ", sfdp only)",
+                                                        ],
+                                                    ),
+                                                ),
+                                                dbc.Input(
+                                                    type="text",
+                                                    id="sfdpK",
+                                                    value=0.3,
+                                                    style={"max-width": "5em"},
+                                                ),
+                                            ],
+                                            style={
+                                                "justify-content": "center"
+                                            },
+                                        ),
+                                        style={
+                                            "margin-top": "1em",
+                                            "text-align": "center",
+                                        },
                                     ),
                                 ],
                             ),
