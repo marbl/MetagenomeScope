@@ -143,6 +143,12 @@ PATH_SETTINGS_OPTIONS = [
 DEFAULT_PATH_SETTINGS = [PATH_SETTINGS_ZOOM, PATH_SETTINGS_TOAST]
 
 ###############################################################################
+# Lists of options (e.g. for histograms, or for layout parameters)
+###############################################################################
+
+OPTIONS_SEP = html.Div(style={"margin-top": "0.3em"})
+
+###############################################################################
 # Histograms in the info dialog
 ###############################################################################
 
@@ -154,9 +160,6 @@ SCALE_LOG = "log"
 # (showing them stacked looks gross imo...)
 NODES_HIST = "nodes"
 EDGES_HIST = "edges"
-
-# divider between histogram options
-CHART_OPTIONS_SEP = html.Div(style={"margin-top": "0.3em"})
 
 ###############################################################################
 # Component size rank selection

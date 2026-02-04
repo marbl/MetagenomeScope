@@ -1257,7 +1257,7 @@ def run(
                                                                         chart_utils.get_node_edge_toggle(
                                                                             "ccHistEleType"
                                                                         ),
-                                                                        ui_config.CHART_OPTIONS_SEP,
+                                                                        ui_config.OPTIONS_SEP,
                                                                         chart_utils.get_hist_options(
                                                                             "ccHistNumBins",
                                                                             "ccHistNumBinsApply",

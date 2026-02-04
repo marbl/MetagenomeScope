@@ -186,9 +186,9 @@ def get_hist_options(nbins_id, nbins_btn_id, xmax_id, xmax_btn_id, y_scale_id):
     return html.Div(
         [
             get_num_bins_option(nbins_id, nbins_btn_id),
-            ui_config.CHART_OPTIONS_SEP,
+            ui_config.OPTIONS_SEP,
             get_max_x_option(xmax_id, xmax_btn_id),
-            ui_config.CHART_OPTIONS_SEP,
+            ui_config.OPTIONS_SEP,
             get_scale_options(y_scale_id, "y-axis scale"),
         ],
     )
