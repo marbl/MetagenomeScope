@@ -1516,56 +1516,52 @@ def run(
                                     # wrong, but I think the UX of the dcc.Checklist
                                     # is better.
                                     html.Div(
-                                        [
-                                            html.Div(
-                                                dcc.Checklist(
-                                                    options=ui_config.DRAW_SETTINGS_OPTIONS,
-                                                    value=ui_config.DEFAULT_DRAW_SETTINGS,
-                                                    id="drawSettingsChecklist",
-                                                ),
-                                                className="form-check",
-                                            ),
-                                            html.Div(
-                                                dbc.InputGroup(
-                                                    [
-                                                        dbc.InputGroupText(
+                                        dcc.Checklist(
+                                            options=ui_config.DRAW_SETTINGS_OPTIONS,
+                                            value=ui_config.DEFAULT_DRAW_SETTINGS,
+                                            id="drawSettingsChecklist",
+                                        ),
+                                        className="form-check",
+                                    ),
+                                    html.Br(),
+                                    html.H5("Parameters"),
+                                    html.Div(
+                                        dbc.InputGroup(
+                                            [
+                                                dbc.InputGroupText(
+                                                    html.Span(
+                                                        [
                                                             html.Span(
-                                                                [
-                                                                    html.Span(
-                                                                        "K",
-                                                                        style={
-                                                                            "font-style": "italic"
-                                                                        },
-                                                                    ),
-                                                                    " (",
-                                                                    html.A(
-                                                                        "spring constant",
-                                                                        href="https://graphviz.org/docs/attrs/K/",
-                                                                        target="_blank",
-                                                                    ),
-                                                                    ", sfdp only)",
-                                                                ],
+                                                                "K",
+                                                                style={
+                                                                    "font-style": "italic"
+                                                                },
                                                             ),
-                                                        ),
-                                                        dbc.Input(
-                                                            type="text",
-                                                            id="sfdpK",
-                                                            value=0.3,
-                                                            style={
-                                                                "max-width": "5em"
-                                                            },
-                                                        ),
-                                                    ],
-                                                    style={
-                                                        "justify-content": "center"
-                                                    },
+                                                            " (",
+                                                            html.A(
+                                                                "spring constant",
+                                                                href="https://graphviz.org/docs/attrs/K/",
+                                                                target="_blank",
+                                                            ),
+                                                            ", sfdp only)",
+                                                        ],
+                                                    ),
                                                 ),
-                                                style={
-                                                    "margin-top": "1em",
-                                                    "text-align": "center",
-                                                },
-                                            ),
-                                        ],
+                                                dbc.Input(
+                                                    type="text",
+                                                    id="sfdpK",
+                                                    value=0.3,
+                                                    style={"max-width": "5em"},
+                                                ),
+                                            ],
+                                            style={
+                                                "justify-content": "center"
+                                            },
+                                        ),
+                                        style={
+                                            "margin-top": "1em",
+                                            "text-align": "center",
+                                        },
                                     ),
                                     html.Br(),
                                     html.H5("Layout algorithm"),
