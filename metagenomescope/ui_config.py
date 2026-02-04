@@ -155,6 +155,8 @@ SCALE_LOG = "log"
 NODES_HIST = "nodes"
 EDGES_HIST = "edges"
 
+CHART_OPTIONS_SEP = html.Div(style={"margin-top": "0.3em"})
+
 ###############################################################################
 # Component size rank selection
 ###############################################################################

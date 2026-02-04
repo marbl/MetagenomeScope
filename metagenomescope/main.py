@@ -1257,11 +1257,7 @@ def run(
                                                                         chart_utils.get_node_edge_toggle(
                                                                             "ccHistEleType"
                                                                         ),
-                                                                        html.Div(
-                                                                            style={
-                                                                                "margin-top": "0.3em"
-                                                                            }
-                                                                        ),
+                                                                        ui_config.CHART_OPTIONS_SEP,
                                                                         chart_utils.get_hist_options(
                                                                             "ccHistNumBins",
                                                                             "ccHistNumBinsApply",
