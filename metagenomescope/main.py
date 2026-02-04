@@ -543,7 +543,7 @@ def run(
                                             [
                                                 dbc.InputGroupText(
                                                     "Distance",
-                                                    className="input-group-text-next-to-button",
+                                                    className="input-group-text-no-border",
                                                 ),
                                                 dbc.Button(
                                                     html.I(

@@ -125,7 +125,6 @@ def get_num_bins_option(val_id, btn_id):
         [
             dbc.InputGroupText(
                 "Desired maximum # bins",
-                className="input-group-text-next-to-button",
             ),
             dbc.Input(
                 placeholder="# bins", id=val_id, style={"max-width": "10em"}
@@ -141,7 +140,6 @@ def get_max_x_option(val_id, btn_id):
         [
             dbc.InputGroupText(
                 "Maximum x value",
-                className="input-group-text-next-to-button",
             ),
             dbc.Input(
                 placeholder="max x", id=val_id, style={"max-width": "10em"}
@@ -156,7 +154,7 @@ def get_scale_options(html_obj_id, desc):
     return dbc.InputGroup(
         [
             dbc.InputGroupText(
-                desc, className="input-group-text-next-to-button"
+                desc, className="input-group-text-next-to-radio-button-group"
             ),
             html.Div(
                 dbc.RadioItems(
@@ -201,7 +199,7 @@ def get_node_edge_toggle(html_obj_id):
         [
             dbc.InputGroupText(
                 "Show nodes or edges?",
-                className="input-group-text-next-to-button",
+                className="input-group-text-next-to-radio-button-group",
             ),
             html.Div(
                 dbc.RadioItems(

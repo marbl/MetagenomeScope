@@ -165,8 +165,19 @@ label:has(#fcoseAlgSpan).active {
  *
  * anyway whatever this makes the around-nodes UI look good so sure
  */
-.input-group-text-next-to-button {
+.input-group-text-no-border {
     border: none !important;
+}
+
+/* for reasons that are unclear to me, if you do not set this then you see
+ * the input group text kind of have a ugly "protrusion" that goes a bit below
+ * the bottom of the radio button group next to it. If you set this to a value
+ * of 2px or greater then this gets rid of the protrusion. This is bizarre and
+ * we could probably spend a day going down the rabbit hole of why this happens
+ * but for now i am content to just fix this and move on with my life
+ */
+.input-group-text-next-to-radio-button-group {
+    margin-bottom: 2px;
 }
 
 /* position the dash dev tools UI a bit higher than the bottom of the
