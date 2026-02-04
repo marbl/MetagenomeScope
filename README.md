@@ -535,16 +535,26 @@ I have some ideas for dealing with these bottlenecks, but thankfully there are a
 
 ## Known issues
 
-- Isolated components containing only a bubble with an "end-to-start" cycle are decomposed
-  ambiguously, either into a bubble or a cyclic chain containing a bubble
-  ([#241](https://github.com/marbl/MetagenomeScope/issues/241)).
+- **Edge flattening:** Cytoscape.js (the library we use to visualize graphs in the browser)
+  can sometimes [determine](https://github.com/cytoscape/cytoscape.js/issues/1451) that the
+  control points used to draw certain [complex edges](https://js.cytoscape.org/#style/unbundled-bezier-edges)
+  are invalid. This can happen as you adjust the visualization after drawing (e.g. by selecting
+  nodes or moving them around).
 
-- Graph layouts that form a long horizontal or vertical line may break Cytoscape.js'
+  To prevent these "invalid" edges from being hidden, MetagenomeScope will detect them
+  and "flatten" them into [simple Bezier edges](https://js.cytoscape.org/#style/bezier-edges)
+  (usually straight lines). This way, we can at least draw _something_ for each edge in the graph.
+
+- **Isolated cyclic bubbles:** Isolated components containing only a bubble with an "end-to-start" cycle are decomposed
+  ambiguously, either into a bubble or a cyclic chain containing a bubble
+  ([#241](https://github.com/marbl/MetagenomeScope/issues/241)). I plan to fix this.
+
+- **Long graphs:** Graph layouts that form a long horizontal or vertical line may break Cytoscape.js'
   rendering process ([#262](https://github.com/marbl/MetagenomeScope/issues/262)). If this
   happens to you, you can refresh the page to get Cytoscape.js working again.
 
-- Rarely, chain merging may cause the pattern decomposition process to crash. This seems to
-  mostly impact edge-centric graphs. Please let us know if you run into this issue.
+- **Decomposition crashing:** Rarely, chain merging may cause the pattern decomposition process to
+  crash. This seems to mostly impact edge-centric graphs. Please let us know if you run into this issue.
 
 ## Development documentation
 
