@@ -60,7 +60,15 @@ GLOBALNODE_STYLE += ',style=filled,fillcolor="#888888"'
 # Style applied to every edge in the graph.
 GLOBALEDGE_STYLE = ""
 
+# fake edges
 FAKEEDGE_STYLE = 'style="dashed"'
+
+# back edges (from an end node to a start node of a single pattern)
+# this prevents these edges from impacting node ranking, which makes
+# cyclic chains look much nicer - see
+# https://github.com/marbl/MetagenomeScope/issues/368
+# and https://stackoverflow.com/a/6826107
+BACKEDGE_STYLE = 'constraint="false"'
 
 # If all of the control points of an edge are close enough to the straight
 # line from source to target, then we won't bother drawing the edge using its

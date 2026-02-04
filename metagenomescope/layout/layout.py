@@ -148,12 +148,10 @@ class Layout(object):
 
             for edge in self.region.edges:
                 if self.at_top_level_of_region(edge):
-                    aa = ""
-                    if self.region_is_pattern and layout_utils.is_back_edge(
-                        edge, self.region
-                    ):
-                        aa = 'constraint="false"'
-                    dot += edge.to_dot(level="dec", additional_attrs=aa)
+                    is_back = False
+                    if self.region_is_pattern:
+                        is_back = layout_utils.is_back_edge(edge, self.region)
+                    dot += edge.to_dot(level="dec", is_back=is_back)
 
             # If this region is a subgraph/component, then it stores patterns
             # separately from nodes. as above, lay out patterns recursively.
