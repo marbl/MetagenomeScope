@@ -368,7 +368,10 @@ def flatten_some_edges(sg, edgeid2ctrlpts):
             continue
 
         # ... and child edges of certain types of patterns
-        if e.parent_id is not None:
+        # NOTE: the "in sg.pattid2obj" check is necessary for the case
+        # where this edge is the child of a pattern that is not represented
+        # in the subgraph (can happen when drawing around nodes)
+        if e.parent_id is not None and e.parent_id in sg.pattid2obj:
             patt = sg.pattid2obj[e.parent_id]
             if config.PT2FLATTEN_CHILD_EDGES[patt.pattern_type]:
                 edgeid2ctrlpts[e.unique_id] = FLAT
