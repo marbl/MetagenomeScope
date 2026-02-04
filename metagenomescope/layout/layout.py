@@ -47,10 +47,6 @@ class Layout(object):
             self.alg
         ]
 
-        self.sfdp_k = None
-        if self.alg == ui_config.LAYOUT_SFDP:
-            self.sfdp_k = params["sfdp_k"]
-
         # I know this is a jank way of testing if this is a pattern or a
         # Subgraph but i don't want to cause circular imports by importing
         # those types in to check that so.... whatever, sure, let's use hasattr

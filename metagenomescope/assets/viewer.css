@@ -189,6 +189,14 @@ label:has(#fcoseAlgSpan).active {
     margin-bottom: -2px;
 }
 
+.short-num-input {
+    max-width: 5em;
+}
+
+.long-num-input {
+    max-width: 10em;
+}
+
 /* position the dash dev tools UI a bit higher than the bottom of the
  * screen, to avoid covering the fit button. Note that:
  * (1) we may need to adjust this spacing as we add in more floating buttons

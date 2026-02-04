@@ -127,7 +127,7 @@ def get_num_bins_option(val_id, btn_id):
                 "Desired maximum # bins",
             ),
             dbc.Input(
-                placeholder="# bins", id=val_id, style={"max-width": "10em"}
+                placeholder="# bins", id=val_id, className="long-num-input"
             ),
             dbc.Button("Apply", id=btn_id, color="dark"),
         ],
@@ -142,7 +142,7 @@ def get_max_x_option(val_id, btn_id):
                 "Maximum x value",
             ),
             dbc.Input(
-                placeholder="max x", id=val_id, style={"max-width": "10em"}
+                placeholder="max x", id=val_id, className="long-num-input"
             ),
             dbc.Button("Apply", id=btn_id, color="dark"),
         ],

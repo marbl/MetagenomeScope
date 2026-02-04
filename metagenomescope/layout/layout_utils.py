@@ -12,6 +12,7 @@ def get_gv_header(prog, name="g", use_ports=False, params={}):
 
     "digraph g {
         [top-level graph attributes];
+        [additional graph attributes, set by params];
         [top-level node attributes];
         [top-level edge attributes];"
 
@@ -25,8 +26,11 @@ def get_gv_header(prog, name="g", use_ports=False, params={}):
         gv_input += f"{layout_config.INDENT}{graphsty};\n"
 
     if len(params) > 0:
-        if prog == "sfdp" and "sfdp_k" in params:
-            gv_input += f"{layout_config.INDENT}K={params['sfdp_k']};\n"
+        if prog == "sfdp":
+            if "sfdp_k" in params:
+                gv_input += f"{layout_config.INDENT}K={params['sfdp_k']};\n"
+            if "sfdp_overlap_scaling" in params:
+                gv_input += f"{layout_config.INDENT}overlap_scaling={params['sfdp_overlap_scaling']};\n"
 
     if len(layout_config.GLOBALNODE_STYLE) > 0:
         gv_input += (

@@ -784,7 +784,7 @@ def run(
                                     type="text",
                                     id="labelFontSize",
                                     value=cy_config.DEFAULT_LABEL_FONT_SIZE,
-                                    style={"max-width": "5em"},
+                                    className="short-num-input",
                                 ),
                                 dbc.InputGroupText(
                                     "em",
@@ -1683,36 +1683,62 @@ def run(
                                     html.Br(),
                                     html.H5("Parameters"),
                                     html.Div(
-                                        dbc.InputGroup(
-                                            [
-                                                dbc.InputGroupText(
-                                                    html.Span(
-                                                        [
-                                                            html.Span(
-                                                                "K",
-                                                                style={
-                                                                    "font-style": "italic"
-                                                                },
-                                                            ),
-                                                            " (",
-                                                            html.A(
-                                                                "spring constant",
-                                                                href="https://graphviz.org/docs/attrs/K/",
-                                                                target="_blank",
-                                                            ),
-                                                            ", sfdp only)",
-                                                        ],
+                                        [
+                                            dbc.InputGroup(
+                                                [
+                                                    dbc.InputGroupText(
+                                                        html.Span(
+                                                            [
+                                                                html.Span(
+                                                                    "K",
+                                                                    style={
+                                                                        "font-style": "italic"
+                                                                    },
+                                                                ),
+                                                                " (",
+                                                                html.A(
+                                                                    "spring constant",
+                                                                    href="https://graphviz.org/docs/attrs/K/",
+                                                                    target="_blank",
+                                                                ),
+                                                                ", sfdp only)",
+                                                            ],
+                                                        ),
                                                     ),
-                                                ),
-                                                dbc.Input(
-                                                    type="text",
-                                                    id="sfdpK",
-                                                    value=0.3,
-                                                    style={"max-width": "5em"},
-                                                ),
-                                            ],
-                                            size="sm",
-                                        ),
+                                                    dbc.Input(
+                                                        type="text",
+                                                        id="sfdpK",
+                                                        value=0.3,
+                                                        className="short-num-input",
+                                                    ),
+                                                ],
+                                                size="sm",
+                                            ),
+                                            ui_config.OPTIONS_SEP,
+                                            dbc.InputGroup(
+                                                [
+                                                    dbc.InputGroupText(
+                                                        html.Span(
+                                                            [
+                                                                html.A(
+                                                                    "Overlap scaling factor",
+                                                                    href="https://graphviz.org/docs/attrs/overlap_scaling/",
+                                                                    target="_blank",
+                                                                ),
+                                                                " (sfdp only)",
+                                                            ],
+                                                        ),
+                                                    ),
+                                                    dbc.Input(
+                                                        type="text",
+                                                        id="sfdpOverlapScaling",
+                                                        value=-10,
+                                                        className="short-num-input",
+                                                    ),
+                                                ],
+                                                size="sm",
+                                            ),
+                                        ],
                                         style={
                                             "margin-top": "0.75em",
                                         },
@@ -2483,6 +2509,7 @@ def run(
         State("ccAroundNodesDistSelector", "value"),
         State("drawSettingsChecklist", "value"),
         State("sfdpK", "value"),
+        State("sfdpOverlapScaling", "value"),
         State("layoutAlgRadio", "value"),
         Input("drawButton", "n_clicks"),
         Input("ccSizeRankSelector", "n_submit"),
@@ -2500,6 +2527,7 @@ def run(
         around_nodes_dist,
         draw_settings,
         sfdp_k,
+        sfdp_overlap_scaling,
         layout_alg,
         draw_btn_n_clicks,
         size_rank_input_n_submit,
@@ -2608,6 +2636,19 @@ def run(
                 sfdp_k = ui_utils.get_num(
                     sfdp_k, "K", integer=False, min_val=0, min_incl=False
                 )
+                # https://graphviz.org/docs/attrs/overlap_scaling/ lists the
+                # minimum as -1e+10 and doesn't list a maximum. But specifying
+                # like 1e+22 breaks things, and anyway I doubt such big numbers
+                # are useful here anyway. Let's be safe for now
+                sfdp_overlap_scaling = ui_utils.get_num(
+                    sfdp_overlap_scaling,
+                    "Overlap scaling factor",
+                    integer=False,
+                    min_val=-10000,
+                    min_incl=True,
+                    max_val=10000,
+                    max_incl=True,
+                )
             except UIError as err:
                 return (
                     ui_utils.add_error_toast(
@@ -2651,6 +2692,7 @@ def run(
                 "layout_alg": layout_alg,
                 "layout_params": {
                     "sfdp_k": sfdp_k,
+                    "sfdp_overlap_scaling": sfdp_overlap_scaling,
                 },
             },
         )

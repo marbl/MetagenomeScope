@@ -49,15 +49,16 @@ def start_log(verbose: bool):
 
 def log_layout_start(done_flushing, ag):
     draw_settings = done_flushing["draw_settings"]
-    ptext = ""
+    st = "; ".join(draw_settings)
     for pk, pv in done_flushing["layout_params"].items():
-        ptext += f"{pk} = {pv}"
-    if len(ptext) > 0 and len(draw_settings) > 0:
-        ptext = "; " + ptext
+        if len(st) > 0:
+            st += "; "
+        st += f"{pk} = {pv}"
 
     thing = ui_utils.get_curr_drawn_text(done_flushing, ag)
+    if len(st) > 0:
+        st = f" ({st})"
 
     logging.debug(
-        f"  Laying out {thing} with {done_flushing['layout_alg']} "
-        f"({'; '.join(draw_settings)}{ptext})..."
+        f"  Laying out {thing} with {done_flushing['layout_alg']}{st}..."
     )
