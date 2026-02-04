@@ -232,11 +232,16 @@ class Edge(object):
         if self.has_userspecified_id():
             if "approx_length" in self.data:
                 # Flye
-                return self.get_userspecified_id()
+                cov = ui_utils.fmt_cov(self.data["cov"])
+                alen = ui_utils.fmt_approx_length(self.data["approx_length"])
+                eid = self.get_userspecified_id()
+                return f"{eid}: {alen}({cov})"
             else:
-                cov = ui_utils.round_to_int_if_close(self.data["kp1mer_cov"])
+                cov = ui_utils.fmt_cov(self.data["kp1mer_cov"])
                 # LJA
-                return f"{self.data['first_nt']} {self.data['length']:,}({cov:,}x)"
+                return (
+                    f"{self.data['first_nt']} {self.data['length']:,}({cov})"
+                )
 
         if "bsize" in self.data:
             # MetaCarvel

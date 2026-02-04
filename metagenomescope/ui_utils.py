@@ -153,7 +153,7 @@ def get_patt_info(ag):
 
 
 def close_to_int(f, epsilon=config.EPSILON):
-    return abs(f - round(f)) < epsilon
+    return type(f) is int or abs(f - round(f)) < epsilon
 
 
 def round_to_int_if_close(f, epsilon=config.EPSILON):
@@ -163,11 +163,25 @@ def round_to_int_if_close(f, epsilon=config.EPSILON):
         return f
 
 
-def fmt_cov(cov):
-    if type(cov) is int or close_to_int(cov):
-        return f"{round(cov):,}x"
+def fmt_maybe_int(n, suffix="", precision=2):
+    if close_to_int(n):
+        return f"{round(n):,}{suffix}"
     else:
-        return f"{cov:,.2f}x"
+        # turns out you can just specify {precision} to fill in ".2f" with
+        # a variable! crazy. https://stackoverflow.com/a/58435117
+        return f"{n:,.{precision}f}{suffix}"
+
+
+def fmt_cov(cov):
+    # My default inclination is to use 2 digits of precision (e.g. "123.45x")
+    # but I think that is probably overkill for things like edge labels
+    return fmt_maybe_int(cov, suffix="x", precision=1)
+
+
+def fmt_approx_length(alen):
+    # for turning flye lengths (e.g. "0.6k", stored as 600) back into "0.6k"
+    t = round_to_int_if_close(alen / 1000)
+    return fmt_maybe_int(t, suffix="k", precision=1)
 
 
 def get_cov_info(ag):

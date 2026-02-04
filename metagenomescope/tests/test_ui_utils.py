@@ -20,6 +20,32 @@ def test_fmt_qty():
     assert uu.fmt_qty(None, "bushels", na="lmao") == "lmao"
 
 
+def test_fmt_cov():
+    assert uu.fmt_cov(12345) == "12,345x"
+    assert uu.fmt_cov(12345.6789) == "12,345.7x"
+    assert uu.fmt_cov(2.0) == "2x"
+    assert uu.fmt_cov(333.1) == "333.1x"
+
+
+def test_approx_length():
+    assert uu.fmt_approx_length(12345) == "12.3k"
+    assert uu.fmt_approx_length(600) == "0.6k"
+    assert uu.fmt_approx_length(1000) == "1k"
+    assert uu.fmt_approx_length(2000) == "2k"
+    assert uu.fmt_approx_length(2001) == "2.0k"
+    assert uu.fmt_approx_length(0) == "0k"
+    # one million and one bp (1,000,001) is also 1,000.001k, so this
+    # gets expressed with the final .0 included - which makes sense.
+    # Due to how round_to_int_if_close() works, it is possible to have
+    # the .0 not be included for integer lengths that are not divisible
+    # by 1000 but are still super big - e.g. 1e20 + 1. But it's not a big
+    # deal imo this is all approximate anyway (plus what sequences are
+    # 1e20 bp long???)
+    assert uu.fmt_approx_length(1e6 + 1) == "1,000.0k"
+    # i mean even approx lengths should never be floats but whatever
+    assert uu.fmt_approx_length(12345.6789) == "12.3k"
+
+
 def test_decr_size_rank_simple():
     assert uu.decr_size_rank(-2, 1, 5) == 1
     assert uu.decr_size_rank(-1, 1, 5) == 1
