@@ -180,6 +180,15 @@ label:has(#fcoseAlgSpan).active {
     margin-bottom: 2px;
 }
 
+/* counteract the impacts of the above hack on the stuff below this group -
+ * that is, we still fix the "protrusion" thing but we also don't let it cause
+ * a bigger than normal margin below this group. this is getting into evil
+ * witchcraft territory
+ */
+.input-group:has(.input-group-text-next-to-radio-button-group) {
+    margin-bottom: -2px;
+}
+
 /* position the dash dev tools UI a bit higher than the bottom of the
  * screen, to avoid covering the fit button. Note that:
  * (1) we may need to adjust this spacing as we add in more floating buttons
