@@ -2633,13 +2633,22 @@ def run(
         if layout_alg == ui_config.LAYOUT_SFDP:
             try:
                 # K = 0 actually messes with pygraphviz lol
+                # and ostensibly we could have really big numbers here,
+                # but to avoid messing around with python autorepresenting
+                # big floats in scientific notation - and since i doubt there
+                # is much utility for massive numbers - let's constrain this
                 sfdp_k = ui_utils.get_num(
-                    sfdp_k, "K", integer=False, min_val=0, min_incl=False
+                    sfdp_k,
+                    "K",
+                    integer=False,
+                    min_val=0,
+                    min_incl=False,
+                    max_val=10000,
+                    max_incl=True,
                 )
                 # https://graphviz.org/docs/attrs/overlap_scaling/ lists the
-                # minimum as -1e+10 and doesn't list a maximum. But specifying
-                # like 1e+22 breaks things, and anyway I doubt such big numbers
-                # are useful here anyway. Let's be safe for now
+                # minimum as -1e+10 and doesn't list a maximum. we constrain
+                # this to a reasonable(ish) maximum for safety as with K
                 sfdp_overlap_scaling = ui_utils.get_num(
                     sfdp_overlap_scaling,
                     "Overlap scaling factor",
