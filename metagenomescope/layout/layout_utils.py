@@ -445,11 +445,28 @@ def get_node_dot(
     )
 
 
-def get_edge_dot(srcid, tgtid, is_fake=False, indent=layout_config.INDENT):
-    attrs = ""
+def get_edge_dot(
+    srcid,
+    tgtid,
+    is_fake=False,
+    indent=layout_config.INDENT,
+    additional_attrs="",
+):
+    attrs = additional_attrs
     if is_fake:
-        attrs = f" [{layout_config.FAKEEDGE_STYLE}]"
+        if len(attrs) > 0:
+            attrs += ","
+        attrs += layout_config.FAKEEDGE_STYLE
+    if len(attrs) > 0:
+        attrs = f" [{attrs}]"
     return f"{indent}{srcid} -> {tgtid}{attrs};\n"
+
+
+def is_back_edge(edge, pattern):
+    return (
+        edge.dec_src_id in pattern.end_node_ids
+        and edge.dec_tgt_id in pattern.start_node_ids
+    )
 
 
 def get_pattern_cluster_dot(pattern, indent=layout_config.INDENT):
@@ -475,6 +492,11 @@ def get_pattern_cluster_dot(pattern, indent=layout_config.INDENT):
         else:
             dot += node.to_dot(indent=ii)
     for edge in pattern.edges:
-        dot += edge.to_dot(level="new", indent=ii)
+        # prevent back-edges in cyclic patterns from impacting the layout -
+        # https://github.com/marbl/MetagenomeScope/issues/368
+        aa = ""
+        if is_back_edge(edge, pattern):
+            aa = 'constraint="false"'
+        dot += edge.to_dot(level="new", indent=ii, additional_attrs=aa)
     dot += f"{indent}}}\n"
     return dot

@@ -246,7 +246,9 @@ class Edge(object):
         # we could try to parse GFA edge tags maybe...?
         return f"#{self.unique_id}"
 
-    def to_dot(self, level="new", indent=layout_config.INDENT):
+    def to_dot(
+        self, level="new", indent=layout_config.INDENT, additional_attrs=""
+    ):
         if level == "dec":
             src = self.dec_src_id
             tgt = self.dec_tgt_id
@@ -255,7 +257,9 @@ class Edge(object):
             tgt = self.new_tgt_id
         else:
             raise WeirdError(f"Unrecognized edge level: {level}")
-        return layout_utils.get_edge_dot(src, tgt, self.is_fake, indent)
+        return layout_utils.get_edge_dot(
+            src, tgt, self.is_fake, indent, additional_attrs
+        )
 
     def to_cyjs(self, draw_settings):
         ele = {
