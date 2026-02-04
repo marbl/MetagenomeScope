@@ -155,6 +155,7 @@ SCALE_LOG = "log"
 NODES_HIST = "nodes"
 EDGES_HIST = "edges"
 
+# divider between histogram options
 CHART_OPTIONS_SEP = html.Div(style={"margin-top": "0.3em"})
 
 ###############################################################################
@@ -172,10 +173,6 @@ RANGE_DASHES = ("-", "\u2013", "\u2014")
 # if a graph has < this many components, then don't bother aggregating its
 # components in the treemap
 MIN_LARGE_CC_COUNT = 100
-
-# Don't label components with >= this many nodes as small
-# (see https://github.com/marbl/MetagenomeScope/issues/278)
-MIN_NONSMALL_CC_NODE_COUNT = 50
 
 ###############################################################################
 # General table stuff (both paths and selected nodes/edges/patterns)
