@@ -2691,8 +2691,10 @@ def run(
                 "draw_settings": draw_settings,
                 "layout_alg": layout_alg,
                 "layout_params": {
-                    "sfdp_k": sfdp_k,
-                    "sfdp_overlap_scaling": sfdp_overlap_scaling,
+                    "sfdp": {
+                        "K": sfdp_k,
+                        "overlap_scaling": sfdp_overlap_scaling,
+                    },
                 },
             },
         )
