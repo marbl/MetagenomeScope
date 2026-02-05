@@ -477,24 +477,31 @@ def get_num(
     # and max_incl is False then this can cause problems. whatever that is
     # unimportant imo
     f = round_to_int_if_close(f)
+    gt = "\u2265" if min_incl else ">"
+    lt = "\u2264" if max_incl else "<"
+    err_msg = ""
+    if min_val is not None:
+        err_msg = f"{name} must be {gt} {min_val:,}"
+        if max_val is not None:
+            err_msg += f" and {lt} {max_val:,}"
+    elif max_val is not None:
+        err_msg = f"{name} must be {lt} {max_val:,}"
+    if len(err_msg) > 0:
+        err_msg += "."
     if min_val is not None:
         if min_incl:
             badcmp = f < min_val
-            t = "\u2265"
         else:
             badcmp = f <= min_val
-            t = ">"
         if badcmp:
-            raise UIError(f"{name} must be {t} {min_val:,}.")
+            raise UIError(err_msg)
     if max_val is not None:
         if max_incl:
             badcmp = f > max_val
-            t = "\u2264"
         else:
             badcmp = f >= max_val
-            t = "<"
         if badcmp:
-            raise UIError(f"{name} must be {t} {max_val:,}.")
+            raise UIError(err_msg)
     return f
 
 

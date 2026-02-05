@@ -700,14 +700,32 @@ def test_get_num_toolow():
 
 def test_get_num_toohigh():
     with pytest.raises(UIError) as ei:
-        uu.get_num("100", "Thing", max_val=100)
+        uu.get_num("100", "Thing", min_val=None, max_val=100)
     assert str(ei.value) == "Thing must be < 100."
 
     assert uu.get_num("100", "Thing", max_val=100, max_incl=True) == 100
 
     with pytest.raises(UIError) as ei:
-        uu.get_num("101", "Thing", max_val=100, max_incl=True)
+        uu.get_num("101", "Thing", min_val=None, max_val=100, max_incl=True)
     assert str(ei.value) == "Thing must be \u2264 100."
+
+
+def test_get_num_min_and_max_set():
+    with pytest.raises(UIError) as ei:
+        uu.get_num("10", "number of scrimblos", min_val=5, max_val=10)
+    assert str(ei.value) == "number of scrimblos must be \u2265 5 and < 10."
+
+    with pytest.raises(UIError) as ei:
+        uu.get_num(
+            "10", "floobity count", min_val=5, max_val=10, min_incl=False
+        )
+    assert str(ei.value) == "floobity count must be > 5 and < 10."
+
+    with pytest.raises(UIError) as ei:
+        uu.get_num(
+            "11", "quowi", min_val=5, max_val=10, min_incl=True, max_incl=True
+        )
+    assert str(ei.value) == "quowi must be \u2265 5 and \u2264 10."
 
 
 def test_get_num_nolimits():
