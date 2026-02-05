@@ -447,6 +447,20 @@ def incr_size_rank(size_rank, minval, maxval):
         return size_rank + 1
 
 
+def is_too_big(f, max_val, max_incl):
+    if max_incl:
+        return f > max_val
+    else:
+        return f >= max_val
+
+
+def is_too_small(f, min_val, min_incl):
+    if min_incl:
+        return f < min_val
+    else:
+        return f <= min_val
+
+
 def get_num(
     n,
     name,
@@ -480,28 +494,20 @@ def get_num(
     gt = "\u2265" if min_incl else ">"
     lt = "\u2264" if max_incl else "<"
     err_msg = ""
-    if min_val is not None:
+    bad = False
+    check_min = min_val is not None
+    check_max = max_val is not None
+    if check_min:
         err_msg = f"{name} must be {gt} {min_val:,}"
-        if max_val is not None:
+        bad = is_too_small(f, min_val, min_incl)
+        if check_max:
             err_msg += f" and {lt} {max_val:,}"
-    elif max_val is not None:
+            bad = bad or is_too_big(f, max_val, max_incl)
+    elif check_max:
         err_msg = f"{name} must be {lt} {max_val:,}"
-    if len(err_msg) > 0:
-        err_msg += "."
-    if min_val is not None:
-        if min_incl:
-            badcmp = f < min_val
-        else:
-            badcmp = f <= min_val
-        if badcmp:
-            raise UIError(err_msg)
-    if max_val is not None:
-        if max_incl:
-            badcmp = f > max_val
-        else:
-            badcmp = f >= max_val
-        if badcmp:
-            raise UIError(err_msg)
+        bad = is_too_big(f, max_val, max_incl)
+    if bad:
+        raise UIError(err_msg + ".")
     return f
 
 
