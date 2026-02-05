@@ -675,7 +675,7 @@ def test_get_num_float_cant_cast_to_int():
 def test_get_num_gibberish():
     with pytest.raises(UIError) as ei:
         uu.get_num("asdofij", "Thing")
-    assert str(ei.value) == '"asdofij" is not a valid integer.'
+    assert str(ei.value) == 'Thing: "asdofij" is not a valid integer.'
 
     with pytest.raises(UIError) as ei:
         uu.get_num("asdofij", "Thing", integer=False)
