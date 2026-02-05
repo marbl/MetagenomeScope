@@ -472,7 +472,7 @@ def get_num(
     try:
         f = func(n)
     except ValueError:
-        raise UIError(f'"{n}" is not a valid {tname}.')
+        raise UIError(f'{name}: "{n}" is not a valid {tname}.')
     # yeah yeah whatever if you select like 99.999999.... and the max is 100
     # and max_incl is False then this can cause problems. whatever that is
     # unimportant imo

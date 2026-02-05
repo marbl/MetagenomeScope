@@ -669,7 +669,7 @@ def test_get_num_empty_not_ok():
 def test_get_num_float_cant_cast_to_int():
     with pytest.raises(UIError) as ei:
         uu.get_num("3.5", "Thing")
-    assert str(ei.value) == '"3.5" is not a valid integer.'
+    assert str(ei.value) == 'Thing: "3.5" is not a valid integer.'
 
 
 def test_get_num_gibberish():
@@ -679,7 +679,7 @@ def test_get_num_gibberish():
 
     with pytest.raises(UIError) as ei:
         uu.get_num("asdofij", "Thing", integer=False)
-    assert str(ei.value) == '"asdofij" is not a valid number.'
+    assert str(ei.value) == 'Thing: "asdofij" is not a valid number.'
 
 
 def test_get_num_toolow():
@@ -751,7 +751,7 @@ def test_get_hist_nbins():
     assert str(ei.value) == "Number of bins must be \u2265 0."
     with pytest.raises(UIError) as ei:
         uu.get_hist_nbins("fjfj")
-    assert str(ei.value) == '"fjfj" is not a valid integer.'
+    assert str(ei.value) == 'Number of bins: "fjfj" is not a valid integer.'
 
 
 def test_get_maxx():
@@ -765,4 +765,4 @@ def test_get_maxx():
     assert str(ei.value) == "Maximum x value must be \u2265 0."
     with pytest.raises(UIError) as ei:
         uu.get_maxx("sdfij")
-    assert str(ei.value) == '"sdfij" is not a valid number.'
+    assert str(ei.value) == 'Maximum x value: "sdfij" is not a valid number.'
