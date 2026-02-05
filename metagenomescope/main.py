@@ -1689,6 +1689,32 @@ def run(
                                                     dbc.InputGroupText(
                                                         html.Span(
                                                             [
+                                                                html.A(
+                                                                    "Rank separation",
+                                                                    href="https://graphviz.org/docs/attrs/ranksep/",
+                                                                    target="_blank",
+                                                                ),
+                                                                " (",
+                                                                ui_config.DOT_TEXT,
+                                                                " only)",
+                                                            ],
+                                                        ),
+                                                    ),
+                                                    dbc.Input(
+                                                        type="text",
+                                                        id="dotRanksep",
+                                                        value=0.5,
+                                                        className="short-num-input",
+                                                    ),
+                                                ],
+                                                size="sm",
+                                            ),
+                                            ui_config.OPTIONS_SEP,
+                                            dbc.InputGroup(
+                                                [
+                                                    dbc.InputGroupText(
+                                                        html.Span(
+                                                            [
                                                                 html.Span(
                                                                     "K",
                                                                     style={
@@ -2508,6 +2534,7 @@ def run(
         State("ccAroundNodesNameSelector", "value"),
         State("ccAroundNodesDistSelector", "value"),
         State("drawSettingsChecklist", "value"),
+        State("dotRanksep", "value"),
         State("sfdpK", "value"),
         State("sfdpOverlapScaling", "value"),
         State("layoutAlgRadio", "value"),
@@ -2526,6 +2553,7 @@ def run(
         around_nodes_names,
         around_nodes_dist,
         draw_settings,
+        dot_ranksep,
         sfdp_k,
         sfdp_overlap_scaling,
         layout_alg,
@@ -2630,43 +2658,51 @@ def run(
             layout_alg, draw_settings
         )
 
-        if layout_alg == ui_config.LAYOUT_SFDP:
-            try:
-                # K = 0 actually messes with pygraphviz lol
-                # and ostensibly we could have really big numbers here,
-                # but to avoid messing around with python autorepresenting
-                # big floats in scientific notation - and since i doubt there
-                # is much utility for massive numbers - let's constrain this
-                sfdp_k = ui_utils.get_num(
-                    sfdp_k,
-                    "K",
-                    integer=False,
-                    min_val=0,
-                    min_incl=False,
-                    max_val=10000,
-                    max_incl=True,
-                )
-                # https://graphviz.org/docs/attrs/overlap_scaling/ lists the
-                # minimum as -1e+10 and doesn't list a maximum. we constrain
-                # this to a reasonable(ish) maximum for safety as with K
-                sfdp_overlap_scaling = ui_utils.get_num(
-                    sfdp_overlap_scaling,
-                    "Overlap scaling factor",
-                    integer=False,
-                    min_val=-10000,
-                    min_incl=True,
-                    max_val=10000,
-                    max_incl=True,
-                )
-            except UIError as err:
-                return (
-                    ui_utils.add_error_toast(
-                        curr_toasts, "sfdp error", str(err)
-                    ),
-                    no_update,
-                    no_update,
-                    {"requestGood": False},
-                )
+        try:
+            dot_ranksep = ui_utils.get_num(
+                dot_ranksep,
+                "Rank separation",
+                integer=False,
+                min_val=0.02,
+                min_incl=True,
+                max_val=100,
+                max_incl=True,
+            )
+            # K = 0 actually messes with pygraphviz lol
+            # and ostensibly we could have really big numbers here,
+            # but to avoid messing around with python autorepresenting
+            # big floats in scientific notation - and since i doubt there
+            # is much utility for massive numbers - let's constrain this
+            sfdp_k = ui_utils.get_num(
+                sfdp_k,
+                "K",
+                integer=False,
+                min_val=0,
+                min_incl=False,
+                max_val=10000,
+                max_incl=True,
+            )
+            # https://graphviz.org/docs/attrs/overlap_scaling/ lists the
+            # minimum as -1e+10 and doesn't list a maximum. we constrain
+            # this to a reasonable(ish) maximum for safety as with K
+            sfdp_overlap_scaling = ui_utils.get_num(
+                sfdp_overlap_scaling,
+                "Overlap scaling factor",
+                integer=False,
+                min_val=-10000,
+                min_incl=True,
+                max_val=10000,
+                max_incl=True,
+            )
+        except UIError as err:
+            return (
+                ui_utils.add_error_toast(
+                    curr_toasts, "Parameter error", str(err)
+                ),
+                no_update,
+                no_update,
+                {"requestGood": False},
+            )
 
         # cc_nums has to be JSON-serializable (it might be a set at this point)
         # (and if we are drawing around nodes instead of drawing entire ccs,
@@ -2700,6 +2736,9 @@ def run(
                 "draw_settings": draw_settings,
                 "layout_alg": layout_alg,
                 "layout_params": {
+                    ui_config.LAYOUT_DOT: {
+                        "ranksep": dot_ranksep,
+                    },
                     ui_config.LAYOUT_SFDP: {
                         "K": sfdp_k,
                         "overlap_scaling": sfdp_overlap_scaling,
