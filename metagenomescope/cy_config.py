@@ -240,9 +240,6 @@ PATTERN_DATA_TYPE = "P"
 # Labels
 ###############################################################################
 
-# in em
-DEFAULT_LABEL_FONT_SIZE = 1
-
 # for nodes, edges, and patterns
 LABEL_STYLE = {
     "label": "data(label)",

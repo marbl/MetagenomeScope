@@ -89,6 +89,16 @@ GVLAYOUT2RECURSIVE = {LAYOUT_DOT: True, LAYOUT_SFDP: False}
 GVLAYOUT2GV_PORTS = {LAYOUT_DOT: True, LAYOUT_SFDP: False}
 GVLAYOUT2RECORD_EDGE_CTRL_PTS = {LAYOUT_DOT: True, LAYOUT_SFDP: False}
 
+# node-centric graphs have bigger nodes and don't (usually) have long edge
+# labels, so we can squish the ranks closer together. for edge-centric graphs
+# though we have smaller nodes and longer edge labels, so space things further
+# apart. (We COULD specify edge labels in dot to make this impact the layout
+# but that makes layout take longer)
+NODECENTRIC_2_DEFAULT_DOT_RANKSEP = {True: 0.5, False: 1}
+
+# values are in em
+NODECENTRIC_2_DEFAULT_LABELFONTSIZE = {True: 1, False: 0.5}
+
 ###############################################################################
 # Coloring UI
 ###############################################################################

@@ -783,7 +783,9 @@ def run(
                                 dbc.Input(
                                     type="text",
                                     id="labelFontSize",
-                                    value=cy_config.DEFAULT_LABEL_FONT_SIZE,
+                                    value=ui_config.NODECENTRIC_2_DEFAULT_LABELFONTSIZE[
+                                        ag.node_centric
+                                    ],
                                     className="short-num-input",
                                 ),
                                 dbc.InputGroupText(
@@ -910,7 +912,9 @@ def run(
                         maxZoom=9,
                         stylesheet=cy_utils.get_cyjs_stylesheet(
                             default_labels,
-                            cy_config.DEFAULT_LABEL_FONT_SIZE,
+                            ui_config.NODECENTRIC_2_DEFAULT_LABELFONTSIZE[
+                                ag.node_centric
+                            ],
                             node_coloring=ui_config.DEFAULT_NODE_COLORING,
                             edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
                         ),
@@ -1703,7 +1707,9 @@ def run(
                                                     dbc.Input(
                                                         type="text",
                                                         id="dotRanksep",
-                                                        value=0.5,
+                                                        value=ui_config.NODECENTRIC_2_DEFAULT_DOT_RANKSEP[
+                                                            ag.node_centric
+                                                        ],
                                                         className="short-num-input",
                                                     ),
                                                 ],
@@ -2390,7 +2396,6 @@ def run(
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
-        Output("labelFontSize", "value"),
         Output("cy", "stylesheet"),
         State("toastHolder", "children"),
         State("labelFontSize", "value"),
@@ -2411,10 +2416,10 @@ def run(
         edge_color_radio,
     ):
         out_toasts = no_update
-        out_labelfontsize = no_update
+        out_stylesheet = no_update
         try:
             # let's say font sizes must be > 0 and < 100
-            used_labelfontsize = ui_utils.get_num(
+            labelfontsize = ui_utils.get_num(
                 label_font_size,
                 "Font size",
                 integer=False,
@@ -2423,22 +2428,17 @@ def run(
                 min_incl=False,
                 max_incl=False,
             )
+            out_stylesheet = cy_utils.get_cyjs_stylesheet(
+                label_checklist,
+                labelfontsize,
+                node_coloring=node_color_radio,
+                edge_coloring=edge_color_radio,
+            )
         except UIError as err:
             out_toasts = ui_utils.add_error_toast(
                 curr_toasts, "Font size error", str(err)
             )
-            out_labelfontsize = str(cy_config.DEFAULT_LABEL_FONT_SIZE)
-            used_labelfontsize = cy_config.DEFAULT_LABEL_FONT_SIZE
-        return (
-            out_toasts,
-            out_labelfontsize,
-            cy_utils.get_cyjs_stylesheet(
-                label_checklist,
-                used_labelfontsize,
-                node_coloring=node_color_radio,
-                edge_coloring=edge_color_radio,
-            ),
-        )
+        return out_toasts, out_stylesheet
 
     @callback(
         Output("cy", "generateImage"),
