@@ -221,6 +221,7 @@ def get_cyjs_stylesheet(
             {
                 "selector": "edge.real",
                 "style": {
+                    "text-margin-y": -4,
                     **labelstyle,
                 },
             }
