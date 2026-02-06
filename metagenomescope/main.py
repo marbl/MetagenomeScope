@@ -775,12 +775,10 @@ def run(
                             ],
                             className="btn-opt-group",
                         ),
+                        ctrl_sep_invis,
+                        html.H5("Nodes"),
                         dbc.InputGroup(
                             [
-                                dbc.InputGroupText(
-                                    "Nodes",
-                                    className="input-group-text-next-to-radio-button-group",
-                                ),
                                 html.Div(
                                     dbc.Checklist(
                                         options=[
@@ -804,18 +802,14 @@ def run(
                                 ),
                             ],
                             size="sm",
-                            className="noPadding",
                             style={
                                 "justify-content": "center",
-                                "margin-top": "0.2em",
                             },
                         ),
+                        ctrl_sep_invis,
+                        html.H5("Edges"),
                         dbc.InputGroup(
                             [
-                                dbc.InputGroupText(
-                                    "Edges",
-                                    className="input-group-text-next-to-radio-button-group",
-                                ),
                                 html.Div(
                                     dbc.Checklist(
                                         options=[
@@ -843,18 +837,14 @@ def run(
                                 ),
                             ],
                             size="sm",
-                            className="noPadding",
                             style={
                                 "justify-content": "center",
-                                "margin-top": "0.2em",
-                                "padding-top": "2px",
                             },
                         ),
+                        ctrl_sep_invis,
+                        html.H5("Font size"),
                         dbc.InputGroup(
                             [
-                                dbc.InputGroupText(
-                                    "Font size",
-                                ),
                                 dbc.Input(
                                     type="text",
                                     id="labelFontSize",
@@ -875,11 +865,6 @@ def run(
                             size="sm",
                             style={
                                 "justify-content": "center",
-                                "margin-top": "0.2em",
-                                # the gaps used between rows here are bigger -
-                                # idk why exactly - but to keep them uniformly
-                                # "big" we add a tiny bit of extra padding
-                                "padding-top": "2px",
                             },
                         ),
                         ctrl_sep,
