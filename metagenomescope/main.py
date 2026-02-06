@@ -847,6 +847,7 @@ def run(
                             style={
                                 "justify-content": "center",
                                 "margin-top": "0.2em",
+                                "padding-top": "2px",
                             },
                         ),
                         dbc.InputGroup(
