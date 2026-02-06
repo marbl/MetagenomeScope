@@ -775,97 +775,127 @@ def run(
                             ],
                             className="btn-opt-group",
                         ),
-                        ctrl_sep_invis,
-                        html.H5("Nodes"),
-                        dbc.InputGroup(
+                        html.Div(
                             [
-                                html.Div(
-                                    dbc.Checklist(
-                                        options=[
-                                            {
-                                                "label": "Offset",
-                                                "value": ui_config.LABEL_OFFSET,
-                                            },
-                                            {
-                                                "label": "Outline",
-                                                "value": ui_config.LABEL_OUTLINE,
-                                            },
-                                        ],
-                                        value=ui_config.DEFAULT_NODE_LABEL_SETTINGS,
-                                        className="btn-group",
-                                        inputClassName="btn-check",
-                                        labelClassName="btn btn-sm btn-outline-info",
-                                        labelCheckedClassName="active",
-                                        id="nodeLabelSettingsChecklist",
-                                    ),
-                                    className="btn-opt-group",
-                                ),
-                            ],
-                            size="sm",
-                            style={
-                                "justify-content": "center",
-                            },
-                        ),
-                        ctrl_sep_invis,
-                        html.H5("Edges"),
-                        dbc.InputGroup(
-                            [
-                                html.Div(
-                                    dbc.Checklist(
-                                        options=[
-                                            {
-                                                "label": "Offset",
-                                                "value": ui_config.LABEL_OFFSET,
-                                            },
-                                            {
-                                                "label": "Outline",
-                                                "value": ui_config.LABEL_OUTLINE,
-                                            },
-                                            {
-                                                "label": "Rotate",
-                                                "value": ui_config.LABEL_AUTOROTATE_EDGE,
-                                            },
-                                        ],
-                                        value=ui_config.DEFAULT_EDGE_LABEL_SETTINGS,
-                                        className="btn-group",
-                                        inputClassName="btn-check",
-                                        labelClassName="btn btn-sm btn-outline-info",
-                                        labelCheckedClassName="active",
-                                        id="edgeLabelSettingsChecklist",
-                                    ),
-                                    className="btn-opt-group",
-                                ),
-                            ],
-                            size="sm",
-                            style={
-                                "justify-content": "center",
-                            },
-                        ),
-                        ctrl_sep_invis,
-                        html.H5("Font size"),
-                        dbc.InputGroup(
-                            [
-                                dbc.Input(
-                                    type="text",
-                                    id="labelFontSize",
-                                    value=ui_config.NODECENTRIC_2_DEFAULT_LABELFONTSIZE[
-                                        ag.node_centric
+                                ctrl_sep_invis,
+                                html.H5("Nodes"),
+                                dbc.InputGroup(
+                                    [
+                                        html.Div(
+                                            dbc.Checklist(
+                                                options=[
+                                                    {
+                                                        "label": "Offset",
+                                                        "value": ui_config.LABEL_OFFSET,
+                                                    },
+                                                    {
+                                                        "label": "Outline",
+                                                        "value": ui_config.LABEL_OUTLINE,
+                                                    },
+                                                ],
+                                                value=ui_config.DEFAULT_NODE_LABEL_SETTINGS,
+                                                className="btn-group",
+                                                inputClassName="btn-check",
+                                                labelClassName="btn btn-sm btn-outline-info",
+                                                labelCheckedClassName="active",
+                                                id="nodeLabelSettingsChecklist",
+                                            ),
+                                            className="btn-opt-group",
+                                        ),
                                     ],
-                                    className="short-num-input",
-                                ),
-                                dbc.InputGroupText(
-                                    "em",
-                                ),
-                                dbc.Button(
-                                    "Apply",
-                                    id="labelFontSizeApply",
-                                    color="success",
+                                    size="sm",
+                                    style={
+                                        "justify-content": "center",
+                                    },
                                 ),
                             ],
-                            size="sm",
-                            style={
-                                "justify-content": "center",
-                            },
+                            id="nodeLabelUI",
+                            className=(
+                                "removedEntirely"
+                                if ui_config.NODE_LABELS not in default_labels
+                                else ""
+                            ),
+                        ),
+                        html.Div(
+                            [
+                                ctrl_sep_invis,
+                                html.H5("Edges"),
+                                dbc.InputGroup(
+                                    [
+                                        html.Div(
+                                            dbc.Checklist(
+                                                options=[
+                                                    {
+                                                        "label": "Offset",
+                                                        "value": ui_config.LABEL_OFFSET,
+                                                    },
+                                                    {
+                                                        "label": "Outline",
+                                                        "value": ui_config.LABEL_OUTLINE,
+                                                    },
+                                                    {
+                                                        "label": "Rotate",
+                                                        "value": ui_config.LABEL_AUTOROTATE_EDGE,
+                                                    },
+                                                ],
+                                                value=ui_config.DEFAULT_EDGE_LABEL_SETTINGS,
+                                                className="btn-group",
+                                                inputClassName="btn-check",
+                                                labelClassName="btn btn-sm btn-outline-info",
+                                                labelCheckedClassName="active",
+                                                id="edgeLabelSettingsChecklist",
+                                            ),
+                                            className="btn-opt-group",
+                                        ),
+                                    ],
+                                    size="sm",
+                                    style={
+                                        "justify-content": "center",
+                                    },
+                                ),
+                            ],
+                            id="edgeLabelUI",
+                            className=(
+                                "removedEntirely"
+                                if ui_config.EDGE_LABELS not in default_labels
+                                else ""
+                            ),
+                        ),
+                        html.Div(
+                            [
+                                ctrl_sep_invis,
+                                html.H5("Font size"),
+                                dbc.InputGroup(
+                                    [
+                                        dbc.Input(
+                                            type="text",
+                                            id="labelFontSize",
+                                            value=ui_config.NODECENTRIC_2_DEFAULT_LABELFONTSIZE[
+                                                ag.node_centric
+                                            ],
+                                            className="short-num-input",
+                                        ),
+                                        dbc.InputGroupText(
+                                            "em",
+                                        ),
+                                        dbc.Button(
+                                            "Apply",
+                                            id="labelFontSizeApply",
+                                            color="success",
+                                        ),
+                                    ],
+                                    size="sm",
+                                    style={
+                                        "justify-content": "center",
+                                    },
+                                ),
+                            ],
+                            id="fontSizeUI",
+                            className=(
+                                "removedEntirely"
+                                if len(default_labels) == 0
+                                else ""
+                            ),
                         ),
                         ctrl_sep,
                         html.H4("Screenshots"),
@@ -2459,6 +2489,21 @@ def run(
                 return str(ndist + 1)
         except ValueError:
             return dist
+
+    @callback(
+        Output("nodeLabelUI", "className"),
+        Output("edgeLabelUI", "className"),
+        Output("fontSizeUI", "className"),
+        Input("labelChecklist", "value"),
+        prevent_initial_call=True,
+    )
+    def toggle_label_ui_visibility(label_checklist):
+        nodes = ui_config.NODE_LABELS in label_checklist
+        edges = ui_config.EDGE_LABELS in label_checklist
+        nodecls = "" if nodes else "removedEntirely"
+        edgecls = "" if edges else "removedEntirely"
+        sizecls = "" if len(label_checklist) > 0 else "removedEntirely"
+        return nodecls, edgecls, sizecls
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
