@@ -5,6 +5,7 @@ from .errors import WeirdError
 
 def get_cyjs_stylesheet(
     labels,
+    edge_label_settings,
     label_font_size,
     node_coloring=ui_config.DEFAULT_NODE_COLORING,
     edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
@@ -217,13 +218,19 @@ def get_cyjs_stylesheet(
                 break
 
     if ui_config.EDGE_LABELS in labels:
+        edgelabelstyle = {
+            "text-margin-y": -4,
+            **labelstyle,
+        }
+        if ui_config.OUTLINE_EDGE_LABELS in edge_label_settings:
+            edgelabelstyle["text-outline-color"] = "#fff"
+            edgelabelstyle["text-outline-width"] = 1
+        if ui_config.AUTOROTATE_EDGE_LABELS in edge_label_settings:
+            edgelabelstyle["text-rotation"] = "autorotate"
         stylesheet.append(
             {
                 "selector": "edge.real",
-                "style": {
-                    "text-margin-y": -4,
-                    **labelstyle,
-                },
+                "style": edgelabelstyle,
             }
         )
 

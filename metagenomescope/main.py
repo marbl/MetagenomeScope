@@ -778,6 +778,41 @@ def run(
                         dbc.InputGroup(
                             [
                                 dbc.InputGroupText(
+                                    "Edge labels",
+                                    className="input-group-text-next-to-radio-button-group",
+                                ),
+                                html.Div(
+                                    dbc.Checklist(
+                                        options=[
+                                            {
+                                                "label": "Outline",
+                                                "value": ui_config.OUTLINE_EDGE_LABELS,
+                                            },
+                                            {
+                                                "label": "Autorotate",
+                                                "value": ui_config.AUTOROTATE_EDGE_LABELS,
+                                            },
+                                        ],
+                                        value=ui_config.DEFAULT_EDGE_LABEL_SETTINGS,
+                                        className="btn-group",
+                                        inputClassName="btn-check",
+                                        labelClassName="btn btn-sm btn-outline-info",
+                                        labelCheckedClassName="active",
+                                        id="edgeLabelSettingsChecklist",
+                                    ),
+                                    className="btn-opt-group",
+                                ),
+                            ],
+                            size="sm",
+                            className="noPadding",
+                            style={
+                                "justify-content": "center",
+                                "margin-top": "0.2em",
+                            },
+                        ),
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText(
                                     "Font size",
                                 ),
                                 dbc.Input(
@@ -801,6 +836,10 @@ def run(
                             style={
                                 "justify-content": "center",
                                 "margin-top": "0.2em",
+                                # the gaps used between rows here are bigger -
+                                # idk why exactly - but to keep them uniformly
+                                # "big" we add a tiny bit of extra padding
+                                "padding-top": "2px",
                             },
                         ),
                         ctrl_sep,
@@ -912,6 +951,7 @@ def run(
                         maxZoom=9,
                         stylesheet=cy_utils.get_cyjs_stylesheet(
                             default_labels,
+                            ui_config.DEFAULT_EDGE_LABEL_SETTINGS,
                             ui_config.NODECENTRIC_2_DEFAULT_LABELFONTSIZE[
                                 ag.node_centric
                             ],
@@ -2402,6 +2442,7 @@ def run(
         Input("labelFontSize", "n_submit"),
         Input("labelFontSizeApply", "n_clicks"),
         Input("labelChecklist", "value"),
+        Input("edgeLabelSettingsChecklist", "value"),
         Input("nodeColorRadio", "value"),
         Input("edgeColorRadio", "value"),
         prevent_initial_call=True,
@@ -2412,6 +2453,7 @@ def run(
         label_font_size_n_submit,
         label_font_size_apply_n_clicks,
         label_checklist,
+        edge_label_settings_checklist,
         node_color_radio,
         edge_color_radio,
     ):
@@ -2430,6 +2472,7 @@ def run(
             )
             out_stylesheet = cy_utils.get_cyjs_stylesheet(
                 label_checklist,
+                edge_label_settings_checklist,
                 labelfontsize,
                 node_coloring=node_color_radio,
                 edge_coloring=edge_color_radio,
