@@ -227,7 +227,7 @@ class Edge(object):
         """
         if "multiplicity" in self.data:
             # LastGraph
-            return f"{self.data['multiplicity']:,}x"
+            return ui_utils.fmt_cov(self.data["multiplicity"])
 
         if self.has_userspecified_id():
             if "approx_length" in self.data:
@@ -245,7 +245,7 @@ class Edge(object):
 
         if "bsize" in self.data:
             # MetaCarvel
-            return f"bsize {self.data['bsize']:,}"
+            return ui_utils.fmt_cov(self.data["bsize"])
 
         # base case, for e.g. GFA files
         # we could try to parse GFA edge tags maybe...?
