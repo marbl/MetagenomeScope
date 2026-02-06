@@ -778,19 +778,58 @@ def run(
                         dbc.InputGroup(
                             [
                                 dbc.InputGroupText(
-                                    "Edge labels",
+                                    "Nodes",
                                     className="input-group-text-next-to-radio-button-group",
                                 ),
                                 html.Div(
                                     dbc.Checklist(
                                         options=[
                                             {
-                                                "label": "Outline",
-                                                "value": ui_config.OUTLINE_EDGE_LABELS,
+                                                "label": "Offset",
+                                                "value": ui_config.LABEL_OFFSET,
                                             },
                                             {
-                                                "label": "Autorotate",
-                                                "value": ui_config.AUTOROTATE_EDGE_LABELS,
+                                                "label": "Outline",
+                                                "value": ui_config.LABEL_OUTLINE,
+                                            },
+                                        ],
+                                        value=ui_config.DEFAULT_NODE_LABEL_SETTINGS,
+                                        className="btn-group",
+                                        inputClassName="btn-check",
+                                        labelClassName="btn btn-sm btn-outline-info",
+                                        labelCheckedClassName="active",
+                                        id="nodeLabelSettingsChecklist",
+                                    ),
+                                    className="btn-opt-group",
+                                ),
+                            ],
+                            size="sm",
+                            className="noPadding",
+                            style={
+                                "justify-content": "center",
+                                "margin-top": "0.2em",
+                            },
+                        ),
+                        dbc.InputGroup(
+                            [
+                                dbc.InputGroupText(
+                                    "Edges",
+                                    className="input-group-text-next-to-radio-button-group",
+                                ),
+                                html.Div(
+                                    dbc.Checklist(
+                                        options=[
+                                            {
+                                                "label": "Offset",
+                                                "value": ui_config.LABEL_OFFSET,
+                                            },
+                                            {
+                                                "label": "Outline",
+                                                "value": ui_config.LABEL_OUTLINE,
+                                            },
+                                            {
+                                                "label": "Rotate",
+                                                "value": ui_config.LABEL_AUTOROTATE_EDGE,
                                             },
                                         ],
                                         value=ui_config.DEFAULT_EDGE_LABEL_SETTINGS,
@@ -951,6 +990,7 @@ def run(
                         maxZoom=9,
                         stylesheet=cy_utils.get_cyjs_stylesheet(
                             default_labels,
+                            ui_config.DEFAULT_NODE_LABEL_SETTINGS,
                             ui_config.DEFAULT_EDGE_LABEL_SETTINGS,
                             ui_config.NODECENTRIC_2_DEFAULT_LABELFONTSIZE[
                                 ag.node_centric
@@ -2442,6 +2482,7 @@ def run(
         Input("labelFontSize", "n_submit"),
         Input("labelFontSizeApply", "n_clicks"),
         Input("labelChecklist", "value"),
+        Input("nodeLabelSettingsChecklist", "value"),
         Input("edgeLabelSettingsChecklist", "value"),
         Input("nodeColorRadio", "value"),
         Input("edgeColorRadio", "value"),
@@ -2453,7 +2494,8 @@ def run(
         label_font_size_n_submit,
         label_font_size_apply_n_clicks,
         label_checklist,
-        edge_label_settings_checklist,
+        node_label_settings,
+        edge_label_settings,
         node_color_radio,
         edge_color_radio,
     ):
@@ -2472,7 +2514,8 @@ def run(
             )
             out_stylesheet = cy_utils.get_cyjs_stylesheet(
                 label_checklist,
-                edge_label_settings_checklist,
+                node_label_settings,
+                edge_label_settings,
                 labelfontsize,
                 node_coloring=node_color_radio,
                 edge_coloring=edge_color_radio,

@@ -5,6 +5,7 @@ from .errors import WeirdError
 
 def get_cyjs_stylesheet(
     labels,
+    node_label_settings,
     edge_label_settings,
     label_font_size,
     node_coloring=ui_config.DEFAULT_NODE_COLORING,
@@ -213,19 +214,27 @@ def get_cyjs_stylesheet(
         # brittle.
         for sty in stylesheet:
             if sty["selector"] == "node.nonpattern":
-                sty["style"].update(labelstyle)
-                sty["style"].update(cy_config.NODE_LABEL_STYLE)
+                nodelabelstyle = {}
+                nodelabelstyle.update(labelstyle)
+                if ui_config.LABEL_OFFSET in node_label_settings:
+                    nodelabelstyle["text-valign"] = "top"
+                else:
+                    nodelabelstyle["text-valign"] = "center"
+                if ui_config.LABEL_OUTLINE in node_label_settings:
+                    nodelabelstyle["text-outline-color"] = "#fff"
+                    nodelabelstyle["text-outline-width"] = 1
+                sty["style"].update(nodelabelstyle)
                 break
 
     if ui_config.EDGE_LABELS in labels:
-        edgelabelstyle = {
-            "text-margin-y": -4,
-            **labelstyle,
-        }
-        if ui_config.OUTLINE_EDGE_LABELS in edge_label_settings:
+        edgelabelstyle = {}
+        edgelabelstyle.update(labelstyle)
+        if ui_config.LABEL_OFFSET in edge_label_settings:
+            edgelabelstyle["text-margin-y"] = -4
+        if ui_config.LABEL_OUTLINE in edge_label_settings:
             edgelabelstyle["text-outline-color"] = "#fff"
             edgelabelstyle["text-outline-width"] = 1
-        if ui_config.AUTOROTATE_EDGE_LABELS in edge_label_settings:
+        if ui_config.LABEL_AUTOROTATE_EDGE in edge_label_settings:
             edgelabelstyle["text-rotation"] = "autorotate"
         stylesheet.append(
             {

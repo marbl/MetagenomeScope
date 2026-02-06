@@ -247,11 +247,6 @@ LABEL_STYLE = {
     "min-zoomed-font-size": "12",
 }
 
-# just nodes
-NODE_LABEL_STYLE = {
-    "text-valign": "center",
-}
-
 # just patterns
 PATTERN_LABEL_STYLE = {
     "text-valign": "top",
