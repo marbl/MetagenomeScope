@@ -528,7 +528,11 @@ I have some ideas for dealing with these bottlenecks, but thankfully there are a
 
 - You don't need to draw entire components at once. Try using the `Around certain node(s)` drawing method (in the dropdown inside the `Draw` section): if you are interested in just certain neighborhood(s) in a massive component, you can enter in a list of nodes here (and some distance around them) and we'll just draw the corresponding neighborhoods. (Inspired by [Bandage](https://github.com/rrwick/bandage) :)
 
-- Turning off labels might be helpful? Although probably not by that much, since we already use Cytoscape.js' functionality to hide labels when you're zoomed out from the graph.
+- Turning off labels might be helpful?
+
+    - Although probably not by that much, since we already use Cytoscape.js' functionality to hide labels when you're zoomed out from the graph.
+
+    - So... if you set a really big label font size and zoom the graph out really far, _then_ labels could cause performance issues.
 
 <hr/>
 </details>
