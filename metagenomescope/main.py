@@ -252,6 +252,7 @@ def run(
                                 className=css_config.PATH_SETTINGS_PARENT_CLASSES
                                 + " removedEntirely",
                                 id="pathSettings",
+                                style={"margin-bottom": "0.8em"},
                             ),
                             dag.AgGrid(
                                 rowData=[],
@@ -889,6 +890,19 @@ def run(
                                         "justify-content": "center",
                                     },
                                 ),
+                                html.Div(
+                                    dcc.Checklist(
+                                        options=[
+                                            {
+                                                "label": "Expand patterns to fit labels",
+                                                "value": ui_config.LABELS_EXPAND_PATTERNS,
+                                            },
+                                        ],
+                                        value=ui_config.DEFAULT_EXPAND_SETTINGS,
+                                        className="form-check fancyInlineChecklist",
+                                        id="expandSettings",
+                                    ),
+                                ),
                             ],
                             id="fontSizeUI",
                             className=(
@@ -1011,6 +1025,7 @@ def run(
                             ui_config.NODECENTRIC_2_DEFAULT_LABELFONTSIZE[
                                 ag.node_centric
                             ],
+                            ui_config.DEFAULT_EXPAND_SETTINGS,
                             node_coloring=ui_config.DEFAULT_NODE_COLORING,
                             edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
                         ),
@@ -2515,6 +2530,7 @@ def run(
         Input("labelChecklist", "value"),
         Input("nodeLabelSettingsChecklist", "value"),
         Input("edgeLabelSettingsChecklist", "value"),
+        Input("expandSettings", "value"),
         Input("nodeColorRadio", "value"),
         Input("edgeColorRadio", "value"),
         prevent_initial_call=True,
@@ -2527,6 +2543,7 @@ def run(
         label_checklist,
         node_label_settings,
         edge_label_settings,
+        expand_settings,
         node_color_radio,
         edge_color_radio,
     ):
@@ -2548,6 +2565,7 @@ def run(
                 node_label_settings,
                 edge_label_settings,
                 labelfontsize,
+                expand_settings,
                 node_coloring=node_color_radio,
                 edge_coloring=edge_color_radio,
             )

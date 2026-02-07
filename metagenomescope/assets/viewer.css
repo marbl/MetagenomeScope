@@ -310,7 +310,7 @@ label:has(#fcoseAlgSpan).active {
     margin-right: 0.5em;
 }
 
-.pathSettings {
+.fancyInlineChecklist {
     /* i feel like keeping this label as the default font size (1em?) makes it
      * look a bit bigger than the "Available" label, and that rubs me the
      * wrong way
@@ -320,12 +320,12 @@ label:has(#fcoseAlgSpan).active {
      * that i don't think look good in this context. override 'em
      */
     padding-left: 0 !important;
+    padding-right: 0 !important;
     min-height: 0 !important;
     /* technically we don't NEED to set !important on this one since form-check
      * doesn't set a margin-top as of writing but whatever let's be consistent
      */
     margin-top: 0.5em !important;
-    margin-bottom: 0.8em !important;
 }
 
 /* the !important is necessary to get this to override the default #controls
