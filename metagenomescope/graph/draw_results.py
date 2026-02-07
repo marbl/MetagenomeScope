@@ -131,25 +131,61 @@ class DrawResults(object):
         if not self.layouts_given:
             return self.get_nolayout_eles()
 
-        eles = []
-        widths = []
-        heights = []
-        for lay in self.region2layout.values():
-            widths.append(lay.width)
-            heights.append(lay.height)
-        total_width = sum(widths)
-        total_height = sum(heights)
         # TODO should turn these into user-configurable params
         min_xpad = 100
         min_ypad = 100
         xpadfrac = 0.1
         ypadfrac = 0.1
-        # this seems to work mostly well for both big and large graphs.
-        # use of sqrt() inspired by https://www.graphviz.org/pdf/gvpack.1.pdf;
-        # the 2.5 factor ... idk slims out the rows and makes these look better
-        # imo?? i am sure there are better ways to set this, i've just been
-        # trying a bunch of stuff
-        row_width = math.sqrt(total_width * total_height) / 2.5
+
+        areas = []
+        widths = []
+        for lay in self.region2layout.values():
+            widths.append(lay.width)
+            areas.append(lay.width * lay.height)
+
+        sorted_regions = self.get_sorted_regions()
+        # pass 0: determine the width of each row.
+        # There are currently three ways of doing this:
+        #
+        # 1. We find a reasonable "breakpoint" where the width of a region R_N
+        #    is > 2x the width of the next-up region R_{N+1}. We define R_N
+        #    and all the regions to the left of it (i.e. the bigger regions,
+        #    going by sorted_regions) as the first row.
+        #
+        # 2. If we are not able to find a reasonable break point, then we
+        #    set the row width as something proportional to the sqrt of the
+        #    total areas of the regions. this seems to work ok?
+        #
+        # 3. If there is just a single region then obviously that's the row
+        #    width
+        row_width = None
+        if len(sorted_regions) > 1:
+            i = 0
+            tentative_first_row_width = 0
+            while i < len(sorted_regions) - 1 and i < 5:
+                r = sorted_regions[i]
+                # the notion of breakpoints doesn't make sense when
+                # we are dealing with 1-node ccs
+                if len(r.nodes) == 1:
+                    break
+                lay = self.region2layout[r]
+                next_lay = self.region2layout[sorted_regions[i + 1]]
+                tentative_first_row_width += lay.width + max(
+                    min_xpad, xpadfrac * lay.width
+                )
+                # inspired by bandage:
+                # https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/ogdf/energybased/MAARPacking.cpp#L107
+                wratio = lay.width / next_lay.width
+                if wratio > 2:
+                    # choose this point to cut off the first row
+                    row_width = tentative_first_row_width
+                    break
+                i += 1
+            if row_width is None:
+                # sqrt() inspired by https://www.graphviz.org/pdf/gvpack.1.pdf
+                row_width = math.sqrt(sum(areas)) * 3.5
+        else:
+            row_width = widths[0]
 
         x = 0
         y = 0
@@ -159,17 +195,17 @@ class DrawResults(object):
         row2y = {curr_row: 0}
         row2max_height = {}
         # pass 1: compute region positions and row heights
-        for r in self.get_sorted_regions():
-            r2xrow[r] = (x, curr_row)
+        for r in sorted_regions:
             lay = self.region2layout[r]
-            x += lay.width
-            curr_row_max_height = max(curr_row_max_height, lay.height)
-            if x >= row_width:
-                # if the first row is REALLY long (due to maybe including a
-                # rightmost Layout that is kind of wide), let this extend
-                # row_width accordingly. this makes the drawing look nicer
-                if curr_row == 0:
-                    row_width = x
+            cell_width = lay.width + max(min_xpad, xpadfrac * lay.width)
+            # don't include padding to the RIGHT of this region in
+            # the computation of if it can fit in this row. Because if
+            # the region fits, but the padding to the right of it doesn't,
+            # then that doesn't matter because we won't draw anything to
+            # the right of it in this row anyway.
+            if x > 0 and x + lay.width > row_width:
+                if x == 0:
+                    row_width = x + cell_width
                 row2max_height[curr_row] = curr_row_max_height
                 y += curr_row_max_height + max(
                     min_ypad, ypadfrac * curr_row_max_height
@@ -178,16 +214,17 @@ class DrawResults(object):
                 row2y[curr_row] = y
                 x = 0
                 curr_row_max_height = 0
-            else:
-                # don't let x padding be the reason a row overflows
-                # test case, as of writing: ccs "3-", Flye yeast graph
-                x += max(min_xpad, xpadfrac * lay.width)
+
+            r2xrow[r] = (x, curr_row)
+            x += cell_width
+            curr_row_max_height = max(curr_row_max_height, lay.height)
 
         if curr_row not in row2max_height:
             row2max_height[curr_row] = curr_row_max_height
 
         # pass 2: actually assign positions to elements
-        for r in self.get_sorted_regions():
+        eles = []
+        for r in sorted_regions:
             lay = self.region2layout[r]
             x, row = r2xrow[r]
             # vertically center stuff within the row
