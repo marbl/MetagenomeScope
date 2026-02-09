@@ -1,13 +1,13 @@
 /* Certain operations (like calling cy.fit() to fit the display to everything
- * in the graph) are not accessible through Dash-Cytoscape's interface, as far
- * as I can tell.
+ * in the graph) are not accessible through Dash-Cytoscape's interface, at
+ * least as of writing.
  *
  * We can work around this by extracting the existing Cytoscape.js instance
  * after-the-fact and then using it to do stuff. There appears to be no
  * official, well-documented way to do this, but the secret evil way of
  * doing this is accessing the _cyreg.cy attribute of the DOM element
- * containing the Cytoscape.js instance (which we've named "cy" above).
- * This is from https://stackoverflow.com/a/52603597.
+ * containing the Cytoscape.js instance (which we've given the ID "cy" in
+ * main.py). This workaround is from https://stackoverflow.com/a/52603597.
  *
  * I am hesitant to rely on such a silly hack for this, but it appears that
  * this has remained unbroken for 7+ years now -- and it looks like lots of
