@@ -251,3 +251,7 @@ LABEL_STYLE = {
 PATTERN_LABEL_STYLE = {
     "text-valign": "top",
 }
+
+# selected nodes and edges get a very light blue as their text outline color
+# to distinguish them from non-selected edges
+SELECTED_OBJ_OUTLINE_COLOR = "#dadaf7"

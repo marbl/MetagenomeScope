@@ -225,6 +225,14 @@ def get_cyjs_stylesheet(
                 if ui_config.LABEL_OUTLINE in node_label_settings:
                     nodelabelstyle["text-outline-color"] = "#fff"
                     nodelabelstyle["text-outline-width"] = 1
+                    stylesheet.append(
+                        {
+                            "selector": "node.nonpattern:selected",
+                            "style": {
+                                "text-outline-color": cy_config.SELECTED_OBJ_OUTLINE_COLOR,
+                            },
+                        }
+                    )
                 sty["style"].update(nodelabelstyle)
                 break
 
@@ -244,6 +252,17 @@ def get_cyjs_stylesheet(
                 "style": edgelabelstyle,
             }
         )
+        # we need to add this after the above edge.real selector in order to
+        # get this to take precedence
+        if ui_config.LABEL_OUTLINE in edge_label_settings:
+            stylesheet.append(
+                {
+                    "selector": "edge.real:selected",
+                    "style": {
+                        "text-outline-color": cy_config.SELECTED_OBJ_OUTLINE_COLOR,
+                    },
+                }
+            )
 
     if ui_config.PATTERN_LABELS in labels:
         for sty in stylesheet:
