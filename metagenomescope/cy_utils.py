@@ -264,7 +264,7 @@ def get_cyjs_stylesheet(
                 "selector": "edge:loop:selected",
                 "style": {
                     "line-opacity": 0.7,
-                }
+                },
             }
         )
         # we need to add this after the above edge.real selector in order to
