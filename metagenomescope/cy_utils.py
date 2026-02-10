@@ -319,7 +319,7 @@ def get_cyjs_stylesheet(
                 "target-arrow-color": cy_config.SELECTED_EDGE_COLOR,
                 "width": cy_config.SELECTED_EDGE_WIDTH,
                 "color": cy_config.SELECTED_EDGE_FONT_COLOR,
-                "z-index": "3",
+                "z-index": "4",
                 "z-index-compare": "manual",
             },
         }
