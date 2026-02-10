@@ -252,6 +252,21 @@ def get_cyjs_stylesheet(
                 "style": edgelabelstyle,
             }
         )
+        # Make selected loop edges semitransparent, to make it easier to view
+        # the labels associated with selected loop edges when there are many
+        # parallel loops on the same node (this is the case for e.g. the Flye
+        # yeast test graph). It's not currently possible to draw edge labels
+        # on a higher z-index than edges themselves
+        # (https://github.com/cytoscape/cytoscape.js/issues/1900) so this
+        # works around that.
+        stylesheet.append(
+            {
+                "selector": "edge:loop:selected",
+                "style": {
+                    "line-opacity": 0.7,
+                }
+            }
+        )
         # we need to add this after the above edge.real selector in order to
         # get this to take precedence
         if ui_config.LABEL_OUTLINE in edge_label_settings:
