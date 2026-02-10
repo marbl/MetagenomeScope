@@ -573,7 +573,11 @@ MetagenomeScope's code is distributed with [Bootstrap](https://getbootstrap.com/
 
 ## Acknowledgements
 
-Thanks to various people in the Pop, Knight, and Pevzner Labs over the years for feedback and suggestions on the tool.
+Thanks to various people in the Pop, Knight, and Pevzner Labs over the years for their kind feedback and helpful suggestions.
+
+Thanks also to the developers of the many excellent open-source software packages used by MetagenomeScope. In particular,
+[Graphviz](https://graphviz.org/) (graph layout) and [Cytoscape.js](https://js.cytoscape.org/) (interactive graph drawing)
+have been extremely helpful tools throughout the development of this project.
 
 ## Contact
 
