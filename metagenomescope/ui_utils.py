@@ -889,14 +889,18 @@ def get_node_names(val):
     return node_names
 
 
-def get_fancy_node_name_list(node_names, quote=True):
+def get_fancy_node_name_list(node_names, quote=True, bracket=False):
     # sorting the node names makes these error messages easier to read for the
     # user, i think. it also makes testing easier
     if quote:
         sn = [f'"{n}"' for n in sorted(node_names)]
     else:
         sn = sorted(node_names)
-    return ", ".join(sn)
+    out = ", ".join(sn)
+    if bracket:
+        return f"[{out}]"
+    else:
+        return out
 
 
 def fail_if_unfound_nodes(unfound_nodes):

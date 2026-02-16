@@ -22,7 +22,7 @@
 # because god hates me personally!
 from .node import Node
 from .pattern_stats import PatternStats
-from metagenomescope import config, cy_config, misc_utils
+from metagenomescope import config, cy_config, misc_utils, ui_utils
 from metagenomescope.errors import WeirdError
 
 
@@ -152,6 +152,30 @@ class Pattern(Node):
             f"nodes {self.get_node_ids()} from {self.start_node_ids} to "
             f"{self.end_node_ids}"
         )
+
+    def pretty_print(self):
+        node_names = []
+        start_names = []
+        end_names = []
+        for n in self.nodes:
+            node_names.append(n.name)
+            if n.unique_id in self.start_node_ids:
+                start_names.append(n.name)
+            # currently we should never have a node be both the start and end
+            # of the same pattern, but let's future proof this and allow that
+            # here
+            if n.unique_id in self.end_node_ids:
+                end_names.append(n.name)
+        nn = ui_utils.get_fancy_node_name_list(
+            node_names, quote=False, bracket=True
+        )
+        sn = ui_utils.get_fancy_node_name_list(
+            start_names, quote=False, bracket=True
+        )
+        en = ui_utils.get_fancy_node_name_list(
+            end_names, quote=False, bracket=True
+        )
+        return f"({self.name} of {nn} from {sn} to {en})"
 
     def _absorb_child_pattern(self, child_pattern):
         """Merges a child Pattern's contents into this Pattern.

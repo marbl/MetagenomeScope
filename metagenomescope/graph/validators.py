@@ -14,7 +14,7 @@
 # catch patterns of patterns.)
 
 
-from metagenomescope import config, misc_utils
+from metagenomescope import config, misc_utils, ui_utils
 from metagenomescope.errors import WeirdError
 
 
@@ -89,16 +89,7 @@ class ValidationResults(object):
         return self.is_valid
 
     def __repr__(self):
-        """Returns a summary of these results for help with debugging.
-
-        References
-        ----------
-        I feel like every few months I go through the obligatory pilgrimage of
-        trying to remember if I should define __repr__(), __str__(), both, or
-        if I should just give up and move to Antarctica. Based on moshez'
-        excellent SO answer (https://stackoverflow.com/a/2626364) I have just
-        defined __repr__() here, which should be more than sufficient.
-        """
+        """Returns a summary of these results for help with quick debugging."""
         if self.is_valid:
             return (
                 f"Valid {config.PT2HR[self.pattern_type]} of nodes "
@@ -107,6 +98,36 @@ class ValidationResults(object):
             )
         else:
             return "Invalid pattern"
+
+    def pretty_print(self, nodeid2obj, pattid2obj):
+        """Returns a nicer summary using node names instead of IDs.
+
+        I guess there are tests where nodes don't necessarily have objects
+        they map to, hence why I am keeping the __repr__() implementation
+        around. But for debugging a graph where nodes have names and everything
+        this is useful.
+        """
+
+        def get_names(ids):
+            names = []
+            for i in ids:
+                if i in nodeid2obj:
+                    names.append(nodeid2obj[i].name)
+                else:
+                    names.append(pattid2obj[i].pretty_print())
+            return ui_utils.get_fancy_node_name_list(
+                names, quote=False, bracket=True
+            )
+
+        if self.is_valid:
+            return (
+                f"{config.PT2HR[self.pattern_type]} of "
+                f"{get_names(self.node_ids)} from "
+                f"{get_names(self.start_node_ids)} to "
+                f"{get_names(self.end_node_ids)}"
+            )
+        else:
+            return self.__repr__()
 
 
 def verify_node_in_graph(g, node_id):
