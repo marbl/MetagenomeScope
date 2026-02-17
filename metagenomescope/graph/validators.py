@@ -123,8 +123,8 @@ class ValidationResults(object):
 
         if self.is_valid:
             return (
-                f"{config.PT2HR[self.pattern_type]} of {{\n"
-                f"{get_names(self.node_ids)}\n  ===FROM===\n"
+                f"{config.PT2HR[self.pattern_type]} {{\n"
+                f"  ===FROM===\n"
                 f"{get_names(self.start_node_ids)}\n  ====TO====\n"
                 f"{get_names(self.end_node_ids)}\n"
                 "}"
