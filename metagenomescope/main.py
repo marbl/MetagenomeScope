@@ -2590,7 +2590,7 @@ def run(
             "type": image_type,
             "filename": ui_utils.get_screenshot_basename(),
             "action": "download",
-            "options": {"bg": cy_config.BG_COLOR},
+            "options": {"bg": cy_config.BG_COLOR, "scale": 5},
         }
 
     @callback(
