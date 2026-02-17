@@ -151,6 +151,11 @@ class AssemblyGraph(object):
         self.edgeid2obj = {}
         self.pattid2obj = {}
 
+        # This is just used for debugging, at the moment. Every time we call
+        # self._add_pattern() this increases by 1. This does not go down if a
+        # pattern is removed due to chain merging or something!
+        self.num_patterns_created = 0
+
         # "Extra" data for nodes / edges -- e.g. length, GC content, coverage,
         # multiplicity, ... -- will be updated based on what we see in
         # self._init_graph_objs().
@@ -844,6 +849,16 @@ class AssemblyGraph(object):
         pattern_id = self._get_unique_id()
         self.decomposed_graph.add_node(pattern_id)
         patt_node_ids = set(validation_results.node_ids)
+        self.num_patterns_created += 1
+        # NOTE: Log detailed information about every pattern we add. Useful for
+        # debugging, but should otherwise be turned off. There does not seem
+        # to be an easy and recommended way to add a logging level below debug
+        # (see https://stackoverflow.com/q/9042919), so for now i think keeping
+        # this turned off unless you uncomment this makes sense
+        # print(
+        #    f"{self.num_patterns_created:,}. Adding pattern",
+        #    validation_results.pretty_print(self.nodeid2obj, self.pattid2obj),
+        # )
 
         # We will need to create new Node(s) if we split the start and/or end
         # Node(s) of the pattern. If we create any new Nodes, we'll store their
