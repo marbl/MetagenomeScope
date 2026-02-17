@@ -14,7 +14,7 @@
 # catch patterns of patterns.)
 
 
-from metagenomescope import config, misc_utils, ui_utils
+from metagenomescope import config, misc_utils
 from metagenomescope.errors import WeirdError
 
 
@@ -108,23 +108,26 @@ class ValidationResults(object):
         this is useful.
         """
 
+        indent = "  "
+
         def get_names(ids):
-            names = []
+            out = ""
             for i in ids:
+                if len(out) > 0:
+                    out += ",\n"
                 if i in nodeid2obj:
-                    names.append(nodeid2obj[i].name)
+                    out += indent + nodeid2obj[i].name
                 else:
-                    names.append(pattid2obj[i].pretty_print())
-            return ui_utils.get_fancy_node_name_list(
-                names, quote=False, bracket=True
-            )
+                    out += indent + pattid2obj[i].pretty_print(indent)
+            return out
 
         if self.is_valid:
             return (
-                f"{config.PT2HR[self.pattern_type]} of "
-                f"{get_names(self.node_ids)} from "
-                f"{get_names(self.start_node_ids)} to "
-                f"{get_names(self.end_node_ids)}"
+                f"{config.PT2HR[self.pattern_type]} of {{\n"
+                f"{get_names(self.node_ids)}\n  ===FROM===\n"
+                f"{get_names(self.start_node_ids)}\n  ====TO====\n"
+                f"{get_names(self.end_node_ids)}\n"
+                "}"
             )
         else:
             return self.__repr__()
