@@ -900,8 +900,8 @@ class AssemblyGraph(object):
                 for g in (self.graph, self.decomposed_graph):
                     g.add_node(left_node_id)
 
-                # Route edges from start_incoming_nodes_outside_pattern to
-                # the left node.
+                # Route incoming edges on this start node from outside the
+                # pattern to the newly created left split node.
                 #
                 # We go through self.graph and self.decomposed_graph separately
                 # -- this way we don't have to worry about edge keys matching
@@ -911,10 +911,7 @@ class AssemblyGraph(object):
                         start_id, keys=True, data=True
                     )
                 ):
-                    if (
-                        incoming_node_id
-                        in start_incoming_nodes_outside_pattern
-                    ):
+                    if incoming_node_id not in patt_node_ids:
                         uid = data["uid"]
                         # When we collapse this pattern into a single node in
                         # the decomposed graph, the new split node will still
@@ -937,10 +934,7 @@ class AssemblyGraph(object):
                 for incoming_node_id, _, key, data in list(
                     self.graph.in_edges(start_id, keys=True, data=True)
                 ):
-                    if (
-                        incoming_node_id
-                        in start_incoming_nodes_outside_pattern
-                    ):
+                    if incoming_node_id not in patt_node_ids:
                         uid = data["uid"]
                         self.graph.add_edge(
                             incoming_node_id, left_node_id, uid=uid
@@ -998,14 +992,14 @@ class AssemblyGraph(object):
                 )
                 for g in (self.graph, self.decomposed_graph):
                     g.add_node(right_node_id)
-                # Route edges from the right node to
-                # end_outgoing_nodes_outside_pattern
+                # Route outgoing edges of this end node to nodes outside the
+                # pattern to now come from the newly created right split node.
                 for _, outgoing_node_id, key, data in list(
                     self.decomposed_graph.out_edges(
                         end_id, keys=True, data=True
                     )
                 ):
-                    if outgoing_node_id in end_outgoing_nodes_outside_pattern:
+                    if outgoing_node_id not in patt_node_ids:
                         uid = data["uid"]
                         self.edgeid2obj[uid].reroute_src(right_node_id)
                         self.edgeid2obj[uid].reroute_dec_src(right_node_id)
@@ -1019,7 +1013,7 @@ class AssemblyGraph(object):
                 for _, outgoing_node_id, key, data in list(
                     self.graph.out_edges(end_id, keys=True, data=True)
                 ):
-                    if outgoing_node_id in end_outgoing_nodes_outside_pattern:
+                    if outgoing_node_id not in patt_node_ids:
                         uid = data["uid"]
                         self.graph.add_edge(
                             right_node_id, outgoing_node_id, uid=uid

@@ -610,6 +610,17 @@ def test_chr15_pattern_resolution_fixed():
     ag = AssemblyGraph(gv_fn)
     _check_ag_topology_matches_gv(ag, gv_fn)
 
+def test_chr15_splitnode99bug_fixed():
+    """Tests that the issue detailed in https://github.com/marbl/MetagenomeScope/issues/382
+    is resolved. Swapping the order of the nodes in the chr15 graph swaps
+    the order in which stuff happens in the decomposition, so this different
+    version triggers this bug. WEIRD
+    """
+    gv_fn = "metagenomescope/tests/input/chr15_subgraph_noids.gv"
+    ag = AssemblyGraph(gv_fn)
+    _check_ag_topology_matches_gv(ag, gv_fn)
+
+
 
 def test_bubble_on_end_of_chain_etfe_trimming():
     r"""The input graph looks like
