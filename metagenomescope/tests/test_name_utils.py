@@ -139,6 +139,24 @@ def test_sanity_check_node_name_commas():
     )
 
 
+def test_sanity_check_edge_id_surrounding_whitespace():
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_edge_id("abcdef ")
+    assert str(ei.value) == (
+        'An edge with the ID "abcdef " exists in the graph. Edges cannot '
+        "have IDs that start or end with whitespace."
+    )
+
+
+def test_sanity_check_edge_id_commas():
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_edge_id("123.3447,190")
+    assert str(ei.value) == (
+        'An edge with the ID "123.3447,190" exists in the graph. Edges cannot '
+        "have IDs that contain commas."
+    )
+
+
 def test_has_leftsplit_suffix():
     assert nu.has_leftsplit_suffix("40-L")
     assert nu.has_leftsplit_suffix("asdf-L")

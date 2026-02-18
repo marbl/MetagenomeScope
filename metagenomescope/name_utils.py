@@ -46,35 +46,57 @@ def get_splitname_base(name):
     raise WeirdError(f"Node name {name} does not have a split suffix?")
 
 
-def sanity_check_node_name(name):
-    """Ensures that a node name seems reasonable."""
+def _sanity_check_name(name, node=True):
+    if node:
+        aobj = "A node"
+        objs = "Nodes"
+        named = "named"
+        lbl = "name"
+    else:
+        # ABSURDLY obsessive nobody is going to ever even see this error msg
+        # the dsm-6 is going to be just screenshots of this code
+        aobj = "An edge"
+        objs = "Edges"
+        named = "with the ID"
+        lbl = "ID"
 
     if len(name) == 0:
         raise GraphParsingError(
-            "A node with an empty name exists in the graph?"
+            f"{aobj} with an empty {lbl} exists in the graph?"
         )
 
-    errprefix = f'A node named "{name}" exists in the graph.'
+    errprefix = f'{aobj} {named} "{name}" exists in the graph.'
 
     if name.strip() != name:
         raise GraphParsingError(
-            f"{errprefix} Nodes cannot have names that start or end with "
+            f"{errprefix} {objs} cannot have {lbl}s that start or end with "
             "whitespace."
         )
 
-    # Node names shouldn't end in -L or -R
-    # https://github.com/marbl/MetagenomeScope/issues/272
-    if has_split_suffix(name):
-        raise GraphParsingError(
-            f"{errprefix} Nodes cannot have names that end in "
-            f'"{config.SPLIT_LEFT_SUFFIX}" or '
-            f'"{config.SPLIT_RIGHT_SUFFIX}".'
-        )
+    if node:
+        # Node names shouldn't end in -L or -R
+        # https://github.com/marbl/MetagenomeScope/issues/272
+        if has_split_suffix(name):
+            raise GraphParsingError(
+                f"{errprefix} {objs} cannot have {lbl}s that end in "
+                f'"{config.SPLIT_LEFT_SUFFIX}" or '
+                f'"{config.SPLIT_RIGHT_SUFFIX}".'
+            )
 
     if "," in name:
         raise GraphParsingError(
-            f"{errprefix} Nodes cannot have names that contain commas."
+            f"{errprefix} {objs} cannot have {lbl}s that contain commas."
         )
+
+
+def sanity_check_node_name(name):
+    """Ensures that a node name seems reasonable."""
+    return _sanity_check_name(name, node=True)
+
+
+def sanity_check_edge_id(eid):
+    """Ensures that an edge ID seems reasonable."""
+    return _sanity_check_name(eid, node=False)
 
 
 def condense_splits(node_names):

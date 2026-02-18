@@ -73,6 +73,15 @@ def test_sanity_checking_already_splitsuffix():
     )
 
 
+def test_sanity_checking_messedup_edge_id():
+    with pytest.raises(GraphParsingError) as ei:
+        AssemblyGraph("metagenomescope/tests/input/empty_id.gv")
+    assert str(ei.value) == (
+        'An edge with the ID "123,45" exists in the graph. Edges cannot '
+        "have IDs that contain commas."
+    )
+
+
 def test_validate_nonempty_zero_nodes_gml():
     # https://github.com/marbl/MetagenomeScope/issues/279
     with pytest.raises(GraphParsingError) as ei:

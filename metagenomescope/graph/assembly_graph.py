@@ -483,6 +483,10 @@ class AssemblyGraph(object):
             data = deepcopy(e[3])
             new_edge = Edge(edge_id, e[0], e[1], data)
             self.edgeid2obj[edge_id] = new_edge
+            if new_edge.has_userspecified_id():
+                name_utils.sanity_check_edge_id(
+                    new_edge.get_userspecified_id()
+                )
 
             self.extra_edge_attrs |= set(data.keys())
             for a in self.extra_edge_attrs:
