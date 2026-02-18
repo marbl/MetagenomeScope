@@ -130,6 +130,15 @@ def test_sanity_check_node_name_surrounding_whitespace():
     )
 
 
+def test_sanity_check_node_name_commas():
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_node_name("123,456")
+    assert str(ei.value) == (
+        'A node named "123,456" exists in the graph. Nodes cannot have names '
+        "that contain commas."
+    )
+
+
 def test_has_leftsplit_suffix():
     assert nu.has_leftsplit_suffix("40-L")
     assert nu.has_leftsplit_suffix("asdf-L")

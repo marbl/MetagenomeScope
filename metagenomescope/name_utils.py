@@ -54,19 +54,26 @@ def sanity_check_node_name(name):
             "A node with an empty name exists in the graph?"
         )
 
+    errprefix = f'A node named "{name}" exists in the graph.'
+
     if name.strip() != name:
         raise GraphParsingError(
-            f'A node named "{name}" exists in the graph. Nodes cannot have '
-            "names that start or end with whitespace."
+            f"{errprefix} Nodes cannot have names that start or end with "
+            "whitespace."
         )
 
     # Node names shouldn't end in -L or -R
     # https://github.com/marbl/MetagenomeScope/issues/272
     if has_split_suffix(name):
         raise GraphParsingError(
-            f'A node named "{name}" exists in the graph. Nodes cannot have '
-            f'names that end in "{config.SPLIT_LEFT_SUFFIX}" or '
+            f"{errprefix} Nodes cannot have names that end in "
+            f'"{config.SPLIT_LEFT_SUFFIX}" or '
             f'"{config.SPLIT_RIGHT_SUFFIX}".'
+        )
+
+    if "," in name:
+        raise GraphParsingError(
+            f"{errprefix} Nodes cannot have names that contain commas."
         )
 
 
