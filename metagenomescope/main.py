@@ -865,9 +865,12 @@ def run(
                         html.Div(
                             [
                                 ctrl_sep_invis,
-                                html.H5("Font size"),
+                                html.H5("Options"),
                                 dbc.InputGroup(
                                     [
+                                        dbc.InputGroupText(
+                                            "Font size",
+                                        ),
                                         dbc.Input(
                                             type="text",
                                             id="labelFontSize",
@@ -959,6 +962,31 @@ def run(
                                     id="panelExportButton",
                                     className="btn btn-light",
                                     type="button",
+                                ),
+                            ],
+                        ),
+                        html.Div(
+                            [
+                                ctrl_sep_invis,
+                                dbc.InputGroup(
+                                    [
+                                        dbc.InputGroupText(
+                                            "Scaling factor",
+                                        ),
+                                        dbc.Input(
+                                            type="text",
+                                            id="imageScalingFactor",
+                                            value=5,
+                                            className="short-num-input",
+                                        ),
+                                        dbc.InputGroupText(
+                                            "x",
+                                        ),
+                                    ],
+                                    size="sm",
+                                    style={
+                                        "justify-content": "center",
+                                    },
                                 ),
                             ],
                         ),
@@ -2576,22 +2604,61 @@ def run(
         return out_toasts, out_stylesheet
 
     @callback(
+        Output("toastHolder", "children", allow_duplicate=True),
         Output("cy", "generateImage"),
+        State("toastHolder", "children"),
         State("imageTypeRadio", "value"),
+        State("imageScalingFactor", "value"),
         Input("panelExportButton", "n_clicks"),
         Input("floatingExportButton", "n_clicks"),
+        Input("imageScalingFactor", "n_submit"),
         prevent_initial_call=True,
     )
-    def export_screenshot(image_type, panel_n_clicks, floating_n_clicks):
+    def export_screenshot(
+        curr_toasts,
+        image_type,
+        scale,
+        panel_nclicks,
+        floating_nclicks,
+        scale_nsubmit,
+    ):
+        try:
+            # This should be > 0, of course. Regarding the upper limit of <= 15...
+            # I tried out a bunch of options on the chr15_subgraph test graph, and
+            # found that when the scaling factor got big enough Cytoscape.js
+            # would just not do anything? I think there are browser limitations
+            # regarding massive images that might explain this. Anyway, we
+            # might be able to mess around with the Dash-Cytoscape "action"
+            # setting / the cy.png()/jpg() "output" settings to output really
+            # big images, but for now this is ok
+            sf = ui_utils.get_num(
+                scale,
+                "Scaling factor",
+                min_val=0,
+                min_incl=False,
+                max_val=15,
+                max_incl=True,
+                integer=False,
+            )
+        except UIError as err:
+            return (
+                ui_utils.add_error_toast(
+                    curr_toasts, "Screenshot error", str(err)
+                ),
+                no_update,
+            )
         # see https://dash.plotly.com/cytoscape/images for a high-level
         # tutorial, and https://github.com/plotly/dash-cytoscape/blob/f96e760f3b84c3f4d7ecbfaa905e9d57c698456d/dash_cytoscape/Cytoscape.py#L194
         # for detailed options
-        return {
-            "type": image_type,
-            "filename": ui_utils.get_screenshot_basename(),
-            "action": "download",
-            "options": {"bg": cy_config.BG_COLOR, "scale": 5},
-        }
+        return (
+            no_update,
+            {
+                "type": image_type,
+                "filename": ui_utils.get_screenshot_basename(),
+                "action": "download",
+                "options": {"bg": cy_config.BG_COLOR, "scale": sf},
+            },
+        )
 
     @callback(
         Output("statsDownload", "data"),
