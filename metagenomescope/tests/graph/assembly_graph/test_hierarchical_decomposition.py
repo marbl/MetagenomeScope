@@ -622,6 +622,25 @@ def test_chr15_splitnode99bug_fixed():
     _check_ag_topology_matches_gv(ag, gv_fn)
 
 
+def test_chr15_full_chain_merging_bug_fixed():
+    """Tests https://github.com/marbl/MetagenomeScope/issues/383 is fixed."""
+    gv_fn = "metagenomescope/tests/input/chr15_full.gv"
+    ag = AssemblyGraph(gv_fn)
+    assert len(ag.components) == 1
+    assert len(ag.nodename2objs["-200915910"]) == 1
+    assert len(ag.nodename2objs["200915910"]) == 1
+    n = ag.nodename2objs["-200915910"][0]
+    in_edges = list(ag.graph.in_edges(n.unique_id))
+    out_edges = list(ag.graph.out_edges(n.unique_id))
+    assert len(in_edges) == 1
+    assert len(out_edges) == 2
+    in_id = in_edges[0][0]
+    out_ids = [e[1] for e in out_edges]
+    assert ag.nodeid2obj[in_id].name == "-105993978"
+    out_names = [ag.nodeid2obj[i].name for i in out_ids]
+    assert sorted(out_names) == ["-105993978", "43892573"]
+
+
 def test_bubble_on_end_of_chain_etfe_trimming():
     r"""The input graph looks like
 

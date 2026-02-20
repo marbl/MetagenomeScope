@@ -57,4 +57,7 @@ now they're immortalized here as regression tests.
 Similarly, `chr15_subgraph.gv` is a subgraph of a de Bruijn graph produced by
 jumboDBG from the chromosome 15 haplome from version 2.0 of the
 [CHM13](https://github.com/marbl/CHM13) assembly.
-
+`chr15_subgraph_noids.gv` is a differently-formatted version of this subgraph,
+and `chr15_full.gv` is (I think??? It's been like three years) the full version of the
+chromosome 15 graph. Somehow each of these caused a different bug. So now they are all
+immortalized shamefully as regression tests >:)
