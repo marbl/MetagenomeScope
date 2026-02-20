@@ -557,9 +557,6 @@ I have some ideas for dealing with these bottlenecks, but thankfully there are a
   rendering process ([#262](https://github.com/marbl/MetagenomeScope/issues/262)). If this
   happens to you, you can refresh the page to get Cytoscape.js working again.
 
-- **Decomposition crashing:** Rarely, chain merging may cause the pattern decomposition process to
-  crash. This seems to mostly impact edge-centric graphs. Please let us know if you run into this issue.
-
 ## Development documentation
 
 See [`CONTRIBUTING.md`](https://github.com/marbl/MetagenomeScope/blob/main/CONTRIBUTING.md).
