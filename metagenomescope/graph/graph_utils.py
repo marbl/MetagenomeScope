@@ -22,6 +22,167 @@ def get_only_connecting_edge_uid(g, src_id, tgt_id):
     return g.edges[src_id, tgt_id, 0]["uid"]
 
 
+def check_not_splitting_a_loop(nid0, nid1, nodeid2obj):
+    """Raises an error if we are trying to split a node with a loop edge.
+
+    Parameters
+    ----------
+    nid0: int
+    nid1: int
+        These represent the two endpoints of an edge adjacent to a node that
+        we are trying to split. If they are the same, then we're trying to
+        split a node with at least one loop edge! Oh no! Don't do that.
+
+    nodeid2obj: dict of int -> Node
+
+    Notes
+    -----
+    In theory supporting this is totally possible, but it should never happen
+    (given the sort of patterns we currently identify) and supporting this
+    would introduce some truly hideous complexity, I think. Best to just
+    proactively catch these cases and add support later if absolutely needed.
+    """
+    if nid0 == nid1:
+        raise WeirdError(
+            f"Trying to split node {nodeid2obj[nid0]}, which has at least one "
+            "edge pointing to itself? This should never happen."
+        )
+
+
+def get_split_halves(basename, nodename2obj):
+    # If either XYZ-L or XYZ-R is not in the graph, these lines will throw a
+    # KeyError, which is well and good. better to crash and burn than to show a
+    # subtly incorrect graph. let our python interpreter be the first to cast
+    # it into the fire or something idk
+    left = nodename2obj[basename + config.SPLIT_LEFT_SUFFIX]
+    right = nodename2obj[basename + config.SPLIT_RIGHT_SUFFIX]
+    return left, right
+
+
+def check_and_get_fake_edge_id(g, left, right, edgeid2obj):
+    # There should be a single fake edge XYZ-L ==> XYZ-R
+    fe_id = get_only_connecting_edge_uid(g, left.unique_id, right.unique_id)
+    if not edgeid2obj[fe_id].is_fake:
+        raise WeirdError(
+            f'Edge ID "{fe_id}" connects {left} and {right} but is not fake?'
+        )
+    return fe_id
+
+
+def check_node_split_properly(g, basename, nodename2obj, edgeid2obj):
+    left, right = get_split_halves(basename, nodename2obj)
+    return left, right, check_and_get_fake_edge_id(g, left, right, edgeid2obj)
+
+
+def get_one_side_of_edge_ids(g, node_id, in_edges=True):
+    eids = set()
+    if in_edges:
+        f = g.in_edges
+    else:
+        f = g.out_edges
+    for _, _, data in f(node_id, data=True):
+        eid = data["uid"]
+        if eid in eids:
+            raise WeirdError(f'Edge ID "{eid}" occurs twice?')
+        eids.add(eid)
+    return eids
+
+
+def check_surrounding_edge_ids_unchanged(g0, g1, nid0, nid1):
+    # Note that if this node has edge(s) to itself then they will be classified
+    # as both in- and out-edges. This is fine!
+    i0 = get_one_side_of_edge_ids(g0, nid0, in_edges=True)
+    i1 = get_one_side_of_edge_ids(g1, nid1, in_edges=True)
+    if i0 != i1:
+        raise WeirdError(f"In-edge IDs changed from {i0} to {i1}")
+    o0 = get_one_side_of_edge_ids(g0, nid0, in_edges=False)
+    o1 = get_one_side_of_edge_ids(g1, nid1, in_edges=False)
+    if o0 != o1:
+        raise WeirdError(f"Out-edge IDs changed from {o0} to {o1}")
+
+
+def check_surrounding_edge_ids_of_split(
+    g0, g1, basename, original_node_id, nodename2obj, edgeid2obj
+):
+    # check that merging the in edges and out edges of the L and R
+    # nodes matches the original edges incident on the original
+    # unsplit node (noting that due to cyclic pattern jank there
+    # may be out-edges on the L node and in-edges on the R node)
+    left, right, fe_id = check_node_split_properly(
+        g1, basename, nodename2obj, edgeid2obj
+    )
+
+    # left (in and out)
+    li = get_one_side_of_edge_ids(g1, left.unique_id, in_edges=True)
+    lo = get_one_side_of_edge_ids(g1, left.unique_id, in_edges=False)
+    # right (in and out)
+    ri = get_one_side_of_edge_ids(g1, right.unique_id, in_edges=True)
+    ro = get_one_side_of_edge_ids(g1, right.unique_id, in_edges=False)
+
+    if li & ri:
+        raise WeirdError(f"Overlapping in-edges: {left}, {right}, {li}, {ri}")
+    if lo & ro:
+        raise WeirdError(f"Overlapping out-edges: {left}, {right}, {lo}, {ro}")
+
+    # super paranoid, check_node_split_properly() should already
+    # have verified this. so this should ESPECIALLY never happen
+    if fe_id not in lo or fe_id not in ri:
+        raise WeirdError(f"Fake edge doesn't connect {left} and {right}?")
+
+    if fe_id in li or fe_id in ro:
+        # this DEFINITELY won't happen, call a priest if it does
+        raise WeirdError(f"Fake edge is in on {left} and/or out on {right}???")
+
+    lo.remove(fe_id)
+    ri.remove(fe_id)
+
+    # original node (in and out)
+    oi = get_one_side_of_edge_ids(g0, original_node_id, in_edges=True)
+    oo = get_one_side_of_edge_ids(g0, original_node_id, in_edges=False)
+
+    new_in = li | ri
+    new_out = lo | ro
+
+    # error messages could def be made more informative...
+    if oi | oo != new_in | new_out:
+        raise WeirdError(f"Inconsistent edge IDs for {basename}")
+    # i guess these address the insane case where like,
+    # oi | oo == new_in | new_out (i.e. the surrounding edge IDs are identical)
+    # but which is in and which is out gets swapped. should never happen.
+    if oi != new_in:
+        raise WeirdError(f"Inconsistent in edge IDs for {basename}")
+    if oo != new_out:
+        raise WeirdError(f"Inconsistent out edge IDs for {basename}")
+
+
+def check_surrounding_node_basenames_unchanged(
+    eobj, nodeid2obj, deletednodeid2counterpartid, orig_src_id, orig_tgt_id
+):
+    # Account for how the original nodes might have been split, deemed
+    # unnecessarily, and then replaced by their counterpart. This is super lazy
+    # I'm so sorry :(((((
+    if orig_src_id not in nodeid2obj:
+        orig_src_id = deletednodeid2counterpartid[orig_src_id]
+    if orig_tgt_id not in nodeid2obj:
+        orig_tgt_id = deletednodeid2counterpartid[orig_tgt_id]
+    orig_src_obj = nodeid2obj[orig_src_id]
+    orig_tgt_obj = nodeid2obj[orig_tgt_id]
+    new_src_obj = nodeid2obj[eobj.new_src_id]
+    new_tgt_obj = nodeid2obj[eobj.new_tgt_id]
+    # should still connect nodes with these basenames. Maybe one or
+    # both of these nodes is split, but they should still be connected
+    if orig_src_obj.basename != new_src_obj.basename:
+        raise WeirdError(
+            f'Edge "{eobj}" no longer originates from a node with '
+            f'basename "{orig_src_obj.basename}"?'
+        )
+    if orig_tgt_obj.basename != new_tgt_obj.basename:
+        raise WeirdError(
+            f'Edge "{eobj}" no longer points to a node with '
+            f'basename "{orig_tgt_obj.basename}"?'
+        )
+
+
 def validate_nonempty(ag):
     """Raises an error if an AssemblyGraph has 0 nodes and/or edges.
 

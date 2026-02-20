@@ -55,9 +55,14 @@ class AssemblyGraph(object):
     the decomposed graph with their child nodes and edges, then the resulting
     graph should be equivalent to the uncollapsed graph stored in .graph.)
 
+    NEW: As of February 2026 we also create a .original_graph object, which
+    is just used for sanity-checking. It should remain identical to the .graph
+    object's structure, if you were to ignore the results of node splitting
+    during the decomposition.
+
     References
     ----------
-    CODELINK: This "composition" paradigm was based on this post:
+    This "composition" paradigm was based on this post:
     https://www.thedigitalcatonline.com/blog/2014/08/20/python-3-oop-part-3-delegation-composition-and-inheritance/
     """
 
@@ -151,6 +156,18 @@ class AssemblyGraph(object):
         self.edgeid2obj = {}
         self.pattid2obj = {}
 
+        # Splitting a node with ID "x" creates another node with a different
+        # ID "y". Both of these nodes might stick around after the
+        # decomposition, or one of them might be deemed "unnecessary" and
+        # removed (with the other becoming the main version of this node).
+        #
+        # When we sanity-check self.graph after the decomposition (compared to
+        # self.original_graph), we might no longer see an ID "x" -- if it was
+        # deemed unnecessary. To be able to reconcile node ID "y" with the
+        # "x" in self.original_graph, we create this simple mapping of each
+        # deleted node ID to its counterpart ID.
+        self.deletednodeid2counterpartid = {}
+
         # This is just used for debugging, at the moment. Every time we call
         # self._add_pattern() this increases by 1. This does not go down if a
         # pattern is removed due to chain merging or something!
@@ -224,8 +241,9 @@ class AssemblyGraph(object):
         }
 
         logger.debug("  Decomposing the assembly graph...")
-        logger.debug("    Creating a copy of the graph...")
+        logger.debug("    Creating copies of the graph...")
         self.decomposed_graph = deepcopy(self.graph)
+        self.original_graph = deepcopy(self.graph)
         logger.debug("    ...Done.")
 
         logger.debug("    Hierarchically identifying patterns in the graph...")
@@ -860,8 +878,8 @@ class AssemblyGraph(object):
         # (see https://stackoverflow.com/q/9042919), so for now i think keeping
         # this turned off unless you uncomment this makes sense
         # print(
-        #    f"{self.num_patterns_created:,}. Adding pattern",
-        #    validation_results.pretty_print(self.nodeid2obj, self.pattid2obj),
+        #     f"{self.num_patterns_created:,}. Adding pattern",
+        #     validation_results.pretty_print(self.nodeid2obj, self.pattid2obj),
         # )
 
         # We will need to create new Node(s) if we split the start and/or end
@@ -915,6 +933,9 @@ class AssemblyGraph(object):
                         start_id, keys=True, data=True
                     )
                 ):
+                    graph_utils.check_not_splitting_a_loop(
+                        incoming_node_id, start_id, self.nodeid2obj
+                    )
                     if incoming_node_id not in patt_node_ids:
                         uid = data["uid"]
                         # When we collapse this pattern into a single node in
@@ -1003,6 +1024,9 @@ class AssemblyGraph(object):
                         end_id, keys=True, data=True
                     )
                 ):
+                    graph_utils.check_not_splitting_a_loop(
+                        outgoing_node_id, end_id, self.nodeid2obj
+                    )
                     if outgoing_node_id not in patt_node_ids:
                         uid = data["uid"]
                         self.edgeid2obj[uid].reroute_src(right_node_id)
@@ -1328,11 +1352,122 @@ class AssemblyGraph(object):
                         )
                     break
 
+        logger = logging.getLogger(__name__)
+
+        logger.debug("      Removing unnecessary split nodes...")
         self._remove_unnecessary_split_nodes()
+        logger.debug("      ...Done.")
+
+        logger.debug(
+            "      Sanity-checking the graph structure out of paranoia..."
+        )
+        self._sanity_check_graph()
+        logger.debug("      ...Done.")
 
         # No need to go through the nodes and edges in the top level of the
         # graph and record that they don't have a parent pattern -- their
         # parent_id attrs default to None
+
+    def _sanity_check_graph(self):
+        """Checks that decomposition didn't break the graph structure."""
+
+        # Create a mapping of node name -> Node object, and count how many
+        # times we see a node basename.
+        #
+        # We'll create a full version of the node name -> object mapping later,
+        # after decomposition, but for now this is a simpler thing that uses
+        # exact node names (i.e. if a node with name XYZ is split then XYZ-L
+        # and XYZ-R map to separate things, and XYZ doesn't map to anything)
+        nodename2obj = {}
+        basename2ct = defaultdict(int)
+        for nid in self.graph.nodes:
+            nobj = self.nodeid2obj[nid]
+            # Node names should be unique
+            # (even for split nodes, which should show up as XYZ-L and XYZ-R)
+            if nobj.name in nodename2obj:
+                raise WeirdError(
+                    f'Name "{nobj.name}" occurs twice in the graph?'
+                )
+            nodename2obj[nobj.name] = nobj
+            basename2ct[nobj.basename] += 1
+            # ... and node *basenames* should occur at most twice (XYZ, XYZ)
+            if basename2ct[nobj.basename] > 2:
+                raise WeirdError(
+                    f'Basename "{nobj.basename}" occurs > 2x in the graph?'
+                )
+
+        # Verify that basenames make sense and nodes are split properly
+        for bn in basename2ct.keys():
+            if basename2ct[bn] == 2:
+                # Both XYZ-L and XYZ-R should be present in the graph
+                graph_utils.check_node_split_properly(
+                    self.graph, bn, nodename2obj, self.edgeid2obj
+                )
+            else:
+                # Just XYZ should be in the graph
+                # (if we see e.g. just XYZ-L, then something is very wrong)
+                if bn not in nodename2obj:
+                    raise WeirdError(f'Basename "{bn}" not in the graph?')
+
+        # Verify that the original graph's nodes agree with the new graph
+        for original_node_id in self.original_graph.nodes:
+            # NOTE: There is the chance that a node ID (like, ID as in MgSc's
+            # internal ID of a node) from the original graph might not be
+            # in the graph after decomposition. This can happen if we split
+            # a node (creating an extra node with a new ID) and we decided
+            # that the original node was unecessary (in which case its
+            # counterpart, with a different ID but otherwise identical data,
+            # becomes the "canonical" version of this node).
+            #
+            # ... So let's check the basenames.
+            new_node_id = original_node_id
+            if original_node_id not in self.nodeid2obj:
+                if original_node_id not in self.deletednodeid2counterpartid:
+                    raise WeirdError(f'Node ID "{original_node_id}" missing?')
+                new_node_id = self.deletednodeid2counterpartid[
+                    original_node_id
+                ]
+            bn = self.nodeid2obj[new_node_id].basename
+            if bn not in basename2ct:
+                raise WeirdError(f'Node "{bn}" is no longer in the graph?')
+            elif basename2ct[bn] == 1:
+                # this node is unsplit
+                graph_utils.check_surrounding_edge_ids_unchanged(
+                    self.original_graph,
+                    self.graph,
+                    original_node_id,
+                    new_node_id,
+                )
+            else:
+                # this node is split
+                graph_utils.check_surrounding_edge_ids_of_split(
+                    self.original_graph,
+                    self.graph,
+                    bn,
+                    original_node_id,
+                    nodename2obj,
+                    self.edgeid2obj,
+                )
+
+        # Verify that the original graph's edges agree with the new graph
+        # I think this may be redundant in light of the checks above so maybe
+        # this can be removed if for some reason it becomes a bottleneck
+        for orig_src_id, orig_tgt_id, data in self.original_graph.edges(
+            data=True
+        ):
+            eid = data["uid"]
+            if eid not in self.edgeid2obj:
+                raise WeirdError(
+                    f'Edge "{eid}" btwn. IDs "{orig_src_id}" -> '
+                    f'"{orig_tgt_id}" is no longer in the graph?'
+                )
+            graph_utils.check_surrounding_node_basenames_unchanged(
+                self.edgeid2obj[eid],
+                self.nodeid2obj,
+                self.deletednodeid2counterpartid,
+                orig_src_id,
+                orig_tgt_id,
+            )
 
     def _remove_unnecessary_split_nodes(self):
         """Removes "unnecessary" split nodes from the graph.
@@ -1559,6 +1694,9 @@ class AssemblyGraph(object):
                     else:
                         self.decomposed_graph.remove_node(node_id)
                     counterpart.unsplit()
+                    self.deletednodeid2counterpartid[node_id] = (
+                        counterpart.unique_id
+                    )
                     del self.nodeid2obj[node_id]
                     del self.edgeid2obj[fe_id]
 
