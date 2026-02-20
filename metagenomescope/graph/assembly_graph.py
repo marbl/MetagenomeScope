@@ -1137,38 +1137,52 @@ class AssemblyGraph(object):
         patt_node_ids_post_merging = p.get_node_ids() + [
             t.unique_id for t in p.merged_child_chains
         ]
+        # Go through each thing within this Pattern (p) that used to be a
+        # chain but has now been merged into p
         for mcc in p.merged_child_chains:
             if mcc.pattern_type != config.PT_CHAIN:
                 raise WeirdError(f"Can't merge {mcc} into {p}?")
+
+            # Look at the nodes / collapsed patterns that have edges TO mcc
             pred = self.decomposed_graph.pred[mcc.unique_id]
-            # TODO: check for cascading effects, or lack thereof? and see WHERE
-            # the src/tgt rerouting of edge 336 is being done. if here, then
-            # i'd bet it should be reverting instead. how can we make that
-            # change? oh, maybe it's because none of the src/tgt of this edge
-            # is in patt_node_ids_post_merging; check if src/tgt are in
-            # p.merged_Child_chains, maybe, and handle specially? or something
-            # ^^^ 2025 update: i forget what the above text means. try it out
-            # with the "full" chr15 version maybe
             for incoming_node in pred:
+                # chains shouldn't point to themselves...
+                if incoming_node == mcc.unique_id:
+                    raise WeirdError(f"mcc {mcc} has a loop edge?")
+                # Is this node pointing to mcc also within the pattern p?
                 if incoming_node in patt_node_ids_post_merging:
+                    # Yes! So, route it in the dec graph to point to the start
+                    # node of mcc. Since mcc is a chain we know it has exactly
+                    # one start node, so this is safe.
+                    # See https://github.com/marbl/MetagenomeScope/issues/383.
                     for e in pred[incoming_node]:
                         self.edgeid2obj[
                             pred[incoming_node][e]["uid"]
-                        ].revert_dec_tgt()
+                        ].reroute_dec_tgt(mcc.start_node_ids[0])
                 else:
+                    # No! Since incoming_node is outside of p, just route it
+                    # in the dec graph to point to p.
                     for e in pred[incoming_node]:
                         self.edgeid2obj[
                             pred[incoming_node][e]["uid"]
                         ].reroute_dec_tgt(pattern_id)
 
+            # Look at the nodes / collapsed patterns that have edges FROM mcc
             adj = self.decomposed_graph.adj[mcc.unique_id]
             for outgoing_node in adj:
+                # chains shouldn't point to themselves...
+                if outgoing_node == mcc.unique_id:
+                    raise WeirdError(f"mcc {mcc} has a loop edge?")
+                # Is this node that mcc points to also within p?
                 if outgoing_node in patt_node_ids_post_merging:
+                    # Yes! Route it in the dec graph to come from the last node
+                    # of mcc.
                     for e in adj[outgoing_node]:
                         self.edgeid2obj[
                             adj[outgoing_node][e]["uid"]
-                        ].revert_dec_src()
+                        ].reroute_dec_src(mcc.end_node_ids[0])
                 else:
+                    # No! Route it in the dec graph to just come from p.
                     for e in adj[outgoing_node]:
                         self.edgeid2obj[
                             adj[outgoing_node][e]["uid"]
