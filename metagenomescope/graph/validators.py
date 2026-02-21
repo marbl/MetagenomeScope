@@ -675,11 +675,11 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
         for u in g.adj[v]:
             # if v points to the starting node then there is a cycle, and
             # per the definitions outlined in Onodera 2013 superbubbles must
-            # be acyclic. So we abort. (Although, that being said, we allow
-            # the "ending node" (or "exit node," or "sink node," or whatever
-            # you wanna call it... including all of that here for the sake of
-            # anyone grepping through this code) to have edge(s) to the
-            # starting node. See below.)
+            # be acyclic. So we abort. (Note that this is independent of
+            # whether or not we care if the "ending node" [or "exit node,"
+            # or "sink node," or whatever you wanna call it... including all of
+            # that here for the sake of anyone grepping through this code] has
+            # edge(s) to the starting node. That comes later.)
             if u == start_node_id:
                 return ValidationResults()
 
@@ -706,10 +706,11 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
 
             # What if there are edge(s) from t to the starting node?
             # Onodera et al. explicitly do not identify bubbles where this is
-            # the case, but here we *do* identify these sorts of bubbles. If
-            # you'd like to prevent this, you can comment out the block below.
-            # if start_node_id in g.adj[t]:
-            #     return ValidationResults()
+            # the case, but here we *do* identify these sorts of bubbles. ALSO
+            # now we disallow this! See
+            # https://github.com/marbl/MetagenomeScope/issues/241.
+            if start_node_id in g.adj[t]:
+                return ValidationResults()
 
             composite = list(nodeid2label.keys())
 
