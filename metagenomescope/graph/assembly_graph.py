@@ -1274,28 +1274,12 @@ class AssemblyGraph(object):
                     if validation_results:
                         # Seems like we found a pattern!
 
-                        # Disallow a pattern if it has a start node and end
-                        # node that are split where the counterparts share a
-                        # parent. This wards off jank situations like isolated
-                        # cyclic bubbles: see
+                        # Avoid jank cases like cyclic chains that will contain
+                        # only a bubble after chain merging: see
                         # https://github.com/marbl/MetagenomeScope/issues/241
-                        startcpart_parents = set()
-                        endcpart_parents = set()
-                        for sn in validation_results.start_node_ids:
-                            if sn in self.nodeid2obj and self.nodeid2obj[sn].is_split():
-                                # if it is a split node then it must be a real
-                                # node, not a collapsed pattern
-                                c = self.nodeid2obj[sn].counterpart_node_id
-                                cpart_parent_id = self.nodeid2obj[c].parent_id
-                                if cpart_parent_id is not None:
-                                    startcpart_parents.add(cpart_parent_id)
-                        for sn in validation_results.end_node_ids:
-                            if sn in self.nodeid2obj and self.nodeid2obj[sn].is_split():
-                                c = self.nodeid2obj[sn].counterpart_node_id
-                                cpart_parent_id = self.nodeid2obj[c].parent_id
-                                if cpart_parent_id is not None:
-                                    endcpart_parents.add(cpart_parent_id)
-                        if len(startcpart_parents & endcpart_parents) > 0:
+                        if graph_utils.counterparts_of_boundaries_share_parent(
+                            validation_results, self.nodeid2obj
+                        ):
                             continue
 
                         pobj, left_splits, right_splits = self._add_pattern(

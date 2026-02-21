@@ -22,6 +22,31 @@ def get_only_connecting_edge_uid(g, src_id, tgt_id):
     return g.edges[src_id, tgt_id, 0]["uid"]
 
 
+def get_counterpart_parent_ids(node_ids, nodeid2obj):
+    parent_ids = set()
+    for i in node_ids:
+        if i in nodeid2obj:
+            node = nodeid2obj[i]
+            if node.is_split():
+                # if it is a split node then it must be a real node, not a
+                # collapsed pattern
+                ci = node.counterpart_node_id
+                cpart_parent_id = nodeid2obj[ci].parent_id
+                if cpart_parent_id is not None:
+                    parent_ids.add(cpart_parent_id)
+    return parent_ids
+
+
+def counterparts_of_boundaries_share_parent(vr, nodeid2obj):
+    # Disallow a pattern if it has a start node and end node that are split
+    # where the counterparts share a parent. This wards off jank situations
+    # like isolated cyclic bubbles: see
+    # https://github.com/marbl/MetagenomeScope/issues/241
+    scp = get_counterpart_parent_ids(vr.start_node_ids, nodeid2obj)
+    ecp = get_counterpart_parent_ids(vr.end_node_ids, nodeid2obj)
+    return scp & ecp
+
+
 def check_not_splitting_a_loop(nid0, nid1, nodeid2obj):
     """Raises an error if we are trying to split a node with a loop edge.
 
