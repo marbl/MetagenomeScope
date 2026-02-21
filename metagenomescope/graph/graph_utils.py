@@ -22,7 +22,6 @@ def get_only_connecting_edge_uid(g, src_id, tgt_id):
     return g.edges[src_id, tgt_id, 0]["uid"]
 
 
-
 def get_counterpart_parent_ids(node_ids, nodeid2obj):
     parent_ids = set()
     for i in node_ids:
@@ -45,6 +44,9 @@ def counterparts_in_same_2node_chain(vr, nodeid2obj, pattid2obj):
     # where the counterparts are both in the same 2-node chain. This wards
     # off jank situations like isolated cyclic bubbles: see
     # https://github.com/marbl/MetagenomeScope/issues/241
+    # But it is not too restrictive -- this way if the chain surrounding the
+    # bubble is bigger than 2 nodes things are okay (see
+    # test_chain_into_cyclic_chain_merging() in the hierarchical decomp tests)
     scp = get_counterpart_parent_ids(vr.start_node_ids, nodeid2obj)
     ecp = get_counterpart_parent_ids(vr.end_node_ids, nodeid2obj)
     if len(scp) == 1 and scp != {None} and scp == ecp:

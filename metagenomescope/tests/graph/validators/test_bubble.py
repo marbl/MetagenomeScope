@@ -76,16 +76,10 @@ def test_easy_3_node_bubble():
 
 
 def test_cyclic_3node_bubble():
-    """As with other cyclic bubble test below, this is up for debate."""
     g = get_3_node_bubble_graph()
     g.add_edge(2, 0)
-    for s in [1, 2]:
+    for s in [0, 1, 2]:
         assert not validators.is_valid_bubble(g, s)
-    vr = validators.is_valid_bubble(g, 0)
-    assert vr
-    assert vr.node_ids == [0, 1, 2]
-    assert vr.start_node_ids == [0]
-    assert vr.end_node_ids == [2]
 
 
 def test_3node_bubble_with_middle_spur():
@@ -236,11 +230,12 @@ def test_extra_nodes_on_ending():
     assert results.end_node_ids == [3]
 
 
-def test_cyclic_bubbles_ok():
-    r"""Tests that the following graph (starting at 0) is identified as a
+def test_cyclic_bubbles_not_ok():
+    r"""Tests that the following graph (starting at 0) is *NOT* identified as a
     bubble, even with the 3 -> 0 edge.
 
-    This may be changed in the future. right now it's allowed.
+    See https://github.com/marbl/MetagenomeScope/issues/241 for too much
+    discussion.
 
     +-------+
     |       |
@@ -252,21 +247,17 @@ def test_cyclic_bubbles_ok():
     """
     g = get_easy_bubble_graph()
     g.add_edge(3, 0)
-    results = validators.is_valid_bubble(g, 0)
-    assert results.start_node_ids == [0]
-    assert results.end_node_ids == [3]
+    for i in (0, 1, 2, 3):
+        assert not validators.is_valid_bubble(g, i)
 
 
 def test_cyclic_bubble_in_bubble_chain():
     r"""
-    Verifies that *just* node 3, in the diagram below, is a valid start node
-    for a bubble.
+    Verifies that even node 3, in the diagram below, is *NOT* a valid start
+    node for a bubble.
 
-    When we decompose this middle bubble into a single node, it should contain
-    the "back edge" from 6 to 3 -- this back edge is what prevents 0 and 6 from
-    being valid starting nodes of a bubble right now. This first decomposition
-    step will mean that the surrounding 0 and 6's bubbles will then be
-    detectable.
+    See https://github.com/marbl/MetagenomeScope/issues/241. I mean I GUESS
+    we could later support this but ehh not sure it is worth it
 
                +-------+
          /-1-\ | /-4-\ | /-7-\
@@ -289,10 +280,7 @@ def test_cyclic_bubble_in_bubble_chain():
     g.add_edge(6, 8)
     g.add_edge(7, 9)
     g.add_edge(8, 9)
-    results = validators.is_valid_bubble(g, 3)
-    assert results.start_node_ids == [3]
-    assert results.end_node_ids == [6]
-    for i in (0, 1, 2, 4, 5, 6, 7, 8, 9):
+    for i in (0, 1, 2, 3, 4, 5, 6, 7, 8, 9):
         assert not validators.is_valid_bubble(g, i)
 
 
@@ -483,12 +471,13 @@ def test_finding_3node_bubble_containing_bulge_from_start_to_end():
     assert not validators.is_valid_bulge(g, 0)
 
 
-def test_finding_3node_bubble_containing_bulge_from_end_to_start():
+def test_3node_bubble_containing_bulge_from_end_to_start():
     g = nx.MultiDiGraph()
     g.add_edge(0, 1)
     g.add_edge(1, 2)
     g.add_edge(0, 2)
-    # add a bulge between the end and start -- now it's cyclic!
+    # add a bulge between the end and start -- now it's cyclic, so we won't
+    # identify this bubble any more
     g.add_edge(2, 0)
     g.add_edge(2, 0)
     # The bubble detection code guarantees minimality only for bubbles (not
@@ -497,10 +486,7 @@ def test_finding_3node_bubble_containing_bulge_from_end_to_start():
     # practice. Well, unless (2, 0) isn't a valid bulge [e.g. 0 has extra
     # incoming nodes or whatever]. But let's test it anyway.)
     vr = validators.is_valid_bubble(g, 0)
-    assert vr
-    assert vr.node_ids == [0, 1, 2]
-    assert vr.start_node_ids == [0]
-    assert vr.end_node_ids == [2]
+    assert not vr
 
     assert validators.is_valid_bulge(g, 2)
     assert not validators.is_valid_bulge(g, 0)
@@ -613,7 +599,7 @@ def test_nested_superbubble():
 
 
 def test_end_to_start_cyclic_superbubble():
-    r"""Tests that the following structure is a valid superbubble:
+    r"""Tests that the following structure is *NOT* a valid superbubble:
 
     +-------+
     |       |
@@ -628,10 +614,7 @@ def test_end_to_start_cyclic_superbubble():
     g.add_edge(3, 0)
     assert not validators.is_valid_bulge(g, 0)
     vr = validators.is_valid_bubble(g, 0)
-    assert vr
-    assert vr.node_ids == [0, 1, 2, 3]
-    assert vr.start_node_ids == [0]
-    assert vr.end_node_ids == [3]
+    assert not vr
 
 
 def test_mid_to_start_cyclic_superbubble():

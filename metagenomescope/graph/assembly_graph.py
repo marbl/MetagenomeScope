@@ -1278,7 +1278,9 @@ class AssemblyGraph(object):
                         # only a bubble after chain merging: see
                         # https://github.com/marbl/MetagenomeScope/issues/241
                         if graph_utils.counterparts_in_same_2node_chain(
-                            validation_results, self.nodeid2obj, self.pattid2obj
+                            validation_results,
+                            self.nodeid2obj,
+                            self.pattid2obj,
                         ):
                             continue
 

@@ -843,3 +843,95 @@ def test_bipartite_series():
         ]
     finally:
         os.close(fh)
+
+
+def test_isolated_cyclic_bubble():
+    r"""Tests that cyclic bubbles are no longer allowed. Regression test
+    for https://github.com/marbl/MetagenomeScope/issues/241.
+
+    Adapted from test_cyclic_bubbles_not_ok() in
+    tests/graph/validators/test_bubble.py.
+
+    +-------+
+    |       |
+    | /-1-\ |
+    V/     \|
+    0       3
+     \     /
+      \-2-/
+
+    We should identify a chain from 3 -> 0 and LEAVE IT AT THAT LOLLLL
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(1, 3)
+    g.add_edge(0, 2)
+    g.add_edge(2, 3)
+    g.add_edge(3, 0)
+
+    fh, fn = nx2gml(g)
+    try:
+        ag = AssemblyGraph(fn)
+        assert len(ag.decomposed_graph.nodes) == 3
+        assert len(ag.decomposed_graph.edges) == 4
+        assert len(ag.chains) == 1
+        assert len(ag.cyclic_chains) == 0
+        assert len(ag.frayed_ropes) == 0
+        assert len(ag.bipartites) == 0
+        assert len(ag.bubbles) == 0
+        assert len(ag.graph.nodes) == 4
+        assert len(ag.graph.edges) == 5
+        assert sorted([n.name for n in ag.nodeid2obj.values()]) == [
+            "0",
+            "1",
+            "2",
+            "3",
+        ]
+    finally:
+        os.close(fh)
+
+
+def test_isolated_cyclic_bubble_in_longer_chain():
+    r"""Tests that bubbles in cyclic chains still work, so long
+    as the cyclic chain contains stuff besides the bubble. Simpler
+    version of test_chain_into_cyclic_chain_merging() -- tests that
+    these kinds of graphs were not broken by the fix for
+    https://github.com/marbl/MetagenomeScope/issues/241.
+
+    +-------------+
+    |             |
+    | /-1-\       |
+    V/     \      |
+    0       3 --> 4
+     \     /
+      \-2-/
+    """
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1)
+    g.add_edge(1, 3)
+    g.add_edge(0, 2)
+    g.add_edge(2, 3)
+    g.add_edge(3, 4)
+    g.add_edge(4, 0)
+
+    fh, fn = nx2gml(g)
+    try:
+        ag = AssemblyGraph(fn)
+        assert len(ag.decomposed_graph.nodes) == 1
+        assert len(ag.decomposed_graph.edges) == 0
+        assert len(ag.chains) == 0
+        assert len(ag.cyclic_chains) == 1
+        assert len(ag.frayed_ropes) == 0
+        assert len(ag.bipartites) == 0
+        assert len(ag.bubbles) == 1
+        assert len(ag.graph.nodes) == 5
+        assert len(ag.graph.edges) == 6
+        assert sorted([n.name for n in ag.nodeid2obj.values()]) == [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+        ]
+    finally:
+        os.close(fh)
