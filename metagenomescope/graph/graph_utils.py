@@ -22,6 +22,7 @@ def get_only_connecting_edge_uid(g, src_id, tgt_id):
     return g.edges[src_id, tgt_id, 0]["uid"]
 
 
+
 def get_counterpart_parent_ids(node_ids, nodeid2obj):
     parent_ids = set()
     for i in node_ids:
@@ -32,19 +33,25 @@ def get_counterpart_parent_ids(node_ids, nodeid2obj):
                 # collapsed pattern
                 ci = node.counterpart_node_id
                 cpart_parent_id = nodeid2obj[ci].parent_id
-                if cpart_parent_id is not None:
-                    parent_ids.add(cpart_parent_id)
+                parent_ids.add(cpart_parent_id)
+        else:
+            # counterparts_in_same_2node_chain() should return False
+            parent_ids.add(None)
     return parent_ids
 
 
-def counterparts_of_boundaries_share_parent(vr, nodeid2obj):
+def counterparts_in_same_2node_chain(vr, nodeid2obj, pattid2obj):
     # Disallow a pattern if it has a start node and end node that are split
-    # where the counterparts share a parent. This wards off jank situations
-    # like isolated cyclic bubbles: see
+    # where the counterparts are both in the same 2-node chain. This wards
+    # off jank situations like isolated cyclic bubbles: see
     # https://github.com/marbl/MetagenomeScope/issues/241
     scp = get_counterpart_parent_ids(vr.start_node_ids, nodeid2obj)
     ecp = get_counterpart_parent_ids(vr.end_node_ids, nodeid2obj)
-    return scp & ecp
+    if len(scp) == 1 and scp != {None} and scp == ecp:
+        patt = pattid2obj[list(scp)[0]]
+        if patt.pattern_type == config.PT_CHAIN and len(patt.nodes) == 2:
+            return True
+    return False
 
 
 def check_not_splitting_a_loop(nid0, nid1, nodeid2obj):

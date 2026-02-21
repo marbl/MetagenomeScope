@@ -1277,8 +1277,8 @@ class AssemblyGraph(object):
                         # Avoid jank cases like cyclic chains that will contain
                         # only a bubble after chain merging: see
                         # https://github.com/marbl/MetagenomeScope/issues/241
-                        if graph_utils.counterparts_of_boundaries_share_parent(
-                            validation_results, self.nodeid2obj
+                        if graph_utils.counterparts_in_same_2node_chain(
+                            validation_results, self.nodeid2obj, self.pattid2obj
                         ):
                             continue
 
