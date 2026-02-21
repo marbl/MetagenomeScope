@@ -549,10 +549,6 @@ I have some ideas for dealing with these bottlenecks, but thankfully there are a
   and "flatten" them into [simple Bezier edges](https://js.cytoscape.org/#style/bezier-edges)
   (usually straight lines). This way, we can at least draw _something_ for each edge in the graph.
 
-- **Isolated cyclic bubbles:** Isolated components containing only a bubble with an "end-to-start" cycle are decomposed
-  ambiguously, either into a bubble or a cyclic chain containing a bubble
-  ([#241](https://github.com/marbl/MetagenomeScope/issues/241)). I plan to fix this.
-
 - **Long graphs:** Graph layouts that form a long horizontal or vertical line may break Cytoscape.js'
   rendering process ([#262](https://github.com/marbl/MetagenomeScope/issues/262)). If this
   happens to you, you can refresh the page to get Cytoscape.js working again.
