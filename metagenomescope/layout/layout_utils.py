@@ -495,7 +495,7 @@ def get_pattern_cluster_dot(pattern, indent=layout_config.INDENT):
     # (like you can for nodes / edges), so we just duplicate these settings
     # for each cluster
     dot += f'{ii}style="filled";\n'
-    dot += f'{ii}margin={layout_config.CLUSTER_PADDING};\n'
+    dot += f"{ii}margin={layout_config.CLUSTER_PADDING};\n"
     dot += f'{ii}color="{config.PT2COLOR[pattern.pattern_type]}";\n'
     for node in pattern.nodes:
         if node.compound:
