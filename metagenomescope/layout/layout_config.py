@@ -76,6 +76,19 @@ BACKEDGE_STYLE = 'constraint="false"'
 # controls how close "close enough" is.
 CTRL_PT_DIST_EPSILON = 10
 
+########
+# Cluster (pattern) style
+########
+
+# used for the "padding" style in Cy.js and subgraph "margin". Cytoscape.js is
+# not clear on what the default padding is but this seems to match it -- based
+# on going through its codebase and noticing
+# https://github.com/cytoscape/cytoscape.js/blob/57e681a052d79c02f6e9fa802ff0c9ce9a77ff3e/snippets/animated-bfs.js#L56
+# NOTE: this is not currently used in recursive layout. Maybe the way to
+# handle that would be adjusting the "pad" setting for the entire graph when
+# laying out subregions...?
+CLUSTER_PADDING = 10
+
 ###############################################################################
 # Client-side (i.e. done like within Cytoscape.js I guess?) layout settings
 ###############################################################################

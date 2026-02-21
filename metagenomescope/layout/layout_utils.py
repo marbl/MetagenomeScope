@@ -491,7 +491,11 @@ def get_pattern_cluster_dot(pattern, indent=layout_config.INDENT):
     # inner indentation level
     ii = indent + layout_config.INDENT
     dot = f"{indent}subgraph cluster_{pattern.name} {{\n"
+    # It doesn't look like you can globally set things for all clusters
+    # (like you can for nodes / edges), so we just duplicate these settings
+    # for each cluster
     dot += f'{ii}style="filled";\n'
+    dot += f'{ii}margin={layout_config.CLUSTER_PADDING};\n'
     dot += f'{ii}color="{config.PT2COLOR[pattern.pattern_type]}";\n'
     for node in pattern.nodes:
         if node.compound:
