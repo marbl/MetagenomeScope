@@ -34,7 +34,7 @@ def get_counterpart_parent_id(node_id, nodeid2obj):
         else:
             raise WeirdError(f"Node {node} is not split?")
     else:
-        raise WeirdError(f"ID {i} seems to be for a pattern, not a node?")
+        raise WeirdError(f"ID {node_id} not in nodeid2obj. Is it a pattern?")
 
 
 def is_split_node(node_id, nodeid2obj):
