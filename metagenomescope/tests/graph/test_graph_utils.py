@@ -2,6 +2,7 @@ import pytest
 import networkx as nx
 import metagenomescope.graph.graph_utils as gu
 from metagenomescope.graph import AssemblyGraph, Node
+from metagenomescope.graph.validators import ValidationResults
 from metagenomescope.errors import WeirdError
 from metagenomescope import config
 
@@ -67,6 +68,52 @@ def test_get_counterpart_parent_id_not_in_nodeid2obj():
         n = Node(0, "N", {})
         gu.get_counterpart_parent_id(1234, {0: n})
     assert str(ei.value) == "ID 1234 not in nodeid2obj. Is it a pattern?"
+
+
+def test_has_onenode_split_boundaries_onenode_boundaries():
+    left = Node(0, "N", {})
+    right = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+    two = Node(2, "two", {})
+    nodeid2obj = {0: left, 1: right, 2: two}
+
+    vr = ValidationResults(config.PT_CHAIN, True, [0, 1, 2], [0], [1])
+    assert gu.has_onenode_split_boundaries(vr, nodeid2obj)
+
+    vr2 = ValidationResults(config.PT_CHAIN, True, [0, 1, 2], [2], [1])
+    assert not gu.has_onenode_split_boundaries(vr2, nodeid2obj)
+
+
+def test_has_onenode_split_boundaries_multinode_boundary():
+    left = Node(0, "N", {})
+    right = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+    two = Node(2, "two", {})
+    three = Node(3, "three", {})
+    nodeid2obj = {0: left, 1: right, 2: two, 3: three}
+
+    # obvs not a valid bipartite but whatever
+    vr = ValidationResults(config.PT_BIPARTITE, True, [0, 1, 2], [0, 2], [1])
+    assert not gu.has_onenode_split_boundaries(vr, nodeid2obj)
+
+    vr2 = ValidationResults(config.PT_BIPARTITE, True, [0, 1, 2], [0], [1, 2])
+    assert not gu.has_onenode_split_boundaries(vr2, nodeid2obj)
+
+    vr3 = ValidationResults(
+        config.PT_BIPARTITE, True, [0, 1, 2, 3], [0, 3], [1, 2]
+    )
+    assert not gu.has_onenode_split_boundaries(vr3, nodeid2obj)
+
+
+def test_has_onenode_split_boundaries_multinode_boundary_all_split():
+    left = Node(0, "N", {})
+    right = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+    two = Node(2, "two", {})
+    three = Node(3, "three", {}, split=config.SPLIT_LEFT, counterpart_node=two)
+    nodeid2obj = {0: left, 1: right, 2: two, 3: three}
+
+    vr = ValidationResults(
+        config.PT_BIPARTITE, True, [0, 1, 2, 3], [0, 3], [1, 2]
+    )
+    assert not gu.has_onenode_split_boundaries(vr, nodeid2obj)
 
 
 def test_validate_multiple_ccs_multiple_ccs():
