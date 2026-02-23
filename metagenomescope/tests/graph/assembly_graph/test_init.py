@@ -1,6 +1,7 @@
 import pytest
-from metagenomescope.graph import AssemblyGraph
-from metagenomescope.errors import GraphParsingError
+from metagenomescope import config
+from metagenomescope.graph import AssemblyGraph, Node
+from metagenomescope.errors import GraphParsingError, WeirdError
 
 
 def test_flye_yeast_lengths_are_ints():
@@ -168,3 +169,42 @@ def test_flye_gfa_metadata_integration():
     assert found_contig_1
     assert found_contig_37
     assert found_contig_4
+
+
+def test_sample_gfa_sanity_checking_duplicate_name():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    # this should already be run after the decomposition process. just verify
+    # that running it again doesn't break
+    ag._sanity_check_graph()
+    # ok now we get to the fun stuff. Start messing with the graph
+    ag.graph.add_node(9999)
+    ag.nodeid2obj[9999] = Node(9999, "1", {})
+    with pytest.raises(WeirdError) as ei:
+        ag._sanity_check_graph()
+    assert str(ei.value) == 'Name "1" occurs twice in the graph?'
+
+
+def test_sample_gfa_sanity_checking_basename_three_times():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    ag.graph.add_node(9999)
+    ag.nodeid2obj[9999] = Node(9999, "9999", {})
+    ag.nodeid2obj[9999].basename = "2"
+    ag.graph.add_node(8888)
+    ag.nodeid2obj[8888] = Node(8888, "8888", {})
+    ag.nodeid2obj[8888].basename = "2"
+    with pytest.raises(WeirdError) as ei:
+        ag._sanity_check_graph()
+    assert str(ei.value) == 'Basename "2" occurs > 2x in the graph?'
+
+
+def test_sample_gfa_sanity_checking_lone_split_node():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    ag.graph.add_node(9999)
+    c = Node(8888, "9999", {})
+    ag.nodeid2obj[9999] = Node(9999, "9999", {}, split=config.SPLIT_LEFT, counterpart_node=c)
+    with pytest.raises(WeirdError) as ei:
+        ag._sanity_check_graph()
+    # we see the basename "9999" just once, but the node with this basename
+    # actually is named "9999-L"! oh no!
+    # (this is because node c is not in the graph...)
+    assert str(ei.value) == 'Basename "9999" not in the graph?'
