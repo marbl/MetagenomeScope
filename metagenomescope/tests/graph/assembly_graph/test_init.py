@@ -245,4 +245,4 @@ def test_sample_gfa_sanity_checking_missing_basename():
     # the basename of "9999" is not present in the graph anywhere
     with pytest.raises(WeirdError) as ei:
         ag._sanity_check_graph()
-    assert str(ei.value) == f'Node "9999" is no longer in the graph?'
+    assert str(ei.value) == 'Node "9999" is no longer in the graph?'
