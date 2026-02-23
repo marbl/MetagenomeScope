@@ -1,8 +1,9 @@
 import pytest
 import networkx as nx
 import metagenomescope.graph.graph_utils as gu
-from metagenomescope.graph import AssemblyGraph
+from metagenomescope.graph import AssemblyGraph, Node
 from metagenomescope.errors import WeirdError
+from metagenomescope import config
 
 
 def test_get_only_connecting_edge_uid_simple():
@@ -29,6 +30,43 @@ def test_get_only_connecting_edge_uid_multiple_edges():
     with pytest.raises(WeirdError) as ei:
         gu.get_only_connecting_edge_uid(g, 1, 2)
     assert str(ei.value) == "> 1 edge from node ID 1 to node ID 2"
+
+
+def test_get_counterpart_parent_id_simple():
+    left = Node(0, "N", {})
+    right = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+    left.parent_id = 5
+    right.parent_id = 6
+    nodeid2obj = {0: left, 1: right}
+    assert gu.get_counterpart_parent_id(0, nodeid2obj) == 6
+    assert gu.get_counterpart_parent_id(1, nodeid2obj) == 5
+
+
+def test_get_counterpart_parent_id_no_parent():
+    left = Node(0, "N", {})
+    right = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+    right.parent_id = 7
+    nodeid2obj = {0: left, 1: right}
+    assert gu.get_counterpart_parent_id(0, nodeid2obj) == 7
+    assert gu.get_counterpart_parent_id(1, nodeid2obj) is None
+
+
+def test_get_counterpart_parent_id_not_split():
+    with pytest.raises(WeirdError) as ei:
+        n = Node(0, "N", {})
+        gu.get_counterpart_parent_id(0, {0: n})
+    assert str(ei.value) == "Node 0 (name: N) is not split?"
+
+
+def test_get_counterpart_parent_id_not_in_nodeid2obj():
+    with pytest.raises(WeirdError) as ei:
+        gu.get_counterpart_parent_id(0, {})
+    assert str(ei.value) == "ID 0 not in nodeid2obj. Is it a pattern?"
+
+    with pytest.raises(WeirdError) as ei:
+        n = Node(0, "N", {})
+        gu.get_counterpart_parent_id(1234, {0: n})
+    assert str(ei.value) == "ID 1234 not in nodeid2obj. Is it a pattern?"
 
 
 def test_validate_multiple_ccs_multiple_ccs():

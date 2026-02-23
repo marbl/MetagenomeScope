@@ -32,7 +32,7 @@ def get_counterpart_parent_id(node_id, nodeid2obj):
             cid = node.counterpart_node_id
             return nodeid2obj[cid].parent_id
         else:
-            raise WeirdError(f"Node {node} is not split?")
+            raise WeirdError(f"{node} is not split?")
     else:
         raise WeirdError(f"ID {node_id} not in nodeid2obj. Is it a pattern?")
 
