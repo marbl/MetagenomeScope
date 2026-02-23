@@ -210,3 +210,39 @@ def test_sample_gfa_sanity_checking_lone_split_node():
     # actually is named "9999-L"! oh no!
     # (this is because node c is not in the graph...)
     assert str(ei.value) == 'Basename "9999" not in the graph?'
+
+
+def test_sample_gfa_sanity_checking_missing_node():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    one_id = None
+    for nid, node in ag.nodeid2obj.items():
+        if node.name == "1":
+            one_id = nid
+            break
+    assert one_id is not None
+    del ag.nodeid2obj[one_id]
+    ag.graph.remove_node(one_id)
+    with pytest.raises(WeirdError) as ei:
+        ag._sanity_check_graph()
+    assert str(ei.value) == f'Node ID "{one_id}" missing?'
+
+
+def test_sample_gfa_sanity_checking_missing_basename():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    one_id = None
+    for nid, node in ag.nodeid2obj.items():
+        if node.name == "1":
+            one_id = nid
+            break
+    assert one_id is not None
+    del ag.nodeid2obj[one_id]
+    ag.graph.remove_node(one_id)
+
+    new_node_with_diff_basename = Node(8888, "9999", {})
+    ag.nodeid2obj[8888] = new_node_with_diff_basename
+    ag.deletednodeid2counterpartid[one_id] = 8888
+
+    # the basename of "9999" is not present in the graph anywhere
+    with pytest.raises(WeirdError) as ei:
+        ag._sanity_check_graph()
+    assert str(ei.value) == f'Node "9999" is no longer in the graph?'
