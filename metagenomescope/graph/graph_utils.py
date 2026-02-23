@@ -22,37 +22,82 @@ def get_only_connecting_edge_uid(g, src_id, tgt_id):
     return g.edges[src_id, tgt_id, 0]["uid"]
 
 
-def get_counterpart_parent_ids(node_ids, nodeid2obj):
-    parent_ids = set()
-    for i in node_ids:
-        if i in nodeid2obj:
-            node = nodeid2obj[i]
-            if node.is_split():
-                # if it is a split node then it must be a real node, not a
-                # collapsed pattern
-                ci = node.counterpart_node_id
-                cpart_parent_id = nodeid2obj[ci].parent_id
-                parent_ids.add(cpart_parent_id)
+def get_counterpart_parent_id(node_id, nodeid2obj):
+    """Returns the ID of the parent pattern of a split node's counterpart."""
+    if node_id in nodeid2obj:
+        node = nodeid2obj[node_id]
+        if node.is_split():
+            # if it is a split node then it must be a real node, not a
+            # collapsed pattern
+            cid = node.counterpart_node_id
+            return nodeid2obj[cid].parent_id
         else:
-            # counterparts_in_same_2node_chain() should return False
-            parent_ids.add(None)
-    return parent_ids
+            raise WeirdError(f"Node {node} is not split?")
+    else:
+        raise WeirdError(f"ID {i} seems to be for a pattern, not a node?")
+
+
+def is_split_node(node_id, nodeid2obj):
+    """Returns True if a node ID corresponds to a Node that is split."""
+    return node_id in nodeid2obj and nodeid2obj[node_id].is_split()
+
+
+def has_onenode_split_boundaries(vr, nodeid2obj):
+    """Returns True if both boundaries of a pattern are single split nodes."""
+    if len(vr.start_node_ids) == 1 and len(vr.end_node_ids) == 1:
+        si = vr.start_node_ids[0]
+        ei = vr.end_node_ids[0]
+        return is_split_node(si, nodeid2obj) and is_split_node(ei, nodeid2obj)
+    return False
 
 
 def counterparts_in_same_2node_chain(vr, nodeid2obj, pattid2obj):
-    # Disallow a pattern if it has a start node and end node that are split
-    # where the counterparts are both in the same 2-node chain. This wards
-    # off jank situations like isolated cyclic bubbles: see
-    # https://github.com/marbl/MetagenomeScope/issues/241
-    # But it is not too restrictive -- this way if the chain surrounding the
-    # bubble is bigger than 2 nodes things are okay (see
-    # test_chain_into_cyclic_chain_merging() in the hierarchical decomp tests)
-    scp = get_counterpart_parent_ids(vr.start_node_ids, nodeid2obj)
-    ecp = get_counterpart_parent_ids(vr.end_node_ids, nodeid2obj)
-    if len(scp) == 1 and scp != {None} and scp == ecp:
-        patt = pattid2obj[list(scp)[0]]
-        if patt.pattern_type == config.PT_CHAIN and len(patt.nodes) == 2:
-            return True
+    """Checks if the counterparts of pattern boundaries are in a 2-node chain.
+
+    Parameters
+    ----------
+    vr: ValidationResults
+
+    nodeid2obj: dict of int -> Node
+
+    pattid2obj: dict of int -> Pattern
+
+    Returns
+    -------
+    bool
+        True if all of the following criteria are met:
+            - vr has only a single start node S, which is a split node
+            - vr has only a single end node E, which is a split node
+            - The counterpart node of S, and the counterpart node of E, are
+              children of the same pattern P
+            - P is a chain containing just two nodes (which are the
+              counterparts of S and E)
+
+        False otherwise.
+
+    Notes
+    -----
+    - This wards off jank situations like isolated cyclic bubbles: see
+      https://github.com/marbl/MetagenomeScope/issues/241. In such cases,
+      this check prevents the bizarre situation where you end up with a cyclic
+      chain containing nothing else but a bubble.
+
+    - This check is also very specific -- for example, if the chain P has more
+      than two nodes, then this check does not return True. This is because in
+      such cases, the cyclic chain you end up with (containing the pattern
+      described by vr as well as the stuff already in the chain P) will at
+      least contain SOMETHING besides the vr pattern. See
+      test_chain_into_cyclic_chain_merging() in the hierarchical decomp. tests
+      for an example of this.
+    """
+    if has_onenode_split_boundaries(vr, nodeid2obj):
+        scpid = get_counterpart_parent_id(vr.start_node_ids[0], nodeid2obj)
+        ecpid = get_counterpart_parent_id(vr.end_node_ids[0], nodeid2obj)
+        # I don't THINK the parent ID of the counterpart should ever be None at
+        # this point in the algorithm, but let's be careful...
+        if scpid is not None and scpid == ecpid:
+            p = pattid2obj[scpid]
+            return p.pattern_type == config.PT_CHAIN and len(p.nodes) == 2
     return False
 
 
