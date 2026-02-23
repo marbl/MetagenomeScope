@@ -172,8 +172,32 @@ def test_check_node_split_properly_not_split():
     e = Edge(9, 0, 1, {}, is_fake=True)
     g = nx.MultiDiGraph()
     g.add_edge(0, 1, uid=9)
-    with pytest.raises(KeyError) as ei:
+    with pytest.raises(KeyError):
         gu.check_node_split_properly(g, "x", {"x": x, "y": y}, {9: e})
+
+
+def test_get_one_side_of_edge_ids():
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1, uid=5)
+    g.add_edge(0, 2, uid=6)
+    g.add_edge(1, 2, uid=7)
+    assert gu.get_one_side_of_edge_ids(g, 0, in_edges=True) == set()
+    assert gu.get_one_side_of_edge_ids(g, 0, in_edges=False) == {5, 6}
+    assert gu.get_one_side_of_edge_ids(g, 1, in_edges=True) == {5}
+    assert gu.get_one_side_of_edge_ids(g, 1, in_edges=False) == {7}
+    assert gu.get_one_side_of_edge_ids(g, 2, in_edges=True) == {6, 7}
+    assert gu.get_one_side_of_edge_ids(g, 2, in_edges=False) == set()
+
+
+def test_get_one_side_of_edge_ids_duplicate_edge_ids():
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1, uid=5)
+    g.add_edge(0, 2, uid=6)
+    g.add_edge(0, 3, uid=6)
+    assert gu.get_one_side_of_edge_ids(g, 0, in_edges=True) == set()
+    with pytest.raises(WeirdError) as ei:
+        gu.get_one_side_of_edge_ids(g, 0, in_edges=False)
+    assert str(ei.value) == 'Edge ID "6" occurs twice?'
 
 
 def test_validate_multiple_ccs_multiple_ccs():
