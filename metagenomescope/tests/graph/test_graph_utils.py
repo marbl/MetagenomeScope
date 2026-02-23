@@ -1,7 +1,7 @@
 import pytest
 import networkx as nx
 import metagenomescope.graph.graph_utils as gu
-from metagenomescope.graph import AssemblyGraph, Node
+from metagenomescope.graph import AssemblyGraph, Node, Edge
 from metagenomescope.graph.validators import ValidationResults
 from metagenomescope.errors import WeirdError
 from metagenomescope import config
@@ -114,6 +114,45 @@ def test_has_onenode_split_boundaries_multinode_boundary_all_split():
         config.PT_BIPARTITE, True, [0, 1, 2, 3], [0, 3], [1, 2]
     )
     assert not gu.has_onenode_split_boundaries(vr, nodeid2obj)
+
+
+def test_check_not_splitting_a_loop():
+    x = Node(0, "x", {})
+    y = Node(1, "y", {})
+    nodeid2obj = {0: x, 1: y}
+    gu.check_not_splitting_a_loop(0, 1, nodeid2obj)
+    with pytest.raises(WeirdError) as ei:
+        gu.check_not_splitting_a_loop(0, 0, nodeid2obj)
+    assert str(ei.value) == (
+        "Trying to split Node 0 (name: x), which has at least one edge "
+        "pointing to itself? This should never happen."
+    )
+
+
+def test_check_and_get_fake_edge_id():
+    x = Node(0, "x", {})
+    y = Node(1, "y", {})
+    e = Edge(9, 0, 1, {}, is_fake=True)
+    e2 = Edge(9, 0, 1, {})
+
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1, uid=9)
+
+    assert gu.check_and_get_fake_edge_id(g, x, y, {9: e}) == 9
+
+    with pytest.raises(WeirdError) as ei:
+        gu.check_and_get_fake_edge_id(g, x, y, {9: e2})
+    assert str(ei.value) == (
+        'Edge ID "9" connects Node 0 (name: x) and Node 1 (name: y) but is '
+        "not fake?"
+    )
+
+    # if we add another edge from 0 -> 1, then now the call to
+    # get_only_connecting_edge_uid() should trigger
+    g.add_edge(0, 1, uid=10)
+    with pytest.raises(WeirdError) as ei:
+        gu.check_and_get_fake_edge_id(g, x, y, {9: e})
+    assert str(ei.value) == "> 1 edge from node ID 0 to node ID 1"
 
 
 def test_validate_multiple_ccs_multiple_ccs():

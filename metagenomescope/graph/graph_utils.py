@@ -123,7 +123,7 @@ def check_not_splitting_a_loop(nid0, nid1, nodeid2obj):
     """
     if nid0 == nid1:
         raise WeirdError(
-            f"Trying to split node {nodeid2obj[nid0]}, which has at least one "
+            f"Trying to split {nodeid2obj[nid0]}, which has at least one "
             "edge pointing to itself? This should never happen."
         )
 
