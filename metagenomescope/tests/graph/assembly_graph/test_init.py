@@ -201,7 +201,9 @@ def test_sample_gfa_sanity_checking_lone_split_node():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     ag.graph.add_node(9999)
     c = Node(8888, "9999", {})
-    ag.nodeid2obj[9999] = Node(9999, "9999", {}, split=config.SPLIT_LEFT, counterpart_node=c)
+    ag.nodeid2obj[9999] = Node(
+        9999, "9999", {}, split=config.SPLIT_LEFT, counterpart_node=c
+    )
     with pytest.raises(WeirdError) as ei:
         ag._sanity_check_graph()
     # we see the basename "9999" just once, but the node with this basename
