@@ -155,6 +155,27 @@ def test_check_and_get_fake_edge_id():
     assert str(ei.value) == "> 1 edge from node ID 0 to node ID 1"
 
 
+def test_check_node_split_properly_simple():
+    left = Node(0, "N", {})
+    right = Node(1, "N", {}, split=config.SPLIT_RIGHT, counterpart_node=left)
+    e = Edge(9, 0, 1, {}, is_fake=True)
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1, uid=9)
+    assert gu.check_node_split_properly(
+        g, "N", {"N-L": left, "N-R": right}, {9: e}
+    ) == (left, right, 9)
+
+
+def test_check_node_split_properly_not_split():
+    x = Node(0, "x", {})
+    y = Node(1, "y", {})
+    e = Edge(9, 0, 1, {}, is_fake=True)
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 1, uid=9)
+    with pytest.raises(KeyError) as ei:
+        gu.check_node_split_properly(g, "x", {"x": x, "y": y}, {9: e})
+
+
 def test_validate_multiple_ccs_multiple_ccs():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     gu.validate_multiple_ccs(ag)
