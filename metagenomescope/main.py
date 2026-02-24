@@ -974,7 +974,7 @@ def run(
                                         dbc.Input(
                                             type="text",
                                             id="imageScalingFactor",
-                                            value=5,
+                                            value=2,
                                             className="short-num-input",
                                         ),
                                         dbc.InputGroupText(
