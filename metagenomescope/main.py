@@ -1658,7 +1658,7 @@ def run(
                                             value=ui_config.DEFAULT_DRAW_SETTINGS,
                                             id="drawSettingsChecklist",
                                         ),
-                                        className="form-check fancyChecklistInfoDialog",
+                                        className="form-check fancyChecklistInDialog",
                                     ),
                                     html.Br(),
                                     html.H5("Layout algorithm"),

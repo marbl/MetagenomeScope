@@ -355,23 +355,24 @@ label:has(#fcoseAlgSpan).active {
     color: #9abaf3 !important;
 }
 
-.fancyChecklistInfoDialog {
+/* Used for the checklists in the modal dialogs, on a light background. */
+.fancyChecklistInDialog {
     --Dash-Fill-Interactive-Strong: var(--bs-primary);
     --Dash-Fill-Inverse-Strong: var(--bs-body-color);
     --Dash-Text-Primary: var(--bs-body-color);
     --Dash-Text-Strong: var(--bs-body-color);
 }
 
-.fancyChecklistInfoDialog .dash-options-list-option {
+.fancyChecklistInDialog .dash-options-list-option {
     color: var(--bs-body-color) !important;
 }
 
-.fancyChecklistInfoDialog .dash-options-list-option:hover {
+.fancyChecklistInDialog .dash-options-list-option:hover {
     /* slightly darker --bs-primary, idk if this makes a big difference */
     color: #0061f0 !important;
 }
 
-.fancyChecklistInfoDialog .dash-options-list-option:has(input[disabled]) {
+.fancyChecklistInDialog .dash-options-list-option:has(input[disabled]) {
     color: #999 !important;
 }
 
