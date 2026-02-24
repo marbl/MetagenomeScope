@@ -67,7 +67,7 @@ dependencies = [
     "networkx",
     "pygraphviz",
     "gfapy",
-    # pyfastg 0.2.0 added support for MEGAHIT FASTG files
+    # pyfastg 0.2.0 added support for MEGAHIT FASTG files!
     "pyfastg >= 0.2.0",
     "pandas",
     "dash-cytoscape",
@@ -80,7 +80,10 @@ dependencies = [
     "dash-ag-grid >= 33.3.3",
     # we probably don't need to bother including dash in this list (since
     # both dash-cytoscape and dash-bootstrap-components will include it as a
-    # dependency) but we may as well be explicit
+    # dependency) but we may as well be explicit. Note that Dash v4 changes the
+    # styles of the dcc.* UI elements a lot -- as of Feb 23, 2026, we should
+    # style both versions of the UI elements reasonably well (see
+    # https://github.com/marbl/MetagenomeScope/issues/389).
     "dash",
     # same deal for plotly -- should be included alongside dash anyway
     "plotly"
