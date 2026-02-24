@@ -246,3 +246,29 @@ def test_sample_gfa_sanity_checking_missing_basename():
     with pytest.raises(WeirdError) as ei:
         ag._sanity_check_graph()
     assert str(ei.value) == 'Node "9999" is no longer in the graph?'
+
+
+def test_sample_gfa_sanity_checking_missing_edge():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    one_to_two_id = None
+    one = None
+    two = None
+    for eid, edge in ag.edgeid2obj.items():
+        if (
+            ag.nodeid2obj[edge.new_src_id].name == "1"
+            and ag.nodeid2obj[edge.new_tgt_id].name == "2"
+        ):
+            one_to_two_id = eid
+            one = ag.nodeid2obj[edge.new_src_id]
+            two = ag.nodeid2obj[edge.new_tgt_id]
+            break
+    assert one_to_two_id is not None
+    assert one is not None
+    assert two is not None
+    del ag.edgeid2obj[one_to_two_id]
+    with pytest.raises(WeirdError) as ei:
+        ag._sanity_check_graph()
+    assert str(ei.value) == (
+        f'Edge "{one_to_two_id}" btwn. IDs "{one.unique_id}" -> '
+        f'"{two.unique_id}" is no longer in the graph?'
+    )
