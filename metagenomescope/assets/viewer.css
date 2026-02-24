@@ -30,7 +30,7 @@ body {
     overflow: hidden;
 }
 
-#controls *:not(.ctrlSep, .btn-group *, #innerControlsDivForBorder, .fancytable *, .noPadding *) {
+#controls *:not(.ctrlSep, .btn-group *, #innerControlsDivForBorder, .fancytable *, .noPadding *, .fancyInlineChecklist *) {
  /* Add some space between elements in the control panel and the horizontal
   * boundaries of the panel. (Don't capture .ctrlSep things, though,
   * which should span the entire horizontal width of the panel.)
@@ -310,6 +310,11 @@ label:has(#fcoseAlgSpan).active {
     margin-right: 0.5em;
 }
 
+/* Used for the inline checklists in the control panel, on a dark background.
+ * Previously, the dcc.Checklist would just inherit color info from its parent
+ * in a nice way, but Dash v4 broke that -- so (as far as I can tell) we need
+ * to style both light-mode and dark-mode checklists separately.
+ */
 .fancyInlineChecklist {
     /* i feel like keeping this label as the default font size (1em?) makes it
      * look a bit bigger than the "Available" label, and that rubs me the
@@ -326,6 +331,54 @@ label:has(#fcoseAlgSpan).active {
      * doesn't set a margin-top as of writing but whatever let's be consistent
      */
     margin-top: 0.5em !important;
+    /*
+     * adapted from https://community.plotly.com/t/dash-core-components-gets-a-design-driven-refresh-with-dash-4/96322/3
+     * because Dash v4 completely changed the dcc.Checklist styling
+     */
+    --Dash-Fill-Interactive-Strong: var(--bs-primary);
+    --Dash-Fill-Inverse-Strong: #ccc;
+    --Dash-Text-Primary: #ccc;
+    --Dash-Text-Strong: #ccc;
+}
+
+.fancyInlineChecklist .dash-options-list-option {
+    justify-content: center;
+    /* prevent ugly thing where you click on an option and then it retains the
+     * --Dash-Fill-Interactive-Strong (?) style even after you mouse off
+     */
+    color: #ccc !important;
+}
+
+.fancyInlineChecklist .dash-options-list-option:hover {
+    /* bubble color :) */
+    color: #9abaf3 !important;
+}
+
+.fancyInlineChecklistInfoDialog {
+    --Dash-Fill-Interactive-Strong: var(--bs-primary);
+    --Dash-Fill-Inverse-Strong: var(--bs-body-color);
+    --Dash-Text-Primary: var(--bs-body-color);
+    --Dash-Text-Strong: var(--bs-body-color);
+}
+
+.fancyInlineChecklistInfoDialog .dash-options-list-option {
+    color: var(--bs-body-color) !important;
+}
+
+.fancyInlineChecklistInfoDialog .dash-options-list-option:hover {
+    color: var(--bs-primary) !important;
+}
+
+.fancyInlineChecklistInfoDialog .dash-options-list-option:has(input[disabled]) {
+    color: #999 !important;
+}
+
+.dash-options-list-option {
+    padding: 0;
+    /* i think align-items: baseline; looks gross, but maybe that's just
+     * because i've already been messing with the css applied by dash
+     */
+    align-items: normal;
 }
 
 /* the !important is necessary to get this to override the default #controls
