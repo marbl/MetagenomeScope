@@ -3,6 +3,7 @@
 <div align="center">
 <a href="https://github.com/marbl/MetagenomeScope/actions/workflows/main.yml"><img src="https://github.com/marbl/Metagenomescope/actions/workflows/main.yml/badge.svg" alt="CI" /></a>
 <a href="https://codecov.io/gh/marbl/MetagenomeScope"><img src="https://codecov.io/gh/marbl/MetagenomeScope/branch/main/graph/badge.svg" alt="Code Coverage" /></a>
+<a href="https://pypi.org/project/metagenomescope"><img src="https://img.shields.io/pypi/v/metagenomescope?color=0073b7&labelColor=003d63" alt="PyPI" /></a>
 </div>
 
 Interactive visualization tool for (meta)genome assembly graphs.
