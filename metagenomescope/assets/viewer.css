@@ -367,7 +367,8 @@ label:has(#fcoseAlgSpan).active {
 }
 
 .fancyChecklistInfoDialog .dash-options-list-option:hover {
-    color: var(--bs-primary) !important;
+    /* slightly darker --bs-primary, idk if this makes a big difference */
+    color: #0061f0 !important;
 }
 
 .fancyChecklistInfoDialog .dash-options-list-option:has(input[disabled]) {
