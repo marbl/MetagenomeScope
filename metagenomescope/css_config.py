@@ -53,4 +53,4 @@ ALG_DESC_CLASSES = "layout-alg-desc"
 # Path settings
 ###############################################################################
 
-PATH_SETTINGS_PARENT_CLASSES = "form-check fancyInlineChecklist"
+PATH_SETTINGS_PARENT_CLASSES = "form-check fancyChecklist"
