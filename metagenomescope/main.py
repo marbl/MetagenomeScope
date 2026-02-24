@@ -480,11 +480,9 @@ def run(
                                                 className="btn btn-light",
                                                 type="button",
                                             ),
-                                            # dash doesn't have a html.Input thing like it
-                                            # does for other HTML tags, so we use dcc.Input
-                                            # which apparently is close enough
-                                            # (https://github.com/plotly/dash/issues/2791)
-                                            dcc.Input(
+                                            # Avoid dcc.Input because Dash v4
+                                            # changed the styling :(
+                                            dbc.Input(
                                                 type="text",
                                                 id="ccSizeRankSelector",
                                                 className="form-control",
@@ -513,7 +511,7 @@ def run(
                                 html.Div(
                                     html.Div(
                                         [
-                                            dcc.Input(
+                                            dbc.Input(
                                                 type="text",
                                                 id="ccNodeNameSelector",
                                                 className="form-control",
@@ -533,7 +531,7 @@ def run(
                                 html.Div(
                                     [
                                         html.Div(
-                                            dcc.Input(
+                                            dbc.Input(
                                                 type="text",
                                                 id="ccAroundNodesNameSelector",
                                                 className="form-control",
