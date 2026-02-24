@@ -324,8 +324,8 @@ def is_valid_frayed_rope(g, start_node_id):
       ever be parallel edges in the middle chain in practice, because these
       should have already been identified as real bulges. Maaybe the
       identification of other frayed ropes could lead to these bulges popping
-      up...? But we will later disallow frayed ropes containing other frayed
-      ropes, so this shouldn't make a difference.)
+      up...? Anyway, we disallow frayed ropes containing other frayed ropes, so
+      this shouldn't make a difference.)
     """
     verify_node_in_graph(g, start_node_id)
 
