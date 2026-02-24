@@ -55,27 +55,6 @@ This tool is still a work in progress, so please let us know if you have any fee
   </tbody>
 </table>
 
-<table>
-  <thead>
-    <tr>
-      <th colspan="2"><i>E. coli</i> assembly (<a href="https://github.com/dzerbino/velvet/">Velvet</a>)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/ecoli_dot.png" alt="E. coli assembly graph drawn using a hierarchical layout algorithm, dot." /></td>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/ecoli_sfdp_osfminus15.png" alt="E. coli assembly graph drawn using a force-directed layout algorithm, sfdp." /></td>
-    </tr>
-    <tr align="center">
-      <td>Hierarchical layout with <a href="https://graphviz.org/docs/layouts/dot/"><i>dot</i></a></td>
-      <td>Force-directed layout with <a href="https://graphviz.org/docs/layouts/sfdp/"><i>sfdp</i></a></td>
-    </tr>
-    <tr align="center">
-      <td colspan="2"><i>Data source: <a href="https://rrwick.github.io/Bandage/">Bandage</a></i></td>
-    </tr>
-  </tbody>
-</table>
-
 ## Installation
 
 Using [mamba](https://mamba.readthedocs.io/):
