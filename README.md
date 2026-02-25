@@ -191,17 +191,9 @@ Cyclic chains represent a simpler form of what are known in de Bruijn graphs as 
 
 ### 5. Bipartites
 
-**Bipartites** are regions of the graph that can be partitioned into two layers of nodes (let's call them _Left_ and _Right_), such that:
+**Bipartites** are regions of the graph that can be partitioned into two layers of nodes (let's call them _Left_ and _Right_), such that all of the nodes in _Left_ have outgoing edges to all of the nodes in _Right_. We require that both _Left_ and _Right_ contain at least two nodes each. (This is essentially a stricter version of a [complete bipartite graph](https://en.wikipedia.org/wiki/Complete_bipartite_graph).)
 
-- _Left_ contains at least two nodes
-- _Right_ contains at least two nodes
-- All nodes in _Left_ have exactly one edge to all nodes in _Right_
-- All nodes in _Left_ have no additional outgoing edges
-- All nodes in _Right_ have exactly one incoming edge from all nodes in _Left_
-- All nodes in _Right_ have no additional incoming edges
-- There are no cycles within the subgraph of _Left_ and _Right_ (e.g. no nodes in _Right_ can have an edge to any node in _Left_)
-
-Surprisingly, these kinds of patterns tend to pop up a lot in certain graphs! These are less well-documented in the literature than other types of patterns, but our suspicion is that these are another indication (like frayed ropes) of repeats.
+Surprisingly, these patterns pop up a lot in certain assembly graphs! These are less well-documented in the literature than the above types of patterns, but our suspicion is that these are another indication (like frayed ropes) of repeats -- and that a lot of these patterns in succession might indicate things like strain heterogeneity. See Figure 5 of [Li _et al._, 2012](https://academic.oup.com/bfg/article/11/1/25/191455) for an example bipartite pattern (and frayed rope) that is caused by a repeat.
 
 ## Example datasets
 
