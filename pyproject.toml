@@ -34,7 +34,8 @@ path = "metagenomescope/__init__.py"
 [project]
 name = "metagenomescope"
 dynamic = ["version"]
-license = {file = "COPYING.txt"}
+license = "GPL-3.0-only"
+license-files = {paths = ["COPYING.txt"]}
 description = "Visualization tool for (meta)genome assembly graphs"
 readme = "README.md"
 authors = [
