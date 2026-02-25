@@ -166,6 +166,43 @@ _See the [GFA 1](https://gfa-spec.github.io/GFA-spec/GFA1.html) and [GFA 2](http
 <hr/>
 </details>
 
+## Structural patterns
+
+MetagenomeScope detects and highlights five types of structural patterns on the graph:
+
+<img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/patterns_screenshot_shadow.png" alt="Second-largest component in a metagenome scaffold graph, showing various identified structural patterns." />
+
+### 1. Bubbles (and bulges)
+
+**Bubbles** ([Miller _et al._, 2010](https://pmc.ncbi.nlm.nih.gov/articles/PMC2874646/); [Nijkamp _et al._, 2013](https://pmc.ncbi.nlm.nih.gov/articles/PMC3916741/)) follow a diverge-coverge pattern. They generally indicate variation -- either real (e.g. an alternate path is caused by a SNP) or erroneous (e.g. an alternate path is caused by a sequencing error). We identify bubbles using a modified version of the algorithm given in [Onodera _et al._, 2013](https://link.springer.com/chapter/10.1007/978-3-642-40453-5_26).
+
+Similarly, **bulges** ([Pevzner _et al._, 2004](https://pmc.ncbi.nlm.nih.gov/articles/PMC515325/); [Vasilinetc _et al._, 2015](https://academic.oup.com/bioinformatics/article/31/20/3262/195494)) are pairs of nodes where there exist multiple parallel edges from one node to another.
+
+Bulges can typically be interpreted the same way as bubbles -- you generally see bulges in "edge-centric" (e.g. de Bruijn) graphs, and bubbles in "node-centric" (e.g. overlap) graphs. So, we label both bubbles and bulges identically.
+
+### 2. Frayed ropes
+
+**Frayed ropes** ([Miller _et al._, 2010](https://pmc.ncbi.nlm.nih.gov/articles/PMC2874646/)) follow a converge-diverge pattern; they have the opposite structure as bubbles. They generally indicate interspersed repeats in the middle region.
+
+### 3 and 4. Chains and cyclic chains
+
+**Chains** are just non-branching paths of at least two nodes. **Cyclic chains** are chains where the end node has an outgoing edge to the start node.
+Cyclic chains represent a simpler form of what are known in de Bruijn graphs as _whirl_ structures ([Pevzner _et al._, 2004](https://pmc.ncbi.nlm.nih.gov/articles/PMC515325/)).
+
+### 5. Bipartites
+
+**Bipartites** are regions of the graph that can be partitioned into two layers of nodes (let's call them _Left_ and _Right_), such that:
+
+- _Left_ contains at least two nodes
+- _Right_ contains at least two nodes
+- All nodes in _Left_ have exactly one edge to all nodes in _Right_
+- All nodes in _Left_ have no additional outgoing edges
+- All nodes in _Right_ have exactly one incoming edge from all nodes in _Left_
+- All nodes in _Right_ have no additional incoming edges
+- There are no cycles within the subgraph of _Left_ and _Right_ (e.g. no nodes in _Right_ can have an edge to any node in _Left_)
+
+Surprisingly, these kinds of patterns tend to pop up a lot in certain graphs! These are less well-documented in the literature than other types of patterns, but our suspicion is that these are another indication (like frayed ropes) of repeats.
+
 ## Example datasets
 
 ### Flye (DOT file, 61 nodes, 122 edges): _S. cerevisiae_ (yeast)
