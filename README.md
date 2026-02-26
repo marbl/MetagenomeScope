@@ -230,7 +230,10 @@ Because this allows a node to be in two patterns simultaneously, this makes it p
   </tbody>
 </table>
 
-Furthermore, since node splitting is not always necessary (maybe the end node of a bubble isn't the start node of any other pattern), our decomposition algorithm has an extra step at the end that detects and removes unnecessary split nodes.
+Note that node splitting is not always necessary -- as the figures above show, sometimes a boundary node of a pattern doesn't need to be the
+boundary node of any other pattern.
+To limit the amount of split nodes we need to show in the visualization,
+we detect and remove unnecessary split nodes after finishing the decomposition procedure.
 
 ## Example datasets
 
