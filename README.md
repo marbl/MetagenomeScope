@@ -174,7 +174,7 @@ _See the [GFA 1](https://gfa-spec.github.io/GFA-spec/GFA1.html) and [GFA 2](http
 
 MetagenomeScope detects and highlights five types of structural patterns on the graph:
 
-<img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/patterns_screenshot_shadow.png" alt="Second-largest component in a metagenome scaffold graph, showing various identified structural patterns." />
+<img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/patterns_screenshot_shadow.png" alt="Screenshot of MetagenomeScope's interface showing examples of the patterns it supports." />
 
 ### 1. Bubbles (and bulges)
 
