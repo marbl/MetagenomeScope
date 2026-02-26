@@ -199,7 +199,7 @@ Cyclic chains represent a simpler form of what are known in edge-centric graphs 
 
 **Bipartites** are regions of the graph that can be partitioned into two layers of nodes (let's call them _Left_ and _Right_), such that all of the nodes in _Left_ have outgoing edges to all of the nodes in _Right_. We require that both _Left_ and _Right_ contain at least two nodes each. (Such a pattern is essentially a stricter version of a [complete bipartite graph](https://en.wikipedia.org/wiki/Complete_bipartite_graph).)
 
-Surprisingly, these patterns pop up a lot in certain assembly graphs! These are less well-documented in the literature than the above types of patterns, but our suspicion is that these are another indication (like frayed ropes) of repeats -- and that a lot of these patterns in succession might indicate things like strain heterogeneity. See Figure 5 of [Li _et al._, 2012](https://academic.oup.com/bfg/article/11/1/25/191455) for an example bipartite (and frayed rope) that is caused by a repeat.
+Surprisingly, these patterns pop up a lot in certain assembly graphs! These are less well-documented in the literature than the above types of patterns, but our suspicion is that these are another indication (like frayed ropes) of repeats -- and that a lot of these patterns in succession might indicate things like strain heterogeneity. See Figure 5 of [Li _et al._, 2012](https://academic.oup.com/bfg/article/11/1/25/191455) for an example bipartite (or, viewed another way, a frayed rope) that is caused by a repeat.
 
 ### Boundary node splitting
 
