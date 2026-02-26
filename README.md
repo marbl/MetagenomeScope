@@ -15,7 +15,11 @@ MetagenomeScope also contains various functionalities for visualizing assembly
 graphs at larger scales -- for example, highlighting scaffold paths on the graph and
 drawing summary plots of the graph's structure.
 
-This tool is still a work in progress, so please let us know if you have any feedback!
+MetagenomeScope supports the outputs of most modern assemblers,
+is able to visualize large graphs including tens of thousands of nodes,
+and is backed by over four hundred automatic software tests.
+
+The tool is under active development, so please let us know if you have any feedback!
 
 ## Screenshots
 
