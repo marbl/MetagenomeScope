@@ -172,11 +172,13 @@ _See the [GFA 1](https://gfa-spec.github.io/GFA-spec/GFA1.html) and [GFA 2](http
 
 ## Structural patterns
 
+### Types of patterns
+
 MetagenomeScope detects and highlights five types of structural patterns on the graph:
 
 <img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/patterns_screenshot_shadow.png" alt="Screenshot of MetagenomeScope's interface showing examples of the patterns it supports." />
 
-### 1. Bubbles (and bulges)
+#### 1. Bubbles (and bulges)
 
 **Bubbles** ([Miller _et al._, 2010](https://pmc.ncbi.nlm.nih.gov/articles/PMC2874646/); [Nijkamp _et al._, 2013](https://pmc.ncbi.nlm.nih.gov/articles/PMC3916741/)) follow a diverge-coverge pattern. They generally indicate variation -- either real (e.g. an alternate path is caused by a SNP) or erroneous (e.g. an alternate path is caused by a sequencing error). We identify bubbles using a modified version of the algorithm given in [Onodera _et al._, 2013](https://link.springer.com/chapter/10.1007/978-3-642-40453-5_26).
 
@@ -184,20 +186,51 @@ Similarly, **bulges** ([Pevzner _et al._, 2004](https://pmc.ncbi.nlm.nih.gov/art
 
 Bulges can typically be interpreted the same way as bubbles -- you generally see bulges in "edge-centric" (e.g. de Bruijn) graphs, and bubbles in "node-centric" (e.g. overlap) graphs. So, we label both bubbles and bulges identically.
 
-### 2. Frayed ropes
+#### 2. Frayed ropes
 
 **Frayed ropes** ([Miller _et al._, 2010](https://pmc.ncbi.nlm.nih.gov/articles/PMC2874646/)) follow a converge-diverge pattern; they have the opposite structure as bubbles. They generally indicate interspersed repeats in the middle region.
 
-### 3 and 4. Chains and cyclic chains
+#### 3 and 4. Chains and cyclic chains
 
 **Chains** are just non-branching paths of at least two nodes. **Cyclic chains** are chains where the end node has an outgoing edge to the start node.
 Cyclic chains represent a simpler form of what are known in edge-centric graphs as _whirl_ structures ([Pevzner _et al._, 2004](https://pmc.ncbi.nlm.nih.gov/articles/PMC515325/)).
 
-### 5. Bipartites
+#### 5. Bipartites
 
 **Bipartites** are regions of the graph that can be partitioned into two layers of nodes (let's call them _Left_ and _Right_), such that all of the nodes in _Left_ have outgoing edges to all of the nodes in _Right_. We require that both _Left_ and _Right_ contain at least two nodes each. (Such a pattern is essentially a stricter version of a [complete bipartite graph](https://en.wikipedia.org/wiki/Complete_bipartite_graph).)
 
 Surprisingly, these patterns pop up a lot in certain assembly graphs! These are less well-documented in the literature than the above types of patterns, but our suspicion is that these are another indication (like frayed ropes) of repeats -- and that a lot of these patterns in succession might indicate things like strain heterogeneity. See Figure 5 of [Li _et al._, 2012](https://academic.oup.com/bfg/article/11/1/25/191455) for an example bipartite (and frayed rope) that is caused by a repeat.
+
+### Boundary node splitting
+
+Sometimes, it is best to consider a node as the child of two patterns.
+A common example of this is a _bubble chain_ ([Dabbaghie  _et al._, 2022](https://pmc.ncbi.nlm.nih.gov/articles/PMC9438957/)), where multiple bubbles occur one after another.
+In a bubble chain, the "end node" of one bubble is also the "start node" of another bubble!
+
+To accommodate these cases, MetagenomeScope **splits the boundary nodes** of a pattern.
+Splitting a node `A` converts it into two nodes: `A-L` and `A-R`, which are connected by a single "fake edge" from `A-L` to `A-R`.
+This makes it possible for us to identify a much richer set of patterns that describes the graph structure accurately.
+
+"Split nodes" and "fake edges" are drawn with distinct visual styles, in order to make them clearer -- split nodes are drawn in a way that looks like the node has been split in half, and fake edges are drawn as thick dashed lines.
+
+<table>
+  <thead>
+    <tr>
+      <th colspan="2">Examples of split nodes</th>
+    </tr>
+  </thead>
+  <tbody>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_splitnode_cc17.png" alt="Example split node in the SRS049959 scaffold graph." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/chr15_full_splitnode.png" alt="Example split nodes in a jumboDBG de Bruijn graph of chromosome 15." /></td>
+    </tr>
+    <tr align="center">
+      <td><a href="https://github.com/marbl/MetaCarvel/">MetaCarvel</a> stool metagenome scaffold graph (the "large graph" shown below), component #17</td>
+      <td><a href="https://github.com/AntonBankevich/LJA/">jumboDBG</a> de Bruijn graph of chromosome 15 (available as <a href="https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/tests/input"><tt>metagenome/tests/input/chr15_full.gv</tt></a>)</td>
+    </tr>
+  </tbody>
+</table>
+
+Furthermore, since node splitting is not always necessary (maybe the end node of a bubble isn't the start node of any other pattern), our decomposition algorithm has an extra step at the end that detects and removes unnecessary split nodes.
 
 ## Example datasets
 
