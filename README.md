@@ -232,6 +232,9 @@ mgsc -g flye_yeast.gv -i flye_yeast_assembly_info.txt
   </tbody>
 </table>
 
+> [!TIP]
+> The "Labels" section of the interface has some settings that help make labels prettier. I produced the screenshot on the right above using the `Offset`, `Outline`, and `Rotate` edge label settings.
+
 ### 2. Medium graph: Velvet (`LastGraph` file; 558 nodes; 664 edges) -- _E. coli_
 
 This is an example graph from [Bandage](http://rrwick.github.io/Bandage/).
@@ -261,6 +264,11 @@ mgsc -g E_coli_LastGraph
   </tbody>
 </table>
 
+> [!NOTE]
+> As discussed in the FAQs below on "Reverse-complementary sequences," we represent nodes `1` and `-1` separately in the graph -- this makes it easier to lay out the graph nicely.
+>
+> For example, notice that components #2 and #3 in these screenshots are reverse-complements of each other, as are components #4 and #5, etc.
+
 ### 3. Large graph: MetaCarvel (`GML` file; 28,064 nodes; 21,769 edges) -- stool metagenome
 
 This is a scaffold graph created by [MetaCarvel](https://github.com/marbl/MetaCarvel/). Note that this graph is fairly old (it dates back to August 2017!); MetaCarvel has been updated a decent amount since then.
@@ -281,7 +289,7 @@ mgsc -g august1.gml -a scaffolds_august1_fixed.agp --verbose
   </thead>
   <tbody>
     <tr>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc2.png" alt="Second largest connected component." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_all.png" alt="Second largest connected component." /></td>
       <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc6_scaffold430.png" alt="Sixth largest connected connected component, zoomed in on a scaffold path." /></td>
     </tr>
     <tr align="center">
