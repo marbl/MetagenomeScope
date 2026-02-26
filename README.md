@@ -225,7 +225,7 @@ Because this allows a node to be in two patterns simultaneously, this makes it p
     </tr>
     <tr align="center">
       <td><a href="https://github.com/marbl/MetaCarvel/">MetaCarvel</a> stool metagenome scaffold graph (the "large graph" shown below), component #17</td>
-      <td><a href="https://github.com/AntonBankevich/LJA/">jumboDBG</a> de Bruijn graph of chromosome 15 (available as <a href="https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/tests/input"><tt>metagenome/tests/input/chr15_full.gv</tt></a>)</td>
+      <td><a href="https://github.com/AntonBankevich/LJA/">jumboDBG</a> de Bruijn graph of human chromosome 15 (available as <tt>chr15_full.gv</tt> in <a href="https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/tests/input"><tt>metagenome/tests/input/</tt></a>)</td>
     </tr>
   </tbody>
 </table>
