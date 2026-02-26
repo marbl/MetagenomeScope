@@ -262,13 +262,13 @@ mgsc -g E_coli_LastGraph
     </tr>
     <tr align="center">
       <td>Hierarchical layout with <a href="https://graphviz.org/docs/layouts/dot/"><i>dot</i></a></td>
-      <td>Force-directed layout with <a href="https://graphviz.org/docs/layouts/sfdp/"><i>sfdp</i></a>(using an <a href="https://graphviz.org/docs/attrs/overlap_scaling/">overlap scaling factor</a> of <tt>-15</tt>)</td>
+      <td>Force-directed layout with <a href="https://graphviz.org/docs/layouts/sfdp/"><i>sfdp</i></a> (using an <a href="https://graphviz.org/docs/attrs/overlap_scaling/">overlap scaling factor</a> of <tt>-15</tt>)</td>
     </tr>
   </tbody>
 </table>
 
 > [!NOTE]
-> As discussed in the FAQs below on "Reverse-complementary sequences," we represent nodes `1` and `-1` separately in the graph -- this makes it easier to lay out the graph nicely.
+> As discussed in the FAQs below on "Reverse-complementary sequences," we represent each pair of nodes (`A`, `-A`) separately in the graph -- this makes it easier to lay out the graph nicely.
 >
 > For example, notice that components #2 and #3 in these screenshots are reverse-complements of each other, as are components #4 and #5, etc.
 
