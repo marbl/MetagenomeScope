@@ -462,7 +462,7 @@ At this point:
 
 - The "decomposed graph" (where patterns are collapsed into nodes) is represented by `ag.decomposed_graph` (a [NetworkX `MultiDiGraph`](https://networkx.org/documentation/stable/reference/classes/multidigraph.html)).
 
-- The "original graph" (i.e. with all patterns fully uncollapsed, revealing all "original" nodes and edges) is represented by `ag.graph` (also a [NetworkX `MultiDiGraph`](https://networkx.org/documentation/stable/reference/classes/multidigraph.html))
+- The "true graph" (i.e. with all patterns fully uncollapsed, revealing all "original" nodes and edges) is represented by `ag.graph` (also a [NetworkX `MultiDiGraph`](https://networkx.org/documentation/stable/reference/classes/multidigraph.html))
   - Note that this graph will still include split nodes and fake edges, if any remain after the decomposition process.
 
 - All nodes, edges, and patterns will have unique integer IDs. These IDs can be used to look up information about nodes, edges, and patterns in the `ag.nodeid2obj`, `ag.edgeid2obj`, and `ag.pattid2obj` dictionaries, respectively.
