@@ -16,7 +16,7 @@ graphs at larger scales -- for example, highlighting scaffold paths on the graph
 drawing summary plots of the graph's structure.
 
 MetagenomeScope supports the outputs of most modern assemblers,
-is able to visualize large graphs including tens of thousands of nodes,
+can handle large graphs including tens of thousands of nodes,
 and is backed by over four hundred automatic software tests.
 
 The tool is under active development, so please let us know if you have any feedback!
@@ -259,7 +259,7 @@ mgsc -g E_coli_LastGraph
     </tr>
     <tr align="center">
       <td>Hierarchical layout with <a href="https://graphviz.org/docs/layouts/dot/"><i>dot</i></a></td>
-      <td>Force-directed layout with <a href="https://graphviz.org/docs/layouts/sfdp/"><i>sfdp</i></a></td>
+      <td>Force-directed layout with <a href="https://graphviz.org/docs/layouts/sfdp/"><i>sfdp</i></a>(using an <a href="https://graphviz.org/docs/attrs/overlap_scaling/">overlap scaling factor</a> of <tt>-15</tt>)</td>
     </tr>
   </tbody>
 </table>
