@@ -284,7 +284,7 @@ This is a scaffold graph created by [MetaCarvel](https://github.com/marbl/MetaCa
 wget https://zenodo.org/records/18316065/files/august1.gml
 wget https://zenodo.org/records/18316065/files/scaffolds_august1_fixed.agp
 
-# Use --verbose to show more information about how long each step takes
+# Use --verbose to show more information in the terminal about how long each step takes
 mgsc -g august1.gml -a scaffolds_august1_fixed.agp --verbose
 ```
 
