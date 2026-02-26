@@ -233,9 +233,11 @@ mgsc -g flye_yeast.gv -i flye_yeast_assembly_info.txt
 </table>
 
 > [!TIP]
+> #### Label styles
 > The "Labels" section of the interface has some settings that help make labels prettier. I produced the screenshot on the right above using the `Offset`, `Outline`, and `Rotate` edge label settings.
 
 > [!NOTE]
+> #### Drawing edge-centric graphs
 > We draw `DOT` files from Flye and LJA using the typical conventions for drawing de Bruijn graphs -- with nodes represented as circles, and edges given labels with length and coverage. This resembles the styles from various papers that show visualizations of these kinds of graphs, including [Pevzner _et al._, 2004](https://pmc.ncbi.nlm.nih.gov/articles/PMC515325/); [Mikheenko & Kolmogorov 2019](https://academic.oup.com/bioinformatics/article/35/18/3476/5306331); and [Bankevich _et al._, 2022](https://www.nature.com/articles/s41587-022-01220-6).
 
 ### 2. Medium graph: Velvet (`LastGraph` file; 558 nodes; 664 edges) -- _E. coli_
@@ -268,9 +270,11 @@ mgsc -g E_coli_LastGraph
 </table>
 
 > [!NOTE]
-> As discussed in the FAQs below on "Reverse-complementary sequences," we represent each pair of nodes (`A`, `-A`) separately in the graph -- this makes it easier to lay out the graph nicely.
+> #### Reverse-complementary nodes and edges in GFA and LastGraph files
+> As discussed in the FAQs below on "Reverse-complementary sequences," we represent each pair of nodes (`A`, `-A`) separately in the graph. This makes it easier to lay out the graph nicely.
 >
-> For example, notice that components #2 and #3 in these screenshots are reverse-complements of each other, as are components #4 and #5, etc.
+> Notice that components #2 and #3 in these screenshots are reverse-complements of each other, as are components #4 and #5, etc.
+> However, component #1 is "strand-mixed" -- it contains both nodes `1` and `-1`!
 
 ### 3. Large graph: MetaCarvel (`GML` file; 28,064 nodes; 21,769 edges) -- stool metagenome
 
@@ -303,6 +307,7 @@ mgsc -g august1.gml -a scaffolds_august1_fixed.agp --verbose
 </table>
 
 > [!TIP]
+> #### dang that's a big graph
 > You can get a sense for the sizes of this graph's connected components by clicking the "Graph info" button in the left sidebar, then examining the information in the "Components" tab.
 >
 > This shows that the largest connected component in this graph (i.e. the one with size rank #1) contains over six thousand nodes. You can certainly draw this component in MetagenomeScope, but it will take a few seconds to lay out and draw. The resulting interface may also become a bit sluggish due to the size of the graph. (You could even draw the entire graph if you wanted to, as shown above! But it will be even more sluggish.)
