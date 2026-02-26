@@ -208,8 +208,8 @@ A common example of this is a _bubble chain_ ([Dabbaghie  _et al._, 2022](https:
 In a bubble chain, the "end node" of one bubble is also the "start node" of another bubble!
 
 To accommodate these cases, MetagenomeScope **splits the boundary nodes** of a pattern.
-Splitting a node `A` converts it into two nodes: `A-L` and `A-R`, which are connected by a single "fake edge" from `A-L` to `A-R`.
-This makes it possible for us to identify a much richer set of patterns that describes the graph structure accurately.
+Splitting a node `A` transforms it into two nodes: `A-L` and `A-R`, which are connected by a single "fake edge" `A-L -> A-R`.
+Because this allows a node to be in two patterns simultaneously, this makes it possible for us to identify a much richer set of patterns and describe the graph structure more accurately.
 
 "Split nodes" and "fake edges" are drawn with distinct visual styles, in order to make them clearer -- split nodes are drawn in a way that looks like the node has been split in half, and fake edges are drawn as thick dashed lines.
 
