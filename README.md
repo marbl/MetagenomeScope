@@ -187,13 +187,13 @@ Bulges can typically be interpreted the same way as bubbles -- you generally see
 ### 3 and 4. Chains and cyclic chains
 
 **Chains** are just non-branching paths of at least two nodes. **Cyclic chains** are chains where the end node has an outgoing edge to the start node.
-Cyclic chains represent a simpler form of what are known in de Bruijn graphs as _whirl_ structures ([Pevzner _et al._, 2004](https://pmc.ncbi.nlm.nih.gov/articles/PMC515325/)).
+Cyclic chains represent a simpler form of what are known in edge-centric graphs as _whirl_ structures ([Pevzner _et al._, 2004](https://pmc.ncbi.nlm.nih.gov/articles/PMC515325/)).
 
 ### 5. Bipartites
 
-**Bipartites** are regions of the graph that can be partitioned into two layers of nodes (let's call them _Left_ and _Right_), such that all of the nodes in _Left_ have outgoing edges to all of the nodes in _Right_. We require that both _Left_ and _Right_ contain at least two nodes each. (This is essentially a stricter version of a [complete bipartite graph](https://en.wikipedia.org/wiki/Complete_bipartite_graph).)
+**Bipartites** are regions of the graph that can be partitioned into two layers of nodes (let's call them _Left_ and _Right_), such that all of the nodes in _Left_ have outgoing edges to all of the nodes in _Right_. We require that both _Left_ and _Right_ contain at least two nodes each. (Such a pattern is essentially a stricter version of a [complete bipartite graph](https://en.wikipedia.org/wiki/Complete_bipartite_graph).)
 
-Surprisingly, these patterns pop up a lot in certain assembly graphs! These are less well-documented in the literature than the above types of patterns, but our suspicion is that these are another indication (like frayed ropes) of repeats -- and that a lot of these patterns in succession might indicate things like strain heterogeneity. See Figure 5 of [Li _et al._, 2012](https://academic.oup.com/bfg/article/11/1/25/191455) for an example bipartite pattern (and frayed rope) that is caused by a repeat.
+Surprisingly, these patterns pop up a lot in certain assembly graphs! These are less well-documented in the literature than the above types of patterns, but our suspicion is that these are another indication (like frayed ropes) of repeats -- and that a lot of these patterns in succession might indicate things like strain heterogeneity. See Figure 5 of [Li _et al._, 2012](https://academic.oup.com/bfg/article/11/1/25/191455) for an example bipartite (and frayed rope) that is caused by a repeat.
 
 ## Example datasets
 
