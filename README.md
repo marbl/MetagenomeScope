@@ -235,6 +235,9 @@ mgsc -g flye_yeast.gv -i flye_yeast_assembly_info.txt
 > [!TIP]
 > The "Labels" section of the interface has some settings that help make labels prettier. I produced the screenshot on the right above using the `Offset`, `Outline`, and `Rotate` edge label settings.
 
+> [!NOTE]
+> We draw `DOT` files from Flye and LJA using the typical conventions for drawing de Bruijn graphs -- with nodes represented as circles, and edges given labels with length and coverage. This resembles the styles from various papers that show visualizations of these kinds of graphs, including [Pevzner _et al._, 2004](https://pmc.ncbi.nlm.nih.gov/articles/PMC515325/); [Mikheenko & Kolmogorov 2019](https://academic.oup.com/bioinformatics/article/35/18/3476/5306331); and [Bankevich _et al._, 2022](https://www.nature.com/articles/s41587-022-01220-6).
+
 ### 2. Medium graph: Velvet (`LastGraph` file; 558 nodes; 664 edges) -- _E. coli_
 
 This is an example graph from [Bandage](http://rrwick.github.io/Bandage/).
