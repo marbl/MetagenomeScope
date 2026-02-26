@@ -214,6 +214,24 @@ wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/met
 mgsc -g flye_yeast.gv -i flye_yeast_assembly_info.txt
 ```
 
+<table>
+  <thead>
+    <tr>
+      <th colspan="2">Yeast assembly graph screenshots</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/flye_yeast_all.png" alt="Entire yeast assembly graph." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/flye_yeast.png" alt="Yeast assembly graph, zoomed in on a scaffold path." /></td>
+    </tr>
+    <tr align="center">
+      <td>Entire graph</td>
+      <td>Zoomed in on <tt>scaffold_34</tt> in component #1</td>
+    </tr>
+  </tbody>
+</table>
+
 ### 2. Medium graph: Velvet (`LastGraph` file; 558 nodes; 664 edges) -- _E. coli_
 
 This is an example graph from [Bandage](http://rrwick.github.io/Bandage/).
@@ -224,6 +242,24 @@ wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/met
 
 mgsc -g E_coli_LastGraph
 ```
+
+<table>
+  <thead>
+    <tr>
+      <th colspan="2"><i>E. coli</i> assembly graph screenshots</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/ecoli_dot.png" alt="E. coli assembly graph drawn using a hierarchical layout algorithm, dot." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/ecoli_sfdp_osfminus15.png" alt="E. coli assembly graph drawn using a force-directed layout algorithm, sfdp." /></td>
+    </tr>
+    <tr align="center">
+      <td>Hierarchical layout with <a href="https://graphviz.org/docs/layouts/dot/"><i>dot</i></a></td>
+      <td>Force-directed layout with <a href="https://graphviz.org/docs/layouts/sfdp/"><i>sfdp</i></a></td>
+    </tr>
+  </tbody>
+</table>
 
 ### 3. Large graph: MetaCarvel (`GML` file; 28,064 nodes; 21,769 edges) -- stool metagenome
 
@@ -237,10 +273,28 @@ wget https://zenodo.org/records/18316065/files/scaffolds_august1_fixed.agp
 mgsc -g august1.gml -a scaffolds_august1_fixed.agp --verbose
 ```
 
+<table>
+  <thead>
+    <tr>
+      <th colspan="2">Stool metagenome scaffold graph screenshots</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc2.png" alt="Second largest connected component." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc6_scaffold430.png" alt="Sixth largest connected connected component, zoomed in on a scaffold path." /></td>
+    </tr>
+    <tr align="center">
+      <td>Entire graph (on my 2018 laptop this takes about 2.5 minutes to lay out and draw; see tip below) </td>
+      <td>Zoomed in on <tt>scaffold_430</tt> in component #6</td>
+    </tr>
+  </tbody>
+</table>
+
 > [!TIP]
 > You can get a sense for the sizes of this graph's connected components by clicking the "Graph info" button in the left sidebar, then examining the information in the "Components" tab.
 >
-> This shows that the largest connected component in this graph (i.e. the one with size rank #1) contains over six thousand nodes. You can certainly draw this component in MetagenomeScope, but it will take a few seconds to lay out and draw. The resulting interface may also become a bit sluggish due to the size of the graph.
+> This shows that the largest connected component in this graph (i.e. the one with size rank #1) contains over six thousand nodes. You can certainly draw this component in MetagenomeScope, but it will take a few seconds to lay out and draw. The resulting interface may also become a bit sluggish due to the size of the graph. (You could even draw the entire graph if you wanted to, as shown above! But it will be even more sluggish.)
 >
 > If you would like to examine the smaller parts of this graph, you can start by drawing component #2 -- or even a range of components, for example #2 - 10. (Try pasting `2-10` into the "Component(s), by size rank" input to draw all of these components at once!)
 >
