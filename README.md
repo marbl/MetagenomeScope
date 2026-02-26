@@ -317,7 +317,7 @@ mgsc -g august1.gml -a scaffolds_august1_fixed.agp --verbose
 > If you would like to examine the smaller parts of this graph, you can start by drawing component #2 -- or even a range of components, for example #2 - 10. (Try pasting `2-10` into the "Component(s), by size rank" input to draw all of these components at once!)
 >
 > ##### Drawing subregions of components
-> You can also draw only a subregion of a larger component, using functionality inspired by [Bandage](https://rrwick.github.io/Bandage/). In the _Draw_ section, change the "Component(s), by size rank" dropdown to the "Around certain node(s)" option, and then type in `k99_38`. Try increasing the distance and redrawing to see more and more of component #1!
+> You can also draw only a subregion of a larger component, using functionality inspired by [Bandage](https://rrwick.github.io/Bandage/). In the "Draw" section, change the "Component(s), by size rank" dropdown to the "Around certain node(s)" option, and then type in `k99_38`. Try increasing the distance and redrawing to see more and more of component #1!
 
 ### Hodgepodge of other test datasets
 
