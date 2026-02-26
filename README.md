@@ -308,12 +308,15 @@ mgsc -g august1.gml -a scaffolds_august1_fixed.agp --verbose
 
 > [!TIP]
 > #### dang that's a big graph
-> You can get a sense for the sizes of this graph's connected components by clicking the "Graph info" button in the left sidebar, then examining the information in the "Components" tab.
+> ##### Understanding component sizes
+> You can get a sense for the sizes of this graph's connected components by clicking the "Graph info" button in the left sidebar, then examining the charts in the "Components" tab.
 >
 > This shows that the largest connected component in this graph (i.e. the one with size rank #1) contains over six thousand nodes. You can certainly draw this component in MetagenomeScope, but it will take a few seconds to lay out and draw. The resulting interface may also become a bit sluggish due to the size of the graph. (You could even draw the entire graph if you wanted to, as shown above! But it will be even more sluggish.)
 >
+> ##### Drawing smaller component(s)
 > If you would like to examine the smaller parts of this graph, you can start by drawing component #2 -- or even a range of components, for example #2 - 10. (Try pasting `2-10` into the "Component(s), by size rank" input to draw all of these components at once!)
 >
+> ##### Drawing subregions of components
 > You can also draw only a subregion of a larger component, using functionality inspired by [Bandage](https://rrwick.github.io/Bandage/). In the _Draw_ section, change the "Component(s), by size rank" dropdown to the "Around certain node(s)" option, and then type in `k99_38`. Try increasing the distance and redrawing to see more and more of component #1!
 
 ### Hodgepodge of other test datasets
@@ -650,18 +653,7 @@ We're still figuring that out. There are two main bottlenecks I am aware of:
 
     - With graphs containing thousands of nodes, interaction (e.g. zooming, panning) starts to feel a bit sluggish.
 
-
-I have some ideas for dealing with these bottlenecks, but thankfully there are already ways around both of these issues. Some approaches that may be helpful:
-
-- Assuming that your graph has multiple components, check out the `Components` tab in the `Graph info` dialog to see how big these components are. If component #1 (the largest one) contains more than, say, 10,000 nodes, you may want to start off with analyzing the smaller components.
-
-- You don't need to draw entire components at once. Try using the `Around certain node(s)` drawing method (in the dropdown inside the `Draw` section): if you are interested in just certain neighborhood(s) in a massive component, you can enter in a list of nodes here (and some distance around them) and we'll just draw the corresponding neighborhoods. (Inspired by [Bandage](https://github.com/rrwick/bandage) :)
-
-- Turning off labels might be helpful?
-
-    - Although probably not by that much, since we already use Cytoscape.js' functionality to hide labels when you're zoomed out from the graph.
-
-    - So... if you set a really big label font size and zoom the graph out really far, _then_ labels could cause performance issues.
+See the "Large graph" section under "Example datasets" above for some tips for working with large graphs.
 
 <hr/>
 </details>
