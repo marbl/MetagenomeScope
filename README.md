@@ -203,7 +203,7 @@ Surprisingly, these patterns pop up a lot in certain assembly graphs! These are 
 
 Here are three graphs of various sizes, each produced by a different assembly program.
 
-### 1. Small graph: Flye (`DOT` file; 61 nodes; 122 edges) -- _S. cerevisiae_ (yeast)
+### 1. Small graph: Flye (DOT file; 61 nodes; 122 edges) -- _S. cerevisiae_ (yeast)
 
 This data is from [AGB's GitHub repository](https://github.com/almiheenko/AGB/tree/master/test_data/flye_yeast).
 
@@ -238,9 +238,9 @@ mgsc -g flye_yeast.gv -i flye_yeast_assembly_info.txt
 
 > [!NOTE]
 > #### Drawing edge-centric graphs
-> We draw `DOT` files from Flye and LJA using the typical conventions for drawing de Bruijn graphs -- with nodes represented as circles, and edges given labels with length and coverage. This resembles the styles from various papers that show visualizations of these kinds of graphs, including [Pevzner _et al._, 2004](https://pmc.ncbi.nlm.nih.gov/articles/PMC515325/); [Mikheenko & Kolmogorov 2019](https://academic.oup.com/bioinformatics/article/35/18/3476/5306331); and [Bankevich _et al._, 2022](https://www.nature.com/articles/s41587-022-01220-6).
+> We draw DOT files from Flye and LJA using the typical conventions for drawing de Bruijn graphs -- with nodes represented as circles, and edges given labels with length and coverage. This resembles the styles from various papers that show visualizations of these kinds of graphs, including [Pevzner _et al._, 2004](https://pmc.ncbi.nlm.nih.gov/articles/PMC515325/); [Mikheenko & Kolmogorov 2019](https://academic.oup.com/bioinformatics/article/35/18/3476/5306331); and [Bankevich _et al._, 2022](https://www.nature.com/articles/s41587-022-01220-6).
 
-### 2. Medium graph: Velvet (`LastGraph` file; 558 nodes; 664 edges) -- _E. coli_
+### 2. Medium graph: Velvet (LastGraph file; 558 nodes; 664 edges) -- _E. coli_
 
 This is an example graph from [Bandage](http://rrwick.github.io/Bandage/).
 Note that the original sequences have been removed to save space.
@@ -276,7 +276,7 @@ mgsc -g E_coli_LastGraph
 > Notice that components #2 and #3 in these screenshots are reverse-complements of each other, as are components #4 and #5, etc.
 > However, component #1 is "strand-mixed" -- it contains both nodes `1` and `-1`!
 
-### 3. Large graph: MetaCarvel (`GML` file; 28,064 nodes; 21,769 edges) -- stool metagenome
+### 3. Large graph: MetaCarvel (GML file; 28,064 nodes; 21,769 edges) -- stool metagenome
 
 This is a scaffold graph created by [MetaCarvel](https://github.com/marbl/MetaCarvel/). Note that this graph is fairly old (it dates back to August 2017!); MetaCarvel has been updated a decent amount since then.
 
