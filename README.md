@@ -197,25 +197,50 @@ Surprisingly, these patterns pop up a lot in certain assembly graphs! These are 
 
 ## Example datasets
 
-### Flye (DOT file, 61 nodes, 122 edges): _S. cerevisiae_ (yeast)
+Here are three graphs of various sizes, each produced by a different assembly program.
+
+### 1. Small graph: Flye (`DOT` file; 61 nodes; 122 edges) -- _S. cerevisiae_ (yeast)
 
 This data is from [AGB's GitHub repository](https://github.com/almiheenko/AGB/tree/master/test_data/flye_yeast).
 
 ```bash
 wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/metagenomescope/tests/input/flye_yeast.gv
 wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/metagenomescope/tests/input/flye_yeast_assembly_info.txt
+
 mgsc -g flye_yeast.gv -i flye_yeast_assembly_info.txt
 ```
 
-### Velvet (LastGraph file, 558 nodes, 664 edges): _E. coli_
+### 2. Medium graph: Velvet (`LastGraph` file; 558 nodes; 664 edges) -- _E. coli_
 
 This is an example graph from [Bandage](http://rrwick.github.io/Bandage/).
 Note that the original sequences have been removed to save space.
 
 ```bash
 wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/metagenomescope/tests/input/E_coli_LastGraph
+
 mgsc -g E_coli_LastGraph
 ```
+
+### 3. Large graph: MetaCarvel (`GML` file; 28,064 nodes; 21,769 edges) -- stool metagenome
+
+This is a scaffold graph created by [MetaCarvel](https://github.com/marbl/MetaCarvel/). Note that this graph is fairly old (it dates back to August 2017!); MetaCarvel has been updated a decent amount since then.
+
+```bash
+wget https://zenodo.org/records/18316065/files/august1.gml
+wget https://zenodo.org/records/18316065/files/scaffolds_august1_fixed.agp
+
+# Use --verbose to show more information about how long each step takes
+mgsc -g august1.gml -a scaffolds_august1_fixed.agp --verbose
+```
+
+> [!TIP]
+> You can get a sense for the sizes of this graph's connected components by clicking the "Graph info" button in the left sidebar, then examining the information in the "Components" tab.
+>
+> This shows that the largest connected component in this graph (i.e. the one with size rank #1) contains over six thousand nodes. You can certainly draw this component in MetagenomeScope, but it will take a few seconds to lay out and draw. The resulting interface may also become a bit sluggish due to the size of the graph.
+>
+> If you would like to examine the smaller parts of this graph, you can start by drawing component #2 -- or even a range of components, for example #2 - 10. (Try pasting `2-10` into the "Component(s), by size rank" input to draw all of these components at once!)
+>
+> You can also draw only a subregion of a larger component, using functionality inspired by [Bandage](https://rrwick.github.io/Bandage/). In the _Draw_ section, change the "Component(s), by size rank" dropdown to the "Around certain node(s)" option, and then type in `k99_38`. Try increasing the distance and redrawing to see more and more of component #1!
 
 ### Hodgepodge of other test datasets
 
