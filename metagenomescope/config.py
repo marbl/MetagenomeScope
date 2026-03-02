@@ -97,12 +97,12 @@ PT2FLATTEN_CHILD_EDGES = {
     PT_FRAYEDROPE: False,
     # these should already all be straight lines ._.
     PT_CHAIN: True,
-    # Cyclic chains can MAYBE have fancy back edges. For 2-node cyclic chains
-    # the other flattening code should already flatten the forward and back
-    # edges
+    # Cyclic chains can MAYBE have fancy back edges
     PT_CYCLICCHAIN: False,
     # Bipartites are essentially always clearer with straight lines IMO
-    # Consider aug1 cc6. with squiggly lines the bipartites look confusing
+    # Consider aug1 cc6. with squiggly lines the bipartites look confusing.
+    # This problem will get even worse when we scale edge thicknesses by cov
+    # or something - to avoid visual occlusion, straight lines are important
     PT_BIPARTITE: True,
 }
 
