@@ -199,7 +199,7 @@ Cyclic chains represent a simpler form of what are known in edge-centric graphs 
 
 **Bipartites** are regions of the graph that can be partitioned into two layers of nodes (let's call them _Left_ and _Right_), such that all of the nodes in _Left_ have outgoing edges to all of the nodes in _Right_. We require that both _Left_ and _Right_ contain at least two nodes each. (Such a pattern is essentially a stricter version of a [complete bipartite graph](https://en.wikipedia.org/wiki/Complete_bipartite_graph).)
 
-Surprisingly, these patterns pop up a lot in certain assembly graphs! These are less well-documented in the literature than the above types of patterns, but our suspicion is that these are another indication (like frayed ropes) of repeats -- and that a lot of these patterns in succession might indicate things like strain heterogeneity. See Figure 5 of [Li _et al._, 2012](https://academic.oup.com/bfg/article/11/1/25/191455) for an example bipartite (or, viewed another way, a frayed rope) that is caused by a repeat.
+Surprisingly, bipartites pop up a lot in certain assembly graphs! These are less well-documented in the literature than the above types of patterns, but our suspicion is that these are another indication (like frayed ropes) of repeats -- and that a lot of these patterns in succession might indicate things like strain heterogeneity. See Figure 5 of [Li _et al._, 2012](https://academic.oup.com/bfg/article/11/1/25/191455) for an example bipartite (or, viewed another way, a frayed rope) that is caused by a repeat.
 
 ### Boundary node splitting
 
@@ -279,10 +279,10 @@ mgsc -g flye_yeast.gv -i flye_yeast_assembly_info.txt
 ### 2. Medium graph: Velvet (LastGraph file; 558 nodes; 664 edges) -- _E. coli_
 
 This is an example graph from [Bandage](http://rrwick.github.io/Bandage/).
-Note that the original sequences have been removed to save space.
 
 ```bash
-wget https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/metagenomescope/tests/input/E_coli_LastGraph
+wget https://github.com/rrwick/Bandage/raw/refs/heads/gh-pages/samples/E_coli_LastGraph.zip
+unzip E_coli_LastGraph.zip
 
 mgsc -g E_coli_LastGraph
 ```
