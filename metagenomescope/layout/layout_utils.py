@@ -1,5 +1,4 @@
 import math
-from collections import defaultdict
 from . import layout_config
 from .. import config
 from ..errors import WeirdError
