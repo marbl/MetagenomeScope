@@ -2679,7 +2679,7 @@ def run(
         return (
             no_update,
             {
-                "type": image_type,
+                "imageType": image_type,
                 "filename": ui_utils.get_screenshot_basename(),
                 "options": {"bg": cy_config.BG_COLOR, "scale": sf},
             },

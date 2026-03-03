@@ -195,30 +195,51 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             cy.fit(cy.$(":selected"));
         },
         takeScreenshot: function(request) {
-            console.log("we tkain screnshot");
             let cy = getCy();
-            let f = undefined;
-            if (request.type === "png") {
-                f = cy.png;
-            } else if (request.type === "jpg") {
-                f = cy.jpg;
-            } else if (request.type === "svg") {
-                f = cy.svg;
+            // NOTE: the first way I tried to implement this involved just
+            // determining the screenshot function based on the image type.
+            // so, "png" --> cy.png(), "jpg" --> cy.jpg(), etc.
+            // This resulted in bizarre errors of the form
+            // 'can't access property "_private", this is undefined'.
+            //
+            // IT TURNS OUT THAT this is because when you pass functions around
+            // in JS the meaning of the "this" keyword can get messed up --
+            // see https://stackoverflow.com/a/59060545.
+            //
+            // You apparently can sort of solve this by replacing e.g.
+            // "f = cy.png;" with "f = cy.png.bind(cy);", but that's hideous,
+            // isn't it?
+            //
+            // So ........ let's just call each function separately to avoid
+            // these nightmares
+            let content;
+            let fnSuffix;
+            let isBase64 = true;
+            if (request.imageType === "png") {
+                content = cy.png(request.options);
+                fnSuffix = "png";
+            } else if (request.imageType === "jpg") {
+                content = cy.jpg(request.options);
+                fnSuffix = "jpg";
+            } else if (request.imageType === "svg") {
+                content = cy.svg(request.options);
+                fnSuffix = "svg";
+                isBase64 = false;
             } else {
+                alert("bad screenshot request image type - see console");
                 console.log(request);
-                alert("Bad screenshot request");
                 return;
             }
-            console.log("request good");
-            console.log(request);
-            console.log(request.options);
-            console.log(f);
-            let content = f(request.options);
-            console.log("da content");
-            console.log(content);
+            if (isBase64) {
+                // slice off the "data:image/png:base64," prefix, which
+                // dcc.Download does not expect -
+                // https://stackoverflow.com/a/40289667
+                content = content.split(",")[1];
+            }
             return {
-                filename: request.filename + "." + request.type,
-                content: content
+                filename: request.filename + "." + fnSuffix,
+                content: content,
+                base64: isBase64
             };
         }
     },
