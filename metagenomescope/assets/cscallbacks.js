@@ -123,6 +123,31 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         },
     },
     cyManip: {
+        init: function(onPageLoad, stylesheet) {
+            cytoscape({
+                container: document.getElementById("cy"),
+                style: stylesheet,
+                maxZoom: 9,
+                boxSelectionEnabled: true
+            });
+        },
+        changeEles: function(eles) {
+            let cy = getCy();
+            // TODO: is there a more performant way to wipe everything? I mean
+            // we COULD just call cy.destroy() but that is not recommended per
+            // https://js.cytoscape.org/#performance/optimisations
+            cy.remove(cy.elements());
+            cy.add(eles);
+            cy.fit();
+        },
+        changeLayoutParams: function(layoutParams) {
+            let cy = getCy();
+            cy.layout(layoutParams);
+        },
+        changeStylesheet: function(stylesheet) {
+            let cy = getCy();
+            cy.style(stylesheet);
+        },
         rescueNewlyDrawnBadEdges: function (currDrawnInfo) {
             let cy = getCy();
             rescueEdges(cy.edges(), "edge(s) on initial draw");
@@ -169,6 +194,33 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // sufficient to just search through the graph in this callback.
             cy.fit(cy.$(":selected"));
         },
+        takeScreenshot: function(request) {
+            console.log("we tkain screnshot");
+            let cy = getCy();
+            let f = undefined;
+            if (request.type === "png") {
+                f = cy.png;
+            } else if (request.type === "jpg") {
+                f = cy.jpg;
+            } else if (request.type === "svg") {
+                f = cy.svg;
+            } else {
+                console.log(request);
+                alert("Bad screenshot request");
+                return;
+            }
+            console.log("request good");
+            console.log(request);
+            console.log(request.options);
+            console.log(f);
+            let content = f(request.options);
+            console.log("da content");
+            console.log(content);
+            return {
+                filename: request.filename + "." + request.type,
+                content: content
+            };
+        }
     },
     selection: {
         /* Selects and zooms to a list of node names.
