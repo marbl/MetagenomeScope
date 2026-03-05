@@ -102,6 +102,8 @@ function tryToSetBadEdgeDragRescuer(cy) {
     }
 }
 
+const WIPE_DONE_FLAG = "_mgscWipeDone";
+
 /* For more information about clientside callbacks, see
  * https://dash.plotly.com/clientside-callbacks -- this next line
  * (window.dash_clientside...) is based on their docs.
@@ -181,6 +183,37 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     );
                 }, DEBOUNCE_TIME_MS);
             });
+            // The callback below will trigger exactly once, upon (re)drawing
+            // the graph. If there's stuff you wanna do to clear the app state
+            // when that happens, you can do it here.
+            cy.on("remove", "node,edge", function(e) {
+                // because we remove everything at once, we will trigger a
+                // bunch of "remove" events (one per element in the graph).
+                // To avoid unnecessarily doing the same thing a zillion
+                // times we could use a timeout (like above), or - since we
+                // know this gets done exactly once per draw - we can just
+                // use a simple flag
+                if (!cy.data(WIPE_DONE_FLAG)) {
+                    // prevent the silly race condition where the user selects
+                    // stuff, then IMMEDIATELY redraws the graph. Even if this
+                    // race condition were to trigger (you can test it by
+                    // setting DEBOUNCE_TIME_MS to something big like 3000 aka
+                    // 3 sec), it shouldn't cause a problem - because
+                    // cy.nodes(":selected"), etc will be empty upon redrawing
+                    // the graph. However, let's be careful and prevent this
+                    // anyway
+                    clearTimeout(selectionEventTimeout);
+
+                    // if stuff is already selected, clear it
+                    dash_clientside.set_props(
+                        "selectedNodeAndPatternJSONFromJS", { data: [] }
+                    );
+                    dash_clientside.set_props(
+                        "selectedEdgeJSONFromJS", { data: [] }
+                    );
+                    cy.data(WIPE_DONE_FLAG, true);
+                }
+            });
         },
         changeEles: function(eles) {
             let cy = getCy();
@@ -188,6 +221,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // we COULD just call cy.destroy() but that is not recommended per
             // https://js.cytoscape.org/#performance/optimisations
             cy.remove(cy.elements());
+            cy.data(WIPE_DONE_FLAG, false);
             cy.add(eles);
             cy.fit();
         },
