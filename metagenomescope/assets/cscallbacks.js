@@ -27,6 +27,17 @@ function getCy() {
     return document.getElementById("cy")._cyreg.cy;
 }
 
+
+/* Extracts data from e.g. a collection of selected nodes in Cytoscape.js. */
+function getCyCollectionData(collection) {
+    let objData = [];
+    for (let i = 0; i < collection.length; i++) {
+        let o = collection[i];
+        objData.push(o.data());
+    }
+    return objData;
+}
+
 /* If an edge is tagged as a badLine that Cytoscape.js refuses to draw, then
  * remove the .withctrlpts class -- which should change it back to a regular
  * "bezier"-style edge.
@@ -161,16 +172,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             cy.on("select unselect", "node", function(e) {
                 clearTimeout(selectNodeTimeout);
                 selectNodeTimeout = setTimeout(function() {
-                    let selectedNodes = cy.nodes(":selected");
-                    let selectedNodeData = [];
-                    for (let i = 0; i < selectedNodes.length; i++) {
-                        let n = selectedNodes[i];
-                        selectedNodeData.push(n.data());
-                    }
+                    let ndata = getCyCollectionData(cy.nodes(":selected"));
                     dash_clientside.set_props(
-                        "selectedNodeAndPatternJSONFromJS", {
-                            data: selectedNodeData
-                        }
+                        "selectedNodeAndPatternJSONFromJS", { data: ndata }
                     );
                 }, DEBOUNCE_TIME_MS);
             });
@@ -181,16 +185,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             cy.on("select unselect", "edge", function(e) {
                 clearTimeout(selectEdgeTimeout);
                 selectEdgeTimeout = setTimeout(function() {
-                    let selectedEdges = cy.edges(":selected");
-                    let selectedEdgeData = [];
-                    for (let i = 0; i < selectedEdges.length; i++) {
-                        let n = selectedEdges[i];
-                        selectedEdgeData.push(n.data());
-                    }
+                    let edata = getCyCollectionData(cy.edges(":selected"));
                     dash_clientside.set_props(
-                        "selectedEdgeJSONFromJS", {
-                            data: selectedEdgeData
-                        }
+                        "selectedEdgeJSONFromJS", { data: edata }
                     );
                 }, DEBOUNCE_TIME_MS);
             });
