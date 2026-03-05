@@ -2004,6 +2004,15 @@ def run(
             dcc.Store(
                 id="pathSelectionInfo",
             ),
+            # Stores info about currently selected nodes / edges / patterns.
+            # Updated from the JS code, so that a python callback can read it
+            # and populate the tables accordingly
+            dcc.Store(
+                id="selectedNodeAndPatternJSONFromJS",
+            ),
+            dcc.Store(
+                id="selectedEdgeJSONFromJS",
+            ),
             # used to store the graph TSV to be downloaded
             dcc.Download(
                 id="statsDownload",
@@ -3081,7 +3090,7 @@ def run(
         ClientsideFunction(
             namespace="cyManip", function_name="rescueAdjacentBadEdges"
         ),
-        Input("cy", "selectedNodeData"),
+        Input("selectedNodeAndPatternJSONFromJS", "data"),
         prevent_initial_call=True,
     )
 
@@ -3281,7 +3290,7 @@ def run(
         Output("selectedPatternList", "rowData"),
         Output("selectedPatternCount", "children"),
         Output("selectedPatternCount", "color"),
-        Input("cy", "selectedNodeData"),
+        Input("selectedNodeAndPatternJSONFromJS", "data"),
         prevent_initial_call=True,
     )
     def list_selected_nodes_and_patterns(selected_nodes):

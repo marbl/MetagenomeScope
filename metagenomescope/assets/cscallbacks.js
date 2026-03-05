@@ -124,11 +124,57 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
     },
     cyManip: {
         init: function(onPageLoad, stylesheet) {
-            cytoscape({
+            let cy = cytoscape({
                 container: document.getElementById("cy"),
                 style: stylesheet,
                 maxZoom: 9,
                 boxSelectionEnabled: true
+            });
+            // Cytoscape.js triggers a unique event for each selected node.
+            // You'd think that we should then just append the selected node
+            // to a list of "currently selected nodes" that triggers a Dash
+            // callback, right? Unfortunately!!! this is either impossible or
+            // super obscure, because dash_clientside.set_props() exists but
+            // dash_clientside.get_props() does not exist.
+            //
+            // We could then fix THAT by having each event callback go through
+            // the full collection of selected nodes (cy.nodes(":selected")),
+            // but the problem with THAAAT is that it's inefficient (we would
+            // be building up the same silly list of node data O(N^2) times,
+            // if the user box-selects a bunch of nodes at once).
+            //
+            // A nice way around this is *debouncing* the selection events, so
+            // that we only build this list of selected node data (and update
+            // Dash about this) once per selection event. This is based on the
+            // beautiful solution in https://stackoverflow.com/a/16701044, and
+            // happens to also match what Dash-Cytoscape is doing under the
+            // hood (https://github.com/plotly/dash-cytoscape/blob/f96e760f3b84c3f4d7ecbfaa905e9d57c698456d/src/lib/components/Cytoscape.react.js#L189-L203).
+            
+            // both Max Franz' solution & Dash Cytoscape's use 100 ms, but I
+            // think using a shorter interval is fine since it makes things
+            // snappier (plus, even if this messes up and results in multiple
+            // invocations of dash, it won't break anything - it will just be
+            // slightly inefficent)
+            let DEBOUNCE_TIME_MS = 50;
+            let selectNodeTimeout;
+            cy.on("select unselect", "node", function(e) {
+                // console.log("in event", e.target.id());
+                clearTimeout(selectNodeTimeout);
+                selectNodeTimeout = setTimeout(function() {
+                    let selectedNodes = cy.nodes(":selected");
+                    let selectedNodeData = [];
+                    for (let i = 0; i < selectedNodes.length; i++) {
+                        let n = selectedNodes[i];
+                        selectedNodeData.push(n.data());
+                    }
+                    dash_clientside.set_props(
+                        "selectedNodeAndPatternJSONFromJS", {
+                            data: selectedNodeData
+                        }
+                    );
+                    // console.log(e.target.id());
+                    // console.log(selectedNodeData);
+                }, DEBOUNCE_TIME_MS);
             });
         },
         changeEles: function(eles) {
@@ -289,7 +335,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     eles = eles.union(newEles);
                 }
                 cy.fit(eles);
-                cy.filter(":selected").unselect();
+                cy.$(":selected").unselect();
                 eles.select();
             }
         },
@@ -336,7 +382,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 if (pathSelectionInfo["path_settings"].indexOf("zoom") >= 0) {
                     cy.fit(eles);
                 }
-                cy.filter(":selected").unselect();
+                cy.$(":selected").unselect();
                 eles.select();
             }
         },
