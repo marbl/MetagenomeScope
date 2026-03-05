@@ -167,25 +167,15 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // invocations of dash, it won't break anything - it will just be
             // slightly inefficent)
             let DEBOUNCE_TIME_MS = 50;
-            //// node / pattern selection
-            let selectNodeTimeout;
-            cy.on("select unselect", "node", function(e) {
-                clearTimeout(selectNodeTimeout);
-                selectNodeTimeout = setTimeout(function() {
+            let selectionEventTimeout;
+            cy.on("select unselect", "node,edge", function(e) {
+                clearTimeout(selectionEventTimeout);
+                selectionEventTimeout = setTimeout(function() {
                     let ndata = getCyCollectionData(cy.nodes(":selected"));
+                    let edata = getCyCollectionData(cy.edges(":selected"));
                     dash_clientside.set_props(
                         "selectedNodeAndPatternJSONFromJS", { data: ndata }
                     );
-                }, DEBOUNCE_TIME_MS);
-            });
-            //// edge selection
-            // (in theory i guess we could combine this with the above stuff
-            // but whatever this matches how Dash-Cytoscape separated things)
-            let selectEdgeTimeout;
-            cy.on("select unselect", "edge", function(e) {
-                clearTimeout(selectEdgeTimeout);
-                selectEdgeTimeout = setTimeout(function() {
-                    let edata = getCyCollectionData(cy.edges(":selected"));
                     dash_clientside.set_props(
                         "selectedEdgeJSONFromJS", { data: edata }
                     );
