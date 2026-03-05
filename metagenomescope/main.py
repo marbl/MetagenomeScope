@@ -3043,18 +3043,11 @@ def run(
     )
 
     # Delete all elements in the Cytoscape.js instance, then add new ones
+    # Also update the layout settings Cytoscape.js has as needed
     clientside_callback(
         ClientsideFunction(namespace="cyManip", function_name="changeEles"),
         Input("cyElementsHolder", "data"),
-        prevent_initial_call=True,
-    )
-
-    # Change the layout settings for the Cytoscape.js instance
-    clientside_callback(
-        ClientsideFunction(
-            namespace="cyManip", function_name="changeLayoutSettings"
-        ),
-        Input("cyLayoutSettingsHolder", "data"),
+        State("cyLayoutSettingsHolder", "data"),
         prevent_initial_call=True,
     )
 

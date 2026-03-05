@@ -215,7 +215,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 }
             });
         },
-        changeEles: function(eles) {
+        changeEles: function(eles, layoutSettings) {
             let cy = getCy();
             // TODO: is there a more performant way to wipe everything? I mean
             // we COULD just call cy.destroy() but that is not recommended per
@@ -223,11 +223,13 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             cy.remove(cy.elements());
             cy.data(WIPE_DONE_FLAG, false);
             cy.add(eles);
+            // If we used a Graphviz layout program to lay out the graph, then
+            // this will just change the layout name to "preset". However, if
+            // we are using a client-side layout algorithm like Dagre, then
+            // this will actually do the work of running that layout algorithm
+            // here.
+            cy.layout(layoutSettings).run();
             cy.fit();
-        },
-        changeLayoutSettings: function(layoutSettings) {
-            let cy = getCy();
-            cy.layout(layoutSettings);
         },
         changeStylesheet: function(stylesheet) {
             let cy = getCy();
