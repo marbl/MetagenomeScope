@@ -1034,7 +1034,6 @@ def run(
                             "height": "100%",
                             "background": cy_config.BG_COLOR,
                         },
-                        # stylesheet=,
                     )
                 ],
                 id="cyDiv",
