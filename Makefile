@@ -1,6 +1,8 @@
-.PHONY: test stylecheck style demo
+.PHONY: test stylecheck style jsstyle
 
 PYLOCS = metagenomescope/
+JSLOCS = metagenomescope/assets/*.js
+CSSLOCS = metagenomescope/assets/*.css
 
 # -B: don't create __pycache__/ directories
 test:
@@ -17,3 +19,6 @@ stylecheck:
 
 style:
 	black -l 79 $(PYLOCS)
+
+jsstyle:
+	prettier --write --tab-width 4 $(JSLOCS) $(CSSLOCS)

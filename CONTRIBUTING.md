@@ -69,6 +69,21 @@ make stylecheck
 make style
 ```
 
+I don't currently have it included as an official part of the CI, but I
+occasionally autoformat the JS / CSS code using
+[prettier](https://github.com/prettier/prettier). If you have prettier
+installed, you can run this using:
+
+```bash
+make jsstyle
+```
+
+Installing dependencies like prettier from `npm` is kind of a pain (and an
+unnecessary one, IMO, for a project like this that doesn't use any Node.js
+packages for anything else). So... I have not yet gotten around to making this
+something that happens on every GitHub Actions run
+([#364](https://github.com/marbl/MetagenomeScope/issues/364)). Maybe later.
+
 ### Run tests
 
 ```bash

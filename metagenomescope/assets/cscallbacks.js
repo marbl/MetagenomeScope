@@ -27,7 +27,6 @@ function getCy() {
     return document.getElementById("cy")._cyreg.cy;
 }
 
-
 /* Extracts data from e.g. a collection of selected nodes in Cytoscape.js. */
 function getCyCollectionData(collection) {
     let objData = [];
@@ -136,12 +135,12 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         },
     },
     cyManip: {
-        init: function(onPageLoad, stylesheet) {
+        init: function (onPageLoad, stylesheet) {
             let cy = cytoscape({
                 container: document.getElementById("cy"),
                 style: stylesheet,
                 maxZoom: 9,
-                boxSelectionEnabled: true
+                boxSelectionEnabled: true,
             });
             // Cytoscape.js triggers a unique event for each selected node.
             // You'd think that we should then just append the selected node
@@ -162,7 +161,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // beautiful solution in https://stackoverflow.com/a/16701044, and
             // happens to also match what Dash-Cytoscape is doing under the
             // hood (https://github.com/plotly/dash-cytoscape/blob/f96e760f3b84c3f4d7ecbfaa905e9d57c698456d/src/lib/components/Cytoscape.react.js#L189-L203).
-            
+
             // both Max Franz' solution & Dash Cytoscape's use 100 ms, but I
             // think using a shorter interval is fine since it makes things
             // snappier (plus, even if this messes up and results in multiple
@@ -170,23 +169,24 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // slightly inefficent)
             let DEBOUNCE_TIME_MS = 50;
             let selectionEventTimeout;
-            cy.on("select unselect", "node,edge", function(e) {
+            cy.on("select unselect", "node,edge", function (e) {
                 clearTimeout(selectionEventTimeout);
-                selectionEventTimeout = setTimeout(function() {
+                selectionEventTimeout = setTimeout(function () {
                     let ndata = getCyCollectionData(cy.nodes(":selected"));
                     let edata = getCyCollectionData(cy.edges(":selected"));
                     dash_clientside.set_props(
-                        "selectedNodeAndPatternJSONFromJS", { data: ndata }
+                        "selectedNodeAndPatternJSONFromJS",
+                        { data: ndata },
                     );
-                    dash_clientside.set_props(
-                        "selectedEdgeJSONFromJS", { data: edata }
-                    );
+                    dash_clientside.set_props("selectedEdgeJSONFromJS", {
+                        data: edata,
+                    });
                 }, DEBOUNCE_TIME_MS);
             });
             // The callback below will trigger exactly once, upon (re)drawing
             // the graph. If there's stuff you wanna do to clear the app state
             // when that happens, you can do it here.
-            cy.on("remove", "node,edge", function(e) {
+            cy.on("remove", "node,edge", function (e) {
                 // because we remove everything at once, we will trigger a
                 // bunch of "remove" events (one per element in the graph).
                 // To avoid unnecessarily doing the same thing a zillion
@@ -206,16 +206,17 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
                     // if stuff is already selected, clear it
                     dash_clientside.set_props(
-                        "selectedNodeAndPatternJSONFromJS", { data: [] }
+                        "selectedNodeAndPatternJSONFromJS",
+                        { data: [] },
                     );
-                    dash_clientside.set_props(
-                        "selectedEdgeJSONFromJS", { data: [] }
-                    );
+                    dash_clientside.set_props("selectedEdgeJSONFromJS", {
+                        data: [],
+                    });
                     cy.data(WIPE_DONE_FLAG, true);
                 }
             });
         },
-        changeEles: function(eles, layoutSettings) {
+        changeEles: function (eles, layoutSettings) {
             let cy = getCy();
             // TODO: is there a more performant way to wipe everything? I mean
             // we COULD just call cy.destroy() but that is not recommended per
@@ -231,7 +232,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             cy.layout(layoutSettings).run();
             cy.fit();
         },
-        changeStylesheet: function(stylesheet) {
+        changeStylesheet: function (stylesheet) {
             let cy = getCy();
             cy.style(stylesheet);
         },
@@ -281,7 +282,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // sufficient to just search through the graph in this callback.
             cy.fit(cy.$(":selected"));
         },
-        takeScreenshot: function(request) {
+        takeScreenshot: function (request) {
             let cy = getCy();
             // NOTE: the first way I tried to implement this involved just
             // determining the screenshot function based on the image type.
@@ -326,9 +327,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             return {
                 filename: request.filename + "." + fnSuffix,
                 content: content,
-                base64: isBase64
+                base64: isBase64,
             };
-        }
+        },
     },
     selection: {
         /* Selects and zooms to a list of node names.
