@@ -3098,7 +3098,7 @@ def run(
         ClientsideFunction(
             namespace="cyManip", function_name="rescueSelectedBadEdges"
         ),
-        Input("cy", "selectedEdgeData"),
+        Input("selectedEdgeJSONFromJS", "data"),
         prevent_initial_call=True,
     )
 
@@ -3338,7 +3338,7 @@ def run(
         Output("selectedEdgeList", "rowData"),
         Output("selectedEdgeCount", "children"),
         Output("selectedEdgeCount", "color"),
-        Input("cy", "selectedEdgeData"),
+        Input("selectedEdgeJSONFromJS", "data"),
         prevent_initial_call=True,
     )
     def list_selected_edges(selected_edges):
