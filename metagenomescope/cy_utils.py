@@ -345,8 +345,14 @@ def get_cyjs_stylesheet(
     return stylesheet
 
 
-def get_cyjs_layout_params(layout_alg, draw_settings):
-    """Gets layout parameters for Cytoscape.js for a given algorithm."""
+def get_cyjs_layout_settings(layout_alg, draw_settings):
+    """Gets layout settings for Cytoscape.js for a given algorithm.
+
+    This is just the stuff we pass to Cytoscape.js. To try to make the
+    nomenclature a bit clearer, I refer to layout PARAMETERS as the stuff
+    we pass to Graphviz (e.g. the ranksep in dot). i dunno if that makes it
+    more or less clear ._.
+    """
 
     anim_settings = layout_config.ANIMATION_SETTINGS
     anim_settings["animate"] = ui_config.DO_LAYOUT_ANIMATION in draw_settings

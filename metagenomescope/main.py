@@ -1946,7 +1946,7 @@ def run(
             # out cyElementsHolder during the draw operation...?) but for now
             # whatever let's see if a bottleneck emerges
             dcc.Store(id="cyElementsHolder"),
-            dcc.Store(id="cyLayoutParamsHolder"),
+            dcc.Store(id="cyLayoutSettingsHolder"),
             # Fill in the stylesheet holder with the default -- the init()
             # clientside callback will look at this and pass it on, so that
             # the first time we draw the graph uses the correct stylesheet even
@@ -2760,7 +2760,7 @@ def run(
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
         Output("cyElementsHolder", "data", allow_duplicate=True),
-        Output("cyLayoutParamsHolder", "data"),
+        Output("cyLayoutSettingsHolder", "data"),
         Output("doneFlushing", "data"),
         State("toastHolder", "children"),
         State("ccDrawingSelect", "value"),
@@ -2889,7 +2889,7 @@ def run(
                 {"requestGood": False},
             )
 
-        cyjs_layout_params = cy_utils.get_cyjs_layout_params(
+        cyjs_layout_settings = cy_utils.get_cyjs_layout_settings(
             layout_alg, draw_settings
         )
 
@@ -2961,7 +2961,7 @@ def run(
         return (
             no_update,
             [],
-            cyjs_layout_params,
+            cyjs_layout_settings,
             {
                 "requestGood": True,
                 "draw_type": draw_type,
@@ -3052,9 +3052,9 @@ def run(
     # Change the layout settings for the Cytoscape.js instance
     clientside_callback(
         ClientsideFunction(
-            namespace="cyManip", function_name="changeLayoutParams"
+            namespace="cyManip", function_name="changeLayoutSettings"
         ),
-        Input("cyLayoutParamsHolder", "data"),
+        Input("cyLayoutSettingsHolder", "data"),
         prevent_initial_call=True,
     )
 

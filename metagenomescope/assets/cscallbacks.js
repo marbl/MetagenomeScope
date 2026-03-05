@@ -191,9 +191,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             cy.add(eles);
             cy.fit();
         },
-        changeLayoutParams: function(layoutParams) {
+        changeLayoutSettings: function(layoutSettings) {
             let cy = getCy();
-            cy.layout(layoutParams);
+            cy.layout(layoutSettings);
         },
         changeStylesheet: function(stylesheet) {
             let cy = getCy();
