@@ -30,16 +30,24 @@ body {
     overflow: hidden;
 }
 
-#controls *:not(.ctrlSep, .btn-group *, #innerControlsDivForBorder, .fancytable *, .noPadding *, .fancyChecklist *) {
- /* Add some space between elements in the control panel and the horizontal
+#controls
+    *:not(
+        .ctrlSep,
+        .btn-group *,
+        #innerControlsDivForBorder,
+        .fancytable *,
+        .noPadding *,
+        .fancyChecklist *
+    ) {
+    /* Add some space between elements in the control panel and the horizontal
   * boundaries of the panel. (Don't capture .ctrlSep things, though,
   * which should span the entire horizontal width of the panel.)
   *
   * Also if we add padding to the fancy ag grid tables then like multiple things
   * within the table get padding and it looks miserable lmao
   */
-  padding-left: 0.5em;
-  padding-right: 0.5em;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
 }
 
 /* CODELINK: The toggling mechanism for the control panel was inspired by a
@@ -230,18 +238,21 @@ label:has(#fcoseAlgSpan).active {
     white-space: nowrap;
 }
 
-.bi-exclamation-octagon, .bi-exclamation-triangle {
+.bi-exclamation-octagon,
+.bi-exclamation-triangle {
     font-size: 1.7em;
     -webkit-text-stroke: 1px;
 }
 
 /* let's make the cc size rank controls thicker but not, like, bigger */
-.bi-dash-lg, .bi-plus-lg {
+.bi-dash-lg,
+.bi-plus-lg {
     -webkit-text-stroke: 2px;
 }
 
 /* same deal for some other icons */
-.bi-search, .bi-record-circle {
+.bi-search,
+.bi-record-circle {
     -webkit-text-stroke: 1px;
 }
 
@@ -397,7 +408,6 @@ label:has(#fcoseAlgSpan).active {
     left: max(-20em, -50%) !important;
     pointer-events: none;
 }
-
 
 .offscreen-controls {
     left: max(-20em, -50%) !important;

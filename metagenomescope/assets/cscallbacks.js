@@ -27,6 +27,16 @@ function getCy() {
     return document.getElementById("cy")._cyreg.cy;
 }
 
+/* Extracts data from e.g. a collection of selected nodes in Cytoscape.js. */
+function getCyCollectionData(collection) {
+    let objData = [];
+    for (let i = 0; i < collection.length; i++) {
+        let o = collection[i];
+        objData.push(o.data());
+    }
+    return objData;
+}
+
 /* If an edge is tagged as a badLine that Cytoscape.js refuses to draw, then
  * remove the .withctrlpts class -- which should change it back to a regular
  * "bezier"-style edge.
@@ -91,6 +101,8 @@ function tryToSetBadEdgeDragRescuer(cy) {
     }
 }
 
+const WIPE_DONE_FLAG = "_mgscWipeDone";
+
 /* For more information about clientside callbacks, see
  * https://dash.plotly.com/clientside-callbacks -- this next line
  * (window.dash_clientside...) is based on their docs.
@@ -123,6 +135,107 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         },
     },
     cyManip: {
+        init: function (onPageLoad, stylesheet) {
+            let cy = cytoscape({
+                container: document.getElementById("cy"),
+                style: stylesheet,
+                maxZoom: 9,
+                boxSelectionEnabled: true,
+            });
+            // Cytoscape.js triggers a unique event for each selected node.
+            // You'd think that we should then just append the selected node
+            // to a list of "currently selected nodes" that triggers a Dash
+            // callback, right? Unfortunately!!! this is either impossible or
+            // super obscure, because dash_clientside.set_props() exists but
+            // dash_clientside.get_props() does not exist.
+            //
+            // We could then fix THAT by having each event callback go through
+            // the full collection of selected nodes (cy.nodes(":selected")),
+            // but the problem with THAAAT is that it's inefficient (we would
+            // be building up the same silly list of node data O(N^2) times,
+            // if the user box-selects a bunch of nodes at once).
+            //
+            // A nice way around this is *debouncing* the selection events, so
+            // that we only build this list of selected node data (and update
+            // Dash about this) once per selection event. This is based on the
+            // beautiful solution in https://stackoverflow.com/a/16701044, and
+            // happens to also match what Dash-Cytoscape is doing under the
+            // hood (https://github.com/plotly/dash-cytoscape/blob/f96e760f3b84c3f4d7ecbfaa905e9d57c698456d/src/lib/components/Cytoscape.react.js#L189-L203).
+
+            // both Max Franz' solution & Dash Cytoscape's use 100 ms, but I
+            // think using a shorter interval is fine since it makes things
+            // snappier (plus, even if this messes up and results in multiple
+            // invocations of dash, it won't break anything - it will just be
+            // slightly inefficent)
+            let DEBOUNCE_TIME_MS = 50;
+            let selectionEventTimeout;
+            cy.on("select unselect", "node,edge", function (e) {
+                clearTimeout(selectionEventTimeout);
+                selectionEventTimeout = setTimeout(function () {
+                    let ndata = getCyCollectionData(cy.nodes(":selected"));
+                    let edata = getCyCollectionData(cy.edges(":selected"));
+                    dash_clientside.set_props(
+                        "selectedNodeAndPatternJSONFromJS",
+                        { data: ndata },
+                    );
+                    dash_clientside.set_props("selectedEdgeJSONFromJS", {
+                        data: edata,
+                    });
+                }, DEBOUNCE_TIME_MS);
+            });
+            // The callback below will trigger exactly once, upon (re)drawing
+            // the graph. If there's stuff you wanna do to clear the app state
+            // when that happens, you can do it here.
+            cy.on("remove", "node,edge", function (e) {
+                // because we remove everything at once, we will trigger a
+                // bunch of "remove" events (one per element in the graph).
+                // To avoid unnecessarily doing the same thing a zillion
+                // times we could use a timeout (like above), or - since we
+                // know this gets done exactly once per draw - we can just
+                // use a simple flag
+                if (!cy.data(WIPE_DONE_FLAG)) {
+                    // prevent the silly race condition where the user selects
+                    // stuff, then IMMEDIATELY redraws the graph. Even if this
+                    // race condition were to trigger (you can test it by
+                    // setting DEBOUNCE_TIME_MS to something big like 3000 aka
+                    // 3 sec), it shouldn't cause a problem - because
+                    // cy.nodes(":selected"), etc will be empty upon redrawing
+                    // the graph. However, let's be careful and prevent this
+                    // anyway
+                    clearTimeout(selectionEventTimeout);
+
+                    // if stuff is already selected, clear it
+                    dash_clientside.set_props(
+                        "selectedNodeAndPatternJSONFromJS",
+                        { data: [] },
+                    );
+                    dash_clientside.set_props("selectedEdgeJSONFromJS", {
+                        data: [],
+                    });
+                    cy.data(WIPE_DONE_FLAG, true);
+                }
+            });
+        },
+        changeEles: function (eles, layoutSettings) {
+            let cy = getCy();
+            // TODO: is there a more performant way to wipe everything? I mean
+            // we COULD just call cy.destroy() but that is not recommended per
+            // https://js.cytoscape.org/#performance/optimisations
+            cy.remove(cy.elements());
+            cy.data(WIPE_DONE_FLAG, false);
+            cy.add(eles);
+            // If we used a Graphviz layout program to lay out the graph, then
+            // this will just change the layout name to "preset". However, if
+            // we are using a client-side layout algorithm like Dagre, then
+            // this will actually do the work of running that layout algorithm
+            // here.
+            cy.layout(layoutSettings).run();
+            cy.fit();
+        },
+        changeStylesheet: function (stylesheet) {
+            let cy = getCy();
+            cy.style(stylesheet);
+        },
         rescueNewlyDrawnBadEdges: function (currDrawnInfo) {
             let cy = getCy();
             rescueEdges(cy.edges(), "edge(s) on initial draw");
@@ -168,6 +281,54 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // to all selected elements. I may do this eventually but for now it is
             // sufficient to just search through the graph in this callback.
             cy.fit(cy.$(":selected"));
+        },
+        takeScreenshot: function (request) {
+            let cy = getCy();
+            // NOTE: the first way I tried to implement this involved just
+            // determining the screenshot function based on the image type.
+            // so, "png" --> cy.png(), "jpg" --> cy.jpg(), etc.
+            // This resulted in bizarre errors of the form
+            // 'can't access property "_private", this is undefined'.
+            //
+            // IT TURNS OUT THAT this is because when you pass functions around
+            // in JS the meaning of the "this" keyword can get messed up --
+            // see https://stackoverflow.com/a/59060545.
+            //
+            // You apparently can sort of solve this by replacing e.g.
+            // "f = cy.png;" with "f = cy.png.bind(cy);", but that's hideous,
+            // isn't it?
+            //
+            // So ........ let's just call each function separately to avoid
+            // these nightmares
+            let content;
+            let fnSuffix;
+            let isBase64 = true;
+            if (request.imageType === "png") {
+                content = cy.png(request.options);
+                fnSuffix = "png";
+            } else if (request.imageType === "jpg") {
+                content = cy.jpg(request.options);
+                fnSuffix = "jpg";
+            } else if (request.imageType === "svg") {
+                content = cy.svg(request.options);
+                fnSuffix = "svg";
+                isBase64 = false;
+            } else {
+                alert("bad screenshot request image type - see console");
+                console.log(request);
+                return;
+            }
+            if (isBase64) {
+                // slice off the "data:image/png:base64," prefix, which
+                // dcc.Download does not expect -
+                // https://stackoverflow.com/a/40289667
+                content = content.split(",")[1];
+            }
+            return {
+                filename: request.filename + "." + fnSuffix,
+                content: content,
+                base64: isBase64,
+            };
         },
     },
     selection: {
@@ -216,7 +377,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     eles = eles.union(newEles);
                 }
                 cy.fit(eles);
-                cy.filter(":selected").unselect();
+                cy.$(":selected").unselect();
                 eles.select();
             }
         },
@@ -263,7 +424,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 if (pathSelectionInfo["path_settings"].indexOf("zoom") >= 0) {
                     cy.fit(eles);
                 }
-                cy.filter(":selected").unselect();
+                cy.$(":selected").unselect();
                 eles.select();
             }
         },

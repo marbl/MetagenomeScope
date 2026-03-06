@@ -3,7 +3,6 @@
 import copy
 import logging
 import itertools
-import dash_cytoscape as cyto
 import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 import plotly.graph_objects as go
@@ -302,10 +301,6 @@ def run(
                 className="noPadding",
             ),
         ]
-
-    # Needed for layout extensions like dagre. And for exporting SVG images,
-    # per https://dash.plotly.com/cytoscape/images.
-    cyto.load_extra_layouts()
 
     # update_title=None prevents Dash's default "Updating..." page title change
     #
@@ -1028,33 +1023,17 @@ def run(
                     # is more natural to have a single persistent instance of
                     # Cytoscape.js -- and just add elements, adjust its
                     # stylesheet, etc. as requested. This both works better
-                    # with Dash and is recommended by Cytoscape.js' docs
-                    # ("Optimisations" > "Recycle large instances").
-                    cyto.Cytoscape(
+                    # with Dash (... update: well, it's less of factor after
+                    # we stopped using Dash Cytoscape) and is recommended by
+                    # Cytoscape.js' docs ("Optimisations" > "Recycle large
+                    # instances").
+                    html.Div(
                         id="cy",
-                        elements=[],
-                        layout=cy_utils.get_cyjs_layout_params(
-                            ui_config.DEFAULT_LAYOUT_ALG,
-                            ui_config.DEFAULT_DRAW_SETTINGS,
-                        ),
                         style={
                             "width": "100%",
                             "height": "100%",
                             "background": cy_config.BG_COLOR,
                         },
-                        boxSelectionEnabled=True,
-                        maxZoom=9,
-                        stylesheet=cy_utils.get_cyjs_stylesheet(
-                            default_labels,
-                            ui_config.DEFAULT_NODE_LABEL_SETTINGS,
-                            ui_config.DEFAULT_EDGE_LABEL_SETTINGS,
-                            ui_config.NODECENTRIC_2_DEFAULT_LABELFONTSIZE[
-                                ag.node_centric
-                            ],
-                            ui_config.DEFAULT_EXPAND_SETTINGS,
-                            node_coloring=ui_config.DEFAULT_NODE_COLORING,
-                            edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
-                        ),
                     )
                 ],
                 id="cyDiv",
@@ -1937,6 +1916,57 @@ def run(
                 id="toastHolder",
                 className="toast-container position-fixed top-0 end-0 p-3",
             ),
+            # We want to initialize the Cytoscape.js instance when we load the
+            # page, but AFTER the Dash app has rendered its content (so that
+            # document.getElementById("cy") will actually point to a real
+            # element instead of null). The least dreadful solution I've found
+            # is just adding a clientside callback from one dummy element
+            # to another (these two) which is run on page load and never again.
+            #
+            # We COULD try to modify the "HTML Index Template" per
+            # https://dash.plotly.com/external-resources#customizing-dash's-html-index-template
+            # as discussed at https://github.com/plotly/dash/pull/171
+            # ... but that looks hideous and brittle. Or I dunno maybe it's
+            # not THAT bad to just add a custom footer but I don't like the
+            # idea of having to copy that massive template string into the
+            # codebase and keep checking on it every time I update Dash.
+            dcc.Store(id="onPageLoadInput"),
+            dcc.Store(id="onPageLoadOutput"),
+            # In order for us to send changes from Python code to the
+            # Cytoscape.js instance, we use these dcc.Stores -- so e.g. if we
+            # want to add elements to the graph, we add the JSON to
+            # the cyElementsHolder, and then that triggers a clientside
+            # callback that accesses this data and adds it to the graph.
+            #
+            # The layout and stylesheet things here should be fairly small,
+            # in terms of space requirements. The elements... could be big,
+            # if we are drawing a massive graph. There might be ways to avoid
+            # storing both stuff in cyElementsHolder and in Cy.js at the same
+            # time, after drawing is done (maybe some logic that like clears
+            # out cyElementsHolder during the draw operation...?) but for now
+            # whatever let's see if a bottleneck emerges
+            dcc.Store(id="cyElementsHolder"),
+            dcc.Store(id="cyLayoutSettingsHolder"),
+            # Fill in the stylesheet holder with the default -- the init()
+            # clientside callback will look at this and pass it on, so that
+            # the first time we draw the graph uses the correct stylesheet even
+            # if the user hasn't changed any of the style settings before
+            dcc.Store(
+                id="cyStylesheetHolder",
+                data=cy_utils.get_cyjs_stylesheet(
+                    default_labels,
+                    ui_config.DEFAULT_NODE_LABEL_SETTINGS,
+                    ui_config.DEFAULT_EDGE_LABEL_SETTINGS,
+                    ui_config.NODECENTRIC_2_DEFAULT_LABELFONTSIZE[
+                        ag.node_centric
+                    ],
+                    ui_config.DEFAULT_EXPAND_SETTINGS,
+                    node_coloring=ui_config.DEFAULT_NODE_COLORING,
+                    edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
+                ),
+            ),
+            dcc.Store(id="cyScreenshotRequestHolder"),
+            dcc.Download(id="cyScreenshotDownload"),
             # we'll update this when it's time to draw the graph -- after
             # we flush it (removing all currently present elements) and
             # before we redraw it (based on updating this data). It includes
@@ -1972,6 +2002,15 @@ def run(
             # similar to the above but for paths
             dcc.Store(
                 id="pathSelectionInfo",
+            ),
+            # Stores info about currently selected nodes / edges / patterns.
+            # Updated from the JS code, so that a python callback can read it
+            # and populate the tables accordingly
+            dcc.Store(
+                id="selectedNodeAndPatternJSONFromJS",
+            ),
+            dcc.Store(
+                id="selectedEdgeJSONFromJS",
             ),
             # used to store the graph TSV to be downloaded
             dcc.Download(
@@ -2548,7 +2587,7 @@ def run(
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
-        Output("cy", "stylesheet"),
+        Output("cyStylesheetHolder", "data"),
         State("toastHolder", "children"),
         State("labelFontSize", "value"),
         Input("labelFontSize", "n_submit"),
@@ -2603,7 +2642,7 @@ def run(
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
-        Output("cy", "generateImage"),
+        Output("cyScreenshotRequestHolder", "data"),
         State("toastHolder", "children"),
         State("imageTypeRadio", "value"),
         State("imageScalingFactor", "value"),
@@ -2645,15 +2684,11 @@ def run(
                 ),
                 no_update,
             )
-        # see https://dash.plotly.com/cytoscape/images for a high-level
-        # tutorial, and https://github.com/plotly/dash-cytoscape/blob/f96e760f3b84c3f4d7ecbfaa905e9d57c698456d/dash_cytoscape/Cytoscape.py#L194
-        # for detailed options
         return (
             no_update,
             {
-                "type": image_type,
+                "imageType": image_type,
                 "filename": ui_utils.get_screenshot_basename(),
-                "action": "download",
                 "options": {"bg": cy_config.BG_COLOR, "scale": sf},
             },
         )
@@ -2724,8 +2759,8 @@ def run(
 
     @callback(
         Output("toastHolder", "children", allow_duplicate=True),
-        Output("cy", "elements", allow_duplicate=True),
-        Output("cy", "layout"),
+        Output("cyElementsHolder", "data", allow_duplicate=True),
+        Output("cyLayoutSettingsHolder", "data"),
         Output("doneFlushing", "data"),
         State("toastHolder", "children"),
         State("ccDrawingSelect", "value"),
@@ -2854,7 +2889,7 @@ def run(
                 {"requestGood": False},
             )
 
-        cyjs_layout_params = cy_utils.get_cyjs_layout_params(
+        cyjs_layout_settings = cy_utils.get_cyjs_layout_settings(
             layout_alg, draw_settings
         )
 
@@ -2926,7 +2961,7 @@ def run(
         return (
             no_update,
             [],
-            cyjs_layout_params,
+            cyjs_layout_settings,
             {
                 "requestGood": True,
                 "draw_type": draw_type,
@@ -2948,7 +2983,7 @@ def run(
         )
 
     @callback(
-        Output("cy", "elements", allow_duplicate=True),
+        Output("cyElementsHolder", "data", allow_duplicate=True),
         Output("currDrawnText", "children"),
         Output("currDrawnCounts", "children"),
         Output("currDrawnInfo", "data"),
@@ -2994,6 +3029,47 @@ def run(
             logging.debug("Caught a bad drawing request. Not redrawing.")
             return (no_update, no_update, no_update, no_update)
 
+    # Initialize Cytoscape.js instance. Run only on page load; see
+    # onPageLoadInput and onPageLoadOutput comments above.
+    #
+    # NOTE: a callback is valid if it doesn't have an output. But! Dash
+    # will not run something on page load if it it doesn't have an output.
+    # Hence why we use two dummy dcc.Stores (*Input and *Output) for this.
+    clientside_callback(
+        ClientsideFunction(namespace="cyManip", function_name="init"),
+        Output("onPageLoadOutput", "data"),
+        Input("onPageLoadInput", "data"),
+        State("cyStylesheetHolder", "data"),
+    )
+
+    # Delete all elements in the Cytoscape.js instance, then add new ones
+    # Also update the layout settings Cytoscape.js has as needed
+    clientside_callback(
+        ClientsideFunction(namespace="cyManip", function_name="changeEles"),
+        Input("cyElementsHolder", "data"),
+        State("cyLayoutSettingsHolder", "data"),
+        prevent_initial_call=True,
+    )
+
+    # Change the stylesheet for the Cytoscape.js instance
+    clientside_callback(
+        ClientsideFunction(
+            namespace="cyManip", function_name="changeStylesheet"
+        ),
+        Input("cyStylesheetHolder", "data"),
+        prevent_initial_call=True,
+    )
+
+    # Capture a screenshot from the Cytoscape.js instance
+    clientside_callback(
+        ClientsideFunction(
+            namespace="cyManip", function_name="takeScreenshot"
+        ),
+        Output("cyScreenshotDownload", "data"),
+        Input("cyScreenshotRequestHolder", "data"),
+        prevent_initial_call=True,
+    )
+
     clientside_callback(
         ClientsideFunction(
             namespace="cyManip", function_name="rescueNewlyDrawnBadEdges"
@@ -3006,7 +3082,7 @@ def run(
         ClientsideFunction(
             namespace="cyManip", function_name="rescueAdjacentBadEdges"
         ),
-        Input("cy", "selectedNodeData"),
+        Input("selectedNodeAndPatternJSONFromJS", "data"),
         prevent_initial_call=True,
     )
 
@@ -3014,7 +3090,7 @@ def run(
         ClientsideFunction(
             namespace="cyManip", function_name="rescueSelectedBadEdges"
         ),
-        Input("cy", "selectedEdgeData"),
+        Input("selectedEdgeJSONFromJS", "data"),
         prevent_initial_call=True,
     )
 
@@ -3206,7 +3282,7 @@ def run(
         Output("selectedPatternList", "rowData"),
         Output("selectedPatternCount", "children"),
         Output("selectedPatternCount", "color"),
-        Input("cy", "selectedNodeData"),
+        Input("selectedNodeAndPatternJSONFromJS", "data"),
         prevent_initial_call=True,
     )
     def list_selected_nodes_and_patterns(selected_nodes):
@@ -3254,7 +3330,7 @@ def run(
         Output("selectedEdgeList", "rowData"),
         Output("selectedEdgeCount", "children"),
         Output("selectedEdgeCount", "color"),
-        Input("cy", "selectedEdgeData"),
+        Input("selectedEdgeJSONFromJS", "data"),
         prevent_initial_call=True,
     )
     def list_selected_edges(selected_edges):

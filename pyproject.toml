@@ -71,7 +71,6 @@ dependencies = [
     # pyfastg 0.2.0 added support for MEGAHIT FASTG files!
     "pyfastg >= 0.2.0",
     "pandas",
-    "dash-cytoscape",
     "dash-bootstrap-components",
     # v33.3.3 changes how the built-in dark themes are loaded, and this
     # was not apparently supported by earlier versions of dash ag grid. so
@@ -79,17 +78,14 @@ dependencies = [
     # new syntax). let's do the latter. (We COULD detect the version and then
     # use that to adjust things but that seems messy and unnecessary)
     "dash-ag-grid >= 33.3.3",
-    # we probably don't need to bother including dash in this list (since
-    # both dash-cytoscape and dash-bootstrap-components will include it as a
-    # dependency) but we may as well be explicit. Note that Dash v4 changes the
-    # styles of the dcc.* UI elements a lot -- as of Feb 23, 2026, we should
-    # style both versions of the UI elements reasonably well (see
-    # https://github.com/marbl/MetagenomeScope/issues/389).
+    # Note that Dash v4 changes the styles of the dcc.* UI elements a lot -- as
+    # of Feb 23, 2026, we should style both versions of the UI elements
+    # decently well (see https://github.com/marbl/MetagenomeScope/issues/389).
     "dash",
-    # same deal for plotly -- should be included alongside dash anyway
     "plotly"
 ]
-# Based on dash-cytoscape's min python version.
+# Matches Dash's min python version, as of March 2026:
+# https://github.com/plotly/dash/blob/dev/setup.py
 requires-python = ">= 3.8"
 
 [project.optional-dependencies]

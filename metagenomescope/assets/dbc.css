@@ -3,16 +3,16 @@
  * https://www.dash-bootstrap-components.com/docs/components/button_group/
  */
 .btn-opt-group .form-check {
-  padding-left: 0;
+    padding-left: 0;
 }
 
 .btn-opt-group .btn-group > .form-check:not(:last-child) > .btn {
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }
 
 .btn-opt-group .btn-group > .form-check:not(:first-child) > .btn {
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-  margin-left: -1px;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    margin-left: -1px;
 }

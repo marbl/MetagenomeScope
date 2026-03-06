@@ -706,10 +706,6 @@ See the "Large graph" section under "Example datasets" above for some tips for w
   and "flatten" them into [simple Bezier edges](https://js.cytoscape.org/#style/bezier-edges)
   (usually straight lines). This way, we can at least draw _something_ for each edge in the graph.
 
-- **Long graphs:** Graph layouts that form a long horizontal or vertical line may break Cytoscape.js'
-  rendering process ([#262](https://github.com/marbl/MetagenomeScope/issues/262)). If this
-  happens to you, you can refresh the page to get Cytoscape.js working again.
-
 ## Development documentation
 
 See [`CONTRIBUTING.md`](https://github.com/marbl/MetagenomeScope/blob/main/CONTRIBUTING.md).
@@ -719,7 +715,15 @@ See [`CONTRIBUTING.md`](https://github.com/marbl/MetagenomeScope/blob/main/CONTR
 MetagenomeScope is licensed under the
 [GNU GPL, version 3](https://www.gnu.org/copyleft/gpl.html).
 
-MetagenomeScope's code is distributed with [Bootstrap](https://getbootstrap.com/) and [Bootstrap Icons](https://icons.getbootstrap.com/). Please see the [`metagenomescope/assets/vendor/licenses/`](https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/assets/vendor/licenses/) directory for copies of these tools' licenses.
+MetagenomeScope's code is distributed with
+[Bootstrap](https://getbootstrap.com/),
+[Bootstrap Icons](https://icons.getbootstrap.com/),
+[Cytoscape.js](https://js.cytoscape.org/),
+[cytoscape-dagre](https://github.com/cytoscape/cytoscape.js-dagre),
+[cytoscape-fcose](https://github.com/iVis-at-Bilkent/cytoscape.js-fcose),
+and
+[cytoscape-svg](https://github.com/kinimesi/cytoscape-svg).
+Please see the [`metagenomescope/assets/vendor/licenses/`](https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/assets/vendor/licenses/) directory for copies of these tools' licenses.
 
 ## Acknowledgements
 
