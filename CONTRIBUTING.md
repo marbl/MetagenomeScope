@@ -69,10 +69,10 @@ make stylecheck
 make style
 ```
 
-I don't currently have it included as an official part of the CI, but I
+I don't currently have this included as an official part of the CI, but I
 occasionally autoformat the JS / CSS code using
 [prettier](https://github.com/prettier/prettier). If you have prettier
-installed, you can run this using:
+installed, you can do this using:
 
 ```bash
 make jsstyle

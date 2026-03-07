@@ -699,7 +699,7 @@ See the "Large graph" section under "Example datasets" above for some tips for w
 - **Edge flattening:** Cytoscape.js (the library we use to visualize graphs in the browser)
   can sometimes [determine](https://github.com/cytoscape/cytoscape.js/issues/1451) that the
   control points used to draw certain [complex edges](https://js.cytoscape.org/#style/unbundled-bezier-edges)
-  are invalid. This can happen as you adjust the visualization after drawing (e.g. by selecting
+  are invalid. Mainly, this can happen as you adjust the visualization after drawing (e.g. by selecting
   nodes or moving them around).
 
   To prevent these "invalid" edges from being hidden, MetagenomeScope will detect them
