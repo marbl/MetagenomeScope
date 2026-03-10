@@ -45,7 +45,17 @@ def get_gv_header(prog, name="g", use_ports=False, params={}):
     return gv_input
 
 
-def get_control_points(pos):
+def get_control_points(pgv_edge):
+    if "pos" in pgv_edge.attr:
+        return _extract_control_points(pgv_edge.attr["pos"])
+    else:
+        # In rare cases, Graphviz can decide not to draw an edge. We'll fall
+        # back to a normal Bezier edge (aka a "flattened" edge) in these cases.
+        # See https://github.com/marbl/MetagenomeScope/issues/394
+        return []
+
+
+def _extract_control_points(pos):
     """Removes "startp" and "endp" data, if present, from a string definining
     the "pos" attribute (i.e. the spline control points) of an edge object
     in pygraphviz.
@@ -230,8 +240,16 @@ def dot_to_cyjs_control_points(
     For details about how Cytoscape.js expects control point data, see
     https://js.cytoscape.org/#style/unbundled-bezier-edges
     """
+    FLAT = (True, None, None)
+    # Loop edges don't have (multiple) control points in Cytoscape.js
     if src_pos == tgt_pos:
-        return True, None, None
+        return FLAT
+
+    # See get_control_points() check - if Graphviz didn't want to draw an edge
+    # for some reason, then just fall back to a straight line
+    if len(coords) == 0:
+        return FLAT
+
     if left is not None and bottom is not None:
         coords = shift_control_points(coords, left, bottom)
     for i in range(len(coords)):
@@ -290,7 +308,15 @@ def dot_to_cyjs_control_points(
         cpdists += f"{space}{pld:.4f} "
         cpweights += f"{space}{w:.4f} "
         i += 2
-    return just_a_straight_line, cpdists, cpweights
+
+    if just_a_straight_line:
+        # After seeing all the control points of this edge, none of them went far
+        # enough away from the straight line between these two nodes. Thus, we can
+        # just represent this edge as a straight line.
+        return FLAT
+    else:
+        # Never mind! Don't represent the edge as a straight line, actually.
+        return False, cpdists, cpweights
 
 
 def flatten_some_edges(sg, edgeid2ctrlpts):

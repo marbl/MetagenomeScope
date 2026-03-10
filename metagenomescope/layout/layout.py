@@ -252,7 +252,7 @@ class Layout(object):
                 src, tgt = edge.dec_src_id, edge.dec_tgt_id
                 pgv_edge = cg.get_edge(src, tgt)
                 self.edgeid2rel[edge.unique_id] = (
-                    layout_utils.get_control_points(pgv_edge.attr["pos"])
+                    layout_utils.get_control_points(pgv_edge)
                 )
                 cg.remove_edge(pgv_edge)
 
@@ -352,7 +352,7 @@ class Layout(object):
                     src, tgt = edge.new_src_id, edge.new_tgt_id
                     pgv_edge = cg.get_edge(src, tgt)
                     self.edgeid2rel[edge.unique_id] = (
-                        layout_utils.get_control_points(pgv_edge.attr["pos"])
+                        layout_utils.get_control_points(pgv_edge)
                     )
                     # account for parallel edges -- see _save_rel_coords() comment
                     cg.remove_edge(pgv_edge)
