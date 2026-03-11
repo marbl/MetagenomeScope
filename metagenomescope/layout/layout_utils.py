@@ -46,13 +46,18 @@ def get_gv_header(prog, name="g", use_ports=False, params={}):
 
 
 def get_control_points(pgv_edge):
+    # In rare cases, Graphviz can decide not to draw an edge. We'll fall
+    # back to a normal Bezier edge (aka a "flattened" edge) in these cases.
+    # See https://github.com/marbl/MetagenomeScope/issues/394 for details.
+    #
+    # NOTE: it seems like this check will always be True (even if an edge's
+    # position is unset, "pos" will still appear to be in pgv_edge.attr),
+    # but for the sake of future-proofing this we still check anyway.
     if "pos" in pgv_edge.attr:
-        return _extract_control_points(pgv_edge.attr["pos"])
-    else:
-        # In rare cases, Graphviz can decide not to draw an edge. We'll fall
-        # back to a normal Bezier edge (aka a "flattened" edge) in these cases.
-        # See https://github.com/marbl/MetagenomeScope/issues/394
-        return []
+        pos = pgv_edge.attr["pos"]
+        if len(pos) > 0:
+            return _extract_control_points(pos)
+    return []
 
 
 def _extract_control_points(pos):
