@@ -315,12 +315,14 @@ def dot_to_cyjs_control_points(
         i += 2
 
     if just_a_straight_line:
-        # After seeing all the control points of this edge, none of them went far
-        # enough away from the straight line between these two nodes. Thus, we can
-        # just represent this edge as a straight line.
+        # After seeing all the control points of this edge, none of them
+        # deviated all that much from a straight line between these two nodes.
+        # Thus, we can just represent this edge as a straight line.
         return FLAT
     else:
-        # Never mind! Don't represent the edge as a straight line, actually.
+        # Never mind! Try to represent this edge using fancy control points,
+        # rather as a straight line. (We might end up flattening it later for
+        # other reasons, though...)
         return False, cpdists, cpweights
 
 
