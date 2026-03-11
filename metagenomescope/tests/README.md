@@ -8,8 +8,8 @@ From the root of the MetagenomeScope repository, run `make test`.
 
 ### Notes About Running Tests
 
-* Requires [pytest](https://pytest.org/). See the extra dependencies marked as `dev`
-  in MetagenomeScope's `setup.py`.
+* We use [pytest](https://pytest.org/). See the optional dependencies marked as `dev`
+  in MetagenomeScope's `pyproject.toml`.
 
 * We assume tests are run from the root of the MetagenomeScope repository -- running
   them from elsewhere will probably cause them to fail.
