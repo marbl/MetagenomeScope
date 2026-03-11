@@ -230,19 +230,16 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // this will actually do the work of running that layout algorithm
             // here.
             cy.layout(layoutSettings).run();
-            cy.fit();
-        },
-        changeStylesheet: function (stylesheet) {
-            let cy = getCy();
-            cy.style(stylesheet);
-        },
-        rescueNewlyDrawnBadEdges: function (currDrawnInfo) {
-            let cy = getCy();
             rescueEdges(cy.edges(), "edge(s) on initial draw");
             // This isn't its own function because of a Dash bug? with multiple
             // clientside callbacks with the same input and no outputs -
             // https://github.com/plotly/dash/issues/3596
             tryToSetBadEdgeDragRescuer(cy);
+            cy.fit();
+        },
+        changeStylesheet: function (stylesheet) {
+            let cy = getCy();
+            cy.style(stylesheet);
         },
         rescueAdjacentBadEdges: function (selectedNodes) {
             if (selectedNodes.length > 0) {
