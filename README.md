@@ -65,6 +65,10 @@ The tool is under active development, so please let us know if you have any feed
 
 ### Using [conda](https://conda.io/) or [mamba](https://mamba.readthedocs.io/)
 
+<!-- yeah yeah yeah in theory you shouldn't need to say "-c conda-forge" but i
+can't get this to work on my system without using that so i assume there is
+some inherent jank that makes this occasionally required -->
+
 ```bash
 mamba install -c bioconda -c conda-forge metagenomescope
 ```
@@ -79,7 +83,7 @@ See Pygraphviz'
 for details.
 
 (Probably the most consistent way to do this is just installing Graphviz and
-Pygraphviz from conda using `-c conda-forge`, but at that point you might as
+Pygraphviz from conda-forge, but at that point you might as
 well do the entire installation from within conda...)
 
 Anyway, once Graphviz and Pygraphviz are installed, you should be able to just
