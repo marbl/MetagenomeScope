@@ -139,7 +139,7 @@ Options:
 Should you run into [additional](https://xkcd.com/927/) assembly graph filetypes you'd like us to
 support, feel free to open a GitHub issue.
 
-### Supported path filetypes
+### Displaying paths on the graph
 
 Paths can optionally be specified through any of the following inputs:
 
@@ -173,6 +173,10 @@ _See [Flye's documentation](https://github.com/mikolmogorov/Flye/blob/flye/docs/
   - The contigs in the GFA file should correspond to collapsed edge-paths in the `.txt` file, so we can't really visualize these edge-paths.
 
   - However, we will extract contig information from the `.txt` file (e.g. coverage) and show it in the interface as node data.
+
+**If your graph is not in DOT or GFA format:**
+  - We will ignore the `.txt` file.
+  - Flye should only generate DOT or GFA files, so like... where did you even get this graph from :skull:
 
 <hr/>
 </details>
