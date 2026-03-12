@@ -4,6 +4,7 @@
 <a href="https://github.com/marbl/MetagenomeScope/actions/workflows/main.yml"><img src="https://github.com/marbl/Metagenomescope/actions/workflows/main.yml/badge.svg" alt="CI" /></a>
 <a href="https://codecov.io/gh/marbl/MetagenomeScope"><img src="https://codecov.io/gh/marbl/MetagenomeScope/branch/main/graph/badge.svg" alt="Code Coverage" /></a>
 <a href="https://pypi.org/project/metagenomescope"><img src="https://img.shields.io/pypi/v/metagenomescope?color=0073b7&labelColor=003d63" alt="PyPI" /></a>
+<a href="https://anaconda.org/bioconda/metagenomescope"><img src="https://img.shields.io/conda/vn/bioconda/metagenomescope.svg?color=3eb049&labelColor=005500" alt="bioconda" /></a>
 </div>
 
 Interactive visualization tool for (meta)genome assembly graphs.
@@ -62,15 +63,31 @@ The tool is under active development, so please let us know if you have any feed
 
 ## Installation
 
-Using [mamba](https://mamba.readthedocs.io/):
+### Using [conda](https://conda.io/) or [mamba](https://mamba.readthedocs.io/)
 
 ```bash
-mamba create -n mgsc -c conda-forge "python >= 3.8" pygraphviz
-mamba activate mgsc
-pip install metagenomescope
+mamba install -c bioconda -c conda-forge metagenomescope
 ```
 
-(We plan to put this on bioconda soon.)
+### Using [pip](https://pip.pypa.io/)
+
+First, you need to make sure that [Graphviz](https://graphviz.org/)
+and [Pygraphviz](https://github.com/pygraphviz/pygraphviz) are installed
+properly (so that Pygraphviz knows where to find Graphviz).
+See Pygraphviz'
+[`INSTALL.txt`](https://github.com/pygraphviz/pygraphviz/blob/main/INSTALL.txt)
+for details.
+
+(Probably the most consistent way to do this is just installing Graphviz and
+Pygraphviz from conda using `-c conda-forge`, but at that point you might as
+well do the entire installation from within conda...)
+
+Anyway, once Graphviz and Pygraphviz are installed, you should be able to just
+run:
+
+```bash
+pip install metagenomescope
+```
 
 ## Usage
 
