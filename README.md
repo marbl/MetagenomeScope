@@ -95,9 +95,7 @@ pip install metagenomescope
 
 ## Usage
 
-Activate the mamba environment we just created and run:
-
-```
+```bash
 mgsc -g graph.gfa
 ```
 
