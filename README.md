@@ -718,7 +718,7 @@ See the "Large graph" section under "Example datasets" above for some tips for w
 
 ## Known issues
 
-- **Edge flattening:** In certain cases, we may be unable to draw an edge with complex control points. [Usually](https://github.com/marbl/MetagenomeScope/issues/360) this happens when Cytoscape.js does not accept the edge control points produced by Graphviz, but [sometimes](https://github.com/marbl/MetagenomeScope/issues/394) Graphviz can refuse to create control points entirely.
+- **Edge flattening:** In certain cases, we may be unable to draw an edge with complex control points. [Usually](https://github.com/marbl/MetagenomeScope/issues/360) this happens when Cytoscape.js does not accept the control points Graphviz produced for an edge, but [sometimes](https://github.com/marbl/MetagenomeScope/issues/394) Graphviz will be unable to create control points for an edge in the first place.
 
   In any case: MetagenomeScope will detect both of these kinds of edges and "flatten" them into
   [simple Bezier edges](https://js.cytoscape.org/#style/bezier-edges)
