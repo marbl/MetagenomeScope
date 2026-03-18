@@ -9,8 +9,13 @@
 
 Interactive visualization tool for (meta)genome assembly graphs.
 
-MetagenomeScope decomposes the graph into **structural patterns** and highlights
-these as annotations on the graph. By default it lays out the graph [**hierarchically**](https://en.wikipedia.org/wiki/Layered_graph_drawing), using [Graphviz](https://graphviz.org/)' [_dot_](https://graphviz.org/docs/layouts/dot/) algorithm.
+MetagenomeScope decomposes the graph into **structural patterns** and
+highlights these as annotations on the graph. By default it lays out the graph
+[**hierarchically**](https://en.wikipedia.org/wiki/Layered_graph_drawing),
+using [Graphviz](https://graphviz.org/)'
+[_dot_](https://graphviz.org/docs/layouts/dot/) algorithm.
+These and other approaches help simplify the investigation of fine-grained
+structures within assembly graphs.
 
 MetagenomeScope also contains various functionalities for visualizing assembly
 graphs at larger scales -- for example, highlighting scaffold paths on the graph and
