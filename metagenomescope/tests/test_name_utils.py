@@ -44,7 +44,9 @@ def test_negate_str_required():
 def test_sanity_check_node_name_simple():
     nu.sanity_check_node_name("abcdef")
     nu.sanity_check_node_name("123")
+    nu.sanity_check_node_name("-123")
     nu.sanity_check_node_name("k99_123412")
+    nu.sanity_check_node_name("-k99_123412")
     nu.sanity_check_node_name("hello i am a node")
 
 
