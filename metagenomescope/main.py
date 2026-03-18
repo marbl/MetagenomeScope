@@ -191,7 +191,7 @@ def run(
         ],
         "ccDrawingNR": [
             html.I(className="bi bi-arrow-right"),
-            html.Span(f"Entire graph (nonredundant)"),
+            html.Span("Entire graph (nonredundant)"),
         ],
         "ccDrawingAll": [
             html.I(className="bi bi-asterisk"),
@@ -2497,7 +2497,9 @@ def run(
         Input("ccDrawingAll", "n_clicks"),
         prevent_initial_call=True,
     )
-    def change_drawing_method(sr_clicks, nn_clicks, an_clicks, nr_clicks, all_clicks):
+    def change_drawing_method(
+        sr_clicks, nn_clicks, an_clicks, nr_clicks, all_clicks
+    ):
         # figure out which UI elements to show / hide
         # (note that the "nonredundant" and "all components" drawing methods
         # mean that there should be no additional UI elements displayed, which
