@@ -1903,11 +1903,11 @@ class AssemblyGraph(object):
                             break
                 else:
                     # Node "n" has no reverse complement, weirdly enough. This
-                    # means that this component is nonredundant.
-                    # This could happen if you are loading e.g. a DOT file that
-                    # had some lines chopped off, I guess.
+                    # means that this component is nonredundant. This can
+                    # happen if you just remove some stuff from an "explicit"
+                    # file (e.g. FASTG / DOT), or with Flye DOT files (where
+                    # node names are meaningless).
                     possibly_redundant = False
-                    logging.warn(f"WARNING: {n} has no reverse complement?")
                     break
 
             # Phase 2: if needed, consider component node/edge counts and then
@@ -1977,7 +1977,8 @@ class AssemblyGraph(object):
                 self.nr_cc_nums.add(min(cc.cc_num, candidate_twin_cc_num))
             else:
                 self.nr_cc_nums.add(cc.cc_num)
-                self.nr_cc_nums.add(candidate_twin_cc_num)
+                if candidate_twin_cc_num is not None:
+                    self.nr_cc_nums.add(candidate_twin_cc_num)
 
     def __repr__(self):
         return (
