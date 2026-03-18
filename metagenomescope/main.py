@@ -2907,7 +2907,7 @@ def run(
             draw_type = config.DRAW_AROUND
 
         elif cc_drawing_selection_type == "ccDrawingNR":
-            cc_nums = ag.nr_cc_nums
+            cc_nums = ag.get_nr_cc_nums()
             draw_type = config.DRAW_CCS
 
         elif cc_drawing_selection_type == "ccDrawingAll":

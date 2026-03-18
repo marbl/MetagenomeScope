@@ -284,7 +284,9 @@ class AssemblyGraph(object):
         # If this is the kind of graph where we expect to see node A and -A,
         # then detect redundant components
         # (https://github.com/marbl/MetagenomeScope/issues/67).
-        # For things like MetaCarvel GML files, though, don't bother.
+        # For things like MetaCarvel GML files, though, don't bother (leave
+        # self.nr_cc_nums as None)
+        self.nr_cc_nums = None
         if self.orientation_in_name:
             logger.debug(
                 "  Detecting pairs of redundant components, since this is a "
@@ -1979,6 +1981,19 @@ class AssemblyGraph(object):
                 self.nr_cc_nums.add(cc.cc_num)
                 if candidate_twin_cc_num is not None:
                     self.nr_cc_nums.add(candidate_twin_cc_num)
+
+    def get_nr_cc_nums(self):
+        """Returns the size ranks of all nonredundant components."""
+        if self.nr_cc_nums is not None:
+            return self.nr_cc_nums
+        else:
+            # kind of an awkward error message but nobody's going to read
+            # it so who cares. well, expect for you, you're reading it, hi <3
+            raise WeirdError(
+                "Nonredundant component information not set. Either you "
+                "called this too early OR this graph does not have "
+                "reverse-complementary versions of things."
+            )
 
     def __repr__(self):
         return (
