@@ -201,14 +201,22 @@ def run(
     DEFAULT_CC_SELECTION_METHOD = (
         "ccDrawingSizeRank" if multiple_ccs else "ccDrawingAll"
     )
-    CC_SELECTION_A_CLASSES_MULTIPLE_CCS = "dropdown-item"
-    CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {}
+    DEFAULT_CC_SELECTION_A_CLASSES = "dropdown-item"
+    DEFAULT_CC_SELECTION_A_ATTRS = {}
+    CC_SELECTION_A_CLASSES_MULTIPLE_CCS = DEFAULT_CC_SELECTION_A_CLASSES
+    CC_SELECTION_A_ATTRS_MULTIPLE_CCS = DEFAULT_CC_SELECTION_A_ATTRS
     if not multiple_ccs:
         # https://getbootstrap.com/docs/5.3/components/dropdowns/#disabled
         # thankfully this seems to prevent dash from noticing click events on
         # the disabled <a>s in question :)
         CC_SELECTION_A_CLASSES_MULTIPLE_CCS += " disabled"
         CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {"aria-disabled": "true"}
+
+    NR_CC_SELECTION_A_CLASSES = DEFAULT_CC_SELECTION_A_CLASSES
+    NR_CC_SELECTION_A_ATTRS = DEFAULT_CC_SELECTION_A_ATTRS
+    if not (ag.orientation_in_name and multiple_ccs):
+        NR_CC_SELECTION_A_CLASSES += " disabled"
+        NR_CC_SELECTION_A_ATTRS = {"aria-disabled": "true"}
 
     # If the user specified paths somehow (e.g. an AGP file), we'll show an
     # interface for these
@@ -446,8 +454,9 @@ def run(
                                                 cc_selection_options[
                                                     "ccDrawingNR"
                                                 ],
-                                                className="dropdown-item",
+                                                className=NR_CC_SELECTION_A_CLASSES,
                                                 id="ccDrawingNR",
+                                                **NR_CC_SELECTION_A_ATTRS,
                                             ),
                                         ),
                                         html.Li(
