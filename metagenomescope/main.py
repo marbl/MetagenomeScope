@@ -214,6 +214,9 @@ def run(
 
     NR_CC_SELECTION_A_CLASSES = DEFAULT_CC_SELECTION_A_CLASSES
     NR_CC_SELECTION_A_ATTRS = DEFAULT_CC_SELECTION_A_ATTRS
+    # Drawing only the nonredundant parts of the graph only makes sense if
+    # (1) there are pairs of nodes/edges X and -X in the graph (i.e.
+    # ag.orientation_in_name is True) and (2) there are multiple components.
     if not (ag.orientation_in_name and multiple_ccs):
         NR_CC_SELECTION_A_CLASSES += " disabled"
         NR_CC_SELECTION_A_ATTRS = {"aria-disabled": "true"}
