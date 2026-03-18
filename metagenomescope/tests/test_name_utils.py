@@ -139,6 +139,21 @@ def test_sanity_check_node_name_commas():
     )
 
 
+def test_sanity_check_node_name_start_with_multi_dash():
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_node_name("--abc")
+    assert str(ei.value) == (
+        'A node named "--abc" exists in the graph. Nodes cannot have names '
+        "that start with multiple dashes."
+    )
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_node_name("---abc")
+    assert str(ei.value) == (
+        'A node named "---abc" exists in the graph. Nodes cannot have names '
+        "that start with multiple dashes."
+    )
+
+
 def test_sanity_check_edge_id_surrounding_whitespace():
     with pytest.raises(GraphParsingError) as ei:
         nu.sanity_check_edge_id("abcdef ")
@@ -154,6 +169,21 @@ def test_sanity_check_edge_id_commas():
     assert str(ei.value) == (
         'An edge with the ID "123.3447,190" exists in the graph. Edges cannot '
         "have IDs that contain commas."
+    )
+
+
+def test_sanity_check_edge_id_start_with_multi_dash():
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_edge_id("--1234")
+    assert str(ei.value) == (
+        'An edge with the ID "--1234" exists in the graph. Edges cannot have '
+        "IDs that start with multiple dashes."
+    )
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_edge_id("---7890123")
+    assert str(ei.value) == (
+        'An edge with the ID "---7890123" exists in the graph. Edges cannot '
+        "have IDs that start with multiple dashes."
     )
 
 
