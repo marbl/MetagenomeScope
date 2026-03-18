@@ -189,6 +189,10 @@ def run(
                 "Around certain node(s)",
             ),
         ],
+        "ccDrawingNR": [
+            html.I(className="bi bi-arrow-right"),
+            html.Span(f"Entire graph (nonredundant)"),
+        ],
         "ccDrawingAll": [
             html.I(className="bi bi-asterisk"),
             html.Span(f"Entire graph ({all_cc_desc})"),
@@ -435,6 +439,15 @@ def run(
                                                 ],
                                                 className="dropdown-item",
                                                 id="ccDrawingAroundNodes",
+                                            ),
+                                        ),
+                                        html.Li(
+                                            html.A(
+                                                cc_selection_options[
+                                                    "ccDrawingNR"
+                                                ],
+                                                className="dropdown-item",
+                                                id="ccDrawingNR",
                                             ),
                                         ),
                                         html.Li(
@@ -2480,11 +2493,16 @@ def run(
         Input("ccDrawingSizeRank", "n_clicks"),
         Input("ccDrawingNodeNames", "n_clicks"),
         Input("ccDrawingAroundNodes", "n_clicks"),
+        Input("ccDrawingNR", "n_clicks"),
         Input("ccDrawingAll", "n_clicks"),
         prevent_initial_call=True,
     )
-    def change_drawing_method(sr_clicks, nn_clicks, an_clicks, all_clicks):
+    def change_drawing_method(sr_clicks, nn_clicks, an_clicks, nr_clicks, all_clicks):
         # figure out which UI elements to show / hide
+        # (note that the "nonredundant" and "all components" drawing methods
+        # mean that there should be no additional UI elements displayed, which
+        # translates to hiding all of the other drawing methods' unique UI
+        # elements)
         sr_classes = nn_classes = an_classes = "removedEntirely"
         if ctx.triggered_id == "ccDrawingSizeRank":
             sr_classes = ""
@@ -2873,6 +2891,10 @@ def run(
                     {"requestGood": False},
                 )
             draw_type = config.DRAW_AROUND
+
+        elif cc_drawing_selection_type == "ccDrawingNR":
+            cc_nums = ag.nr_cc_nums
+            draw_type = config.DRAW_CCS
 
         elif cc_drawing_selection_type == "ccDrawingAll":
             draw_type = config.DRAW_ALL
