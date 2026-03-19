@@ -2,8 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-as inspired by [Pyrodigal](https://github.com/althonos/pyrodigal).
+As inspired by [Pyrodigal](https://github.com/althonos/pyrodigal),
+this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 [Unreleased]: https://github.com/marbl/MetagenomeScope/compare/v1.1.0...HEAD
