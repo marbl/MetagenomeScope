@@ -6,7 +6,8 @@ from .utils import run_tempfile_test
 
 def test_parse_flye_yeast_good():
     """Tests that we can parse Flye DOT files."""
-    g = parse_dot("metagenomescope/tests/input/flye_yeast.gv")
+    g, isflye = parse_dot("metagenomescope/tests/input/flye_yeast.gv")
+    assert isflye
     assert type(g) is nx.MultiDiGraph
     # Make sure that the appropriate amounts of nodes and edges are read.
     #
@@ -299,7 +300,7 @@ def test_parse_flye_no_k_len():
     # And, if flye decides to output full lengths instead (e.g. "1234"), then
     # we can accept those also. (But... we'll still call them "approx_lengths",
     # so uh maybe we should change that if this happens lol)
-    g = run_tempfile_test(
+    g, isflye = run_tempfile_test(
         "gv",
         [
             "digraph g {",
@@ -310,6 +311,7 @@ def test_parse_flye_no_k_len():
         None,
         None,
     )
+    assert isflye
     assert len(g.nodes) == 3
     assert len(g.edges) == 2
 
@@ -326,7 +328,7 @@ def test_parse_flye_no_k_len():
 
 def test_parse_flye_no_x_cov():
     # also, if the coverage from flye lacks the trailing "x", then that's cool
-    g = run_tempfile_test(
+    g, isflye = run_tempfile_test(
         "gv",
         [
             "digraph g {",
@@ -344,6 +346,7 @@ def test_parse_flye_no_x_cov():
         None,
         None,
     )
+    assert isflye
     assert len(g.nodes) == 2
     assert len(g.edges) == 4
 
@@ -415,7 +418,7 @@ def test_parse_lja_complicatedlabels_nocolor():
     # -The second edge has a multi-line label
     # -The second edge has no "color" attribute given
     # All of these things are ok, and our code should allow them.
-    g = run_tempfile_test(
+    g, isflye = run_tempfile_test(
         "gv",
         [
             "digraph g {",
@@ -426,6 +429,7 @@ def test_parse_lja_complicatedlabels_nocolor():
         None,
         None,
     )
+    assert not isflye
     assert len(g.nodes) == 2
     assert len(g.edges) == 2
     # Neither of the edges should have a defined "color" attribute in the
@@ -490,7 +494,7 @@ def test_parse_already_set_key():
 
 
 def test_parse_example_from_readme_faq_on_rcs():
-    g = run_tempfile_test(
+    g, isflye = run_tempfile_test(
         "gv",
         [
             "digraph g {",
@@ -500,6 +504,7 @@ def test_parse_example_from_readme_faq_on_rcs():
         None,
         None,
     )
+    assert not isflye
     assert len(g.nodes) == 2
     assert len(g.edges) == 1
     assert sorted(g.nodes) == ["1", "2"]
@@ -513,7 +518,8 @@ def test_parse_example_from_readme_faq_on_rcs():
 
 
 def test_parse_lja_dot_with_no_edge_ids():
-    g = parse_dot("metagenomescope/tests/input/chr15_subgraph_noids.gv")
+    g, isflye = parse_dot("metagenomescope/tests/input/chr15_subgraph_noids.gv")
+    assert not isflye
     assert type(g) is nx.MultiDiGraph
     assert len(g.nodes) == 22
     assert len(g.edges) == 32

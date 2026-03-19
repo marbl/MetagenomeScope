@@ -763,6 +763,18 @@ def verify_edge_id_unique(eid, seen_eids, err_prefix):
 def parse_dot(filename):
     """Returns a nx.MultiDiGraph representation of a DOT (Graphviz) file.
 
+    Parameters
+    ----------
+    filename: str
+        Path to a DOT file.
+
+    Returns
+    -------
+    graph, is_flye_dot: nx.MultiDiGraph, bool
+        The second parameter indicates whether or not this DOT file appears to
+        come from Flye (True = Flye, False = LJA). This has implications for
+        how we determine reverse-complementary nodes / edges in the graph.
+
     Notes
     -----
     - Like GML, DOT is a file format for representing arbitrary graphs (not
@@ -1080,7 +1092,7 @@ def parse_dot(filename):
         if "fillcolor" in g.nodes[n]:
             del g.nodes[n]["fillcolor"]
 
-    return g
+    return g, flye_vibes
 
 
 # Lowercase filetype suffixes, which we'll use to figure out which parser we

@@ -105,12 +105,21 @@ class AssemblyGraph(object):
         ]
 
         graph_paths = None
+        self.is_flye_dot = False
         parser_output = parsers.parse(self.filename)
-        if self.filetype != "GFA":
-            self.graph = parser_output
-        else:
+        if self.filetype == "GFA":
             self.graph = parser_output[0]
             graph_paths = parser_output[1]
+        elif self.filetype == "DOT":
+            self.graph = parser_output[0]
+            # The additional boolean output from parse_dot() tells us whether
+            # or not this is a Flye DOT file, specifically. If so, then the
+            # node names are "meaningless": we need to look at edge IDs in
+            # order to figure out e.g. which edge is the reverse-complement of
+            # another. See https://github.com/marbl/MetagenomeScope/issues/401
+            self.is_flye_dot = parser_output[1]
+        else:
+            self.graph = parser_output
 
         self.orientation_in_name = parsers.HRFILETYPE2ORIENTATION_IN_NAME[
             self.filetype
