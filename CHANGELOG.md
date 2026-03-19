@@ -99,7 +99,7 @@ MetagenomeScope fairly soon, but some features (e.g. SPQR tree decomposition)
 may not be included in the new versions for some time (or at all) due to time
 constraints.
 
-Some artifacts from this old version of MetagenomeScope, for posterity:
+Some artifacts from this old version of MetagenomeScope, for the record:
 
 - [Undergrad thesis](https://fedarko.github.io/res/docs/mgsc_thesis.pdf) (2018)
 
