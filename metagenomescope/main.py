@@ -2907,8 +2907,12 @@ def run(
             draw_type = config.DRAW_AROUND
 
         elif cc_drawing_selection_type == "ccDrawingNR":
-            cc_nums = ag.get_nr_cc_nums()
-            draw_type = config.DRAW_CCS
+            # use a different draw type than DRAW_CCS, which will let us
+            # show a more concise summary of what is drawn than listing out
+            # something like "#1; #3; #5; ..."
+            # (also, no need to set "cc_nums = ag.get_nr_cc_nums()", since the
+            # AssemblyGraph will just see DRAW_NR and know to look those up)
+            draw_type = config.DRAW_NR
 
         elif cc_drawing_selection_type == "ccDrawingAll":
             draw_type = config.DRAW_ALL
@@ -3170,6 +3174,12 @@ def run(
                     avail_paths = itertools.chain.from_iterable(
                         ag.ccnum2pathnames[ccnum]
                         for ccnum in curr_drawn_info["cc_nums"]
+                    )
+
+                elif curr_drawn_info["draw_type"] == config.DRAW_NR:
+                    avail_paths = itertools.chain.from_iterable(
+                        ag.ccnum2pathnames[ccnum]
+                        for ccnum in ag.get_nr_cc_nums()
                     )
 
                 elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:

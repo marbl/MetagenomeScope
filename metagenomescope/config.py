@@ -107,8 +107,12 @@ PT2FLATTEN_CHILD_EDGES = {
 }
 
 # Draw types. Used internally for communicating between flush() and draw().
+# Note that some of these may correspond to multiple draw options (e.g.
+# selecting a component by size rank and selecting a component by a node name
+# both lead to DRAW_CCS).
 DRAW_ALL = "all"
 DRAW_CCS = "ccs"
+DRAW_NR = "nr"
 DRAW_AROUND = "around"
 
 # Optional ID fields, used sometimes in the JSON output of draw() (aka

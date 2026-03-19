@@ -2256,17 +2256,29 @@ class AssemblyGraph(object):
             log_utils.log_layout_start(done_flushing, self)
 
         if draw_type == config.DRAW_ALL:
+            # draw all component(s)
             dr = DrawResults({}, draw_settings)
             for cc in self.components:
                 dr += cc.to_cyjs(draw_settings, layout_alg, layout_params)
 
         elif draw_type == config.DRAW_CCS:
+            # draw certain component(s)
             dr = DrawResults({}, draw_settings)
             for ccn in done_flushing["cc_nums"]:
                 cc = self.get_cc_by_num(ccn)
                 dr += cc.to_cyjs(draw_settings, layout_alg, layout_params)
 
+        elif draw_type == config.DRAW_NR:
+            # draw all component(s), but only the nonredundant ones (so for
+            # each pair of perfectly reverse-complementary components, we'll
+            # just draw one of these)
+            dr = DrawResults({}, draw_settings)
+            for ccn in self.get_nr_cc_nums():
+                cc = self.get_cc_by_num(ccn)
+                dr += cc.to_cyjs(draw_settings, layout_alg, layout_params)
+
         elif draw_type == config.DRAW_AROUND:
+            # draw around certain node(s)
             dr = self._to_cyjs_around_nodes(
                 done_flushing["around_node_ids"],
                 done_flushing["around_dist"],
@@ -2276,6 +2288,7 @@ class AssemblyGraph(object):
             )
 
         else:
+            # believe it or not, straight to jail
             raise WeirdError(f"Unrecognized draw type: {draw_type}")
 
         if doing_layout:
