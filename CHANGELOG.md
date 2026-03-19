@@ -6,6 +6,7 @@ The format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1.
 as inspired by [Pyrodigal](https://github.com/althonos/pyrodigal).
 
 ## [Unreleased]
+[Unreleased]: https://github.com/marbl/MetagenomeScope/compare/v1.1.0...HEAD
 
 ### Added
 
@@ -59,6 +60,7 @@ as inspired by [Pyrodigal](https://github.com/althonos/pyrodigal).
   from `setup.py` to `pyproject.toml`.
 
 ## [v1.1.0] - 2026-03-05 - Documentation and refactoring
+[v1.1.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.1.0
 
 ### Added
 
@@ -82,12 +84,14 @@ as inspired by [Pyrodigal](https://github.com/althonos/pyrodigal).
   `license-files` in the `pyproject.toml` file).
 
 ## [v1.0.0] - 2026-02-23 - First official release!
+[v1.0.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.0.0
 
 Restructures MetagenomeScope as a server-side application using Dash.
 Implements many long-awaited features, including hierarchical pattern
 decomposition, detailed charts of graph statistics, and much more.
 
 ## [v0.1.0] - 2020-11-30 - "Classic" MetagenomeScope
+[v0.1.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v0.1.0
 
 This is an old version of MetagenomeScope's code, tagged as a release for
 posterity. Many of its features will be added back in to newer versions of
