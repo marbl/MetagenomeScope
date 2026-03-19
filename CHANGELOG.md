@@ -10,7 +10,7 @@ as inspired by [Pyrodigal](https://github.com/althonos/pyrodigal).
 
 ### Added
 
-- Added a new drawing method, `Entire graph (nonredundant)`
+- Add a new drawing method, `Entire graph (nonredundant)`
   ([#67](https://github.com/marbl/MetagenomeScope/issues/67)).
 
   In most common assembly graph formats (e.g. GFA), there exist reverse-
@@ -27,11 +27,11 @@ as inspired by [Pyrodigal](https://github.com/althonos/pyrodigal).
 - Various updates to the README, including bioconda installation instructions!
   ([#302](https://github.com/marbl/MetagenomeScope/issues/302))
 
-- Added this Changelog.
+- Add this Changelog.
 
 ### Changed
 
-- Changed how random colors are assigned to edges in DOT files
+- Change how random colors are assigned to edges in DOT files
   ([#401](https://github.com/marbl/MetagenomeScope/issues/401)).
   Previously, the random colors were assigned based on the surrounding nodes
   of an edge, so that all edges `X -> Y` and `-Y -> -X` (including parallel
@@ -49,14 +49,14 @@ as inspired by [Pyrodigal](https://github.com/althonos/pyrodigal).
 - There are extremely rare cases where Graphviz can "lose" an edge and not
   draw it ([#394](https://github.com/marbl/MetagenomeScope/issues/394),
   [issue 1323 on Graphviz' repository](https://gitlab.com/graphviz/graphviz/-/work_items/1323)).
-  I added some code to detect these cases and ensure they are at least drawn
+  Detect these cases and ensure they are at least drawn
   as a straight line, so that all edges are shown.
 
-- Fixed a race condition that was causing the detection of "bad edges" (and
+- Fix a race condition that was causing the detection of "bad edges" (and
   converting them to straight lines when initially drawing a region of the
   graph) to not trigger properly (9810ae0a506376b83921277ce13858eb20fecfa0).
 
-- Updated the `metagenomescope/tests/README.md` file to reflect the switch
+- Update the `metagenomescope/tests/README.md` file to reflect the switch
   from `setup.py` to `pyproject.toml`.
 
 ## [v1.1.0] - 2026-03-05 - Documentation and refactoring
