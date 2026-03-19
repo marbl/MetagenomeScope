@@ -1,4 +1,5 @@
-from .. import ui_utils, config
+from collections import Counter
+from .. import ui_utils, name_utils, config
 from metagenomescope.errors import WeirdError, GraphParsingError
 
 
@@ -388,3 +389,269 @@ def get_sorted_subgraphs(sgs):
         ),
         reverse=True,
     )
+
+
+def get_candidate_twin_cc_num_from_nodes(cc, nodename2objs):
+    """Looks at the nodes in a Component to determine a possible twin.
+
+    This is not guaranteed to actually be a twin Component! This is
+    just "phase 1" of a redundant Component detection process. You
+    still need to compare the total node / edge counts between the
+    components, as well as the edges.
+
+    Parameters
+    ----------
+    cc: Component
+
+    nodename2objs: dict of str -> list of Node
+
+    Returns
+    -------
+    int or None
+    """
+    if len(cc.nodes) == 0:
+        raise WeirdError(f"0-node cc {cc}; should never happen :(")
+
+    candidate_twin_cc_num = None
+
+    for n in cc.nodes:
+        # If a node is split into X-L ==> X-R, only consider X-L
+        # (the choice is arbitrary). This is only for performance;
+        # it should be safe to comment this out (in which case we
+        # will just be overcautious and check both splits of X)
+        if n.is_split() and n.split == config.SPLIT_RIGHT:
+            continue
+
+        # Negate the BASENAME -- if we are looking at X-L, don't look up -X-L,
+        # since -X may or may not have been split. Just look up -X. (Like,
+        # decomposition should USUALLY be symmetric, but this is not guaranteed
+        # yet so let's be safe.)
+        rc_name = name_utils.negate(n.basename)
+        if rc_name in nodename2objs:
+            # Using [0] here means that -- if -X is split -- then we will
+            # just pick one of {-X-L, -X-R} arbitrarily and use that as
+            # the source of the .cc_num here. This is fine -- a left and right
+            # split of the same node should be in the same component, so this
+            # really shouldn't make a difference...
+            rc_node_cc_num = nodename2objs[rc_name][0].cc_num
+
+            if candidate_twin_cc_num is None:
+                # this is the first node we're looking at in this cc
+                candidate_twin_cc_num = rc_node_cc_num
+                if candidate_twin_cc_num == cc.cc_num:
+                    # okay, so this node's RC is actually in the same
+                    # component. This tells us that this component is
+                    # "strand-mixed", so it is not redundant.
+                    return None
+            else:
+                if candidate_twin_cc_num != rc_node_cc_num:
+                    # Okay, so the RCs of the nodes in this component
+                    # ended up in MULTIPLE other components. This
+                    # implies that all three of these components
+                    # (this cc, candidate_twin_cc_num, and
+                    # rc_node_cc_num) are not redundant. (This could
+                    # also be triggered if rc_node_cc_num == cc.cc_num,
+                    # I guess, in which case there are just two
+                    # distinct components involved here.)
+                    #
+                    # NOTE: it may save some time to tell the caller that
+                    # all three of these components should be marked
+                    # redundant, but that requires restructuring this...
+                    # if it is a bottleneck we can refactor this
+                    return None
+
+                # If we've gotten to this branch, this means that this is not
+                # the first node we've seen in this component, and that the
+                # component in which its reverse-complementary node is
+                # contained is consistent with all others that we've seen so
+                # far. Keep going through the nodes in this component.
+        else:
+            # Node "n" has no reverse complement, weirdly enough. This
+            # means that this component is nonredundant. This can
+            # happen if you just remove some stuff from an "explicit"
+            # file (e.g. FASTG / DOT).
+            return None
+
+    # If we've made it here, all of the nodes in cc have reverse complements
+    # in this one component!
+    return candidate_twin_cc_num
+
+
+def get_candidate_twin_cc_num_from_edges(cc, userspecifiededgeid2obj):
+    """Looks at the (real) edges in a Component to determine a possible twin.
+
+    This is an alternate version of get_candidate_twin_cc_num_from_nodes(),
+    but designed ONLY for Flye DOT graphs. (I mean it should also work for
+    LJA DOT graphs, but for those you should still use
+    get_candidate_twin_cc_num_from_nodes(), because nodes have an orientation
+    in those -- this means that in the obscure case that you have components
+    with zero edges, we will still look at node orientations to determine
+    component redundancy.)
+
+    See https://github.com/marbl/MetagenomeScope/issues/401 for details.
+
+    Parameters
+    ----------
+    cc: Component
+
+    userspecifiededgeid2obj: dict of str -> Edge
+
+    Returns
+    -------
+    int or None
+    """
+    # You really shouldn't have zero-edge components in a Flye DOT graph,
+    # but I GUESS we can allow this here (such components will be inherently
+    # nonredundant). Um, I don't think this check is necessary (since otherwise
+    # the below code would still end with returning None), but I'm keeping it
+    # here for the sake of clarity (plus maybe I'll make this throw an error
+    # later idk).
+    if len(cc.edges) == 0:
+        return None
+
+    candidate_twin_cc_num = None
+
+    for e in cc.edges:
+        if not e.is_fake:
+            eid = e.get_userspecified_id()
+            rcid = name_utils.negate(eid)
+            if rcid in userspecifiededgeid2obj:
+                rc_edge_cc_num = userspecifiededgeid2obj[rcid].cc_num
+                if candidate_twin_cc_num is None:
+                    # this is the first edge we're looking at in cc
+                    candidate_twin_cc_num = rc_edge_cc_num
+                    if candidate_twin_cc_num == cc.cc_num:
+                        # this edge's RC is in the same component
+                        return None
+                else:
+                    if candidate_twin_cc_num != rc_edge_cc_num:
+                        # RCs of edges in this component ended up in multiple
+                        # other components
+                        return None
+            else:
+                # this edge has no reverse-complement
+                return None
+    return candidate_twin_cc_num
+
+
+def count_real_edge_info(cc, nodeid2obj, index_by_namepair=True):
+    """Returns a Counter of some kind of edge info in a component.
+
+    Parameters
+    ----------
+    cc: Component
+
+    nodeid2obj: dict of int -> Node
+
+    index_by_namepair: bool
+        If True, the output Counter's keys will be pairs of node names.
+        If False, the output Counter's keys will be user-specified Edge IDs.
+
+    Returns
+    -------
+    Counter
+        Maps edge info to an int of the number of occurrences we saw.
+    """
+    ctr = Counter()
+    for e in cc.edges:
+        if not e.is_fake:
+            if index_by_namepair:
+                info = (
+                    nodeid2obj[e.new_src_id].basename,
+                    nodeid2obj[e.new_tgt_id].basename,
+                )
+            else:
+                # don't worry, this will throw an error if no such ID is set
+                info = e.get_userspecified_id()
+            ctr[info] += 1
+    return ctr
+
+
+def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
+    """Determines if two Components are "twins" of each other.
+
+    Specifically, this checks (given components C1 and C2):
+
+    - C1 and C2 have the same number of nodes
+    - C1 and C2 have the same number of edges
+    - Every edge E in C1 has a reverse-complementary edge -E in C2
+        - How this is done depends on the define_edges_by_nodenames flag.
+
+    Parameters
+    ----------
+    cc: Component
+
+    cc2: Component
+
+    nodeid2obj: dict of int -> Node
+
+    define_edges_by_nodenames: bool
+        If True, we count edges in the component (and determine reverse-
+        complements) according to their source and target node names. So,
+        an edge X -> Y is considered to be reverse-complementary to -Y -> -X.
+
+        If False, we count edges and define reverse-complements going just
+        by edge IDs. So, an edge E and an edge -E might be surrounded by
+        completely different node names.
+
+    Returns
+    -------
+    bool
+        True if the Components are twins, False otherwise.
+
+    Notes
+    -----
+    - This does not explicitly check that node names match up between these
+      components (although tbh I think leaving define_edges_by_nodenames set to
+      True basically has the same effect indicentally). In Flye DOT files, node
+      names do not have orientation (see
+      https://github.com/marbl/MetagenomeScope/issues/401); and in other types
+      of graphs, you should have called get_candidate_twin_component_num()
+      before this (which actually does check node names).
+
+    - Using a Counter when define_edges_by_node_names is False is kind of lazy,
+      since user-specified edge IDs are guaranteed to be unique by parse_dot().
+      So this is comparing that like {E: 1, ...} and {-E: 1, ...} are unique,
+      when really I guess we could just be comparing lists of IDs. I dunno.
+      If this REALLY ends up being a bottleneck we can refactor this.
+    """
+    if (
+        cc.num_full_nodes == cc2.num_full_nodes
+        and cc.num_real_edges == cc2.num_real_edges
+    ):
+        # Counts match up; now check that edge details match up
+        ectr1 = count_real_edge_info(
+            cc, nodeid2obj, index_by_namepair=define_edges_by_nodenames
+        )
+        ectr2 = count_real_edge_info(
+            cc2, nodeid2obj, index_by_namepair=define_edges_by_nodenames
+        )
+
+        if len(ectr1) == len(ectr2):
+            for info in ectr1.keys():
+
+                if define_edges_by_nodenames:
+                    # info is a tuple (src name, tgt name)
+                    rcinfo = (
+                        name_utils.negate(info[1]),
+                        name_utils.negate(info[0]),
+                    )
+                else:
+                    # info is a string user-specified edge ID
+                    rcinfo = name_utils.negate(info)
+
+                if ectr1[info] != ectr2[rcinfo]:
+                    return False
+        else:
+            return False
+
+        # If we've made it here, then both the initial counts AND the edge
+        # details match up. These components are twins!
+        return True
+
+    else:
+        # oh no, they have different node or edge counts!
+        # this could happen if for example cc2 contains both a perfect reverse-
+        # complementary version of cc AND some other junk. Um, but probably I
+        # doubt this will happen in practice much if at all lol
+        return False

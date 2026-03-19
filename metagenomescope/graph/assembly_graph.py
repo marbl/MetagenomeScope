@@ -3,7 +3,7 @@ import random
 import logging
 import pandas as pd
 from copy import deepcopy
-from collections import defaultdict, Counter
+from collections import defaultdict
 import networkx as nx
 from .. import (
     parsers,
@@ -1873,150 +1873,68 @@ class AssemblyGraph(object):
     def _record_redundant_components(self):
         """Identifies pairs of redundant weakly connected components.
 
-        We define components C1 and C2 as redundant if they are completely
-        reverse-complementary. That is:
-          - C1 and C2 have the same number of nodes
-          - C1 and C2 have the same number of edges
-          - For every node X in C1, there exists a node -X in C2
-          - For every edge X -> Y in C1, there exists an edge -Y -> -X in C2
-
         Notes
         -----
-        This will break if the decomposition process is asymmetric. We need
-        to either restructure the decomposition to guarantee it is symmetric
-        OR adjust this to ignore node splitting and fake edge stuff.
+        We define components C1 and C2 as redundant if they are completely
+        reverse-complementary. That is:
+
+          - C1 and C2 have the same number of nodes
+
+          - C1 and C2 have the same number of edges
+
+          - For every node X in C1, there exists a node -X in C2
+            - This is NOT checked if self.is_flye_dot. See
+              https://github.com/marbl/MetagenomeScope/issues/401.
+
+          - For every edge E in C1, there exists an edge -E in C2
         """
-        # TODO: if self.is_flye_dot, skip phase 1 and instead work based on
-        # edge IDs (still considering node / edge cts ofc).
-        # Probably abstract the phases to graph_utils - phase 1 takes in a cc
-        # and returns either the cand twin cc num or nothing, phase 2 takes
-        # in a cc and the cand twin and returns true or false (checking edges etc)
         self.nr_cc_nums = set()
         for cc in self.components:
+
             if cc.cc_num in self.nr_cc_nums:
                 # We may have already ran into this cc and discovered that it
                 # was not redundant, in which case we can move on
                 continue
-            possibly_redundant = True
-            candidate_twin_cc_num = None
-            if len(cc.nodes) == 0:
-                raise WeirdError(f"0-node cc {cc}; should never happen :(")
 
-            # Phase 1: consider all nodes in this component
-            for n in cc.nodes:
-                rc_name = name_utils.negate(n.name)
-
-                if rc_name in self.nodename2objs:
-                    # TODO using [0] is SUPER SLOPPY HERE THIS SHOULD DO THIS
-                    # DIFFERENTLYYYYYYY this needs to safely ignore the
-                    # decomposition results in case it is asymmetric
-                    rc_node_cc_num = self.nodename2objs[rc_name][0].cc_num
-
-                    if candidate_twin_cc_num is None:
-                        # this is the first node we're looking at in this cc
-                        candidate_twin_cc_num = rc_node_cc_num
-                        if candidate_twin_cc_num == cc.cc_num:
-                            # okay, so this node's RC is actually in the same
-                            # component. This tells us that this component is
-                            # "strand-mixed", so it is not redundant.
-                            possibly_redundant = False
-                            break
-                    else:
-                        if candidate_twin_cc_num != rc_node_cc_num:
-                            # Okay, so the RCs of the nodes in this component
-                            # ended up in MULTIPLE other components. This
-                            # implies that all three of these components
-                            # (this cc, candidate_twin_cc_num, and
-                            # rc_node_cc_num) are not redundant. (This could
-                            # also be triggered if rc_node_cc_num == cc.cc_num,
-                            # I guess, in which case there are just two
-                            # distinct components involved here.)
-
-                            possibly_redundant = False
-                            # later on we'll add cc.cc_num and
-                            # candidate_twin_cc_num to this - but let's also
-                            # make sure that this third cc num is marked as nr
-                            # (might save a bit of time when we find it later)
-                            self.nr_cc_nums.add(rc_node_cc_num)
-                            break
-                else:
-                    # Node "n" has no reverse complement, weirdly enough. This
-                    # means that this component is nonredundant. This can
-                    # happen if you just remove some stuff from an "explicit"
-                    # file (e.g. FASTG / DOT), or with Flye DOT files (where
-                    # node names are meaningless).
-                    possibly_redundant = False
-                    break
-
-            # Phase 2: if needed, consider component node/edge counts and then
-            # all edges in this component
-            if possibly_redundant:
-                if candidate_twin_cc_num is None:
-                    raise WeirdError("We should have already set a candidate?")
-                cc2 = self.get_cc_by_num(candidate_twin_cc_num)
-                # Okay! We know that, for every node X in cc, there exists a
-                # node -X in cc2.
-                # We still need to check a few more things to be SURE that
-                # cc and cc2 are a pair of redundant components, though...
-
-                if len(cc.nodes) == len(cc2.nodes) and len(cc.edges) == len(
-                    cc2.edges
-                ):
-                    # Counts match up; now check that edges match up
-                    # TODO this is messy, abstract to graph_utils or something
-                    ectr1 = Counter()
-                    for e in cc.edges:
-                        if not e.is_fake:
-                            ectr1[
-                                (
-                                    self.nodeid2obj[e.new_src_id].basename,
-                                    self.nodeid2obj[e.new_tgt_id].basename,
-                                )
-                            ] += 1
-                    ectr2 = Counter()
-                    for e in cc2.edges:
-                        if not e.is_fake:
-                            ectr2[
-                                (
-                                    self.nodeid2obj[e.new_src_id].basename,
-                                    self.nodeid2obj[e.new_tgt_id].basename,
-                                )
-                            ] += 1
-                    counters_match = True
-                    if len(ectr1) == len(ectr2):
-                        for tup1 in ectr1.keys():
-                            tup2 = (
-                                name_utils.negate(tup1[1]),
-                                name_utils.negate(tup1[0]),
-                            )
-                            if ectr1[tup1] != ectr2[tup2]:
-                                counters_match = False
-                                break
-                    else:
-                        counters_match = False
-
-                    if not counters_match:
-                        possibly_redundant = False
-
-                    # If we have made it here and possibly_redundant is still
-                    # True, then we have confirmed that this component is
-                    # redundant with candidate_twin_cc_num!
-
-                else:
-                    # oh no, they have different node or edge counts!
-                    # this could happen if for example cc2 contains
-                    # both a perfect reverse-complementary version of cc AND
-                    # some other junk. Um, but probably I doubt this will
-                    # happen in practice much if at all lol
-                    possibly_redundant = False
-
-            if possibly_redundant:
-                # choose arbitrarily between this and its twin
-                self.nr_cc_nums.add(min(cc.cc_num, candidate_twin_cc_num))
+            # Phase 1: figure out a candidate twin component by looking at
+            # either nodes (given node X, where is -X?) or edges (given edge E,
+            # where is -E?)
+            if self.is_flye_dot:
+                # We can't rely on node orientations, so just look at edge IDs
+                # NOTE: When we implement searching by edge ID, we should
+                # probably move the creation of this up to __init__()
+                userspecifiededgeid2obj = {
+                    e.get_userspecified_id(): e
+                    for e in self.edgeid2obj.values()
+                }
+                cc2_num = graph_utils.get_candidate_twin_cc_num_from_edges(
+                    cc, userspecifiededgeid2obj
+                )
             else:
-                self.nr_cc_nums.add(cc.cc_num)
-                if candidate_twin_cc_num is not None:
-                    self.nr_cc_nums.add(candidate_twin_cc_num)
+                # Look at the nodes!
+                cc2_num = graph_utils.get_candidate_twin_cc_num_from_nodes(
+                    cc, self.nodename2objs
+                )
+
+            # Phase 2: check to see if this candidate twin is really a twin
+            # of this component.
+            if cc2_num is not None:
+                cc2 = self.get_cc_by_num(cc2_num)
+                if graph_utils.components_are_twins(
+                    cc,
+                    cc2,
+                    self.nodeid2obj,
+                    define_edges_by_nodenames=not self.is_flye_dot,
+                ):
+                    # These components really are twins! Choose one of them
+                    # to be drawn as the "nonredundant" version.
+                    self.nr_cc_nums.add(min(cc.cc_num, cc2_num))
+                    continue
+
+            # If we're still here, then these components weren't twins.
+            self.nr_cc_nums.add(cc.cc_num)
+            if cc2_num is not None:
+                self.nr_cc_nums.add(cc2_num)
 
     def get_nr_cc_nums(self):
         """Returns the size ranks of all nonredundant components."""
