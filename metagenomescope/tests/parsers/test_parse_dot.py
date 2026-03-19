@@ -518,7 +518,9 @@ def test_parse_example_from_readme_faq_on_rcs():
 
 
 def test_parse_lja_dot_with_no_edge_ids():
-    g, isflye = parse_dot("metagenomescope/tests/input/chr15_subgraph_noids.gv")
+    g, isflye = parse_dot(
+        "metagenomescope/tests/input/chr15_subgraph_noids.gv"
+    )
     assert not isflye
     assert type(g) is nx.MultiDiGraph
     assert len(g.nodes) == 22
