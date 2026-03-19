@@ -98,3 +98,12 @@ posterity. Many of its features will be added back in to newer versions of
 MetagenomeScope fairly soon, but some features (e.g. SPQR tree decomposition)
 may not be included in the new versions for some time (or at all) due to time
 constraints.
+
+Some artifacts from this old version of MetagenomeScope, for posterity:
+
+- [Undergrad thesis](https://fedarko.github.io/res/docs/mgsc_thesis.pdf) (2018)
+
+- [Poster](https://marbl.github.io/MetagenomeScope/res/gd2017_mgsc_poster_updated.pdf)
+  and
+  [Poster Abstract](https://link.springer.com/book/10.1007/978-3-319-73915-1)
+  ([GD 2017](https://gd2017.khoury.northeastern.edu/))
