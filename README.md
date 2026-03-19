@@ -733,6 +733,10 @@ See the "Large graph" section under "Example datasets" above for some tips for w
 
 See [`CONTRIBUTING.md`](https://github.com/marbl/MetagenomeScope/blob/main/CONTRIBUTING.md).
 
+## Changelog
+
+See [`CHANGELOG.md`](https://github.com/marbl/MetagenomeScope/blob/main/CHANGELOG.md).
+
 ## License
 
 MetagenomeScope is licensed under the
