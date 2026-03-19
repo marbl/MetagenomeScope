@@ -1864,7 +1864,7 @@ class AssemblyGraph(object):
             possibly_redundant = True
             candidate_twin_cc_num = None
             if len(cc.nodes) == 0:
-                raise WeirdError(f"0-node cc {cc} :(")
+                raise WeirdError(f"0-node cc {cc}; should never happen :(")
 
             # Phase 1: consider all nodes in this component
             for n in cc.nodes:
@@ -1933,8 +1933,8 @@ class AssemblyGraph(object):
                         if not e.is_fake:
                             ectr1[
                                 (
-                                    self.nodeid2obj[e.orig_src_id].name,
-                                    self.nodeid2obj[e.orig_tgt_id].name,
+                                    self.nodeid2obj[e.new_src_id].basename,
+                                    self.nodeid2obj[e.new_tgt_id].basename,
                                 )
                             ] += 1
                     ectr2 = Counter()
@@ -1942,8 +1942,8 @@ class AssemblyGraph(object):
                         if not e.is_fake:
                             ectr2[
                                 (
-                                    self.nodeid2obj[e.orig_src_id].name,
-                                    self.nodeid2obj[e.orig_tgt_id].name,
+                                    self.nodeid2obj[e.new_src_id].basename,
+                                    self.nodeid2obj[e.new_tgt_id].basename,
                                 )
                             ] += 1
                     counters_match = True
