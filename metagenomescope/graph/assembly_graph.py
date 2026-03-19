@@ -601,10 +601,18 @@ class AssemblyGraph(object):
             else:
                 ri = next(rand_idx_generator)
 
-                # To avoid confusion, guarantee that edges do not share the
+                # To avoid confusion, ensure that edges do not share the
                 # random color of their source or target node. This is
                 # especially important for loop edges, which -- depending on
                 # Cytoscape.js styling -- can pass through the node body.
+                #
+                # NOTE: in Flye DOT files, since nodes do not have
+                # orientations, there is no guarantee that the nodes on which
+                # edge E is incident will have the same colors as the nodes
+                # on which edge -E is incident. Thus, an edge in one of these
+                # graphs might have the same random color as its source or
+                # target node. Not much we can do about that beyond trying
+                # to sniff out which nodes are the RCs of which other nodes...
                 while ri == src.rand_idx or ri == tgt.rand_idx:
                     ri = next(rand_idx_generator)
 
@@ -1878,6 +1886,11 @@ class AssemblyGraph(object):
         to either restructure the decomposition to guarantee it is symmetric
         OR adjust this to ignore node splitting and fake edge stuff.
         """
+        # TODO: if self.is_flye_dot, skip phase 1 and instead work based on
+        # edge IDs (still considering node / edge cts ofc).
+        # Probably abstract the phases to graph_utils - phase 1 takes in a cc
+        # and returns either the cand twin cc num or nothing, phase 2 takes
+        # in a cc and the cand twin and returns true or false (checking edges etc)
         self.nr_cc_nums = set()
         for cc in self.components:
             if cc.cc_num in self.nr_cc_nums:
