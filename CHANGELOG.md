@@ -105,5 +105,5 @@ Some artifacts from this old version of MetagenomeScope, for posterity:
 
 - [Poster](https://marbl.github.io/MetagenomeScope/res/gd2017_mgsc_poster_updated.pdf)
   and
-  [Poster Abstract](https://link.springer.com/book/10.1007/978-3-319-73915-1)
+  [poster abstract](https://link.springer.com/book/10.1007/978-3-319-73915-1)
   ([GD 2017](https://gd2017.khoury.northeastern.edu/))
