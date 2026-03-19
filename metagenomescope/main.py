@@ -3438,6 +3438,15 @@ def run(
                 else:
                     undrawn_nodes.append(n)
 
+        elif curr_drawn_info["draw_type"] == config.DRAW_NR:
+            # only certain component(s) are drawn
+            curr_drawn_cc_nums = set(ag.get_nr_cc_nums())
+            for n, c in nn2ccnum.items():
+                if c in curr_drawn_cc_nums:
+                    drawn_nodes.append(n)
+                else:
+                    undrawn_nodes.append(n)
+
         elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
             # some weird subregion of the graph is drawn, as specified in
             # currDrawnInfo
