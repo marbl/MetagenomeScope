@@ -519,7 +519,11 @@ class AssemblyGraph(object):
 
         nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
 
-        edgenamepair2rand_idx = {}
+        # For Flye DOT files, the keys in this mapping will be the edge IDs
+        # provided in the DOT file (e.g. "-4").
+        # For all other graphs (including LJA DOT files!), the keys in this
+        # mapping will instead be edge name pairs (e.g. ("-5", "3").
+        edgeinfo2rand_idx = {}
 
         for e in self.graph.edges(data=True, keys=True):
             edge_id = self._get_unique_id()
@@ -568,22 +572,32 @@ class AssemblyGraph(object):
 
             src = self.nodeid2obj[e[0]]
             tgt = self.nodeid2obj[e[1]]
-            namepair = (src.name, tgt.name)
-            rcnamepair = (
-                name_utils.negate(tgt.name),
-                name_utils.negate(src.name),
-            )
+            if self.node_centric:
+                # An edge X -> Y and the RC -Y -> -X, as well as all parallel
+                # edges to both, get the same random color
+                edgeinfo = (src.name, tgt.name)
+                rcinfo = (
+                    name_utils.negate(tgt.name),
+                    name_utils.negate(src.name),
+                )
+            else:
+                # An edge with ID X and the RC edge -X get the same color.
+                # I mean we COULD also do the parallel edge thing like before
+                # but IMO this is better
+                # https://github.com/marbl/MetagenomeScope/issues/401
+                edgeinfo = new_edge.get_userspecified_id()
+                rcinfo = name_utils.negate(edgeinfo)
 
-            # If we have already seen the RC of this edge, or if we have
-            # already seen a parallel edge to this one, then copy that other
-            # edge's random index to this one (so that they are assigned the
-            # same random color). (We check the RC case first since parallel
-            # edges are relatively rare -- I expect the average graph to have
-            # many more RC edges than parallel edges.)
-            if rcnamepair in edgenamepair2rand_idx:
-                new_edge.rand_idx = edgenamepair2rand_idx[rcnamepair]
-            elif namepair in edgenamepair2rand_idx:
-                new_edge.rand_idx = edgenamepair2rand_idx[namepair]
+            # If we have already seen the RC of this edge, or -- for node-
+            # centric graphs, if we have already seen a parallel edge to this
+            # one -- then copy that other edge's random index to this one (so
+            # that they are assigned the same random color). (We check the RC
+            # case first since parallel edges are relatively rare -- I expect
+            # the average graph to have many more RC edges than parallel edges)
+            if rcinfo in edgeinfo2rand_idx:
+                new_edge.rand_idx = edgeinfo2rand_idx[rcinfo]
+            elif edgeinfo in edgeinfo2rand_idx:
+                new_edge.rand_idx = edgeinfo2rand_idx[edgeinfo]
             else:
                 ri = next(rand_idx_generator)
 
@@ -595,7 +609,7 @@ class AssemblyGraph(object):
                     ri = next(rand_idx_generator)
 
                 new_edge.rand_idx = ri
-                edgenamepair2rand_idx[namepair] = ri
+                edgeinfo2rand_idx[edgeinfo] = ri
 
         if not self.node_centric and not self.lengths_are_approx:
             # At least for now, this particular combination of things means
