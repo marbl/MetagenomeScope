@@ -2,6 +2,10 @@ from . import config
 from .errors import WeirdError, GraphParsingError
 
 
+def is_rev(n):
+    return n[0] == config.REV
+
+
 def negate(n):
     """Negates a (node) name. Literally just adds or removes a starting "-".
 
@@ -22,7 +26,7 @@ def negate(n):
     if len(n) == 0:
         raise WeirdError("We should've already screened for empty node names?")
 
-    if n[0] == config.REV:
+    if is_rev(n):
         return n[1:]
     else:
         return config.REV + n

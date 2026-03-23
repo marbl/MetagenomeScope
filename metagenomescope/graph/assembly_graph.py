@@ -1928,7 +1928,22 @@ class AssemblyGraph(object):
                 ):
                     # These components really are twins! Choose one of them
                     # to be drawn as the "nonredundant" version.
-                    self.nr_cc_nums.add(min(cc.cc_num, cc2_num))
+                    #
+                    # There are various ways you could make this choice (e.g.
+                    # taking min(cc.cc_num, cc2_num) to ensure that you always
+                    # pick the one with the "earlier" size rank), but I think
+                    # the better solution is choosing the one with more
+                    # "positive"-strand nodes (or, for Flye DOT files, edges).
+                    if self.is_flye_dot:
+                        posct = cc.count_positive_edges()
+                        posct2 = cc2.count_positive_edges()
+                    else:
+                        posct = cc.count_positive_nodes()
+                        posct2 = cc2.count_positive_nodes()
+                    if posct >= posct2:
+                        self.nr_cc_nums.add(cc.cc_num)
+                    else:
+                        self.nr_cc_nums.add(cc2_num)
                     continue
 
             # If we're still here, then these components weren't twins.
