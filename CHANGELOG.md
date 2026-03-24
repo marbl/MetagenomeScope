@@ -14,8 +14,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   entire graph -- while drawing perfectly reverse-complementary components
   only once ([#67](https://github.com/marbl/MetagenomeScope/issues/67)).
 
-- Various updates to the README, including bioconda installation instructions!
-  ([#302](https://github.com/marbl/MetagenomeScope/issues/302))
+- Tidy up the README in various ways, including adding bioconda installation instructions
+  ([#302](https://github.com/marbl/MetagenomeScope/issues/302))!
 
 - Add this Changelog.
 
