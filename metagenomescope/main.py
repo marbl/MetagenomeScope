@@ -141,6 +141,16 @@ def run(
         ),
     ]
 
+    JS_ALG_WARNING = [
+        html.P(
+            [
+                html.Span("Note:", style={"font-weight": "bold"}),
+                " This layout algorithm is run within the web browser. "
+                "It may struggle or take a while for large graphs.",
+            ]
+        )
+    ]
+
     if (
         ui_config.SHOW_PATTERNS in ui_config.DEFAULT_DRAW_SETTINGS
         and ui_config.DO_RECURSIVE_LAYOUT in ui_config.DEFAULT_DRAW_SETTINGS
@@ -1779,17 +1789,20 @@ def run(
                                                 ),
                                             ),
                                             html.Div(
-                                                html.P(
-                                                    [
-                                                        "Client-side hierarchical layout algorithm (",
-                                                        html.A(
-                                                            "GitHub wiki",
-                                                            href="https://github.com/dagrejs/dagre/wiki",
-                                                            target="_blank",
-                                                        ),
-                                                        ").",
-                                                    ]
-                                                ),
+                                                [
+                                                    html.P(
+                                                        [
+                                                            "Client-side hierarchical layout algorithm (",
+                                                            html.A(
+                                                                "GitHub wiki",
+                                                                href="https://github.com/dagrejs/dagre/wiki",
+                                                                target="_blank",
+                                                            ),
+                                                            ").",
+                                                        ]
+                                                    )
+                                                ]
+                                                + JS_ALG_WARNING,
                                                 id="dagreAlgDesc",
                                                 className=css_config.ALG_DESC_CLASSES
                                                 + (
@@ -1800,19 +1813,22 @@ def run(
                                                 ),
                                             ),
                                             html.Div(
-                                                html.P(
-                                                    [
-                                                        "Client-side force-directed layout algorithm ",
-                                                        "described in ",
-                                                        html.A(
-                                                            "Balci & Dogrusoz 2021",
-                                                            href="https://doi.org/10.1109/TVCG.2021.3095303",
-                                                            target="_blank",
-                                                        ),
-                                                        ' ("fCoSE: A fast compound graph layout algorithm with ',
-                                                        'constraint support").',
-                                                    ]
-                                                ),
+                                                [
+                                                    html.P(
+                                                        [
+                                                            "Client-side force-directed layout algorithm ",
+                                                            "described in ",
+                                                            html.A(
+                                                                "Balci & Dogrusoz 2021",
+                                                                href="https://doi.org/10.1109/TVCG.2021.3095303",
+                                                                target="_blank",
+                                                            ),
+                                                            ' ("fCoSE: A fast compound graph layout algorithm with ',
+                                                            'constraint support").',
+                                                        ]
+                                                    )
+                                                ]
+                                                + JS_ALG_WARNING,
                                                 id="fcoseAlgDesc",
                                                 className=css_config.ALG_DESC_CLASSES
                                                 + (
