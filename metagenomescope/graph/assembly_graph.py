@@ -1935,11 +1935,11 @@ class AssemblyGraph(object):
                     # the better solution is choosing the one with more
                     # "positive"-strand nodes (or, for Flye DOT files, edges).
                     if self.is_flye_dot:
-                        posct = cc.count_positive_edges()
-                        posct2 = cc2.count_positive_edges()
+                        posct = cc.count_positive_real_edges()
+                        posct2 = cc2.count_positive_real_edges()
                     else:
-                        posct = cc.count_positive_nodes()
-                        posct2 = cc2.count_positive_nodes()
+                        posct = cc.count_positive_full_nodes()
+                        posct2 = cc2.count_positive_full_nodes()
                     if posct >= posct2:
                         self.nr_cc_nums.add(cc.cc_num)
                     else:

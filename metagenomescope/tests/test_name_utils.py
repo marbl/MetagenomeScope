@@ -3,6 +3,15 @@ from metagenomescope import name_utils as nu
 from metagenomescope.errors import WeirdError, GraphParsingError
 
 
+def test_is_rev():
+    assert nu.is_rev("-1")
+    assert nu.is_rev("-100")
+    assert nu.is_rev("-abcdef")
+    assert not nu.is_rev("1")
+    assert not nu.is_rev("100")
+    assert not nu.is_rev("abcdef")
+
+
 def test_negate():
     assert nu.negate("1") == "-1"
     assert nu.negate("-3") == "3"

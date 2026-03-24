@@ -152,7 +152,7 @@ class Subgraph(object):
     def get_objs(self):
         return itertools.chain(self.nodes, self.edges, self.patterns)
 
-    def count_positive_nodes(self):
+    def count_positive_full_nodes(self):
         ct = 0
         for n in self.nodes:
             # ignore right split nodes, so we only consider each basename once
@@ -162,7 +162,7 @@ class Subgraph(object):
                 ct += 1
         return ct
 
-    def count_positive_edges(self):
+    def count_positive_real_edges(self):
         ct = 0
         for e in self.edges:
             if e.is_fake:
