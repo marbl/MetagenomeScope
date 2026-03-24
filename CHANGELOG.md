@@ -10,19 +10,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Added
 
-- Add a new drawing method, `Entire graph (nonredundant)`
-  ([#67](https://github.com/marbl/MetagenomeScope/issues/67)).
-
-  In most common assembly graph formats (e.g. GFA), there exist reverse-
-  complementary pairs of nodes and edges (e.g. `X` and `-X`, `X -> Y` and
-  `-Y -> -X`). Often entire connected components are reverse-complementary
-  in this way; in such cases, drawing both components is not usually necessary.
-
-  This drawing method detects pairs of "redundant" reverse-complementary
-  components, and will draw (1) all "nonredundant" components and (2) one
-  arbitrary component from each pair of "redundant" components. This way, you
-  can visualize the "unique" parts of the graph without having to draw a bunch
-  of unnecessary components.
+- Add a new drawing method, `Entire graph (nonredundant)`, that draws the
+  entire graph -- while drawing perfectly reverse-complementary components
+  only once ([#67](https://github.com/marbl/MetagenomeScope/issues/67)).
 
 - Various updates to the README, including bioconda installation instructions!
   ([#302](https://github.com/marbl/MetagenomeScope/issues/302))
@@ -31,18 +21,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Changed
 
-- Change how random colors are assigned to edges in DOT files
+- For DOT files, adjust the random color assignment so that edges `E` and `-E`
+  are guaranteed to be assigned the same random color
   ([#401](https://github.com/marbl/MetagenomeScope/issues/401)).
-  Previously, the random colors were assigned based on the surrounding nodes
-  of an edge, so that all edges `X -> Y` and `-Y -> -X` (including parallel
-  edges) were assigned the same random color.
-
-  However, in Flye DOT files, nodes don't have orientations, so this meant that
-  an edge `E` and its reverse-complement `-E` were not necessarily being
-  assigned the same random color. I've fixed this so that random colors are
-  instead assigned based on edge ID, so that edges `E` and `-E` are guaranteed
-  to be assigned the same random color. This should result in clearer-looking
-  drawings.
 
 - The icons used to represent layout algorithms in the "drawing options" dialog
   are now drawn with slightly thicker strokes. Um, in case that is relevant to
