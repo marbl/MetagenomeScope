@@ -572,21 +572,28 @@ class AssemblyGraph(object):
 
             src = self.nodeid2obj[e[0]]
             tgt = self.nodeid2obj[e[1]]
-            if self.node_centric:
-                # An edge X -> Y and the RC -Y -> -X, as well as all parallel
-                # edges to both, get the same random color
-                edgeinfo = (src.name, tgt.name)
-                rcinfo = (
-                    name_utils.negate(tgt.name),
-                    name_utils.negate(src.name),
-                )
-            else:
+            if self.is_flye_dot:
                 # An edge with ID X and the RC edge -X get the same color.
                 # I mean we COULD also do the parallel edge thing like before
                 # but IMO this is better
                 # https://github.com/marbl/MetagenomeScope/issues/401
                 edgeinfo = new_edge.get_userspecified_id()
                 rcinfo = name_utils.negate(edgeinfo)
+            else:
+                # An edge X -> Y and the RC -Y -> -X, as well as all parallel
+                # edges to both, get the same random color.
+                # This applies to all node-centric graphs, as well as LJA DOT
+                # files. (The reason we don't lump LJA DOT files in with Flye
+                # DOT files in random color assignment is that LJA edge IDs
+                # are not guaranteed to even exist, and when they do exist they
+                # do not clearly indicate reverse-complementarity like with
+                # Flye edge IDs. It is possible to associate pairs of RC edges
+                # in a LJA DOT file but it is probably not worth the work atm.)
+                edgeinfo = (src.name, tgt.name)
+                rcinfo = (
+                    name_utils.negate(tgt.name),
+                    name_utils.negate(src.name),
+                )
 
             # If we have already seen the RC of this edge, or -- for node-
             # centric graphs, if we have already seen a parallel edge to this

@@ -21,8 +21,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Changed
 
-- For DOT files, adjust the random color assignment so that edges `E` and `-E`
-  are guaranteed to be assigned the same random color
+- For Flye DOT files, adjust the random color assignment so that edges `E` and
+  `-E` are guaranteed to be assigned the same random color
   ([#401](https://github.com/marbl/MetagenomeScope/issues/401)).
 
 - The icons used to represent layout algorithms in the "drawing options" dialog
