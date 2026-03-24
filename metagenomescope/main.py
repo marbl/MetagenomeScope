@@ -189,6 +189,10 @@ def run(
                 "Around certain node(s)",
             ),
         ],
+        "ccDrawingNR": [
+            html.I(className="bi bi-arrow-right"),
+            html.Span("Entire graph (nonredundant)"),
+        ],
         "ccDrawingAll": [
             html.I(className="bi bi-asterisk"),
             html.Span(f"Entire graph ({all_cc_desc})"),
@@ -197,14 +201,25 @@ def run(
     DEFAULT_CC_SELECTION_METHOD = (
         "ccDrawingSizeRank" if multiple_ccs else "ccDrawingAll"
     )
-    CC_SELECTION_A_CLASSES_MULTIPLE_CCS = "dropdown-item"
-    CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {}
+    DEFAULT_CC_SELECTION_A_CLASSES = "dropdown-item"
+    DEFAULT_CC_SELECTION_A_ATTRS = {}
+    CC_SELECTION_A_CLASSES_MULTIPLE_CCS = DEFAULT_CC_SELECTION_A_CLASSES
+    CC_SELECTION_A_ATTRS_MULTIPLE_CCS = DEFAULT_CC_SELECTION_A_ATTRS
     if not multiple_ccs:
         # https://getbootstrap.com/docs/5.3/components/dropdowns/#disabled
         # thankfully this seems to prevent dash from noticing click events on
         # the disabled <a>s in question :)
         CC_SELECTION_A_CLASSES_MULTIPLE_CCS += " disabled"
         CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {"aria-disabled": "true"}
+
+    NR_CC_SELECTION_A_CLASSES = DEFAULT_CC_SELECTION_A_CLASSES
+    NR_CC_SELECTION_A_ATTRS = DEFAULT_CC_SELECTION_A_ATTRS
+    # Drawing only the nonredundant parts of the graph only makes sense if
+    # (1) there are pairs of nodes/edges X and -X in the graph (i.e.
+    # ag.orientation_in_name is True) and (2) there are multiple components.
+    if not (ag.orientation_in_name and multiple_ccs):
+        NR_CC_SELECTION_A_CLASSES += " disabled"
+        NR_CC_SELECTION_A_ATTRS = {"aria-disabled": "true"}
 
     # If the user specified paths somehow (e.g. an AGP file), we'll show an
     # interface for these
@@ -435,6 +450,16 @@ def run(
                                                 ],
                                                 className="dropdown-item",
                                                 id="ccDrawingAroundNodes",
+                                            ),
+                                        ),
+                                        html.Li(
+                                            html.A(
+                                                cc_selection_options[
+                                                    "ccDrawingNR"
+                                                ],
+                                                className=NR_CC_SELECTION_A_CLASSES,
+                                                id="ccDrawingNR",
+                                                **NR_CC_SELECTION_A_ATTRS,
                                             ),
                                         ),
                                         html.Li(
@@ -2480,11 +2505,18 @@ def run(
         Input("ccDrawingSizeRank", "n_clicks"),
         Input("ccDrawingNodeNames", "n_clicks"),
         Input("ccDrawingAroundNodes", "n_clicks"),
+        Input("ccDrawingNR", "n_clicks"),
         Input("ccDrawingAll", "n_clicks"),
         prevent_initial_call=True,
     )
-    def change_drawing_method(sr_clicks, nn_clicks, an_clicks, all_clicks):
+    def change_drawing_method(
+        sr_clicks, nn_clicks, an_clicks, nr_clicks, all_clicks
+    ):
         # figure out which UI elements to show / hide
+        # (note that the "nonredundant" and "all components" drawing methods
+        # mean that there should be no additional UI elements displayed, which
+        # translates to hiding all of the other drawing methods' unique UI
+        # elements)
         sr_classes = nn_classes = an_classes = "removedEntirely"
         if ctx.triggered_id == "ccDrawingSizeRank":
             sr_classes = ""
@@ -2874,6 +2906,14 @@ def run(
                 )
             draw_type = config.DRAW_AROUND
 
+        elif cc_drawing_selection_type == "ccDrawingNR":
+            # use a different draw type than DRAW_CCS, which will let us
+            # show a more concise summary of what is drawn than listing out
+            # something like "#1; #3; #5; ..."
+            # (also, no need to set "cc_nums = ag.get_nr_cc_nums()", since the
+            # AssemblyGraph will just see DRAW_NR and know to look those up)
+            draw_type = config.DRAW_NR
+
         elif cc_drawing_selection_type == "ccDrawingAll":
             draw_type = config.DRAW_ALL
 
@@ -3136,6 +3176,12 @@ def run(
                         for ccnum in curr_drawn_info["cc_nums"]
                     )
 
+                elif curr_drawn_info["draw_type"] == config.DRAW_NR:
+                    avail_paths = itertools.chain.from_iterable(
+                        ag.ccnum2pathnames[ccnum]
+                        for ccnum in ag.get_nr_cc_nums()
+                    )
+
                 elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
                     avail_paths = ag.get_region_avail_paths(curr_drawn_info)
 
@@ -3386,6 +3432,15 @@ def run(
         elif curr_drawn_info["draw_type"] == config.DRAW_CCS:
             # only certain component(s) are drawn
             curr_drawn_cc_nums = set(curr_drawn_info["cc_nums"])
+            for n, c in nn2ccnum.items():
+                if c in curr_drawn_cc_nums:
+                    drawn_nodes.append(n)
+                else:
+                    undrawn_nodes.append(n)
+
+        elif curr_drawn_info["draw_type"] == config.DRAW_NR:
+            # only certain component(s) are drawn
+            curr_drawn_cc_nums = set(ag.get_nr_cc_nums())
             for n, c in nn2ccnum.items():
                 if c in curr_drawn_cc_nums:
                     drawn_nodes.append(n)

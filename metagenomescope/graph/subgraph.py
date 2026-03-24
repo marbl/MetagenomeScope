@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 import itertools
-from .. import ui_config, ui_utils
+from .. import ui_config, ui_utils, name_utils, config
 from ..layout import Layout
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
@@ -151,6 +151,27 @@ class Subgraph(object):
 
     def get_objs(self):
         return itertools.chain(self.nodes, self.edges, self.patterns)
+
+    def count_positive_full_nodes(self):
+        ct = 0
+        for n in self.nodes:
+            # ignore right split nodes, so we only consider each basename once
+            if n.is_split() and n.split == config.SPLIT_RIGHT:
+                continue
+            if not name_utils.is_rev(n.basename):
+                ct += 1
+        return ct
+
+    def count_positive_real_edges(self):
+        ct = 0
+        for e in self.edges:
+            if e.is_fake:
+                continue
+            # this will fail if the edge does not have a user-specified ID
+            eid = e.get_userspecified_id()
+            if not name_utils.is_rev(eid):
+                ct += 1
+        return ct
 
     def to_cyjs(self, draw_settings, layout_alg, layout_params):
         """Creates Cytoscape.js elements for all nodes/edges in this subgraph.

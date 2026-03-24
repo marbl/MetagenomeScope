@@ -9,8 +9,13 @@
 
 Interactive visualization tool for (meta)genome assembly graphs.
 
-MetagenomeScope decomposes the graph into **structural patterns** and highlights
-these as annotations on the graph. By default it lays out the graph [**hierarchically**](https://en.wikipedia.org/wiki/Layered_graph_drawing), using [Graphviz](https://graphviz.org/)' [_dot_](https://graphviz.org/docs/layouts/dot/) algorithm.
+MetagenomeScope decomposes the graph into **structural patterns** and
+highlights these as annotations on the graph. By default it lays out the graph
+[**hierarchically**](https://en.wikipedia.org/wiki/Layered_graph_drawing),
+using [Graphviz](https://graphviz.org/)'
+[_dot_](https://graphviz.org/docs/layouts/dot/) algorithm.
+These and other approaches help simplify the investigation of fine-grained
+structures within assembly graphs.
 
 MetagenomeScope also contains various functionalities for visualizing assembly
 graphs at larger scales -- for example, highlighting scaffold paths on the graph and
@@ -718,19 +723,19 @@ See the "Large graph" section under "Example datasets" above for some tips for w
 
 ## Known issues
 
-- **Edge flattening:** Cytoscape.js (the library we use to visualize graphs in the browser)
-  can sometimes [determine](https://github.com/cytoscape/cytoscape.js/issues/1451) that the
-  control points used to draw certain [complex edges](https://js.cytoscape.org/#style/unbundled-bezier-edges)
-  are invalid. Mainly, this can happen as you adjust the visualization after drawing (e.g. by selecting
-  nodes or moving them around).
+- **Edge flattening:** In certain cases, we may be unable to draw an edge with complex control points. [Usually](https://github.com/marbl/MetagenomeScope/issues/360) this happens when Cytoscape.js does not accept the control points Graphviz produced for an edge, but [sometimes](https://github.com/marbl/MetagenomeScope/issues/394) Graphviz will be unable to create control points for an edge in the first place.
 
-  To prevent these "invalid" edges from being hidden, MetagenomeScope will detect them
-  and "flatten" them into [simple Bezier edges](https://js.cytoscape.org/#style/bezier-edges)
+  In any case: MetagenomeScope will detect both of these kinds of edges and "flatten" them into
+  [simple Bezier edges](https://js.cytoscape.org/#style/bezier-edges)
   (usually straight lines). This way, we can at least draw _something_ for each edge in the graph.
 
 ## Development documentation
 
 See [`CONTRIBUTING.md`](https://github.com/marbl/MetagenomeScope/blob/main/CONTRIBUTING.md).
+
+## Changelog
+
+See [`CHANGELOG.md`](https://github.com/marbl/MetagenomeScope/blob/main/CHANGELOG.md).
 
 ## License
 

@@ -1,5 +1,5 @@
 import pytest
-from metagenomescope import config
+from metagenomescope import config, name_utils
 from metagenomescope.graph import AssemblyGraph, Node
 from metagenomescope.errors import GraphParsingError, WeirdError
 
@@ -272,3 +272,21 @@ def test_sample_gfa_sanity_checking_missing_edge():
         f'Edge "{one_to_two_id}" btwn. IDs "{one.unique_id}" -> '
         f'"{two.unique_id}" is no longer in the graph?'
     )
+
+
+def test_flye_yeast_edge_rand_indices():
+    # Tests that random colors for edges are assigned so that they match
+    # their twin. See https://github.com/marbl/MetagenomeScope/issues/401.
+    ag = AssemblyGraph("metagenomescope/tests/input/flye_yeast.gv")
+    eid2ri = {}
+    for e in ag.edgeid2obj.values():
+        if not e.is_fake:
+            eid2ri[e.get_userspecified_id()] = e.rand_idx
+    assert len(eid2ri) == 122
+    for eid in eid2ri.keys():
+        rc_eid = name_utils.negate(eid)
+        # Edges with the IDs -57 and -50 are not in the flye yeast graph.
+        # but all other nonzero integers in the range [-62, +62] have a
+        # reverse-complementary twin in the graph
+        if rc_eid not in ("-57", "-50"):
+            assert eid2ri[eid] == eid2ri[rc_eid]

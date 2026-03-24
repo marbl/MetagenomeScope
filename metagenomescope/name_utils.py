@@ -2,6 +2,10 @@ from . import config
 from .errors import WeirdError, GraphParsingError
 
 
+def is_rev(n):
+    return n[0] == config.REV
+
+
 def negate(n):
     """Negates a (node) name. Literally just adds or removes a starting "-".
 
@@ -22,7 +26,7 @@ def negate(n):
     if len(n) == 0:
         raise WeirdError("We should've already screened for empty node names?")
 
-    if n[0] == config.REV:
+    if is_rev(n):
         return n[1:]
     else:
         return config.REV + n
@@ -86,6 +90,14 @@ def _sanity_check_name(name, node=True):
     if "," in name:
         raise GraphParsingError(
             f"{errprefix} {objs} cannot have {lbl}s that contain commas."
+        )
+
+    if name.startswith("--"):
+        # Names starting with multiple dashes will cause problems
+        # https://github.com/marbl/MetagenomeScope/issues/402
+        raise GraphParsingError(
+            f"{errprefix} {objs} cannot have {lbl}s that start with multiple "
+            "dashes."
         )
 
 

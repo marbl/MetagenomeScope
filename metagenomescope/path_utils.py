@@ -187,7 +187,20 @@ def get_path_maps(id2obj, paths, nodes=True):
         if nodes:
             objname = obj.basename
         else:
-            objname = obj.get_userspecified_id()
+            # An edge-centric graph might have fake edges! Ignore them,
+            # of course, since they should not be "part of" any path. (I mean
+            # you could make a tortured argument for a path that passes
+            # through stuff adjacent to fake edges but WHATEVER that's not
+            # important for now)
+            if not obj.is_fake:
+                # NOTE: this will fail if there exists a (real) edge in the
+                # graph that does not have a user-specified ID. this is by
+                # design, since such a graph is invalid. if we realllly wanna
+                # allow real edges to not have user-specified IDs in these
+                # kinds of graphs then we should modify the parser and also
+                # just make this call has_userspecified_id() first to check
+                objname = obj.get_userspecified_id()
+
         # Is this node or edge present in at least one of the input paths?
         if objname in objname2pathnames:
             # Yes, it is. Go through all paths it is contained in.

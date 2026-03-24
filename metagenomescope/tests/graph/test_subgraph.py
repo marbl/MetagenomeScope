@@ -1,3 +1,5 @@
+import pytest
+from metagenomescope.errors import WeirdError
 from metagenomescope.graph import AssemblyGraph, Subgraph, PatternStats
 
 
@@ -62,3 +64,37 @@ def test_subgraph_nested_patterns():
     assert sg.num_fake_edges == 4
     assert sg.num_total_edges == 20
     assert sg.pattern_stats == PatternStats(num_bubbles=4, num_cyclicchains=1)
+
+
+def test_subgraph_count_positive_full_nodes():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
+    )
+
+    sg = Subgraph(
+        456,
+        "subgraph456",
+        ag.nodeid2obj.values(),
+        ag.edgeid2obj.values(),
+        ag.pattid2obj.values(),
+    )
+
+    assert sg.count_positive_full_nodes() == 12
+
+
+def test_subgraph_count_positive_real_edges_when_no_userspecified_edgeids():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
+    )
+
+    sg = Subgraph(
+        456,
+        "subgraph456",
+        ag.nodeid2obj.values(),
+        ag.edgeid2obj.values(),
+        ag.pattid2obj.values(),
+    )
+
+    with pytest.raises(WeirdError) as ei:
+        sg.count_positive_real_edges()
+    assert "No 'id' field" in str(ei.value)

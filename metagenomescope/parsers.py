@@ -763,6 +763,18 @@ def verify_edge_id_unique(eid, seen_eids, err_prefix):
 def parse_dot(filename):
     """Returns a nx.MultiDiGraph representation of a DOT (Graphviz) file.
 
+    Parameters
+    ----------
+    filename: str
+        Path to a DOT file.
+
+    Returns
+    -------
+    graph, is_flye_dot: nx.MultiDiGraph, bool
+        The second parameter indicates whether or not this DOT file appears to
+        come from Flye (True = Flye, False = LJA). This has implications for
+        how we determine reverse-complementary nodes / edges in the graph.
+
     Notes
     -----
     - Like GML, DOT is a file format for representing arbitrary graphs (not
@@ -1080,7 +1092,7 @@ def parse_dot(filename):
         if "fillcolor" in g.nodes[n]:
             del g.nodes[n]["fillcolor"]
 
-    return g
+    return g, flye_vibes
 
 
 # Lowercase filetype suffixes, which we'll use to figure out which parser we
@@ -1117,7 +1129,12 @@ HRFILETYPE2NODECENTRIC = {
     "DOT": False,
 }
 
-# Are the sequence names include a prefix with their orientation?
+# If this is True for a filetype, then sequence names in this graph can be
+# divided into names that start with a "-" (RC-strand) or not (forward-strand).
+# If this is False for a filetype, then we assume that each sequence name has
+# a prescribed orientation that is independent of its name. This impacts how we
+# parse AGP files, as well as whether or not we try to detect redundant
+# components (see https://github.com/marbl/MetagenomeScope/issues/67).
 HRFILETYPE2ORIENTATION_IN_NAME = {
     "LastGraph": True,
     "GML": False,

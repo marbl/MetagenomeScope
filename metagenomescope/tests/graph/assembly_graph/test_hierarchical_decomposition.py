@@ -33,7 +33,11 @@ def _check_ag_topology_matches_gv(ag, gv_fn):
     # Verify that the topology of ag.graph matches the input (it should be an
     # exact match -- no split nodes or fake edges should remain after
     # hierarchical decomposition in this graph)
-    correct_graph = parse_dot(gv_fn)
+    correct_graph, isflye = parse_dot(gv_fn)
+    # currently all of these tests use LJA-style DOT graphs so this should
+    # always be False. of course, this is not some law or anything so that
+    # may change eventually ...
+    assert not isflye
     assert len(correct_graph.nodes) == len(ag.graph.nodes)
     assert len(correct_graph.nodes) == len(ag.nodeid2obj)
     assert len(correct_graph.edges) == len(ag.graph.edges)

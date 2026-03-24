@@ -252,6 +252,8 @@ label:has(#fcoseAlgSpan).active {
 
 /* same deal for some other icons */
 .bi-search,
+.bi-snow,
+.bi-arrow-right,
 .bi-record-circle {
     -webkit-text-stroke: 1px;
 }

@@ -482,6 +482,19 @@ def test_get_curr_drawn_text_around():
     )
 
 
+def test_get_curr_drawn_text_nr_single():
+    ag = AssemblyGraph("metagenomescope/tests/input/2bubbcyc.gfa")
+    assert uu.get_curr_drawn_text({"draw_type": config.DRAW_NR}, ag) == "#2"
+
+
+def test_get_curr_drawn_text_nr_multiple():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert (
+        uu.get_curr_drawn_text({"draw_type": config.DRAW_NR}, ag)
+        == "2 / 4 nonredundant components"
+    )
+
+
 def test_get_curr_drawn_text_bad_draw_type():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     with pytest.raises(WeirdError) as ei:

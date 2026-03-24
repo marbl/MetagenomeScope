@@ -825,6 +825,14 @@ def get_curr_drawn_text(done_flushing, ag):
     elif draw_type == config.DRAW_CCS:
         t = fmt_num_ranges(done_flushing["cc_nums"])
 
+    elif draw_type == config.DRAW_NR:
+        nrccs = list(ag.get_nr_cc_nums())
+        nrct = len(nrccs)
+        if nrct == 1:
+            t = fmt_num_ranges(nrccs)
+        else:
+            t = f"{nrct:,} / {len(ag.components):,} nonredundant components"
+
     elif draw_type == config.DRAW_AROUND:
         d = done_flushing["around_dist"]
         node_ids = done_flushing["around_node_ids"]

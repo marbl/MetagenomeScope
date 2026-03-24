@@ -105,12 +105,21 @@ class AssemblyGraph(object):
         ]
 
         graph_paths = None
+        self.is_flye_dot = False
         parser_output = parsers.parse(self.filename)
-        if self.filetype != "GFA":
-            self.graph = parser_output
-        else:
+        if self.filetype == "GFA":
             self.graph = parser_output[0]
             graph_paths = parser_output[1]
+        elif self.filetype == "DOT":
+            self.graph = parser_output[0]
+            # The additional boolean output from parse_dot() tells us whether
+            # or not this is a Flye DOT file, specifically. If so, then the
+            # node names are "meaningless": we need to look at edge IDs in
+            # order to figure out e.g. which edge is the reverse-complement of
+            # another. See https://github.com/marbl/MetagenomeScope/issues/401
+            self.is_flye_dot = parser_output[1]
+        else:
+            self.graph = parser_output
 
         self.orientation_in_name = parsers.HRFILETYPE2ORIENTATION_IN_NAME[
             self.filetype
@@ -280,6 +289,23 @@ class AssemblyGraph(object):
             if n.is_split():
                 self.nodename2objs[n.basename].append(n)
         logger.debug("  ...Done.")
+
+        # If this is the kind of graph where we expect to see node A and -A,
+        # then detect redundant components
+        # (https://github.com/marbl/MetagenomeScope/issues/67).
+        # For things like MetaCarvel GML files, though, don't bother (leave
+        # self.nr_cc_nums as None)
+        self.nr_cc_nums = None
+        if self.orientation_in_name:
+            logger.debug(
+                "  Detecting pairs of redundant components, since this is a "
+                f"{self.filetype} file..."
+            )
+            self._record_redundant_components()
+            logger.debug(
+                "  ...Done. The graph has "
+                f"{ui_utils.pluralize(len(self.nr_cc_nums), 'nonredundant component')}."
+            )
 
         # Process paths, if given.
         #
@@ -493,7 +519,11 @@ class AssemblyGraph(object):
 
         nx.relabel_nodes(self.graph, oldid2uniqueid, copy=False)
 
-        edgenamepair2rand_idx = {}
+        # For Flye DOT files, the keys in this mapping will be the edge IDs
+        # provided in the DOT file (e.g. "-4").
+        # For all other graphs (including LJA DOT files!), the keys in this
+        # mapping will instead be edge name pairs (e.g. ("-5", "3").
+        edgeinfo2rand_idx = {}
 
         for e in self.graph.edges(data=True, keys=True):
             edge_id = self._get_unique_id()
@@ -542,34 +572,52 @@ class AssemblyGraph(object):
 
             src = self.nodeid2obj[e[0]]
             tgt = self.nodeid2obj[e[1]]
-            namepair = (src.name, tgt.name)
-            rcnamepair = (
-                name_utils.negate(tgt.name),
-                name_utils.negate(src.name),
-            )
+            if self.node_centric:
+                # An edge X -> Y and the RC -Y -> -X, as well as all parallel
+                # edges to both, get the same random color
+                edgeinfo = (src.name, tgt.name)
+                rcinfo = (
+                    name_utils.negate(tgt.name),
+                    name_utils.negate(src.name),
+                )
+            else:
+                # An edge with ID X and the RC edge -X get the same color.
+                # I mean we COULD also do the parallel edge thing like before
+                # but IMO this is better
+                # https://github.com/marbl/MetagenomeScope/issues/401
+                edgeinfo = new_edge.get_userspecified_id()
+                rcinfo = name_utils.negate(edgeinfo)
 
-            # If we have already seen the RC of this edge, or if we have
-            # already seen a parallel edge to this one, then copy that other
-            # edge's random index to this one (so that they are assigned the
-            # same random color). (We check the RC case first since parallel
-            # edges are relatively rare -- I expect the average graph to have
-            # many more RC edges than parallel edges.)
-            if rcnamepair in edgenamepair2rand_idx:
-                new_edge.rand_idx = edgenamepair2rand_idx[rcnamepair]
-            elif namepair in edgenamepair2rand_idx:
-                new_edge.rand_idx = edgenamepair2rand_idx[namepair]
+            # If we have already seen the RC of this edge, or -- for node-
+            # centric graphs, if we have already seen a parallel edge to this
+            # one -- then copy that other edge's random index to this one (so
+            # that they are assigned the same random color). (We check the RC
+            # case first since parallel edges are relatively rare -- I expect
+            # the average graph to have many more RC edges than parallel edges)
+            if rcinfo in edgeinfo2rand_idx:
+                new_edge.rand_idx = edgeinfo2rand_idx[rcinfo]
+            elif edgeinfo in edgeinfo2rand_idx:
+                new_edge.rand_idx = edgeinfo2rand_idx[edgeinfo]
             else:
                 ri = next(rand_idx_generator)
 
-                # To avoid confusion, guarantee that edges do not share the
+                # To avoid confusion, ensure that edges do not share the
                 # random color of their source or target node. This is
                 # especially important for loop edges, which -- depending on
                 # Cytoscape.js styling -- can pass through the node body.
+                #
+                # NOTE: in Flye DOT files, since nodes do not have
+                # orientations, there is no guarantee that the nodes on which
+                # edge E is incident will have the same colors as the nodes
+                # on which edge -E is incident. Thus, an edge in one of these
+                # graphs might have the same random color as its source or
+                # target node. Not much we can do about that beyond trying
+                # to sniff out which nodes are the RCs of which other nodes...
                 while ri == src.rand_idx or ri == tgt.rand_idx:
                     ri = next(rand_idx_generator)
 
                 new_edge.rand_idx = ri
-                edgenamepair2rand_idx[namepair] = ri
+                edgeinfo2rand_idx[edgeinfo] = ri
 
         if not self.node_centric and not self.lengths_are_approx:
             # At least for now, this particular combination of things means
@@ -1804,6 +1852,124 @@ class AssemblyGraph(object):
         for i, cc in enumerate(self.components, 1):
             cc.set_cc_num(i)
 
+    def get_cc_by_num(self, cc_num):
+        """Returns the Component object corresponding to a component size rank.
+
+        These size ranks (aka "component numbers") are just 1-indexed indices
+        into self.components, so the lookup is very straightforward. I just
+        wanted to abstract this here just in case we end up changing things
+        later on.
+
+        Notes
+        -----
+        If you call this before self._record_connected_components() has been
+        called during initialization, then self.components won't exist and this
+        will crash. so, don't do that lol
+        """
+        # self.components is an ordinary 0-indexed python list, but
+        # the component numbers are 1-indexed
+        return self.components[cc_num - 1]
+
+    def _record_redundant_components(self):
+        """Identifies pairs of redundant weakly connected components.
+
+        Notes
+        -----
+        We define components C1 and C2 as redundant if they are completely
+        reverse-complementary. That is:
+
+          - C1 and C2 have the same number of nodes
+
+          - C1 and C2 have the same number of edges
+
+          - For every node X in C1, there exists a node -X in C2
+            - This is NOT checked if self.is_flye_dot. See
+              https://github.com/marbl/MetagenomeScope/issues/401.
+
+          - For every edge E in C1, there exists an edge -E in C2
+        """
+        self.nr_cc_nums = set()
+        for cc in self.components:
+
+            if cc.cc_num in self.nr_cc_nums:
+                # We may have already ran into this cc and discovered that it
+                # was not redundant, in which case we can move on
+                continue
+
+            # Phase 1: figure out a candidate twin component by looking at
+            # either nodes (given node X, where is -X?) or edges (given edge E,
+            # where is -E?)
+            if self.is_flye_dot:
+                # We can't rely on node orientations, so just look at edge IDs
+                # NOTE: When we implement searching by edge ID, we should
+                # probably move the creation of this up to __init__()
+                userspecifiededgeid2obj = {
+                    e.get_userspecified_id(): e
+                    for e in self.edgeid2obj.values()
+                }
+                cc2_num = graph_utils.get_candidate_twin_cc_num_from_edges(
+                    cc, userspecifiededgeid2obj
+                )
+            else:
+                # Look at the nodes!
+                cc2_num = graph_utils.get_candidate_twin_cc_num_from_nodes(
+                    cc, self.nodename2objs
+                )
+
+            # Phase 2: check to see if this candidate twin is really a twin
+            # of this component.
+            if cc2_num is not None:
+                cc2 = self.get_cc_by_num(cc2_num)
+                if graph_utils.components_are_twins(
+                    cc,
+                    cc2,
+                    self.nodeid2obj,
+                    define_edges_by_nodenames=not self.is_flye_dot,
+                ):
+                    # These components really are twins! Choose one of them
+                    # to be drawn as the "nonredundant" version.
+                    #
+                    # There are various ways you could make this choice (e.g.
+                    # taking min(cc.cc_num, cc2_num) to ensure that you always
+                    # pick the one with the "earlier" size rank), but I think
+                    # the better solution is choosing the one with more
+                    # "positive"-strand nodes (or, for Flye DOT files, edges).
+                    if self.is_flye_dot:
+                        posct = cc.count_positive_real_edges()
+                        posct2 = cc2.count_positive_real_edges()
+                    else:
+                        posct = cc.count_positive_full_nodes()
+                        posct2 = cc2.count_positive_full_nodes()
+                    if posct > posct2:
+                        self.nr_cc_nums.add(cc.cc_num)
+                    elif posct == posct2:
+                        # i THINK "posct >= posct2" should have equivalent
+                        # behavior as this since i think we should cc before
+                        # cc2 in the loop, but let's make this tie-breaking
+                        # behavior explicit
+                        self.nr_cc_nums.add(min(cc.cc_num, cc2_num))
+                    else:
+                        self.nr_cc_nums.add(cc2_num)
+                    continue
+
+            # If we're still here, then these components weren't twins.
+            self.nr_cc_nums.add(cc.cc_num)
+            if cc2_num is not None:
+                self.nr_cc_nums.add(cc2_num)
+
+    def get_nr_cc_nums(self):
+        """Returns the size ranks of all nonredundant components."""
+        if self.nr_cc_nums is not None:
+            return self.nr_cc_nums
+        else:
+            # kind of an awkward error message but nobody's going to read
+            # it so who cares. well, expect for you, you're reading it, hi <3
+            raise WeirdError(
+                "Nonredundant component information not set. Either you "
+                "called this too early OR this graph does not have "
+                "reverse-complementary versions of things."
+            )
+
     def __repr__(self):
         return (
             f"AssemblyGraph: {len(self.nodeid2obj):,} Node(s), "
@@ -2111,19 +2277,29 @@ class AssemblyGraph(object):
             log_utils.log_layout_start(done_flushing, self)
 
         if draw_type == config.DRAW_ALL:
+            # draw all component(s)
             dr = DrawResults({}, draw_settings)
             for cc in self.components:
                 dr += cc.to_cyjs(draw_settings, layout_alg, layout_params)
 
         elif draw_type == config.DRAW_CCS:
+            # draw certain component(s)
             dr = DrawResults({}, draw_settings)
             for ccn in done_flushing["cc_nums"]:
-                # (self.components is an ordinary 0-indexed python list, but
-                # the component numbers are 1-indexed)
-                cc = self.components[ccn - 1]
+                cc = self.get_cc_by_num(ccn)
+                dr += cc.to_cyjs(draw_settings, layout_alg, layout_params)
+
+        elif draw_type == config.DRAW_NR:
+            # draw all component(s), but only the nonredundant ones (so for
+            # each pair of perfectly reverse-complementary components, we'll
+            # just draw one of these)
+            dr = DrawResults({}, draw_settings)
+            for ccn in self.get_nr_cc_nums():
+                cc = self.get_cc_by_num(ccn)
                 dr += cc.to_cyjs(draw_settings, layout_alg, layout_params)
 
         elif draw_type == config.DRAW_AROUND:
+            # draw around certain node(s)
             dr = self._to_cyjs_around_nodes(
                 done_flushing["around_node_ids"],
                 done_flushing["around_dist"],
@@ -2133,6 +2309,7 @@ class AssemblyGraph(object):
             )
 
         else:
+            # believe it or not, straight to jail
             raise WeirdError(f"Unrecognized draw type: {draw_type}")
 
         if doing_layout:
