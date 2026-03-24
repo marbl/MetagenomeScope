@@ -53,8 +53,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - There are extremely rare cases where Graphviz can "lose" an edge and not
   draw it ([#394](https://github.com/marbl/MetagenomeScope/issues/394),
   [issue 1323 on Graphviz' repository](https://gitlab.com/graphviz/graphviz/-/work_items/1323)).
-  Detect these cases and ensure they are at least drawn
-  as a straight line, so that all edges are shown.
+  Detect these cases, log them
+  ([#400](https://github.com/marbl/MetagenomeScope/issues/400)),
+  and ensure they are at least drawn as a straight line -- so that all
+  edges are shown.
 
 - Fix a race condition that was causing the detection of "bad edges" (and
   converting them to straight lines when initially drawing a region of the

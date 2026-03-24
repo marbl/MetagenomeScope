@@ -1,4 +1,5 @@
 import math
+import logging
 from . import layout_config
 from .. import config
 from ..errors import WeirdError
@@ -57,6 +58,13 @@ def get_control_points(pgv_edge):
         pos = pgv_edge.attr["pos"]
         if len(pos) > 0:
             return _extract_control_points(pos)
+    # Warn if there are lost edges. It doesn't seem like this happens often,
+    # so I think it is not too cluttered to log about every single lost edge
+    # we see
+    logging.warning(
+        f"    Graphviz didn't assign coords to edge {pgv_edge}! Don't worry; "
+        "we'll fall back to showing it as a straight line. See issue #394."
+    )
     return []
 
 
