@@ -1,0 +1,9 @@
+digraph "" {
+	graph [nodesep=0.5];
+	123	[fillcolor=white, style=filled];
+	456	[fillcolor=white, style=filled];
+	-123	[fillcolor=white, style=filled];
+	-456	[fillcolor=white, style=filled];
+	123 -> 456	[color=black, label="A 33(2.5)"];
+	-456 -> -123	[color=black, label="T 33(2.5)"];
+}

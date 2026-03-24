@@ -274,14 +274,20 @@ def test_sample_gfa_sanity_checking_missing_edge():
     )
 
 
-def test_flye_yeast_edge_rand_indices():
-    # Tests that random colors for edges are assigned so that they match
-    # their twin. See https://github.com/marbl/MetagenomeScope/issues/401.
-    ag = AssemblyGraph("metagenomescope/tests/input/flye_yeast.gv")
+def _get_eid2ri(ag):
+    # maps user-specified edge ID -> random color index
     eid2ri = {}
     for e in ag.edgeid2obj.values():
         if not e.is_fake:
             eid2ri[e.get_userspecified_id()] = e.rand_idx
+    return eid2ri
+
+
+def test_flye_yeast_edge_rand_indices():
+    # Tests that random colors for edges are assigned so that they match
+    # their twin. See https://github.com/marbl/MetagenomeScope/issues/401.
+    ag = AssemblyGraph("metagenomescope/tests/input/flye_yeast.gv")
+    eid2ri = _get_eid2ri(ag)
     assert len(eid2ri) == 122
     for eid in eid2ri.keys():
         rc_eid = name_utils.negate(eid)
@@ -290,3 +296,24 @@ def test_flye_yeast_edge_rand_indices():
         # reverse-complementary twin in the graph
         if rc_eid not in ("-57", "-50"):
             assert eid2ri[eid] == eid2ri[rc_eid]
+
+
+def test_lja_edge_rand_indices():
+    # For LJA DOT files, we just assign edge random colors the same way
+    # as in node-centric graphs - by looking at the surrounding nodes.
+    # maybe i will change this in the future if we want to try to
+    # distinguish pairs of RC edges when there are a bunch of parallel edges,
+    # but for now it is fine
+    ag = AssemblyGraph("metagenomescope/tests/input/lja-two-rc-ccs.gv")
+    eid2ri = _get_eid2ri(ag)
+    assert eid2ri["123.00"] == eid2ri["-456.00"]
+
+
+def test_lja_edge_rand_indices_even_if_no_edge_ids():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/lja-two-rc-ccs-noedgeids.gv"
+    )
+    eid2ri = _get_eid2ri(ag)
+    assert len(eid2ri) == 2
+    # the random colors should still match
+    assert len(set(eid2ri.values())) == 1

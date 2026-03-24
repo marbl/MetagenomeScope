@@ -69,3 +69,24 @@ def test_flye_yeast_nr_ccs_extra_edge():
         "metagenomescope/tests/input/flye_yeast_extra_edge_in_twin.gv"
     )
     assert ag.get_nr_cc_nums() == {1, 2, 3, 5, 6, 7, 9}
+
+
+def test_lja_simple_nr_ccs():
+    ag = AssemblyGraph("metagenomescope/tests/input/lja-two-rc-ccs.gv")
+    assert ag.get_nr_cc_nums() == {1}
+    assert _get_node_basenames(ag.get_cc_by_num(1)) == {"123", "456"}
+
+
+def test_lja_simple_nr_ccs_noedgeids():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/lja-two-rc-ccs-noedgeids.gv"
+    )
+    assert ag.get_nr_cc_nums() == {1}
+    assert _get_node_basenames(ag.get_cc_by_num(1)) == {"123", "456"}
+
+
+def test_lja_simple_nr_ccs_extra_edge():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/lja-two-rc-ccs-plus-extra-edge.gv"
+    )
+    assert ag.get_nr_cc_nums() == {1, 2}
