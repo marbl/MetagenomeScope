@@ -57,12 +57,15 @@ def test_gml_nr_ccs():
     ag = AssemblyGraph("metagenomescope/tests/input/aug1_subgraph.gml")
     with pytest.raises(WeirdError) as ei:
         ag.get_nr_cc_nums()
-    assert str(ei.value) == ( 
-        "Nonredundant component information not set. Either you " 
-        "called this too early OR this graph does not have " 
-        "reverse-complementary versions of things." 
-    ) 
+    assert str(ei.value) == (
+        "Nonredundant component information not set. Either you "
+        "called this too early OR this graph does not have "
+        "reverse-complementary versions of things."
+    )
+
 
 def test_flye_yeast_nr_ccs_extra_edge():
-    ag = AssemblyGraph("metagenomescope/tests/input/flye_yeast_extra_edge_in_twin.gv")
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/flye_yeast_extra_edge_in_twin.gv"
+    )
     assert ag.get_nr_cc_nums() == {1, 2, 3, 5, 6, 7, 9}
