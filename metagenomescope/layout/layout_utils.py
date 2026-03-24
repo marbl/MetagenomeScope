@@ -62,8 +62,8 @@ def get_control_points(pgv_edge):
     # so I think it is not too cluttered to log about every single lost edge
     # we see
     logging.warning(
-        f"    Graphviz didn't assign coords to edge {pgv_edge}! Don't worry; "
-        "we'll fall back to showing it as a straight line. See issue #394."
+        f"    {pgv_edge}: no coords from Graphviz! No worries, we'll just show"
+        "this edge as a straight line. See issue #394."
     )
     return []
 
