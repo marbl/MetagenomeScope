@@ -1940,8 +1940,14 @@ class AssemblyGraph(object):
                     else:
                         posct = cc.count_positive_full_nodes()
                         posct2 = cc2.count_positive_full_nodes()
-                    if posct >= posct2:
+                    if posct > posct2:
                         self.nr_cc_nums.add(cc.cc_num)
+                    elif posct == posct2:
+                        # i THINK "posct >= posct2" should have equivalent
+                        # behavior as this since i think we should cc before
+                        # cc2 in the loop, but let's make this tie-breaking
+                        # behavior explicit
+                        self.nr_cc_nums.add(min(cc.cc_num, cc2_num))
                     else:
                         self.nr_cc_nums.add(cc2_num)
                     continue
