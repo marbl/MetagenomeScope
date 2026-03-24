@@ -234,7 +234,7 @@ Sometimes, it is best to consider a node as the child of two patterns.
 A common example of this is a _bubble chain_ ([Dabbaghie  _et al._, 2022](https://pmc.ncbi.nlm.nih.gov/articles/PMC9438957/)), where multiple bubbles occur one after another.
 In a bubble chain, the "end node" of one bubble is also the "start node" of another bubble!
 
-To accommodate these cases, MetagenomeScope **splits the boundary nodes** of a pattern.
+To accommodate these kinds of cases, MetagenomeScope **splits the boundary nodes** of a pattern.
 Splitting a node `A` transforms it into two nodes: `A-L` and `A-R`, which are connected by a single "fake edge" `A-L -> A-R`.
 Because this allows a node to be in two patterns simultaneously, this makes it possible for us to identify a much richer set of patterns and describe the graph structure more accurately.
 
