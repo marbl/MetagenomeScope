@@ -44,6 +44,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   to be assigned the same random color. This should result in clearer-looking
   drawings.
 
+- The icons used to represent layout algorithms in the "drawing options" dialog
+  are now drawn with slightly thicker strokes. Um, in case that is relevant to
+  you. Probably not.
+
 ### Fixed
 
 - There are extremely rare cases where Graphviz can "lose" an edge and not
@@ -54,7 +58,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Fix a race condition that was causing the detection of "bad edges" (and
   converting them to straight lines when initially drawing a region of the
-  graph) to not trigger properly (9810ae0a506376b83921277ce13858eb20fecfa0).
+  graph) to not trigger properly ([commit `9810ae0`](https://github.com/marbl/MetagenomeScope/commit/9810ae0a506376b83921277ce13858eb20fecfa0)).
 
 - Prevent node / edge names that start with `--`
   ([#402](https://github.com/marbl/MetagenomeScope/issues/402)).
