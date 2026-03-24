@@ -17,6 +17,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Tidy up the README in various ways, including adding bioconda installation instructions
   ([#302](https://github.com/marbl/MetagenomeScope/issues/302))!
 
+- Add a brief note in the "drawing options" dialog that the client-side layout
+  algorithms (dagre and fCoSE) may be impractical for large graphs.
+
 - Add this Changelog.
 
 ### Changed
