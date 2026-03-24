@@ -746,8 +746,11 @@ MetagenomeScope's code is distributed with
 [Bootstrap](https://getbootstrap.com/),
 [Bootstrap Icons](https://icons.getbootstrap.com/),
 [Cytoscape.js](https://js.cytoscape.org/),
-[cytoscape-dagre](https://github.com/cytoscape/cytoscape.js-dagre),
+[layout-base](https://github.com/iVis-at-Bilkent/layout-base),
+[cose-base](https://github.com/iVis-at-Bilkent/cose-base),
 [cytoscape-fcose](https://github.com/iVis-at-Bilkent/cytoscape.js-fcose),
+[dagre](https://github.com/dagrejs/dagre),
+[cytoscape-dagre](https://github.com/cytoscape/cytoscape.js-dagre),
 and
 [cytoscape-svg](https://github.com/kinimesi/cytoscape-svg).
 Please see the [`metagenomescope/assets/vendor/licenses/`](https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/assets/vendor/licenses/) directory for copies of these tools' licenses.

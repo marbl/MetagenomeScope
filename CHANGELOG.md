@@ -63,6 +63,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Prevent node / edge names that start with `--`
   ([#402](https://github.com/marbl/MetagenomeScope/issues/402)).
 
+- Include additional JavaScript dependencies to make sure that the dagre
+  and fCoSE layout methods work consistently
+  ([#397](https://github.com/marbl/MetagenomeScope/issues/397)).
+
 - Update the `metagenomescope/tests/README.md` file to reflect the switch
   from `setup.py` to `pyproject.toml`.
 
