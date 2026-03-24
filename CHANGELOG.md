@@ -56,6 +56,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   converting them to straight lines when initially drawing a region of the
   graph) to not trigger properly (9810ae0a506376b83921277ce13858eb20fecfa0).
 
+- Prevent node / edge names that start with `--`
+  ([#402](https://github.com/marbl/MetagenomeScope/issues/402)).
+
 - Update the `metagenomescope/tests/README.md` file to reflect the switch
   from `setup.py` to `pyproject.toml`.
 
