@@ -232,6 +232,26 @@ def point_to_line_distance(point, a, b):
     return -numerator / line_distance
 
 
+def nums_to_str(nums):
+    """Converts a list of floats to a string representation for Cytoscape.js.
+
+    Parameters
+    ----------
+    nums: list of float
+
+    Returns
+    -------
+    str
+    """
+    s = ""
+    for i, n in enumerate(nums):
+        prefix = ""
+        if i > 0:
+            prefix = " "
+        s += f"{prefix}{n:.4f}"
+    return s
+
+
 def dot_to_cyjs_control_points(
     src_pos, tgt_pos, coords, flipheight, left=None, bottom=None, dx=0, dy=0
 ):
@@ -292,8 +312,8 @@ def dot_to_cyjs_control_points(
         else:
             coords[i] += dx
     src_tgt_dist = euclidean_distance(src_pos, tgt_pos)
-    cpdists = ""
-    cpweights = ""
+    cpdists = []
+    cpweights = []
     just_a_straight_line = True
     i = 0
     while i < len(coords):
@@ -336,11 +356,8 @@ def dot_to_cyjs_control_points(
         elif i == len(coords) - 2 and w == 1:
             w = 0.99
 
-        space = ""
-        if i > 0:
-            space = " "
-        cpdists += f"{space}{pld:.4f} "
-        cpweights += f"{space}{w:.4f} "
+        cpdists.append(pld)
+        cpweights.append(w)
         i += 2
 
     if just_a_straight_line:
@@ -352,7 +369,7 @@ def dot_to_cyjs_control_points(
         # Never mind! Try to represent this edge using fancy control points,
         # rather as a straight line. (We might end up flattening it later for
         # other reasons, though...)
-        return False, cpdists, cpweights
+        return False, nums_to_str(cpdists), nums_to_str(cpweights)
 
 
 def flatten_some_edges(sg, edgeid2ctrlpts):

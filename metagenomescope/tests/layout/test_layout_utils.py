@@ -245,7 +245,7 @@ def test_dot_to_cyjs_control_points_basic():
     # compatible control points.
     assert lu.dot_to_cyjs_control_points(
         (1, 198), (10, 198), [3, 2, 7, 50, 9, 2], 200, None, None, 0, 0
-    ) == (False, "0.0000  -48.0000  0.0000 ", "0.2222  0.6667  0.8889 ")
+    ) == (False, "0.0000 -48.0000 0.0000", "0.2222 0.6667 0.8889")
 
 
 def test_getxy():
