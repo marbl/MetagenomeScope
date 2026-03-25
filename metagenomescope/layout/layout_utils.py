@@ -47,6 +47,18 @@ def get_gv_header(prog, name="g", use_ports=False, params={}):
 
 
 def get_control_points(pgv_edge):
+    """Extracts control points from a PyGraphviz edge after layout.
+
+    Parameters
+    ----------
+    pgv_edge: pygraphviz.agraph.Edge
+
+    Returns
+    -------
+    list of float
+        In the extremely rare case of "lost edges" (see issue #394), this
+        will return an empty list [].
+    """
     # In rare cases, Graphviz can decide not to draw an edge. We'll fall
     # back to a normal Bezier edge (aka a "flattened" edge) in these cases.
     # See https://github.com/marbl/MetagenomeScope/issues/394 for details.
@@ -62,27 +74,32 @@ def get_control_points(pgv_edge):
     # so I think it is not too cluttered to log about every single lost edge
     # we see
     logging.warning(
-        f"    {pgv_edge}: no coords from Graphviz! No worries, we'll just show"
-        "this edge as a straight line. See issue #394."
+        f"    {pgv_edge}: no coords from Graphviz! No worries, we'll just "
+        "show this edge as a straight line. See issue #394."
     )
     return []
 
 
 def _extract_control_points(pos):
-    """Removes "startp" and "endp" data, if present, from a string definining
-    the "pos" attribute (i.e. the spline control points) of an edge object
-    in pygraphviz.
+    """Converts a string of Graphviz control points to a list.
 
-    Also replaces all commas in the filtered string with spaces,
-    to make splitting the string easier.
+    Parameters
+    ----------
+    pos: str
 
-    Returns the split list of coordinates, in the format
-    [x1, y1, x2, y2, ..., xn, yn], where each coordinate is a float.
+    Returns
+    -------
+    list of float
 
-    Raises a ValueError if the number of coordinates is not divisible by 2.
+    Raises
+    ------
+    ValueError
+        If the number of coordinates is not divisible by 2.
 
-    See http://www.graphviz.org/doc/Dot.ref for more information on
-    how splines work in Graphviz.
+    Notes
+    -----
+    This removes "startp" and/or "endp" data, if present.
+    See https://www.graphviz.org/docs/attr-types/splineType/.
     """
     # Remove startp data
     if pos.startswith("s,"):
