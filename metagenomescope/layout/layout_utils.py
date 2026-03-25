@@ -150,7 +150,7 @@ def shift_control_points(coords, left, bottom):
     # We should have ended on a y position. If we didn't, something is
     # seriously wrong.
     if i % 2 == 0:
-        raise ValueError(f"Non-even number of control points: {coords}")
+        raise ValueError(f"Odd number of control points: {coords}")
     return new_coords
 
 

@@ -15,6 +15,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
+import math
 import pytest
 import pygraphviz
 from metagenomescope.layout import layout_utils as lu
@@ -123,6 +124,15 @@ def test_extract_control_points_odd_ct():
     )
 
 
+def test_extract_control_points_startp_endp():
+    # just start
+    assert lu._extract_control_points("s,123,456 789,10112") == [789, 10112]
+    # just end
+    assert lu._extract_control_points("e,123,456 7,10112") == [7, 10112]
+    # start & end
+    assert lu._extract_control_points("s,123,400 e,123,456 7,1") == [7, 1]
+
+
 def test_shift_control_points_good():
     shifted = lu.shift_control_points([1, 2, 3, 4, 5, 6, 7, 8], 100, 1)
     assert shifted == [101, 3, 103, 5, 105, 7, 107, 9]
@@ -141,6 +151,21 @@ def test_shift_control_points_odd():
 
     with pytest.raises(ValueError):
         lu.shift_control_points([1, 2, 3], 10, 100)
+
+
+def test_euclidean_distance():
+    # just checking that my boy Euclid didn't mess up
+    assert lu.euclidean_distance((1, 5), (9, 30)) == math.sqrt(689)
+    assert lu.euclidean_distance((1, 2), (3, 4)) == math.sqrt(8)
+    assert lu.euclidean_distance((1, 5), (1, 5)) == 0
+    assert lu.euclidean_distance((1, 5), (1, 6)) == 1
+    assert lu.euclidean_distance((-1, -5), (-1, -6)) == 1
+    # apparently i included this in the js tests from like 2020 so sure
+    # https://github.com/marbl/MetagenomeScope/blob/dc79e93b1ef01abef66518eb2f55c355d1e273b8/metagenomescope/tests/js_tests/test-utils.js
+    # i miss those days... maybe...
+    assert lu.euclidean_distance((0, 0), (-12345, 10000000)) == pytest.approx(
+        10000007.619948346
+    )
 
 
 def test_getxy():
