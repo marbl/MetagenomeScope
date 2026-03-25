@@ -212,6 +212,31 @@ def test_point_to_line_distance_zero_distance_line():
     )
 
 
+def test_dot_to_cyjs_control_points_loop_flattened():
+    assert lu.dot_to_cyjs_control_points(
+        (1, 2), (1, 2), [3, 2, 7, 2, 9, 2], 200, None, None, 0, 0
+    ) == (True, None, None)
+
+
+def test_dot_to_cyjs_control_points_empty_control_points_flattened():
+    # lost edge #394 thing
+    assert lu.dot_to_cyjs_control_points(
+        (1, 2), (3, 4), [], 200, None, None, 0, 0
+    ) == (True, None, None)
+
+
+def test_dot_to_cyjs_control_points_straightline_flattened():
+    # straight horizontal line
+    assert lu.dot_to_cyjs_control_points(
+        (1, 198), (10, 198), [3, 2, 7, 2, 9, 2], 200, None, None, 0, 0
+    ) == (True, None, None)
+
+    # straight vertical line
+    assert lu.dot_to_cyjs_control_points(
+        (1, 180), (1, 199), [1, 5, 1, 10], 200, None, None, 0, 0
+    ) == (True, None, None)
+
+
 def test_getxy():
     assert lu.getxy("5,-2") == (5, -2)
     assert lu.getxy("123.456,789.012") == (123.456, 789.012)
