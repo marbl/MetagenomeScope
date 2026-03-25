@@ -212,6 +212,13 @@ def test_point_to_line_distance_zero_distance_line():
     )
 
 
+def test_nums_to_str():
+    assert lu.nums_to_str([]) == ""
+    assert lu.nums_to_str([1.2]) == "1.2000"
+    assert lu.nums_to_str([1.2, 3.456789]) == "1.2000 3.4568"
+    assert lu.nums_to_str([1.2, 3.4, 5.6123456]) == "1.2000 3.4000 5.6123"
+
+
 def test_dot_to_cyjs_control_points_loop_flattened():
     assert lu.dot_to_cyjs_control_points(
         (1, 2), (1, 2), [3, 2, 7, 2, 9, 2], 200, None, None, 0, 0
