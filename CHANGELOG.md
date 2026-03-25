@@ -53,6 +53,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   and fCoSE layout methods work consistently
   ([#397](https://github.com/marbl/MetagenomeScope/issues/397)).
 
+- Add various tests (including many for the layout process), and remove
+  unnecessary spaces in how we internally represent edge control points
+  ([#396](https://github.com/marbl/MetagenomeScope/issues/396)).
+
 - Update the `metagenomescope/tests/README.md` file to reflect the switch
   from `setup.py` to `pyproject.toml`.
 
