@@ -163,13 +163,17 @@ def round_to_int_if_close(f, epsilon=config.EPSILON):
         return f
 
 
-def fmt_maybe_int(n, suffix="", precision=2):
+def fmt_maybe_int(n, suffix="", precision=2, use_thousands_sep=True):
+    if use_thousands_sep:
+        t = ","
+    else:
+        t = ""
     if close_to_int(n):
-        return f"{round(n):,}{suffix}"
+        return f"{round(n):{t}}{suffix}"
     else:
         # turns out you can just specify {precision} to fill in ".2f" with
         # a variable! crazy. https://stackoverflow.com/a/58435117
-        return f"{n:,.{precision}f}{suffix}"
+        return f"{n:{t}.{precision}f}{suffix}"
 
 
 def fmt_cov(cov):

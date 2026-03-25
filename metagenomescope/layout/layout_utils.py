@@ -251,7 +251,11 @@ def nums_to_str(nums):
         # it is NOT sufficiently close to an integer, then format it with .4f
         # precision (e.g. 1.2345). I do not remember why my layout code uses
         # 4 points of precision -- presumably it is not that important ...
-        s += ui_utils.fmt_maybe_int(n, precision=4)
+        #
+        # NOTE: you gotta make sure to not include thousands separators in
+        # these numbers! if they sneak in they will break the layout on large
+        # (ish) graphs, for example E. coli cc 1.
+        s += ui_utils.fmt_maybe_int(n, precision=4, use_thousands_sep=False)
     return s
 
 

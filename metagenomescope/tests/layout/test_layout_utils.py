@@ -213,6 +213,13 @@ def test_point_to_line_distance_zero_distance_line():
 
 
 def test_nums_to_str():
+    assert (
+        lu.nums_to_str([123456.789012, 1234, 99999, 0.2])
+        == "123456.7890 1234 99999 0.2000"
+    )
+
+
+def test_nums_to_str_no_thousands_sep():
     assert lu.nums_to_str([]) == ""
     assert lu.nums_to_str([1.2]) == "1.2000"
     assert lu.nums_to_str([1.2, 3.456789]) == "1.2000 3.4568"
