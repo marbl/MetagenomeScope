@@ -220,7 +220,9 @@ def point_to_line_distance(point, a, b):
     """
     line_distance = euclidean_distance(a, b)
     if line_distance == 0:
-        raise WeirdError("Line distance is zero?")
+        raise WeirdError(
+            f"d({point}, line): distance from {a} to {b} on line is zero?"
+        )
     ydelta = b[1] - a[1]
     xdelta = b[0] - a[0]
     x2y1 = b[0] * a[1]

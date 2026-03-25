@@ -19,6 +19,7 @@ import math
 import pytest
 import pygraphviz
 from metagenomescope.layout import layout_utils as lu
+from metagenomescope.errors import WeirdError
 
 
 def test_get_control_points():
@@ -165,6 +166,49 @@ def test_euclidean_distance():
     # i miss those days... maybe...
     assert lu.euclidean_distance((0, 0), (-12345, 10000000)) == pytest.approx(
         10000007.619948346
+    )
+
+
+def test_point_to_line_distance_basic():
+    # https://github.com/marbl/MetagenomeScope/blob/dc79e93b1ef01abef66518eb2f55c355d1e273b8/metagenomescope/tests/js_tests/test-utils.js
+    # example datasets from
+    # https://www.intmath.com/plane-analytic-geometry/perpendicular-distance-point-line.php
+    assert lu.point_to_line_distance(
+        (5, 6), (0, -4 / 3), (2, 0)
+    ) == pytest.approx(12 / math.sqrt(13))
+    assert lu.point_to_line_distance(
+        (-3, 7), (0, 2), (-5 / 3, 0)
+    ) == pytest.approx(-43 / math.sqrt(61))
+
+
+def test_point_to_line_distance_zerozero_point():
+    # based on first example from
+    # https://www.intmath.com/plane-analytic-geometry/perpendicular-distance-point-line.php
+    assert lu.point_to_line_distance(
+        (0, 0), (0, -4 / 3), (2, 0)
+    ) == pytest.approx(4 / math.sqrt(13))
+
+
+def test_point_to_line_distance_horizontal_line():
+    # line is at y = 1; the point (2, 0) is below the line
+    assert lu.point_to_line_distance((2, 0), (1, 1), (8, 1)) == -1
+    # the point (2, 2) is now above the line and equally far from it but in the
+    # opposite direction
+    assert lu.point_to_line_distance((2, 2), (1, 1), (8, 1)) == 1
+
+
+def test_point_to_line_distance_vertical_line():
+    # line is at x = -1; the point (1.5, 0) is to the right of the line
+    assert lu.point_to_line_distance((1.5, 0), (-1, -1), (-1, 6)) == -2.5
+    # the point at (-1.5, 0) is to the left of the line
+    assert lu.point_to_line_distance((-1.5, 0), (-1, -1), (-1, 6)) == 0.5
+
+
+def test_point_to_line_distance_zero_distance_line():
+    with pytest.raises(WeirdError) as ei:
+        lu.point_to_line_distance((1, 2), (3, 4), (3, 4))
+    assert str(ei.value) == (
+        "d((1, 2), line): distance from (3, 4) to (3, 4) on line is zero?"
     )
 
 
