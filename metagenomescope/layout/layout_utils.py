@@ -1,7 +1,7 @@
 import math
 import logging
 from . import layout_config
-from .. import config
+from .. import config, ui_utils
 from ..errors import WeirdError
 
 
@@ -245,10 +245,13 @@ def nums_to_str(nums):
     """
     s = ""
     for i, n in enumerate(nums):
-        prefix = ""
         if i > 0:
-            prefix = " "
-        s += f"{prefix}{n:.4f}"
+            s += " "
+        # if n is 0.0000000 or something, then just represent it as 0. but if
+        # it is NOT sufficiently close to an integer, then format it with .4f
+        # precision (e.g. 1.2345). I do not remember why my layout code uses
+        # 4 points of precision -- presumably it is not that important ...
+        s += ui_utils.fmt_maybe_int(n, precision=4)
     return s
 
 

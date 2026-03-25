@@ -217,6 +217,10 @@ def test_nums_to_str():
     assert lu.nums_to_str([1.2]) == "1.2000"
     assert lu.nums_to_str([1.2, 3.456789]) == "1.2000 3.4568"
     assert lu.nums_to_str([1.2, 3.4, 5.6123456]) == "1.2000 3.4000 5.6123"
+    assert (
+        lu.nums_to_str([1.2, 3.4, 5.6123456, 8, 0, 0.0000000000000])
+        == "1.2000 3.4000 5.6123 8 0 0"
+    )
 
 
 def test_dot_to_cyjs_control_points_loop_flattened():
@@ -252,7 +256,7 @@ def test_dot_to_cyjs_control_points_basic():
     # compatible control points.
     assert lu.dot_to_cyjs_control_points(
         (1, 198), (10, 198), [3, 2, 7, 50, 9, 2], 200, None, None, 0, 0
-    ) == (False, "0.0000 -48.0000 0.0000", "0.2222 0.6667 0.8889")
+    ) == (False, "0 -48 0", "0.2222 0.6667 0.8889")
 
 
 def test_getxy():
