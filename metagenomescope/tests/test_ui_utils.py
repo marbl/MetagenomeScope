@@ -13,6 +13,38 @@ def test_pluralize():
     assert uu.pluralize(123456, "node") == "123,456 nodes"
 
 
+def test_close_to_int():
+    assert uu.close_to_int(5)
+    assert uu.close_to_int(5.0)
+    assert uu.close_to_int(5.000000000000000000001)
+    assert not uu.close_to_int(5.100000000000000000001)
+    assert not uu.close_to_int(5.001)
+
+
+def test_round_to_int_if_close():
+    assert uu.round_to_int_if_close(5) == 5
+    assert uu.round_to_int_if_close(0) == 0
+    assert uu.round_to_int_if_close(0.00000000000000000000001) == 0
+    assert uu.round_to_int_if_close(0.1) == 0.1
+
+
+def test_fmt_maybe_int():
+    assert uu.fmt_maybe_int(1) == "1"
+    assert uu.fmt_maybe_int(1.0) == "1"
+    assert uu.fmt_maybe_int(123456) == "123,456"
+    assert uu.fmt_maybe_int(123456, use_thousands_sep=False) == "123456"
+    assert uu.fmt_maybe_int(123456.012) == "123,456.01"
+    assert uu.fmt_maybe_int(123456.012, use_thousands_sep=False) == "123456.01"
+    assert (
+        uu.fmt_maybe_int(123456.012, precision=3, use_thousands_sep=False)
+        == "123456.012"
+    )
+    assert (
+        uu.fmt_maybe_int(123456.012, precision=5, use_thousands_sep=False)
+        == "123456.01200"
+    )
+
+
 def test_fmt_qty():
     assert uu.fmt_qty(12345) == "12,345 bp"
     assert uu.fmt_qty(99999999, "bushels") == "99,999,999 bushels"
