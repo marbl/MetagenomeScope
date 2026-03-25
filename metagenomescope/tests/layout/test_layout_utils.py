@@ -100,6 +100,29 @@ def test_get_control_points_lost_edge(caplog):
     assert "no coords from Graphviz!" in caplog.text
 
 
+def test_extract_control_points_basic():
+    assert lu._extract_control_points("123,456 789,10112") == [
+        123,
+        456,
+        789,
+        10112,
+    ]
+    assert lu._extract_control_points("1.2,3.4") == [1.2, 3.4]
+    assert lu._extract_control_points("1.2,3.4") == [1.2, 3.4]
+
+
+def test_extract_control_points_odd_ct():
+    with pytest.raises(ValueError) as ei:
+        lu._extract_control_points("1.2")
+    assert str(ei.value) == 'Odd number of GV edge control points: "1.2"'
+
+    with pytest.raises(ValueError) as ei:
+        lu._extract_control_points("1.2,3.4 5.6")
+    assert (
+        str(ei.value) == 'Odd number of GV edge control points: "1.2,3.4 5.6"'
+    )
+
+
 def test_shift_control_points_good():
     shifted = lu.shift_control_points([1, 2, 3, 4, 5, 6, 7, 8], 100, 1)
     assert shifted == [101, 3, 103, 5, 105, 7, 107, 9]

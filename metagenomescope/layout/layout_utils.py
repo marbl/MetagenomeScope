@@ -86,6 +86,8 @@ def _extract_control_points(pos):
     Parameters
     ----------
     pos: str
+        Will look something like
+        "e,160,36.35 160,88.41 160,76.758 160,61.047 160,47.519".
 
     Returns
     -------
@@ -111,7 +113,7 @@ def _extract_control_points(pos):
     points_str = pos.replace(",", " ")
     coords = [float(c) for c in points_str.split()]
     if len(coords) % 2 != 0:
-        raise ValueError(f"Invalid Graphviz edge control points: {pos}")
+        raise ValueError(f'Odd number of GV edge control points: "{pos}"')
     return coords
 
 
