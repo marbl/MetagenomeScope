@@ -25,7 +25,6 @@ def test_get_control_points():
     # exactly the same
     # (you can generate this kind of file by using dot -Txdot [graph.gv])
     cg = pygraphviz.AGraph("metagenomescope/tests/input/lja-two-rc-ccs.xdot")
-    cg.layout(prog="dot")
     src2e = {}
     for e in cg.edges():
         src2e[e[0]] = e
@@ -66,6 +65,39 @@ def test_get_control_points():
         160,
         47.519,
     ]
+
+
+def test_get_control_points_lost_edge(caplog):
+    """Tests that, edges with no set control points lead to [].
+
+    See https://github.com/marbl/MetagenomeScope/issues/394.
+
+    Using caplog per https://stackoverflow.com/a/75420303.
+
+    Note about ""s
+    --------------
+    I wanted to also test what happens if "pos" is not in .attr entirely
+    (since using "" as the default seems to me like a strange decision, and
+    the type of decision that PyGraphviz might walk back in the future).
+    The current code in get_control_points() allows for this case!
+
+    However, it is really hard to *test* this. This is because
+    PyGraphviz.ItemAttribute.__delitem__ ensures that ""s are the defaults.
+    It seems like we can't even do "del pygraphviz.ItemAttribute.__delitem__"
+    to remove that -- we would need additional wizardry like rewriting it with
+    a custom method, at which point maybe testing this is not worth the effort.
+    """
+    cg = pygraphviz.AGraph("metagenomescope/tests/input/lja-two-rc-ccs.xdot")
+    # mimic Graphviz "losing" an edge -- the only case i've seen so far where a
+    # standard mgsc graph edge gets lost takes 10 minutes to lay out, plus if
+    # we encode such a test case here we run the risk of Graphviz fixing this
+    # behavior later on and breaking this test. so let's do it ourselves.
+    #
+    # pygraphviz uses "" as a default for these attributes --
+    # https://github.com/pygraphviz/pygraphviz/blob/db16436152047ac03f9a2cc213741021d3b4fd75/pygraphviz/agraph.py#L1970-L1980
+    cg.edges()[0].attr["pos"] = ""
+    assert lu.get_control_points(cg.edges()[0]) == []
+    assert "no coords from Graphviz!" in caplog.text
 
 
 def test_shift_control_points_good():
