@@ -237,6 +237,17 @@ def test_dot_to_cyjs_control_points_straightline_flattened():
     ) == (True, None, None)
 
 
+def test_dot_to_cyjs_control_points_basic():
+    # (7, 50) (aka (7, 150) due to flipheight = 200) is far enough from
+    # the horizontal line (relative to layout_config.CTRL_PT_DIST_EPSILON)
+    # that it causes these control points to no longer be representable as
+    # a simple straight line. Therefore, we should actually get Cytoscape.js-
+    # compatible control points.
+    assert lu.dot_to_cyjs_control_points(
+        (1, 198), (10, 198), [3, 2, 7, 50, 9, 2], 200, None, None, 0, 0
+    ) == (False, "0.0000  -48.0000  0.0000 ", "0.2222  0.6667  0.8889 ")
+
+
 def test_getxy():
     assert lu.getxy("5,-2") == (5, -2)
     assert lu.getxy("123.456,789.012") == (123.456, 789.012)
