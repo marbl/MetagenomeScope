@@ -349,7 +349,7 @@ mgsc -g E_coli_LastGraph
 >
 > You can think of this as kind of a mix of [the "single" and "double" modes](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style)
 > in Bandage. For pairs of redundant components, you only need to draw one of them, and for nonredundant components you can draw the entire thing.
-
+>
 > ##### Drawing the entire graph, including both pairs of redundant components
 > If you want to see _everything_, just select the **`Entire graph (all components)`** drawing option!
 
