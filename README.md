@@ -342,11 +342,11 @@ mgsc -g E_coli_LastGraph
 > reverse-complementary to each other (e.g. one component looks like `A -> -B -> C` and the other looks like
 > `-C -> B -> -A`), and only draw one of these components (we select the component with more forward-orientation nodes or edges).
 >
-> This drawing option will also draw "nonredundant" components, for example those that are "strand-mixed" and contain both
-> node `X` and `-X` (e.g. component #1 in the above screenshots).
+> This drawing option will also draw components that have no perfect reverse-complement component -- for example, those that are "strand-mixed"
+> and contain both node `X` and `-X` (e.g. component #1 in the above screenshots).
 >
-> You can think of this as kind of a mix of [the "single" and "double" modes](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style)
-> in Bandage. For pairs of redundant components, you only need to draw one of them, and for nonredundant components you can draw the entire thing.
+> You can think of this drawing method as kind of a mix of [the "single" and "double" modes](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style)
+> in Bandage. For pairs of redundant components, we only need to draw one of them, and for all other components we draw the entire thing.
 >
 > ##### Drawing the entire graph, including both pairs of redundant components
 > If you want to see _everything_, just select the **`Entire graph (all components)`** drawing option!
