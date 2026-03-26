@@ -278,19 +278,18 @@ mgsc -g flye_yeast.gv -i flye_yeast_assembly_info.txt
 ```
 
 <table>
-  <thead>
-    <tr>
-      <th colspan="2">Yeast assembly graph screenshots</th>
-    </tr>
-  </thead>
   <tbody>
+    <tr align="center">
+      <td><b>Entire graph</b></td>
+    </tr>
     <tr>
       <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/flye_yeast_all.png" alt="Entire yeast assembly graph." /></td>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/flye_yeast.png" alt="Yeast assembly graph, zoomed in on a scaffold path." /></td>
     </tr>
     <tr align="center">
-      <td>Entire graph</td>
-      <td>Zoomed in on <tt>scaffold_34</tt> in component #1</td>
+      <td><b>Zoomed in on <tt>scaffold_34</tt> in component #1</b></td>
+    </tr>
+    <tr>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/flye_yeast.png" alt="Yeast assembly graph, zoomed in on a scaffold path." /></td>
     </tr>
   </tbody>
 </table>
@@ -315,19 +314,18 @@ mgsc -g E_coli_LastGraph
 ```
 
 <table>
-  <thead>
-    <tr>
-      <th colspan="2"><i>E. coli</i> assembly graph screenshots</th>
-    </tr>
-  </thead>
   <tbody>
+    <tr align="center">
+      <td><b>Hierarchical layout with <a href="https://graphviz.org/docs/layouts/dot/"><i>dot</i></a></b></td>
+    </tr>
     <tr>
       <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/ecoli_dot.png" alt="E. coli assembly graph drawn using a hierarchical layout algorithm, dot." /></td>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/ecoli_sfdp_osfminus15.png" alt="E. coli assembly graph drawn using a force-directed layout algorithm, sfdp." /></td>
     </tr>
     <tr align="center">
-      <td>Hierarchical layout with <a href="https://graphviz.org/docs/layouts/dot/"><i>dot</i></a></td>
-      <td>Force-directed layout with <a href="https://graphviz.org/docs/layouts/sfdp/"><i>sfdp</i></a> (not showing patterns, and using an <a href="https://graphviz.org/docs/attrs/overlap_scaling/">overlap scaling factor</a> of <tt>-15</tt>)</td>
+      <td><b>Force-directed layout with <a href="https://graphviz.org/docs/layouts/sfdp/"><i>sfdp</i></a></b><br/>(not showing patterns, and using an <a href="https://graphviz.org/docs/attrs/overlap_scaling/">overlap scaling factor</a> of <tt>-15</tt>)</td>
+    </tr>
+    <tr>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/ecoli_sfdp_osfminus15.png" alt="E. coli assembly graph drawn using a force-directed layout algorithm, sfdp." /></td>
     </tr>
   </tbody>
 </table>
@@ -366,19 +364,18 @@ mgsc -g august1.gml -a scaffolds_august1_fixed.agp --verbose
 ```
 
 <table>
-  <thead>
-    <tr>
-      <th colspan="2">Stool metagenome scaffold graph screenshots</th>
-    </tr>
-  </thead>
   <tbody>
+    <tr align="center">
+      <td><b>Entire graph</b><br/>(on my 2018 laptop this takes about 2.5 minutes to lay out and draw; see tip below)</td>
+    </tr>
     <tr>
       <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_all.png" alt="Second largest connected component." /></td>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc6_scaffold430.png" alt="Sixth largest connected connected component, zoomed in on a scaffold path." /></td>
     </tr>
     <tr align="center">
-      <td>Entire graph (on my 2018 laptop this takes about 2.5 minutes to lay out and draw; see tip below) </td>
-      <td>Zoomed in on <tt>scaffold_430</tt> in component #6</td>
+      <td><b>Zoomed in on <tt>scaffold_430</tt> in component #6</b></td>
+    </tr>
+    <tr>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc6_scaffold430.png" alt="Sixth largest connected connected component, zoomed in on a scaffold path." /></td>
     </tr>
   </tbody>
 </table>
