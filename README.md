@@ -348,7 +348,7 @@ mgsc -g E_coli_LastGraph
 > You can think of this drawing method as kind of a mix of [the "single" and "double" modes](https://github.com/rrwick/Bandage/wiki/Single-vs-double-node-style)
 > in Bandage. For pairs of redundant components, we only need to draw one of them, and for all other components we draw the entire thing.
 >
-> ##### Drawing the entire graph, including both pairs of redundant components
+> ##### Drawing the entire graph, including pairs of redundant components
 > If you want to see _everything_, just select the **`Entire graph (all components)`** drawing option!
 
 ### 3. Large graph: MetaCarvel (GML file; 28,064 nodes; 21,769 edges) -- stool metagenome
