@@ -333,13 +333,13 @@ mgsc -g E_coli_LastGraph
 </table>
 
 > [!NOTE]
-> #### Reverse-complementary nodes and edges in GFA and LastGraph files
+> #### Reverse-complementary nodes and edges
 > As discussed in the FAQs below on "Reverse-complementary sequences," we represent each pair of nodes (`X`, `-X`) separately in the graph. This makes it easier to lay out the graph nicely.
 >
 > In graphs where such pairs of nodes exist, there will be an additional drawing option available (under the "Draw"
 > section of the UI) named **`Entire graph (nonredundant)`**. This will detect pairs of connected components that are perfectly
-> reverse-complementary to each other (e.g. one component looks like `A -> -B -> C`, and the other looks like
-> `-C -> B -> -A`, and only draw one of these components (we choose the component with more forward-orientation nodes or edges).
+> reverse-complementary to each other (e.g. one component looks like `A -> -B -> C` and the other looks like
+> `-C -> B -> -A`), and only draw one of these components (we select the component with more forward-orientation nodes or edges).
 > This will also draw nonredundant components, for example those that are "strand-mixed" and contain both node `X` and `-X` (e.g.
 > component #1 in the above screenshots).
 
