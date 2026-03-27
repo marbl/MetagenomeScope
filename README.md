@@ -30,19 +30,33 @@ The tool is under active development, so please let us know if you have any feed
 ## Screenshots
 
 <table>
+  <tbody>
+    <tr align="center">
+      <td><b>Stool metagenome assembly (<a href="https://github.com/marbl/MetaCarvel">MetaCarvel</a>)</b></td>
+    </tr>
+    <tr>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc2.png" alt="Second-largest component in a metagenome scaffold graph, showing various identified structural patterns." /></td>
+    </tr>
+    <tr align="center">
+      <td><i>Data source: <a href="https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959"><tt>SRS049959</tt></a></i></td>
+    </tr>
+  </tbody>
+</table>
+
+<table>
   <thead>
     <tr>
-      <th>Stool metagenome assembly (<a href="https://github.com/marbl/MetaCarvel">MetaCarvel</a>)</th>
+      <th>Human genome assembly (HG002, <a href="https://github.com/marbl/verkko">verkko</a> v1.1)</th>
       <th>Yeast genome assembly (<a href="https://github.com/mikolmogorov/Flye">Flye</a>)</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc2.png" alt="Second-largest component in a metagenome scaffold graph, showing various identified structural patterns." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/hg002.png" alt="Entire HG002 (human genome) assembly graph." /></td>
       <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/flye_yeast.png" alt="Part of a yeast genome assembly graph, showing the visualization of a scaffold of edge sequences." /></td>
     </tr>
     <tr align="center">
-      <td><i>Data source: <a href="https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959">SRS049959</a></i></td>
+      <td><i>Data source: <a href="https://github.com/marbl/HG002#downloads">T2T Consortium</a></i></td>
       <td><i>Data source: <a href="https://github.com/almiheenko/AGB/tree/master/test_data/flye_yeast">AGB</a></i></td>
     </tr>
   </tbody>
@@ -61,7 +75,7 @@ The tool is under active development, so please let us know if you have any feed
       <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_covlen.png" alt="Scatterplot comparing total node length with average edge bundle sizes in a scaffold graph." /></td>
     </tr>
     <tr align="center">
-      <td colspan="2"><i>Data source: <a href="https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959">SRS049959</a></i></td>
+      <td colspan="2"><i>Data source: <a href="https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959"><tt>SRS049959</tt></a></i></td>
     </tr>
   </tbody>
 </table>
