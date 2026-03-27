@@ -14,6 +14,12 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   entire graph -- while drawing perfectly reverse-complementary components
   only once ([#67](https://github.com/marbl/MetagenomeScope/issues/67)).
 
+- Add experimental support for reading [Rukki](https://github.com/marbl/rukki)-
+  / [Verkko](https://github.com/marbl/verkko)- style GAF files describing paths
+  in the graph.
+    - This file format seems relatively "new," so I may change the parser
+      for it in the future to make it more / less strict as needed.
+
 - Tidy up the README in various ways, including updating screenshots
   and adding bioconda installation instructions
   ([#302](https://github.com/marbl/MetagenomeScope/issues/302))!

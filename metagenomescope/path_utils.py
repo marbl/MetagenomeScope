@@ -1,9 +1,16 @@
 import logging
 import pandas as pd
 from collections import defaultdict
-from metagenomescope import config
+from metagenomescope import config, ui_utils
 from .errors import PathParsingError
 from .gap import Gap
+
+# neither https://github.com/marbl/rukki nor
+# https://github.com/lh3/gfatools/blob/master/doc/rGFA.md explicitly
+# say what > and < correspond to. The closest thing is that the rGFA docs
+# contain the phrase "... and assume the orientation to be forward >". So,
+# I assume that this is what they mean.
+GAF_BRACKET_TO_ORIENT = {">": config.FWD, "<": config.REV}
 
 
 def get_paths_from_agp(agp_fp, orientation_in_name=True):
@@ -39,7 +46,7 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
 
     Raises
     ------
-    PathParsingError
+    PathParsingError or UIError
         If the file looks invalid.
 
     Notes
@@ -63,7 +70,8 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
             path_name = parts[0]
             if parts[4] in "NU":
                 if parts[4] == "N":
-                    glen = int(parts[5])
+                    # delegate checking that this is a valid integer to utils
+                    glen = ui_utils.get_num(parts[5], "AGP path gap length")
                 else:
                     glen = None
                 paths[path_name].append(Gap(length=glen, gaptype=parts[6]))
@@ -81,6 +89,187 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
     only_gap_paths = set(paths.keys()) - pathnames_with_nongaps
     if only_gap_paths:
         raise PathParsingError(f"Some paths only have gaps: {only_gap_paths}")
+    return paths
+
+
+def get_gaf_part(gaf_path):
+    r"""Peels off the first part (a name or a gap) of a GAF path string.
+
+    Yeah that's right we're doing this in a functional programming way! Kinda!
+
+    Parameters
+    ----------
+    gaf_path: str
+        Should conform to the (informal) regex /(([><]<name>)|(\[N\dN\]))+/,
+        per https://github.com/marbl/rukki.
+
+    Returns
+    -------
+    (name, orientation, gap, next_pos): (
+        str or None, str or None, Gap or None, int
+    )
+        If the first part of this path string corresponds to a name, then
+        "name" and "orientation" will be strings describing the name and its
+        orientation, respectively. (The orientation will be either config.FWD
+        or config.REV.) And "gap" will be None.
+
+        If the first part of this path string corresponds to a gap, then
+        "name" and "orientation" will be None, and "gap" will be a Gap object
+        describing the estimated size of this gap.
+
+        In both cases, "next_pos" will be the position in gaf_path one after
+        the end of this part of the string. (If this is the last part of
+        the path string, then next_pos can be greater than len(gaf_path) - 1.)
+
+    Notes
+    -----
+    - The rGFA docs (https://github.com/lh3/gfatools/blob/master/doc/rGFA.md)
+      present a different, fancier regex for this path string.
+
+    - A consequence of how we implement this is that it is technically valid
+      for a path to start (and/or end!) with a gap, even though this should
+      probably never happen in practice. If people feel strongly enough about
+      this I can adjust this to crash with an error in such cases.
+
+    - This is probably overengineered lol
+    """
+    first_char = gaf_path[0]
+    # so this looks like a face, right? "oh no!!! my file is invalid >.<"
+    # or it's a sideways depiction of the letter X standing on a trampoline.
+    # dealer's choice.
+    if first_char in "><":
+        # the leftmost entry in this path string is a name
+
+        # unlike with gaps, we don't have a single nice indication of where
+        # this name ends -- we need to scan ahead and find either (1) the
+        # start of the next name or gap, or (2) the end of the path string
+
+        found_something_next = False
+        i = None
+        for i, c in enumerate(gaf_path[1:], 1):
+            if c in "><[":
+                found_something_next = True
+                break
+
+        if found_something_next:
+            # there is another name or gap after this one in the path
+            name = gaf_path[1:i]
+        else:
+            # this is apparently the last entry in the path
+            name = gaf_path[1:]
+            # point to one after the end of the path to indicate to the
+            # caller that we're done parsing this path
+            i = len(gaf_path)
+
+        return name, GAF_BRACKET_TO_ORIENT[first_char], None, i
+
+    elif first_char == "[":
+        # the leftmost entry in this path string is a gap
+
+        # find where this gap ends
+        try:
+            gap_end = gaf_path.index("]")
+        except ValueError:
+            raise PathParsingError(
+                f"GAF (partial) path string {gaf_path}: unclosed gap"
+            )
+        if gaf_path[1] != "N" or gaf_path[gap_end - 1] != "N":
+            raise PathParsingError(
+                f"GAF (partial) path string {gaf_path}: gap doesn't have Ns"
+            )
+        # figure out how long this gap is
+        est_gap_size_str = gaf_path[2 : gap_end - 1]
+        est_gap_size = ui_utils.get_num(est_gap_size_str, "GAF path gap size")
+        return None, None, Gap(length=est_gap_size), gap_end + 1
+    else:
+        raise PathParsingError(
+            f"GAF path string {gaf_path}: doesn't start with >, <, or ["
+        )
+
+
+def get_paths_from_gaf(gaf_fp, orientation_in_name=True):
+    """Loads paths from a Rukki-/Verkko-style GAF file.
+
+    (This style differs from the "official" GAF file specification at
+    https://github.com/lh3/gfatools/blob/master/doc/rGFA.md.)
+
+    Parameters
+    ----------
+    gaf_fp: str
+        A path to a GAF file.
+
+    orientation_in_name: bool
+        Same interpretation as with get_paths_from_agp(). True means that node
+        or edge names include orientations if negative (e.g. -5 vs. 5); False
+        means that this is not the case.
+
+    Returns
+    -------
+    paths: defaultdict of str -> list of str or Gap
+        Maps path names to a list of sequence (node or edge) names in the path.
+        Gaps are represented as Gap objects in the list.
+
+    Raises
+    ------
+    PathParsingError or UIError
+        If the file looks invalid.
+
+    Notes
+    -----
+    This file format seems very new, so I have a sneaking suspicion our
+    expectations here might change in the future.
+
+    References
+    ----------
+    https://github.com/marbl/rukki
+    """
+    paths = {}
+    with open(gaf_fp, "r") as fh:
+        for line in fh:
+            # skip comments
+            if line.startswith("#"):
+                continue
+            parts = line.strip().split("\t")
+            if len(parts) < 2:
+                raise PathParsingError(f"Line {line} has < 2 columns")
+            path_name = parts[0]
+
+            # skip the "acro assignment" paths at the bottom of the HG002
+            # GAF file, which refer to nodes that aren't in the graph and use
+            # strange undocumented notation ("[<utig1-58322") anyway
+            #
+            # NOTE: if / when we want to make this parser stricter, it would
+            # REALLY be a good idea to actually make this case raise an error
+            if path_name in paths:
+                logging.warning(
+                    f"Path {path_name} defined multiple times; only using "
+                    "the first definition of it in the file"
+                )
+                continue
+
+            path_stuff = parts[1]
+            things_on_path = []
+            path_has_nongaps = False
+            while True:
+                name, orient, gap, nextpos = get_gaf_part(path_stuff)
+                if name is None:
+                    things_on_path.append(gap)
+                else:
+                    if orient == config.REV and orientation_in_name:
+                        things_on_path.append(config.REV + name)
+                    else:
+                        things_on_path.append(name)
+                    path_has_nongaps = True
+
+                if nextpos < len(path_stuff):
+                    path_stuff = path_stuff[nextpos:]
+                else:
+                    break
+            if len(things_on_path) == 0:
+                raise PathParsingError(f"Path {name} is empty?")
+            if not path_has_nongaps:
+                raise PathParsingError(f"Path {name} only has gaps???")
+            paths[path_name] = things_on_path
     return paths
 
 
@@ -106,6 +295,7 @@ def get_paths_from_flye_info(fp):
                 path_edge_ids.append(i)
                 path_has_nongaps = True
         if len(path_edge_ids) == 0:
+            # maybe the path only has *s or something...?
             raise PathParsingError(f"Invalid path: {name} -> {paths[name]}")
         if not path_has_nongaps:
             raise PathParsingError(f"Path {name} only has gaps???")
