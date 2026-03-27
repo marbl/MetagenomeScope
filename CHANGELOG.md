@@ -43,6 +43,12 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   and ensure they are at least drawn as a straight line -- so that all
   edges are shown.
 
+- There are also very rare cases where Cytoscape.js can route an edge into
+  the middle of nowhere
+  ([#406](https://github.com/marbl/MetagenomeScope/issues/406)).
+  As with the other types of problematic edges, detect these cases, log them,
+  and flatten them into straight lines.
+
 - Fix a race condition that was causing the detection of "bad edges" (and
   converting them to straight lines when initially drawing a region of the
   graph) to not trigger properly ([commit `9810ae0`](https://github.com/marbl/MetagenomeScope/commit/9810ae0a506376b83921277ce13858eb20fecfa0)).

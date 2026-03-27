@@ -83,6 +83,40 @@ function rescueEdges(edges, edgeLabels) {
     }
 }
 
+/* In rare cases, Cytoscape.js can make an edge get routed off into the
+ * middle of nowhere and back. I don't know why this happens, but we can
+ * at least detect these cases and flatten them.
+ *
+ * See https://github.com/marbl/MetagenomeScope/issues/406.
+ */
+function fixGoofyEdges(cy) {
+    let nodeBB = cy.nodes().boundingBox();
+    // This could maybe be tweaked more
+    let TOL = 10000;
+    let rescuedIDs = [];
+    let rct = 0;
+    cy.edges().forEach(function (e) {
+        if (
+            e._private.bodyBounds.x1 < nodeBB.x1 - TOL ||
+            e._private.bodyBounds.x2 > nodeBB.x2 + TOL ||
+            e._private.bodyBounds.y1 < nodeBB.y1 - TOL ||
+            e._private.bodyBounds.y2 > nodeBB.y2 + TOL
+        ) {
+            e.removeClass("withctrlpts");
+            rescuedIDs.push(e.data("id"));
+            rct++;
+        }
+    });
+    if (rct > 0) {
+        console.log(
+            "Detected and rescued",
+            rct,
+            "goofy edge(s) that left the bounding box (see #406 on GitHub):",
+        );
+        console.log(rescuedIDs.join("\n"));
+    }
+}
+
 function tryToSetBadEdgeDragRescuer(cy) {
     // this only needs to be set once
     const SET_FLAG = "_mgscBindingsSet";
@@ -230,6 +264,10 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // this will actually do the work of running that layout algorithm
             // here.
             cy.layout(layoutSettings).run();
+            // NOTE: both fixGoofyEdges() and rescueEdges() involve iterating
+            // through all of the edges in the graph. If this somehow becomes
+            // a bottleneck then we can combine them into just one loop
+            fixGoofyEdges(cy);
             rescueEdges(cy.edges(), "edge(s) on initial draw");
             // This isn't its own function because of a Dash bug? with multiple
             // clientside callbacks with the same input and no outputs -
