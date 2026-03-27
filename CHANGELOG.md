@@ -6,20 +6,26 @@ As inspired by [Pyrodigal](https://github.com/althonos/pyrodigal),
 this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
-[Unreleased]: https://github.com/marbl/MetagenomeScope/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/marbl/MetagenomeScope/compare/v1.2.0...HEAD
+
+
+## [v1.2.0] - 2026-03-27 - Nonredundant drawing, bug fixes, and cleaning up
+[v1.2.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.2.0
 
 ### Added
 
 - Add a new drawing method, `Entire graph (nonredundant)`, that draws the
-  entire graph -- while drawing perfectly reverse-complementary components
+  entire graph _but_ draws perfectly reverse-complementary components
   only once ([#67](https://github.com/marbl/MetagenomeScope/issues/67)).
 
 - Tidy up the README in various ways, including updating screenshots
   and adding bioconda installation instructions
-  ([#302](https://github.com/marbl/MetagenomeScope/issues/302))!
+  ([#302](https://github.com/marbl/MetagenomeScope/issues/302)).
 
 - Add a brief note in the "drawing options" dialog that the client-side layout
   algorithms (dagre and fCoSE) may be impractical for large graphs.
+
+- Add various tests (including many for the layout process).
 
 - Add this Changelog.
 
@@ -59,12 +65,12 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   and fCoSE layout methods work consistently
   ([#397](https://github.com/marbl/MetagenomeScope/issues/397)).
 
-- Add various tests (including many for the layout process), and remove
-  unnecessary spaces in how we internally represent edge control points
+- Clean up the internal formatting of edge control points
   ([#396](https://github.com/marbl/MetagenomeScope/issues/396)).
 
 - Update the `metagenomescope/tests/README.md` file to reflect the switch
   from `setup.py` to `pyproject.toml`.
+
 
 ## [v1.1.0] - 2026-03-05 - Documentation and refactoring
 [v1.1.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.1.0
@@ -90,12 +96,14 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - A few minor development improvements (e.g. using both `license` and
   `license-files` in the `pyproject.toml` file).
 
+
 ## [v1.0.0] - 2026-02-23 - First official release!
 [v1.0.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.0.0
 
 Restructures MetagenomeScope as a server-side application using Dash.
 Implements many long-awaited features, including hierarchical pattern
 decomposition, detailed charts of graph statistics, and much more.
+
 
 ## [v0.1.0] - 2020-11-30 - "Classic" MetagenomeScope
 [v0.1.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v0.1.0
