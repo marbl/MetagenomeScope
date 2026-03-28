@@ -367,7 +367,10 @@ mgsc -g E_coli_LastGraph
 
 ### 3. Large graph: MetaCarvel (GML file; 28,064 nodes; 21,769 edges) -- stool metagenome
 
-This is a scaffold graph created by [MetaCarvel](https://github.com/marbl/MetaCarvel/). Note that this graph is fairly old (it dates back to August 2017!); MetaCarvel has been updated a decent amount since then.
+This is a scaffold graph created by [MetaCarvel](https://github.com/marbl/MetaCarvel/).
+[Here is a Zenodo record for these files](https://zenodo.org/records/18316065);
+they are derived from [`SRS049959`](https://www.ncbi.nlm.nih.gov/bioproject/?term=SRS049959).
+Note that this graph is fairly old (it dates back to August 2017!); MetaCarvel has been updated a decent amount since then.
 
 ```bash
 wget https://zenodo.org/records/18316065/files/august1.gml
