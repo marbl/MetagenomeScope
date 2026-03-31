@@ -14,6 +14,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   provide node and/or edge CSV / TSV files and use them to color the graph
   ([#243](https://github.com/marbl/MetagenomeScope/issues/243)).
 
+- Document the various color options available in the README.
+
 ### Changed
 
 - Prevent node or edge IDs from beginning with `+` signs. This helps with
