@@ -495,6 +495,9 @@ def get_candidate_twin_cc_num_from_edges(cc, userspecifiededgeid2obj):
     cc: Component
 
     userspecifiededgeid2obj: dict of str -> Edge
+        This should not contain fake edges, since they can't have user-
+        specified IDs (since fake edges are ... not really in the original
+        graph, that's their whole thing).
 
     Returns
     -------

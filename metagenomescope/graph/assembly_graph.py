@@ -1910,10 +1910,10 @@ class AssemblyGraph(object):
                 # We can't rely on node orientations, so just look at edge IDs
                 # NOTE: When we implement searching by edge ID, we should
                 # probably move the creation of this up to __init__()
-                userspecifiededgeid2obj = {
-                    e.get_userspecified_id(): e
-                    for e in self.edgeid2obj.values()
-                }
+                userspecifiededgeid2obj = {}
+                for e in self.edgeid2obj.values():
+                    if not e.is_fake:
+                        userspecifiededgeid2obj[e.get_userspecified_id()] = e
                 cc2_num = graph_utils.get_candidate_twin_cc_num_from_edges(
                     cc, userspecifiededgeid2obj
                 )
