@@ -41,6 +41,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Cleaned up and added some more tests for the path-parsing parts of the code.
 
+### Fixed
+
+- Fix a bug where Flye DOT files with split nodes / fake edges remaining
+  after the decomposition would crash the redundant component detection.
 
 ## [v1.2.0] - 2026-03-27 - Nonredundant drawing, bug fixes, and cleaning up
 [v1.2.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.2.0
