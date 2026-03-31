@@ -165,6 +165,25 @@ def test_sanity_check_node_name_start_with_multi_dash():
     )
 
 
+def test_sanity_check_node_name_start_with_plus():
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_node_name("+1")
+    assert str(ei.value) == (
+        'A node named "+1" exists in the graph. Nodes cannot have names '
+        "that start with + signs."
+    )
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_node_name("++1234")
+    assert str(ei.value) == (
+        'A node named "++1234" exists in the graph. Nodes cannot have names '
+        "that start with + signs."
+    )
+    # this is allowed i GUESS
+    nu.sanity_check_node_name("123+")
+    nu.sanity_check_node_name("12+3")
+    nu.sanity_check_node_name("1+++++++++++")
+
+
 def test_sanity_check_edge_id_surrounding_whitespace():
     with pytest.raises(GraphParsingError) as ei:
         nu.sanity_check_edge_id("abcdef ")
@@ -196,6 +215,24 @@ def test_sanity_check_edge_id_start_with_multi_dash():
         'An edge with the ID "---7890123" exists in the graph. Edges cannot '
         "have IDs that start with multiple dashes."
     )
+
+
+def test_sanity_check_edge_id_start_with_plus():
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_edge_id("+1")
+    assert str(ei.value) == (
+        'An edge with the ID "+1" exists in the graph. Edges cannot have '
+        "IDs that start with + signs."
+    )
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_edge_id("++1234")
+    assert str(ei.value) == (
+        'An edge with the ID "++1234" exists in the graph. Edges cannot have '
+        "IDs that start with + signs."
+    )
+    nu.sanity_check_edge_id("123+")
+    nu.sanity_check_edge_id("12+3")
+    nu.sanity_check_edge_id("1+++++++++++")
 
 
 def test_has_leftsplit_suffix():

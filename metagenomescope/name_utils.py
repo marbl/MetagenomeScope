@@ -100,6 +100,17 @@ def _sanity_check_name(name, node=True):
             "dashes."
         )
 
+    if name.startswith("+"):
+        # if we want to let the user specify node / edge metadata for plus
+        # nodes only by saying "+X", then we need to be able to safely
+        # disambiguate this from nodes that just have the name "+X".
+        #
+        # I could maaaaybe see this causing problems if there are real graphs
+        # out there that name their nodes like this. If so we can adjust this.
+        raise GraphParsingError(
+            f"{errprefix} {objs} cannot have {lbl}s that start with + signs."
+        )
+
 
 def sanity_check_node_name(name):
     """Ensures that a node name seems reasonable."""
