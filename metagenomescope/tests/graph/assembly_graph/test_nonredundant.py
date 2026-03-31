@@ -90,3 +90,8 @@ def test_lja_simple_nr_ccs_extra_edge():
         "metagenomescope/tests/input/lja-two-rc-ccs-plus-extra-edge.gv"
     )
     assert ag.get_nr_cc_nums() == {1, 2}
+
+
+def test_flye_bubble_chain_fake_edges_dont_crash_redundant_cc_detection():
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_flye.gv")
+    assert ag.get_nr_cc_nums() == {1, 2}
