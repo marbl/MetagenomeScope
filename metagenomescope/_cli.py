@@ -47,6 +47,29 @@ from . import __version__, defaults, descs, config
     help=descs.FLYE_ASM_INFO,
 )
 @click.option(
+    "-n",
+    "--node-data",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    default=None,
+    required=False,
+    help=descs.NODE_DATA,
+)
+@click.option(
+    "-e",
+    "--edge-data",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    default=None,
+    required=False,
+    help=descs.EDGE_DATA,
+)
+@click.option(
+    "--tsv/--no-tsv",
+    is_flag=True,
+    default=defaults.TSV,
+    show_default=True,
+    help=descs.TSV,
+)
+@click.option(
     "-p",
     "--port",
     type=click.IntRange(min=config.MIN_PORT, max=config.MAX_PORT),
@@ -73,6 +96,9 @@ def run_script(
     graph: str,
     agp: str,
     info: str,
+    node_data: str,
+    edge_data: str,
+    tsv: bool,
     port: int,
     verbose: bool,
     debug: bool,
@@ -97,6 +123,9 @@ def run_script(
             f"Graph file: {graph}",
             f"AGP file: {agp}",
             f"Flye info file: {info}",
+            f"Node data file: {node_data}",
+            f"Edge data file: {edge_data}",
+            f"Data files are TSV?: {tsv}",
             f"Port: {port}",
             f"Verbose?: {verbose}",
             f"Debug mode?: {debug}",

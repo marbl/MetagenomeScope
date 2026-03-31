@@ -8,6 +8,18 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 ## [Unreleased]
 [Unreleased]: https://github.com/marbl/MetagenomeScope/compare/v1.2.0...HEAD
 
+### Added
+
+- Add the `-n`, `-e`, and `--tsv` command-line options, allowing users to
+  provide node and/or edge CSV / TSV files and use them to color the graph
+  ([#243](https://github.com/marbl/MetagenomeScope/issues/243)).
+
+### Changed
+
+- Prevent node or edge IDs from beginning with `+` signs. This helps with
+  the implementation of node / edge metadata support
+  ([#243](https://github.com/marbl/MetagenomeScope/issues/243)).
+
 
 ## [v1.2.0] - 2026-03-27 - Nonredundant drawing, bug fixes, and cleaning up
 [v1.2.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.2.0

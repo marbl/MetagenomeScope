@@ -211,6 +211,142 @@ _See the [GFA 1](https://gfa-spec.github.io/GFA-spec/GFA1.html) and [GFA 2](http
 <hr/>
 </details>
 
+### Changing colors in the graph
+
+There are multiple options you have for how to color the nodes / edges in the graph.
+
+Note that these options are independent between nodes and edges -- if you want, you
+could for example color all edges a random color but all edges a uniform color.
+
+<details>
+  <summary><strong>Random colors (default)</strong></summary>
+
+<hr/>
+
+Analogously to [Bandage](https://github.com/rrwick/Bandage/wiki/Colour-schemes)'s
+default behavior, MetagenomeScope will assign each node / edge in the graph a
+randomly-selected color.
+
+Note that this is not perfectly "random." Unlike Bandage, we actually predefine
+a list of ~25 random colors that should stand out decently well against the
+background colors of all structural patterns, and then just assign nodes / edges
+entries from this list.
+
+Some additional logic in how we select these "random" colors, if you are interested:
+
+- For graphs where there exist reverse-complementary pairs of nodes `X` and `-X`, we
+  make sure to assign both of these nodes the same random color.
+
+- For Flye DOT files (where there also exist reverse-complementary pairs of edges `E`
+  and `-E`), we similarly make sure to assign both of these edges the same random color.
+
+- For other graphs (not Flye DOT files), we currently set edge random colors in such
+  a way that all edges from `A -> B` (and all edges from `-B -> -A`, if present) get
+  the same random color.
+
+  - In this case, we also do some extra work to ensure that an edge does not share
+    the same random color as either its source or target node.
+
+- A given pair of split nodes and their fake edge (`A-L -> A-R`) will all get assigned
+  the same random color.
+
+<hr/>
+</details>
+
+<details>
+  <summary><strong>Uniform colors</strong></summary>
+
+<hr/>
+
+This will set all node / edge colors to the same color. Standard stuff.
+
+(For now, this particular color is not explicitly configurable, but I can add in the
+option to change it if this is desirable.)
+
+<hr/>
+</details>
+
+<details>
+  <summary><strong>Flye DOT file edge colors</strong></summary>
+
+<hr/>
+
+If your graph is a DOT file from Flye, then you can use the `DOT file` option
+to color edges in the visualization according to the colors specified in the DOT file.
+
+<hr/>
+</details>
+
+<details>
+  <summary><strong>By CSV / TSV files</strong></summary>
+
+<hr/>
+
+You can use the `-n` / `-e` command-line options to pass in general metadata about nodes
+and/or edges, analogously to [Bandage](https://github.com/rrwick/Bandage/wiki/CSV-labels).
+
+We accept these files in either
+[comma-separated values (CSV)](https://en.wikipedia.org/wiki/Comma-separated_values) or
+[tab-separated values (TSV)](https://en.wikipedia.org/wiki/Tab-separated_values) format.
+(By default we assume these are CSV files, since that is what Bandage accepts, but you could
+instead use the `--tsv` flag to tell MetagenomeScope to expect these files to be tab-separated.)
+
+#### Node data (`-n`)
+
+This should look like
+
+```csv
+Node,A,B,C
+1,asdf,3,0.3
+2,ghjk,8,0.1
+4,9,2.3,0.9
+```
+
+The first row should be a header row that gives each column's name, and
+the leftmost column should contain node IDs.
+
+If your graph contains node `X` and node `-X`, then we assume that a row
+where the node name is `X` applies to both copies of this node (`X` and `-X`).
+If you want to specify data for just a single one of these nodes and not
+the other, you can say `+X` or `-X`.
+
+#### Edge data (`-e`)
+
+**If you are using a DOT file from Flye,** then edges will have IDs -- and the
+file can be specified essentially the same way as with the node data above.
+
+```csv
+Edge,A,B,C
+1,asdf,3,0.3
+2,ghjk,8,0.1
+3,9,2.3,0.9
+```
+
+As above, we assume that a row where the edge ID is `E` applies to both
+copies of this edge, if given (`E` and `-E`).
+You can use `+E` or `-E` to give data for just a single one of these edges.
+
+**For all other types of graphs,** it is not guaranteed that edges will have
+IDs. You can thus specify edge data by referencing the source and target node
+names:
+
+```csv
+Source,Target,A,B,C
+123,456,asdf,3,0.3
+789,101,ghjk,8,0.1
+```
+
+Notes about this type of input:
+
+- If there are parallel edges (e.g. multiple edges from `123 -> 456`), then they
+  will all be assigned the same data.
+
+- If a reverse-complementary version of an edge exists (e.g. this graph also
+  contains edge `-456 -> -123`), then they will also be assigned the same data.
+
+<hr/>
+</details>
+
 ## Structural patterns
 
 ### Types of patterns

@@ -11,9 +11,16 @@ AGP = "AGP file describing paths (e.g. scaffolds) in the graph."
 
 FLYE_ASM_INFO = "Flye assembly_info.txt file describing contigs/scaffolds."
 
-PORT = "Server port number."
+NODE_DATA = "CSV file describing node data, indexed by node ID."
 
-OUT_TSV = "If given, write a TSV file with some graph statistics."
+EDGE_DATA = (
+    "CSV file describing edge data, indexed by edge ID (Flye DOT) or "
+    "by source and target columns (other graphs)."
+)
+
+TSV = "If given, assume -n/-e files use tabs (TSV) instead of commas (CSV)."
+
+PORT = "Server port number."
 
 VERBOSE = "Log extra details."
 
