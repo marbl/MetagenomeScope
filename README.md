@@ -258,10 +258,11 @@ Some additional logic in how we select these "random" colors, if you are interes
 
 <hr/>
 
-This will set all node / edge colors to the same color. Standard stuff.
+This will set all nodes to the same color (gray), and all edges to the same color (darker
+gray).
 
-(For now, this particular color is not explicitly configurable, but I can add in the
-option to change it if this is desirable.)
+(For now, these colors are not explicitly configurable, but I can add in the
+option to change them if this is desirable.)
 
 <hr/>
 </details>
