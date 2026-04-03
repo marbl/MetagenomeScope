@@ -95,17 +95,17 @@ mamba install -c bioconda -c conda-forge metagenomescope
 ### Using [pip](https://pip.pypa.io/)
 
 First, you need to make sure that [Graphviz](https://graphviz.org/)
-and [Pygraphviz](https://github.com/pygraphviz/pygraphviz) are installed
-properly (so that Pygraphviz knows where to find Graphviz).
-See Pygraphviz'
+and [PyGraphviz](https://github.com/pygraphviz/pygraphviz) are installed
+properly (so that PyGraphviz knows where to find Graphviz).
+See PyGraphviz'
 [`INSTALL.txt`](https://github.com/pygraphviz/pygraphviz/blob/main/INSTALL.txt)
 for details.
 
 (Probably the most consistent way to do this is just installing Graphviz and
-Pygraphviz from conda-forge, but at that point you might as
+PyGraphviz from conda-forge, but at that point you might as
 well do the entire installation from within conda...)
 
-Anyway, once Graphviz and Pygraphviz are installed, you should be able to just
+Anyway, once Graphviz and PyGraphviz are installed, you should be able to just
 run:
 
 ```bash
