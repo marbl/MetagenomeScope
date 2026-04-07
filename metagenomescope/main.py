@@ -83,7 +83,9 @@ def run(
     # Read the assembly graph file and create an object representing it.
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
     # edges, etc.
-    ag = AssemblyGraph(graph, agp_fp=agp, verkko_tsv_fp=vtsv, flye_info_fp=flye_info)
+    ag = AssemblyGraph(
+        graph, agp_fp=agp, verkko_tsv_fp=vtsv, flye_info_fp=flye_info
+    )
 
     # Prepare some of the UI components in advance. A nice thing about Dash
     # (which I guess comes from it being built on top of React) is that we can

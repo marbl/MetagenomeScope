@@ -66,7 +66,9 @@ class AssemblyGraph(object):
     https://www.thedigitalcatonline.com/blog/2014/08/20/python-3-oop-part-3-delegation-composition-and-inheritance/
     """
 
-    def __init__(self, graph_fp, agp_fp=None, verkko_tsv_fp=None, flye_info_fp=None):
+    def __init__(
+        self, graph_fp, agp_fp=None, verkko_tsv_fp=None, flye_info_fp=None
+    ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
         Parameters
@@ -354,7 +356,7 @@ class AssemblyGraph(object):
         if self.verkko_tsv_filename is not None:
             logger.debug(
                 f'  Loading input Verkko TSV file "{self.verkko_tsv_basename}"'
-                '...'
+                "..."
             )
             vtsv_paths = path_utils.get_paths_from_verkko_tsv(
                 self.verkko_tsv_filename, self.orientation_in_name
