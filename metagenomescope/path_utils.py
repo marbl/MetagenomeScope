@@ -92,6 +92,64 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
     return paths
 
 
+def get_paths_dict_from_tsv(fp, path_col):
+    """Extracts path info from a column in a tab-separated file.
+
+    Parameters
+    ----------
+    fp: str
+        Path to a TSV file. There is a lot of leeway in how this file is
+        formatted -- the only requirements are that:
+
+        1. it is a tab-separated file
+        2. it has a header row
+        3. the leftmost column has the path names
+        4. one of the other columns describes the contents of each path,
+           which are comma-separated entries
+
+    path_col: str
+        Column name for requirement #4 above.
+
+    Raises
+    ------
+    PathParsingError
+        If a column named path_col is not in the file, if any path occurs
+        more than once in the file, or if the file does not describe any
+        paths.
+
+    Other stuff (e.g. FileNotFoundError)
+        Could be raised by pd.read_csv() if the file is missing, malformed,
+        etc.
+
+    Notes
+    -----
+    In theory this is all stuff we could do without using pandas. Their CSV
+    reading functions are pretty solid in my experience but if we REALLY have
+    a bottleneck here then we can do this all manually, maybe
+    """
+    df = pd.read_csv(fp, sep="\t", index_col=0)
+
+    if path_col not in df.columns:
+        raise PathParsingError(f'Column "{path_col}" not in {fp}.')
+
+    if len(df.index) == 0:
+        raise PathParsingError(f"{fp} does not describe any paths.")
+
+    # raise an error if any path occurs more than once on a row
+    # https://stackoverflow.com/a/20076611
+    # the first row has the most frequently occurring thing, so we
+    # can just check the count for the first row in value_counts()
+    # NOTE: I am sure this could be made faster by just iterating through
+    # the df and exiting as soon as we see something occurring twice. however,
+    # 99% of the time that will never happen everything will occur just once
+    sorted_paths_by_ct = df.index.value_counts()
+    if sorted_paths_by_ct.iloc[0] > 1:
+        p = sorted_paths_by_ct.index[0]
+        raise PathParsingError(f'Path "{p}" occurs multiple times in {fp}.')
+
+    return df[path_col].str.split(",").to_dict()
+
+
 def get_gaf_part(gaf_path):
     r"""Peels off the first part (a name or a gap) of a GAF path string.
 
@@ -188,15 +246,12 @@ def get_gaf_part(gaf_path):
 
 
 def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
-    """Loads paths from a Rukki-/Verkko-style GAF file.
-
-    (This style differs from the "official" GAF file specification at
-    https://github.com/lh3/gfatools/blob/master/doc/rGFA.md.)
+    """Loads paths from a Verkko-style TSV file.
 
     Parameters
     ----------
-    gaf_fp: str
-        A path to a GAF file.
+    tsv_fp: str
+        A path to a TSV file.
 
     orientation_in_name: bool
         Same interpretation as with get_paths_from_agp(). True means that node
@@ -226,114 +281,35 @@ def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
     ----------
     https://github.com/marbl/verkko
     """
-    # TODO update to be similar to flye info file stuff. actually you could
-    # probs abstract it to just use the same func for splitting stuff maybe idk
-    paths = {}
-    with open(gaf_fp, "r") as fh:
-        for line in fh:
-            # skip comments
-            if line.startswith("#"):
-                continue
-            parts = line.strip().split("\t")
-            if len(parts) < 2:
-                raise PathParsingError(f"Line {line} has < 2 columns")
-            path_name = parts[0]
-
-            # skip the "acro assignment" paths at the bottom of the HG002
-            # GAF file, which refer to nodes that aren't in the graph and use
-            # strange undocumented notation ("[<utig1-58322") anyway
-            #
-            # NOTE: if / when we want to make this parser stricter, it would
-            # REALLY be a good idea to actually make this case raise an error
-            if path_name in paths:
-                logging.warning(
-                    f"Path {path_name} defined multiple times; only using "
-                    "the first definition of it in the file"
-                )
-                continue
-
-            path_stuff = parts[1]
-            things_on_path = []
-            path_has_nongaps = False
-            while True:
-                name, orient, gap, nextpos = get_gaf_part(path_stuff)
-                if name is None:
-                    things_on_path.append(gap)
-                else:
-                    if orient == config.REV and orientation_in_name:
-                        things_on_path.append(config.REV + name)
-                    else:
-                        things_on_path.append(name)
-                    path_has_nongaps = True
-
-                if nextpos < len(path_stuff):
-                    path_stuff = path_stuff[nextpos:]
-                else:
-                    break
-            if len(things_on_path) == 0:
-                raise PathParsingError(f"Path {name} is empty?")
-            if not path_has_nongaps:
-                raise PathParsingError(f"Path {name} only has gaps???")
-            paths[path_name] = things_on_path
-    return paths
-
-
-def get_paths_dict_from_tsv(fp, path_col):
-    """Extracts path info from a column in a tab-separated file.
-
-    Parameters
-    ----------
-    fp: str
-        Path to a TSV file. There is a lot of leeway in how this file is
-        formatted -- the only requirements are that:
-
-        1. it is a tab-separated file
-        2. it has a header row
-        3. the leftmost column has the path names
-        4. one of the other columns describes the contents of each path,
-           which are comma-separated entries
-
-    path_col: str
-        Column name for requirement #4 above.
-
-    Raises
-    ------
-    PathParsingError
-        If a column named path_col is not in the file, if any path occurs
-        more than once in the file, or if the file does not describe any
-        paths.
-
-    Other stuff (e.g. FileNotFoundError)
-        Could be raised by pd.read_csv() if the file is missing, malformed,
-        etc.
-
-    Notes
-    -----
-    In theory this is all stuff we could do without using pandas. Their CSV
-    reading functions are pretty solid in my experience but if we REALLY have
-    a bottleneck here then we can do this all manually, maybe
-    """
-    df = pd.read_csv(fp, sep="\t", index_col=0)
-
-    if path_col not in df.columns:
-        raise PathParsingError(f'Column "{path_col}" not in {fp}.')
-
-    if len(df.index) == 0:
-        raise PathParsingError(f"{fp} does not describe any paths.")
-
-    # raise an error if any path occurs more than once on a row
-    # https://stackoverflow.com/a/20076611
-    # the first row has the most frequently occurring thing, so we
-    # can just check the count for the first row in value_counts()
-    # NOTE: I am sure this could be made faster by just iterating through
-    # the df and exiting as soon as we see something occurring twice. however,
-    # 99% of the time that will never happen everything will occur just once
-    sorted_paths_by_ct = df.index.value_counts()
-    if sorted_paths_by_ct.iloc[0] > 1:
-        p = sorted_paths_by_ct.index[0]
-        raise PathParsingError(f'Path "{p}" occurs multiple times in {fp}.')
-
-    return df[path_col].str.split(",").to_dict()
+    paths = get_paths_dict_from_tsv(fp, "graph_path")
+    outpaths = {}
+    for name, ids in paths.items():
+        path_ids = []
+        path_has_nongaps = False
+        for i in ids:
+            if i.startswith(config.VERKKO_PATH_GAP_PREFIX):
+                if ":" in i:
+                    # TODO just consider first : and before that is length
+                    # and after that is like the scaffold name and if there
+                    # are multiple :s then only consider the first and lump
+                    # all suffix ones together
+                    # prbs make a util func for parsing this. use stuff from
+                    # abov regarding get num from ui utils
+                    parts = i.split(":")[0]
+                path_edge_ids.append(Gap())
+            else:
+                # if orientaiton in name, then assert that last char is a +/-
+                # ie config.rev/fwd and move to prefix if - right
+                # TODO TODO
+                # else... then just treat names literally
+                path_ids.append(i)
+                path_has_nongaps = True
+        if len(path_ids) == 0:
+            raise PathParsingError(f"Invalid path: {name} -> {ids}")
+        if not path_has_nongaps:
+            raise PathParsingError(f"Path {name} only has gaps???")
+        outpaths[name] = path_ids
+    return outpaths
 
 
 def get_paths_from_flye_info(fp):
@@ -370,7 +346,7 @@ def get_paths_from_flye_info(fp):
     for name, edgeids in paths.items():
         path_edge_ids = []
         path_has_nongaps = False
-        for i in paths[name]:
+        for i in edgeids:
             if i == "*":
                 continue
             elif i == "??":
@@ -380,7 +356,7 @@ def get_paths_from_flye_info(fp):
                 path_has_nongaps = True
         if len(path_edge_ids) == 0:
             # maybe the path only has *s or something...?
-            raise PathParsingError(f"Invalid path: {name} -> {paths[name]}")
+            raise PathParsingError(f"Invalid path: {name} -> {edgeids}")
         if not path_has_nongaps:
             raise PathParsingError(f"Path {name} only has gaps???")
         trimmedpaths[name] = path_edge_ids
