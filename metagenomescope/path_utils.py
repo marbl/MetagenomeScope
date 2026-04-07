@@ -187,7 +187,7 @@ def get_gaf_part(gaf_path):
         )
 
 
-def get_paths_from_gaf(gaf_fp, orientation_in_name=True):
+def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
     """Loads paths from a Rukki-/Verkko-style GAF file.
 
     (This style differs from the "official" GAF file specification at
@@ -216,13 +216,18 @@ def get_paths_from_gaf(gaf_fp, orientation_in_name=True):
 
     Notes
     -----
-    This file format seems very new, so I have a sneaking suspicion our
-    expectations here might change in the future.
+    In practice, as of writing this should only be used with nodes in Verkko
+    GFA files (where we know that orientation_in_name=True). But I guess we
+    might as well support checking if orientation_in_name=False, so that
+    this kind of file can be used with other graphs if desired (it seems easier
+    to create than AGP files).
 
     References
     ----------
-    https://github.com/marbl/rukki
+    https://github.com/marbl/verkko
     """
+    # TODO update to be similar to flye info file stuff. actually you could
+    # probs abstract it to just use the same func for splitting stuff maybe idk
     paths = {}
     with open(gaf_fp, "r") as fh:
         for line in fh:
@@ -274,6 +279,34 @@ def get_paths_from_gaf(gaf_fp, orientation_in_name=True):
 
 
 def get_paths_from_flye_info(fp):
+    """Loads information about contig/scaffold paths from Flye output.
+
+    This assumes that the graph being provided as input is a DOT file from
+    Flye. If the user specifies this kind of file for a GFA file from Flye,
+    then there is different logic elsewhere that parses the contig metadata
+    / etc. and associates _that_ with the nodes in the graph.
+
+    Parameters
+    ----------
+    fp: str
+        A path to the assembly_info.txt file.
+
+    Returns
+    -------
+    paths: defaultdict of str -> list of str or Gap
+        Maps path names to a list of edge IDs / Gaps in the path.
+        This ignores * entries on the path (indicating "terminal graph node"s
+        per the Flye documentation).
+
+    Raises
+    ------
+    PathParsingError
+        If the file looks invalid.
+
+    References
+    ----------
+    https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md
+    """
     df = pd.read_csv(fp, sep="\t", index_col=0)
     if "graph_path" not in df.columns:
         raise PathParsingError("graph_path column not in assembly_info file?")
@@ -399,6 +432,7 @@ def get_path_maps(id2obj, paths, nodes=True):
                 if pathname in pathname2ccnum:
                     # Have we recorded this path as being in a *different* cc?
                     if pathname2ccnum[pathname] != obj.cc_num:
+                        # TODO: adjust to allow for multi-cc paths for verkko
                         raise PathParsingError(
                             f"Path {pathname} spans multiple components, "
                             f"including #{pathname2ccnum[pathname]:,} and "

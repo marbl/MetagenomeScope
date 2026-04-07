@@ -9,7 +9,7 @@ FASTA = (
 
 AGP = "AGP file describing paths."
 
-GAF = "Rukki-/Verkko-style GAF file describing paths."
+VERKKO_PATH_TSV = "Verkko assembly.paths.tsv file describing paths."
 
 FLYE_ASM_INFO = "Flye assembly_info.txt file describing contigs/scaffolds."
 

@@ -39,12 +39,12 @@ from . import __version__, defaults, descs, config
     help=descs.AGP,
 )
 @click.option(
-    "-r",
-    "--gaf",
+    "-t",
+    "--vtsv",
     type=click.Path(exists=True, dir_okay=False, readable=True),
     default=None,
     required=False,
-    help=descs.GAF,
+    help=descs.VERKKO_PATH_TSV,
 )
 @click.option(
     "-i",
@@ -80,7 +80,7 @@ from . import __version__, defaults, descs, config
 def run_script(
     graph: str,
     agp: str,
-    gaf: str,
+    vtsv: str,
     info: str,
     port: int,
     verbose: bool,
@@ -105,7 +105,7 @@ def run_script(
             "Settings:",
             f"Graph file: {graph}",
             f"AGP file: {agp}",
-            f"GAF file: {gaf}",
+            f"Verkko .paths.tsv file: {vtsv}",
             f"Flye info file: {info}",
             f"Port: {port}",
             f"Verbose?: {verbose}",
@@ -119,7 +119,7 @@ def run_script(
     run(
         graph=graph,
         agp=agp,
-        gaf=gaf,
+        vtsv=vtsv,
         flye_info=info,
         port=port,
         verbose=verbose,
