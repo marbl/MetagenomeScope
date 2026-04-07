@@ -278,6 +278,64 @@ def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
     return paths
 
 
+def get_paths_dict_from_tsv(fp, path_col):
+    """Extracts path info from a column in a tab-separated file.
+
+    Parameters
+    ----------
+    fp: str
+        Path to a TSV file. There is a lot of leeway in how this file is
+        formatted -- the only requirements are that:
+
+        1. it is a tab-separated file
+        2. it has a header row
+        3. the leftmost column has the path names
+        4. one of the other columns describes the contents of each path,
+           which are comma-separated entries
+
+    path_col: str
+        Column name for requirement #4 above.
+
+    Raises
+    ------
+    PathParsingError
+        If a column named path_col is not in the file, if any path occurs
+        more than once in the file, or if the file does not describe any
+        paths.
+
+    Other stuff (e.g. FileNotFoundError)
+        Could be raised by pd.read_csv() if the file is missing, malformed,
+        etc.
+
+    Notes
+    -----
+    In theory this is all stuff we could do without using pandas. Their CSV
+    reading functions are pretty solid in my experience but if we REALLY have
+    a bottleneck here then we can do this all manually, maybe
+    """
+    df = pd.read_csv(fp, sep="\t", index_col=0)
+
+    if path_col not in df.columns:
+        raise PathParsingError(f'Column "{path_col}" not in {fp}.')
+
+    if len(df.index) == 0:
+        raise PathParsingError(f"{fp} does not describe any paths.")
+
+    # raise an error if any path occurs more than once on a row
+    # https://stackoverflow.com/a/20076611
+    # the first row has the most frequently occurring thing, so we
+    # can just check the count for the first row in value_counts()
+    # NOTE: I am sure this could be made faster by just iterating through
+    # the df and exiting as soon as we see something occurring twice. however,
+    # 99% of the time that will never happen everything will occur just once
+    sorted_paths_by_ct = df.index.value_counts()
+    if sorted_paths_by_ct.iloc[0] > 1:
+        p = sorted_paths_by_ct.index[0]
+        raise PathParsingError(f'Path "{p}" occurs multiple times in {fp}.')
+
+    return df[path_col].str.split(",").to_dict()
+
+
 def get_paths_from_flye_info(fp):
     """Loads information about contig/scaffold paths from Flye output.
 
@@ -307,16 +365,9 @@ def get_paths_from_flye_info(fp):
     ----------
     https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md
     """
-    df = pd.read_csv(fp, sep="\t", index_col=0)
-    if "graph_path" not in df.columns:
-        raise PathParsingError("graph_path column not in assembly_info file?")
-    paths = df["graph_path"].str.split(",").to_dict()
+    paths = get_paths_dict_from_tsv(fp, "graph_path")
     trimmedpaths = {}
     for name, edgeids in paths.items():
-        if name in trimmedpaths:
-            raise PathParsingError(
-                f"Name {name} occurs twice in assembly_info file?"
-            )
         path_edge_ids = []
         path_has_nongaps = False
         for i in paths[name]:
