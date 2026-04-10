@@ -245,6 +245,57 @@ def get_gaf_part(gaf_path):
         )
 
 
+def parse_verkko_tsv_gap(gaptext):
+    """Extracts gap length and (if given) gap type from a Verkko TSV gap entry.
+
+    Parameters
+    ----------
+    gaptext: str
+        Looks something like "[N500N:scaffold]".
+        We assume that this starts with config.VERKKO_PATH_GAP_PREFIX ("[N").
+
+    Returns
+    -------
+    metagenomescope.gap.Gap
+
+    Raises
+    ------
+    PathParsingError or UIError
+        If the gap text looks invalid.
+    """
+    if not gaptext.endswith("]"):
+        raise PathParsingError(f"Gap {gaptext} does not end in ]")
+
+    GAP_PREFIX_LEN = len(config.VERKKO_PATH_GAP_PREFIX)
+    gaptype = None
+    if ":" in gaptext:
+        # Gap looks like "[N500N:scaffold]"; slice to just "[N500N"
+        lengthpartendpos = gaptext.index(":")
+        if gaptext.endswith("]"):
+            if len(gaptext) - lengthpartendpos > 2:
+                gaptype = gaptext[lengthpartendpos + 1 : -1]
+            else:
+                # the gap looks like "[N500N:]"
+                # it's weird to have a colon with no description after it
+                raise PathParsingError(f"Empty gap name: {gaptext}")
+    else:
+        # Gap looks like "[N500N]"; slice to just "[N500N"
+        lengthpartendpos = gaptext.index("]")
+
+    if gaptext[lengthpartendpos - 1] == "N":
+        if lengthpartendpos - 1 > GAP_PREFIX_LEN:
+            gaplen = ui_utils.get_num(
+                gaptext[GAP_PREFIX_LEN : lengthpartendpos - 1],
+                min_val=0,
+                min_incl=False,
+            )
+            return Gap(length=gaplen, gaptype=gaptype)
+        else:
+            raise PathParsingError(f"Empty gap length: {gaptext}")
+    else:
+        raise PathParsingError("Gap length does not end with an N: {gaptext}")
+
+
 def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
     """Loads paths from a Verkko-style TSV file.
 
@@ -281,34 +332,26 @@ def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
     ----------
     https://github.com/marbl/verkko
     """
-    paths = get_paths_dict_from_tsv(fp, "graph_path")
+    paths = get_paths_dict_from_tsv(tsv_fp, "graph_path")
     outpaths = {}
     for name, ids in paths.items():
-        path_ids = []
+        path_things = []
         path_has_nongaps = False
         for i in ids:
             if i.startswith(config.VERKKO_PATH_GAP_PREFIX):
-                if ":" in i:
-                    # TODO just consider first : and before that is length
-                    # and after that is like the scaffold name and if there
-                    # are multiple :s then only consider the first and lump
-                    # all suffix ones together
-                    # prbs make a util func for parsing this. use stuff from
-                    # abov regarding get num from ui utils
-                    parts = i.split(":")[0]
-                path_edge_ids.append(Gap())
+                path_things.append(parse_verkko_tsv_gap(i))
             else:
                 # if orientaiton in name, then assert that last char is a +/-
                 # ie config.rev/fwd and move to prefix if - right
                 # TODO TODO
                 # else... then just treat names literally
-                path_ids.append(i)
+                path_things.append(i)
                 path_has_nongaps = True
-        if len(path_ids) == 0:
+        if len(path_things) == 0:
             raise PathParsingError(f"Invalid path: {name} -> {ids}")
         if not path_has_nongaps:
             raise PathParsingError(f"Path {name} only has gaps???")
-        outpaths[name] = path_ids
+        outpaths[name] = path_things
     return outpaths
 
 
