@@ -6,6 +6,22 @@ from metagenomescope.gap import Gap
 from metagenomescope import path_utils as pu
 
 
+def test_add_rev_if_needed():
+    assert pu.add_rev_if_needed("asdf", "+", True) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "-", True) == "-asdf"
+    assert pu.add_rev_if_needed("asdf", "+", False) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "-", False) == "asdf"
+
+    # weird orientations (e.g. the stuff in the AGP specification)
+    # are treated as positive i guess
+    # hey since youre reading the tests here is a special gift:
+    # https://www.youtube.com/watch?v=URtqADoz9uA
+    assert pu.add_rev_if_needed("asdf", "glorp", True) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "glorp", True) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "glorp", False) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "glorp", False) == "asdf"
+
+
 def test_get_paths_from_agp_simple():
     paths = pu.get_paths_from_agp(
         "metagenomescope/tests/input/scaffolds_ecoli.agp"
