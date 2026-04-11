@@ -11,7 +11,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 ### Added
 
 - Add the `-t`/`--vtsv` command-line option, to support reading
-  [Verkko](https://github.com/marbl/verkko)-style TSV files describing paths.
+  [Verkko](https://github.com/marbl/verkko)-style TSV files describing paths
+  ([#336](https://github.com/marbl/MetagenomeScope/issues/336)).
 
 - Various updates to the README.
 
