@@ -199,7 +199,7 @@ def parse_verkko_tsv_seqname(nametext, orientation_in_name=True):
     lastchar = nametext[-1]
     if lastchar not in "-+":
         raise PathParsingError(
-            f"Name on path doesn't end with +/-: {nametext}"
+            f'Name on path doesn\'t end with +/-: "{nametext}"'
         )
     return add_rev_if_needed(nametext[:-1], lastchar, orientation_in_name)
 
@@ -223,7 +223,7 @@ def parse_verkko_tsv_gap(gaptext):
         If the gap text looks invalid.
     """
     if not gaptext.endswith("]"):
-        raise PathParsingError(f"Gap {gaptext} does not end in ]")
+        raise PathParsingError(f'Gap "{gaptext}" does not end with ]')
 
     GAP_PREFIX_LEN = len(config.VERKKO_PATH_GAP_PREFIX)
     gaptype = None
@@ -233,13 +233,12 @@ def parse_verkko_tsv_gap(gaptext):
         # we assume that the first one indicates the start of the gap type,
         # and allow arbitrarily many ";"s in the gap type afterwards
         lengthpartendpos = gaptext.index(":")
-        if gaptext.endswith("]"):
-            if len(gaptext) - lengthpartendpos > 2:
-                gaptype = gaptext[lengthpartendpos + 1 : -1]
-            else:
-                # the gap looks like "[N500N:]"
-                # it's weird to have a colon with no description after it
-                raise PathParsingError(f"Empty gap name: {gaptext}")
+        if len(gaptext) - lengthpartendpos > 2:
+            gaptype = gaptext[lengthpartendpos + 1 : -1]
+        else:
+            # the gap looks like "[N500N:]"
+            # it's weird to have a colon with no description after it
+            raise PathParsingError(f'Empty gap name: "{gaptext}"')
     else:
         # Gap looks like "[N500N]"; slice to just "[N500N"
         lengthpartendpos = gaptext.index("]")
@@ -252,9 +251,9 @@ def parse_verkko_tsv_gap(gaptext):
             )
             return Gap(length=gaplen, gaptype=gaptype)
         else:
-            raise PathParsingError(f"Empty gap length: {gaptext}")
+            raise PathParsingError(f'Empty gap length: "{gaptext}"')
     else:
-        raise PathParsingError("Gap length does not end with an N: {gaptext}")
+        raise PathParsingError(f'Gap length does not end with N: "{gaptext}"')
 
 
 def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):

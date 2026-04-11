@@ -62,6 +62,58 @@ def test_get_paths_from_agp_gap():
     }
 
 
+def test_parse_verkko_tsv_gap_simple():
+    assert pu.parse_verkko_tsv_gap("[N500N]") == Gap(length=500)
+    assert pu.parse_verkko_tsv_gap("[N500N:scaff]") == Gap(
+        length=500, gaptype="scaff"
+    )
+
+
+def test_parse_verkko_tsv_gap_extra_colons_ok():
+    assert pu.parse_verkko_tsv_gap("[N123456N:asdf:ghjil:ff]") == Gap(
+        length=123456, gaptype="asdf:ghjil:ff"
+    )
+    # i GUESS this technically works but like come on
+    assert pu.parse_verkko_tsv_gap("[N123456N::]") == Gap(
+        length=123456, gaptype=":"
+    )
+    assert pu.parse_verkko_tsv_gap("[N123456N:::]") == Gap(
+        length=123456, gaptype="::"
+    )
+
+
+def test_parse_verkko_tsv_gap_noendbracket():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123456N")
+    assert str(ei.value) == 'Gap "[N123456N" does not end with ]'
+
+
+def test_parse_verkko_tsv_gap_colon_but_noname():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123456N:]")
+    assert str(ei.value) == 'Empty gap name: "[N123456N:]"'
+
+
+def test_parse_verkko_tsv_gap_nolength():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[NN]")
+    assert str(ei.value) == 'Empty gap length: "[NN]"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[NN:asdf]")
+    assert str(ei.value) == 'Empty gap length: "[NN:asdf]"'
+
+
+def test_parse_verkko_tsv_gap_length_doesnt_end_in_n():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123]")
+    assert str(ei.value) == 'Gap length does not end with N: "[N123]"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123:asdf]")
+    assert str(ei.value) == 'Gap length does not end with N: "[N123:asdf]"'
+
+
 def test_get_path_maps_simple():
     paths = pu.get_paths_from_agp(
         "metagenomescope/tests/input/scaffolds_ecoli.agp"
