@@ -245,8 +245,39 @@ def get_gaf_part(gaf_path):
         )
 
 
+def parse_verkko_tsv_seqname(nametext, orientation_in_name=True):
+    """Parses a node / edge name from an entry in a Verkko path.
+
+    Parameters
+    ----------
+    nametext: str
+        Looks something like "utig4-1024-".
+
+    orientation_in_name: bool
+        See get_paths_from_agp().
+
+    Returns
+    -------
+    str
+
+    Raises
+    ------
+    PathParsingError
+        If the name looks invalid.
+    """
+    lastchar = nametext[-1]
+    if lastchar not in "-+":
+        raise PathParsingError(
+            f"Name on path doesn't end with +/-: {nametext}"
+        )
+    if orientation_in_name and lastchar == "-":
+        return config.REV + nametext[:-1]
+    else:
+        return nametext[:-1]
+
+
 def parse_verkko_tsv_gap(gaptext):
-    """Extracts gap length and (if given) gap type from a Verkko TSV gap entry.
+    """Extracts gap length and (if given) gap type from a gap in a Verkko path.
 
     Parameters
     ----------
@@ -270,6 +301,9 @@ def parse_verkko_tsv_gap(gaptext):
     gaptype = None
     if ":" in gaptext:
         # Gap looks like "[N500N:scaffold]"; slice to just "[N500N"
+        # note that this is perfectly okay with there being multiple ":"s.
+        # we assume that the first one indicates the start of the gap type,
+        # and allow arbitrarily many ";"s in the gap type afterwards
         lengthpartendpos = gaptext.index(":")
         if gaptext.endswith("]"):
             if len(gaptext) - lengthpartendpos > 2:
@@ -286,8 +320,7 @@ def parse_verkko_tsv_gap(gaptext):
         if lengthpartendpos - 1 > GAP_PREFIX_LEN:
             gaplen = ui_utils.get_num(
                 gaptext[GAP_PREFIX_LEN : lengthpartendpos - 1],
-                min_val=0,
-                min_incl=False,
+                "Verkko path gap size",
             )
             return Gap(length=gaplen, gaptype=gaptype)
         else:
@@ -332,7 +365,7 @@ def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
     ----------
     https://github.com/marbl/verkko
     """
-    paths = get_paths_dict_from_tsv(tsv_fp, "graph_path")
+    paths = get_paths_dict_from_tsv(tsv_fp, "path")
     outpaths = {}
     for name, ids in paths.items():
         path_things = []
@@ -341,11 +374,11 @@ def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
             if i.startswith(config.VERKKO_PATH_GAP_PREFIX):
                 path_things.append(parse_verkko_tsv_gap(i))
             else:
-                # if orientaiton in name, then assert that last char is a +/-
-                # ie config.rev/fwd and move to prefix if - right
-                # TODO TODO
-                # else... then just treat names literally
-                path_things.append(i)
+                path_things.append(
+                    parse_verkko_tsv_seqname(
+                        i, orientation_in_name=orientation_in_name
+                    )
+                )
                 path_has_nongaps = True
         if len(path_things) == 0:
             raise PathParsingError(f"Invalid path: {name} -> {ids}")
