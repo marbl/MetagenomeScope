@@ -196,6 +196,10 @@ def parse_verkko_tsv_seqname(nametext, orientation_in_name=True):
     PathParsingError
         If the name looks invalid.
     """
+    if len(nametext) < 2:
+        raise PathParsingError(
+            f'Name on path has < 2 characters: "{nametext}"'
+        )
     lastchar = nametext[-1]
     if lastchar not in "-+":
         raise PathParsingError(

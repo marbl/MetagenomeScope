@@ -62,6 +62,50 @@ def test_get_paths_from_agp_gap():
     }
 
 
+def test_parse_verkko_tsv_seqname_simple():
+    assert pu.parse_verkko_tsv_seqname("asdf+", True) == "asdf"
+    assert pu.parse_verkko_tsv_seqname("asdf-", True) == "-asdf"
+    assert pu.parse_verkko_tsv_seqname("asdf+", False) == "asdf"
+    assert pu.parse_verkko_tsv_seqname("asdf-", False) == "asdf"
+
+    assert pu.parse_verkko_tsv_seqname("c+", True) == "c"
+    assert pu.parse_verkko_tsv_seqname("c-", True) == "-c"
+    assert pu.parse_verkko_tsv_seqname("c+", False) == "c"
+    assert pu.parse_verkko_tsv_seqname("c-", False) == "c"
+
+
+def test_parse_verkko_tsv_seqname_tooshort():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("+", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: "+"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("-", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: "-"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("a", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: "a"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: ""'
+
+
+def test_parse_verkko_tsv_seqname_noendorientation():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("asdf", True)
+    assert str(ei.value) == 'Name on path doesn\'t end with +/-: "asdf"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("asdf", False)
+    assert str(ei.value) == 'Name on path doesn\'t end with +/-: "asdf"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("asdf?", False)
+    assert str(ei.value) == 'Name on path doesn\'t end with +/-: "asdf?"'
+
+
 def test_parse_verkko_tsv_gap_simple():
     assert pu.parse_verkko_tsv_gap("[N500N]") == Gap(length=500)
     assert pu.parse_verkko_tsv_gap("[N500N:scaff]") == Gap(
