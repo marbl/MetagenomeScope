@@ -61,6 +61,3 @@ jumboDBG from the chromosome 15 haplome from version 2.0 of the
 and `chr15_full.gv` is (I think??? It's been like three years) the full version of the
 chromosome 15 graph. Somehow each of these caused a different bug. So now they are all
 immortalized shamefully as regression tests >:)
-
-The `hg002/` directory contains data from the Telomere-to-Telomere (T2T) Consortium's
-HG002 human genome assembly, downloaded from https://github.com/marbl/hg002.
