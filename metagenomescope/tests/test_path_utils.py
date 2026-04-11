@@ -196,6 +196,16 @@ def test_get_paths_from_verkko_tsv_gaps_onlyonepath():
         }
 
 
+def test_get_paths_from_verkko_tsv_only_gaps():
+    with tempfile.NamedTemporaryFile(suffix=".tsv") as fp:
+        fp.write(b"name\tpath\tassignment\n")
+        fp.write(b"p1\t[N100N],[N0N:asdf]\tMAT\n")
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_verkko_tsv(fp.name, True)
+        assert str(ei.value) == "Path p1 only has gaps???"
+
+
 def test_get_path_maps_simple():
     paths = pu.get_paths_from_agp(
         "metagenomescope/tests/input/scaffolds_ecoli.agp"

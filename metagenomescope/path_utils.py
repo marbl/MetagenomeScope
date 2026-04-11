@@ -153,7 +153,8 @@ def get_paths_dict_from_tsv(fp, path_col):
     reading functions are pretty solid in my experience but if we REALLY have
     a bottleneck here then we can do this all manually, maybe
     """
-    df = pd.read_csv(fp, sep="\t", index_col=0)
+    # treat even empty cells as strings: https://stackoverflow.com/a/67350928
+    df = pd.read_csv(fp, sep="\t", index_col=0, dtype=str, na_filter=False)
 
     if path_col not in df.columns:
         raise PathParsingError(f'Column "{path_col}" not in {fp}.')
@@ -312,6 +313,12 @@ def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
                 )
                 path_has_nongaps = True
         if len(path_things) == 0:
+            # this case seems impossible to trigger, since even an
+            # empty paths column will result in [""] due to how
+            # .split(",") works in get_paths_dict_from_tsv(). (And
+            # that will cause parse_verkko_tsv_seqname() to raise
+            # an error.) Anyway i guess we can keep this check here
+            # out of paranoia
             raise PathParsingError(f'Empty path: {name} -> "{ids}"')
         if not path_has_nongaps:
             raise PathParsingError(f"Path {name} only has gaps???")
