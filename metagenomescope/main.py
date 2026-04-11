@@ -38,6 +38,7 @@ from .errors import UIError, WeirdError
 def run(
     graph: str = None,
     agp: str = None,
+    vtsv: str = None,
     flye_info: str = None,
     port: int = defaults.PORT,
     verbose: bool = defaults.VERBOSE,
@@ -52,6 +53,10 @@ def run(
 
     agp: str or None
         Path to an AGP file describing paths of nodes/edges in the graph.
+        (Optional.)
+
+    vtsv: str or None
+        Path to a Verkko TSV file describing paths of nodes/edges in the graph.
         (Optional.)
 
     flye_info: str or None
@@ -78,7 +83,9 @@ def run(
     # Read the assembly graph file and create an object representing it.
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
     # edges, etc.
-    ag = AssemblyGraph(graph, agp_fp=agp, flye_info_fp=flye_info)
+    ag = AssemblyGraph(
+        graph, agp_fp=agp, verkko_tsv_fp=vtsv, flye_info_fp=flye_info
+    )
 
     # Prepare some of the UI components in advance. A nice thing about Dash
     # (which I guess comes from it being built on top of React) is that we can

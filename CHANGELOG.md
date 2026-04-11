@@ -8,6 +8,23 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 ## [Unreleased]
 [Unreleased]: https://github.com/marbl/MetagenomeScope/compare/v1.2.0...HEAD
 
+### Added
+
+- Add the `-t`/`--vtsv` command-line option, to support reading
+  [Verkko](https://github.com/marbl/verkko)-style TSV files describing paths
+  ([#336](https://github.com/marbl/MetagenomeScope/issues/336)).
+
+- Various updates to the README.
+
+### Changed
+
+- Prevent node or edge IDs from beginning with `[N`. This removes ambiguity
+  when parsing Verkko TSV files.
+
+### Fixed
+
+- Cleaned up and added some more tests for the path-parsing parts of the code.
+
 
 ## [v1.2.0] - 2026-03-27 - Nonredundant drawing, bug fixes, and cleaning up
 [v1.2.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.2.0

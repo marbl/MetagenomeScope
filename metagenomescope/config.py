@@ -150,3 +150,5 @@ CDI_DRAWN_EDGE_IDS = "drawn_edge_ids"
 # (or whatever the default is).
 MIN_PORT = 1024
 MAX_PORT = 65535
+
+VERKKO_PATH_GAP_PREFIX = "[N"

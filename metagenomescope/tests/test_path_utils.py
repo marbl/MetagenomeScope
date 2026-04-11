@@ -1,9 +1,25 @@
 import pytest
 import tempfile
-from metagenomescope.errors import PathParsingError
+from metagenomescope.errors import PathParsingError, UIError
 from metagenomescope.graph import AssemblyGraph
 from metagenomescope.gap import Gap
 from metagenomescope import path_utils as pu
+
+
+def test_add_rev_if_needed():
+    assert pu.add_rev_if_needed("asdf", "+", True) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "-", True) == "-asdf"
+    assert pu.add_rev_if_needed("asdf", "+", False) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "-", False) == "asdf"
+
+    # weird orientations (e.g. the stuff in the AGP specification)
+    # are treated as positive i guess
+    # hey since youre reading the tests here is a special gift:
+    # https://www.youtube.com/watch?v=URtqADoz9uA
+    assert pu.add_rev_if_needed("asdf", "glorp", True) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "glorp", True) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "glorp", False) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "glorp", False) == "asdf"
 
 
 def test_get_paths_from_agp_simple():
@@ -44,6 +60,150 @@ def test_get_paths_from_agp_gap():
             "259",
         ]
     }
+
+
+def test_parse_verkko_tsv_seqname_simple():
+    assert pu.parse_verkko_tsv_seqname("asdf+", True) == "asdf"
+    assert pu.parse_verkko_tsv_seqname("asdf-", True) == "-asdf"
+    assert pu.parse_verkko_tsv_seqname("asdf+", False) == "asdf"
+    assert pu.parse_verkko_tsv_seqname("asdf-", False) == "asdf"
+
+    assert pu.parse_verkko_tsv_seqname("c+", True) == "c"
+    assert pu.parse_verkko_tsv_seqname("c-", True) == "-c"
+    assert pu.parse_verkko_tsv_seqname("c+", False) == "c"
+    assert pu.parse_verkko_tsv_seqname("c-", False) == "c"
+
+
+def test_parse_verkko_tsv_seqname_tooshort():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("+", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: "+"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("-", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: "-"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("a", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: "a"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: ""'
+
+
+def test_parse_verkko_tsv_seqname_noendorientation():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("asdf", True)
+    assert str(ei.value) == 'Name on path doesn\'t end with +/-: "asdf"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("asdf", False)
+    assert str(ei.value) == 'Name on path doesn\'t end with +/-: "asdf"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("asdf?", False)
+    assert str(ei.value) == 'Name on path doesn\'t end with +/-: "asdf?"'
+
+
+def test_parse_verkko_tsv_gap_simple():
+    assert pu.parse_verkko_tsv_gap("[N500N]") == Gap(length=500)
+    assert pu.parse_verkko_tsv_gap("[N500N:scaff]") == Gap(
+        length=500, gaptype="scaff"
+    )
+    # should we allow this? whatever. if the scaffolder specifies a 0-length
+    # gap then who are we to stop it
+    assert pu.parse_verkko_tsv_gap("[N0N]") == Gap(length=0)
+
+
+def test_parse_verkko_tsv_gap_negativelength():
+    # there isn't a big deep reason why this raises a UIError instead
+    # of a PathParsingError. it boils down to that's what ui_utils.get_num()
+    # throws because we typically call that from the UI when checking like
+    # font sizes or whatever that the user specifies in the app.
+    #
+    # um. we could refactor things so that get_num() could throw custom
+    # exception types but literally it doesnt matter at all atm sooooo
+    with pytest.raises(UIError) as ei:
+        pu.parse_verkko_tsv_gap("[N-1N]")
+    assert str(ei.value) == "Verkko path gap size must be \u2265 0."
+
+
+def test_parse_verkko_tsv_gap_extra_colons_ok():
+    assert pu.parse_verkko_tsv_gap("[N123456N:asdf:ghjil:ff]") == Gap(
+        length=123456, gaptype="asdf:ghjil:ff"
+    )
+    # i GUESS this technically works but like come on
+    assert pu.parse_verkko_tsv_gap("[N123456N::]") == Gap(
+        length=123456, gaptype=":"
+    )
+    assert pu.parse_verkko_tsv_gap("[N123456N:::]") == Gap(
+        length=123456, gaptype="::"
+    )
+
+
+def test_parse_verkko_tsv_gap_noendbracket():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123456N")
+    assert str(ei.value) == 'Gap "[N123456N" does not end with ]'
+
+
+def test_parse_verkko_tsv_gap_colon_but_noname():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123456N:]")
+    assert str(ei.value) == 'Empty gap name: "[N123456N:]"'
+
+
+def test_parse_verkko_tsv_gap_nolength():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[NN]")
+    assert str(ei.value) == 'Empty gap length: "[NN]"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[NN:asdf]")
+    assert str(ei.value) == 'Empty gap length: "[NN:asdf]"'
+
+
+def test_parse_verkko_tsv_gap_length_doesnt_end_in_n():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123]")
+    assert str(ei.value) == 'Gap length does not end with N: "[N123]"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123:asdf]")
+    assert str(ei.value) == 'Gap length does not end with N: "[N123:asdf]"'
+
+
+def test_get_paths_from_verkko_tsv_simple():
+    with tempfile.NamedTemporaryFile(suffix=".tsv") as fp:
+        fp.write(b"name\tpath\tassignment\n")
+        fp.write(b"p1\t3+,4-,5-,a+,b-\tMAT\n")
+        fp.write(b"p2\t6+,4-,5-,a+,b-\tPAT\n")
+        fp.seek(0)
+        assert pu.get_paths_from_verkko_tsv(fp.name, True) == {
+            "p1": ["3", "-4", "-5", "a", "-b"],
+            "p2": ["6", "-4", "-5", "a", "-b"],
+        }
+
+
+def test_get_paths_from_verkko_tsv_gaps_onlyonepath():
+    with tempfile.NamedTemporaryFile(suffix=".tsv") as fp:
+        fp.write(b"name\tpath\tassignment\n")
+        fp.write(b"p1\t3+,4-,5-,a+,[N1N],b-\tMAT\n")
+        fp.seek(0)
+        assert pu.get_paths_from_verkko_tsv(fp.name, True) == {
+            "p1": ["3", "-4", "-5", "a", Gap(length=1), "-b"]
+        }
+
+
+def test_get_paths_from_verkko_tsv_only_gaps():
+    with tempfile.NamedTemporaryFile(suffix=".tsv") as fp:
+        fp.write(b"name\tpath\tassignment\n")
+        fp.write(b"p1\t[N100N],[N0N:asdf]\tMAT\n")
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_verkko_tsv(fp.name, True)
+        assert str(ei.value) == "Path p1 only has gaps???"
 
 
 def test_get_path_maps_simple():
