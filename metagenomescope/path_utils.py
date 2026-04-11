@@ -13,6 +13,46 @@ from .gap import Gap
 GAF_BRACKET_TO_ORIENT = {">": config.FWD, "<": config.REV}
 
 
+def add_rev_if_needed(name, orientation, orientation_in_name):
+    """Converts a name and orientation to the expected name format.
+
+    Parameters
+    ----------
+    name: str
+        Node / edge name (ignoring orientation), e.g. "contig5".
+
+    orientation: str
+        Probably either "+" or "-". This can theoretically be other stuff
+        (https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/)
+        but we will treat everything that isn't "-" as if it was just "+".
+
+    orientation_in_name: bool
+        If True, reverse-orientation sequence names are prefixed with
+        config.REV (e.g. "-contig5"). Forward-orientation sequence names
+        are not prefixed with anything (e.g. "contig5").
+
+        If False, orientations don't go in the name at all -- rather than
+        having pairs like "-contig5" and "contig5", we now assume there is
+        just one copy of each sequence with a predefined orientation. This
+        is the case for MetaCarvel GML files.
+
+    Returns
+    -------
+    name: str
+
+    Notes
+    -----
+    In practice, config.REV == "-", so whatever. I guess there is some value
+    in keeping "-" (what we expect to see in AGP files, Verkko TSV files, etc)
+    separate from config.REV, but probably config.REV will never be changed so
+    it's nbd
+    """
+    if orientation_in_name and orientation == "-":
+        return config.REV + name
+    else:
+        return name
+
+
 def get_paths_from_agp(agp_fp, orientation_in_name=True):
     """Loads paths from an AGP file.
 
@@ -76,14 +116,7 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
                     glen = None
                 paths[path_name].append(Gap(length=glen, gaptype=parts[6]))
                 continue
-            seq_id = parts[5]
-            # NOTE: ok look, config.REV == "-", so whatever. But the AGP
-            # specification specifically writes out a minus sign, so i guess
-            # in theory we can change config.REV/FWD without breaking this
-            # function. sure. look it really doesn't matter im never gonna
-            # change those LOL
-            if orientation_in_name and parts[8] == "-":
-                seq_id = config.REV + seq_id
+            seq_id = add_rev_if_needed(parts[5], parts[8], orientation_in_name)
             paths[path_name].append(seq_id)
             pathnames_with_nongaps.add(path_name)
     only_gap_paths = set(paths.keys()) - pathnames_with_nongaps
@@ -175,10 +208,7 @@ def parse_verkko_tsv_seqname(nametext, orientation_in_name=True):
         raise PathParsingError(
             f"Name on path doesn't end with +/-: {nametext}"
         )
-    if orientation_in_name and lastchar == "-":
-        return config.REV + nametext[:-1]
-    else:
-        return nametext[:-1]
+    return add_rev_if_needed(nametext[:-1], lastchar, orientation_in_name)
 
 
 def parse_verkko_tsv_gap(gaptext):
