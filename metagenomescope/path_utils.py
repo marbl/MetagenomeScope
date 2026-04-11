@@ -312,7 +312,7 @@ def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
                 )
                 path_has_nongaps = True
         if len(path_things) == 0:
-            raise PathParsingError(f"Invalid path: {name} -> {ids}")
+            raise PathParsingError(f'Empty path: {name} -> "{ids}"')
         if not path_has_nongaps:
             raise PathParsingError(f"Path {name} only has gaps???")
         outpaths[name] = path_things
@@ -363,7 +363,7 @@ def get_paths_from_flye_info(fp):
                 path_has_nongaps = True
         if len(path_edge_ids) == 0:
             # maybe the path only has *s or something...?
-            raise PathParsingError(f"Invalid path: {name} -> {edgeids}")
+            raise PathParsingError(f'Invalid path: {name} -> "{edgeids}"')
         if not path_has_nongaps:
             raise PathParsingError(f"Path {name} only has gaps???")
         trimmedpaths[name] = path_edge_ids
