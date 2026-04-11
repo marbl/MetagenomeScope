@@ -5,13 +5,6 @@ from metagenomescope import config, ui_utils
 from .errors import PathParsingError
 from .gap import Gap
 
-# neither https://github.com/marbl/rukki nor
-# https://github.com/lh3/gfatools/blob/master/doc/rGFA.md explicitly
-# say what > and < correspond to. The closest thing is that the rGFA docs
-# contain the phrase "... and assume the orientation to be forward >". So,
-# I assume that this is what they mean.
-GAF_BRACKET_TO_ORIENT = {">": config.FWD, "<": config.REV}
-
 
 def add_rev_if_needed(name, orientation, orientation_in_name):
     """Converts a name and orientation to the expected name format.
