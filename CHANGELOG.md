@@ -10,8 +10,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Added
 
-- Add support for reading [Verkko](https://github.com/marbl/verkko)- style TSV
-  files describing paths in the graph using the `-t`/`--vtsv` option.
+- Add the `-t`/`--vtsv` command-line option, to support reading
+  [Verkko](https://github.com/marbl/verkko)-style TSV files describing paths.
 
 - Various updates to the README.
 
