@@ -8,6 +8,22 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 ## [Unreleased]
 [Unreleased]: https://github.com/marbl/MetagenomeScope/compare/v1.2.0...HEAD
 
+### Added
+
+- Add support for reading [Verkko](https://github.com/marbl/verkko)- style TSV
+  files describing paths in the graph using the `-t`/`--vtsv` option.
+
+- Various updates to the README.
+
+### Changed
+
+- Prevent node or edge IDs from beginning with `[N`. This removes ambiguity
+  when parsing Verkko TSV files.
+
+### Fixed
+
+- Cleaned up and added some more tests for the path-parsing parts of the code.
+
 
 ## [v1.2.0] - 2026-03-27 - Nonredundant drawing, bug fixes, and cleaning up
 [v1.2.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.2.0
@@ -17,12 +33,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Add a new drawing method, `Entire graph (nonredundant)`, that draws the
   entire graph _but_ draws perfectly reverse-complementary components
   only once ([#67](https://github.com/marbl/MetagenomeScope/issues/67)).
-
-- Add experimental support for reading [Rukki](https://github.com/marbl/rukki)-
-  / [Verkko](https://github.com/marbl/verkko)- style GAF files describing paths
-  in the graph.
-    - This file format seems relatively "new," so I may change the parser
-      for it in the future to make it more / less strict as needed.
 
 - Tidy up the README in various ways, including updating screenshots
   and adding bioconda installation instructions
