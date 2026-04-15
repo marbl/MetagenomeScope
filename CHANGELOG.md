@@ -18,8 +18,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Changed
 
-- Prevent node or edge IDs from beginning with `[N`. This removes ambiguity
-  when parsing Verkko TSV files.
+- Prevent node or edge IDs from beginning with `[N`. This makes parsing Verkko
+  TSV files easier: with this restriction, we can now unambiguously say if
+  something on a path is a gap or not.
 
 ### Fixed
 
