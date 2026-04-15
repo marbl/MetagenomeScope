@@ -121,6 +121,9 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
 def get_paths_dict_from_tsv(fp, path_col):
     """Extracts path info from a column in a tab-separated file.
 
+    This is general enough that it can be used for both Verkko path TSV files
+    and Flye assembly_info.txt files.
+
     Parameters
     ----------
     fp: str
@@ -590,5 +593,5 @@ def merge_paths(curr_paths, new_paths):
     i0 = set(curr_paths.keys())
     i1 = set(new_paths.keys())
     if i0 & i1:
-        raise PathParsingError("Duplicate paths found between sources?")
+        raise PathParsingError("Duplicate path names found between sources?")
     curr_paths.update(new_paths)

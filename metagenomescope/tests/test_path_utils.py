@@ -307,7 +307,7 @@ def test_multiple_path_sources_duplicate_name():
                 agp_fp=fp.name,
                 flye_info_fp="metagenomescope/tests/input/flye_yeast_assembly_info.txt",
             )
-        assert str(ei.value) == "Duplicate paths found between sources?"
+        assert str(ei.value) == "Duplicate path names found between sources?"
 
 
 def test_flye_path_with_gaps():
@@ -371,3 +371,43 @@ def test_flye_path_with_gaps():
         "26",
         "-32",
     ]
+
+
+def test_merge_paths_simple():
+    paths = {"p1": ["a", "b", "c"], "p2": ["b"]}
+    newpaths = {"p3": ["c", "d"]}
+    pu.merge_paths(paths, newpaths)
+    assert paths == {"p1": ["a", "b", "c"], "p2": ["b"], "p3": ["c", "d"]}
+    # newpaths should be unchanged
+    assert newpaths == {"p3": ["c", "d"]}
+
+
+def test_merge_paths_empty():
+    # merge something into nothing
+    paths = {}
+    newpaths = {"p3": ["c", "d"]}
+    pu.merge_paths(paths, newpaths)
+    assert paths == {"p3": ["c", "d"]}
+    assert newpaths == {"p3": ["c", "d"]}
+
+    # merge nothing into something
+    paths2 = {"z": ["x", "y"]}
+    newpaths2 = {}
+    pu.merge_paths(paths2, newpaths2)
+    assert paths2 == {"z": ["x", "y"]}
+    assert newpaths2 == {}
+
+    # merge nothing into nothing
+    paths3 = {}
+    newpaths3 = {}
+    pu.merge_paths(paths3, newpaths3)
+    assert paths3 == {}
+    assert newpaths3 == {}
+
+
+def test_merge_paths_duplicates():
+    paths = {"p3": ["a", "b"]}
+    newpaths = {"p3": ["c", "d"]}
+    with pytest.raises(PathParsingError) as ei:
+        pu.merge_paths(paths, newpaths)
+    assert str(ei.value) == "Duplicate path names found between sources?"
