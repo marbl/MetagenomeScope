@@ -373,6 +373,12 @@ def test_flye_path_with_gaps():
     ]
 
 
+def test_get_available_count_badge_text():
+    # this doesn't do any validation or anything so no need to go crazy
+    assert pu.get_available_count_badge_text(12345, 999999) == "12,345 / 999,999"
+    assert pu.get_available_count_badge_text(1, 1) == "1 / 1"
+
+
 def test_merge_paths_simple():
     paths = {"p1": ["a", "b", "c"], "p2": ["b"]}
     newpaths = {"p3": ["c", "d"]}
