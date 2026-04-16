@@ -1,6 +1,7 @@
 import math
 import random
 import logging
+import itertools
 import pandas as pd
 from copy import deepcopy
 from collections import defaultdict
@@ -2142,7 +2143,49 @@ class AssemblyGraph(object):
             names.append(self.nodeid2obj[i].name)
         return names
 
+    def get_avail_paths(self, curr_drawn_info):
+        """Returns a list of names of available paths based on what is drawn.
+
+        Parameters
+        ----------
+        curr_drawn_info: dict
+            Describes what is currently drawn. The output of draw() in main.py.
+            See that function for details.
+
+        Returns
+        -------
+        list
+            Contains the names of all available paths.
+
+        Raises
+        ------
+        WeirdError
+            If we don't recognize the draw_type attribute of curr_drawn_info.
+        """
+        draw_type = curr_drawn_info["draw_type"]
+        if draw_type == config.DRAW_ALL:
+            return self.pathname2objnames.keys()
+
+        elif draw_type == config.DRAW_CCS:
+            # https://stackoverflow.com/a/33277438
+            return itertools.chain.from_iterable(
+                self.ccnum2pathnames[ccnum]
+                for ccnum in curr_drawn_info["cc_nums"]
+            )
+
+        elif draw_type == config.DRAW_NR:
+            return itertools.chain.from_iterable(
+                self.ccnum2pathnames[ccnum] for ccnum in self.get_nr_cc_nums()
+            )
+
+        elif draw_type == config.DRAW_AROUND:
+            return self.get_region_avail_paths(curr_drawn_info)
+
+        else:
+            raise WeirdError(f"Unrecognized draw type: {curr_drawn_info}")
+
     def get_region_avail_paths(self, curr_drawn_info):
+        """Returns available paths when drawing "around" nodes."""
         id_field = (
             config.CDI_DRAWN_NODE_IDS
             if self.node_centric

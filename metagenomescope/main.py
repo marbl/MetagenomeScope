@@ -2,7 +2,6 @@
 
 import copy
 import logging
-import itertools
 import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 import plotly.graph_objects as go
@@ -3190,30 +3189,7 @@ def run(
             rows = []
             ct = 0
             if curr_drawn_info is not None:
-                if curr_drawn_info["draw_type"] == config.DRAW_ALL:
-                    avail_paths = ag.pathname2objnames.keys()
-
-                elif curr_drawn_info["draw_type"] == config.DRAW_CCS:
-                    # https://stackoverflow.com/a/33277438
-                    avail_paths = itertools.chain.from_iterable(
-                        ag.ccnum2pathnames[ccnum]
-                        for ccnum in curr_drawn_info["cc_nums"]
-                    )
-
-                elif curr_drawn_info["draw_type"] == config.DRAW_NR:
-                    avail_paths = itertools.chain.from_iterable(
-                        ag.ccnum2pathnames[ccnum]
-                        for ccnum in ag.get_nr_cc_nums()
-                    )
-
-                elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
-                    avail_paths = ag.get_region_avail_paths(curr_drawn_info)
-
-                else:
-                    raise WeirdError(
-                        f"Unrecognized draw type: {curr_drawn_info}"
-                    )
-
+                avail_paths = ag.get_avail_paths(curr_drawn_info)
                 for p in avail_paths:
                     rows.append(
                         {
