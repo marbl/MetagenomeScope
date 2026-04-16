@@ -18,6 +18,15 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Changed
 
+- Allow paths to span multiple connected components of the graph, since this
+  can occur in Verkko output.
+
+  - If a path spans multiple components, its `CC #` entry in the table of
+    available paths will be a comma-separated list of these components (rather
+    than just a single number). To account for this, the "type" of this column
+    has been changed from `number` to `text` -- this will mean that sorting
+    the paths table by this column will result in a different ordering.
+
 - Prevent node or edge IDs from beginning with `[N`. This makes parsing Verkko
   TSV files easier: with this restriction, we can now unambiguously say if
   something on a path is a gap or not.
