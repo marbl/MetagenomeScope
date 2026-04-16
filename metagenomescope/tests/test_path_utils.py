@@ -384,6 +384,7 @@ def test_get_paths_from_flye_info_all_terminal():
             pu.get_paths_from_flye_info(fp.name)
         assert str(ei.value) == "Invalid path: contig_1 -> \"['*', '*']\""
 
+
 def test_get_paths_from_flye_info_only_gaps():
     with tempfile.NamedTemporaryFile(suffix=".txt") as fp:
         fp.write(
