@@ -136,7 +136,8 @@ Usage: mgsc [OPTIONS]
 
 Options:
   -g, --graph FILE          In GFA, FASTG, DOT, GML, or LastGraph format.  [required]
-  -a, --agp FILE            AGP file describing paths (e.g. scaffolds) in the graph.
+  -a, --agp FILE            AGP file describing paths.
+  -t, --vtsv FILE           Verkko assembly.paths.tsv file describing paths.
   -i, --info FILE           Flye assembly_info.txt file describing contigs/scaffolds.
   -p, --port INTEGER RANGE  Server port number.  [default: 8050; 1024<=x<=65535]
   --verbose / --no-verbose  Log extra details.  [default: no-verbose]
@@ -174,6 +175,22 @@ _See the [AGP specification](https://www.ncbi.nlm.nih.gov/genbank/genome_agp_spe
 
 **Otherwise:**
   - We assume the `component_id`s correspond to node IDs.
+
+<hr/>
+</details>
+
+<details>
+  <summary><strong>Verkko <code>assembly.paths.tsv</code> files (<code>-t</code>)</strong></summary>
+
+<hr/>
+
+_See [Verkko's documentation](https://github.com/marbl/verkko#outputs) for details._
+
+**If your graph is in DOT format:**
+  - We assume names on each path correspond to edge IDs.
+
+**Otherwise:**
+  - We assume names on each path correspond to node IDs.
 
 <hr/>
 </details>

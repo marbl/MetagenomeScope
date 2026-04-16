@@ -1,9 +1,49 @@
 import logging
 import pandas as pd
 from collections import defaultdict
-from metagenomescope import config
+from metagenomescope import config, ui_utils
 from .errors import PathParsingError
 from .gap import Gap
+
+
+def add_rev_if_needed(name, orientation, orientation_in_name):
+    """Converts a name and orientation to the expected name format.
+
+    Parameters
+    ----------
+    name: str
+        Node / edge name (ignoring orientation), e.g. "contig5".
+
+    orientation: str
+        Probably either "+" or "-". This can theoretically be other stuff
+        (https://www.ncbi.nlm.nih.gov/genbank/genome_agp_specification/)
+        but we will treat everything that isn't "-" as if it was just "+".
+
+    orientation_in_name: bool
+        If True, reverse-orientation sequence names are prefixed with
+        config.REV (e.g. "-contig5"). Forward-orientation sequence names
+        are not prefixed with anything (e.g. "contig5").
+
+        If False, orientations don't go in the name at all -- rather than
+        having pairs like "-contig5" and "contig5", we now assume there is
+        just one copy of each sequence with a predefined orientation. This
+        is the case for MetaCarvel GML files.
+
+    Returns
+    -------
+    name: str
+
+    Notes
+    -----
+    In practice, config.REV == "-", so whatever. I guess there is some value
+    in keeping "-" (what we expect to see in AGP files, Verkko TSV files, etc)
+    separate from config.REV, but probably config.REV will never be changed so
+    it's nbd
+    """
+    if orientation_in_name and orientation == "-":
+        return config.REV + name
+    else:
+        return name
 
 
 def get_paths_from_agp(agp_fp, orientation_in_name=True):
@@ -39,7 +79,7 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
 
     Raises
     ------
-    PathParsingError
+    PathParsingError or UIError
         If the file looks invalid.
 
     Notes
@@ -63,19 +103,13 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
             path_name = parts[0]
             if parts[4] in "NU":
                 if parts[4] == "N":
-                    glen = int(parts[5])
+                    # delegate checking that this is a valid integer to utils
+                    glen = ui_utils.get_num(parts[5], "AGP path gap length")
                 else:
                     glen = None
                 paths[path_name].append(Gap(length=glen, gaptype=parts[6]))
                 continue
-            seq_id = parts[5]
-            # NOTE: ok look, config.REV == "-", so whatever. But the AGP
-            # specification specifically writes out a minus sign, so i guess
-            # in theory we can change config.REV/FWD without breaking this
-            # function. sure. look it really doesn't matter im never gonna
-            # change those LOL
-            if orientation_in_name and parts[8] == "-":
-                seq_id = config.REV + seq_id
+            seq_id = add_rev_if_needed(parts[5], parts[8], orientation_in_name)
             paths[path_name].append(seq_id)
             pathnames_with_nongaps.add(path_name)
     only_gap_paths = set(paths.keys()) - pathnames_with_nongaps
@@ -84,20 +118,252 @@ def get_paths_from_agp(agp_fp, orientation_in_name=True):
     return paths
 
 
+def get_paths_dict_from_tsv(fp, path_col):
+    """Extracts path info from a column in a tab-separated file.
+
+    This is general enough that it can be used for both Verkko path TSV files
+    and Flye assembly_info.txt files.
+
+    Parameters
+    ----------
+    fp: str
+        Path to a TSV file. There is a lot of leeway in how this file is
+        formatted -- the only requirements are that:
+
+        1. it is a tab-separated file
+        2. it has a header row
+        3. the leftmost column has the path names
+        4. one of the other columns describes the contents of each path,
+           which are comma-separated entries
+
+    path_col: str
+        Column name for requirement #4 above.
+
+    Raises
+    ------
+    PathParsingError
+        If a column named path_col is not in the file, if any path occurs
+        more than once in the file, or if the file does not describe any
+        paths.
+
+    Other stuff (e.g. FileNotFoundError)
+        Could be raised by pd.read_csv() if the file is missing, malformed,
+        etc.
+
+    Notes
+    -----
+    In theory this is all stuff we could do without using pandas. Their CSV
+    reading functions are pretty solid in my experience but if we REALLY have
+    a bottleneck here then we can do this all manually, maybe
+    """
+    # treat even empty cells as strings: https://stackoverflow.com/a/67350928
+    df = pd.read_csv(fp, sep="\t", index_col=0, dtype=str, na_filter=False)
+
+    if path_col not in df.columns:
+        raise PathParsingError(f'Column "{path_col}" not in {fp}.')
+
+    if len(df.index) == 0:
+        raise PathParsingError(f"{fp} does not describe any paths.")
+
+    # raise an error if any path occurs more than once on a row
+    # https://stackoverflow.com/a/20076611
+    # the first row has the most frequently occurring thing, so we
+    # can just check the count for the first row in value_counts()
+    # NOTE: I am sure this could be made faster by just iterating through
+    # the df and exiting as soon as we see something occurring twice. however,
+    # 99% of the time that will never happen everything will occur just once
+    sorted_paths_by_ct = df.index.value_counts()
+    if sorted_paths_by_ct.iloc[0] > 1:
+        p = sorted_paths_by_ct.index[0]
+        raise PathParsingError(f'Path "{p}" occurs multiple times in {fp}.')
+
+    return df[path_col].str.split(",").to_dict()
+
+
+def parse_verkko_tsv_seqname(nametext, orientation_in_name=True):
+    """Parses a node / edge name from an entry in a Verkko path.
+
+    Parameters
+    ----------
+    nametext: str
+        Looks something like "utig4-1024-".
+
+    orientation_in_name: bool
+        See get_paths_from_agp().
+
+    Returns
+    -------
+    str
+
+    Raises
+    ------
+    PathParsingError
+        If the name looks invalid.
+    """
+    if len(nametext) < 2:
+        raise PathParsingError(
+            f'Name on path has < 2 characters: "{nametext}"'
+        )
+    lastchar = nametext[-1]
+    if lastchar not in "-+":
+        raise PathParsingError(
+            f'Name on path doesn\'t end with +/-: "{nametext}"'
+        )
+    return add_rev_if_needed(nametext[:-1], lastchar, orientation_in_name)
+
+
+def parse_verkko_tsv_gap(gaptext):
+    """Extracts gap length and (if given) gap type from a gap in a Verkko path.
+
+    Parameters
+    ----------
+    gaptext: str
+        Looks something like "[N500N:scaffold]".
+        We assume that this starts with config.VERKKO_PATH_GAP_PREFIX ("[N").
+
+    Returns
+    -------
+    metagenomescope.gap.Gap
+
+    Raises
+    ------
+    PathParsingError or UIError
+        If the gap text looks invalid.
+    """
+    if not gaptext.endswith("]"):
+        raise PathParsingError(f'Gap "{gaptext}" does not end with ]')
+
+    GAP_PREFIX_LEN = len(config.VERKKO_PATH_GAP_PREFIX)
+    gaptype = None
+    if ":" in gaptext:
+        # Gap looks like "[N500N:scaffold]"; slice to just "[N500N"
+        # note that this is perfectly okay with there being multiple ":"s.
+        # we assume that the first one indicates the start of the gap type,
+        # and allow arbitrarily many ";"s in the gap type afterwards
+        lengthpartendpos = gaptext.index(":")
+        if len(gaptext) - lengthpartendpos > 2:
+            gaptype = gaptext[lengthpartendpos + 1 : -1]
+        else:
+            # the gap looks like "[N500N:]"
+            # it's weird to have a colon with no description after it
+            raise PathParsingError(f'Empty gap name: "{gaptext}"')
+    else:
+        # Gap looks like "[N500N]"; slice to just "[N500N"
+        lengthpartendpos = gaptext.index("]")
+
+    if gaptext[lengthpartendpos - 1] == "N":
+        if lengthpartendpos - 1 > GAP_PREFIX_LEN:
+            gaplen = ui_utils.get_num(
+                gaptext[GAP_PREFIX_LEN : lengthpartendpos - 1],
+                "Verkko path gap size",
+            )
+            return Gap(length=gaplen, gaptype=gaptype)
+        else:
+            raise PathParsingError(f'Empty gap length: "{gaptext}"')
+    else:
+        raise PathParsingError(f'Gap length does not end with N: "{gaptext}"')
+
+
+def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
+    """Loads paths from a Verkko-style TSV file.
+
+    Parameters
+    ----------
+    tsv_fp: str
+        A path to a TSV file.
+
+    orientation_in_name: bool
+        Same interpretation as with get_paths_from_agp(). True means that node
+        or edge names include orientations if negative (e.g. -5 vs. 5); False
+        means that this is not the case.
+
+    Returns
+    -------
+    paths: dict of str -> list of str or Gap
+        Maps path names to a list of sequence (node or edge) names in the path.
+        Gaps are represented as Gap objects in the list.
+
+    Raises
+    ------
+    PathParsingError or UIError
+        If the file looks invalid.
+
+    Notes
+    -----
+    In practice, as of writing this should only be used with nodes in Verkko
+    GFA files (where we know that orientation_in_name=True). But I guess we
+    might as well support checking if orientation_in_name=False, so that
+    this kind of file can be used with other graphs if desired (it seems easier
+    to create than AGP files).
+
+    References
+    ----------
+    https://github.com/marbl/verkko
+    """
+    paths = get_paths_dict_from_tsv(tsv_fp, "path")
+    outpaths = {}
+    for name, ids in paths.items():
+        path_things = []
+        path_has_nongaps = False
+        for i in ids:
+            if i.startswith(config.VERKKO_PATH_GAP_PREFIX):
+                path_things.append(parse_verkko_tsv_gap(i))
+            else:
+                path_things.append(
+                    parse_verkko_tsv_seqname(
+                        i, orientation_in_name=orientation_in_name
+                    )
+                )
+                path_has_nongaps = True
+        if len(path_things) == 0:
+            # this case seems impossible to trigger, since even an
+            # empty paths column will result in [""] due to how
+            # .split(",") works in get_paths_dict_from_tsv(). (And
+            # that will cause parse_verkko_tsv_seqname() to raise
+            # an error.) Anyway i guess we can keep this check here
+            # out of paranoia
+            raise PathParsingError(f'Empty path: {name} -> "{ids}"')
+        if not path_has_nongaps:
+            raise PathParsingError(f"Path {name} only has gaps???")
+        outpaths[name] = path_things
+    return outpaths
+
+
 def get_paths_from_flye_info(fp):
-    df = pd.read_csv(fp, sep="\t", index_col=0)
-    if "graph_path" not in df.columns:
-        raise PathParsingError("graph_path column not in assembly_info file?")
-    paths = df["graph_path"].str.split(",").to_dict()
+    """Loads information about contig/scaffold paths from Flye output.
+
+    This assumes that the graph being provided as input is a DOT file from
+    Flye. If the user specifies this kind of file for a GFA file from Flye,
+    then there is different logic elsewhere that parses the contig metadata
+    / etc. and associates _that_ with the nodes in the graph.
+
+    Parameters
+    ----------
+    fp: str
+        A path to the assembly_info.txt file.
+
+    Returns
+    -------
+    paths: dict of str -> list of str or Gap
+        Maps path names to a list of edge IDs / Gaps in the path.
+        This ignores * entries on the path (indicating "terminal graph node"s
+        per the Flye documentation).
+
+    Raises
+    ------
+    PathParsingError
+        If the file looks invalid.
+
+    References
+    ----------
+    https://github.com/mikolmogorov/Flye/blob/flye/docs/USAGE.md
+    """
+    paths = get_paths_dict_from_tsv(fp, "graph_path")
     trimmedpaths = {}
     for name, edgeids in paths.items():
-        if name in trimmedpaths:
-            raise PathParsingError(
-                f"Name {name} occurs twice in assembly_info file?"
-            )
         path_edge_ids = []
         path_has_nongaps = False
-        for i in paths[name]:
+        for i in edgeids:
             if i == "*":
                 continue
             elif i == "??":
@@ -106,7 +372,8 @@ def get_paths_from_flye_info(fp):
                 path_edge_ids.append(i)
                 path_has_nongaps = True
         if len(path_edge_ids) == 0:
-            raise PathParsingError(f"Invalid path: {name} -> {paths[name]}")
+            # maybe the path only has *s or something...?
+            raise PathParsingError(f'Invalid path: {name} -> "{edgeids}"')
         if not path_has_nongaps:
             raise PathParsingError(f"Path {name} only has gaps???")
         trimmedpaths[name] = path_edge_ids
@@ -138,19 +405,20 @@ def get_path_maps(id2obj, paths, nodes=True):
 
     Returns
     -------
-    ccnum2pathnames, objname2pathnames, pathname2ccnum: (
-        dict of int -> list, dict of str -> set, dict of str -> int
+    objname2pathnames, pathname2ccnums: (
+        defaultdict of str -> set of str, defaultdict of str -> set of int
     )
-        The first dict maps component size rank to a list of the names of all
-        paths in this component.
-
-        The second dict maps node or edge "names" (as given in the paths
+        objname2pathnames maps node or edge "names" (as given in the paths
         input above) to a set of the names of all paths that traverse this
         node or edge. (Yes, a set, because a path might traverse a node/edge
         multiple times.)
 
-        The third dict is the inverse of the first: it maps each path name
-        to its parent component size rank.
+        pathname2ccnums maps each path name to a set of component size rank(s)
+        that it traverses. USUALLY a path is limited to just a single connected
+        component (in which case it will map to something like {1} indicating
+        that this path is ONLY in cc #1), but - due to gaps - some tools can
+        produce paths that span multiple components. See
+        https://github.com/marbl/MetagenomeScope/pull/408.
 
         Note that some input paths may not be represented in these dicts. If
         a path contains at least one node or edge name that is not in the graph
@@ -181,7 +449,7 @@ def get_path_maps(id2obj, paths, nodes=True):
         for name in path_parts:
             if type(name) is not Gap:
                 objname2pathnames[name].add(pathname)
-    pathname2ccnum = {}
+    pathname2ccnums = defaultdict(set)
 
     for obj in id2obj.values():
         if nodes:
@@ -203,21 +471,10 @@ def get_path_maps(id2obj, paths, nodes=True):
 
         # Is this node or edge present in at least one of the input paths?
         if objname in objname2pathnames:
-            # Yes, it is. Go through all paths it is contained in.
+            # Yes, it is. Go through all paths it is contained in and record
+            # the component that this node or edge corresponds to.
             for pathname in objname2pathnames[objname]:
-                # Have we already seen this path?
-                if pathname in pathname2ccnum:
-                    # Have we recorded this path as being in a *different* cc?
-                    if pathname2ccnum[pathname] != obj.cc_num:
-                        raise PathParsingError(
-                            f"Path {pathname} spans multiple components, "
-                            f"including #{pathname2ccnum[pathname]:,} and "
-                            f"#{obj.cc_num:,}?"
-                        )
-                else:
-                    # We haven't already seen this path, so record what cc it
-                    # is in.
-                    pathname2ccnum[pathname] = obj.cc_num
+                pathname2ccnums[pathname].add(obj.cc_num)
             # Okay, we've finished checking this node/edge. Continue on.
             del objname2pathnames[objname]
 
@@ -230,14 +487,17 @@ def get_path_maps(id2obj, paths, nodes=True):
         for missing_obj, unavailable_paths in objname2pathnames.items():
             for p in unavailable_paths:
                 # If we saw another object in this path in the graph,
-                # then it will already have been assigned a cc num.
+                # then it will already have been assigned cc num(s).
                 # Clear it out (on the basis that showing only some of a path
-                # does not seem reasonable)
+                # does not seem reasonable).
+                #
+                # (We use .pop(p, None) so that if we have already noticed this
+                # and cleared out this path, then this will not raise an error)
                 # https://stackoverflow.com/a/15411146
-                pathname2ccnum.pop(p, None)
+                pathname2ccnums.pop(p, None)
                 missing_paths.add(p)
 
-        if len(pathname2ccnum) == 0:
+        if len(pathname2ccnums) == 0:
             raise PathParsingError(
                 f"All of the paths contained {noun}s that were not present in "
                 "the graph. Please verify that your path and graph files "
@@ -276,7 +536,6 @@ def get_path_maps(id2obj, paths, nodes=True):
                 pretty += f"{o} -> {plist}"
             logging.warning(f"    Missing {noun}(s), for reference: {pretty}")
 
-    ccnum2pathnames = defaultdict(list)
     # while we're at it, recreate the mapping of object names to path names
     # (for nodes these are basenames, e.g. "40" instead of "40-L" or "40-R").
     # a big distinction here is that now we have filtered out missing paths,
@@ -289,13 +548,48 @@ def get_path_maps(id2obj, paths, nodes=True):
     # also, again, we use a set here just in case a path traverses an obj
     # multiple times
     objname2pathnames = defaultdict(set)
-    for pathname in pathname2ccnum:
-        ccnum2pathnames[pathname2ccnum[pathname]].append(pathname)
+    for pathname in pathname2ccnums:
         for objname in paths[pathname]:
             if type(objname) is not Gap:
                 objname2pathnames[objname].add(pathname)
 
-    return ccnum2pathnames, objname2pathnames, pathname2ccnum
+    return objname2pathnames, pathname2ccnums
+
+
+def get_avail_paths_from_cc_nums(pathname2ccnums, ccnums):
+    """Figures out which paths are available given a list of drawn components.
+
+    As discussed in get_path_maps() above, in general most paths should belong
+    to only one connected component. But Verkko paths can span multiple
+    components, meaning that sometimes -- if we've drawn say component #1 --
+    there may be paths that span both component #1 and component #25. Thus,
+    drawing only component #1 or #25 is insufficient to make this path
+    "available" -- we need to have drawn BOTH #1 and #25.
+
+    Parameters
+    ----------
+    pathname2ccnums: dict of str -> set of int
+
+    ccnums: list of int
+        Size ranks of the component(s) that are currently drawn.
+
+    Returns
+    -------
+    list of str
+        Names of paths where all cc nums this path belongs to are included in
+        the input ccnums list.
+    """
+    avail_paths = []
+    # in theory we don't NEED to convert ccnums to a set -- you can run
+    # {1,2,3}.issubset([1,2,3,4]) just fine. however, per
+    # https://stackoverflow.com/questions/16579085/how-can-i-verify-if-one-list-is-a-subset-of-another#comment57649885_27116142
+    # that is really just getting python to convert the list to a set under
+    # the hood so whatever let's do it in advance
+    ccnums = set(ccnums)
+    for p, pccnums in pathname2ccnums.items():
+        if pccnums.issubset(ccnums):
+            avail_paths.append(p)
+    return avail_paths
 
 
 def get_available_count_badge_text(num_available, total_num):
@@ -325,5 +619,5 @@ def merge_paths(curr_paths, new_paths):
     i0 = set(curr_paths.keys())
     i1 = set(new_paths.keys())
     if i0 & i1:
-        raise PathParsingError("Duplicate paths found between sources?")
+        raise PathParsingError("Duplicate path names found between sources?")
     curr_paths.update(new_paths)

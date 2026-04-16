@@ -66,7 +66,9 @@ class AssemblyGraph(object):
     https://www.thedigitalcatonline.com/blog/2014/08/20/python-3-oop-part-3-delegation-composition-and-inheritance/
     """
 
-    def __init__(self, graph_fp, agp_fp=None, flye_info_fp=None):
+    def __init__(
+        self, graph_fp, agp_fp=None, verkko_tsv_fp=None, flye_info_fp=None
+    ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
         Parameters
@@ -77,6 +79,10 @@ class AssemblyGraph(object):
         agp_fp: str or None
             If specified, this should be a path to an AGP file describing paths
             in the graph.
+
+        verkko_tsv_fp: str or None
+            If specified, this should be a path to a Verkko-style TSV file
+            describing paths in the graph.
 
         flye_info_fp: str or None
             If specified, this should be a path to a Flye assembly_info.txt
@@ -96,6 +102,8 @@ class AssemblyGraph(object):
         self.basename = misc_utils.get_basename_if_fp(graph_fp)
         self.agp_filename = agp_fp
         self.agp_basename = misc_utils.get_basename_if_fp(agp_fp)
+        self.verkko_tsv_filename = verkko_tsv_fp
+        self.verkko_tsv_basename = misc_utils.get_basename_if_fp(verkko_tsv_fp)
         self.flye_info_filename = flye_info_fp
         self.flye_info_basename = misc_utils.get_basename_if_fp(flye_info_fp)
 
@@ -319,9 +327,7 @@ class AssemblyGraph(object):
         # recompute this sooooo
         self.pathname2objnames = {}
         # Other mappings that are useful for determining available paths, etc.
-        # This is kind of inelegant but whatever
-        self.ccnum2pathnames = None
-        self.pathname2ccnum = None
+        self.pathname2ccnums = None
         self.objname2pathnames = None
 
         input_paths = {}
@@ -345,6 +351,20 @@ class AssemblyGraph(object):
             )
             path_utils.merge_paths(input_paths, agp_paths)
 
+        if self.verkko_tsv_filename is not None:
+            logger.debug(
+                f'  Loading input Verkko TSV file "{self.verkko_tsv_basename}"'
+                "..."
+            )
+            vtsv_paths = path_utils.get_paths_from_verkko_tsv(
+                self.verkko_tsv_filename, self.orientation_in_name
+            )
+            logger.debug(
+                "  ...Done. It contained "
+                f"{ui_utils.pluralize(len(vtsv_paths), 'path')}."
+            )
+            path_utils.merge_paths(input_paths, vtsv_paths)
+
         if self.flye_info_filename is not None and self.filetype == "DOT":
             logger.debug(
                 f'  Loading input Flye info file "{self.flye_info_basename}"'
@@ -367,24 +387,24 @@ class AssemblyGraph(object):
             logger.debug("  Matching up paths to the graph...")
             # TODO can update path lookup stuff to use nodename2objs - faster
             id2obj = self.nodeid2obj if self.node_centric else self.edgeid2obj
-            (
-                self.ccnum2pathnames,
-                self.objname2pathnames,
-                self.pathname2ccnum,
-            ) = path_utils.get_path_maps(
-                id2obj, input_paths, self.node_centric
+            self.objname2pathnames, self.pathname2ccnums = (
+                path_utils.get_path_maps(
+                    id2obj, input_paths, self.node_centric
+                )
             )
             # Filter to just the paths that were available in the graph.
-            for p in self.pathname2ccnum:
+            ccs_with_a_path = set()
+            for p, ccnums in self.pathname2ccnums.items():
                 self.pathname2objnamesandgaps[p] = input_paths[p]
                 self.pathname2objnames[p] = [
                     n for n in input_paths[p] if type(n) is not Gap
                 ]
+                ccs_with_a_path |= ccnums
             logger.debug(
                 "  ...Done. Found "
                 f"{ui_utils.pluralize(len(self.pathname2objnames), 'path')} "
                 "across "
-                f"{ui_utils.pluralize(len(self.ccnum2pathnames), 'component')}."
+                f"{ui_utils.pluralize(len(ccs_with_a_path), 'component')}."
             )
         logger.info("...Done.")
 
@@ -2120,7 +2140,47 @@ class AssemblyGraph(object):
             names.append(self.nodeid2obj[i].name)
         return names
 
+    def get_avail_paths(self, curr_drawn_info):
+        """Returns a list of names of available paths based on what is drawn.
+
+        Parameters
+        ----------
+        curr_drawn_info: dict
+            Describes what is currently drawn. The output of draw() in main.py.
+            See that function for details.
+
+        Returns
+        -------
+        list
+            Contains the names of all available paths.
+
+        Raises
+        ------
+        WeirdError
+            If we don't recognize the draw_type attribute of curr_drawn_info.
+        """
+        draw_type = curr_drawn_info["draw_type"]
+        if draw_type == config.DRAW_ALL:
+            return self.pathname2objnames.keys()
+
+        elif draw_type == config.DRAW_CCS:
+            return path_utils.get_avail_paths_from_cc_nums(
+                self.pathname2ccnums, curr_drawn_info["cc_nums"]
+            )
+
+        elif draw_type == config.DRAW_NR:
+            return path_utils.get_avail_paths_from_cc_nums(
+                self.pathname2ccnums, self.get_nr_cc_nums()
+            )
+
+        elif draw_type == config.DRAW_AROUND:
+            return self.get_region_avail_paths(curr_drawn_info)
+
+        else:
+            raise WeirdError(f"Unrecognized draw type: {curr_drawn_info}")
+
     def get_region_avail_paths(self, curr_drawn_info):
+        """Returns available paths when drawing "around" nodes."""
         id_field = (
             config.CDI_DRAWN_NODE_IDS
             if self.node_centric

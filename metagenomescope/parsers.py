@@ -550,25 +550,18 @@ def parse_gfa(filename):
     if len(gfa_graph.paths) > 0:
         paths = {}
         for p in gfa_graph.paths:
-            # we make two versions of each path (one for each strand), which i
-            # think matches the intent here
-            rc_path_name = negate(p.name)
             # Gfapy should catch cases where two paths have the same name,
             # but there can be jank where a path's negated name is not unique.
             # Anyway let's just be paranoid and check
-            if p.name in paths or rc_path_name in paths:
+            if p.name in paths:
                 raise GraphParsingError(f"Duplicate path ID: {p.name}")
             segments = []
-            rc_segments = []
             for s in p.captured_segments:
                 name = s.name
-                rc_name = negate(name)
                 if s.orient == config.FWD:
                     segments.append(name)
-                    rc_segments.insert(0, rc_name)
                 else:
-                    segments.append(rc_name)
-                    rc_segments.insert(0, name)
+                    segments.append(negate(name))
             if len(segments) == 0:
                 logging.warning(
                     f"Path ({p.name}) contains zero segments. We don't "
@@ -578,7 +571,6 @@ def parse_gfa(filename):
                 )
             else:
                 paths[p.name] = segments
-                paths[negate(p.name)] = rc_segments
         if len(paths) == 0:
             paths = None
 
