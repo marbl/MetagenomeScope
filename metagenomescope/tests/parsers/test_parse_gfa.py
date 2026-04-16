@@ -203,12 +203,10 @@ def test_parse_paths_and_containments_gfa1():
     # 4 links, 2 containments (times two for the RCs)
     # but for now we ignore containments!
     assert len(g.edges) == 8
-    assert len(paths) == 4
+    assert len(paths) == 2
     assert paths == {
         "14": ["11", "12"],
         "15": ["11", "13"],
-        "-14": ["-12", "-11"],
-        "-15": ["-13", "-11"],
     }
     exp_containment_edges = ("1", "5"), ("2", "6"), ("-5", "-1"), ("-6", "-2")
     for e in g.edges():
@@ -222,12 +220,10 @@ def test_parse_paths_and_containments_gfa2():
     # note that links and containments are all E-lines in GFA2 but thankfully
     # gfapy can distinguish them
     assert len(g.edges) == 8
-    assert len(paths) == 4
+    assert len(paths) == 2
     assert paths == {
         "14": ["11", "12"],
         "15": ["11", "13"],
-        "-14": ["-12", "-11"],
-        "-15": ["-13", "-11"],
     }
     exp_containment_edges = ("5", "1"), ("6", "2"), ("-1", "-5"), ("-2", "-6")
     for e in g.edges():
@@ -238,8 +234,8 @@ def test_parse_path_with_plus_and_minus():
     s1 = get_sample1_gfa()
     s1.append("P\tpath1\t3+,4-\t*")
     g, paths = run_tempfile_test("gfa", s1, None, None)
-    assert len(paths) == 2
-    assert paths == {"path1": ["3", "-4"], "-path1": ["4", "-3"]}
+    assert len(paths) == 1
+    assert paths == {"path1": ["3", "-4"]}
 
 
 def test_parse_path_duplicate_name():
@@ -249,20 +245,23 @@ def test_parse_path_duplicate_name():
     run_tempfile_test("gfa", s1, NotUniqueError, "Line or ID not unique")
 
 
-def test_parse_path_duplicate_name_of_rc():
+def test_parse_path_rc_path_ok():
+    # this USED to trigger an error but now it's okay since we no longer
+    # duplicate paths (i.e. given path1, we no longer automatically create
+    # -path1) -- https://github.com/marbl/MetagenomeScope/issues/357
     s1 = get_sample1_gfa()
     s1.append("P\tpath1\t3+,4-\t*")
     s1.append("P\t-path1\t1+,2+\t*")
-    run_tempfile_test(
-        "gfa", s1, GraphParsingError, "Duplicate path ID: -path1"
-    )
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert len(paths) == 2
+    assert paths == {"path1": ["3", "-4"], "-path1": ["1", "2"]}
 
 
 def test_parse_path_of_just_edges_has_nodes_extracted():
     g, paths = parse_gfa("metagenomescope/tests/input/path_of_edges.gfa")
     assert len(g.nodes) == 6
     assert len(g.edges) == 4
-    assert paths == {"15": ["1", "3", "4"], "-15": ["-4", "-3", "-1"]}
+    assert paths == {"15": ["1", "3", "4"]}
 
 
 def test_multigraphs_okay_gfa1():
@@ -283,7 +282,7 @@ def test_multigraphs_okay_gfa2():
     )
     assert len(g.nodes) == 6
     assert len(g.edges) == 6
-    assert paths == {"15": ["1", "3", "4"], "-15": ["-4", "-3", "-1"]}
+    assert paths == {"15": ["1", "3", "4"]}
     assert ("1", "3", 0) in g.edges
     assert ("1", "3", 1) in g.edges
     assert ("-3", "-1", 0) in g.edges

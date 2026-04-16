@@ -27,6 +27,12 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     has been changed from `number` to `text` -- this will mean that sorting
     the paths table by this column will result in a different ordering.
 
+- Previously, we would create an extra copy of each path in a GFA file
+  representing the reverse-complementary copy of this path. Now, to be
+  consistent with other path filetypes and make interpretation easier, we
+  no longer do this
+  ([#357](https://github.com/marbl/MetagenomeScope/issues/357)).
+
 - Prevent node or edge IDs from beginning with `[N`. This makes parsing Verkko
   TSV files easier: with this restriction, we can now unambiguously say if
   something on a path is a gap or not.
