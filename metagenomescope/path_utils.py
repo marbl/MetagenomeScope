@@ -279,7 +279,7 @@ def get_paths_from_verkko_tsv(tsv_fp, orientation_in_name=True):
 
     Returns
     -------
-    paths: defaultdict of str -> list of str or Gap
+    paths: dict of str -> list of str or Gap
         Maps path names to a list of sequence (node or edge) names in the path.
         Gaps are represented as Gap objects in the list.
 
@@ -344,7 +344,7 @@ def get_paths_from_flye_info(fp):
 
     Returns
     -------
-    paths: defaultdict of str -> list of str or Gap
+    paths: dict of str -> list of str or Gap
         Maps path names to a list of edge IDs / Gaps in the path.
         This ignores * entries on the path (indicating "terminal graph node"s
         per the Flye documentation).
@@ -405,19 +405,20 @@ def get_path_maps(id2obj, paths, nodes=True):
 
     Returns
     -------
-    ccnum2pathnames, objname2pathnames, pathname2ccnum: (
-        dict of int -> list, dict of str -> set, dict of str -> int
+    objname2pathnames, pathname2ccnums: (
+        defaultdict of str -> set of str, defaultdict of str -> set of int
     )
-        The first dict maps component size rank to a list of the names of all
-        paths in this component.
-
-        The second dict maps node or edge "names" (as given in the paths
+        objname2pathnames maps node or edge "names" (as given in the paths
         input above) to a set of the names of all paths that traverse this
         node or edge. (Yes, a set, because a path might traverse a node/edge
         multiple times.)
 
-        The third dict is the inverse of the first: it maps each path name
-        to its parent component size rank.
+        pathname2ccnums maps each path name to a set of component size rank(s)
+        that it traverses. USUALLY a path is limited to just a single connected
+        component (in which case it will map to something like {1} indicating
+        that this path is ONLY in cc #1), but - due to gaps - some tools can
+        produce paths that span multiple components. See
+        https://github.com/marbl/MetagenomeScope/pull/408.
 
         Note that some input paths may not be represented in these dicts. If
         a path contains at least one node or edge name that is not in the graph
@@ -448,7 +449,7 @@ def get_path_maps(id2obj, paths, nodes=True):
         for name in path_parts:
             if type(name) is not Gap:
                 objname2pathnames[name].add(pathname)
-    pathname2ccnum = {}
+    pathname2ccnums = defaultdict(set)
 
     for obj in id2obj.values():
         if nodes:
@@ -470,22 +471,10 @@ def get_path_maps(id2obj, paths, nodes=True):
 
         # Is this node or edge present in at least one of the input paths?
         if objname in objname2pathnames:
-            # Yes, it is. Go through all paths it is contained in.
+            # Yes, it is. Go through all paths it is contained in and record
+            # the component that this node or edge corresponds to.
             for pathname in objname2pathnames[objname]:
-                # Have we already seen this path?
-                if pathname in pathname2ccnum:
-                    # Have we recorded this path as being in a *different* cc?
-                    if pathname2ccnum[pathname] != obj.cc_num:
-                        # TODO: adjust to allow for multi-cc paths for verkko
-                        raise PathParsingError(
-                            f"Path {pathname} spans multiple components, "
-                            f"including #{pathname2ccnum[pathname]:,} and "
-                            f"#{obj.cc_num:,}?"
-                        )
-                else:
-                    # We haven't already seen this path, so record what cc it
-                    # is in.
-                    pathname2ccnum[pathname] = obj.cc_num
+                pathname2ccnums[pathname].add(obj.cc_num)
             # Okay, we've finished checking this node/edge. Continue on.
             del objname2pathnames[objname]
 
@@ -498,14 +487,17 @@ def get_path_maps(id2obj, paths, nodes=True):
         for missing_obj, unavailable_paths in objname2pathnames.items():
             for p in unavailable_paths:
                 # If we saw another object in this path in the graph,
-                # then it will already have been assigned a cc num.
+                # then it will already have been assigned cc num(s).
                 # Clear it out (on the basis that showing only some of a path
-                # does not seem reasonable)
+                # does not seem reasonable).
+                #
+                # (We use .pop(p, None) so that if we have already noticed this
+                # and cleared out this path, then this will not raise an error)
                 # https://stackoverflow.com/a/15411146
-                pathname2ccnum.pop(p, None)
+                pathname2ccnums.pop(p, None)
                 missing_paths.add(p)
 
-        if len(pathname2ccnum) == 0:
+        if len(pathname2ccnums) == 0:
             raise PathParsingError(
                 f"All of the paths contained {noun}s that were not present in "
                 "the graph. Please verify that your path and graph files "
@@ -544,7 +536,6 @@ def get_path_maps(id2obj, paths, nodes=True):
                 pretty += f"{o} -> {plist}"
             logging.warning(f"    Missing {noun}(s), for reference: {pretty}")
 
-    ccnum2pathnames = defaultdict(list)
     # while we're at it, recreate the mapping of object names to path names
     # (for nodes these are basenames, e.g. "40" instead of "40-L" or "40-R").
     # a big distinction here is that now we have filtered out missing paths,
@@ -557,13 +548,48 @@ def get_path_maps(id2obj, paths, nodes=True):
     # also, again, we use a set here just in case a path traverses an obj
     # multiple times
     objname2pathnames = defaultdict(set)
-    for pathname in pathname2ccnum:
-        ccnum2pathnames[pathname2ccnum[pathname]].append(pathname)
+    for pathname in pathname2ccnums:
         for objname in paths[pathname]:
             if type(objname) is not Gap:
                 objname2pathnames[objname].add(pathname)
 
-    return ccnum2pathnames, objname2pathnames, pathname2ccnum
+    return objname2pathnames, pathname2ccnums
+
+
+def get_avail_paths_from_cc_nums(pathname2ccnums, ccnums):
+    """Figures out which paths are available given a list of drawn components.
+
+    As discussed in get_path_maps() above, in general most paths should belong
+    to only one connected component. But Verkko paths can span multiple
+    components, meaning that sometimes -- if we've drawn say component #1 --
+    there may be paths that span both component #1 and component #25. Thus,
+    drawing only component #1 or #25 is insufficient to make this path
+    "available" -- we need to have drawn BOTH #1 and #25.
+
+    Parameters
+    ----------
+    pathname2ccnums: dict of str -> set of int
+
+    ccnums: list of int
+        Size ranks of the component(s) that are currently drawn.
+
+    Returns
+    -------
+    list of str
+        Names of paths where all cc nums this path belongs to are included in
+        the input ccnums list.
+    """
+    avail_paths = []
+    # in theory we don't NEED to convert ccnums to a set -- you can run
+    # {1,2,3}.issubset([1,2,3,4]) just fine. however, per
+    # https://stackoverflow.com/questions/16579085/how-can-i-verify-if-one-list-is-a-subset-of-another#comment57649885_27116142
+    # that is really just getting python to convert the list to a set under
+    # the hood so whatever let's do it in advance
+    ccnums = set(ccnums)
+    for p, pccnums in pathname2ccnums.items():
+        if pccnums.issubset(ccnums):
+            avail_paths.append(p)
+    return avail_paths
 
 
 def get_available_count_badge_text(num_available, total_num):

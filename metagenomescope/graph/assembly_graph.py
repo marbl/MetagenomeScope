@@ -1,7 +1,6 @@
 import math
 import random
 import logging
-import itertools
 import pandas as pd
 from copy import deepcopy
 from collections import defaultdict
@@ -328,9 +327,7 @@ class AssemblyGraph(object):
         # recompute this sooooo
         self.pathname2objnames = {}
         # Other mappings that are useful for determining available paths, etc.
-        # This is kind of inelegant but whatever
-        self.ccnum2pathnames = None
-        self.pathname2ccnum = None
+        self.pathname2ccnums = None
         self.objname2pathnames = None
 
         input_paths = {}
@@ -390,24 +387,24 @@ class AssemblyGraph(object):
             logger.debug("  Matching up paths to the graph...")
             # TODO can update path lookup stuff to use nodename2objs - faster
             id2obj = self.nodeid2obj if self.node_centric else self.edgeid2obj
-            (
-                self.ccnum2pathnames,
-                self.objname2pathnames,
-                self.pathname2ccnum,
-            ) = path_utils.get_path_maps(
-                id2obj, input_paths, self.node_centric
+            self.objname2pathnames, self.pathname2ccnums = (
+                path_utils.get_path_maps(
+                    id2obj, input_paths, self.node_centric
+                )
             )
             # Filter to just the paths that were available in the graph.
-            for p in self.pathname2ccnum:
+            ccs_with_a_path = set()
+            for p, ccnums in self.pathname2ccnums.items():
                 self.pathname2objnamesandgaps[p] = input_paths[p]
                 self.pathname2objnames[p] = [
                     n for n in input_paths[p] if type(n) is not Gap
                 ]
+                ccs_with_a_path |= ccnums
             logger.debug(
                 "  ...Done. Found "
                 f"{ui_utils.pluralize(len(self.pathname2objnames), 'path')} "
                 "across "
-                f"{ui_utils.pluralize(len(self.ccnum2pathnames), 'component')}."
+                f"{ui_utils.pluralize(len(ccs_with_a_path), 'component')}."
             )
         logger.info("...Done.")
 
@@ -2167,15 +2164,13 @@ class AssemblyGraph(object):
             return self.pathname2objnames.keys()
 
         elif draw_type == config.DRAW_CCS:
-            # https://stackoverflow.com/a/33277438
-            return itertools.chain.from_iterable(
-                self.ccnum2pathnames[ccnum]
-                for ccnum in curr_drawn_info["cc_nums"]
+            return path_utils.get_avail_paths_from_cc_nums(
+                self.pathname2ccnums, curr_drawn_info["cc_nums"]
             )
 
         elif draw_type == config.DRAW_NR:
-            return itertools.chain.from_iterable(
-                self.ccnum2pathnames[ccnum] for ccnum in self.get_nr_cc_nums()
+            return path_utils.get_avail_paths_from_cc_nums(
+                self.pathname2ccnums, self.get_nr_cc_nums()
             )
 
         elif draw_type == config.DRAW_AROUND:

@@ -242,14 +242,13 @@ def test_get_path_maps_simple():
     )
     ag = AssemblyGraph("metagenomescope/tests/input/E_coli_LastGraph")
     assert pu.get_path_maps(ag.nodeid2obj, paths) == (
-        {3: ["scaffold_1"]},
         {
             "17": {"scaffold_1"},
             "-35": {"scaffold_1"},
             "-63": {"scaffold_1"},
             "259": {"scaffold_1"},
         },
-        {"scaffold_1": 3},
+        {"scaffold_1": {3}},
     )
 
 
@@ -260,14 +259,13 @@ def test_get_path_maps_one_missing(caplog):
         "scaff_invis": ["asdf", "ghjk"],
     }
     assert pu.get_path_maps(ag.nodeid2obj, paths) == (
-        {3: ["scaffold_1"]},
         {
             "17": {"scaffold_1"},
             "-35": {"scaffold_1"},
             "-63": {"scaffold_1"},
             "259": {"scaffold_1"},
         },
-        {"scaffold_1": 3},
+        {"scaffold_1": {3}},
     )
     assert caplog.records[0].msg == (
         "    WARNING: 1 / 2 path contained node(s) that were not present in "
@@ -284,14 +282,13 @@ def test_get_path_maps_missing_due_to_single_missing_node(caplog):
         "scaffold_2": ["-35", "bruh"],
     }
     assert pu.get_path_maps(ag.nodeid2obj, paths) == (
-        {3: ["scaffold_1"]},
         {
             "17": {"scaffold_1"},
             "-35": {"scaffold_1"},
             "-63": {"scaffold_1"},
             "259": {"scaffold_1"},
         },
-        {"scaffold_1": 3},
+        {"scaffold_1": {3}},
     )
     exp_warning_msg = (
         "    WARNING: 2 / 3 paths contained node(s) that were not present in "
@@ -324,7 +321,7 @@ def test_multiple_path_sources_good():
         agp_fp="metagenomescope/tests/input/flye_yeast.agp",
         flye_info_fp="metagenomescope/tests/input/flye_yeast_assembly_info.txt",
     )
-    assert len(ag.pathname2ccnum) == 32
+    assert len(ag.pathname2ccnums) == 32
 
 
 def test_multiple_path_sources_duplicate_name():
@@ -401,6 +398,7 @@ def test_flye_path_with_gaps():
         "26",
         "-32",
     ]
+    assert ag.pathname2ccnums["scaffold_34"] == {1}
 
 
 def test_get_paths_from_flye_info_all_terminal():
@@ -462,6 +460,46 @@ def test_get_paths_from_flye_info_duplicate_path_name():
             str(ei.value)
             == f'Path "contig_1" occurs multiple times in {fp.name}.'
         )
+
+
+def test_get_avail_paths_from_cc_nums():
+    TESTPATHNAME2CCNUMS = {
+        "p1": {1, 2, 3},
+        "pA": {1},
+        "pB": {1},
+        "p2": {2},
+        "p3": {3},
+        "p4": {4},
+    }
+
+    assert sorted(
+        pu.get_avail_paths_from_cc_nums(TESTPATHNAME2CCNUMS, [3])
+    ) == ["p3"]
+
+    assert sorted(
+        pu.get_avail_paths_from_cc_nums(TESTPATHNAME2CCNUMS, [1])
+    ) == ["pA", "pB"]
+
+    assert sorted(
+        pu.get_avail_paths_from_cc_nums(
+            TESTPATHNAME2CCNUMS,
+            [1, 2],
+        )
+    ) == ["p2", "pA", "pB"]
+
+    assert sorted(
+        pu.get_avail_paths_from_cc_nums(
+            TESTPATHNAME2CCNUMS,
+            [1, 2, 3],
+        )
+    ) == ["p1", "p2", "p3", "pA", "pB"]
+
+    assert sorted(
+        pu.get_avail_paths_from_cc_nums(
+            TESTPATHNAME2CCNUMS,
+            [1, 2, 3, 4],
+        )
+    ) == ["p1", "p2", "p3", "p4", "pA", "pB"]
 
 
 def test_get_available_count_badge_text():

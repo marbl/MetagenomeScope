@@ -337,7 +337,15 @@ def run(
                                         "field": ui_config.PATH_TBL_CC_COL,
                                         "headerName": "CC #",
                                         "cellClass": "fancytable-cells",
-                                        "cellDataType": "number",
+                                        # NOTE: Some paths might have multiple
+                                        # components, meaning their entry for
+                                        # this column will look like "1, 44"
+                                        # instead of just a single number.
+                                        # It would be nice to implement
+                                        # custom sorting that respects this
+                                        # stuff while still sorting single-
+                                        # component paths properly...
+                                        "cellDataType": "text",
                                     },
                                 ],
                                 # https://dash.plotly.com/dash-ag-grid/column-sizing
@@ -3201,7 +3209,11 @@ def run(
                             ui_config.PATH_TBL_COUNT_COL: len(
                                 ag.pathname2objnames[p]
                             ),
-                            ui_config.PATH_TBL_CC_COL: ag.pathname2ccnum[p],
+                            # TODO this is ugly pls move to AssemblyGraph so
+                            # it can be tested...
+                            ui_config.PATH_TBL_CC_COL: ", ".join(
+                                str(ccn) for ccn in ag.pathname2ccnums[p]
+                            ),
                         }
                     )
                     ct += 1
