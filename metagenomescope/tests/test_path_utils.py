@@ -373,6 +373,18 @@ def test_flye_path_with_gaps():
     ]
 
 
+def test_get_paths_from_flye_info_all_terminal():
+    with tempfile.NamedTemporaryFile(suffix=".txt") as fp:
+        fp.write(
+            b"seq_name\tlength\tcov.\tcirc.\trepeat\tmult.\tgraph_path\n"
+            b"contig_1\t5\t3\t-\t-\t1\t*,*\n"
+        )
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_flye_info(fp.name)
+        assert str(ei.value) == "Invalid path: contig_1 -> \"['*', '*']\""
+
+
 def test_get_available_count_badge_text():
     # this doesn't do any validation or anything so no need to go crazy
     assert (
