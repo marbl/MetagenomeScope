@@ -397,6 +397,43 @@ def test_get_paths_from_flye_info_only_gaps():
         assert str(ei.value) == "Path contig_1 only has gaps???"
 
 
+def test_get_paths_from_flye_info_no_graph_path_col():
+    with tempfile.NamedTemporaryFile(suffix=".txt") as fp:
+        fp.write(
+            b"seq_name\tlength\tcov.\tcirc.\trepeat\tmult.\tgraphpath\n"
+            b"contig_1\t5\t3\t-\t-\t1\t*,??,1,*\n"
+        )
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_flye_info(fp.name)
+        assert str(ei.value) == f'Column "graph_path" not in {fp.name}.'
+
+
+def test_get_paths_from_flye_info_no_path_rows():
+    with tempfile.NamedTemporaryFile(suffix=".txt") as fp:
+        fp.write(b"seq_name\tlength\tcov.\tcirc.\trepeat\tmult.\tgraph_path\n")
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_flye_info(fp.name)
+        assert str(ei.value) == f"{fp.name} does not describe any paths."
+
+
+def test_get_paths_from_flye_info_duplicate_path_name():
+    with tempfile.NamedTemporaryFile(suffix=".txt") as fp:
+        fp.write(
+            b"seq_name\tlength\tcov.\tcirc.\trepeat\tmult.\tgraph_path\n"
+            b"contig_1\t5\t3\t-\t-\t1\t*,??,1,*\n"
+            b"contig_1\t6\t7\t-\t-\t2\t*,??,3,*\n"
+        )
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_flye_info(fp.name)
+        assert (
+            str(ei.value)
+            == f'Path "contig_1" occurs multiple times in {fp.name}.'
+        )
+
+
 def test_get_available_count_badge_text():
     # this doesn't do any validation or anything so no need to go crazy
     assert (
