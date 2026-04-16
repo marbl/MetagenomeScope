@@ -38,6 +38,36 @@ def test_paths_from_agp_extra_cols():
         assert "doesn't have exactly 9 tab-separated columns" in str(ei.value)
 
 
+def test_paths_from_agp_incl_gaps():
+    with tempfile.NamedTemporaryFile(suffix=".agp") as fp:
+        fp.write(b"scaffold_1\t1\t4033\t0\tW\tseq3\t1\t4033\t+\n")
+        # N gap (has a "specified size")
+        fp.write(
+            b"scaffold_1\t4034\t4533\t1\tN\t500\tscaffold\tyes\tpaired-ends\n"
+        )
+        fp.write(b"scaffold_1\t4534\t4535\t2\tW\tseq4\t5\t6\t-\n")
+        # U gap (unknown length)
+        fp.write(b"scaffold_1\t4536\t4635\t3\tU\t100\ttelomere\tno\tna\n")
+        fp.seek(0)
+        assert pu.get_paths_from_agp(fp.name) == {
+            "scaffold_1": [
+                "seq3",
+                Gap(length=500, gaptype="scaffold"),
+                "-seq4",
+                Gap(gaptype="telomere"),
+            ]
+        }
+
+
+def test_paths_from_agp_only_gap():
+    with tempfile.NamedTemporaryFile(suffix=".agp") as fp:
+        fp.write(b"path1\t1\t4033\t0\tN\t500\tscaffold\tyes\tpaired-ends\n")
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_agp(fp.name)
+        assert str(ei.value) == "Some paths only have gaps: {'path1'}"
+
+
 def test_paths_from_agp_toofew_cols():
     with tempfile.NamedTemporaryFile(suffix=".agp") as fp:
         fp.write(b"scaffold_1")
