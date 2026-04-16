@@ -363,7 +363,7 @@ mgsc -g E_coli_LastGraph
 
 > [!NOTE]
 > #### Reverse-complementary nodes and edges
-> As discussed in the FAQs below on "Reverse-complementary sequences," we represent each pair of nodes {`X`, `-X`} separately in the graph. This makes it easier to lay out the graph nicely.
+> As discussed in the FAQs below on "Reverse-complementary sequences," we represent pairs of nodes {`X`, `-X`} and pairs of edges {`A -> B`, `-B -> -A`} separately in the graph. This makes it easier to lay out the graph nicely.
 >
 > ##### Drawing "nonredundant" parts of the graph
 > In graphs where such pairs of nodes / edges exist, there will be an additional drawing option available (under the "Draw"
@@ -450,7 +450,7 @@ The answer to this depends on the filetype of the graph you are using.
 
 When MetagenomeScope reads in FASTG, DOT, and GML files,
 it assumes that _these files explicitly describe all of the nodes and edges in the graph_.
-So, let's say you give MetagenomeScope the following DOT file:
+So, let's say you give MetagenomeScope the following [LJA](https://github.com/AntonBankevich/LJA)-style DOT file:
 
 ```dot
 digraph g {
