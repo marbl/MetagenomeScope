@@ -165,6 +165,18 @@ def test_sanity_check_node_name_start_with_multi_dash():
     )
 
 
+def test_sanity_check_node_name_start_with_verkko_gap_prefix():
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_node_name("[Nodehello")
+    assert str(ei.value) == (
+        'A node named "[Nodehello" exists in the graph. Nodes cannot have '
+        'names that start with "[N".'
+    )
+    # it's case sensitive i guess sure whatever if you want to name a node
+    # like this feel free
+    nu.sanity_check_node_name("[nodehello")
+
+
 def test_sanity_check_edge_id_surrounding_whitespace():
     with pytest.raises(GraphParsingError) as ei:
         nu.sanity_check_edge_id("abcdef ")
