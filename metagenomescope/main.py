@@ -3218,8 +3218,10 @@ def run(
                     rows.append(
                         {
                             ui_config.PATH_TBL_NAME_COL: p,
-                            # this ignores gaps! which is what we want for just
-                            # counting the number of nodes/edges on this path
+                            # this ignores gaps, and ignores if a node has been
+                            # split or not. this is what we want for just
+                            # counting the number of full/real nodes/edges on
+                            # this path
                             ui_config.PATH_TBL_COUNT_COL: len(
                                 ag.pathname2objnames[p]
                             ),
