@@ -39,6 +39,14 @@ from . import __version__, defaults, descs, config
     help=descs.AGP,
 )
 @click.option(
+    "-t",
+    "--vtsv",
+    type=click.Path(exists=True, dir_okay=False, readable=True),
+    default=None,
+    required=False,
+    help=descs.VERKKO_PATH_TSV,
+)
+@click.option(
     "-i",
     "--info",
     type=click.Path(exists=True, dir_okay=False, readable=True),
@@ -95,6 +103,7 @@ from . import __version__, defaults, descs, config
 def run_script(
     graph: str,
     agp: str,
+    vtsv: str,
     info: str,
     node_data: str,
     edge_data: str,
@@ -122,6 +131,7 @@ def run_script(
             "Settings:",
             f"Graph file: {graph}",
             f"AGP file: {agp}",
+            f"Verkko .paths.tsv file: {vtsv}",
             f"Flye info file: {info}",
             f"Node data file: {node_data}",
             f"Edge data file: {edge_data}",
@@ -138,6 +148,7 @@ def run_script(
     run(
         graph=graph,
         agp=agp,
+        vtsv=vtsv,
         flye_info=info,
         port=port,
         verbose=verbose,

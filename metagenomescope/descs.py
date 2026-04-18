@@ -7,7 +7,9 @@ FASTA = (
     "LastGraph) or edges (DOT)."
 )
 
-AGP = "AGP file describing paths (e.g. scaffolds) in the graph."
+AGP = "AGP file describing paths."
+
+VERKKO_PATH_TSV = "Verkko assembly.paths.tsv file describing paths."
 
 FLYE_ASM_INFO = "Flye assembly_info.txt file describing contigs/scaffolds."
 

@@ -2,7 +2,6 @@
 
 import copy
 import logging
-import itertools
 import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 import plotly.graph_objects as go
@@ -38,6 +37,7 @@ from .errors import UIError, WeirdError
 def run(
     graph: str = None,
     agp: str = None,
+    vtsv: str = None,
     flye_info: str = None,
     port: int = defaults.PORT,
     verbose: bool = defaults.VERBOSE,
@@ -52,6 +52,10 @@ def run(
 
     agp: str or None
         Path to an AGP file describing paths of nodes/edges in the graph.
+        (Optional.)
+
+    vtsv: str or None
+        Path to a Verkko TSV file describing paths of nodes/edges in the graph.
         (Optional.)
 
     flye_info: str or None
@@ -78,7 +82,9 @@ def run(
     # Read the assembly graph file and create an object representing it.
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
     # edges, etc.
-    ag = AssemblyGraph(graph, agp_fp=agp, flye_info_fp=flye_info)
+    ag = AssemblyGraph(
+        graph, agp_fp=agp, verkko_tsv_fp=vtsv, flye_info_fp=flye_info
+    )
 
     # Prepare some of the UI components in advance. A nice thing about Dash
     # (which I guess comes from it being built on top of React) is that we can
@@ -331,7 +337,15 @@ def run(
                                         "field": ui_config.PATH_TBL_CC_COL,
                                         "headerName": "CC #",
                                         "cellClass": "fancytable-cells",
-                                        "cellDataType": "number",
+                                        # NOTE: Some paths might have multiple
+                                        # components, meaning their entry for
+                                        # this column will look like "1, 44"
+                                        # instead of just a single number.
+                                        # It would be nice to implement
+                                        # custom sorting that respects this
+                                        # stuff while still sorting single-
+                                        # component paths properly...
+                                        "cellDataType": "text",
                                     },
                                 ],
                                 # https://dash.plotly.com/dash-ag-grid/column-sizing
@@ -3183,40 +3197,23 @@ def run(
             rows = []
             ct = 0
             if curr_drawn_info is not None:
-                if curr_drawn_info["draw_type"] == config.DRAW_ALL:
-                    avail_paths = ag.pathname2objnames.keys()
-
-                elif curr_drawn_info["draw_type"] == config.DRAW_CCS:
-                    # https://stackoverflow.com/a/33277438
-                    avail_paths = itertools.chain.from_iterable(
-                        ag.ccnum2pathnames[ccnum]
-                        for ccnum in curr_drawn_info["cc_nums"]
-                    )
-
-                elif curr_drawn_info["draw_type"] == config.DRAW_NR:
-                    avail_paths = itertools.chain.from_iterable(
-                        ag.ccnum2pathnames[ccnum]
-                        for ccnum in ag.get_nr_cc_nums()
-                    )
-
-                elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
-                    avail_paths = ag.get_region_avail_paths(curr_drawn_info)
-
-                else:
-                    raise WeirdError(
-                        f"Unrecognized draw type: {curr_drawn_info}"
-                    )
-
+                avail_paths = ag.get_avail_paths(curr_drawn_info)
                 for p in avail_paths:
                     rows.append(
                         {
                             ui_config.PATH_TBL_NAME_COL: p,
-                            # this ignores gaps! which is what we want for just
-                            # counting the number of nodes/edges on this path
+                            # this ignores gaps, and ignores if a node has been
+                            # split or not. this is what we want for just
+                            # counting the number of full/real nodes/edges on
+                            # this path
                             ui_config.PATH_TBL_COUNT_COL: len(
                                 ag.pathname2objnames[p]
                             ),
-                            ui_config.PATH_TBL_CC_COL: ag.pathname2ccnum[p],
+                            # TODO this is ugly pls move to AssemblyGraph so
+                            # it can be tested...
+                            ui_config.PATH_TBL_CC_COL: ", ".join(
+                                str(ccn) for ccn in ag.pathname2ccnums[p]
+                            ),
                         }
                     )
                     ct += 1

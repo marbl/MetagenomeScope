@@ -1,9 +1,25 @@
 import pytest
 import tempfile
-from metagenomescope.errors import PathParsingError
+from metagenomescope.errors import PathParsingError, UIError
 from metagenomescope.graph import AssemblyGraph
 from metagenomescope.gap import Gap
 from metagenomescope import path_utils as pu
+
+
+def test_add_rev_if_needed():
+    assert pu.add_rev_if_needed("asdf", "+", True) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "-", True) == "-asdf"
+    assert pu.add_rev_if_needed("asdf", "+", False) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "-", False) == "asdf"
+
+    # weird orientations (e.g. the stuff in the AGP specification)
+    # are treated as positive i guess
+    # hey since youre reading the tests here is a special gift:
+    # https://www.youtube.com/watch?v=URtqADoz9uA
+    assert pu.add_rev_if_needed("asdf", "glorp", True) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "glorp", True) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "glorp", False) == "asdf"
+    assert pu.add_rev_if_needed("asdf", "glorp", False) == "asdf"
 
 
 def test_get_paths_from_agp_simple():
@@ -20,6 +36,36 @@ def test_paths_from_agp_extra_cols():
         with pytest.raises(PathParsingError) as ei:
             pu.get_paths_from_agp(fp.name)
         assert "doesn't have exactly 9 tab-separated columns" in str(ei.value)
+
+
+def test_paths_from_agp_incl_gaps():
+    with tempfile.NamedTemporaryFile(suffix=".agp") as fp:
+        fp.write(b"scaffold_1\t1\t4033\t0\tW\tseq3\t1\t4033\t+\n")
+        # N gap (has a "specified size")
+        fp.write(
+            b"scaffold_1\t4034\t4533\t1\tN\t500\tscaffold\tyes\tpaired-ends\n"
+        )
+        fp.write(b"scaffold_1\t4534\t4535\t2\tW\tseq4\t5\t6\t-\n")
+        # U gap (unknown length)
+        fp.write(b"scaffold_1\t4536\t4635\t3\tU\t100\ttelomere\tno\tna\n")
+        fp.seek(0)
+        assert pu.get_paths_from_agp(fp.name) == {
+            "scaffold_1": [
+                "seq3",
+                Gap(length=500, gaptype="scaffold"),
+                "-seq4",
+                Gap(gaptype="telomere"),
+            ]
+        }
+
+
+def test_paths_from_agp_only_gap():
+    with tempfile.NamedTemporaryFile(suffix=".agp") as fp:
+        fp.write(b"path1\t1\t4033\t0\tN\t500\tscaffold\tyes\tpaired-ends\n")
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_agp(fp.name)
+        assert str(ei.value) == "Some paths only have gaps: {'path1'}"
 
 
 def test_paths_from_agp_toofew_cols():
@@ -46,20 +92,163 @@ def test_get_paths_from_agp_gap():
     }
 
 
+def test_parse_verkko_tsv_seqname_simple():
+    assert pu.parse_verkko_tsv_seqname("asdf+", True) == "asdf"
+    assert pu.parse_verkko_tsv_seqname("asdf-", True) == "-asdf"
+    assert pu.parse_verkko_tsv_seqname("asdf+", False) == "asdf"
+    assert pu.parse_verkko_tsv_seqname("asdf-", False) == "asdf"
+
+    assert pu.parse_verkko_tsv_seqname("c+", True) == "c"
+    assert pu.parse_verkko_tsv_seqname("c-", True) == "-c"
+    assert pu.parse_verkko_tsv_seqname("c+", False) == "c"
+    assert pu.parse_verkko_tsv_seqname("c-", False) == "c"
+
+
+def test_parse_verkko_tsv_seqname_tooshort():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("+", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: "+"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("-", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: "-"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("a", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: "a"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("", True)
+    assert str(ei.value) == 'Name on path has < 2 characters: ""'
+
+
+def test_parse_verkko_tsv_seqname_noendorientation():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("asdf", True)
+    assert str(ei.value) == 'Name on path doesn\'t end with +/-: "asdf"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("asdf", False)
+    assert str(ei.value) == 'Name on path doesn\'t end with +/-: "asdf"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_seqname("asdf?", False)
+    assert str(ei.value) == 'Name on path doesn\'t end with +/-: "asdf?"'
+
+
+def test_parse_verkko_tsv_gap_simple():
+    assert pu.parse_verkko_tsv_gap("[N500N]") == Gap(length=500)
+    assert pu.parse_verkko_tsv_gap("[N500N:scaff]") == Gap(
+        length=500, gaptype="scaff"
+    )
+    # should we allow this? whatever. if the scaffolder specifies a 0-length
+    # gap then who are we to stop it
+    assert pu.parse_verkko_tsv_gap("[N0N]") == Gap(length=0)
+
+
+def test_parse_verkko_tsv_gap_negativelength():
+    # there isn't a big deep reason why this raises a UIError instead
+    # of a PathParsingError. it boils down to that's what ui_utils.get_num()
+    # throws because we typically call that from the UI when checking like
+    # font sizes or whatever that the user specifies in the app.
+    #
+    # um. we could refactor things so that get_num() could throw custom
+    # exception types but literally it doesnt matter at all atm sooooo
+    with pytest.raises(UIError) as ei:
+        pu.parse_verkko_tsv_gap("[N-1N]")
+    assert str(ei.value) == "Verkko path gap size must be \u2265 0."
+
+
+def test_parse_verkko_tsv_gap_extra_colons_ok():
+    assert pu.parse_verkko_tsv_gap("[N123456N:asdf:ghjil:ff]") == Gap(
+        length=123456, gaptype="asdf:ghjil:ff"
+    )
+    # i GUESS this technically works but like come on
+    assert pu.parse_verkko_tsv_gap("[N123456N::]") == Gap(
+        length=123456, gaptype=":"
+    )
+    assert pu.parse_verkko_tsv_gap("[N123456N:::]") == Gap(
+        length=123456, gaptype="::"
+    )
+
+
+def test_parse_verkko_tsv_gap_noendbracket():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123456N")
+    assert str(ei.value) == 'Gap "[N123456N" does not end with ]'
+
+
+def test_parse_verkko_tsv_gap_colon_but_noname():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123456N:]")
+    assert str(ei.value) == 'Empty gap name: "[N123456N:]"'
+
+
+def test_parse_verkko_tsv_gap_nolength():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[NN]")
+    assert str(ei.value) == 'Empty gap length: "[NN]"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[NN:asdf]")
+    assert str(ei.value) == 'Empty gap length: "[NN:asdf]"'
+
+
+def test_parse_verkko_tsv_gap_length_doesnt_end_in_n():
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123]")
+    assert str(ei.value) == 'Gap length does not end with N: "[N123]"'
+
+    with pytest.raises(PathParsingError) as ei:
+        pu.parse_verkko_tsv_gap("[N123:asdf]")
+    assert str(ei.value) == 'Gap length does not end with N: "[N123:asdf]"'
+
+
+def test_get_paths_from_verkko_tsv_simple():
+    with tempfile.NamedTemporaryFile(suffix=".tsv") as fp:
+        fp.write(b"name\tpath\tassignment\n")
+        fp.write(b"p1\t3+,4-,5-,a+,b-\tMAT\n")
+        fp.write(b"p2\t6+,4-,5-,a+,b-\tPAT\n")
+        fp.seek(0)
+        assert pu.get_paths_from_verkko_tsv(fp.name, True) == {
+            "p1": ["3", "-4", "-5", "a", "-b"],
+            "p2": ["6", "-4", "-5", "a", "-b"],
+        }
+
+
+def test_get_paths_from_verkko_tsv_gaps_onlyonepath():
+    with tempfile.NamedTemporaryFile(suffix=".tsv") as fp:
+        fp.write(b"name\tpath\tassignment\n")
+        fp.write(b"p1\t3+,4-,5-,a+,[N1N],b-\tMAT\n")
+        fp.seek(0)
+        assert pu.get_paths_from_verkko_tsv(fp.name, True) == {
+            "p1": ["3", "-4", "-5", "a", Gap(length=1), "-b"]
+        }
+
+
+def test_get_paths_from_verkko_tsv_only_gaps():
+    with tempfile.NamedTemporaryFile(suffix=".tsv") as fp:
+        fp.write(b"name\tpath\tassignment\n")
+        fp.write(b"p1\t[N100N],[N0N:asdf]\tMAT\n")
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_verkko_tsv(fp.name, True)
+        assert str(ei.value) == "Path p1 only has gaps???"
+
+
 def test_get_path_maps_simple():
     paths = pu.get_paths_from_agp(
         "metagenomescope/tests/input/scaffolds_ecoli.agp"
     )
     ag = AssemblyGraph("metagenomescope/tests/input/E_coli_LastGraph")
     assert pu.get_path_maps(ag.nodeid2obj, paths) == (
-        {3: ["scaffold_1"]},
         {
             "17": {"scaffold_1"},
             "-35": {"scaffold_1"},
             "-63": {"scaffold_1"},
             "259": {"scaffold_1"},
         },
-        {"scaffold_1": 3},
+        {"scaffold_1": {3}},
     )
 
 
@@ -70,14 +259,13 @@ def test_get_path_maps_one_missing(caplog):
         "scaff_invis": ["asdf", "ghjk"],
     }
     assert pu.get_path_maps(ag.nodeid2obj, paths) == (
-        {3: ["scaffold_1"]},
         {
             "17": {"scaffold_1"},
             "-35": {"scaffold_1"},
             "-63": {"scaffold_1"},
             "259": {"scaffold_1"},
         },
-        {"scaffold_1": 3},
+        {"scaffold_1": {3}},
     )
     assert caplog.records[0].msg == (
         "    WARNING: 1 / 2 path contained node(s) that were not present in "
@@ -94,14 +282,13 @@ def test_get_path_maps_missing_due_to_single_missing_node(caplog):
         "scaffold_2": ["-35", "bruh"],
     }
     assert pu.get_path_maps(ag.nodeid2obj, paths) == (
-        {3: ["scaffold_1"]},
         {
             "17": {"scaffold_1"},
             "-35": {"scaffold_1"},
             "-63": {"scaffold_1"},
             "259": {"scaffold_1"},
         },
-        {"scaffold_1": 3},
+        {"scaffold_1": {3}},
     )
     exp_warning_msg = (
         "    WARNING: 2 / 3 paths contained node(s) that were not present in "
@@ -134,7 +321,7 @@ def test_multiple_path_sources_good():
         agp_fp="metagenomescope/tests/input/flye_yeast.agp",
         flye_info_fp="metagenomescope/tests/input/flye_yeast_assembly_info.txt",
     )
-    assert len(ag.pathname2ccnum) == 32
+    assert len(ag.pathname2ccnums) == 32
 
 
 def test_multiple_path_sources_duplicate_name():
@@ -147,7 +334,7 @@ def test_multiple_path_sources_duplicate_name():
                 agp_fp=fp.name,
                 flye_info_fp="metagenomescope/tests/input/flye_yeast_assembly_info.txt",
             )
-        assert str(ei.value) == "Duplicate paths found between sources?"
+        assert str(ei.value) == "Duplicate path names found between sources?"
 
 
 def test_flye_path_with_gaps():
@@ -211,3 +398,153 @@ def test_flye_path_with_gaps():
         "26",
         "-32",
     ]
+    assert ag.pathname2ccnums["scaffold_34"] == {1}
+
+
+def test_get_paths_from_flye_info_all_terminal():
+    with tempfile.NamedTemporaryFile(suffix=".txt") as fp:
+        fp.write(
+            b"seq_name\tlength\tcov.\tcirc.\trepeat\tmult.\tgraph_path\n"
+            b"contig_1\t5\t3\t-\t-\t1\t*,*\n"
+        )
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_flye_info(fp.name)
+        assert str(ei.value) == "Invalid path: contig_1 -> \"['*', '*']\""
+
+
+def test_get_paths_from_flye_info_only_gaps():
+    with tempfile.NamedTemporaryFile(suffix=".txt") as fp:
+        fp.write(
+            b"seq_name\tlength\tcov.\tcirc.\trepeat\tmult.\tgraph_path\n"
+            b"contig_1\t5\t3\t-\t-\t1\t*,??,*\n"
+        )
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_flye_info(fp.name)
+        assert str(ei.value) == "Path contig_1 only has gaps???"
+
+
+def test_get_paths_from_flye_info_no_graph_path_col():
+    with tempfile.NamedTemporaryFile(suffix=".txt") as fp:
+        fp.write(
+            b"seq_name\tlength\tcov.\tcirc.\trepeat\tmult.\tgraphpath\n"
+            b"contig_1\t5\t3\t-\t-\t1\t*,??,1,*\n"
+        )
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_flye_info(fp.name)
+        assert str(ei.value) == f'Column "graph_path" not in {fp.name}.'
+
+
+def test_get_paths_from_flye_info_no_path_rows():
+    with tempfile.NamedTemporaryFile(suffix=".txt") as fp:
+        fp.write(b"seq_name\tlength\tcov.\tcirc.\trepeat\tmult.\tgraph_path\n")
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_flye_info(fp.name)
+        assert str(ei.value) == f"{fp.name} does not describe any paths."
+
+
+def test_get_paths_from_flye_info_duplicate_path_name():
+    with tempfile.NamedTemporaryFile(suffix=".txt") as fp:
+        fp.write(
+            b"seq_name\tlength\tcov.\tcirc.\trepeat\tmult.\tgraph_path\n"
+            b"contig_1\t5\t3\t-\t-\t1\t*,??,1,*\n"
+            b"contig_1\t6\t7\t-\t-\t2\t*,??,3,*\n"
+        )
+        fp.seek(0)
+        with pytest.raises(PathParsingError) as ei:
+            pu.get_paths_from_flye_info(fp.name)
+        assert (
+            str(ei.value)
+            == f'Path "contig_1" occurs multiple times in {fp.name}.'
+        )
+
+
+def test_get_avail_paths_from_cc_nums():
+    TESTPATHNAME2CCNUMS = {
+        "p1": {1, 2, 3},
+        "pA": {1},
+        "pB": {1},
+        "p2": {2},
+        "p3": {3},
+        "p4": {4},
+    }
+
+    assert sorted(
+        pu.get_avail_paths_from_cc_nums(TESTPATHNAME2CCNUMS, [3])
+    ) == ["p3"]
+
+    assert sorted(
+        pu.get_avail_paths_from_cc_nums(TESTPATHNAME2CCNUMS, [1])
+    ) == ["pA", "pB"]
+
+    assert sorted(
+        pu.get_avail_paths_from_cc_nums(
+            TESTPATHNAME2CCNUMS,
+            [1, 2],
+        )
+    ) == ["p2", "pA", "pB"]
+
+    assert sorted(
+        pu.get_avail_paths_from_cc_nums(
+            TESTPATHNAME2CCNUMS,
+            [1, 2, 3],
+        )
+    ) == ["p1", "p2", "p3", "pA", "pB"]
+
+    assert sorted(
+        pu.get_avail_paths_from_cc_nums(
+            TESTPATHNAME2CCNUMS,
+            [1, 2, 3, 4],
+        )
+    ) == ["p1", "p2", "p3", "p4", "pA", "pB"]
+
+
+def test_get_available_count_badge_text():
+    # this doesn't do any validation or anything so no need to go crazy
+    assert (
+        pu.get_available_count_badge_text(12345, 999999) == "12,345 / 999,999"
+    )
+    assert pu.get_available_count_badge_text(1, 1) == "1 / 1"
+
+
+def test_merge_paths_simple():
+    paths = {"p1": ["a", "b", "c"], "p2": ["b"]}
+    newpaths = {"p3": ["c", "d"]}
+    pu.merge_paths(paths, newpaths)
+    assert paths == {"p1": ["a", "b", "c"], "p2": ["b"], "p3": ["c", "d"]}
+    # newpaths should be unchanged
+    assert newpaths == {"p3": ["c", "d"]}
+
+
+def test_merge_paths_empty():
+    # merge something into nothing
+    paths = {}
+    newpaths = {"p3": ["c", "d"]}
+    pu.merge_paths(paths, newpaths)
+    assert paths == {"p3": ["c", "d"]}
+    assert newpaths == {"p3": ["c", "d"]}
+
+    # merge nothing into something
+    paths2 = {"z": ["x", "y"]}
+    newpaths2 = {}
+    pu.merge_paths(paths2, newpaths2)
+    assert paths2 == {"z": ["x", "y"]}
+    assert newpaths2 == {}
+
+    # merge nothing into nothing
+    paths3 = {}
+    newpaths3 = {}
+    pu.merge_paths(paths3, newpaths3)
+    assert paths3 == {}
+    assert newpaths3 == {}
+
+
+def test_merge_paths_duplicates():
+    paths = {"p3": ["a", "b"]}
+    newpaths = {"p3": ["c", "d"]}
+    with pytest.raises(PathParsingError) as ei:
+        pu.merge_paths(paths, newpaths)
+    assert str(ei.value) == "Duplicate path names found between sources?"

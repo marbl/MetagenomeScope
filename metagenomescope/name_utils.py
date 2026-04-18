@@ -111,6 +111,13 @@ def _sanity_check_name(name, node=True):
             f"{errprefix} {objs} cannot have {lbl}s that start with + signs."
         )
 
+    if name.startswith(config.VERKKO_PATH_GAP_PREFIX):
+        # prevent ambiguity in parsing Verkko TSV paths
+        raise GraphParsingError(
+            f"{errprefix} {objs} cannot have {lbl}s that start with "
+            f'"{config.VERKKO_PATH_GAP_PREFIX}".'
+        )
+
 
 def sanity_check_node_name(name):
     """Ensures that a node name seems reasonable."""
