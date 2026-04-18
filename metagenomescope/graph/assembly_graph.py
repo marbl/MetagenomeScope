@@ -20,7 +20,7 @@ from .. import (
     log_utils,
 )
 from ..gap import Gap
-from ..errors import WeirdError, GraphParsingError
+from ..errors import WeirdError, GraphParsingError, DataFileParsingError
 from . import validators, graph_utils
 from .draw_results import DrawResults
 from .subgraph import Subgraph
@@ -442,6 +442,12 @@ class AssemblyGraph(object):
                 logger.warning(
                     "Found multiple columns in the node data file. For now we "
                     "will just use the first column (after the node names)."
+                )
+            if len(self.node_data_df.columns) == 0:
+                raise DataFileParsingError(
+                    f'Node data file "{self.node_data_basename}" does not '
+                    "have any columns. Please check that --tsv/--no-tsv is "
+                    "set correctly."
                 )
             col = self.node_data_df.columns[0]
             for n in self.node_data_df.index:

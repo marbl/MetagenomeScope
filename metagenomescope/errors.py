@@ -6,6 +6,10 @@ class PathParsingError(Exception):
     pass
 
 
+class DataFileParsingError(Exception):
+    pass
+
+
 class GraphError(Exception):
     pass
 
