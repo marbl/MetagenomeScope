@@ -67,7 +67,14 @@ class AssemblyGraph(object):
     """
 
     def __init__(
-        self, graph_fp, agp_fp=None, verkko_tsv_fp=None, flye_info_fp=None
+        self,
+        graph_fp,
+        agp_fp=None,
+        verkko_tsv_fp=None,
+        flye_info_fp=None,
+        node_data_fp=None,
+        edge_data_fp=None,
+        data_tsv=False,
     ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
@@ -77,16 +84,26 @@ class AssemblyGraph(object):
             Path to the assembly graph to be visualized.
 
         agp_fp: str or None
-            If specified, this should be a path to an AGP file describing paths
-            in the graph.
+            If specified, should be a path to an AGP file describing paths in
+            the graph.
 
         verkko_tsv_fp: str or None
-            If specified, this should be a path to a Verkko-style TSV file
+            If specified, should be a path to a Verkko-style TSV file
             describing paths in the graph.
 
         flye_info_fp: str or None
-            If specified, this should be a path to a Flye assembly_info.txt
-            file describing contigs/scaffolds in the graph.
+            If specified, should be a path to a Flye assembly_info.txt file
+            describing contigs/scaffolds in the graph.
+
+        node_data_fp: str or None
+            If specified, should be a path to a CSV/TSV file of node metadata.
+
+        edge_data_fp: str or None
+            If specified, should be a path to a CSV/TSV file of edge metadata.
+
+        data_tsv: bool
+            If True, assume that the node and edge data files are TSV. If
+            False, assume they are CSV.
 
         References
         ----------
@@ -106,6 +123,11 @@ class AssemblyGraph(object):
         self.verkko_tsv_basename = misc_utils.get_basename_if_fp(verkko_tsv_fp)
         self.flye_info_filename = flye_info_fp
         self.flye_info_basename = misc_utils.get_basename_if_fp(flye_info_fp)
+        self.node_data_filename = node_data_fp
+        self.node_data_basename = misc_utils.get_basename_if_fp(node_data_fp)
+        self.edge_data_filename = edge_data_fp
+        self.edge_data_basename = misc_utils.get_basename_if_fp(edge_data_fp)
+        self.data_files_are_tsv = data_tsv
 
         logger.info(f'Loading input graph "{self.basename}"...')
         self.filetype = parsers.FILETYPE2HR[
@@ -406,6 +428,35 @@ class AssemblyGraph(object):
                 "across "
                 f"{ui_utils.pluralize(len(ccs_with_a_path), 'component')}."
             )
+
+        if self.node_data_filename is not None:
+            logger.debug(
+                f'  Loading input node data file "{self.node_data_basename}"'
+                "..."
+            )
+            sep = "\t" if self.data_files_are_tsv else ","
+            self.node_data_df = pd.read_csv(
+                self.node_data_filename, sep=sep, index_col=0, dtype=str
+            )
+            if len(self.node_data_df.columns) > 1:
+                logger.warning(
+                    "Found multiple columns in the node data file. For now we "
+                    "will just use the first column (after the node names)."
+                )
+            col = self.node_data_df.columns[0]
+            for n in self.node_data_df.index:
+                if n in self.nodename2objs:
+                    for o in self.nodename2objs[n]:
+                        o.datafileinfo = self.node_data_df[col][n]
+                else:
+                    logger.warning(f"Data file: node {n} not in graph")
+
+        if self.edge_data_filename is not None:
+            logger.warning(
+                f'  Edge data file "{self.node_data_basename}" provided. We '
+                "don't support edge data yet, but check back soon."
+            )
+
         logger.info("...Done.")
 
     def _store_flye_info_for_gfa_nodes(self):

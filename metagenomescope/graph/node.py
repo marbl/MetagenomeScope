@@ -176,6 +176,8 @@ class Node(object):
         # will store info about shape, width/height, etc
         self.layout = NodeLayout(self.split, self.data)
 
+        self.datafileinfo = None
+
     def __repr__(self):
         return f"Node {self.unique_id} (name: {self.name})"
 
@@ -243,6 +245,10 @@ class Node(object):
 
         splitcls = f"split{'N' if self.split is None else self.split}"
 
+        datafilecls = ""
+        if self.datafileinfo is not None:
+            datafilecls = f"datafile{self.datafileinfo}"
+
         ele = {
             "data": {
                 # Cytoscape.js expects node IDs to be strings
@@ -254,7 +260,7 @@ class Node(object):
                 # for styling (maybe some memory savings?) but probs nbd
                 "ntype": cy_config.NODE_DATA_TYPE,
             },
-            "classes": f"nonpattern {ndir} {splitcls} noderand{self.rand_idx}",
+            "classes": f"nonpattern {ndir} {splitcls} {datafilecls} noderand{self.rand_idx}",
         }
 
         ele["data"]["w"], ele["data"]["h"] = self.layout.get_dims(pixels=True)

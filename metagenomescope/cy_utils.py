@@ -291,6 +291,26 @@ def get_cyjs_stylesheet(
                     },
                 }
             )
+    elif node_coloring == ui_config.COLORING_DATAFILE:
+        # NOTE: super quick hack, need to make fancier for when we allow
+        # selection of diff data file columns (and not just binary vals)
+        stylesheet.append(
+            {
+                "selector": "node.datafile0",
+                "style": {
+                    "background-color": "#222",
+                },
+            }
+        )
+        stylesheet.append(
+            {
+                "selector": "node.datafile1",
+                "style": {
+                    "background-color": "#f00",
+                },
+            }
+        )
+
     # yeah yeah yeah this is slightly inefficient if both nodes and edges have
     # random coloring because then we're iterating through
     # cy_config.RANDOM_COLORS twice instead of once. there is no way that will

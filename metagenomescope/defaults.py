@@ -1,4 +1,4 @@
 PORT = 8050
-TSV = False
+DATA_TSV = False
 VERBOSE = False
 DEBUG = False

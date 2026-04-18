@@ -39,6 +39,9 @@ def run(
     agp: str = None,
     vtsv: str = None,
     flye_info: str = None,
+    node_data: str = None,
+    edge_data: str = None,
+    data_tsv: bool = defaults.DATA_TSV,
     port: int = defaults.PORT,
     verbose: bool = defaults.VERBOSE,
     debug: bool = defaults.DEBUG,
@@ -62,6 +65,17 @@ def run(
         Path to a Flye assembly_info.txt file describing contigs/scaffolds
         in the graph. (Optional.)
 
+    node_data: str or None
+        Path to a CSV / TSV file describing node metadata. (Optional.)
+
+    edge_data: str or None
+        Path to a CSV / TSV file describing edge metadata. (Optional.)
+
+    data_tsv: bool
+        If True, assume that the node and edge data files are TSV files (i.e.
+        they use tabs as the delimiter). If False, assume that these files are
+        CSV files (i.e. they use commas as the delimiter).
+
     port: int
         Port number to run the server on. We'll just pass this to Dash.
 
@@ -83,7 +97,13 @@ def run(
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
     # edges, etc.
     ag = AssemblyGraph(
-        graph, agp_fp=agp, verkko_tsv_fp=vtsv, flye_info_fp=flye_info
+        graph,
+        agp_fp=agp,
+        verkko_tsv_fp=vtsv,
+        flye_info_fp=flye_info,
+        node_data_fp=node_data,
+        edge_data_fp=edge_data,
+        data_tsv=data_tsv,
     )
 
     # Prepare some of the UI components in advance. A nice thing about Dash
@@ -782,6 +802,10 @@ def run(
                                         {
                                             "label": "Uniform",
                                             "value": ui_config.COLORING_UNIFORM,
+                                        },
+                                        {
+                                            "label": f"From {'TSV' if data_tsv else 'CSV'}",
+                                            "value": ui_config.COLORING_DATAFILE,
                                         },
                                     ],
                                     value=ui_config.DEFAULT_NODE_COLORING,

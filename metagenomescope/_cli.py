@@ -73,7 +73,7 @@ from . import __version__, defaults, descs, config
 @click.option(
     "--tsv/--no-tsv",
     is_flag=True,
-    default=defaults.TSV,
+    default=defaults.DATA_TSV,
     show_default=True,
     help=descs.TSV,
 )
@@ -135,7 +135,7 @@ def run_script(
             f"Flye info file: {info}",
             f"Node data file: {node_data}",
             f"Edge data file: {edge_data}",
-            f"Data files are TSV?: {tsv}",
+            f"TSV data files?: {tsv}",
             f"Port: {port}",
             f"Verbose?: {verbose}",
             f"Debug mode?: {debug}",
@@ -150,6 +150,9 @@ def run_script(
         agp=agp,
         vtsv=vtsv,
         flye_info=info,
+        node_data=node_data,
+        edge_data=edge_data,
+        data_tsv=tsv,
         port=port,
         verbose=verbose,
         debug=debug,
