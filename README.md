@@ -658,7 +658,7 @@ sed -i -e 's/^A/#A/' hifiasm-out.p_ctg.gfa
 ### Paths
 
 <details>
-  <summary><strong>FAQ 8. My graph is a DOT file from LJA that does not have edge IDs. How can I refer to paths on the graph?</strong></summary>
+  <summary><strong>FAQ 8. My graph is a DOT file from LJA that does not have edge IDs. Can I still create a "paths" file for it?</strong></summary>
 
 <hr/>
 
