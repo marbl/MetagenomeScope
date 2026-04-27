@@ -401,6 +401,36 @@ def test_flye_path_with_gaps():
     assert ag.pathname2ccnums["scaffold_34"] == {1}
 
 
+def test_lja_path_no_edge_ids_in_graph():
+    # Old versions of LJA generate graphs without edge IDs. Currently, the DOT
+    # parser addresses this by giving each edge the ID of
+    # "{src} -> {tgt} ({first nt})". It's not a GREAT solution, but this works
+    # -- it is much less of a pain than adjusting a ton of the downstream code
+    # to handle the case where some DOT files' edges don't have IDs.
+    #
+    # Anyway, how do you specify a path of edges when the edges don't even have
+    # IDs??? For now, we say that you can just refer to the ID that we will
+    # assign -- since it is predictable from the graph. This is a little clunky
+    # -- it is inelegant, and it also requires that the user refer to the edge
+    # in the positive strand (like, even an edge with ID "-A -> -B (C)" is said
+    # to have orientation "+", because orientation_in_name is set to True for
+    # all DOT files). But!!!! This does work, and that's all I think we can ask
+    # for right now.
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/chr15_subgraph_noids.gv",
+        agp_fp="metagenomescope/tests/input/chr15_subgraph_noids.agp",
+    )
+    assert ag.pathname2ccnums == {"scaffold_1": {1}, "scaffold_2": {1}}
+    assert ag.pathname2objnames["scaffold_1"] == [
+        "161134973 → 944378205 (A)",
+        "944378205 → 686645112 (G)",
+    ]
+    assert ag.pathname2objnames["scaffold_2"] == [
+        "-304512243 → 619135386 (C)",
+        "619135386 → -125771362 (T)",
+    ]
+
+
 def test_get_paths_from_flye_info_all_terminal():
     with tempfile.NamedTemporaryFile(suffix=".txt") as fp:
         fp.write(
