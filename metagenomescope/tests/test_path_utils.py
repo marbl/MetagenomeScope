@@ -401,7 +401,7 @@ def test_flye_path_with_gaps():
     assert ag.pathname2ccnums["scaffold_34"] == {1}
 
 
-def test_lja_path_no_edge_ids_in_graph():
+def test_lja_paths_no_edge_ids_in_graph():
     # Old versions of LJA generate graphs without edge IDs. Currently, the DOT
     # parser addresses this by giving each edge the ID of
     # "{src} -> {tgt} ({first nt})". It's not a GREAT solution, but this works
@@ -419,8 +419,13 @@ def test_lja_path_no_edge_ids_in_graph():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/chr15_subgraph_noids.gv",
         agp_fp="metagenomescope/tests/input/chr15_subgraph_noids.agp",
+        verkko_tsv_fp="metagenomescope/tests/input/chr15_subgraph_noids.paths.tsv",
     )
-    assert ag.pathname2ccnums == {"scaffold_1": {1}, "scaffold_2": {1}}
+    assert ag.pathname2ccnums == {
+        "scaffold_1": {1},
+        "scaffold_2": {1},
+        "scaffold_3": {1},
+    }
     assert ag.pathname2objnames["scaffold_1"] == [
         "161134973 → 944378205 (A)",
         "944378205 → 686645112 (G)",
@@ -428,6 +433,10 @@ def test_lja_path_no_edge_ids_in_graph():
     assert ag.pathname2objnames["scaffold_2"] == [
         "-304512243 → 619135386 (C)",
         "619135386 → -125771362 (T)",
+    ]
+    assert ag.pathname2objnames["scaffold_3"] == [
+        "-304512243 → 49491002 (T)",
+        "49491002 → -304512243 (T)",
     ]
 
 

@@ -161,6 +161,8 @@ support, feel free to open a GitHub issue.
 
 ### Displaying paths on the graph
 
+#### Supported path filetypes
+
 Paths can optionally be specified through any of the following inputs:
 
 <details>
@@ -227,6 +229,22 @@ _See the [GFA 1](https://gfa-spec.github.io/GFA-spec/GFA1.html) and [GFA 2](http
 
 <hr/>
 </details>
+
+#### Specifying edge-paths in a DOT file without edge IDs?
+
+In some older LJA graphs, edges do not have explicitly set IDs.
+MetagenomeScope will detect these cases and automatically create edge IDs
+in the format `SOURCE → TARGET (FIRST NT)`.
+
+So, if you want to specify paths through these graphs that do not have
+edge IDs, then: you can prepare your AGP (`-a`) or TSV (`-t`) file as normal,
+but just refer to edges' IDs in this format. (Make sure to label the orientation
+of each of these edge IDs as `+`, even if it contains negative-strand node(s).)
+
+Here is an example of this:
+{[DOT graph file without edge IDs](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.gv),
+[AGP file](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.agp),
+[TSV paths file](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.paths.tsv)}.
 
 ## Structural patterns
 
