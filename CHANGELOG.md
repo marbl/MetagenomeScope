@@ -39,7 +39,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Fixed
 
-- Cleaned up and added some more tests for the path-parsing parts of the code.
+- Clean up and add some more tests for the path-parsing parts of the code.
 
 - Fix a bug where Flye DOT files with split nodes / fake edges remaining
   after the decomposition would crash the redundant component detection
