@@ -662,8 +662,10 @@ sed -i -e 's/^A/#A/' hifiasm-out.p_ctg.gfa
 
 <hr/>
 
-In some older LJA graphs, edges do not have explicitly set IDs.
-MetagenomeScope will detect these cases and automatically create edge IDs
+Yes!
+
+Some background: in some older LJA graphs, edges do not have explicitly set IDs.
+MetagenomeScope will detect this, and automatically create edge IDs
 in the format `SOURCE → TARGET (FIRST NT)`.
 
 So, if you want to specify paths through these graphs that do not have
@@ -671,10 +673,13 @@ edge IDs, then: you can prepare your AGP (`-a`) or TSV (`-t`) file as normal,
 but just refer to edges' IDs in this format. (Make sure to label the orientation
 of each of these edge IDs as `+`, even if it contains negative-strand node(s).)
 
-Here is an example of this:
-{[DOT graph file without edge IDs](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.gv),
-[AGP file](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.agp),
-[TSV paths file](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.paths.tsv)}.
+Here is an example of how you could do this:
+
+- [DOT graph file without edge IDs](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.gv)
+
+- [AGP file](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.agp)
+
+- [TSV paths file](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.paths.tsv)
 
 <hr/>
 </details>
