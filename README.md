@@ -161,8 +161,6 @@ support, feel free to open a GitHub issue.
 
 ### Displaying paths on the graph
 
-#### Supported path filetypes
-
 Paths can optionally be specified through any of the following inputs:
 
 <details>
@@ -229,22 +227,6 @@ _See the [GFA 1](https://gfa-spec.github.io/GFA-spec/GFA1.html) and [GFA 2](http
 
 <hr/>
 </details>
-
-#### Specifying edge-paths in a DOT file without edge IDs?
-
-In some older LJA graphs, edges do not have explicitly set IDs.
-MetagenomeScope will detect these cases and automatically create edge IDs
-in the format `SOURCE → TARGET (FIRST NT)`.
-
-So, if you want to specify paths through these graphs that do not have
-edge IDs, then: you can prepare your AGP (`-a`) or TSV (`-t`) file as normal,
-but just refer to edges' IDs in this format. (Make sure to label the orientation
-of each of these edge IDs as `+`, even if it contains negative-strand node(s).)
-
-Here is an example of this:
-{[DOT graph file without edge IDs](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.gv),
-[AGP file](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.agp),
-[TSV paths file](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.paths.tsv)}.
 
 ## Structural patterns
 
@@ -537,7 +519,7 @@ This often occurs with the big ("hairball") component in an assembly graph.
 
 <hr/>
 
-(This assumes that you have read FAQ 1.)
+(This assumes that you have read the FAQ above on "How do you handle reverse-complementary nodes/edges?")
 
 This can happen if an edge exists from `X -> -X` or from `-X -> X` in an
 "implicit" graph file (GFA / LastGraph). Consider
@@ -673,10 +655,34 @@ sed -i -e 's/^A/#A/' hifiasm-out.p_ctg.gfa
 <hr/>
 </details>
 
+### Paths
+
+<details>
+  <summary><strong>FAQ 8. My graph is a DOT file from LJA that does not have edge IDs. How can I refer to paths on the graph?</strong></summary>
+
+<hr/>
+
+In some older LJA graphs, edges do not have explicitly set IDs.
+MetagenomeScope will detect these cases and automatically create edge IDs
+in the format `SOURCE → TARGET (FIRST NT)`.
+
+So, if you want to specify paths through these graphs that do not have
+edge IDs, then: you can prepare your AGP (`-a`) or TSV (`-t`) file as normal,
+but just refer to edges' IDs in this format. (Make sure to label the orientation
+of each of these edge IDs as `+`, even if it contains negative-strand node(s).)
+
+Here is an example of this:
+{[DOT graph file without edge IDs](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.gv),
+[AGP file](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.agp),
+[TSV paths file](https://github.com/marbl/MetagenomeScope/blob/main/metagenomescope/tests/input/chr15_subgraph_noids.paths.tsv)}.
+
+<hr/>
+</details>
+
 ### Patterns
 
 <details>
-  <summary><strong>FAQ 8. How can I run the pattern decomposition process programmatically?</strong></summary>
+  <summary><strong>FAQ 9. How can I run the pattern decomposition process programmatically?</strong></summary>
 
 <hr/>
 
@@ -760,7 +766,7 @@ This interface should remain relatively stable, although I may change things sli
 ### Performance
 
 <details>
-  <summary><strong>FAQ 9. What's the biggest possible graph I can visualize?</strong></summary>
+  <summary><strong>FAQ 10. What's the biggest possible graph I can visualize?</strong></summary>
 
 <hr/>
 
