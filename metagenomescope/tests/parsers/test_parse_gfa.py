@@ -296,13 +296,22 @@ def test_multigraphs_okay_gfa2():
     assert ("-3", "-1", 1) in g.edges
 
 
-def test_dp_tags_parsed_as_coverage():
+def test_dpf_tags_parsed_as_coverage():
     s1 = get_sample1_gfa()
-    s1.append("S\t7\tCCC\tdp:f:123")
+    s1.append("S\t7\tCCC\tdp:f:123.2229")
     g, paths = run_tempfile_test("gfa", s1, None, None)
     assert paths is None
-    assert g.nodes["7"]["cov"] == 123
-    assert g.nodes["-7"]["cov"] == 123
+    assert g.nodes["7"]["cov"] == 123.2229
+    assert g.nodes["-7"]["cov"] == 123.2229
+
+
+def test_dpi_tags_parsed_as_coverage():
+    s1 = get_sample1_gfa()
+    s1.append("S\t800\tCCC\tdp:i:123456")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["800"]["cov"] == 123456
+    assert g.nodes["-800"]["cov"] == 123456
 
 
 def test_kc_tags_parsed_as_coverage():
@@ -323,3 +332,32 @@ def test_fc_tags_parsed_as_coverage():
     # matches bandage's behavior
     assert g.nodes["7"]["cov"] == (22222 / 4)
     assert g.nodes["-7"]["cov"] == (22222 / 4)
+
+
+def test_kc_tag_but_zero_length():
+    # the order of the tags shouldn't matter - length should be parsed first
+    # 1. KC before length
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\t*\tKC:i:12345\tLN:i:0")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["7"]["cov"] is None
+    assert g.nodes["-7"]["cov"] is None
+
+    # 1. length before KC
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\t*\tLN:i:0\tKC:i:12345")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["7"]["cov"] is None
+    assert g.nodes["-7"]["cov"] is None
+
+
+def test_multiple_coverage_tags():
+    # the first one in the tags is what wins, at least for now
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\tCCCC\tKC:i:12345\tDP:i:5\tFC:i:100\tRC:i:9999")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["7"]["cov"] == 12345 / 4
+    assert g.nodes["-7"]["cov"] == 12345 / 4

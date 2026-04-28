@@ -583,7 +583,13 @@ def parse_gfa(filename):
                         or tlow.startswith("rc:i:")
                         or tlow.startswith("fc:i:")
                     ):
-                        segcov = int(t[5:]) / seglen
+                        # In the horrendous case where a k-mer count or
+                        # something is specified, but the length is zero,
+                        # just don't bother setting a coverage to avoid
+                        # division by zero. Based on Bandage's behavior:
+                        # https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/graph/assemblygraph.cpp#L690-L709
+                        if seglen > 0:
+                            segcov = int(t[5:]) / seglen
                         break
 
                 # Add both a positive and negative node.
