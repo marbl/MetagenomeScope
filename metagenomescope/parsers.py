@@ -570,13 +570,18 @@ def parse_gfa(filename):
                     # BandageNG wiki means by "the one listed earlier always
                     # 'wins'" (maybe they mean like dp > kc > rc > fc?) but it
                     # doesnt really matter that much imo
-                    if tlow.startswith("dp:f"):
+                    if tlow.startswith("dp:f:"):
                         segcov = float(t[5:])
                         break
+                    elif tlow.startswith("dp:i:"):
+                        # Flye can generate these - see
+                        # https://github.com/mikolmogorov/Flye/blob/886b8c17412cdf3a2868a28237bca6c5ad1da156/src/repeat_graph/output_generator.cpp#L104
+                        segcov = int(t[5:])
+                        break
                     elif (
-                        tlow.startswith("kc:i")
-                        or tlow.startswith("rc:i")
-                        or tlow.startswith("fc:i")
+                        tlow.startswith("kc:i:")
+                        or tlow.startswith("rc:i:")
+                        or tlow.startswith("fc:i:")
                     ):
                         segcov = int(t[5:]) / seglen
                         break
