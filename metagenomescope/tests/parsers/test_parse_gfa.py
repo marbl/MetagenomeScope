@@ -354,10 +354,10 @@ def test_kc_tag_but_zero_length():
 
 
 def test_multiple_coverage_tags():
-    # the first one in the tags is what wins, at least for now
+    # DP has the highest precedence, matching Bandage and BandageNG's behavior
     s1 = get_sample1_gfa()
     s1.append("S\t7\tCCCC\tKC:i:12345\tDP:i:5\tFC:i:100\tRC:i:9999")
     g, paths = run_tempfile_test("gfa", s1, None, None)
     assert paths is None
-    assert g.nodes["7"]["cov"] == 12345 / 4
-    assert g.nodes["-7"]["cov"] == 12345 / 4
+    assert g.nodes["7"]["cov"] == 5
+    assert g.nodes["-7"]["cov"] == 5

@@ -434,6 +434,72 @@ def get_gfa_line_parts(line, minpartct):
     return parts
 
 
+def get_tag_dict(tags):
+    """Converts a list of tags to a dict mapping tag name and type -> value.
+
+    Parameters
+    ----------
+    tags: list of str
+        Something like ["LN:i:12345", "KC:i:333", ...]
+
+    Returns
+    -------
+    dict of str -> str
+        Maps lowercased tag prefixes (e.g. "ln:i") to tag values (e.g.
+        "12345").
+
+        Yeah yeah yeah the GFA specifications officially say that tags with
+        lowercase letters are "reserved for end users" but like there are
+        real tools out there which can generate lowercase tags (e.g. Flye's
+        "dp:i" tags) so let's just convert everything to lowercase and move
+        on with our lives to more important questions than file format parsing
+
+    Raises
+    ------
+    GraphParsingError
+        - If we see a tag that doesn't have at least two ":"s
+
+        - If we see the same tag multiple times. Note that this check is
+          performed AFTER converting all tag prefixes to lowercase, so if a
+          line has both "DP:i:" and "dp:i:" then that will trigger this error.
+          Life is too short to mess around with these ambiguities
+    """
+    lowerpref2val = {}
+    for t in tags:
+        # figure out the location of the second colon in t
+        # (e.g. for something like "LN:i:123:456:789" this is 4)
+        #                               ^
+        #                           0123456789012345
+        #                           0000000000111111
+        #
+        # I think in GFA 2 tag names can technically be longer than two
+        # characters so SURE let's go crazy and make this flexible i guess
+        # not that it matters much atm
+        colon_ct = 0
+        # in theory you could like extract the value of "i" from this loop
+        # instead of storing a separate second_colon_idx variable, but i don't
+        # trust that to not break in some weird jank corner case
+        second_colon_idx = None
+        for i, c in enumerate(t):
+            if c == ":":
+                colon_ct += 1
+                if colon_ct == 2:
+                    second_colon_idx = i
+                    break
+        if second_colon_idx is None:
+            raise GraphParsingError(f'Found a GFA tag with < 2 colons: "{t}"')
+        # do not include the second colon in either the prefix or value
+        pref = t[:second_colon_idx]
+        val = t[second_colon_idx + 1 :]
+        if len(pref) == 0 or len(val) == 0:
+            raise GraphParsingError(f'Zero-length tag prefix or value: "{t}"')
+        lowerpref = pref.lower()
+        if lowerpref in lowerpref2val:
+            raise GraphParsingError(f'Duplicate GFA tag prefix: "{lowerpref}"')
+        lowerpref2val[lowerpref] = val
+    return lowerpref2val
+
+
 def check_lengths_consistent(segname, len1, len2):
     if len1 != len2:
         raise GraphParsingError(
@@ -524,6 +590,8 @@ def parse_gfa(filename):
                     seq = parts[3]
                     tags = parts[4:]
 
+                tag2val = get_tag_dict(tags)
+
                 if seq != "*":
                     newlen = len(seq)
                     if seglen is None:
@@ -536,61 +604,59 @@ def parse_gfa(filename):
                         check_lengths_consistent(segname, seglen, newlen)
                     seggc = gc_content(seq)[0]
 
-                # go through the tags to find / check segment len
-                for t in tags:
-                    if t.lower().startswith("ln:i:"):
-                        lenpart = t[5:]
-                        # in the antagonistic case where the length tag
-                        # is something malformed like "LN:i:asdf" then this
-                        # will result in a ValueError. This is fine - we
-                        # could catch it specifically but not worth it imo
-                        newlen = int(lenpart)
-                        if seglen is None:
-                            seglen = newlen
-                        else:
-                            check_lengths_consistent(segname, seglen, newlen)
-                        break
+                if "ln:i" in tag2val:
+                    # in the antagonistic case where the length tag
+                    # is something malformed like "LN:i:asdf" then this
+                    # will result in a ValueError. This is fine - we
+                    # could catch it specifically but not worth it imo
+                    newlen = int(tag2val["ln:i"])
+                    if seglen is None:
+                        seglen = newlen
+                    else:
+                        check_lengths_consistent(segname, seglen, newlen)
 
                 if seglen is None:
                     raise GraphParsingError(f"Segment '{line}' has no length?")
 
-                # go through the tags again to find coverage, if given
-                for t in tags:
-                    tlow = t.lower()
-                    # Process things in an analogous way to BandageNG:
-                    # https://github.com/asl/BandageNG/wiki/Custom-GFA-tags
-                    #
-                    # This matches Gfapy's interpretations, also -- down to the
-                    # idea of e.g. KC corresponding to a coverage of
-                    # (KC tag value) / (segment length).
-                    #
-                    # If the user specifies multiple coverage tags for a single
-                    # segment, the leftmost (earliest) one in the tag list is
-                    # what is used. I am not 100% sure this is EXACTLY what the
-                    # BandageNG wiki means by "the one listed earlier always
-                    # 'wins'" (maybe they mean like dp > kc > rc > fc?) but it
-                    # doesnt really matter that much imo
-                    if tlow.startswith("dp:f:"):
-                        segcov = float(t[5:])
-                        break
-                    elif tlow.startswith("dp:i:"):
-                        # Flye can generate these - see
-                        # https://github.com/mikolmogorov/Flye/blob/886b8c17412cdf3a2868a28237bca6c5ad1da156/src/repeat_graph/output_generator.cpp#L104
-                        segcov = int(t[5:])
-                        break
-                    elif (
-                        tlow.startswith("kc:i:")
-                        or tlow.startswith("rc:i:")
-                        or tlow.startswith("fc:i:")
-                    ):
+                # Find coverage, if given.
+                #
+                # We process things in an analogous way to BandageNG:
+                # https://github.com/asl/BandageNG/wiki/Custom-GFA-tags
+                #
+                # This matches Gfapy's interpretations, also -- down to the
+                # idea of e.g. KC corresponding to a coverage of
+                # (KC tag value) / (segment length).
+                #
+                # If the user specifies multiple coverage tags for a single
+                # segment, then we match the precedence decision from Bandage
+                # and BandageNG: DP > KC > RC > FC.
+                # I guess we modify this a little bit to allow for dp:i tags
+                # although it's unclear if Bandage(NG) accept dp:i tags in the
+                # first place so um idk
+                if "dp:f" in tag2val:
+                    segcov = float(tag2val["dp:f"])
+
+                elif "dp:i" in tag2val:
+                    # Flye can generate these - see
+                    # https://github.com/mikolmogorov/Flye/blob/886b8c17412cdf3a2868a28237bca6c5ad1da156/src/repeat_graph/output_generator.cpp#L104
+                    segcov = int(tag2val["dp:i"])
+
+                elif "kc:i" in tag2val:
+                    if seglen > 0:
                         # In the horrendous case where a k-mer count or
                         # something is specified, but the length is zero,
                         # just don't bother setting a coverage to avoid
                         # division by zero. Based on Bandage's behavior:
                         # https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/graph/assemblygraph.cpp#L690-L709
-                        if seglen > 0:
-                            segcov = int(t[5:]) / seglen
-                        break
+                        segcov = int(tag2val["kc:i"]) / seglen
+
+                elif "rc:i" in tag2val:
+                    if seglen > 0:
+                        segcov = int(tag2val["rc:i"]) / seglen
+
+                elif "fc:i" in tag2val:
+                    if seglen > 0:
+                        segcov = int(tag2val["fc:i"]) / seglen
 
                 # Add both a positive and negative node.
                 # We might have already seen edge(s) including segname and/or
