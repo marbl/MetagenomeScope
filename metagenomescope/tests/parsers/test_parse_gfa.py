@@ -177,6 +177,17 @@ def test_parse_inconsistent_length_node():
     )
 
 
+def test_parse_redefined_node():
+    s1 = get_sample1_gfa()
+    s1.insert(1, "S\t1\tATCA")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        'Found multiple S lines for segment ID "1".',
+    )
+
+
 def test_parse_invalid_id_node():
     s1 = get_sample1_gfa()
     # Evil hack to replace the two lines referring to node 1 to refer instead
