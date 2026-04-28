@@ -415,7 +415,7 @@ def parse_metacarvel_gml(filename):
     return g  # , ("orientation",), ("bsize", "orientation", "mean", "stdev")
 
 
-def check_enough_line_parts(parts, minpartct):
+def check_enough_line_parts(line, parts, minpartct):
     if len(parts) < minpartct:
         raise GraphParsingError(f"< {minpartct:,} parts: GFA line '{line}'")
 
@@ -430,7 +430,7 @@ def get_gfa_line_parts(line, minpartct):
     # dresses and replace them with O-line dresses and it's just a big donut
     # costume. thatd be great. hey is anybody even reading this
     parts = line.strip().split("\t")
-    check_enough_line_parts(parts, minpartct)
+    check_enough_line_parts(line, parts, minpartct)
     return parts
 
 
@@ -517,7 +517,7 @@ def parse_gfa(filename):
                 else:
                     # Even if there are no tags, all GFA2 S lines should have
                     # at least four tab-separated parts!
-                    check_enough_line_parts(parts, 4)
+                    check_enough_line_parts(line, parts, 4)
                     # If we've made it to this block, we should already know
                     # that parts[2] can be parsed as an integer
                     seglen = int(parts[2])
@@ -582,12 +582,11 @@ def parse_gfa(filename):
                         break
 
                 # Add both a positive and negative node.
-                rc_name = negate(segname)
                 # We might have already seen edge(s) including segname and/or
-                # rc_name. This is fine -- calling .add_node() will just update
-                # these attributes. (We don't have to worry about overriding
-                # an earlier S line's attributes because of the checking we do
-                # with nodes_seen_in_s_lines.)
+                # negate(segname). This is fine -- calling .add_node() will
+                # just update these attributes. (We don't have to worry about
+                # overriding an earlier S line's attributes because of the
+                # checking we do with nodes_seen_in_s_lines.)
                 digraph.add_node(
                     segname,
                     length=seglen,
