@@ -4,7 +4,6 @@ from metagenomescope.name_utils import negate
 from metagenomescope.parsers import parse_gfa
 from metagenomescope.errors import GraphParsingError
 from .utils import run_tempfile_test
-from gfapy.error import InconsistencyError, NotUniqueError
 
 
 def check_sample_gfa_digraph(digraph):
@@ -142,12 +141,7 @@ def test_parse_no_length_node():
     s1 = get_sample1_gfa()
     s1.pop(1)
     s1.insert(1, "S\t1\t*")
-    run_tempfile_test(
-        "gfa",
-        s1,
-        GraphParsingError,
-        "Found a node without a specified length: 1",
-    )
+    run_tempfile_test("gfa", s1, GraphParsingError, "has no length")
 
     # Manually assigning node 1 a sequence should fix the problem
     # (since the length is then implied)
@@ -168,15 +162,18 @@ def test_parse_no_length_node():
     assert digraph.nodes["1"]["gc_content"] is None
     assert digraph.nodes["1"]["length"] == 6
 
-    # test super weird corner case where both forms of length are given, but
-    # they disagree -- should be caught by gfapy
+
+def test_parse_inconsistent_length_node():
+    s1 = get_sample1_gfa()
+    # test super weird corner case where multiple forms of length are given,
+    # but they disagree. Technically, the GFA 2 specification allows this!
     s1.pop(1)
     s1.insert(1, "S\t1\tATCA\tLN:i:6")
     run_tempfile_test(
         "gfa",
         s1,
-        InconsistencyError,
-        "Length in LN tag (6) is different from length of sequence field (4)",
+        GraphParsingError,
+        "inconsistent lengths",
     )
 
 
@@ -192,8 +189,7 @@ def test_parse_invalid_id_node():
         "gfa",
         s1,
         GraphParsingError,
-        "Node IDs in the input assembly graph cannot "
-        f'start with the "{config.REV}" character.',
+        f'Segment IDs cannot start with the "{config.REV}" character.',
     )
 
 
@@ -242,7 +238,7 @@ def test_parse_path_duplicate_name():
     s1 = get_sample1_gfa()
     s1.append("P\tpath1\t3+,4-\t*")
     s1.append("P\tpath1\t1+,2+\t*")
-    run_tempfile_test("gfa", s1, NotUniqueError, "Line or ID not unique")
+    run_tempfile_test("gfa", s1, GraphParsingError, "Duplicate path ID: path1")
 
 
 def test_parse_path_rc_path_ok():
