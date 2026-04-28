@@ -142,6 +142,7 @@ Options:
   -p, --port INTEGER RANGE  Server port number.  [default: 8050; 1024<=x<=65535]
   --verbose / --no-verbose  Log extra details.  [default: no-verbose]
   --debug / --no-debug      Use Dash's debug mode.  [default: no-debug]
+  --dcheck / --no-dcheck    Do post-decomposition sanity check.  [default: no-dcheck]
   -v, --version             Show the version and exit.
   -h, --help                Show this message and exit.
 ```
