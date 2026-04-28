@@ -55,7 +55,7 @@ class AssemblyGraph(object):
     the decomposed graph with their child nodes and edges, then the resulting
     graph should be equivalent to the uncollapsed graph stored in .graph.)
 
-    NEW: As of February 2026 we also create a .original_graph object, which
+    NEW: As of February 2026 we also may create a .original_graph object, which
     is just used for sanity-checking. It should remain identical to the .graph
     object's structure, if you were to ignore the results of node splitting
     during the decomposition.
@@ -67,7 +67,12 @@ class AssemblyGraph(object):
     """
 
     def __init__(
-        self, graph_fp, agp_fp=None, verkko_tsv_fp=None, flye_info_fp=None
+        self,
+        graph_fp,
+        agp_fp=None,
+        verkko_tsv_fp=None,
+        flye_info_fp=None,
+        sanity_check_post_decomposition=True,
     ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
@@ -88,6 +93,12 @@ class AssemblyGraph(object):
             If specified, this should be a path to a Flye assembly_info.txt
             file describing contigs/scaffolds in the graph.
 
+        sanity_check_post_decomposition: bool
+            If True, makes an additional copy of the graph structure before
+            decomposition and runs some additional checks afterwards. This
+            can require a decent amount of extra memory and time. If False,
+            doesn't do that.
+
         References
         ----------
         For details about AGP files, see
@@ -106,6 +117,8 @@ class AssemblyGraph(object):
         self.verkko_tsv_basename = misc_utils.get_basename_if_fp(verkko_tsv_fp)
         self.flye_info_filename = flye_info_fp
         self.flye_info_basename = misc_utils.get_basename_if_fp(flye_info_fp)
+
+        self.sanity_check_post_decomposition = sanity_check_post_decomposition
 
         logger.info(f'Loading input graph "{self.basename}"...')
         self.filetype = parsers.FILETYPE2HR[
@@ -178,11 +191,14 @@ class AssemblyGraph(object):
         # decomposition, or one of them might be deemed "unnecessary" and
         # removed (with the other becoming the main version of this node).
         #
-        # When we sanity-check self.graph after the decomposition (compared to
+        # If we sanity-check self.graph after the decomposition (compared to
         # self.original_graph), we might no longer see an ID "x" -- if it was
         # deemed unnecessary. To be able to reconcile node ID "y" with the
         # "x" in self.original_graph, we create this simple mapping of each
         # deleted node ID to its counterpart ID.
+        #
+        # (If we are not doing post-decomposition sanity-checking, then we will
+        # not bother populating this dict...)
         self.deletednodeid2counterpartid = {}
 
         # This is just used for debugging, at the moment. Every time we call
@@ -258,9 +274,13 @@ class AssemblyGraph(object):
         }
 
         logger.debug("  Decomposing the assembly graph...")
-        logger.debug("    Creating copies of the graph...")
+        ctext = "copies" if self.sanity_check_post_decomposition else "a copy"
+        logger.debug(f"    Creating {ctext} of the graph...")
         self.decomposed_graph = deepcopy(self.graph)
-        self.original_graph = deepcopy(self.graph)
+        if self.sanity_check_post_decomposition:
+            self.original_graph = deepcopy(self.graph)
+        else:
+            self.original_graph = None
         logger.debug("    ...Done.")
 
         logger.debug("    Hierarchically identifying patterns in the graph...")
@@ -1288,7 +1308,10 @@ class AssemblyGraph(object):
            helper function (that takes as input the graph and decomposed
            graph?), or something? if feasible.
         """
+        logging.debug("      Finding bubbles and (cyclic) chains...")
+        iteration_ct = 0
         while True:
+            iteration_ct += 1
             something_collapsed_in_this_iteration = False
             # The use of set here means that the order in which we go through
             # nodes is technically arbitrary. However, I don't think this makes
@@ -1422,6 +1445,10 @@ class AssemblyGraph(object):
                 # while loop.
                 break
 
+        logging.debug(
+            f"      ...Done in {ui_utils.pluralize(iteration_ct, 'iteration')}."
+        )
+        logging.debug("      Finding frayed ropes and bipartites...")
         # Now, identify frayed ropes and bipartites ("top-level only" patterns)
         top_level_candidate_nodes = set(self.decomposed_graph.nodes)
         while len(top_level_candidate_nodes) > 0:
@@ -1451,6 +1478,7 @@ class AssemblyGraph(object):
                             f"Shouldn't have done chain merging on {pobj}?"
                         )
                     break
+        logging.debug("      ...Done.")
 
         logger = logging.getLogger(__name__)
 
@@ -1458,18 +1486,24 @@ class AssemblyGraph(object):
         self._remove_unnecessary_split_nodes()
         logger.debug("      ...Done.")
 
-        logger.debug(
-            "      Sanity-checking the graph structure out of paranoia..."
-        )
-        self._sanity_check_graph()
-        logger.debug("      ...Done.")
+        if self.sanity_check_post_decomposition:
+            logger.debug(
+                "      Sanity-checking the graph structure out of paranoia..."
+            )
+            self._sanity_check_graph()
+            logger.debug("      ...Done.")
 
         # No need to go through the nodes and edges in the top level of the
         # graph and record that they don't have a parent pattern -- their
         # parent_id attrs default to None
 
     def _sanity_check_graph(self):
-        """Checks that decomposition didn't break the graph structure."""
+        """Checks that decomposition didn't break the graph structure.
+
+        (This should only be run if self.sanity_check_post_decomposition is
+        True. Otherwise, this will crash, because it assumes that
+        self.original_graph has been populated.)
+        """
 
         # Create a mapping of node name -> Node object, and count how many
         # times we see a node basename.
@@ -1794,9 +1828,13 @@ class AssemblyGraph(object):
                     else:
                         self.decomposed_graph.remove_node(node_id)
                     counterpart.unsplit()
-                    self.deletednodeid2counterpartid[node_id] = (
-                        counterpart.unique_id
-                    )
+                    if self.sanity_check_post_decomposition:
+                        # Recording this info is only necessary if we are going
+                        # to be doing the slow sanity-checking -- otherwise we
+                        # can skip it.
+                        self.deletednodeid2counterpartid[node_id] = (
+                            counterpart.unique_id
+                        )
                     del self.nodeid2obj[node_id]
                     del self.edgeid2obj[fe_id]
 

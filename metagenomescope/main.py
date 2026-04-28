@@ -83,7 +83,11 @@ def run(
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
     # edges, etc.
     ag = AssemblyGraph(
-        graph, agp_fp=agp, verkko_tsv_fp=vtsv, flye_info_fp=flye_info
+        graph,
+        agp_fp=agp,
+        verkko_tsv_fp=vtsv,
+        flye_info_fp=flye_info,
+        sanity_check_post_decomposition=False,
     )
 
     # Prepare some of the UI components in advance. A nice thing about Dash
