@@ -99,6 +99,10 @@ class AssemblyGraph(object):
             can require a decent amount of extra memory and time. If False,
             doesn't do that.
 
+            I think leaving this to default to True makes sense - this way
+            all of the tests keep using this by default. Actual users can
+            control this through the CLI.
+
         References
         ----------
         For details about AGP files, see
