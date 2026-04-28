@@ -21,7 +21,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
   - This check involves, among other things, creating an extra copy of the
     input graph structure before decomposition. It can be a bottleneck when
-    working with a massive graph on a low-memory system.
+    working with massive graphs on low-memory systems.
 
 - Various updates to the README.
 
@@ -53,9 +53,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Add more detail to the `--verbose` log messages during pattern decomposition.
 
-- Turn off the call to `AssemblyGraph._sanity_check_graph()` after
-  decomposition by default; as discussed in "Added" above, this is now
-  controlled by the `--dcheck` command-line flag
+- Turn off the creation of `AssemblyGraph.original_graph`, the call to
+  `AssemblyGraph._sanity_check_graph()`, etc. by default; as discussed in
+  "Added" above, this is now controlled by the `--dcheck` command-line flag
   ([#421](https://github.com/marbl/MetagenomeScope/issues/421)).
 
 ### Fixed
