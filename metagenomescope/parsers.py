@@ -516,6 +516,38 @@ def check_lengths_consistent(segname, len1, len2):
         )
 
 
+def count2cov_if_positive_len(scountval, slen):
+    """Converts a segment's "count" tag value to a coverage, if possible.
+
+    Parameters
+    ----------
+    scountval: str
+        The value from a KC:i, RC:i, or FC:i tag from a S-line in a GFA file.
+
+    slen: int
+        The length for this S-line.
+
+    Returns
+    -------
+    float or None
+        If slen > 0, this will be int(scountval) divided by slen -- matching
+        Bandage, Gfapy, etc.'s behavior.
+
+        Otherwise, to avoid division by zero, we will just return None --
+        so the downstream code can see that this segment does not have a
+        defined coverage.
+
+    References
+    ----------
+    Based on Bandage's behavior:
+    https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/graph/assemblygraph.cpp#L690-L709
+    """
+    if slen > 0:
+        return int(scountval) / slen
+    else:
+        return None
+
+
 def parse_gfa(filename):
     """Returns a nx.MultiDiGraph representation of a GFA1 or GFA2 file.
 
@@ -629,19 +661,15 @@ def parse_gfa(filename):
 
                 # Find coverage, if given.
                 #
-                # We process things in an analogous way to BandageNG:
+                # We process things in an analogous way to Bandage(NG):
                 # https://github.com/asl/BandageNG/wiki/Custom-GFA-tags
-                #
                 # This matches Gfapy's interpretations, also -- down to the
-                # idea of e.g. KC corresponding to a coverage of
-                # (KC tag value) / (segment length).
+                # idea of e.g. KC corresponding to a coverage of (KC tag value)
+                # divided by (segment length). See count2cov_if_positive_len().
                 #
                 # If the user specifies multiple coverage tags for a single
                 # segment, then we match the precedence decision from Bandage
                 # and BandageNG: DP > KC > RC > FC.
-                # I guess we modify this a little bit to allow for dp:i tags
-                # although it's unclear if Bandage(NG) accept dp:i tags in the
-                # first place so um idk
                 if "dp:f" in tag2val:
                     segcov = float(tag2val["dp:f"])
 
@@ -651,21 +679,13 @@ def parse_gfa(filename):
                     segcov = int(tag2val["dp:i"])
 
                 elif "kc:i" in tag2val:
-                    if seglen > 0:
-                        # In the horrendous case where a k-mer count or
-                        # something is specified, but the length is zero,
-                        # just don't bother setting a coverage to avoid
-                        # division by zero. Based on Bandage's behavior:
-                        # https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/graph/assemblygraph.cpp#L690-L709
-                        segcov = int(tag2val["kc:i"]) / seglen
+                    segcov = count2cov_if_positive_len(tag2val["kc:i"], seglen)
 
                 elif "rc:i" in tag2val:
-                    if seglen > 0:
-                        segcov = int(tag2val["rc:i"]) / seglen
+                    segcov = count2cov_if_positive_len(tag2val["rc:i"], seglen)
 
                 elif "fc:i" in tag2val:
-                    if seglen > 0:
-                        segcov = int(tag2val["fc:i"]) / seglen
+                    segcov = count2cov_if_positive_len(tag2val["fc:i"], seglen)
 
                 # Add both a positive and negative node.
                 # We might have already seen edge(s) including segname and/or
