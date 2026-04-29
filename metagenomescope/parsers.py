@@ -32,7 +32,6 @@
 import re
 import logging
 import networkx as nx
-import gfapy
 import pyfastg
 from . import config
 from .name_utils import negate
@@ -416,6 +415,139 @@ def parse_metacarvel_gml(filename):
     return g  # , ("orientation",), ("bsize", "orientation", "mean", "stdev")
 
 
+def check_enough_line_parts(line, parts, minpartct):
+    if len(parts) < minpartct:
+        raise GraphParsingError(f"< {minpartct:,} parts: GFA line '{line}'")
+
+
+def get_gfa_line_parts(line, minpartct):
+    # In python, calling .split() without any parameters means that it
+    # will "split on any whitespace character". We don't want to do this,
+    # because O-lines in GFA 2 files use space to separate the contents
+    # of the path within a single tab-separated column. You can't forget the
+    # O-lines dude. Forgetting about the O-lines is like basically the worst
+    # thing you can ever do. Imagine like a future where we get rid of A-line
+    # dresses and replace them with O-line dresses and it's just a big donut
+    # costume. thatd be great. hey is anybody even reading this
+    parts = line.strip().split("\t")
+    check_enough_line_parts(line, parts, minpartct)
+    return parts
+
+
+def get_tag_dict(tags):
+    """Converts a list of tags to a dict mapping tag name and type -> value.
+
+    Parameters
+    ----------
+    tags: list of str
+        Something like ["LN:i:12345", "KC:i:333", ...]
+
+    Returns
+    -------
+    dict of str -> str
+        Maps lowercased tag prefixes (e.g. "ln:i") to tag values (e.g.
+        "12345").
+
+        Yeah yeah yeah the GFA specifications officially say that tags with
+        lowercase letters are "reserved for end users" but like there are
+        real tools out there which can generate lowercase tags (e.g. Flye's
+        "dp:i" tags) so let's just convert everything to lowercase and move
+        on with our lives to more important questions than file format parsing
+
+    Raises
+    ------
+    GraphParsingError
+        - If we see a tag that doesn't have at least two ":"s
+
+        - If we see a tag where the prefix or value has a length of zero
+          (in practice, this can only possibly trigger at the moment when
+          the value has a length of zero -- e.g. "LN:i:").
+
+        - If we see the same tag multiple times. Note that this check is
+          performed AFTER converting all tag prefixes to lowercase, so if a
+          line has both "DP:i:" and "dp:i:" then that will trigger this error.
+          Life is too short to mess around with these ambiguities
+    """
+    lowerpref2val = {}
+    for t in tags:
+        # figure out the location of the second colon in t
+        # (e.g. for something like "LN:i:123:456:789" this is 4)
+        #                               ^
+        #                           0123456789012345
+        #                           0000000000111111
+        #
+        # I think in GFA 2 tag names can technically be longer than two
+        # characters so SURE let's go crazy and make this flexible i guess
+        # not that it matters much atm
+        colon_ct = 0
+        # in theory you could like extract the value of "i" from this loop
+        # instead of storing a separate second_colon_idx variable, but i don't
+        # trust that to not break in some weird jank corner case
+        second_colon_idx = None
+        for i, c in enumerate(t):
+            if c == ":":
+                colon_ct += 1
+                if colon_ct == 2:
+                    second_colon_idx = i
+                    break
+        if second_colon_idx is None:
+            raise GraphParsingError(f'Found a GFA tag with < 2 colons: "{t}"')
+        # do not include the second colon in either the prefix or value
+        pref = t[:second_colon_idx]
+        val = t[second_colon_idx + 1 :]
+        if len(pref) == 0 or len(val) == 0:
+            # Since we know there are at least 2 colons in this tag and we are
+            # splitting on the second one, we know that len(pref) must be > 0.
+            # But, um, I guess we can check it anyway just in case I break
+            # something spectacularly later on? sure whatever.
+            # (The value can be zero-length though!!! see the tests for that)
+            raise GraphParsingError(f'Zero-length tag prefix or value: "{t}"')
+        lowerpref = pref.lower()
+        if lowerpref in lowerpref2val:
+            raise GraphParsingError(f'Duplicate GFA tag prefix: "{lowerpref}"')
+        lowerpref2val[lowerpref] = val
+    return lowerpref2val
+
+
+def check_lengths_consistent(segname, len1, len2):
+    if len1 != len2:
+        raise GraphParsingError(
+            f"Segment '{segname}' has inconsistent lengths: {len1:,}; {len2:,}"
+        )
+
+
+def count2cov_if_positive_len(scountval, slen):
+    """Converts a segment's "count" tag value to a coverage, if possible.
+
+    Parameters
+    ----------
+    scountval: str
+        The value from a KC:i, RC:i, or FC:i tag from a S-line in a GFA file.
+
+    slen: int
+        The length for this S-line.
+
+    Returns
+    -------
+    float or None
+        If slen > 0, this will be int(scountval) divided by slen -- matching
+        Bandage, Gfapy, etc.'s behavior.
+
+        Otherwise, to avoid division by zero, we will just return None --
+        so the downstream code can see that this segment does not have a
+        defined coverage.
+
+    References
+    ----------
+    Based on Bandage's behavior:
+    https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/graph/assemblygraph.cpp#L690-L709
+    """
+    if slen > 0:
+        return int(scountval) / slen
+    else:
+        return None
+
+
 def parse_gfa(filename):
     """Returns a nx.MultiDiGraph representation of a GFA1 or GFA2 file.
 
@@ -433,10 +565,11 @@ def parse_gfa(filename):
 
     Notes
     -----
-    - Although this returns an object of type nx.MultiGraph, it won't actually
-      contain any parallel edges. This is because, as of writing, GfaPy will
-      throw a NotUniqueError if you to have it read a GFA file containing
-      duplicate link lines.
+    - This parser works on a line-by-line basis, so it doesn't really care that
+      much if one line is formatted differently from another. What this means
+      is that if your file mixes GFA1 and GFA2 conventions then this shouldn't
+      by itself cause problems (although, like, why would you have that kind of
+      file???).
 
     - Currently we only store information about nodes (segments), edges
       (but not containments), and paths. Things like gaps, unoriented groups,
@@ -449,131 +582,204 @@ def parse_gfa(filename):
       for one way of doing this (but this has pitfalls because it just
       treats the containments like regular edges...)
     """
-    digraph = nx.MultiDiGraph()
-    gfa_graph = gfapy.Gfa.from_file(filename)
-
-    # Add nodes ("segments") to the graph
-    for node in gfa_graph.segments:
-        if node.length is None:
-            raise GraphParsingError(
-                f"Found a node without a specified length: {node.name}"
-            )
-        if node.name[0] == config.REV:
-            raise GraphParsingError(
-                "Node IDs in the input assembly graph cannot "
-                f'start with the "{config.REV}" character.'
-            )
-        sequence_gc = None
-        if not gfapy.is_placeholder(node.sequence):
-            sequence_gc = gc_content(node.sequence)[0]
-        # If this sequence doesn't have an RC / KC / FC tag, then this will be
-        # None. If all the coverages are None then the AssemblyGraph code
-        # should detect that and not list coverages in the selected node table
-        cov = node.coverage()
-        # hifasm, flye, etc can store coverages in DP tags of GFAs
-        # https://github.com/asl/BandageNG/issues/146
-        if cov is None:
-            for possible_cov_tag in ("dp", "DP"):
-                if possible_cov_tag in node.tagnames:
-                    cov = node.get(possible_cov_tag)
-                    break
-            # gfapy seems to ignore KC / FC tags by default. let's make it
-            # use those if they are present. (It should default to looking for
-            # RC tags, but I'm including them anyway here just in case.)
-            if cov is None:
-                for possible_countcov_tag in (
-                    "kc",
-                    "KC",
-                    "fc",
-                    "FC",
-                    "rc",
-                    "RC",
-                ):
-                    if possible_countcov_tag in node.tagnames:
-                        cov = node.coverage(count_tag=possible_countcov_tag)
-                        break
-
-        # Add both a positive and negative node.
-        digraph.add_node(
-            node.name,
-            length=node.length,
-            gc_content=sequence_gc,
-            orientation=config.FWD,
-            cov=cov,
-        )
-        digraph.add_node(
-            negate(node.name),
-            length=node.length,
-            gc_content=sequence_gc,
-            orientation=config.REV,
-            cov=cov,
-        )
-
-    # Now, add edges to the DiGraph
-    for edge in gfa_graph.edges:
-
-        # We could visualize containments if desired -- GfaViz does by drawing
-        # a line between the nodes that connects in the middles of the nodes
-        # rather than on the ends -- but since we don't support that sort of
-        # functionality yet, i think it makes sense to ignore these for now
-        # (like Bandage does from what i've seen)
-        #
-        # This is also complicated by how, like, containments are generally
-        # listed in gfa 1 files as "container" -> "contained", so does it
-        # make sense for a containment edge to have a RC? what would that
-        # mean? it gets complicated
-        if edge.is_containment():
-            continue
-
-        # Set edge_tuple to the edge's explicitly specified orientation
-        # This code is a bit verbose, but that was the easiest way to write it
-        # I could think of
-        if edge.from_orient == config.REV:
-            src_id = negate(edge.from_name)
-        else:
-            src_id = edge.from_name
-        if edge.to_orient == config.REV:
-            tgt_id = negate(edge.to_name)
-        else:
-            tgt_id = edge.to_name
-        edge_tuple = (src_id, tgt_id)
-        digraph.add_edge(*edge_tuple)
-
-        complement_tuple = (negate(tgt_id), negate(src_id))
-
-        # Don't add an edge twice if its complement is itself (as in the
-        # loop.gfa test case)
-        if complement_tuple != edge_tuple:
-            digraph.add_edge(*complement_tuple)
-
-    paths = None
-    if len(gfa_graph.paths) > 0:
+    with open(filename, "r") as graph_file:
+        digraph = nx.MultiDiGraph()
         paths = {}
-        for p in gfa_graph.paths:
-            # Gfapy should catch cases where two paths have the same name,
-            # but there can be jank where a path's negated name is not unique.
-            # Anyway let's just be paranoid and check
-            if p.name in paths:
-                raise GraphParsingError(f"Duplicate path ID: {p.name}")
-            segments = []
-            for s in p.captured_segments:
-                name = s.name
-                if s.orient == config.FWD:
-                    segments.append(name)
-                else:
-                    segments.append(negate(name))
-            if len(segments) == 0:
-                logging.warning(
-                    f"Path ({p.name}) contains zero segments. We don't "
-                    "yet support creating GFA edge paths, so we are ignoring "
-                    "it. If this is an important use-case to you, please let "
-                    "us know on GitHub!"
-                )
-            else:
-                paths[p.name] = segments
-        if len(paths) == 0:
-            paths = None
+        nodes_seen_in_s_lines = set()
+        for line in graph_file:
+            # is this a "segment" (node)?
+            if line.startswith("S"):
+                # In GFA 1, S lines look like: S (name) (seq) (tags)
+                # In GFA 2, S lines look like: S (name) (len) (seq) (tags)
+                #
+                # Tags are optional. We should always have at least 3
+                # tab-separated parts of a S line (in the case of GFA 1 +
+                # no tags).
+                parts = get_gfa_line_parts(line, 3)
 
+                # If the second field (seq / len) is a number, then this is
+                # GFA 2. Otherwise (it is * or [ACGT]+), this is GFA 1.
+                # NOTE that we use isdigit() here -- and not something like
+                # is_not_pos_int() -- because I GUESS these lengths could be
+                # zero??? But like it's probably nbd
+                is_gfa1 = not parts[2].isdigit()
+
+                segname = parts[1]
+                if segname[0] == config.REV:
+                    raise GraphParsingError(
+                        f'Found segment ID "{segname}". Segment IDs cannot '
+                        f'start with the "{config.REV}" character.'
+                    )
+                if segname in nodes_seen_in_s_lines:
+                    raise GraphParsingError(
+                        f'Found multiple S lines for segment ID "{segname}".'
+                    )
+                seglen = None
+                segcov = None
+                seggc = None
+                tags = []
+                if is_gfa1:
+                    seq = parts[2]
+                    tags = parts[3:]
+                else:
+                    # Even if there are no tags, all GFA2 S lines should have
+                    # at least four tab-separated parts!
+                    check_enough_line_parts(line, parts, 4)
+                    # If we've made it to this block, we should already know
+                    # that parts[2] can be parsed as an integer
+                    seglen = int(parts[2])
+                    seq = parts[3]
+                    tags = parts[4:]
+
+                tag2val = get_tag_dict(tags)
+
+                if seq != "*":
+                    newlen = len(seq)
+                    if seglen is None:
+                        seglen = newlen
+                    else:
+                        # technically, the GFA 2 specification allows this...
+                        # but I feel it is very dangerous, and also Gfapy
+                        # raises an error about this kind of thing for GFA 1
+                        # files iirc. so let's be paranoid
+                        check_lengths_consistent(segname, seglen, newlen)
+                    seggc = gc_content(seq)[0]
+
+                if "ln:i" in tag2val:
+                    # in the antagonistic case where the length tag
+                    # is something malformed like "LN:i:asdf" then this
+                    # will result in a ValueError. This is fine - we
+                    # could catch it specifically but not worth it imo
+                    newlen = int(tag2val["ln:i"])
+                    if seglen is None:
+                        seglen = newlen
+                    else:
+                        check_lengths_consistent(segname, seglen, newlen)
+
+                if seglen is None:
+                    raise GraphParsingError(f"Segment '{line}' has no length?")
+
+                # Find coverage, if given.
+                #
+                # We process things in an analogous way to Bandage(NG):
+                # https://github.com/asl/BandageNG/wiki/Custom-GFA-tags
+                # This matches Gfapy's interpretations, also -- down to the
+                # idea of e.g. KC corresponding to a coverage of (KC tag value)
+                # divided by (segment length). See count2cov_if_positive_len().
+                #
+                # If the user specifies multiple coverage tags for a single
+                # segment, then we match the precedence decision from Bandage
+                # and BandageNG: DP > KC > RC > FC.
+                if "dp:f" in tag2val:
+                    segcov = float(tag2val["dp:f"])
+
+                elif "dp:i" in tag2val:
+                    # Flye can generate these - see
+                    # https://github.com/mikolmogorov/Flye/blob/886b8c17412cdf3a2868a28237bca6c5ad1da156/src/repeat_graph/output_generator.cpp#L104
+                    segcov = int(tag2val["dp:i"])
+
+                elif "kc:i" in tag2val:
+                    segcov = count2cov_if_positive_len(tag2val["kc:i"], seglen)
+
+                elif "rc:i" in tag2val:
+                    segcov = count2cov_if_positive_len(tag2val["rc:i"], seglen)
+
+                elif "fc:i" in tag2val:
+                    segcov = count2cov_if_positive_len(tag2val["fc:i"], seglen)
+
+                # Add both a positive and negative node.
+                # We might have already seen edge(s) including segname and/or
+                # negate(segname). This is fine -- calling .add_node() will
+                # just update these attributes. (We don't have to worry about
+                # overriding an earlier S line's attributes because of the
+                # checking we do with nodes_seen_in_s_lines.)
+                digraph.add_node(
+                    segname,
+                    length=seglen,
+                    gc_content=seggc,
+                    orientation=config.FWD,
+                    cov=segcov,
+                )
+                digraph.add_node(
+                    negate(segname),
+                    length=seglen,
+                    gc_content=seggc,
+                    orientation=config.REV,
+                    cov=segcov,
+                )
+                nodes_seen_in_s_lines.add(segname)
+
+            if line.startswith("L"):
+                parts = get_gfa_line_parts(line, 6)
+                src_id, src_orient, tgt_id, tgt_orient, cigar = parts[1:6]
+
+                # Set edge_tuple to the edge's explicitly specified orientation
+                # This code is a bit verbose, but that was the easiest way to
+                # write it that I could think of
+                if src_orient == config.REV:
+                    src_id = negate(src_id)
+                if tgt_orient == config.REV:
+                    tgt_id = negate(tgt_id)
+                edge_tuple = (src_id, tgt_id)
+                digraph.add_edge(*edge_tuple)
+
+                complement_tuple = (negate(tgt_id), negate(src_id))
+
+                # Don't add an edge twice if its complement is itself (as in
+                # the loop.gfa test case)
+                if complement_tuple != edge_tuple:
+                    digraph.add_edge(*complement_tuple)
+
+            if line.startswith("E"):
+                # TODO implement ... and make this properly ignore containments
+                # i guess....
+                raise NotImplementedError("not really feeling it r/n sorry")
+
+            if line.startswith("P"):
+                parts = get_gfa_line_parts(line, 4)
+                path_id, path_segments, cigars = parts[1:4]
+                if path_id in paths:
+                    raise GraphParsingError(f"Duplicate path ID: {path_id}")
+                path_segment_ids = []
+                for ps in path_segments.split(","):
+                    if ps[-1] == config.FWD:
+                        psi = ps[:-1]
+                    elif ps[-1] == config.REV:
+                        psi = negate(ps[:-1])
+                    else:
+                        raise GraphParsingError(
+                            f"Path {path_id}: {ps} doesn't end in "
+                            f"{config.FWD} or {config.REV}?"
+                        )
+                    path_segment_ids.append(psi)
+                if len(path_segment_ids) == 0:
+                    logging.warning(
+                        f"Path {path_id} contains zero segments. We're going "
+                        "to ignore it...?"
+                    )
+                else:
+                    paths[path_id] = path_segment_ids
+
+            if line.startswith("O"):
+                # TODO implement. the annoying thing here is that these can be
+                # "segments, edges or other groups" -- which complicates
+                # parsing a lot. I GUESSSSSS we could store the locations of
+                # all O lines and not read them in detail until after we've
+                # parsed all other stuff in the file, and then make another
+                # pass and read in the O lines. But like will anybody even
+                # use this functionality? It is probably sufficient to just
+                # raise an error or ignore the path if it contains an ID that
+                # does not match any of the segments in the graph...
+                #
+                # oh yeah also because currently we assume that all GFA paths
+                # refer ONLY to segments (nodes)
+                #
+                # parts = get_gfa_line_parts(line, 3)
+                # path_id, path_segments
+                raise NotImplementedError("yeah not yet sorry")
+
+    if len(paths) == 0:
+        paths = None
     return digraph, paths
 
 

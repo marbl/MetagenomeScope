@@ -9,9 +9,9 @@ from . import __version__, defaults, descs, config
         # Make mgsc -h (or just mgsc by itself) show the help text
         "help_option_names": ["-h", "--help"],
         # I'm extremely petty and I want the CLI options to take up at most
-        # one line each if possible, and this is necessary to get the --port
-        # and --graph options to take up just one line. Click's default of
-        # 80 is probably way too short for most modern displays anyway.
+        # one line each if possible, and this is necessary to get some options
+        # to take up just one line. Click's default of 80 is probably way too
+        # short for most modern displays anyway.
         "max_content_width": 87,
     },
     no_args_is_help=True,
@@ -76,6 +76,13 @@ from . import __version__, defaults, descs, config
     show_default=True,
     help=descs.DEBUG,
 )
+@click.option(
+    "--dcheck/--no-dcheck",
+    is_flag=True,
+    default=defaults.DCHECK,
+    show_default=True,
+    help=descs.DCHECK,
+)
 @click.version_option(__version__, "-v", "--version")
 def run_script(
     graph: str,
@@ -85,6 +92,7 @@ def run_script(
     port: int,
     verbose: bool,
     debug: bool,
+    dcheck: bool,
 ) -> None:
     """Visualizes an assembly graph.
 
@@ -105,11 +113,12 @@ def run_script(
             "Settings:",
             f"Graph file: {graph}",
             f"AGP file: {agp}",
-            f"Verkko .paths.tsv file: {vtsv}",
+            f"Verkko paths TSV file: {vtsv}",
             f"Flye info file: {info}",
             f"Port: {port}",
             f"Verbose?: {verbose}",
             f"Debug mode?: {debug}",
+            f"Post-decomp check?: {dcheck}",
         ],
         endsepline=True,
     )
@@ -124,6 +133,7 @@ def run_script(
         port=port,
         verbose=verbose,
         debug=debug,
+        dcheck=dcheck,
     )
 
 

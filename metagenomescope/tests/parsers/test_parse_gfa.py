@@ -1,10 +1,10 @@
+import pytest
 import networkx as nx
 from metagenomescope import config
 from metagenomescope.name_utils import negate
-from metagenomescope.parsers import parse_gfa
+from metagenomescope.parsers import parse_gfa, get_tag_dict
 from metagenomescope.errors import GraphParsingError
 from .utils import run_tempfile_test
-from gfapy.error import InconsistencyError, NotUniqueError
 
 
 def check_sample_gfa_digraph(digraph):
@@ -142,12 +142,7 @@ def test_parse_no_length_node():
     s1 = get_sample1_gfa()
     s1.pop(1)
     s1.insert(1, "S\t1\t*")
-    run_tempfile_test(
-        "gfa",
-        s1,
-        GraphParsingError,
-        "Found a node without a specified length: 1",
-    )
+    run_tempfile_test("gfa", s1, GraphParsingError, "has no length")
 
     # Manually assigning node 1 a sequence should fix the problem
     # (since the length is then implied)
@@ -168,15 +163,29 @@ def test_parse_no_length_node():
     assert digraph.nodes["1"]["gc_content"] is None
     assert digraph.nodes["1"]["length"] == 6
 
-    # test super weird corner case where both forms of length are given, but
-    # they disagree -- should be caught by gfapy
+
+def test_parse_inconsistent_length_node():
+    s1 = get_sample1_gfa()
+    # test super weird corner case where multiple forms of length are given,
+    # but they disagree. Technically, the GFA 2 specification allows this!
     s1.pop(1)
     s1.insert(1, "S\t1\tATCA\tLN:i:6")
     run_tempfile_test(
         "gfa",
         s1,
-        InconsistencyError,
-        "Length in LN tag (6) is different from length of sequence field (4)",
+        GraphParsingError,
+        "inconsistent lengths",
+    )
+
+
+def test_parse_redefined_node():
+    s1 = get_sample1_gfa()
+    s1.insert(1, "S\t1\tATCA")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        'Found multiple S lines for segment ID "1".',
     )
 
 
@@ -192,8 +201,7 @@ def test_parse_invalid_id_node():
         "gfa",
         s1,
         GraphParsingError,
-        "Node IDs in the input assembly graph cannot "
-        f'start with the "{config.REV}" character.',
+        f'Segment IDs cannot start with the "{config.REV}" character.',
     )
 
 
@@ -242,7 +250,7 @@ def test_parse_path_duplicate_name():
     s1 = get_sample1_gfa()
     s1.append("P\tpath1\t3+,4-\t*")
     s1.append("P\tpath1\t1+,2+\t*")
-    run_tempfile_test("gfa", s1, NotUniqueError, "Line or ID not unique")
+    run_tempfile_test("gfa", s1, GraphParsingError, "Duplicate path ID: path1")
 
 
 def test_parse_path_rc_path_ok():
@@ -289,13 +297,22 @@ def test_multigraphs_okay_gfa2():
     assert ("-3", "-1", 1) in g.edges
 
 
-def test_dp_tags_parsed_as_coverage():
+def test_dpf_tags_parsed_as_coverage():
     s1 = get_sample1_gfa()
-    s1.append("S\t7\tCCC\tdp:f:123")
+    s1.append("S\t7\tCCC\tdp:f:123.2229")
     g, paths = run_tempfile_test("gfa", s1, None, None)
     assert paths is None
-    assert g.nodes["7"]["cov"] == 123
-    assert g.nodes["-7"]["cov"] == 123
+    assert g.nodes["7"]["cov"] == 123.2229
+    assert g.nodes["-7"]["cov"] == 123.2229
+
+
+def test_dpi_tags_parsed_as_coverage():
+    s1 = get_sample1_gfa()
+    s1.append("S\t800\tCCC\tdp:i:123456")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["800"]["cov"] == 123456
+    assert g.nodes["-800"]["cov"] == 123456
 
 
 def test_kc_tags_parsed_as_coverage():
@@ -310,9 +327,92 @@ def test_kc_tags_parsed_as_coverage():
 
 def test_fc_tags_parsed_as_coverage():
     s1 = get_sample1_gfa()
-    s1.append("S\t7\tCCCC\tKC:i:22222")
+    s1.append("S\t7\tCCCC\tFC:i:22222")
     g, paths = run_tempfile_test("gfa", s1, None, None)
     assert paths is None
     # matches bandage's behavior
     assert g.nodes["7"]["cov"] == (22222 / 4)
     assert g.nodes["-7"]["cov"] == (22222 / 4)
+
+
+def test_rc_tags_parsed_as_coverage():
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\tCCCC\tRC:i:8")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    # matches bandage's behavior
+    assert g.nodes["7"]["cov"] == 2
+    assert g.nodes["-7"]["cov"] == 2
+
+
+def test_kc_tag_but_zero_length():
+    # the order of the tags shouldn't matter - length should be parsed first
+    # 1. KC before length
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\t*\tKC:i:12345\tLN:i:0")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["7"]["cov"] is None
+    assert g.nodes["-7"]["cov"] is None
+
+    # 1. length before KC
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\t*\tLN:i:0\tKC:i:12345")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["7"]["cov"] is None
+    assert g.nodes["-7"]["cov"] is None
+
+
+def test_multiple_coverage_tags_dp_wins():
+    # DP has the highest precedence, matching Bandage and BandageNG's behavior
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\tCCCC\tKC:i:12345\tDP:i:5\tFC:i:100\tRC:i:9999")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["7"]["cov"] == 5
+    assert g.nodes["-7"]["cov"] == 5
+
+
+def test_get_tag_dict_simple():
+    assert get_tag_dict([]) == {}
+    assert get_tag_dict(["LN:i:12345"]) == {"ln:i": "12345"}
+    assert get_tag_dict(
+        ["LN:i:12345", "KC:i:333", "RC:i:2", "DP:f:9.23145"]
+    ) == {"ln:i": "12345", "kc:i": "333", "rc:i": "2", "dp:f": "9.23145"}
+
+
+def test_get_tag_dict_not_enough_colons():
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["LN:i12345"])
+    assert str(ei.value) == 'Found a GFA tag with < 2 colons: "LN:i12345"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["LNi12345"])
+    assert str(ei.value) == 'Found a GFA tag with < 2 colons: "LNi12345"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict([""])
+    assert str(ei.value) == 'Found a GFA tag with < 2 colons: ""'
+
+
+def test_get_tag_dict_zero_length_suffix():
+    # (a zero-length prefix is impossible atm lol, but we can at least test
+    # zero-length values)
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["LN:i:"])
+    assert str(ei.value) == 'Zero-length tag prefix or value: "LN:i:"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["::"])
+    assert str(ei.value) == 'Zero-length tag prefix or value: "::"'
+
+
+def test_get_tag_dict_duplicate_tag_prefix():
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["LN:i:5", "ln:i:99"])
+    assert str(ei.value) == 'Duplicate GFA tag prefix: "ln:i"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["LN:i:5", "dp:f:123", "ln:i:99"])
+    assert str(ei.value) == 'Duplicate GFA tag prefix: "ln:i"'

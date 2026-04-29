@@ -42,6 +42,7 @@ def run(
     port: int = defaults.PORT,
     verbose: bool = defaults.VERBOSE,
     debug: bool = defaults.DEBUG,
+    dcheck: bool = defaults.DCHECK,
 ):
     """Reads the graph and starts a Dash app for visualizing it.
 
@@ -75,6 +76,12 @@ def run(
         turned off -- using debug mode will require processing the graph
         twice on startup.)
 
+    dcheck: bool
+        If True, run an extra sanity check after pattern decomposition. This
+        involves (at least as of April 2026) creating an extra copy of the
+        input graph structure, so this is probably not worth doing for
+        massive graphs.
+
     Returns
     -------
     None
@@ -83,7 +90,11 @@ def run(
     # Creating the AssemblyGraph object will identify patterns, scale nodes and
     # edges, etc.
     ag = AssemblyGraph(
-        graph, agp_fp=agp, verkko_tsv_fp=vtsv, flye_info_fp=flye_info
+        graph,
+        agp_fp=agp,
+        verkko_tsv_fp=vtsv,
+        flye_info_fp=flye_info,
+        sanity_check_post_decomposition=dcheck,
     )
 
     # Prepare some of the UI components in advance. A nice thing about Dash

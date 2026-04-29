@@ -142,6 +142,7 @@ Options:
   -p, --port INTEGER RANGE  Server port number.  [default: 8050; 1024<=x<=65535]
   --verbose / --no-verbose  Log extra details.  [default: no-verbose]
   --debug / --no-debug      Use Dash's debug mode.  [default: no-debug]
+  --dcheck / --no-dcheck    Do post-decomposition sanity check.  [default: no-dcheck]
   -v, --version             Show the version and exit.
   -h, --help                Show this message and exit.
 ```
@@ -440,7 +441,7 @@ directory.
 <!-- use of <strong> here was stolen from strainflye's readme, which in turn is
 based on https://codedragontech.com/createwithcodedragon/how-to-style-html-details-and-summary-tags/ -->
 <details>
-  <summary><strong>FAQ 1. How do you handle reverse-complementary nodes/edges?</strong></summary>
+  <summary><strong>FAQ: How do you handle reverse-complementary nodes/edges?</strong></summary>
 
 <hr/>
 
@@ -502,7 +503,7 @@ for details on how we handle reverse complements in FASTG files.)
 </details>
 
 <details>
-  <summary><strong>FAQ 2. Why does my graph have node <code>X</code> and <code>-X</code> in the same component?</strong></summary>
+  <summary><strong>FAQ: Why does my graph have node <code>X</code> and <code>-X</code> in the same component?</strong></summary>
 
 <hr/>
 
@@ -515,7 +516,7 @@ This often occurs with the big ("hairball") component in an assembly graph.
 </details>
 
 <details>
-  <summary><strong>FAQ 3. What happens if an edge is its own reverse complement?</strong></summary>
+  <summary><strong>FAQ: What happens if an edge is its own reverse complement?</strong></summary>
 
 <hr/>
 
@@ -561,7 +562,7 @@ then that's also fine, and we'll visualize all of them.)
 ### Graph structure
 
 <details>
-  <summary><strong>FAQ 4. What do you mean by a component's "size rank"?</strong></summary>
+  <summary><strong>FAQ: What do you mean by a component's "size rank"?</strong></summary>
 
 <hr/>
 
@@ -597,7 +598,7 @@ Some details about component size ranks, if you are interested:
 </details>
 
 <details>
-  <summary><strong>FAQ 5. Can my graphs have parallel edges?</strong></summary>
+  <summary><strong>FAQ: Can my graphs have parallel edges?</strong></summary>
 
 <hr/>
 
@@ -616,7 +617,7 @@ is a big priority, but
 </details>
 
 <details>
-  <summary><strong>FAQ 6. What filetype should I use for de Bruijn graphs?</strong></summary>
+  <summary><strong>FAQ: What filetype should I use for de Bruijn graphs?</strong></summary>
 
 <hr/>
 
@@ -631,34 +632,10 @@ since Flye produces them at different times in its pipeline.
 <hr/>
 </details>
 
-### Filetypes
-
-<details>
-  <summary><strong>FAQ 7. I got an error saying <code>Custom record types are not supported in GFA1</code>?</strong></summary>
-
-<hr/>
-
-Some assemblers include additional kinds of lines in their output GFA files. For example,
-hifiasm and hifiasm-meta include [`A`-lines describing alignments](https://github.com/chhylp123/hifiasm/issues/91).
-
-These "custom" lines can cause problems when parsing these graphs, because they may not be technically
-allowed in certain GFA versions.
-
-The simplest way around this is just deleting or commenting out these custom lines. Here is an examle of commenting out the `A`-lines in hifiasm GFA files using `sed`:
-
-```bash
-sed -i -e 's/^A/#A/' hifiasm-out.p_ctg.gfa
-```
-
-[Eventually](https://github.com/marbl/MetagenomeScope/issues/310) I'd like to implement a better solution for this...
-
-<hr/>
-</details>
-
 ### Paths
 
 <details>
-  <summary><strong>FAQ 8. My graph is a DOT file from LJA that does not have edge IDs. Can I still create a "paths" file for it?</strong></summary>
+  <summary><strong>FAQ: My graph is a DOT file from LJA that does not have edge IDs. Can I still create a "paths" file for it?</strong></summary>
 
 <hr/>
 
@@ -687,7 +664,7 @@ Here is an example of how you could do this:
 ### Patterns
 
 <details>
-  <summary><strong>FAQ 9. How can I run the pattern decomposition process programmatically?</strong></summary>
+  <summary><strong>FAQ: How can I run the pattern decomposition process programmatically?</strong></summary>
 
 <hr/>
 
@@ -771,13 +748,17 @@ This interface should remain relatively stable, although I may change things sli
 ### Performance
 
 <details>
-  <summary><strong>FAQ 10. What's the biggest possible graph I can visualize?</strong></summary>
+  <summary><strong>FAQ: What's the biggest possible graph I can visualize?</strong></summary>
 
 <hr/>
 
-We're still figuring that out. There are two main bottlenecks I am aware of:
+We're still figuring that out. There are a couple bottlenecks:
 
-1. Laying out the graph.
+1. Processing the graph.
+
+    - Because we ([currently](https://github.com/marbl/MetagenomeScope/issues/423)) store the entire graph in memory, massive graphs -- with hundreds of thousands of nodes / edges -- can become impractical to load on low-memory systems.
+
+2. Laying out the graph.
 
     - We usually only lay out one component at a time, so generally the problem comes with laying out the large "hairball" component(s) of the graph, if any.
 
@@ -785,7 +766,7 @@ We're still figuring that out. There are two main bottlenecks I am aware of:
 
     - To my understanding, a big factor here is the ratio of nodes to edges: when there are many more edges than nodes in a component (indicating a very densely connected structure), Graphviz has to do a lot of work to position things properly.
 
-2. Drawing the graph's elements.
+3. Drawing the graph's elements.
 
     - Cytoscape.js has a lot of optimizations built-in, but I think there are some inherent limitations of drawing using a HTML canvas.
 

@@ -14,9 +14,23 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   [Verkko](https://github.com/marbl/verkko)-style TSV files describing paths
   ([#336](https://github.com/marbl/MetagenomeScope/issues/336)).
 
+- Add the `--dcheck` command-line flag, which controls whether or not to run
+  a sanity check after pattern decomposition that verifies the integrity of
+  the graph
+  ([#421](https://github.com/marbl/MetagenomeScope/issues/421)).
+
+  - This check involves, among other things, creating an extra copy of the
+    input graph structure before decomposition. It can be a bottleneck when
+    working with massive graphs on low-memory systems.
+
 - Various updates to the README.
 
 ### Changed
+
+- Implement a custom GFA parser. This dramatically speeds up loading GFA files,
+  and makes it easier to quietly ignore nonstandard GFA tags
+  ([#310](https://github.com/marbl/MetagenomeScope/issues/310),
+  [#403](https://github.com/marbl/MetagenomeScope/issues/403)).
 
 - Allow paths to span multiple connected components of the graph, since this
   can occur in Verkko output.
@@ -37,9 +51,18 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   TSV files easier: with this restriction, we can now unambiguously say if
   something on a path is a gap or not.
 
+- Add more detail to the `--verbose` log messages during pattern decomposition.
+
+- Turn off the creation of `AssemblyGraph.original_graph`, the call to
+  `AssemblyGraph._sanity_check_graph()`, etc. by default; as discussed in
+  "Added" above, this is now controlled by the `--dcheck` command-line flag
+  ([#421](https://github.com/marbl/MetagenomeScope/issues/421)).
+
 ### Fixed
 
 - Clean up and add some more tests for the path-parsing parts of the code.
+
+- Add some more tests for the GFA-parsing parts of the code.
 
 - Fix a bug where Flye DOT files with split nodes / fake edges remaining
   after the decomposition would crash the redundant component detection

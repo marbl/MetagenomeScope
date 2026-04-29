@@ -1,3 +1,4 @@
 PORT = 8050
 VERBOSE = False
 DEBUG = False
+DCHECK = False
