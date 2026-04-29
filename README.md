@@ -752,9 +752,13 @@ This interface should remain relatively stable, although I may change things sli
 
 <hr/>
 
-We're still figuring that out. There are two main bottlenecks I am aware of:
+We're still figuring that out. There are a couple bottlenecks:
 
-1. Laying out the graph.
+1. Processing the graph.
+
+    - Because we ([currently](https://github.com/marbl/MetagenomeScope/issues/423)) store the entire graph in memory, massive graphs -- with hundreds of thousands of nodes / edges -- can become impractical to load on low-memory systems.
+
+2. Laying out the graph.
 
     - We usually only lay out one component at a time, so generally the problem comes with laying out the large "hairball" component(s) of the graph, if any.
 
@@ -762,7 +766,7 @@ We're still figuring that out. There are two main bottlenecks I am aware of:
 
     - To my understanding, a big factor here is the ratio of nodes to edges: when there are many more edges than nodes in a component (indicating a very densely connected structure), Graphviz has to do a lot of work to position things properly.
 
-2. Drawing the graph's elements.
+3. Drawing the graph's elements.
 
     - Cytoscape.js has a lot of optimizations built-in, but I think there are some inherent limitations of drawing using a HTML canvas.
 
