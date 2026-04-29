@@ -459,6 +459,10 @@ def get_tag_dict(tags):
     GraphParsingError
         - If we see a tag that doesn't have at least two ":"s
 
+        - If we see a tag where the prefix or value has a length of zero
+          (in practice, this can only possibly trigger at the moment when
+          the value has a length of zero -- e.g. "LN:i:").
+
         - If we see the same tag multiple times. Note that this check is
           performed AFTER converting all tag prefixes to lowercase, so if a
           line has both "DP:i:" and "dp:i:" then that will trigger this error.
@@ -492,6 +496,11 @@ def get_tag_dict(tags):
         pref = t[:second_colon_idx]
         val = t[second_colon_idx + 1 :]
         if len(pref) == 0 or len(val) == 0:
+            # Since we know there are at least 2 colons in this tag and we are
+            # splitting on the second one, we know that len(pref) must be > 0.
+            # But, um, I guess we can check it anyway just in case I break
+            # something spectacularly later on? sure whatever.
+            # (The value can be zero-length though!!! see the tests for that)
             raise GraphParsingError(f'Zero-length tag prefix or value: "{t}"')
         lowerpref = pref.lower()
         if lowerpref in lowerpref2val:

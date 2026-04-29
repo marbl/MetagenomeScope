@@ -1,7 +1,8 @@
+import pytest
 import networkx as nx
 from metagenomescope import config
 from metagenomescope.name_utils import negate
-from metagenomescope.parsers import parse_gfa
+from metagenomescope.parsers import parse_gfa, get_tag_dict
 from metagenomescope.errors import GraphParsingError
 from .utils import run_tempfile_test
 
@@ -326,12 +327,22 @@ def test_kc_tags_parsed_as_coverage():
 
 def test_fc_tags_parsed_as_coverage():
     s1 = get_sample1_gfa()
-    s1.append("S\t7\tCCCC\tKC:i:22222")
+    s1.append("S\t7\tCCCC\tFC:i:22222")
     g, paths = run_tempfile_test("gfa", s1, None, None)
     assert paths is None
     # matches bandage's behavior
     assert g.nodes["7"]["cov"] == (22222 / 4)
     assert g.nodes["-7"]["cov"] == (22222 / 4)
+
+
+def test_rc_tags_parsed_as_coverage():
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\tCCCC\tRC:i:8")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    # matches bandage's behavior
+    assert g.nodes["7"]["cov"] == 2
+    assert g.nodes["-7"]["cov"] == 2
 
 
 def test_kc_tag_but_zero_length():
@@ -353,7 +364,7 @@ def test_kc_tag_but_zero_length():
     assert g.nodes["-7"]["cov"] is None
 
 
-def test_multiple_coverage_tags():
+def test_multiple_coverage_tags_dp_wins():
     # DP has the highest precedence, matching Bandage and BandageNG's behavior
     s1 = get_sample1_gfa()
     s1.append("S\t7\tCCCC\tKC:i:12345\tDP:i:5\tFC:i:100\tRC:i:9999")
@@ -361,3 +372,47 @@ def test_multiple_coverage_tags():
     assert paths is None
     assert g.nodes["7"]["cov"] == 5
     assert g.nodes["-7"]["cov"] == 5
+
+
+def test_get_tag_dict_simple():
+    assert get_tag_dict([]) == {}
+    assert get_tag_dict(["LN:i:12345"]) == {"ln:i": "12345"}
+    assert get_tag_dict(
+        ["LN:i:12345", "KC:i:333", "RC:i:2", "DP:f:9.23145"]
+    ) == {"ln:i": "12345", "kc:i": "333", "rc:i": "2", "dp:f": "9.23145"}
+
+
+def test_get_tag_dict_not_enough_colons():
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["LN:i12345"])
+    assert str(ei.value) == 'Found a GFA tag with < 2 colons: "LN:i12345"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["LNi12345"])
+    assert str(ei.value) == 'Found a GFA tag with < 2 colons: "LNi12345"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict([""])
+    assert str(ei.value) == 'Found a GFA tag with < 2 colons: ""'
+
+
+def test_get_tag_dict_zero_length_suffix():
+    # (a zero-length prefix is impossible atm lol, but we can at least test
+    # zero-length values)
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["LN:i:"])
+    assert str(ei.value) == 'Zero-length tag prefix or value: "LN:i:"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["::"])
+    assert str(ei.value) == 'Zero-length tag prefix or value: "::"'
+
+
+def test_get_tag_dict_duplicate_tag_prefix():
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["LN:i:5", "ln:i:99"])
+    assert str(ei.value) == 'Duplicate GFA tag prefix: "ln:i"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        get_tag_dict(["LN:i:5", "dp:f:123", "ln:i:99"])
+    assert str(ei.value) == 'Duplicate GFA tag prefix: "ln:i"'
