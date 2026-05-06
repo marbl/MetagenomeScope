@@ -598,10 +598,11 @@ def parse_gfa(filename):
                 parts = get_gfa_line_parts(line, 3)
 
                 # If the second field (seq / len) is a number, then this is
-                # GFA 2. Otherwise (it is * or [ACGT]+), this is GFA 1.
-                # NOTE that we use isdigit() here -- and not something like
-                # is_not_pos_int() -- because I GUESS these lengths could be
-                # zero??? But like it's probably nbd
+                # GFA 2. Otherwise (it matches \*\|[A-Za-z=.]+ per
+                # https://gfa-spec.github.io/GFA-spec/GFA1.html), this is
+                # GFA 1. NOTE that we use isdigit() here -- and not something
+                # like is_not_pos_int() -- because I GUESS these lengths could
+                # be zero??? But like it's probably nbd
                 is_gfa1 = not parts[2].isdigit()
 
                 segname = parts[1]
