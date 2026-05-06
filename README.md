@@ -325,8 +325,6 @@ the leftmost column should contain node IDs.
 
 If your graph contains node `X` and node `-X`, then we assume that a row
 where the node name is `X` applies to both copies of this node (`X` and `-X`).
-If you want to specify data for just a single one of these nodes and not
-the other, you can say `+X` or `-X`.
 
 #### Edge data (`-e`)
 

@@ -450,9 +450,17 @@ class AssemblyGraph(object):
                     "set correctly."
                 )
             col = self.node_data_df.columns[0]
+            # NOTE: this is kind of inelegant - if the file contains both X
+            # and -X then the later line will overwrite the earlier line.
+            # We should really sort things out so that X refers to {X, -X},
+            # +X just refers to {X}, and -X just refers to {-X}.
             for n in self.node_data_df.index:
                 if n in self.nodename2objs:
                     for o in self.nodename2objs[n]:
+                        o.datafileinfo = self.node_data_df[col][n]
+                nn = name_utils.negate(n)
+                if nn in self.nodename2objs:
+                    for o in self.nodename2objs[nn]:
                         o.datafileinfo = self.node_data_df[col][n]
                 else:
                     logger.warning(f"Data file: node {n} not in graph")
