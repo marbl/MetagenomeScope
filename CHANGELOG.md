@@ -33,7 +33,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   [#403](https://github.com/marbl/MetagenomeScope/issues/403)).
 
 - Explicitly ignore all GFA 2 edges that are not
-  ["dovetails"](https://gfa-spec.github.io/GFA-spec/GFA2.html), defining a
+  "[dovetails](https://gfa-spec.github.io/GFA-spec/GFA2.html)," defining a
   dovetail as an edge that connects the ends of two segments.
 
   - Previously, we ignored containments, but still visualized "general edges"
