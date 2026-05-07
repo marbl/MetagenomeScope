@@ -34,7 +34,7 @@ import logging
 import networkx as nx
 import pyfastg
 from . import config
-from .name_utils import negate
+from .name_utils import negate, from_suffix_orient
 from .seq_utils import gc_content
 from .errors import GraphParsingError, WeirdError
 
@@ -75,6 +75,12 @@ def is_not_pos_int(number_string):
         # if the same attribute is specified twice for a given element.) Return
         # True -- this definitely isn't handleable as a positive integer.
         return True
+
+
+def edge_is_not_self_implying(src_id, tgt_id):
+    # Don't add an edge twice if its complement is itself (as in the loop.gfa
+    # test case)
+    return (negate(tgt_id) != src_id) or (negate(src_id) != tgt_id)
 
 
 def validate_lastgraph_file(graph_file):
@@ -739,22 +745,56 @@ def parse_gfa(filename):
                     src_id = negate(src_id)
                 if tgt_orient == config.REV:
                     tgt_id = negate(tgt_id)
-                edge_tuple = (src_id, tgt_id)
-                digraph.add_edge(*edge_tuple)
-
-                complement_tuple = (negate(tgt_id), negate(src_id))
-
-                # Don't add an edge twice if its complement is itself (as in
-                # the loop.gfa test case)
-                if complement_tuple != edge_tuple:
-                    digraph.add_edge(*complement_tuple)
+                digraph.add_edge(src_id, tgt_id)
+                if edge_is_not_self_implying(src_id, tgt_id):
+                    digraph.add_edge(negate(tgt_id), negate(src_id))
 
             if line.startswith("E"):
-                # TODO properly ignore all non dovetail edges
                 parts = get_gfa_line_parts(line, 9)
                 # for now, ignore the alignment string - it's parts[8]
                 edge_id, src, tgt, b1, e1, b2, e2 = parts[1:8]
-                raise NotImplementedError("not really feeling it r/n sorry")
+
+                # convert src and tgt from e.g. "5-" to "-5", or "5" to "5"
+                src_id = from_suffix_orient(src, "Edge")
+                tgt_id = from_suffix_orient(tgt, "Edge")
+
+                # We know that src must end in + or -; same is true for tgt.
+                # Thus, this line will tell us if they have the same
+                # orientation for this edge.
+                orientations_match = src[-1] == tgt[-1]
+
+                # Is this a "dovetail" edge, where the ends of the segments
+                # overlap with each other?
+                #
+                # For now, we only want to visualize dovetail edges. Other
+                # types of E-lines (containments and other "general edges")
+                # are not really relevant to how we currently draw the graph.
+                # See https://gfa-spec.github.io/GFA-spec/GFA2.html.
+                #
+                # NOTE: we do not currently validate that "$" really indicates
+                # the end of the sequence. this is partly because there's
+                # nothing stopping a GFA file from having segments be defined
+                # *after* edges, right? (see the all_line_types test inputs for
+                # examples of that...)
+                #
+                # Anyway, eventually it might be nice to validate that the "$"s
+                # are good -- maybe even doing things like detecting missing
+                # "$"s or situations where a "$" was defined incorrectly. But
+                # I think it is okay for now to be a bit lazy and assume
+                # whoever created this graph handled this part correctly.
+                if orientations_match:
+                    is_dovetail = (b1 == "0" and e2[-1] == "$") or (
+                        b2 == "0" and e1[-1] == "$"
+                    )
+                else:
+                    is_dovetail = (b1 == "0" and b2 == "0") or (
+                        e1[-1] == "$" and e2[-1] == "$"
+                    )
+
+                if is_dovetail:
+                    digraph.add_edge(src_id, tgt_id)
+                    if edge_is_not_self_implying(src_id, tgt_id):
+                        digraph.add_edge(negate(tgt_id), negate(src_id))
 
             if line.startswith("P"):
                 parts = get_gfa_line_parts(line, 4)
@@ -763,15 +803,7 @@ def parse_gfa(filename):
                     raise GraphParsingError(f"Duplicate path ID: {path_id}")
                 path_segment_ids = []
                 for ps in path_segments.split(","):
-                    if ps[-1] == config.FWD:
-                        psi = ps[:-1]
-                    elif ps[-1] == config.REV:
-                        psi = negate(ps[:-1])
-                    else:
-                        raise GraphParsingError(
-                            f"Path {path_id}: {ps} doesn't end in "
-                            f"{config.FWD} or {config.REV}?"
-                        )
+                    psi = from_suffix_orient(ps, f"Path {path_id}: ")
                     path_segment_ids.append(psi)
                 if len(path_segment_ids) == 0:
                     logging.warning(
@@ -917,13 +949,11 @@ def parse_lastgraph(filename):
             elif line.startswith("ARC"):
                 line_contents = line.split()
                 id1, id2 = line_contents[1], line_contents[2]
-                nid1 = negate(line_contents[1])
-                nid2 = negate(line_contents[2])
                 multiplicity = int(line_contents[3])
                 digraph.add_edge(id1, id2, multiplicity=multiplicity)
-                # Only add implied edge if the edge does not imply itself
-                # (e.g. "ABC" -> "-ABC" or "-ABC" -> "ABC")
-                if not (id1 == nid2 and id2 == nid1):
+                if edge_is_not_self_implying(id1, id2):
+                    nid1 = negate(line_contents[1])
+                    nid2 = negate(line_contents[2])
                     digraph.add_edge(nid2, nid1, multiplicity=multiplicity)
             elif parsing_node:
                 if not parsed_fwdseq:

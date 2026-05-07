@@ -32,6 +32,19 @@ def negate(n):
         return config.REV + n
 
 
+def from_suffix_orient(name, errprefix=""):
+    # X+ ==> X
+    if name[-1] == config.FWD:
+        return name[:-1]
+    # X- ==> -X
+    elif name[-1] == config.REV:
+        return negate(name[:-1])
+    else:
+        raise GraphParsingError(
+            f"{errprefix}{name} doesn't end in {config.FWD} or {config.REV}?"
+        )
+
+
 def has_leftsplit_suffix(name):
     return name.endswith(config.SPLIT_LEFT_SUFFIX)
 
