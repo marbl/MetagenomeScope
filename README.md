@@ -23,7 +23,7 @@ drawing summary plots of the graph's structure.
 
 MetagenomeScope supports the outputs of most modern assemblers,
 can handle large graphs including tens of thousands of nodes,
-and is backed by over four hundred automatic software tests.
+and is backed by over five hundred automatic software tests.
 
 The tool is under active development, so please let us know if you have any feedback!
 
@@ -825,6 +825,10 @@ Thanks also to the developers of the many excellent open-source software package
 [Graphviz](https://graphviz.org/) (graph layout), [Cytoscape.js](https://js.cytoscape.org/) (interactive graph drawing), and
 [Dash](https://dash.plotly.com/) (application framework) have been extremely helpful tools throughout the development of
 this project.
+
+Some of MetagenomeScope's software tests use data from other places. Please see the
+[`metagenomescope/tests/input/`](https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/tests/input)
+directory's README for a list of acknowledgements.
 
 ## Contact
 
