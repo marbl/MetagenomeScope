@@ -77,10 +77,16 @@ def is_not_pos_int(number_string):
         return True
 
 
-def edge_is_not_self_implying(src_id, tgt_id):
-    # Don't add an edge twice if its complement is itself (as in the loop.gfa
-    # test case)
-    return (negate(tgt_id) != src_id) or (negate(src_id) != tgt_id)
+def complement_edge(s1, t1):
+    """Returns 3-tuple of (is complement edge distinct?, s2, t2)."""
+    # If the reverse complement of s1 --> t1 is also s1 --> t1, then we
+    # shouldn't add it to the graph twice.
+    #
+    # This matters for things like the loop.gfa test case.
+    s2 = negate(t1)
+    t2 = negate(s1)
+    not_self_implying = (s1 != s2) or (t1 != t2)
+    return (not_self_implying, s2, t2)
 
 
 def validate_lastgraph_file(graph_file):
@@ -746,8 +752,9 @@ def parse_gfa(filename):
                 if tgt_orient == config.REV:
                     tgt_id = negate(tgt_id)
                 digraph.add_edge(src_id, tgt_id)
-                if edge_is_not_self_implying(src_id, tgt_id):
-                    digraph.add_edge(negate(tgt_id), negate(src_id))
+                not_self_implying, s2, t2 = complement_edge(src_id, tgt_id)
+                if not_self_implying:
+                    digraph.add_edge(s2, t2)
 
             if line.startswith("E"):
                 parts = get_gfa_line_parts(line, 9)
@@ -793,8 +800,9 @@ def parse_gfa(filename):
 
                 if is_dovetail:
                     digraph.add_edge(src_id, tgt_id)
-                    if edge_is_not_self_implying(src_id, tgt_id):
-                        digraph.add_edge(negate(tgt_id), negate(src_id))
+                    not_self_implying, s2, t2 = complement_edge(src_id, tgt_id)
+                    if not_self_implying:
+                        digraph.add_edge(s2, t2)
 
             if line.startswith("P"):
                 parts = get_gfa_line_parts(line, 4)
@@ -951,9 +959,8 @@ def parse_lastgraph(filename):
                 id1, id2 = line_contents[1], line_contents[2]
                 multiplicity = int(line_contents[3])
                 digraph.add_edge(id1, id2, multiplicity=multiplicity)
-                if edge_is_not_self_implying(id1, id2):
-                    nid1 = negate(line_contents[1])
-                    nid2 = negate(line_contents[2])
+                not_self_implying, nid2, nid1 = complement_edge(id1, id2)
+                if not_self_implying:
                     digraph.add_edge(nid2, nid1, multiplicity=multiplicity)
             elif parsing_node:
                 if not parsed_fwdseq:
