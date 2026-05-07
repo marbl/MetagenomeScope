@@ -164,10 +164,10 @@ def test_parse_no_length_node():
     assert digraph.nodes["1"]["length"] == 6
 
 
-def test_parse_inconsistent_length_node():
+def test_parse_inconsistent_length_segment_gfa1():
     s1 = get_sample1_gfa()
-    # test super weird corner case where multiple forms of length are given,
-    # but they disagree. Technically, the GFA 2 specification allows this!
+    # test super weird corner case where multiple forms of length are given
+    # (sequence and LN:i tag), but they disagree.
     s1.pop(1)
     s1.insert(1, "S\t1\tATCA\tLN:i:6")
     run_tempfile_test(
@@ -176,6 +176,87 @@ def test_parse_inconsistent_length_node():
         GraphParsingError,
         "inconsistent lengths",
     )
+
+
+def test_parse_inconsistent_length_segment_gfa2_ok():
+    s1 = get_sample1_gfa()
+    # In GFA 2, all segments have an explicit length field, and this is
+    # allowed to be different from the length of the segment's sequence
+    # (if given).
+    s1.pop(1)
+    s1.insert(1, "S\t1\t100\tATCA")
+    digraph, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    # use the sequence for its GC content, but set the length to match
+    # what was explicitly given
+    assert digraph.nodes["1"]["gc_content"] == 0.25
+    assert digraph.nodes["1"]["length"] == 100
+    assert digraph.nodes["-1"]["gc_content"] == 0.25
+    assert digraph.nodes["-1"]["length"] == 100
+
+
+def test_parse_gfa2_lni():
+    # If for some reason a GFA 2 S-line has a LN:i field for a segment -
+    # and this value disagrees with the explicitly given length for this
+    # S-line - then raise an error. (We would also raise this error for
+    # a GFA 1 file where the sequence was given, as seen in
+    # test_parse_inconsistent_length_segment_gfa1().)
+
+    # case 1 -- LN:i matches seq length, but disagrees with explicitly given
+    # length
+    s1 = get_sample1_gfa()
+    s1.pop(1)
+    s1.insert(1, "S\t1\t100\tATCA\tLN:i:4")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        "inconsistent lengths",
+    )
+
+    # case 2 -- LN:i is completely different from both seq and explicit length
+    s1 = get_sample1_gfa()
+    s1.pop(1)
+    s1.insert(1, "S\t1\t100\tATCA\tLN:i:67")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        "inconsistent lengths",
+    )
+
+    # case 3 -- no seq in the first place
+    s1 = get_sample1_gfa()
+    s1.pop(1)
+    s1.insert(1, "S\t1\t100\t*\tLN:i:67")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        "inconsistent lengths",
+    )
+
+    # case 4 -- LN:i is consistent
+    s1 = get_sample1_gfa()
+    s1.pop(1)
+    s1.insert(1, "S\t1\t100\tATCA\tLN:i:100")
+    digraph, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert digraph.nodes["1"]["gc_content"] == 0.25
+    assert digraph.nodes["1"]["length"] == 100
+    assert digraph.nodes["-1"]["gc_content"] == 0.25
+    assert digraph.nodes["-1"]["length"] == 100
+
+    # case 4 -- LN:i is consistent AND no seq
+    s1 = get_sample1_gfa()
+    s1.pop(1)
+    s1.insert(1, "S\t1\t333\t*\tLN:i:333")
+    digraph, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert digraph.nodes["1"]["gc_content"] is None
+    assert digraph.nodes["1"]["length"] == 333
+    assert digraph.nodes["-1"]["gc_content"] is None
+    assert digraph.nodes["-1"]["length"] == 333
 
 
 def test_parse_redefined_node():

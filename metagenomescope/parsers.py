@@ -635,27 +635,44 @@ def parse_gfa(filename):
                 tag2val = get_tag_dict(tags)
 
                 if seq != "*":
-                    newlen = len(seq)
+                    # In GFA 1 files, explicitly stating the segment length is
+                    # optional -- we can infer it from the sequence
                     if seglen is None:
-                        seglen = newlen
-                    else:
-                        # technically, the GFA 2 specification allows this...
-                        # but I feel it is very dangerous, and also Gfapy
-                        # raises an error about this kind of thing for GFA 1
-                        # files iirc. so let's be paranoid
-                        check_lengths_consistent(segname, seglen, newlen)
+                        seglen = len(seq)
+
+                    # In GFA 2 files, "seglen" will already have been set based
+                    # on the explicitly-defined length field, so (for now) do
+                    # not consider len(seq).
+                    #
+                    # We *could* call check_lengths_consistent() here to make
+                    # sure that the explicitly-defined length is consistent
+                    # with the length of the sequence -- i.e. that
+                    # seglen == len(seq) -- but the GFA 2 specification
+                    # explicitly allows them to be different!!! Which seems
+                    # dangerous to me, but...
+
                     seggc = gc_content(seq)[0]
 
+                # S-lines in GFA 1 files can define their lengths in LN:i tags,
+                # so check those. As far as I can tell the GFA 1 spec does not
+                # say what should be done if a S-line has both a sequence and a
+                # LN:i tag given, so let's just make sure that these lengths
+                # are consistent.
+                #
+                # (And GFA 2 files really shouldn't have these tags, but if
+                # we see it anyway then let's still ensure it's consistent
+                # with the explicitly-given length. That seems reasonable.)
                 if "ln:i" in tag2val:
                     # in the antagonistic case where the length tag
                     # is something malformed like "LN:i:asdf" then this
                     # will result in a ValueError. This is fine - we
                     # could catch it specifically but not worth it imo
-                    newlen = int(tag2val["ln:i"])
+                    taglen = int(tag2val["ln:i"])
                     if seglen is None:
-                        seglen = newlen
+                        # should only get here if this is a GFA 1 file
+                        seglen = taglen
                     else:
-                        check_lengths_consistent(segname, seglen, newlen)
+                        check_lengths_consistent(segname, seglen, taglen)
 
                 if seglen is None:
                     raise GraphParsingError(f"Segment '{line}' has no length?")
@@ -712,7 +729,8 @@ def parse_gfa(filename):
 
             if line.startswith("L"):
                 parts = get_gfa_line_parts(line, 6)
-                src_id, src_orient, tgt_id, tgt_orient, cigar = parts[1:6]
+                # for now, ignore the overlap CIGAR string - it's parts[5]
+                src_id, src_orient, tgt_id, tgt_orient = parts[1:5]
 
                 # Set edge_tuple to the edge's explicitly specified orientation
                 # This code is a bit verbose, but that was the easiest way to
@@ -732,8 +750,10 @@ def parse_gfa(filename):
                     digraph.add_edge(*complement_tuple)
 
             if line.startswith("E"):
-                # TODO implement ... and make this properly ignore containments
-                # i guess....
+                # TODO properly ignore all non dovetail edges
+                parts = get_gfa_line_parts(line, 9)
+                # for now, ignore the alignment string - it's parts[8]
+                edge_id, src, tgt, b1, e1, b2, e2 = parts[1:8]
                 raise NotImplementedError("not really feeling it r/n sorry")
 
             if line.startswith("P"):
