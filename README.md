@@ -218,7 +218,7 @@ _See [Flye's documentation](https://github.com/mikolmogorov/Flye/blob/flye/docs/
 </details>
 
 <details>
-  <summary><strong>P-lines in GFA 1 files, or O-lines in GFA 2 files (<code>-g</code>)</strong></summary>
+  <summary><strong>`P`-lines in GFA 1 files, or `O`-lines in GFA 2 files (<code>-g</code>)</strong></summary>
 
 <hr/>
 
