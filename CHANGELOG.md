@@ -32,6 +32,17 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   ([#310](https://github.com/marbl/MetagenomeScope/issues/310),
   [#403](https://github.com/marbl/MetagenomeScope/issues/403)).
 
+- Explicitly ignore all GFA 2 edges that are not
+  ["dovetails"](https://gfa-spec.github.io/GFA-spec/GFA2.html), defining a
+  dovetail as an edge that connects the ends of two segments.
+
+  - Previously, we ignored containments, but still visualized "general edges"
+    that were not dovetails. Now, to simplify things and keep interpretation
+    straightforward, we ignore these edges as well.
+
+  - See [this thread in the GFA specification repository](https://github.com/GFA-spec/GFA-spec/issues/33)
+    for some historical context.
+
 - Allow paths to span multiple connected components of the graph, since this
   can occur in Verkko output.
 
