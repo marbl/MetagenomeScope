@@ -262,12 +262,7 @@ def test_parse_gfa2_lni():
 def test_parse_redefined_node():
     s1 = get_sample1_gfa()
     s1.insert(1, "S\t1\tATCA")
-    run_tempfile_test(
-        "gfa",
-        s1,
-        GraphParsingError,
-        'Found multiple S lines for segment ID "1".',
-    )
+    run_tempfile_test("gfa", s1, GraphParsingError, 'ID "1" not unique.')
 
 
 def test_parse_invalid_id_node():
@@ -331,7 +326,7 @@ def test_parse_path_duplicate_name():
     s1 = get_sample1_gfa()
     s1.append("P\tpath1\t3+,4-\t*")
     s1.append("P\tpath1\t1+,2+\t*")
-    run_tempfile_test("gfa", s1, GraphParsingError, "Duplicate path ID: path1")
+    run_tempfile_test("gfa", s1, GraphParsingError, 'ID "path1" not unique.')
 
 
 def test_parse_path_rc_path_ok():

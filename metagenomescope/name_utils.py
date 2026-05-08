@@ -33,12 +33,43 @@ def negate(n):
 
 
 def from_suffix_orient(name, errprefix=""):
+    """Converts an explicit suffix-orientation name to prefix orientation.
+
+    This is useful when parsing GFA and FASTG files.
+
+    Parameters
+    ----------
+    name: str
+        Something like "X+" or "X-".
+
+    errprefix: str
+        If "name" does not end with a recognized orientation, then we'll
+        throw an error. This string will be used as the prefix for that
+        error message. You don't need to specify this, but it could be helpful
+        for debugging where exactly a problematic name occurred in a file.
+
+    Returns
+    -------
+    out_name, pure_name, orientation: str, str, str
+        "out_name" will be a "prefix-orientation" representation of "name". So,
+        for example, "X+" will be turned into "X", and "X-" will be turned into
+        "-X". This matches how we typically describe node names in MgSc.
+
+        "pure_name" will just be "name" with the orientation suffix removed:
+        that is, both "X+" and "X-" would have a pure name of "X". This can be
+        useful when working with interdependent lines in GFA files.
+
+        "orientation" will be the orientation inferred from "name". That is,
+        either config.FWD or config.REV.
+    """
+    pure_name = name[:-1]
+    last_char = name[-1]
     # X+ ==> X
-    if name[-1] == config.FWD:
-        return name[:-1]
+    if last_char == config.FWD:
+        return pure_name, pure_name, config.FWD
     # X- ==> -X
-    elif name[-1] == config.REV:
-        return negate(name[:-1])
+    elif last_char == config.REV:
+        return negate(pure_name), pure_name, config.REV
     else:
         raise GraphParsingError(
             f"{errprefix}{name} doesn't end in {config.FWD} or {config.REV}?"

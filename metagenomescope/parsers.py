@@ -560,6 +560,32 @@ def count2cov_if_positive_len(scountval, slen):
         return None
 
 
+def store_gfa_id(i, seenid2type, newtype):
+    # GFA 2 allows edges and groups (and gaps, but we don't currently parse
+    # those) to have * for an ID, indicating that the ID is not given.
+    if i == "*":
+        # For edges (E-lines), this is fine -- don't add "*" to the namespace
+        if newtype == "E":
+            return
+        # For paths (O-lines), this is a problem: we want each path to have an
+        # identifiable name for the visualization! We COULD just store "*" as a
+        # path ID and later throw an error if/when we see another path with ID
+        # "*", but that is confusing and lazy. Best to fail early, IMO.
+        elif newtype == "O":
+            raise GraphParsingError(
+                f'O-line with placeholder ID "*" found. We do not support '
+                "paths without defined IDs."
+            )
+        # In theory, there's nothing stopping you from naming a segment
+        # (S-line) "*" -- the GFA 2 ID regex of [!-~]+ allows it. So I guessss
+        # we can just move on with our lives if newtype is not E or O. (If
+        # multiple S-lines or whatever have "*" as an ID then we'll eventually
+        # trigger the error below about nonunique IDs.)
+    if i in seenid2type:
+        raise GraphParsingError(f'ID "{i}" not unique.')
+    seenid2type[i] = newtype
+
+
 def parse_gfa(filename):
     """Returns a nx.MultiDiGraph representation of a GFA1 or GFA2 file.
 
@@ -596,9 +622,18 @@ def parse_gfa(filename):
     """
     with open(filename, "r") as graph_file:
         digraph = nx.MultiDiGraph()
+        # Maps path ID -> list of segment IDs
         paths = {}
-        nodes_seen_in_s_lines = set()
-        for line in graph_file:
+        # The IDs of segments, paths, and GFA 2 edges must all be unique.
+        # This is stated in the specifications for both GFA 1 and 2.
+        # This dict maps each ID to one of {"S", "E", "P", "O"}.
+        # (We only bother storing forward IDs, i.e. "X" instead of "X+" / "X-")
+        id2type = {}
+        # Map O-line IDs -> child "thing" IDs. Used to resolve O-lines.
+        oid2childids = {}
+        # Map E-line IDs -> (src ID, tgt ID). Used to resolve O-lines.
+        eid2srctgt = {}
+        for line_number, line in enumerate(graph_file):
             # is this a "segment" (node)?
             if line.startswith("S"):
                 # In GFA 1, S lines look like: S (name) (seq) (tags)
@@ -623,10 +658,8 @@ def parse_gfa(filename):
                         f'Found segment ID "{segname}". Segment IDs cannot '
                         f'start with the "{config.REV}" character.'
                     )
-                if segname in nodes_seen_in_s_lines:
-                    raise GraphParsingError(
-                        f'Found multiple S lines for segment ID "{segname}".'
-                    )
+                store_gfa_id(segname, id2type, "S")
+
                 seglen = None
                 segcov = None
                 seggc = None
@@ -737,7 +770,6 @@ def parse_gfa(filename):
                     orientation=config.REV,
                     cov=segcov,
                 )
-                nodes_seen_in_s_lines.add(segname)
 
             if line.startswith("L"):
                 parts = get_gfa_line_parts(line, 6)
@@ -761,9 +793,15 @@ def parse_gfa(filename):
                 # for now, ignore the alignment string - it's parts[8]
                 edge_id, src, tgt, b1, e1, b2, e2 = parts[1:8]
 
+                store_gfa_id(edge_id, id2type, "E")
+
                 # convert src and tgt from e.g. "5-" to "-5", or "5" to "5"
-                src_id = from_suffix_orient(src, "Edge")
-                tgt_id = from_suffix_orient(tgt, "Edge")
+                src_id, _, _ = from_suffix_orient(src, "Edge ")
+                tgt_id, _, _ = from_suffix_orient(tgt, "Edge ")
+
+                # O-lines (GFA 2 paths) might refer to edges by ID, so store
+                # info mapping edge ID -> (src, tgt)
+                eid2srctgt[edge_id] = (src_id, tgt_id)
 
                 # We know that src must end in + or -; same is true for tgt.
                 # Thus, this line will tell us if they have the same
@@ -806,38 +844,157 @@ def parse_gfa(filename):
 
             if line.startswith("P"):
                 parts = get_gfa_line_parts(line, 4)
-                path_id, path_segments, cigars = parts[1:4]
-                if path_id in paths:
-                    raise GraphParsingError(f"Duplicate path ID: {path_id}")
+                path_id, path_segments = parts[1:3]
+                store_gfa_id(path_id, id2type, "P")
                 path_segment_ids = []
                 for ps in path_segments.split(","):
-                    psi = from_suffix_orient(ps, f"Path {path_id}: ")
+                    psi, _, _ = from_suffix_orient(ps, f"Path {path_id}: ")
                     path_segment_ids.append(psi)
                 if len(path_segment_ids) == 0:
-                    logging.warning(
-                        f"Path {path_id} contains zero segments. We're going "
-                        "to ignore it...?"
-                    )
-                else:
-                    paths[path_id] = path_segment_ids
+                    raise GraphParsingError(f"Path {path_id} has no segments?")
+                paths[path_id] = path_segment_ids
 
             if line.startswith("O"):
-                # TODO implement. the annoying thing here is that these can be
-                # "segments, edges or other groups" -- which complicates
-                # parsing a lot. I GUESSSSSS we could store the locations of
-                # all O lines and not read them in detail until after we've
-                # parsed all other stuff in the file, and then make another
-                # pass and read in the O lines. But like will anybody even
-                # use this functionality? It is probably sufficient to just
-                # raise an error or ignore the path if it contains an ID that
-                # does not match any of the segments in the graph...
-                #
-                # oh yeah also because currently we assume that all GFA paths
-                # refer ONLY to segments (nodes)
-                #
-                # parts = get_gfa_line_parts(line, 3)
-                # path_id, path_segments
-                raise NotImplementedError("yeah not yet sorry")
+                # P-lines (above) in GFA 1 files are easy because they can only
+                # contain segment IDs. O-lines are trickier: they can also
+                # contain edge IDs or other O-line IDs! Oh no!
+                # Because there is no guarantee all of the "dependencies" of an
+                # O-line have already been defined earlier in the file, we will
+                # need to make another pass. So, save O-line info for later.
+                parts = get_gfa_line_parts(line, 3)
+                path_id, path_children = parts[1:3]
+                store_gfa_id(path_id, id2type, "O")
+                oid2childids[path_id] = path_children.split(" ")
+
+        # After going through the entire file, we can resolve O-lines.
+        if len(oid2childids) > 0:
+            # Because O-lines can contain other O-lines that can contain other
+            # O-lines..., we need a smart (ish) way to go through the O-lines
+            # in the correct "order," recording the "base-level" O-lines first.
+            #
+            # (We also need a way to detect dreadful things like "cycles" of
+            # O-lines, where A contains B contains A... The GFA 2 spec doesn't
+            # seem to mention this, but obviously such things are disallowed.)
+            #
+            # A solution (not necessarily the best one, but the one I am going
+            # with for now because it is easy[ish]) is creating a graph OG
+            # where nodes are O-line IDs and an edge from A -> B indicates that
+            # B contains A. Thus, all nodes with in-degree 0 are the
+            # "base-level" O-lines.
+            #
+            # If OG is a DAG, then we can record its O-lines in topological
+            # ordering. All nodes with in-degree 0 are the "base-level"
+            # O-lines and can be recorded first, etc.
+            #
+            # (If OG is not a DAG, then there exists a cycle in the O-lines,
+            # and we should loudly crash and start harrumphing to the user.)
+
+            # no need for a multidigraph; if B contains A multiple times, then
+            # that won't impact the order in which we do things
+            og = nx.DiGraph()
+
+            # PHASE 1: build up the graph OG, describing which O-lines are
+            # contained in which other O-lines.
+            for oid, children in oid2childids.items():
+                og.add_node(oid)
+                for c in children:
+                    cid, cpureid, _ = from_suffix_orient(c, f"Path {oid}: ")
+                    if cpureid not in id2type:
+                        raise GraphParsingError(
+                            f"Path {oid} contains unrecognized ID {c}."
+                        )
+                    ctype = id2type[cpureid]
+                    if ctype == "O":
+                        # Turns out that this O-line (oid) contains another
+                        # O-line (cpureid). Add an edge cpureid -> oid to OG.
+                        og.add_edge(cpureid, oid)
+                    elif ctype not in "SE":
+                        # This should only happen if this O-line contains a
+                        # P-line, which is extremely strange (mixing O- and P-
+                        # lines in the same file should never happen).
+                        raise GraphParsingError(
+                            f"Path {oid} contains ID {c}, corresponding to a "
+                            f"{ctype}-line? Something confusing is happening."
+                        )
+
+            # PHASE 2: "Expand" O-lines (and edges) contained in O-lines,
+            # turning oid2childids into a simpler thing where the values should
+            # only be segment IDs. This will be stored in... the paths dict!
+            try:
+                for oid in nx.topological_sort(og):
+                    expanded_child_ids = []
+                    for c in oid2childids[oid]:
+                        cid, cpureid, corient = from_suffix_orient(
+                            c, f"Path {oid}: "
+                        )
+                        ctype = id2type[cpureid]
+
+                        if ctype == "S":
+                            # "cid" is in the MgSc-style format we expect
+                            # (-X or X, depending on the segment orientation
+                            # given in the path here)
+                            expanded_child_ids.append(cid)
+
+                        elif ctype == "E":
+                            srcid, tgtid = eid2srctgt[cpureid]
+                            if corient == config.REV:
+                                # theres gotta be a more elegant way to do this
+                                rsrcid = negate(tgtid)
+                                rtgtid = negate(srcid)
+                                srcid = rsrcid
+                                tgtid = rtgtid
+                            add_src_to_path = True
+                            if len(expanded_child_ids) > 0:
+                                last_segment_id = expanded_child_ids[-1]
+                                add_src_to_path = last_segment_id != srcid
+                            # We COULD just add both the source and target
+                            # segment ID to the path, but that doesn't seem
+                            # to match the GFA 2 specification or how Gfapy
+                            # does this. Because you could have a path of
+                            # just {Edge, Edge, Edge}, or {S, E, E}, or
+                            # {S, E, S, E, S}, or ...
+                            #
+                            # What we do here - and I think this should match
+                            # what Gfapy does in most cases - is add the source
+                            # to the path only if it is not already the
+                            # previous thing on the path. And then we always
+                            # add the target. I guess this is kind of like
+                            # spelling out a path in a de Bruijn graph, right?
+                            #
+                            # Anyway idk this is all so wishywashy and I
+                            # don't think anybody uses O-lines anyway ... will
+                            # document in the README and can adjust if desired
+                            if add_src_to_path:
+                                expanded_child_ids.append(srcid)
+                            expanded_child_ids.append(tgtid)
+
+                        elif ctype == "O":
+                            # because we're going in topological order, we must
+                            # have already seen cpureid in this for-loop.
+                            other_children = oid2expandedchildids[cpureid]
+                            if corient == config.REV:
+                                # reverse-complement the path
+                                other_children = [
+                                    negate(n) for n in other_children[::-1]
+                                ]
+                            expanded_child_ids.extend(other_children)
+
+                        else:
+                            # should never happen; we should already have
+                            # noticed this in phase 1
+                            raise GraphParsingError(
+                                f"Path {oid} contains {c} of type {ctype}?"
+                            )
+                    if len(expanded_child_ids) == 0:
+                        raise GraphParsingError(f"Path {oid} has no segments?")
+                    paths[oid] = expanded_child_ids
+            except nx.NetworkXUnfeasible:
+                raise GraphParsingError(
+                    "It looks like the O-lines in your GFA file are somehow "
+                    "cyclic -- e.g. A contains B contains A. This is a rare "
+                    "and impressive bug to trigger, so feel free open an "
+                    "issue on GitHub if you have questions about this."
+                )
 
     if len(paths) == 0:
         paths = None
@@ -873,20 +1030,9 @@ def parse_fastg(filename):
     # so we can be consistent.
     oldname2newname = {}
     for n in g.nodes:
-        suffix = n[-1]
-        if suffix == config.FWD:
-            g.nodes[n]["orientation"] = config.FWD
-            oldname2newname[n] = n[:-1]
-        elif suffix == config.REV:
-            g.nodes[n]["orientation"] = config.REV
-            oldname2newname[n] = config.REV + n[:-1]
-        else:
-            # shouldn't happen, unless pyfastg breaks or changes its behavior
-            # (but it's useful to have this check anyway, just to make this
-            # bulletproof in case i forget and break something later lol)
-            raise WeirdError(
-                f"Node {n} in parsed FASTG file doesn't have an orientation?"
-            )
+        newname, _, orientation = from_suffix_orient(n, "FASTG node ")
+        g.nodes[n]["orientation"] = orientation
+        oldname2newname[n] = newname
     g = nx.relabel_nodes(g, oldname2newname)
     return g
 
