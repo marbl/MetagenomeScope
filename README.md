@@ -635,6 +635,56 @@ since Flye produces them at different times in its pipeline.
 ### Paths
 
 <details>
+  <summary><strong>FAQ: How do you handle <code>O</code>-lines in GFA 2 files?</strong></summary>
+
+<hr/>
+
+I'm so glad you asked! Although I am doubtful that anybody is actually asking this question, so maybe you are
+not a real person.
+
+ANYWAY so okay here's the deal. In GFA 1 files, paths (`P`-lines) are relatively simple -- they can only
+contain segments. So `P`-lines are refreshingly easy to reason about.
+
+In GFA 2 files, however, paths (`O`-lines) can contain other things besides segments -- they can also contain
+edges, or even other paths! There are some interesting considerations this flexibility brings up.
+
+#### Recording paths in the correct "order"
+
+There is no guarantee that `O`-lines are given in any particular order, so you can have dreadful
+situations where a path with ID `B` says that it contains a path with ID `A` (which is
+defined in a later line in the file).
+
+We handle this by -- after scanning through the entire GFA file -- creating a directed graph, where each
+edge `A -> B` indicates that path `B` contains path `A`. We then use NetworkX to find a
+[topological ordering](https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.dag.topological_sort.html)
+of the nodes (paths) in this graph, and record paths (in terms of just their child segments
+and nothing else) in this order. Using the topological ordering ensures that, when it is time
+to record a path, we already know the exact contents of the paths that it contains.
+
+If you really wanted to make our jobs hard, you could create a GFA file with **cycles**: where path
+`B` contains `A` which contains `C` which contains `B` (or something like that).
+If we detect this kind of situation, we will raise an error (because like how should we even handle this...?)
+
+#### Paths that explicitly contain edges
+
+In GFA 2, edges have IDs. You can refer to these edges on an `O`-line in GFA 2.
+
+Currently, MetagenomeScope assumes that GFA paths will only contain nodes -- not a mixture of
+nodes and edges. Thus, when MetagenomeScope notices that a GFA 2 path contains an edge, it
+converts this edge into the 2-tuple (source, target) in the path.
+
+Later, we expand these 2-tuples (turning the path into just a basic list of segment IDs)
+according to the following logic:
+
+1. If "source" is not already given as the previous entry in the path, then we add it to the path.
+2. If "target" is not already given as the next entry in the path (as a segment), then we add it to the path.
+
+I think this should mostly match how other GFA 2 parsers (e.g. Gfapy) handle these kinds of mixed paths.
+
+<hr/>
+</details>
+
+<details>
   <summary><strong>FAQ: My graph is a DOT file from LJA that does not have edge IDs. Can I still create a "paths" file for it?</strong></summary>
 
 <hr/>
@@ -643,7 +693,8 @@ Yes!
 
 Some background: in some older LJA graphs, edges do not have explicitly set IDs.
 MetagenomeScope will detect this, and automatically create edge IDs
-in the format `SOURCE → TARGET (FIRST NT)`.
+in the format `SOURCE → TARGET (FIRST NT)`. (That is, using the literal right arrow
+unicode symbol -- i.e. `U+2192`.)
 
 So, if you want to specify paths through these graphs that do not have
 edge IDs, then: you can prepare your AGP (`-a`) or TSV (`-t`) file as normal,
