@@ -673,10 +673,11 @@ If we detect this kind of situation, we will raise an error (because like how sh
 
 #### Paths that explicitly contain edges
 
-In GFA 2, edges have IDs. You can refer to these edges on an `O`-line in GFA 2.
+In GFA 2, edges can optionally have IDs. You can refer to these edge IDs on an `O`-line in GFA 2.
 
-Currently, MetagenomeScope assumes that GFA paths will only contain nodes -- not a mixture of
-nodes and edges. Thus, when MetagenomeScope notices that a GFA 2 path contains an edge, it
+[Currently](https://github.com/marbl/MetagenomeScope/issues/424), MetagenomeScope assumes that all
+paths loaded from GFA files will only contain nodes -- not
+a mixture of nodes and edges. Thus, when MetagenomeScope notices that a GFA 2 path contains an edge, it
 converts this edge into the 2-tuple (source, target) in the path.
 
 Later, we expand these 2-tuples (turning the path into just a basic list of segment IDs)
@@ -686,6 +687,7 @@ according to the following logic:
 2. If "target" is not already given as the next entry in the path (as a segment), then we add it to the path.
 
 I think this should mostly match how other GFA 2 parsers (e.g. Gfapy) handle these kinds of mixed paths.
+But if you have strong opinions about this, please feel free to file an issue so we can discuss.
 
 <hr/>
 </details>
