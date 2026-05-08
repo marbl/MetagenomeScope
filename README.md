@@ -226,7 +226,9 @@ _See [Flye's documentation](https://github.com/mikolmogorov/Flye/blob/flye/docs/
 
 _See the [GFA 1](https://gfa-spec.github.io/GFA-spec/GFA1.html) and [GFA 2](https://gfa-spec.github.io/GFA-spec/GFA2.html) specifications for details._
 
-[Currently](https://github.com/marbl/MetagenomeScope/issues/147), we only show segments on GFA paths (not edges, gaps, etc.)
+[Currently](https://github.com/marbl/MetagenomeScope/issues/147), we only show segments on GFA paths (not edges or gaps).
+
+For details on how we process `O`-lines in GFA 2 files, see the "How do you handle `O`-lines in GFA 2 files?" in the FAQs below.
 
 <hr/>
 </details>
