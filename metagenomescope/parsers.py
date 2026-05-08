@@ -30,7 +30,6 @@
 #  4. Add tests for your parser in metagenomescope/tests/parsers/
 
 import re
-import logging
 import networkx as nx
 import pyfastg
 from . import config
@@ -573,7 +572,7 @@ def store_gfa_id(i, seenid2type, newtype):
         # "*", but that is confusing and lazy. Best to fail early, IMO.
         elif newtype == "O":
             raise GraphParsingError(
-                f'O-line with placeholder ID "*" found. We do not support '
+                'O-line with placeholder ID "*" found. We do not support '
                 "paths without defined IDs."
             )
         # In theory, there's nothing stopping you from naming a segment
@@ -971,7 +970,7 @@ def parse_gfa(filename):
                         elif ctype == "O":
                             # because we're going in topological order, we must
                             # have already seen cpureid in this for-loop.
-                            other_children = oid2expandedchildids[cpureid]
+                            other_children = paths[cpureid]
                             if corient == config.REV:
                                 # reverse-complement the path
                                 other_children = [
