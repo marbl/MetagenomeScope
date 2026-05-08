@@ -19,6 +19,8 @@ OUT_TSV = "If given, write a TSV file with some graph statistics."
 
 VERBOSE = "Log extra details."
 
+DECOMP = "Run pattern decomposition."
+
 DEBUG = "Use Dash's debug mode."
 
 DCHECK = "Do post-decomposition sanity check."

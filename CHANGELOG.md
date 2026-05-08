@@ -14,14 +14,29 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   [Verkko](https://github.com/marbl/verkko)-style TSV files describing paths
   ([#336](https://github.com/marbl/MetagenomeScope/issues/336)).
 
+- Add the `--decomp` command-line flag, which controls whether or not to run
+  pattern decomposition
+  ([#425](https://github.com/marbl/MetagenomeScope/issues/425)).
+
+  - Turning decomposition off will just make MetagenomeScope behave as if it
+    did not detect any patterns in your graph. This can be useful if you just
+    want to interact with the raw graph structure (whether programmatically
+    or in the interactive visualization), without having to think about the
+    split nodes and fake edges caused by the decomposition.
+
+  - _By default,_ this is set to `--decomp`: that is, decomposition is turned
+    on.
+
 - Add the `--dcheck` command-line flag, which controls whether or not to run
   a sanity check after pattern decomposition that verifies the integrity of
-  the graph
-  ([#421](https://github.com/marbl/MetagenomeScope/issues/421)).
+  the graph ([#421](https://github.com/marbl/MetagenomeScope/issues/421)).
 
   - This check involves, among other things, creating an extra copy of the
     input graph structure before decomposition. It can be a bottleneck when
     working with massive graphs on low-memory systems.
+
+  - _By default,_ this is set to `--no-dcheck`: that is, this sanity check is
+    turned off.
 
 - Various updates to the README.
 

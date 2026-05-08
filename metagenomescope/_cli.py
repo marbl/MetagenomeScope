@@ -77,6 +77,13 @@ from . import __version__, defaults, descs, config
     help=descs.DEBUG,
 )
 @click.option(
+    "--decomp/--no-decomp",
+    is_flag=True,
+    default=defaults.DECOMP,
+    show_default=True,
+    help=descs.DECOMP,
+)
+@click.option(
     "--dcheck/--no-dcheck",
     is_flag=True,
     default=defaults.DCHECK,
@@ -92,6 +99,7 @@ def run_script(
     port: int,
     verbose: bool,
     debug: bool,
+    decomp: bool,
     dcheck: bool,
 ) -> None:
     """Visualizes an assembly graph.
@@ -118,6 +126,7 @@ def run_script(
             f"Port: {port}",
             f"Verbose?: {verbose}",
             f"Debug mode?: {debug}",
+            f"Decomp?: {decomp}",
             f"Post-decomp check?: {dcheck}",
         ],
         endsepline=True,
@@ -133,6 +142,7 @@ def run_script(
         port=port,
         verbose=verbose,
         debug=debug,
+        decomp=decomp,
         dcheck=dcheck,
     )
 

@@ -72,6 +72,7 @@ class AssemblyGraph(object):
         agp_fp=None,
         verkko_tsv_fp=None,
         flye_info_fp=None,
+        run_decomposition=True,
         sanity_check_post_decomposition=True,
     ):
         """Parses the input graph file and initializes the AssemblyGraph.
@@ -92,6 +93,9 @@ class AssemblyGraph(object):
         flye_info_fp: str or None
             If specified, this should be a path to a Flye assembly_info.txt
             file describing contigs/scaffolds in the graph.
+
+        run_decomposition: bool
+            If True, run decomposition. If False, skip it.
 
         sanity_check_post_decomposition: bool
             If True, makes an additional copy of the graph structure before
@@ -122,6 +126,7 @@ class AssemblyGraph(object):
         self.flye_info_filename = flye_info_fp
         self.flye_info_basename = misc_utils.get_basename_if_fp(flye_info_fp)
 
+        self.run_decomposition = run_decomposition
         self.sanity_check_post_decomposition = sanity_check_post_decomposition
 
         logger.info(f'Loading input graph "{self.basename}"...')
@@ -277,27 +282,31 @@ class AssemblyGraph(object):
             config.PT_BIPARTITE: self.bipartites,
         }
 
-        logger.debug("  Decomposing the assembly graph...")
-        ctext = "copies" if self.sanity_check_post_decomposition else "a copy"
-        logger.debug(f"    Creating {ctext} of the graph...")
-        self.decomposed_graph = deepcopy(self.graph)
-        if self.sanity_check_post_decomposition:
-            self.original_graph = deepcopy(self.graph)
-        else:
-            self.original_graph = None
-        logger.debug("    ...Done.")
+        if self.run_decomposition:
+            logger.debug("  Decomposing the assembly graph...")
+            ctext = "copies" if self.sanity_check_post_decomposition else "a copy"
+            logger.debug(f"    Creating {ctext} of the graph...")
+            self.decomposed_graph = deepcopy(self.graph)
+            if self.sanity_check_post_decomposition:
+                self.original_graph = deepcopy(self.graph)
+            else:
+                self.original_graph = None
+            logger.debug("    ...Done.")
 
-        logger.debug("    Hierarchically identifying patterns in the graph...")
-        self._hierarchically_identify_patterns()
-        logger.debug(
-            "    ...Done. Found "
-            f"{ui_utils.pluralize(len(self.bubbles), 'bubble')}, "
-            f"{ui_utils.pluralize(len(self.chains), 'chain')}, "
-            f"{ui_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, "
-            f"{ui_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}, and "
-            f"{ui_utils.pluralize(len(self.bipartites), 'bipartite')}."
-        )
-        logger.debug("  ...Done.")
+            logger.debug("    Hierarchically identifying patterns in the graph...")
+            self._hierarchically_identify_patterns()
+            logger.debug(
+                "    ...Done. Found "
+                f"{ui_utils.pluralize(len(self.bubbles), 'bubble')}, "
+                f"{ui_utils.pluralize(len(self.chains), 'chain')}, "
+                f"{ui_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, "
+                f"{ui_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}, and "
+                f"{ui_utils.pluralize(len(self.bipartites), 'bipartite')}."
+            )
+            logger.debug("  ...Done.")
+        else:
+            logger.debug("  (Skipping decomposition, as requested.)")
+            self.decomposed_graph = None
 
         # Initialize self.components, a sorted list of Component objects. See
         # this method's docstring for details.
@@ -1875,11 +1884,14 @@ class AssemblyGraph(object):
         """Stores information about weakly connected components in the graph.
 
         This initializes self.components, a list of Components that is sorted
-        in descending order by three criteria: number of nodes, number of
-        edges, and number of patterns.
+        by various criteria (see graph_utils.get_sorted_subgraphs()).
         """
+        if self.run_decomposition:
+            g_to_traverse = self.decomposed_graph
+        else:
+            g_to_traverse = self.graph
         components = []
-        for cc in nx.weakly_connected_components(self.decomposed_graph):
+        for cc in nx.weakly_connected_components(g_to_traverse):
             nodes = []
             edges = []
             patts = []
@@ -1907,7 +1919,7 @@ class AssemblyGraph(object):
                 # looking at the outgoing edges of each "node", whether it's a
                 # real or collapsed-pattern node. (Don't worry, this includes
                 # parallel edges.)
-                for src_id, tgt_id, data in self.decomposed_graph.out_edges(
+                for src_id, tgt_id, data in g_to_traverse.out_edges(
                     nid, data=True
                 ):
                     edges.append(self.edgeid2obj[data["uid"]])

@@ -42,6 +42,7 @@ def run(
     port: int = defaults.PORT,
     verbose: bool = defaults.VERBOSE,
     debug: bool = defaults.DEBUG,
+    decomp: bool = defaults.DECOMP,
     dcheck: bool = defaults.DCHECK,
 ):
     """Reads the graph and starts a Dash app for visualizing it.
@@ -76,6 +77,9 @@ def run(
         turned off -- using debug mode will require processing the graph
         twice on startup.)
 
+    decomp: bool
+        If True, run pattern decomposition. If False, just skip it.
+
     dcheck: bool
         If True, run an extra sanity check after pattern decomposition. This
         involves (at least as of April 2026) creating an extra copy of the
@@ -94,6 +98,7 @@ def run(
         agp_fp=agp,
         verkko_tsv_fp=vtsv,
         flye_info_fp=flye_info,
+        run_decomposition=decomp,
         sanity_check_post_decomposition=dcheck,
     )
 
