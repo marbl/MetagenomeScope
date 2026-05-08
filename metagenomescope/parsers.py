@@ -911,8 +911,8 @@ def parse_gfa(filename):
                         og.add_edge(cpureid, oid)
                     elif ctype not in "SE":
                         # This should only happen if this O-line contains a
-                        # P-line, which is extremely strange (mixing O- and P-
-                        # lines in the same file should never happen).
+                        # P-line, which is strange (mixing O- and P-lines in
+                        # the same file should never happen in practice).
                         raise GraphParsingError(
                             f"Path {oid} contains ID {c}, corresponding to a "
                             f"{ctype}-line? Something confusing is happening."
@@ -958,7 +958,8 @@ def parse_gfa(filename):
                             child_sids_and_etups.extend(other_children)
 
                         else:
-                            # should never happen; we should already have
+                            # should never happen (as in this should be
+                            # impossible to trigger); we should already have
                             # noticed this in phase 1
                             raise GraphParsingError(
                                 f"Path {oid} contains {c} of type {ctype}?"
