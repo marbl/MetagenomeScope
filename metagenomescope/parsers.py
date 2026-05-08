@@ -32,10 +32,9 @@
 import re
 import networkx as nx
 import pyfastg
-from . import config
+from . import config, gfa_utils, misc_utils
 from .name_utils import negate, from_suffix_orient
 from .seq_utils import gc_content
-from .misc_utils import expand2tuples
 from .errors import GraphParsingError, WeirdError
 
 LJA_LFL_PATT = re.compile(
@@ -797,47 +796,18 @@ def parse_gfa(filename):
                 store_gfa_id(edge_id, id2type, "E")
 
                 # convert src and tgt from e.g. "5-" to "-5", or "5" to "5"
-                src_id, _, _ = from_suffix_orient(src, "Edge ")
-                tgt_id, _, _ = from_suffix_orient(tgt, "Edge ")
+                src_id, _, src_orient = from_suffix_orient(src, "Edge ")
+                tgt_id, _, tgt_orient = from_suffix_orient(tgt, "Edge ")
 
                 # O-lines (GFA 2 paths) might refer to edges by ID, so store
                 # info mapping edge ID -> (src, tgt)
                 eid2srctgt[edge_id] = (src_id, tgt_id)
 
-                # We know that src must end in + or -; same is true for tgt.
-                # Thus, this line will tell us if they have the same
-                # orientation for this edge.
-                orientations_match = src[-1] == tgt[-1]
-
-                # Is this a "dovetail" edge, where the ends of the segments
-                # overlap with each other?
-                #
-                # For now, we only want to visualize dovetail edges. Other
-                # types of E-lines (containments and other "general edges")
-                # are not really relevant to how we currently draw the graph.
-                # See https://gfa-spec.github.io/GFA-spec/GFA2.html.
-                #
-                # NOTE: we do not currently validate that "$" really indicates
-                # the end of the sequence. this is partly because there's
-                # nothing stopping a GFA file from having segments be defined
-                # *after* edges, right? (see the all_line_types test inputs for
-                # examples of that...)
-                #
-                # Anyway, eventually it might be nice to validate that the "$"s
-                # are good -- maybe even doing things like detecting missing
-                # "$"s or situations where a "$" was defined incorrectly. But
-                # I think it is okay for now to be a bit lazy and assume
-                # whoever created this graph handled this part correctly.
-                if orientations_match:
-                    is_dovetail = (b1 == "0" and e2[-1] == "$") or (
-                        b2 == "0" and e1[-1] == "$"
-                    )
-                else:
-                    is_dovetail = (b1 == "0" and b2 == "0") or (
-                        e1[-1] == "$" and e2[-1] == "$"
-                    )
-
-                if is_dovetail:
+                # Only consider dovetail edges, not containments or "general
+                # edges." See the GFA 2 specification & gfa_utils.py for deets
+                if gfa_utils.is_dovetail(
+                    src_orient, tgt_orient, b1, e1, b2, e2
+                ):
                     digraph.add_edge(src_id, tgt_id)
                     not_self_implying, s2, t2 = complement_edge(src_id, tgt_id)
                     if not_self_implying:
@@ -970,7 +940,7 @@ def parse_gfa(filename):
                     # Okay, child_sids_and_etups only contains segment
                     # and/or 2-tuples of (source ID, target ID) for edges.
                     # We now just need to expand the edges, and then we're done
-                    paths[oid] = expand2tuples(child_sids_and_etups)
+                    paths[oid] = misc_utils.expand2tuples(child_sids_and_etups)
             except nx.NetworkXUnfeasible:
                 raise GraphParsingError(
                     "It looks like the O-lines in your GFA file are somehow "
