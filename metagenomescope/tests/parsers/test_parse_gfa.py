@@ -348,6 +348,37 @@ def test_parse_path_of_just_edges_has_nodes_extracted():
     assert paths == {"15": ["1", "3", "4"]}
 
 
+def test_parse_gfa2_recursive_o_paths():
+    # yeah yeah yeah this is really a GFA 1 file but it's fine that doesn't
+    # matter for this
+    s1 = get_sample1_gfa()
+    # NOTE: Gfapy will reject path1 because it expects there to be an edge from
+    # 4- to itself. I guess that makes sense! (Gfapy is okay if you define
+    # path2 as JUST 5+, though.)
+    #
+    # Anyway, since metagenomescope does not (currently) care about adjacency
+    # in these paths (like it isn't going to go out of its way to validate this
+    # stuff), we are fine with this.
+    s1.append("O\tpath1\t3+ 4- path2+")
+    s1.append("O\tpath2\t4- 5+")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert len(paths) == 2
+    assert paths == {"path1": ["3", "-4", "-4", "5"], "path2": ["-4", "5"]}
+
+
+def test_parse_gfa2_dreadful_cyclic_o_paths():
+    s1 = get_sample1_gfa()
+    s1.append("O\tpath1\t3+ 4- path2+")
+    s1.append("O\tpath2\t4- path3+ 5+")
+    s1.append("O\tpath3\tpath1+ 2-")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        "It looks like the O-lines in your GFA file are somehow cyclic",
+    )
+
+
 def test_multigraphs_okay_gfa1():
     s1 = get_sample1_gfa()
     s1.append("L\t1\t+\t2\t+\t10M")
