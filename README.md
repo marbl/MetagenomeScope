@@ -665,7 +665,8 @@ edge `A -> B` indicates that path `B` contains path `A`. We then use NetworkX to
 [topological ordering](https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.dag.topological_sort.html)
 of the nodes (paths) in this graph, and record paths (in terms of just their child segments
 and nothing else) in this order. Using the topological ordering ensures that, when it is time
-to record a path, we already know the exact contents of the paths that it contains.
+to record a path, we already know the exact contents of the paths that it contains -- so we can
+safely "expand" the child paths.
 
 If you really wanted to make our jobs hard, you could create a GFA file with **cycles**: where path
 `B` contains `A` which contains `C` which contains `B` (or something like that).
@@ -680,14 +681,18 @@ paths loaded from GFA files will only contain nodes -- not
 a mixture of nodes and edges. Thus, when MetagenomeScope notices that a GFA 2 path contains an edge, it
 converts this edge into the 2-tuple (source, target) in the path.
 
-Later, we expand these 2-tuples (turning the path into just a basic list of segment IDs)
-according to the following logic:
+Later, we "expand" these 2-tuples (turning the path into just a basic list of segment IDs)
+according to the following logic.
 
 1. If "source" is not already given as the previous entry in the path, then we add it to the path.
 2. If "target" is not already given as the next entry in the path (as a segment), then we add it to the path.
 
 I think this should mostly match how other GFA 2 parsers (e.g. Gfapy) handle these kinds of mixed paths.
-But if you have strong opinions about this, please feel free to file an issue so we can discuss.
+
+Note that if your GFA 2 file describes a multigraph (i.e. it has parallel edges, and
+you specified edge-paths in order to disambiguate which specific edges the path traverses) then this process
+will inherently cause some ambiguity.
+If you have strong opinions about this, please feel free to file an issue so we can discuss.
 
 <hr/>
 </details>
