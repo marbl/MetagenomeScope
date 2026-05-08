@@ -43,6 +43,13 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - See [this thread in the GFA specification repository](https://github.com/GFA-spec/GFA-spec/issues/33)
     for some historical context.
 
+- Document (in the README FAQs) and formalize how we handle GFA 2 paths
+  containing edges and other paths.
+
+  - Previously, we were using Gfapy's [`captured_segments`](https://gfapy.readthedocs.io/en/latest/tutorial/references.html#induced-set-and-captured-path)
+    property to do this for us. I am not 100% sure that the way we handle
+    edges in these paths will always match Gfapy's, but it should be fine.
+
 - Allow paths to span multiple connected components of the graph, since this
   can occur in Verkko output.
 

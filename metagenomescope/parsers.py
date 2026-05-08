@@ -942,30 +942,7 @@ def parse_gfa(filename):
                                 rtgtid = negate(srcid)
                                 srcid = rsrcid
                                 tgtid = rtgtid
-                            add_src_to_path = True
-                            if len(expanded_child_ids) > 0:
-                                last_segment_id = expanded_child_ids[-1]
-                                add_src_to_path = last_segment_id != srcid
-                            # We COULD just add both the source and target
-                            # segment ID to the path, but that doesn't seem
-                            # to match the GFA 2 specification or how Gfapy
-                            # does this. Because you could have a path of
-                            # just {Edge, Edge, Edge}, or {S, E, E}, or
-                            # {S, E, S, E, S}, or ...
-                            #
-                            # What we do here - and I think this should match
-                            # what Gfapy does in most cases - is add the source
-                            # to the path only if it is not already the
-                            # previous thing on the path. And then we always
-                            # add the target. I guess this is kind of like
-                            # spelling out a path in a de Bruijn graph, right?
-                            #
-                            # Anyway idk this is all so wishywashy and I
-                            # don't think anybody uses O-lines anyway ... will
-                            # document in the README and can adjust if desired
-                            if add_src_to_path:
-                                expanded_child_ids.append(srcid)
-                            expanded_child_ids.append(tgtid)
+                            expanded_child_ids.append((srcid, tgtid))
 
                         elif ctype == "O":
                             # because we're going in topological order, we must
@@ -986,6 +963,31 @@ def parse_gfa(filename):
                             )
                     if len(expanded_child_ids) == 0:
                         raise GraphParsingError(f"Path {oid} has no segments?")
+
+                    # Okay, expanded_child_ids will now only contain segment
+                    # IDs and/or 2-tuples of (source ID, target ID) for edges.
+                    # We now just need to expand the edges...
+                    i = 0
+                    while i < len(expanded_child_ids):
+                        ele = expanded_child_ids[i]
+                        if type(ele) is tuple:
+                            srcid, tgtid = ele
+                            del expanded_child_ids[i]
+                            # Unless the thing directly to the left of position
+                            # i is srcid, add srcid at position i.
+                            if i == 0 or expanded_child_ids[i - 1] != srcid:
+                                expanded_child_ids.insert(i, srcid)
+                                i += 1
+                            # Unless the thing directly to the right of
+                            # position i is tgtid, add tgtid at position i + 1.
+                            if (
+                                i == len(expanded_child_ids)
+                                or expanded_child_ids[i] != tgtid
+                            ):
+                                expanded_child_ids.insert(i, tgtid)
+                            i += 1
+                        else:
+                            i += 1
                     paths[oid] = expanded_child_ids
             except nx.NetworkXUnfeasible:
                 raise GraphParsingError(
