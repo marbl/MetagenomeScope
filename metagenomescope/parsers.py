@@ -567,14 +567,15 @@ def store_gfa_id(i, seenid2type, newtype):
         # For edges (E-lines), this is fine -- don't add "*" to the namespace
         if newtype == "E":
             return
-        # For paths (O-lines), this is a problem: we want each path to have an
-        # identifiable name for the visualization! We COULD just store "*" as a
-        # path ID and later throw an error if/when we see another path with ID
-        # "*", but that is confusing and lazy. Best to fail early, IMO.
-        elif newtype == "O":
+        # For paths (O-lines in GFA 2 / P-lines in GFA 1), this is a problem:
+        # we want each path to have an identifiable name for the visualization!
+        # We COULD just store "*" as a path ID and later throw an error if/when
+        # we see another path with ID "*", but that is confusing and lazy. Best
+        # to fail early, IMO.
+        elif newtype in "OP":
             raise GraphParsingError(
-                'O-line with placeholder ID "*" found. We do not support '
-                "paths without defined IDs."
+                f'{newtype}-line with placeholder ID "*" found. We do not '
+                "support paths without defined IDs."
             )
         # In theory, there's nothing stopping you from naming a segment
         # (S-line) "*" -- the GFA 2 ID regex of [!-~]+ allows it. So I guessss
