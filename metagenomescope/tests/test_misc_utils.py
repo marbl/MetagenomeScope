@@ -113,7 +113,19 @@ def test_expand2tuples_simple():
     assert mu.expand2tuples([1, 2, 3, 4, 5, 6]) == [1, 2, 3, 4, 5, 6]
 
 
+def test_expand2tuples_at_end():
+    # at the left end
+    assert mu.expand2tuples([(1, 2), 3, 4]) == [1, 2, 3, 4]
+    assert mu.expand2tuples([(1, 2), 2, 4]) == [1, 2, 4]
+
+    # at the right end
+    assert mu.expand2tuples([1, 2, (3, 4)]) == [1, 2, 3, 4]
+    assert mu.expand2tuples([1, 2, (2, 4)]) == [1, 2, 4]
+
+
 def test_expand2tuples_adjacent_2tuples():
+    assert mu.expand2tuples([(1, 2), (2, 3)]) == [1, 2, 3]
+
     assert mu.expand2tuples([(1, 2), (2, 3), (3, 4)]) == [1, 2, 3, 4]
 
     assert mu.expand2tuples([(1, 2), 2, (2, 3), (3, 4)]) == [1, 2, 3, 4]
@@ -157,3 +169,5 @@ def test_expand2tuples_loops():
     assert mu.expand2tuples([(1, 1)]) == [1, 1]
     assert mu.expand2tuples([(1, 1), 1]) == [1, 1]
     assert mu.expand2tuples([(1, 1), 2]) == [1, 1, 2]
+
+    assert mu.expand2tuples([(1, 1), (1, 1)]) == [1, 1, 1]
