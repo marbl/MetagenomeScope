@@ -654,7 +654,7 @@ contain segments. So `P`-lines are refreshingly easy to reason about.
 In GFA 2 files, however, paths (`O`-lines) can contain other things besides segments -- they can also contain
 edges, or even other paths! There are some interesting considerations this flexibility brings up.
 
-#### Recording paths in the correct "order"
+##### Paths that contain other paths
 
 There is no guarantee that `O`-lines are given in any particular order, so you can have dreadful
 situations where a path with ID `B` says that it contains a path with ID `A` (which is
@@ -672,7 +672,7 @@ If you really wanted to make our jobs hard, you could create a GFA file with **c
 `B` contains `A` which contains `C` which contains `B` (or something like that).
 If we detect this kind of situation, we will raise an error (because like how should we even handle this...?)
 
-#### Paths that explicitly contain edges
+##### Paths that explicitly contain edges
 
 In GFA 2, edges can optionally have IDs. You can refer to these edge IDs on an `O`-line in GFA 2.
 
