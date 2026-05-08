@@ -113,10 +113,24 @@ def test_expand2tuples_simple():
     assert mu.expand2tuples([1, 2, 3, 4, 5, 6]) == [1, 2, 3, 4, 5, 6]
 
 
-def test_expand2tuples_adjacent():
+def test_expand2tuples_adjacent_2tuples():
     assert mu.expand2tuples([(1, 2), (2, 3), (3, 4)]) == [1, 2, 3, 4]
 
     assert mu.expand2tuples([(1, 2), 2, (2, 3), (3, 4)]) == [1, 2, 3, 4]
+
+    assert mu.expand2tuples([(1, 2), 2, (2, 5), (3, 4)]) == [1, 2, 5, 3, 4]
+
+    assert mu.expand2tuples([(1, 2), 2, (2, 4), (3, 4)]) == [1, 2, 4, 3, 4]
+
+    assert mu.expand2tuples([(1, 2), 2, (2, 4), (4, 4)]) == [1, 2, 4, 4]
+
+    # from the function docstring
+    assert mu.expand2tuples([("a", "b"), ("b", "c"), ("c", "d")]) == [
+        "a",
+        "b",
+        "c",
+        "d",
+    ]
 
 
 def test_expand2tuples_justone():
@@ -128,5 +142,18 @@ def test_expand2tuples_justone():
 
 
 def test_expand2tuples_loops():
-    # {S} E E E {S_2}
+    # Graph with a self-loop edge "E" from S -> S, and another edge S -> S_2.
+    #
+    # S --> S_2
+    # ^ \
+    # | | E
+    # +-+
+    #
+    # The path we are considering is {S} E E E {S_2}.
+    # Each traversal of E adds on a single instance of S. It's kind of like
+    # reading out a sequence from a de Bruijn graph.
     assert mu.expand2tuples([1, (1, 1), (1, 1), (1, 1), 2]) == [1, 1, 1, 1, 2]
+
+    assert mu.expand2tuples([(1, 1)]) == [1, 1]
+    assert mu.expand2tuples([(1, 1), 1]) == [1, 1]
+    assert mu.expand2tuples([(1, 1), 2]) == [1, 1, 2]

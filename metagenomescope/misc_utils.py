@@ -60,6 +60,28 @@ def move_to_end_if_in(things, t):
 
 
 def expand2tuples(t):
+    """Expands 2-tuples within a list.
+
+    Parameters
+    ----------
+    t: list
+
+    Returns
+    -------
+    list
+        We go through t from left to right. When we see a 2-tuple (x, y) at
+        position i, we delete it and replace it with the following element(s):
+
+            1. If there not a previous entry in the list, or if this previous
+               entry exists and is not x, then ADD x.
+
+            2. If there is not a next entry in the list, or if this next entry
+               in the list exists and is not y, then ADD y.
+
+        Note that this handles multiple 2-tuples occurring one after another:
+        something like [(a, b), (b, c), (c, d)] will be expanded to
+        [a, b, c, d].
+    """
     i = 0
     while i < len(t):
         ele = t[i]
