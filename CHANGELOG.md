@@ -97,6 +97,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Add some more tests for the GFA-parsing parts of the code.
 
+- Removed some ancient test data / code that was previously in
+  `metagenomescope/tests/input/extras/`.
+
 - Fix a bug where Flye DOT files with split nodes / fake edges remaining
   after the decomposition would crash the redundant component detection
   ([commit `2a87720`](https://github.com/marbl/MetagenomeScope/commit/2a877209c9cfc90755ef4474f47add8b6e387f1b)).
