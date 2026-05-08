@@ -228,7 +228,7 @@ _See the [GFA 1](https://gfa-spec.github.io/GFA-spec/GFA1.html) and [GFA 2](http
 
 [Currently](https://github.com/marbl/MetagenomeScope/issues/147), we only show segments on GFA paths (not edges or gaps).
 
-For details on how we process `O`-lines in GFA 2 files, see the "How do you handle `O`-lines in GFA 2 files?" in the FAQs below.
+For details on how we process `O`-lines in GFA 2 files, see "How do you handle `O`-lines in GFA 2 files?" in the FAQs below.
 
 <hr/>
 </details>
