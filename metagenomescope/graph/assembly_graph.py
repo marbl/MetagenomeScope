@@ -284,7 +284,9 @@ class AssemblyGraph(object):
 
         if self.run_decomposition:
             logger.debug("  Decomposing the assembly graph...")
-            ctext = "copies" if self.sanity_check_post_decomposition else "a copy"
+            ctext = (
+                "copies" if self.sanity_check_post_decomposition else "a copy"
+            )
             logger.debug(f"    Creating {ctext} of the graph...")
             self.decomposed_graph = deepcopy(self.graph)
             if self.sanity_check_post_decomposition:
@@ -293,7 +295,9 @@ class AssemblyGraph(object):
                 self.original_graph = None
             logger.debug("    ...Done.")
 
-            logger.debug("    Hierarchically identifying patterns in the graph...")
+            logger.debug(
+                "    Hierarchically identifying patterns in the graph..."
+            )
             self._hierarchically_identify_patterns()
             logger.debug(
                 "    ...Done. Found "

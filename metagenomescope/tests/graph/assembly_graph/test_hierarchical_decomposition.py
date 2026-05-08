@@ -943,7 +943,8 @@ def test_isolated_cyclic_bubble_in_longer_chain():
 
 def test_skip_decomposition():
     ag = AssemblyGraph(
-        "metagenomescope/tests/input/hierarchical_test_graph.gml", run_decomposition=False
+        "metagenomescope/tests/input/hierarchical_test_graph.gml",
+        run_decomposition=False,
     )
     assert ag.decomposed_graph is None
     assert len(ag.components) == 1
