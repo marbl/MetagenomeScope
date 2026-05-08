@@ -91,3 +91,42 @@ def test_move_to_end_if_in():
 
     mu.move_to_end_if_in(c, "def")
     assert c == ["abc", "ghi", "def"]
+
+
+def test_expand2tuples_simple():
+    # expand both sides
+    assert mu.expand2tuples([1, 2, 3, (4, 5), 6, 7]) == [1, 2, 3, 4, 5, 6, 7]
+
+    # expand both sides of a self loop
+    assert mu.expand2tuples([1, 2, 3, (4, 4), 6, 7]) == [1, 2, 3, 4, 4, 6, 7]
+
+    # expand only the left side
+    assert mu.expand2tuples([1, 2, 3, (4, 6), 6, 7]) == [1, 2, 3, 4, 6, 7]
+
+    # expand only the right side
+    assert mu.expand2tuples([1, 2, 3, (3, 4), 6, 7]) == [1, 2, 3, 4, 6, 7]
+
+    # expand neither side
+    assert mu.expand2tuples([1, 2, 3, (3, 6), 6, 7]) == [1, 2, 3, 6, 7]
+
+    # no 2-tuples
+    assert mu.expand2tuples([1, 2, 3, 4, 5, 6]) == [1, 2, 3, 4, 5, 6]
+
+
+def test_expand2tuples_adjacent():
+    assert mu.expand2tuples([(1, 2), (2, 3), (3, 4)]) == [1, 2, 3, 4]
+
+    assert mu.expand2tuples([(1, 2), 2, (2, 3), (3, 4)]) == [1, 2, 3, 4]
+
+
+def test_expand2tuples_justone():
+    # one 2-tuple and nothing else
+    assert mu.expand2tuples([(1, 2)]) == [1, 2]
+
+    # one normal element and nothing else
+    assert mu.expand2tuples([5]) == [5]
+
+
+def test_expand2tuples_loops():
+    # {S} E E E {S_2}
+    assert mu.expand2tuples([1, (1, 1), (1, 1), (1, 1), 2]) == [1, 1, 1, 1, 2]

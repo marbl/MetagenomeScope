@@ -57,3 +57,25 @@ def move_to_end_if_in(things, t):
     if t in things:
         things.remove(t)
         things.append(t)
+
+
+def expand2tuples(t):
+    i = 0
+    while i < len(t):
+        ele = t[i]
+        if type(ele) is tuple:
+            srcid, tgtid = ele
+            del t[i]
+            # Unless the thing directly to the left of position
+            # i is srcid, add srcid at position i.
+            if i == 0 or t[i - 1] != srcid:
+                t.insert(i, srcid)
+                i += 1
+            # Unless the thing directly to the right of
+            # position i is tgtid, add tgtid at position i + 1.
+            if i == len(t) or t[i] != tgtid:
+                t.insert(i, tgtid)
+            i += 1
+        else:
+            i += 1
+    return t

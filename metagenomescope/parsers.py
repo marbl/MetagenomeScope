@@ -35,6 +35,7 @@ import pyfastg
 from . import config
 from .name_utils import negate, from_suffix_orient
 from .seq_utils import gc_content
+from .misc_utils import expand2tuples
 from .errors import GraphParsingError, WeirdError
 
 LJA_LFL_PATT = re.compile(
@@ -921,7 +922,7 @@ def parse_gfa(filename):
             # only be segment IDs. This will be stored in... the paths dict!
             try:
                 for oid in nx.topological_sort(og):
-                    expanded_child_ids = []
+                    child_sids_and_etups = []
                     for c in oid2childids[oid]:
                         cid, cpureid, corient = from_suffix_orient(
                             c, f"Path {oid}: "
@@ -932,7 +933,7 @@ def parse_gfa(filename):
                             # "cid" is in the MgSc-style format we expect
                             # (-X or X, depending on the segment orientation
                             # given in the path here)
-                            expanded_child_ids.append(cid)
+                            child_sids_and_etups.append(cid)
 
                         elif ctype == "E":
                             srcid, tgtid = eid2srctgt[cpureid]
@@ -942,7 +943,7 @@ def parse_gfa(filename):
                                 rtgtid = negate(srcid)
                                 srcid = rsrcid
                                 tgtid = rtgtid
-                            expanded_child_ids.append((srcid, tgtid))
+                            child_sids_and_etups.append((srcid, tgtid))
 
                         elif ctype == "O":
                             # because we're going in topological order, we must
@@ -953,7 +954,7 @@ def parse_gfa(filename):
                                 other_children = [
                                     negate(n) for n in other_children[::-1]
                                 ]
-                            expanded_child_ids.extend(other_children)
+                            child_sids_and_etups.extend(other_children)
 
                         else:
                             # should never happen; we should already have
@@ -961,34 +962,13 @@ def parse_gfa(filename):
                             raise GraphParsingError(
                                 f"Path {oid} contains {c} of type {ctype}?"
                             )
-                    if len(expanded_child_ids) == 0:
+                    if len(child_sids_and_etups) == 0:
                         raise GraphParsingError(f"Path {oid} has no segments?")
 
-                    # Okay, expanded_child_ids will now only contain segment
-                    # IDs and/or 2-tuples of (source ID, target ID) for edges.
-                    # We now just need to expand the edges...
-                    i = 0
-                    while i < len(expanded_child_ids):
-                        ele = expanded_child_ids[i]
-                        if type(ele) is tuple:
-                            srcid, tgtid = ele
-                            del expanded_child_ids[i]
-                            # Unless the thing directly to the left of position
-                            # i is srcid, add srcid at position i.
-                            if i == 0 or expanded_child_ids[i - 1] != srcid:
-                                expanded_child_ids.insert(i, srcid)
-                                i += 1
-                            # Unless the thing directly to the right of
-                            # position i is tgtid, add tgtid at position i + 1.
-                            if (
-                                i == len(expanded_child_ids)
-                                or expanded_child_ids[i] != tgtid
-                            ):
-                                expanded_child_ids.insert(i, tgtid)
-                            i += 1
-                        else:
-                            i += 1
-                    paths[oid] = expanded_child_ids
+                    # Okay, child_sids_and_etups only contains segment
+                    # and/or 2-tuples of (source ID, target ID) for edges.
+                    # We now just need to expand the edges, and then we're done
+                    paths[oid] = expand2tuples(child_sids_and_etups)
             except nx.NetworkXUnfeasible:
                 raise GraphParsingError(
                     "It looks like the O-lines in your GFA file are somehow "
