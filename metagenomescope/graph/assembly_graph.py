@@ -72,7 +72,7 @@ class AssemblyGraph(object):
         agp_fp=None,
         verkko_tsv_fp=None,
         flye_info_fp=None,
-        rmdups=True,
+        rmdup=config.RMDUP_GFAONLY,
         run_decomposition=True,
         sanity_check_post_decomposition=True,
     ):
@@ -95,8 +95,20 @@ class AssemblyGraph(object):
             If specified, this should be a path to a Flye assembly_info.txt
             file describing contigs/scaffolds in the graph.
 
-        rmdups: bool
-            If True, remove duplicate GFA edges.
+        rmdup: str
+            Indicates whether or not to remove parallel edges. See
+            config.RMDUP_OPTIONS for a list of possible values.
+
+            By default, "gfaonly" indicates that we will only remove parallel
+            edges if the input graph is in GFA format. There are a lot of GFA
+            files out there that explicitly list both A -> B and, separately,
+            -B -> -A. So if we draw these entire graphs (treating each L/E line
+            as a definition of both an edge AND its reverse complement) then
+            this will result in like every single edge having a parallel edge.
+            That's probably not the desired behavior!
+
+            Tools like Bandage and Gfapy seem to silently remove duplicate
+            edges by default, so I GUESS we should mirror them here.
 
         run_decomposition: bool
             If True, run decomposition. If False, skip it.
@@ -130,7 +142,7 @@ class AssemblyGraph(object):
         self.flye_info_filename = flye_info_fp
         self.flye_info_basename = misc_utils.get_basename_if_fp(flye_info_fp)
 
-        self.rmdups = rmdups
+        self.rmdup = rmdup
         self.run_decomposition = run_decomposition
         self.sanity_check_post_decomposition = sanity_check_post_decomposition
 

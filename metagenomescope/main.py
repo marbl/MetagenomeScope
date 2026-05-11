@@ -40,7 +40,7 @@ def run(
     vtsv: str = None,
     flye_info: str = None,
     port: int = defaults.PORT,
-    rmdups: bool = defaults.RMDUPS,
+    rmdup: str = defaults.RMDUP,
     verbose: bool = defaults.VERBOSE,
     debug: bool = defaults.DEBUG,
     decomp: bool = defaults.DECOMP,
@@ -68,8 +68,8 @@ def run(
     port: int
         Port number to run the server on. We'll just pass this to Dash.
 
-    rmdups: bool
-        If True, remove duplicate GFA edges.
+    rmdup: str
+        Indicates whether or not to remove parallel edges.
 
     verbose: bool
         If True, include DEBUG messages in the log output.
@@ -102,7 +102,7 @@ def run(
         agp_fp=agp,
         verkko_tsv_fp=vtsv,
         flye_info_fp=flye_info,
-        rmdups=rmdups,
+        rmdup=rmdup,
         run_decomposition=decomp,
         sanity_check_post_decomposition=dcheck,
     )

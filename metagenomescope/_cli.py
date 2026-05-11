@@ -63,11 +63,11 @@ from . import __version__, defaults, descs, config
     help=descs.PORT,
 )
 @click.option(
-    "--rmdups/--no-rmdups",
-    is_flag=True,
-    default=defaults.RMDUPS,
+    "--rmdup",
+    type=click.Choice(config.RMDUP_OPTIONS, case_sensitive=False),
+    default=defaults.RMDUP,
     show_default=True,
-    help=descs.RMDUPS,
+    help=descs.RMDUP,
 )
 @click.option(
     "--verbose/--no-verbose",
@@ -104,7 +104,7 @@ def run_script(
     vtsv: str,
     info: str,
     port: int,
-    rmdups: bool,
+    rmdup: str,
     verbose: bool,
     debug: bool,
     decomp: bool,
@@ -132,7 +132,7 @@ def run_script(
             f"Verkko paths TSV file: {vtsv}",
             f"Flye info file: {info}",
             f"Port: {port}",
-            f"Remove dup GFA edges?: {rmdups}",
+            f"Remove parallel edges?: {config.RMDUP2HR[rmdup]}",
             f"Verbose?: {verbose}",
             f"Debug mode?: {debug}",
             f"Decomp?: {decomp}",
@@ -149,7 +149,7 @@ def run_script(
         vtsv=vtsv,
         flye_info=info,
         port=port,
-        rmdups=rmdups,
+        rmdup=rmdup,
         verbose=verbose,
         debug=debug,
         decomp=decomp,

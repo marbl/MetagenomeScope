@@ -1,5 +1,5 @@
 PORT = 8050
-RMDUPS = True
+RMDUP = "gfaonly"
 VERBOSE = False
 DEBUG = False
 DECOMP = True

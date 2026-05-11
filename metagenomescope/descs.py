@@ -17,7 +17,7 @@ PORT = "Server port number."
 
 OUT_TSV = "If given, write a TSV file with some graph statistics."
 
-RMDUPS = "Ignore duplicate edges (GFA only)."
+RMDUP = "Remove parallel edges."
 
 VERBOSE = "Log extra details."
 
