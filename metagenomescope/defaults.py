@@ -1,4 +1,5 @@
 PORT = 8050
+RMDUPS = True
 VERBOSE = False
 DEBUG = False
 DECOMP = True

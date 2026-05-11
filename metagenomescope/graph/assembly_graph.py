@@ -37,7 +37,7 @@ class AssemblyGraph(object):
     "composition" with a NetworkX MultiDiGraph. This really just means that,
     rather than subclassing nx.MultiDiGraph, this class just contains two
     main instances of nx.MultiDiGraph (.graph and .decomposed_graph) of which
-    which we make use.
+    we make use.
 
     The .graph object describes the input assembly graph structure. As we split
     the boundary nodes of certain patterns (replacing a node N with the "fake
@@ -72,6 +72,7 @@ class AssemblyGraph(object):
         agp_fp=None,
         verkko_tsv_fp=None,
         flye_info_fp=None,
+        rmdups=True,
         run_decomposition=True,
         sanity_check_post_decomposition=True,
     ):
@@ -93,6 +94,9 @@ class AssemblyGraph(object):
         flye_info_fp: str or None
             If specified, this should be a path to a Flye assembly_info.txt
             file describing contigs/scaffolds in the graph.
+
+        rmdups: bool
+            If True, remove duplicate GFA edges.
 
         run_decomposition: bool
             If True, run decomposition. If False, skip it.
@@ -126,6 +130,7 @@ class AssemblyGraph(object):
         self.flye_info_filename = flye_info_fp
         self.flye_info_basename = misc_utils.get_basename_if_fp(flye_info_fp)
 
+        self.rmdups = rmdups
         self.run_decomposition = run_decomposition
         self.sanity_check_post_decomposition = sanity_check_post_decomposition
 
