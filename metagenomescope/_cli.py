@@ -70,20 +70,6 @@ from . import __version__, defaults, descs, config
     help=descs.RMDUP,
 )
 @click.option(
-    "--verbose/--no-verbose",
-    is_flag=True,
-    default=defaults.VERBOSE,
-    show_default=True,
-    help=descs.VERBOSE,
-)
-@click.option(
-    "--debug/--no-debug",
-    is_flag=True,
-    default=defaults.DEBUG,
-    show_default=True,
-    help=descs.DEBUG,
-)
-@click.option(
     "--decomp/--no-decomp",
     is_flag=True,
     default=defaults.DECOMP,
@@ -97,6 +83,20 @@ from . import __version__, defaults, descs, config
     show_default=True,
     help=descs.DCHECK,
 )
+@click.option(
+    "--debug/--no-debug",
+    is_flag=True,
+    default=defaults.DEBUG,
+    show_default=True,
+    help=descs.DEBUG,
+)
+@click.option(
+    "--verbose/--no-verbose",
+    is_flag=True,
+    default=defaults.VERBOSE,
+    show_default=True,
+    help=descs.VERBOSE,
+)
 @click.version_option(__version__, "-v", "--version")
 def run_script(
     graph: str,
@@ -105,10 +105,10 @@ def run_script(
     info: str,
     port: int,
     rmdup: str,
-    verbose: bool,
-    debug: bool,
     decomp: bool,
     dcheck: bool,
+    debug: bool,
+    verbose: bool,
 ) -> None:
     """Visualizes an assembly graph.
 
@@ -133,10 +133,10 @@ def run_script(
             f"Flye info file: {info}",
             f"Port: {port}",
             f"Remove parallel edges?: {config.RMDUP2HR[rmdup]}",
-            f"Verbose?: {verbose}",
-            f"Debug mode?: {debug}",
             f"Decomp?: {decomp}",
             f"Post-decomp check?: {dcheck}",
+            f"Debug mode?: {debug}",
+            f"Verbose?: {verbose}",
         ],
         endsepline=True,
     )
