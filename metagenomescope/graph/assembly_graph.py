@@ -178,6 +178,45 @@ class AssemblyGraph(object):
             self.seq_noun = "edge"
         logger.info(f'...Loaded graph. Filetype: "{self.filetype}".')
 
+        if self.rmdup == config.RMDUP_YES or (
+            self.filetype == "GFA" and self.rmdup == config.RMDUP_GFAONLY
+        ):
+            logger.info(
+                "Detecting and removing parallel edges, since --rmdup is "
+                f'"{self.rmdup}"...'
+            )
+            num_removed_edges = 0
+            # https://networkx.org/documentation/stable/reference/classes/multidigraph.html
+            for srcnode, tgtnode2edges in self.graph.adjacency():
+                for tgtnode, key2edge in tgtnode2edges.items():
+                    num_srctgt_edges = len(key2edge)
+                    if num_srctgt_edges > 0:
+                        # There are multiple edges from srcnode -> tgtnode;
+                        # we'll remove all but one of them. Pick arbitrarily.
+                        #
+                        # This should have the effect of removing more recently
+                        # added edges first, which makes sense (first edge
+                        # listed in the file wins). But there is no guarantee
+                        # that every parser adds edges to the graph in the
+                        # order they were listed in the file, so this is still
+                        # functionally arbitrary.
+                        #
+                        # TODO: For Flye / LJA DOT files, edges can have
+                        # lengths and coverages; it would be nice to filter to
+                        # the highest-coverage (or longest, etc) edge. But I am
+                        # writing this code for GFA files, where typically
+                        # edges do not have these things. So, not worth it r/n.
+                        # (Figuring out which coverage field to use, handling
+                        # cases where only SOME edges have coverages, etc would
+                        # make this complicated...)
+                        for i in range(num_srctgt_edges - 1):
+                            self.graph.remove_edge(srcnode, tgtnode)
+                            num_removed_edges += 1
+            logger.info(
+                f"...Done. Removed "
+                f"{ui_utils.pluralize(num_removed_edges, 'parallel edge')}."
+            )
+
         if self.flye_info_filename is not None:
             if self.filetype == "GFA":
                 self._store_flye_info_for_gfa_nodes()
@@ -837,9 +876,7 @@ class AssemblyGraph(object):
         self.missing_cov_ct = 0
 
         # Do the nodes have coverages?
-        # NOTE: as of jan 2026 no parsers currently output "depth" info for
-        # nodes. let's include it in the tuple below anyway just to be safe
-        for ncfield in ("cov", "depth"):
+        for ncfield in ui_config.NODE_COV_ATTRS:
             if ncfield in self.extra_node_attrs:
                 self.cov_source = "node"
                 self.cov_field = ncfield
@@ -847,7 +884,7 @@ class AssemblyGraph(object):
 
         # Or... do the edges have coverages?
         if self.cov_source is None:
-            for ecfield in ("bsize", "cov", "kp1mer_cov", "multiplicity"):
+            for ecfield in ui_config.EDGE_COV_ATTRS:
                 if ecfield in self.extra_edge_attrs:
                     self.cov_source = "edge"
                     self.cov_field = ecfield
