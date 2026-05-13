@@ -84,7 +84,44 @@ def test_parse_gfa2_good():
     check_sample_gfa_digraph(g)
 
 
-def test_parse_self_implied_edge():
+def get_sample1_gfa():
+    """Just returns a list representation of sample1.gfa, which as mentioned
+    is from https://github.com/sjackman/gfalint/tree/master/examples.
+    """
+    # We could also just open and read the file, but this is easier to look at
+    return [
+        "H	VN:Z:1.0",
+        "S	1	CGATGCAA",
+        "S	2	TGCAAAGTAC",
+        "S	3	TGCAACGTATAGACTTGTCAC	RC:i:4",
+        "S	4	TATATGC",
+        "S	5	CGATGATA",
+        "S	6	ATGA",
+        "L	1	+	2	+	5M",
+        "L	3	+	2	+	0M",
+        "L	3	+	4	-	1M1D3M",
+        "L	4	-	5	+	0M",
+    ]
+
+
+def get_sample2_gfa():
+    """Returns a list representation of sample2.gfa. Same deal as above."""
+    return [
+        "H	VN:Z:2.0",
+        "S	1	8	CGATGCAA",
+        "S	2	10	TGCAAAGTAC",
+        "S	3	21	TGCAACGTATAGACTTGTCAC	RC:i:4",
+        "S	4	7	TATATGC",
+        "S	5	8	CGATGATA",
+        "S	6	4	ATGA",
+        "E	*	1+	2+	3	8$	0	5	0,2,4	TS:i:2",
+        "E	*	3+	2+	21$	21$	0	0	0M",
+        "E	*	3+	4-	16	21$	3	7$	1M1D3M",
+        "E	*	4-	5+	0	0	0	0	0M",
+    ]
+
+
+def test_parse_self_implied_edge_gfa1():
     """Uses loop.gfa (c/o Shaun Jackman) to test self-implied GFA edges.
 
     We define a "self-implied edge" as an edge whose complement is itself. An
@@ -118,24 +155,28 @@ def test_parse_self_implied_edge():
         assert edge_id in digraph.edges
 
 
-def get_sample1_gfa():
-    """Just returns a list representation of sample1.gfa, which as mentioned
-    is from https://github.com/sjackman/gfalint/tree/master/examples.
-    """
-    # We could also just open and read the file, but this is easier to look at
-    return [
-        "H	VN:Z:1.0",
-        "S	1	CGATGCAA",
-        "S	2	TGCAAAGTAC",
-        "S	3	TGCAACGTATAGACTTGTCAC	RC:i:4",
-        "S	4	TATATGC",
-        "S	5	CGATGATA",
-        "S	6	ATGA",
-        "L	1	+	2	+	5M",
-        "L	3	+	2	+	0M",
-        "L	3	+	4	-	1M1D3M",
-        "L	4	-	5	+	0M",
-    ]
+def test_parse_self_implied_edge_gfa2():
+    s2 = get_sample2_gfa()
+    s2.append("E	*	2+	2-	0	5	0	5	0M")
+    digraph, paths = run_tempfile_test("gfa", s2, None, None)
+    assert paths is None
+    assert len(digraph.nodes) == 12
+    # 4 * 2 = 8, and then plus ONLY ONE for the 2+ -> 2- edge
+    assert len(digraph.edges) == 9
+
+    expected_edges = (
+        ("1", "2"),
+        ("-2", "-1"),
+        ("3", "2"),
+        ("-2", "-3"),
+        ("3", "-4"),
+        ("4", "-3"),
+        ("-4", "5"),
+        ("-5", "4"),
+        ("2", "-2"),
+    )
+    for edge_id in expected_edges:
+        assert edge_id in digraph.edges
 
 
 def test_parse_no_length_node():
