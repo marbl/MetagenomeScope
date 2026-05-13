@@ -628,7 +628,7 @@ Bandage and Gfapy, among other tools, silently ignore these edges. To match
 this behavior, the default value of `--rmdup` (`gfaonly`) means that -- _for
 GFA files only_ -- MetagenomeScope will detect and remove parallel edges.
 [Currently](https://github.com/marbl/MetagenomeScope/issues/430), the choice of
-which edge is removed is arbitrary.
+which edge(s) are removed is arbitrary.
 
 After removing parallel edges, MetagenomeScope will log information about the
 number of removed edges on the command line.
