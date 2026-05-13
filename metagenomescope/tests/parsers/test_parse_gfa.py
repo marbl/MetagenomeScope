@@ -2,7 +2,8 @@ import pytest
 import networkx as nx
 from metagenomescope import config
 from metagenomescope.name_utils import negate
-from metagenomescope.parsers import parse_gfa, get_tag_dict
+from metagenomescope.gfa_utils import get_tag_dict
+from metagenomescope.parsers import parse_gfa
 from metagenomescope.errors import GraphParsingError
 from .utils import run_tempfile_test
 
@@ -390,15 +391,49 @@ def test_parse_path_of_just_edges_has_nodes_extracted():
 
 
 def test_parse_empty_gfa1_path():
+    # path contents are empty
     s1 = get_sample1_gfa()
     s1.append("P\tpath1\t\t*")
     run_tempfile_test("gfa", s1, GraphParsingError, "Path path1 is empty?")
 
+    # path contents are a *
+    s1 = get_sample1_gfa()
+    s1.append("P\tpath1\t*\t*")
+    run_tempfile_test("gfa", s1, GraphParsingError, "Path path1 is empty?")
+
 
 def test_parse_empty_gfa2_path():
+    # path contents are empty
+    # by default, ending the line with \t will get taken out by a .strip()
+    # operation we do in get_gfa_line_parts() - so that will just throw a
+    # different error, which is fine. to get the actual "empty path": thing
+    # to happen we can add an optional tag entry of *. to be fair.... i'm
+    # not sure if O-paths are strictly allowed to have * for their tags
+    # (since the tags can just be empty) but WHATEVER this tests it lol
+    s2 = get_sample2_gfa()
+    s2.append("O\tpath2\t\t*")
+    run_tempfile_test("gfa", s2, GraphParsingError, "Path path2 is empty?")
+
+    # path contents are a *
     s2 = get_sample2_gfa()
     s2.append("O\tpath2\t*")
     run_tempfile_test("gfa", s2, GraphParsingError, "Path path2 is empty?")
+
+
+def test_parse_placeholder_gfa1_path_id():
+    s1 = get_sample1_gfa()
+    s1.append("P\t*\t3+,4-\t*")
+    run_tempfile_test(
+        "gfa", s1, GraphParsingError, 'P-line with placeholder ID "*" found'
+    )
+
+
+def test_parse_placeholder_gfa2_path_id():
+    s2 = get_sample2_gfa()
+    s2.append("O\t*\t4- 5+")
+    run_tempfile_test(
+        "gfa", s2, GraphParsingError, 'O-line with placeholder ID "*" found'
+    )
 
 
 def test_parse_gfa2_recursive_o_paths():

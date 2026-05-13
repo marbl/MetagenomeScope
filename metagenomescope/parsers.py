@@ -426,100 +426,6 @@ def parse_metacarvel_gml(filename):
     return g  # , ("orientation",), ("bsize", "orientation", "mean", "stdev")
 
 
-def check_enough_line_parts(line, parts, minpartct):
-    if len(parts) < minpartct:
-        raise GraphParsingError(f"< {minpartct:,} parts: GFA line '{line}'")
-
-
-def get_gfa_line_parts(line, minpartct):
-    # In python, calling .split() without any parameters means that it
-    # will "split on any whitespace character". We don't want to do this,
-    # because O-lines in GFA 2 files use space to separate the contents
-    # of the path within a single tab-separated column. You can't forget the
-    # O-lines dude. Forgetting about the O-lines is like basically the worst
-    # thing you can ever do. Imagine like a future where we get rid of A-line
-    # dresses and replace them with O-line dresses and it's just a big donut
-    # costume. thatd be great. hey is anybody even reading this
-    parts = line.strip().split("\t")
-    check_enough_line_parts(line, parts, minpartct)
-    return parts
-
-
-def get_tag_dict(tags):
-    """Converts a list of tags to a dict mapping tag name and type -> value.
-
-    Parameters
-    ----------
-    tags: list of str
-        Something like ["LN:i:12345", "KC:i:333", ...]
-
-    Returns
-    -------
-    dict of str -> str
-        Maps lowercased tag prefixes (e.g. "ln:i") to tag values (e.g.
-        "12345").
-
-        Yeah yeah yeah the GFA specifications officially say that tags with
-        lowercase letters are "reserved for end users" but like there are
-        real tools out there which can generate lowercase tags (e.g. Flye's
-        "dp:i" tags) so let's just convert everything to lowercase and move
-        on with our lives to more important questions than file format parsing
-
-    Raises
-    ------
-    GraphParsingError
-        - If we see a tag that doesn't have at least two ":"s
-
-        - If we see a tag where the prefix or value has a length of zero
-          (in practice, this can only possibly trigger at the moment when
-          the value has a length of zero -- e.g. "LN:i:").
-
-        - If we see the same tag multiple times. Note that this check is
-          performed AFTER converting all tag prefixes to lowercase, so if a
-          line has both "DP:i:" and "dp:i:" then that will trigger this error.
-          Life is too short to mess around with these ambiguities
-    """
-    lowerpref2val = {}
-    for t in tags:
-        # figure out the location of the second colon in t
-        # (e.g. for something like "LN:i:123:456:789" this is 4)
-        #                               ^
-        #                           0123456789012345
-        #                           0000000000111111
-        #
-        # I think in GFA 2 tag names can technically be longer than two
-        # characters so SURE let's go crazy and make this flexible i guess
-        # not that it matters much atm
-        colon_ct = 0
-        # in theory you could like extract the value of "i" from this loop
-        # instead of storing a separate second_colon_idx variable, but i don't
-        # trust that to not break in some weird jank corner case
-        second_colon_idx = None
-        for i, c in enumerate(t):
-            if c == ":":
-                colon_ct += 1
-                if colon_ct == 2:
-                    second_colon_idx = i
-                    break
-        if second_colon_idx is None:
-            raise GraphParsingError(f'Found a GFA tag with < 2 colons: "{t}"')
-        # do not include the second colon in either the prefix or value
-        pref = t[:second_colon_idx]
-        val = t[second_colon_idx + 1 :]
-        if len(pref) == 0 or len(val) == 0:
-            # Since we know there are at least 2 colons in this tag and we are
-            # splitting on the second one, we know that len(pref) must be > 0.
-            # But, um, I guess we can check it anyway just in case I break
-            # something spectacularly later on? sure whatever.
-            # (The value can be zero-length though!!! see the tests for that)
-            raise GraphParsingError(f'Zero-length tag prefix or value: "{t}"')
-        lowerpref = pref.lower()
-        if lowerpref in lowerpref2val:
-            raise GraphParsingError(f'Duplicate GFA tag prefix: "{lowerpref}"')
-        lowerpref2val[lowerpref] = val
-    return lowerpref2val
-
-
 def parse_gfa(filename):
     """Returns a nx.MultiDiGraph representation of a GFA1 or GFA2 file.
 
@@ -576,7 +482,7 @@ def parse_gfa(filename):
                 # Tags are optional. We should always have at least 3
                 # tab-separated parts of a S line (in the case of GFA 1 +
                 # no tags).
-                parts = get_gfa_line_parts(line, 3)
+                parts = gfa_utils.get_gfa_line_parts(line, 3)
 
                 # If the second field (seq / len) is a number, then this is
                 # GFA 2. Otherwise (it matches \*\|[A-Za-z=.]+ per
@@ -604,14 +510,14 @@ def parse_gfa(filename):
                 else:
                     # Even if there are no tags, all GFA2 S lines should have
                     # at least four tab-separated parts!
-                    check_enough_line_parts(line, parts, 4)
+                    gfa_utils.check_enough_line_parts(line, parts, 4)
                     # If we've made it to this block, we should already know
                     # that parts[2] can be parsed as an integer
                     seglen = int(parts[2])
                     seq = parts[3]
                     tags = parts[4:]
 
-                tag2val = get_tag_dict(tags)
+                tag2val = gfa_utils.get_tag_dict(tags)
 
                 if seq != "*":
                     # In GFA 1 files, explicitly stating the segment length is
@@ -708,7 +614,7 @@ def parse_gfa(filename):
                 )
 
             if line.startswith("L"):
-                parts = get_gfa_line_parts(line, 6)
+                parts = gfa_utils.get_gfa_line_parts(line, 6)
                 # for now, ignore the overlap CIGAR string - it's parts[5]
                 src_id, src_orient, tgt_id, tgt_orient = parts[1:5]
 
@@ -725,7 +631,7 @@ def parse_gfa(filename):
                     digraph.add_edge(s2, t2)
 
             if line.startswith("E"):
-                parts = get_gfa_line_parts(line, 9)
+                parts = gfa_utils.get_gfa_line_parts(line, 9)
                 # for now, ignore the alignment string - it's parts[8]
                 edge_id, src, tgt, b1, e1, b2, e2 = parts[1:8]
 
@@ -750,7 +656,7 @@ def parse_gfa(filename):
                         digraph.add_edge(s2, t2)
 
             if line.startswith("P"):
-                parts = get_gfa_line_parts(line, 4)
+                parts = gfa_utils.get_gfa_line_parts(line, 4)
                 path_id, path_segments = parts[1:3]
                 gfa_utils.check_path_nonempty(path_id, path_segments)
                 gfa_utils.store_gfa_id(path_id, id2type, "P")
@@ -767,7 +673,7 @@ def parse_gfa(filename):
                 # Because there is no guarantee all of the "dependencies" of an
                 # O-line have already been defined earlier in the file, we will
                 # need to make another pass. So, save O-line info for later.
-                parts = get_gfa_line_parts(line, 3)
+                parts = gfa_utils.get_gfa_line_parts(line, 3)
                 path_id, path_children = parts[1:3]
                 gfa_utils.check_path_nonempty(path_id, path_children)
                 gfa_utils.store_gfa_id(path_id, id2type, "O")
