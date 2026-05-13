@@ -436,6 +436,14 @@ def test_parse_placeholder_gfa2_path_id():
     )
 
 
+def test_parse_gfa2_path_with_unrecognized_id():
+    s2 = get_sample2_gfa()
+    s2.append("O\tp\t1+ 2- 9+")
+    run_tempfile_test(
+        "gfa", s2, GraphParsingError, "Path p contains unrecognized ID 9+."
+    )
+
+
 def test_parse_gfa2_recursive_o_paths():
     # yeah yeah yeah this is really a GFA 1 file but it's fine that doesn't
     # matter for this
