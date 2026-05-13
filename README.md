@@ -854,7 +854,7 @@ We're still figuring that out. There are a couple bottlenecks:
 
 1. Processing the graph.
 
-    - Because we ([currently](https://github.com/marbl/MetagenomeScope/issues/423)) store the entire graph in memory, massive graphs -- with hundreds of thousands of nodes / edges -- can become impractical to load on low-memory systems.
+    - Because we ([currently](https://github.com/marbl/MetagenomeScope/issues/423)) store the entire graph in memory, massive graphs -- with millions of nodes / edges -- can become impractical to load on low-memory systems.
 
 2. Laying out the graph.
 
