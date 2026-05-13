@@ -43,10 +43,11 @@ def from_suffix_orient(name, errprefix=""):
         Something like "X+" or "X-".
 
     errprefix: str
-        If "name" does not end with a recognized orientation, then we'll
-        throw an error. This string will be used as the prefix for that
-        error message. You don't need to specify this, but it could be helpful
-        for debugging where exactly a problematic name occurred in a file.
+        If "name" does not end with a recognized orientation (or is otherwise
+        malformed), then we'll throw an error. This string will be used as the
+        prefix for that error message. You don't need to specify this, but it
+        could be helpful for debugging where exactly a problematic name
+        occurred in a file.
 
     Returns
     -------
@@ -62,18 +63,22 @@ def from_suffix_orient(name, errprefix=""):
         "orientation" will be the orientation inferred from "name". That is,
         either config.FWD or config.REV.
     """
-    pure_name = name[:-1]
-    last_char = name[-1]
-    # X+ ==> X
-    if last_char == config.FWD:
-        return pure_name, pure_name, config.FWD
-    # X- ==> -X
-    elif last_char == config.REV:
-        return negate(pure_name), pure_name, config.REV
+    if len(name) >= 2:
+        pure_name = name[:-1]
+        last_char = name[-1]
+        # X+ ==> X
+        if last_char == config.FWD:
+            return pure_name, pure_name, config.FWD
+        # X- ==> -X
+        elif last_char == config.REV:
+            return negate(pure_name), pure_name, config.REV
+        else:
+            raise GraphParsingError(
+                f'{errprefix}"{name}" doesn\'t end in {config.FWD} or '
+                f'{config.REV}'
+            )
     else:
-        raise GraphParsingError(
-            f"{errprefix}{name} doesn't end in {config.FWD} or {config.REV}?"
-        )
+        raise GraphParsingError(f'{errprefix}"{name}" is < 2 characters long')
 
 
 def has_leftsplit_suffix(name):
