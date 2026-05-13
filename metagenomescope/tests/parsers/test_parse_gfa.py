@@ -436,7 +436,7 @@ def test_parse_placeholder_gfa2_path_id():
     )
 
 
-def test_parse_gfa2_path_with_unrecognized_id():
+def test_parse_gfa2_path_with_unrecognized_child_id():
     s2 = get_sample2_gfa()
     s2.append("O\tp\t1+ 2- 9+")
     run_tempfile_test(
