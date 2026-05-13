@@ -471,6 +471,24 @@ def test_parse_gfa2_adjacent_rc_edges_in_path():
     assert paths == {"path2": ["-1", "4", "-1", "4", "-4", "1", "-1", "4"]}
 
 
+def test_parse_gfa2_loop_edges_in_path():
+    s2 = get_sample2_gfa()
+    s2.append("E	loopy	4-	4-	0	0	0	0	0M"),
+    s2.append("O\tpath2\tloopy+ loopy+ loopy+ loopy+ 4-")
+    g, paths = run_tempfile_test("gfa", s2, None, None)
+    assert len(paths) == 1
+    assert paths == {"path2": ["-4", "-4", "-4", "-4", "-4"]}
+
+
+def test_parse_gfa2_rc_loop_edge_in_path():
+    s2 = get_sample2_gfa()
+    s2.append("E	loopy	4-	4-	0	0	0	0	0M"),
+    s2.append("O\tpath2\tloopy+ loopy+ loopy+ loopy- 4-")
+    g, paths = run_tempfile_test("gfa", s2, None, None)
+    assert len(paths) == 1
+    assert paths == {"path2": ["-4", "-4", "-4", "-4", "4", "4", "-4"]}
+
+
 def test_parse_gfa2_recursive_o_paths():
     # yeah yeah yeah this is really a GFA 1 file but it's fine that doesn't
     # matter for this
