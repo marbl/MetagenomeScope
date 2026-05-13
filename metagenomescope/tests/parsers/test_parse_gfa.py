@@ -444,6 +444,33 @@ def test_parse_gfa2_path_with_unrecognized_child_id():
     )
 
 
+def test_parse_gfa2_edge_in_path():
+    s2 = get_sample2_gfa()
+    s2.append("E	cooledge	4-	1+	0	0	0	0	0M"),
+    s2.append("O\tpath2\t3+ 4- cooledge+ 5+")
+    g, paths = run_tempfile_test("gfa", s2, None, None)
+    assert len(paths) == 1
+    assert paths == {"path2": ["3", "-4", "1", "5"]}
+
+
+def test_parse_gfa2_rc_edge_in_path():
+    s2 = get_sample2_gfa()
+    s2.append("E	cooledge	4-	1+	0	0	0	0	0M"),
+    s2.append("O\tpath2\t3+ 4- cooledge- 5+")
+    g, paths = run_tempfile_test("gfa", s2, None, None)
+    assert len(paths) == 1
+    assert paths == {"path2": ["3", "-4", "-1", "4", "5"]}
+
+
+def test_parse_gfa2_adjacent_rc_edges_in_path():
+    s2 = get_sample2_gfa()
+    s2.append("E	cooledge	4-	1+	0	0	0	0	0M"),
+    s2.append("O\tpath2\tcooledge- cooledge- cooledge+ cooledge-")
+    g, paths = run_tempfile_test("gfa", s2, None, None)
+    assert len(paths) == 1
+    assert paths == {"path2": ["-1", "4", "-1", "4", "-4", "1", "-1", "4"]}
+
+
 def test_parse_gfa2_recursive_o_paths():
     # yeah yeah yeah this is really a GFA 1 file but it's fine that doesn't
     # matter for this
