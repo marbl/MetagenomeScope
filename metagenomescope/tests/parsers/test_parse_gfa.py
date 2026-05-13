@@ -479,7 +479,10 @@ def test_parse_gfa2_recursive_o_paths_rc_multi():
     s1.append("O\tpath2\t4- 5+")
     g, paths = run_tempfile_test("gfa", s1, None, None)
     assert len(paths) == 2
-    assert paths == {"path1": ["-5", "4", "-4", "5", "-4", "5", "-5", "4"], "path2": ["-4", "5"]}
+    assert paths == {
+        "path1": ["-5", "4", "-4", "5", "-4", "5", "-5", "4"],
+        "path2": ["-4", "5"],
+    }
 
 
 def test_parse_gfa2_recursive_o_paths_rc_of_parent():
@@ -490,7 +493,11 @@ def test_parse_gfa2_recursive_o_paths_rc_of_parent():
     s1.append("O\tpath3\t2+")
     g, paths = run_tempfile_test("gfa", s1, None, None)
     assert len(paths) == 3
-    assert paths == {"path1": ["2", "-5", "4", "3"], "path2": ["-4", "5", "-2"], "path3": ["2"]}
+    assert paths == {
+        "path1": ["2", "-5", "4", "3"],
+        "path2": ["-4", "5", "-2"],
+        "path3": ["2"],
+    }
 
 
 def test_parse_gfa2_dreadful_cyclic_o_paths():
