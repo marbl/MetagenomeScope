@@ -14,6 +14,17 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   [Verkko](https://github.com/marbl/verkko)-style TSV files describing paths
   ([#336](https://github.com/marbl/MetagenomeScope/issues/336)).
 
+- Add the `--rmdup` command-line option, which controls whether or not to
+  remove parallel edges.
+
+  - By default, this does not do anything unless the graph is in GFA format.
+    If the graph _is_ in GFA format, then by default MetagenomeScope will now
+    remove parallel edges. This can be adjusted by changing `--rmdup`'s
+    behavior.
+
+  - See [#430](https://github.com/marbl/MetagenomeScope/issues/430)) for some
+    context.
+
 - Add the `--decomp` command-line flag, which controls whether or not to run
   pattern decomposition
   ([#425](https://github.com/marbl/MetagenomeScope/issues/425)).
@@ -64,6 +75,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - Previously, we were using Gfapy's [`captured_segments`](https://gfapy.readthedocs.io/en/latest/tutorial/references.html#induced-set-and-captured-path)
     property to do this for us. I am not 100% sure that the way we handle
     edges in these paths will always match Gfapy's, but it should be fine.
+
+- By default, MetagenomeScope will now remove parallel edges in GFA files.
+  As discussed in "Added" above, this can be controlled by `--rmdup`.
 
 - Allow paths to span multiple connected components of the graph, since this
   can occur in Verkko output.
