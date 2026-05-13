@@ -222,7 +222,7 @@ class AssemblyGraph(object):
                 self._store_flye_info_for_gfa_nodes()
             elif self.filetype != "DOT":
                 # we'll record paths later for DOT files
-                logging.warning(
+                logger.warning(
                     "Flye assembly info file provided. Since the input graph "
                     "is not a DOT or GFA file, we are ignoring the info file."
                 )
@@ -294,7 +294,7 @@ class AssemblyGraph(object):
         self._record_coverages_and_lengths()
         if self.has_covs:
             total = len(self.covs) + self.missing_cov_ct
-            logging.debug(
+            logger.debug(
                 f"  ...Done. Found {self.cov_source} coverage info! "
                 f"{len(self.covs):,} / {total:,} {self.cov_source}s have a "
                 f"{ui_config.COVATTR2SINGLE[self.cov_field]} given."
@@ -1379,7 +1379,8 @@ class AssemblyGraph(object):
            helper function (that takes as input the graph and decomposed
            graph?), or something? if feasible.
         """
-        logging.debug("      Finding bubbles and (cyclic) chains...")
+        logger = logging.getLogger(__name__)
+        logger.debug("      Finding bubbles and (cyclic) chains...")
         iteration_ct = 0
         while True:
             iteration_ct += 1
@@ -1516,10 +1517,10 @@ class AssemblyGraph(object):
                 # while loop.
                 break
 
-        logging.debug(
+        logger.debug(
             f"      ...Done in {ui_utils.pluralize(iteration_ct, 'iteration')}."
         )
-        logging.debug("      Finding frayed ropes and bipartites...")
+        logger.debug("      Finding frayed ropes and bipartites...")
         # Now, identify frayed ropes and bipartites ("top-level only" patterns)
         top_level_candidate_nodes = set(self.decomposed_graph.nodes)
         while len(top_level_candidate_nodes) > 0:
@@ -1549,9 +1550,7 @@ class AssemblyGraph(object):
                             f"Shouldn't have done chain merging on {pobj}?"
                         )
                     break
-        logging.debug("      ...Done.")
-
-        logger = logging.getLogger(__name__)
+        logger.debug("      ...Done.")
 
         logger.debug("      Removing unnecessary split nodes...")
         self._remove_unnecessary_split_nodes()
