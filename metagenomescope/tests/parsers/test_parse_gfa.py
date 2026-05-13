@@ -389,10 +389,16 @@ def test_parse_path_of_just_edges_has_nodes_extracted():
     assert paths == {"15": ["1", "3", "4"]}
 
 
-def test_parse_empty_path():
+def test_parse_empty_gfa1_path():
     s1 = get_sample1_gfa()
     s1.append("P\tpath1\t\t*")
     run_tempfile_test("gfa", s1, GraphParsingError, "Path path1 is empty?")
+
+
+def test_parse_empty_gfa2_path():
+    s2 = get_sample2_gfa()
+    s2.append("O\tpath2\t*")
+    run_tempfile_test("gfa", s2, GraphParsingError, "Path path2 is empty?")
 
 
 def test_parse_gfa2_recursive_o_paths():
@@ -423,6 +429,18 @@ def test_parse_gfa2_dreadful_cyclic_o_paths():
         s1,
         GraphParsingError,
         "It looks like the O-lines in your GFA file are somehow cyclic",
+    )
+
+
+def test_parse_gfa2_p_path_in_o_path():
+    s1 = get_sample1_gfa()
+    s1.append("O\tpath1\t3+ 4- path2+")
+    s1.append("P\tpath2\t4-,5+\t*")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        "Path path1 contains ID path2+, corresponding to a P-line?",
     )
 
 
