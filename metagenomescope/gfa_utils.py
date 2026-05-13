@@ -1,3 +1,77 @@
+from metagenomescope.errors import GraphParsingError
+
+
+def check_lengths_consistent(segname, len1, len2):
+    if len1 != len2:
+        raise GraphParsingError(
+            f"Segment '{segname}' has inconsistent lengths: {len1:,}; {len2:,}"
+        )
+
+
+def count2cov_maybe(scountval, slen):
+    """Converts a segment's "count" tag value to a coverage, if possible.
+
+    Parameters
+    ----------
+    scountval: str
+        The value from a KC:i, RC:i, or FC:i tag from a S-line in a GFA file.
+
+    slen: int
+        The length for this S-line.
+
+    Returns
+    -------
+    float or None
+        If slen > 0, this will be int(scountval) divided by slen -- matching
+        Bandage, Gfapy, etc.'s behavior.
+
+        Otherwise, to avoid division by zero, we will just return None --
+        so the downstream code can see that this segment does not have a
+        defined coverage.
+
+    References
+    ----------
+    Based on Bandage's behavior:
+    https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/graph/assemblygraph.cpp#L690-L709
+    """
+    if slen > 0:
+        return int(scountval) / slen
+    else:
+        return None
+
+
+def store_gfa_id(i, seenid2type, newtype):
+    # GFA 2 allows edges and groups (and gaps, but we don't currently parse
+    # those) to have * for an ID, indicating that the ID is not given.
+    if i == "*":
+        # For edges (E-lines), this is fine -- don't add "*" to the namespace
+        if newtype == "E":
+            return
+        # For paths (O-lines in GFA 2 / P-lines in GFA 1), this is a problem:
+        # we want each path to have an identifiable name for the visualization!
+        # We COULD just store "*" as a path ID and later throw an error if/when
+        # we see another path with ID "*", but that is confusing and lazy. Best
+        # to fail early, IMO.
+        elif newtype in "OP":
+            raise GraphParsingError(
+                f'{newtype}-line with placeholder ID "*" found. We do not '
+                "support paths without defined IDs."
+            )
+        # In theory, there's nothing stopping you from naming a segment
+        # (S-line) "*" -- the GFA 2 ID regex of [!-~]+ allows it. So I guessss
+        # we can just move on with our lives if newtype is not E or O. (If
+        # multiple S-lines or whatever have "*" as an ID then we'll eventually
+        # trigger the error below about nonunique IDs.)
+    if i in seenid2type:
+        raise GraphParsingError(f'ID "{i}" not unique.')
+    seenid2type[i] = newtype
+
+
+def check_path_nonempty(path_id, path_children):
+    if len(path_children) == 0 or path_children == "*":
+        raise GraphParsingError(f"Path {path_id} is empty?")
+
+
 def is_dovetail(src_orient, tgt_orient, b1, e1, b2, e2):
     """Returns True if a GFA 2 E-line represents a "dovetail" edge.
 

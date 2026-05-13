@@ -520,72 +520,6 @@ def get_tag_dict(tags):
     return lowerpref2val
 
 
-def check_lengths_consistent(segname, len1, len2):
-    if len1 != len2:
-        raise GraphParsingError(
-            f"Segment '{segname}' has inconsistent lengths: {len1:,}; {len2:,}"
-        )
-
-
-def count2cov_if_positive_len(scountval, slen):
-    """Converts a segment's "count" tag value to a coverage, if possible.
-
-    Parameters
-    ----------
-    scountval: str
-        The value from a KC:i, RC:i, or FC:i tag from a S-line in a GFA file.
-
-    slen: int
-        The length for this S-line.
-
-    Returns
-    -------
-    float or None
-        If slen > 0, this will be int(scountval) divided by slen -- matching
-        Bandage, Gfapy, etc.'s behavior.
-
-        Otherwise, to avoid division by zero, we will just return None --
-        so the downstream code can see that this segment does not have a
-        defined coverage.
-
-    References
-    ----------
-    Based on Bandage's behavior:
-    https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/graph/assemblygraph.cpp#L690-L709
-    """
-    if slen > 0:
-        return int(scountval) / slen
-    else:
-        return None
-
-
-def store_gfa_id(i, seenid2type, newtype):
-    # GFA 2 allows edges and groups (and gaps, but we don't currently parse
-    # those) to have * for an ID, indicating that the ID is not given.
-    if i == "*":
-        # For edges (E-lines), this is fine -- don't add "*" to the namespace
-        if newtype == "E":
-            return
-        # For paths (O-lines in GFA 2 / P-lines in GFA 1), this is a problem:
-        # we want each path to have an identifiable name for the visualization!
-        # We COULD just store "*" as a path ID and later throw an error if/when
-        # we see another path with ID "*", but that is confusing and lazy. Best
-        # to fail early, IMO.
-        elif newtype in "OP":
-            raise GraphParsingError(
-                f'{newtype}-line with placeholder ID "*" found. We do not '
-                "support paths without defined IDs."
-            )
-        # In theory, there's nothing stopping you from naming a segment
-        # (S-line) "*" -- the GFA 2 ID regex of [!-~]+ allows it. So I guessss
-        # we can just move on with our lives if newtype is not E or O. (If
-        # multiple S-lines or whatever have "*" as an ID then we'll eventually
-        # trigger the error below about nonunique IDs.)
-    if i in seenid2type:
-        raise GraphParsingError(f'ID "{i}" not unique.')
-    seenid2type[i] = newtype
-
-
 def parse_gfa(filename):
     """Returns a nx.MultiDiGraph representation of a GFA1 or GFA2 file.
 
@@ -658,7 +592,7 @@ def parse_gfa(filename):
                         f'Found segment ID "{segname}". Segment IDs cannot '
                         f'start with the "{config.REV}" character.'
                     )
-                store_gfa_id(segname, id2type, "S")
+                gfa_utils.store_gfa_id(segname, id2type, "S")
 
                 seglen = None
                 segcov = None
@@ -689,9 +623,9 @@ def parse_gfa(filename):
                     # on the explicitly-defined length field, so (for now) do
                     # not consider len(seq).
                     #
-                    # We *could* call check_lengths_consistent() here to make
-                    # sure that the explicitly-defined length is consistent
-                    # with the length of the sequence -- i.e. that
+                    # We *could* call gfa_utils.check_lengths_consistent() here
+                    # to make sure that the explicitly-defined length is
+                    # consistent with the length of the sequence -- i.e. that
                     # seglen == len(seq) -- but the GFA 2 specification
                     # explicitly allows them to be different!!! Which seems
                     # dangerous to me, but...
@@ -717,7 +651,9 @@ def parse_gfa(filename):
                         # should only get here if this is a GFA 1 file
                         seglen = taglen
                     else:
-                        check_lengths_consistent(segname, seglen, taglen)
+                        gfa_utils.check_lengths_consistent(
+                            segname, seglen, taglen
+                        )
 
                 if seglen is None:
                     raise GraphParsingError(f"Segment '{line}' has no length?")
@@ -728,7 +664,7 @@ def parse_gfa(filename):
                 # https://github.com/asl/BandageNG/wiki/Custom-GFA-tags
                 # This matches Gfapy's interpretations, also -- down to the
                 # idea of e.g. KC corresponding to a coverage of (KC tag value)
-                # divided by (segment length). See count2cov_if_positive_len().
+                # divided by (segment length). See gfa_utils.count2cov_maybe().
                 #
                 # If the user specifies multiple coverage tags for a single
                 # segment, then we match the precedence decision from Bandage
@@ -742,13 +678,13 @@ def parse_gfa(filename):
                     segcov = int(tag2val["dp:i"])
 
                 elif "kc:i" in tag2val:
-                    segcov = count2cov_if_positive_len(tag2val["kc:i"], seglen)
+                    segcov = gfa_utils.count2cov_maybe(tag2val["kc:i"], seglen)
 
                 elif "rc:i" in tag2val:
-                    segcov = count2cov_if_positive_len(tag2val["rc:i"], seglen)
+                    segcov = gfa_utils.count2cov_maybe(tag2val["rc:i"], seglen)
 
                 elif "fc:i" in tag2val:
-                    segcov = count2cov_if_positive_len(tag2val["fc:i"], seglen)
+                    segcov = gfa_utils.count2cov_maybe(tag2val["fc:i"], seglen)
 
                 # Add both a positive and negative node.
                 # We might have already seen edge(s) including segname and/or
@@ -793,7 +729,7 @@ def parse_gfa(filename):
                 # for now, ignore the alignment string - it's parts[8]
                 edge_id, src, tgt, b1, e1, b2, e2 = parts[1:8]
 
-                store_gfa_id(edge_id, id2type, "E")
+                gfa_utils.store_gfa_id(edge_id, id2type, "E")
 
                 # convert src and tgt from e.g. "5-" to "-5", or "5" to "5"
                 src_id, _, src_orient = from_suffix_orient(src, "Edge ")
@@ -816,9 +752,8 @@ def parse_gfa(filename):
             if line.startswith("P"):
                 parts = get_gfa_line_parts(line, 4)
                 path_id, path_segments = parts[1:3]
-                if len(path_segments) == 0 or path_segments == "*":
-                    raise GraphParsingError(f"Path {path_id} has no segments?")
-                store_gfa_id(path_id, id2type, "P")
+                gfa_utils.check_path_nonempty(path_id, path_segments)
+                gfa_utils.store_gfa_id(path_id, id2type, "P")
                 path_segment_ids = []
                 for ps in path_segments.split(","):
                     psi, _, _ = from_suffix_orient(ps, f"Path {path_id}: ")
@@ -834,7 +769,8 @@ def parse_gfa(filename):
                 # need to make another pass. So, save O-line info for later.
                 parts = get_gfa_line_parts(line, 3)
                 path_id, path_children = parts[1:3]
-                store_gfa_id(path_id, id2type, "O")
+                gfa_utils.check_path_nonempty(path_id, path_children)
+                gfa_utils.store_gfa_id(path_id, id2type, "O")
                 oid2childids[path_id] = path_children.split(" ")
 
         # After going through the entire file, we can resolve O-lines.
@@ -935,6 +871,8 @@ def parse_gfa(filename):
                                 f"Path {oid} contains {c} of type {ctype}?"
                             )
                     if len(child_sids_and_etups) == 0:
+                        # should absolutely never happen: each of the branches
+                        # above should add at least something to this list
                         raise GraphParsingError(f"Path {oid} has no segments?")
 
                     # Okay, child_sids_and_etups only contains segment

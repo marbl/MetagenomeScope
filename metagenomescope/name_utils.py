@@ -75,7 +75,7 @@ def from_suffix_orient(name, errprefix=""):
         else:
             raise GraphParsingError(
                 f'{errprefix}"{name}" doesn\'t end in {config.FWD} or '
-                f'{config.REV}'
+                f"{config.REV}"
             )
     else:
         raise GraphParsingError(f'{errprefix}"{name}" is < 2 characters long')
