@@ -389,6 +389,12 @@ def test_parse_path_of_just_edges_has_nodes_extracted():
     assert paths == {"15": ["1", "3", "4"]}
 
 
+def test_parse_empty_path():
+    s1 = get_sample1_gfa()
+    s1.append("P\tpath1\t\t*")
+    run_tempfile_test("gfa", s1, GraphParsingError, "Path path1 has no segments?")
+
+
 def test_parse_gfa2_recursive_o_paths():
     # yeah yeah yeah this is really a GFA 1 file but it's fine that doesn't
     # matter for this

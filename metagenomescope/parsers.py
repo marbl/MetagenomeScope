@@ -816,13 +816,13 @@ def parse_gfa(filename):
             if line.startswith("P"):
                 parts = get_gfa_line_parts(line, 4)
                 path_id, path_segments = parts[1:3]
+                if len(path_segments) == 0 or path_segments == "*":
+                    raise GraphParsingError(f"Path {path_id} has no segments?")
                 store_gfa_id(path_id, id2type, "P")
                 path_segment_ids = []
                 for ps in path_segments.split(","):
                     psi, _, _ = from_suffix_orient(ps, f"Path {path_id}: ")
                     path_segment_ids.append(psi)
-                if len(path_segment_ids) == 0:
-                    raise GraphParsingError(f"Path {path_id} has no segments?")
                 paths[path_id] = path_segment_ids
 
             if line.startswith("O"):
