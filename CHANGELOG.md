@@ -21,7 +21,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     If the graph _is_ in GFA format, then MetagenomeScope will now remove
     parallel edges. This behavior can be adjusted using `--rmdup`.
 
-  - See [#430](https://github.com/marbl/MetagenomeScope/issues/430)) for some
+  - See [#430](https://github.com/marbl/MetagenomeScope/issues/430) for some
     context.
 
 - Add the `--decomp` command-line flag, which controls whether or not to run
