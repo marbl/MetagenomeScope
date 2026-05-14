@@ -59,15 +59,15 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   [#403](https://github.com/marbl/MetagenomeScope/issues/403)).
 
 - Explicitly ignore all GFA 2 edges that are not
-  "[dovetails](https://gfa-spec.github.io/GFA-spec/GFA2.html)," defining a
-  dovetail as an edge that connects the ends of two segments.
+  "[dovetails](https://gfa-spec.github.io/GFA-spec/GFA2.html)."
 
   - Previously, we ignored containments, but still visualized "general edges"
     that were not dovetails. Now, to simplify things and keep interpretation
-    straightforward, we ignore these edges as well.
+    straightforward, we ignore general edges as well.
 
-  - See [this thread in the GFA specification repository](https://github.com/GFA-spec/GFA-spec/issues/33)
-    for some historical context.
+  - Note that our rules for classifying dovetail edges are currently somewhat
+    stricter than those outlined in the GFA 2 specification. See
+    [this issue](https://github.com/GFA-spec/GFA-spec/issues/133) for details.
 
 - Document (in the README FAQs) and formalize how we handle GFA 2 paths
   containing edges and other paths.

@@ -672,6 +672,28 @@ since Flye produces them at different times in its pipeline.
 <hr/>
 </details>
 
+<details>
+  <summary><strong>FAQ: How do you handle <code>E</code>-lines in GFA 2 files?</strong></summary>
+
+<hr/>
+
+We only visualize edges that are classified as
+"[dovetails](https://gfa-spec.github.io/GFA-spec/GFA2.html#edge)." That is, edges
+that look something like:
+
+```
+     | |
+------->
+     ------->
+```
+
+Note that our rules for classifying dovetail edges are currently somewhat
+stricter than those outlined in the GFA 2 specification. See
+[this issue](https://github.com/GFA-spec/GFA-spec/issues/133) for details.
+
+<hr/>
+</details>
+
 ### Paths
 
 <details>
