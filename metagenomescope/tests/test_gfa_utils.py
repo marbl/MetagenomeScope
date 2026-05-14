@@ -16,7 +16,9 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
+import pytest
 from metagenomescope import gfa_utils as gu
+from metagenomescope.errors import GraphParsingError
 
 
 def test_is_dovetail_simple():
@@ -68,3 +70,47 @@ def test_is_dovetail_weird_stuff():
     # allowed, so that if/when we change this behavior we can loudly know to
     # fix this
     assert gu.is_dovetail("+", "+", "0", "5", "2", "9$")
+
+
+def test_get_tag_dict_simple():
+    assert gu.get_tag_dict([]) == {}
+    assert gu.get_tag_dict(["LN:i:12345"]) == {"ln:i": "12345"}
+    assert gu.get_tag_dict(
+        ["LN:i:12345", "KC:i:333", "RC:i:2", "DP:f:9.23145"]
+    ) == {"ln:i": "12345", "kc:i": "333", "rc:i": "2", "dp:f": "9.23145"}
+
+
+def test_get_tag_dict_not_enough_colons():
+    with pytest.raises(GraphParsingError) as ei:
+        gu.get_tag_dict(["LN:i12345"])
+    assert str(ei.value) == 'Found a GFA tag with < 2 colons: "LN:i12345"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        gu.get_tag_dict(["LNi12345"])
+    assert str(ei.value) == 'Found a GFA tag with < 2 colons: "LNi12345"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        gu.get_tag_dict([""])
+    assert str(ei.value) == 'Found a GFA tag with < 2 colons: ""'
+
+
+def test_get_tag_dict_zero_length_suffix():
+    # (a zero-length prefix is impossible atm lol, but we can at least test
+    # zero-length values)
+    with pytest.raises(GraphParsingError) as ei:
+        gu.get_tag_dict(["LN:i:"])
+    assert str(ei.value) == 'Zero-length tag prefix or value: "LN:i:"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        gu.get_tag_dict(["::"])
+    assert str(ei.value) == 'Zero-length tag prefix or value: "::"'
+
+
+def test_get_tag_dict_duplicate_tag_prefix():
+    with pytest.raises(GraphParsingError) as ei:
+        gu.get_tag_dict(["LN:i:5", "ln:i:99"])
+    assert str(ei.value) == 'Duplicate GFA tag prefix: "ln:i"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        gu.get_tag_dict(["LN:i:5", "dp:f:123", "ln:i:99"])
+    assert str(ei.value) == 'Duplicate GFA tag prefix: "ln:i"'
