@@ -126,8 +126,11 @@ def test_store_gfa_id_path_with_asterisk_as_id():
 def test_is_dovetail_simple():
     # Based on the GFA 2 specification's rules:
     # https://gfa-spec.github.io/GFA-spec/GFA2.html#edge
+    #
+    # And, more specifically, these match the four cases
+    # outlined in https://github.com/GFA-spec/GFA-spec/issues/133
 
-    # Same orientation: beg1 = 0 and end2 = y$
+    # Same orientation: beg1 = 0 and end2 = y$ (--)
     #
     # Looks like
     #         |  |
@@ -135,7 +138,7 @@ def test_is_dovetail_simple():
     # 2.      <--------
     assert gu.is_dovetail("-", "-", "0", "5", "7", "9$")
 
-    # Same orientation: beg2 = 0 and end1 = x$
+    # Same orientation: beg2 = 0 and end1 = x$ (++)
     #
     # Looks like
     #         |  |
@@ -143,7 +146,7 @@ def test_is_dovetail_simple():
     # 2.      -------->
     assert gu.is_dovetail("+", "+", "1", "3$", "0", "4")
 
-    # Opposite orientations: beg1 = 0 and beg2 = 0
+    # Opposite orientations: beg1 = 0 and beg2 = 0 (-+)
     #
     # Looks like
     #         |  |
@@ -151,7 +154,7 @@ def test_is_dovetail_simple():
     # 2.      -------->
     assert gu.is_dovetail("-", "+", "0", "3", "0", "4")
 
-    # Opposite orientations: end1 = x$ and end2 = y$
+    # Opposite orientations: end1 = x$ and end2 = y$ (+-)
     #
     # Looks like
     #         |  |
@@ -160,14 +163,61 @@ def test_is_dovetail_simple():
     assert gu.is_dovetail("+", "-", "2", "3$", "2", "4$")
 
 
-def test_is_dovetail_degenerate_fwdfwd():
+def test_is_dovetail_degenerate():
     # See https://github.com/GFA-spec/GFA-spec/issues/133
-    # This looks like:
     #
-    #         |  |
-    # 1.      -------->         |  |
-    # 2.                   -------->
+    # BASICALLY: for the four "good" cases above, there are also
+    # mirror cases with negated orientations where the GFA rules
+    # are technically followed but the edges are not really dovetails (at
+    # least, not in my opinion).
     #
-    # The "rules" given in the GFA 2 specification allow this to be called
-    # a dovetail edge, but we don't allow it. At least for now.
+    # For now, we do NOT allow these degenerate cases to count as dovetails.
+    # This may change in the future (or maybe will do something fancy like
+    # detect these cases and swap edge orders to make them into dovetails)
+    # but for now let's test that these are not allowed.
+
+    # Same orientation: beg1 = 0 and end2 = y$ BUT ++ instead of --
+    #
+    # Looks like
+    #    |  |
+    # 1. -------->       |  |
+    # 2.            -------->
     assert not gu.is_dovetail("+", "+", "0", "3", "5", "8$")
+
+    # Same orientation: beg2 = 0 and end1 = x$ BUT -- instead of ++
+    #
+    # Looks like
+    #    |  |
+    # 1. <--------       |  |
+    # 2.            <--------
+    assert not gu.is_dovetail("-", "-", "5", "8$", "0", "3")
+
+    # Opposite orientations: beg1 = 0 and beg2 = 0 BUT +- instead of -+
+    #
+    # Looks like
+    #    |  |
+    # 1. -------->       |  |
+    # 2.            <--------
+    assert not gu.is_dovetail("-", "-", "0", "3", "0", "4")
+
+    # Opposite orientations: end1 = x$ and end2 = y$ BUT -+ instead of +-
+    #
+    # Looks like
+    #    |  |
+    # 1. <--------       |  |
+    # 2.            -------->
+    assert not gu.is_dovetail("-", "+", "5", "8$", "5", "8$")
+
+
+def test_is_dovetail_bad_orientations():
+    with pytest.raises(GraphParsingError) as ei:
+        gu.is_dovetail("+", "X", "0", "3", "5", "8$")
+    assert str(ei.value) == 'Unrecognized edge orientation(s): "+" -> "X"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        gu.is_dovetail("X", "-", "0", "3", "5", "8$")
+    assert str(ei.value) == 'Unrecognized edge orientation(s): "X" -> "-"'
+
+    with pytest.raises(GraphParsingError) as ei:
+        gu.is_dovetail("", "", "0", "3", "5", "8$")
+    assert str(ei.value) == 'Unrecognized edge orientation(s): "" -> ""'

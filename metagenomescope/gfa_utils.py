@@ -241,5 +241,6 @@ def is_dovetail(src_orient, tgt_orient, b1, e1, b2, e2):
         return e1[-1] == "$" and e2[-1] == "$"
     else:
         raise GraphParsingError(
-            f"Unrecognized edge orientation(s): {src_orient} -> {tgt_orient}"
+            "Unrecognized edge orientation(s): "
+            f'"{src_orient}" -> "{tgt_orient}"'
         )
