@@ -123,7 +123,7 @@ def test_store_gfa_id_path_with_asterisk_as_id():
     )
 
 
-def test_is_dovetail_simple():
+def test_is_dovetail_simple_yes():
     # Based on the GFA 2 specification's rules:
     # https://gfa-spec.github.io/GFA-spec/GFA2.html#edge
     #
@@ -207,6 +207,63 @@ def test_is_dovetail_degenerate():
     # 1. <--------       |  |
     # 2.            -------->
     assert not gu.is_dovetail("-", "+", "5", "8$", "5", "8$")
+
+
+def test_is_dovetail_simple_no():
+    # simple cases where edges are not exactly dovetails
+    # so they get ignored
+
+    # Same orientation (--)
+    #
+    # Looks like
+    #         |  |
+    # 1.  <--------
+    # 2.      <--------
+    assert not gu.is_dovetail("-", "-", "1", "5", "7", "9$")
+
+    # Same orientation (++)
+    #
+    # Looks like
+    #         |  |
+    # 1.  -------->
+    # 2.      -------->
+    assert not gu.is_dovetail("+", "+", "1", "3", "0", "4")
+
+    # Opposite orientations (-+)
+    #
+    # Looks like
+    #       |  |
+    # 1. <--------
+    # 2.    -------->
+    assert not gu.is_dovetail("-", "+", "2", "3", "0", "4")
+
+    # Opposite orientations (+-)
+    #
+    # Looks like
+    #       |  |
+    # 1. -------->
+    # 2.    <--------
+    assert not gu.is_dovetail("+", "-", "2", "3", "2", "4$")
+
+
+def test_is_dovetail_containment():
+    # matches the example shown in the GFA 2 specification figure
+
+    # Opposite orientations (+-)
+    #
+    # Looks like
+    #         |  |
+    # 1.  --------------->
+    # 2.      <---
+    assert not gu.is_dovetail("+", "-", "5", "8", "0", "3$")
+
+    # Same orientation (++)
+    #
+    # Looks like
+    #         |  |
+    # 1.      --->
+    # 2.  --------------->
+    assert not gu.is_dovetail("+", "+", "0", "200$", "6", "7")
 
 
 def test_is_dovetail_bad_orientations():
