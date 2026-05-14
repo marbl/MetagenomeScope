@@ -677,9 +677,9 @@ since Flye produces them at different times in its pipeline.
 
 <hr/>
 
-We only visualize edges that are classified as
+We only visualize `E`-line edges that are classified as
 "[dovetails](https://gfa-spec.github.io/GFA-spec/GFA2.html#edge)." That is, edges
-that look something like:
+that connect the ends of two nodes -- for example:
 
 ```
      | |
