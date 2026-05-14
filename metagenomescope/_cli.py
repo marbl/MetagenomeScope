@@ -9,9 +9,9 @@ from . import __version__, defaults, descs, config
         # Make mgsc -h (or just mgsc by itself) show the help text
         "help_option_names": ["-h", "--help"],
         # I'm extremely petty and I want the CLI options to take up at most
-        # one line each if possible, and this is necessary to get the --port
-        # and --graph options to take up just one line. Click's default of
-        # 80 is probably way too short for most modern displays anyway.
+        # one line each if possible, and this is necessary to get some options
+        # to take up just one line. Click's default of 80 is probably way too
+        # short for most modern displays anyway.
         "max_content_width": 87,
     },
     no_args_is_help=True,
@@ -63,11 +63,25 @@ from . import __version__, defaults, descs, config
     help=descs.PORT,
 )
 @click.option(
-    "--verbose/--no-verbose",
-    is_flag=True,
-    default=defaults.VERBOSE,
+    "--rmdup",
+    type=click.Choice(config.RMDUP_OPTIONS, case_sensitive=False),
+    default=defaults.RMDUP,
     show_default=True,
-    help=descs.VERBOSE,
+    help=descs.RMDUP,
+)
+@click.option(
+    "--decomp/--no-decomp",
+    is_flag=True,
+    default=defaults.DECOMP,
+    show_default=True,
+    help=descs.DECOMP,
+)
+@click.option(
+    "--dcheck/--no-dcheck",
+    is_flag=True,
+    default=defaults.DCHECK,
+    show_default=True,
+    help=descs.DCHECK,
 )
 @click.option(
     "--debug/--no-debug",
@@ -76,6 +90,13 @@ from . import __version__, defaults, descs, config
     show_default=True,
     help=descs.DEBUG,
 )
+@click.option(
+    "--verbose/--no-verbose",
+    is_flag=True,
+    default=defaults.VERBOSE,
+    show_default=True,
+    help=descs.VERBOSE,
+)
 @click.version_option(__version__, "-v", "--version")
 def run_script(
     graph: str,
@@ -83,8 +104,11 @@ def run_script(
     vtsv: str,
     info: str,
     port: int,
-    verbose: bool,
+    rmdup: str,
+    decomp: bool,
+    dcheck: bool,
     debug: bool,
+    verbose: bool,
 ) -> None:
     """Visualizes an assembly graph.
 
@@ -105,11 +129,14 @@ def run_script(
             "Settings:",
             f"Graph file: {graph}",
             f"AGP file: {agp}",
-            f"Verkko .paths.tsv file: {vtsv}",
+            f"Verkko paths TSV file: {vtsv}",
             f"Flye info file: {info}",
             f"Port: {port}",
-            f"Verbose?: {verbose}",
+            f"Remove parallel edges?: {config.RMDUP2HR[rmdup]}",
+            f"Decomp?: {decomp}",
+            f"Post-decomp check?: {dcheck}",
             f"Debug mode?: {debug}",
+            f"Verbose?: {verbose}",
         ],
         endsepline=True,
     )
@@ -122,8 +149,11 @@ def run_script(
         vtsv=vtsv,
         flye_info=info,
         port=port,
+        rmdup=rmdup,
         verbose=verbose,
         debug=debug,
+        decomp=decomp,
+        dcheck=dcheck,
     )
 
 

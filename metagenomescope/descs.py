@@ -17,6 +17,12 @@ PORT = "Server port number."
 
 OUT_TSV = "If given, write a TSV file with some graph statistics."
 
+RMDUP = "Remove parallel edges."
+
 VERBOSE = "Log extra details."
 
+DECOMP = "Do pattern decomposition."
+
 DEBUG = "Use Dash's debug mode."
+
+DCHECK = "Do post-decomposition sanity check."

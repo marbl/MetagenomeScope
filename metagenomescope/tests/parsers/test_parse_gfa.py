@@ -4,7 +4,6 @@ from metagenomescope.name_utils import negate
 from metagenomescope.parsers import parse_gfa
 from metagenomescope.errors import GraphParsingError
 from .utils import run_tempfile_test
-from gfapy.error import InconsistencyError, NotUniqueError
 
 
 def check_sample_gfa_digraph(digraph):
@@ -84,7 +83,44 @@ def test_parse_gfa2_good():
     check_sample_gfa_digraph(g)
 
 
-def test_parse_self_implied_edge():
+def get_sample1_gfa():
+    """Just returns a list representation of sample1.gfa, which as mentioned
+    is from https://github.com/sjackman/gfalint/tree/master/examples.
+    """
+    # We could also just open and read the file, but this is easier to look at
+    return [
+        "H	VN:Z:1.0",
+        "S	1	CGATGCAA",
+        "S	2	TGCAAAGTAC",
+        "S	3	TGCAACGTATAGACTTGTCAC	RC:i:4",
+        "S	4	TATATGC",
+        "S	5	CGATGATA",
+        "S	6	ATGA",
+        "L	1	+	2	+	5M",
+        "L	3	+	2	+	0M",
+        "L	3	+	4	-	1M1D3M",
+        "L	4	-	5	+	0M",
+    ]
+
+
+def get_sample2_gfa():
+    """Returns a list representation of sample2.gfa. Same deal as above."""
+    return [
+        "H	VN:Z:2.0",
+        "S	1	8	CGATGCAA",
+        "S	2	10	TGCAAAGTAC",
+        "S	3	21	TGCAACGTATAGACTTGTCAC	RC:i:4",
+        "S	4	7	TATATGC",
+        "S	5	8	CGATGATA",
+        "S	6	4	ATGA",
+        "E	*	1+	2+	3	8$	0	5	0,2,4	TS:i:2",
+        "E	*	3+	2+	21$	21$	0	0	0M",
+        "E	*	3+	4-	16	21$	3	7$	1M1D3M",
+        "E	*	4-	5+	0	0	0	0	0M",
+    ]
+
+
+def test_parse_self_implied_edge_gfa1():
     """Uses loop.gfa (c/o Shaun Jackman) to test self-implied GFA edges.
 
     We define a "self-implied edge" as an edge whose complement is itself. An
@@ -118,36 +154,39 @@ def test_parse_self_implied_edge():
         assert edge_id in digraph.edges
 
 
-def get_sample1_gfa():
-    """Just returns a list representation of sample1.gfa, which as mentioned
-    is from https://github.com/sjackman/gfalint/tree/master/examples.
-    """
-    # We could also just open and read the file, but this is easier to look at
-    return [
-        "H	VN:Z:1.0",
-        "S	1	CGATGCAA",
-        "S	2	TGCAAAGTAC",
-        "S	3	TGCAACGTATAGACTTGTCAC	RC:i:4",
-        "S	4	TATATGC",
-        "S	5	CGATGATA",
-        "S	6	ATGA",
-        "L	1	+	2	+	5M",
-        "L	3	+	2	+	0M",
-        "L	3	+	4	-	1M1D3M",
-        "L	4	-	5	+	0M",
-    ]
+def test_parse_self_implied_edge_gfa2():
+    s2 = get_sample2_gfa()
+    # this is still a dovetail edge, so mgsc will parse it: it looks like
+    #   |  |
+    # ----->
+    #   <-----
+    s2.append("E	*	2+	2-	5	10$	5	10$	0M")
+    digraph, paths = run_tempfile_test("gfa", s2, None, None)
+    assert paths is None
+    assert len(digraph.nodes) == 12
+    # 4 * 2 = 8, and then plus ONLY ONE for the 2+ -> 2- edge
+    assert len(digraph.edges) == 9
+
+    expected_edges = (
+        ("1", "2"),
+        ("-2", "-1"),
+        ("3", "2"),
+        ("-2", "-3"),
+        ("3", "-4"),
+        ("4", "-3"),
+        ("-4", "5"),
+        ("-5", "4"),
+        ("2", "-2"),
+    )
+    for edge_id in expected_edges:
+        assert edge_id in digraph.edges
 
 
 def test_parse_no_length_node():
     s1 = get_sample1_gfa()
     s1.pop(1)
     s1.insert(1, "S\t1\t*")
-    run_tempfile_test(
-        "gfa",
-        s1,
-        GraphParsingError,
-        "Found a node without a specified length: 1",
-    )
+    run_tempfile_test("gfa", s1, GraphParsingError, "has no length")
 
     # Manually assigning node 1 a sequence should fix the problem
     # (since the length is then implied)
@@ -168,16 +207,106 @@ def test_parse_no_length_node():
     assert digraph.nodes["1"]["gc_content"] is None
     assert digraph.nodes["1"]["length"] == 6
 
-    # test super weird corner case where both forms of length are given, but
-    # they disagree -- should be caught by gfapy
+
+def test_parse_inconsistent_length_segment_gfa1():
+    s1 = get_sample1_gfa()
+    # test super weird corner case where multiple forms of length are given
+    # (sequence and LN:i tag), but they disagree.
     s1.pop(1)
     s1.insert(1, "S\t1\tATCA\tLN:i:6")
     run_tempfile_test(
         "gfa",
         s1,
-        InconsistencyError,
-        "Length in LN tag (6) is different from length of sequence field (4)",
+        GraphParsingError,
+        "inconsistent lengths",
     )
+
+
+def test_parse_inconsistent_length_segment_gfa2_ok():
+    s1 = get_sample1_gfa()
+    # In GFA 2, all segments have an explicit length field, and this is
+    # allowed to be different from the length of the segment's sequence
+    # (if given).
+    s1.pop(1)
+    s1.insert(1, "S\t1\t100\tATCA")
+    digraph, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    # use the sequence for its GC content, but set the length to match
+    # what was explicitly given
+    assert digraph.nodes["1"]["gc_content"] == 0.25
+    assert digraph.nodes["1"]["length"] == 100
+    assert digraph.nodes["-1"]["gc_content"] == 0.25
+    assert digraph.nodes["-1"]["length"] == 100
+
+
+def test_parse_gfa2_lni():
+    # If for some reason a GFA 2 S-line has a LN:i field for a segment -
+    # and this value disagrees with the explicitly given length for this
+    # S-line - then raise an error. (We would also raise this error for
+    # a GFA 1 file where the sequence was given, as seen in
+    # test_parse_inconsistent_length_segment_gfa1().)
+
+    # case 1 -- LN:i matches seq length, but disagrees with explicitly given
+    # length
+    s1 = get_sample1_gfa()
+    s1.pop(1)
+    s1.insert(1, "S\t1\t100\tATCA\tLN:i:4")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        "inconsistent lengths",
+    )
+
+    # case 2 -- LN:i is completely different from both seq and explicit length
+    s1 = get_sample1_gfa()
+    s1.pop(1)
+    s1.insert(1, "S\t1\t100\tATCA\tLN:i:67")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        "inconsistent lengths",
+    )
+
+    # case 3 -- no seq in the first place
+    s1 = get_sample1_gfa()
+    s1.pop(1)
+    s1.insert(1, "S\t1\t100\t*\tLN:i:67")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        "inconsistent lengths",
+    )
+
+    # case 4 -- LN:i is consistent
+    s1 = get_sample1_gfa()
+    s1.pop(1)
+    s1.insert(1, "S\t1\t100\tATCA\tLN:i:100")
+    digraph, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert digraph.nodes["1"]["gc_content"] == 0.25
+    assert digraph.nodes["1"]["length"] == 100
+    assert digraph.nodes["-1"]["gc_content"] == 0.25
+    assert digraph.nodes["-1"]["length"] == 100
+
+    # case 4 -- LN:i is consistent AND no seq
+    s1 = get_sample1_gfa()
+    s1.pop(1)
+    s1.insert(1, "S\t1\t333\t*\tLN:i:333")
+    digraph, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert digraph.nodes["1"]["gc_content"] is None
+    assert digraph.nodes["1"]["length"] == 333
+    assert digraph.nodes["-1"]["gc_content"] is None
+    assert digraph.nodes["-1"]["length"] == 333
+
+
+def test_parse_redefined_node():
+    s1 = get_sample1_gfa()
+    s1.insert(1, "S\t1\tATCA")
+    run_tempfile_test("gfa", s1, GraphParsingError, 'ID "1" not unique.')
 
 
 def test_parse_invalid_id_node():
@@ -192,8 +321,7 @@ def test_parse_invalid_id_node():
         "gfa",
         s1,
         GraphParsingError,
-        "Node IDs in the input assembly graph cannot "
-        f'start with the "{config.REV}" character.',
+        f'Segment IDs cannot start with the "{config.REV}" character.',
     )
 
 
@@ -242,7 +370,7 @@ def test_parse_path_duplicate_name():
     s1 = get_sample1_gfa()
     s1.append("P\tpath1\t3+,4-\t*")
     s1.append("P\tpath1\t1+,2+\t*")
-    run_tempfile_test("gfa", s1, NotUniqueError, "Line or ID not unique")
+    run_tempfile_test("gfa", s1, GraphParsingError, 'ID "path1" not unique.')
 
 
 def test_parse_path_rc_path_ok():
@@ -262,6 +390,186 @@ def test_parse_path_of_just_edges_has_nodes_extracted():
     assert len(g.nodes) == 6
     assert len(g.edges) == 4
     assert paths == {"15": ["1", "3", "4"]}
+
+
+def test_parse_empty_gfa1_path():
+    # path contents are empty
+    s1 = get_sample1_gfa()
+    s1.append("P\tpath1\t\t*")
+    run_tempfile_test("gfa", s1, GraphParsingError, "Path path1 is empty?")
+
+    # path contents are a *
+    s1 = get_sample1_gfa()
+    s1.append("P\tpath1\t*\t*")
+    run_tempfile_test("gfa", s1, GraphParsingError, "Path path1 is empty?")
+
+
+def test_parse_empty_gfa2_path():
+    # path contents are empty
+    # by default, ending the line with \t will get taken out by a .strip()
+    # operation we do in get_gfa_line_parts() - so that will just throw a
+    # different error, which is fine. to get the actual "empty path": thing
+    # to happen we can add an optional tag entry of *. to be fair.... i'm
+    # not sure if O-paths are strictly allowed to have * for their tags
+    # (since the tags can just be empty) but WHATEVER this tests it lol
+    s2 = get_sample2_gfa()
+    s2.append("O\tpath2\t\t*")
+    run_tempfile_test("gfa", s2, GraphParsingError, "Path path2 is empty?")
+
+    # path contents are a *
+    s2 = get_sample2_gfa()
+    s2.append("O\tpath2\t*")
+    run_tempfile_test("gfa", s2, GraphParsingError, "Path path2 is empty?")
+
+
+def test_parse_placeholder_gfa1_path_id():
+    s1 = get_sample1_gfa()
+    s1.append("P\t*\t3+,4-\t*")
+    run_tempfile_test(
+        "gfa", s1, GraphParsingError, 'P-line with placeholder ID "*" found'
+    )
+
+
+def test_parse_placeholder_gfa2_path_id():
+    s2 = get_sample2_gfa()
+    s2.append("O\t*\t4- 5+")
+    run_tempfile_test(
+        "gfa", s2, GraphParsingError, 'O-line with placeholder ID "*" found'
+    )
+
+
+def test_parse_gfa2_path_with_unrecognized_child_id():
+    s2 = get_sample2_gfa()
+    s2.append("O\tp\t1+ 2- 9+")
+    run_tempfile_test(
+        "gfa", s2, GraphParsingError, "Path p contains unrecognized ID 9+."
+    )
+
+
+def test_parse_gfa2_edge_in_path():
+    s2 = get_sample2_gfa()
+    s2.append("E	cooledge	4-	1+	0	0	0	0	0M"),
+    s2.append("O\tpath2\t3+ 4- cooledge+ 5+")
+    g, paths = run_tempfile_test("gfa", s2, None, None)
+    assert len(paths) == 1
+    assert paths == {"path2": ["3", "-4", "1", "5"]}
+
+
+def test_parse_gfa2_rc_edge_in_path():
+    s2 = get_sample2_gfa()
+    s2.append("E	cooledge	4-	1+	0	0	0	0	0M"),
+    s2.append("O\tpath2\t3+ 4- cooledge- 5+")
+    g, paths = run_tempfile_test("gfa", s2, None, None)
+    assert len(paths) == 1
+    assert paths == {"path2": ["3", "-4", "-1", "4", "5"]}
+
+
+def test_parse_gfa2_adjacent_rc_edges_in_path():
+    s2 = get_sample2_gfa()
+    s2.append("E	cooledge	4-	1+	0	0	0	0	0M"),
+    s2.append("O\tpath2\tcooledge- cooledge- cooledge+ cooledge-")
+    g, paths = run_tempfile_test("gfa", s2, None, None)
+    assert len(paths) == 1
+    assert paths == {"path2": ["-1", "4", "-1", "4", "-4", "1", "-1", "4"]}
+
+
+def test_parse_gfa2_loop_edges_in_path():
+    s2 = get_sample2_gfa()
+    s2.append("E	loopy	4-	4-	0	0	0	0	0M"),
+    s2.append("O\tpath2\tloopy+ loopy+ loopy+ loopy+ 4-")
+    g, paths = run_tempfile_test("gfa", s2, None, None)
+    assert len(paths) == 1
+    assert paths == {"path2": ["-4", "-4", "-4", "-4", "-4"]}
+
+
+def test_parse_gfa2_rc_loop_edge_in_path():
+    s2 = get_sample2_gfa()
+    s2.append("E	loopy	4-	4-	0	0	0	0	0M"),
+    s2.append("O\tpath2\tloopy+ loopy+ loopy+ loopy- 4-")
+    g, paths = run_tempfile_test("gfa", s2, None, None)
+    assert len(paths) == 1
+    assert paths == {"path2": ["-4", "-4", "-4", "-4", "4", "4", "-4"]}
+
+
+def test_parse_gfa2_recursive_o_paths():
+    # yeah yeah yeah this is really a GFA 1 file but it's fine that doesn't
+    # matter for this
+    s1 = get_sample1_gfa()
+    # NOTE: Gfapy will reject path1 because it expects there to be an edge from
+    # 4- to itself. I guess that makes sense! (Gfapy is okay if you define
+    # path2 as JUST 5+, though.)
+    #
+    # Anyway, since metagenomescope does not (currently) care about adjacency
+    # in these paths (like it isn't going to go out of its way to validate this
+    # stuff), we are fine with this.
+    s1.append("O\tpath1\t3+ 4- path2+")
+    s1.append("O\tpath2\t4- 5+")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert len(paths) == 2
+    assert paths == {"path1": ["3", "-4", "-4", "5"], "path2": ["-4", "5"]}
+
+
+def test_parse_gfa2_recursive_o_paths_rc():
+    s1 = get_sample1_gfa()
+    # path2 gets reverse-complemented! so it turns from [-4, 5] into [-5, 4]
+    s1.append("O\tpath1\t3+ 4- path2-")
+    s1.append("O\tpath2\t4- 5+")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert len(paths) == 2
+    assert paths == {"path1": ["3", "-4", "-5", "4"], "path2": ["-4", "5"]}
+
+
+def test_parse_gfa2_recursive_o_paths_rc_multi():
+    s1 = get_sample1_gfa()
+    # god is not here
+    s1.append("O\tpath1\tpath2- path2+ path2+ path2-")
+    s1.append("O\tpath2\t4- 5+")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert len(paths) == 2
+    assert paths == {
+        "path1": ["-5", "4", "-4", "5", "-4", "5", "-5", "4"],
+        "path2": ["-4", "5"],
+    }
+
+
+def test_parse_gfa2_recursive_o_paths_rc_of_parent():
+    s1 = get_sample1_gfa()
+    # it gets resolved from the bottom-up
+    s1.append("O\tpath1\tpath2- 3+")
+    s1.append("O\tpath2\t4- 5+ path3-")
+    s1.append("O\tpath3\t2+")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert len(paths) == 3
+    assert paths == {
+        "path1": ["2", "-5", "4", "3"],
+        "path2": ["-4", "5", "-2"],
+        "path3": ["2"],
+    }
+
+
+def test_parse_gfa2_dreadful_cyclic_o_paths():
+    s1 = get_sample1_gfa()
+    s1.append("O\tpath1\t3+ 4- path2+")
+    s1.append("O\tpath2\t4- path3+ 5+")
+    s1.append("O\tpath3\tpath1+ 2-")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        "It looks like the O-lines in your GFA file are somehow cyclic",
+    )
+
+
+def test_parse_gfa2_p_path_in_o_path():
+    s1 = get_sample1_gfa()
+    s1.append("O\tpath1\t3+ 4- path2+")
+    s1.append("P\tpath2\t4-,5+\t*")
+    run_tempfile_test(
+        "gfa",
+        s1,
+        GraphParsingError,
+        "Path path1 contains ID path2+, corresponding to a P-line?",
+    )
 
 
 def test_multigraphs_okay_gfa1():
@@ -289,13 +597,22 @@ def test_multigraphs_okay_gfa2():
     assert ("-3", "-1", 1) in g.edges
 
 
-def test_dp_tags_parsed_as_coverage():
+def test_dpf_tags_parsed_as_coverage():
     s1 = get_sample1_gfa()
-    s1.append("S\t7\tCCC\tdp:f:123")
+    s1.append("S\t7\tCCC\tdp:f:123.2229")
     g, paths = run_tempfile_test("gfa", s1, None, None)
     assert paths is None
-    assert g.nodes["7"]["cov"] == 123
-    assert g.nodes["-7"]["cov"] == 123
+    assert g.nodes["7"]["cov"] == 123.2229
+    assert g.nodes["-7"]["cov"] == 123.2229
+
+
+def test_dpi_tags_parsed_as_coverage():
+    s1 = get_sample1_gfa()
+    s1.append("S\t800\tCCC\tdp:i:123456")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["800"]["cov"] == 123456
+    assert g.nodes["-800"]["cov"] == 123456
 
 
 def test_kc_tags_parsed_as_coverage():
@@ -310,9 +627,48 @@ def test_kc_tags_parsed_as_coverage():
 
 def test_fc_tags_parsed_as_coverage():
     s1 = get_sample1_gfa()
-    s1.append("S\t7\tCCCC\tKC:i:22222")
+    s1.append("S\t7\tCCCC\tFC:i:22222")
     g, paths = run_tempfile_test("gfa", s1, None, None)
     assert paths is None
     # matches bandage's behavior
     assert g.nodes["7"]["cov"] == (22222 / 4)
     assert g.nodes["-7"]["cov"] == (22222 / 4)
+
+
+def test_rc_tags_parsed_as_coverage():
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\tCCCC\tRC:i:8")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    # matches bandage's behavior
+    assert g.nodes["7"]["cov"] == 2
+    assert g.nodes["-7"]["cov"] == 2
+
+
+def test_kc_tag_but_zero_length():
+    # the order of the tags shouldn't matter - length should be parsed first
+    # 1. KC before length
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\t*\tKC:i:12345\tLN:i:0")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["7"]["cov"] is None
+    assert g.nodes["-7"]["cov"] is None
+
+    # 1. length before KC
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\t*\tLN:i:0\tKC:i:12345")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["7"]["cov"] is None
+    assert g.nodes["-7"]["cov"] is None
+
+
+def test_multiple_coverage_tags_dp_wins():
+    # DP has the highest precedence, matching Bandage and BandageNG's behavior
+    s1 = get_sample1_gfa()
+    s1.append("S\t7\tCCCC\tKC:i:12345\tDP:i:5\tFC:i:100\tRC:i:9999")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["7"]["cov"] == 5
+    assert g.nodes["-7"]["cov"] == 5

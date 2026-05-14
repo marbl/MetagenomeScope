@@ -37,7 +37,7 @@ class AssemblyGraph(object):
     "composition" with a NetworkX MultiDiGraph. This really just means that,
     rather than subclassing nx.MultiDiGraph, this class just contains two
     main instances of nx.MultiDiGraph (.graph and .decomposed_graph) of which
-    which we make use.
+    we make use.
 
     The .graph object describes the input assembly graph structure. As we split
     the boundary nodes of certain patterns (replacing a node N with the "fake
@@ -55,7 +55,7 @@ class AssemblyGraph(object):
     the decomposed graph with their child nodes and edges, then the resulting
     graph should be equivalent to the uncollapsed graph stored in .graph.)
 
-    NEW: As of February 2026 we also create a .original_graph object, which
+    NEW: As of February 2026 we also may create a .original_graph object, which
     is just used for sanity-checking. It should remain identical to the .graph
     object's structure, if you were to ignore the results of node splitting
     during the decomposition.
@@ -67,7 +67,14 @@ class AssemblyGraph(object):
     """
 
     def __init__(
-        self, graph_fp, agp_fp=None, verkko_tsv_fp=None, flye_info_fp=None
+        self,
+        graph_fp,
+        agp_fp=None,
+        verkko_tsv_fp=None,
+        flye_info_fp=None,
+        rmdup=config.RMDUP_GFAONLY,
+        run_decomposition=True,
+        sanity_check_post_decomposition=True,
     ):
         """Parses the input graph file and initializes the AssemblyGraph.
 
@@ -88,6 +95,34 @@ class AssemblyGraph(object):
             If specified, this should be a path to a Flye assembly_info.txt
             file describing contigs/scaffolds in the graph.
 
+        rmdup: str
+            Indicates whether or not to remove parallel edges. See
+            config.RMDUP_OPTIONS for a list of possible values.
+
+            By default, "gfaonly" indicates that we will only remove parallel
+            edges if the input graph is in GFA format. There are a lot of GFA
+            files out there that explicitly list both A -> B and, separately,
+            -B -> -A. So if we draw these entire graphs (treating each L/E line
+            as a definition of both an edge AND its reverse complement) then
+            this will result in like every single edge having a parallel edge.
+            That's probably not the desired behavior!
+
+            Tools like Bandage and Gfapy seem to silently remove duplicate
+            edges by default, so I GUESS we should mirror them here.
+
+        run_decomposition: bool
+            If True, run decomposition. If False, skip it.
+
+        sanity_check_post_decomposition: bool
+            If True, makes an additional copy of the graph structure before
+            decomposition and runs some additional checks afterwards. This
+            can require a decent amount of extra memory and time. If False,
+            doesn't do that.
+
+            I think leaving this to default to True makes sense - this way
+            all of the tests keep using this by default. Actual users can
+            control this through the CLI.
+
         References
         ----------
         For details about AGP files, see
@@ -106,6 +141,10 @@ class AssemblyGraph(object):
         self.verkko_tsv_basename = misc_utils.get_basename_if_fp(verkko_tsv_fp)
         self.flye_info_filename = flye_info_fp
         self.flye_info_basename = misc_utils.get_basename_if_fp(flye_info_fp)
+
+        self.rmdup = rmdup
+        self.run_decomposition = run_decomposition
+        self.sanity_check_post_decomposition = sanity_check_post_decomposition
 
         logger.info(f'Loading input graph "{self.basename}"...')
         self.filetype = parsers.FILETYPE2HR[
@@ -139,12 +178,51 @@ class AssemblyGraph(object):
             self.seq_noun = "edge"
         logger.info(f'...Loaded graph. Filetype: "{self.filetype}".')
 
+        if self.rmdup == config.RMDUP_YES or (
+            self.filetype == "GFA" and self.rmdup == config.RMDUP_GFAONLY
+        ):
+            logger.info(
+                "Detecting and removing parallel edges, since --rmdup is "
+                f'"{self.rmdup}"...'
+            )
+            num_removed_edges = 0
+            # https://networkx.org/documentation/stable/reference/classes/multidigraph.html
+            for srcnode, tgtnode2edges in self.graph.adjacency():
+                for tgtnode, key2edge in tgtnode2edges.items():
+                    num_srctgt_edges = len(key2edge)
+                    if num_srctgt_edges > 0:
+                        # There are multiple edges from srcnode -> tgtnode;
+                        # we'll remove all but one of them. Pick arbitrarily.
+                        #
+                        # This should have the effect of removing more recently
+                        # added edges first, which makes sense (first edge
+                        # listed in the file wins). But there is no guarantee
+                        # that every parser adds edges to the graph in the
+                        # order they were listed in the file, so this is still
+                        # functionally arbitrary.
+                        #
+                        # TODO: For Flye / LJA DOT files, edges can have
+                        # lengths and coverages; it would be nice to filter to
+                        # the highest-coverage (or longest, etc) edge. But I am
+                        # writing this code for GFA files, where typically
+                        # edges do not have these things. So, not worth it r/n.
+                        # (Figuring out which coverage field to use, handling
+                        # cases where only SOME edges have coverages, etc would
+                        # make this complicated...)
+                        for i in range(num_srctgt_edges - 1):
+                            self.graph.remove_edge(srcnode, tgtnode)
+                            num_removed_edges += 1
+            logger.info(
+                f"...Done. Removed "
+                f"{ui_utils.pluralize(num_removed_edges, 'parallel edge')}."
+            )
+
         if self.flye_info_filename is not None:
             if self.filetype == "GFA":
                 self._store_flye_info_for_gfa_nodes()
             elif self.filetype != "DOT":
                 # we'll record paths later for DOT files
-                logging.warning(
+                logger.warning(
                     "Flye assembly info file provided. Since the input graph "
                     "is not a DOT or GFA file, we are ignoring the info file."
                 )
@@ -178,11 +256,14 @@ class AssemblyGraph(object):
         # decomposition, or one of them might be deemed "unnecessary" and
         # removed (with the other becoming the main version of this node).
         #
-        # When we sanity-check self.graph after the decomposition (compared to
+        # If we sanity-check self.graph after the decomposition (compared to
         # self.original_graph), we might no longer see an ID "x" -- if it was
         # deemed unnecessary. To be able to reconcile node ID "y" with the
         # "x" in self.original_graph, we create this simple mapping of each
         # deleted node ID to its counterpart ID.
+        #
+        # (If we are not doing post-decomposition sanity-checking, then we will
+        # not bother populating this dict...)
         self.deletednodeid2counterpartid = {}
 
         # This is just used for debugging, at the moment. Every time we call
@@ -213,7 +294,7 @@ class AssemblyGraph(object):
         self._record_coverages_and_lengths()
         if self.has_covs:
             total = len(self.covs) + self.missing_cov_ct
-            logging.debug(
+            logger.debug(
                 f"  ...Done. Found {self.cov_source} coverage info! "
                 f"{len(self.covs):,} / {total:,} {self.cov_source}s have a "
                 f"{ui_config.COVATTR2SINGLE[self.cov_field]} given."
@@ -257,23 +338,35 @@ class AssemblyGraph(object):
             config.PT_BIPARTITE: self.bipartites,
         }
 
-        logger.debug("  Decomposing the assembly graph...")
-        logger.debug("    Creating copies of the graph...")
-        self.decomposed_graph = deepcopy(self.graph)
-        self.original_graph = deepcopy(self.graph)
-        logger.debug("    ...Done.")
+        if self.run_decomposition:
+            logger.debug("  Decomposing the assembly graph...")
+            ctext = (
+                "copies" if self.sanity_check_post_decomposition else "a copy"
+            )
+            logger.debug(f"    Creating {ctext} of the graph...")
+            self.decomposed_graph = deepcopy(self.graph)
+            if self.sanity_check_post_decomposition:
+                self.original_graph = deepcopy(self.graph)
+            else:
+                self.original_graph = None
+            logger.debug("    ...Done.")
 
-        logger.debug("    Hierarchically identifying patterns in the graph...")
-        self._hierarchically_identify_patterns()
-        logger.debug(
-            "    ...Done. Found "
-            f"{ui_utils.pluralize(len(self.bubbles), 'bubble')}, "
-            f"{ui_utils.pluralize(len(self.chains), 'chain')}, "
-            f"{ui_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, "
-            f"{ui_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}, and "
-            f"{ui_utils.pluralize(len(self.bipartites), 'bipartite')}."
-        )
-        logger.debug("  ...Done.")
+            logger.debug(
+                "    Hierarchically identifying patterns in the graph..."
+            )
+            self._hierarchically_identify_patterns()
+            logger.debug(
+                "    ...Done. Found "
+                f"{ui_utils.pluralize(len(self.bubbles), 'bubble')}, "
+                f"{ui_utils.pluralize(len(self.chains), 'chain')}, "
+                f"{ui_utils.pluralize(len(self.cyclic_chains), 'cyclic chain')}, "
+                f"{ui_utils.pluralize(len(self.frayed_ropes), 'frayed rope')}, and "
+                f"{ui_utils.pluralize(len(self.bipartites), 'bipartite')}."
+            )
+            logger.debug("  ...Done.")
+        else:
+            logger.debug("  (Skipping decomposition, as requested.)")
+            self.decomposed_graph = None
 
         # Initialize self.components, a sorted list of Component objects. See
         # this method's docstring for details.
@@ -783,9 +876,7 @@ class AssemblyGraph(object):
         self.missing_cov_ct = 0
 
         # Do the nodes have coverages?
-        # NOTE: as of jan 2026 no parsers currently output "depth" info for
-        # nodes. let's include it in the tuple below anyway just to be safe
-        for ncfield in ("cov", "depth"):
+        for ncfield in ui_config.NODE_COV_ATTRS:
             if ncfield in self.extra_node_attrs:
                 self.cov_source = "node"
                 self.cov_field = ncfield
@@ -793,7 +884,7 @@ class AssemblyGraph(object):
 
         # Or... do the edges have coverages?
         if self.cov_source is None:
-            for ecfield in ("bsize", "cov", "kp1mer_cov", "multiplicity"):
+            for ecfield in ui_config.EDGE_COV_ATTRS:
                 if ecfield in self.extra_edge_attrs:
                     self.cov_source = "edge"
                     self.cov_field = ecfield
@@ -1288,7 +1379,11 @@ class AssemblyGraph(object):
            helper function (that takes as input the graph and decomposed
            graph?), or something? if feasible.
         """
+        logger = logging.getLogger(__name__)
+        logger.debug("      Finding bubbles and (cyclic) chains...")
+        iteration_ct = 0
         while True:
+            iteration_ct += 1
             something_collapsed_in_this_iteration = False
             # The use of set here means that the order in which we go through
             # nodes is technically arbitrary. However, I don't think this makes
@@ -1422,6 +1517,10 @@ class AssemblyGraph(object):
                 # while loop.
                 break
 
+        logger.debug(
+            f"      ...Done in {ui_utils.pluralize(iteration_ct, 'iteration')}."
+        )
+        logger.debug("      Finding frayed ropes and bipartites...")
         # Now, identify frayed ropes and bipartites ("top-level only" patterns)
         top_level_candidate_nodes = set(self.decomposed_graph.nodes)
         while len(top_level_candidate_nodes) > 0:
@@ -1451,25 +1550,30 @@ class AssemblyGraph(object):
                             f"Shouldn't have done chain merging on {pobj}?"
                         )
                     break
-
-        logger = logging.getLogger(__name__)
+        logger.debug("      ...Done.")
 
         logger.debug("      Removing unnecessary split nodes...")
         self._remove_unnecessary_split_nodes()
         logger.debug("      ...Done.")
 
-        logger.debug(
-            "      Sanity-checking the graph structure out of paranoia..."
-        )
-        self._sanity_check_graph()
-        logger.debug("      ...Done.")
+        if self.sanity_check_post_decomposition:
+            logger.debug(
+                "      Sanity-checking the graph structure out of paranoia..."
+            )
+            self._sanity_check_graph()
+            logger.debug("      ...Done.")
 
         # No need to go through the nodes and edges in the top level of the
         # graph and record that they don't have a parent pattern -- their
         # parent_id attrs default to None
 
     def _sanity_check_graph(self):
-        """Checks that decomposition didn't break the graph structure."""
+        """Checks that decomposition didn't break the graph structure.
+
+        (This should only be run if self.sanity_check_post_decomposition is
+        True. Otherwise, this will crash, because it assumes that
+        self.original_graph has been populated.)
+        """
 
         # Create a mapping of node name -> Node object, and count how many
         # times we see a node basename.
@@ -1794,9 +1898,13 @@ class AssemblyGraph(object):
                     else:
                         self.decomposed_graph.remove_node(node_id)
                     counterpart.unsplit()
-                    self.deletednodeid2counterpartid[node_id] = (
-                        counterpart.unique_id
-                    )
+                    if self.sanity_check_post_decomposition:
+                        # Recording this info is only necessary if we are going
+                        # to be doing the slow sanity-checking -- otherwise we
+                        # can skip it.
+                        self.deletednodeid2counterpartid[node_id] = (
+                            counterpart.unique_id
+                        )
                     del self.nodeid2obj[node_id]
                     del self.edgeid2obj[fe_id]
 
@@ -1833,11 +1941,14 @@ class AssemblyGraph(object):
         """Stores information about weakly connected components in the graph.
 
         This initializes self.components, a list of Components that is sorted
-        in descending order by three criteria: number of nodes, number of
-        edges, and number of patterns.
+        by various criteria (see graph_utils.get_sorted_subgraphs()).
         """
+        if self.run_decomposition:
+            g_to_traverse = self.decomposed_graph
+        else:
+            g_to_traverse = self.graph
         components = []
-        for cc in nx.weakly_connected_components(self.decomposed_graph):
+        for cc in nx.weakly_connected_components(g_to_traverse):
             nodes = []
             edges = []
             patts = []
@@ -1865,7 +1976,7 @@ class AssemblyGraph(object):
                 # looking at the outgoing edges of each "node", whether it's a
                 # real or collapsed-pattern node. (Don't worry, this includes
                 # parallel edges.)
-                for src_id, tgt_id, data in self.decomposed_graph.out_edges(
+                for src_id, tgt_id, data in g_to_traverse.out_edges(
                     nid, data=True
                 ):
                     edges.append(self.edgeid2obj[data["uid"]])

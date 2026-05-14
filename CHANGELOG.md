@@ -14,9 +14,70 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   [Verkko](https://github.com/marbl/verkko)-style TSV files describing paths
   ([#336](https://github.com/marbl/MetagenomeScope/issues/336)).
 
+- Add the `--rmdup` command-line option, which controls whether or not to
+  remove parallel edges.
+
+  - By default, this does not do anything unless the graph is in GFA format.
+    If the graph _is_ in GFA format, then by default MetagenomeScope will now
+    remove parallel edges. This can be adjusted by changing `--rmdup`'s
+    behavior.
+
+  - See [#430](https://github.com/marbl/MetagenomeScope/issues/430)) for some
+    context.
+
+- Add the `--decomp` command-line flag, which controls whether or not to run
+  pattern decomposition
+  ([#425](https://github.com/marbl/MetagenomeScope/issues/425)).
+
+  - Turning decomposition off will just make MetagenomeScope behave as if it
+    did not detect any patterns in your graph. This can be useful if you just
+    want to interact with the raw graph structure (whether programmatically
+    or in the interactive visualization), without having to think about the
+    split nodes and fake edges caused by the decomposition.
+
+  - _By default,_ this is set to `--decomp`: that is, decomposition is turned
+    on.
+
+- Add the `--dcheck` command-line flag, which controls whether or not to run
+  a sanity check after pattern decomposition that verifies the integrity of
+  the graph ([#421](https://github.com/marbl/MetagenomeScope/issues/421)).
+
+  - This check involves, among other things, creating an extra copy of the
+    input graph structure before decomposition. It can be a bottleneck when
+    working with massive graphs on low-memory systems.
+
+  - _By default,_ this is set to `--no-dcheck`: that is, this sanity check is
+    turned off.
+
 - Various updates to the README.
 
 ### Changed
+
+- Implement a custom GFA parser. This dramatically speeds up loading large
+  GFA files, and makes it easier to quietly ignore nonstandard GFA tags
+  ([#310](https://github.com/marbl/MetagenomeScope/issues/310),
+  [#403](https://github.com/marbl/MetagenomeScope/issues/403)).
+
+- Explicitly ignore all GFA 2 edges that are not
+  "[dovetails](https://gfa-spec.github.io/GFA-spec/GFA2.html#edge)."
+
+  - Previously, we ignored containments, but still visualized "general edges"
+    that were not dovetails. Now, to simplify things and keep interpretation
+    straightforward, we ignore general edges as well.
+
+  - Note that our rules for classifying dovetail edges are currently somewhat
+    stricter than those outlined in the GFA 2 specification. See
+    [this issue](https://github.com/GFA-spec/GFA-spec/issues/133) for details.
+
+- Document (in the README FAQs) and formalize how we handle GFA 2 paths
+  containing edges and other paths.
+
+  - Previously, we were using Gfapy's [`captured_segments`](https://gfapy.readthedocs.io/en/latest/tutorial/references.html#induced-set-and-captured-path)
+    property to do this for us. I am not 100% sure that the way we handle
+    edges in these paths will always match Gfapy's, but it should be fine.
+
+- By default, MetagenomeScope will now remove parallel edges in GFA files.
+  As discussed in "Added" above, this can be controlled by `--rmdup`.
 
 - Allow paths to span multiple connected components of the graph, since this
   can occur in Verkko output.
@@ -37,9 +98,23 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   TSV files easier: with this restriction, we can now unambiguously say if
   something on a path is a gap or not.
 
+- Add more detail to the `--verbose` log messages during pattern decomposition.
+
+- Turn off the creation of `AssemblyGraph.original_graph`, the call to
+  `AssemblyGraph._sanity_check_graph()`, etc. by default; as discussed in
+  "Added" above, this is now controlled by the `--dcheck` command-line flag
+  ([#421](https://github.com/marbl/MetagenomeScope/issues/421)).
+
 ### Fixed
 
 - Clean up and add some more tests for the path-parsing parts of the code.
+
+- Add some more tests for the GFA-parsing parts of the code.
+
+- Removed some ancient test data / code that was previously in
+  `metagenomescope/tests/input/extras/`.
+
+- Cleaned up the test data descriptions in `metagenomescope/tests/input/README.md`.
 
 - Fix a bug where Flye DOT files with split nodes / fake edges remaining
   after the decomposition would crash the redundant component detection

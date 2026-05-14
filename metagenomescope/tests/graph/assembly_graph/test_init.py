@@ -1,4 +1,5 @@
 import pytest
+from collections import defaultdict
 from metagenomescope import config, name_utils
 from metagenomescope.graph import AssemblyGraph, Node
 from metagenomescope.errors import GraphParsingError, WeirdError
@@ -317,3 +318,69 @@ def test_lja_edge_rand_indices_even_if_no_edge_ids():
     assert len(eid2ri) == 2
     # the random colors should still match
     assert len(set(eid2ri.values())) == 1
+
+
+def get_srctgt2ct(ag):
+    # build up a dict mapping (src node name, tgt node name) -> edge count
+    st2ct = defaultdict(int)
+    for e in ag.graph.edges:
+        srcname = ag.nodeid2obj[e[0]].name
+        tgtname = ag.nodeid2obj[e[1]].name
+        st2ct[(srcname, tgtname)] += 1
+    return st2ct
+
+
+def test_removing_parallel_edges_default_gfaonly():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/path_of_edges_multigraph.gfa"
+    )
+    # 1 -> 3, -3 -> -1 and
+    # 3 -> 4, -4 -> -3
+    # No duplicates!
+    assert len(ag.edgeid2obj) == 4
+    st2ct = get_srctgt2ct(ag)
+    assert st2ct[("1", "3")] == 1
+    assert st2ct[("-3", "-1")] == 1
+    assert st2ct[("3", "4")] == 1
+    assert st2ct[("-4", "-3")] == 1
+
+
+def test_removing_parallel_edges_yes():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/path_of_edges_multigraph.gfa",
+        rmdup=config.RMDUP_YES,
+    )
+    assert len(ag.edgeid2obj) == 4
+    st2ct = get_srctgt2ct(ag)
+    assert st2ct[("1", "3")] == 1
+    assert st2ct[("-3", "-1")] == 1
+    assert st2ct[("3", "4")] == 1
+    assert st2ct[("-4", "-3")] == 1
+
+
+def test_removing_parallel_edges_no():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/path_of_edges_multigraph.gfa",
+        rmdup=config.RMDUP_NO,
+    )
+    assert len(ag.edgeid2obj) == 6
+    st2ct = get_srctgt2ct(ag)
+    assert st2ct[("1", "3")] == 2
+    assert st2ct[("-3", "-1")] == 2
+    assert st2ct[("3", "4")] == 1
+    assert st2ct[("-4", "-3")] == 1
+
+
+def test_removing_parallel_edges_default_gfaonly_nongfa():
+    ag = AssemblyGraph("metagenomescope/tests/input/chr15_subgraph.gv")
+    # this graph has parallel edges from 161134973 -> 944378205
+    st2ct = get_srctgt2ct(ag)
+    assert st2ct[("161134973", "944378205")] == 2
+
+
+def test_removing_parallel_edges_yes_nongfa():
+    ag = AssemblyGraph(
+        "metagenomescope/tests/input/chr15_subgraph.gv", rmdup=config.RMDUP_YES
+    )
+    st2ct = get_srctgt2ct(ag)
+    assert st2ct[("161134973", "944378205")] == 1

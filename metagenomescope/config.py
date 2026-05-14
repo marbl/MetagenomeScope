@@ -152,3 +152,17 @@ MIN_PORT = 1024
 MAX_PORT = 65535
 
 VERKKO_PATH_GAP_PREFIX = "[N"
+
+RMDUP_GFAONLY = "gfaonly"
+RMDUP_YES = "y"
+RMDUP_NO = "n"
+RMDUP_OPTIONS = [
+    RMDUP_GFAONLY,
+    RMDUP_YES,
+    RMDUP_NO,
+]
+RMDUP2HR = {
+    RMDUP_GFAONLY: "only for GFA files",
+    RMDUP_YES: "True",
+    RMDUP_NO: "False",
+}

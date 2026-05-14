@@ -237,6 +237,15 @@ PATT_TBL_PCT_COL = "P"
 
 FLYE_INFO_COLS_TO_RENAME = {"cov.": "cov"}
 
+# Lists of recognized coverage fields. At least as of writing, earlier fields
+# take precedence over later ones when determining what to use as the
+# coverage field for all nodes / edges in the graph.
+#
+# NOTE: as of jan 2026 no parsers currently output "depth" info for
+# nodes. let's include it anyway just to be safe
+NODE_COV_ATTRS = ("cov", "depth")
+EDGE_COV_ATTRS = ("bsize", "cov", "kp1mer_cov", "multiplicity")
+
 # Maps "internal" names for node / edge properties to human-readable names, and
 # AG Grid cellDataType parameters.
 # (As we add on more filetype parsers, feel free to extend these structures.)

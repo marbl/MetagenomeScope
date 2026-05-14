@@ -91,3 +91,83 @@ def test_move_to_end_if_in():
 
     mu.move_to_end_if_in(c, "def")
     assert c == ["abc", "ghi", "def"]
+
+
+def test_expand2tuples_simple():
+    # expand both sides
+    assert mu.expand2tuples([1, 2, 3, (4, 5), 6, 7]) == [1, 2, 3, 4, 5, 6, 7]
+
+    # expand both sides of a self loop
+    assert mu.expand2tuples([1, 2, 3, (4, 4), 6, 7]) == [1, 2, 3, 4, 4, 6, 7]
+
+    # expand only the left side
+    assert mu.expand2tuples([1, 2, 3, (4, 6), 6, 7]) == [1, 2, 3, 4, 6, 7]
+
+    # expand only the right side
+    assert mu.expand2tuples([1, 2, 3, (3, 4), 6, 7]) == [1, 2, 3, 4, 6, 7]
+
+    # expand neither side
+    assert mu.expand2tuples([1, 2, 3, (3, 6), 6, 7]) == [1, 2, 3, 6, 7]
+
+    # no 2-tuples
+    assert mu.expand2tuples([1, 2, 3, 4, 5, 6]) == [1, 2, 3, 4, 5, 6]
+
+
+def test_expand2tuples_at_end():
+    # at the left end
+    assert mu.expand2tuples([(1, 2), 3, 4]) == [1, 2, 3, 4]
+    assert mu.expand2tuples([(1, 2), 2, 4]) == [1, 2, 4]
+
+    # at the right end
+    assert mu.expand2tuples([1, 2, (3, 4)]) == [1, 2, 3, 4]
+    assert mu.expand2tuples([1, 2, (2, 4)]) == [1, 2, 4]
+
+
+def test_expand2tuples_adjacent_2tuples():
+    assert mu.expand2tuples([(1, 2), (2, 3)]) == [1, 2, 3]
+
+    assert mu.expand2tuples([(1, 2), (2, 3), (3, 4)]) == [1, 2, 3, 4]
+
+    assert mu.expand2tuples([(1, 2), 2, (2, 3), (3, 4)]) == [1, 2, 3, 4]
+
+    assert mu.expand2tuples([(1, 2), 2, (2, 5), (3, 4)]) == [1, 2, 5, 3, 4]
+
+    assert mu.expand2tuples([(1, 2), 2, (2, 4), (3, 4)]) == [1, 2, 4, 3, 4]
+
+    assert mu.expand2tuples([(1, 2), 2, (2, 4), (4, 4)]) == [1, 2, 4, 4]
+
+    # from the function docstring
+    assert mu.expand2tuples([("a", "b"), ("b", "c"), ("c", "d")]) == [
+        "a",
+        "b",
+        "c",
+        "d",
+    ]
+
+
+def test_expand2tuples_justone():
+    # one 2-tuple and nothing else
+    assert mu.expand2tuples([(1, 2)]) == [1, 2]
+
+    # one normal element and nothing else
+    assert mu.expand2tuples([5]) == [5]
+
+
+def test_expand2tuples_loops():
+    # Graph with a self-loop edge "E" from S -> S, and another edge S -> S_2.
+    #
+    # S --> S_2
+    # ^ \
+    # | | E
+    # +-+
+    #
+    # The path we are considering is {S} E E E {S_2}.
+    # Each traversal of E adds on a single instance of S. It's kind of like
+    # reading out a sequence from a de Bruijn graph.
+    assert mu.expand2tuples([1, (1, 1), (1, 1), (1, 1), 2]) == [1, 1, 1, 1, 2]
+
+    assert mu.expand2tuples([(1, 1)]) == [1, 1]
+    assert mu.expand2tuples([(1, 1), 1]) == [1, 1]
+    assert mu.expand2tuples([(1, 1), 2]) == [1, 1, 2]
+
+    assert mu.expand2tuples([(1, 1), (1, 1)]) == [1, 1, 1]

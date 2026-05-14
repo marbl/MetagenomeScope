@@ -120,8 +120,7 @@ class Layout(object):
         This will lay out descendant patterns as needed recursively,
         assuming that self.incl_patterns and self.recursive are True.
         """
-        dot = ""
-        dot += layout_utils.get_gv_header(
+        dot = layout_utils.get_gv_header(
             self.prog, self.region.name, self.use_gv_ports, self.params
         )
         if self.incl_patterns and self.recursive:

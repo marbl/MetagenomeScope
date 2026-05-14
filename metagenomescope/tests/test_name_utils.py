@@ -269,3 +269,30 @@ def test_condense_splits_basenames_ignored():
     assert nu.condense_splits(["40-L", "40-R", "40"]) == ["40", "40"]
     assert nu.condense_splits(["40-L", "40"]) == ["40", "40-L"]
     assert nu.condense_splits(["40-R", "40"]) == ["40", "40-R"]
+
+
+def test_from_suffix_orient():
+    assert nu.from_suffix_orient("X+") == ("X", "X", "+")
+    assert nu.from_suffix_orient("X-") == ("-X", "X", "-")
+    assert nu.from_suffix_orient("asdf+") == ("asdf", "asdf", "+")
+    assert nu.from_suffix_orient("asdf-") == ("-asdf", "asdf", "-")
+
+
+def test_from_suffix_orient_no_orientation():
+    with pytest.raises(GraphParsingError) as ei:
+        nu.from_suffix_orient("abcd")
+    assert str(ei.value) == '"abcd" doesn\'t end in + or -'
+
+    with pytest.raises(GraphParsingError) as ei:
+        nu.from_suffix_orient("X?")
+    assert str(ei.value) == '"X?" doesn\'t end in + or -'
+
+
+def test_from_suffix_orient_too_short():
+    with pytest.raises(GraphParsingError) as ei:
+        nu.from_suffix_orient("X")
+    assert str(ei.value) == '"X" is < 2 characters long'
+
+    with pytest.raises(GraphParsingError) as ei:
+        nu.from_suffix_orient("")
+    assert str(ei.value) == '"" is < 2 characters long'
