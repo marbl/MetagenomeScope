@@ -75,6 +75,54 @@ def test_get_tag_dict_duplicate_tag_prefix():
     assert str(ei.value) == 'Duplicate GFA tag prefix: "ln:i"'
 
 
+def test_store_gfa_id_simple():
+    seenid2type = {"asdf": "S", "ghjk": "E"}
+    gu.store_gfa_id("qwerty", seenid2type, "S")
+    assert seenid2type == {"asdf": "S", "ghjk": "E", "qwerty": "S"}
+    gu.store_gfa_id("zzz", seenid2type, "P")
+    assert seenid2type == {"asdf": "S", "ghjk": "E", "qwerty": "S", "zzz": "P"}
+
+
+def test_store_gfa_id_notunique():
+    with pytest.raises(GraphParsingError) as ei:
+        gu.store_gfa_id("asdf", {"asdf": "S", "ghjk": "E"}, "P")
+    assert str(ei.value) == 'ID "asdf" not unique.'
+
+
+def test_store_gfa_id_segment_with_asterisk_as_id():
+    seenid2type = {"asdf": "S", "ghjk": "E"}
+
+    # technically this is allowed in gfa 2 - see comments for store_gfa_id()
+    gu.store_gfa_id("*", seenid2type, "S")
+    assert seenid2type == {"asdf": "S", "ghjk": "E", "*": "S"}
+
+    # but as soon as we see ANOTHER segment with an ID of "*", then we'll crash
+    with pytest.raises(GraphParsingError) as ei:
+        gu.store_gfa_id("*", seenid2type, "S")
+    assert str(ei.value) == 'ID "*" not unique.'
+
+
+def test_store_gfa_id_path_with_asterisk_as_id():
+    # in theory we could handle this like segments with * IDs (allow the first
+    # path with a * ID, then fail when we see another * ID path), but...
+    #
+    # in GFA 2 a O-line having * as an ID indicates that it has no ID, and
+    # I really want to be clear that we don't support that
+    seenid2type = {"asdf": "S", "ghjk": "E"}
+    with pytest.raises(GraphParsingError) as ei:
+        gu.store_gfa_id("*", seenid2type, "P")
+    assert str(ei.value) == (
+        'P-line with placeholder ID "*" found. We do not support paths '
+        "without defined IDs."
+    )
+    with pytest.raises(GraphParsingError) as ei:
+        gu.store_gfa_id("*", seenid2type, "O")
+    assert str(ei.value) == (
+        'O-line with placeholder ID "*" found. We do not support paths '
+        "without defined IDs."
+    )
+
+
 def test_is_dovetail_simple():
     # Based on the GFA 2 specification's rules:
     # https://gfa-spec.github.io/GFA-spec/GFA2.html#edge
