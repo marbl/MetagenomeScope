@@ -22,11 +22,13 @@ from metagenomescope.errors import GraphParsingError
 
 
 def test_check_enough_line_parts():
+    gu.check_enough_line_parts("asdf\tdef", ["asdf", "def"], 0)
+    gu.check_enough_line_parts("asdf\tdef", ["asdf", "def"], 1)
     gu.check_enough_line_parts("asdf\tdef", ["asdf", "def"], 2)
 
     with pytest.raises(GraphParsingError) as ei:
         gu.check_enough_line_parts("asdf\tdef", ["asdf", "def"], 3)
-    assert str(ei.value) == "< 3 parts: GFA line 'asdf\tdef'"
+    assert str(ei.value) == 'Less than 3 parts: GFA line "asdf\tdef"'
 
 
 def test_get_tag_dict_simple():

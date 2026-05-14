@@ -3,7 +3,9 @@ from metagenomescope.errors import GraphParsingError
 
 def check_enough_line_parts(line, parts, minpartct):
     if len(parts) < minpartct:
-        raise GraphParsingError(f"< {minpartct:,} parts: GFA line '{line}'")
+        raise GraphParsingError(
+            f'Less than {minpartct:,} parts: GFA line "{line}"'
+        )
 
 
 def get_gfa_line_parts(line, minpartct):
