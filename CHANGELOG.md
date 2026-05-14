@@ -53,13 +53,13 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Changed
 
-- Implement a custom GFA parser. This dramatically speeds up loading GFA files,
-  and makes it easier to quietly ignore nonstandard GFA tags
+- Implement a custom GFA parser. This dramatically speeds up loading large
+  GFA files, and makes it easier to quietly ignore nonstandard GFA tags
   ([#310](https://github.com/marbl/MetagenomeScope/issues/310),
   [#403](https://github.com/marbl/MetagenomeScope/issues/403)).
 
 - Explicitly ignore all GFA 2 edges that are not
-  "[dovetails](https://gfa-spec.github.io/GFA-spec/GFA2.html)."
+  "[dovetails](https://gfa-spec.github.io/GFA-spec/GFA2.html#edge)."
 
   - Previously, we ignored containments, but still visualized "general edges"
     that were not dovetails. Now, to simplify things and keep interpretation
