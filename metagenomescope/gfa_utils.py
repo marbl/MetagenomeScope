@@ -1,3 +1,4 @@
+from metagenomescope.config import FWD, REV
 from metagenomescope.errors import GraphParsingError
 
 
@@ -175,9 +176,8 @@ def is_dovetail(src_orient, tgt_orient, b1, e1, b2, e2):
     ----------
     src_orient: str
     tgt_orient: str
-        The orientations of the source and target node. These should be either
-        config.FWD or config.REV, but really we are just comparing equality
-        here so their exact values don't really matter right now.
+        The orientations of the source and target node. Should be either
+        config.FWD or config.REV.
 
     b1: str
     e1: str
@@ -204,6 +204,11 @@ def is_dovetail(src_orient, tgt_orient, b1, e1, b2, e2):
       specification's figures), but for basic graph visualization these things
       are not usually what we want to show.
 
+    - The rules given in the GFA 2 specification for detecting dovetail edges,
+      as of May 14, 2026, seem to not be strict enough. See
+      https://github.com/GFA-spec/GFA-spec/issues/133. For now, I will use the
+      stricter rules I proposed there.
+
     - We do not currently validate that "$" really indicates the end of the
       sequence. this is partly because there's nothing stopping a GFA file from
       having segments be defined *after* edges, right? Which will make looking
@@ -226,10 +231,15 @@ def is_dovetail(src_orient, tgt_orient, b1, e1, b2, e2):
     ----------
     https://gfa-spec.github.io/GFA-spec/GFA2.html#edge
     """
-    orientations_match = src_orient == tgt_orient
-    # The GFA 2 specification writes out these exact rules, so thanks to them
-    # for making this refreshingly simple to detect
-    if orientations_match:
-        return (b1 == "0" and e2[-1] == "$") or (b2 == "0" and e1[-1] == "$")
+    if src_orient == REV and tgt_orient == REV:
+        return b1 == "0" and e2[-1] == "$"
+    elif src_orient == FWD and tgt_orient == FWD:
+        return b2 == "0" and e1[-1] == "$"
+    elif src_orient == REV and tgt_orient == FWD:
+        return b1 == "0" and b2 == "0"
+    elif src_orient == FWD and tgt_orient == REV:
+        return e1[-1] == "$" and e2[-1] == "$"
     else:
-        return (b1 == "0" and b2 == "0") or (e1[-1] == "$" and e2[-1] == "$")
+        raise GraphParsingError(
+            f"Unrecognized edge orientation(s): {src_orient} -> {tgt_orient}"
+        )

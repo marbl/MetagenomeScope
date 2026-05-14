@@ -156,7 +156,11 @@ def test_parse_self_implied_edge_gfa1():
 
 def test_parse_self_implied_edge_gfa2():
     s2 = get_sample2_gfa()
-    s2.append("E	*	2+	2-	0	5	0	5	0M")
+    # this is still a dovetail edge, so mgsc will parse it: it looks like
+    #   |  |
+    # ----->
+    #   <-----
+    s2.append("E	*	2+	2-	5	10$	5	10$	0M")
     digraph, paths = run_tempfile_test("gfa", s2, None, None)
     assert paths is None
     assert len(digraph.nodes) == 12

@@ -160,15 +160,14 @@ def test_is_dovetail_simple():
     assert gu.is_dovetail("+", "-", "2", "3$", "2", "4$")
 
 
-def test_is_dovetail_weird_stuff():
-    # Looks like
-    #         |  |
-    # 1.      -------->
-    # 2. -------->
+def test_is_dovetail_degenerate_fwdfwd():
+    # See https://github.com/GFA-spec/GFA-spec/issues/133
+    # This looks like:
     #
-    # I mean I don't know why you would write out the edge
-    # like this but per the GFA 2 rules it technically counts as a dovetail?
-    # Maybe we should prevent this. For now let's allow it and test that it is
-    # allowed, so that if/when we change this behavior we can loudly know to
-    # fix this
-    assert gu.is_dovetail("+", "+", "0", "5", "2", "9$")
+    #         |  |
+    # 1.      -------->         |  |
+    # 2.                   -------->
+    #
+    # The "rules" given in the GFA 2 specification allow this to be called
+    # a dovetail edge, but we don't allow it. At least for now.
+    assert not gu.is_dovetail("+", "+", "0", "3", "5", "8$")
