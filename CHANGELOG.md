@@ -17,7 +17,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Add the `--rmdup` command-line option, which controls whether or not to
   remove parallel edges.
 
-  - By default, this does not do anything unless the graph is in GFA format.
+  - _By default_, this does not do anything unless the graph is in GFA format.
     If the graph _is_ in GFA format, then by default MetagenomeScope will now
     remove parallel edges. This can be adjusted by changing `--rmdup`'s
     behavior.
