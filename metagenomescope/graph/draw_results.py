@@ -139,9 +139,14 @@ class DrawResults(object):
 
         # TODO should turn these into user-configurable params
         min_xpad = 100
-        min_ypad = 100
+        min_ypad = 200
         xpadfrac = 0.15
         max_num_regions_before_breakpoint = 3
+        # roughly 10 / 16 - a bit taller than a standard 16:9 aspect ratio, since
+        # we are accounting for the control panel. Not 100% sure how good this
+        # will look on tiny screens.
+        # ideally we'd actually get this from the JS/HTML when we run layout...
+        goal_hwratio = 1/ 1.6
 
         areas = []
         widths = []
@@ -156,9 +161,11 @@ class DrawResults(object):
         # 1. We find a reasonable "breakpoint" where the width of a region R_N
         #    is > 2x the width of the next-up region R_{N+1}. We define R_N
         #    and all the regions to the left of it (i.e. the bigger regions,
-        #    going by sorted_regions) as the first row.
+        #    going by sorted_regions) as the first row. (Note that we require
+        #    R_N to have at least 10 nodes. This prevents junk like 2-node
+        #    chain ccs from being "breakpoints" as compared to 1-node ccs
         #
-        # 2. If we are not able to find a reasonable break point, then we
+        # 2. If we are not able to find a reasonable breakpoint, then we
         #    set the row width as something proportional to the sqrt of the
         #    total areas of the regions. this seems to work ok?
         #
@@ -185,7 +192,7 @@ class DrawResults(object):
                 # inspired by bandage:
                 # https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/ogdf/energybased/MAARPacking.cpp#L107
                 wratio = lay.width / next_lay.width
-                if wratio > 2:
+                if wratio > 2 and len(r.nodes) > 10:
                     # choose this point to cut off the first row
                     row_width = tentative_first_row_width
                     break
@@ -197,11 +204,10 @@ class DrawResults(object):
             row_width = widths[0]
 
         x = 0
-        y = 0
         curr_row = 0
         curr_row_max_height = 0
+        total_height_without_ypad = 0
         r2xrow = {}
-        row2y = {curr_row: 0}
         row2max_height = {}
         # pass 1: compute region positions and row heights
         for r in sorted_regions:
@@ -212,25 +218,10 @@ class DrawResults(object):
             # the region fits, but the padding to the right of it doesn't,
             # then that doesn't matter because we won't draw anything to
             # the right of it in this row anyway.
-            if x > 0 and x + lay.width > row_width:
-                if x == 0:
-                    row_width = x + cell_width
+            if x + lay.width > row_width:
+                print(r, "went over", curr_row, x, lay.width)
                 row2max_height[curr_row] = curr_row_max_height
-                row_whratio = row_width / curr_row_max_height
-                # TODO: there are a LOT of fudge factors here. It would
-                # really be better to use something more sophisticated,
-                # e.g. doing the Bandage thing of using binary search to figure
-                # out what parameters yield a good aspect ratio
-                if row_whratio > 3:
-                    # When a row of stuff is "thin" -- i.e. no regions in the
-                    # row are very tall -- we should use more y-padding, to
-                    # space things out.
-                    poss_ypad = 0.07 * row_width
-                else:
-                    poss_ypad = 0.1 * curr_row_max_height
-                y += curr_row_max_height + max(min_ypad, poss_ypad)
                 curr_row += 1
-                row2y[curr_row] = y
                 x = 0
                 curr_row_max_height = 0
 
@@ -238,8 +229,28 @@ class DrawResults(object):
             x += cell_width
             curr_row_max_height = max(curr_row_max_height, lay.height)
 
+        # account for the last row if needed
         if curr_row not in row2max_height:
             row2max_height[curr_row] = curr_row_max_height
+
+        # yeah yeah you could infer this by looking at curr_row but then there
+        # is weird junk with like what if the last region fell EXACTLY on the
+        # rightmost point of a row or something... let's just be explicit
+        num_rows = len(row2max_height)
+
+        # Expand y-paddings as needed to try to get a desirable aspect ratio,
+        # like Bandage does. we do things in a much lazier way though
+        ypad = min_ypad
+        if num_rows > 1:
+            total_height_without_ypad = sum(row2max_height.values())
+            min_hwr = total_height_without_ypad / row_width
+            if min_hwr < goal_hwratio:
+                ypad = ((goal_hwratio * row_width) - total_height_without_ypad) / (num_rows - 1)
+        y = 0
+        row2y = {}
+        for row in range(num_rows):
+            row2y[row] = y
+            y += row2max_height[row] + min(ypad, row_width * 0.1)
 
         # pass 2: actually assign positions to elements
         eles = []
