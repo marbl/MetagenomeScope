@@ -146,7 +146,7 @@ class DrawResults(object):
         # we are accounting for the control panel. Not 100% sure how good this
         # will look on tiny screens.
         # ideally we'd actually get this from the JS/HTML when we run layout...
-        goal_hwratio = 1/ 1.6
+        goal_hwratio = 1 / 1.6
 
         areas = []
         widths = []
@@ -186,9 +186,24 @@ class DrawResults(object):
                     break
                 lay = self.region2layout[r]
                 next_lay = self.region2layout[sorted_regions[i + 1]]
-                tentative_first_row_width += lay.width + max(
-                    min_xpad, xpadfrac * lay.width
-                )
+                tentative_first_row_width += lay.width
+                # If this is not the first component in this row, make sure to
+                # add on padding from the component to the left of it. DON'T
+                # ADD ON PADDING for the current component until we know that
+                # it is not the final one in this row; otherwise, the row width
+                # we set will be too large, so subsequent rows will extend past
+                # the first row and that will look slightly gross :(((((
+                #
+                # Test case: Velvet E. coli graph, draw all components using
+                # sfdp and patterns - before I fixed this, later rows would be
+                # longer than the first one because I added in padding for that
+                # first component! oh no!!! it's all good now though :)
+                if i > 0:
+                    prev_lay = self.region2layout[sorted_regions[i - 1]]
+                    # TODO this code is duplicated btwn here and below... yuck
+                    tentative_first_row_width += max(
+                        min_xpad, xpadfrac * prev_lay.width
+                    )
                 # inspired by bandage:
                 # https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/ogdf/energybased/MAARPacking.cpp#L107
                 wratio = lay.width / next_lay.width
@@ -212,21 +227,30 @@ class DrawResults(object):
         # pass 1: compute region positions and row heights
         for r in sorted_regions:
             lay = self.region2layout[r]
-            cell_width = lay.width + max(min_xpad, xpadfrac * lay.width)
             # don't include padding to the RIGHT of this region in
             # the computation of if it can fit in this row. Because if
             # the region fits, but the padding to the right of it doesn't,
             # then that doesn't matter because we won't draw anything to
             # the right of it in this row anyway.
-            if x + lay.width > row_width:
-                print(r, "went over", curr_row, x, lay.width)
-                row2max_height[curr_row] = curr_row_max_height
-                curr_row += 1
-                x = 0
-                curr_row_max_height = 0
+            so_far_width = x + lay.width
+            if so_far_width > row_width:
+                if x > 0:
+                    # Need to start a new row. End the current one.
+                    row2max_height[curr_row] = curr_row_max_height
+                    # Move to a new row
+                    curr_row += 1
+                    x = 0
+                    curr_row_max_height = 0
+                else:
+                    # the width of this region alone is >= row_width!
+                    # wow. let's expand row_width for all rows below
+                    # this one, so that this doesn't stick out awkwardly.
+                    # (might change this in the future...)
+                    row_width = so_far_width
 
             r2xrow[r] = (x, curr_row)
-            x += cell_width
+
+            x += lay.width + max(min_xpad, xpadfrac * lay.width)
             curr_row_max_height = max(curr_row_max_height, lay.height)
 
         # account for the last row if needed
@@ -245,11 +269,24 @@ class DrawResults(object):
             total_height_without_ypad = sum(row2max_height.values())
             min_hwr = total_height_without_ypad / row_width
             if min_hwr < goal_hwratio:
-                ypad = ((goal_hwratio * row_width) - total_height_without_ypad) / (num_rows - 1)
+                # um ok, so this comes from setting uhhhh
+                # (h + (ypad * (num_rows - 1))) / w = goal_hwratio.
+                # I know that looks kind of impenetrable but it's just, like,
+                # how much ypad do we need to add in order to stretch out the
+                # height to match the goal height-to-width ratio
+                ypad = (
+                    (goal_hwratio * row_width) - total_height_without_ypad
+                ) / (num_rows - 1)
         y = 0
         row2y = {}
         for row in range(num_rows):
             row2y[row] = y
+            # When there are only a couple of long, thin rows, the ypad we get
+            # above from stretching things out to fit the aspect ratio can be
+            # too big -- resulting in e.g. one row at the top of the screen,
+            # one row in the middle, and one at the bottom (for 3 rows). This
+            # looks kind of gross, so we use a fraction of the row width as an
+            # alternative y-padding -- which works well for such cases.
             y += row2max_height[row] + min(ypad, row_width * 0.1)
 
         # pass 2: actually assign positions to elements

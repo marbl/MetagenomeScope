@@ -93,14 +93,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   no longer do this
   ([#357](https://github.com/marbl/MetagenomeScope/issues/357)).
 
-- Improve connected component tiling
-  ([#358](https://github.com/marbl/MetagenomeScope/issues/358)).
-
-  - Like [Bandage](https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/ogdf/energybased/MAARPacking.cpp#L60),
-    we now try to adjust things to fit a desired aspect ratio. This should
-    be particularly useful for graphs consisting of many long, short linear
-    components.
-
 - Use a small amount of padding when fitting the graph drawing. This should
   make it easier to notice small parts of the graph that were previously right
   next to the border of the screen.
@@ -117,6 +109,16 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   ([#421](https://github.com/marbl/MetagenomeScope/issues/421)).
 
 ### Fixed
+
+- Improve connected component tiling, including fixing minor
+  bugs in how we set row widths in certain cases and how we labelled rows
+  internally
+  ([#358](https://github.com/marbl/MetagenomeScope/issues/358)).
+
+  - Like [Bandage](https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/ogdf/energybased/MAARPacking.cpp#L60),
+    we now try to adjust things to fit a desired aspect ratio. This should
+    be particularly useful for graphs consisting of many long, short linear
+    components.
 
 - Clean up and add some more tests for the path-parsing parts of the code.
 
