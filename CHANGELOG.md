@@ -93,6 +93,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   no longer do this
   ([#357](https://github.com/marbl/MetagenomeScope/issues/357)).
 
+- Use a small amount of padding when fitting the graph drawing. This should
+  make it easier to notice small parts of the graph that were previously right
+  next to the border of the screen.
+
 - Prevent node or edge IDs from beginning with `[N`. This makes parsing Verkko
   TSV files easier: with this restriction, we can now unambiguously say if
   something on a path is a gap or not.
