@@ -127,6 +127,12 @@ class DrawResults(object):
             Each entry describes a node / edge / pattern in the graph. This
             list can be plopped directly into a Cytoscape.js object's
             "elements" field.
+
+        References
+        ----------
+        This is essentially me trying to imitate how Bandage packs the
+        components of graphs. Their codebase includes a much more elegant
+        implementation of this: https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/ogdf/energybased/MAARPacking.cpp#L60
         """
         if not self.layouts_given:
             return self.get_nolayout_eles()
@@ -134,8 +140,8 @@ class DrawResults(object):
         # TODO should turn these into user-configurable params
         min_xpad = 100
         min_ypad = 100
-        xpadfrac = 0.1
-        ypadfrac = 0.1
+        xpadfrac = 0.15
+        max_num_regions_before_breakpoint = 3
 
         areas = []
         widths = []
@@ -162,7 +168,10 @@ class DrawResults(object):
         if len(sorted_regions) > 1:
             i = 0
             tentative_first_row_width = 0
-            while i < len(sorted_regions) - 1 and i < 5:
+            while (
+                i < len(sorted_regions) - 1
+                and i < max_num_regions_before_breakpoint
+            ):
                 r = sorted_regions[i]
                 # the notion of breakpoints doesn't make sense when
                 # we are dealing with 1-node ccs
@@ -207,9 +216,19 @@ class DrawResults(object):
                 if x == 0:
                     row_width = x + cell_width
                 row2max_height[curr_row] = curr_row_max_height
-                y += curr_row_max_height + max(
-                    min_ypad, ypadfrac * curr_row_max_height
-                )
+                row_whratio = row_width / curr_row_max_height
+                # TODO: there are a LOT of fudge factors here. It would
+                # really be better to use something more sophisticated,
+                # e.g. doing the Bandage thing of using binary search to figure
+                # out what parameters yield a good aspect ratio
+                if row_whratio > 3:
+                    # When a row of stuff is "thin" -- i.e. no regions in the
+                    # row are very tall -- we should use more y-padding, to
+                    # space things out.
+                    poss_ypad = 0.07 * row_width
+                else:
+                    poss_ypad = 0.1 * curr_row_max_height
+                y += curr_row_max_height + max(min_ypad, poss_ypad)
                 curr_row += 1
                 row2y[curr_row] = y
                 x = 0
