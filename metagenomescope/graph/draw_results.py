@@ -240,6 +240,7 @@ class DrawResults(object):
         row2max_height = {}
         # pass 1: compute region positions and row heights
         for r in sorted_regions:
+            end_row_after_adding_this_region = False
             lay = self.region2layout[r]
             # don't include padding to the RIGHT of this region in
             # the computation of if it can fit in this row. Because if
@@ -247,9 +248,11 @@ class DrawResults(object):
             # then that doesn't matter because we won't draw anything to
             # the right of it in this row anyway.
             so_far_width = x + lay.width
-            if so_far_width > row_width:
+            if so_far_width >= row_width:
                 if x > 0:
-                    # Need to start a new row. End the current one.
+                    # Need to start a new row. End the current one before
+                    # adding this region; it will be the first thing on
+                    # the next row.
                     row2max_height[curr_row] = curr_row_max_height
                     # Move to a new row
                     curr_row += 1
@@ -261,11 +264,18 @@ class DrawResults(object):
                     # this one, so that this doesn't stick out awkwardly.
                     # (might change this in the future...)
                     row_width = so_far_width
+                    end_row_after_adding_this_region = True
 
             r2xrow[r] = (x, curr_row)
 
             x += lay.width + max(min_xpad, xpadfrac * lay.width)
             curr_row_max_height = max(curr_row_max_height, lay.height)
+
+            if end_row_after_adding_this_region:
+                row2max_height[curr_row] = curr_row_max_height
+                curr_row += 1
+                x = 0
+                curr_row_max_height = 0
 
         # account for the last row if needed
         if curr_row not in row2max_height:
