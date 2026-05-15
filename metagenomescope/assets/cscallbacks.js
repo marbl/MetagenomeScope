@@ -136,6 +136,7 @@ function tryToSetBadEdgeDragRescuer(cy) {
 }
 
 const WIPE_DONE_FLAG = "_mgscWipeDone";
+const FIT_PADDING_PX = 15;
 
 /* For more information about clientside callbacks, see
  * https://dash.plotly.com/clientside-callbacks -- this next line
@@ -273,7 +274,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // clientside callbacks with the same input and no outputs -
             // https://github.com/plotly/dash/issues/3596
             tryToSetBadEdgeDragRescuer(cy);
-            cy.fit();
+            cy.fit(FIT_PADDING_PX);
         },
         changeStylesheet: function (stylesheet) {
             let cy = getCy();
@@ -306,7 +307,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         },
         fit: function (nClicks) {
             let cy = getCy();
-            cy.fit();
+            cy.fit(FIT_PADDING_PX);
         },
         fitToSelected: function (nClicks) {
             let cy = getCy();
@@ -315,7 +316,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // avoid having to search through everything drawn in the graph when fitting
             // to all selected elements. I may do this eventually but for now it is
             // sufficient to just search through the graph in this callback.
-            cy.fit(cy.$(":selected"));
+            cy.fit(cy.$(":selected"), FIT_PADDING_PX);
         },
         takeScreenshot: function (request) {
             let cy = getCy();
@@ -411,7 +412,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     }
                     eles = eles.union(newEles);
                 }
-                cy.fit(eles);
+                cy.fit(eles, FIT_PADDING_PX);
                 cy.$(":selected").unselect();
                 eles.select();
             }
@@ -457,7 +458,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 // I guess we COULD define some mechanism for passing
                 // config variables from py -> js but whatever
                 if (pathSelectionInfo["path_settings"].indexOf("zoom") >= 0) {
-                    cy.fit(eles);
+                    cy.fit(eles, FIT_PADDING_PX);
                 }
                 cy.$(":selected").unselect();
                 eles.select();
