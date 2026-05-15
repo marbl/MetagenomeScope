@@ -219,7 +219,9 @@ class DrawResults(object):
                 # Detect breakpoints, due to either (1) this region being super
                 # wide by itself or (2) this region being relatively wider than
                 # the next one
-                if lay.width >= long_region_width or (wratio > 2 and len(r.nodes) > 10):
+                if lay.width >= long_region_width or (
+                    wratio > 2 and len(r.nodes) > 10
+                ):
                     # choose this point to cut off the first row
                     row_width = tentative_first_row_width
                     break
