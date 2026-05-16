@@ -1,4 +1,5 @@
 import math
+from collections import defaultdict
 from .. import ui_utils
 from ..errors import WeirdError
 from . import graph_utils
@@ -234,14 +235,14 @@ class DrawResults(object):
 
         x = 0
         curr_row = 0
-        curr_row_max_height = 0
         total_height_without_ypad = 0
         r2xrow = {}
-        row2max_height = {}
+        row2max_height = defaultdict(int)
         # pass 1: compute region positions and row heights
         for r in sorted_regions:
-            end_row_after_adding_this_region = False
             lay = self.region2layout[r]
+
+            end_row_after_adding_this_region = False
             # don't include padding to the RIGHT of this region in
             # the computation of if it can fit in this row. Because if
             # the region fits, but the padding to the right of it doesn't,
@@ -249,19 +250,21 @@ class DrawResults(object):
             # the right of it in this row anyway.
             so_far_width = x + lay.width
             if so_far_width >= row_width:
+                # This layout either hits or goes past row_width, so we
+                # need to move to a new row.
                 if x > 0:
-                    # Need to start a new row. End the current one before
-                    # adding this region; it will be the first thing on
-                    # the next row.
-                    row2max_height[curr_row] = curr_row_max_height
-                    # Move to a new row
+                    # There is already other stuff to the left of us on
+                    # the current row. So, end this row; we'll add
+                    # this region as the first thing on the next row.
                     curr_row += 1
                     x = 0
-                    curr_row_max_height = 0
                 else:
-                    # the width of this region alone is >= row_width!
-                    # wow. let's expand row_width for all rows below
-                    # this one, so that this doesn't stick out awkwardly.
+                    # There is nothing to the left of us on the current
+                    # row. This means that the width of this region alone
+                    # is >= row_width! Wow.
+                    #
+                    # Let's expand row_width for all rows below this one,
+                    # so that this doesn't stick out awkwardly.
                     # (might change this in the future...)
                     row_width = so_far_width
                     end_row_after_adding_this_region = True
@@ -269,13 +272,11 @@ class DrawResults(object):
             r2xrow[r] = (x, curr_row)
 
             x += lay.width + max(min_xpad, xpadfrac * lay.width)
-            curr_row_max_height = max(curr_row_max_height, lay.height)
+            row2max_height[curr_row] = max(row2max_height[curr_row], lay.height)
 
             if end_row_after_adding_this_region:
-                row2max_height[curr_row] = curr_row_max_height
                 curr_row += 1
                 x = 0
-                curr_row_max_height = 0
 
         # account for the last row if needed
         if curr_row not in row2max_height:
