@@ -280,18 +280,18 @@ Because this allows a node to be in two patterns simultaneously, this makes it p
 "Split nodes" and "fake edges" are drawn with distinct visual styles, in order to make them clearer -- split nodes are drawn in a way that looks like the node has been split in half, and fake edges are drawn as thick dashed lines.
 
 <table>
-  <thead>
-    <tr>
-      <th colspan="2">Examples of split nodes</th>
-    </tr>
-  </thead>
   <tbody>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_splitnode_cc17.png" alt="Example split node in the SRS049959 scaffold graph." /></td>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/chr15_full_splitnode.png" alt="Example split nodes in a jumboDBG de Bruijn graph of chromosome 15." /></td>
+    <tr align="center">
+      <td><b>Split nodes in a node-centric graph</b><br/><a href="https://github.com/marbl/MetaCarvel/">MetaCarvel</a> stool metagenome scaffold graph (the "large graph" shown below), component #17</td>
+    </tr>
+    <tr>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_splitnode_cc17.png" alt="Example split nodes in a MetaCarvel graph." /></td>
     </tr>
     <tr align="center">
-      <td><a href="https://github.com/marbl/MetaCarvel/">MetaCarvel</a> stool metagenome scaffold graph (the "large graph" shown below), component #17</td>
-      <td><a href="https://github.com/AntonBankevich/LJA/">jumboDBG</a> de Bruijn graph of human chromosome 15 (available as <tt>chr15_full.gv</tt> in <a href="https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/tests/input"><tt>metagenome/tests/input/</tt></a>)</td>
+      <td><b>Split nodes in an edge-centric graph</b><br/><a href="https://github.com/AntonBankevich/LJA/">jumboDBG</a> de Bruijn graph of human chromosome 15 (available as <tt>chr15_full.gv</tt> in <a href="https://github.com/marbl/MetagenomeScope/tree/main/metagenomescope/tests/input"><tt>metagenome/tests/input/</tt></a>)</td>
+    </tr>
+    <tr>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/chr15_full_splitnode.png" alt="Example split nodes in a jumboDBG graph." /></td>
     </tr>
   </tbody>
 </table>
@@ -412,13 +412,13 @@ mgsc -g august1.gml -a scaffolds_august1_fixed.agp --verbose
       <td><b>Entire graph</b><br/>(on my 2018 laptop this takes about 2.5 minutes to lay out and draw; see tip below)</td>
     </tr>
     <tr>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_all.png" alt="Second largest connected component." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_all.png" alt="Entire stool metagenome scaffold graph." /></td>
     </tr>
     <tr align="center">
-      <td><b>Zoomed in on <tt>scaffold_430</tt> in component #6</b></td>
+      <td><b>Zoomed in on <tt>scaffold_1486</tt> in component #65</b></td>
     </tr>
     <tr>
-      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1cc6_scaffold430.png" alt="Sixth largest connected connected component, zoomed in on a scaffold path." /></td>
+      <td><img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/aug1_scaffold.png" alt="Stool metagenome scaffold graph, zoomed in on a scaffold path." /></td>
     </tr>
   </tbody>
 </table>
