@@ -272,15 +272,13 @@ class DrawResults(object):
             r2xrow[r] = (x, curr_row)
 
             x += lay.width + max(min_xpad, xpadfrac * lay.width)
-            row2max_height[curr_row] = max(row2max_height[curr_row], lay.height)
+            row2max_height[curr_row] = max(
+                row2max_height[curr_row], lay.height
+            )
 
             if end_row_after_adding_this_region:
                 curr_row += 1
                 x = 0
-
-        # account for the last row if needed
-        if curr_row not in row2max_height:
-            row2max_height[curr_row] = curr_row_max_height
 
         # yeah yeah you could infer this by looking at curr_row but then there
         # is weird junk with like what if the last region fell EXACTLY on the
