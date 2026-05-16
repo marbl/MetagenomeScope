@@ -164,10 +164,10 @@ class DrawResults(object):
         #    is > 2x the width of the next-up region R_{N+1}. We define R_N
         #    and all the regions to the left of it (i.e. the bigger regions,
         #    going by sorted_regions) as the first row. (Note that we require
-        #    R_N to have at least 10 nodes. This prevents junk like 2-node
-        #    chain ccs from being "breakpoints" as compared to 1-node ccs.)
-        #    This idea of looking at relative region widths is inspired by
-        #    Bandage.
+        #    R_N to have at least a couple of nodes. This prevents junk like
+        #    2-node chain ccs from being "breakpoints" as compared to 1-node
+        #    ccs.) This idea of looking at relative region widths is inspired
+        #    by Bandage.
         #
         # 2. We find a "breakpoint" caused by a region R_N just being super
         #    wide by itself, independent of whatever the width of R_{N+1} is.
@@ -221,7 +221,7 @@ class DrawResults(object):
                 # wide by itself or (2) this region being relatively wider than
                 # the next one
                 if lay.width >= long_region_width or (
-                    wratio > 2 and len(r.nodes) > 10
+                    wratio > 2 and len(r.nodes) > 5
                 ):
                     # choose this point to cut off the first row
                     row_width = tentative_first_row_width
@@ -250,12 +250,18 @@ class DrawResults(object):
             # the right of it in this row anyway.
             so_far_width = x + lay.width
             if so_far_width >= row_width:
-                # This layout either hits or goes past row_width, so we
-                # need to move to a new row.
-                if x > 0:
-                    # There is already other stuff to the left of us on
-                    # the current row. So, end this row; we'll add
-                    # this region as the first thing on the next row.
+                # This region's layout either hits or goes past row_width,
+                # so we need to move to a new row.
+                if x > 0 and so_far_width > row_width:
+                    # There is already other stuff to the left of us on the
+                    # current row AND this region's layout goes past the end of
+                    # the row. (We check that, using so_far_width > row_width,
+                    # in order to account for "breakpoint" row width cases
+                    # where e.g. the second and third ccs have a breakpoint
+                    # btwn them. Test case for this: Verkko v1.1 hg002 graph.)
+                    #
+                    # Anyway, end this row now; we'll add this region as the
+                    # first thing on the next row.
                     curr_row += 1
                     x = 0
                 else:
