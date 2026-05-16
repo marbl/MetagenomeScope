@@ -781,7 +781,7 @@ Here is an example of how you could do this:
 <hr/>
 </details>
 
-### Patterns
+### Using MetagenomeScope directly through Python
 
 <details>
   <summary><strong>FAQ: How can I run the pattern decomposition process programmatically?</strong></summary>
@@ -804,12 +804,16 @@ At this point:
 
 - All nodes, edges, and patterns will have unique integer IDs. These IDs can be used to look up information about nodes, edges, and patterns in the `ag.nodeid2obj`, `ag.edgeid2obj`, and `ag.pattid2obj` dictionaries, respectively.
 
-Some examples of analyzing the decomposition results:
+Some examples of things you can do with the `AssemblyGraph` object:
 
 ```python
 >>> from metagenomescope.graph import AssemblyGraph
 >>> ag = AssemblyGraph("metagenomescope/tests/input/E_coli_LastGraph")
->>> # Inspect nodes, edges, and patterns
+>>> # How may connected components are in the graph?
+>>> import networkx as nx
+>>> len(list(nx.weakly_connected_components(ag.graph)))
+61
+>>> # Inspect node / edge / pattern MetagenomeScope objects
 >>> ag.nodeid2obj
 {0: Node 0 (name: 1),
  1: Node 1 (name: -1),
@@ -861,6 +865,32 @@ Edge*1639 (orig: 1638 -> 451; new: 1638 -> 451; dec: 1671 -> 1635) True
 ```
 
 This interface should remain relatively stable, although I may change things slightly as development continues. If you have any questions, please reach out.
+
+<hr/>
+</details>
+
+<details>
+  <summary><strong>FAQ: Okay just kidding I actually don't care about patterns. Can I load the graph without running the pattern decomposition process at all?</strong></summary>
+
+<hr/>
+
+You sure ask a lot of questions!
+
+Anyway, the answer is yes.
+Maybe your graph is super large and running decomposition takes too long, or maybe you just want
+to look at the structure of the graph without having to even think about split nodes and fake edges.
+In any case: you can tell MetagenomeScope to skip the pattern decomposition stuff by setting
+`run_decomposition=False` when you initialize the `AssemblyGraph` object:
+
+```python
+>>> from metagenomescope.graph import AssemblyGraph
+>>> ag = AssemblyGraph("graph.gfa", run_decomposition=False)
+```
+
+Now you can mess around with the unmodified `ag.graph` NetworkX object to your heart's content.
+
+If you wanted to, I guess you could use MetagenomeScope as an intermediate assembly graph parser
+in this way. (I mean, that wasn't really why we wrote this software in the first place, but I'm not your mom.)
 
 <hr/>
 </details>
