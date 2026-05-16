@@ -110,9 +110,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Fixed
 
-- Improve connected component tiling, including fixing minor
-  bugs in how we set row widths in certain cases and how we labelled rows
-  internally
+- Improve connected component tiling, including fixing minor bugs in how we set
+  total row widths and in how we labelled rows internally
   ([#358](https://github.com/marbl/MetagenomeScope/issues/358)).
 
   - Inspired by [Bandage](https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/ogdf/energybased/MAARPacking.cpp#L60),
