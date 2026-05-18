@@ -121,6 +121,15 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   "Added" above, this is now controlled by the `--dcheck` command-line flag
   ([#421](https://github.com/marbl/MetagenomeScope/issues/421)).
 
+- Clean up and add some more tests for the path-parsing parts of the code.
+
+- Add some more tests for the GFA-parsing parts of the code.
+
+- Removed some ancient test data / code that was previously in
+  `metagenomescope/tests/input/extras/`.
+
+- Cleaned up the test data descriptions in `metagenomescope/tests/input/README.md`.
+
 ### Fixed
 
 - Improve connected component tiling, including fixing minor bugs in how we set
@@ -133,15 +142,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
   - These changes should be particularly useful for graphs consisting of many
     long linear components.
-
-- Clean up and add some more tests for the path-parsing parts of the code.
-
-- Add some more tests for the GFA-parsing parts of the code.
-
-- Removed some ancient test data / code that was previously in
-  `metagenomescope/tests/input/extras/`.
-
-- Cleaned up the test data descriptions in `metagenomescope/tests/input/README.md`.
 
 - Fix a bug where Flye DOT files with split nodes / fake edges remaining
   after the decomposition would crash the redundant component detection
@@ -178,6 +178,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   are now drawn with slightly thicker strokes. Um, in case that is relevant to
   you. Probably not.
 
+- Clean up the internal formatting of edge control points
+  ([#396](https://github.com/marbl/MetagenomeScope/issues/396)).
+
 ### Fixed
 
 - There are extremely rare cases where Graphviz can "lose" an edge and not
@@ -203,9 +206,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Include additional JavaScript dependencies to make sure that the dagre
   and fCoSE layout methods work consistently
   ([#397](https://github.com/marbl/MetagenomeScope/issues/397)).
-
-- Clean up the internal formatting of edge control points
-  ([#396](https://github.com/marbl/MetagenomeScope/issues/396)).
 
 - Update the `metagenomescope/tests/README.md` file to reflect the switch
   from `setup.py` to `pyproject.toml`.
