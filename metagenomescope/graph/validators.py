@@ -335,18 +335,18 @@ def is_valid_frayed_rope(g, start_node_id):
         return ValidationResults()
 
     # Get the tentative "first middle" node in the rope
-    m1 = list(g.adj[start_node_id].keys())[0]
+    m1 = nx.utils.arbitrary_element(g.adj[start_node_id])
 
     # Now, get all "starting" nodes (the incoming nodes on m1)
-    start_node_ids = list(g.pred[m1].keys())
+    start_node_ids_view = g.pred[m1]
 
     # A frayed rope must have multiple paths from which to converge to
     # the "middle node" section
-    if len(start_node_ids) < 2:
+    if len(start_node_ids_view) < 2:
         return ValidationResults()
 
     # Ensure none of the start nodes have extraneous outgoing nodes
-    for n in start_node_ids:
+    for n in start_node_ids_view:
         if len(g.adj[n]) != 1:
             return ValidationResults()
 
@@ -372,12 +372,14 @@ def is_valid_frayed_rope(g, start_node_id):
         middle_node_ids = [m1]
         last_middle_node = m1
 
-    end_node_ids = list(g.adj[last_middle_node].keys())
+    end_node_ids_view = g.adj[last_middle_node]
 
     # The middle node has to diverge to something for this to be a frayed rope.
-    if len(end_node_ids) < 2:
+    if len(end_node_ids_view) < 2:
         return ValidationResults()
-    for n in end_node_ids:
+
+    start_node_ids_set = set(start_node_ids_view)
+    for n in end_node_ids_view:
         # Check for extraneous incoming edges
         if len(g.pred[n]) != 1:
             return ValidationResults()
@@ -385,13 +387,14 @@ def is_valid_frayed_rope(g, start_node_id):
         # least as of Jan 2026) they look kind of gross and break the expected
         # structure of frayed ropes. If you would like to allow cyclic frayed
         # ropes for some reason, you can un-comment this.
-        for o in list(g.adj[n].keys()):
-            # We know now that all of the ending nodes only have one
-            # incoming node, but we don't know that about the starting
-            # nodes. Make sure that this frayed rope isn't cyclic.
-            if o in start_node_ids:
-                return ValidationResults()
+        if len(set(g.adj[n]) & start_node_ids_set) > 0:
+            return ValidationResults()
 
+    # as with bipartite detection, wait to convert nx views to lists until we
+    # absolutely need to. Not sure if this is a HUGE bottleneck but may as well
+    # save a few trees
+    start_node_ids = list(start_node_ids_view)
+    end_node_ids = list(end_node_ids_view)
     # Check the entire frayed rope's structure
     composite = start_node_ids + middle_node_ids + end_node_ids
 
