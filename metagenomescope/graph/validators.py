@@ -14,6 +14,7 @@
 # catch patterns of patterns.)
 
 
+import networkx as nx
 from metagenomescope import config, misc_utils
 from metagenomescope.errors import WeirdError
 
@@ -1234,21 +1235,23 @@ def is_valid_bipartite(g, start_node_id):
     """
     verify_node_in_graph(g, start_node_id)
 
-    layer2 = list(g.adj[start_node_id])
-    if len(layer2) < 2:
+    # Defer converting layer 1 and layer 2 into lists until we need to.
+    # Maybe this will speed things up a bit?
+    layer2_view = g.adj[start_node_id]
+    if len(layer2_view) < 2:
         return ValidationResults()
 
-    layer1 = list(g.pred[layer2[0]])
-    if len(layer1) < 2:
+    layer1_view = g.pred[nx.utils.arbitrary_element(layer2_view)]
+    if len(layer1_view) < 2:
         return ValidationResults()
-    if len(set(layer1) & set(layer2)) > 0:
+    if len(set(layer1_view) & set(layer2_view)) > 0:
         return ValidationResults()
 
-    for n1 in layer1:
-        if len(g.adj[n1]) != len(layer2):
+    for n1 in layer1_view:
+        if len(g.adj[n1]) != len(layer2_view):
             return ValidationResults()
-        for n2 in layer2:
-            if len(g.pred[n2]) != len(layer1):
+        for n2 in layer2_view:
+            if len(g.pred[n2]) != len(layer1_view):
                 return ValidationResults()
             if n2 not in g.adj[n1] or len(g.adj[n1][n2]) != 1:
                 return ValidationResults()
@@ -1256,6 +1259,8 @@ def is_valid_bipartite(g, start_node_id):
             if n1 in g.adj[n2]:
                 return ValidationResults()
 
+    layer1 = list(layer1_view)
+    layer2 = list(layer2_view)
     return ValidationResults(
         config.PT_BIPARTITE, True, layer1 + layer2, layer1, layer2
     )
