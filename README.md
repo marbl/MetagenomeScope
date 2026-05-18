@@ -209,12 +209,10 @@ _See [Flye's documentation](https://github.com/mikolmogorov/Flye/blob/flye/docs/
   - We will visualize the edge-paths described in the `.txt` file.
 
 **If your graph is in GFA format:**
-  - The contigs in the GFA file should correspond to collapsed edge-paths in the `.txt` file, so we can't really visualize these edge-paths.
-
-  - However, if there are node names in the GFA file that match up with row names in the `.txt` file, we will extract information from the `.txt` file (e.g. coverage) and show it in the interface as node data.
+  - If there are node names in the GFA file that match up with row names in the `.txt` file, we will extract information from the `.txt` file (e.g. coverage) and show it in the interface as node data.
 
 **If your graph is not in DOT or GFA format:**
-  - We will ignore the `.txt` file. Flye should only generate DOT or GFA files, so like... where did you even get this data from :skull:
+  - We will ignore the `.txt` file. (Since Flye should only generate DOT or GFA assembly graphs, at least to my knowledge?)
 
 <hr/>
 </details>
