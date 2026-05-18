@@ -8,6 +8,15 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 ## [Unreleased]
 [Unreleased]: https://github.com/marbl/MetagenomeScope/compare/v1.3.0...HEAD
 
+### Added
+
+### Changed
+
+- Speed up frayed rope and bipartite detection somewhat
+  ([#431](https://github.com/marbl/MetagenomeScope/issues/431)).
+
+### Fixed
+
 
 ## [v1.3.0] - 2026-05-15 - GFA handling improvements, better component tiling, various CLI options
 [v1.3.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.3.0
