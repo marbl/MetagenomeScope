@@ -1238,28 +1238,53 @@ def is_valid_bipartite(g, start_node_id):
     """
     verify_node_in_graph(g, start_node_id)
 
-    # Defer converting layer 1 and layer 2 into lists until we need to.
-    # Maybe this will speed things up a bit?
+    # Defer converting layer 1 and layer 2 into lists until we need to
     layer2_view = g.adj[start_node_id]
+
+    # Both layer 1 and layer 2 should have at least 2 nodes
     if len(layer2_view) < 2:
         return ValidationResults()
-
     layer1_view = g.pred[nx.utils.arbitrary_element(layer2_view)]
     if len(layer1_view) < 2:
         return ValidationResults()
-    if len(set(layer1_view) & set(layer2_view)) > 0:
+
+    # ... and no nodes should be present in both layer 1 and layer 2
+    layer1_set = set(layer1_view)
+    layer2_set = set(layer2_view)
+    if len(layer1_set & layer2_set) > 0:
         return ValidationResults()
 
+    layer2_out_nodes = set()
+    # Fail if any node in layer 2 doesn't have exactly |layer 1| incoming nodes
+    for n2 in layer2_view:
+        n2_pred = g.pred[n2]
+        if len(n2_pred) != len(layer1_view):
+            return ValidationResults()
+        # also, build up a set of all outgoing nodes from the nodes in layer 2
+        layer2_out_nodes.update(g.adj[n2])
+
+    # Vice versa to above: fail if any node in layer 1 doesn't have exactly
+    # |layer 2| outgoing nodes
     for n1 in layer1_view:
         if len(g.adj[n1]) != len(layer2_view):
             return ValidationResults()
+        # also, disallow direct edges from layer 2 back to layer 1 using the
+        # set of outgoing nodes from layer 2 that we previously built up
+        if n1 in layer2_out_nodes:
+            return ValidationResults()
+
+    # At this point, things mostly look good. All that is left is to check
+    # that the in-nodes of layer 2 and the out-nodes of layer 1 actually
+    # correspond to the opposite layer, and are not connected by parallel
+    # edges.
+    #
+    # This could probably be sped up or integrated into the above checks,
+    # but at least this quadratic check is deferred until later on in the
+    # function (so hopefully we have already eliminated a lot of other
+    # invalid patterns by this point)
+    for n1 in layer1_view:
         for n2 in layer2_view:
-            if len(g.pred[n2]) != len(layer1_view):
-                return ValidationResults()
             if n2 not in g.adj[n1] or len(g.adj[n1][n2]) != 1:
-                return ValidationResults()
-            # disallow direct edges from layer 2 back to layer 1
-            if n1 in g.adj[n2]:
                 return ValidationResults()
 
     layer1 = list(layer1_view)
