@@ -26,8 +26,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   the input graph is node-centric or not. (Node-centric graphs get thicker
   edges by default.)
 
-- By default, selecting a node now darkens it instead of giving it a border.
-  This is configurable using the new "Style" section controls.
+- By default, selecting a node now darkens it (and changes its label font
+  from black to light gray) instead of giving it a border.
+  You can choose to use borders instead of (or in addition to!) this behavior
+  by using the new "Style" section controls.
 
 - Various improvements to the README.
 
