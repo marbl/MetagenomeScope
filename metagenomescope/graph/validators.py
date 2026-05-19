@@ -840,7 +840,7 @@ def is_valid_chain(g, start_node_id):
 
     start_adj = g.adj[start_node_id]
 
-    # fail if starting node doesn't have an outgoing edge to exactly one node
+    # fail if starting node doesn't have one outgoing edge to exactly one node
     if not_single_edge(start_adj):
         return ValidationResults()
 
