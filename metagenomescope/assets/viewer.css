@@ -206,7 +206,7 @@ label:has(#fcoseAlgSpan).active {
 }
 
 h6 {
-    font-weight: bold;
+    font-weight: bold !important;
 }
 
 /* position the dash dev tools UI a bit higher than the bottom of the
