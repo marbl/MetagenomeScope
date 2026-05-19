@@ -1489,7 +1489,14 @@ def get_style_options_tab(node_centric):
     return html.Div(
         [
             html.Div(
-                'Click "Apply" to make these settings take effect.',
+                [
+                    'Click "',
+                    html.Span(
+                        "Apply",
+                        className="text-success",
+                    ),
+                    '" to make these settings take effect.',
+                ],
                 className="drawing-option-topnote",
             ),
             html.H5("When a node is selected..."),
