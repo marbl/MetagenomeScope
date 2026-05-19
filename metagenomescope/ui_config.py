@@ -113,10 +113,10 @@ NODECENTRIC_2_DEFAULT_DOT_RANKSEP = {True: 0.5, False: 1}
 NODECENTRIC_2_DEFAULT_LABELFONTSIZE = {True: 1, False: 0.5}
 
 # values are in px, per cy.edges()[0].numericStyleUnits("width")
-NODECENTRIC_2_REAL_DEFAULT_EDGEWIDTH = {True: 6, False: 3}
-NODECENTRIC_2_REAL_SELECTED_EDGEWIDTH = {True: 10, False: 8}
-NODECENTRIC_2_FAKE_DEFAULT_EDGEWIDTH = {True: 10, False: 8}
-NODECENTRIC_2_FAKE_SELECTED_EDGEWIDTH = {True: 12, False: 10}
+NODECENTRIC_2_REAL_DEFAULT_EDGEWIDTH = {True: 7, False: 3}
+NODECENTRIC_2_REAL_SELECTED_EDGEWIDTH = {True: 14, False: 8}
+NODECENTRIC_2_FAKE_DEFAULT_EDGEWIDTH = {True: 14, False: 8}
+NODECENTRIC_2_FAKE_SELECTED_EDGEWIDTH = {True: 18, False: 10}
 
 ###############################################################################
 # Coloring UI

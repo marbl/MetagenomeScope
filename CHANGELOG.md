@@ -8,12 +8,26 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 ## [Unreleased]
 [Unreleased]: https://github.com/marbl/MetagenomeScope/compare/v1.3.0...HEAD
 
+### Added
+
+- Add a new section, "Style," in the drawing options dialog.
+
+  - Currently, this contains controls that can be used to change how selected
+    nodes are represented, and how wide various types of edges should be.
+
 ### Changed
 
 - Dramatically speed up pattern decomposition, mostly by addressing a
-  bottleneck in bipartite finding
+  bottleneck in the bipartite-finding code
   ([#431](https://github.com/marbl/MetagenomeScope/issues/431),
   [#433](https://github.com/marbl/MetagenomeScope/issues/433)).
+
+- Adjust default edge widths, and vary these defaults based on whether or not
+  the input graph is node-centric or not. (Node-centric graphs get thicker
+  edges by default.)
+
+- By default, selecting a node now darkens it instead of giving it a border.
+  This is configurable using the new "Style" section controls.
 
 - Various improvements to the README.
 
