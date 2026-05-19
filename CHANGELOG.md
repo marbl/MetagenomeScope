@@ -31,9 +31,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   You can choose to use borders instead of (or in addition to!) this behavior
   by using the new "Style" section controls.
 
-- Automatically scale the outline width for labels based on the current label font size
+- Automatically scale the outline width for labels based on the current label font size.
+  The "Outline" option should now look nicer for large-font-size labels
   ([#427](https://github.com/marbl/MetagenomeScope/issues/427)).
-  The "Outline" option should now look nicer for large-font-size labels.
 
 - Various improvements to the README.
 
