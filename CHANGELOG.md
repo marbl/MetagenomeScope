@@ -10,8 +10,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Changed
 
-- Dramatically speed up pattern decomposition (mostly by addressing a
-  bottleneck in bipartite finding)
+- Dramatically speed up pattern decomposition, mostly by addressing a
+  bottleneck in bipartite finding
   ([#431](https://github.com/marbl/MetagenomeScope/issues/431),
   [#433](https://github.com/marbl/MetagenomeScope/issues/433)).
 
