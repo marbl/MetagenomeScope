@@ -1254,23 +1254,20 @@ def is_valid_bipartite(g, start_node_id):
     if len(layer1_set & layer2_set) > 0:
         return ValidationResults()
 
-    layer2_out_nodes = set()
     # Fail if any node in layer 2 doesn't have exactly |layer 1| incoming nodes
     for n2 in layer2_view:
         n2_pred = g.pred[n2]
         if len(n2_pred) != len(layer1_view):
             return ValidationResults()
-        # also, build up a set of all outgoing nodes from the nodes in layer 2
-        layer2_out_nodes.update(g.adj[n2])
+        # Also, disallow direct edges from layer 2 back to layer 1
+        # (i.e. cyclic bipartites)
+        if len(layer1_set & set(g.adj[n2])) > 0:
+            return ValidationResults()
 
     # Vice versa to above: fail if any node in layer 1 doesn't have exactly
     # |layer 2| outgoing nodes
     for n1 in layer1_view:
         if len(g.adj[n1]) != len(layer2_view):
-            return ValidationResults()
-        # also, disallow direct edges from layer 2 back to layer 1 using the
-        # set of outgoing nodes from layer 2 that we previously built up
-        if n1 in layer2_out_nodes:
             return ValidationResults()
 
     # At this point, things mostly look good. All that is left is to check
