@@ -1141,9 +1141,7 @@ def use_gv_ports(draw_settings):
     return ui_config.USE_GV_PORTS in draw_settings
 
 
-def get_layout_options_tab(node_centric):
-
-    # Prepare fancy descriptions of layout algorithms
+def get_dot_alg_descriptions():
     etal_text = html.Span(
         [html.Span("et al", style={"font-style": "italic"}), ".,"]
     )
@@ -1180,7 +1178,6 @@ def get_layout_options_tab(node_centric):
             id="dotAlgPatternDesc",
         ),
     ]
-
     if (
         ui_config.SHOW_PATTERNS in ui_config.DEFAULT_DRAW_SETTINGS
         and ui_config.DO_RECURSIVE_LAYOUT in ui_config.DEFAULT_DRAW_SETTINGS
@@ -1188,6 +1185,10 @@ def get_layout_options_tab(node_centric):
         dot_alg_desc_used = DOT_ALG_DESC_PATTS
     else:
         dot_alg_desc_used = DOT_ALG_DESC
+    return DOT_ALG_DESC, DOT_ALG_DESC_PATTS, dot_alg_desc_used
+
+
+def get_layout_options_tab(node_centric, default_dot_alg_desc):
 
     JS_ALG_WARNING = html.P(
         [
@@ -1228,259 +1229,270 @@ def get_layout_options_tab(node_centric):
         JS_ALG_WARNING,
     ]
 
-    return (
-        html.Div(
-            [
-                html.P(
-                    (
-                        "These settings will take "
-                        "effect when you redraw the graph."
-                    ),
-                    className="drawing-option-topnote",
+    return html.Div(
+        [
+            html.Div(
+                (
+                    "These settings will take "
+                    "effect when you redraw the graph."
                 ),
-                html.H5("Modifiers"),
-                # Eventually we can add other stuff here, e.g. "filter
-                # nodes/edges with < X cov"
-                #
-                # I'm sticking with a standard dcc.Checklist (rather than
-                # dbc.Checklist) because I don't like the default formatting
-                # of their inline checklists. Even after doing some massaging
-                # to make the margins better, there is still an ugly
-                # unclickable region between the checkbox and label... maybe I
-                # am just doing something wrong, but I think the UX of the
-                # dcc.Checklist is better.
-                html.Div(
-                    dcc.Checklist(
-                        options=ui_config.DRAW_SETTINGS_OPTIONS,
-                        value=ui_config.DEFAULT_DRAW_SETTINGS,
-                        id="drawSettingsChecklist",
-                    ),
-                    className="form-check fancyChecklistInDialog",
+                className="drawing-option-topnote",
+            ),
+            html.H5("Modifiers"),
+            # Eventually we can add other stuff here, e.g. "filter
+            # nodes/edges with < X cov"
+            #
+            # I'm sticking with a standard dcc.Checklist (rather than
+            # dbc.Checklist) because I don't like the default formatting
+            # of their inline checklists. Even after doing some massaging
+            # to make the margins better, there is still an ugly
+            # unclickable region between the checkbox and label... maybe I
+            # am just doing something wrong, but I think the UX of the
+            # dcc.Checklist is better.
+            html.Div(
+                dcc.Checklist(
+                    options=ui_config.DRAW_SETTINGS_OPTIONS,
+                    value=ui_config.DEFAULT_DRAW_SETTINGS,
+                    id="drawSettingsChecklist",
                 ),
-                html.Br(),
-                html.H5("Layout algorithm"),
-                html.Div(
-                    [
-                        html.Div(
-                            dbc.RadioItems(
-                                options=[
-                                    {
-                                        "label": html.Span(
-                                            [
-                                                html.I(
-                                                    className="bi bi-arrow-right"
-                                                ),
-                                                html.Span(
-                                                    ui_config.DOT_TEXT,
-                                                    className="iconlbl",
-                                                ),
-                                            ],
-                                            id="dotAlgSpan",
-                                        ),
-                                        "value": ui_config.LAYOUT_DOT,
-                                    },
-                                    {
-                                        "label": html.Span(
-                                            [
-                                                html.I(className="bi bi-snow"),
-                                                html.Span(
-                                                    "sfdp",
-                                                    className="iconlbl",
-                                                ),
-                                            ],
-                                            id="sfdpAlgSpan",
-                                        ),
-                                        "value": ui_config.LAYOUT_SFDP,
-                                    },
-                                    {
-                                        "label": html.Span(
-                                            [
-                                                html.I(
-                                                    className="bi bi-arrow-right"
-                                                ),
-                                                html.Span(
-                                                    "Dagre",
-                                                    className="iconlbl",
-                                                ),
-                                            ],
-                                            id="dagreAlgSpan",
-                                        ),
-                                        "value": ui_config.LAYOUT_DAGRE,
-                                    },
-                                    {
-                                        "label": html.Span(
-                                            [
-                                                html.I(className="bi bi-snow"),
-                                                html.Span(
-                                                    "fCoSE",
-                                                    className="iconlbl",
-                                                ),
-                                            ],
-                                            id="fcoseAlgSpan",
-                                        ),
-                                        "value": ui_config.LAYOUT_FCOSE,
-                                    },
-                                ],
-                                value=ui_config.DEFAULT_LAYOUT_ALG,
-                                className="btn-group",
-                                inputClassName="btn-check",
-                                labelClassName="btn btn-outline-dark layout-alg-btn",
-                                labelCheckedClassName="active",
-                                id="layoutAlgRadio",
-                            ),
-                            className="btn-opt-group",
-                            style={
-                                "margin-top": "0.75em",
-                                "margin-bottom": "0.75em",
-                            },
-                        ),
-                        html.Div(
-                            dot_alg_desc_used,
-                            id="dotAlgDesc",
-                            className=css_config.ALG_DESC_CLASSES
-                            + (
-                                " removedEntirely"
-                                if ui_config.DEFAULT_LAYOUT_ALG
-                                != ui_config.LAYOUT_DOT
-                                else ""
-                            ),
-                        ),
-                        html.Div(
-                            html.P(
-                                [
-                                    "Force-directed layout algorithm described in ",
-                                    html.A(
-                                        "Hu 2005",
-                                        href="http://yifanhu.net/PUB/graph_draw_small.pdf",
-                                        target="_blank",
-                                    ),
-                                    ' ("Efficient and high quality force-directed graph '
-                                    'drawing").',
-                                ]
-                            ),
-                            id="sfdpAlgDesc",
-                            className=css_config.ALG_DESC_CLASSES
-                            + (
-                                " removedEntirely"
-                                if ui_config.DEFAULT_LAYOUT_ALG
-                                != ui_config.LAYOUT_SFDP
-                                else ""
-                            ),
-                        ),
-                        html.Div(
-                            DAGRE_ALG_DESC,
-                            id="dagreAlgDesc",
-                            className=css_config.ALG_DESC_CLASSES
-                            + (
-                                " removedEntirely"
-                                if ui_config.DEFAULT_LAYOUT_ALG
-                                != ui_config.LAYOUT_DAGRE
-                                else ""
-                            ),
-                        ),
-                        html.Div(
-                            FCOSE_ALG_DESC,
-                            id="fcoseAlgDesc",
-                            className=css_config.ALG_DESC_CLASSES
-                            + (
-                                " removedEntirely"
-                                if ui_config.DEFAULT_LAYOUT_ALG
-                                != ui_config.LAYOUT_FCOSE
-                                else ""
-                            ),
-                        ),
-                    ],
-                    style={"text-align": "center"},
-                ),
-                html.Br(),
-                html.H5("Parameters"),
-                html.Div(
-                    [
-                        dbc.InputGroup(
-                            [
-                                dbc.InputGroupText(
-                                    html.Span(
+                className="form-check fancyChecklistInDialog",
+            ),
+            html.Br(),
+            html.H5("Layout algorithm"),
+            html.Div(
+                [
+                    html.Div(
+                        dbc.RadioItems(
+                            options=[
+                                {
+                                    "label": html.Span(
                                         [
-                                            html.A(
-                                                "Rank separation",
-                                                href="https://graphviz.org/docs/attrs/ranksep/",
-                                                target="_blank",
+                                            html.I(
+                                                className="bi bi-arrow-right"
                                             ),
-                                            " (",
-                                            ui_config.DOT_TEXT,
-                                            " only)",
-                                        ],
-                                    ),
-                                ),
-                                dbc.Input(
-                                    type="text",
-                                    id="dotRanksep",
-                                    value=ui_config.NODECENTRIC_2_DEFAULT_DOT_RANKSEP[
-                                        node_centric
-                                    ],
-                                    className="short-num-input",
-                                ),
-                            ],
-                            size="sm",
-                        ),
-                        ui_config.OPTIONS_SEP,
-                        dbc.InputGroup(
-                            [
-                                dbc.InputGroupText(
-                                    html.Span(
-                                        [
                                             html.Span(
-                                                "K",
-                                                style={"font-style": "italic"},
+                                                ui_config.DOT_TEXT,
+                                                className="iconlbl",
                                             ),
-                                            " (",
-                                            html.A(
-                                                "spring constant",
-                                                href="https://graphviz.org/docs/attrs/K/",
-                                                target="_blank",
-                                            ),
-                                            ", sfdp only)",
                                         ],
+                                        id="dotAlgSpan",
                                     ),
-                                ),
-                                dbc.Input(
-                                    type="text",
-                                    id="sfdpK",
-                                    value=0.3,
-                                    className="short-num-input",
-                                ),
-                            ],
-                            size="sm",
-                        ),
-                        ui_config.OPTIONS_SEP,
-                        dbc.InputGroup(
-                            [
-                                dbc.InputGroupText(
-                                    html.Span(
+                                    "value": ui_config.LAYOUT_DOT,
+                                },
+                                {
+                                    "label": html.Span(
                                         [
-                                            html.A(
-                                                "Overlap scaling factor",
-                                                href="https://graphviz.org/docs/attrs/overlap_scaling/",
-                                                target="_blank",
+                                            html.I(className="bi bi-snow"),
+                                            html.Span(
+                                                "sfdp",
+                                                className="iconlbl",
                                             ),
-                                            " (sfdp only)",
                                         ],
+                                        id="sfdpAlgSpan",
                                     ),
-                                ),
-                                dbc.Input(
-                                    type="text",
-                                    id="sfdpOverlapScaling",
-                                    value=-10,
-                                    className="short-num-input",
-                                ),
+                                    "value": ui_config.LAYOUT_SFDP,
+                                },
+                                {
+                                    "label": html.Span(
+                                        [
+                                            html.I(
+                                                className="bi bi-arrow-right"
+                                            ),
+                                            html.Span(
+                                                "Dagre",
+                                                className="iconlbl",
+                                            ),
+                                        ],
+                                        id="dagreAlgSpan",
+                                    ),
+                                    "value": ui_config.LAYOUT_DAGRE,
+                                },
+                                {
+                                    "label": html.Span(
+                                        [
+                                            html.I(className="bi bi-snow"),
+                                            html.Span(
+                                                "fCoSE",
+                                                className="iconlbl",
+                                            ),
+                                        ],
+                                        id="fcoseAlgSpan",
+                                    ),
+                                    "value": ui_config.LAYOUT_FCOSE,
+                                },
                             ],
-                            size="sm",
+                            value=ui_config.DEFAULT_LAYOUT_ALG,
+                            className="btn-group",
+                            inputClassName="btn-check",
+                            labelClassName="btn btn-outline-dark layout-alg-btn",
+                            labelCheckedClassName="active",
+                            id="layoutAlgRadio",
                         ),
-                    ],
-                    style={
-                        "margin-top": "0.75em",
-                    },
-                ),
-            ],
-        ),
+                        className="btn-opt-group",
+                        style={
+                            "margin-top": "0.75em",
+                            "margin-bottom": "0.75em",
+                        },
+                    ),
+                    html.Div(
+                        default_dot_alg_desc,
+                        id="dotAlgDesc",
+                        className=css_config.ALG_DESC_CLASSES
+                        + (
+                            " removedEntirely"
+                            if ui_config.DEFAULT_LAYOUT_ALG
+                            != ui_config.LAYOUT_DOT
+                            else ""
+                        ),
+                    ),
+                    html.Div(
+                        html.P(
+                            [
+                                "Force-directed layout algorithm described in ",
+                                html.A(
+                                    "Hu 2005",
+                                    href="http://yifanhu.net/PUB/graph_draw_small.pdf",
+                                    target="_blank",
+                                ),
+                                ' ("Efficient and high quality force-directed graph '
+                                'drawing").',
+                            ]
+                        ),
+                        id="sfdpAlgDesc",
+                        className=css_config.ALG_DESC_CLASSES
+                        + (
+                            " removedEntirely"
+                            if ui_config.DEFAULT_LAYOUT_ALG
+                            != ui_config.LAYOUT_SFDP
+                            else ""
+                        ),
+                    ),
+                    html.Div(
+                        DAGRE_ALG_DESC,
+                        id="dagreAlgDesc",
+                        className=css_config.ALG_DESC_CLASSES
+                        + (
+                            " removedEntirely"
+                            if ui_config.DEFAULT_LAYOUT_ALG
+                            != ui_config.LAYOUT_DAGRE
+                            else ""
+                        ),
+                    ),
+                    html.Div(
+                        FCOSE_ALG_DESC,
+                        id="fcoseAlgDesc",
+                        className=css_config.ALG_DESC_CLASSES
+                        + (
+                            " removedEntirely"
+                            if ui_config.DEFAULT_LAYOUT_ALG
+                            != ui_config.LAYOUT_FCOSE
+                            else ""
+                        ),
+                    ),
+                ],
+                style={"text-align": "center"},
+            ),
+            html.Br(),
+            html.H5("Parameters"),
+            html.Div(
+                [
+                    dbc.InputGroup(
+                        [
+                            dbc.InputGroupText(
+                                html.Span(
+                                    [
+                                        html.A(
+                                            "Rank separation",
+                                            href="https://graphviz.org/docs/attrs/ranksep/",
+                                            target="_blank",
+                                        ),
+                                        " (",
+                                        ui_config.DOT_TEXT,
+                                        " only)",
+                                    ],
+                                ),
+                            ),
+                            dbc.Input(
+                                type="text",
+                                id="dotRanksep",
+                                value=ui_config.NODECENTRIC_2_DEFAULT_DOT_RANKSEP[
+                                    node_centric
+                                ],
+                                className="short-num-input",
+                            ),
+                        ],
+                        size="sm",
+                    ),
+                    ui_config.OPTIONS_SEP,
+                    dbc.InputGroup(
+                        [
+                            dbc.InputGroupText(
+                                html.Span(
+                                    [
+                                        html.Span(
+                                            "K",
+                                            style={"font-style": "italic"},
+                                        ),
+                                        " (",
+                                        html.A(
+                                            "spring constant",
+                                            href="https://graphviz.org/docs/attrs/K/",
+                                            target="_blank",
+                                        ),
+                                        ", sfdp only)",
+                                    ],
+                                ),
+                            ),
+                            dbc.Input(
+                                type="text",
+                                id="sfdpK",
+                                value=0.3,
+                                className="short-num-input",
+                            ),
+                        ],
+                        size="sm",
+                    ),
+                    ui_config.OPTIONS_SEP,
+                    dbc.InputGroup(
+                        [
+                            dbc.InputGroupText(
+                                html.Span(
+                                    [
+                                        html.A(
+                                            "Overlap scaling factor",
+                                            href="https://graphviz.org/docs/attrs/overlap_scaling/",
+                                            target="_blank",
+                                        ),
+                                        " (sfdp only)",
+                                    ],
+                                ),
+                            ),
+                            dbc.Input(
+                                type="text",
+                                id="sfdpOverlapScaling",
+                                value=-10,
+                                className="short-num-input",
+                            ),
+                        ],
+                        size="sm",
+                    ),
+                ],
+                style={
+                    "margin-top": "0.75em",
+                },
+            ),
+        ],
+    )
+
+
+def get_style_options_tab(node_centric):
+    return html.Div(
+        [
+            html.Div(
+                'Click "Apply" to make these settings take effect.',
+                className="drawing-option-topnote",
+            ),
+            html.H5("Selected Nodes"),
+            html.H5("Edge Widths"),
+        ]
     )

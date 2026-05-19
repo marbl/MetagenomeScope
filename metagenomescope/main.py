@@ -136,6 +136,10 @@ def run(
     else:
         default_labels = ui_config.DEFAULT_LABELS_EDGE_CENTRIC
 
+    DOT_ALG_DESC, DOT_ALG_DESC_PATTS, default_dot_alg_desc = (
+        ui_utils.get_dot_alg_descriptions()
+    )
+
     # If there are multiple components, show a "Components" tab in the info
     # dialog with information about these components. Also show various options
     # for selecting which component(s) to draw.
@@ -1630,7 +1634,22 @@ def run(
                         ]
                     ),
                     dbc.ModalBody(
-                        ui_utils.get_layout_options_tab(ag.node_centric)
+                        dbc.Tabs(
+                            [
+                                dbc.Tab(
+                                    ui_utils.get_layout_options_tab(
+                                        ag.node_centric, default_dot_alg_desc
+                                    ),
+                                    label="Layout",
+                                ),
+                                dbc.Tab(
+                                    ui_utils.get_style_options_tab(
+                                        ag.node_centric
+                                    ),
+                                    label="Style",
+                                ),
+                            ]
+                        ),
                     ),
                 ],
                 id="modal",
