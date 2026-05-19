@@ -15,6 +15,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   ([#431](https://github.com/marbl/MetagenomeScope/issues/431),
   [#433](https://github.com/marbl/MetagenomeScope/issues/433)).
 
+- Various improvements to the README.
+
 
 ## [v1.3.0] - 2026-05-15 - GFA handling improvements, better component tiling, various CLI options
 [v1.3.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.3.0
@@ -58,8 +60,6 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
   - _By default,_ this is set to `--no-dcheck`: that is, this sanity check is
     turned off.
-
-- Various updates to the README.
 
 ### Changed
 
@@ -128,6 +128,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Cleaned up the test data descriptions in `metagenomescope/tests/input/README.md`.
 
+- Various updates to the README.
+
 ### Fixed
 
 - Improve connected component tiling, including fixing minor bugs in how we set
@@ -155,8 +157,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   entire graph _but_ draws perfectly reverse-complementary components
   only once ([#67](https://github.com/marbl/MetagenomeScope/issues/67)).
 
-- Tidy up the README in various ways, including updating screenshots
-  and adding bioconda installation instructions
+- Add bioconda installation instructions to the README
   ([#302](https://github.com/marbl/MetagenomeScope/issues/302)).
 
 - Add a brief note in the "drawing options" dialog that the client-side layout
@@ -178,6 +179,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Clean up the internal formatting of edge control points
   ([#396](https://github.com/marbl/MetagenomeScope/issues/396)).
+
+- Tidy up the README in various ways (e.g. updating screenshots).
 
 ### Fixed
 
