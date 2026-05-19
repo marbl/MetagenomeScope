@@ -539,6 +539,12 @@ button {
      * for long things like the info table */
     overflow-x: auto;
 }
+
+.drawing-option-topnote {
+    font-style: italic;
+    text-align: center;
+}
+
 .progress {
     margin-bottom: 0px;
 }
