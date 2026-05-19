@@ -837,15 +837,20 @@ def is_valid_chain(g, start_node_id):
       output in this particular case should be the same.)
     """
     verify_node_in_graph(g, start_node_id)
-    out_node_ids = list(g.adj[start_node_id].keys())
-    # If the starting node doesn't have an outgoing edge to exactly one
-    # node -- or even if it does, but if that node is itself -- then this
-    # isn't a valid chain
-    if len(out_node_ids) != 1 or out_node_ids[0] == start_node_id:
+
+    start_adj = g.adj[start_node_id]
+
+    # fail if starting node doesn't have an outgoing edge to exactly one node
+    if not_single_edge(start_adj):
+        return ValidationResults()
+
+    # ... or if it has an edge to itself
+    only_node_after_start = nx.utils.arbitrary_element(start_adj)
+    if only_node_after_start == start_node_id:
         return ValidationResults()
 
     chain_list = [start_node_id]
-    curr_node_id = out_node_ids[0]
+    curr_node_id = only_node_after_start
     chain_ends_cyclically = False
     # Iterate "down" through the chain
     while True:
@@ -857,7 +862,6 @@ def is_valid_chain(g, start_node_id):
             break
 
         adj = g.adj[curr_node_id]
-        out_curr_node_ids = list(adj.keys())
         if not_single_edge(adj):
             # Like above, this means the end of the chain, but there are
             # multiple ways we can handle this.
@@ -871,10 +875,7 @@ def is_valid_chain(g, start_node_id):
             # (and not any of the other nodes already in chain_list) is
             # that we already know that the other stuff in chain_list has
             # only one incoming node, etc.
-            if (
-                len(out_curr_node_ids) >= 1
-                and start_node_id in out_curr_node_ids
-            ):
+            if len(adj) >= 1 and start_node_id in adj:
                 chain_ends_cyclically = True
             else:
                 # If we made it here, then the chain does not end
@@ -888,14 +889,15 @@ def is_valid_chain(g, start_node_id):
             break
 
         # See the above comment re: cyclic outgoing edges -- same thing
-        # here, but in the case where len(out_curr_node_ids) == 1.
-        if out_curr_node_ids[0] == start_node_id:
+        # here, but in the case where len(adj) == 1.
+        only_node_after_curr = nx.utils.arbitrary_element(adj)
+        if only_node_after_curr == start_node_id:
             chain_ends_cyclically = True
             break
 
         # If we made it all the way down here, the chain is still going on!
         chain_list.append(curr_node_id)
-        curr_node_id = out_curr_node_ids[0]
+        curr_node_id = only_node_after_curr
 
     # At this point, we're done iterating down the chain.
     if len(chain_list) <= 1 or chain_ends_cyclically:
@@ -908,7 +910,6 @@ def is_valid_chain(g, start_node_id):
         return ValidationResults()
 
     pred = g.pred[start_node_id]
-    in_node_ids = list(pred.keys())
     if not_single_edge(pred):
         # We can't extend the chain "backwards" from the start,
         # so just return what we have currently. This is an "optimal" chain
@@ -931,7 +932,7 @@ def is_valid_chain(g, start_node_id):
     # start at a node "before" start_node_id? To figure that out, we
     # basically just repeat what we did above but in reverse.
     backwards_chain_list = []
-    curr_node_id = in_node_ids[0]
+    curr_node_id = nx.utils.arbitrary_element(pred)
     while True:
         adj = g.adj[curr_node_id]
         if not_single_edge(adj):
@@ -941,9 +942,8 @@ def is_valid_chain(g, start_node_id):
             break
 
         pred = g.pred[curr_node_id]
-        in_curr_node_ids = list(pred.keys())
 
-        if len(set(in_curr_node_ids) & set(chain_list)) > 0:
+        if len(set(pred) & set(chain_list)) > 0:
             # The chain "begins" cyclically, so we'll tag it as a
             # cyclic chain later on.
             return ValidationResults()
@@ -956,7 +956,7 @@ def is_valid_chain(g, start_node_id):
 
         # At this point, we can safely continue moving "back".
         backwards_chain_list.append(curr_node_id)
-        curr_node_id = in_curr_node_ids[0]
+        curr_node_id = nx.utils.arbitrary_element(pred)
 
     # At this point, we're done iterating "backwards" up the chain.
 
@@ -1122,7 +1122,7 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     # check here -- if this is *not* the case, then we fail loudly.
     cs_adj = g.adj[start_node_id]
     fail_if_not_single_edge(cs_adj, start_node_id, "outgoing")
-    next_node_id = list(cs_adj)[0]
+    next_node_id = nx.utils.arbitrary_element(cs_adj)
     if is_edge_fake_and_trivial(
         g,
         start_node_id,
@@ -1145,7 +1145,7 @@ def is_valid_chain_trimmed_etfes(g, start_node_id, nodeid2obj, edgeid2obj):
     # Trim off the ETFE from the end (right side) of this chain, if present.
     ce_pred = g.pred[end_node_id]
     fail_if_not_single_edge(ce_pred, end_node_id, "incoming")
-    prev_node_id = list(ce_pred)[0]
+    prev_node_id = nx.utils.arbitrary_element(ce_pred)
     if is_edge_fake_and_trivial(
         g,
         prev_node_id,
