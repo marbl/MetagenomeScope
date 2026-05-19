@@ -10,7 +10,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Changed
 
-- Speed up frayed rope and bipartite detection somewhat
+- Dramatically speed up pattern decomposition (mostly by speeding up bipartite
+  finding) in large graphs
   ([#431](https://github.com/marbl/MetagenomeScope/issues/431)).
 
 

@@ -1248,20 +1248,12 @@ def is_valid_bipartite(g, start_node_id):
     if len(layer1_view) < 2:
         return ValidationResults()
 
-    # ... and no nodes should be present in both layer 1 and layer 2
-    layer1_set = set(layer1_view)
-    layer2_set = set(layer2_view)
-    if len(layer1_set & layer2_set) > 0:
-        return ValidationResults()
+    # NOTE: previously, a terrible bottleneck was here. See NOTE below.
 
     # Fail if any node in layer 2 doesn't have exactly |layer 1| incoming nodes
     for n2 in layer2_view:
         n2_pred = g.pred[n2]
         if len(n2_pred) != len(layer1_view):
-            return ValidationResults()
-        # Also, disallow direct edges from layer 2 back to layer 1
-        # (i.e. cyclic bipartites)
-        if len(layer1_set & set(g.adj[n2])) > 0:
             return ValidationResults()
 
     # Vice versa to above: fail if any node in layer 1 doesn't have exactly
@@ -1270,18 +1262,60 @@ def is_valid_bipartite(g, start_node_id):
         if len(g.adj[n1]) != len(layer2_view):
             return ValidationResults()
 
+    # NOTE: this was previously a terrible bottleneck. It has since been
+    # vanquished (probably, knock on wood).
+    #
+    # Verify that no nodes are present in both layer 1 and layer 2.
+    # That's it. You'd think that would be simple, right???
+    #
+    # On a test graph with ~700k nodes and ~1.9 million edges, detecting
+    # bipartites would previously take like ~5 minutes to run every time
+    # (granted, on my little laptop with 8 GB RAM; it's doing its best).
+    #
+    # After a lot of debugging and inserting "return ValidationResults()"
+    # statements to binary-search out what part of this function was actually
+    # the bottleneck, I isolated it to this block of code: just four lines
+    # that create sets of the layer 1 and layer 2 nodes, and then check for
+    # their intersection.
+    #
+    # The reason this was a bottleneck is that previously, this was done BEFORE
+    # the previous two checks -- it was done immediately after checking that
+    # both layers had at least two nodes, *without having verified anything
+    # else about this region of the graph.*
+    #
+    # And I think that is the kicker. Because such a broad variety of graph
+    # regions could sneak through to this code, my guess is that we would then
+    # sometimes end up creating sets of massive groups of nodes -- if the
+    # start node (from which we construct layer2_view) or the arbitrary layer 2
+    # node (from which we construct layer1_view) have high degrees.
+    # Doing this repeatedly on a low memory system was Not Ideal.
+    #
+    # Anyway! By deferring this check to AFTER we more carefully validate that
+    # the amounts of in-nodes on layer 2 (and out-nodes on layer 1) seem good,
+    # we have substantially restricted the amount of regions of the graph that
+    # can make it through to here. Thus, we will waste less time doing this
+    # potentially expensive thing of creating these sets. PHEW
+    layer1_set = set(layer1_view)
+    layer2_set = set(layer2_view)
+    if len(layer1_set & layer2_set) > 0:
+        return ValidationResults()
+
     # At this point, things mostly look good. All that is left is to check
     # that the in-nodes of layer 2 and the out-nodes of layer 1 actually
     # correspond to the opposite layer, and are not connected by parallel
-    # edges.
+    # edges. (Also, let's detect and reject bipartites with cyclic edges.)
     #
     # This could probably be sped up or integrated into the above checks,
     # but at least this quadratic check is deferred until later on in the
     # function (so hopefully we have already eliminated a lot of other
-    # invalid patterns by this point)
+    # invalid patterns by this point). Although the real bottleneck really
+    # did seem to be the set(layer...) stuff, as discussed at length above...
     for n1 in layer1_view:
         for n2 in layer2_view:
             if n2 not in g.adj[n1] or len(g.adj[n1][n2]) != 1:
+                return ValidationResults()
+            # disallow cyclic edges from layer 2 back to layer 1
+            if len(layer1_set & set(g.adj[n2])) > 0:
                 return ValidationResults()
 
     layer1 = list(layer1_view)
