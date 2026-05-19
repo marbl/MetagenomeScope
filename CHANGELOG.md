@@ -10,9 +10,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 ### Changed
 
-- Dramatically speed up pattern decomposition (mostly by speeding up bipartite
-  finding) in large graphs
-  ([#431](https://github.com/marbl/MetagenomeScope/issues/431)).
+- Dramatically speed up pattern decomposition (mostly by addressing a
+  bottleneck in bipartite finding)
+  ([#431](https://github.com/marbl/MetagenomeScope/issues/431),
+  [#433](https://github.com/marbl/MetagenomeScope/issues/433)).
 
 
 ## [v1.3.0] - 2026-05-15 - GFA handling improvements, better component tiling, various CLI options
