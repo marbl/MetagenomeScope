@@ -29,7 +29,7 @@ def get_cyjs_stylesheet(
     if ui_config.SELECTED_NODE_DARKEN in selected_node_settings:
         selected_node_nonpattern_style.update(
             {
-                "background-blacken": 0.5,
+                "background-blacken": 0.65,
                 "color": "#ccc",
                 "text-outline-color": cy_config.SELECTED_OBJ_DARK_OUTLINE_COLOR,
             }
