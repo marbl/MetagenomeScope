@@ -205,6 +205,10 @@ label:has(#fcoseAlgSpan).active {
     max-width: 10em;
 }
 
+h6 {
+    font-weight: bold;
+}
+
 /* position the dash dev tools UI a bit higher than the bottom of the
  * screen, to avoid covering the fit button. Note that:
  * (1) we may need to adjust this spacing as we add in more floating buttons

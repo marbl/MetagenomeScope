@@ -1707,6 +1707,19 @@ def run(
                         ag.node_centric
                     ],
                     ui_config.DEFAULT_EXPAND_SETTINGS,
+                    ui_config.DEFAULT_SELECTED_NODE_SETTINGS,
+                    real_default_edgewidth=ui_config.NODECENTRIC_2_REAL_DEFAULT_EDGEWIDTH[
+                        ag.node_centric
+                    ],
+                    real_selected_edgewidth=ui_config.NODECENTRIC_2_REAL_SELECTED_EDGEWIDTH[
+                        ag.node_centric
+                    ],
+                    fake_default_edgewidth=ui_config.NODECENTRIC_2_FAKE_DEFAULT_EDGEWIDTH[
+                        ag.node_centric
+                    ],
+                    fake_selected_edgewidth=ui_config.NODECENTRIC_2_FAKE_SELECTED_EDGEWIDTH[
+                        ag.node_centric
+                    ],
                     node_coloring=ui_config.DEFAULT_NODE_COLORING,
                     edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
                 ),
@@ -2343,6 +2356,11 @@ def run(
         Output("cyStylesheetHolder", "data"),
         State("toastHolder", "children"),
         State("labelFontSize", "value"),
+        State("selectedNodeSettingsChecklist", "value"),
+        State("realDefaultEdgeWidth", "value"),
+        State("realSelectedEdgeWidth", "value"),
+        State("fakeDefaultEdgeWidth", "value"),
+        State("fakeSelectedEdgeWidth", "value"),
         Input("labelFontSize", "n_submit"),
         Input("labelFontSizeApply", "n_clicks"),
         Input("labelChecklist", "value"),
@@ -2351,11 +2369,17 @@ def run(
         Input("expandSettings", "value"),
         Input("nodeColorRadio", "value"),
         Input("edgeColorRadio", "value"),
+        Input("applyStyleOptionsButton", "n_clicks"),
         prevent_initial_call=True,
     )
     def update_cy_stylesheet(
         curr_toasts,
         label_font_size,
+        selected_node_settings,
+        real_default_edgewidth,
+        real_selected_edgewidth,
+        fake_default_edgewidth,
+        fake_selected_edgewidth,
         label_font_size_n_submit,
         label_font_size_apply_n_clicks,
         label_checklist,
@@ -2364,6 +2388,7 @@ def run(
         expand_settings,
         node_color_radio,
         edge_color_radio,
+        style_options_dialog_apply_n_clicks,
     ):
         out_toasts = no_update
         out_stylesheet = no_update
@@ -2384,6 +2409,11 @@ def run(
                 edge_label_settings,
                 labelfontsize,
                 expand_settings,
+                selected_node_settings,
+                real_default_edgewidth,
+                real_selected_edgewidth,
+                fake_default_edgewidth,
+                fake_selected_edgewidth,
                 node_coloring=node_color_radio,
                 edge_coloring=edge_color_radio,
             )

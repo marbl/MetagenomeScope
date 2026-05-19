@@ -9,6 +9,11 @@ def get_cyjs_stylesheet(
     edge_label_settings,
     label_font_size,
     expand_settings,
+    selected_node_settings,
+    real_default_edgewidth,
+    real_selected_edgewidth,
+    fake_default_edgewidth,
+    fake_selected_edgewidth,
     node_coloring=ui_config.DEFAULT_NODE_COLORING,
     edge_coloring=ui_config.DEFAULT_EDGE_COLORING,
 ):
@@ -16,6 +21,35 @@ def get_cyjs_stylesheet(
         do_expand = "include"
     else:
         do_expand = "exclude"
+
+    selected_node_nonpattern_style = {
+        "z-index": "1",
+        "z-index-compare": "manual",
+    }
+    if ui_config.SELECTED_NODE_DARKEN in selected_node_settings:
+        selected_node_nonpattern_style.update(
+            {
+                "background-blacken": 0.5,
+                "color": "#fff",
+                "text-outline-color": "#000",
+            }
+        )
+    else:
+        selected_node_nonpattern_style.update(
+            {
+                "color": "#000",
+                "text-outline-color": cy_config.SELECTED_OBJ_OUTLINE_COLOR,
+            }
+        )
+
+    if ui_config.SELECTED_NODE_BORDER in selected_node_settings:
+        selected_node_nonpattern_style.update(
+            {
+                "border-width": cy_config.SELECTED_NODE_BORDER_WIDTH,
+                "border-color": cy_config.SELECTED_NODE_BORDER_COLOR,
+            }
+        )
+
     stylesheet = [
         # nodes
         {
@@ -31,12 +65,7 @@ def get_cyjs_stylesheet(
         },
         {
             "selector": "node.nonpattern:selected",
-            "style": {
-                "border-width": cy_config.SELECTED_NODE_BORDER_WIDTH,
-                "border-color": cy_config.SELECTED_NODE_BORDER_COLOR,
-                "z-index": "2",
-                "z-index-compare": "manual",
-            },
+            "style": selected_node_nonpattern_style,
         },
         ###### Forward-oriented nodes (pentagons pointing right)
         {
@@ -161,6 +190,7 @@ def get_cyjs_stylesheet(
                 "line-color": cy_config.EDGE_COLOR,
                 "target-arrow-color": cy_config.EDGE_COLOR,
                 "color": cy_config.EDGE_FONT_COLOR,
+                "width": real_default_edgewidth,
             },
         },
         {
@@ -177,7 +207,7 @@ def get_cyjs_stylesheet(
             "style": {
                 "line-style": cy_config.FAKE_EDGE_LINE_STYLE,
                 "line-dash-pattern": cy_config.FAKE_EDGE_LINE_DASH_PATTERN,
-                "width": cy_config.FAKE_EDGE_WIDTH,
+                "width": fake_default_edgewidth,
             },
         },
         {
@@ -218,16 +248,9 @@ def get_cyjs_stylesheet(
                 else:
                     nodelabelstyle["text-valign"] = "center"
                 if ui_config.LABEL_OUTLINE in node_label_settings:
-                    nodelabelstyle["text-outline-color"] = "#fff"
                     nodelabelstyle["text-outline-width"] = 1
-                    stylesheet.append(
-                        {
-                            "selector": "node.nonpattern:selected",
-                            "style": {
-                                "text-outline-color": cy_config.SELECTED_OBJ_OUTLINE_COLOR,
-                            },
-                        }
-                    )
+                    # only will apply to unselected nodes
+                    nodelabelstyle["text-outline-color"] = "#fff"
                 sty["style"].update(nodelabelstyle)
                 break
 
@@ -327,7 +350,7 @@ def get_cyjs_stylesheet(
             "style": {
                 "line-color": cy_config.SELECTED_EDGE_COLOR,
                 "target-arrow-color": cy_config.SELECTED_EDGE_COLOR,
-                "width": cy_config.SELECTED_EDGE_WIDTH,
+                "width": real_selected_edgewidth,
                 "color": cy_config.SELECTED_EDGE_FONT_COLOR,
                 "z-index": "4",
                 "z-index-compare": "manual",
@@ -338,7 +361,7 @@ def get_cyjs_stylesheet(
         {
             "selector": "edge.fake:selected",
             "style": {
-                "width": cy_config.SELECTED_FAKE_EDGE_WIDTH,
+                "width": fake_selected_edgewidth,
             },
         },
     )

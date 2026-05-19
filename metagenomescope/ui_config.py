@@ -81,6 +81,10 @@ DEFAULT_EDGE_LABEL_SETTINGS = [LABEL_OFFSET]
 LABELS_EXPAND_PATTERNS = "lblexpandpatt"
 DEFAULT_EXPAND_SETTINGS = [LABELS_EXPAND_PATTERNS]
 
+SELECTED_NODE_DARKEN = "darken"
+SELECTED_NODE_BORDER = "border"
+DEFAULT_SELECTED_NODE_SETTINGS = [SELECTED_NODE_DARKEN]
+
 SCREENSHOT_PNG = "png"
 SCREENSHOT_JPG = "jpg"
 SCREENSHOT_SVG = "svg"
@@ -107,6 +111,12 @@ NODECENTRIC_2_DEFAULT_DOT_RANKSEP = {True: 0.5, False: 1}
 
 # values are in em
 NODECENTRIC_2_DEFAULT_LABELFONTSIZE = {True: 1, False: 0.5}
+
+# values are in px, per cy.edges()[0].numericStyleUnits("width")
+NODECENTRIC_2_REAL_DEFAULT_EDGEWIDTH = {True: 6, False: 3}
+NODECENTRIC_2_REAL_SELECTED_EDGEWIDTH = {True: 10, False: 8}
+NODECENTRIC_2_FAKE_DEFAULT_EDGEWIDTH = {True: 10, False: 8}
+NODECENTRIC_2_FAKE_SELECTED_EDGEWIDTH = {True: 12, False: 10}
 
 ###############################################################################
 # Coloring UI

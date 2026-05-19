@@ -1492,7 +1492,90 @@ def get_style_options_tab(node_centric):
                 'Click "Apply" to make these settings take effect.',
                 className="drawing-option-topnote",
             ),
-            html.H5("Selected Nodes"),
-            html.H5("Edge Widths"),
+            html.H5("When a node is selected..."),
+            html.Div(
+                dcc.Checklist(
+                    options=[
+                        {
+                            "label": "Darken it",
+                            "value": ui_config.SELECTED_NODE_DARKEN,
+                        },
+                        {
+                            "label": "Show a border around it",
+                            "value": ui_config.SELECTED_NODE_BORDER,
+                        },
+                    ],
+                    value=ui_config.DEFAULT_SELECTED_NODE_SETTINGS,
+                    id="selectedNodeSettingsChecklist",
+                ),
+                className="form-check fancyChecklistInDialog",
+            ),
+            html.Br(),
+            html.H5("How thick should edges be?"),
+            html.P("(These values are given in pixels.)"),
+            html.H6("Real edges"),
+            dbc.InputGroup(
+                [
+                    dbc.InputGroupText(html.Span("Default")),
+                    dbc.Input(
+                        type="text",
+                        id="realDefaultEdgeWidth",
+                        value=ui_config.NODECENTRIC_2_REAL_DEFAULT_EDGEWIDTH[
+                            node_centric
+                        ],
+                        className="short-num-input",
+                    ),
+                    dbc.InputGroupText(html.Span("Selected")),
+                    dbc.Input(
+                        type="text",
+                        id="realSelectedEdgeWidth",
+                        value=ui_config.NODECENTRIC_2_REAL_SELECTED_EDGEWIDTH[
+                            node_centric
+                        ],
+                        className="short-num-input",
+                    ),
+                ],
+                size="sm",
+                style={"margin-bottom": "1em"},
+            ),
+            html.H6("Fake edges"),
+            dbc.InputGroup(
+                [
+                    dbc.InputGroupText(html.Span("Default")),
+                    dbc.Input(
+                        type="text",
+                        id="fakeDefaultEdgeWidth",
+                        value=ui_config.NODECENTRIC_2_FAKE_DEFAULT_EDGEWIDTH[
+                            node_centric
+                        ],
+                        className="short-num-input",
+                    ),
+                    dbc.InputGroupText(html.Span("Selected")),
+                    dbc.Input(
+                        type="text",
+                        id="fakeSelectedEdgeWidth",
+                        value=ui_config.NODECENTRIC_2_FAKE_SELECTED_EDGEWIDTH[
+                            node_centric
+                        ],
+                        className="short-num-input",
+                    ),
+                ],
+                size="sm",
+            ),
+            html.Div(
+                html.Button(
+                    [
+                        html.I(className="bi bi-pen-fill"),
+                        html.Span(
+                            "Apply",
+                            className="iconlbl",
+                        ),
+                    ],
+                    id="applyStyleOptionsButton",
+                    className="btn btn-success",
+                    type="button",
+                ),
+                style={"text-align": "right", "margin-top": "1em"},
+            ),
         ]
     )
