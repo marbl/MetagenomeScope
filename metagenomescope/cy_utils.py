@@ -233,7 +233,16 @@ def get_cyjs_stylesheet(
     ]
 
     labelstyle = cy_config.LABEL_STYLE.copy()
-    labelstyle["fontSize"] = f"{label_font_size}em"
+    labelstyle["font-size"] = f"{label_font_size}em"
+    # this is in pixels, not em
+    # no guarantee that this will be perfect, but scaling it with the font
+    # size looks better than just setting this to a constant value. eventually
+    # it might be nice to make this configurable...
+    # Previously this was always just 1. I am keeping that as a hard floor --
+    # using smaller outlines looks gross when the font sizes are small (e.g.
+    # 0.5em, as in edge-centric graphs like the flye yeast example).
+    text_outline_width = max(1, label_font_size / 2)
+
     if ui_config.NODE_LABELS in labels:
         # yeah yeah i know that literally the first entry in the stylesheet
         # is node.nonpattern so we could just say stylesheet[0].update()...
@@ -248,7 +257,7 @@ def get_cyjs_stylesheet(
                 else:
                     nodelabelstyle["text-valign"] = "center"
                 if ui_config.LABEL_OUTLINE in node_label_settings:
-                    nodelabelstyle["text-outline-width"] = 1
+                    nodelabelstyle["text-outline-width"] = text_outline_width
                     # only will apply to unselected nodes
                     nodelabelstyle["text-outline-color"] = "#fff"
                 sty["style"].update(nodelabelstyle)
@@ -261,7 +270,7 @@ def get_cyjs_stylesheet(
             edgelabelstyle["text-margin-y"] = -4
         if ui_config.LABEL_OUTLINE in edge_label_settings:
             edgelabelstyle["text-outline-color"] = "#fff"
-            edgelabelstyle["text-outline-width"] = 1
+            edgelabelstyle["text-outline-width"] = text_outline_width
         if ui_config.LABEL_AUTOROTATE_EDGE in edge_label_settings:
             edgelabelstyle["text-rotation"] = "autorotate"
         stylesheet.append(
