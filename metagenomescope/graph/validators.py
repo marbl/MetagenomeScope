@@ -170,7 +170,10 @@ def not_single_edge(adj_view):
     # detect this anyway I guess.)
     # This explanation also works for g.adj[n]; just swap out "incoming" and
     # "from" with "outgoing" and "to" in the above text.
-    return len(adj_view) != 1 or len(adj_view[list(adj_view)[0]]) != 1
+    return (
+        len(adj_view) != 1
+        or len(adj_view[nx.utils.arbitrary_element(adj_view)]) != 1
+    )
 
 
 def fail_if_not_single_edge(adj_view, node_id, edge_descriptor):
@@ -458,7 +461,7 @@ def is_valid_cyclic_chain(g, start_node_id):
         return ValidationResults()
 
     # (We know that adj describes just 1 outgoing edge from the starting node)
-    curr = list(adj.keys())[0]
+    curr = nx.utils.arbitrary_element(adj)
     if curr == start_node_id:
         # If the only outgoing edge from the starting node is to itself, then
         # this isn't a cyclic chain. We used to accept these cases, but we
@@ -500,10 +503,10 @@ def is_valid_cyclic_chain(g, start_node_id):
                 # but with parallel edges).
                 return ValidationResults()
 
-        curr_outgoing_nodes = list(adj.keys())
-        # We know curr has one incoming and one outgoing edge. If its
+        # We know curr has one incoming and one outgoing edge. If this one
         # outgoing edge is to the starting node, then we've found a cycle.
-        if curr_outgoing_nodes[0] == start_node_id:
+        only_out_node = nx.utils.arbitrary_element(adj)
+        if only_out_node == start_node_id:
             return ValidationResults(
                 config.PT_CYCLICCHAIN,
                 True,
@@ -515,7 +518,7 @@ def is_valid_cyclic_chain(g, start_node_id):
         # If we're here, the cyclic chain is still going on -- the next
         # node to check is not already in cch_list.
         cch_list.append(curr)
-        curr = curr_outgoing_nodes[0]
+        curr = only_out_node
 
     # If we're here then something went terribly wrong
     raise WeirdError(
@@ -558,7 +561,7 @@ def is_valid_bulge(g, start_node_id):
     adj = g.adj[start_node_id]
     if len(adj) == 1:
         # Condition 2 is met
-        end_node_id = list(adj)[0]
+        end_node_id = nx.utils.arbitrary_element(adj)
         if end_node_id != start_node_id:
             # Condition 4 is met
             if len(g.pred[end_node_id]) == 1:
@@ -716,8 +719,6 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
             if start_node_id in g.adj[t]:
                 return ValidationResults()
 
-            composite = list(nodeid2label.keys())
-
             # This part was not present in Onodera 2013. They make the
             # claim of "minimality," but only with respect to bubbles
             # that begin at a specific starting node -- as far as I can
@@ -748,7 +749,7 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
             # have Node and Edge object information) or if we just care about
             # the graph's topology.
             no_etfe_chains = nodeid2obj is not None and edgeid2obj is not None
-            for c in composite:
+            for c in nodeid2label:
                 if c != t and c != start_node_id:
                     if no_etfe_chains:
                         # The fancy route. (Bulge detection doesn't require any
@@ -777,6 +778,7 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
 
             # If the checks above succeeded, this is a valid and minimal
             # bubble! Nice.
+            composite = list(nodeid2label)
             return ValidationResults(
                 config.PT_BUBBLE, True, composite, [start_node_id], [t]
             )
