@@ -304,12 +304,14 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             // https://stackoverflow.com/a/48044752, etc. that cy.style() does
             // not work synchronously.
             let scope = this;
-            cy.one("style", "node,edge", function(e) {
+            cy.one("style", "node,edge", function (e) {
                 let selectedNodes = cy.nodes(":selected");
                 if (selectedNodes.length > 0) {
-                    scope.rescueAdjacentBadEdges(getCyCollectionData(selectedNodes));
+                    scope.rescueAdjacentBadEdges(
+                        getCyCollectionData(selectedNodes),
+                    );
                 }
-            })
+            });
         },
         rescueAdjacentBadEdges: function (selectedNodes) {
             if (selectedNodes.length > 0) {
