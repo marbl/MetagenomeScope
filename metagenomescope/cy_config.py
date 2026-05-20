@@ -255,5 +255,5 @@ SELECTED_OBJ_OUTLINE_COLOR = "#dadaf7"
 
 # if we are indicating selected nodes by darkening them, then their text will
 # now be a light color by default. Thus, use a dark blue border for them by
-# default, to mirror SELECTED_OBJ_OUTLINE_COLOR
-SELECTED_OBJ_DARK_OUTLINE_COLOR = "#000055"
+# default, to imitate SELECTED_OBJ_OUTLINE_COLOR
+SELECTED_OBJ_DARK_OUTLINE_COLOR = "#000077"
