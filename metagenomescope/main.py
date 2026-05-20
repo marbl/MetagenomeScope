@@ -323,10 +323,25 @@ def run(
     # that is not yet supported (https://github.com/plotly/dash/issues/1311).
     things_to_disable_while_drawing = [
         "drawButton",
-        "ccSizeRankSelector",
-        "ccNodeNameSelector",
-        "ccAroundNodesNameSelector",
-        "ccAroundNodesDistSelector",
+        # These text <input>s have "n_submit" attributes as Inputs for flush().
+        # This means that you can press Enter on them to trigger flushing.
+        # So! We can disable them by just uncommenting the lines below, but
+        # that has the annoying side effect of removing focus. Which I don't
+        # want to do, for accessibility reasons and for just straight up
+        # convenience reasons (it is nice to try drawing ccs "20-40", then go
+        # straight to "20-60" or something without having to even touch the
+        # mouse).
+        #
+        # So I will not disable them for now. This means there is nothing
+        # stopping the user from spamming Enter on these inputs, but ... I
+        # think that is fine, there is already a visual indication from the
+        # buttons being disabled that stuff is happening. Plus lots of people
+        # are used to double-clicking things, but who double-presses-Enter?
+        #
+        # "ccSizeRankSelector",
+        # "ccNodeNameSelector",
+        # "ccAroundNodesNameSelector",
+        # "ccAroundNodesDistSelector",
         "ccDrawingSelect",
         "ccSizeRankDecrBtn",
         "ccSizeRankIncrBtn",
