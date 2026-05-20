@@ -372,7 +372,6 @@ def run(
         # can reenable it
         DRAW_RUNNING.append((o, True, False))
 
-
     # update_title=None prevents Dash's default "Updating..." page title change
     #
     # external_stylesheets are needed to load the balham dark theme:
