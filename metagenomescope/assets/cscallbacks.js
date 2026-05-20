@@ -279,6 +279,37 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         changeStylesheet: function (stylesheet) {
             let cy = getCy();
             cy.style(stylesheet);
+            // Since changing the stylesheet can now mean adding or removing a
+            // border on selected nodes, let's rescue adjacent bad edges to any
+            // nodes that were selected while we changed the stylesheet.
+            // Test case: node 37 in the Flye yeast DOT file. If you select it
+            // (so that it is darkened) and then apply the option to use
+            // borders on selected nodes while it is selected, then the edges
+            // adjacent to this node (in particular the green 37 -> 40 edge)
+            // should be rescued if necessary.
+            //
+            // We use cy.one() so that this is only done once after each time
+            // we change the stylesheet -- no need to run this scan for every
+            // element whose style gets changed or anything.
+            //
+            // (And I guess let's listen to both node and edge styles. I doubt
+            // adjusting edge thickness will cause bad edges in most cases but
+            // may as well be safe.)
+            //
+            // Note that, if we just run this code immediately after calling
+            // cy.style() without using an event listener like cy.one(), then
+            // this code is run BEFORE edges actually turn bad -- we need to
+            // wait for the stylesheet update to finish, hence why we listen to
+            // the "style" event. It's a bit unclear but it seems based on
+            // https://stackoverflow.com/a/48044752, etc. that cy.style() does
+            // not work synchronously.
+            let scope = this;
+            cy.one("style", "node,edge", function(e) {
+                let selectedNodes = cy.nodes(":selected");
+                if (selectedNodes.length > 0) {
+                    scope.rescueAdjacentBadEdges(getCyCollectionData(selectedNodes));
+                }
+            })
         },
         rescueAdjacentBadEdges: function (selectedNodes) {
             if (selectedNodes.length > 0) {
