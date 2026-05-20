@@ -421,21 +421,32 @@ h6 {
 }
 
 /* Add smooth transitions on enabling/disabling for buttons.
+ *
  * Note that the (animatable) CSS properties changed on enabling/disabling
  * a button in Bootstrap 3.3 are opacity (it's 0.65 for disabled and 1 for
  * enabled) and box-shadow. (The change in opacity is more apparent, but
  * it's still impacted by button enabling/disabling.)
+ *
+ * In Bootstrap 5.3 (hello from May 2026), only opacity appears to be relevant
+ * for buttons, but let's also include background color for inputs.
  *
  * Also, while we're at it, add outline: none to all buttons to avoid a
  * gross-looking line surrounding them after clicking
  * (https://stackoverflow.com/a/23337989)
  */
 button {
-    transition-duration: 0.5s;
-    transition-timing-function: ease-in-out;
-    transition-property: opacity, box-shadow;
+    transition-duration: 0.5s !important;
+    transition-timing-function: ease-in-out !important;
+    transition-property: opacity !important;
     outline: none !important;
 }
+
+input {
+    transition-duration: 0.5s !important;
+    transition-timing-function: ease-in-out !important;
+    transition-property: background-color !important;
+}
+
 #controls p {
     /* not the greatest solution. work on something better-looking */
     margin: 0.1em;

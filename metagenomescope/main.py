@@ -311,6 +311,53 @@ def run(
             ),
         ]
 
+    # We want to prevent the user from repeatedly clicking "Draw" and
+    # overwhelming their computer. So, we can disable the various buttons /
+    # inputs that can cause drawing to happen (and maybe some things that
+    # are not very meaningful to have available, e.g. the "take screenshot"
+    # buttons) WHILE LAYOUT / DRAWING ARE BEING DONE, and then AFTER that is
+    # all done we can re-enable them.
+    #
+    # It might be nicer to not have to mess around with disabling/enabling
+    # things - in favor of just having Dash throttle the callbacks for us - but
+    # that is not yet supported (https://github.com/plotly/dash/issues/1311).
+    things_to_disable_while_drawing = [
+        "drawButton",
+        "ccSizeRankSelector",
+        "ccNodeNameSelector",
+        "ccAroundNodesNameSelector",
+        "ccAroundNodesDistSelector",
+        "ccDrawingSelect",
+        "ccSizeRankDecrBtn",
+        "ccSizeRankIncrBtn",
+        "ccAroundNodesDistDecrBtn",
+        "ccAroundNodesDistIncrBtn",
+        "searchInput",
+        "searchButton",
+        # these things... we should probably include also, but there is weird
+        # jank with how I set pointer-events on the floating fit buttons that
+        # makes enabling/disabling them in a good way annoying. Maybe later.
+        # "floatingExportButton",
+        # "panelExportButton",
+        # "fitSelectedButton",
+        # "fitButton",
+    ]
+    # Build up lists of 3-tuples describing how to adjust things while the
+    # flush() and draw() callbacks are running.
+    # https://dash.plotly.com/background-callbacks#disable-button-while-callback-is-running
+    FLUSH_RUNNING = []
+    DRAW_RUNNING = []
+    for t in things_to_disable_while_drawing:
+        o = Output(t, "disabled")
+        # flushing should START the thing being disabled, and it should remain
+        # disabled afterwards -- flush() should always lead to draw() being
+        # called, one way or another
+        FLUSH_RUNNING.append((o, True, True))
+        # while drawing, the thing is still disabled; after drawing is done we
+        # can reenable it
+        DRAW_RUNNING.append((o, True, False))
+
+
     # update_title=None prevents Dash's default "Updating..." page title change
     #
     # external_stylesheets are needed to load the balham dark theme:
@@ -2561,6 +2608,7 @@ def run(
         Input("ccNodeNameSelector", "n_submit"),
         Input("ccAroundNodesNameSelector", "n_submit"),
         Input("ccAroundNodesDistSelector", "n_submit"),
+        running=FLUSH_RUNNING,
         prevent_initial_call=True,
     )
     def flush(
@@ -2779,6 +2827,7 @@ def run(
         Output("currDrawnCounts", "children"),
         Output("currDrawnInfo", "data"),
         Input("doneFlushing", "data"),
+        running=DRAW_RUNNING,
         prevent_initial_call=True,
     )
     def draw(curr_done_flushing):
