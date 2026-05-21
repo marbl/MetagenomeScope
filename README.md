@@ -423,13 +423,19 @@ mgsc -g august1.gml -a scaffolds_august1_fixed.agp --verbose
 
 > [!TIP]
 > #### dang that's a big graph
+> If you are working with a big graph like this, immediately pressing the "Draw" button (to lay out and draw the largest connected component, #1) may not be a good idea. Some steps you can take to get a sense of the graph structure without having to immediately draw a bunch of things:
+>
 > ##### Understanding component sizes
 > You can get a sense for the sizes of this graph's connected components by clicking the "Graph info" button in the left sidebar, then examining the charts in the "Components" tab.
 >
-> This shows that the largest connected component in this graph (i.e. the one with size rank #1) contains over six thousand nodes. You can certainly draw this component in MetagenomeScope, but it will take a few seconds to lay out and draw. The resulting interface may also become a bit sluggish due to the size of the graph. (You could even draw the entire graph if you wanted to, as shown above! But it will be even more sluggish.)
+> Doing this for this example graph shows that the largest connected component in this graph (#1) contains over six thousand nodes. You can certainly draw this component in MetagenomeScope, but it will take a few seconds to lay out and draw. The resulting interface may also become a bit sluggish due to the amount of nodes and edges being drawn. (You could even draw the entire graph if you wanted to, as shown above! But it will be even more sluggish.)
 >
 > ##### Drawing smaller component(s)
-> If you would like to examine the smaller parts of this graph, you can start by drawing component #2 -- or even a range of components, for example #2 - 10. (Try pasting `2-10` into the "Component(s), by size rank" input to draw all of these components at once!)
+> Looking at the treemap tells us that component #2 has far fewer nodes -- just 156. So, if we would like to draw some part of this graph (but skip the big hairball that is component #1), then it might make sense to start with component #2.
+>
+> You can do this by replacing the `1` in the Draw section's text field with a `2`, to indicate that we should draw component #2.
+>
+> You can even draw a range of components, if you would like. Try typing `2-10` in the text field to draw all of these components at once!
 >
 > ##### Drawing subregions of components
 > You can also draw only a subregion of a larger component, using functionality inspired by [Bandage](https://rrwick.github.io/Bandage/). In the "Draw" section, change the "Component(s), by size rank" dropdown to the "Around certain node(s)" option, and then type in `k99_38`. Try increasing the distance and redrawing to see more and more of component #1!
@@ -900,27 +906,44 @@ in this way. (I mean, that wasn't really why we wrote this software in the first
 
 <hr/>
 
-We're still figuring that out. There are a couple bottlenecks:
+We're still figuring that out. There are a couple steps that can be time-consuming for big graphs, including:
 
 1. Processing the graph.
 
     - Because we ([currently](https://github.com/marbl/MetagenomeScope/issues/423)) store the entire graph in memory, massive graphs -- with millions of nodes / edges -- can become impractical to load on low-memory systems.
 
-2. Laying out the graph.
+2. Decomposing the graph into patterns.
 
-    - We usually only lay out one component at a time, so generally the problem comes with laying out the large "hairball" component(s) of the graph, if any.
+    - I've done some work on optimizing this; the first phase (finding bubbles/bulges, chains, and cyclic chains) is generally slower than the second phase (finding frayed ropes and bipartites).
 
-    - When you get to the order of, say, thousands of nodes, laying out a component will probably become somewhat slow (especially if you select the `Lay out patterns recursively` option in the draw options dialog).
+3. Laying out the graph (or some part of it).
 
-    - To my understanding, a big factor here is the ratio of nodes to edges: when there are many more edges than nodes in a component (indicating a very densely connected structure), Graphviz has to do a lot of work to position things properly.
+    - When you get to the order of, say, thousands of nodes, laying out a connected component of the graph will probably become somewhat slow (_especially_ if you select the `Lay out patterns recursively` option in the draw options dialog).
 
-3. Drawing the graph's elements.
+    - To my understanding, a big factor here is the ratio of nodes to edges: when there are many more edges than nodes in a component (indicating a very densely connected structure), Graphviz has to do a lot of work to position things properly. In such cases, using the sfdp layout algorithm will probably speed things up.
+
+4. Drawing the graph's elements in the browser.
 
     - Cytoscape.js has a lot of optimizations built-in, but I think there are some inherent limitations of drawing using a HTML canvas.
 
     - With graphs containing thousands of nodes, interaction (e.g. zooming, panning) starts to feel a bit sluggish.
 
 See the "Large graph" section under "Example datasets" above for some tips for working with large graphs.
+
+<hr/>
+</details>
+
+<details>
+  <summary><strong>FAQ: I want to benchmark how long this tool takes to run. How can I do that?</strong></summary>
+
+<hr/>
+
+Make sure to run `mgsc` with the `--verbose` flag. This will log pretty detailed information about
+the various steps MetagenomeScope is doing, and the times at which they take place (e.g. when each
+phase of pattern decomposition starts and ends, when laying out a region of the graph starts and ends, ...)
+
+Eventually I would like to show more of this information in the browser (and/or summarize it in an easy-to-parse
+text file?) -- if you have opinions about this, feel free to open an issue.
 
 <hr/>
 </details>
