@@ -238,7 +238,7 @@ _See [Flye's documentation](https://github.com/mikolmogorov/Flye/blob/flye/docs/
 
 ### Types of patterns
 
-MetagenomeScope detects and highlights five types of structural patterns on the graph:
+MetagenomeScope hierarchically detects and highlights five types of structural patterns on the graph:
 
 <img src="https://raw.githubusercontent.com/marbl/MetagenomeScope/refs/heads/main/docs/res/screenshots/patterns.png" alt="Screenshot of MetagenomeScope's interface showing examples of the patterns it supports." />
 
