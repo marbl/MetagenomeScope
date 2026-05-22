@@ -734,8 +734,11 @@ def test_cyclic_bulge():
     1 --> 2
      \<--/
 
-    Should be labelled as a cyclic bulge, not a chain
-    (https://github.com/marbl/MetagenomeScope/issues/251).
+    Previously we would tag these as cyclic bulges
+    (https://github.com/marbl/MetagenomeScope/issues/251) but now we just
+    disallow cyclic bulges entirely so this should be NOTHINGGGGGGGGGGGG
+    (https://github.com/marbl/MetagenomeScope/issues/439) which i think
+    is the simplest way forward :)
     """
     g = nx.MultiDiGraph()
     g.add_edge(1, 2)
@@ -745,12 +748,12 @@ def test_cyclic_bulge():
     fh, fn = nx2gml(g)
     try:
         ag = AssemblyGraph(fn)
-        assert len(ag.decomposed_graph.nodes) == 1
-        assert len(ag.decomposed_graph.edges) == 0
+        assert len(ag.decomposed_graph.nodes) == 2
+        assert len(ag.decomposed_graph.edges) == 3
         assert len(ag.chains) == 0
         assert len(ag.cyclic_chains) == 0
         assert len(ag.frayed_ropes) == 0
-        assert len(ag.bubbles) == 1
+        assert len(ag.bubbles) == 0
         assert len(ag.graph.nodes) == 2
         assert len(ag.graph.edges) == 3
     finally:

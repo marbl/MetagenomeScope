@@ -370,32 +370,25 @@ def test_bulge_linear_chain():
 
 
 def test_cyclic_bulge():
-    def _test_validation_results(vr, node_ids=[0, 1]):
-        # utility function because i don't wanna write this stuff out five
-        # gabillion (three) times
-        assert len(node_ids) == 2
-        assert vr
-        assert vr.node_ids == node_ids
-        assert vr.start_node_ids == [node_ids[0]]
-        assert vr.end_node_ids == [node_ids[1]]
-
+    # see https://github.com/marbl/MetagenomeScope/issues/439. these used to be
+    # allowed but now they aren't to make reasoning about this easier
     g = nx.MultiDiGraph()
     g.add_edge(0, 1)
     g.add_edge(0, 1)
-    g.add_edge(1, 0)
-    _test_validation_results(validators.is_valid_bulge(g, 0))
-    assert not validators.is_valid_bulge(g, 1)
+    # sure it's a normal bulge whatever
+    assert validators.is_valid_bulge(g, 0)
 
-    # If we add another edge from 1 -> 0, then now all of a sudden we could
-    # use either node as the start of a bulge.
-    # You could argue that this should be tagged as something besides a bulge
-    # (e.g. should we make a new "cyclic bubble" pattern type...?), but that is
-    # a downstream problem.
     g.add_edge(1, 0)
-    _test_validation_results(validators.is_valid_bulge(g, 0))
-    # If we use 1 as the start of the bulge, then now 1 is the starting node
-    # and 0 is the ending node.
-    _test_validation_results(validators.is_valid_bulge(g, 1), node_ids=[1, 0])
+    # OH GOD EVERYBODY PANIC NOW IT'S A CYCLIC BULGE
+    assert not validators.is_valid_bulge(g, 0)
+
+    # if we allow cyclic bulges, then adding another edge from 1 -> 0 would
+    # mean we could orient the cyclic bulge either way - could start at 0 or
+    # at 1. Fortunately, we don't allow cyclic bulges any more, so that
+    # headache is blessedly averted.
+    g.add_edge(1, 0)
+    assert not validators.is_valid_bulge(g, 1)
+    assert not validators.is_valid_bulge(g, 0)
 
 
 def test_cyclic_bulge_one_node_not_allowed():
@@ -476,19 +469,16 @@ def test_3node_bubble_containing_bulge_from_end_to_start():
     g.add_edge(0, 1)
     g.add_edge(1, 2)
     g.add_edge(0, 2)
-    # add a bulge between the end and start -- now it's cyclic, so we won't
-    # identify this bubble any more
+    # add a bulge between the end and start -- we disallow cyclic bubbles
+    # entirely, so now this bubble won't be identified
     g.add_edge(2, 0)
     g.add_edge(2, 0)
-    # The bubble detection code guarantees minimality only for bubbles (not
-    # bulges). We assume that bulges should have already been collapsed when
-    # running is_valid_bubble(). (Soooo... this should never happen in
-    # practice. Well, unless (2, 0) isn't a valid bulge [e.g. 0 has extra
-    # incoming nodes or whatever]. But let's test it anyway.)
-    vr = validators.is_valid_bubble(g, 0)
-    assert not vr
 
-    assert validators.is_valid_bulge(g, 2)
+    assert not validators.is_valid_bubble(g, 0)
+
+    # 2 --> 0 is almost a valid bulge, but because there exists a cyclic
+    # "back-edge" from 0 --> 2 we disallow it as a bulge
+    assert not validators.is_valid_bulge(g, 2)
     assert not validators.is_valid_bulge(g, 0)
     assert not validators.is_valid_bulge(g, 1)
 

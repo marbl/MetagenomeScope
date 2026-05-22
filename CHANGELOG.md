@@ -22,6 +22,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   ([#431](https://github.com/marbl/MetagenomeScope/issues/431),
   [#433](https://github.com/marbl/MetagenomeScope/issues/433)).
 
+- For the sake of simplicity, disallow cyclic bulges
+  ([#439](https://github.com/marbl/MetagenomeScope/issues/439)).
+
 - Adjust default edge widths, and vary these defaults based on whether or not
   the input graph is node-centric or not. (Node-centric graphs get thicker
   edges by default.)
