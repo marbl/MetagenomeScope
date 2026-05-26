@@ -226,7 +226,7 @@ _See [Flye's documentation](https://github.com/mikolmogorov/Flye/blob/flye/docs/
 **For GFA 1 paths ([`P`-lines](https://gfa-spec.github.io/GFA-spec/GFA1.html#p-path-line)):**
   - We will visualize these node-paths.
 
-**For GFA 2 paths ([`o`-lines](https://gfa-spec.github.io/GFA-spec/GFA2.html#group)):**
+**For GFA 2 paths ([`O`-lines](https://gfa-spec.github.io/GFA-spec/GFA2.html#group)):**
   - We will show all of the nodes on these paths, "expanding" edges and recursive patterns accordingly.
 
   - For more details, see "How do you handle `O`-lines in GFA 2 files?" in the FAQs below.
