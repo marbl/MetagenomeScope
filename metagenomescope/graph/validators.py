@@ -383,7 +383,8 @@ def is_valid_frayed_rope(g, start_node_id):
 
     start_node_ids_set = set(start_node_ids_view)
     for n in end_node_ids_view:
-        # Check for extraneous incoming edges
+        # Check for extraneous incoming edges (or even terrible things like
+        # incoming edges from other end nodes of this frayed rope! oh no!)
         if len(g.pred[n]) != 1:
             return ValidationResults()
         # NOTE: This disallows cyclic frayed ropes, because in my opinion (at

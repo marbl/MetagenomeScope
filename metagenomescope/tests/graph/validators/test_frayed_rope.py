@@ -48,8 +48,8 @@ def test_only_1_start_node():
     0 --2
          \-> 4
 
-     ... is not a valid frayed rope, since it only has 1 "starting" node (2
-     only has 1 incoming node).
+    ... is not a valid frayed rope, since it only has 1 "starting" node (2
+    only has 1 incoming node).
     """
     g = get_simple_fr_graph()
     g.remove_edge(1, 2)
@@ -65,7 +65,7 @@ def test_extraneous_outgoing_node_from_start_node_ids():
         2
     1 -/ \-> 4
 
-     ... is not a valid frayed rope, regardless of if you "start" at 0 or 1.
+    ... is not a valid frayed rope, regardless of if you "start" at 0 or 1.
     """
     g = get_simple_fr_graph()
     g.add_edge(0, 5)
@@ -80,8 +80,8 @@ def test_nondiverging_middle_node():
            2 -> 3
        1 -/
 
-        ... is not a valid frayed rope.
-        (It does look like a church rotated 90 degrees, though, I guess?)
+    ... is not a valid frayed rope.
+    (It does look like a church rotated 90 degrees, though, I guess?)
     """
     g = get_simple_fr_graph()
     g.remove_edge(2, 4)
@@ -95,7 +95,7 @@ def test_no_outgoing_edges_middle_node():
            2
        1 -/
 
-        ... is not a valid frayed rope.
+    ... is not a valid frayed rope.
     """
     g = get_simple_fr_graph()
     g.remove_edge(2, 3)
@@ -112,7 +112,7 @@ def test_extraneous_incoming_node_to_end_node_ids():
            2
        1 -/ \-> 4
 
-        ... is not a valid frayed rope.
+    ... is not a valid frayed rope.
     """
     g = get_simple_fr_graph()
     g.add_edge(5, 3)
@@ -148,15 +148,36 @@ def test_end_to_start_cyclic_frayed_rope():
     assert not validators.is_valid_frayed_rope(g, 1)
 
 
-def test_non_end_to_start_cyclic_frayed_rope():
-    r"""Tries to add non-end-to-start cyclic edges to a frayed rope, which
-    should prevent it from being highlighted as a frayed rope.
+def test_middle_to_start_cyclic_frayed_rope():
+    r"""Tests that a graph that looks like:
+
+    +---+
+    |   |
+    V   |
+    0 -\|/-> 3
+        2
+    1 -/ \-> 4
+
+    ... is not a valid frayed rope.
     """
     g = get_simple_fr_graph()
     g.add_edge(2, 0)
     assert not validators.is_valid_frayed_rope(g, 0)
     assert not validators.is_valid_frayed_rope(g, 1)
 
+
+def test_end_to_middle_cyclic_frayed_rope():
+    r"""Tests that a graph that looks like:
+
+        +---+
+        |   |
+        |   |
+    0 -\V/-> 3
+        2
+    1 -/ \-> 4
+
+    ... is not a valid frayed rope.
+    """
     g = get_simple_fr_graph()
     g.add_edge(3, 2)
     assert not validators.is_valid_frayed_rope(g, 0)
@@ -165,8 +186,19 @@ def test_non_end_to_start_cyclic_frayed_rope():
     assert not validators.is_valid_frayed_rope(g, 0)
     assert not validators.is_valid_frayed_rope(g, 1)
 
+
+def test_end_to_end_cyclic_frayed_rope():
+    r"""Tests that a graph that looks like:
+
+    0 -\ /-> 3 <--+
+        2         |
+    1 -/ \-> 4 ---+
+
+    ... is not a valid frayed rope.
+    """
+
     g = get_simple_fr_graph()
-    g.add_edge(3, 4)
+    g.add_edge(4, 3)
     assert not validators.is_valid_frayed_rope(g, 0)
     assert not validators.is_valid_frayed_rope(g, 1)
 
@@ -181,7 +213,7 @@ def test_diverges_to_start():
         2
     1 -/ \-> 4
 
-     ... is not a valid frayed rope.
+    ... is not a valid frayed rope.
     """
     g = get_simple_fr_graph()
     g.remove_edge(2, 3)
