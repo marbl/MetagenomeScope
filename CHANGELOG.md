@@ -41,9 +41,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Disable certain UI elements during graph layout / drawing
   ([#266](https://github.com/marbl/MetagenomeScope/issues/266)).
 
-- Various improvements to the README.
-
-- Clean up the frayed rope detection tests.
+- Various improvements to the README and tests.
 
 
 ## [v1.3.0] - 2026-05-15 - GFA handling improvements, better component tiling, various CLI options
@@ -92,7 +90,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 ### Changed
 
 - Implement a custom GFA parser. This dramatically speeds up loading large
-  GFA files, and makes it easier to quietly ignore nonstandard GFA tags
+  GFA files, and makes it easier to quietly ignore nonstandard GFA line types
   ([#310](https://github.com/marbl/MetagenomeScope/issues/310),
   [#403](https://github.com/marbl/MetagenomeScope/issues/403)).
 
