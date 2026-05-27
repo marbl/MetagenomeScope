@@ -687,8 +687,16 @@ def test_nonstandard_line_types_and_comments_ignored():
     s1.append("# is taken care of. Got all of that memorized?")
     s1.append("S\t999\t*\tLN:i:3")
     s1.append("# if you're reading this for some reason i owe you a coffee")
+    s1.append("# okay, so next let's check that #S lines are ignored b/c ")
+    s1.append("# they are effectively 'commented out' if that makes sense")
+    s1.append("#S\t333\t*\tLN:i:3")
+
     g, paths = run_tempfile_test("gfa", s1, None, None)
     assert paths is None
+    assert "333" not in g.nodes
+    assert "-333" not in g.nodes
+    assert "999" in g.nodes
+    assert "-999" in g.nodes
     assert g.nodes["999"]["cov"] is None
     assert g.nodes["999"]["gc_content"] is None
     assert g.nodes["999"]["length"] == 3
