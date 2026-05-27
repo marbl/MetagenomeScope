@@ -672,3 +672,26 @@ def test_multiple_coverage_tags_dp_wins():
     assert paths is None
     assert g.nodes["7"]["cov"] == 5
     assert g.nodes["-7"]["cov"] == 5
+
+
+def test_nonstandard_line_types_and_comments_ignored():
+    s1 = get_sample1_gfa()
+    s1.append("A\tyaargh\tspongeboy\tmebob\timaconfusinglyformattedfile")
+    s1.append("X")
+    s1.append("# my graph has so much stuff going on it has comments")
+    s1.append("Y\t\t\t\t:3")
+    s1.append("# ok, so next we'll add a normal S-line and check that")
+    s1.append("# comments and random junk don't prevent parsing later")
+    s1.append("# stuff in GFA files. Hey, by the way, this is testing")
+    s1.append("# that https://github.com/marbl/MetagenomeScope/issues/310")
+    s1.append("# is taken care of. Got all of that memorized?")
+    s1.append("S\t999\t*\tLN:i:3")
+    s1.append("# if you're reading this for some reason i owe you a coffee")
+    g, paths = run_tempfile_test("gfa", s1, None, None)
+    assert paths is None
+    assert g.nodes["999"]["cov"] is None
+    assert g.nodes["999"]["gc_content"] is None
+    assert g.nodes["999"]["length"] == 3
+    assert g.nodes["-999"]["cov"] is None
+    assert g.nodes["-999"]["gc_content"] is None
+    assert g.nodes["-999"]["length"] == 3
