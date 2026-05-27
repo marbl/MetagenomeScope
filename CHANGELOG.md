@@ -43,6 +43,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Various improvements to the README.
 
+- Clean up the frayed rope detection tests.
+
 
 ## [v1.3.0] - 2026-05-15 - GFA handling improvements, better component tiling, various CLI options
 [v1.3.0]: https://github.com/marbl/MetagenomeScope/releases/tag/v1.3.0
