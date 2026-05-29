@@ -82,6 +82,21 @@ def test_subgraph_count_positive_full_nodes():
     assert sg.count_positive_full_nodes() == 12
 
 
+def test_subgraph_count_positive_real_edges():
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_flye.gv")
+
+    sg = Subgraph(
+        99999,
+        "idk dude",
+        ag.nodeid2obj.values(),
+        ag.edgeid2obj.values(),
+        ag.pattid2obj.values(),
+    )
+    # this graph will have a fake edge in it; it shouldn't influence this!
+    # Also, this should only count one of the pair of {e9, -e9}.
+    assert sg.count_positive_real_edges() == 10
+
+
 def test_subgraph_count_positive_real_edges_when_no_userspecified_edgeids():
     ag = AssemblyGraph(
         "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
@@ -98,3 +113,16 @@ def test_subgraph_count_positive_real_edges_when_no_userspecified_edgeids():
     with pytest.raises(WeirdError) as ei:
         sg.count_positive_real_edges()
     assert "No 'id' field" in str(ei.value)
+
+
+def test_subgraph_repr():
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_flye.gv")
+
+    sg = Subgraph(
+        99999,
+        "SubgraphYeehaw",
+        ag.nodeid2obj.values(),
+        ag.edgeid2obj.values(),
+        ag.pattid2obj.values(),
+    )
+    assert repr(sg) == "SubgraphYeehaw (11 nodes, 12 edges, 3 patterns)"
