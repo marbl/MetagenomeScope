@@ -1,5 +1,7 @@
+import pytest
 from metagenomescope.graph import DrawResults, Subgraph, Node, Edge
 from metagenomescope import ui_config, config
+from metagenomescope.errors import WeirdError
 
 
 def test_init_empty():
@@ -54,3 +56,56 @@ def test_get_node_and_edge_ids():
     assert nodeids == [0]
     # order is arbitrary here
     assert sorted(edgeids) == [8, 9]
+
+
+def test_add_simple():
+    b = Node(0, "B", {"orientation": config.FWD})
+    sg5 = Subgraph(5, "sg5", [b], [], [])
+
+    c = Node(0, "C", {"orientation": config.REV})
+    sg6 = Subgraph(6, "sg6", [c], [], [])
+
+    dr = DrawResults({sg5: None}, [])
+    dr2 = DrawResults({sg6: None}, [])
+    drs = dr + dr2
+    assert drs.region2layout == {sg5: None, sg6: None}
+    assert drs.draw_settings == []
+
+
+def test_add_with_draw_settings():
+    b = Node(0, "B", {"orientation": config.FWD})
+    sg5 = Subgraph(5, "sg5", [b], [], [])
+
+    c = Node(0, "C", {"orientation": config.REV})
+    sg6 = Subgraph(6, "sg6", [c], [], [])
+
+    dr = DrawResults({sg5: None}, [ui_config.SHOW_PATTERNS])
+    dr2 = DrawResults({sg6: None}, [ui_config.SHOW_PATTERNS])
+    drs = dr + dr2
+    assert drs.region2layout == {sg5: None, sg6: None}
+    assert drs.draw_settings == [ui_config.SHOW_PATTERNS]
+
+
+def test_add_duplicate_region():
+    b = Node(0, "B", {"orientation": config.FWD})
+    sg5 = Subgraph(5, "sg5", [b], [], [])
+
+    dr = DrawResults({sg5: None}, [])
+    dr2 = DrawResults({sg5: None}, [])
+    with pytest.raises(WeirdError) as ei:
+        dr + dr2
+    assert "Regions present in multiple DrawResults" in str(ei.value)
+
+
+def test_add_incompatible_draw_settings():
+    b = Node(0, "B", {"orientation": config.FWD})
+    sg5 = Subgraph(5, "sg5", [b], [], [])
+
+    c = Node(0, "C", {"orientation": config.REV})
+    sg6 = Subgraph(6, "sg6", [c], [], [])
+
+    dr = DrawResults({sg5: None}, [ui_config.SHOW_PATTERNS])
+    dr2 = DrawResults({sg6: None}, [])
+    with pytest.raises(WeirdError) as ei:
+        dr + dr2
+    assert "Incompatible draw settings" in str(ei.value)
