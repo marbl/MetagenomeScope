@@ -48,6 +48,7 @@ def check_layout_cycle_with_tip(ag, lay, n1, n2, n3):
     to incidentally test that parameter stuff works.
     """
     assert "ranksep=3;\n" in lay.dot
+    assert not lay.region_is_pattern
 
     # internal node IDs
     i1 = n1.unique_id

@@ -42,7 +42,7 @@ class Component(Subgraph):
         # etc). We store this to make searching through the graph easier.
         self.cc_num = None
         super().__init__(
-            unique_id, f"ComponentID{unique_id}", nodes, edges, patterns
+            unique_id, f"TempComponentID{unique_id}", nodes, edges, patterns
         )
 
     def set_cc_num(self, cc_num):

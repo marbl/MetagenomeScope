@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 import pytest
 from metagenomescope import ui_config
-from metagenomescope.layout import Layout
+from metagenomescope.layout import Layout, layout_config
 from metagenomescope.errors import WeirdError
 from . import utils
 
@@ -57,4 +57,20 @@ def test_layout_bad_algorithm():
     assert (
         str(ei.value)
         == f"{ui_config.LAYOUT_DAGRE} not mapped to a Graphviz program?"
+    )
+
+
+def test_layout_to_solid_dot():
+    ag, cc, n1, n2, n3 = utils.get_cycle_with_tip_data()
+    lay = Layout(
+        cc,
+        [ui_config.SHOW_PATTERNS],
+        ui_config.LAYOUT_DOT,
+        {ui_config.LAYOUT_DOT: {"ranksep": 3}},
+    )
+    w = lay.width / layout_config.PIXELS_PER_INCH
+    h = lay.height / layout_config.PIXELS_PER_INCH
+    assert lay.to_solid_dot() == (
+        f"  {cc.unique_id} [width={w},height={h},shape=rectangle,"
+        f'label="cc{cc.cc_num}_id{cc.unique_id}"];\n'
     )
