@@ -359,10 +359,9 @@ class Layout(object):
     def to_abs_coords(self, dx=0, dy=0):
         """Returns the absolute coordinates of descendant nodes and edges.
 
-        Basically, if you did the default thing of using patterns + doing
-        recursive layout, then this will go through and convert coordinates
-        to be absolute (instead of relative to whatever parent pattern a
-        node/edge has).
+        Basically, if you used patterns + did recursive layout, then this will
+        go through and convert coordinates to be absolute (instead of relative
+        to whatever parent pattern a node/edge has).
 
         And if you did something else, then we don't really need to *convert*
         anything, but we still return the results in the same format to make
