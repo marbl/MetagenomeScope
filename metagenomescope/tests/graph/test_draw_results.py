@@ -1,5 +1,5 @@
 import pytest
-from metagenomescope.graph import DrawResults, Subgraph, Node, Edge
+from metagenomescope.graph import DrawResults, Subgraph, Component, Node, Edge
 from metagenomescope import ui_config, config
 from metagenomescope.errors import WeirdError
 
@@ -62,7 +62,7 @@ def test_add_simple():
     b = Node(0, "B", {"orientation": config.FWD})
     sg5 = Subgraph(5, "sg5", [b], [], [])
 
-    c = Node(0, "C", {"orientation": config.REV})
+    c = Node(1, "C", {"orientation": config.REV})
     sg6 = Subgraph(6, "sg6", [c], [], [])
 
     dr = DrawResults({sg5: None}, [])
@@ -76,7 +76,7 @@ def test_add_with_draw_settings():
     b = Node(0, "B", {"orientation": config.FWD})
     sg5 = Subgraph(5, "sg5", [b], [], [])
 
-    c = Node(0, "C", {"orientation": config.REV})
+    c = Node(1, "C", {"orientation": config.REV})
     sg6 = Subgraph(6, "sg6", [c], [], [])
 
     dr = DrawResults({sg5: None}, [ui_config.SHOW_PATTERNS])
@@ -101,7 +101,7 @@ def test_add_incompatible_draw_settings():
     b = Node(0, "B", {"orientation": config.FWD})
     sg5 = Subgraph(5, "sg5", [b], [], [])
 
-    c = Node(0, "C", {"orientation": config.REV})
+    c = Node(1, "C", {"orientation": config.REV})
     sg6 = Subgraph(6, "sg6", [c], [], [])
 
     dr = DrawResults({sg5: None}, [ui_config.SHOW_PATTERNS])
@@ -109,3 +109,48 @@ def test_add_incompatible_draw_settings():
     with pytest.raises(WeirdError) as ei:
         dr + dr2
     assert "Incompatible draw settings" in str(ei.value)
+
+
+def test_get_sorted_regions_subgraphs():
+    b = Node(0, "B", {"orientation": config.FWD})
+    b2 = Node(1, "B2", {"orientation": config.FWD})
+    sg5 = Subgraph(5, "sg5", [b, b2], [], [])
+
+    c = Node(2, "C", {"orientation": config.REV})
+    sg6 = Subgraph(6, "sg6", [c], [], [])
+
+    dr = DrawResults({sg5: None, sg6: None}, [ui_config.SHOW_PATTERNS])
+
+    assert dr.get_sorted_regions() == [sg5, sg6]
+
+
+def test_get_sorted_regions_subgraphs_and_components():
+    b = Node(0, "B", {"orientation": config.FWD})
+    b2 = Node(1, "B2", {"orientation": config.FWD})
+    sg5 = Subgraph(5, "sg5", [b, b2], [], [])
+
+    c = Node(2, "C", {"orientation": config.REV})
+    sg6 = Subgraph(6, "sg6", [c], [], [])
+
+    n1 = Node(3, "1", {})
+    n2 = Node(4, "2", {})
+    n3 = Node(5, "3", {})
+    n4 = Node(6, "4", {})
+    sg7 = Subgraph(7, "sg7", [n1, n2, n3, n4], [], [])
+
+    dr = DrawResults(
+        {sg5: None, sg6: None, sg7: None}, [ui_config.SHOW_PATTERNS]
+    )
+    assert dr.get_sorted_regions() == [sg7, sg5, sg6]
+
+    r = Node(7, "5", {})
+    cc = Component(8, [r], [], [])
+
+    # even though the component only has one node, it still goes before the
+    # subgraphs in the ordering here (although this shouldn't really happen in
+    # practice; see get_sorted_regions()'s docs for details)
+
+    dr2 = DrawResults(
+        {sg5: None, sg6: None, sg7: None, cc: None}, [ui_config.SHOW_PATTERNS]
+    )
+    assert dr2.get_sorted_regions() == [cc, sg7, sg5, sg6]
