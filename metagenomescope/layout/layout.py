@@ -274,7 +274,7 @@ class Layout(object):
         self.dot: str
             DOT representation of this region, used in computing layout.
 
-        self.width, self.int: float, float
+        self.width, self.height: float, float
             Dimensions of the bounding box of this region's layout.
 
         self.nodeid2rel: dict of int -> (int, int)
