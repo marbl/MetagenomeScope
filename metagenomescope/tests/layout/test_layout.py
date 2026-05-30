@@ -15,38 +15,11 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
+import pytest
 from metagenomescope import ui_config
-from metagenomescope.graph import AssemblyGraph
-
-
-def get_cycle_with_tip_data():
-    ag = AssemblyGraph("metagenomescope/tests/input/cycle_with_tip.gfa")
-
-    # one component has nodes {1, 2, 3}; the other has {-3, -2, -1}.
-    # we just care about the one with the positive node names here.
-    assert len(ag.components) == 2
-    nrccnums = ag.get_nr_cc_nums()
-    assert len(nrccnums) == 1
-    cc = ag.components[list(nrccnums)[0] - 1]
-
-    # find node objects
-    assert len(cc.nodes) == 3
-    n1 = None
-    n2 = None
-    n3 = None
-    for n in cc.nodes:
-        assert n.name in ("1", "2", "3")
-        if n.name == "1":
-            n1 = n
-        elif n.name == "2":
-            n2 = n
-        else:
-            n3 = n
-    assert n1 is not None
-    assert n2 is not None
-    assert n3 is not None
-
-    return ag, cc, n1, n2, n3
+from metagenomescope.layout import Layout
+from metagenomescope.tests import utils
+from metagenomescope.errors import WeirdError
 
 
 def test_layout_cycle_with_tip_nonrecursive():
@@ -61,15 +34,15 @@ def test_layout_cycle_with_tip_nonrecursive():
     versions might produce slightly different results. This is a somewhat quick
     and dirty approach, but hopefully it should not be super brittle...
     """
-    ag, cc, n1, n2, n3 = get_cycle_with_tip_data()
-    dr = cc.to_cyjs(
+    ag, cc, n1, n2, n3 = utils.get_cycle_with_tip_data()
+    lay = Layout(
+        cc,
         [ui_config.SHOW_PATTERNS],
         ui_config.LAYOUT_DOT,
         {ui_config.LAYOUT_DOT: {"ranksep": 3}},
     )
-    assert len(dr.region2layout) == 1
-    lay = dr.region2layout[cc]
-    assert lay is not None
+
+    assert "ranksep=3;\n" in lay.dot
 
     # internal node IDs
     i1 = n1.unique_id
@@ -152,15 +125,17 @@ def test_layout_cycle_with_tip_nonrecursive():
                 assert c <= lay.height
 
 
-def test_layout_cyclic_chain_cc_non_gv_layout_alg():
-    """When the layout algorithm isn't a Graphviz program, we'll do layout
-    in the client side -- so the Layout object should be None."""
-    _, cc, _, _, _ = get_cycle_with_tip_data()
-    dr = cc.to_cyjs(
-        [ui_config.SHOW_PATTERNS],
-        ui_config.LAYOUT_DAGRE,
-        {},
+def test_layout_bad_algorithm():
+    _, cc, _, _, _ = utils.get_cycle_with_tip_data()
+    with pytest.raises(WeirdError) as ei:
+        Layout(cc, [ui_config.SHOW_PATTERNS], "badalg", {})
+    assert str(ei.value) == "badalg not mapped to a Graphviz program?"
+
+    # even "recognized" algorithms that don't refer to graphviz progs
+    # should still trigger an error if you call Layout() with them directly
+    with pytest.raises(WeirdError) as ei:
+        Layout(cc, [ui_config.SHOW_PATTERNS], ui_config.LAYOUT_DAGRE, {})
+    assert (
+        str(ei.value)
+        == f"{ui_config.LAYOUT_DAGRE} not mapped to a Graphviz program?"
     )
-    assert len(dr.region2layout) == 1
-    lay = dr.region2layout[cc]
-    assert lay is None
