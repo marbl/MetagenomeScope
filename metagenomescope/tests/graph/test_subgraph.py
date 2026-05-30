@@ -2,7 +2,7 @@ import pytest
 from metagenomescope import ui_config
 from metagenomescope.graph import AssemblyGraph, Subgraph, PatternStats
 from metagenomescope.errors import WeirdError
-from metagenomescope.tests import utils
+from metagenomescope.tests.layout import utils as layout_test_utils
 
 
 def test_subgraph_simple():
@@ -133,7 +133,7 @@ def test_subgraph_repr():
 def test_to_cyjs_clientside_layout():
     """When the layout algorithm isn't a Graphviz program, we'll do layout
     in the client side -- so the Layout object should be None."""
-    _, cc, _, _, _ = utils.get_cycle_with_tip_data()
+    _, cc, _, _, _ = layout_test_utils.get_cycle_with_tip_data()
     dr = cc.to_cyjs(
         [ui_config.SHOW_PATTERNS],
         ui_config.LAYOUT_DAGRE,
@@ -142,3 +142,16 @@ def test_to_cyjs_clientside_layout():
     assert len(dr.region2layout) == 1
     lay = dr.region2layout[cc]
     assert lay is None
+
+
+def test_to_cyjs_gv_layout():
+    ag, cc, n1, n2, n3 = layout_test_utils.get_cycle_with_tip_data()
+    dr = cc.to_cyjs(
+        [ui_config.SHOW_PATTERNS],
+        ui_config.LAYOUT_DOT,
+        {ui_config.LAYOUT_DOT: {"ranksep": 3}},
+    )
+    assert len(dr.region2layout) == 1
+    lay = dr.region2layout[cc]
+    assert lay is not None
+    layout_test_utils.check_layout_cycle_with_tip(ag, lay, n1, n2, n3)

@@ -20,7 +20,6 @@
 # process of creating tests for MetagenomeScope's preprocessing script.
 
 import random
-from metagenomescope.graph import AssemblyGraph
 
 
 def gen_random_sequence(possible_lengths):
@@ -34,40 +33,3 @@ def gen_random_sequence(possible_lengths):
         seq += random.choice(alphabet)
         i += 1
     return seq
-
-
-def get_cycle_with_tip_data():
-    """Returns info about a graph 1 -> 2 -> 3, with a back edge 2 -> 1.
-
-    This is useful in testing layout, and I guess there are multiple
-    levels through which the layout process gets triggered (by calling
-    Layout(), by calling Subgraph.to_cyjs(), ...) So I guess we can put this
-    here so we can use it in various places.
-    """
-    ag = AssemblyGraph("metagenomescope/tests/input/cycle_with_tip.gfa")
-
-    # one component has nodes {1, 2, 3}; the other has {-3, -2, -1}.
-    # we just care about the one with the positive node names here.
-    assert len(ag.components) == 2
-    nrccnums = ag.get_nr_cc_nums()
-    assert len(nrccnums) == 1
-    cc = ag.components[list(nrccnums)[0] - 1]
-
-    # find node objects
-    assert len(cc.nodes) == 3
-    n1 = None
-    n2 = None
-    n3 = None
-    for n in cc.nodes:
-        assert n.name in ("1", "2", "3")
-        if n.name == "1":
-            n1 = n
-        elif n.name == "2":
-            n2 = n
-        else:
-            n3 = n
-    assert n1 is not None
-    assert n2 is not None
-    assert n3 is not None
-
-    return ag, cc, n1, n2, n3
