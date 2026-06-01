@@ -61,7 +61,7 @@ class NodeLayout(object):
             #
             # Adjust based on order of magnitude, to make longer sequences
             # appear "longer" in the drawing.
-            r = max(math.log(self.length, 100), 1)
+            r = min(max(math.log(self.length, 100), 1), 6)
 
             # I played around a lot with the various options here -- see eg
             # https://www.wolframalpha.com/input?i=log10%28x%29+and+log100%28x%29+and+log10%28x%29%5E2+and+log100%28x%29%5E2+from+x+%3D+1+to+x%3D++5+million
