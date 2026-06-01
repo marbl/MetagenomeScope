@@ -61,7 +61,7 @@ class NodeLayout(object):
             #
             # Adjust based on order of magnitude, to make longer sequences
             # appear "longer" in the drawing.
-            whr = max(math.log(self.length, 100), 1)
+            r = max(math.log(self.length, 100), 1)
 
             # I played around a lot with the various options here -- see eg
             # https://www.wolframalpha.com/input?i=log10%28x%29+and+log100%28x%29+and+log10%28x%29%5E2+and+log100%28x%29%5E2+from+x+%3D+1+to+x%3D++5+million
@@ -69,8 +69,12 @@ class NodeLayout(object):
             # but not too big" and "small sequences are not too small." IDK.
             # I'm sure there are better ways to do this.
             area = max(math.log(self.length, 10), 1) ** 2
-            self.height = math.sqrt(area / whr)
-            self.width = self.height * whr
+
+            # A = wh, and w = rh.
+            # We thus know that A = (rh) * h = rh^2.
+            # From there we can solve for A / r = h^2, and then sqrt(A/r) = h.
+            self.height = math.sqrt(area / r)
+            self.width = self.height * r
         else:
             # match flye's DOT files
             self.width = layout_config.NOLENGTH_NODE_WIDTH
