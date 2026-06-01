@@ -56,11 +56,21 @@ class NodeLayout(object):
 
     def set_dims(self):
         if self.length is not None:
-            m = max(math.log(self.length, 1000), 1)
-            self.width = m * max(
-                math.log(self.length, layout_config.NODE_SCALING_LOG_BASE), 1
-            )
-            self.height = self.width / 2.5
+
+            # What should the ratio of width:height be?
+            #
+            # Adjust based on order of magnitude, to make longer sequences
+            # appear "longer" in the drawing.
+            whr = max(math.log(self.length, 100), 1)
+
+            # I played around a lot with the various options here -- see eg
+            # https://www.wolframalpha.com/input?i=log10%28x%29+and+log100%28x%29+and+log10%28x%29%5E2+and+log100%28x%29%5E2+from+x+%3D+1+to+x%3D++5+million
+            # ... this seems to offer a good mix of "long sequences look big
+            # but not too big" and "small sequences are not too small." IDK.
+            # I'm sure there are better ways to do this.
+            area = max(math.log(self.length, 10), 1) ** 2
+            self.height = math.sqrt(area / whr)
+            self.width = self.height * whr
         else:
             # match flye's DOT files
             self.width = layout_config.NOLENGTH_NODE_WIDTH
