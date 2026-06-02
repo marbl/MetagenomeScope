@@ -714,11 +714,10 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
             if t != seen_node_ids[0]:
                 raise WeirdError("Something went really wrong...?")
 
-            # What if there are edge(s) from t to the starting node?
-            # Onodera et al. explicitly do not identify bubbles where this is
-            # the case, but here we *do* identify these sorts of bubbles. ALSO
-            # now we disallow this! See
-            # https://github.com/marbl/MetagenomeScope/issues/241.
+            # What if there are edge(s) from t to the starting node? Onodera et
+            # al. explicitly do not identify bubbles where this is the case,
+            # and now we also disallow this: cyclic bubbles cause weird jank.
+            # See https://github.com/marbl/MetagenomeScope/issues/241.
             if start_node_id in g.adj[t]:
                 return ValidationResults()
 
