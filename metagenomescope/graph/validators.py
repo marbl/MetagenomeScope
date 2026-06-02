@@ -1307,8 +1307,8 @@ def is_valid_bipartite(g, start_node_id):
 
     # At this point, things mostly look good. All that is left is to check
     # that the in-nodes of layer 2 and the out-nodes of layer 1 actually
-    # correspond to the opposite layer, and are not connected by parallel
-    # edges. (Also, let's detect and reject bipartites with cyclic edges.)
+    # correspond to the opposite layer.
+    # (Also, let's detect and reject bipartites with cyclic edges.)
     #
     # This could probably be sped up or integrated into the above checks,
     # but at least this quadratic check is deferred until later on in the
@@ -1317,7 +1317,10 @@ def is_valid_bipartite(g, start_node_id):
     # did seem to be the set(layer...) stuff, as discussed at length above...
     for n1 in layer1_view:
         for n2 in layer2_view:
-            if n2 not in g.adj[n1] or len(g.adj[n1][n2]) != 1:
+            # Check that there is at least one edge from n1 -> n2.
+            # If you want to disallow parallel edges in bipartites, you can
+            # add on "or len(g.adj[n1][n2]) != 1" to this if-statement.
+            if n2 not in g.adj[n1]:
                 return ValidationResults()
             # disallow cyclic edges from layer 2 back to layer 1
             if len(layer1_set & set(g.adj[n2])) > 0:

@@ -217,14 +217,55 @@ def test_self_loops_in_bipartite():
 
 
 def test_parallel_edges_in_bipartite():
-    r"""Tests that parallel edges are not allowed."""
+    r"""Tests that parallel edges are NOW allowed!
+
+    Previously we didn't allow this but - if we are gonna allow these in the
+    context of frayed ropes - then I think it makes sense to allow them for
+    bipartites, too. This makes it easier to say that bipartites are, like, a
+    "special case" of frayed ropes.
+    """
+    # like in the frayed rope tests: build up a big graph containing |E|
+    # parallel edges on this bipartite, as well as smaller graphs containing
+    # just one parallel edge.
+    big_g = get_simple_bp_graph()
+
     for e in ((1, 2), (1, 4), (3, 2), (3, 4)):
         g = get_simple_bp_graph()
         g.add_edge(*e)
-        assert not validators.is_valid_bipartite(g, 1)
+        big_g.add_edge(*e)
+        assert len(g.edges) == 5
+        assert validators.is_valid_bipartite(g, 1)
+        assert validators.is_valid_bipartite(g, 3)
         assert not validators.is_valid_bipartite(g, 2)
-        assert not validators.is_valid_bipartite(g, 3)
         assert not validators.is_valid_bipartite(g, 4)
+
+    assert len(big_g.edges) == 8
+    assert validators.is_valid_bipartite(big_g, 1)
+    assert validators.is_valid_bipartite(big_g, 3)
+    assert not validators.is_valid_bipartite(big_g, 2)
+    assert not validators.is_valid_bipartite(big_g, 4)
+
+
+def test_many_parallel_edges_in_bipartite():
+    r"""Tests bipartites are allowed to contain edges with MANY parallels."""
+    big_g = get_simple_bp_graph()
+
+    for e in ((1, 2), (1, 4), (3, 2), (3, 4)):
+        g = get_simple_bp_graph()
+        for i in range(5):
+            g.add_edge(*e)
+            big_g.add_edge(*e)
+        assert len(g.edges) == 9
+        assert validators.is_valid_bipartite(g, 1)
+        assert validators.is_valid_bipartite(g, 3)
+        assert not validators.is_valid_bipartite(g, 2)
+        assert not validators.is_valid_bipartite(g, 4)
+
+    assert len(big_g.edges) == 24
+    assert validators.is_valid_bipartite(big_g, 1)
+    assert validators.is_valid_bipartite(big_g, 3)
+    assert not validators.is_valid_bipartite(big_g, 2)
+    assert not validators.is_valid_bipartite(big_g, 4)
 
 
 def test_is_valid_bipartite_tl_only():
