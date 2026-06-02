@@ -25,6 +25,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Disallow the identification of cyclic bulges, for the sake of simplicity
   ([#439](https://github.com/marbl/MetagenomeScope/issues/439)).
 
+- Allow bipartites with parallel edges, to be consistent with frayed ropes.
+
 - Adjust how nodes are scaled based on length
   ([#316](https://github.com/marbl/MetagenomeScope/issues/316)).
 
