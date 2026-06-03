@@ -639,7 +639,8 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
     """
     verify_node_in_graph(g, start_node_id)
 
-    # MgSc-specific thing: if the starting node only has outgoing edge(s) to
+    # MgSc-specific thing: enforce that the starting node must have outgoing
+    # edges to >= 2 nodes. If the starting node only has outgoing edge(s) to
     # one node, then this starting node isn't the start of a bubble. (It could
     # be the start of a chain or bulge, maybe, if its one outgoing node has no
     # incoming edges from other nodes.)
@@ -647,7 +648,17 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
     # We don't guarantee that the graph is a unipath graph; I believe that this
     # is an assumption of Onodera 2013's algorithm. This is why we impose this
     # restriction. (Otherwise, I found that weird stuff was getting called
-    # as a bubble in the test Velvet E. coli graph.)
+    # as a bubble in the test Velvet E. coli graph. I think this is due to the
+    # fact that the Onodera 2013 algorithm technically considers 2-node chains
+    # like A -> B to be "bubbles.")
+    #
+    # NOTE: at least as of writing, we lump "bulges" and "bubbles" together in
+    # the paper and just say "bubble" for the sake of simplicity; and we use
+    # the rule that the start node of a "bubble" must have >= 2 outgoing edges.
+    #
+    # Bulges can be thought of as adapting the bubble-finding algorithm to the
+    # trivial case where a node has >= 2 outgoing edges BUT all of them are to
+    # the same node.
     if len(g.adj[start_node_id]) < 2:
         return ValidationResults()
 
@@ -718,9 +729,10 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
                 if t != seen_node_ids[0]:
                     raise WeirdError("Something went really wrong...?")
 
-                # What if there are edge(s) from t to the starting node? Onodera et
-                # al. explicitly do not identify bubbles where this is the case,
-                # and now we also disallow this: cyclic bubbles cause weird jank.
+                # What if there are edge(s) from t to the starting node?
+                # Onodera et al. explicitly do not identify bubbles where this
+                # is the case, and now we also disallow this: cyclic bubbles
+                # cause weird jank.
                 # See https://github.com/marbl/MetagenomeScope/issues/241.
                 if start_node_id in g.adj[t]:
                     return ValidationResults()
