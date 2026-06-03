@@ -708,82 +708,94 @@ def is_valid_bubble(g, start_node_id, nodeid2obj=None, edgeid2obj=None):
         # If just one vertex (let's call it t) is left in S, and if t is
         # the only vertex marked as seen, then it's the exit (aka ending) node
         # of the bubble!
-        seen_node_ids = [n for n in nodeid2label if nodeid2label[n] == "seen"]
-        if len(S) == 1 and len(seen_node_ids) == 1:
-            t = S.pop()
-            if t != seen_node_ids[0]:
-                raise WeirdError("Something went really wrong...?")
+        if len(S) == 1:
+            # save time by not computing seen_node_ids until we know |S| == 1
+            seen_node_ids = [
+                n for n in nodeid2label if nodeid2label[n] == "seen"
+            ]
+            if len(seen_node_ids) == 1:
+                t = S.pop()
+                if t != seen_node_ids[0]:
+                    raise WeirdError("Something went really wrong...?")
 
-            # What if there are edge(s) from t to the starting node? Onodera et
-            # al. explicitly do not identify bubbles where this is the case,
-            # and now we also disallow this: cyclic bubbles cause weird jank.
-            # See https://github.com/marbl/MetagenomeScope/issues/241.
-            if start_node_id in g.adj[t]:
-                return ValidationResults()
+                # What if there are edge(s) from t to the starting node? Onodera et
+                # al. explicitly do not identify bubbles where this is the case,
+                # and now we also disallow this: cyclic bubbles cause weird jank.
+                # See https://github.com/marbl/MetagenomeScope/issues/241.
+                if start_node_id in g.adj[t]:
+                    return ValidationResults()
 
-            # This part was not present in Onodera 2013. They make the
-            # claim of "minimality," but only with respect to bubbles
-            # that begin at a specific starting node -- as far as I can
-            # tell they don't account for the case when one bubble
-            # completely contains another (see for example Fig. 2a of
-            # Nijkamp et al. 2013). Furthermore, what if a bubble contains
-            # a bulge or a chain? We should have already identified the
-            # low-level bulges / chains earlier on in the decomposition, but
-            # we haven't *guaranteed* that we've identified all bulges / chains
-            # that get introduced as we decompose the graph.
-            #
-            # To ensure that we don't accidentally create a bubble that
-            # includes bulges, chains, or other bubbles, we just rerun these
-            # detection algorithms on all non-start/end nodes within a bubble,
-            # and if we find a hit we just return THAT pattern. (We don't
-            # bother checking for cyclic chains: a bubble, as defined here, can
-            # never contain a valid cyclic chain since we detect and prevent
-            # all cycles except end-to-start cycles above.)
-            #
-            # This does not mean we're abandoning this bubble: due to the
-            # hierarchical decomp stuff, we'll come back to it later!
-            #
-            # This is of course obscenely inefficient in theory. However, since
-            # this repeated check only gets run once we DO find a bubble, I
-            # don't think it will be too slow.
+                # This part was not present in Onodera 2013. They make the
+                # claim of "minimality," but only with respect to bubbles
+                # that begin at a specific starting node -- as far as I can
+                # tell they don't account for the case when one bubble
+                # completely contains another (see for example Fig. 2a of
+                # Nijkamp et al. 2013). Furthermore, what if a bubble contains
+                # a bulge or a chain? We should have already identified the
+                # low-level bulges / chains earlier on in the decomposition,
+                # but we haven't *guaranteed* that we've identified all bulges
+                # / chains that get introduced as we decompose the graph.
+                #
+                # To ensure that we don't accidentally create a bubble that
+                # includes bulges, chains, or other bubbles, we just rerun
+                # these detection algorithms on all non-start/end nodes within
+                # a bubble, and if we find a hit we just return THAT pattern.
+                # (We don't bother checking for cyclic chains: a bubble, as
+                # defined here, can never contain a valid cyclic chain since we
+                # detect and prevent all cycles.) This does not mean we're
+                # abandoning this bubble: due to the hierarchical decomp stuff,
+                # we'll come back to it later!
+                #
+                # This is of course obscenely inefficient in theory. However,
+                # since this repeated check only gets run once we DO find a
+                # bubble, I don't think it will be too slow.
+                #
+                # Also, fun note from like 6 years in the future (I wrote the
+                # above text in like fall 2020 iirc, and it is june 2026 now):
+                # it turns out that BubbleGun does the same thing -- their
+                # supplemental material talks about it, since they also
+                # implemented the Onodera 2013 algorithm.
 
-            # Figure out if we want to do the fancy no-ETFE chain search (if we
-            # have Node and Edge object information) or if we just care about
-            # the graph's topology.
-            no_etfe_chains = nodeid2obj is not None and edgeid2obj is not None
-            for c in nodeid2label:
-                if c != t and c != start_node_id:
-                    if no_etfe_chains:
-                        # The fancy route. (Bulge detection doesn't require any
-                        # extra information, but we have to pass nodeid2obj and
-                        # edgeid2obj to the other two validator functions.)
-                        out = is_valid_bulge(g, c)
-                        if out:
-                            return out
-                        for validator in (
-                            is_valid_chain_trimmed_etfes,
-                            is_valid_bubble,
-                        ):
-                            out = validator(g, c, nodeid2obj, edgeid2obj)
+                # Figure out if we want to do the fancy no-ETFE chain search
+                # (if we have Node and Edge object information) or if we just
+                # care about the graph's topology.
+                no_etfe_chains = (
+                    nodeid2obj is not None and edgeid2obj is not None
+                )
+                for c in nodeid2label:
+                    if c != t and c != start_node_id:
+                        if no_etfe_chains:
+                            # The fancy route. (Bulge detection doesn't require
+                            # any extra information, but we have to pass
+                            # nodeid2obj and edgeid2obj to the other two
+                            # validator functions.)
+                            out = is_valid_bulge(g, c)
                             if out:
                                 return out
-                    else:
-                        # The less-fancy route -- just consider topology
-                        for validator in (
-                            is_valid_bulge,
-                            is_valid_chain,
-                            is_valid_bubble,
-                        ):
-                            out = validator(g, c)
-                            if out:
-                                return out
+                            for validator in (
+                                is_valid_chain_trimmed_etfes,
+                                is_valid_bubble,
+                            ):
+                                out = validator(g, c, nodeid2obj, edgeid2obj)
+                                if out:
+                                    return out
+                        else:
+                            # The less-fancy route -- just consider topology
+                            for validator in (
+                                is_valid_bulge,
+                                is_valid_chain,
+                                is_valid_bubble,
+                            ):
+                                out = validator(g, c)
+                                if out:
+                                    return out
 
-            # If the checks above succeeded, this is a valid and minimal
-            # bubble! Nice.
-            composite = list(nodeid2label)
-            return ValidationResults(
-                config.PT_BUBBLE, True, composite, [start_node_id], [t]
-            )
+                # If the checks above succeeded, this is a valid and minimal
+                # bubble! Nice.
+                composite = list(nodeid2label)
+                return ValidationResults(
+                    config.PT_BUBBLE, True, composite, [start_node_id], [t]
+                )
 
     return ValidationResults()
 
