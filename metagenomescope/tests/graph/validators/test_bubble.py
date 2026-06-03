@@ -637,10 +637,9 @@ def test_non_end_to_start_cyclic_superbubble():
         \  V  /
          \-2-/
 
-        This is because we only allow (super)bubbles to be cyclic, at least at
-        the moment, if the "cyclic" edge goes from the ending node to the
-        starting node. But having cycles *within* the bubble complicates
-        detection algorithms, and I don't wanna deal with that.
+    We just straight up don't allow cycles in bubbles at all, per the
+    acyclicity condition of Onodera et al. 2013. "Acyclicity" is a really
+    fun word to say.
     """
     g = get_easy_bubble_graph()
     g.add_edge(1, 2)
