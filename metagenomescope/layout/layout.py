@@ -205,8 +205,11 @@ class Layout(object):
         return layout_utils.get_node_dot(
             self.region.unique_id,
             self.region.name,
-            self.width / layout_config.PIXELS_PER_INCH,
-            self.height / layout_config.PIXELS_PER_INCH,
+            # Make sure we stay consistent with the inches <---> points
+            # conversion! Otherwise you get gross stuff like
+            # https://github.com/marbl/MetagenomeScope/issues/398
+            self.width / layout_config.POINTS_PER_INCH,
+            self.height / layout_config.POINTS_PER_INCH,
             self.shape,
             indent,
             color,
@@ -313,10 +316,9 @@ class Layout(object):
                 and len(self.region.patterns) == 0
             ):
                 n = self.region.nodes[0]
-                # NOTE: the bounding boxes are different because we use
-                # a conversion factor of 54 instead of 72. But should not
-                # change the actual appearance of nodes
-                self.width, self.height = n.layout.get_dims(pixels=True)
+                self.width, self.height = n.layout.get_dims(
+                    units=layout_config.UNIT_GV_POINTS
+                )
                 self.nodeid2rel[n.unique_id] = (
                     self.width / 2,
                     self.height / 2,
@@ -334,6 +336,9 @@ class Layout(object):
             # (bb) should always be (0, 0).
             # The width and height we store here are large enough in order to
             # contain the layout of the stuff we just laid out.
+            # Note that, although node dimensions are given to Graphviz in inches,
+            # bounding boxes are in points (https://graphviz.org/docs/attrs/bb/).
+            # (Hence why when we call get_dims() above we ask for points.)
             self.width, self.height = layout_utils.get_bb_x2_y2(
                 cg.graph_attr["bb"]
             )

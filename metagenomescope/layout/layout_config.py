@@ -6,11 +6,42 @@
 # use a \t character here, if you're the sort of person who prefers tabs ._.
 INDENT = "  "
 
-# The conversion factor between inches (Graphviz) and pixels (Cytoscape.js).
-# There is a lot of history to this, and I think Cytoscape.js has changed its
-# system from points to pixels??? Or maybe it was always in pixels and graphviz
-# has just been kind of inconsistent with its units being in points or inches
-# depending on bounding boxes or coordinates??? let's just see how things go
+UNIT_GV_INCHES = "in"
+UNIT_GV_POINTS = "pt"
+UNIT_CY_PIXELS = "px"
+
+# Conversion factor between inches and points (both in Graphviz), per
+# https://graphviz.org/doc/info/attrs.html.
+#
+# Graphviz node widths / heights, etc. are in inches, but Graphviz positions
+# are in points (and Graphviz says there are 72 points per inch).
+#
+# Because of how the recursive layout algorithm works (with inferring
+# positions based on bounding boxes, etc), we need to be able to accurately
+# convert between points and inches. Thus, we use exactly 72 here. This
+# resolves the ugly inconsistencies that using 54 for this introduced: see
+# https://github.com/marbl/MetagenomeScope/issues/398.
+POINTS_PER_INCH = 72
+
+# The conversion factor between inches (Graphviz) and pixels (Cytoscape.js),
+# currently used ONLY FOR adjusting the scale of nodes (from inches -> px).
+#
+# You can use 72 for this if you'd like (so that you only have to think in
+# terms of inches and points), but this results in a lot of edges being marked
+# as bad edges by Cytoscape.js -- and the nodes look really big in the
+# visualization. I am not sure why this is the case...? See the Velvet E. coli
+# graph for an example: using 72 pixels per inch there are 97 bad edges in cc1
+# with default settings, but using 54 pixels per inch there are 0 bad edges in
+# cc1 with default settings. Weird!
+#
+# In theory, edge control points are not another sort of thing we need to think
+# about here -- since we convert them from literal points to relative points
+# between node positions, right...? But maybe nodes being bigger or smaller
+# could cause weird stuff here.
+#
+# Anyway, currently (as of June 2026), we use this ONLY for the final step of
+# converting node dimensions from inches to Cytoscape.js values. This seems to
+# make everything Just Work (tm).
 PIXELS_PER_INCH = 54
 
 ########

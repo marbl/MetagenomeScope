@@ -257,7 +257,9 @@ class Node(object):
             "classes": f"nonpattern {ndir} {splitcls} noderand{self.rand_idx}",
         }
 
-        ele["data"]["w"], ele["data"]["h"] = self.layout.get_dims(pixels=True)
+        ele["data"]["w"], ele["data"]["h"] = self.layout.get_dims(
+            units=layout_config.UNIT_CY_PIXELS
+        )
 
         if (
             ui_utils.show_patterns(draw_settings)

@@ -46,7 +46,13 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Disable certain UI elements during graph layout / drawing
   ([#266](https://github.com/marbl/MetagenomeScope/issues/266)).
 
-- Various improvements to the README and tests.
+- Various improvements to the documentation and tests.
+
+### Fixed
+
+- Use consistent conversions between Graphviz points and inches; fixes
+  "stretching" in the recursive layout algorithm
+  ([#398](https://github.com/marbl/MetagenomeScope/issues/398)).
 
 
 ## [v1.3.0] - 2026-05-15 - GFA handling improvements, better component tiling, various CLI options

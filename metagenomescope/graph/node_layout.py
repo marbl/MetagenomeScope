@@ -1,5 +1,6 @@
 import math
 from metagenomescope import config
+from metagenomescope.errors import WeirdError
 from metagenomescope.layout import layout_config, layout_utils
 
 
@@ -76,7 +77,7 @@ class NodeLayout(object):
             self.height = math.sqrt(area / r)
             self.width = self.height * r
         else:
-            # match flye's DOT files
+            # mimic flye's DOT files
             self.width = layout_config.NOLENGTH_NODE_WIDTH
             self.height = layout_config.NOLENGTH_NODE_HEIGHT
 
@@ -94,14 +95,17 @@ class NodeLayout(object):
         if self.split is not None and self.orientation is not None:
             self.width /= 2
 
-    def get_dims(self, pixels=True):
-        if pixels:
-            return (
-                self.width * layout_config.PIXELS_PER_INCH,
-                self.height * layout_config.PIXELS_PER_INCH,
-            )
+    def get_dims(self, units=layout_config.UNIT_GV_POINTS):
+        if units == layout_config.UNIT_GV_POINTS:
+            sf = layout_config.POINTS_PER_INCH
+        elif units == layout_config.UNIT_CY_PIXELS:
+            sf = layout_config.PIXELS_PER_INCH
+        elif units == layout_config.UNIT_GV_INCHES:
+            sf = 1
         else:
-            return self.width, self.height
+            raise WeirdError(f"Unrecognized unit: {units}")
+
+        return self.width * sf, self.height * sf
 
     def to_dot(self, nodeid, nodelabel, indent=layout_config.INDENT):
         return layout_utils.get_node_dot(
