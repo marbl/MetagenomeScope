@@ -46,6 +46,12 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Disable certain UI elements during graph layout / drawing
   ([#266](https://github.com/marbl/MetagenomeScope/issues/266)).
 
+- Allow semicolons when specifying lists of component size ranks or node names.
+
+  - This makes "round-tripping" possible: formatted lists of component size
+    ranks (e.g. `#2 – 4; #8 – 10`) can now be used as inputs to the drawing
+    controls.
+
 - Various improvements to the documentation and tests.
 
 ### Fixed

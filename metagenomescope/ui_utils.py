@@ -620,7 +620,7 @@ def get_size_ranks(val, maxcc):
     Parameters
     ----------
     val: str
-        Text input by the user. This should be a a comma-separated
+        Text input by the user. This should be a a comma-/semicolon-separated
         list of component size ranks to draw: each entry can be something
         like "3" (draw cc #3), "3-5" (draw ccs 3-5), "-3" (draw ccs 1-3),
         or "3-" (draw all ccs with size ranks >= 3).
@@ -651,7 +651,7 @@ def get_size_ranks(val, maxcc):
     if val is None or len(val.strip()) == 0:
         raise UIError(say_gibberish_msg(maxcc, for_single_entry=False))
     srs = set()
-    entries = val.split(",")
+    entries = val.replace(";", ",").split(",")
     # Each entry e in "entries" can be one of:
     # * a single size rank (e.g. "2")
     # * a range of size ranks (e.g. "2-5")
@@ -855,7 +855,8 @@ def get_node_names(val):
     """Returns a set of node names based on user input.
 
     This is kind of analogous to get_size_ranks() above -- the same idea, of
-    converting arbitrary comma-separated user inputs to a collection of IDs.
+    converting arbitrary comma-/semicolon-separated user inputs to a collection
+    of IDs.
 
     Parameters
     ----------
@@ -889,7 +890,8 @@ def get_node_names(val):
     if val is None or len(val.strip()) == 0:
         raise nothing_err
 
-    node_names = set(n.strip() for n in val.split(","))
+    # As with get_size_ranks(), allow semicolons as delimiters
+    node_names = set(n.strip() for n in val.replace(";", ",").split(","))
 
     # Ignore ""s resulting from inputs like "node1,,node2"
     node_names.discard("")

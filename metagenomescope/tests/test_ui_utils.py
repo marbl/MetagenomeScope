@@ -409,6 +409,28 @@ def test_get_size_ranks_empty_entries_ok():
     assert uu.get_size_ranks(",,,,,, ,,,    ,,,,  1", 11) == {1}
 
 
+def test_get_size_ranks_semicolons_ok():
+    # the purpose of adding support for semicolons:
+    # this makes sure that we can "round trip" stuff from fmt_num_ranges()
+    # back to get_size_ranks()! Or at least this makes sure it's possible as
+    # of like June 10, 2026 lol. More formal tests of round-tripping below.
+    assert uu.get_size_ranks("6,6;2;10", 11) == {2, 6, 10}
+    assert uu.get_size_ranks(";;;;; ,,,    ,,,,  1;2", 11) == {1, 2}
+
+
+def test_fmt_num_ranges_to_get_size_ranks_roundtrip():
+    assert uu.get_size_ranks(uu.fmt_num_ranges([1]), 100) == {1}
+    assert uu.get_size_ranks(uu.fmt_num_ranges([1, 2, 3, 4]), 4) == {
+        1,
+        2,
+        3,
+        4,
+    }
+    assert uu.get_size_ranks(
+        uu.fmt_num_ranges([100, 2, 10, 11, 12, 101]), 101
+    ) == {2, 10, 11, 12, 100, 101}
+
+
 def test_get_size_ranks_just_empty_entries_fails():
     with pytest.raises(UIError) as ei:
         uu.get_size_ranks(",,,,,, ,,,    ,,,, ", 11)
@@ -546,6 +568,19 @@ def test_get_node_names():
     assert uu.get_node_names("node_1") == {"node_1"}
     assert uu.get_node_names("3") == {"3"}
     assert uu.get_node_names("4,,,,  ,,,,,,4,") == {"4"}
+
+
+def test_get_node_names_semicolons_ok():
+    # supporting these just to be consistent with how we accept semicolons
+    # in size rank lists
+    assert uu.get_node_names("1;23,abc;node_6, node_5;node_5;1") == {
+        "1",
+        "23",
+        "node_5",
+        "abc",
+        "node_6",
+    }
+    assert uu.get_node_names("4;;;;  ;;;;;;4;") == {"4"}
 
 
 def test_get_node_names_empty():
