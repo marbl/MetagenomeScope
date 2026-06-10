@@ -103,7 +103,7 @@ class NodeLayout(object):
         elif units == layout_config.UNIT_GV_INCHES:
             sf = 1
         else:
-            raise WeirdError(f"Unrecognized unit: {units}")
+            raise WeirdError(f'Unrecognized unit: "{units}"')
 
         return self.width * sf, self.height * sf
 
