@@ -36,3 +36,8 @@ def test_get_dims():
     with pytest.raises(WeirdError) as ei:
         n.layout.get_dims(units="blah")
     assert str(ei.value) == 'Unrecognized unit: "blah"'
+
+    # verify that "units" is no longer an optional parameter, so calling
+    # get_dims() should raise a TypeError.
+    with pytest.raises(TypeError) as ei:
+        n.layout.get_dims()

@@ -95,7 +95,7 @@ class NodeLayout(object):
         if self.split is not None and self.orientation is not None:
             self.width /= 2
 
-    def get_dims(self, units=layout_config.UNIT_GV_POINTS):
+    def get_dims(self, units):
         if units == layout_config.UNIT_GV_POINTS:
             sf = layout_config.POINTS_PER_INCH
         elif units == layout_config.UNIT_CY_PIXELS:
