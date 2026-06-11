@@ -17,9 +17,11 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
 - Add the ability to select components graphically (using Plotly's box / lasso
   selection) from the coverage / length scatterplot and show a list of these
-  components. This list can be copy-and-pasted directly into the controls for
-  drawing components
+  components
   ([#448](https://github.com/marbl/MetagenomeScope/issues/448)).
+
+  - This list can be copy-and-pasted directly into the controls for drawing
+    components.
 
 ### Changed
 
@@ -57,7 +59,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 
   - This makes "round-tripping" from formatted lists of component size
     ranks (e.g. `#2 – 4; #8 – 10`) back to the drawing controls easier, for
-    [#448](https://github.com/marbl/MetagenomeScope/issues/448)).
+    [#448](https://github.com/marbl/MetagenomeScope/issues/448).
 
 - As a consequence to the above change, prevent node or edge IDs from including
   semicolons.
