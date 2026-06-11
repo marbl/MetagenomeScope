@@ -150,6 +150,15 @@ def test_sanity_check_node_name_commas():
     )
 
 
+def test_sanity_check_node_name_semicolons():
+    with pytest.raises(GraphParsingError) as ei:
+        nu.sanity_check_node_name("123;456;333")
+    assert str(ei.value) == (
+        'A node named "123;456;333" exists in the graph. Nodes cannot have '
+        "names that contain semicolons."
+    )
+
+
 def test_sanity_check_node_name_start_with_multi_dash():
     with pytest.raises(GraphParsingError) as ei:
         nu.sanity_check_node_name("--abc")

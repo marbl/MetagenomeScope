@@ -780,17 +780,27 @@ def get_size_ranks(val, maxcc):
     return srs
 
 
-def _get_from_text(a, b, prefix="#"):
-    return f"{prefix}{a:,} \u2013 {b:,}"
+def _get_fmt_num(n, prefix="#", thousands_seps=True):
+    if thousands_seps:
+        return f"{prefix}{n:,}"
+    else:
+        return f"{prefix}{n}"
 
 
-def _get_range_text(r):
+def _get_from_text(a, b, prefix="#", thousands_seps=True):
+    out = _get_fmt_num(a, prefix=prefix, thousands_seps=thousands_seps)
+    out += " \u2013 "
+    out += _get_fmt_num(b, prefix="", thousands_seps=thousands_seps)
+    return out
+
+
+def _get_range_text(r, thousands_seps=True):
     # We assume r is a continuous range of integers. It can contain a single
     # element.
     if len(r) == 1:
-        return f"#{r[0]:,}"
+        return _get_fmt_num(r[0], thousands_seps=thousands_seps)
     else:
-        return _get_from_text(r[0], r[-1])
+        return _get_from_text(r[0], r[-1], thousands_seps=thousands_seps)
 
 
 def _get_range_text_from_bounds_only(low, high):
@@ -802,9 +812,9 @@ def _get_range_text_from_bounds_only(low, high):
         return _get_from_text(low, high)
 
 
-def fmt_num_ranges(nums):
+def fmt_num_ranges(nums, thousands_seps=True):
     if len(nums) == 1:
-        return f"#{nums[0]:,}"
+        return _get_fmt_num(nums[0], thousands_seps=thousands_seps)
     nums = sorted(nums)
     i = 0
     curr_range = []
@@ -813,10 +823,14 @@ def fmt_num_ranges(nums):
         if len(curr_range) == 0 or curr_range[-1] + 1 == nums[i]:
             curr_range.append(nums[i])
         else:
-            range_texts.append(_get_range_text(curr_range))
+            range_texts.append(
+                _get_range_text(curr_range, thousands_seps=thousands_seps)
+            )
             curr_range = [nums[i]]
         i += 1
-    range_texts.append(_get_range_text(curr_range))
+    range_texts.append(
+        _get_range_text(curr_range, thousands_seps=thousands_seps)
+    )
     return "; ".join(range_texts)
 
 

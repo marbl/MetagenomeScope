@@ -15,6 +15,12 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - Currently, this contains controls that can be used to change how selected
     nodes are represented, and how wide various types of edges should be.
 
+- Add the ability to select components graphically (using Plotly's box / lasso
+  selection) from the coverage / length scatterplot and show a list of these
+  components. This list can be copy-and-pasted directly into the controls for
+  drawing components
+  ([#448](https://github.com/marbl/MetagenomeScope/issues/448)).
+
 ### Changed
 
 - Dramatically speed up pattern decomposition, mostly by addressing a
@@ -46,11 +52,15 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Disable certain UI elements during graph layout / drawing
   ([#266](https://github.com/marbl/MetagenomeScope/issues/266)).
 
-- Allow semicolons when specifying lists of component size ranks or node names.
+- Allow semicolons as separators when specifying lists of component size ranks or
+  node names (in addition to commas).
 
-  - This makes "round-tripping" possible: formatted lists of component size
-    ranks (e.g. `#2 – 4; #8 – 10`) can now be used as inputs to the drawing
-    controls.
+  - This makes "round-tripping" from formatted lists of component size
+    ranks (e.g. `#2 – 4; #8 – 10`) back to the drawing controls easier, for
+    [#448](https://github.com/marbl/MetagenomeScope/issues/448)).
+
+- As a consequence to the above change, prevent node or edge IDs from including
+  semicolons.
 
 - Various improvements to the documentation and tests.
 

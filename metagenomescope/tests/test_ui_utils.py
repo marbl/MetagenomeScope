@@ -475,6 +475,14 @@ def test_fmt_num_ranges():
     assert uu.fmt_num_ranges([1, 2, 3, 3, 3, 4]) == (
         "#1 \u2013 3; #3; #3 \u2013 4"
     )
+    # test that turning off thousands separators works (useful for if we want to
+    # round-trip stuff)
+    assert uu.fmt_num_ranges([1234, 1235, 1237], thousands_seps=False) == (
+        "#1234 \u2013 1235; #1237"
+    )
+    assert uu.fmt_num_ranges(
+        [1234, 3, 4, 5, 100, 1235, 1237, 999999], thousands_seps=False
+    ) == ("#3 \u2013 5; #100; #1234 \u2013 1235; #1237; #999999")
 
 
 def test_get_curr_drawn_text_all_multicc():

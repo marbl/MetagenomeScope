@@ -141,6 +141,11 @@ def _sanity_check_name(name, node=True):
             f"{errprefix} {objs} cannot have {lbl}s that contain commas."
         )
 
+    if ";" in name:
+        raise GraphParsingError(
+            f"{errprefix} {objs} cannot have {lbl}s that contain semicolons."
+        )
+
     if name.startswith("--"):
         # Names starting with multiple dashes will cause problems
         # https://github.com/marbl/MetagenomeScope/issues/402

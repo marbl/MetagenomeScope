@@ -207,6 +207,16 @@ def run(
         NR_CC_SELECTION_A_CLASSES += " disabled"
         NR_CC_SELECTION_A_ATTRS = {"aria-disabled": "true"}
 
+    NO_COMPONENTS_SELECTED_MSG = html.Span(
+        [
+            "No components selected. You can use the ",
+            html.Span("Box / Lasso Select", style={"font-weight": "bold"}),
+            " tools in the plot above to select components, which will show "
+            "their size ranks here. You could then copy and paste them into "
+            "the controls for drawing components.",
+        ]
+    )
+
     # If the user specified paths somehow (e.g. an AGP file), we'll show an
     # interface for these
     paths_given = len(ag.pathname2objnames) > 0
@@ -1581,10 +1591,62 @@ def run(
                                                                 html.Div(
                                                                     [
                                                                         html.Div(
+                                                                            dcc.Graph(
+                                                                                id="covlenCCScatterGraph",
+                                                                                mathjax=True,
+                                                                                # This SORT OF prevents a flash of
+                                                                                # unstyled content -- it at least does
+                                                                                # a better job than display: none, which
+                                                                                # always results in an awkward scatterplot
+                                                                                # that is like some fraction of the modal
+                                                                                # width and visibly takes a moment to get
+                                                                                # auto-resized to the correct width. using
+                                                                                # this makes it so that more often the plot
+                                                                                # just pops into existence perfectly like it
+                                                                                # did before we made the dcc.Graph() persistent.
+                                                                                #
+                                                                                # see https://community.plotly.com/t/fill-in-default-graph-or-value-for-blank-graph-figure/30631
+                                                                                # re: visibility hidden
+                                                                                style={
+                                                                                    "height": "0",
+                                                                                    "visibility": "hidden",
+                                                                                },
+                                                                            ),
                                                                             id="covlenCCScatterContainer",
                                                                         ),
                                                                         html.Div(
                                                                             id="covlenCCScatterMissingInfo",
+                                                                        ),
+                                                                        html.Div(
+                                                                            [
+                                                                                dcc.Clipboard(
+                                                                                    target_id="covlenCCSelectedNums",
+                                                                                    title="Copy to clipboard",
+                                                                                    # without inline-block, this spans
+                                                                                    # a whole row and looks gross.
+                                                                                    # https://dash.plotly.com/dash-core-components/clipboard
+                                                                                    # Also! If the clipboard API is not available (see those
+                                                                                    # Dash docs), then the clipboard icon will not be shown.
+                                                                                    # I am not sure EXACTLY what that looks like but -- if it
+                                                                                    # will be entirely removed from the app layout -- then I
+                                                                                    # think it makes sense to give the margin to the clipboard
+                                                                                    # icon rather than the text, since if the clipboard icon is
+                                                                                    # hidden we have no use for the margin.
+                                                                                    style={
+                                                                                        "display": "inline-block",
+                                                                                        "margin-right": "0.6em",
+                                                                                    },
+                                                                                ),
+                                                                                html.Span(
+                                                                                    NO_COMPONENTS_SELECTED_MSG,
+                                                                                    id="covlenCCSelectedNums",
+                                                                                ),
+                                                                            ],
+                                                                            style={
+                                                                                "background-color": "#f3f3f3",
+                                                                                "border": "1px solid #666",
+                                                                                "padding": "0.3em",
+                                                                            },
                                                                         ),
                                                                     ],
                                                                     className="tab-pane fade show active",
@@ -2094,8 +2156,9 @@ def run(
     if ag.has_covs:
 
         @callback(
-            Output("covlenCCScatterContainer", "children"),
+            Output("covlenCCScatterGraph", "figure"),
             Output("covlenCCScatterMissingInfo", "children"),
+            Output("covlenCCScatterMissingInfo", "style"),
             Input("covNestCCTab", "n_clicks"),
             Input("covTab", "n_clicks"),
             prevent_initial_call=True,
@@ -2158,10 +2221,52 @@ def run(
                 missing_cc_ct,
                 len(ag.components),
                 "component",
-                "not having any coverage data and/or having a total length "
-                "of zero",
+                (
+                    "not having any coverage data and/or having a total "
+                    "length of zero"
+                ),
             )
-            return dcc.Graph(mathjax=True, figure=fig), missing_info
+            minfosty = {}
+            if missing_info is not None:
+                # if this message gets shown, have a small margin between it
+                # and the list of selected cc nums
+                minfosty = {"margin-bottom": "0.3em"}
+            return fig, missing_info, minfosty
+
+        @callback(
+            Output("covlenCCScatterGraph", "style"),
+            Input("covlenCCScatterGraph", "figure"),
+            prevent_initial_call=True,
+        )
+        def unhide_covlen_scatterplot(fig):
+            # Basically, since we now make the dcc.Graph a persistent thing
+            # (created when we start the app, rather than created in this
+            # callback), this causes a flash of unstyled content when you
+            # first open this tab. Same deal as
+            # https://github.com/marbl/MetagenomeScope/issues/259.
+            # To prevent this, we only remove the restrictive styles set on the
+            # dcc.Graph after creating its figure.
+            # See https://community.plotly.com/t/fill-in-default-graph-or-value-for-blank-graph-figure/30631
+            return {}
+
+        @callback(
+            Output("covlenCCSelectedNums", "children"),
+            Input("covlenCCScatterGraph", "selectedData"),
+            prevent_initial_call=True,
+        )
+        def record_selected_ccnums(selected_data):
+            if selected_data is not None:
+                nums = []
+                for p in selected_data["points"]:
+                    # component labels from AssemblyGraph.to_cc_scatter() look
+                    # like "1,234 (6 nodes, 7 edges)". Split the " (" to get
+                    # "1,234", then remove thousands separator commas, which
+                    # gives us an easy int representation of the cc size rank.
+                    nums.append(int(p["text"].split(" (")[0].replace(",", "")))
+                # If the user selected no point, then nums will be [].
+                if len(nums) > 0:
+                    return ui_utils.fmt_num_ranges(nums, thousands_seps=False)
+            return NO_COMPONENTS_SELECTED_MSG
 
     if ag.has_covlens:
 
