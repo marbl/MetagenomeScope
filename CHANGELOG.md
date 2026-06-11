@@ -22,8 +22,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - This list can be copy-and-pasted directly into the controls for drawing
     components.
 
-  - This makes a couple workflows easier. For example, the long and
-    high-coverage components in a graph could represent putative MAGs, and this
+  - This makes some workflows noticeably easier. For example, the long and
+    high-coverage components in a graph could represent putative MAGs -- this
     functionality simplifies the process of selecting and drawing these
     components specifically.
 
