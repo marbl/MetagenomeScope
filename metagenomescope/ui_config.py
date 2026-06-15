@@ -16,10 +16,10 @@ SCOPE_SETTINGS_OPTIONS = [
         "label": "Just nonredundant components",
         "value": NR_CCS,
     },
-    {
-        "label": "Split strand-tangled components",
-        "value": SPLIT_STRANDTANGLED,
-    },
+    # {
+    #     "label": "Split strand-tangled components",
+    #     "value": SPLIT_STRANDTANGLED,
+    # },
     {
         "label": "Show patterns",
         "value": SHOW_PATTERNS,

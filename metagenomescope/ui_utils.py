@@ -1,5 +1,6 @@
 import re
 import time
+import copy
 import statistics
 import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
@@ -1145,6 +1146,10 @@ def get_edge_coloring_options(ag):
     return options
 
 
+def nr_ccs(scope_settings):
+    return ui_config.NR_CCS in scope_settings
+
+
 def show_patterns(scope_settings):
     return ui_config.SHOW_PATTERNS in scope_settings
 
@@ -1205,7 +1210,9 @@ def get_dot_alg_descriptions():
     return DOT_ALG_DESC, DOT_ALG_DESC_PATTS, dot_alg_desc_used
 
 
-def get_layout_options_tab(node_centric, default_dot_alg_desc):
+def get_layout_options_tab(
+    node_centric, orientation_in_name, multiple_ccs, default_dot_alg_desc
+):
 
     JS_ALG_WARNING = html.P(
         [
@@ -1246,6 +1253,29 @@ def get_layout_options_tab(node_centric, default_dot_alg_desc):
         JS_ALG_WARNING,
     ]
 
+    scope_options = copy.deepcopy(ui_config.SCOPE_SETTINGS_OPTIONS)
+    default_scope_settings = copy.deepcopy(ui_config.DEFAULT_SCOPE_SETTINGS)
+    # Drawing only the nonredundant parts of the graph only makes sense if
+    # (1) there are pairs of nodes/edges X and -X in the graph (i.e.
+    # ag.orientation_in_name is True) and (2) there are multiple components.
+    #
+    # If this is NOT the case, then let's just turn off (and disable) the
+    # "just show nonredundant ccs" option here. We COULD hide it entirely but
+    # I think disabling gives a clearer user experience.
+    if not (orientation_in_name and multiple_ccs):
+        for o in scope_options:
+            if o["value"] == ui_config.NR_CCS:
+                o["disabled"] = True
+                # tragically there isn't an elegant way to remove an element
+                # from a list but not raise an error (at least according to
+                # https://old.reddit.com/r/Python/comments/1spcsq) so sure
+                # let's just do this the lazy way
+                try:
+                    default_scope_settings.remove(ui_config.NR_CCS)
+                except ValueError:
+                    pass
+                break
+
     return html.Div(
         [
             html.Div(
@@ -1268,8 +1298,8 @@ def get_layout_options_tab(node_centric, default_dot_alg_desc):
             # dcc.Checklist is better.
             html.Div(
                 dcc.Checklist(
-                    options=ui_config.SCOPE_SETTINGS_OPTIONS,
-                    value=ui_config.DEFAULT_SCOPE_SETTINGS,
+                    options=scope_options,
+                    value=default_scope_settings,
                     id="scopeSettingsChecklist",
                 ),
                 className="form-check fancyChecklistInDialog",

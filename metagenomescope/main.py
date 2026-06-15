@@ -194,15 +194,6 @@ def run(
         CC_SELECTION_A_CLASSES_MULTIPLE_CCS += " disabled"
         CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {"aria-disabled": "true"}
 
-    # NR_CC_SELECTION_A_CLASSES = DEFAULT_CC_SELECTION_A_CLASSES
-    # NR_CC_SELECTION_A_ATTRS = DEFAULT_CC_SELECTION_A_ATTRS
-    # # Drawing only the nonredundant parts of the graph only makes sense if
-    # # (1) there are pairs of nodes/edges X and -X in the graph (i.e.
-    # # ag.orientation_in_name is True) and (2) there are multiple components.
-    # if not (ag.orientation_in_name and multiple_ccs):
-    #     NR_CC_SELECTION_A_CLASSES += " disabled"
-    #     NR_CC_SELECTION_A_ATTRS = {"aria-disabled": "true"}
-
     NO_COMPONENTS_SELECTED_MSG = html.Span(
         [
             "No components selected. You can use the ",
@@ -1747,7 +1738,10 @@ def run(
                             [
                                 dbc.Tab(
                                     ui_utils.get_layout_options_tab(
-                                        ag.node_centric, default_dot_alg_desc
+                                        ag.node_centric,
+                                        ag.orientation_in_name,
+                                        multiple_ccs,
+                                        default_dot_alg_desc,
                                     ),
                                     label="Layout",
                                 ),

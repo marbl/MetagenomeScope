@@ -397,6 +397,9 @@ class AssemblyGraph(object):
         # For things like MetaCarvel GML files, though, don't bother (leave
         # self.nr_cc_nums as None)
         self.nr_cc_nums = None
+        # If we detect nonredundant components, then update this dict: maps
+        # component size rank to the size rank of the twin component.
+        self.ccnum2twinccnum = {}
         if self.orientation_in_name:
             logger.debug(
                 "  Detecting pairs of redundant components, since this is a "
@@ -2088,12 +2091,16 @@ class AssemblyGraph(object):
                         self.nr_cc_nums.add(min(cc.cc_num, cc2_num))
                     else:
                         self.nr_cc_nums.add(cc2_num)
+                    self.ccnum2twinccnum[cc.cc_num] = cc2_num
+                    self.ccnum2twinccnum[cc2_num] = cc.cc_num
                     continue
 
             # If we're still here, then these components weren't twins.
             self.nr_cc_nums.add(cc.cc_num)
+            self.ccnum2twinccnum[cc.cc_num] = None
             if cc2_num is not None:
                 self.nr_cc_nums.add(cc2_num)
+                self.ccnum2twinccnum[cc2_num] = None
 
     def get_nr_cc_nums(self):
         """Returns the size ranks of all nonredundant components."""
@@ -2463,10 +2470,25 @@ class AssemblyGraph(object):
         if doing_layout:
             log_utils.log_layout_start(done_flushing, self)
 
+        # figure out if we should only draw nonredundant components. That is,
+        # detect pairs of perfectly reverse-complementary components and just
+        # draw one of these components.
+        #
+        # This impacts the DRAW_ALL / DRAW_CCS options. DRAW_AROUND does not
+        # care about this, I think, by its nature.
+        just_nr_ccs = ui_utils.nr_ccs(scope_settings)
+
         if draw_type == config.DRAW_ALL:
             # draw all component(s)
             dr = DrawResults({}, scope_settings)
-            for cc in self.components:
+            if just_nr_ccs:
+                # ok actually just draw the NR components
+                # use map() to avoid building up an extra list of Component
+                # objs all at once
+                ccs = map(self.get_cc_by_num, self.get_nr_cc_nums())
+            else:
+                ccs = self.components
+            for cc in ccs:
                 dr += cc.to_cyjs(
                     scope_settings,
                     modifier_settings,
@@ -2477,21 +2499,32 @@ class AssemblyGraph(object):
         elif draw_type == config.DRAW_CCS:
             # draw certain component(s)
             dr = DrawResults({}, scope_settings)
-            for ccn in done_flushing["cc_nums"]:
-                cc = self.get_cc_by_num(ccn)
-                dr += cc.to_cyjs(
-                    scope_settings,
-                    modifier_settings,
-                    layout_alg,
-                    layout_params,
-                )
-
-        elif draw_type == config.DRAW_NR:
-            # draw all component(s), but only the nonredundant ones (so for
-            # each pair of perfectly reverse-complementary components, we'll
-            # just draw one of these)
-            dr = DrawResults({}, scope_settings)
-            for ccn in self.get_nr_cc_nums():
+            if just_nr_ccs:
+                # draw just the components in the list, but also remove pairs
+                # of redundant components. If both a component and its twin are
+                # in the list, then draw whichever one of the two is in
+                # self.nr_cc_nums.
+                #
+                # make the list of input cc nums into a set to speed up lookups
+                requested_cc_nums_set = set(done_flushing["cc_nums"])
+                ccns = set()
+                for ccn in requested_cc_nums_set:
+                    if ccn in self.nr_cc_nums:
+                        ccns.add(ccn)
+                    else:
+                        # Even if ccn is not in self.nr_cc_nums (i.e. it has a
+                        # twin that IS in self.nr_cc_nums), if this twin is not
+                        # in the set of requested cc nums, then still draw ccn.
+                        if (
+                            self.ccnum2twinccnum[ccn]
+                            not in requested_cc_nums_set
+                        ):
+                            ccns.add(ccn)
+                        # if we've made it here, both ccn and its twin are in
+                        # the set of requested cc nums, so ignore ccn.
+            else:
+                ccns = done_flushing["cc_nums"]
+            for ccn in ccns:
                 cc = self.get_cc_by_num(ccn)
                 dr += cc.to_cyjs(
                     scope_settings,
