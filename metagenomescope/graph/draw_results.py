@@ -8,7 +8,7 @@ from . import graph_utils
 class DrawResults(object):
     """Takes care of preparing Cytoscape.js JSON elements to be drawn."""
 
-    def __init__(self, region2layout, draw_settings):
+    def __init__(self, region2layout, scope_settings):
         """Initializes this DrawResults object.
 
         Parameters
@@ -17,15 +17,16 @@ class DrawResults(object):
             Can be {}. I guess that's useful if you want to define an instance
             of this to which you'll later add other DrawResults objects.
 
-        draw_settings: list
+        scope_settings: list
+            Describes what to draw (e.g. should we draw patterns?)
 
         Notes
         -----
         The region2layout thing exploits the fact that Subgraphs are hashable.
         """
         self.region2layout = region2layout
-        self.draw_settings = draw_settings
-        self.incl_patterns = ui_utils.show_patterns(self.draw_settings)
+        self.scope_settings = scope_settings
+        self.incl_patterns = ui_utils.show_patterns(self.scope_settings)
 
         # if we see even a single layout that is None, we will immediately give
         # up on processing layouts. In practice we should never see mix-and-
@@ -51,7 +52,7 @@ class DrawResults(object):
     def __repr__(self):
         asum = self.get_fancy_count_text()
         rsum = ui_utils.pluralize(len(self.region2layout), "region")
-        return f"DrawResults({rsum} ({asum}); {self.draw_settings})"
+        return f"DrawResults({rsum} ({asum}); {self.scope_settings})"
 
     def get_node_and_edge_ids(self):
         nodeids = []
@@ -65,8 +66,8 @@ class DrawResults(object):
 
     def __add__(self, other):
         """Adds two DrawResults objects and does some validation."""
-        if self.draw_settings != other.draw_settings:
-            raise WeirdError(f"Incompatible draw settings: {self}, {other}")
+        if self.scope_settings != other.scope_settings:
+            raise WeirdError(f"Incompatible scope settings: {self}, {other}")
 
         if set(self.region2layout) & set(other.region2layout):
             raise WeirdError(
@@ -80,7 +81,7 @@ class DrawResults(object):
         d = self.region2layout.copy()
         for r, lay in other.region2layout.items():
             d[r] = lay
-        return DrawResults(d, self.draw_settings)
+        return DrawResults(d, self.scope_settings)
 
     def get_sorted_regions(self):
         """Sorts all of the regions represented here.
@@ -113,8 +114,8 @@ class DrawResults(object):
     def get_nolayout_eles(self):
         eles = []
         for r in self.region2layout:
-            eles.extend(n.to_cyjs(self.draw_settings) for n in r.nodes)
-            eles.extend(e.to_cyjs(self.draw_settings) for e in r.edges)
+            eles.extend(n.to_cyjs(self.scope_settings) for n in r.nodes)
+            eles.extend(e.to_cyjs(self.scope_settings) for e in r.edges)
             if self.incl_patterns:
                 eles.extend(p.to_cyjs() for p in r.patterns)
         return eles
@@ -328,13 +329,13 @@ class DrawResults(object):
             nodeid2xy, edgeid2ctrlpts = lay.to_abs_coords(x, y)
 
             for n in r.nodes:
-                j = n.to_cyjs(self.draw_settings)
+                j = n.to_cyjs(self.scope_settings)
                 nx, ny = nodeid2xy[n.unique_id]
                 j["position"] = {"x": nx, "y": ny}
                 eles.append(j)
 
             for e in r.edges:
-                j = e.to_cyjs(self.draw_settings)
+                j = e.to_cyjs(self.scope_settings)
                 if e.unique_id in edgeid2ctrlpts:
                     straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
                     if not straight:

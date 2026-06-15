@@ -136,6 +136,7 @@ def test_to_cyjs_clientside_layout():
     _, cc, _, _, _ = layout_test_utils.get_cycle_with_tip_data()
     dr = cc.to_cyjs(
         [ui_config.SHOW_PATTERNS],
+        [],
         ui_config.LAYOUT_DAGRE,
         {},
     )
@@ -148,6 +149,7 @@ def test_to_cyjs_gv_layout():
     ag, cc, n1, n2, n3 = layout_test_utils.get_cycle_with_tip_data()
     dr = cc.to_cyjs(
         [ui_config.SHOW_PATTERNS],
+        [],
         ui_config.LAYOUT_DOT,
         {ui_config.LAYOUT_DOT: {"ranksep": 3}},
     )

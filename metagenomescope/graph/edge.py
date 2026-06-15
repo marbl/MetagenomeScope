@@ -248,7 +248,7 @@ class Edge(object):
             src, tgt, self.is_fake, is_back, indent
         )
 
-    def to_cyjs(self, draw_settings):
+    def to_cyjs(self, scope_settings):
         ele = {
             "data": {
                 "source": str(self.new_src_id),
@@ -271,7 +271,7 @@ class Edge(object):
                 ele["data"]["color"] = color
 
         if (
-            ui_utils.show_patterns(draw_settings)
+            ui_utils.show_patterns(scope_settings)
             and self.parent_id is not None
         ):
             ele["data"]["parent"] = str(self.parent_id)

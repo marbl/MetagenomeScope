@@ -12,24 +12,27 @@ class Layout(object):
     a subregion of the graph, etc.
     """
 
-    def __init__(self, region, draw_settings, alg, params):
+    def __init__(self, region, scope_settings, modifier_settings, alg, params):
         """Initializes this Layout object.
 
         Parameters
         ----------
         region: Subgraph or Pattern
 
-        draw_settings: list
+        scope_settings: list
+
+        modifier_settings: list
 
         alg: str
 
         params: dict
         """
         self.region = region
-        self.draw_settings = draw_settings
-        self.incl_patterns = ui_utils.show_patterns(draw_settings)
-        self.recursive = ui_utils.do_recursive_layout(draw_settings)
-        self.use_gv_ports = ui_utils.use_gv_ports(draw_settings)
+        self.scope_settings = scope_settings
+        self.modifier_settings = modifier_settings
+        self.incl_patterns = ui_utils.show_patterns(scope_settings)
+        self.recursive = ui_utils.do_recursive_layout(modifier_settings)
+        self.use_gv_ports = ui_utils.use_gv_ports(modifier_settings)
         self.params = params
 
         if alg not in ui_config.LAYOUT2GVPROG:
@@ -77,7 +80,8 @@ class Layout(object):
     def __repr__(self):
         return (
             "Layout("
-            f"{self.region}; {self.draw_settings}; {self.alg}; {self.params}"
+            f"{self.region}; {self.scope_settings}; {self.modiifer_settings}; "
+            f"{self.alg}; {self.params}"
             ")"
         )
 
@@ -129,7 +133,11 @@ class Layout(object):
                     if node.compound:
                         # "node" is a collapsed pattern; lay it out first
                         lay = Layout(
-                            node, self.draw_settings, self.alg, self.params
+                            node,
+                            self.scope_settings,
+                            self.modifier_settings,
+                            self.alg,
+                            self.params,
                         )
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)
@@ -159,7 +167,11 @@ class Layout(object):
                 for pattern in self.region.patterns:
                     if self.at_top_level_of_region(pattern):
                         lay = Layout(
-                            pattern, self.draw_settings, self.alg, self.params
+                            pattern,
+                            self.scope_settings,
+                            self.modifier_settings,
+                            self.alg,
+                            self.params,
                         )
                         dot += lay.to_solid_dot()
                         self.nodeid2rel.update(lay.nodeid2rel)

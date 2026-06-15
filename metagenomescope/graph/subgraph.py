@@ -173,12 +173,15 @@ class Subgraph(object):
                 ct += 1
         return ct
 
-    def to_cyjs(self, draw_settings, layout_alg, layout_params):
+    def to_cyjs(
+        self, scope_settings, modifier_settings, layout_alg, layout_params
+    ):
         """Creates Cytoscape.js elements for all nodes/edges in this subgraph.
 
         Parameters
         ----------
-        draw_settings: list
+        scope_settings: list
+        modifier_settings: list
             Various draw settings (show patterns?, do recursive layout?, etc.)
 
         layout_alg: str
@@ -194,5 +197,11 @@ class Subgraph(object):
         """
         lay = None
         if layout_alg in ui_config.LAYOUT2GVPROG:
-            lay = Layout(self, draw_settings, layout_alg, layout_params)
-        return DrawResults({self: lay}, draw_settings)
+            lay = Layout(
+                self,
+                scope_settings,
+                modifier_settings,
+                layout_alg,
+                layout_params,
+            )
+        return DrawResults({self: lay}, scope_settings)

@@ -232,7 +232,7 @@ class Node(object):
     def to_dot(self, indent=layout_config.INDENT):
         return self.layout.to_dot(self.unique_id, self.name, indent)
 
-    def to_cyjs(self, draw_settings):
+    def to_cyjs(self, scope_settings):
         if "orientation" in self.data:
             if self.data["orientation"] == config.FWD:
                 ndir = "fwd"
@@ -262,7 +262,7 @@ class Node(object):
         )
 
         if (
-            ui_utils.show_patterns(draw_settings)
+            ui_utils.show_patterns(scope_settings)
             and self.parent_id is not None
         ):
             ele["data"]["parent"] = str(self.parent_id)

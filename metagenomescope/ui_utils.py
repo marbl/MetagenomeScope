@@ -1145,16 +1145,16 @@ def get_edge_coloring_options(ag):
     return options
 
 
-def show_patterns(draw_settings):
-    return ui_config.SHOW_PATTERNS in draw_settings
+def show_patterns(scope_settings):
+    return ui_config.SHOW_PATTERNS in scope_settings
 
 
-def do_recursive_layout(draw_settings):
-    return ui_config.DO_RECURSIVE_LAYOUT in draw_settings
+def do_recursive_layout(modifier_settings):
+    return ui_config.DO_RECURSIVE_LAYOUT in modifier_settings
 
 
-def use_gv_ports(draw_settings):
-    return ui_config.USE_GV_PORTS in draw_settings
+def use_gv_ports(modifier_settings):
+    return ui_config.USE_GV_PORTS in modifier_settings
 
 
 def get_dot_alg_descriptions():
@@ -1195,8 +1195,9 @@ def get_dot_alg_descriptions():
         ),
     ]
     if (
-        ui_config.SHOW_PATTERNS in ui_config.DEFAULT_DRAW_SETTINGS
-        and ui_config.DO_RECURSIVE_LAYOUT in ui_config.DEFAULT_DRAW_SETTINGS
+        ui_config.SHOW_PATTERNS in ui_config.DEFAULT_SCOPE_SETTINGS
+        and ui_config.DO_RECURSIVE_LAYOUT
+        in ui_config.DEFAULT_MODIFIER_SETTINGS
     ):
         dot_alg_desc_used = DOT_ALG_DESC_PATTS
     else:
@@ -1254,7 +1255,7 @@ def get_layout_options_tab(node_centric, default_dot_alg_desc):
                 ),
                 className="drawing-option-topnote",
             ),
-            html.H5("Modifiers"),
+            html.H5("What should we draw?"),
             # Eventually we can add other stuff here, e.g. "filter
             # nodes/edges with < X cov"
             #
@@ -1267,9 +1268,19 @@ def get_layout_options_tab(node_centric, default_dot_alg_desc):
             # dcc.Checklist is better.
             html.Div(
                 dcc.Checklist(
-                    options=ui_config.DRAW_SETTINGS_OPTIONS,
-                    value=ui_config.DEFAULT_DRAW_SETTINGS,
-                    id="drawSettingsChecklist",
+                    options=ui_config.SCOPE_SETTINGS_OPTIONS,
+                    value=ui_config.DEFAULT_SCOPE_SETTINGS,
+                    id="scopeSettingsChecklist",
+                ),
+                className="form-check fancyChecklistInDialog",
+            ),
+            html.Br(),
+            html.H5("How should we draw it?"),
+            html.Div(
+                dcc.Checklist(
+                    options=ui_config.MODIFIER_SETTINGS_OPTIONS,
+                    value=ui_config.DEFAULT_MODIFIER_SETTINGS,
+                    id="modifierSettingsChecklist",
                 ),
                 className="form-check fancyChecklistInDialog",
             ),
@@ -1409,7 +1420,7 @@ def get_layout_options_tab(node_centric, default_dot_alg_desc):
                 style={"text-align": "center"},
             ),
             html.Br(),
-            html.H5("Parameters"),
+            html.H5("Layout parameters"),
             html.Div(
                 [
                     dbc.InputGroup(

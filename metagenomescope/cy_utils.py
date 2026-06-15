@@ -377,7 +377,7 @@ def get_cyjs_stylesheet(
     return stylesheet
 
 
-def get_cyjs_layout_settings(layout_alg, draw_settings):
+def get_cyjs_layout_settings(layout_alg, modifier_settings):
     """Gets layout settings for Cytoscape.js for a given algorithm.
 
     This is just the stuff we pass to Cytoscape.js. To try to make the
@@ -387,7 +387,9 @@ def get_cyjs_layout_settings(layout_alg, draw_settings):
     """
 
     anim_settings = layout_config.ANIMATION_SETTINGS
-    anim_settings["animate"] = ui_config.DO_LAYOUT_ANIMATION in draw_settings
+    anim_settings["animate"] = (
+        ui_config.DO_LAYOUT_ANIMATION in modifier_settings
+    )
 
     if layout_alg == ui_config.LAYOUT_DAGRE:
         return {"name": "dagre", "rankDir": "LR", **anim_settings}

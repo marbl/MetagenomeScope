@@ -38,6 +38,7 @@ def test_layout_cycle_with_tip_nonrecursive():
     lay = Layout(
         cc,
         [ui_config.SHOW_PATTERNS],
+        [],
         ui_config.LAYOUT_DOT,
         {ui_config.LAYOUT_DOT: {"ranksep": 3}},
     )
@@ -47,13 +48,13 @@ def test_layout_cycle_with_tip_nonrecursive():
 def test_layout_bad_algorithm():
     _, cc, _, _, _ = utils.get_cycle_with_tip_data()
     with pytest.raises(WeirdError) as ei:
-        Layout(cc, [ui_config.SHOW_PATTERNS], "badalg", {})
+        Layout(cc, [ui_config.SHOW_PATTERNS], [], "badalg", {})
     assert str(ei.value) == "badalg not mapped to a Graphviz program?"
 
     # even "recognized" algorithms that don't refer to graphviz progs
     # should still trigger an error if you call Layout() with them directly
     with pytest.raises(WeirdError) as ei:
-        Layout(cc, [ui_config.SHOW_PATTERNS], ui_config.LAYOUT_DAGRE, {})
+        Layout(cc, [ui_config.SHOW_PATTERNS], [], ui_config.LAYOUT_DAGRE, {})
     assert (
         str(ei.value)
         == f"{ui_config.LAYOUT_DAGRE} not mapped to a Graphviz program?"
@@ -61,10 +62,15 @@ def test_layout_bad_algorithm():
 
 
 def test_layout_to_solid_dot():
+    # this example is a bit silly since we won't really call .to_solid_dot()
+    # on a layout outside of the context of the recursive layout procedure.
+    # but let's do it anyway just to test this without the added complexity of
+    # the recursive stuff at this point
     ag, cc, n1, n2, n3 = utils.get_cycle_with_tip_data()
     lay = Layout(
         cc,
         [ui_config.SHOW_PATTERNS],
+        [],
         ui_config.LAYOUT_DOT,
         {ui_config.LAYOUT_DOT: {"ranksep": 3}},
     )
