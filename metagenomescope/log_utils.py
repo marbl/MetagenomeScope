@@ -61,5 +61,5 @@ def log_layout_start(done_flushing, ag):
         st = f" ({st})"
 
     logging.debug(
-        f"  Laying out {thing} with {done_flushing['layout_alg']}{st}..."
+        f"  Laying out ({thing}) with {done_flushing['layout_alg']}{st}..."
     )
