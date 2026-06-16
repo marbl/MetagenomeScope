@@ -47,18 +47,14 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   `Just nonredundant components`
   ([#442](https://github.com/marbl/MetagenomeScope/issues/442)).
 
-  - Now, if you want to draw all components in the graph but filter to the
-    nonredundant ones, you can just select the `Entire graph (all components)`
-    drawing method, and this checkbox will indicate that we should filter these
-    components to the nonredundant ones.
+  - If this checkbox is checked, then -- for the `Component(s), by size rank`,
+    `Component(s), by node name`, and `Entire graph (all components)` drawing
+    methods -- all pairs of redundant components in a draw request will be
+    filtered to just nonredundant components.
 
-  - An advantage of making this setting a "modifier" (rather than its own
-    drawing method) is that this can be combined with the `Component(s)`
-    drawing methods. So, you could draw components `1-100` using the
-    `Component(s), by size rank` drawing method, and then the checkbox would
-    filter these components to only one component from each pair.
-    (This also works well with 
-    [#448](https://github.com/marbl/MetagenomeScope/issues/448).)
+  - Making this setting a "modifier" (rather than its own drawing method)
+    enables some useful functionalities. In particular, it plays nicely with
+    [#448](https://github.com/marbl/MetagenomeScope/issues/448).
 
 - Adjust how nodes are scaled based on length
   ([#316](https://github.com/marbl/MetagenomeScope/issues/316)).
