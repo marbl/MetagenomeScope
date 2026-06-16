@@ -4,7 +4,7 @@ from dash import html
 # Default drawing settings
 ###############################################################################
 
-NR_CCS = "nrccs"
+NR_CCS = "nr"
 # SPLIT_STRANDTANGLED = "detangle"
 SHOW_PATTERNS = "patterns"
 DEFAULT_SCOPE_SETTINGS = [NR_CCS, SHOW_PATTERNS]
