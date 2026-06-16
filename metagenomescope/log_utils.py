@@ -51,10 +51,12 @@ def log_layout_start(done_flushing, ag):
     st = "; ".join(
         done_flushing["scope_settings"] + done_flushing["modifier_settings"]
     )
-    for pk, pv in done_flushing["layout_params"].items():
-        if len(st) > 0:
-            st += "; "
-        st += f"{pk} = {pv}"
+    alg = done_flushing["layout_alg"]
+    if alg in done_flushing["layout_params"]:
+        for pk, pv in done_flushing["layout_params"][alg].items():
+            if len(st) > 0:
+                st += "; "
+            st += f"{pk} = {pv}"
 
     thing = ui_utils.get_curr_drawn_text(done_flushing, ag)
     if len(st) > 0:
