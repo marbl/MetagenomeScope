@@ -2741,8 +2741,8 @@ def run(
             "Received request to draw the graph. Validating request."
         )
 
-        cc_nums = []
-        orig_cc_nums = []
+        cc_nums = set()
+        orig_cc_nums = set()
         around_node_ids = []
         around_dist = 0
         draw_type = None
@@ -2870,60 +2870,15 @@ def run(
                 {"requestGood": False},
             )
 
-        # Account for the "Just nonredundant components" option, if checked
-        if ui_utils.nr_ccs(scope_settings):
-            if draw_type == config.DRAW_CCS:
-                # draw just the components in the list, but also remove pairs
-                # of redundant components. If both a component and its twin
-                # are in the list, then draw whichever one of the two is in
-                # ag.nr_cc_nums.
-                filtered_cc_nums = set()
-                for ccn in cc_nums:
-                    if ccn in ag.nr_cc_nums:
-                        filtered_cc_nums.add(ccn)
-                    else:
-                        # Even if ccn is not in ag.nr_cc_nums (i.e. it has a
-                        # twin that IS in ag.nr_cc_nums): if its twin is not in
-                        # cc_nums (i.e. it was not explicitly requested), then
-                        # draw ccn
-                        if ag.ccnum2twinccnum[ccn] not in cc_nums:
-                            filtered_cc_nums.add(ccn)
-                        # if we've made it here, both ccn and its twin were
-                        # explicitly requested (i.e. in cc_nums), so ignore ccn
-                        # in favor of its twin in ag.nr_cc_nums
+        draw_type, cc_nums, orig_cc_nums = ui_utils.nrfilter_draw_request(
+            scope_settings, draw_type, cc_nums, ag
+        )
 
-                if filtered_cc_nums == ag.nr_cc_nums:
-                    # if the user entered in something silly like "1-" to draw
-                    # all ccs then just reduce this to DRAW_NR to say that
-                    # more clearly (now no need to store this stuff)
-                    cc_nums = []
-                    draw_type = config.DRAW_NR
-                else:
-                    # Otherwise, actually store the filtered cc nums. Save a
-                    # copy of the original cc nums for showing in the
-                    # currently-drawn text, etc (but don't bother if filtering
-                    # didn't change anything)
-                    if cc_nums != filtered_cc_nums:
-                        orig_cc_nums = list(cc_nums)
-                    cc_nums = filtered_cc_nums
-
-            elif draw_type == config.DRAW_ALL:
-                # just draw all nonredundant components
-                #
-                # use a different draw type than DRAW_CCS, which will let us
-                # show a more concise summary of what is drawn than listing out
-                # something like "#1; #3; #5; ..." (and a more accurate summary
-                # than saying #1 -- |Components| like we would for DRAW_ALL).
-                #
-                # (also, no need to set "cc_nums = ag.get_nr_cc_nums()", since
-                # the AssemblyGraph will just see DRAW_NR and know to look
-                # those up)
-                draw_type = config.DRAW_NR
-
-        # cc_nums has to be JSON-serializable (it might be a set at this point)
-        # (and don't worry; if we are not using DRAW_CCS, then this will just
+        # These have to be JSON-serializable (they may be sets at this point)
+        # (and don't worry; if we are not using DRAW_CCS, then these will just
         # be []. and that's beautiful. not really)
         cc_nums = list(cc_nums)
+        orig_cc_nums = list(orig_cc_nums)
 
         # Okay, now we've done enough checks that this request to draw the
         # graph seems good.

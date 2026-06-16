@@ -1,5 +1,5 @@
 import pytest
-from metagenomescope import ui_utils as uu, config, css_config
+from metagenomescope import ui_utils as uu, config, css_config, ui_config
 from metagenomescope.graph import AssemblyGraph
 from metagenomescope.errors import UIError, WeirdError
 
@@ -483,6 +483,13 @@ def test_fmt_num_ranges():
     assert uu.fmt_num_ranges(
         [1234, 3, 4, 5, 100, 1235, 1237, 999999], thousands_seps=False
     ) == ("#3 \u2013 5; #100; #1234 \u2013 1235; #1237; #999999")
+
+
+def test_nrfilter_draw_request_all():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert uu.nrfilter_draw_request(
+        [ui_config.NR_CCS], config.DRAW_ALL, set(), ag
+    ) == (config.DRAW_NR, set(), set())
 
 
 def test_get_curr_drawn_text_all_multicc():
