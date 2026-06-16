@@ -3,6 +3,40 @@ from metagenomescope import log_utils, ui_config, config
 from metagenomescope.graph import AssemblyGraph
 
 
+def test_log_lines_with_sep_basic(caplog):
+    caplog.set_level(logging.INFO)
+    log_utils.log_lines_with_sep(["asdfghjk", "qwerty"])
+    # the separator is 15 chars longer to account for the usual
+    # {HH:MM:SS.mmm} prefix.
+    # also, note that i'm using "".join() instead of just making
+    # this into one nightmare single-line string. this makes this test clearer
+    assert (
+        "".join(["asdfghjk\n", "-----------------------\n", "qwerty"])
+        in caplog.text
+    )
+
+
+def test_log_lines_with_sep_just_one_line(caplog):
+    caplog.set_level(logging.INFO)
+    log_utils.log_lines_with_sep(["asdfghjk"])
+    assert "".join(["asdfghjk\n", "-----------------------"]) in caplog.text
+
+
+def test_log_lines_with_sep_endsepline(caplog):
+    caplog.set_level(logging.INFO)
+    log_utils.log_lines_with_sep(["asdfghjk", "qwerty"], endsepline=True)
+    assert (
+        "".join(
+            [
+                "asdfghjk\n",
+                "-----------------------\n",
+                "qwerty\n" "-----------------------",
+            ]
+        )
+        in caplog.text
+    )
+
+
 def test_log_layout_start_basic(caplog):
     caplog.set_level(logging.DEBUG)
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
