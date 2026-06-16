@@ -397,6 +397,9 @@ class AssemblyGraph(object):
         # For things like MetaCarvel GML files, though, don't bother (leave
         # self.nr_cc_nums as None)
         self.nr_cc_nums = None
+        # If we detect nonredundant components, then update this dict: maps
+        # component size rank to the size rank of the twin component.
+        self.ccnum2twinccnum = {}
         if self.orientation_in_name:
             logger.debug(
                 "  Detecting pairs of redundant components, since this is a "
@@ -2088,12 +2091,16 @@ class AssemblyGraph(object):
                         self.nr_cc_nums.add(min(cc.cc_num, cc2_num))
                     else:
                         self.nr_cc_nums.add(cc2_num)
+                    self.ccnum2twinccnum[cc.cc_num] = cc2_num
+                    self.ccnum2twinccnum[cc2_num] = cc.cc_num
                     continue
 
             # If we're still here, then these components weren't twins.
             self.nr_cc_nums.add(cc.cc_num)
+            self.ccnum2twinccnum[cc.cc_num] = None
             if cc2_num is not None:
                 self.nr_cc_nums.add(cc2_num)
+                self.ccnum2twinccnum[cc2_num] = None
 
     def get_nr_cc_nums(self):
         """Returns the size ranks of all nonredundant components."""
@@ -2357,7 +2364,7 @@ class AssemblyGraph(object):
         subgraph = nx.induced_subgraph(self.graph, subgraph_node_ids)
         return subgraph, subgraph_node_ids
 
-    def get_ids_in_neighborhood(self, node_ids, dist, draw_settings):
+    def get_ids_in_neighborhood(self, node_ids, dist, scope_settings):
         """Returns the IDs of all nodes, edges, and patterns in a neighborhood.
 
         See get_neighborhood()'s documentation for details. The main "extra"
@@ -2378,7 +2385,7 @@ class AssemblyGraph(object):
 
         # Get patterns, maybe
         subgraph_patt_ids = set()
-        if ui_utils.show_patterns(draw_settings):
+        if ui_utils.show_patterns(scope_settings):
             # include a pattern only if all its descendant nodes and edges are
             # included
             for pid, p in self.pattid2obj.items():
@@ -2403,11 +2410,17 @@ class AssemblyGraph(object):
         return subgraph_node_ids, subgraph_edge_ids, subgraph_patt_ids
 
     def _to_cyjs_around_nodes(
-        self, node_ids, dist, draw_settings, layout_alg, layout_params
+        self,
+        node_ids,
+        dist,
+        scope_settings,
+        modifier_settings,
+        layout_alg,
+        layout_params,
     ):
         """Produces Cytoscape.js elements only "around" certain nodes."""
         sel_node_ids, sel_edge_ids, sel_patt_ids = (
-            self.get_ids_in_neighborhood(node_ids, dist, draw_settings)
+            self.get_ids_in_neighborhood(node_ids, dist, scope_settings)
         )
         # NOTE: in theory, if a user draws around nodes multiple times then
         # we will just keep creating new subgraph ids. however, since diff
@@ -2423,10 +2436,18 @@ class AssemblyGraph(object):
             [self.edgeid2obj[i] for i in sel_edge_ids],
             [self.pattid2obj[i] for i in sel_patt_ids],
         )
-        return sg.to_cyjs(draw_settings, layout_alg, layout_params)
+        return sg.to_cyjs(
+            scope_settings, modifier_settings, layout_alg, layout_params
+        )
 
     def to_cyjs(self, done_flushing):
         """Converts the graph's elements to a Cytoscape.js-compatible format.
+
+        Note that, if the "just nonredundant components" setting is checked,
+        then that should already be reflected in done_flushing. (That is, if
+        the draw type was DRAW_CCS, then done_flushing["cc_nums"] should
+        already have been filtered; and if the draw type was DRAW_ALL, then
+        it should have been changed to DRAW_NR.)
 
         Parameters
         ----------
@@ -2446,7 +2467,8 @@ class AssemblyGraph(object):
         https://js.cytoscape.org/#notation/elements-json
         """
         draw_type = done_flushing["draw_type"]
-        draw_settings = done_flushing["draw_settings"]
+        scope_settings = done_flushing["scope_settings"]
+        modifier_settings = done_flushing["modifier_settings"]
         layout_alg = done_flushing["layout_alg"]
         layout_params = done_flushing["layout_params"]
 
@@ -2456,32 +2478,48 @@ class AssemblyGraph(object):
 
         if draw_type == config.DRAW_ALL:
             # draw all component(s)
-            dr = DrawResults({}, draw_settings)
+            dr = DrawResults({}, scope_settings)
             for cc in self.components:
-                dr += cc.to_cyjs(draw_settings, layout_alg, layout_params)
+                dr += cc.to_cyjs(
+                    scope_settings,
+                    modifier_settings,
+                    layout_alg,
+                    layout_params,
+                )
 
         elif draw_type == config.DRAW_CCS:
             # draw certain component(s)
-            dr = DrawResults({}, draw_settings)
+            dr = DrawResults({}, scope_settings)
             for ccn in done_flushing["cc_nums"]:
                 cc = self.get_cc_by_num(ccn)
-                dr += cc.to_cyjs(draw_settings, layout_alg, layout_params)
+                dr += cc.to_cyjs(
+                    scope_settings,
+                    modifier_settings,
+                    layout_alg,
+                    layout_params,
+                )
 
         elif draw_type == config.DRAW_NR:
             # draw all component(s), but only the nonredundant ones (so for
             # each pair of perfectly reverse-complementary components, we'll
             # just draw one of these)
-            dr = DrawResults({}, draw_settings)
+            dr = DrawResults({}, scope_settings)
             for ccn in self.get_nr_cc_nums():
                 cc = self.get_cc_by_num(ccn)
-                dr += cc.to_cyjs(draw_settings, layout_alg, layout_params)
+                dr += cc.to_cyjs(
+                    scope_settings,
+                    modifier_settings,
+                    layout_alg,
+                    layout_params,
+                )
 
         elif draw_type == config.DRAW_AROUND:
             # draw around certain node(s)
             dr = self._to_cyjs_around_nodes(
                 done_flushing["around_node_ids"],
                 done_flushing["around_dist"],
-                draw_settings,
+                scope_settings,
+                modifier_settings,
                 layout_alg,
                 layout_params,
             )

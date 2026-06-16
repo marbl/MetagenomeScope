@@ -48,8 +48,9 @@ def start_log(verbose: bool):
 
 
 def log_layout_start(done_flushing, ag):
-    draw_settings = done_flushing["draw_settings"]
-    st = "; ".join(draw_settings)
+    st = "; ".join(
+        done_flushing["scope_settings"] + done_flushing["modifier_settings"]
+    )
     for pk, pv in done_flushing["layout_params"].items():
         if len(st) > 0:
             st += "; "
@@ -60,5 +61,5 @@ def log_layout_start(done_flushing, ag):
         st = f" ({st})"
 
     logging.debug(
-        f"  Laying out {thing} with {done_flushing['layout_alg']}{st}..."
+        f"  Laying out ({thing}) with {done_flushing['layout_alg']}{st}..."
     )

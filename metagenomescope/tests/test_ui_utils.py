@@ -1,5 +1,5 @@
 import pytest
-from metagenomescope import ui_utils as uu, config, css_config
+from metagenomescope import ui_utils as uu, config, css_config, ui_config
 from metagenomescope.graph import AssemblyGraph
 from metagenomescope.errors import UIError, WeirdError
 
@@ -485,6 +485,108 @@ def test_fmt_num_ranges():
     ) == ("#3 \u2013 5; #100; #1234 \u2013 1235; #1237; #999999")
 
 
+def test_nrfilter_draw_request_all():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert uu.nrfilter_draw_request(
+        [ui_config.NR_CCS], config.DRAW_ALL, set(), ag
+    ) == (config.DRAW_NR, set(), set())
+
+
+def test_nrfilter_draw_request_all_no_nr():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert uu.nrfilter_draw_request([], config.DRAW_ALL, set(), ag) == (
+        config.DRAW_ALL,
+        set(),
+        set(),
+    )
+
+
+def test_nrfilter_draw_request_ccs_filtering_changes_ccs():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert uu.nrfilter_draw_request(
+        [ui_config.NR_CCS], config.DRAW_CCS, {1, 2, 3}, ag
+    ) == (config.DRAW_CCS, {1, 3}, {1, 2, 3})
+
+
+def test_nrfilter_draw_request_ccs_filtering_doesnt_change_ccs():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+
+    # at least as of writing, cc 3 is a single + node and cc 4 is a single
+    # - node. Thus, cc 3 is represented in ag.nr_cc_nums, and is what we
+    # would show when drawing all ccs but just the NR ones.
+
+    assert uu.nrfilter_draw_request(
+        [ui_config.NR_CCS], config.DRAW_CCS, {1, 3}, ag
+    ) == (config.DRAW_CCS, {1, 3}, set())
+
+    # However! If the user requests cc 4 directly, without also requesting
+    # cc 3, then we should just show cc 4 -- even though it is the
+    # "non-canonical" version of the pair of redundant components [3, 4].
+    #
+    # NOTE: The behavior that the "positive" version of a component comes
+    # earlier (i.e. that cc 3 has the + node and cc 4 having the - node,
+    # instead of it being the other way around) is not guaranteed, I think.
+    # It should always be the case (should this break it will cause at
+    # least cause test_nrfilter_draw_request_ccs_filtering_changes_ccs() to
+    # fail); see https://github.com/marbl/MetagenomeScope/issues/451 ...
+    #
+    # Anyway, whether 3 or 4 is the + one, requesting only 3 or 4 (without
+    # the other) means that it should be retained after NR filtering.
+    assert uu.nrfilter_draw_request(
+        [ui_config.NR_CCS], config.DRAW_CCS, {1, 4}, ag
+    ) == (config.DRAW_CCS, {1, 4}, set())
+
+
+def test_nrfilter_draw_request_ccs_filtering_fancy():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert uu.nrfilter_draw_request(
+        [ui_config.NR_CCS], config.DRAW_CCS, {1, 3, 4}, ag
+    ) == (config.DRAW_CCS, {1, 3}, {1, 3, 4})
+
+    # Test the case where the user requests every component.
+    # Previously we detected this and changed the draw type to
+    # DRAW_NR, but I think it is better here to just keep it as
+    # DRAW_CCS (makes the "currently drawn" stuff better reflect
+    # what the user typed in).
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert uu.nrfilter_draw_request(
+        [ui_config.NR_CCS], config.DRAW_CCS, {1, 2, 3, 4}, ag
+    ) == (config.DRAW_CCS, {1, 3}, {1, 2, 3, 4})
+
+
+def test_nrfilter_draw_request_ccs_no_nr():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert uu.nrfilter_draw_request([], config.DRAW_CCS, {1, 3, 4}, ag) == (
+        config.DRAW_CCS,
+        {1, 3, 4},
+        set(),
+    )
+
+
+def test_nrfilter_draw_request_around_doesnt_change_anything():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert uu.nrfilter_draw_request(
+        [ui_config.NR_CCS], config.DRAW_AROUND, set(), ag
+    ) == (config.DRAW_AROUND, set(), set())
+
+    assert uu.nrfilter_draw_request([], config.DRAW_AROUND, set(), ag) == (
+        config.DRAW_AROUND,
+        set(),
+        set(),
+    )
+
+
+def test_nrfilter_draw_request_bad_draw_type():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    with pytest.raises(WeirdError) as ei:
+        uu.nrfilter_draw_request([ui_config.NR_CCS], config.DRAW_NR, set(), ag)
+    assert str(ei.value) == 'Unrecognized draw type: "nr"'
+
+    with pytest.raises(WeirdError) as ei:
+        uu.nrfilter_draw_request([ui_config.NR_CCS], "blorbo :3", set(), ag)
+    assert str(ei.value) == 'Unrecognized draw type: "blorbo :3"'
+
+
 def test_get_curr_drawn_text_all_multicc():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     assert (
@@ -502,7 +604,8 @@ def test_get_curr_drawn_text_cc_single():
     ag = AssemblyGraph("metagenomescope/tests/input/one.gml")
     assert (
         uu.get_curr_drawn_text(
-            {"draw_type": config.DRAW_CCS, "cc_nums": [1]}, ag
+            {"draw_type": config.DRAW_CCS, "cc_nums": [1], "orig_cc_nums": []},
+            ag,
         )
         == "#1"
     )
@@ -510,7 +613,12 @@ def test_get_curr_drawn_text_cc_single():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     assert (
         uu.get_curr_drawn_text(
-            {"draw_type": config.DRAW_CCS, "cc_nums": [3]}, ag
+            {
+                "draw_type": config.DRAW_CCS,
+                "cc_nums": [3],
+                "orig_cc_nums": [],
+            },
+            ag,
         )
         == "#3"
     )
@@ -520,7 +628,12 @@ def test_get_curr_drawn_text_cc_multi():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     assert (
         uu.get_curr_drawn_text(
-            {"draw_type": config.DRAW_CCS, "cc_nums": [3, 1, 4]}, ag
+            {
+                "draw_type": config.DRAW_CCS,
+                "cc_nums": [3, 1, 4],
+                "orig_cc_nums": [],
+            },
+            ag,
         )
         == "#1; #3 \u2013 4"
     )
@@ -553,7 +666,51 @@ def test_get_curr_drawn_text_nr_multiple():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     assert (
         uu.get_curr_drawn_text({"draw_type": config.DRAW_NR}, ag)
-        == "2 / 4 nonredundant components"
+        == "#1 \u2013 4; filtered to 2 nonredundant components"
+    )
+
+
+def test_get_curr_drawn_text_cc_nr_filtering_single():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert (
+        uu.get_curr_drawn_text(
+            {
+                "draw_type": config.DRAW_CCS,
+                "cc_nums": [1],
+                # orig_cc_nums should be empty UNLESS it differs
+                # from cc_nums
+                "orig_cc_nums": [],
+            },
+            ag,
+        )
+        == "#1"
+    )
+
+
+def test_get_curr_drawn_text_cc_nr_filtering_multiple():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert (
+        uu.get_curr_drawn_text(
+            {
+                "draw_type": config.DRAW_CCS,
+                "cc_nums": [3],
+                "orig_cc_nums": [3, 4],
+            },
+            ag,
+        )
+        == "#3 \u2013 4; filtered to 1 nonredundant component"
+    )
+    assert (
+        uu.get_curr_drawn_text(
+            {
+                "draw_type": config.DRAW_CCS,
+                # order shouldn't matter...
+                "cc_nums": [3, 1],
+                "orig_cc_nums": [3, 1, 2, 4],
+            },
+            ag,
+        )
+        == "#1 \u2013 4; filtered to 2 nonredundant components"
     )
 
 
@@ -721,6 +878,68 @@ def test_summarize_undrawn_nodes_multi_all_undrawn_diff_ccs():
         div.children[1].children[1].children[1].children[1].children,
     }
     assert recorded_nodes == {"3", "-3"}
+
+
+def test_disable_dcc_checklist_option():
+    opts = [
+        {
+            "label": "Just nonredundant components",
+            "value": "nr",
+        },
+        {"label": "oooh i'm a label", "value": "slayyybel"},
+    ]
+    uu.disable_dcc_checklist_option(opts, "slayyybel")
+    assert opts == [
+        {
+            "label": "Just nonredundant components",
+            "value": "nr",
+        },
+        {
+            "label": "oooh i'm a label",
+            "value": "slayyybel",
+            "disabled": True,
+        },
+    ]
+
+
+def test_disable_dcc_checklist_option_just_one_option():
+    opts = [
+        {"label": "oooh i'm a label", "value": "slayyybel"},
+    ]
+    uu.disable_dcc_checklist_option(opts, "slayyybel")
+    assert opts == [
+        {
+            "label": "oooh i'm a label",
+            "value": "slayyybel",
+            "disabled": True,
+        },
+    ]
+
+
+def test_disable_dcc_checklist_option_multiple_values_to_disable():
+    opts = [
+        {"label": "label1", "value": "val"},
+        {"label": "label2", "value": "val"},
+        {"label": "label3", "value": "val"},
+        {"label": "label4", "value": "val"},
+    ]
+    uu.disable_dcc_checklist_option(opts, "val")
+    # just the first occurrence of "val" should be disabled.
+    assert opts == [
+        {"label": "label1", "value": "val", "disabled": True},
+        {"label": "label2", "value": "val"},
+        {"label": "label3", "value": "val"},
+        {"label": "label4", "value": "val"},
+    ]
+
+
+def test_disable_dcc_checklist_option_missing_value():
+    opts = [
+        {"label": "oooh i'm a label", "value": "slayyybel"},
+    ]
+    with pytest.raises(WeirdError) as ei:
+        uu.disable_dcc_checklist_option(opts, "evil")
+    assert "no val evil" in str(ei.value)
 
 
 def test_get_badge_color():

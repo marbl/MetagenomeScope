@@ -1,11 +1,12 @@
 import re
 import time
+import copy
 import statistics
 import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 from collections import defaultdict
 from dash import html, dcc
-from . import css_config, ui_config, config, name_utils
+from . import css_config, ui_config, config, name_utils, misc_utils
 from .errors import UIError, WeirdError
 from .gap import Gap
 
@@ -841,7 +842,15 @@ def get_curr_drawn_text(done_flushing, ag):
         t = _get_range_text_from_bounds_only(1, len(ag.components))
 
     elif draw_type == config.DRAW_CCS:
-        t = fmt_num_ranges(done_flushing["cc_nums"])
+        if len(done_flushing["orig_cc_nums"]) > 0:
+            t = fmt_num_ranges(done_flushing["orig_cc_nums"])
+            drawn_cc_ct = len(done_flushing["cc_nums"])
+            t += (
+                "; filtered to "
+                f"{pluralize(drawn_cc_ct, 'nonredundant component')}"
+            )
+        else:
+            t = fmt_num_ranges(done_flushing["cc_nums"])
 
     elif draw_type == config.DRAW_NR:
         nrccs = list(ag.get_nr_cc_nums())
@@ -849,7 +858,8 @@ def get_curr_drawn_text(done_flushing, ag):
         if nrct == 1:
             t = fmt_num_ranges(nrccs)
         else:
-            t = f"{nrct:,} / {len(ag.components):,} nonredundant components"
+            t = _get_range_text_from_bounds_only(1, len(ag.components))
+            t += f"; filtered to {pluralize(nrct, 'nonredundant component')}"
 
     elif draw_type == config.DRAW_AROUND:
         d = done_flushing["around_dist"]
@@ -1020,6 +1030,40 @@ def get_screenshot_basename():
     return time.strftime("mgsc-%Y%m%dT%H%M%S")
 
 
+def disable_dcc_checklist_option(options, value_to_disable):
+    """Disables an option in a dcc.Checklist.
+
+    Parameters
+    ----------
+    options: list of dict
+        Basically this is just the format expected by dcc.Checklist. The
+        dicts are stuff like {"label": "My option", "value": "o"}.
+
+    value_to_disable: str
+        Corresponds to a value for which we will disable an option (by
+        setting "disabled": True).
+
+    Raises
+    ------
+    WeirdError
+        If no option with value value_to_disable exists in options.
+
+    Notes
+    -----
+    Values in these checklists should be unique (right???). In the terrible
+    event that for some reason "options" has multiple options with a value of
+    value_to_disable, we will only disable the first option with this value.
+    """
+    nothing_disabled = True
+    for o in options:
+        if o["value"] == value_to_disable:
+            o["disabled"] = True
+            nothing_disabled = False
+            break
+    if nothing_disabled:
+        raise WeirdError(f"Opts {options} has no val {value_to_disable}?")
+
+
 def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
     for a in extra_attrs:
         # Do we know in advance a human-readable name and a good type for
@@ -1145,16 +1189,141 @@ def get_edge_coloring_options(ag):
     return options
 
 
-def show_patterns(draw_settings):
-    return ui_config.SHOW_PATTERNS in draw_settings
+def nr_ccs(scope_settings):
+    return ui_config.NR_CCS in scope_settings
 
 
-def do_recursive_layout(draw_settings):
-    return ui_config.DO_RECURSIVE_LAYOUT in draw_settings
+def show_patterns(scope_settings):
+    return ui_config.SHOW_PATTERNS in scope_settings
 
 
-def use_gv_ports(draw_settings):
-    return ui_config.USE_GV_PORTS in draw_settings
+def do_recursive_layout(modifier_settings):
+    return ui_config.DO_RECURSIVE_LAYOUT in modifier_settings
+
+
+def use_gv_ports(modifier_settings):
+    return ui_config.USE_GV_PORTS in modifier_settings
+
+
+def nrfilter_draw_request(scope_settings, draw_type, cc_nums, ag):
+    """Filters a draw request to remove nonredundant components.
+
+    Parameters
+    ----------
+    scope_settings: list of str
+        Corresponds to the scope settings checklist (as of writing, this
+        is located in the Layout tab of the drawing options dialog).
+
+    draw_type: str
+        Should be one of {DRAW_ALL, DRAW_CCS, DRAW_AROUND} from config.py.
+        Indicates what sort of drawing method the user selected.
+
+    cc_nums: set of int
+        If draw_type == DRAW_CCS, this should be a set of the corresponding
+        component size ranks. Otherwise, this doesn't matter (I think it
+        will default to an empty list in practice).
+
+    ag: metagenomescope.graph.AssemblyGraph
+        AssemblyGraph object representing the graph that this MetagenomeScope
+        instance is visualizing things for.
+
+    Returns
+    -------
+    draw_type, cc_nums, orig_cc_nums: str, set of int, set of int
+        draw_type represents the drawing method we've decided to use for this
+        request. Should be one of {DRAW_ALL, DRAW_CCS, DRAW_AROUND, DRAW_NR}.
+        This may be different from the input draw_type.
+
+        cc_nums represents the component numbers to *actually* draw. This may
+        be a subset of what was requested. If the output draw_type is not
+        DRAW_CCS, this will be unchanged from the input.
+
+        If cc_nums ends up being filtered -- and if the output draw_type
+        remains as DRAW_CCS -- then orig_cc_nums will be set to what the input
+        cc_nums was. This is so that we can display cleaner summaries of what
+        the user requested (e.g. "10-100" instead of "10; 12; 14; ...").
+        If these conditions are not met, then this will be an empty set.
+
+    Notes
+    -----
+    It is possible, if the input draw_type is DRAW_CCS, to check if the set
+    of filtered component numbers is equal to ag.nr_cc_nums -- and, if so,
+    to just switch the output draw_type to DRAW_NR. This could happen if
+    e.g. the user requests we draw components "1-" or something like that.
+
+    However! I am not sure I like this, because then the info about what
+    is currently drawn can change: e.g. for the E. coli test dataset (61
+    components), where ccs 60 and 61 are twins (+278 and -278 respectively),
+    requesting ccs "1-60" is identical to requesting "1-61", and so even
+    "1-60" will be shown in the currently-drawn text as "1-61; filtered ...".
+    Even though the MEANING is the same I don't like changing what the user
+    sees if I can help it, right? I dunno.
+
+    (Anyway so TLDR we don't bother doing that particular draw type change even
+    though it might save us some storage space in the application.)
+    """
+    orig_cc_nums = set()
+    if nr_ccs(scope_settings):
+        # Okay, we know we should filter the draw request to remove NR CCs
+
+        if draw_type == config.DRAW_CCS:
+            # draw just the components in the list, but also remove pairs
+            # of redundant components. If both a component and its twin
+            # are in the list, then draw whichever one of the two is in
+            # ag.nr_cc_nums.
+            filtered_cc_nums = set()
+            for ccn in cc_nums:
+                if ccn in ag.nr_cc_nums:
+                    filtered_cc_nums.add(ccn)
+                else:
+                    # Even if ccn is not in ag.nr_cc_nums (i.e. it has a
+                    # twin that IS in ag.nr_cc_nums): if its twin is not in
+                    # cc_nums (i.e. it was not explicitly requested), then
+                    # draw ccn
+                    if ag.ccnum2twinccnum[ccn] not in cc_nums:
+                        filtered_cc_nums.add(ccn)
+                    # if we've made it here, both ccn and its twin were
+                    # explicitly requested (i.e. in cc_nums), so ignore ccn
+                    # in favor of its twin in ag.nr_cc_nums
+
+            # CASE 1: we are using NR filtering for some set of components.
+            if cc_nums != filtered_cc_nums:
+                # Some filtering occurred -- meaning that the set of input
+                # components is different from the set of components to be
+                # drawn. Thus, store the input components for reference.
+                orig_cc_nums = cc_nums
+            cc_nums = filtered_cc_nums
+
+        elif draw_type == config.DRAW_ALL:
+            # CASE 2: we are using NR filtering, and the user requested we draw
+            # all components. Use DRAW_NR to indicate that we should just draw
+            # all nonredundant components. (Originally this was the only option
+            # available for drawing nonredundant stuff, so it is already very
+            # fleshed out.)
+            #
+            # Using a different draw type than DRAW_CCS, lets us show a more
+            # concise summary of what is drawn than listing out something like
+            # "#1; #3; #5; ..." (and a more accurate summary
+            # than saying #1 -- |Components| like we would for DRAW_ALL).
+            #
+            # (also, no need to set "cc_nums = ag.get_nr_cc_nums()", since
+            # the AssemblyGraph will just see DRAW_NR and know to look
+            # those up)
+            draw_type = config.DRAW_NR
+
+        elif draw_type == config.DRAW_AROUND:
+            # CASE 3: we are using NR filtering, but drawing around a set of
+            # nodes. NR filtering doesn't impact this.
+            pass
+
+        else:
+            # CASE 4: the draw type is weird. throw an error.
+            raise WeirdError(f'Unrecognized draw type: "{draw_type}"')
+
+    # CASE 5 (if the nr_ccs() check was not True): we are not using NR
+    # filtering; don't change the draw type or cc_nums.
+
+    return draw_type, cc_nums, orig_cc_nums
 
 
 def get_dot_alg_descriptions():
@@ -1195,8 +1364,9 @@ def get_dot_alg_descriptions():
         ),
     ]
     if (
-        ui_config.SHOW_PATTERNS in ui_config.DEFAULT_DRAW_SETTINGS
-        and ui_config.DO_RECURSIVE_LAYOUT in ui_config.DEFAULT_DRAW_SETTINGS
+        ui_config.SHOW_PATTERNS in ui_config.DEFAULT_SCOPE_SETTINGS
+        and ui_config.DO_RECURSIVE_LAYOUT
+        in ui_config.DEFAULT_MODIFIER_SETTINGS
     ):
         dot_alg_desc_used = DOT_ALG_DESC_PATTS
     else:
@@ -1204,7 +1374,9 @@ def get_dot_alg_descriptions():
     return DOT_ALG_DESC, DOT_ALG_DESC_PATTS, dot_alg_desc_used
 
 
-def get_layout_options_tab(node_centric, default_dot_alg_desc):
+def get_layout_options_tab(
+    node_centric, orientation_in_name, multiple_ccs, default_dot_alg_desc
+):
 
     JS_ALG_WARNING = html.P(
         [
@@ -1245,6 +1417,21 @@ def get_layout_options_tab(node_centric, default_dot_alg_desc):
         JS_ALG_WARNING,
     ]
 
+    scope_options = copy.deepcopy(ui_config.SCOPE_SETTINGS_OPTIONS)
+    default_scope_settings = copy.deepcopy(ui_config.DEFAULT_SCOPE_SETTINGS)
+    # Drawing only the nonredundant parts of the graph only makes sense if
+    # (1) there are pairs of nodes/edges X and -X in the graph (i.e.
+    # ag.orientation_in_name is True) and (2) there are multiple components.
+    #
+    # If this is NOT the case, then let's just turn off (and disable) the
+    # "just show nonredundant ccs" option here. We COULD hide it entirely but
+    # I think disabling gives a clearer user experience.
+    if not (orientation_in_name and multiple_ccs):
+        disable_dcc_checklist_option(scope_options, ui_config.NR_CCS)
+        # Go a step further: ensure that this option is turned off entirely for
+        # theses kinds of graphs.
+        misc_utils.safe_list_discard(default_scope_settings, ui_config.NR_CCS)
+
     return html.Div(
         [
             html.Div(
@@ -1254,7 +1441,7 @@ def get_layout_options_tab(node_centric, default_dot_alg_desc):
                 ),
                 className="drawing-option-topnote",
             ),
-            html.H5("Modifiers"),
+            html.H5("What should we draw?"),
             # Eventually we can add other stuff here, e.g. "filter
             # nodes/edges with < X cov"
             #
@@ -1267,9 +1454,19 @@ def get_layout_options_tab(node_centric, default_dot_alg_desc):
             # dcc.Checklist is better.
             html.Div(
                 dcc.Checklist(
-                    options=ui_config.DRAW_SETTINGS_OPTIONS,
-                    value=ui_config.DEFAULT_DRAW_SETTINGS,
-                    id="drawSettingsChecklist",
+                    options=scope_options,
+                    value=default_scope_settings,
+                    id="scopeSettingsChecklist",
+                ),
+                className="form-check fancyChecklistInDialog",
+            ),
+            html.Br(),
+            html.H5("How should we draw it?"),
+            html.Div(
+                dcc.Checklist(
+                    options=ui_config.MODIFIER_SETTINGS_OPTIONS,
+                    value=ui_config.DEFAULT_MODIFIER_SETTINGS,
+                    id="modifierSettingsChecklist",
                 ),
                 className="form-check fancyChecklistInDialog",
             ),
@@ -1409,7 +1606,7 @@ def get_layout_options_tab(node_centric, default_dot_alg_desc):
                 style={"text-align": "center"},
             ),
             html.Br(),
-            html.H5("Parameters"),
+            html.H5("Layout parameters"),
             html.Div(
                 [
                     dbc.InputGroup(

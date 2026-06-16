@@ -7,7 +7,7 @@ from metagenomescope.errors import WeirdError
 def test_init_empty():
     dr = DrawResults({}, [ui_config.SHOW_PATTERNS])
     assert dr.region2layout == {}
-    assert dr.draw_settings == [ui_config.SHOW_PATTERNS]
+    assert dr.scope_settings == [ui_config.SHOW_PATTERNS]
     assert dr.incl_patterns
     assert dr.layouts_given
     assert dr.num_full_nodes == 0
@@ -20,7 +20,7 @@ def test_init_nolayout_subgraph():
     sg = Subgraph(5, "sg5", [b], [], [])
     dr = DrawResults({sg: None}, [])
     assert dr.region2layout == {sg: None}
-    assert dr.draw_settings == []
+    assert dr.scope_settings == []
     assert not dr.incl_patterns
     assert not dr.layouts_given
     assert dr.num_full_nodes == 1
@@ -69,10 +69,10 @@ def test_add_simple():
     dr2 = DrawResults({sg6: None}, [])
     drs = dr + dr2
     assert drs.region2layout == {sg5: None, sg6: None}
-    assert drs.draw_settings == []
+    assert drs.scope_settings == []
 
 
-def test_add_with_draw_settings():
+def test_add_with_scope_settings():
     b = Node(0, "B", {"orientation": config.FWD})
     sg5 = Subgraph(5, "sg5", [b], [], [])
 
@@ -83,7 +83,7 @@ def test_add_with_draw_settings():
     dr2 = DrawResults({sg6: None}, [ui_config.SHOW_PATTERNS])
     drs = dr + dr2
     assert drs.region2layout == {sg5: None, sg6: None}
-    assert drs.draw_settings == [ui_config.SHOW_PATTERNS]
+    assert drs.scope_settings == [ui_config.SHOW_PATTERNS]
 
 
 def test_add_duplicate_region():
@@ -97,7 +97,7 @@ def test_add_duplicate_region():
     assert "Regions present in multiple DrawResults" in str(ei.value)
 
 
-def test_add_incompatible_draw_settings():
+def test_add_incompatible_scope_settings():
     b = Node(0, "B", {"orientation": config.FWD})
     sg5 = Subgraph(5, "sg5", [b], [], [])
 
@@ -108,7 +108,7 @@ def test_add_incompatible_draw_settings():
     dr2 = DrawResults({sg6: None}, [])
     with pytest.raises(WeirdError) as ei:
         dr + dr2
-    assert "Incompatible draw settings" in str(ei.value)
+    assert "Incompatible scope settings" in str(ei.value)
 
 
 def test_get_sorted_regions_subgraphs():

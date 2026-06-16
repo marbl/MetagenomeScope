@@ -175,10 +175,6 @@ def run(
                 "Around certain node(s)",
             ),
         ],
-        "ccDrawingNR": [
-            html.I(className="bi bi-arrow-right"),
-            html.Span("Entire graph (nonredundant)"),
-        ],
         "ccDrawingAll": [
             html.I(className="bi bi-asterisk"),
             html.Span(f"Entire graph ({all_cc_desc})"),
@@ -197,15 +193,6 @@ def run(
         # the disabled <a>s in question :)
         CC_SELECTION_A_CLASSES_MULTIPLE_CCS += " disabled"
         CC_SELECTION_A_ATTRS_MULTIPLE_CCS = {"aria-disabled": "true"}
-
-    NR_CC_SELECTION_A_CLASSES = DEFAULT_CC_SELECTION_A_CLASSES
-    NR_CC_SELECTION_A_ATTRS = DEFAULT_CC_SELECTION_A_ATTRS
-    # Drawing only the nonredundant parts of the graph only makes sense if
-    # (1) there are pairs of nodes/edges X and -X in the graph (i.e.
-    # ag.orientation_in_name is True) and (2) there are multiple components.
-    if not (ag.orientation_in_name and multiple_ccs):
-        NR_CC_SELECTION_A_CLASSES += " disabled"
-        NR_CC_SELECTION_A_ATTRS = {"aria-disabled": "true"}
 
     NO_COMPONENTS_SELECTED_MSG = html.Span(
         [
@@ -515,16 +502,6 @@ def run(
                                                 ],
                                                 className="dropdown-item",
                                                 id="ccDrawingAroundNodes",
-                                            ),
-                                        ),
-                                        html.Li(
-                                            html.A(
-                                                cc_selection_options[
-                                                    "ccDrawingNR"
-                                                ],
-                                                className=NR_CC_SELECTION_A_CLASSES,
-                                                id="ccDrawingNR",
-                                                **NR_CC_SELECTION_A_ATTRS,
                                             ),
                                         ),
                                         html.Li(
@@ -1761,7 +1738,10 @@ def run(
                             [
                                 dbc.Tab(
                                     ui_utils.get_layout_options_tab(
-                                        ag.node_centric, default_dot_alg_desc
+                                        ag.node_centric,
+                                        ag.orientation_in_name,
+                                        multiple_ccs,
+                                        default_dot_alg_desc,
                                     ),
                                     label="Layout",
                                 ),
@@ -2405,13 +2385,10 @@ def run(
         Input("ccDrawingSizeRank", "n_clicks"),
         Input("ccDrawingNodeNames", "n_clicks"),
         Input("ccDrawingAroundNodes", "n_clicks"),
-        Input("ccDrawingNR", "n_clicks"),
         Input("ccDrawingAll", "n_clicks"),
         prevent_initial_call=True,
     )
-    def change_drawing_method(
-        sr_clicks, nn_clicks, an_clicks, nr_clicks, all_clicks
-    ):
+    def change_drawing_method(sr_clicks, nn_clicks, an_clicks, all_clicks):
         # figure out which UI elements to show / hide
         # (note that the "nonredundant" and "all components" drawing methods
         # mean that there should be no additional UI elements displayed, which
@@ -2682,13 +2659,14 @@ def run(
 
     @callback(
         Output("dotAlgDesc", "children"),
-        Output("drawSettingsChecklist", "options"),
-        Input("drawSettingsChecklist", "value"),
+        Output("modifierSettingsChecklist", "options"),
+        Input("scopeSettingsChecklist", "value"),
+        Input("modifierSettingsChecklist", "value"),
         prevent_initial_call=True,
     )
-    def update_recursive_layout_plans(draw_settings):
-        show_patts = ui_config.SHOW_PATTERNS in draw_settings
-        do_rec_layout = ui_config.DO_RECURSIVE_LAYOUT in draw_settings
+    def update_recursive_layout_plans(scope_settings, modifier_settings):
+        show_patts = ui_utils.show_patterns(scope_settings)
+        do_rec_layout = ui_utils.do_recursive_layout(modifier_settings)
 
         if show_patts and do_rec_layout:
             desc = DOT_ALG_DESC_PATTS
@@ -2696,13 +2674,12 @@ def run(
             desc = DOT_ALG_DESC
 
         if not show_patts:
-            opts = copy.deepcopy(ui_config.DRAW_SETTINGS_OPTIONS)
-            for o in opts:
-                if o["value"] == ui_config.DO_RECURSIVE_LAYOUT:
-                    o["disabled"] = True
-                    break
+            opts = copy.deepcopy(ui_config.MODIFIER_SETTINGS_OPTIONS)
+            ui_utils.disable_dcc_checklist_option(
+                opts, ui_config.DO_RECURSIVE_LAYOUT
+            )
         else:
-            opts = ui_config.DRAW_SETTINGS_OPTIONS
+            opts = ui_config.MODIFIER_SETTINGS_OPTIONS
 
         return desc, opts
 
@@ -2717,7 +2694,8 @@ def run(
         State("ccNodeNameSelector", "value"),
         State("ccAroundNodesNameSelector", "value"),
         State("ccAroundNodesDistSelector", "value"),
-        State("drawSettingsChecklist", "value"),
+        State("scopeSettingsChecklist", "value"),
+        State("modifierSettingsChecklist", "value"),
         State("dotRanksep", "value"),
         State("sfdpK", "value"),
         State("sfdpOverlapScaling", "value"),
@@ -2737,7 +2715,8 @@ def run(
         node_names,
         around_nodes_names,
         around_nodes_dist,
-        draw_settings,
+        scope_settings,
+        modifier_settings,
         dot_ranksep,
         sfdp_k,
         sfdp_overlap_scaling,
@@ -2761,7 +2740,8 @@ def run(
             "Received request to draw the graph. Validating request."
         )
 
-        cc_nums = []
+        cc_nums = set()
+        orig_cc_nums = set()
         around_node_ids = []
         around_dist = 0
         draw_type = None
@@ -2824,14 +2804,6 @@ def run(
                 )
             draw_type = config.DRAW_AROUND
 
-        elif cc_drawing_selection_type == "ccDrawingNR":
-            # use a different draw type than DRAW_CCS, which will let us
-            # show a more concise summary of what is drawn than listing out
-            # something like "#1; #3; #5; ..."
-            # (also, no need to set "cc_nums = ag.get_nr_cc_nums()", since the
-            # AssemblyGraph will just see DRAW_NR and know to look those up)
-            draw_type = config.DRAW_NR
-
         elif cc_drawing_selection_type == "ccDrawingAll":
             draw_type = config.DRAW_ALL
 
@@ -2848,7 +2820,7 @@ def run(
             )
 
         cyjs_layout_settings = cy_utils.get_cyjs_layout_settings(
-            layout_alg, draw_settings
+            layout_alg, modifier_settings
         )
 
         try:
@@ -2897,10 +2869,15 @@ def run(
                 {"requestGood": False},
             )
 
-        # cc_nums has to be JSON-serializable (it might be a set at this point)
-        # (and if we are drawing around nodes instead of drawing entire ccs,
-        # then this will just be []. and that's beautiful. not really)
+        draw_type, cc_nums, orig_cc_nums = ui_utils.nrfilter_draw_request(
+            scope_settings, draw_type, cc_nums, ag
+        )
+
+        # These have to be JSON-serializable (they may be sets at this point)
+        # (and don't worry; if we are not using DRAW_CCS, then these will just
+        # be []. and that's beautiful. not really)
         cc_nums = list(cc_nums)
+        orig_cc_nums = list(orig_cc_nums)
 
         # Okay, now we've done enough checks that this request to draw the
         # graph seems good.
@@ -2924,9 +2901,11 @@ def run(
                 "requestGood": True,
                 "draw_type": draw_type,
                 "cc_nums": cc_nums,
+                "orig_cc_nums": orig_cc_nums,
                 "around_node_ids": around_node_ids,
                 "around_dist": around_dist,
-                "draw_settings": draw_settings,
+                "scope_settings": scope_settings,
+                "modifier_settings": modifier_settings,
                 "layout_alg": layout_alg,
                 "layout_params": {
                     ui_config.LAYOUT_DOT: {
@@ -3331,24 +3310,6 @@ def run(
             # everything is drawn
             drawn_nodes = list(nn2ccnum.keys())
 
-        elif curr_drawn_info["draw_type"] == config.DRAW_CCS:
-            # only certain component(s) are drawn
-            curr_drawn_cc_nums = set(curr_drawn_info["cc_nums"])
-            for n, c in nn2ccnum.items():
-                if c in curr_drawn_cc_nums:
-                    drawn_nodes.append(n)
-                else:
-                    undrawn_nodes.append(n)
-
-        elif curr_drawn_info["draw_type"] == config.DRAW_NR:
-            # only certain component(s) are drawn
-            curr_drawn_cc_nums = set(ag.get_nr_cc_nums())
-            for n, c in nn2ccnum.items():
-                if c in curr_drawn_cc_nums:
-                    drawn_nodes.append(n)
-                else:
-                    undrawn_nodes.append(n)
-
         elif curr_drawn_info["draw_type"] == config.DRAW_AROUND:
             # some weird subregion of the graph is drawn, as specified in
             # currDrawnInfo
@@ -3363,7 +3324,18 @@ def run(
                 raise WeirdError(f"No node IDs available in {curr_drawn_info}")
 
         else:
-            raise WeirdError(f"Unrecognized draw type: {curr_drawn_info}")
+            # only certain component(s) are drawn
+            if curr_drawn_info["draw_type"] == config.DRAW_CCS:
+                curr_drawn_cc_nums = set(curr_drawn_info["cc_nums"])
+            elif curr_drawn_info["draw_type"] == config.DRAW_NR:
+                curr_drawn_cc_nums = set(ag.get_nr_cc_nums())
+            else:
+                raise WeirdError(f"Unrecognized draw type: {curr_drawn_info}")
+            for n, c in nn2ccnum.items():
+                if c in curr_drawn_cc_nums:
+                    drawn_nodes.append(n)
+                else:
+                    undrawn_nodes.append(n)
 
         # If none of these nodes are currently drawn, show an error.
         if len(drawn_nodes) == 0:

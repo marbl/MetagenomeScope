@@ -4,35 +4,33 @@ from dash import html
 # Default drawing settings
 ###############################################################################
 
-# values in the draw settings checklist
+NR_CCS = "nr"
+# SPLIT_STRANDTANGLED = "detangle"
 SHOW_PATTERNS = "patterns"
-DO_LAYOUT_ANIMATION = "animate"
-DO_RECURSIVE_LAYOUT = "recursive"
-USE_GV_PORTS = "ports"
-
-# by default, which draw settings are enabled?
-DEFAULT_SHOW_PATTERNS = True
-DEFAULT_DO_LAYOUT_ANIMATION = True
-DEFAULT_DO_RECURSIVE_LAYOUT = False
-DEFAULT_USE_GV_PORTS = False
-
-DEFAULT_DRAW_SETTINGS = []
-if DEFAULT_SHOW_PATTERNS:
-    DEFAULT_DRAW_SETTINGS.append(SHOW_PATTERNS)
-if DEFAULT_DO_LAYOUT_ANIMATION:
-    DEFAULT_DRAW_SETTINGS.append(DO_LAYOUT_ANIMATION)
-if DEFAULT_DO_RECURSIVE_LAYOUT:
-    DEFAULT_DRAW_SETTINGS.append(DO_RECURSIVE_LAYOUT)
-if DEFAULT_USE_GV_PORTS:
-    DEFAULT_DRAW_SETTINGS.append(USE_GV_PORTS)
+DEFAULT_SCOPE_SETTINGS = [NR_CCS, SHOW_PATTERNS]
 
 DOT_TEXT = html.Span("dot", style={"font-style": "italic"})
 
-DRAW_SETTINGS_OPTIONS = [
+SCOPE_SETTINGS_OPTIONS = [
+    {
+        "label": "Just nonredundant components",
+        "value": NR_CCS,
+    },
+    # {
+    #     "label": "Split strand-tangled components",
+    #     "value": SPLIT_STRANDTANGLED,
+    # },
     {
         "label": "Show patterns",
         "value": SHOW_PATTERNS,
     },
+]
+
+DO_RECURSIVE_LAYOUT = "recursive"
+USE_GV_PORTS = "ports"
+DO_LAYOUT_ANIMATION = "animate"
+
+MODIFIER_SETTINGS_OPTIONS = [
     {
         "label": html.Span(
             [
@@ -58,6 +56,8 @@ DRAW_SETTINGS_OPTIONS = [
         "value": DO_LAYOUT_ANIMATION,
     },
 ]
+DEFAULT_MODIFIER_SETTINGS = [DO_LAYOUT_ANIMATION]
+
 
 COLORING_RANDOM = "random"
 COLORING_UNIFORM = "uniform"

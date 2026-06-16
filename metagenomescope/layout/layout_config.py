@@ -134,7 +134,7 @@ CLUSTER_PADDING = 10
 #
 # (Actually controlling "animate" - whether or not we do animation at all -
 # is controlled by a checkbox, which is controlled by
-# ui_config.DEFAULT_DRAW_SETTINGS)
+# ui_config.DEFAULT_MODIFIER_SETTINGS)
 ANIMATION_SETTINGS = {
     "animationDuration": 500,
 }
