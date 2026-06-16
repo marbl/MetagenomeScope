@@ -173,6 +173,47 @@ class Subgraph(object):
                 ct += 1
         return ct
 
+    def is_strand_tangled(self, node_centric=True):
+        """Returns True if this Subgraph contains node / edge IDs X and -X.
+
+        Parameters
+        ----------
+        node_centric: bool
+            If True, consider node basenames. If False, consider edge IDs.
+
+        Returns
+        -------
+        bool
+            True if we find at least one instance of strand-tangling (both
+            X and -X), False otherwise.
+
+        Notes
+        -----
+        This assumes that the graph the user provided to MetagenomeScope
+        (corresponding to the AssemblyGraph object which we derived this
+        Subgraph) has .orientation_in_name = True.
+
+        So, MetaCarvel graphs where node orientations are not reflected in
+        node names are not relevant, since there is no -X for a given X. This
+        should thus return False on any Subgraph from those kinds of graphs.
+        """
+        names = set()
+        if node_centric:
+            coll = self.nodes
+        else:
+            coll = self.edges
+        for obj in coll:
+            if node_centric:
+                name = obj.basename
+            else:
+                if obj.is_fake:
+                    continue
+                name = obj.get_userspecified_id()
+            if name_utils.negate(name) in names:
+                return True
+            names.add(name)
+        return False
+
     def to_cyjs(
         self, scope_settings, modifier_settings, layout_alg, layout_params
     ):
