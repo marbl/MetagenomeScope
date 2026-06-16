@@ -1419,6 +1419,7 @@ def get_layout_options_tab(
 
     scope_options = copy.deepcopy(ui_config.SCOPE_SETTINGS_OPTIONS)
     default_scope_settings = copy.deepcopy(ui_config.DEFAULT_SCOPE_SETTINGS)
+
     # Drawing only the nonredundant parts of the graph only makes sense if
     # (1) there are pairs of nodes/edges X and -X in the graph (i.e.
     # ag.orientation_in_name is True) and (2) there are multiple components.
@@ -1431,6 +1432,16 @@ def get_layout_options_tab(
         # Go a step further: ensure that this option is turned off entirely for
         # theses kinds of graphs.
         misc_utils.safe_list_discard(default_scope_settings, ui_config.NR_CCS)
+
+    # Similarly, if the graph does not have pairs of nodes/edges X and -X, then
+    # the idea of "strand-tangled components" does not exist.
+    if not orientation_in_name:
+        disable_dcc_checklist_option(
+            scope_options, ui_config.SPLIT_STRANDTANGLED
+        )
+        misc_utils.safe_list_discard(
+            default_scope_settings, ui_config.SPLIT_STRANDTANGLED
+        )
 
     return html.Div(
         [
