@@ -842,7 +842,15 @@ def get_curr_drawn_text(done_flushing, ag):
         t = _get_range_text_from_bounds_only(1, len(ag.components))
 
     elif draw_type == config.DRAW_CCS:
-        t = fmt_num_ranges(done_flushing["cc_nums"])
+        if len(done_flushing["orig_cc_nums"]) > 0:
+            t = fmt_num_ranges(done_flushing["orig_cc_nums"])
+            drawn_cc_ct = len(done_flushing["cc_nums"])
+            t += (
+                "; filtered to "
+                f"{pluralize(drawn_cc_ct, 'nonredundant component')}"
+            )
+        else:
+            t = fmt_num_ranges(done_flushing["cc_nums"])
 
     elif draw_type == config.DRAW_NR:
         nrccs = list(ag.get_nr_cc_nums())
@@ -850,7 +858,8 @@ def get_curr_drawn_text(done_flushing, ag):
         if nrct == 1:
             t = fmt_num_ranges(nrccs)
         else:
-            t = f"{nrct:,} / {len(ag.components):,} nonredundant components"
+            t = _get_range_text_from_bounds_only(1, len(ag.components))
+            t += f"; filtered to {pluralize(nrct, 'nonredundant component')}"
 
     elif draw_type == config.DRAW_AROUND:
         d = done_flushing["around_dist"]

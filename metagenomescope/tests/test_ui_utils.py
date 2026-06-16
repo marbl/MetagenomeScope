@@ -502,7 +502,8 @@ def test_get_curr_drawn_text_cc_single():
     ag = AssemblyGraph("metagenomescope/tests/input/one.gml")
     assert (
         uu.get_curr_drawn_text(
-            {"draw_type": config.DRAW_CCS, "cc_nums": [1]}, ag
+            {"draw_type": config.DRAW_CCS, "cc_nums": [1], "orig_cc_nums": []},
+            ag,
         )
         == "#1"
     )
@@ -510,7 +511,12 @@ def test_get_curr_drawn_text_cc_single():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     assert (
         uu.get_curr_drawn_text(
-            {"draw_type": config.DRAW_CCS, "cc_nums": [3]}, ag
+            {
+                "draw_type": config.DRAW_CCS,
+                "cc_nums": [3],
+                "orig_cc_nums": [],
+            },
+            ag,
         )
         == "#3"
     )
@@ -520,7 +526,12 @@ def test_get_curr_drawn_text_cc_multi():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     assert (
         uu.get_curr_drawn_text(
-            {"draw_type": config.DRAW_CCS, "cc_nums": [3, 1, 4]}, ag
+            {
+                "draw_type": config.DRAW_CCS,
+                "cc_nums": [3, 1, 4],
+                "orig_cc_nums": [],
+            },
+            ag,
         )
         == "#1; #3 \u2013 4"
     )
@@ -553,7 +564,22 @@ def test_get_curr_drawn_text_nr_multiple():
     ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
     assert (
         uu.get_curr_drawn_text({"draw_type": config.DRAW_NR}, ag)
-        == "2 / 4 nonredundant components"
+        == "#1 \u2013 4; filtered to 2 nonredundant components"
+    )
+
+
+def test_get_curr_drawn_text_cc_nr_filtering():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    assert (
+        uu.get_curr_drawn_text(
+            {
+                "draw_type": config.DRAW_CCS,
+                "cc_nums": [3],
+                "orig_cc_nums": [3, 4],
+            },
+            ag,
+        )
+        == "#3 \u2013 4; filtered to 1 nonredundant component"
     )
 
 
