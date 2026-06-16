@@ -5,9 +5,9 @@ from dash import html
 ###############################################################################
 
 NR_CCS = "nrccs"
-SPLIT_STRANDTANGLED = "detangle"
+# SPLIT_STRANDTANGLED = "detangle"
 SHOW_PATTERNS = "patterns"
-DEFAULT_SCOPE_SETTINGS = [NR_CCS, SPLIT_STRANDTANGLED, SHOW_PATTERNS]
+DEFAULT_SCOPE_SETTINGS = [NR_CCS, SHOW_PATTERNS]
 
 DOT_TEXT = html.Span("dot", style={"font-style": "italic"})
 
