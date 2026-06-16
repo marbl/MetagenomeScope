@@ -15,7 +15,7 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - Currently, this contains controls that can be used to change how selected
     nodes are represented, and how wide various types of edges should be.
 
-- For the length x coverage scatterplot: using Plotly's box / lasso selection
+- For the length × coverage scatterplot: using Plotly's box / lasso selection
   tools in this plot now shows a list of all selected components
   ([#448](https://github.com/marbl/MetagenomeScope/issues/448)).
 
@@ -38,6 +38,27 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   ([#439](https://github.com/marbl/MetagenomeScope/issues/439)).
 
 - Allow bipartites with parallel edges, to be consistent with frayed ropes.
+
+- Adjust the drawing options dialog, including splitting up `Modifiers` into
+  two sections (`What should we draw?` and `How should we draw it?`).
+
+- Replace the `Entire graph (nonredundant)` drawing method with a checkbox in
+  the drawing options dialog under the "Layout" section,
+  `Just nonredundant components`
+  ([#442](https://github.com/marbl/MetagenomeScope/issues/442)).
+
+  - Now, if you want to draw all components in the graph but filter to the
+    nonredundant ones, you can just select the `Entire graph (all components)`
+    drawing method, and this checkbox will indicate that we should filter these
+    components to the nonredundant ones.
+
+  - An advantage of making this setting a "modifier" (rather than its own
+    drawing method) is that this can be combined with the `Component(s)`
+    drawing methods. So, you could draw components `1-100` using the
+    `Component(s), by size rank` drawing method, and then the checkbox would
+    filter these components to only one component from each pair.
+    (This also works well with 
+    [#448](https://github.com/marbl/MetagenomeScope/issues/448).)
 
 - Adjust how nodes are scaled based on length
   ([#316](https://github.com/marbl/MetagenomeScope/issues/316)).
