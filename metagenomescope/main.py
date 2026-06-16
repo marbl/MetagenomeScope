@@ -2675,10 +2675,9 @@ def run(
 
         if not show_patts:
             opts = copy.deepcopy(ui_config.MODIFIER_SETTINGS_OPTIONS)
-            for o in opts:
-                if o["value"] == ui_config.DO_RECURSIVE_LAYOUT:
-                    o["disabled"] = True
-                    break
+            ui_utils.disable_dcc_checklist_option(
+                opts, ui_config.DO_RECURSIVE_LAYOUT
+            )
         else:
             opts = ui_config.MODIFIER_SETTINGS_OPTIONS
 

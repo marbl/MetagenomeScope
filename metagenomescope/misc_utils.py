@@ -40,6 +40,38 @@ def verify_subset(s1, s2, custom_message=None):
         raise WeirdError(msg)
 
 
+def safe_list_discard(t, e):
+    """Tries to remove a single occurrence of element e from list t.
+
+    If e is not in t, then this will not raise an error. Otherwise,
+    one occurrence of e in t will be removed (which occurrence it is
+    is controlled by list.remove(); as of writing, it should be the first
+    occurrence).
+
+    Parameters
+    ----------
+    t: list
+
+    e: element
+
+    Returns
+    -------
+    None
+        (This modifies t in-place.)
+
+    Notes
+    -----
+    Tragically, there really isn't an elegant and efficient way to do this
+    using just the Python standard library (at least according to
+    https://old.reddit.com/r/Python/comments/1spcsq). Hence this being its
+    own function lol
+    """
+    try:
+        t.remove(e)
+    except ValueError:
+        pass
+
+
 def get_basename_if_fp(fp):
     if fp is None:
         return None

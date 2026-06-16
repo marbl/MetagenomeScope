@@ -880,6 +880,68 @@ def test_summarize_undrawn_nodes_multi_all_undrawn_diff_ccs():
     assert recorded_nodes == {"3", "-3"}
 
 
+def test_disable_dcc_checklist_option():
+    opts = [
+        {
+            "label": "Just nonredundant components",
+            "value": "nr",
+        },
+        {"label": "oooh i'm a label", "value": "slayyybel"},
+    ]
+    uu.disable_dcc_checklist_option(opts, "slayyybel")
+    assert opts == [
+        {
+            "label": "Just nonredundant components",
+            "value": "nr",
+        },
+        {
+            "label": "oooh i'm a label",
+            "value": "slayyybel",
+            "disabled": True,
+        },
+    ]
+
+
+def test_disable_dcc_checklist_option_just_one_option():
+    opts = [
+        {"label": "oooh i'm a label", "value": "slayyybel"},
+    ]
+    uu.disable_dcc_checklist_option(opts, "slayyybel")
+    assert opts == [
+        {
+            "label": "oooh i'm a label",
+            "value": "slayyybel",
+            "disabled": True,
+        },
+    ]
+
+
+def test_disable_dcc_checklist_option_multiple_values_to_disable():
+    opts = [
+        {"label": "label1", "value": "val"},
+        {"label": "label2", "value": "val"},
+        {"label": "label3", "value": "val"},
+        {"label": "label4", "value": "val"},
+    ]
+    uu.disable_dcc_checklist_option(opts, "val")
+    # just the first occurrence of "val" should be disabled.
+    assert opts == [
+        {"label": "label1", "value": "val", "disabled": True},
+        {"label": "label2", "value": "val"},
+        {"label": "label3", "value": "val"},
+        {"label": "label4", "value": "val"},
+    ]
+
+
+def test_disable_dcc_checklist_option_missing_value():
+    opts = [
+        {"label": "oooh i'm a label", "value": "slayyybel"},
+    ]
+    with pytest.raises(WeirdError) as ei:
+        uu.disable_dcc_checklist_option(opts, "evil")
+    assert "no val evil" in str(ei.value)
+
+
 def test_get_badge_color():
     assert uu.get_badge_color(0) == css_config.BADGE_ZERO_COLOR
     assert (

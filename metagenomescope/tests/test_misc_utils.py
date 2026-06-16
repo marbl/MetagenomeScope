@@ -66,6 +66,30 @@ def test_verify_subset_custom_message():
     assert str(ei.value) == "floompty"
 
 
+def test_safe_list_discard():
+    t = [1, 2, 3, 4]
+    mu.safe_list_discard(t, 1)
+    assert t == [2, 3, 4]
+    mu.safe_list_discard(t, 1)
+    assert t == [2, 3, 4]
+    mu.safe_list_discard(t, 100)
+    assert t == [2, 3, 4]
+    mu.safe_list_discard(t, 3)
+    assert t == [2, 4]
+
+
+def test_safe_list_discard_multiple_occurrences():
+    t = [1, 2, 3, 4, 1, 1, 1, 2]
+    mu.safe_list_discard(t, 1)
+    assert t == [2, 3, 4, 1, 1, 1, 2]
+    mu.safe_list_discard(t, 2)
+    assert t == [3, 4, 1, 1, 1, 2]
+    mu.safe_list_discard(t, 1)
+    assert t == [3, 4, 1, 1, 2]
+    mu.safe_list_discard(t, 2)
+    assert t == [3, 4, 1, 1]
+
+
 def test_get_basename_if_fp():
     assert mu.get_basename_if_fp(None) is None
     assert mu.get_basename_if_fp("abcdef.ghjil") == "abcdef.ghjil"

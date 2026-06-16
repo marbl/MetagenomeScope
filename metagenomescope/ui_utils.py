@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 import dash_ag_grid as dag
 from collections import defaultdict
 from dash import html, dcc
-from . import css_config, ui_config, config, name_utils
+from . import css_config, ui_config, config, name_utils, misc_utils
 from .errors import UIError, WeirdError
 from .gap import Gap
 
@@ -1030,6 +1030,40 @@ def get_screenshot_basename():
     return time.strftime("mgsc-%Y%m%dT%H%M%S")
 
 
+def disable_dcc_checklist_option(options, value_to_disable):
+    """Disables an option in a dcc.Checklist.
+
+    Parameters
+    ----------
+    options: list of dict
+        Basically this is just the format expected by dcc.Checklist. The
+        dicts are stuff like {"label": "My option", "value": "o"}.
+
+    value_to_disable: str
+        Corresponds to a value for which we will disable an option (by
+        setting "disabled": True).
+
+    Raises
+    ------
+    WeirdError
+        If no option with value value_to_disable exists in options.
+
+    Notes
+    -----
+    Values in these checklists should be unique (right???). In the terrible
+    event that for some reason "options" has multiple options with a value of
+    value_to_disable, we will only disable the first option with this value.
+    """
+    nothing_disabled = True
+    for o in options:
+        if o["value"] == value_to_disable:
+            o["disabled"] = True
+            nothing_disabled = False
+            break
+    if nothing_disabled:
+        raise WeirdError(f"Opts {options} has no val {value_to_disable}?")
+
+
 def get_selected_ele_html(eleType, columnDefs, extra_attrs=[]):
     for a in extra_attrs:
         # Do we know in advance a human-readable name and a good type for
@@ -1393,18 +1427,10 @@ def get_layout_options_tab(
     # "just show nonredundant ccs" option here. We COULD hide it entirely but
     # I think disabling gives a clearer user experience.
     if not (orientation_in_name and multiple_ccs):
-        for o in scope_options:
-            if o["value"] == ui_config.NR_CCS:
-                o["disabled"] = True
-                # tragically there isn't an elegant way to remove an element
-                # from a list but not raise an error (at least according to
-                # https://old.reddit.com/r/Python/comments/1spcsq) so sure
-                # let's just do this the lazy way
-                try:
-                    default_scope_settings.remove(ui_config.NR_CCS)
-                except ValueError:
-                    pass
-                break
+        disable_dcc_checklist_option(scope_options, ui_config.NR_CCS)
+        # Go a step further: ensure that this option is turned off entirely for
+        # theses kinds of graphs.
+        misc_utils.safe_list_discard(default_scope_settings, ui_config.NR_CCS)
 
     return html.Div(
         [
