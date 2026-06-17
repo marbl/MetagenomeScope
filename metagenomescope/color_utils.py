@@ -53,7 +53,7 @@ def get_rand_idx(n):
     Future work
     ~~~~~~~~~~~
     - Arguably this is still a bit too consistent if you set a random seed (which
-      is what MetagenomeScope curently does), but that could be addressed by
+      is what MetagenomeScope currently does), but that could be addressed by
       exposing the random seed as a CLI parameter.
 
     - I am aware that you could get unlucky and have something like (for n = 5)
