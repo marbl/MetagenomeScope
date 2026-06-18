@@ -62,14 +62,26 @@ class NodeLayout(object):
             #
             # Adjust based on order of magnitude, to make longer sequences
             # appear "longer" in the drawing.
+            # log100(x) = 1 occurs when x <= 100.
+            # log100(x) = 6 occurs when x >= 1e12 (aka 1 trillion).
             r = min(max(math.log(self.length, 100), 1), 6)
 
-            # I played around a lot with the various options here -- see eg
-            # https://www.wolframalpha.com/input?i=log10%28x%29+and+log100%28x%29+and+log10%28x%29%5E2+and+log100%28x%29%5E2+from+x+%3D+1+to+x%3D++5+million
-            # ... this seems to offer a good mix of "long sequences look big
-            # but not too big" and "small sequences are not too small." IDK.
+            # Played around a lot with the various options here...
             # I'm sure there are better ways to do this.
-            area = max(math.log(self.length, 10), 1) ** 2
+            area = min(max(math.sqrt(self.length) / 10, 0.5), 3000)
+
+            # Alternative approach: set area as linearly proportional to seq
+            # length. This actually works surprisingly well for some graphs
+            # (e.g. individual aug1 components, or all of the hifiasm-meta
+            # ATCC graph) -- it does a good job of highlighting differences.
+            #
+            # However, when a graph has both very tiny and very large nodes,
+            # the small nodes can seem to be almost invisible. Plus edge
+            # thicknesses and font sizes are way too tiny. I think this
+            # approach could be good if we change around some things (e.g.
+            # autoscaling edge thicknesses/etc, stricter clamping based on
+            # the range of sizes in the graph).
+            ### area = min(max(self.length / 100, 1), 10_000_000)
 
             # A = wh, and w = rh.
             # We thus know that A = (rh) * h = rh^2.
