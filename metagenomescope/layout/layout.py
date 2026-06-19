@@ -80,7 +80,7 @@ class Layout(object):
     def __repr__(self):
         return (
             "Layout("
-            f"{self.region}; {self.scope_settings}; {self.modiifer_settings}; "
+            f"{self.region}; {self.scope_settings}; {self.modifier_settings}; "
             f"{self.alg}; {self.params}"
             ")"
         )
