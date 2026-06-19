@@ -212,7 +212,6 @@ class DrawResults(object):
                 # https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/ogdf/energybased/MAARPacking.cpp#L107
                 arearatio = (lay.width * lay.height) / (next_lay.width * next_lay.height)
                 # Detect "area breakpoints"
-                print(arearatio, lay)
                 if arearatio > 10 and len(r.nodes) > 5:
                     # choose this point to cut off the first row
                     row_width = tentative_first_row_width
