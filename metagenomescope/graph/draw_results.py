@@ -140,7 +140,7 @@ class DrawResults(object):
             return self.get_nolayout_eles()
 
         # TODO should turn these into user-configurable params
-        min_xpad = 100
+        min_xpad = 50
         min_ypad = 200
         xpadfrac = 0.15
         max_num_regions_before_breakpoint = 3
@@ -150,13 +150,13 @@ class DrawResults(object):
         # ideally we'd actually get this from the JS/HTML when we run layout...
         goal_hwratio = 1 / 1.6
 
+        sorted_regions = self.get_sorted_regions()
+
         areas = []
-        widths = []
-        for lay in self.region2layout.values():
-            widths.append(lay.width)
+        for r in sorted_regions:
+            lay = self.region2layout[r]
             areas.append(lay.width * lay.height)
 
-        sorted_regions = self.get_sorted_regions()
         # pass 0: determine the width of each row.
         # There are currently four ways of doing this:
         #
@@ -189,7 +189,6 @@ class DrawResults(object):
                 if len(r.nodes) == 1:
                     break
                 lay = self.region2layout[r]
-                next_lay = self.region2layout[sorted_regions[i + 1]]
                 tentative_first_row_width += lay.width
                 # If this is not the first component in this row, make sure to
                 # add on padding from the component to the left of it. DON'T
@@ -210,9 +209,8 @@ class DrawResults(object):
                     )
                 # inspired by bandage:
                 # https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/ogdf/energybased/MAARPacking.cpp#L107
-                arearatio = (lay.width * lay.height) / (next_lay.width * next_lay.height)
                 # Detect "area breakpoints"
-                if arearatio > 10 and len(r.nodes) > 5:
+                if areas[i] / areas[i + 1] > 10 and len(r.nodes) > 5:
                     # choose this point to cut off the first row
                     row_width = tentative_first_row_width
                     break
@@ -221,7 +219,7 @@ class DrawResults(object):
                 # sqrt() inspired by https://www.graphviz.org/pdf/gvpack.1.pdf
                 row_width = math.sqrt(sum(areas)) * 3.5
         else:
-            row_width = widths[0]
+            row_width = self.region2layout[sorted_regions[0]].width
 
         x = 0
         curr_row = 0
