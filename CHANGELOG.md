@@ -62,6 +62,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   - This means that drawings including many single-node components should now
     be sorted nicely from long to short (similarly to how Bandage does things).
 
+- Adjust "breakpoint detection" in component tiling
+  ([#452](https://github.com/marbl/MetagenomeScope/issues/452)).
+
 - Adjust how nodes are scaled based on length
   ([#316](https://github.com/marbl/MetagenomeScope/issues/316)).
 
