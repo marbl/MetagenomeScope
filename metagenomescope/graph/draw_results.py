@@ -144,7 +144,6 @@ class DrawResults(object):
         min_ypad = 200
         xpadfrac = 0.15
         max_num_regions_before_breakpoint = 3
-        long_region_width = 500000
         # roughly 10 / 16 - a bit taller than a standard 16:9 aspect ratio, since
         # we are accounting for the control panel. Not 100% sure how good this
         # will look on tiny screens.
@@ -161,27 +160,21 @@ class DrawResults(object):
         # pass 0: determine the width of each row.
         # There are currently four ways of doing this:
         #
-        # 1. We find a reasonable "breakpoint" where the width of a region R_N
-        #    is > 2x the width of the next-up region R_{N+1}. We define R_N
-        #    and all the regions to the left of it (i.e. the bigger regions,
-        #    going by sorted_regions) as the first row. (Note that we require
-        #    R_N to have at least a couple of nodes. This prevents junk like
-        #    2-node chain ccs from being "breakpoints" as compared to 1-node
-        #    ccs.) This idea of looking at relative region widths is inspired
-        #    by Bandage.
+        # 1. We find a reasonable "breakpoint" where the area of a region R_N
+        #    is > much bigger than the area of the next-up region R_{N+1}. We
+        #    define R_N and all the regions to the left of it (i.e. the bigger
+        #    regions, going by sorted_regions) as the first row. (Note that we
+        #    require R_N to have at least a couple of nodes. This prevents junk
+        #    like 2-node chain ccs from being "breakpoints" as compared to
+        #    1-node ccs.) This idea of looking at relative region dimensions is
+        #    inspired by Bandage -- I ended up using area instead of width
+        #    (seems to adapt to semilinear/hierarchical layouts better?? idk).
         #
-        # 2. We find a "breakpoint" caused by a region R_N just being super
-        #    wide by itself, independent of whatever the width of R_{N+1} is.
-        #    This impacts graphs with insanely long linear components with
-        #    thousands of nodes (e.g.
-        #    https://github.com/marbl/TTT/blob/master/tests/helo1/graph.noseq.gfa)
-        #
-        # 3. If we are not able to find a reasonable breakpoint, then we
+        # 2. If we are not able to find a reasonable breakpoint, then we
         #    set the row width as something proportional to the sqrt of the
         #    total areas of the regions. this seems to work ok?
         #
-        # 4. If there is just a single region then obviously that's the row
-        #    width
+        # 4. If there is just a single region then ofc that's the row width
         row_width = None
         if len(sorted_regions) > 1:
             i = 0
@@ -217,13 +210,10 @@ class DrawResults(object):
                     )
                 # inspired by bandage:
                 # https://github.com/rrwick/Bandage/blob/f94d409a76bf6a13eef6af0a88476eaeffa71b32/ogdf/energybased/MAARPacking.cpp#L107
-                wratio = lay.width / next_lay.width
-                # Detect breakpoints, due to either (1) this region being super
-                # wide by itself or (2) this region being relatively wider than
-                # the next one
-                if lay.width >= long_region_width or (
-                    wratio > 2 and len(r.nodes) > 5
-                ):
+                arearatio = (lay.width * lay.height) / (next_lay.width * next_lay.height)
+                # Detect "area breakpoints"
+                print(arearatio, lay)
+                if arearatio > 10 and len(r.nodes) > 5:
                     # choose this point to cut off the first row
                     row_width = tentative_first_row_width
                     break
