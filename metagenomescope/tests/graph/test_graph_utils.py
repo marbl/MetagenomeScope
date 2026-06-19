@@ -1,7 +1,7 @@
 import pytest
 import networkx as nx
 import metagenomescope.graph.graph_utils as gu
-from metagenomescope.graph import AssemblyGraph, Node, Edge
+from metagenomescope.graph import AssemblyGraph, Subgraph, Node, Edge
 from metagenomescope.graph.validators import ValidationResults
 from metagenomescope.errors import WeirdError
 from metagenomescope import config
@@ -280,3 +280,32 @@ def test_get_treemap_rectangles_multi_no_aggregate():
         ["#1", "#2", "#3"],
         [5, 5, 5],
     )
+
+
+def test_get_sorted_subgraphs():
+    b = Node(0, "b", {"orientation": config.FWD, "length": 20})
+    sg1 = Subgraph(
+        1, "sg1", [b], [], [], node_centric=True, length_field="length"
+    )
+
+    c = Node(0, "c", {"orientation": config.FWD, "length": 21})
+    sg2 = Subgraph(
+        2, "sg2", [c], [], [], node_centric=True, length_field="length"
+    )
+
+    d = Node(0, "d", {"orientation": config.FWD, "length": 1})
+    e = Node(0, "e", {"orientation": config.FWD, "length": 1})
+    sg3 = Subgraph(
+        3, "sg3", [d, e], [], [], node_centric=True, length_field="length"
+    )
+
+    # Subgraph 3 comes first, since it has the most nodes
+    assert gu.get_sorted_subgraphs([sg1, sg2, sg3]) == [sg3, sg2, sg1]
+    assert gu.get_sorted_subgraphs([sg2, sg1, sg3]) == [sg3, sg2, sg1]
+
+    # Subgraph 2 comes before Subgraph 1, since it has a higher total length
+    assert gu.get_sorted_subgraphs([sg1, sg2]) == [sg2, sg1]
+
+    # shambling in the dark at checking the corner cases
+    assert gu.get_sorted_subgraphs([sg1]) == [sg1]
+    assert gu.get_sorted_subgraphs([]) == []
