@@ -1984,7 +1984,14 @@ class AssemblyGraph(object):
                 ):
                     edges.append(self.edgeid2obj[data["uid"]])
             components.append(
-                Component(self._get_unique_id(), nodes, edges, patts)
+                Component(
+                    self._get_unique_id(),
+                    nodes,
+                    edges,
+                    patts,
+                    node_centric=self.node_centric,
+                    length_field=self.length_field,
+                )
             )
 
         self.components = graph_utils.get_sorted_subgraphs(components)
@@ -2435,6 +2442,8 @@ class AssemblyGraph(object):
             [self.nodeid2obj[i] for i in sel_node_ids],
             [self.edgeid2obj[i] for i in sel_edge_ids],
             [self.pattid2obj[i] for i in sel_patt_ids],
+            node_centric=self.node_centric,
+            length_field=self.length_field,
         )
         return sg.to_cyjs(
             scope_settings, modifier_settings, layout_alg, layout_params
@@ -2616,6 +2625,12 @@ class AssemblyGraph(object):
             if self.has_covlens:
                 cc_total_weighted_cov = 0
 
+                # We'll be computing *weighted* coverages (for nodes or for
+                # edges). Note that Component objects should already have
+                # .total_length attributes, but we care about this on a per-
+                # node / per-edge basis so we have to go through stuff again.
+                # (I mean we could compute this in Subgraph initialization ig
+                # but i don't wanna do that ._.)
                 if self.node_centric:
                     # nodes have lengths and covs
                     seen_basenames = set()
@@ -2655,12 +2670,7 @@ class AssemblyGraph(object):
                     # this is the case for metacarvel graphs
                     # x-axis = total node length
                     # y-axis = average edge cov
-                    seen_basenames = set()
-                    for n in cc.nodes:
-                        bn = n.basename
-                        if bn not in seen_basenames:
-                            cc_total_len += n.data[self.length_field]
-                            seen_basenames.add(bn)
+                    cc_total_len = cc.total_length
                     for e in cc.edges:
                         if not e.is_fake:
                             cc_total_unweighted_cov += e.data[self.cov_field]

@@ -28,6 +28,13 @@ def test_subgraph_simple():
     assert sg.num_total_edges == 8
     assert sg.pattern_stats == PatternStats(num_chains=2)
 
+    # Subgraph defaults to the graph being node-centric with lengths
+    # stored in a "length" field. this default is mostly there so i don't
+    # have to go back and fix a zillion tests.
+    assert sg.node_centric
+    assert sg.length_field == "length"
+    assert sg.total_length == 116
+
 
 def test_subgraph_nested_patterns():
     """Tests that nested patterns are processed correctly.
@@ -67,6 +74,13 @@ def test_subgraph_nested_patterns():
     assert sg.num_total_edges == 20
     assert sg.pattern_stats == PatternStats(num_bubbles=4, num_cyclicchains=1)
 
+    # split nodes shouldn't break this! each full node is counted once towards
+    # the length, and there are 12 full nodes, and each has length 1 bp, so
+    # the total length should be 12 bp.
+    assert sg.node_centric
+    assert sg.length_field == "length"
+    assert sg.total_length == 12
+
 
 def test_subgraph_count_positive_full_nodes():
     ag = AssemblyGraph(
@@ -93,10 +107,17 @@ def test_subgraph_count_positive_real_edges():
         ag.nodeid2obj.values(),
         ag.edgeid2obj.values(),
         ag.pattid2obj.values(),
+        node_centric=False,
+        length_field="approx_length",
     )
     # this graph will have a fake edge in it; it shouldn't influence this!
     # Also, this should only count one of the pair of {e9, -e9}.
     assert sg.count_positive_real_edges() == 10
+
+    # just verify that this stuff didn't get broken ...
+    assert not sg.node_centric
+    assert sg.length_field == "approx_length"
+    assert sg.total_length == 55000
 
 
 def test_subgraph_count_positive_real_edges_when_no_userspecified_edgeids():
@@ -117,6 +138,69 @@ def test_subgraph_count_positive_real_edges_when_no_userspecified_edgeids():
     assert "No 'id' field" in str(ei.value)
 
 
+def test_subgraph_missing_length_field_edge():
+    ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_flye.gv")
+
+    # incorrect b/c this says the graph is node-centric and that the length
+    # field is "length"
+    with pytest.raises(WeirdError) as ei:
+        Subgraph(
+            456,
+            "subgraph456",
+            ag.nodeid2obj.values(),
+            ag.edgeid2obj.values(),
+            ag.pattid2obj.values(),
+            node_centric=True,
+            length_field="length",
+        )
+    assert 'has no field "length"?' in str(ei.value)
+
+    # correctly says that the graph is not node-centric, but still incorrect
+    # because the lengths for Flye DOT files are in "approx_length" and not
+    # "length"
+    with pytest.raises(WeirdError) as ei:
+        Subgraph(
+            456,
+            "subgraph456",
+            ag.nodeid2obj.values(),
+            ag.edgeid2obj.values(),
+            ag.pattid2obj.values(),
+            node_centric=False,
+            length_field="length",
+        )
+    assert 'has no field "length"?' in str(ei.value)
+
+
+def test_subgraph_missing_length_field_node():
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    with pytest.raises(WeirdError) as ei:
+        Subgraph(
+            456,
+            "subgraph456",
+            ag.nodeid2obj.values(),
+            ag.edgeid2obj.values(),
+            ag.pattid2obj.values(),
+            node_centric=False,
+            length_field="flumbity",
+        )
+    assert 'has no field "flumbity"?' in str(ei.value)
+
+    ag = AssemblyGraph("metagenomescope/tests/input/sample1.gfa")
+    with pytest.raises(WeirdError) as ei:
+        Subgraph(
+            456,
+            "subgraph456",
+            ag.nodeid2obj.values(),
+            ag.edgeid2obj.values(),
+            ag.pattid2obj.values(),
+            node_centric=True,
+            length_field="bumbity",
+        )
+    # people around the world are asking this: does node have bumbity?
+    # inquiring minds would like to know
+    assert 'has no field "bumbity"?' in str(ei.value)
+
+
 def test_subgraph_repr():
     ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_flye.gv")
 
@@ -126,8 +210,12 @@ def test_subgraph_repr():
         ag.nodeid2obj.values(),
         ag.edgeid2obj.values(),
         ag.pattid2obj.values(),
+        node_centric=False,
+        length_field="approx_length",
     )
-    assert repr(sg) == "SubgraphYeehaw (11 nodes, 12 edges, 3 patterns)"
+    assert repr(sg) == (
+        "SubgraphYeehaw (11 nodes, 12 edges, 3 patterns, 55,000 bp)"
+    )
 
 
 def test_to_cyjs_clientside_layout():

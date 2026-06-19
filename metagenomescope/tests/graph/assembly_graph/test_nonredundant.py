@@ -22,21 +22,26 @@ def _get_node_basenames(cc):
 def test_flye_yeast_nr_ccs():
     ag = AssemblyGraph("metagenomescope/tests/input/flye_yeast.gv")
 
-    # make sure these exact ccs are reported as the nonredundant ones
-    assert ag.get_nr_cc_nums() == {1, 2, 5, 6, 7, 9}
+    nrcc_nums = sorted(ag.get_nr_cc_nums())
+    assert len(nrcc_nums) == 6
 
-    # ... and that they correspond to the actual components we expect
-    assert len(ag.get_cc_by_num(1).nodes) == 39
-    assert len(ag.get_cc_by_num(2).nodes) == 10
-    assert len(ag.get_cc_by_num(5).nodes) == 2
-    assert len(ag.get_cc_by_num(6).nodes) == 2
-    assert len(ag.get_cc_by_num(7).nodes) == 1
-    assert len(ag.get_cc_by_num(9).nodes) == 1
+    # make sure these ccs correspond to the actual components we expect
+    assert len(ag.get_cc_by_num(nrcc_nums[0]).nodes) == 39
+    assert len(ag.get_cc_by_num(nrcc_nums[1]).nodes) == 10
+    assert len(ag.get_cc_by_num(nrcc_nums[2]).nodes) == 2
+    assert len(ag.get_cc_by_num(nrcc_nums[3]).nodes) == 2
+    assert len(ag.get_cc_by_num(nrcc_nums[4]).nodes) == 1
+    assert len(ag.get_cc_by_num(nrcc_nums[5]).nodes) == 1
 
-    assert _get_user_edge_ids(ag.get_cc_by_num(5)) == {"24"}
-    assert _get_user_edge_ids(ag.get_cc_by_num(6)) == {"39"}
-    assert _get_user_edge_ids(ag.get_cc_by_num(7)) == {"2"}
-    assert _get_user_edge_ids(ag.get_cc_by_num(9)) == {"21"}
+    # ... and that the last four components (each of which has 1 edge)
+    # occur in this particular order. First come the two components with
+    # two nodes and one edge, then the two components with one node and
+    # one edge. Edge 24 is 11 kbp, so it comes before edge 39 (3.6kbp);
+    # and then edge 2 is 6 kbp, so it comes before edge 21 (3.8 kbp).
+    assert _get_user_edge_ids(ag.get_cc_by_num(nrcc_nums[2])) == {"24"}
+    assert _get_user_edge_ids(ag.get_cc_by_num(nrcc_nums[3])) == {"39"}
+    assert _get_user_edge_ids(ag.get_cc_by_num(nrcc_nums[4])) == {"2"}
+    assert _get_user_edge_ids(ag.get_cc_by_num(nrcc_nums[5])) == {"21"}
 
 
 def test_sample1_nr_ccs():

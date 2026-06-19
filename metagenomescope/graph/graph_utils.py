@@ -383,9 +383,8 @@ def get_sorted_subgraphs(sgs):
         sgs,
         key=lambda obj: (
             obj.num_full_nodes,
-            obj.num_total_nodes,
-            obj.num_total_edges,
-            obj.pattern_stats.sum(),
+            obj.num_real_edges,
+            obj.total_length,
         ),
         reverse=True,
     )

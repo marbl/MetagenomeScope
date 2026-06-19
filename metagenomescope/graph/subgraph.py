@@ -19,6 +19,7 @@
 import itertools
 from .. import ui_config, ui_utils, name_utils, config
 from ..layout import Layout
+from ..errors import WeirdError
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
 
@@ -37,7 +38,16 @@ class Subgraph(object):
     fancy.
     """
 
-    def __init__(self, unique_id, name, nodes, edges, patterns):
+    def __init__(
+        self,
+        unique_id,
+        name,
+        nodes,
+        edges,
+        patterns,
+        node_centric=True,
+        length_field="length",
+    ):
         """Initializes this Subgraph object.
 
         Parameters
@@ -52,6 +62,13 @@ class Subgraph(object):
 
         patterns: list of Pattern
 
+        node_centric: bool
+            True means that nodes have sequences (and, more importantly for
+            this object, lengths). False means that edges have sequences.
+
+        length_field: str
+            Used to access lengths for nodes or edges.
+
         Notes
         -----
         It is the caller's responsibility to only include a pattern if all
@@ -63,6 +80,18 @@ class Subgraph(object):
         self.nodes = []
         self.edges = []
         self.patterns = []
+
+        # We will compute the total length of the nodes or edges in this
+        # Subgraph, to help with sorting Subgraphs.
+        self.node_centric = node_centric
+        self.length_field = length_field
+        self.total_length = 0
+
+        # used in the total length computation as a way to get around having to
+        # multiply split nodes' lengths by 0.5. Like that is PROBABLY nbd but I
+        # but I don't want to even have to THINK about floating point
+        # imprecision junk so here we are
+        self.seen_basenames = set()
 
         # Number of nodes in this Subgraph that are not split.
         self.num_unsplit_nodes = 0
@@ -108,6 +137,9 @@ class Subgraph(object):
             self._add_pattern(p)
         self.round_num_full_nodes()
 
+        # no need to hold onto THAT
+        del self.seen_basenames
+
     def _get_repr_counts(self):
         return (
             f"{ui_utils.pluralize(self.num_total_nodes, 'node')}, "
@@ -116,10 +148,25 @@ class Subgraph(object):
         )
 
     def __repr__(self):
-        return f"{self.name} ({self._get_repr_counts()})"
+        return (
+            f"{self.name} ({self._get_repr_counts()}, "
+            f"{self.total_length:,} bp)"
+        )
+
+    def _add_length(self, obj):
+        if self.length_field not in obj.data:
+            raise WeirdError(f'{obj} has no field "{self.length_field}"?')
+        self.total_length += obj.data[self.length_field]
 
     def _add_node(self, node):
         self.nodes.append(node)
+        # Record length only once for each node basename (so X-L and X-R
+        # only contribute to the total length once).
+        if self.node_centric:
+            bn = node.basename
+            if bn not in self.seen_basenames:
+                self._add_length(node)
+                self.seen_basenames.add(bn)
         if node.is_split():
             self.num_split_nodes += 1
             self.num_full_nodes += 0.5
@@ -142,6 +189,8 @@ class Subgraph(object):
             self.num_fake_edges += 1
         else:
             self.num_real_edges += 1
+            if not self.node_centric:
+                self._add_length(edge)
         self.num_total_edges += 1
 
     def _add_pattern(self, pattern):

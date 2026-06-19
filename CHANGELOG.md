@@ -56,6 +56,12 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     enables some useful functionalities. In particular, it plays nicely with
     [#448](https://github.com/marbl/MetagenomeScope/issues/448).
 
+- Improve component sorting procedure, and use total node / edge length as a
+  tiebreaker ([#418](https://github.com/marbl/MetagenomeScope/issues/418)).
+
+  - This means that drawings including many single-node components should now
+    be sorted nicely from long to short (similarly to how Bandage does things).
+
 - Adjust how nodes are scaled based on length
   ([#316](https://github.com/marbl/MetagenomeScope/issues/316)).
 
