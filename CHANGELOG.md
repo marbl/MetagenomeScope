@@ -68,6 +68,10 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
 - Adjust how nodes are scaled based on length
   ([#316](https://github.com/marbl/MetagenomeScope/issues/316)).
 
+- Draw isolated nodes with one circular edge as circle shapes, to make their
+  identification at a glance clearer
+  ([#443](https://github.com/marbl/MetagenomeScope/issues/443)).
+
 - Adjust default edge widths, and vary these defaults based on whether or not
   the input graph is node-centric or not. (Node-centric graphs get thicker
   edges by default.)
