@@ -1,5 +1,5 @@
 import math
-from metagenomescope import config
+from metagenomescope import config, cy_config
 from metagenomescope.errors import WeirdError
 from metagenomescope.layout import layout_config, layout_utils
 
@@ -96,6 +96,12 @@ class NodeLayout(object):
                 # log100(x) = 1 occurs when x <= 100.
                 # log100(x) = 6 occurs when x >= 1e12 (aka 1 trillion).
                 r = min(max(math.log(self.length, 100), 1), 6)
+
+                # Because the area of a pentagon is only a fraction of the
+                # area of its rectangular bounding box, we multiply the area
+                # of the bounding box by 1 over this fraction to scale up the
+                # area of the pentagon to match. See cy_config.py for details.
+                area *= cy_config.ONE_OVER_P_AREA_FRAC
 
                 # A = wh, and w = rh.
                 # We thus know that A = (rh) * h = rh^2.
