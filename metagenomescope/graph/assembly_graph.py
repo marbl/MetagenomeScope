@@ -591,7 +591,14 @@ class AssemblyGraph(object):
             name_utils.sanity_check_node_name(str_node_name)
             node_id = self._get_unique_id()
             data = deepcopy(self.graph.nodes[node_name])
-            new_node = Node(node_id, str_node_name, data)
+            new_node = Node(
+                node_id,
+                str_node_name,
+                data,
+                is_isolated_circle=graph_utils.is_isolated_circle(
+                    self.graph, node_name
+                ),
+            )
             self.nodeid2obj[node_id] = new_node
 
             self.extra_node_attrs |= set(data.keys())
@@ -626,12 +633,6 @@ class AssemblyGraph(object):
                 ].rand_idx
             else:
                 new_node.rand_idx = next(rand_idx_generator)
-
-            # Label isolated circle nodes so that they could be drawn with
-            # special styling. The Node object doesn't really know what's in
-            # the rest of the graph, so we do this check here.
-            if graph_utils.is_isolated_circle(self.graph, node_name):
-                new_node.is_isolated_circle = True
 
         # if this is a node-centric graph and we've made it here unscathed then
         # we know for sure that all nodes have lengths, and that these are

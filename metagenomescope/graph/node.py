@@ -64,6 +64,7 @@ class Node(object):
         data,
         split=None,
         counterpart_node=None,
+        is_isolated_circle=False,
         compound=False,
     ):
         """Initializes this Node object.
@@ -106,6 +107,11 @@ class Node(object):
             should copy this new Node's relative_length and longside_proportion
             attributes. We'll also call counterpart_node.make_into_split() to
             update it.
+
+        is_isolated_circle: bool
+            True if this node is in its own connected component with exactly
+            one edge to and from itself, False otherwise. This is just used as
+            of writing for adjusting how we style the node.
 
         compound: bool
             If True, this node has children (i.e. it's a pattern). If False,
@@ -175,10 +181,12 @@ class Node(object):
 
         # Should be set by the caller if this node is in its own component with
         # just a single edge to itself. Such nodes can get special styling.
-        self.is_isolated_circle = False
+        self.is_isolated_circle = is_isolated_circle
 
         # will store info about shape, width/height, etc
-        self.layout = NodeLayout(self.split, self.data)
+        self.layout = NodeLayout(
+            self.split, self.data, is_isolated_circle=self.is_isolated_circle
+        )
 
     def __repr__(self):
         return f"Node {self.unique_id} (name: {self.name})"
