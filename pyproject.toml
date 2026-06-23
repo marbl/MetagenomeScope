@@ -80,7 +80,10 @@ dependencies = [
     # Note that Dash v4 changes the styles of the dcc.* UI elements a lot -- as
     # of Feb 23, 2026, we should style both versions of the UI elements
     # decently well (see https://github.com/marbl/MetagenomeScope/issues/389).
-    "dash",
+    #
+    # Also, using dash < 3 seems to cause strange issues with newer python
+    # versions (at least on WSL), so let's make sure that we use dash >= 3.
+    "dash >= 3",
     "plotly"
 ]
 # Matches Dash's min python version, as of March 2026:
