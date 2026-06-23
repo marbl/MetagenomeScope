@@ -88,6 +88,12 @@ def get_cyjs_stylesheet(
                 "shape-polygon-points": cy_config.FWD_NODE_SPLITR_POLYGON_PTS,
             },
         },
+        {
+            "selector": "node.isolatedcircle",
+            "style": {
+                "shape": "ellipse",
+            },
+        },
         ###### Reverse-oriented nodes (pentagons pointing left)
         {
             "selector": "node.rev.splitN",

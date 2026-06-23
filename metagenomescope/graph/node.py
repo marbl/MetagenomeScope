@@ -173,6 +173,10 @@ class Node(object):
         # single node. This flag is a simple way of tracking this.
         self.removed = False
 
+        # Should be set by the caller if this node is in its own component with
+        # just a single edge to itself. Such nodes can get special styling.
+        self.is_isolated_circle = False
+
         # will store info about shape, width/height, etc
         self.layout = NodeLayout(self.split, self.data)
 
@@ -241,7 +245,10 @@ class Node(object):
         else:
             ndir = "unoriented"
 
-        splitcls = f"split{'N' if self.split is None else self.split}"
+        if self.is_isolated_circle:
+            shapecls = "isolatedcircle"
+        else:
+            shapecls = f"split{'N' if self.split is None else self.split}"
 
         ele = {
             "data": {
@@ -254,7 +261,7 @@ class Node(object):
                 # for styling (maybe some memory savings?) but probs nbd
                 "ntype": cy_config.NODE_DATA_TYPE,
             },
-            "classes": f"nonpattern {ndir} {splitcls} noderand{self.rand_idx}",
+            "classes": f"nonpattern {ndir} {shapecls} noderand{self.rand_idx}",
         }
 
         ele["data"]["w"], ele["data"]["h"] = self.layout.get_dims(
