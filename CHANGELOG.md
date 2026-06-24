@@ -66,7 +66,8 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   ([#452](https://github.com/marbl/MetagenomeScope/issues/452)).
 
 - Adjust how nodes are scaled based on length
-  ([#316](https://github.com/marbl/MetagenomeScope/issues/316)).
+  ([#316](https://github.com/marbl/MetagenomeScope/issues/316),
+  [#455](https://github.com/marbl/MetagenomeScope/issues/455)).
 
 - Draw isolated nodes with one circular edge as circle shapes, to make their
   identification at a glance clearer
