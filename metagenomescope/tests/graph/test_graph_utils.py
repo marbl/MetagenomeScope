@@ -7,6 +7,33 @@ from metagenomescope.errors import WeirdError
 from metagenomescope import config
 
 
+def test_is_isolated_circle():
+    g = nx.MultiDiGraph()
+    # In this graph, just "3" is an isolated circle. The other nodes
+    # do not qualify.
+    #                    +---+
+    #      +--+   +--+   |+-+|
+    #      |  |   |  |   || ||
+    #      V  |   V  |   VV ||
+    # 1 -> 2 -+   3 -+   4 -++
+    g.add_edge(1, 2)
+    g.add_edge(2, 2)
+    g.add_edge(3, 3)
+    g.add_edge(4, 4)
+    g.add_edge(4, 4)
+    assert not gu.is_isolated_circle(g, 1)
+    assert not gu.is_isolated_circle(g, 2)
+    assert gu.is_isolated_circle(g, 3)
+    assert not gu.is_isolated_circle(g, 4)
+
+    g.add_edge(5, 4)
+    assert not gu.is_isolated_circle(g, 1)
+    assert not gu.is_isolated_circle(g, 2)
+    assert gu.is_isolated_circle(g, 3)
+    assert not gu.is_isolated_circle(g, 4)
+    assert not gu.is_isolated_circle(g, 5)
+
+
 def test_get_only_connecting_edge_uid_simple():
     g = nx.MultiDiGraph()
     g.add_edge(1, 2, uid=5)
