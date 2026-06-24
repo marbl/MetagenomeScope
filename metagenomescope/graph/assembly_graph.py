@@ -591,13 +591,15 @@ class AssemblyGraph(object):
             name_utils.sanity_check_node_name(str_node_name)
             node_id = self._get_unique_id()
             data = deepcopy(self.graph.nodes[node_name])
-            new_node = Node(
-                node_id,
-                str_node_name,
-                data,
-                is_isolated_circle=graph_utils.is_isolated_circle(
+            # for edge-centric graphs, we don't care about which nodes are
+            # "isolated circles" -- the edge is the real thing we care about
+            is_isocirc = False
+            if self.node_centric:
+                is_isocirc = graph_utils.is_isolated_circle(
                     self.graph, node_name
-                ),
+                )
+            new_node = Node(
+                node_id, str_node_name, data, is_isolated_circle=is_isocirc
             )
             self.nodeid2obj[node_id] = new_node
 

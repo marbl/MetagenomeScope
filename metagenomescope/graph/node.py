@@ -110,8 +110,9 @@ class Node(object):
 
         is_isolated_circle: bool
             True if this node is in its own connected component with exactly
-            one edge to and from itself, False otherwise. This is just used as
-            of writing for adjusting how we style the node.
+            one edge to and from itself (and the graph is node-centric), False
+            otherwise. This is just used (as of writing) for adjusting how we
+            style the node.
 
         compound: bool
             If True, this node has children (i.e. it's a pattern). If False,
@@ -253,6 +254,10 @@ class Node(object):
         else:
             ndir = "unoriented"
 
+        # this should only be set to True for node-centric graphs. it
+        # shouldn't really make a difference if it is applied to a node in
+        # an edge-centric graph (they're already drawn as circles???) but let's
+        # keep this simple
         if self.is_isolated_circle:
             shapecls = "isolatedcircle"
         else:

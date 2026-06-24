@@ -384,3 +384,9 @@ def test_removing_parallel_edges_yes_nongfa():
     )
     st2ct = get_srctgt2ct(ag)
     assert st2ct[("161134973", "944378205")] == 1
+
+
+def test_edge_centric_graph_nodes_not_isolated_circles():
+    ag = AssemblyGraph("metagenomescope/tests/input/flye_yeast.gv")
+    for n in ag.nodeid2obj.values():
+        assert not n.is_isolated_circle
