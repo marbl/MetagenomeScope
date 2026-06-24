@@ -384,3 +384,45 @@ def test_removing_parallel_edges_yes_nongfa():
     )
     st2ct = get_srctgt2ct(ag)
     assert st2ct[("161134973", "944378205")] == 1
+
+
+def test_edge_centric_graph_nodes_not_isolated_circles():
+    # this graph contains some nodes that have exactly one loop edge and
+    # are in isolated components. however! they shouldn't be marked as isolated
+    # circles, because this is an edge-centric graph.
+    ag = AssemblyGraph("metagenomescope/tests/input/flye_yeast.gv")
+    for n in ag.nodeid2obj.values():
+        assert not n.is_isolated_circle
+
+
+def test_node_centric_graph_isolated_circles():
+    # 1/-1 and 4/-4 are isolated circles, but the other nodes aren't.
+    #
+    # TECHNICALLY if you do the splitting procedure from
+    # https://github.com/marbl/MetagenomeScope/issues/449 and adjust
+    # the endport of the 2 -> -2 edge to account for how -2 is missing,
+    # then you get
+    #
+    #        +---+
+    # +----\ V   |
+    # |     | ---+
+    # +----/
+    #
+    # ... which is ARGUABLY an isolated circle? But I don't think so,
+    # because it represents a weird complex thing that isn't really a
+    # straightforward loop imo.
+    ag = AssemblyGraph("metagenomescope/tests/input/loop.gfa")
+    bn2isocirc = {}
+    for n in ag.nodeid2obj.values():
+        assert n.basename not in bn2isocirc
+        bn2isocirc[n.basename] = n.is_isolated_circle
+    assert bn2isocirc == {
+        "1": True,
+        "-1": True,
+        "2": False,
+        "-2": False,
+        "3": False,
+        "-3": False,
+        "4": True,
+        "-4": True,
+    }

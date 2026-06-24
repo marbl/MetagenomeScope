@@ -64,6 +64,7 @@ class Node(object):
         data,
         split=None,
         counterpart_node=None,
+        is_isolated_circle=False,
         compound=False,
     ):
         """Initializes this Node object.
@@ -106,6 +107,12 @@ class Node(object):
             should copy this new Node's relative_length and longside_proportion
             attributes. We'll also call counterpart_node.make_into_split() to
             update it.
+
+        is_isolated_circle: bool
+            True if this node is in its own connected component with exactly
+            one edge to and from itself (and the graph is node-centric), False
+            otherwise. This is just used (as of writing) for adjusting how we
+            style the node.
 
         compound: bool
             If True, this node has children (i.e. it's a pattern). If False,
@@ -173,8 +180,14 @@ class Node(object):
         # single node. This flag is a simple way of tracking this.
         self.removed = False
 
+        # Should be set by the caller if this node is in its own component with
+        # just a single edge to itself. Such nodes can get special styling.
+        self.is_isolated_circle = is_isolated_circle
+
         # will store info about shape, width/height, etc
-        self.layout = NodeLayout(self.split, self.data)
+        self.layout = NodeLayout(
+            self.split, self.data, is_isolated_circle=self.is_isolated_circle
+        )
 
     def __repr__(self):
         return f"Node {self.unique_id} (name: {self.name})"
@@ -241,7 +254,14 @@ class Node(object):
         else:
             ndir = "unoriented"
 
-        splitcls = f"split{'N' if self.split is None else self.split}"
+        # this should only be set to True for node-centric graphs. it
+        # shouldn't really make a difference if it is applied to a node in
+        # an edge-centric graph (they're already drawn as circles???) but let's
+        # keep this simple
+        if self.is_isolated_circle:
+            shapecls = "isolatedcircle"
+        else:
+            shapecls = f"split{'N' if self.split is None else self.split}"
 
         ele = {
             "data": {
@@ -254,7 +274,7 @@ class Node(object):
                 # for styling (maybe some memory savings?) but probs nbd
                 "ntype": cy_config.NODE_DATA_TYPE,
             },
-            "classes": f"nonpattern {ndir} {splitcls} noderand{self.rand_idx}",
+            "classes": f"nonpattern {ndir} {shapecls} noderand{self.rand_idx}",
         }
 
         ele["data"]["w"], ele["data"]["h"] = self.layout.get_dims(

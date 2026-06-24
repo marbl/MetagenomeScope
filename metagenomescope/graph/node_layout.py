@@ -1,5 +1,5 @@
 import math
-from metagenomescope import config
+from metagenomescope import config, cy_config
 from metagenomescope.errors import WeirdError
 from metagenomescope.layout import layout_config, layout_utils
 
@@ -7,7 +7,7 @@ from metagenomescope.layout import layout_config, layout_utils
 class NodeLayout(object):
     """Stores information about a node's dimensions and shape."""
 
-    def __init__(self, split, data):
+    def __init__(self, split, data, is_isolated_circle=False):
         # this can change! see update_split()
         self.split = split
 
@@ -20,6 +20,8 @@ class NodeLayout(object):
             self.length = data["length"]
         else:
             self.length = None
+
+        self.is_isolated_circle = is_isolated_circle
 
         self.set_shape()
         self.set_dims()
@@ -34,7 +36,10 @@ class NodeLayout(object):
         # these don't need to perfectly match up with the cy.js shapes. it's
         # safest if they are actually LARGER than the cy.js shapes right? or
         # like if they at least take up the same dimensions but more area.
-        if self.orientation == config.FWD:
+        if self.is_isolated_circle:
+            # ignore orientation
+            self.shape = "circle"
+        elif self.orientation == config.FWD:
             if self.split == config.SPLIT_LEFT:
                 self.shape = "rect"
             elif self.split == config.SPLIT_RIGHT:
@@ -51,24 +56,23 @@ class NodeLayout(object):
             else:
                 self.shape = "house"
         else:
-            # NOTE: Graphviz doesn't support semicircles (as of writing)
-            # but whatever rects are fine
+            # the node has no orientation (so presumably the input graph is a
+            # LJA / Flye edge-centric DOT file). Draw it as a circle or semi-
+            # circle. Graphviz doesn't support semicircles (as of writing), but
+            # whatever; just reserve a rectangular area and fill it in in cy.js
             self.shape = "rect"
 
     def set_dims(self):
         if self.length is not None:
-
-            # What should the ratio of width:height be?
-            #
-            # Adjust based on order of magnitude, to make longer sequences
-            # appear "longer" in the drawing.
-            # log100(x) = 1 occurs when x <= 100.
-            # log100(x) = 6 occurs when x >= 1e12 (aka 1 trillion).
-            r = min(max(math.log(self.length, 100), 1), 6)
-
             # Played around a lot with the various options here...
             # I'm sure there are better ways to do this.
-            area = min(max(math.sqrt(self.length) / 10, 0.5), 3000)
+            area = min(
+                max(
+                    math.sqrt(self.length) / layout_config.NODE_AREA_DIVISOR,
+                    0.5,
+                ),
+                3000,
+            )
 
             # Alternative approach: set area as linearly proportional to seq
             # length. This actually works surprisingly well for some graphs
@@ -83,11 +87,33 @@ class NodeLayout(object):
             # the range of sizes in the graph).
             ### area = min(max(self.length / 100, 1), 10_000_000)
 
-            # A = wh, and w = rh.
-            # We thus know that A = (rh) * h = rh^2.
-            # From there we can solve for A / r = h^2, and then sqrt(A/r) = h.
-            self.height = math.sqrt(area / r)
-            self.width = self.height * r
+            if self.is_isolated_circle:
+                # area of a circle = pi * radius^2
+                # flipped around, radius = sqrt(area / pi). we are setting
+                # the diameter of the circle here, which is 2 * the radius.
+                radius = math.sqrt(area / math.pi)
+                self.width = self.height = 2 * radius
+
+            else:
+                # What should the ratio of width:height be?
+                #
+                # Adjust based on order of magnitude, to make longer sequences
+                # appear "longer" in the drawing.
+                # log100(x) = 1 occurs when x <= 100.
+                # log100(x) = 6 occurs when x >= 1e12 (aka 1 trillion).
+                r = min(max(math.log(self.length, 100), 1), 6)
+
+                # Because the area of a pentagon is only a fraction of the
+                # area of its rectangular bounding box, we multiply the area
+                # of the bounding box by 1 over this fraction to scale up the
+                # area of the pentagon to match. See cy_config.py for details.
+                area *= cy_config.ONE_OVER_P_AREA_FRAC
+
+                # A = wh, and w = rh.
+                # We thus know that A = (rh) * h = rh^2.
+                # From there we can solve for A / r = h^2 --> sqrt(A/r) = h.
+                self.height = math.sqrt(area / r)
+                self.width = self.height * r
         else:
             # mimic flye's DOT files
             self.width = layout_config.NOLENGTH_NODE_WIDTH

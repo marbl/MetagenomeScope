@@ -117,9 +117,63 @@ def pts2spp(pts, dx=0, mx=1, autocenter=False):
 # Shapes for "oriented" nodes (i.e. the pentagon-looking things)
 ########
 
+# The polygons for shape-polygon-points in cytoscape.js are given in this
+# kind of bounding box:
+#
+#            (0,1)
+# (-1, 1)  +---+---+ (1, 1)
+#          |       |
+#          |       |
+#          |       |
+# (-1, -1) +---+---+ (1, -1)
+#            (0,-1)
+#
+# And the pentagon shapes we use to represent nodes with a defined orientation
+# look like this. The location of the "x", i.e. the horizontal coordinate of
+# the corner, is given by PCORNER. iirc, I set this to imitate graphviz'
+# house/invhouse shapes (https://github.com/fedarko/MetagenomeScope/issues/31).
+#
+#               x
+# (-1, 1)  ******--+ (1, 1)
+#          *     * |
+#          *      *|
+#          *     * |
+# (-1, -1) ******--+ (1, -1)
+PCORNER = 0.23587
+
+# Think about the bounding box above in terms of a rectangle of width w and
+# height h. What percentage of the width occurs to the left of x, and what
+# percentage of the width occurs to the right of x?
+WFRAC_BEFORE_PCORNER = (1 + PCORNER) / 2
+WFRAC_AFTER_PCORNER = 1 - WFRAC_BEFORE_PCORNER
+
+# These percentages can be used to derive the area of this pentagon in terms
+# of (wh), i.e. in terms of the overall rectangular bounding box. This tells
+# us BY HOW MUCH the pentagon's area is less than the surrounding rectangle's
+# area.
+#
+# This should make sense intuitively, kinda.
+#
+# - The left side of the pentagon (before the x) is a rectangle with
+#   height (h) and width (WFRAC_BEFORE_PCORNER * w).
+#
+# - The right side of the pentagon (after the x) is a triangle with
+#   "base length" (h) and "height" (WFRAC_AFTER_PCORNER * w).
+#
+# Thus, the area of the left side is wh * WFRAC_BEFORE_PCORNER, and the
+# area of the right side is 1/2 * h * WFRAC_AFTER_PCORNER * w, or
+# wh * (WFRAC_AFTER_PCORNER / 2).
+#
+# Summing these areas is wh * (WFRAC_BEFORE_PCORNER + WFRAC_AFTER_PCORNER / 2),
+# which tells us that this pentagon takes up this fraction of the rectangular
+# area.
+P_AREA_FRAC = WFRAC_BEFORE_PCORNER + (WFRAC_AFTER_PCORNER / 2)
+
+ONE_OVER_P_AREA_FRAC = 1 / P_AREA_FRAC
+
 # Non-split node shapes. These should correspond to the "invhouse" / "house"
 # shapes in Graphviz: https://graphviz.org/doc/info/shapes.html#polygon
-fwd_pentagon_pts = [[-1, 1], [0.23587, 1], [1, 0], [0.23587, -1], [-1, -1]]
+fwd_pentagon_pts = [[-1, 1], [PCORNER, 1], [1, 0], [PCORNER, -1], [-1, -1]]
 rev_pentagon_pts = [[-x, y] for (x, y) in fwd_pentagon_pts]
 
 FWD_NODE_SPLITN_POLYGON_PTS = pts2spp(fwd_pentagon_pts)

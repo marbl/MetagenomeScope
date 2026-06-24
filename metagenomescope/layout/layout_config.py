@@ -51,6 +51,18 @@ PIXELS_PER_INCH = 54
 # The base we use when logarithmically scaling contig dimensions from length
 NODE_SCALING_LOG_BASE = 10
 
+# Divide node areas by this much. Doesn't impact NOLENGTH_NODE_* sizes;
+# only matters for nodes with a defined length.
+#
+# Because we divide *all* node areas in the drawing by this same value, it
+# doesn't really matter beyond impacting how other stuff (edge thicknesses,
+# font sizes) looks in the context of nodes.
+#
+# Previously this was 10, but then I increased it to 12 to account for how
+# pentagonal nodes are a bit bigger after the changes in
+# https://github.com/marbl/MetagenomeScope/pull/455 ...
+NODE_AREA_DIVISOR = 12
+
 NOLENGTH_NODE_WIDTH = 0.4
 NOLENGTH_NODE_HEIGHT = 0.4
 

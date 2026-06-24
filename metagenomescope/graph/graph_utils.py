@@ -3,6 +3,33 @@ from .. import ui_utils, name_utils, config
 from metagenomescope.errors import WeirdError, GraphParsingError
 
 
+def is_isolated_circle(g, n):
+    """Returns True if a node is isolated and has one edge to itself.
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    n: int
+    """
+    nadj = g.adj[n]
+
+    # Specifically, we are checking here that:
+    # - n has outgoing edge(s) to only one node
+    # - this one node to which n has outgoing edge(s) is itself (n)
+    # - n has only ONE outgoing edge to itself
+    # - n has incoming edge(s) from only one node
+    #   (and we already know that by this point that this one node will be
+    #   itself, and that there will only be one such edge)
+    #
+    # Probably it is possible to do this faster or more elgantly but whatevs
+    return (
+        len(nadj) == 1
+        and (n in nadj)
+        and len(nadj[n]) == 1
+        and len(g.pred[n]) == 1
+    )
+
+
 def get_only_connecting_edge_uid(g, src_id, tgt_id):
     """Gets the "uid" attribute of the only edge between two nodes.
 
