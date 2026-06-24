@@ -1,7 +1,40 @@
 import pytest
 from metagenomescope.graph.node import Node
 from metagenomescope.layout import layout_config
+from metagenomescope import config
 from metagenomescope.errors import WeirdError
+
+
+def check_nolength_node_layout(nlay):
+    assert nlay.orientation is None
+    assert nlay.length is None
+    assert nlay.shape == "rect"
+    assert nlay.width == layout_config.NOLENGTH_NODE_WIDTH
+    assert nlay.height == layout_config.NOLENGTH_NODE_HEIGHT
+
+
+def test_init_no_length_unsplit():
+    # Nodes with no length can happen when we visualize edge-centric
+    # graphs -- as of writing, LJA or Flye DOT files. These should
+    # be drawn as small circles, each with the same size.
+    n = Node(0, "0", {})
+    check_nolength_node_layout(n.layout)
+
+
+def test_update_split_no_length():
+    n = Node(0, "0", {})
+    check_nolength_node_layout(n.layout)
+
+    # splitting this node shouldn't change its shape or dimensions; we'll
+    # change it into a semicircle on the cytoscape.js side of things
+    n.layout.update_split(config.SPLIT_LEFT)
+    check_nolength_node_layout(n.layout)
+
+    n.layout.update_split(config.SPLIT_RIGHT)
+    check_nolength_node_layout(n.layout)
+
+    n.layout.update_split(None)
+    check_nolength_node_layout(n.layout)
 
 
 def test_get_dims():
