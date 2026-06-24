@@ -66,7 +66,13 @@ class NodeLayout(object):
         if self.length is not None:
             # Played around a lot with the various options here...
             # I'm sure there are better ways to do this.
-            area = min(max(math.sqrt(self.length) / 10, 0.5), 3000)
+            area = min(
+                max(
+                    math.sqrt(self.length) / layout_config.NODE_AREA_DIVISOR,
+                    0.5,
+                ),
+                3000,
+            )
 
             # Alternative approach: set area as linearly proportional to seq
             # length. This actually works surprisingly well for some graphs
