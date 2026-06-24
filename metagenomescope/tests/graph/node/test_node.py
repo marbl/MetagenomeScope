@@ -1,6 +1,9 @@
 import pytest
 from metagenomescope.graph.node import Node
-from metagenomescope.config import SPLIT_LEFT, SPLIT_RIGHT, FWD
+from metagenomescope import cy_config, ui_config
+from metagenomescope.layout import layout_config
+from metagenomescope.layout.layout_config import PIXELS_PER_INCH as PPI
+from metagenomescope.config import SPLIT_LEFT, SPLIT_RIGHT, FWD, REV
 from metagenomescope.errors import WeirdError
 
 
@@ -105,3 +108,107 @@ def test_to_dot_split():
         b.to_dot(indent=" ")
         == ' 0 [width=3,height=3,shape=rect,label="B-R"];\n'
     )
+
+
+def test_to_cyjs_unoriented_simple():
+    # a node in a Flye/LJA DOT file or something
+    n = Node(0, "N", {})
+    n.rand_idx = 5
+    assert n.to_cyjs([]) == {
+        "data": {
+            "id": "0",
+            "label": "N",
+            "ntype": cy_config.NODE_DATA_TYPE,
+            "w": layout_config.NOLENGTH_NODE_WIDTH * PPI,
+            "h": layout_config.NOLENGTH_NODE_HEIGHT * PPI,
+        },
+        "classes": "nonpattern unoriented splitN noderand5",
+    }
+
+
+def test_to_cyjs_fwd_is_isolated_circle():
+    n = Node(
+        1,
+        "Node1",
+        {"length": 100, "orientation": FWD},
+        is_isolated_circle=True,
+    )
+    n.rand_idx = 3
+    assert n.to_cyjs([]) == {
+        "data": {
+            "id": "1",
+            "label": "Node1",
+            "ntype": cy_config.NODE_DATA_TYPE,
+            # just get the layout dimensions from the underlying NodeLayout
+            # object; we already test that elsewhere, so I don't think it is
+            # worth going to the trouble of computing that here as well
+            # (particularly since the node scaling code will probs be updated
+            # again in the future...)
+            "w": n.layout.width * PPI,
+            "h": n.layout.height * PPI,
+        },
+        "classes": "nonpattern fwd isolatedcircle noderand3",
+    }
+
+
+def test_to_cyjs_rev_child_of_pattern():
+    n = Node(
+        1,
+        "Node1",
+        {"length": 100, "orientation": REV},
+    )
+    n.parent_id = 20
+    n.rand_idx = 1
+
+    # with scope_settings == [], this node will not have a defined
+    # parent in its Cytoscape.js data representation
+    assert n.to_cyjs([]) == {
+        "data": {
+            "id": "1",
+            "label": "Node1",
+            "ntype": cy_config.NODE_DATA_TYPE,
+            "w": n.layout.width * PPI,
+            "h": n.layout.height * PPI,
+        },
+        "classes": "nonpattern rev splitN noderand1",
+    }
+
+    # but if we are drawing the graph with patterns shown, then
+    # this node will have a parent!
+    assert n.to_cyjs([ui_config.SHOW_PATTERNS]) == {
+        "data": {
+            "id": "1",
+            "label": "Node1",
+            "ntype": cy_config.NODE_DATA_TYPE,
+            "w": n.layout.width * PPI,
+            "h": n.layout.height * PPI,
+            "parent": "20",
+        },
+        "classes": "nonpattern rev splitN noderand1",
+    }
+
+
+def test_to_cyjs_show_patterns_but_no_parent():
+    # What happens when a node has no parent but we have "show patterns"
+    # given in the scope settings anyway? The answer is that we just don't
+    # say the node has a parent, it's really not hard, this isn't complicated,
+    # but let's test it anyway i guess just out of paranoia
+    n = Node(
+        1,
+        "Node1",
+        {"length": 100, "orientation": REV},
+    )
+    n.rand_idx = 1
+
+    assert n.parent_id is None
+
+    assert n.to_cyjs([ui_config.SHOW_PATTERNS]) == {
+        "data": {
+            "id": "1",
+            "label": "Node1",
+            "ntype": cy_config.NODE_DATA_TYPE,
+            "w": n.layout.width * PPI,
+            "h": n.layout.height * PPI,
+        },
+        "classes": "nonpattern rev splitN noderand1",
+    }
