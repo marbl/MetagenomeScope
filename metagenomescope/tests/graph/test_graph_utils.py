@@ -326,13 +326,38 @@ def test_get_sorted_subgraphs():
         3, "sg3", [d, e], [], [], node_centric=True, length_field="length"
     )
 
-    # Subgraph 3 comes first, since it has the most nodes
-    assert gu.get_sorted_subgraphs([sg1, sg2, sg3]) == [sg3, sg2, sg1]
-    assert gu.get_sorted_subgraphs([sg2, sg1, sg3]) == [sg3, sg2, sg1]
+    f = Node(0, "f", {"orientation": config.FWD, "length": 1})
+    g = Node(0, "g", {"orientation": config.FWD, "length": 1})
+    sg4 = Subgraph(
+        4, "sg4", [f, g], [], [], node_centric=True, length_field="length"
+    )
 
-    # Subgraph 2 comes before Subgraph 1, since it has a higher total length
+    # The ordering should be 4 > 3 > 2 > 1.
+    #
+    # 4 comes before 3, because the minimum node name in 4 (f) is > the
+    # minimum node name in 3 (d).
+    #
+    # 3 comes before 2, because it has more nodes.
+    #
+    # And 2 comes before 1, because it has a higher total length.
+    assert gu.get_sorted_subgraphs([sg1, sg2, sg3, sg4]) == [
+        sg4,
+        sg3,
+        sg2,
+        sg1,
+    ]
+    assert gu.get_sorted_subgraphs([sg2, sg4, sg1, sg3]) == [
+        sg4,
+        sg3,
+        sg2,
+        sg1,
+    ]
+
     assert gu.get_sorted_subgraphs([sg1, sg2]) == [sg2, sg1]
+    assert gu.get_sorted_subgraphs([sg2, sg1]) == [sg2, sg1]
 
-    # shambling in the dark at checking the corner cases
+    assert gu.get_sorted_subgraphs([sg4, sg3]) == [sg4, sg3]
+    assert gu.get_sorted_subgraphs([sg3, sg4]) == [sg4, sg3]
+
     assert gu.get_sorted_subgraphs([sg1]) == [sg1]
     assert gu.get_sorted_subgraphs([]) == []
