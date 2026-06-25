@@ -72,7 +72,7 @@ def test_fail_if_not_single_edge():
     validators.fail_if_not_single_edge(g.pred[2], "sus2", "incoming")
 
 
-def test_is_edge_fake_and_trivial_bad():
+def test_is_edge_fake_and_trivial_impossible_fake_edge_btwn_nonpatterns():
     # Test the case where there exists a fake edge between two non-pattern
     # nodes. Since this should never happen in practice, the function should
     # throw an error.
@@ -85,3 +85,21 @@ def test_is_edge_fake_and_trivial_bad():
             g, 0, 1, nodeid2obj, edgeid2obj, config.SPLIT_LEFT
         )
     assert str(ei.value) == "Non-pattern nodes (0, 1) connected by fake edge?"
+
+
+def test_is_edge_fake_and_trivial_bad_split_type():
+    g = nx.MultiDiGraph()
+    g.add_edge(0, 5, uid=2)
+    nodeid2obj = {0: Node(0, "0", {})}
+
+    e = Edge(2, 0, 1, {}, is_fake=True)
+    e.reroute_dec_tgt(5)
+    edgeid2obj = {2: e}
+    with pytest.raises(WeirdError) as ei:
+        # the split type must be SPLIT_LEFT or SPLIT_RIGHT -- even though None
+        # is a valid split type (indicating that a node is unsplit) it
+        # shouldn't be here
+        validators.is_edge_fake_and_trivial(
+            g, 0, 5, nodeid2obj, edgeid2obj, None
+        )
+    assert str(ei.value) == "Unrecognized split type None"
