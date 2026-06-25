@@ -91,5 +91,6 @@ def test_component_recording_ecoli_graph():
     assert wccs[10].min_name == "150"
     assert wccs[10].total_length == 1
 
+
 # TODO: Add more comprehensive tests that things like number of nodes within
 # all patterns, edge counts, etc. are used in the sorting operation.
