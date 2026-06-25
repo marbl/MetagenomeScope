@@ -34,6 +34,8 @@ def test_subgraph_simple():
     assert sg.node_centric
     assert sg.length_field == "length"
     assert sg.total_length == 116
+    assert sg.record_node_names
+    assert sg.min_name == "1"
 
 
 def test_subgraph_nested_patterns():

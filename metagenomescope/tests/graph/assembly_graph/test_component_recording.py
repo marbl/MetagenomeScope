@@ -23,19 +23,23 @@ def test_component_recording_simple():
         assert wccs[cc_i].num_total_nodes == 5
         assert wccs[cc_i].num_unsplit_nodes == 5
         assert wccs[cc_i].num_split_nodes == 0
+        assert wccs[cc_i].num_full_nodes == 5
         assert wccs[cc_i].num_total_edges == 4
         assert wccs[cc_i].num_real_edges == 4
         assert wccs[cc_i].num_fake_edges == 0
         assert wccs[cc_i].pattern_stats == PatternStats(num_chains=1)
+        assert wccs[cc_i].min_name == "1"
 
     for cc_i in (2, 3):
         assert wccs[cc_i].num_total_nodes == 1
         assert wccs[cc_i].num_unsplit_nodes == 1
         assert wccs[cc_i].num_split_nodes == 0
+        assert wccs[cc_i].num_full_nodes == 1
         assert wccs[cc_i].num_total_edges == 0
         assert wccs[cc_i].num_real_edges == 0
         assert wccs[cc_i].num_fake_edges == 0
         assert wccs[cc_i].pattern_stats == PatternStats()
+        assert wccs[cc_i].min_name == "6"
 
 
 def test_component_recording_ecoli_graph():
@@ -62,10 +66,30 @@ def test_component_recording_ecoli_graph():
         assert cc.num_total_nodes == 1
         assert cc.num_unsplit_nodes == 1
         assert cc.num_split_nodes == 0
+        assert cc.num_full_nodes == 1
         assert cc.num_total_edges == 1
         assert cc.num_real_edges == 1
         assert cc.num_fake_edges == 0
 
+    # Although components [5, 10] all have 1 node and 1 edge, they should be
+    # sorted in this exact order. 76 comes first because it is longer than the
+    # other two circular nodes; then 273 comes before 150 because we are using
+    # the min lexicographic name in the sorting algorithm and doing it in
+    # reverse, and since 273 > 150 then 273 comes earlier.
+    assert wccs[5].min_name == "76"
+    assert wccs[5].total_length == 294
+    assert wccs[6].min_name == "76"
+    assert wccs[6].total_length == 294
+
+    assert wccs[7].min_name == "273"
+    assert wccs[7].total_length == 1
+    assert wccs[8].min_name == "273"
+    assert wccs[8].total_length == 1
+
+    assert wccs[9].min_name == "150"
+    assert wccs[9].total_length == 1
+    assert wccs[10].min_name == "150"
+    assert wccs[10].total_length == 1
 
 # TODO: Add more comprehensive tests that things like number of nodes within
 # all patterns, edge counts, etc. are used in the sorting operation.
