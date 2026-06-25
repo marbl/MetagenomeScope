@@ -6,6 +6,21 @@ def is_rev(n):
     return n[0] == config.REV
 
 
+def _briefly_check_name(n):
+    """Checks a node/edge name before negating it or something.
+
+    Basically, this is less thorough then the actual sanity checking functions
+    elsewhere in this file -- because we should've already validated that the
+    names are good. This is just abstracting out the code I would've used as
+    the intro for negate(), etc.
+    """
+    if type(n) is not str:
+        raise WeirdError("We should've already converted names to strings.")
+
+    if len(n) == 0:
+        raise WeirdError("We should've already screened for empty names?")
+
+
 def negate(n):
     """Negates a (node) name. Literally just adds or removes a starting "-".
 
@@ -17,19 +32,20 @@ def negate(n):
     things up. The GFA / LastGraph parsers should check for this and reject
     such graphs.
     """
-    if type(n) is not str:
-        raise WeirdError(
-            "We should've already converted node names to strings. This "
-            "should never happen."
-        )
-
-    if len(n) == 0:
-        raise WeirdError("We should've already screened for empty node names?")
-
+    _briefly_check_name(n)
     if is_rev(n):
         return n[1:]
     else:
         return config.REV + n
+
+
+def get_orientationless_name(n):
+    """Returns a version of the name without any orientation signs."""
+    _briefly_check_name(n)
+    if is_rev(n):
+        return n[1:]
+    else:
+        return n
 
 
 def from_suffix_orient(name, errprefix=""):

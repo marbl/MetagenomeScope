@@ -30,7 +30,7 @@ def test_negate():
 def test_negate_empty():
     with pytest.raises(WeirdError) as ei:
         nu.negate("")
-    assert "empty node name" in str(ei.value)
+    assert "empty name" in str(ei.value)
 
 
 def test_negate_str_required():
@@ -48,6 +48,18 @@ def test_negate_str_required():
 
     with pytest.raises(WeirdError):
         nu.negate(["lmao"])
+
+
+def test_get_orientationless_name():
+    assert nu.get_orientationless_name("-1") == "1"
+    assert nu.get_orientationless_name("1") == "1"
+    assert nu.get_orientationless_name("-contig1") == "contig1"
+    assert nu.get_orientationless_name("contig1") == "contig1"
+    # the validation is the same that negate() does, so we don't
+    # need to go crazy with testing it here
+    with pytest.raises(WeirdError) as ei:
+        nu.get_orientationless_name(1)
+    assert "should've already converted names to strings" in str(ei.value)
 
 
 def test_sanity_check_node_name_simple():
