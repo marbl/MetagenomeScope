@@ -216,7 +216,7 @@ def test_subgraph_repr():
         length_field="approx_length",
     )
     assert repr(sg) == (
-        "SubgraphYeehaw (11 nodes, 12 edges, 3 patterns, 55,000 bp)"
+        "SubgraphYeehaw (11 nodes; 12 edges; 3 patterns; length 55,000)"
     )
 
 

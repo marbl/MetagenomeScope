@@ -315,7 +315,10 @@ class AssemblyGraph(object):
         )
         self.n50 = seq_utils.n50(self.lengths)
         self.total_seq_len = sum(self.lengths)
-        logger.debug(f"  ...Done. N50 is {self.n50:,} bp.")
+        logger.debug(
+            "  ...Done. N50 is "
+            f"{ui_utils.fmt_qty(self.n50, self.length_units)}."
+        )
 
         # Records the bounding boxes of each component in the graph. Indexed by
         # component number (1-indexed). (... We could also store this as an

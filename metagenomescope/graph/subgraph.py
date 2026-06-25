@@ -158,15 +158,15 @@ class Subgraph(object):
 
     def _get_repr_counts(self):
         return (
-            f"{ui_utils.pluralize(self.num_total_nodes, 'node')}, "
-            f"{ui_utils.pluralize(self.num_total_edges, 'edge')}, "
+            f"{ui_utils.pluralize(self.num_total_nodes, 'node')}; "
+            f"{ui_utils.pluralize(self.num_total_edges, 'edge')}; "
             f"{ui_utils.pluralize(self.pattern_stats.sum(), 'pattern')}"
         )
 
     def __repr__(self):
         return (
-            f"{self.name} ({self._get_repr_counts()}, "
-            f"{self.total_length:,} bp)"
+            f"{self.name} ({self._get_repr_counts()}; "
+            f"length {self.total_length:,})"
         )
 
     def _add_length(self, obj):
