@@ -2000,6 +2000,7 @@ class AssemblyGraph(object):
                     patts,
                     node_centric=self.node_centric,
                     length_field=self.length_field,
+                    record_node_names=not self.is_flye_dot,
                 )
             )
 
@@ -2453,6 +2454,7 @@ class AssemblyGraph(object):
             [self.pattid2obj[i] for i in sel_patt_ids],
             node_centric=self.node_centric,
             length_field=self.length_field,
+            record_node_names=not self.is_flye_dot,
         )
         return sg.to_cyjs(
             scope_settings, modifier_settings, layout_alg, layout_params

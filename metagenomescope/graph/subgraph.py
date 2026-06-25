@@ -47,6 +47,7 @@ class Subgraph(object):
         patterns,
         node_centric=True,
         length_field="length",
+        record_node_names=True,
     ):
         """Initializes this Subgraph object.
 
@@ -69,6 +70,15 @@ class Subgraph(object):
         length_field: str
             Used to access lengths for nodes or edges.
 
+        record_node_names: bool
+            True means that we should look at node names when figuring out
+            e.g. the lexicographically smallest name in this Subgraph. False
+            means we should look at edge IDs.
+
+            This should be True for all types of graphs except Flye DOT files
+            -- because LJA DOT files are not guaranteed to have meaningful edge
+            IDs, we can't just get this information from node_centric.
+
         Notes
         -----
         It is the caller's responsibility to only include a pattern if all
@@ -86,6 +96,12 @@ class Subgraph(object):
         self.node_centric = node_centric
         self.length_field = length_field
         self.total_length = 0
+
+        self.record_node_names = record_node_names
+        # Record the lexicographically smallest node or edge name (determined
+        # by self.record_node_names), to use as a tiebreaker when sorting
+        # components. Should be "orientationless" -- no leading "-", etc.
+        self.min_name = None
 
         # used in the total length computation as a way to get around having to
         # multiply split nodes' lengths by 0.5. Like that is PROBABLY nbd but I
@@ -158,6 +174,12 @@ class Subgraph(object):
             raise WeirdError(f'{obj} has no field "{self.length_field}"?')
         self.total_length += obj.data[self.length_field]
 
+    def _record_name(self, name):
+        # Try to update the lexicographically minimum name
+        on = name_utils.get_orientationless_name(name)
+        if self.min_name is None or on < self.min_name:
+            self.min_name = on
+
     def _add_node(self, node):
         self.nodes.append(node)
         # Record length only once for each node basename (so X-L and X-R
@@ -167,6 +189,9 @@ class Subgraph(object):
             if bn not in self.seen_basenames:
                 self._add_length(node)
                 self.seen_basenames.add(bn)
+        # doesn't matter if this is called multiple times for split nodes
+        if self.record_node_names:
+            self._record_name(node.basename)
         if node.is_split():
             self.num_split_nodes += 1
             self.num_full_nodes += 0.5
@@ -191,6 +216,8 @@ class Subgraph(object):
             self.num_real_edges += 1
             if not self.node_centric:
                 self._add_length(edge)
+            if not self.record_node_names:
+                self._record_name(edge.get_userspecified_id())
         self.num_total_edges += 1
 
     def _add_pattern(self, pattern):

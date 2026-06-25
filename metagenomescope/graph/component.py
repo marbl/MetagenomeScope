@@ -30,6 +30,7 @@ class Component(Subgraph):
         patterns,
         node_centric=True,
         length_field="length",
+        record_node_names=True,
     ):
         """Initializes this Component object.
 
@@ -48,6 +49,8 @@ class Component(Subgraph):
         node_centric: bool
 
         length_field: str
+
+        record_node_names: bool
         """
         # unique size rank index of this component (the cc in the graph with
         # the most nodes has size rank 1, the next biggest one has size rank 2,
@@ -61,6 +64,7 @@ class Component(Subgraph):
             patterns,
             node_centric=node_centric,
             length_field=length_field,
+            record_node_names=record_node_names,
         )
 
     def set_cc_num(self, cc_num):

@@ -412,6 +412,7 @@ def get_sorted_subgraphs(sgs):
             obj.num_full_nodes,
             obj.num_real_edges,
             obj.total_length,
+            obj.min_name,
         ),
         reverse=True,
     )
