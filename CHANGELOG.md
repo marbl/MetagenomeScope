@@ -27,6 +27,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     functionality simplifies the process of selecting and drawing these
     components specifically.
 
+- You can now select and copy text from the node/edge/pattern/path tables
+  ([#298](https://github.com/marbl/MetagenomeScope/issues/298)).
+
 ### Changed
 
 - Dramatically speed up pattern decomposition, mostly by addressing a

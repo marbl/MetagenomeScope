@@ -472,9 +472,29 @@ input {
     color: #3ff;
 }
 
-/* i despise the ugly blue border that appears around cells on click */
+/* i don't really like the blue border that appears around cells on click,
+ * particularly since it doesn't actually make the cells selectable (at
+ * least right now -- I think it could using AG Grid Enterprise)
+ */
 .fancytable-cells {
     border: none !important;
+}
+
+/* Use a different text selection color for the table, since the default blue
+ * selection color doesn't really look visible on top of the table's blue cells
+ * https://css-tricks.com/overriding-the-default-text-selection-color-with-css/
+ *
+ * I went with a medium green color, which I think does a decent job of being
+ * distinct from both the blue cell backgrounds AND from the cell text colors.
+ * It looks alright in Coblis, too. I dunno. Maybe doing this myself is a
+ * fool's errand
+ */
+.fancytable-cells ::selection {
+    background: #238003;
+}
+
+.fancytable-cells ::-moz-selection {
+    background: #238003;
 }
 
 /* specially style "extra" fields' column headers a dark red, to visually

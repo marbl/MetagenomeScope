@@ -216,6 +216,11 @@ DASH_GRID_OPTIONS = {
     # spend like an hour debugging it. https://stackoverflow.com/q/58772051
     # https://dash.plotly.com/dash-ag-grid/column-definitions#suppressing-field-dot-notation
     "suppressFieldDotNotation": True,
+    # Both of these are needed to allow selecting/copying text from the tables
+    # (at least using the ordinary browser text selection controls):
+    # https://dash.plotly.com/dash-ag-grid/clipboard#regular-text-selection
+    "enableCellTextSelection": True,
+    "ensureDomOrder": True,
 }
 
 ###############################################################################
