@@ -409,11 +409,25 @@ def get_sorted_subgraphs(sgs):
     return sorted(
         sgs,
         key=lambda obj: (
+            # most nodes to least number of nodes
             obj.num_full_nodes,
+            # tiebreaker 1: most edges to least number of edges
             obj.num_real_edges,
+            # tiebreaker 2: longest to shortest
             obj.total_length,
-            obj.min_name,
+            # tiebreaker 3: lexicographically min node/edge name (no
+            # orientation in name, so two twin components should have
+            # the same thing here)
+            obj.min_name_orientationless,
+            # tiebreaker 4: number of positive node/edge names
             obj.num_positive_names,
+            # tiebreaker 5: in the cursed situation this is necessary,
+            # this is the lexicographically min name but with orientation.
+            # this should only be relevant if two components are perfect
+            # twins and even have the same number of positive names, in
+            # which case this should at least be SOME sort of difference --
+            # thus meaning that sorting should always leave NO ambiguity.
+            obj.min_name,
         ),
         reverse=True,
     )

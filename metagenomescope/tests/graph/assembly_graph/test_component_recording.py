@@ -19,6 +19,10 @@ def test_component_recording_simple():
     # position of each 3-tuple) is also correct.
     assert len(wccs) == 4
 
+    assert wccs[0].min_name == "1"
+    assert wccs[1].min_name == "-1"
+    assert wccs[2].min_name == "6"
+    assert wccs[3].min_name == "-6"
     for cc_i in (0, 1):
         assert wccs[cc_i].num_total_nodes == 5
         assert wccs[cc_i].num_unsplit_nodes == 5
@@ -28,7 +32,7 @@ def test_component_recording_simple():
         assert wccs[cc_i].num_real_edges == 4
         assert wccs[cc_i].num_fake_edges == 0
         assert wccs[cc_i].pattern_stats == PatternStats(num_chains=1)
-        assert wccs[cc_i].min_name == "1"
+        assert wccs[cc_i].min_name_orientationless == "1"
 
     for cc_i in (2, 3):
         assert wccs[cc_i].num_total_nodes == 1
@@ -39,7 +43,7 @@ def test_component_recording_simple():
         assert wccs[cc_i].num_real_edges == 0
         assert wccs[cc_i].num_fake_edges == 0
         assert wccs[cc_i].pattern_stats == PatternStats()
-        assert wccs[cc_i].min_name == "6"
+        assert wccs[cc_i].min_name_orientationless == "6"
 
 
 def test_component_recording_ecoli_graph():
@@ -82,14 +86,61 @@ def test_component_recording_ecoli_graph():
     # So, um, the ties are then broken by the minimum orientationless name in
     # each component. 76 > 273 > 150, since this is lexicographic ordering.
     #
+    # And then the ties are broken further by the number of positive names,
+    # meaning that e.g. 76 comes before -76.
+    #
     # (You could maybe make an argument that they should be sorted numerically
     # but I don't really care about that -- mainly I just want the component
     # orderings to be reproducible.)
+    assert wccs[5].min_name_orientationless == "76"
     assert wccs[5].min_name == "76"
-    assert wccs[6].min_name == "76"
+    assert wccs[6].min_name_orientationless == "76"
+    assert wccs[6].min_name == "-76"
 
+    assert wccs[7].min_name_orientationless == "273"
     assert wccs[7].min_name == "273"
-    assert wccs[8].min_name == "273"
+    assert wccs[8].min_name_orientationless == "273"
+    assert wccs[8].min_name == "-273"
 
+    assert wccs[9].min_name_orientationless == "150"
     assert wccs[9].min_name == "150"
-    assert wccs[10].min_name == "150"
+    assert wccs[10].min_name_orientationless == "150"
+    assert wccs[10].min_name == "-150"
+
+
+def test_component_recording_same_positive_name_count_twins():
+    # the graph looks like:
+    #
+    # 123 -> -456
+    #
+    # 456 -> -123
+    #
+    # In this scenario, these twin components are almost identical to
+    # get_sorted_subgraphs() -- they have the same numbers of nodes and of
+    # edges; the same total length; the same lexicographically minimum
+    # orientationless name ("123"); and the same number of positive names (1).
+    #
+    # Thus, the tie is broken by using the lexicographically minimum name WITH
+    # orientation as the final factor, since we know that at least this will be
+    # unique between the components. This ends up working out well, because
+    # "123" > "-123" lexicographically. So the component with "123" should be
+    # sorted earlier, and should thus be deemed canonical / nonredundant.
+
+    ag = AssemblyGraph("metagenomescope/tests/input/same_pos_name_ct_ccs.gv")
+    wccs = ag.components
+
+    assert wccs[0].min_name_orientationless == "123"
+    assert wccs[0].min_name == "123"
+
+    assert wccs[1].min_name_orientationless == "123"
+    assert wccs[1].min_name == "-123"
+
+    assert ag.nr_cc_nums == {1}
+
+    # oh also this is a LJA-style DOT file so do some checks that these
+    # Component objects were set correctly by the AssemblyGraph initialization
+    for i in (0, 1):
+        assert not wccs[i].node_centric
+        assert wccs[i].length_field == "length"
+        assert wccs[i].record_node_names
+        assert wccs[i].count_positive_names

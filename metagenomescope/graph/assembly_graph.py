@@ -2049,6 +2049,11 @@ class AssemblyGraph(object):
               https://github.com/marbl/MetagenomeScope/issues/401.
 
           - For every edge E in C1, there exists an edge -E in C2
+
+        Note that this does not check data fields. So, for example, if node
+        X and node -X have different lengths, coverages, etc. for some reason
+        (they really shouldn't???) then this will ignore that and still allow
+        them to be in redundant components from each other.
         """
         self.nr_cc_nums = set()
         for cc in self.components:

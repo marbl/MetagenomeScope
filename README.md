@@ -594,17 +594,11 @@ Some details about component size ranks, if you are interested:
   #1 in the treemap corresponds to the largest component, the rectangle labelled
   #2 corresponds to the second-largest component, etc.
 
-- The exact component sorting functionality accounts for ties by using a few different sorting
-  criteria, in the following order. Ties at one level cause later levels to be considered for
-  breaking ties.
-
-  - the number of "full" nodes in the component (treating a pair of split nodes 40-L → 40-R as a
-    single node, but treating 40 and its reverse-complement -40 as two nodes)
-
-  - the number of real edges in the component (ignoring "fake" edges between pairs of split nodes
-    like 40-L → 40-R, but treating an edge and its reverse-complementary edge as two edges)
-
-  - the total length of the nodes or edges in the component
+- The exact component sorting functionality accounts for ties using a few
+  criteria. After ordering components by their total numbers of nodes, we break
+  ties using the number of (real) edges, the total sequence length, and the
+  lexicographically smallest node / edge name in the component, among other
+  criteria.
 
 <hr/>
 </details>

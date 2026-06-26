@@ -17,7 +17,7 @@
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
 import itertools
-from .. import ui_config, ui_utils, name_utils, config
+from .. import ui_config, ui_utils, name_utils
 from ..layout import Layout
 from ..errors import WeirdError
 from .pattern_stats import PatternStats
@@ -109,7 +109,13 @@ class Subgraph(object):
         self.record_node_names = record_node_names
         # Record the lexicographically smallest node or edge name (determined
         # by self.record_node_names), to use as a tiebreaker when sorting
-        # components. Should be "orientationless" -- no leading "-", etc.
+        # subgraphs. The orientationless version is used to ensure that a
+        # component and its twin (if present) go next to each other, and
+        # the normal version (with an orientation, assuming that orientations
+        # are given in names in this graph) is used as a final tiebreaker to
+        # ward of the dreadful case where two twin components are perfectly
+        # identical (down to even their numbers of positive names...).
+        self.min_name_orientationless = None
         self.min_name = None
         self.count_positive_names = count_positive_names
         # If self.count_positive_names is True, then record the number of
@@ -189,8 +195,12 @@ class Subgraph(object):
     def _record_name(self, name):
         # Try to update the lexicographically minimum name
         on = name_utils.get_orientationless_name(name)
-        if self.min_name is None or on < self.min_name:
-            self.min_name = on
+        if (
+            self.min_name_orientationless is None
+            or on < self.min_name_orientationless
+        ):
+            self.min_name_orientationless = on
+            self.min_name = name
         if self.count_positive_names and not name_utils.is_rev(name):
             self.num_positive_names += 1
 
@@ -210,6 +220,9 @@ class Subgraph(object):
                 self._record_name(node.basename)
             self.seen_basenames.add(bn)
 
+        # It is possible for only one of a split node to be in a Subgraph
+        # (if we are drawing around nodes). This is why we don't lump this
+        # stuff in with the seen_basenames block of code above.
         if node.is_split():
             self.num_split_nodes += 1
             self.num_full_nodes += 0.5
