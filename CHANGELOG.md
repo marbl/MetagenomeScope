@@ -62,9 +62,9 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
   [#451](https://github.com/marbl/MetagenomeScope/issues/451),
   [#453](https://github.com/marbl/MetagenomeScope/issues/453)).
 
-  - Among other things, these changes mean that drawings including many
-    single-node components should now be sorted nicely from long to short
-    (similarly to how Bandage does things).
+  - Among other things, drawings including many single-node components should
+    now be sorted nicely from long to short (similarly to how Bandage does
+    things).
 
   - Components should also now be sorted deterministically. Probably that
     was already the case but now it is at least more provably consistent.
