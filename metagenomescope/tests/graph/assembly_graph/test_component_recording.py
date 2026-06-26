@@ -70,27 +70,26 @@ def test_component_recording_ecoli_graph():
         assert cc.num_total_edges == 1
         assert cc.num_real_edges == 1
         assert cc.num_fake_edges == 0
+        # see below...
+        assert cc.total_length == 4
 
     # Although components [5, 10] all have 1 node and 1 edge, they should be
-    # sorted in this exact order. 76 comes first because it is longer than the
-    # other two circular nodes; then 273 comes before 150 because we are using
-    # the min lexicographic name in the sorting algorithm and doing it in
-    # reverse, and since 273 > 150 then 273 comes earlier.
+    # sorted in this exact order. Usually the one with node 76 would come first
+    # (because it's longer than 273 and 150), but that actually doesn't matter
+    # for this particular test because the version of the E. coli test graph
+    # in MetagenomeScope's repo has all the sequences set to 4 bp.
+    #
+    # So, um, the ties are then broken by the minimum orientationless name in
+    # each component. 76 > 273 > 150, since this is lexicographic ordering.
+    #
+    # (You could maybe make an argument that they should be sorted numerically
+    # but I don't really care about that -- mainly I just want the component
+    # orderings to be reproducible.)
     assert wccs[5].min_name == "76"
-    assert wccs[5].total_length == 294
     assert wccs[6].min_name == "76"
-    assert wccs[6].total_length == 294
 
     assert wccs[7].min_name == "273"
-    assert wccs[7].total_length == 1
     assert wccs[8].min_name == "273"
-    assert wccs[8].total_length == 1
 
     assert wccs[9].min_name == "150"
-    assert wccs[9].total_length == 1
     assert wccs[10].min_name == "150"
-    assert wccs[10].total_length == 1
-
-
-# TODO: Add more comprehensive tests that things like number of nodes within
-# all patterns, edge counts, etc. are used in the sorting operation.
