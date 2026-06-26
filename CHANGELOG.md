@@ -56,19 +56,15 @@ this format is adapted from [Keep a Changelog](https://keepachangelog.com/en/1.1
     enables some useful functionalities. In particular, it plays nicely with
     [#448](https://github.com/marbl/MetagenomeScope/issues/448).
 
-- Simplify and improve component sorting procedure: use total node / edge
-  length as a tiebreaker, followed by lexicographically minimum node / edge
-  name (ignoring orientation), followed by number of positive node / edge
-  names, followed by lexicographically minimum node / edge name (with
-  orientation).
+- Simplify and improve component sorting procedure
   ([#378](https://github.com/marbl/MetagenomeScope/issues/378),
   [#418](https://github.com/marbl/MetagenomeScope/issues/418),
   [#451](https://github.com/marbl/MetagenomeScope/issues/451),
   [#453](https://github.com/marbl/MetagenomeScope/issues/453)).
 
-  - Among other things, this means that drawings including many single-node
-    components should now be sorted nicely from long to short (similarly to how
-    Bandage does things).
+  - Among other things, these changes mean that drawings including many
+    single-node components should now be sorted nicely from long to short
+    (similarly to how Bandage does things).
 
   - Components should also now be sorted deterministically. Probably that
     was already the case but now it is at least more provably consistent.
