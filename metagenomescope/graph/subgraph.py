@@ -48,6 +48,7 @@ class Subgraph(object):
         node_centric=True,
         length_field="length",
         record_node_names=True,
+        count_positive_names=True,
     ):
         """Initializes this Subgraph object.
 
@@ -79,6 +80,14 @@ class Subgraph(object):
             -- because LJA DOT files are not guaranteed to have meaningful edge
             IDs, we can't just get this information from node_centric.
 
+        count_positive_names: bool
+            True means we should do the work of counting all positive node or
+            edge names (the question of nodes vs. edges is determined by
+            record_node_names); False means we should just skip that. This
+            option is here because some graphs (e.g. MetaCarvel GML files) have
+            nodes without orientations in their name, so there would be no
+            point counting this anyway.
+
         Notes
         -----
         It is the caller's responsibility to only include a pattern if all
@@ -102,11 +111,14 @@ class Subgraph(object):
         # by self.record_node_names), to use as a tiebreaker when sorting
         # components. Should be "orientationless" -- no leading "-", etc.
         self.min_name = None
+        self.count_positive_names = count_positive_names
+        # If self.count_positive_names is True, then record the number of
+        # positive node or edge names we see. (If it's False, then just leave
+        # this at 0 forever.)
+        self.num_positive_names = 0
 
-        # used in the total length computation as a way to get around having to
-        # multiply split nodes' lengths by 0.5. Like that is PROBABLY nbd but I
-        # but I don't want to even have to THINK about floating point
-        # imprecision junk so here we are
+        # Keep track of node basenames we have seen already, so we don't
+        # double-count X-L and X-R as two nodes
         self.seen_basenames = set()
 
         # Number of nodes in this Subgraph that are not split.
@@ -179,19 +191,25 @@ class Subgraph(object):
         on = name_utils.get_orientationless_name(name)
         if self.min_name is None or on < self.min_name:
             self.min_name = on
+        if self.count_positive_names and not name_utils.is_rev(name):
+            self.num_positive_names += 1
 
     def _add_node(self, node):
         self.nodes.append(node)
-        # Record length only once for each node basename (so X-L and X-R
-        # only contribute to the total length once).
-        if self.node_centric:
-            bn = node.basename
-            if bn not in self.seen_basenames:
+        # If we are counting node lengths (because this is a node-centric
+        # graph), then record length only once for each node basename (so
+        # X-L and X-R only contribute to the total length once).
+        #
+        # Similarly, if we are recording node names, then only count those
+        # once per basename (aka once per full node)
+        bn = node.basename
+        if bn not in self.seen_basenames:
+            if self.node_centric:
                 self._add_length(node)
-                self.seen_basenames.add(bn)
-        # doesn't matter if this is called multiple times for split nodes
-        if self.record_node_names:
-            self._record_name(node.basename)
+            if self.record_node_names:
+                self._record_name(node.basename)
+            self.seen_basenames.add(bn)
+
         if node.is_split():
             self.num_split_nodes += 1
             self.num_full_nodes += 0.5
@@ -227,27 +245,6 @@ class Subgraph(object):
 
     def get_objs(self):
         return itertools.chain(self.nodes, self.edges, self.patterns)
-
-    def count_positive_full_nodes(self):
-        ct = 0
-        for n in self.nodes:
-            # ignore right split nodes, so we only consider each basename once
-            if n.is_split() and n.split == config.SPLIT_RIGHT:
-                continue
-            if not name_utils.is_rev(n.basename):
-                ct += 1
-        return ct
-
-    def count_positive_real_edges(self):
-        ct = 0
-        for e in self.edges:
-            if e.is_fake:
-                continue
-            # this will fail if the edge does not have a user-specified ID
-            eid = e.get_userspecified_id()
-            if not name_utils.is_rev(eid):
-                ct += 1
-        return ct
 
     def to_cyjs(
         self, scope_settings, modifier_settings, layout_alg, layout_params

@@ -31,6 +31,7 @@ class Component(Subgraph):
         node_centric=True,
         length_field="length",
         record_node_names=True,
+        count_positive_names=True,
     ):
         """Initializes this Component object.
 
@@ -51,6 +52,8 @@ class Component(Subgraph):
         length_field: str
 
         record_node_names: bool
+
+        count_positive_names: bool
         """
         # unique size rank index of this component (the cc in the graph with
         # the most nodes has size rank 1, the next biggest one has size rank 2,

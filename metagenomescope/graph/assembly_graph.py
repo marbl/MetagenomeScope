@@ -2004,6 +2004,7 @@ class AssemblyGraph(object):
                     node_centric=self.node_centric,
                     length_field=self.length_field,
                     record_node_names=not self.is_flye_dot,
+                    count_positive_names=self.orientation_in_name,
                 )
             )
 
@@ -2088,26 +2089,18 @@ class AssemblyGraph(object):
                     define_edges_by_nodenames=not self.is_flye_dot,
                 ):
                     # These components really are twins! Choose one of them
-                    # to be drawn as the "nonredundant" version.
-                    #
-                    # There are various ways you could make this choice (e.g.
-                    # taking min(cc.cc_num, cc2_num) to ensure that you always
-                    # pick the one with the "earlier" size rank), but I think
-                    # the better solution is choosing the one with more
-                    # "positive"-strand nodes (or, for Flye DOT files, edges).
-                    if self.is_flye_dot:
-                        posct = cc.count_positive_real_edges()
-                        posct2 = cc2.count_positive_real_edges()
-                    else:
-                        posct = cc.count_positive_full_nodes()
-                        posct2 = cc2.count_positive_full_nodes()
-                    if posct > posct2:
+                    # to be drawn as the "nonredundant" / "canonical" version;
+                    # figure it out based on the # of positive node/edge names.
+                    nnct = cc.num_positive_names
+                    nnct2 = cc2.num_positive_names
+                    if nnct > nnct2:
                         self.nr_cc_nums.add(cc.cc_num)
-                    elif posct == posct2:
-                        # i THINK "posct >= posct2" should have equivalent
-                        # behavior as this since i think we should cc before
-                        # cc2 in the loop, but let's make this tie-breaking
-                        # behavior explicit
+                    elif nnct == nnct2:
+                        # If these twins have the same exact number of positive
+                        # names, then arbitrarily decide that the smaller size
+                        # rank is the canonical component. This is a nice
+                        # property to have
+                        # (https://github.com/marbl/MetagenomeScope/issues/451)
                         self.nr_cc_nums.add(min(cc.cc_num, cc2_num))
                     else:
                         self.nr_cc_nums.add(cc2_num)
@@ -2458,6 +2451,7 @@ class AssemblyGraph(object):
             node_centric=self.node_centric,
             length_field=self.length_field,
             record_node_names=not self.is_flye_dot,
+            count_positive_names=self.orientation_in_name,
         )
         return sg.to_cyjs(
             scope_settings, modifier_settings, layout_alg, layout_params

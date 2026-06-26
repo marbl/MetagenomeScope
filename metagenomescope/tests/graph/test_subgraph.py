@@ -36,6 +36,8 @@ def test_subgraph_simple():
     assert sg.total_length == 116
     assert sg.record_node_names
     assert sg.min_name == "1"
+    assert sg.count_positive_names
+    assert sg.num_positive_names == 6
 
 
 def test_subgraph_nested_patterns():
@@ -62,6 +64,10 @@ def test_subgraph_nested_patterns():
         ag.nodeid2obj.values(),
         ag.edgeid2obj.values(),
         ag.pattid2obj.values(),
+        # this is a GML file so no need to count positive node names
+        # (like you could leave this set to True but it would just be
+        # unnecessary and waste a tiny bit of time counting stuff)
+        count_positive_names=False,
     )
     assert sg.unique_id == 456
     assert sg.name == "subgraph456"
@@ -83,24 +89,12 @@ def test_subgraph_nested_patterns():
     assert sg.length_field == "length"
     assert sg.total_length == 12
 
-
-def test_subgraph_count_positive_full_nodes():
-    ag = AssemblyGraph(
-        "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
-    )
-
-    sg = Subgraph(
-        456,
-        "subgraph456",
-        ag.nodeid2obj.values(),
-        ag.edgeid2obj.values(),
-        ag.pattid2obj.values(),
-    )
-
-    assert sg.count_positive_full_nodes() == 12
+    # we didn't bother counting this, so it should be left at 0
+    assert not sg.count_positive_names
+    assert sg.num_positive_names == 0
 
 
-def test_subgraph_count_positive_real_edges():
+def test_subgraph_flye_dot():
     ag = AssemblyGraph("metagenomescope/tests/input/bubble_chain_flye.gv")
 
     sg = Subgraph(
@@ -111,33 +105,19 @@ def test_subgraph_count_positive_real_edges():
         ag.pattid2obj.values(),
         node_centric=False,
         length_field="approx_length",
+        # record EDGE names instead since this is a Flye DOT graph
+        record_node_names=False,
     )
-    # this graph will have a fake edge in it; it shouldn't influence this!
-    # Also, this should only count one of the pair of {e9, -e9}.
-    assert sg.count_positive_real_edges() == 10
 
     # just verify that this stuff didn't get broken ...
     assert not sg.node_centric
     assert sg.length_field == "approx_length"
     assert sg.total_length == 55000
 
-
-def test_subgraph_count_positive_real_edges_when_no_userspecified_edgeids():
-    ag = AssemblyGraph(
-        "metagenomescope/tests/input/bubble_cyclic_chain_test.gml"
-    )
-
-    sg = Subgraph(
-        456,
-        "subgraph456",
-        ag.nodeid2obj.values(),
-        ag.edgeid2obj.values(),
-        ag.pattid2obj.values(),
-    )
-
-    with pytest.raises(WeirdError) as ei:
-        sg.count_positive_real_edges()
-    assert "No 'id' field" in str(ei.value)
+    assert sg.count_positive_names
+    # this graph will have a fake edge in it; it shouldn't influence this!
+    # Also, this should only count one of the pair of {e9, -e9}.
+    assert sg.num_positive_names == 10
 
 
 def test_subgraph_missing_length_field_edge():

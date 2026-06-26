@@ -659,7 +659,7 @@ def test_get_curr_drawn_text_around():
 
 def test_get_curr_drawn_text_nr_single():
     ag = AssemblyGraph("metagenomescope/tests/input/2bubbcyc.gfa")
-    assert uu.get_curr_drawn_text({"draw_type": config.DRAW_NR}, ag) == "#2"
+    assert uu.get_curr_drawn_text({"draw_type": config.DRAW_NR}, ag) == "#1"
 
 
 def test_get_curr_drawn_text_nr_multiple():
