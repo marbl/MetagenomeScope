@@ -2203,8 +2203,12 @@ class AssemblyGraph(object):
                                 n.counterpart_node_id
                             ].keys()
 
-                # NOTE: need to account for edges that are impossible to draw
+                # TODO: need to account for edges that are impossible to draw
                 # from this induced subgraph
+
+                # TODO: if this component was changed by the decoupling (ie
+                # if not every single node and edge in it is shown) then add
+                # it to st_cc_nums I guess
 
                 # for debugging: print out a list of nodes that will be shown
                 # in the decoupled version of this component. you can see what
