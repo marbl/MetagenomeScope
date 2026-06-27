@@ -6,6 +6,10 @@ def is_rev(n):
     return n[0] == config.REV
 
 
+def get_orientation(n):
+    return config.REV if is_rev(n) else config.FWD
+
+
 def _briefly_check_name(n):
     """Checks a node/edge name before negating it or something.
 

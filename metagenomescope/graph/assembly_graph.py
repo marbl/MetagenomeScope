@@ -395,11 +395,14 @@ class AssemblyGraph(object):
         logger.debug("  ...Done.")
 
         # If this is the kind of graph where we expect to see node A and -A,
-        # then detect redundant components
-        # (https://github.com/marbl/MetagenomeScope/issues/67).
+        # then detect pairs of redundant components
+        # (https://github.com/marbl/MetagenomeScope/issues/67) as well as
+        # strand-tangled components
+        # (https://github.com/marbl/MetagenomeScope/issues/449).
         # For things like MetaCarvel GML files, though, don't bother (leave
-        # self.nr_cc_nums as None)
+        # these as None)
         self.nr_cc_nums = None
+        self.st_cc_nums = None
         # If we detect nonredundant components, then update this dict: maps
         # component size rank to the size rank of the twin component.
         self.ccnum2twinccnum = {}
@@ -412,6 +415,14 @@ class AssemblyGraph(object):
             logger.debug(
                 "  ...Done. The graph has "
                 f"{ui_utils.pluralize(len(self.nr_cc_nums), 'nonredundant component')}."
+            )
+            logger.debug(
+                "  Detecting and decoupling strand-tangled components..."
+            )
+            self._decouple_components()
+            logger.debug(
+                "  ...Done. Decoupled "
+                f"{ui_utils.pluralize(len(self.st_cc_nums), 'strand-tangled component')}."
             )
 
         # Process paths, if given.
@@ -2119,6 +2130,94 @@ class AssemblyGraph(object):
             if cc2_num is not None:
                 self.nr_cc_nums.add(cc2_num)
                 self.ccnum2twinccnum[cc2_num] = None
+
+    def _decouple_components(self):
+        """Figures out how to split up strand-tangled components.
+
+        This way, we only need to draw each node and edge once in these
+        components -- no need to draw both the + and - versions of each node
+        and edge.
+
+        This assumes that we've already called _record_redundant_components(),
+        and that the graph is one in which orientations are in node and/or
+        edge names (i.e. this isn't a MetaCarvel GML graph).
+
+        Notes
+        -----
+        - See https://github.com/marbl/MetagenomeScope/issues/449 for details.
+
+        - Here, we consider all components that do not have a twin as possible
+          strand-tangled components. In theory, a component could have no twin
+          but still NOT be strand-tangled (if for some reason you like, already
+          removed twin components from an "explicit" graph file like FASTG/DOT)
+          ... but the odds of that happening in real graphs seem low, and even
+          if we try to decouple such a component we just wouldn't do anything.
+        """
+        self.st_cc_nums = set()
+        # Only consider components that do not have a twin
+        for cc in self.components:
+            if self.ccnum2twinccnum[cc.cc_num] is None:
+
+                # pick highest degree node in cc
+                arbn = cc.nodes[0]
+                max_degree = (arbn, self.graph.degree[arbn.unique_id])
+                for n in cc.nodes[1:]:
+                    nid = n.unique_id
+                    degree = self.graph.degree[nid]
+                    if degree > max_degree[1]:
+                        print(n, "higher degree", degree, "than", max_degree)
+                        # Max Degree would be a really cool name for like a dog
+                        # who solves crimes
+                        max_degree = (n, degree)
+
+                # maps orientationless node names (both X and -X are "X") to
+                # a fixed orientation
+                on2orient = {}
+
+                # Fix the highest degree node, m, to be +
+                m = max_degree[0]
+                on2orient[name_utils.get_orientationless_name(m.basename)] = (
+                    config.FWD
+                )
+
+                # Go through the graph and fix node orientations
+                # NOTE: this is inelegant and there is probably a safer way to
+                # do it (that ensures that we end up with a still-connected
+                # graph). at the very least there's gotta be a more concise way
+                # to get both pred and adj nodes IDs from nx right?
+                candidate_nids = set(self.graph.adj[m.unique_id].keys())
+                candidate_nids |= self.graph.pred[m.unique_id].keys()
+                while len(candidate_nids) > 0:
+                    nid = candidate_nids.pop()
+                    n = self.nodeid2obj[nid]
+                    on = name_utils.get_orientationless_name(n.basename)
+                    if on not in on2orient:
+                        on2orient[on] = name_utils.get_orientation(n.basename)
+                        candidate_nids |= self.graph.adj[n.unique_id].keys()
+                        candidate_nids |= self.graph.pred[n.unique_id].keys()
+                        if n.is_split():
+                            candidate_nids |= self.graph.adj[
+                                n.counterpart_node_id
+                            ].keys()
+                            candidate_nids |= self.graph.pred[
+                                n.counterpart_node_id
+                            ].keys()
+
+                # NOTE: need to account for edges that are impossible to draw
+                # from this induced subgraph
+
+                # for debugging: print out a list of nodes that will be shown
+                # in the decoupled version of this component. you can see what
+                # this decoupled graph will look like by drawing around this
+                # list of nodes (keeping distance at 0).
+                with open(f"cc{cc.cc_num}", "w") as f:
+                    text = ""
+                    for on, orient in on2orient.items():
+                        if orient == config.REV:
+                            text += f"-{on}, "
+                        else:
+                            text += f"{on}, "
+                    f.write(text)
 
     def get_nr_cc_nums(self):
         """Returns the size ranks of all nonredundant components."""
