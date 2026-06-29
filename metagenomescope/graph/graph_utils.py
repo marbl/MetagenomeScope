@@ -45,6 +45,8 @@ def get_max_degree_node(g, node_ids):
         arbitrarily (currently, earlier entries in node_ids have priority, but
         for the love of god don't rely on that).
     """
+    if len(node_ids) < 1:
+        raise WeirdError("Not enough nodes given")
     arbnid = node_ids[0]
     max_degree = (arbnid, g.degree[arbnid])
     for nid in node_ids[1:]:
