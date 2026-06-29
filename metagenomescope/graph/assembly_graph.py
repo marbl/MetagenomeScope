@@ -2174,25 +2174,26 @@ class AssemblyGraph(object):
                 # Go through the graph and fix node orientations
                 # NOTE: this is inelegant and there is probably a safer way to
                 # do it (that ensures that we end up with a still-connected
-                # graph). at the very least there's gotta be a more concise way
-                # to get both pred and adj nodes IDs from nx right?
-                candidate_nids = set(self.graph.adj[mid].keys())
-                candidate_nids |= self.graph.pred[mid].keys()
+                # graph).
+                # https://stackoverflow.com/a/74868987
+                candidate_nids = set(nx.all_neighbors(self.graph, mid))
                 while len(candidate_nids) > 0:
                     nid = candidate_nids.pop()
                     n = self.nodeid2obj[nid]
                     on = name_utils.get_orientationless_name(n.basename)
                     if on not in on2orient:
                         on2orient[on] = name_utils.get_orientation(n.basename)
-                        candidate_nids |= self.graph.adj[n.unique_id].keys()
-                        candidate_nids |= self.graph.pred[n.unique_id].keys()
+                        # gotta use .update() instead of |=
+                        # https://stackoverflow.com/a/4045505
+                        candidate_nids.update(
+                            nx.all_neighbors(self.graph, nid)
+                        )
                         if n.is_split():
-                            candidate_nids |= self.graph.adj[
-                                n.counterpart_node_id
-                            ].keys()
-                            candidate_nids |= self.graph.pred[
-                                n.counterpart_node_id
-                            ].keys()
+                            candidate_nids.update(
+                                nx.all_neighbors(
+                                    self.graph, n.counterpart_node_id
+                                )
+                            )
 
                 # TODO: need to account for edges that are impossible to draw
                 # from this induced subgraph
