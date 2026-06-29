@@ -30,6 +30,32 @@ def is_isolated_circle(g, n):
     )
 
 
+def get_max_degree_node(g, node_ids):
+    """Given a collection of nodes, finds the one with the biggest degree.
+
+    Parameters
+    ----------
+    g: nx.MultiDiGraph
+    node_ids: list of int
+
+    Returns
+    -------
+    int
+        The ID of the node in node_ids with the biggest degree. Ties are broken
+        arbitrarily (currently, earlier entries in node_ids have priority, but
+        for the love of god don't rely on that).
+    """
+    arbnid = node_ids[0]
+    max_degree = (arbnid, g.degree[arbnid])
+    for nid in node_ids[1:]:
+        degree = g.degree[nid]
+        if degree > max_degree[1]:
+            # Max Degree would be a really cool name for like a dog
+            # who solves crimes
+            max_degree = (nid, degree)
+    return max_degree[0]
+
+
 def get_only_connecting_edge_uid(g, src_id, tgt_id):
     """Gets the "uid" attribute of the only edge between two nodes.
 

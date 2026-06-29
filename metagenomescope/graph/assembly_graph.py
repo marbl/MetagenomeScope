@@ -2158,24 +2158,15 @@ class AssemblyGraph(object):
         for cc in self.components:
             if self.ccnum2twinccnum[cc.cc_num] is None:
 
-                # pick highest degree node in cc
-                arbn = cc.nodes[0]
-                max_degree = (arbn, self.graph.degree[arbn.unique_id])
-                for n in cc.nodes[1:]:
-                    nid = n.unique_id
-                    degree = self.graph.degree[nid]
-                    if degree > max_degree[1]:
-                        print(n, "higher degree", degree, "than", max_degree)
-                        # Max Degree would be a really cool name for like a dog
-                        # who solves crimes
-                        max_degree = (n, degree)
-
                 # maps orientationless node names (both X and -X are "X") to
                 # a fixed orientation
                 on2orient = {}
 
-                # Fix the highest degree node, m, to be +
-                m = max_degree[0]
+                # Fix the highest degree node in this component, m, to be +
+                mid = graph_utils.get_max_degree_node(
+                    self.graph, [n.unique_id for n in cc.nodes]
+                )
+                m = self.nodeid2obj[mid]
                 on2orient[name_utils.get_orientationless_name(m.basename)] = (
                     config.FWD
                 )
@@ -2185,8 +2176,8 @@ class AssemblyGraph(object):
                 # do it (that ensures that we end up with a still-connected
                 # graph). at the very least there's gotta be a more concise way
                 # to get both pred and adj nodes IDs from nx right?
-                candidate_nids = set(self.graph.adj[m.unique_id].keys())
-                candidate_nids |= self.graph.pred[m.unique_id].keys()
+                candidate_nids = set(self.graph.adj[mid].keys())
+                candidate_nids |= self.graph.pred[mid].keys()
                 while len(candidate_nids) > 0:
                     nid = candidate_nids.pop()
                     n = self.nodeid2obj[nid]
