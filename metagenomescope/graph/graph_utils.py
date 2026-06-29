@@ -676,7 +676,7 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
     -----
     - This does not explicitly check that node names match up between these
       components (although tbh I think leaving define_edges_by_nodenames set to
-      True basically has the same effect indicentally). In Flye DOT files, node
+      True basically has the same effect incidentally). In Flye DOT files, node
       names do not have orientation (see
       https://github.com/marbl/MetagenomeScope/issues/401); and in other types
       of graphs, you should have called get_candidate_twin_component_num()
