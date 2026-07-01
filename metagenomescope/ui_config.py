@@ -5,9 +5,9 @@ from dash import html
 ###############################################################################
 
 NR_CCS = "nr"
-SPLIT_STRANDTANGLED = "decouple"
+DECOUPLE = "decouple"
 SHOW_PATTERNS = "patterns"
-DEFAULT_SCOPE_SETTINGS = [NR_CCS, SPLIT_STRANDTANGLED, SHOW_PATTERNS]
+DEFAULT_SCOPE_SETTINGS = [NR_CCS, DECOUPLE, SHOW_PATTERNS]
 
 DOT_TEXT = html.Span("dot", style={"font-style": "italic"})
 
@@ -17,8 +17,8 @@ SCOPE_SETTINGS_OPTIONS = [
         "value": NR_CCS,
     },
     {
-        "label": "Split strand-tangled components",
-        "value": SPLIT_STRANDTANGLED,
+        "label": "Decouple strand-tangled components",
+        "value": DECOUPLE,
     },
     {
         "label": "Show patterns",

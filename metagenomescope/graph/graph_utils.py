@@ -1,3 +1,4 @@
+import logging
 from collections import Counter
 from .. import ui_utils, name_utils, config
 from metagenomescope.errors import WeirdError, GraphParsingError
@@ -728,3 +729,35 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
         # complementary version of cc AND some other junk. Um, but probably I
         # doubt this will happen in practice much if at all lol
         return False
+
+
+def warn_if_cc_edge_cts_asymmetric(cc, nodeid2obj):
+    """Logs a warning if s -> t and -t -> -s have different edge counts.
+
+    Parameters
+    ----------
+    cc: metagenomescope.graph.Component
+        Component to check. We assume that this component is strand-tangled;
+        otherwise, this will make a false-positive warning (since we will see
+        an edge
+
+    nodeid2obj: dict of int -> metagenomescope.graph.Node
+        Maps node IDs in the NetworkX graph to the underlying objects. Needed
+        for getting node basenames.
+
+    Returns
+    -------
+    None
+    """
+    st2ct = count_real_edge_info(cc, nodeid2obj, index_by_namepair=True)
+    for (s, t), edgect in st2ct.items():
+        revtup = (name_utils.negate(t), name_utils.negate(s))
+        if revtup not in st2ct or st2ct[revtup] != edgect:
+            logging.warning(
+                f"WARNING: Component #{cc.cc_num} has asymmetric edge counts: "
+                f"e.g. {s} -> {t} has {ui_utils.pluralize(edgect, 'edge')}, "
+                f"but {revtup[0]} -> {revtup[1]} has "
+                f"{ui_utils.pluralize(st2ct[revtup], 'edge')}. Drawing this "
+                "component with decoupling may not show some edges."
+            )
+            break

@@ -1740,6 +1740,7 @@ def run(
                                     ui_utils.get_layout_options_tab(
                                         ag.node_centric,
                                         ag.orientation_in_name,
+                                        ag.is_flye_dot,
                                         multiple_ccs,
                                         default_dot_alg_desc,
                                     ),

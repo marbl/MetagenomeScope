@@ -6,6 +6,11 @@ def is_rev(n):
     return n[0] == config.REV
 
 
+def is_fwd(n):
+    # i will make no apologies for writing the code this way
+    return not is_rev(n)
+
+
 def get_orientation(n):
     return config.REV if is_rev(n) else config.FWD
 

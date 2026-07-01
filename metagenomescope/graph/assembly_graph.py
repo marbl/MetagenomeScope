@@ -416,14 +416,23 @@ class AssemblyGraph(object):
                 "  ...Done. The graph has "
                 f"{ui_utils.pluralize(len(self.nr_cc_nums), 'nonredundant component')}."
             )
-            logger.debug(
-                "  Detecting and decoupling strand-tangled components..."
-            )
-            self._decouple_components()
-            logger.debug(
-                "  ...Done. Decoupled "
-                f"{ui_utils.pluralize(len(self.st_cc_nums), 'strand-tangled component')}."
-            )
+            # Because node names in Flye DOT files do not have orientations,
+            # decoupling these components becomes tricky. You could still do it
+            # but I don't think it's worth the trouble (yet)
+            if self.is_flye_dot:
+                logger.debug(
+                    "  Skipping decoupling step, since the input graph is a "
+                    "Flye DOT file."
+                )
+            else:
+                logger.debug(
+                    "  Detecting and decoupling strand-tangled components..."
+                )
+                self._decouple_components()
+                logger.debug(
+                    "  ...Done. Decoupled "
+                    f"{ui_utils.pluralize(len(self.st_cc_nums), 'strand-tangled component')}."
+                )
 
         # Process paths, if given.
         #
@@ -2139,8 +2148,8 @@ class AssemblyGraph(object):
         and edge.
 
         This assumes that we've already called _record_redundant_components(),
-        and that the graph is one in which orientations are in node and/or
-        edge names (i.e. this isn't a MetaCarvel GML graph).
+        and that self.orientation_in_name is True and self.is_flye_dot is
+        False.
 
         Notes
         -----
@@ -2152,24 +2161,42 @@ class AssemblyGraph(object):
           removed twin components from an "explicit" graph file like FASTG/DOT)
           ... but the odds of that happening in real graphs seem low, and even
           if we try to decouple such a component we just wouldn't do anything.
+
+        - It should be POSSIBLE to generalize this to Flye DOT files by
+          removing the reliance on node orientations (or, like, inferring
+          node names or something) but I really don't think that is worth it rn
         """
         self.st_cc_nums = set()
-        # Only consider components that do not have a twin
         for cc in self.components:
-            if self.ccnum2twinccnum[cc.cc_num] is None:
+            # Only consider components that do not have a twin (and that have
+            # multiple nodes)
+            if self.ccnum2twinccnum[cc.cc_num] is None and len(cc.nodes) > 1:
 
                 # maps orientationless node names (both X and -X are "X") to
                 # a fixed orientation
                 on2orient = {}
 
                 # Fix the highest degree node in this component, m, to be +
+                #
+                # In a perfectly symmetric component, the highest degree node X
+                # should also have a twin node -X with the same degree (right?)
+                # Thus, limit our initial search here to + nodes to ensure that
+                # "mid" represents a + node. (We use is_fwd() instead of the
+                # node "orientation" data because the DOT parsing code does not
+                # assign orientations even to LJA DOT nodes, at least for now.)
                 mid = graph_utils.get_max_degree_node(
-                    self.graph, [n.unique_id for n in cc.nodes]
+                    self.graph,
+                    [
+                        n.unique_id
+                        for n in cc.nodes
+                        if name_utils.is_fwd(n.basename)
+                    ],
                 )
                 m = self.nodeid2obj[mid]
                 on2orient[name_utils.get_orientationless_name(m.basename)] = (
                     config.FWD
                 )
+                shown_nids = {mid}
 
                 # Go through the graph and fix node orientations
                 # NOTE: this is inelegant and there is probably a safer way to
@@ -2183,24 +2210,63 @@ class AssemblyGraph(object):
                     on = name_utils.get_orientationless_name(n.basename)
                     if on not in on2orient:
                         on2orient[on] = name_utils.get_orientation(n.basename)
+                        shown_nids.add(nid)
                         # gotta use .update() instead of |=
                         # https://stackoverflow.com/a/4045505
                         candidate_nids.update(
                             nx.all_neighbors(self.graph, nid)
                         )
                         if n.is_split():
+                            shown_nids.add(n.counterpart_node_id)
                             candidate_nids.update(
                                 nx.all_neighbors(
                                     self.graph, n.counterpart_node_id
                                 )
                             )
 
-                # TODO: need to account for edges that are impossible to draw
-                # from this induced subgraph
+                # Was this component changed by fixing node orientations?
+                # It might not have been, if it was not strand-tangled. (We
+                # could encounter this case in FASTG / LJA DOT files, I guess.)
+                if len(shown_nids) == len(cc.nodes):
+                    # no, this component was not changed. move on.
+                    continue
+                elif len(shown_nids) > len(cc.nodes):
+                    # like, i know it should never happen. i just wanna be sure
+                    raise WeirdError(f"{cc} caused the apocalypse what even")
 
-                # TODO: if this component was changed by the decoupling (ie
-                # if not every single node and edge in it is shown) then add
-                # it to st_cc_nums I guess
+                # Okay, we know this component was changed by fixing node
+                # orientations, since |shown nodes| < |nodes|.
+
+                # If (s, t) and (-t, -s) correspond to DIFFERENT amounts of
+                # edges, then we can still do decoupling... but let's emit a
+                # LOUD warning that drawing this component with decoupling may
+                # not show some edges. (This should only happen with "explicit"
+                # filetypes that have node orientations -- so, FASTG and LJA
+                # DOT, I think. And even then this really shouldn't happen in
+                # practice.)
+                graph_utils.warn_if_cc_edge_cts_asymmetric(cc, self.nodeid2obj)
+
+                # Record what edges will be drawn in the decoupled version of
+                # this component
+                shown_eids = set()
+                # ... and what edges are impossible to draw normally (even when
+                # reverse-complemented) given just the shown nodes
+                inval_eids = set()
+                for e in cc.edges:
+                    src_shown = e.new_src_id in shown_nids
+                    tgt_shown = e.new_tgt_id in shown_nids
+                    # If BOTH the source and target are shown, then we can draw
+                    # this edge! And if NEITHER the source and target is shown,
+                    # then we can draw its reverse complement. The tricky thing
+                    # is if exactly one of the source and target is shown.
+                    if src_shown and tgt_shown:
+                        shown_eids.add(e)
+                    elif src_shown ^ tgt_shown:
+                        inval_eids.add(e)
+
+                # Record this component, so that we can handle it specially
+                # when drawing with the decoupling option turned on.
+                self.st_cc_nums.add(cc.cc_num)
 
                 # for debugging: print out a list of nodes that will be shown
                 # in the decoupled version of this component. you can see what
