@@ -48,6 +48,11 @@ def negate(n):
         return config.REV + n
 
 
+def negate_edge_tuple(s, t):
+    """Converts a 2-tuple of node names (s, t) to (-t, -s)."""
+    return negate(t), negate(s)
+
+
 def get_orientationless_name(n):
     """Returns a version of the name without any orientation signs."""
     _briefly_check_name(n)

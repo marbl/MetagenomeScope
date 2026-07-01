@@ -706,10 +706,7 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
 
                 if define_edges_by_nodenames:
                     # info is a tuple (src name, tgt name)
-                    rcinfo = (
-                        name_utils.negate(info[1]),
-                        name_utils.negate(info[0]),
-                    )
+                    rcinfo = name_utils.negate_edge_tuple(*info)
                 else:
                     # info is a string user-specified edge ID
                     rcinfo = name_utils.negate(info)
@@ -751,7 +748,7 @@ def warn_if_cc_edge_cts_asymmetric(cc, nodeid2obj):
     """
     st2ct = count_real_edge_info(cc, nodeid2obj, index_by_namepair=True)
     for (s, t), edgect in st2ct.items():
-        revtup = (name_utils.negate(t), name_utils.negate(s))
+        revtup = name_utils.negate_edge_tuple(s, t)
         if revtup not in st2ct or st2ct[revtup] != edgect:
             logging.warning(
                 f"WARNING: Component #{cc.cc_num} has asymmetric edge counts: "

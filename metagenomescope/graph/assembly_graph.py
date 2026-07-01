@@ -738,10 +738,7 @@ class AssemblyGraph(object):
                 # Flye edge IDs. It is possible to associate pairs of RC edges
                 # in a LJA DOT file but it is probably not worth the work atm.)
                 edgeinfo = (src.name, tgt.name)
-                rcinfo = (
-                    name_utils.negate(tgt.name),
-                    name_utils.negate(src.name),
-                )
+                rcinfo = name_utils.negate_edge_tuple(src.name, tgt.name)
 
             # If we have already seen the RC of this edge, or -- for node-
             # centric graphs, if we have already seen a parallel edge to this
@@ -2165,6 +2162,30 @@ class AssemblyGraph(object):
         - It should be POSSIBLE to generalize this to Flye DOT files by
           removing the reliance on node orientations (or, like, inferring
           node names or something) but I really don't think that is worth it rn
+
+        - There is some ambiguity in how we determine which node orientations
+          to fix. Like, as long as we consider all nodes in this component, any
+          traversal approach "works" (i.e. we will end up showing all nodes
+          once with a given orientation). Our goal is more specifically to
+          minimize the amount of invalidated edges while maximizing the
+          "linearity" of the resulting layout.
+
+          We currently just use NetworkX's bfs_layers() function, which seems
+          to work well for this, but maybe there are other methods that would
+          be better (that explicitly "weight" outgoing edges more, in order to
+          increase linearity).
+
+          Consider a component like X -> Y -> ... -> -Y -> -X
+                                    A -> B -> ... -> -B -> -A, where the ...s
+          indicate these four paths kind of mixing together due to inverted
+          repeats or something.
+
+          In this graph, we want to ideally end up with XY...(-B)(-A) or
+          AB...(-Y)(-X). Nothing is *wrong* if we end up with XY...BA or
+          AB...YX or something -- since those are still valid decoupled
+          representations of this component -- but they are not ideal, because
+          they are not the most linear way of representing it. Probably there
+          is a good way to formalize this that I am just missing out on.
         """
         self.st_cc_nums = set()
         for cc in self.components:
@@ -2176,53 +2197,51 @@ class AssemblyGraph(object):
                 # a fixed orientation
                 on2orient = {}
 
-                # Fix the highest degree node in this component, m, to be +
+                # Create lists of all node IDs, and of all + node IDs
+                # (order doesn't matter, but I guess it slightly impacts tie-
+                # breaking in max degree node finding later)
+                cc_nids = []
+                fwd_nids = []
+                for n in cc.nodes:
+                    nid = n.unique_id
+                    cc_nids.append(nid)
+                    # (We use is_fwd() instead of the node "orientation" data
+                    # because the DOT parsing code doesn't assign orientations
+                    # even to LJA DOT nodes, at least for now.)
+                    if name_utils.is_fwd(n.basename):
+                        fwd_nids.append(nid)
+
+                # Fix the highest-degree + node in this component as shown
                 #
                 # In a perfectly symmetric component, the highest degree node X
                 # should also have a twin node -X with the same degree (right?)
-                # Thus, limit our initial search here to + nodes to ensure that
-                # "mid" represents a + node. (We use is_fwd() instead of the
-                # node "orientation" data because the DOT parsing code does not
-                # assign orientations even to LJA DOT nodes, at least for now.)
-                mid = graph_utils.get_max_degree_node(
-                    self.graph,
-                    [
-                        n.unique_id
-                        for n in cc.nodes
-                        if name_utils.is_fwd(n.basename)
-                    ],
-                )
+                # Thus, we limit the max-degree node search here to + nodes.
+                mid = graph_utils.get_max_degree_node(self.graph, fwd_nids)
                 m = self.nodeid2obj[mid]
                 on2orient[name_utils.get_orientationless_name(m.basename)] = (
                     config.FWD
                 )
                 shown_nids = {mid}
 
-                # Go through the graph and fix node orientations
-                # NOTE: this is inelegant and there is probably a safer way to
-                # do it (that ensures that we end up with a still-connected
-                # graph).
-                # https://stackoverflow.com/a/74868987
-                candidate_nids = set(nx.all_neighbors(self.graph, mid))
-                while len(candidate_nids) > 0:
-                    nid = candidate_nids.pop()
-                    n = self.nodeid2obj[nid]
-                    on = name_utils.get_orientationless_name(n.basename)
-                    if on not in on2orient:
-                        on2orient[on] = name_utils.get_orientation(n.basename)
-                        shown_nids.add(nid)
-                        # gotta use .update() instead of |=
-                        # https://stackoverflow.com/a/4045505
-                        candidate_nids.update(
-                            nx.all_neighbors(self.graph, nid)
-                        )
-                        if n.is_split():
-                            shown_nids.add(n.counterpart_node_id)
-                            candidate_nids.update(
-                                nx.all_neighbors(
-                                    self.graph, n.counterpart_node_id
-                                )
+                # Go through the graph and fix node orientations.
+                # We use BFS to do this, which seems to work ok; see docstring.
+                # Note that computing the induced subgraph and creating an
+                # undirected graph view from it could be slow (but I doubt it
+                # will be a bottleneck). If needed we can do BFS/etc manually
+                ccug = nx.induced_subgraph(self.graph, cc_nids).to_undirected(
+                    as_view=True
+                )
+                for nids in nx.bfs_layers(ccug, mid):
+                    for nid in nids:
+                        n = self.nodeid2obj[nid]
+                        on = name_utils.get_orientationless_name(n.basename)
+                        if on not in on2orient:
+                            on2orient[on] = name_utils.get_orientation(
+                                n.basename
                             )
+                            shown_nids.add(nid)
+                            if n.is_split():
+                                shown_nids.add(n.counterpart_node_id)
 
                 # Was this component changed by fixing node orientations?
                 # It might not have been, if it was not strand-tangled. (We
@@ -2248,10 +2267,10 @@ class AssemblyGraph(object):
 
                 # Record what edges will be drawn in the decoupled version of
                 # this component
-                shown_eids = set()
+                shown_edgetups = set()
                 # ... and what edges are impossible to draw normally (even when
                 # reverse-complemented) given just the shown nodes
-                inval_eids = set()
+                inval_edgetups = set()
                 for e in cc.edges:
                     src_shown = e.new_src_id in shown_nids
                     tgt_shown = e.new_tgt_id in shown_nids
@@ -2259,10 +2278,18 @@ class AssemblyGraph(object):
                     # this edge! And if NEITHER the source and target is shown,
                     # then we can draw its reverse complement. The tricky thing
                     # is if exactly one of the source and target is shown.
+                    s = self.nodeid2obj[e.new_src_id].name
+                    t = self.nodeid2obj[e.new_tgt_id].name
                     if src_shown and tgt_shown:
-                        shown_eids.add(e)
-                    elif src_shown ^ tgt_shown:
-                        inval_eids.add(e)
+                        shown_edgetups.add((s, t))
+                    elif (
+                        src_shown ^ tgt_shown
+                        and name_utils.negate_edge_tuple(s, t)
+                        not in inval_edgetups
+                    ):
+                        inval_edgetups.add((s, t))
+                        print(f"\tcc {cc}: inval edge {e} from {s} -> {t}")
+                print(".... INVALIDATED", len(inval_edgetups), "edges")
 
                 # Record this component, so that we can handle it specially
                 # when drawing with the decoupling option turned on.
