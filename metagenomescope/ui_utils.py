@@ -1193,6 +1193,10 @@ def nr_ccs(scope_settings):
     return ui_config.NR_CCS in scope_settings
 
 
+def decouple(scope_settings):
+    return ui_config.DECOUPLE in scope_settings
+
+
 def show_patterns(scope_settings):
     return ui_config.SHOW_PATTERNS in scope_settings
 

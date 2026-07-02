@@ -269,6 +269,7 @@ class DrawResults(object):
             row2max_height[curr_row] = max(
                 row2max_height[curr_row], lay.height
             )
+            min_ypad = max(min_ypad, lay.height * 0.08)
 
             if end_row_after_adding_this_region:
                 curr_row += 1
@@ -291,9 +292,11 @@ class DrawResults(object):
                 # I know that looks kind of impenetrable but it's just, like,
                 # how much ypad do we need to add in order to stretch out the
                 # height to match the goal height-to-width ratio
-                ypad = (
-                    (goal_hwratio * row_width) - total_height_without_ypad
-                ) / (num_rows - 1)
+                ypad = max(
+                    ((goal_hwratio * row_width) - total_height_without_ypad)
+                    / (num_rows - 1),
+                    min_ypad,
+                )
         y = 0
         row2y = {}
         for row in range(num_rows):

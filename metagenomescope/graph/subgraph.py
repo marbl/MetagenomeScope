@@ -20,6 +20,7 @@ import itertools
 from .. import ui_config, ui_utils, name_utils
 from ..layout import Layout
 from ..errors import WeirdError
+from . import graph_utils
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
 
@@ -324,13 +325,54 @@ class Subgraph(object):
         -------
         DrawResults
         """
-        lay = None
-        if layout_alg in ui_config.LAYOUT2GVPROG:
-            lay = Layout(
-                self,
-                scope_settings,
-                modifier_settings,
-                layout_alg,
-                layout_params,
+        if self.decoupling_done and ui_utils.decouple(scope_settings):
+            # Create a temporary Subgraph object representing the decoupled
+            # version of this one. We could instead do this without creating a
+            # new object and instead modifying the way that you get nodes from
+            # a subgraph, but this seems easier. (Maybe this will be slow? but
+            # probs not)
+            dcsg = Subgraph(
+                None,
+                self.name + "_dc",
+                [
+                    n
+                    for n in self.nodes
+                    if n.unique_id in self.decoupled_shown_node_ids
+                ],
+                [
+                    e
+                    for e in self.edges
+                    if e.unique_id in self.decoupled_shown_edge_ids
+                ],
+                [
+                    p
+                    for p in self.patterns
+                    if p.unique_id
+                    in graph_utils.get_avail_pattern_ids(
+                        self.patterns,
+                        self.decoupled_shown_node_ids,
+                        self.decoupled_shown_edge_ids,
+                        scope_settings,
+                    )
+                ],
+                self.node_centric,
+                self.length_field,
+                self.record_node_names,
+                self.count_positive_names,
             )
-        return DrawResults({self: lay}, scope_settings)
+            if hasattr(self, "cc_num"):
+                dcsg.cc_num = self.cc_num
+            return dcsg.to_cyjs(
+                scope_settings, modifier_settings, layout_alg, layout_params
+            )
+        else:
+            lay = None
+            if layout_alg in ui_config.LAYOUT2GVPROG:
+                lay = Layout(
+                    self,
+                    scope_settings,
+                    modifier_settings,
+                    layout_alg,
+                    layout_params,
+                )
+            return DrawResults({self: lay}, scope_settings)

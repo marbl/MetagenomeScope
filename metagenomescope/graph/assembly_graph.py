@@ -2600,29 +2600,12 @@ class AssemblyGraph(object):
             subgraph_edge_ids.add(uid)
 
         # Get patterns, maybe
-        subgraph_patt_ids = set()
-        if ui_utils.show_patterns(scope_settings):
-            # include a pattern only if all its descendant nodes and edges are
-            # included
-            for pid, p in self.pattid2obj.items():
-                available = True
-                desc_nodes, desc_edges, desc_patts, _ = p.get_descendant_info()
-                for dn in desc_nodes:
-                    if dn.unique_id not in subgraph_node_ids:
-                        available = False
-                        break
-                # NOTE: If all of the descendant nodes of a pattern are drawn,
-                # then all of the descendant edges of this pattern should also
-                # have been drawn. Probably??? At least for the types of
-                # patterns we currently identify, I think. Just for the sake
-                # of safety, we also check the edges (set lookups are fastish
-                # anyway right) out of paranoia.
-                for de in desc_edges:
-                    if de.unique_id not in subgraph_edge_ids:
-                        available = False
-                        break
-                if available:
-                    subgraph_patt_ids.add(pid)
+        subgraph_patt_ids = graph_utils.get_avail_pattern_ids(
+            self.pattid2obj.values(),
+            subgraph_node_ids,
+            subgraph_edge_ids,
+            scope_settings,
+        )
         return subgraph_node_ids, subgraph_edge_ids, subgraph_patt_ids
 
     def _to_cyjs_around_nodes(
