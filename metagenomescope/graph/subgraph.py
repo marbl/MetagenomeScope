@@ -155,6 +155,13 @@ class Subgraph(object):
         # num_real_edges + num_fake_edges).
         self.num_total_edges = 0
 
+        # Things to draw if using decoupling. Only relevant for strand-tangled
+        # Subgraphs (and probably only relevant for Components, right...?)
+        self.decoupling_done = False
+        self.decoupled_shown_node_ids = set()
+        self.decoupled_shown_edge_ids = set()
+        self.decoupled_inval_edge_ids = set()
+
         # PatternStats for this Subgraph.
         self.pattern_stats = PatternStats()
 
@@ -255,6 +262,42 @@ class Subgraph(object):
         self.patterns.append(pattern)
         self.pattern_stats.update(pattern.pattern_type)
         self.pattid2obj[pattern.unique_id] = pattern
+
+    def _decouple(self, shown_node_ids, shown_edge_ids, inval_edge_ids):
+        """Records a decoupling for this subgraph.
+
+        Probably this should only be done for Components, but maybe I will
+        figure out a use case for doing this for general Subgraph objects
+        at some point. idk.
+
+        Parameters
+        ----------
+        shown_node_ids: set of int
+            Node IDs to be drawn. Assuming that the Subgraph object on which
+            you are calling this method is a symmetric strand-tangled connected
+            component, |shown_node_ids| should be half of |cc.nodes| (ignoring
+            jank like if X is split but -X isn't).
+
+        shown_edge_ids: set of int
+            Edge IDs to be drawn. This can contain parallel edges.
+
+        inval_edge_ids: set of int
+            IDs of edges that cannot be drawn normally (given only the nodes in
+            shown_node_ids), but which we will draw anyway by messing with the
+            edge ports. This can contain parallel edges. Note that this should
+            not describe ALL "invalidated" edges -- just the ones that we
+            should draw anyway.
+
+            (If this Subgraph is a symmetric strand-tangled component, then an
+            edge s -> t being invalidated means that -t -> -s will also be
+            invalidated. We only need to draw one of these.)
+        """
+        if self.decoupling_done:
+            raise WeirdError(f"{self} is already decoupled")
+        self.decoupled_shown_node_ids = shown_node_ids
+        self.decoupled_shown_edge_ids = shown_edge_ids
+        self.decoupled_inval_edge_ids = inval_edge_ids
+        self.decoupling_done = True
 
     def get_objs(self):
         return itertools.chain(self.nodes, self.edges, self.patterns)

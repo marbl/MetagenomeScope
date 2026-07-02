@@ -210,6 +210,12 @@ def check_node_split_properly(g, basename, nodename2obj, edgeid2obj):
     return left, right, check_and_get_fake_edge_id(g, left, right, edgeid2obj)
 
 
+def add_node_and_counterpart_ids(s, n):
+    s.add(n.unique_id)
+    if n.is_split():
+        s.add(n.counterpart_node_id)
+
+
 def get_one_side_of_edge_ids(g, node_id, in_edges=True):
     eids = set()
     if in_edges:
@@ -729,7 +735,7 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
 
 
 def warn_if_cc_edge_cts_asymmetric(cc, nodeid2obj):
-    """Logs a warning if s -> t and -t -> -s have different edge counts.
+    """Logs a warning if s -> t and -t -> -s have different real edge counts.
 
     Parameters
     ----------
@@ -745,6 +751,17 @@ def warn_if_cc_edge_cts_asymmetric(cc, nodeid2obj):
     Returns
     -------
     None
+
+    Notes
+    -----
+    Because this uses count_real_edge_info(), which only considers real edges,
+    this will ignore fake edges. Thus, even if some node X is split but node
+    -X is not split, this should not trigger a warning here (so long as the
+    real edges in the component are symmetric).
+
+    ... Um, the pattern decomposition should usually produce symmetric results
+    (so X and -X having different "split statuses" shouldn't really happen
+    anyway), but maybe that will change in the future. (probs not tho)
     """
     st2ct = count_real_edge_info(cc, nodeid2obj, index_by_namepair=True)
     for (s, t), edgect in st2ct.items():

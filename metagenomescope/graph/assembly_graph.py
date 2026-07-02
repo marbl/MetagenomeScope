@@ -2221,7 +2221,18 @@ class AssemblyGraph(object):
                 on2orient[name_utils.get_orientationless_name(m.basename)] = (
                     config.FWD
                 )
-                shown_nids = {mid}
+                shown_nids = set()
+                # if we show a split node, we really should also show its
+                # counterpart (I mean it's not like a huge deal if we omit the
+                # counterpart but I think it would look gross and confusing).
+                # USUALLY the max-degree node should not be split, but maybe it
+                # could happen?
+                #
+                # A more elegant way of handling this would be only creating
+                # fwd_nids to include unsplit nodes, but I fear some components
+                # might ONLY include split nodes. Maybe? That should really not
+                # happen but I'm too tired to prove it so let's be safe
+                graph_utils.add_node_and_counterpart_ids(shown_nids, m)
 
                 # Go through the graph and fix node orientations.
                 # We use BFS to do this, which seems to work ok; see docstring.
@@ -2239,9 +2250,9 @@ class AssemblyGraph(object):
                             on2orient[on] = name_utils.get_orientation(
                                 n.basename
                             )
-                            shown_nids.add(nid)
-                            if n.is_split():
-                                shown_nids.add(n.counterpart_node_id)
+                            graph_utils.add_node_and_counterpart_ids(
+                                shown_nids, n
+                            )
 
                 # Was this component changed by fixing node orientations?
                 # It might not have been, if it was not strand-tangled. (We
@@ -2267,10 +2278,11 @@ class AssemblyGraph(object):
 
                 # Record what edges will be drawn in the decoupled version of
                 # this component
-                shown_edgetups = set()
+                shown_eids = set()
                 # ... and what edges are impossible to draw normally (even when
                 # reverse-complemented) given just the shown nodes
                 inval_edgetups = set()
+                inval_eids = set()
                 for e in cc.edges:
                     src_shown = e.new_src_id in shown_nids
                     tgt_shown = e.new_tgt_id in shown_nids
@@ -2281,32 +2293,30 @@ class AssemblyGraph(object):
                     s = self.nodeid2obj[e.new_src_id].name
                     t = self.nodeid2obj[e.new_tgt_id].name
                     if src_shown and tgt_shown:
-                        shown_edgetups.add((s, t))
-                    elif (
-                        src_shown ^ tgt_shown
-                        and name_utils.negate_edge_tuple(s, t)
-                        not in inval_edgetups
-                    ):
-                        inval_edgetups.add((s, t))
-                        print(f"\tcc {cc}: inval edge {e} from {s} -> {t}")
-                print(".... INVALIDATED", len(inval_edgetups), "edges")
+                        shown_eids.add(e.unique_id)
+                    elif src_shown ^ tgt_shown:
+                        # If we reach this case, then exactly one of {source,
+                        # target} is shown, so this edge is invalidated.
+                        #
+                        # Consider the case where there are parallel
+                        # invalidated edges (multiple from s -> t and multiple
+                        # from -t -> -s). We could show (with the funky port
+                        # stuff) either all edges from s -> t, or all edges
+                        # from -t -> -s, but it would be confusing to show a
+                        # mix of edges. Thus, we arbitrarily say that we will
+                        # only show invalidated edges from one of the two
+                        # orientations (by storing the orientation as a tuple).
+                        if (
+                            name_utils.negate_edge_tuple(s, t)
+                            not in inval_edgetups
+                        ):
+                            inval_edgetups.add((s, t))
+                            inval_eids.add(e.unique_id)
 
                 # Record this component, so that we can handle it specially
                 # when drawing with the decoupling option turned on.
+                cc._decouple(shown_nids, shown_eids, inval_eids)
                 self.st_cc_nums.add(cc.cc_num)
-
-                # for debugging: print out a list of nodes that will be shown
-                # in the decoupled version of this component. you can see what
-                # this decoupled graph will look like by drawing around this
-                # list of nodes (keeping distance at 0).
-                with open(f"cc{cc.cc_num}", "w") as f:
-                    text = ""
-                    for on, orient in on2orient.items():
-                        if orient == config.REV:
-                            text += f"-{on}, "
-                        else:
-                            text += f"{on}, "
-                    f.write(text)
 
     def get_nr_cc_nums(self):
         """Returns the size ranks of all nonredundant components."""
