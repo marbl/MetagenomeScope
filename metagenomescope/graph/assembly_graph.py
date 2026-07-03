@@ -2581,16 +2581,7 @@ class AssemblyGraph(object):
         return subgraph, subgraph_node_ids
 
     def get_ids_in_neighborhood(self, node_ids, dist, scope_settings):
-        """Returns the IDs of all nodes, edges, and patterns in a neighborhood.
-
-        See get_neighborhood()'s documentation for details. The main "extra"
-        thing this function does is computing which patterns should be included
-        in the neighborhood; we say that a pattern is "available" for inclusion
-        in the neighborhood if all of this pattern's descendant nodes and edges
-        are also in the neighborhood.
-
-        Oh also the IDs are stored in sets. in case that's relevant.
-        """
+        """Gets ID sets for all nodes, edges, and patterns in a neighborhood."""
         # Get nodes
         subgraph, subgraph_node_ids = self.get_neighborhood(node_ids, dist)
 

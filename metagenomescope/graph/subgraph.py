@@ -339,6 +339,7 @@ class Subgraph(object):
                     for n in self.nodes
                     if n.unique_id in self.decoupled_shown_node_ids
                 ],
+                # NOTE: still need to account for invalidated edges #449
                 [
                     e
                     for e in self.edges

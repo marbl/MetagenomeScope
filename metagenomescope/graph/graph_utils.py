@@ -778,7 +778,24 @@ def warn_if_cc_edge_cts_asymmetric(cc, nodeid2obj):
 
 
 def get_avail_pattern_ids(poss_patterns, node_ids, edge_ids, scope_settings):
-    """Returns IDs of all patterns whose child nodes/edges are given."""
+    """Returns IDs of all patterns whose descendant nodes/edges are all given.
+
+    Parameters
+    ----------
+    poss_patterns: collection of metagenomescope.graph.Pattern
+
+    node_ids: set of int
+
+    edge_ids: set of int
+
+    scope_settings: list of str
+
+    Returns
+    -------
+    set of int
+        The IDs of all patterns in poss_patterns that are "available,"
+        given the specified node and edge IDs.
+    """
     avail_patt_ids = set()
     if ui_utils.show_patterns(scope_settings):
         # include a pattern only if all its descendant nodes and edges are
