@@ -793,8 +793,12 @@ def get_avail_pattern_ids(poss_patterns, node_ids, edge_ids, scope_settings):
     Returns
     -------
     set of int
-        The IDs of all patterns in poss_patterns that are "available,"
-        given the specified node and edge IDs.
+        If the scope settings indicate that we should show patterns, then
+        this will return the IDs of all patterns in poss_patterns that are
+        "available," given the specified node and edge IDs.
+
+        (If the scope settings indicate that we should NOT show patterns,
+        then this will return an empty set.)
     """
     avail_patt_ids = set()
     if ui_utils.show_patterns(scope_settings):
