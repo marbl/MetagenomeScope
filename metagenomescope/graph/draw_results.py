@@ -86,16 +86,20 @@ class DrawResults(object):
     def get_sorted_regions(self):
         """Sorts all of the regions represented here.
 
-        As of writing, self.region2layout should either contain ONLY Components
-        or just a single non-Component Subgraph. It shouldn't contain both. But
-        just to future-proof this, we allow for both.
+        As of writing, self.region2layout should contain either:
+
+        - ONLY Components or Subgraphs representing decoupled components, or
+        - JUST a single non-Component Subgraph
+
+        It shouldn't contain both non-Component Subgraphs and Components, etc.
+        But just to future-proof this, we allow that.
 
         This returns regions in the following order:
 
-        1. All Components, sorted by cc_num (lower cc nums, i.e. bigger
-           components, go first)
+        1. All Subgraphs that have a cc_num attribute, sorted by cc_num (lower
+           cc nums, i.e. bigger components, go first).
 
-        2. All non-Components, sorted using graph_utils.get_sorted_subgraphs()
+        2. All other Subgraphs, sorted using graph_utils.get_sorted_subgraphs()
            (so, using the same criteria as how we assigned cc nums -- bigger
            subgraphs first)
         """
