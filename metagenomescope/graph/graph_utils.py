@@ -614,14 +614,12 @@ def get_candidate_twin_cc_num_from_edges(cc, userspecifiededgeid2obj):
     return candidate_twin_cc_num
 
 
-def count_real_edge_info(cc, nodeid2obj, index_by_namepair=True):
+def count_real_edge_info(cc, index_by_namepair=True):
     """Returns a Counter of some kind of edge info in a component.
 
     Parameters
     ----------
     cc: Component
-
-    nodeid2obj: dict of int -> Node
 
     index_by_namepair: bool
         If True, the output Counter's keys will be pairs of node names.
@@ -637,8 +635,8 @@ def count_real_edge_info(cc, nodeid2obj, index_by_namepair=True):
         if not e.is_fake:
             if index_by_namepair:
                 info = (
-                    nodeid2obj[e.new_src_id].basename,
-                    nodeid2obj[e.new_tgt_id].basename,
+                    cc.nodeid2obj[e.new_src_id].basename,
+                    cc.nodeid2obj[e.new_tgt_id].basename,
                 )
             else:
                 # don't worry, this will throw an error if no such ID is set
@@ -647,7 +645,7 @@ def count_real_edge_info(cc, nodeid2obj, index_by_namepair=True):
     return ctr
 
 
-def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
+def components_are_twins(cc, cc2, define_edges_by_nodenames=True):
     """Determines if two Components are "twins" of each other.
 
     Specifically, this checks (given components C1 and C2):
@@ -662,8 +660,6 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
     cc: Component
 
     cc2: Component
-
-    nodeid2obj: dict of int -> Node
 
     define_edges_by_nodenames: bool
         If True, we count edges in the component (and determine reverse-
@@ -701,10 +697,10 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
     ):
         # Counts match up; now check that edge details match up
         ectr1 = count_real_edge_info(
-            cc, nodeid2obj, index_by_namepair=define_edges_by_nodenames
+            cc, index_by_namepair=define_edges_by_nodenames
         )
         ectr2 = count_real_edge_info(
-            cc2, nodeid2obj, index_by_namepair=define_edges_by_nodenames
+            cc2, index_by_namepair=define_edges_by_nodenames
         )
 
         if len(ectr1) == len(ectr2):
@@ -734,7 +730,7 @@ def components_are_twins(cc, cc2, nodeid2obj, define_edges_by_nodenames=True):
         return False
 
 
-def warn_if_cc_edge_cts_asymmetric(cc, nodeid2obj):
+def warn_if_cc_edge_cts_asymmetric(cc):
     """Logs a warning if s -> t and -t -> -s have different real edge counts.
 
     Parameters
@@ -743,10 +739,6 @@ def warn_if_cc_edge_cts_asymmetric(cc, nodeid2obj):
         Component to check. We assume that this component is strand-tangled;
         otherwise, this will make a false-positive warning (since we will see
         an edge
-
-    nodeid2obj: dict of int -> metagenomescope.graph.Node
-        Maps node IDs in the NetworkX graph to the underlying objects. Needed
-        for getting node basenames.
 
     Returns
     -------
@@ -763,7 +755,7 @@ def warn_if_cc_edge_cts_asymmetric(cc, nodeid2obj):
     (so X and -X having different "split statuses" shouldn't really happen
     anyway), but maybe that will change in the future. (probs not tho)
     """
-    st2ct = count_real_edge_info(cc, nodeid2obj, index_by_namepair=True)
+    st2ct = count_real_edge_info(cc, index_by_namepair=True)
     for (s, t), edgect in st2ct.items():
         revtup = name_utils.negate_edge_tuple(s, t)
         if revtup not in st2ct or st2ct[revtup] != edgect:

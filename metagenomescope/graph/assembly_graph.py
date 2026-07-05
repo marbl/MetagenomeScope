@@ -2107,7 +2107,6 @@ class AssemblyGraph(object):
                 if graph_utils.components_are_twins(
                     cc,
                     cc2,
-                    self.nodeid2obj,
                     define_edges_by_nodenames=not self.is_flye_dot,
                 ):
                     # These components really are twins! Choose one of them
@@ -2150,8 +2149,6 @@ class AssemblyGraph(object):
 
         Notes
         -----
-        - See https://github.com/marbl/MetagenomeScope/issues/449 for details.
-
         - Here, we consider all components that do not have a twin as possible
           strand-tangled components. In theory, a component could have no twin
           but still NOT be strand-tangled (if for some reason you like, already
@@ -2162,160 +2159,13 @@ class AssemblyGraph(object):
         - It should be POSSIBLE to generalize this to Flye DOT files by
           removing the reliance on node orientations (or, like, inferring
           node names or something) but I really don't think that is worth it rn
-
-        - There is some ambiguity in how we determine which node orientations
-          to fix. Like, as long as we consider all nodes in this component, any
-          traversal approach "works" (i.e. we will end up showing all nodes
-          once with a given orientation). Our goal is more specifically to
-          minimize the amount of invalidated edges while maximizing the
-          "linearity" of the resulting layout.
-
-          We currently just use NetworkX's bfs_layers() function, which seems
-          to work well for this, but maybe there are other methods that would
-          be better (that explicitly "weight" outgoing edges more, in order to
-          increase linearity).
-
-          Consider a component like X -> Y -> ... -> -Y -> -X
-                                    A -> B -> ... -> -B -> -A, where the ...s
-          indicate these four paths kind of mixing together due to inverted
-          repeats or something.
-
-          In this graph, we want to ideally end up with XY...(-B)(-A) or
-          AB...(-Y)(-X). Nothing is *wrong* if we end up with XY...BA or
-          AB...YX or something -- since those are still valid decoupled
-          representations of this component -- but they are not ideal, because
-          they are not the most linear way of representing it. Probably there
-          is a good way to formalize this that I am just missing out on.
         """
         self.st_cc_nums = set()
         for cc in self.components:
             # Only consider components that do not have a twin (and that have
             # multiple nodes)
             if self.ccnum2twinccnum[cc.cc_num] is None and len(cc.nodes) > 1:
-
-                # maps orientationless node names (both X and -X are "X") to
-                # a fixed orientation
-                on2orient = {}
-
-                # Create lists of all node IDs, and of all + node IDs
-                # (order doesn't matter, but I guess it slightly impacts tie-
-                # breaking in max degree node finding later)
-                cc_nids = []
-                fwd_nids = []
-                for n in cc.nodes:
-                    nid = n.unique_id
-                    cc_nids.append(nid)
-                    # (We use is_fwd() instead of the node "orientation" data
-                    # because the DOT parsing code doesn't assign orientations
-                    # even to LJA DOT nodes, at least for now.)
-                    if name_utils.is_fwd(n.basename):
-                        fwd_nids.append(nid)
-
-                # Fix the highest-degree + node in this component as shown
-                #
-                # In a perfectly symmetric component, the highest degree node X
-                # should also have a twin node -X with the same degree (right?)
-                # Thus, we limit the max-degree node search here to + nodes.
-                mid = graph_utils.get_max_degree_node(self.graph, fwd_nids)
-                m = self.nodeid2obj[mid]
-                on2orient[name_utils.get_orientationless_name(m.basename)] = (
-                    config.FWD
-                )
-                shown_nids = set()
-                # if we show a split node, we really should also show its
-                # counterpart (I mean it's not like a huge deal if we omit the
-                # counterpart but I think it would look gross and confusing).
-                # USUALLY the max-degree node should not be split, but maybe it
-                # could happen?
-                #
-                # A more elegant way of handling this would be only creating
-                # fwd_nids to include unsplit nodes, but I fear some components
-                # might ONLY include split nodes. Maybe? That should really not
-                # happen but I'm too tired to prove it so let's be safe
-                graph_utils.add_node_and_counterpart_ids(shown_nids, m)
-
-                # Go through the graph and fix node orientations.
-                # We use BFS to do this, which seems to work ok; see docstring.
-                # Note that computing the induced subgraph and creating an
-                # undirected graph view from it could be slow (but I doubt it
-                # will be a bottleneck). If needed we can do BFS/etc manually
-                ccug = nx.induced_subgraph(self.graph, cc_nids).to_undirected(
-                    as_view=True
-                )
-                for nids in nx.bfs_layers(ccug, mid):
-                    for nid in nids:
-                        n = self.nodeid2obj[nid]
-                        on = name_utils.get_orientationless_name(n.basename)
-                        if on not in on2orient:
-                            on2orient[on] = name_utils.get_orientation(
-                                n.basename
-                            )
-                            graph_utils.add_node_and_counterpart_ids(
-                                shown_nids, n
-                            )
-
-                # Was this component changed by fixing node orientations?
-                # It might not have been, if it was not strand-tangled. (We
-                # could encounter this case in FASTG / LJA DOT files, I guess.)
-                if len(shown_nids) == len(cc.nodes):
-                    # no, this component was not changed. move on.
-                    continue
-                elif len(shown_nids) > len(cc.nodes):
-                    # like, i know it should never happen. i just wanna be sure
-                    raise WeirdError(f"{cc} caused the apocalypse what even")
-
-                # Okay, we know this component was changed by fixing node
-                # orientations, since |shown nodes| < |nodes|.
-
-                # If (s, t) and (-t, -s) correspond to DIFFERENT amounts of
-                # edges, then we can still do decoupling... but let's emit a
-                # LOUD warning that drawing this component with decoupling may
-                # not show some edges. (This should only happen with "explicit"
-                # filetypes that have node orientations -- so, FASTG and LJA
-                # DOT, I think. And even then this really shouldn't happen in
-                # practice.)
-                graph_utils.warn_if_cc_edge_cts_asymmetric(cc, self.nodeid2obj)
-
-                # Record what edges will be drawn in the decoupled version of
-                # this component
-                shown_eids = set()
-                # ... and what edges are impossible to draw normally (even when
-                # reverse-complemented) given just the shown nodes
-                inval_edgetups = set()
-                inval_eids = set()
-                for e in cc.edges:
-                    src_shown = e.new_src_id in shown_nids
-                    tgt_shown = e.new_tgt_id in shown_nids
-                    # If BOTH the source and target are shown, then we can draw
-                    # this edge! And if NEITHER the source and target is shown,
-                    # then we can draw its reverse complement. The tricky thing
-                    # is if exactly one of the source and target is shown.
-                    s = self.nodeid2obj[e.new_src_id].name
-                    t = self.nodeid2obj[e.new_tgt_id].name
-                    if src_shown and tgt_shown:
-                        shown_eids.add(e.unique_id)
-                    elif src_shown ^ tgt_shown:
-                        # If we reach this case, then exactly one of {source,
-                        # target} is shown, so this edge is invalidated.
-                        #
-                        # Consider the case where there are parallel
-                        # invalidated edges (multiple from s -> t and multiple
-                        # from -t -> -s). We could show (with the funky port
-                        # stuff) either all edges from s -> t, or all edges
-                        # from -t -> -s, but it would be confusing to show a
-                        # mix of edges. Thus, we arbitrarily say that we will
-                        # only show invalidated edges from one of the two
-                        # orientations (by storing the orientation as a tuple).
-                        if (
-                            name_utils.negate_edge_tuple(s, t)
-                            not in inval_edgetups
-                        ):
-                            inval_edgetups.add((s, t))
-                            inval_eids.add(e.unique_id)
-
-                # Record this component, so that we can handle it specially
-                # when drawing with the decoupling option turned on.
-                cc._decouple(shown_nids, shown_eids, inval_eids)
+                cc.decouple(self.graph)
                 self.st_cc_nums.add(cc.cc_num)
 
     def get_nr_cc_nums(self):

@@ -20,7 +20,6 @@ import itertools
 from .. import ui_config, ui_utils, name_utils
 from ..layout import Layout
 from ..errors import WeirdError
-from . import graph_utils
 from .pattern_stats import PatternStats
 from .draw_results import DrawResults
 
@@ -156,17 +155,13 @@ class Subgraph(object):
         # num_real_edges + num_fake_edges).
         self.num_total_edges = 0
 
-        # Things to draw if using decoupling. Only relevant for strand-tangled
-        # Subgraphs (and probably only relevant for Components, right...?)
-        self.decoupling_done = False
-        self.decoupled_shown_node_ids = set()
-        self.decoupled_shown_edge_ids = set()
-        self.decoupled_inval_edge_ids = set()
-
         # PatternStats for this Subgraph.
         self.pattern_stats = PatternStats()
 
-        # maps pattern IDs to objects. Useful if we want to e.g. figure out
+        # map node IDs to objects; useful for decoupling, etc
+        self.nodeid2obj = {}
+
+        # map pattern IDs to objects. Useful if we want to e.g. figure out
         # what type of pattern an edge has (relevant to
         # layout_utils.flatten_some_edges()).
         self.pattid2obj = {}
@@ -214,6 +209,7 @@ class Subgraph(object):
 
     def _add_node(self, node):
         self.nodes.append(node)
+        self.nodeid2obj[node.unique_id] = node
         # If we are counting node lengths (because this is a node-centric
         # graph), then record length only once for each node basename (so
         # X-L and X-R only contribute to the total length once).
@@ -264,42 +260,6 @@ class Subgraph(object):
         self.pattern_stats.update(pattern.pattern_type)
         self.pattid2obj[pattern.unique_id] = pattern
 
-    def _decouple(self, shown_node_ids, shown_edge_ids, inval_edge_ids):
-        """Records a decoupling for this subgraph.
-
-        Probably this should only be done for Components, but maybe I will
-        figure out a use case for doing this for general Subgraph objects
-        at some point. idk.
-
-        Parameters
-        ----------
-        shown_node_ids: set of int
-            Node IDs to be drawn. Assuming that the Subgraph object on which
-            you are calling this method is a symmetric strand-tangled connected
-            component, |shown_node_ids| should be half of |cc.nodes| (ignoring
-            jank like if X is split but -X isn't).
-
-        shown_edge_ids: set of int
-            Edge IDs to be drawn. This can contain parallel edges.
-
-        inval_edge_ids: set of int
-            IDs of edges that cannot be drawn normally (given only the nodes in
-            shown_node_ids), but which we will draw anyway by messing with the
-            edge ports. This can contain parallel edges. Note that this should
-            not describe ALL "invalidated" edges -- just the ones that we
-            should draw anyway.
-
-            (If this Subgraph is a symmetric strand-tangled component, then an
-            edge s -> t being invalidated means that -t -> -s will also be
-            invalidated. We only need to draw one of these.)
-        """
-        if self.decoupling_done:
-            raise WeirdError(f"{self} is already decoupled")
-        self.decoupled_shown_node_ids = shown_node_ids
-        self.decoupled_shown_edge_ids = shown_edge_ids
-        self.decoupled_inval_edge_ids = inval_edge_ids
-        self.decoupling_done = True
-
     def get_objs(self):
         return itertools.chain(self.nodes, self.edges, self.patterns)
 
@@ -325,55 +285,13 @@ class Subgraph(object):
         -------
         DrawResults
         """
-        if self.decoupling_done and ui_utils.decouple(scope_settings):
-            # Create a temporary Subgraph object representing the decoupled
-            # version of this one. We could instead do this without creating a
-            # new object and instead modifying the way that you get nodes from
-            # a subgraph, but this seems easier. (Maybe this will be slow? but
-            # probs not)
-            dcsg = Subgraph(
-                None,
-                self.name + "_dc",
-                [
-                    n
-                    for n in self.nodes
-                    if n.unique_id in self.decoupled_shown_node_ids
-                ],
-                # NOTE: still need to account for invalidated edges #449
-                [
-                    e
-                    for e in self.edges
-                    if e.unique_id in self.decoupled_shown_edge_ids
-                ],
-                [
-                    p
-                    for p in self.patterns
-                    if p.unique_id
-                    in graph_utils.get_avail_pattern_ids(
-                        self.patterns,
-                        self.decoupled_shown_node_ids,
-                        self.decoupled_shown_edge_ids,
-                        scope_settings,
-                    )
-                ],
-                self.node_centric,
-                self.length_field,
-                self.record_node_names,
-                self.count_positive_names,
+        lay = None
+        if layout_alg in ui_config.LAYOUT2GVPROG:
+            lay = Layout(
+                self,
+                scope_settings,
+                modifier_settings,
+                layout_alg,
+                layout_params,
             )
-            if hasattr(self, "cc_num"):
-                dcsg.cc_num = self.cc_num
-            return dcsg.to_cyjs(
-                scope_settings, modifier_settings, layout_alg, layout_params
-            )
-        else:
-            lay = None
-            if layout_alg in ui_config.LAYOUT2GVPROG:
-                lay = Layout(
-                    self,
-                    scope_settings,
-                    modifier_settings,
-                    layout_alg,
-                    layout_params,
-                )
-            return DrawResults({self: lay}, scope_settings)
+        return DrawResults({self: lay}, scope_settings)
