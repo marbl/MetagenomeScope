@@ -33,6 +33,8 @@ class DecoupledComponent(Subgraph):
         """
         if not cc.decoupling_done:
             raise WeirdError(f"{cc} not decoupled?")
+        # Set the component number attribute so this is sorted properly
+        # by DrawResults.get_sorted_regions()
         self.cc_num = cc.cc_num
 
         super().__init__(
