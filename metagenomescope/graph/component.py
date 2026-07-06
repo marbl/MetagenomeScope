@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
+import logging
 import networkx as nx
 from .. import name_utils, ui_utils, config
 from ..errors import WeirdError
@@ -91,7 +92,7 @@ class Component(Subgraph):
         for obj in self.get_objs():
             obj.set_cc_num(cc_num)
 
-    def decouple(self, g):
+    def decouple(self, g, nodename2objs):
         """Tries to decouple this component.
 
         Parameters
@@ -99,6 +100,8 @@ class Component(Subgraph):
         g: nx.MultiDiGraph
             NetworkX representation of the full assembly graph (corresponding
             to the AssemblyGraph.graph object).
+
+        nodename2objs: dict of str -> list of Node
 
         Returns
         -------
@@ -198,7 +201,7 @@ class Component(Subgraph):
         # Okay, we know this component was changed by fixing node
         # orientations, since |shown nodes| < |nodes|.
 
-        # If (s, t) and (-t, -s) correspond to DIFFERENT amounts of
+        # If (s, t) and (-t, -s) correspond to DIFFERENT amounts of (real)
         # edges, then we can still do decoupling... but let's emit a
         # LOUD warning that drawing this component with decoupling may
         # not show some edges. (This should only happen with "explicit"
@@ -213,39 +216,78 @@ class Component(Subgraph):
         # ... and what edges are impossible to draw normally (even when
         # reverse-complemented) given just the shown nodes
         inval_edgetups = set()
-        inval_eids = set()
+        inval_edge_info = []
         for e in self.edges:
             src_shown = e.new_src_id in shown_nids
             tgt_shown = e.new_tgt_id in shown_nids
-            # If BOTH the source and target are shown, then we can draw
-            # this edge! And if NEITHER the source and target is shown,
-            # then we can draw its reverse complement. The tricky thing
-            # is if exactly one of the source and target is shown.
-            s = self.nodeid2obj[e.new_src_id].name
-            t = self.nodeid2obj[e.new_tgt_id].name
-            if src_shown and tgt_shown:
-                shown_eids.add(e.unique_id)
-            elif src_shown ^ tgt_shown:
-                # If we reach this case, then exactly one of {source,
-                # target} is shown, so this edge is invalidated.
+            inval_type = None
+            if src_shown:
+                if tgt_shown:
+                    # If BOTH {src, tgt} are shown, then we can draw this edge!
+                    shown_eids.add(e.unique_id)
+                else:
+                    inval_type = config.INVAL_TGT
+            else:
+                if tgt_shown:
+                    inval_type = config.INVAL_SRC
+                # If NEITHER {src, tgt} is shown, then we'll draw the RC of
+                # this edge (assuming that this component is symmetric, which
+                # is checked by that warning above).
+
+            if inval_type is not None:
+                # Exactly one of {src, tgt} is shown. This edge is invalidated.
                 #
-                # Consider the case where there are parallel
-                # invalidated edges (multiple from s -> t and multiple
-                # from -t -> -s). We could show (with the funky port
-                # stuff) either all edges from s -> t, or all edges
-                # from -t -> -s, but it would be confusing to show a
-                # mix of edges. Thus, we arbitrarily say that we will
-                # only show invalidated edges from one of the two
-                # orientations (by storing the orientation as a tuple).
+                # Consider the case where there are parallel invalidated edges
+                # (multiple from s -> t and multiple from -t -> -s). We could
+                # show (with the funky port stuff) either all edges from
+                # s -> t, or all edges from -t -> -s, but it would be confusing
+                # to show a mix of edges. Thus, we arbitrarily say that we will
+                # only show invalidated edges from one of the two (whichever we
+                # see first and record in inval_edgetups).
+                #
+                # Note that we use basenames here. Let's say node "1" is split
+                # into "1-L --> 1-R", but node "-1" is not split. Using
+                # basenames makes it clear that e.g. 1-R --> 2 is symmetric to
+                # -2 --> -1, since it becomes (1, 2) vs. (-2, -1).
+                s = self.nodeid2obj[e.new_src_id].basename
+                t = self.nodeid2obj[e.new_tgt_id].basename
                 if name_utils.negate_edge_tuple(s, t) not in inval_edgetups:
                     inval_edgetups.add((s, t))
-                    inval_eids.add(e.unique_id)
+                    # Since exactly one of the nodes of this edge will not be
+                    # shown, see if we can find its reverse-complementary node
+                    # in the shown nodes. Note that this reverse-complementary
+                    # node might be split, which is fine.
+                    #
+                    # +-------+            +--------+
+                    # |       |            |        |
+                    # +-(-s)  +->(t)   (s)-+  (-t)<-+
+                    if inval_type == config.INVAL_SRC:
+                        rname = name_utils.negate(s)
+                        rsplit = config.SPLIT_LEFT
+                    else:
+                        rname = name_utils.negate(t)
+                        rsplit = config.SPLIT_RIGHT
+                    rn = graph_utils.find_full_or_certain_split_node(
+                        nodename2objs, rname, rsplit
+                    )
+                    if rn is None:
+                        # this might be redundant with the warning from above
+                        logging.warning(
+                            f"Asymmetry: for {e}, {inval_type}-node {rn} not "
+                            f"in {self}?"
+                        )
+                    elif rn.unique_id not in shown_nids:
+                        raise WeirdError(f"{rn} is not shown, but {e} inval?")
+                    else:
+                        # okay, rn corresponds to a shown node! yay. we will
+                        # draw this invalidated edge specially using it
+                        inval_edge_info.append((e, inval_type, rn.unique_id))
 
         # Record this component, so that we can handle it specially
         # when drawing with the decoupling option turned on.
         self.dc_shown_node_ids = shown_nids
         self.dc_shown_edge_ids = shown_eids
-        self.dc_inval_edge_ids = inval_eids
+        self.dc_inval_edge_info = inval_edge_info
         self.dc_shown_patt_ids = graph_utils.get_avail_pattern_ids(
             self.patterns,
             self.dc_shown_node_ids,

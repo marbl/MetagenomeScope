@@ -245,7 +245,7 @@ class Edge(object):
         else:
             raise WeirdError(f"Unrecognized edge level: {level}")
         return layout_utils.get_edge_dot(
-            src, tgt, self.is_fake, is_back, indent
+            src, tgt, is_fake=self.is_fake, is_back=is_back, indent=indent
         )
 
     def to_cyjs(self, scope_settings):

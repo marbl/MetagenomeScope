@@ -813,3 +813,10 @@ def get_avail_pattern_ids(poss_patterns, node_ids, edge_ids):
 
 def get_objs_by_ids(objs, ids):
     return {o for o in objs if o.unique_id in ids}
+
+
+def find_full_or_certain_split_node(nodename2objs, name, desired_split):
+    for n in nodename2objs[name]:
+        if n.is_not_split() or n.split == desired_split:
+            return n
+    return None

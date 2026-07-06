@@ -1,6 +1,6 @@
 import math
 from collections import defaultdict
-from .. import ui_utils
+from .. import ui_utils, config
 from ..errors import WeirdError
 from . import graph_utils
 
@@ -122,6 +122,14 @@ class DrawResults(object):
             eles.extend(e.to_cyjs(self.scope_settings) for e in r.edges)
             if self.incl_patterns:
                 eles.extend(p.to_cyjs() for p in r.patterns)
+            if hasattr(r, "inval_edge_info"):
+                for e, inval_type, rn_id in r.inval_edge_info:
+                    j = e.to_cyjs(self.scope_settings)
+                    if inval_type == config.INVAL_SRC:
+                        j["data"]["source"] = rn_id
+                    else:
+                        j["data"]["target"] = rn_id
+                    eles.append(j)
         return eles
 
     def pack(self):
@@ -337,6 +345,22 @@ class DrawResults(object):
                         j["data"]["cpd"] = cpd
                         j["data"]["cpw"] = cpw
                 eles.append(j)
+
+            if hasattr(r, "inval_edge_info"):
+
+                for e, inval_type, rn_id in r.inval_edge_info:
+                    j = e.to_cyjs(self.scope_settings)
+                    if inval_type == config.INVAL_SRC:
+                        j["data"]["source"] = rn_id
+                    else:
+                        j["data"]["target"] = rn_id
+                    if e.unique_id in edgeid2ctrlpts:
+                        straight, cpd, cpw = edgeid2ctrlpts[e.unique_id]
+                        if not straight:
+                            j["classes"] += " withctrlpts"
+                            j["data"]["cpd"] = cpd
+                            j["data"]["cpw"] = cpw
+                    eles.append(j)
 
             if self.incl_patterns:
                 eles.extend(p.to_cyjs() for p in r.patterns)

@@ -46,6 +46,19 @@ def get_gv_header(prog, name="g", use_ports=False, params={}):
     return gv_input
 
 
+def save_and_rm_edge(cg, edgeid2rel, edge_id, src_id, tgt_id):
+    pgv_edge = cg.get_edge(src_id, tgt_id)
+    edgeid2rel[edge_id] = get_control_points(pgv_edge)
+    # If this is a parallel edge, then get_edge() should give us an arbitrary
+    # one of these edges. We will call cg.remove_edge() to ensure that the next
+    # time -- if any -- that we call cg.get_edge() with these node IDs, we get
+    # a different edge position.
+    #
+    # THAT BEING SAID if these are parallel edges proobs they don't need to be
+    # laid out with fancy control pt stuff...
+    cg.remove_edge(pgv_edge)
+
+
 def get_control_points(pgv_edge):
     """Extracts control points from a PyGraphviz edge after layout.
 
@@ -539,6 +552,7 @@ def get_edge_dot(
     tgtid,
     is_fake=False,
     is_back=False,
+    ports=None,
     indent=layout_config.INDENT,
 ):
     attrs = ""
@@ -550,6 +564,9 @@ def get_edge_dot(
         attrs += layout_config.FAKEEDGE_STYLE
     if len(attrs) > 0:
         attrs = f" [{attrs}]"
+    if ports is not None:
+        srcid = f"{srcid}:{ports[0]}"
+        tgtid = f"{tgtid}:{ports[1]}"
     return f"{indent}{srcid} -> {tgtid}{attrs};\n"
 
 
@@ -585,3 +602,10 @@ def get_pattern_cluster_dot(pattern, indent=layout_config.INDENT):
         )
     dot += f"{indent}}}\n"
     return dot
+
+
+def get_inval_edge_stids(e, inval_type, rn_id):
+    if inval_type == config.INVAL_SRC:
+        return (rn_id, e.new_tgt_id)
+    else:
+        return (e.new_src_id, rn_id)

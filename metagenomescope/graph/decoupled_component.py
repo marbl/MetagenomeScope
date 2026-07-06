@@ -16,6 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with MetagenomeScope.  If not, see <http://www.gnu.org/licenses/>.
 
+from .. import config
+from ..layout import layout_utils
 from ..errors import WeirdError
 from . import graph_utils
 from .subgraph import Subgraph
@@ -33,9 +35,16 @@ class DecoupledComponent(Subgraph):
         """
         if not cc.decoupling_done:
             raise WeirdError(f"{cc} not decoupled?")
+
         # Set the component number attribute so this is sorted properly
         # by DrawResults.get_sorted_regions()
         self.cc_num = cc.cc_num
+
+        # "Invalidated edges" are edges from s -> t where one of (s, t) is not
+        # present in the set of "shown nodes," but its reverse-complement node
+        # (-s or -t) is present in the shown nodes. These edges can be drawn by
+        # adjusting them to hit the RC node but on the opposite side as usual.
+        self.inval_edge_info = cc.dc_inval_edge_info
 
         super().__init__(
             None,
@@ -48,3 +57,22 @@ class DecoupledComponent(Subgraph):
             record_node_names=cc.record_node_names,
             count_positive_names=cc.count_positive_names,
         )
+
+    def get_inval_edge_dot(self):
+        out_dot = ""
+        for e, inval_type, rn_id in self.inval_edge_info:
+            if e.is_fake:
+                # this should never happen, since showing a split node should
+                # always mean we show its counterpart split node (so at no
+                # point should a fake edge between X-L and X-R be invalidated
+                # due to only ONE of these nodes being shown)
+                raise WeirdError(f"Fake edge {e} is invalidated?")
+            if inval_type == config.INVAL_SRC:
+                out_dot += layout_utils.get_edge_dot(
+                    rn_id, e.new_tgt_id, ports=("w", "w")
+                )
+            else:
+                out_dot += layout_utils.get_edge_dot(
+                    e.new_src_id, rn_id, ports=("e", "e")
+                )
+        return out_dot

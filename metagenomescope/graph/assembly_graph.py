@@ -2165,7 +2165,7 @@ class AssemblyGraph(object):
             # Only consider components that do not have a twin (and that have
             # multiple nodes)
             if self.ccnum2twinccnum[cc.cc_num] is None and len(cc.nodes) > 1:
-                cc.decouple(self.graph)
+                cc.decouple(self.graph, self.nodename2objs)
                 self.st_cc_nums.add(cc.cc_num)
 
     def get_nr_cc_nums(self):
