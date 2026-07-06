@@ -59,7 +59,7 @@ class Layout(object):
         self.region_is_pattern = hasattr(self.region, "pattern_type")
 
         if not self.region_is_pattern:
-            self.pattern_ids = [p.unique_id for p in self.region.patterns]
+            self.pattern_ids = self.region.pattid2obj.keys()
 
         # when laid out as a "solid object," this region will be represented
         # as just a rectangle. ofc in the fancy viz we may use a diff shape

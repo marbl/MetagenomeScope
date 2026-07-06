@@ -2441,12 +2441,14 @@ class AssemblyGraph(object):
             subgraph_edge_ids.add(uid)
 
         # Get patterns, maybe
-        subgraph_patt_ids = graph_utils.get_avail_pattern_ids(
-            self.pattid2obj.values(),
-            subgraph_node_ids,
-            subgraph_edge_ids,
-            scope_settings,
-        )
+        if ui_utils.show_patterns(scope_settings):
+            subgraph_patt_ids = graph_utils.get_avail_pattern_ids(
+                self.pattid2obj.values(),
+                subgraph_node_ids,
+                subgraph_edge_ids,
+            )
+        else:
+            subgraph_patt_ids = set()
         return subgraph_node_ids, subgraph_edge_ids, subgraph_patt_ids
 
     def _to_cyjs_around_nodes(

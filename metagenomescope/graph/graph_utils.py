@@ -769,7 +769,7 @@ def warn_if_cc_edge_cts_asymmetric(cc):
             break
 
 
-def get_avail_pattern_ids(poss_patterns, node_ids, edge_ids, scope_settings):
+def get_avail_pattern_ids(poss_patterns, node_ids, edge_ids):
     """Returns IDs of all patterns whose descendant nodes/edges are all given.
 
     Parameters
@@ -780,41 +780,36 @@ def get_avail_pattern_ids(poss_patterns, node_ids, edge_ids, scope_settings):
 
     edge_ids: set of int
 
-    scope_settings: list of str
-
     Returns
     -------
     set of int
-        If the scope settings indicate that we should show patterns, then
-        this will return the IDs of all patterns in poss_patterns that are
-        "available," given the specified node and edge IDs.
-
-        (If the scope settings indicate that we should NOT show patterns,
-        then this will return an empty set.)
+        IDs of all patterns in poss_patterns that are "available," given the
+        specified node and edge IDs.
     """
     avail_patt_ids = set()
-    if ui_utils.show_patterns(scope_settings):
-        # include a pattern only if all its descendant nodes and edges are
-        # included
-        for p in poss_patterns:
-            available = True
-            desc_nodes, desc_edges, desc_patts, _ = p.get_descendant_info()
-            for dn in desc_nodes:
-                if dn.unique_id not in node_ids:
-                    available = False
-                    break
-            # NOTE: If all of the descendant nodes of a pattern are drawn,
-            # then all of the descendant edges of this pattern should also
-            # have been drawn. Probably??? At least for the types of
-            # patterns we currently identify and the current way we draw
-            # things, I think. (Even for decoupling!)
-            #
-            # But anyway, just for the sake of safety, we also check the edges
-            # (since set lookups are fastish anyway right) out of paranoia.
-            for de in desc_edges:
-                if de.unique_id not in edge_ids:
-                    available = False
-                    break
-            if available:
-                avail_patt_ids.add(p.unique_id)
+    # include a pattern only if all its descendant nodes and edges are included
+    for p in poss_patterns:
+        available = True
+        desc_nodes, desc_edges, desc_patts, _ = p.get_descendant_info()
+        for dn in desc_nodes:
+            if dn.unique_id not in node_ids:
+                available = False
+                break
+        # NOTE: If all of the descendant nodes of a pattern are drawn, then all
+        # of the descendant edges of this pattern should also have been drawn.
+        # Probably??? At least for the types of patterns we currently identify
+        # and the current way we draw things, I think. (Even for decoupling!)
+        #
+        # But anyway, just for the sake of safety, we also check the edges
+        # (since set lookups are fastish anyway right) out of paranoia.
+        for de in desc_edges:
+            if de.unique_id not in edge_ids:
+                available = False
+                break
+        if available:
+            avail_patt_ids.add(p.unique_id)
     return avail_patt_ids
+
+
+def get_objs_by_ids(objs, ids):
+    return {o for o in objs if o.unique_id in ids}

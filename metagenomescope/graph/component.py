@@ -21,6 +21,7 @@ from .. import name_utils, ui_utils, config
 from ..errors import WeirdError
 from . import graph_utils
 from .subgraph import Subgraph
+from .decoupled_component import DecoupledComponent
 
 
 class Component(Subgraph):
@@ -70,6 +71,7 @@ class Component(Subgraph):
         self.dc_shown_node_ids = set()
         self.dc_shown_edge_ids = set()
         self.dc_inval_edge_ids = set()
+        self.dc_shown_patt_ids = set()
 
         super().__init__(
             unique_id,
@@ -244,6 +246,11 @@ class Component(Subgraph):
         self.dc_shown_node_ids = shown_nids
         self.dc_shown_edge_ids = shown_eids
         self.dc_inval_edge_ids = inval_eids
+        self.dc_shown_patt_ids = graph_utils.get_avail_pattern_ids(
+            self.patterns,
+            self.dc_shown_node_ids,
+            self.dc_shown_edge_ids,
+        )
         self.decoupling_done = True
         return True
 
@@ -251,41 +258,9 @@ class Component(Subgraph):
         self, scope_settings, modifier_settings, layout_alg, layout_params
     ):
         if self.decoupling_done and ui_utils.decouple(scope_settings):
-            # Create a temporary object representing the decoupled version.
-            dcsg = Component(
-                None,
-                [
-                    n
-                    for n in self.nodes
-                    if n.unique_id in self.dc_shown_node_ids
-                ],
-                # NOTE: still need to account for invalidated edges #449
-                [
-                    e
-                    for e in self.edges
-                    if e.unique_id in self.dc_shown_edge_ids
-                ],
-                [
-                    p
-                    for p in self.patterns
-                    if p.unique_id
-                    in graph_utils.get_avail_pattern_ids(
-                        self.patterns,
-                        self.dc_shown_node_ids,
-                        self.dc_shown_edge_ids,
-                        scope_settings,
-                    )
-                ],
-                self.node_centric,
-                self.length_field,
-                self.record_node_names,
-                self.count_positive_names,
-            )
-            dcsg.cc_num = self.cc_num
-            return dcsg.to_cyjs(
-                scope_settings, modifier_settings, layout_alg, layout_params
-            )
+            caller = DecoupledComponent(self)
         else:
-            return super().to_cyjs(
-                scope_settings, modifier_settings, layout_alg, layout_params
-            )
+            caller = super()
+        return caller.to_cyjs(
+            scope_settings, modifier_settings, layout_alg, layout_params
+        )
